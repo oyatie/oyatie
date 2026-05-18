@@ -54,7 +54,7 @@ All components introduced by parallel ADR-0135 (Connect dissolution) + ADR-0132 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 LTS (posts + votes + attestation-bindings; blinding-column-isolated schema) | `oya-anonymous-pseudonymous-identity-*` (10 crates) |
-| Redis 7.2 (feed cache + vote counter) | `oya-anonymous-affinity-attestation-*` (10 crates) |
+| Valkey 8.1 (Redis wire-compat) (feed cache + vote counter) | `oya-anonymous-affinity-attestation-*` (10 crates) |
 | Meilisearch 0.10 (hashtag search; never per-author) | `oya-anonymous-post-thread-*` (9 crates) |
 | `ring 0.17` (RSA-PSS-blind) OR `rust-bls` (Schnorr-blind / BBS+) per ADR-ANON-0001 | `oya-anonymous-feed-timeline-*` (9 crates) |
 | `oya-bbs-plus` Layer-A wrapper (W3C VC 2.0; pinned per ADR-ANON-0002) | `oya-anonymous-upvote-downvote-*` (9 crates) |
@@ -117,7 +117,7 @@ All components introduced by parallel ADR-0135 (Connect dissolution) + ADR-0132 
 │  │  database-level GRANT prevents JOIN across the two                   │   │
 │  │  except via legal_process_disclosure_view (Cedar-gated)              │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
-│  ┌─ Redis (vote counter + feed cache; opaque keys only) ────────────────┐   │
+│  ┌─ Valkey (vote counter + feed cache; opaque keys only) ────────────────┐   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │  ┌─ Meilisearch (hashtag-corpus only; never per-author) ────────────────┐   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
@@ -167,7 +167,7 @@ Threats categorised by STRIDE + LINDDUN. T-x = STRIDE; T-L-x = LINDDUN.
 | ID | Threat | Likelihood | Impact | Mitigation | Status |
 |---|---|---|---|---|---|
 | T-T-01 | Tamper with post body in transit | Low | Medium | TLS 1.3 + content_hash (sha256) verified at server | Mitigated |
-| T-T-02 | Tamper with vote count via SQL injection / Redis injection | Low | High | Postgres parameterized queries; Redis serialization layer; LEAN lane `oya-check-sql-injection-refused` | Mitigated |
+| T-T-02 | Tamper with vote count via SQL injection / Valkey injection (Redis wire-protocol) | Low | High | Postgres parameterized queries; Valkey serialization layer; LEAN lane `oya-check-sql-injection-refused` | Mitigated |
 | T-T-03 | Tamper with audit-chain record (rewrite history) | Low | Critical | Merkle + Ed25519 seal per Bominal ADR-0028; chain-of-custody hash linked | Mitigated |
 | T-T-04 | Tamper with blinded-credential commitment in Postgres | Low | Critical (I1 violated) | Row-level integrity hash + Ed25519 seal | Mitigated |
 | T-T-05 | Tenant-admin tampering with retention worker config to extend retention beyond pack policy | Medium | High (regulatory violation) | Pack-policy enforced as hard ceiling in `policy/data-residency.md`; tenant override forbidden at code level | Mitigated |
@@ -221,7 +221,7 @@ Threats categorised by STRIDE + LINDDUN. T-x = STRIDE; T-L-x = LINDDUN.
 | T-D-02 | Vote-fraud (mass downvote brigade) | High | Medium | Per-blinded-credential one-vote-per-post bound (cryptographic proof); vote-velocity classifier T2 | Mitigated |
 | T-D-03 | BBS+ verify CPU exhaustion (computationally expensive) | Medium | High | Per-IP rate limit 100 verify/min; CPU budget per tenant | Mitigated |
 | T-D-04 | Postgres tablespace fill (mass post creation) | Medium | High | Per-tenant storage quota; auto-tier-purge on near-quota | Mitigated |
-| T-D-05 | Redis memory exhaustion (vote counter blowup) | Medium | Medium | Per-tenant Redis memory quota; LRU eviction | Mitigated |
+| T-D-05 | Valkey memory exhaustion (vote counter blowup) | Medium | Medium | Per-tenant Valkey memory quota; LRU eviction | Mitigated |
 
 ### T-E Elevation of privilege
 

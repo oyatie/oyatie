@@ -16,7 +16,7 @@ acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest]
 
 ## Intent
 
-Implement PresenceBroadcast + CrdtOpSpool against Redis 7.4 cluster mode + a long-running WebSocket gateway worker that fans out CRDT ops via consistent-hash on `document_id`.
+Implement PresenceBroadcast + CrdtOpSpool against Valkey 8.1 (Redis wire-compat) cluster mode + a long-running WebSocket gateway worker that fans out CRDT ops via consistent-hash on `document_id`.
 
 ## ChangeSet boundary
 

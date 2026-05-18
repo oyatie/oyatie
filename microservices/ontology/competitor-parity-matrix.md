@@ -93,7 +93,7 @@ Per `feedback_quality_performance_scalability_bar.md`, this µservice is held to
 
 | Feature | Stardog | oyatie Ontology | Status |
 |---|---|---|---|
-| Virtual graph data virtualization (RDF mapping to remote sources) | ✅ | planned (M04 via virtual-source mapping receipts per `feedback_workflow_objectgraph_adapter_layer`) | **gap** |
+| Virtual graph data virtualization (RDF mapping to remote sources) | ✅ | planned (M04 via virtual-source mapping receipts per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145)`) | **gap** |
 | Query rewriting to native source syntax | ✅ | partial (Function DSL → Postgres/ClickHouse) | parity (different surface) |
 | OWL/RDFS reasoning | ✅ | n/a (oyatie chose typed-entity layer, not OWL) | **intentional difference** |
 | SPARQL endpoint | ✅ | planned (M04) | **gap** |

@@ -48,7 +48,7 @@ Each failure carries: FM-ID; Trigger; Detection (SLI/alert/metric); Tenant impac
 | Detection | `oya_foundry_eval_gpu_pool_queue_depth_seconds > 300` for ≥ 5min OR publish-gate p99 latency > 5s |
 | Tenant impact | Capability publish stalls for everyone; tenant upgrades delayed |
 | Severity | Sev-2 (operational; not eval-correctness compromised) |
-| Immediate mitigation | Manual scale-out; cluster-autoscaler nudge; priority-class triage; pause nightly cadence |
+| Immediate mitigation | Manual scale-out; Karpenter NodeClaim nudge (per ADR-0198); priority-class triage; pause nightly cadence |
 | RTO | ≤ 30 min for autoscale; ≤ 1h for full triage |
 | Recovery runbook | `runbooks/gpu-pool-rebalance.md` |
 | Postmortem owner | ops-sre-reliability + axis-foundry |

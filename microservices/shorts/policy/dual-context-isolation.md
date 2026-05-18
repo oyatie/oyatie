@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-shorts
 deciders: council-architecture, ops-security, axis-shorts, council-privacy
-related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/shorts/threat-model.md (T-I-07, T-I-08; cross-context invariant violation)
   - microservices/shorts/dpia.md (R-03, R-04)

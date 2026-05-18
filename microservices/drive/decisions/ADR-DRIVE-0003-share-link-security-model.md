@@ -7,7 +7,7 @@ deciders: axis-drive, council-architecture, ops-security, council-privacy
 owner: ops-security + axis-drive
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-0133, ADR-0140, ADR-DRIVE-0004, ADR-DRIVE-0006]
+related: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0004, ADR-DRIVE-0006]
 related_artifacts:
   - microservices/drive/PRD.md (§FR-04 share-link)
   - microservices/drive/policy/public-read.cedar

@@ -418,7 +418,7 @@
     },
     {
       "id": "IP-002-redis-and-postgres-baseline",
-      "title": "IP-002: Redis 7.4 LTS + Postgres 16 LTS baseline",
+      "title": "IP-002: Valkey 8.1 (Redis wire-compat) + Postgres 16 LTS baseline",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-002-runtime-redis-and-postgres-baseline.md"
     },
@@ -508,7 +508,7 @@
     },
     {
       "id": "IP-002-redis-layer-a-iac",
-      "title": "IP-002: Redis Cluster Layer-A IaC",
+      "title": "IP-002: Valkey Cluster Layer-A IaC",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-017-supervisor-redis-layer-a-iac.md"
     },
@@ -1090,12 +1090,6 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
-    },
-    {
-      "id": "ADR-0140",
-      "title": "Cross Cutting Carriers Adapter Exemption",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -1130,5 +1124,25 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "AgentFleet",
+      "projection_target_table": "ontology_agent_fleets",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "CapabilityCard",
+      "projection_target_table": "ontology_capability_cards",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true,
+    "north_south_only": false
   }
 }

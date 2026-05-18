@@ -11,7 +11,7 @@ bominal_source:
   - ADR-0164   # Workflow canonical spec format
   - ADR-0103   # Workflow hexagonal migration
   - ADR-0037   # Plugin substrate (node-library scaffolding)
-related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/workflow-studio.json, /specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0131
 unbundle_sibling: microservices/workflow-engine/
@@ -28,7 +28,7 @@ The `workflow-studio` µservice is oyatie's **visual workflow authoring product*
 
 Studio is **NOT a substrate**. It is a tenant-facing product surface with five distinct user personas (business power user, developer, vertical specialist, agentic developer role, external customer). The visual canvas is the largest Leptos application in oyatie (per ADR-0065 Rust-WASM SSR + browser-WASM hybrid). The canonical source of truth is the `workflow_spec.v1.json` document; the visual canvas derives from the spec, never vice-versa (per Bominal ADR-0164 inherited verbatim).
 
-This µservice operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer.md`): Studio consumes ontology object-type descriptors for typed node configuration; emits workflow_spec.v1 documents to the engine; bridges to foundry-providers for LLM-assist; routes through tenancy for per-seat licensing; runs in the application µservice's hosting shell.
+This µservice operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`): Studio consumes ontology object-type descriptors for typed node configuration; emits workflow_spec.v1 documents to the engine; bridges to foundry-providers for LLM-assist; routes through tenancy for per-seat licensing; runs in the application µservice's hosting shell.
 
 This µservice inherits Bominal ADR-0164 (canonical spec format) verbatim. Studio binds to the same spec format the engine consumes — round-trip byte-equality is the load-bearing invariant. Visual edits emit the spec; spec loads produce the same visual. Anti-pattern `visual_model_above_spec_model` is detected by the `oya-foundry-fitness-workflow-spec-roundtrip` CI lane.
 
@@ -118,7 +118,7 @@ This µservice is **shared substrate AND hero product** simultaneously per `feed
 
 ### Data residency
 
-- Editor session state, spec drafts, collab CRDT state, and per-seat license attribution inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Redis are per-pack region-pinned.
+- Editor session state, spec drafts, collab CRDT state, and per-seat license attribution inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Valkey are per-pack region-pinned.
 - CDN static assets are global (no PII; spec schema + node library descriptors + WASM bundles); per-pack CDN edge keys segregate tenant-rendered content where applicable.
 
 ## Bounded Contexts
@@ -341,7 +341,7 @@ CI lanes that must green:
 - `oya gate validate port-location --microservice workflow-studio`
 - `oya gate validate layer-correctness --microservice workflow-studio`
 - `oya gate validate per-microservice-layout --microservice workflow-studio`
-- `oya gate validate statelessness --microservice workflow-studio` — Studio REST stateless (state in Postgres + Redis)
+- `oya gate validate statelessness --microservice workflow-studio` — Studio REST stateless (state in Postgres + Valkey)
 - `oya gate validate shardability --microservice workflow-studio` — editor sessions sharded by tenant_id
 - `oya gate validate workflow-spec-roundtrip --microservice workflow-studio` — NEW lane asserting load(emit(x)) byte-equal to x for ≥ 100 golden specs
 - `oya gate validate cedar-preview-required --microservice workflow-studio` — every save path exercises Cedar policy preview
@@ -443,7 +443,7 @@ Error budget:
 - Static assets (WASM bundles + node library descriptors + spec schema): `cdn` (global edge cache; per-tenant key partitioning).
 - Object storage for large node library binaries (per-pack signed): OCI Object Storage.
 
-**Active-active compatibility**: `stateless-compatible` for REST/SDK; `single-writer-compatible` for collab CRDT (one WebSocket gateway pod owns active sessions for a given definition; lease-coordinated via Redis).
+**Active-active compatibility**: `stateless-compatible` for REST/SDK; `single-writer-compatible` for collab CRDT (one WebSocket gateway pod owns active sessions for a given definition; lease-coordinated via Valkey).
 
 Per-cell capacity envelope:
 
@@ -457,9 +457,9 @@ Per-cell capacity envelope:
 
 Scale-out policy:
 - Editor REST: stateless HPA on CPU > 70%; min 2 replicas; max 50.
-- WebSocket gateway (collab-crdt-worker): stateful per active editor session; lease-coordinated via Redis; HPA on WS connection count; min 3 replicas; max 100.
+- WebSocket gateway (collab-crdt-worker): stateful per active editor session; lease-coordinated via Valkey; HPA on WS connection count; min 3 replicas; max 100.
 - Postgres + Citus: tenant_id shard key; linear shard addition.
-- Redis: per-cell cluster; HA via Sentinel.
+- Valkey: per-cell cluster; HA via Sentinel.
 - CDN: global; per-pack edge nodes; OCI CDN service.
 
 Cross-region story:
@@ -469,7 +469,7 @@ Cross-region story:
 
 Sharding:
 - Postgres + Citus on `tenant_id`; editor sessions append-only; Citus distributed table.
-- Redis per-cell cluster; cell-local CRDT state.
+- Valkey per-cell cluster; cell-local CRDT state.
 - WebSocket gateway: consistent-hash on `definition_id` ensures collab participants land on same gateway pod.
 
 ## Acceptance Criteria

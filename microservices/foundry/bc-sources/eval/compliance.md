@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-foundry
 deciders: council-privacy, ops-security, axis-foundry, council-architecture
-related_adrs: [ADR-0024, ADR-0026, ADR-0028, ADR-0117, ADR-0131, ADR-0133, ADR-0140]
+related_adrs: [ADR-0024, ADR-0026, ADR-0028, ADR-0117, ADR-0131, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/foundry-eval/threat-model.md
   - microservices/foundry-eval/dpia.md

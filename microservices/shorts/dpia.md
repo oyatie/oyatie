@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-shorts
 deciders: council-privacy, ops-security, axis-shorts, council-architecture, ops-legal
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/shorts/threat-model.md
@@ -65,7 +65,7 @@ DPIA is mandatory pre-deployment. This document is the canonical DPIA reviewed b
 
 **What:** Creators upload short videos (≤ 60s); the system scans (OPSWAT / ClamAV), transcodes (ffmpeg 7.x to HLS/DASH ladder), fingerprint-matches (Chromaprint audio + DCT perceptual-hash video) against a copyright corpus, auto-captions (foundry-runtime ASR), generates thumbnails (poster + animated GIF), stores blobs (S3 + CDN), classifies content (NSFW + violence + minor-protection via foundry-runtime T2), ranks feed (algorithmic For-You + chronological), tracks watch-time, fans out notifications, federates metadata (Professional opt-in), issues DRM licenses (Premium-tier), and applies retention + DMCA + appeal + parental-controls workflows.
 
-**How:** Client → ingress (TLS/WAF) → WebSocket gateway + REST → BC services (REST + worker) → Postgres (metadata, claims, ages, parental, audio-track) + Redis (feed cache, watch-time, like-counters, trending, notifications) + S3 (video blobs + transcode variants + thumbnails + captions) + CloudFront-class CDN (signed-URL TTL ≤ 15min) + Meilisearch (hashtag + sound + creator search) + audit-chain seal + foundry-runtime (classifier + ranking + ASR) + Widevine / FairPlay / PlayReady (DRM).
+**How:** Client → ingress (TLS/WAF) → WebSocket gateway + REST → BC services (REST + worker) → Postgres (metadata, claims, ages, parental, audio-track) + Valkey (feed cache, watch-time, like-counters, trending, notifications) + S3 (video blobs + transcode variants + thumbnails + captions) + CloudFront-class CDN (signed-URL TTL ≤ 15min) + Meilisearch (hashtag + sound + creator search) + audit-chain seal + foundry-runtime (classifier + ranking + ASR) + Widevine / FairPlay / PlayReady (DRM).
 
 **Where:** Per-pack region-pinned shorts clusters. pack-kr (KR), pack-eu (EU), pack-us (US), pack-us-healthcare (US, HIPAA-eligible), and conditional packs.
 

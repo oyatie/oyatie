@@ -5,7 +5,7 @@ microservice: docs
 status: Accepted
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + council-privacy
-related_adrs: [ADR-0139, ADR-0140]
+related_adrs: [ADR-0139, ADR-0140 (retired per ADR-0145)]
 doc_status: published
 ---
 
@@ -143,7 +143,7 @@ Per-runbook procedure (see `runbooks/`). Common patterns:
 1. Acknowledge within 5 min.
 2. Declare Sev-1; engage axis-docs + ops-security + council-privacy.
 3. Halt save-paths for affected (tenant, document) via `cargo run -p oya-dev-cli -- vcs override-paths --microservice docs --halt-saves --tenant <h> --document <d>` (2-person rule).
-4. Reconstruct CRDT op stream from Postgres seal-deltas + Redis ephemeral state.
+4. Reconstruct CRDT op stream from Postgres seal-deltas + Valkey ephemeral state.
 5. Forensic analysis: which op was dropped? engine-bug or adapter-bug?
 6. Author hotfix; deploy via emergency-merge sign-off.
 7. Tenant notification + regulator notification per pack.

@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: council-privacy + ops-security
-related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0006]
 doc_status: published
 ---
 

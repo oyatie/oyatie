@@ -21,7 +21,7 @@ Define per-tenant and per-cell unit economics for calendar. FinOps gate: per-ten
 |---|---|---|
 | Active calendar (1 user) | $0.18 / mo | Postgres row + RLS overhead + index footprint |
 | Event row (year-of-active-data) | $0.0004 / event-mo | Postgres + tenant-DEK envelope encryption overhead |
-| Cross-tenant availability lookup | $0.00002 / lookup | Redis cache + cross-pack mesh hop |
+| Cross-tenant availability lookup | $0.00002 / lookup | Valkey cache + cross-pack mesh hop |
 | Recurrence expansion (1y horizon) | $0.0008 / expansion | worker CPU + memory |
 | Room booking | $0.0001 / booking | Postgres FOR UPDATE + audit emit |
 | Invitation send (1 attendee) | $0.0003 / invitation | event-bus + mail handoff |
@@ -34,7 +34,7 @@ Define per-tenant and per-cell unit economics for calendar. FinOps gate: per-ten
 | Component | Baseline / cell / mo | Notes |
 |---|---|---|
 | Postgres (event-store; 3-replica HA + per-tenant RLS) | $4,200 | OCI VM.Standard3.Flex 8 OCPU × 3 + 2TB persistent block + S3 backup |
-| Redis (availability cache; cluster mode 3-shard) | $900 | OCI Caching Service standard tier |
+| Valkey (availability cache; cluster mode 3-shard) | $900 | OCI Caching Service standard tier |
 | Kubernetes nodes (rest + worker pods) | $2,100 | OCI VM.Standard.E5.Flex × 6 baseline |
 | IANA tzdata refresh job | $5 | CronJob trivial |
 | Egress (cross-tenant availability + invitation mail handoff) | $400 | OCI egress to mail-µservice intra-region |
@@ -80,7 +80,7 @@ Cost-meter emitted as Mimir metric per ADR-0123 + finops standards:
 
 | Optimisation | Estimated savings | Status |
 |---|---|---|
-| Recurrence expansion cache (Redis; window-hashed) | 60% on recurrence cost | Implemented in PHASE-01 CS-04 |
+| Recurrence expansion cache (Valkey; window-hashed) | 60% on recurrence cost | Implemented in PHASE-01 CS-04 |
 | Cross-tenant availability cache TTL ≤ 60s + single-flight | 70% on cross-tenant lookup cost | Implemented in PHASE-01 CS-05 |
 | Postgres per-tenant partition pruning | 40% on read latency + 25% on storage | Implemented in PHASE-01 CS-02 |
 | .ics streaming parse (not full materialisation) | 90% on memory; required for 100k events | Implemented in PHASE-01 CS-08 |

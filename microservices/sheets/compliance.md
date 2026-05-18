@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-sheets, council-design-system, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0065, ADR-0117, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0065, ADR-0117, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/sheets/threat-model.md
   - microservices/sheets/dpia.md
@@ -80,7 +80,7 @@ Canonical control-to-framework mapping for sheets. Tells external auditors (SOC 
 | A.5.14 | Information transfer | mTLS + AI-formula pack-resident routing + ACL-aware XLSX export | `policy/data-residency.md` |
 | A.5.15 | Access control | OIDC + Cedar (license-gate + range-ACL) + Citus + RLS | `threat-model.md` |
 | A.5.17 | Authentication information | OpenBao rotation (30d / 90d) | OpenBao audit log |
-| A.5.18 | Access rights | RBAC managed via Terraform | `iac/terraform/sheets-rbac.tf` |
+| A.5.18 | Access rights | RBAC managed via OpenTofu | `iac/terraform/sheets-rbac.tf` |
 | A.5.23 | Cloud services | OCI HIPAA-eligible for pack-us-healthcare | `policy/data-residency.md` |
 | A.5.26 | Response to incidents | Severity-driven runbook | `incident-response.md` + `runbooks/*` |
 | A.5.28 | Collection of evidence | Audit-chain Ed25519 emission | ADR-0028 |
@@ -175,7 +175,7 @@ KR PIPA Art. 29 (technical safeguards) — cross-mapped to Sheets mitigations:
 |---|---|
 | Access control | OIDC + Cedar (license + range-ACL) + Citus + RLS + WS gateway tenant binding |
 | Encryption (transit) | mTLS internal; TLS public ingress |
-| Encryption (at rest) | KMS-SSE for Postgres + Redis AOF + S3 + Arrow/Parquet OCI Object Storage |
+| Encryption (at rest) | KMS-SSE for Postgres + Valkey AOF + S3 + Arrow/Parquet OCI Object Storage |
 | Integrity verification | Cell-edit signature + recalc determinism + audit-chain Merkle |
 | Audit log retention ≥ 1y | 3y aligned (KR-FSS sector) |
 | IDS / IPS | WAF + network policies |

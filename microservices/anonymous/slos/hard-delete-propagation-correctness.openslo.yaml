@@ -13,7 +13,7 @@ metadata:
 spec:
   description: |
     Hard-delete propagation MUST be 100% correct within p99 ≤ 5s across
-    Postgres + Redis + Meilisearch + audit-chain. Any breach is Sev-1 per
+    Postgres + Valkey + Meilisearch + audit-chain. Any breach is Sev-1 per
     `runbooks/hard-delete-tombstone-corruption.md`. Regulatory exposure
     under GDPR Art. 17, KR PIPA Art. 21, CCPA §1798.105, COPPA §312.5.
   service: oya-anonymous-retention-policy-worker

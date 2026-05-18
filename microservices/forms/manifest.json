@@ -122,7 +122,7 @@
   "ips": [
     {
       "id": "IP-001-layer-a-postgres-redis-meilisearch-clamav-waf-cdn-captcha-iac",
-      "title": "IP-001: Layer-A IaC — Postgres (Citus) + Redis + Meilisearch + ClamAV + WAF + CDN + Captcha sidecar",
+      "title": "IP-001: Layer-A IaC — Postgres (Citus) + Valkey + Meilisearch + ClamAV + WAF + CDN + Captcha sidecar",
       "acceptance_status": "ga",
       "file": "microservices/forms/IP-001-layer-a-postgres-redis-meilisearch-clamav-waf-cdn-captcha-iac.md"
     },
@@ -158,7 +158,7 @@
     },
     {
       "id": "IP-007-redis-adapter",
-      "title": "IP-007: Redis adapter (rate-limit + session)",
+      "title": "IP-007: Valkey adapter (Redis wire-compat) (rate-limit + session)",
       "acceptance_status": "ga",
       "file": "microservices/forms/IP-007-redis-adapter.md"
     },
@@ -280,12 +280,6 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
-    },
-    {
-      "id": "ADR-0140",
-      "title": "Cross Cutting Carriers Adapter Exemption",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -305,5 +299,12 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

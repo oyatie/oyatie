@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0172]
 related_specs: [/specs/microservices/social.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-social
@@ -75,13 +75,13 @@ Bominal predecessor: the `connect-social` slice of Bominal's unified Connect sui
 
 | Metric | p50 | p95 | p99 | p999 | Notes |
 |---|---|---|---|---|---|
-| Feed-render latency (top 50 posts) | ≤ 60ms | ≤ 200ms | ≤ 400ms | ≤ 1s | Redis hot-feed cache; warm hit on read |
-| Profile-render latency | ≤ 40ms | ≤ 150ms | ≤ 350ms | ≤ 800ms | Postgres + Redis cache |
+| Feed-render latency (top 50 posts) | ≤ 60ms | ≤ 200ms | ≤ 400ms | ≤ 1s | Valkey hot-feed cache; warm hit on read |
+| Profile-render latency | ≤ 40ms | ≤ 150ms | ≤ 350ms | ≤ 800ms | Postgres + Valkey cache |
 | Post-create latency (post → fanout-ack) | ≤ 30ms | ≤ 100ms | ≤ 250ms | ≤ 700ms | Postgres insert + async fanout |
 | Follow-action latency | ≤ 20ms | ≤ 50ms | ≤ 150ms | ≤ 400ms | Postgres adjacency-list write |
 | Search-people query (≤ 25 results) | ≤ 80ms | ≤ 300ms | ≤ 600ms | ≤ 1.2s | Meilisearch + Cedar filter |
 | Search-content query (≤ 25 results) | ≤ 150ms | ≤ 500ms | ≤ 1s | ≤ 2s | Meilisearch + Cedar filter |
-| Notification fanout (10k followers) | ≤ 200ms | ≤ 1s | ≤ 2s | ≤ 5s | per-recipient async via Redis Streams |
+| Notification fanout (10k followers) | ≤ 200ms | ≤ 1s | ≤ 2s | ≤ 5s | per-recipient async via Valkey Streams (Redis wire-compat) |
 | Notification fanout (100k followers) | ≤ 500ms | ≤ 2s | ≤ 5s | ≤ 15s | sharded fanout workers |
 | Comment / reply create | ≤ 30ms | ≤ 100ms | ≤ 250ms | ≤ 700ms | Postgres insert |
 | Reaction add | ≤ 15ms | ≤ 50ms | ≤ 120ms | ≤ 300ms | Redis-buffered + Postgres flush |
@@ -290,9 +290,9 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for profiles + posts + follow-graph; Redis for feed cache + reactions + presence; S3 for media; Meilisearch for search; ActivityPub gateway stateless beyond peer registry.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for profiles + posts + follow-graph; Valkey for feed cache + reactions + presence; S3 for media; Meilisearch for search; ActivityPub gateway stateless beyond peer registry.
 
-**Active-active compatibility**: stateless REST + worker pods + Postgres logical-replicated within pack; Redis primary-replica HA; S3 cross-AZ replication.
+**Active-active compatibility**: stateless REST + worker pods + Postgres logical-replicated within pack; Valkey primary-replica HA; S3 cross-AZ replication.
 
 Per-cell capacity envelope:
 
@@ -308,7 +308,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - HPA on REST pods: CPU > 70 %, min 6, max 200 replicas.
 - Postgres shard-by-tenant once cell hits 25k posts/sec aggregate.
-- Redis cluster sharding by `(tenant_id, post_id) mod N`.
+- Valkey cluster sharding by `(tenant_id, post_id) mod N`.
 - Follow-graph: adjacency-list sharded by `(follower_tenant, follower_user mod N)`.
 
 Sharding:
@@ -371,3 +371,27 @@ Sharding:
 | Bominal ADR-0215 | Connect retention legal-hold dual-context | inherited |
 | Bominal ADR-0028 | Audit-chain Merkle + Ed25519 | inherited |
 | Bominal ADR-0111 | Ciphertext property type + envelope encryption | inherited |
+| ADR-0172 | Read replicas + CQRS where appropriate | this µservice's `social.feed` BC opts in |
+
+## CQRS Read-Replica Addendum — `social.feed` BC (per ADR-0172)
+
+Per ADR-0172 (2026-05-18), the `social.feed` bounded context opts in to the read-replica CQRS split as one of the three M02 high-read BCs. The split is narrow: writes continue to land on the primary; high-volume feed-query reads route to replicas.
+
+### Declaration
+
+| Field | Value |
+|---|---|
+| Bounded context | `social.feed` |
+| Command-side primary | `oya-social-feed-primary` (Postgres 17 LTS) |
+| Query-side replicas | 5 read replicas via pgpool-II; per-cell isolation per ADR-0009 |
+| Read-staleness budget | ≤2s p99 |
+| Read:write ratio justifying split | ~100×–1000× (per ADR-0172 §"Context") |
+| Read-after-write mechanism | per-tenant LSN pinning via `oya-read-after-write-lsn` header |
+
+### Migration
+
+Migration follows the per-BC sequenced cutover declared in ADR-0172 §"Migration / rollout plan" (Phase 0 baseline → Phase 5 close-out; ~8 weeks). Auto-rollback on staleness-budget breach during Phase 4 gradual cutover.
+
+### SLO + observability
+
+Read-staleness SLO authored under `microservices/social/slos/feed-read-staleness.openslo.yaml` (M02 deliverable per ADR-0139). Per-replica `pg_stat_replication.replay_lag` exported to Mimir; alert at p99 > 2s.

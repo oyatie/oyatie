@@ -1,5 +1,5 @@
 {{/*
-Mesh-only ingress for REST; egress to OpenBao + Postgres + Redis +
+Mesh-only ingress for REST; egress to OpenBao + Postgres + Valkey +
 Meilisearch + cert-manager + cross-µservice (forms / drive / community
 / docs / mail / workflow-engine / observability / audit-chain /
 tenancy / ontology / foundry-runtime) + Loro CRDT relay + ACME server
@@ -61,7 +61,7 @@ spec:
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: oya-sites-postgres}}
       ports: [{port: 5432, protocol: TCP}]
-    # Redis
+    # Valkey
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: oya-sites-redis}}
       ports: [{port: 6379, protocol: TCP}]

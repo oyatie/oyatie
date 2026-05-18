@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-workflow + ops-security
 deciders: council-architecture, ops-security, axis-workflow, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140, ADR-0148]
+related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-0148]
 related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every engine substrate change OR new event-type registration
 enforced_frameworks:
@@ -44,7 +44,7 @@ All components introduced by the workflow-engine PRD + PHASE-01:
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres + Citus (durable run state, outbox, spec store) | `oya-workflow-engine-spec-store-*` (9 crates) |
-| Redis (ephemeral lease state, subscription registry) | `oya-workflow-engine-execution-engine-*` (12 crates) |
+| Valkey (ephemeral lease state, subscription registry) | `oya-workflow-engine-execution-engine-*` (12 crates) |
 | ClickHouse (run-history analytics replica) | `oya-workflow-engine-state-machine-*` (6 crates) |
 | Object storage (large step payloads) | `oya-workflow-engine-event-bus-*` (11 crates) |
 |  | `oya-workflow-engine-replay-debugger-backend-*` (11 crates) |
@@ -55,7 +55,7 @@ All components introduced by the workflow-engine PRD + PHASE-01:
 ### Out-of-scope
 
 - Threats to the underlying Kubernetes cluster, container runtime, or hyperscaler IaaS — owned by `cloud-k8s` threat model.
-- Threats to Postgres / Redis / ClickHouse infrastructure layer — owned by `cloud-iac` µservice threat model; this document inherits.
+- Threats to Postgres / Valkey / ClickHouse infrastructure layer — owned by `cloud-iac` µservice threat model; this document inherits.
 - Threats to the Studio visual editor — owned by `workflow-studio` threat model.
 - Threats to OpenBao secret manager — owned by `cloud-secrets` threat model.
 - Threats to the consuming µservices' workflow specs themselves — each owns its own threat model; the engine inherits spec-content threats via signature verification.
@@ -88,13 +88,13 @@ All components introduced by the workflow-engine PRD + PHASE-01:
 │  │  - Row-level security (RLS) on top of Citus                     │       │
 │  │  - Per-tenant connection pool                                   │       │
 │  └─────────────────────────────────────────────────────────────────┘       │
-│  ┌─ Redis (ephemeral) ─┐ ┌─ ClickHouse (analytics) ─┐                      │
+│  ┌─ Valkey (ephemeral) ─┐ ┌─ ClickHouse (analytics) ─┐                      │
 │  │ tenant-prefixed key │ │ tenant_id partition key  │                      │
 │  └─────────────────────┘ └──────────────────────────┘                      │
 │                                                                            │
 │  Trust boundary 3: Engine worker → step body execution (sandbox)           │
 │                                                                            │
-│  ┌─ execution-engine-worker (one worker owns one run via Redis lease) ┐    │
+│  ┌─ execution-engine-worker (one worker owns one run via Valkey lease) ┐    │
 │  │  - Step body executed in Wasmtime sandbox (plugin substrate ADR-0037) │ │
 │  │  - No host filesystem / network unless explicitly granted by spec  │   │
 │  │  - Memory + CPU bounded per execution                              │   │
@@ -105,7 +105,7 @@ All components introduced by the workflow-engine PRD + PHASE-01:
 │                                                                            │
 │  ┌─ event-bus subscription enforcement ───────────────────────────────┐    │
 │  │  - tenant_id binding from SDK auth ≠ requested filter tenant_id    │    │
-│  │  - subscription state in Redis with tenant prefix                  │    │
+│  │  - subscription state in Valkey with tenant prefix                  │    │
 │  │  - cross-tenant subscribe attempts audit-emitted + denied          │    │
 │  └────────────────────────────────────────────────────────────────────┘    │
 │                                                                            │
@@ -135,13 +135,13 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 | Run state (current + checkpoints) | `BEHAVIORAL_TENANT_PRODUCT` | High | 90d hot + 24mo cold (ClickHouse + Postgres) | Postgres (authoritative); ClickHouse (replica) |
 | Step payloads (input + output) | `BEHAVIORAL_TENANT_PRODUCT` + transient `PII_IDENTIFYING` (user-id fields) + occasionally `PHI` (pack-us-healthcare clinical workflows) | High | 14d hot + per-pack retention overlay | Postgres + object storage for large payloads |
 | Event log (typed events) | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_QUASI_IDENTIFIER` | High | 90d hot + 24mo cold for replay | Postgres outbox + ClickHouse replica |
-| Workflow-event subscriptions (registry) | `INTERNAL_ONLY` | Low | live in Redis; reconstructable from Postgres on cold-start | Redis + Postgres |
+| Workflow-event subscriptions (registry) | `INTERNAL_ONLY` | Low | live in Valkey; reconstructable from Postgres on cold-start | Valkey + Postgres |
 | Spec signing keys (Ed25519) | `SECRET` | Critical | OpenBao 90d rotation | OpenBao |
 | Audit-chain Ed25519 signing keys | `SECRET` | Critical | OpenBao 90d rotation; HSM-backed where available | OpenBao |
 | Per-tenant SDK API keys | `SECRET` | Critical | OpenBao 30d rotation | OpenBao |
 | Postgres connection credentials (per-cell) | `SECRET` | Critical | OpenBao 30d rotation | OpenBao |
 | Audit-chain seals (per run) | `AUDIT` | High | append-only; immutable | audit-chain µservice |
-| Ephemeral step lease leases (Redis) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | TTL ≤ 5min per lease | Redis |
+| Ephemeral step lease leases (Valkey) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | TTL ≤ 5min per lease | Valkey |
 | Hashed tenant ID (used in topic namespace + RLS) | `SENSITIVE_PIPA_ART23` (potential re-identification with auxiliary data) | High | salted; rotation 12mo | OpenBao tenant-resolver |
 
 ## Actors
@@ -196,7 +196,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 - Mitigations:
   - SA token bound to pod identity; cannot be used outside cluster.
   - Token rotation 24h.
-  - Postgres + Redis + ClickHouse all validate the SPIFFE identity matches expected engine-worker SA.
+  - Postgres + Valkey + ClickHouse all validate the SPIFFE identity matches expected engine-worker SA.
   - Network policy: only engine pods may reach Postgres write endpoints.
 - Owner: ops-security + axis-workflow
 - Residual: L
@@ -241,7 +241,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 - Asset: WorkflowRun Postgres row
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - Single-writer invariant enforced via Redis lease per (tenant, run_id); only the lease-holder may write.
+  - Single-writer invariant enforced via Valkey lease per (tenant, run_id); only the lease-holder may write.
   - Postgres optimistic concurrency check (`version` column); lease + version both required for write.
   - Lease TTL ≤ 5min; expired leases trigger lease-extension or transparent failover.
 - Owner: axis-workflow
@@ -454,13 +454,13 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 - Residual: L
 - Frameworks: SOC 2 CC7.1; ISO 27001 A.8.6, A.8.14
 
-**T-D-06 — Redis lease coordinator outage halts step dispatch**
-- Asset: Redis (lease coordinator)
+**T-D-06 — Valkey lease coordinator outage halts step dispatch**
+- Asset: Valkey (lease coordinator)
 - Likelihood: M / Impact: H / Risk: **H**
 - Mitigations:
-  - Redis HA via Sentinel; min 3 replicas; automatic failover.
-  - Fallback to Postgres advisory locks when Redis is unhealthy (latency degraded but availability preserved).
-  - Per-cell Redis cluster; cell-level isolation.
+  - Valkey HA via Sentinel; min 3 replicas; automatic failover.
+  - Fallback to Postgres advisory locks when Valkey is unhealthy (latency degraded but availability preserved).
+  - Per-cell Valkey cluster; cell-level isolation.
 - Owner: ops-sre-reliability + axis-workflow
 - Residual: L
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30, A.8.6, A.8.14
@@ -533,7 +533,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 | Ed25519 spec signature verification | Preventive | axis-workflow | `oya-governance-workflow-spec-signature-verification` lane |
 | Ed25519 audit-chain seals | Detective + Non-repudiation | audit-chain | Audit-chain regression tests |
 | Outbox idempotency keys | Preventive (replay-attack) | axis-workflow | Replay determinism test suite |
-| Single-writer Redis lease per run | Preventive (race conditions) | axis-workflow | Concurrent-writer integration test |
+| Single-writer Valkey lease per run | Preventive (race conditions) | axis-workflow | Concurrent-writer integration test |
 | Wasmtime sandbox per step | Preventive | axis-workflow | Sandbox fuzz tests |
 | Step-payload `data_class` annotations | Preventive | each spec author | `oya-check-data-class` lane |
 | Per-tenant rate limits + active-run caps | Preventive (DoS) | axis-workflow | Engine REST metrics |
@@ -541,7 +541,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 | DSR cascade runner | Preventive (compliance) | council-privacy | DSR queue dashboard SLO |
 | Cross-tenant subscribe attempt SLI | Detective | axis-workflow | Mimir alert |
 | Mass-cancel anomaly alert | Detective | ops-security | Mimir alert |
-| Network policy: engine → Postgres / Redis / ClickHouse only | Preventive | ops-sre-reliability | Kubernetes NetworkPolicy review |
+| Network policy: engine → Postgres / Valkey / ClickHouse only | Preventive | ops-sre-reliability | Kubernetes NetworkPolicy review |
 
 ## Residual Risk Acceptance
 
@@ -600,7 +600,7 @@ Pack-overlay sections at `regional-packs/<pack>/workflow-engine-overlay.md`; eac
 ## Re-review Triggers
 
 - Any change to the trust boundary diagram (new boundary, removed boundary, modified actor).
-- Any Layer-A version upgrade (Postgres / Citus / Redis / ClickHouse) where upstream release notes mention security fixes.
+- Any Layer-A version upgrade (Postgres / Citus / Valkey / ClickHouse) where upstream release notes mention security fixes.
 - New event type registered to the event-bus (each new event is a new spec-content surface).
 - New pack activation.
 - Annual scheduled review (Q2 each year).

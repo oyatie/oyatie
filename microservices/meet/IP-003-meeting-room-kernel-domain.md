@@ -37,7 +37,7 @@ Author the meeting-room BC's kernel + domain layers per ADR-0105. Kernel declare
 #[data_class = "BEHAVIORAL_TENANT_PRODUCT"]
 pub struct MeetingRoom {
     pub room_id: RoomId,            // ULID
-    pub tenant_id: TenantId,        // ADR-0140 sharding key
+    pub tenant_id: TenantId,        // ADR-0140 (retired per ADR-0145) sharding key
     pub name: RoomName,             // BNF-validated
     pub topic: Option<RoomTopic>,
     pub lobby_policy: LobbyPolicy,

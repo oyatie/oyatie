@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Track the messenger µservice's monthly cloud cost across Postgres + Redis + S3 + WebSocket gateway + Tantivy/ES search + observability sidecars + Layer-B compute (Rust BC services), per pack region. Surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers called out.
+Track the messenger µservice's monthly cloud cost across Postgres + Valkey + S3 + WebSocket gateway + Tantivy/ES search + observability sidecars + Layer-B compute (Rust BC services), per pack region. Surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers called out.
 
 ## Cost Categories
 
@@ -27,11 +27,11 @@ Track the messenger µservice's monthly cloud cost across Postgres + Redis + S3 
 |---|---|---|
 | Compute (OKE node) | Layer-B Rust services (rest + worker + app per BC) | `oracle.com/cloud/compute/pricing/` |
 | Postgres (managed or self-hosted on PV) | Message + channel + thread + ACL + audit-write store | `oracle.com/database/pricing/` |
-| Redis (managed or self-hosted) | Presence + read-receipt + ephemeral cache | `oracle.com/cloud/cache/pricing/` |
+| Valkey (managed or self-hosted) | Presence + read-receipt + ephemeral cache | `oracle.com/cloud/cache/pricing/` |
 | WebSocket gateway pods | Envoy + custom Rust gateway crate | bundled into compute |
 | Object storage (S3-compatible) | Attachment blobs + previews + quarantine | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Search backend | Tantivy on PV, optional Elasticsearch cluster | `oracle.com/opensearch-service/` |
-| Block storage (PV) | Postgres data + Tantivy indexes + Redis AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
+| Block storage (PV) | Postgres data + Tantivy indexes + Valkey AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Network egress | WebSocket fanout to public clients; cross-AZ replication | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-tenant DEK envelope; attachment SSE-KMS | `oracle.com/security/key-management/pricing/` |
 | Load balancer | Per-pack ingress (Envoy / Cloudflare) | `oracle.com/cloud/networking/load-balancing/pricing/` |
@@ -56,7 +56,7 @@ Per `capacity-model.md` "XS: 20 tenants, ~500k MAU, ~1k msg/sec sustained".
 | presence-worker | 4 × VM.Standard.E4 2-core | $144 | – | $144 |
 | Postgres primary | 1 × VM.Standard.E4 8-core | $145 | $250 PV (5 TB) | $395 |
 | Postgres replicas (2) | 2 × VM.Standard.E4 8-core | $290 | $500 PV | $790 |
-| Redis cluster (3 shards × primary+replica) | 6 × VM.Standard.E4 2-core | $216 | $30 PV | $246 |
+| Valkey cluster (3 shards × primary+replica) | 6 × VM.Standard.E4 2-core | $216 | $30 PV | $246 |
 | Tantivy indexers | 4 × VM.Standard.E4 4-core | $290 | $400 PV (8 TB) | $690 |
 | Attachment S3 bucket | – | – | $400 hot (16 TB) + $200 cold (100 TB archive) | $600 |
 | OPSWAT scan SaaS | – | $300 (5k scans/day) | – | $300 |

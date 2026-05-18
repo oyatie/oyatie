@@ -33,7 +33,7 @@ PRD I3 commits the platform to short-retention default + hard-delete with tombst
 2. **Tenant-selectable bounds** — what is the maximum a tenant can opt into?
 3. **Hard-delete vs soft-delete** — recovery-window posture?
 4. **Tombstone seal posture** — what does the tombstone record? (must NOT record deleted content)
-5. **Cross-µservice propagation** — how does deletion cascade to Redis + Meilisearch + audit-chain?
+5. **Cross-µservice propagation** — how does deletion cascade to Valkey + Meilisearch + audit-chain?
 6. **Per-pack overrides** — GDPR storage-limitation vs other packs?
 
 Regulatory anchors:
@@ -55,7 +55,7 @@ Regulatory anchors:
    - pack-jp: max 60 days (APPI storage-limitation)
    - all other packs: max 90 days
 4. **Hard-delete only.** No soft-delete; no recovery window. A deletion is **content-purge** + **tombstone seal**; the tombstone records `(tombstone_id, target_id, target_kind, deleted_at, deletion_reason)` — NEVER the deleted content.
-5. **Cross-µservice propagation chain**: post-thread Postgres → feed-timeline Redis → search-index Meilisearch → audit-chain tombstone seal. Each step idempotent; saga pattern (no XA); p99 ≤ 5s.
+5. **Cross-µservice propagation chain**: post-thread Postgres → feed-timeline Valkey → search-index Meilisearch → audit-chain tombstone seal. Each step idempotent; saga pattern (no XA); p99 ≤ 5s.
 6. **Tombstone audit-chain seal**: Merkle-sealed per ADR-0028. A tombstone is verifiable from the audit-chain Merkle root; an orphan tombstone (one with no matching record) is treated as harmless; a missing tombstone (record deleted but no tombstone) is a Sev-1 privacy regression per `runbooks/hard-delete-tombstone-corruption.md`.
 7. **Right-to-erasure flow**: `DELETE /v1/posts/{post_id}` triggers the propagation chain; SLO `anonymous-hard-delete-propagation-correctness` measures correctness.
 

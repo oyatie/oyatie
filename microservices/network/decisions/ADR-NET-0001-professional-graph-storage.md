@@ -48,7 +48,7 @@ Sibling `social` ADR-SOC-0002 selected Postgres adjacency-list for its follow-gr
 4. **Recruiter cross-tenant invariant** (per PCI-10): recruiter-search is constrained to tenant-scope; the graph store must enforce tenant_id partitioning at the storage layer (not application layer).
 5. **Connection cap**: 30k 1st-degree connections per account (LinkedIn-parity bound); the storage must handle dense super-nodes without read-amplification cliff.
 
-The decision needs to (a) pick a P01-deliverable storage substrate, (b) provide an evolution path for graph-database (Dgraph / JanusGraph / Neo4j / TigerGraph) without breaking the kernel port trait, (c) honor pack residency + RLS + tenant-scope per ADR-0117 + ADR-0140, (d) integrate with audit-chain µservice for endorsement-chain integrity, (e) keep connection-action p99 ≤ 150ms per `slos/connection-action-latency.openslo.yaml`.
+The decision needs to (a) pick a P01-deliverable storage substrate, (b) provide an evolution path for graph-database (Dgraph / JanusGraph / Neo4j / TigerGraph) without breaking the kernel port trait, (c) honor pack residency + RLS + tenant-scope per ADR-0117 + ADR-0140 (retired per ADR-0145), (d) integrate with audit-chain µservice for endorsement-chain integrity, (e) keep connection-action p99 ≤ 150ms per `slos/connection-action-latency.openslo.yaml`.
 
 ## Decision
 
@@ -58,7 +58,7 @@ oyatie network adopts **Postgres 16 (LTS) as the primary store for all graph dat
 2. **Per-tenant partitioning** via `PARTITION BY HASH (tenant_id)` with 64 partitions per cell. Cross-partition queries are explicitly disallowed at the application layer.
 3. **Stronger consistency than sibling `social`**: connection-edge writes + endorsement-record inserts are **synchronously replicated** to the 2 read-replicas at insert time (synchronous_commit = on for primary; replicas confirm before commit). This costs ~5ms additional latency vs `social`'s `synchronous_commit = local` but is mandatory for endorsement-chain Merkle-position consistency.
 4. **Endorsement-chain ordering**: endorsement insertions take a per-tenant advisory lock (`pg_advisory_xact_lock`) before assigning `merkle_chain_position`. This serialises endorsements per tenant; per ADR-NET-0005, this is necessary for Merkle-verifiable chain.
-5. **Redis cache for degree-of-separation** with write-through invalidation on edge-changes; cache miss falls back to Postgres BFS (cap depth 3). Cache TTL 24h.
+5. **Valkey cache for degree-of-separation** with write-through invalidation on edge-changes; cache miss falls back to Postgres BFS (cap depth 3). Cache TTL 24h.
 6. **Audit-chain emission on every state transition** (connection-add, connection-accept, endorsement-add, endorsement-revoke, recommendation-publish); event-replay can re-derive the canonical state per ADR-NET-0005.
 7. **Future-pluggable graph-database adapter**: the kernel port trait `ProfessionalGraphRepository` is data-type-only (no SQL leakage); a future `oya-network-professional-graph-adapter-dgraph` (or JanusGraph / Neo4j) can implement it without changing the kernel. Trigger for migration: per-tenant graph storage > 5 TB OR per-cell write-IOPS > 70 % of Postgres ceiling sustained.
 8. **Per-pack PG cluster**: each pack has its own PG cluster; cross-pack replication forbidden per `policy/data-residency.md`.
@@ -93,11 +93,11 @@ The storage substrate is identical to sibling `social`'s pattern at the table-sh
 - Cons: endorsement-chain Merkle-position assignment is racy; can produce out-of-order chain (which Merkle-verify catches but at the cost of FM-14 Sev-1 noise); audit-chain replay required more frequently.
 - Rejected: endorsement-chain integrity is load-bearing for B2B trust; the additional ~5ms is acceptable.
 
-### E. Hybrid: Postgres for canonical store + Redis for read-served degree-cache + Dgraph for OLAP queries (recruiter-stub feature pipeline)
+### E. Hybrid: Postgres for canonical store + Valkey for read-served degree-cache + Dgraph for OLAP queries (recruiter-stub feature pipeline)
 
 - Pros: best-of-both for OLAP-style queries; recruiter-stub feature pipeline benefits from graph-DB.
 - Cons: 3-store complexity in P01; Dgraph maintenance burden inappropriate for M02 launch.
-- **Partial accept**: Postgres + Redis is in-scope (this ADR's choice); Dgraph for OLAP scheduled-for-distinct-tracked-work to future ADR-NET if recruiter-stub volume demands it.
+- **Partial accept**: Postgres + Valkey is in-scope (this ADR's choice); Dgraph for OLAP scheduled-for-distinct-tracked-work to future ADR-NET if recruiter-stub volume demands it.
 
 ## Consequences
 
@@ -114,7 +114,7 @@ The storage substrate is identical to sibling `social`'s pattern at the table-sh
 
 - Connection-action p99 ~5ms higher than sibling `social`'s follow-action; acceptable per SLO.
 - Per-tenant advisory lock on endorsement adds means dense endorsement bursts (FM-08) serialise per-tenant; mitigated by per-tenant rate limit + batched seal worker.
-- BFS depth-3 connection-degree calculation has worst-case O(K^3) for K = avg connections; cap K = 30k per LinkedIn-parity; pre-compute degree-count cache in Redis to bound.
+- BFS depth-3 connection-degree calculation has worst-case O(K^3) for K = avg connections; cap K = 30k per LinkedIn-parity; pre-compute degree-count cache in Valkey to bound.
 - Per-pack PG cluster increases pack-count × storage cost; offset by per-tenant unit-economics (per `cost-budget.md`).
 
 ### Operational

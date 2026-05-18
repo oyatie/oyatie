@@ -4,7 +4,7 @@
 // Annex III §4 employment-context auto-assign refusal until conformity assessment.
 // Owner: ops-security + axis-tasks + council-privacy
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140, ADR-TASKS-0006, policy/task-isolation.md
+// Related: ADR-0140 (retired per ADR-0145), ADR-TASKS-0006, policy/task-isolation.md
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

@@ -7,7 +7,7 @@ amended_date: 2026-05-18
 owner: ops-security
 supersedes: []
 superseded_by: []
-related: [ADR-0064, ADR-0117, ADR-0131, ADR-0133, ADR-0139, ADR-0140, ADR-0144]
+related: [ADR-0064, ADR-0117, ADR-0131, ADR-0133, ADR-0139, ADR-0140 (retired per ADR-0145), ADR-0144]
 related_memory: [feedback_quality_performance_scalability_bar, feedback_canonical_base_localization, feedback_repeat_mistake_prevention, feedback_no_silent_regression]
 related_specs:
   - /specs/hyperscaler-gates.json

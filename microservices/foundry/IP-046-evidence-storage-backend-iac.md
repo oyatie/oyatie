@@ -44,7 +44,7 @@ helm lint microservices/foundry/iac/helm/postgres
 helm lint microservices/foundry/iac/helm/evidence-builder
 helm lint microservices/foundry/iac/helm/evidence-blob-store
 kubectl --dry-run=client apply -k microservices/foundry/iac/kustomize/overlays/pack-kr
-terraform plan microservices/foundry/iac/terraform/
+tofu plan microservices/foundry/iac/terraform/
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-evidence
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 cargo run -p oya-dev-cli -- gate validate cross-pack-replication-forbidden --microservice foundry-evidence

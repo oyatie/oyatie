@@ -13,22 +13,22 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: Layer-A IaC — CDN + WAF + Postgres (Citus) + Redis + WebSocket gateway
+# IP-001: Layer-A IaC — CDN + WAF + Postgres (Citus) + Valkey + WebSocket gateway
 
 ## Intent
 
-Author Helm + Kustomize manifests for the workflow-studio Layer-A substrate: OCI CDN (per-pack edge), OCI WAF, Postgres + Citus (editor session + per-seat license attribution + draft persistence), Redis (ephemeral CRDT + WS lease coordination), WebSocket gateway (axum-WS-based, fronted by Istio), under `microservices/workflow-studio/iac/`. Deploys to the workflow-studio namespace on each pack's regional cluster per `multi-region.md`. Versions pinned to LTS per `docs/standards/observability-slo.md` § "Layer-A components".
+Author Helm + Kustomize manifests for the workflow-studio Layer-A substrate: OCI CDN (per-pack edge), OCI WAF, Postgres + Citus (editor session + per-seat license attribution + draft persistence), Valkey (ephemeral CRDT + WS lease coordination), WebSocket gateway (axum-WS-based, fronted by Istio), under `microservices/workflow-studio/iac/`. Deploys to the workflow-studio namespace on each pack's regional cluster per `multi-region.md`. Versions pinned to LTS per `docs/standards/observability-slo.md` § "Layer-A components".
 
 ## ChangeSet boundary
 
-One cohesive ChangeSet: 8 Helm chart bundles (CDN/WAF integration, Postgres + Citus, Redis HA, WS gateway, visual-canvas REST, node-library-registry REST, license-gate-cedar, studio composition-root deployment) + 1 shared Kustomize base + per-pack overlays (pack-kr at M03 launch; 10 additional overlays scaffolded). No Rust code; pure IaC + values. Per-pack secret references via OpenBao SecretReference (no raw secrets in repo).
+One cohesive ChangeSet: 8 Helm chart bundles (CDN/WAF integration, Postgres + Citus, Valkey HA, WS gateway, visual-canvas REST, node-library-registry REST, license-gate-cedar, studio composition-root deployment) + 1 shared Kustomize base + per-pack overlays (pack-kr at M03 launch; 10 additional overlays scaffolded). No Rust code; pure IaC + values. Per-pack secret references via OpenBao SecretReference (no raw secrets in repo).
 
 ## Concrete File Targets
 
 | Path | Action | Description |
 |---|---|---|
 | `microservices/workflow-studio/iac/helm/studio-postgres/{Chart.yaml,values.yaml,values-pack-kr.yaml}` | create | Citus 12.x distributed Postgres; tenant_id shard key; RLS enabled |
-| `microservices/workflow-studio/iac/helm/studio-redis/{Chart.yaml,values.yaml}` | create | Redis 7.4 LTS; Sentinel HA; per-cell cluster |
+| `microservices/workflow-studio/iac/helm/studio-redis/{Chart.yaml,values.yaml}` | create | Valkey 8.1 (Redis wire-compat); Sentinel HA; per-cell cluster |
 | `microservices/workflow-studio/iac/helm/visual-canvas-rest/{Chart.yaml,values.yaml,templates/{deployment,service,hpa,pdb,networkpolicy,servicemonitor,prometheusrule}.yaml}` | create | Editor REST Deployment + Service + HPA + PDB + NetworkPolicy + Prometheus monitoring |
 | `microservices/workflow-studio/iac/helm/collab-crdt-worker/{Chart.yaml,values.yaml,templates/{deployment,service,hpa,pdb,networkpolicy,servicemonitor,prometheusrule}.yaml}` | create | WebSocket gateway Deployment + HPA + PDB |
 | `microservices/workflow-studio/iac/helm/node-library-registry-rest/{Chart.yaml,values.yaml,templates/...}` | create | Node library REST + CDN-fronted distribution |
@@ -155,6 +155,6 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - `microservices/workflow-studio/threat-model.md` §"Trust Boundaries" + §"T-D-01".
 - `docs/standards/observability-slo.md` §"Layer-A components".
 - Citus docs — `docs.citusdata.com`.
-- Redis Sentinel docs — `redis.io/docs/management/sentinel/`.
+- Valkey Sentinel docs — `redis.io/docs/management/sentinel/`.
 - OCI CDN docs — `docs.oracle.com/iaas/Content/CDN/`.
 - OCI WAF docs — `docs.oracle.com/iaas/Content/WAF/`.

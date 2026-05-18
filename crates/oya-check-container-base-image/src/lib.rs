@@ -169,9 +169,10 @@ fn collect_stages(content: &str) -> Vec<Stage> {
             let from = rest.split_whitespace().next().unwrap_or("").to_string();
             stages.push(Stage { from, user: None });
         } else if let Some(rest) = strip_directive(trimmed, "USER")
-            && let Some(stage) = stages.last_mut() {
-                stage.user = Some(rest.trim().to_string());
-            }
+            && let Some(stage) = stages.last_mut()
+        {
+            stage.user = Some(rest.trim().to_string());
+        }
     }
     stages
 }

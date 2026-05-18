@@ -22,6 +22,6 @@ ports_declared: []
 entities: []
 context_kind_invariant: true
 implementation_notes: |
-  Implements ViewStateStore + presence cursor against Redis 7.2 LTS cluster
+  Implements ViewStateStore + presence cursor against Valkey 8.1 (Redis wire-compat) cluster
   mode; per-tenant key prefix; eviction policy allkeys-lru for view-cache.
   Backpressure ring buffer (1k events) per connection.

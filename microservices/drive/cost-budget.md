@@ -15,7 +15,7 @@ doc_status: published
 
 Per-tenant + per-cell unit-economic cost envelope for the drive µservice. Used to budget infrastructure spend, alarm on cost regressions, and justify per-tier pricing.
 
-Cost categories tracked: compute (rest + worker pods), storage (object store + Postgres metadata + Redis + Meilisearch + Tika cache), bandwidth (CDN egress + cross-cell replication), per-tenant overhead (KMS calls + audit-chain seal cost), preview render compute, virus + DLP scan compute.
+Cost categories tracked: compute (rest + worker pods), storage (object store + Postgres metadata + Valkey + Meilisearch + Tika cache), bandwidth (CDN egress + cross-cell replication), per-tenant overhead (KMS calls + audit-chain seal cost), preview render compute, virus + DLP scan compute.
 
 ## Per-tenant baseline (medium tenant)
 
@@ -26,7 +26,7 @@ Reference tenant: 1,000 active users, 50TB stored, 1M files, 5GB ingress + 50GB 
 | Object store (Garage; 3× replication) | $/GB-mo at edge cluster | $0.012/GB-mo | $1,800 (150TB raw at 3×) |
 | Object store (cold/archive; SeaweedFS) | $/GB-mo at archive cluster | $0.004/GB-mo | $200 (50TB cold) |
 | Postgres (metadata; RLS-isolated; per-tenant logical shard) | per-shard | $90 | $90 |
-| Redis cluster (upload session + sync cache; per-tenant prefix) | per-tenant | $25 | $25 |
+| Valkey cluster (upload session + sync cache; per-tenant prefix) | per-tenant | $25 | $25 |
 | Meilisearch (per-tenant index) | per-tenant | $40 | $40 |
 | Tika worker (full-text extract; throughput-bound) | shared workload | $0.05 per 1k files | $50 |
 | ClamAV virus-scan worker (per scan) | shared workload | $0.002 per scan | $60 (30k scans) |
@@ -48,7 +48,7 @@ Reference tenant: 1,000 active users, 50TB stored, 1M files, 5GB ingress + 50GB 
 | Object store (Garage 3× replication) | 7.5EB raw (2.5EB effective) | $90M |
 | Object store (cold tier; SeaweedFS) | 2.5EB cold | $10M |
 | Postgres cluster (per-tenant logical shards) | 50k shards | $4.5M |
-| Redis cluster | per-tenant prefix; 50k tenants | $1.25M |
+| Valkey cluster | per-tenant prefix; 50k tenants | $1.25M |
 | Meilisearch cluster | 50k indexes | $2M |
 | Tika + ClamAV + OPSWAT + preview workers | shared; HPA on queue depth | $4M-$8M (envelope) |
 | OpenBao Transit | shared HSM-backed | $1.5M |
@@ -74,7 +74,7 @@ Reference tenant: 1,000 active users, 50TB stored, 1M files, 5GB ingress + 50GB 
 |---|---|---|
 | Object store | committed-use (3y reserved) | n/a (object store is contract-based) |
 | Postgres | reserved instances | spot for read replicas |
-| Redis | reserved cluster | n/a |
+| Valkey | reserved cluster | n/a |
 | Meilisearch | reserved | n/a |
 | Tika / ClamAV / OPSWAT workers | base reserved + HPA spot burst | yes |
 | Preview workers | base reserved + HPA spot burst | yes |
@@ -95,7 +95,7 @@ Reference tenant: 1,000 active users, 50TB stored, 1M files, 5GB ingress + 50GB 
 - ADR-0139 (SLO-gated promotion; cost alarms gate promotion).
 - ADR-0131 (per-µservice flat layout; per-µservice cost ownership).
 - ADR-0133 (industry-best-practice axis-3 cost discipline).
-- ADR-DRIVE-0001 (object-storage substrate selection; Garage vs MinIO vs SeaweedFS cost trade-offs).
+- ADR-DRIVE-0001 (object-storage substrate selection; Garage vs SeaweedFS vs SeaweedFS cost trade-offs).
 - `microservices/drive/capacity-model.md` — drives the unit math.
 - `microservices/drive/multi-region.md` — cross-region replication cost.
-- AWS S3 + Garage + MinIO + SeaweedFS public pricing (2026-05).
+- AWS S3 + Garage + SeaweedFS + SeaweedFS public pricing (2026-05).

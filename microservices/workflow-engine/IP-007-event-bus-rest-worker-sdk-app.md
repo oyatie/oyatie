@@ -28,7 +28,7 @@ Complete the event-bus BC: REST surface for tenants + Studio + workload µservic
 | Path | Action | Description |
 |---|---|---|
 | `src/crates/oya-workflow-engine-event-bus-rest/{Cargo.toml,src/{lib,routes,middleware}.rs}` | create | HTTP routes per `contracts/openapi/workflow-engine.yaml`; OIDC + Cedar middleware |
-| `src/crates/oya-workflow-engine-event-bus-worker/{Cargo.toml,src/{lib,outbox_relay,delivery}.rs}` | create | Long-lived outbox relay; HA via Redis lease |
+| `src/crates/oya-workflow-engine-event-bus-worker/{Cargo.toml,src/{lib,outbox_relay,delivery}.rs}` | create | Long-lived outbox relay; HA via Valkey lease |
 | `src/crates/oya-workflow-engine-event-bus-sdk/{Cargo.toml,src/{lib,client,event_types}.rs}` | create | Tenant SDK; type registry; idempotency-key helpers |
 | `src/crates/oya-workflow-engine-event-bus-app/{Cargo.toml,src/main.rs}` | create | Composition root binary |
 | `microservices/workflow-engine/catalog/oya-workflow-engine-event-bus-*.yaml` | create | 4 catalog rows |

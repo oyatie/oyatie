@@ -13,7 +13,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: IaC bootstrap — Helm + Kustomize for Postgres + Redis + Meilisearch substrate
+# IP-001: IaC bootstrap — Helm + Kustomize for Postgres + Valkey + Meilisearch substrate
 
 ## Intent
 
@@ -22,7 +22,7 @@ ADR-0131 (per-microservice flat layout): chart at
 `microservices/tasks/iac/helm/tasks/`. Substrate components: Postgres 16
 LTS for `task-store`/`project-list`/`dependency-graph` persistence (RLS
 per-tenant per ADR-0117 + tenant-DEK envelope encryption per Bominal
-ADR-0111); Redis 7.2 LTS for `view-engine` cache + presence; Meilisearch
+ADR-0111); Valkey 8.1 (Redis wire-compat) for `view-engine` cache + presence; Meilisearch
 0.10.0 LTS for `search-index` per-tenant cross-project index per
 ADR-TASKS-0004 + ADR-TASKS-0001. OpenBao for per-tenant DEK envelope
 encryption; secrets via `${openbao:secret/tasks/...}` references.
@@ -47,7 +47,7 @@ PrometheusRule wired (ADR-TASKS-0006 EU AI Act Annex III §4 surface).
 | `microservices/tasks/iac/helm/tasks/templates/service.yaml` | created | per-BC Service |
 | `microservices/tasks/iac/helm/tasks/templates/hpa.yaml` | created | per-BC HPA (CPU 70%; min 3 max 100) |
 | `microservices/tasks/iac/helm/tasks/templates/pdb.yaml` | created | PodDisruptionBudget min-available 50% |
-| `microservices/tasks/iac/helm/tasks/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Redis + Meilisearch + audit-chain + ontology + tenancy + workflow-engine |
+| `microservices/tasks/iac/helm/tasks/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + Meilisearch + audit-chain + ontology + tenancy + workflow-engine |
 | `microservices/tasks/iac/helm/tasks/templates/servicemonitor.yaml` | created | Prometheus scrape config |
 | `microservices/tasks/iac/helm/tasks/templates/prometheusrule.yaml` | created | per-BC fast-burn + slow-burn alert rules + auto-assign-fairness alert (ADR-TASKS-0006) |
 | `microservices/tasks/iac/kustomize/base/kustomization.yaml` | created | shared base |
@@ -74,7 +74,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 - helm lint + helm-test per chart against kind/k3d cluster.
 - E2E smoke: spin kind cluster; apply pack-kr overlay; verify all 7
-  Deployments + Postgres + Redis + Meilisearch reach Ready within 10 min.
+  Deployments + Postgres + Valkey + Meilisearch reach Ready within 10 min.
 - Auto-assign fairness alert: synthetic skew injected; confirm alert fires.
 
 ## Halt Conditions
@@ -93,5 +93,5 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - ADR-0117 (data residency); ADR-0131 (per-µservice flat layout); ADR-0133.
 - ADR-TASKS-0001 (data model); ADR-TASKS-0004 (view-engine + board); ADR-TASKS-0006 (auto-assign fairness).
 - Postgres CloudNativePG operator — `cloudnative-pg.io`.
-- Redis cluster mode — `redis.io/docs/management/scaling/`.
+- Valkey cluster mode — `redis.io/docs/management/scaling/`.
 - Meilisearch ops — `docs.meilisearch.com`.

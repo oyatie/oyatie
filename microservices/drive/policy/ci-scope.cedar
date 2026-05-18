@@ -4,7 +4,7 @@
 // scope; refuse production-tenant access.
 // Owner: ops-security + axis-drive
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140, policy/tenant-scope.cedar
+// Related: ADR-0140 (retired per ADR-0145), policy/tenant-scope.cedar
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

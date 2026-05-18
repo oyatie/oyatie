@@ -39,7 +39,7 @@ Each region runs full stack:
 
 - Postgres (Citus + Patroni) primary + sync replica
 - Elasticsearch cluster (3 master + N data)
-- Redis cluster
+- Valkey cluster
 - S3 bucket per region (KB attachments)
 - ClamAV inline scanner
 - Worker fleet (reindex / guardrails-bridge / audit-chain-seal)
@@ -50,7 +50,7 @@ Each region runs full stack:
 
 - Postgres: Patroni auto-promote replica on primary failure (RTO 60 s).
 - Elasticsearch: replica-shard promotion (auto, RTO 30 s).
-- Redis: cluster rebalance on node loss (RTO 60 s).
+- Valkey: cluster rebalance on node loss (RTO 60 s).
 - S3: cross-AZ already (provider-managed).
 
 ## Cross-Region Replication
@@ -64,7 +64,7 @@ When opt-in (`tenant.cross_region_replication == true`):
 | Postgres | Logical replication slot | ≤ 60 s |
 | Elasticsearch | CCR (cross-cluster replication) | ≤ 60 s |
 | S3 | Cross-Region Replication (CRR) | ≤ 15 min |
-| Redis | Not replicated cross-region (cache only; rebuilt) | — |
+| Valkey | Not replicated cross-region (cache only; rebuilt) | — |
 | Audit-chain | Per-region seal; cross-region witness chain | ≤ 60 s |
 
 Cross-border transfer rules per `policy/data-residency.md`. Cross-region replication for KR / UAE / KSA / IN tenants requires explicit DSR-equivalent consent.

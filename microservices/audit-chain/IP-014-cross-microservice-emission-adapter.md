@@ -35,7 +35,7 @@ This IP does NOT introduce new audit-chain crates. It introduces:
 
 ## Cross-product check
 
-This is the rare cross-product change. Per `feedback_workflow_objectgraph_adapter_layer.md`:
+This is the rare cross-product change. Per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`:
 - `tenancy` + `observability` import `oya-audit-chain-emission-sdk` (a Workflow-aligned cross-µservice contract; the SDK is the adapter).
 - They do NOT import any other audit-chain crate at any layer.
 - LEAN-A2 verifies.

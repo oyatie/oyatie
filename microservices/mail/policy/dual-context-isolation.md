@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-mail + council-privacy + ops-security
 deciders: council-architecture, ops-security, axis-mail, council-privacy, ops-legal
-related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-0208, ADR-0215]
 related_artifacts:
   - microservices/mail/threat-model.md (Trust Boundary 6; T-I-02, T-L-05, T-L-08)
   - microservices/mail/dpia.md (R-02, R-06)

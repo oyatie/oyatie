@@ -19,7 +19,7 @@ acceptance_lanes: [cedar-validate, oya-governance-dual-context-correctness, oya-
 
 Author Cedar v4.2 LTS policies for the calendar µservice's
 authorisation surface. Default-deny + defence-in-depth FORBID
-(per ADR-0140). Cover all 6 BCs + cross-tenant invite gates + T0/T1/T2
+(per ADR-0140 (retired per ADR-0145)). Cover all 6 BCs + cross-tenant invite gates + T0/T1/T2
 autonomy tier gates.
 
 ## ChangeSet boundary

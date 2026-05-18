@@ -18,6 +18,15 @@ doc_status: published
 
 # Backfill + Replay Contract (messenger µservice)
 
+## RPO/RTO targets (per ADR-0152)
+
+| Axis | Target | Tier |
+|---|---|---|
+| RTO (Recovery Time Objective) | ≤ 600s (≤ 10 min) | hot |
+| RPO (Recovery Point Objective) | ≤ 60s | hot |
+
+Aggregated under `specs/microservices/rpo-rto-targets.json` per ADR-0152.
+
 ## Purpose
 
 Specify how messenger handles two scenarios:
@@ -39,7 +48,7 @@ Trigger sources:
 
 Procedure:
 
-1. Acquire backfill lease in Redis (per tenant per index partition; lease TTL = 1h).
+1. Acquire backfill lease in Valkey (per tenant per index partition; lease TTL = 1h).
 2. Snapshot Postgres `messenger_messages` rows in `(tenant_id, channel_id)`
    partition, ordered by `posted_at`.
 3. Stream rows in batches of 1000 → Meilisearch `addDocuments` (idempotent

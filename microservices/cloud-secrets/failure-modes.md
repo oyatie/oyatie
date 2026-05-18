@@ -34,7 +34,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 - **Blast radius**: pack-wide secret resolution + rotation blocked (Sev-1).
 - **Mitigation**:
   - Cache TTL ≤60s permits consumer SDKs to serve stale-but-valid for up to 60s.
-  - openbao-operator auto-restart of peers; manual quorum-recovery via `vault operator raft remove-peer` if persistent.
+  - openbao-operator auto-restart of peers; manual quorum-recovery via `bao operator raft remove-peer` if persistent.
   - Postgres-HA failover (Patroni) decouples backend availability.
 - **Recovery**:
   - openbao-operator's HA reconciler restarts unhealthy pods.

@@ -76,7 +76,7 @@ Cedar base (`policy/cedar-base.cedar`):
 
 // =============================================================================
 // Default deny — every action refused unless an explicit permit matches.
-// Per ADR-0140 substrate; verified by oya-foundry-fitness-cedar-default-deny-enforced lane.
+// Per ADR-0140 (retired per ADR-0145) substrate; verified by oya-foundry-fitness-cedar-default-deny-enforced lane.
 // =============================================================================
 
 forbid (

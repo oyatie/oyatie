@@ -46,7 +46,7 @@ spec:
       ports: [{protocol: TCP, port: 4317}, {protocol: TCP, port: 9090}]
     - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: audit-chain}}}]
       ports: [{protocol: TCP, port: 50051}]
-    # Cross-cutting carriers per ADR-0140 (drive / mail / messenger / calendar
+    # Cross-cutting carriers per ADR-0140 (retired per ADR-0145) (drive / mail / messenger / calendar
     # / recordings). meet's PRD declares carry concerns for `recordings` (long-
     # running media persistence for the binary-payload pull leg). The orchestration
     # leg (when-to-ingest, retention-policy-binding, legal-hold attachment) is
@@ -58,7 +58,7 @@ spec:
     # pulls media from meet via signed-URL (binary-payload pull permitted by
     # the ADR-0140 carrier exemption above). The trigger path is
     # workflow-engine-mediated per the Workflow+Ontology adapter rule
-    # (feedback_workflow_objectgraph_adapter_layer).
+    # (feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145)).
     - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: workflow-engine}}}]
       ports: [{protocol: TCP, port: 50051}]
     - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: foundry-runtime}}}]

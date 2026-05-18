@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-observability + ops-security
 deciders: council-architecture, ops-security, axis-observability, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Layer-A or Layer-B architecture change
 enforced_frameworks:
@@ -477,8 +477,8 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: Grafana RBAC
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - Grafana role assignments managed via Terraform in `microservices/observability/iac/terraform/grafana-rbac.tf`; not via UI.
-  - LEAN check asserts Grafana folder permissions match the declared Terraform.
+  - Grafana role assignments managed via OpenTofu in `microservices/observability/iac/terraform/grafana-rbac.tf`; not via UI.
+  - LEAN check asserts Grafana folder permissions match the declared OpenTofu.
   - Admin role JIT only (OpenBao-issued, ≤4h).
 - Owner: ops-security
 - Residual: L

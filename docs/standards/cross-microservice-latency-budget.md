@@ -9,7 +9,7 @@ related_adrs:
   - ADR-0067
   - ADR-0128
   - ADR-0139
-  - ADR-0141
+  - ADR-0141 (retired per ADR-0145)
 status: canonical-base
 overlay_consumers:
   - microservices/<ms>/slos/<sli>.openslo.yaml

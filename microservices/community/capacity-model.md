@@ -57,7 +57,7 @@ Distribution column: `tenant_id`. Replication factor: 2.
 
 Index pattern: `community-<tenant_id_short>-<bc>`. Replica count: 1.
 
-### Redis
+### Valkey
 
 | Tier | Nodes | RAM / node | Mode |
 |---|---|---|---|
@@ -79,7 +79,7 @@ LFU eviction. Per-tenant memory quota: tier / tenants.
 
 - Postgres CPU target: 60 % p95.
 - ES heap target: 60 % p95.
-- Redis memory target: 70 % p95.
+- Valkey memory target: 70 % p95.
 - Worker pool: 50 % HPA min; 90 % HPA scale-out.
 
 ## Scaling Triggers
@@ -90,7 +90,7 @@ LFU eviction. Per-tenant memory quota: tier / tenants.
 | Postgres | Coordinator CPU > 80 % for 10 min | critical | scale up coordinator |
 | ES | Heap > 80 % | warning | scale out data nodes |
 | ES | Index latency p99 > 500 ms | critical | scale + reindex |
-| Redis | Memory > 80 % | warning | scale out cluster |
+| Valkey | Memory > 80 % | warning | scale out cluster |
 | Worker | Lag > 10 min | critical | scale out worker fleet |
 | REST | p99 > 300 ms | warning | scale out gateway |
 

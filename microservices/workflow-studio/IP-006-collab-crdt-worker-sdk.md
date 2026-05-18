@@ -128,4 +128,4 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workf
 - threat-model.md T-S-01, T-T-01, T-D-08.
 - ADR-0105 worker layer.
 - axum docs — `docs.rs/axum`.
-- Redis lease pattern — `redis.io/commands/setnx/`.
+- Valkey lease pattern — `redis.io/commands/setnx/`.

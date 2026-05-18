@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-docs
 methodology: ICO DPIA + CNIL DPIA + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
 related_artifacts:
   - microservices/docs/threat-model.md
   - microservices/docs/policy/document-isolation.md (rendered name; see policy/editor-isolation.md)
@@ -43,9 +43,9 @@ DPIA mandatory pre-deployment.
 
 **What:** Document authoring, real-time multi-user collaboration via CRDT, commenting + suggestions, version history, sharing + per-block ACL, document import/export (DOCX/Markdown/HTML/PDF/EPUB/LaTeX), cross-µservice embedding, attachment storage, AI writing-assist (T1/T2 capabilities).
 
-**How:** REST + WebSocket ingress → Postgres metadata store (per-tenant RLS + tenant-DEK envelope) → S3 content blobs (per-tenant prefix; Object Lock for legal-hold) → Redis collab-presence + CRDT op spool → gVisor sandbox for export pipeline → Workflow events to mail (share-via-email) + audit-chain (seal emission) + messenger (mention) + observability (telemetry).
+**How:** REST + WebSocket ingress → Postgres metadata store (per-tenant RLS + tenant-DEK envelope) → S3 content blobs (per-tenant prefix; Object Lock for legal-hold) → Valkey collab-presence + CRDT op spool → gVisor sandbox for export pipeline → Workflow events to mail (share-via-email) + audit-chain (seal emission) + messenger (mention) + observability (telemetry).
 
-**Where:** Per-pack region-pinned Postgres + S3 + Redis (pack-kr → KR; pack-eu → EU; pack-us → US; pack-us-healthcare → BAA-eligible US; pack-jp → JP; etc.). Residency enforced via ADR-0117 + ADR-0140.
+**Where:** Per-pack region-pinned Postgres + S3 + Valkey (pack-kr → KR; pack-eu → EU; pack-us → US; pack-us-healthcare → BAA-eligible US; pack-jp → JP; etc.). Residency enforced via ADR-0117 + ADR-0140.
 
 **When:** Continuous; on-demand for user actions; recurring background sweeps for retention + version compaction + embed-refresh.
 

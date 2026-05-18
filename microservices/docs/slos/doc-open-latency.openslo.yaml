@@ -16,7 +16,7 @@ spec:
   description: |
     Document open p99 latency SLO. A request is "good" when a document-open
     REST call (cold or warm) resolves in ≤ 300ms (cold) / ≤ 100ms (warm).
-    Cold = no Redis cache hit (S3 + Postgres read); warm = Redis cache hit.
+    Cold = no Valkey cache hit (S3 + Postgres read); warm = Valkey cache hit.
     PRD-docs §"Performance". Aligned with workflow-studio AC-09 TTI budget.
   service: docs
   indicator:

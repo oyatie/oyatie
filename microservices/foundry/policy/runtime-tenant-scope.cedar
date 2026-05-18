@@ -109,7 +109,7 @@ when {
 // =============================================================================
 //
 // Even if a permit somehow matched a cross-tenant request, this forbid blocks it.
-// Cedar's deny-overrides semantics make this the safety net per ADR-0140.
+// Cedar's deny-overrides semantics make this the safety net per ADR-0140 (retired per ADR-0145).
 
 forbid (
   principal,

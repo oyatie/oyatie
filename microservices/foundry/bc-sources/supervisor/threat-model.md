@@ -8,9 +8,9 @@ date: 2026-05-17
 owner_team: axis-foundry-control-plane + ops-security
 deciders: council-architecture, ops-security, axis-foundry-control-plane, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154 + EU AI Act Annex IV (high-risk-system risk-management)
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0133, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/foundry-supervisor-control-plane.json, /specs/per-microservice-flat-layout.json]
-review_cadence: quarterly + on every Operator / Postgres / Redis / Cedar version upgrade + on every new regulatory pack
+review_cadence: quarterly + on every Operator / Postgres / Valkey / Cedar version upgrade + on every new regulatory pack
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC7.1, CC7.2, CC7.4, CC8.1, CC9.1"
   - "ISO 27001:2022: A.5.7, A.5.10, A.5.14, A.5.15, A.5.17, A.5.18, A.5.23, A.5.25, A.5.26, A.5.27, A.5.30, A.5.31, A.5.33, A.8.2, A.8.3, A.8.4, A.8.5, A.8.7, A.8.11, A.8.12, A.8.15, A.8.16, A.8.20, A.8.21, A.8.23, A.8.24, A.8.25, A.8.26, A.8.27, A.8.28, A.8.32, A.8.34"
@@ -43,7 +43,7 @@ Identify, classify, and mitigate threats to the foundry-supervisor's confidentia
 | Layer-A (substrate) | Layer-B (oyatie-owned) |
 |---|---|
 | PostgreSQL HA cluster (fleet-state, deployment history, entitlement store) | `oya-foundry-supervisor-agent-fleet-lifecycle-*` (11 crates) |
-| Redis Cluster (kill-switch state, supervision-event-bus stream) | `oya-foundry-supervisor-capability-deployment-*` (10 crates) |
+| Valkey Cluster (kill-switch state, supervision-event-bus stream) | `oya-foundry-supervisor-capability-deployment-*` (10 crates) |
 | Kubernetes Operator (controller-runtime; kube-rs) + CRDs (`Agent`, `AgentDeployment`, `AutonomyPolicy`, `KillSwitch`) | `oya-foundry-supervisor-autonomy-policy-enforcement-*` (9 crates) |
 | Cedar v4 evaluator runtime | `oya-foundry-supervisor-supervision-event-bus-*` (7 crates) |
 | OpenBao SecretReference (autonomy-entitlement materialisation) | `oya-foundry-supervisor-kill-switch-circuit-breaker-*` (9 crates) |
@@ -86,8 +86,8 @@ Identify, classify, and mitigate threats to the foundry-supervisor's confidentia
 │  │  - WAL archival to encrypted S3 (data-residency-pinned)         │      │
 │  └─────────────────────────────────────────────────────────────────┘      │
 │                                                                            │
-│  Trust boundary 3: REST + Worker → Redis Cluster (mTLS; ACL tokens)        │
-│  ┌─ Redis Cluster (3 shards × 2 replicas) ───────────────────────────┐    │
+│  Trust boundary 3: REST + Worker → Valkey Cluster (mTLS; ACL tokens)        │
+│  ┌─ Valkey Cluster (3 shards × 2 replicas) ───────────────────────────┐    │
 │  │  - Kill-switch state (engaged/disengaged per scope)              │    │
 │  │  - Supervision-event-bus stream                                  │    │
 │  │  - Per-pod ACL token (rotated 30d)                               │    │
@@ -103,7 +103,7 @@ Identify, classify, and mitigate threats to the foundry-supervisor's confidentia
 │                                                                            │
 │  Trust boundary 5: Supervisor → foundry-runtime (mTLS + SPIFFE)            │
 │  - Per-tenant runtime invocation through Cedar autonomy precondition       │
-│  - Kill-switch propagation via CRD watch + Redis pub-sub redundancy        │
+│  - Kill-switch propagation via CRD watch + Valkey pub-sub redundancy        │
 │                                                                            │
 │  Trust boundary 6: Supervision-event-bus → foundry-evidence (audit-chain)  │
 │  - Each event Ed25519-signed at supervisor; audit-chain verifies + seals   │
@@ -114,7 +114,7 @@ Identify, classify, and mitigate threats to the foundry-supervisor's confidentia
 Six trust boundaries:
 1. External → Cluster ingress (TLS, WAF, OIDC + Cedar).
 2. REST → Postgres (per-tenant RLS + mTLS).
-3. REST/Worker → Redis (ACL + mTLS).
+3. REST/Worker → Valkey (ACL + mTLS).
 4. Operator → K8s API (per-tenant-ns RBAC).
 5. Supervisor → foundry-runtime (mTLS + SPIFFE + autonomy precondition).
 6. Supervision-event-bus → foundry-evidence (Ed25519 + Merkle seal).
@@ -129,11 +129,11 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | Capability definitions (per-tenant) | `BEHAVIORAL_TENANT_PRODUCT` + `INTERNAL_ONLY` | Medium | append-only git history | Tenant-owned git repos |
 | Autonomy entitlements (per-tenant tier grants + expiration) | `SENSITIVE_PIPA_ART23` + `AUDIT` | Critical | 5y per pack (KR-FSS sector default) | Postgres + OpenBao |
 | Deployment history (admit, canary phase, verdict, rollback) | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | High | 2y (HIPAA pack: 6y) | Postgres |
-| Kill-switch state (engaged/disengaged + scope + reason) | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | Critical | 2y (HIPAA pack: 6y) | Redis + Postgres archive |
-| Supervision events (Ed25519-signed) | `AUDIT` | Critical | indefinite (audit-chain immutable) | Redis Stream → audit-chain µservice |
+| Kill-switch state (engaged/disengaged + scope + reason) | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | Critical | 2y (HIPAA pack: 6y) | Valkey + Postgres archive |
+| Supervision events (Ed25519-signed) | `AUDIT` | Critical | indefinite (audit-chain immutable) | Valkey Stream → audit-chain µservice |
 | Cedar policy fragments | `INTERNAL_ONLY` (text); `SECRET` when carrying tenant identifiers | Medium | git history | `microservices/foundry-supervisor/policy/*.cedar` |
 | Postgres credentials | `SECRET` | Critical | OpenBao 30d rotation | OpenBao |
-| Redis ACL tokens | `SECRET` | Critical | OpenBao 30d rotation | OpenBao |
+| Valkey ACL tokens | `SECRET` | Critical | OpenBao 30d rotation | OpenBao |
 | Supervisor Ed25519 signing keys | `SECRET` | Critical | OpenBao 90d rotation; HSM-backed where available | OpenBao |
 | Operator SA token | `SECRET` | Critical | K8s default 24h rotation | K8s |
 | SPIFFE SVID (per-pod identity) | `SECRET` | Critical | 1h auto-rotation | SPIRE server |
@@ -149,7 +149,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | `foundry-evidence` | Trusted internal | mTLS + SPIFFE | Read supervision-event-bus; seal audit-chain |
 | `foundry-guardrails` | Trusted internal | mTLS + SPIFFE | Publish `GuardrailViolation` events; consumer-side relationship |
 | Supervisor operator (Kubernetes Operator) | Trusted internal | SPIFFE: `spiffe://oyatie/foundry-supervisor/operator` | RW on CRDs in `foundry-tenant-*` namespaces; deny on `default` + other µservice namespaces |
-| Supervisor REST + worker pods | Trusted internal | SPIFFE | Read/write Postgres + Redis; emit signed events |
+| Supervisor REST + worker pods | Trusted internal | SPIFFE | Read/write Postgres + Valkey; emit signed events |
 | ops-security on-call (human) | Trusted internal | OIDC + MFA + JIT via OpenBao | Engage fleet-wide kill-switch (2-person rule); rotate signing keys |
 | DPO / council-privacy (human) | Trusted internal | OIDC + MFA | Read all audit-chain records; never write fleet state |
 | External auditor | Read-only external (time-boxed) | OIDC + JIT short-lived | Read audit-chain + dashboards within scoped tenants per `auditor-scope.cedar` |
@@ -220,10 +220,10 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 - Residual: L
 - Frameworks: SOC 2 CC6.1, CC6.6, CC8.1; ISO 27001 A.5.15, A.8.4, A.8.20; GDPR Art. 32
 
-**T-T-03 — Kill-switch state tampering in Redis (disengaged while autonomy violated)**
-- Asset: Redis kill-switch state
+**T-T-03 — Kill-switch state tampering in Valkey (disengaged while autonomy violated)**
+- Asset: Valkey kill-switch state
 - Likelihood: L / Impact: H (would let unauthorized agents continue running) / Risk: **H**
-- Mitigations: Redis ACL per-key; AOF replication-factor 2; CRD-watch + Redis cross-check (CRD is source-of-truth, Redis cached); state-divergence alert (`oya_kill_switch_state_divergence_total > 0`) fires page; recovery: re-publish from CRD truth.
+- Mitigations: Valkey ACL per-key; AOF replication-factor 2; CRD-watch + Valkey cross-check (CRD is source-of-truth, Valkey cached); state-divergence alert (`oya_kill_switch_state_divergence_total > 0`) fires page; recovery: re-publish from CRD truth.
 - Owner: ops-security + axis-foundry-control-plane
 - Residual: L
 - Frameworks: SOC 2 CC6.6, CC7.1; ISO 27001 A.8.16; EU AI Act Art. 14
@@ -299,7 +299,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 **T-I-04 — Supervision-event payload leaks SLI numbers cross-tenant**
 - Asset: supervision-event-bus stream
 - Likelihood: L / Impact: M / Risk: **L-M**
-- Mitigations: Redis ACL restricts each subscriber to its scoped tenant_id pattern; audit-chain access is privileged role only; per-tenant aggregation in any cross-tenant dashboards is DP-noise-protected (ε ≤ 1).
+- Mitigations: Valkey ACL restricts each subscriber to its scoped tenant_id pattern; audit-chain access is privileged role only; per-tenant aggregation in any cross-tenant dashboards is DP-noise-protected (ε ≤ 1).
 - Owner: ops-security + axis-foundry-control-plane
 - Residual: L
 
@@ -321,10 +321,10 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 - Residual: L
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30, A.8.6, A.8.14; GDPR Art. 32(1)(c)
 
-**T-D-02 — Redis cluster failure breaks kill-switch state**
+**T-D-02 — Valkey cluster failure breaks kill-switch state**
 - Asset: kill-switch read path
 - Likelihood: M / Impact: H (kill-switch latency blown) / Risk: **H**
-- Mitigations: Redis Cluster 3-shard × 2-replica; AOF every-second; CRD watch as authoritative fallback (Redis is cache); fail-closed: on Redis unavailability, supervisor returns "engaged" for all scopes within 2 s degradation window (safe default); recovery: AOF restore + CRD reconcile.
+- Mitigations: Valkey Cluster 3-shard × 2-replica; AOF every-second; CRD watch as authoritative fallback (Valkey is cache); fail-closed: on Valkey unavailability, supervisor returns "engaged" for all scopes within 2 s degradation window (safe default); recovery: AOF restore + CRD reconcile.
 - Owner: ops-sre-reliability + axis-foundry-control-plane
 - Residual: L
 - Frameworks: SOC 2 CC7.1; ISO 27001 A.5.30, A.8.14; EU AI Act Art. 14 (fail-closed for safety)
@@ -332,7 +332,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 **T-D-03 — Supervision-event-bus backlog (deployment storm)**
 - Asset: supervision-event-bus stream
 - Likelihood: M / Impact: M / Risk: **M**
-- Mitigations: Redis Streams with consumer groups + at-least-once delivery; bus-lag alarm at p99 > 500 ms; per-publisher rate-limit; backpressure into supervisor worker (worker pauses non-critical work when lag breaches).
+- Mitigations: Valkey Streams (Redis wire-compat) with consumer groups + at-least-once delivery; bus-lag alarm at p99 > 500 ms; per-publisher rate-limit; backpressure into supervisor worker (worker pauses non-critical work when lag breaches).
 - Owner: ops-sre-reliability
 - Residual: L
 
@@ -372,7 +372,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 **T-E-02 — Supervisor SA token compromised → unauthorized fleet writes**
 - Asset: supervisor ServiceAccount
 - Likelihood: L / Impact: H / Risk: **M**
-- Mitigations: SA token bound to pod identity; 24h rotation; network policy: only supervisor pods may reach Postgres/Redis write endpoints; Postgres + Redis validate SPIFFE identity matches expected SA.
+- Mitigations: SA token bound to pod identity; 24h rotation; network policy: only supervisor pods may reach Postgres/Redis write endpoints; Postgres + Valkey validate SPIFFE identity matches expected SA.
 - Owner: ops-security
 - Residual: L
 - Frameworks: SOC 2 CC6.1; ISO 27001 A.5.17, A.8.5, A.8.7
@@ -422,7 +422,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | 2-person rule for fleet-wide kill-switch + DB admin + signing-key rotation | Preventive (insider) | ops-security | OpenBao JIT elevation log |
 | Per-tenant rate-limit on admit/REST/kill-switch | Preventive (DoS) | axis-foundry-control-plane | REST metrics |
 | Kubernetes Operator RBAC scoped to per-tenant ns | Preventive | ops-security | Terraform-state diff |
-| Network policy: supervisor → Postgres + Redis only | Preventive | ops-sre-reliability | K8s NetworkPolicy review |
+| Network policy: supervisor → Postgres + Valkey only | Preventive | ops-sre-reliability | K8s NetworkPolicy review |
 | CRD admission webhook + drift-detector | Preventive + Detective | axis-foundry-control-plane | drift-detector job |
 | Capability YAML LEAN schema lane | Preventive | axis-foundry-control-plane | `oya-check-capability-yaml-conformance` lane |
 | Soft-delete + 30d recovery window | Detective + Recovery | ops-sre-reliability | mass-deletion anomaly alert |
@@ -471,7 +471,7 @@ Pack-overlay sections in `regional-packs/<pack>/foundry-supervisor-overlay.md` c
 ## Re-review Triggers
 
 - Any change to a trust boundary, actor list, or CRD shape.
-- Any Layer-A version upgrade (Postgres / Redis / kube-rs / Cedar) where release notes mention security fixes.
+- Any Layer-A version upgrade (Postgres / Valkey / kube-rs / Cedar) where release notes mention security fixes.
 - Any new pack activation.
 - Annual scheduled review (Q2).
 - Post-incident (any Sev-1/2 in foundry-supervisor or in a capability it manages).

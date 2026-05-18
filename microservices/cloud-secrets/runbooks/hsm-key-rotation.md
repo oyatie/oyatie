@@ -128,7 +128,7 @@ kubectl -n cloud-secrets-<pack> rollout restart statefulset/openbao
 Monitor unseal:
 
 ```bash
-kubectl -n cloud-secrets-<pack> exec openbao-0 -- vault status
+kubectl -n cloud-secrets-<pack> exec openbao-0 -- bao status
 ```
 
 ### Step 3 — Engage vendor on primary partition

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-foundry
 deciders: council-privacy, ops-security, axis-foundry, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act Art. 27 (fundamental rights impact assessment for high-risk AI)
-related_adrs: [ADR-0024, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0024, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/foundry-eval/threat-model.md

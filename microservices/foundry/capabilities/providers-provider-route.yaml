@@ -85,7 +85,7 @@ cost_profile:
   type: per-decision
   estimated_cost_usd_per_call: 0.0000001
   cost_drivers:
-    - In-process router decision (Redis token-bucket read + provider-config read + Cedar evaluate)
+    - In-process router decision (Valkey token-bucket read + provider-config read + Cedar evaluate)
 
 cedar_policy_fragments:
   - microservices/foundry/policy/provider-router-tenant-scope.cedar

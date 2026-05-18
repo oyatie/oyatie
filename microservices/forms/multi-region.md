@@ -63,7 +63,7 @@ Per-pack OCI WAF configuration; managed rules + custom rules:
 1. Primary region health probe fails ≥ 60s.
 2. Istio gateway WAN failover routes traffic to DR region.
 3. Citus DR replica promoted to primary (≤ 60s WAL catch-up).
-4. Redis Sentinel re-elects.
+4. Valkey Sentinel re-elects.
 5. Meilisearch DR replica online (read-only during catch-up).
 6. SLO burn-rate alert escalates if RTO exceeded.
 7. Failback when primary healthy + reconciled.

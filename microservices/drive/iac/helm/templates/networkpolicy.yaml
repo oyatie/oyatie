@@ -42,7 +42,7 @@ spec:
     - to:
         - namespaceSelector: {matchLabels: {app.kubernetes.io/name: cloudnative-pg}}
       ports: [{protocol: TCP, port: 5432}]
-    # Redis
+    # Valkey
     - to:
         - namespaceSelector: {matchLabels: {app.kubernetes.io/name: redis-cluster}}
       ports: [{protocol: TCP, port: 6379}]

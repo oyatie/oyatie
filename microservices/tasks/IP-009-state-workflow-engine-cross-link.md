@@ -82,5 +82,5 @@ cargo run -p oya-dev-cli -- gate validate cross-product-isolation --microservice
 ## References
 
 - ADR-TASKS-0005 (cross-µservice automation via Workflow events).
-- ADR-0140 (Cedar role gating).
+- ADR-0140 (retired per ADR-0145) (Cedar role gating).
 - PRD AC-04.

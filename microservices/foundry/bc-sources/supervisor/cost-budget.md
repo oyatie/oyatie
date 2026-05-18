@@ -19,14 +19,14 @@ doc_status: published
 
 ## Purpose
 
-Track the foundry-supervisor µservice's monthly cloud cost across the substrate (Postgres HA, Redis Cluster, Operator pods, REST + worker pods) per pack region; surface budget breach via the `oya-check-cost-budget` LEAN lane. Cites OCI public pricing (2026-05-17); verify-at-deploy markers where vendor pricing may have moved.
+Track the foundry-supervisor µservice's monthly cloud cost across the substrate (Postgres HA, Valkey Cluster, Operator pods, REST + worker pods) per pack region; surface budget breach via the `oya-check-cost-budget` LEAN lane. Cites OCI public pricing (2026-05-17); verify-at-deploy markers where vendor pricing may have moved.
 
 ## Cost Categories
 
 | Category | What | OCI pricing reference |
 |---|---|---|
-| Compute (VM.Standard / OKE node) | Postgres + Redis Cluster + Operator + REST + worker pods | `oracle.com/cloud/compute/pricing/` |
-| Block storage (PV) | Postgres data + WAL; Redis AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
+| Compute (VM.Standard / OKE node) | Postgres + Valkey Cluster + Operator + REST + worker pods | `oracle.com/cloud/compute/pricing/` |
+| Block storage (PV) | Postgres data + WAL; Valkey AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Object storage (S3-compatible) | Postgres WAL archive (long-term) | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Network egress | Cross-µservice mTLS (Mimir, evidence, runtime); cross-region replication intra-pack | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-pack KMS for SSE on Postgres + S3 archives; Ed25519 signing key | `oracle.com/security/key-management/pricing/` |
@@ -42,7 +42,7 @@ Per `capacity-model.md` §"Worked example: XS tier (M01 launch; 20 tenants pack-
 | Postgres primary | 1 × VM.Standard.E4 8-core | $145 | $80 PV (1 TB block) | $225 |
 | Postgres DR-pair replica (pack-eu-style; pack-kr is single-region so this is intra-pack only) | 1 × VM.Standard.E4 8-core | $145 | $80 PV | $225 (n/a for pack-kr; included for DR-pair packs) |
 | Postgres connection pooler (PgBouncer) | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
-| Redis Cluster (3 shards × 2 replicas) | 6 × VM.Standard.E4 2-core | $216 | $30 PV (AOF) | $246 |
+| Valkey Cluster (3 shards × 2 replicas) | 6 × VM.Standard.E4 2-core | $216 | $30 PV (AOF) | $246 |
 | Kubernetes Operator pods | 3 × VM.Standard.E4 2-core | $108 | – | $108 |
 | Supervisor REST | 3 × VM.Standard.E4 2-core | $108 | – | $108 |
 | Supervisor worker (reconcile + drain) | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
@@ -89,7 +89,7 @@ For DR-pair packs (pack-eu, pack-us, pack-au, pack-in, pack-br, pack-ae, pack-ks
 |---|---|---|
 | Monthly cost / N_tenants (unit-economic) | within 5% of forecast | 6× burn over 6h |
 | Postgres storage growth / day (7d avg) | within forecast | 14.4× over 1h |
-| Redis memory % per shard | < 70% | 6× over 6h |
+| Valkey memory % per shard | < 70% | 6× over 6h |
 | Operator reconcile rate (anomaly = high; cost-runaway proxy) | within 2× baseline | 6× over 6h |
 
 ## Cost-Optimisation Levers
@@ -97,7 +97,7 @@ For DR-pair packs (pack-eu, pack-us, pack-au, pack-in, pack-br, pack-ae, pack-ks
 | Lever | Estimated saving | Trade-off |
 |---|---|---|
 | Postgres compression on cold partitions | 20–30% storage | Compute CPU on compactor |
-| Reduce supervision-event retention in Redis Streams (1h → 30min) | 5–10% Redis | Replay-window shorter |
+| Reduce supervision-event retention in Valkey Streams (Redis wire-compat) (1h → 30min) | 5–10% Valkey | Replay-window shorter |
 | Spot-instance fleet for stateless REST + worker | 30–50% compute | Spot eviction recovery via HA |
 | OCI committed-use discounts (1y / 3y) | 20–40% compute | Vendor lock-in window |
 | Postgres replica only (drop DR-pair) for non-critical packs | 30–40% pack compute | RPO degrades to single-region availability |
@@ -116,5 +116,5 @@ For DR-pair packs (pack-eu, pack-us, pack-au, pack-in, pack-br, pack-ae, pack-ks
 - `microservices/foundry-supervisor/policy/data-residency.md` (retention multipliers).
 - OCI pricing — `oracle.com/cloud/pricing/`.
 - PostgreSQL HA reference — `postgresql.org/docs/current/high-availability.html`.
-- Redis Cluster reference — `redis.io/docs/management/scaling/`.
+- Valkey Cluster reference — `redis.io/docs/management/scaling/`.
 - FinOps Foundation — `finops.org`.

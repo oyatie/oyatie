@@ -34,8 +34,8 @@ the same project. Backpressure: bounded per-connection ring buffer
 
 8 view-engine crates (kernel/domain/usecase/api/adapter/adapter-redis/
 rest/app) — kernel + domain already authored in IP-005; this IP fills
-the remaining 6. Loro 1.x dependency added; Redis adapter implements
-`ViewStateStore` against Redis 7.2 LTS.
+the remaining 6. Loro 1.x dependency added; Valkey adapter (Redis wire-compat) implements
+`ViewStateStore` against Valkey 8.1 (Redis wire-compat).
 
 ## Crate Naming
 

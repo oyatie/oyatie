@@ -152,3 +152,61 @@ Annual ops-sre review: verify each active pack's DR posture matches this documen
 - OCI region documentation
 - OpenBao Raft consensus model
 - Patroni HA documentation
+
+---
+
+## ADR-0158 Multi-Region Disposition Statement
+
+**Disposition: `single_region` per cell (secret material does not cross region).**
+
+Per ADR-0158, the cloud-secrets µservice is declared `single_region`. Secret material never leaves the cell. Cross-region replication of secrets is forbidden by construction (HSM partition is per-region; OpenBao seal key is per-region).
+
+| Property | Value |
+|---|---|
+| Disposition | `single_region` |
+| RPO (intra-cell) | ≤ 5 seconds (OpenBao Raft + Patroni HA) |
+| RTO (intra-cell) | ≤ 60 seconds (Raft leader-election) |
+| Cross-region replication | FORBIDDEN |
+| Failover model | intra-region only (KR-Seoul1 ↔ KR-Chuncheon for `pack-kr`; analogous per pack) |
+
+## ADR-0164 Sovereign Cloud / Air-Gapped Deployment Variant
+
+Per ADR-0164, the cloud-secrets µservice ships a per-pack air-gap variant. The variant ensures:
+
+### No external KMS dependency
+
+- All KMS code paths replaced by OpenBao Transit secrets-engine.
+- Per-tenant secret keys live in the in-cell HSM partition only (per ADR-0043).
+- The cloud KMS adapter (AWS KMS / GCP KMS / Azure Key Vault) is ABSENT from air-gap pack image builds.
+
+### HSM-backed OpenBao seal
+
+- OpenBao auto-unseal uses the in-cell HSM partition (PKCS#11 interface; HSM choice per pack — Thales Luna in sovereign packs; Marvell LiquidSec in some on-prem packs).
+- Recovery keys split per ADR-0043 quorum (Shamir 5-of-9 default; per-pack overlay).
+- Air-gap seal recovery requires regulator-witnessed quorum (per `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`).
+
+### BYOK + sovereign tenant key custody
+
+- A sovereign tenant in `pack-ksa` / `pack-uae` / `pack-eu-sovereign` / `pack-us-gov` may bring its own HSM-generated KEK; cloud-secrets accepts the KEK wrapped under the cell's KEK-of-KEKs.
+- BYOK material is HSM-stored in the cell HSM partition; never exported.
+
+### Pack matrix (cloud-secrets perspective)
+
+| Pack | `air_gap` | OpenBao | HSM partition |
+|---|---|---|---|
+| `pack-eu-sovereign-airgap` | true | in-cell | EU-region HSM (Thales Luna) |
+| `pack-kr-fsc` | true | in-cell | KR-region HSM (financial-grade) |
+| `pack-kr-public` | true | in-cell | KR-region HSM |
+| `pack-ksa` | true | in-cell | KSA-region HSM (Thales Luna) |
+| `pack-uae` | true | in-cell | UAE-region HSM |
+| `pack-us-gov` | true | in-cell | US-Gov HSM (FIPS 140-3 L4) |
+| `pack-us-shared` | false | in-cell + AWS KMS adapter | per-cell HSM partition |
+| `pack-eu` | false | in-cell | EU-region HSM |
+| `pack-kr` | false | in-cell | KR-region HSM |
+| `pack-jp` | false | in-cell | JP-region HSM |
+
+### CI gates
+
+CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM (no cloud-KMS unseal path), (c) BYOK paths use HSM-wrapped material only.
+
+See `/specs/sovereign-cloud-air-gapped-canonical.json` for the canonical declaration.

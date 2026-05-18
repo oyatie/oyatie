@@ -9,7 +9,7 @@ tier: hero-product
 milestone_first_ship: M02-foundation
 net_new: true
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-meet
@@ -79,7 +79,7 @@ The `meet` microservice is oyatie's dedicated video-meeting product. It is net-n
 
 | Metric | p50 | p95 | p99 | Notes |
 |---|---|---|---|---|
-| Room create | ≤ 30 ms | ≤ 80 ms | ≤ 100 ms | Postgres insert + Redis registry |
+| Room create | ≤ 30 ms | ≤ 80 ms | ≤ 100 ms | Postgres insert + Valkey registry |
 | Participant join (1st media frame) | ≤ 800 ms | ≤ 1.5 s | ≤ 2.0 s | SDP + ICE + DTLS + LiveKit room join |
 | Media glass-to-glass (intra-region) | ≤ 80 ms | ≤ 150 ms | ≤ 200 ms | LiveKit SFU intra-region |
 | Media glass-to-glass (inter-region) | ≤ 130 ms | ≤ 250 ms | ≤ 350 ms | Cross-region SFU mesh |
@@ -281,9 +281,9 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for meeting-room metadata + participant log + recording manifest; Redis for per-meeting presence + signaling-session-state + lobby queues; S3 for recordings + transcripts + summaries; Meilisearch for transcript search; LiveKit SFU cluster stateless beyond room registry; SRS for RTMP egress.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for meeting-room metadata + participant log + recording manifest; Valkey for per-meeting presence + signaling-session-state + lobby queues; S3 for recordings + transcripts + summaries; Meilisearch for transcript search; LiveKit SFU cluster stateless beyond room registry; SRS for RTMP egress.
 
-**Active-active compatibility**: stateless `meet-rest` + LiveKit SFU + SRS; Postgres logical-replicated within pack; Redis primary-replica HA; S3 cross-AZ replication.
+**Active-active compatibility**: stateless `meet-rest` + LiveKit SFU + SRS; Postgres logical-replicated within pack; Valkey primary-replica HA; S3 cross-AZ replication.
 
 Per-cell capacity envelope:
 

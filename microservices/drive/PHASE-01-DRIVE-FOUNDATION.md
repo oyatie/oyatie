@@ -22,8 +22,8 @@ Stand up the eleven bounded contexts (file-store, folder-hierarchy, upload, down
 In-scope:
 - 89 crates per the layer mapping table.
 - Postgres metadata schema + per-tenant RLS + tenant-DEK envelope encryption (operational metadata only; bytes encrypted upstream of S3).
-- Redis upload-session in-flight + delta-sync cache.
-- S3-compatible object store (Garage primary edge-distributed deployment; MinIO secondary single-cluster deployment; SeaweedFS for archive tier) per ADR-DRIVE-0001.
+- Valkey upload-session in-flight + delta-sync cache.
+- S3-compatible object store (Garage primary edge-distributed deployment; SeaweedFS secondary single-cluster deployment; SeaweedFS for archive tier) per ADR-DRIVE-0001.
 - FastCDC content-defined-chunking (ADR-DRIVE-0002).
 - Argon2id + Ed25519 share-link signing (ADR-DRIVE-0003).
 - Tenant-DEK envelope via OpenBao Transit (ADR-DRIVE-0004); client-side E2E via libsodium secretstream (opt-in Personal pillar).

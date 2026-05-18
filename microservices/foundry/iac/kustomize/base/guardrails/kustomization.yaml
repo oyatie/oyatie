@@ -6,7 +6,7 @@ kind: Kustomization
 # with pack-specific overlays for: residency region, retention overrides,
 # OpenBao secret-reference URIs, replica scaling tier, classifier-model artifact
 # bucket URIs.
-# Per ADR-0131 + ADR-0140.
+# Per ADR-0131 + ADR-0140 (retired per ADR-0145).
 
 namespace: foundry-guardrails
 

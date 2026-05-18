@@ -83,14 +83,14 @@ Decision latency budget: ≤ 5 ms p99 in-process. Drives router to be CPU-bound,
 | Component | Replicas | CPU | Memory | Notes |
 |---|---|---|---|---|
 | `bulk-translate-worker` | 4 | 1000m / 2000m | 2 Gi / 4 Gi | Fan-out per-chunk |
-| Redis | 1 (HA via sentinel) | 1000m / 2000m | 4 Gi / 8 Gi | job state + per-tenant token bucket |
+| Valkey | 1 (HA via sentinel) | 1000m / 2000m | 4 Gi / 8 Gi | job state + per-tenant token bucket |
 
 ### Real-time stream
 
 | Component | Replicas | CPU | Memory | Notes |
 |---|---|---|---|---|
 | `stream-router` | 4 | 1000m / 2000m | 2 Gi / 4 Gi | WS termination + chunk dispatch |
-| Redis (shared) | — | — | — | session state |
+| Valkey (shared) | — | — | — | session state |
 
 ### Engine adapters
 
@@ -108,7 +108,7 @@ Decision latency budget: ≤ 5 ms p99 in-process. Drives router to be CPU-bound,
 |---|---|---|
 | CPU | 28 000m (~ 28 cores) | 56 000m (~ 56 cores) |
 | Memory | 70 Gi | 140 Gi |
-| Storage (Postgres + Meilisearch + Redis + S3) | 500 Gi base + tenant growth | per-tenant |
+| Storage (Postgres + Meilisearch + Valkey + S3) | 500 Gi base + tenant growth | per-tenant |
 
 Per-pack node-pool sizing: ≥ 4 worker nodes; each ≥ 16 vCPU + 64 GiB RAM; anti-affinity ensures every component spreads across nodes + AZs.
 
@@ -154,7 +154,7 @@ Postgres `tm_units` table + Meilisearch index size scale proportionally; partiti
 ## Throughput Bottlenecks (anticipated)
 
 1. **TM leverage Meilisearch index** — per-tenant index grows; mitigated via per-tenant index isolation; if a single tenant exceeds 5 M units, shard their index.
-2. **Engine vendor rate-limits** — per-tenant + per-engine token bucket (Redis); router demote when bucket exhausted.
+2. **Engine vendor rate-limits** — per-tenant + per-engine token bucket (Valkey); router demote when bucket exhausted.
 3. **Document translation throughput** — gVisor sandbox start-up ~ 200 ms; pre-warmed sandbox pool of 8 per worker pod mitigates.
 4. **Real-time stream concurrency** — per-replica concurrent-session ceiling ~ 500; HPA at 500 sessions.
 5. **Bulk-translate fan-out concurrency** — per-job concurrency cap of 16; per-tenant total fan-out budget of 64; prevents single tenant exhausting vendor quota.

@@ -31,7 +31,7 @@ End-to-end incident-response procedure for foundry-providers events. Covers seve
 |---|---|---|---|
 | **Sev-1** | Confidentiality / integrity / availability impact affecting multiple tenants; regulatory-notification triggers; credential compromise; cross-pack data leakage | ≤ 5 min | FM-FP-03 credential leak; FM-FP-05 adapter substitution; FM-FP-08 cross-pack mis-route |
 | **Sev-2** | Single-tenant or sub-tenant impact; degraded gate function; single-vendor outage with available alternates | ≤ 15 min | FM-FP-01 single-vendor outage; FM-FP-02 single-tenant rate-limit cascade; FM-FP-04 in-house regression (canary) |
-| **Sev-3** | Localised impact; auto-recovery in progress | ≤ 1 h | FM-FP-09 single-AZ pod outage; FM-FP-11 Redis sentinel failover |
+| **Sev-3** | Localised impact; auto-recovery in progress | ≤ 1 h | FM-FP-09 single-AZ pod outage; FM-FP-11 Valkey Sentinel failover |
 | **Sev-4** | Cosmetic; no operational impact | next business day | dashboard label typo; minor doc drift |
 
 ## Response Roles

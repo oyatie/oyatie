@@ -22,7 +22,7 @@ doc_status: published
 
 Specify how `network` handles these scenarios:
 
-1. **Backfill** — search index (multi-index) + feed cache + connection-graph degree-cache rebuild from canonical Postgres profile + post + connection-graph + endorsement-chain + jobs stores (e.g., after a Meilisearch corruption, Redis flush, or new ranking version shipped).
+1. **Backfill** — search index (multi-index) + feed cache + connection-graph degree-cache rebuild from canonical Postgres profile + post + connection-graph + endorsement-chain + jobs stores (e.g., after a Meilisearch corruption, Valkey flush, or new ranking version shipped).
 2. **Replay** — re-fanout of historical events to a newly subscribed downstream consumer (audit-chain, workflow-engine, mail action-card processor, ontology, ATS µservice), or to replay missed events for a tenant onboarded mid-stream.
 3. **Endorsement-chain replay** — bounded re-derivation of the endorsement-chain from per-endorser Ed25519 signatures + audit-chain seals (ADR-NET-0005); used to verify integrity after corruption or to re-emit downstream after a consumer onboards.
 4. **Jobs-handoff replay** — bounded re-emission of jobs-handoff events to ATS µservice after extended ATS outage (ADR-NET-0004).
@@ -39,7 +39,7 @@ Trigger sources:
 
 Procedure:
 
-1. Acquire backfill lease in Redis (per tenant per index per partition; lease TTL = 1h).
+1. Acquire backfill lease in Valkey (per tenant per index per partition; lease TTL = 1h).
 2. Snapshot canonical Postgres rows in `(tenant_id, context_kind=Professional)` partition, ordered by `created_at`:
    - `people` index: `network_profiles` (handle, display_name, headline, skills array, current-role).
    - `content` index: `network_posts` (body, hashtags, mentions).
@@ -71,14 +71,14 @@ Procedure:
 
 Trigger sources:
 - Operator-invoked: `cargo run -p oya-dev-cli -- network rebuild-feed-cache --tenant <t> --user-ref <u>`.
-- Auto: Redis cache eviction triggers per-user lazy rebuild on next feed-render.
+- Auto: Valkey cache eviction triggers per-user lazy rebuild on next feed-render.
 
 Procedure:
 
 1. Identify scope: per-user or per-tenant.
 2. For each affected user, query Postgres for posts from connected accounts + followed Pages within feed window (default 7 days hot).
 3. Rank using current ranking heuristic (P01) / model (P03).
-4. Write feed slice to Redis cache with TTL.
+4. Write feed slice to Valkey cache with TTL.
 5. Emit `FeedCacheRebuilt` event.
 
 ### Constraints
@@ -92,12 +92,12 @@ Procedure:
 
 Trigger:
 - Operator-invoked: `cargo run -p oya-dev-cli -- network rebuild-degree-cache --tenant <t>`.
-- Auto: after FM-05 connection-graph corruption recovery; Redis cache cleared.
+- Auto: after FM-05 connection-graph corruption recovery; Valkey cache cleared.
 
 Procedure:
 
 1. For each user in tenant, run a BFS over `connection_edges` table out to depth 3 (1st / 2nd / 3rd-degree).
-2. Materialise the count per degree into Redis (`degree_count:<user_ref>:1deg`, `:2deg`, `:3deg`).
+2. Materialise the count per degree into Valkey (`degree_count:<user_ref>:1deg`, `:2deg`, `:3deg`).
 3. Emit `DegreeCacheRebuilt` event.
 
 ### Constraints

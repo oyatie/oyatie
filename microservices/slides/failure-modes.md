@@ -13,7 +13,7 @@ doc_status: published
 | FM | Surface | Trigger | Impact | Detection | Mitigation | Recovery |
 |---|---|---|---|---|---|---|
 | FM-01 | editor-rest | Postgres primary down | save fails | health probe + SLO burn | DR failover; freeze writes; tenant banner | RTO 30s; RPO 5s |
-| FM-02 | editor-rest | Redis cluster split-brain | CRDT lease confusion → silent loss risk | lease verification + Sev-1 alarm | force lease reacquire; reconcile from Postgres CRDT snapshot | 5min; data preserved |
+| FM-02 | editor-rest | Valkey cluster split-brain | CRDT lease confusion → silent loss risk | lease verification + Sev-1 alarm | force lease reacquire; reconcile from Postgres CRDT snapshot | 5min; data preserved |
 | FM-03 | real-time-collaboration-worker | WS connection storm > cap | new connections refused | WS connection count + 503 | per-tenant session cap + queue; HPA scale-out | 10min |
 | FM-04 | real-time-collaboration-worker | Loro library merge bug (regression) | conflict surfacer mis-fires OR silent loss | proptest + RustSec advisory | pin previous Loro; rollback pods; freeze T2 authoring | 30min |
 | FM-05 | real-time-collaboration-worker | HMAC key compromise | op-tampering possible | HMAC mismatch counter + Sev-1 | rotate per-session keys; force reconnect | 10min |

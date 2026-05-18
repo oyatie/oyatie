@@ -875,7 +875,7 @@ paths:
 
   /ready:
     get:
-      summary: Readiness probe (Postgres + Redis + cell SDK + foundry-runtime SDK reachable)
+      summary: Readiness probe (Postgres + Valkey + cell SDK + foundry-runtime SDK reachable)
       operationId: getReady
       security: []
       responses:

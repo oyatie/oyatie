@@ -19,12 +19,24 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-gate-jobs-handoff-contract]
 
 Author the full `jobs-handoff` BC per ADR-NET-0004:
 
-- **No direct gRPC from `network` to the Tier-G ATS µservice.** Per the
-  Workflow+Ontology adapter rule (feedback_workflow_objectgraph_adapter_layer)
-  and ADR-0140 (cross-cutting carriers exemption), ATS is an app-tier µservice,
-  NOT a cross-cutting carrier — so the only legal cross-µservice path is the
-  workflow-engine event-bus. `network` egresses ONLY to workflow-engine; never
-  directly to the ATS namespace.
+- **Workflow-mediated handoff to ATS µservice.** Per the
+  workflow-vs-direct-gRPC rubric (`docs/standards/workflow-vs-direct-grpc-rubric.md`)
+  this handoff matches the canonical Workflow case: multi-µservice handoff
+  with ack semantics, ATS may be unavailable for hours, audit-chain causal
+  ordering required. The handoff routes via the workflow-engine event-bus;
+  `network` does NOT open a direct gRPC channel to ATS at runtime.
+- ATS µservice activation is gated by ADR-0132 forward policy. The ATS
+  µservice is `tracked-for-tier-g-onboarding`: it does NOT exist as a
+  shipping µservice at the time this IP is authored. ATS µservice
+  activates when the first ATS-tier tenant signals onboarding, per
+  ADR-0132's forward-policy substrate. Until then, the workflow-engine
+  egress carries the `oya.network.jobposting.v1.published` events into a
+  bounded queue that ATS will consume once the µservice is deployed.
+- The prior carrier-exemption framing (feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145)
+  + ADR-0140 (retired per ADR-0145)) is retired per ADR-0145. Under ADR-0145 direct sibling-µservice
+  gRPC is permitted in general; this BC continues to route through
+  workflow-engine for the rubric-driven reasons above (durable execution +
+  saga semantics), NOT because of a universal-mediator rule.
 - Event-based handoff via the workflow-engine event bus:
   `oya.network.jobposting.v1.published` + `oya.network.jobapplication.v1.filed`.
   workflow-engine routes these to ATS; ATS subscribes via the same bus.
@@ -70,7 +82,7 @@ cargo run -p oya-dev-cli -- gate validate jobs-handoff-contract --microservice n
 - Application filed: emits `oya.network.jobapplication.v1.filed`; ATS µservice receives + acks.
 - Backfill-replay: ATS sends `ATSResumeReady{from_event_id, contract_version}` after outage; worker re-emits + ATS dedupes on event_id.
 - Dual-version-window: deploy v2 contract while v1 still active; both versions emit successfully for 6mo.
-- ATS-bridge degraded (FM-19): queue holds in Redis Streams; per `runbooks/jobs-handoff-ats-failure.md` recovers on ATS restore.
+- ATS-bridge degraded (FM-19): queue holds in Valkey Streams (Redis wire-compat); per `runbooks/jobs-handoff-ats-failure.md` recovers on ATS restore.
 
 ## Halt Conditions
 
@@ -84,10 +96,15 @@ cargo run -p oya-dev-cli -- gate validate jobs-handoff-contract --microservice n
 ## References
 
 - ADR-NET-0004 (jobs-handoff to ATS).
-- ADR-0140 (cross-cutting-carriers adapter exemption — ATS is NOT a carrier;
-  direct egress refused; workflow-engine event-bus mandated).
+- ADR-0145 (inter-microservice communication reform — supersedes the
+  prior carrier-exemption framing; this handoff routes through workflow-engine
+  per the workflow-vs-direct-gRPC rubric, not because of a universal-mediator
+  rule).
+- ADR-0140 (retired per ADR-0145; kept for back-reference only).
+- `docs/standards/workflow-vs-direct-grpc-rubric.md` — why this handoff
+  matches the canonical Workflow case.
 - `microservices/network/backfill-replay.md` §"Jobs-Handoff Replay".
 - `microservices/network/runbooks/jobs-handoff-ats-failure.md`.
 - `iac/helm/network/templates/networkpolicy.yaml` (egress to workflow-engine
-  namespace only; the `ats` namespace egress was removed 2026-05-18 per the
-  integration review INT-001 finding).
+  namespace; ATS µservice activates per ADR-0132 forward policy when first
+  ATS-tier tenant signals onboarding).

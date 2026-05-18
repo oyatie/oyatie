@@ -102,7 +102,7 @@ of this decision. An autonomous executor must be able to act without escalation:
 ### Integration via Workflow + Ontology
 
 State which typed events this decision emits to Workflow and which Object Types /
-Link Types it writes to Ontology (per `feedback_workflow_objectgraph_adapter_layer.md`):
+Link Types it writes to Ontology (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`):
 
 - **Workflow events produced**: `<EventType>` — consumed by `<µservice>`
 - **Workflow events consumed**: `<EventType>` — produced by `<µservice>`

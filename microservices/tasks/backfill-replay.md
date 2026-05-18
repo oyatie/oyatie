@@ -51,7 +51,7 @@ Trigger sources:
 
 Procedure:
 
-1. Acquire rebuild lease in Redis (per tenant; lease TTL = 1h).
+1. Acquire rebuild lease in Valkey (per tenant; lease TTL = 1h).
 2. Enumerate Postgres `tasks_task` rows partitioned by `(tenant_id, project_id_hash)`.
 3. For each task, compute the search projection per current `oya-tasks-search-index-domain` schema (respecting context isolation + redaction rules).
 4. Bulk-write to Meilisearch with per-tenant index name + idempotency key `(tenant_id, task_id, schema_version)`.

@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Define which jurisdictions' tenant workflow runs live in which Postgres + Citus / Redis / ClickHouse cluster, the cross-pack replication policy, and the legal-transfer mechanisms that gate any exception. Canonical residency artifact reviewed by EU DPAs (per GDPR Arts. 44-50), the Korean PIPC (per PIPA Art. 28 + Art. 23-2), HIPAA tenants' Covered Entity counsel, and equivalent supervisory authorities.
+Define which jurisdictions' tenant workflow runs live in which Postgres + Citus / Valkey / ClickHouse cluster, the cross-pack replication policy, and the legal-transfer mechanisms that gate any exception. Canonical residency artifact reviewed by EU DPAs (per GDPR Arts. 44-50), the Korean PIPC (per PIPA Art. 28 + Art. 23-2), HIPAA tenants' Covered Entity counsel, and equivalent supervisory authorities.
 
 ## Residency Model
 

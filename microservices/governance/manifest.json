@@ -244,6 +244,12 @@
       "file": "microservices/governance/IP-015-runbooks-iac-finalization.md"
     },
     {
+      "id": "IP-NEW-chaos-engineering-substrate",
+      "title": "IP-NEW: wire `oya-check-chaos-engineering-catalog` into oya-dev-cli gate validate",
+      "acceptance_status": "ga",
+      "file": "microservices/governance/IP-NEW-chaos-engineering-substrate.md"
+    },
+    {
       "id": "IP-NEW-eu-ai-act-annex-iii-refusal-lane",
       "title": "IP-NEW: wire `oya-check-eu-ai-act-annex-iii-refusal` into oya-dev-cli gate validate",
       "acceptance_status": "ga",
@@ -270,6 +276,7 @@
     "ksa"
   ],
   "lts_pins": {
+    "istio": "1.24.1\"                # Istio Ambient LTS pin (ADR-0148 Tier-2 baseline)",
     "postgres": "16.2",
     "rust": "1.83"
   },
@@ -346,5 +353,25 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "CedarFragment",
+      "projection_target_table": "ontology_cedar_fragments",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "PolicyDecision",
+      "projection_target_table": "ontology_policy_decisions",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true,
+    "north_south_only": false
   }
 }

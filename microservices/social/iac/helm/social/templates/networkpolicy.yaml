@@ -46,7 +46,7 @@ spec:
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: social-postgres}}
       ports: [{protocol: TCP, port: 5432}]
-    # Redis (cache + streams)
+    # Valkey (cache + streams)
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: social-redis}}
       ports: [{protocol: TCP, port: 6379}]

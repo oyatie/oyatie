@@ -108,7 +108,7 @@ helm lint microservices/tenancy/iac/helm/postgres
 helm lint microservices/tenancy/iac/helm/citus
 helm lint microservices/tenancy/iac/helm/patroni
 kubectl --dry-run=client apply -k microservices/tenancy/iac/kustomize/overlays/pack-kr
-terraform validate microservices/tenancy/iac/terraform/
+tofu validate microservices/tenancy/iac/terraform/
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice tenancy
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 ```

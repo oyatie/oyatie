@@ -31,7 +31,7 @@ Per Bominal ADR-0028 (inherited) and oyatie incident-severity standard (`docs/st
 
 | Severity | Definition | Response time (target page-to-ack) | Examples |
 |---|---|---|---|
-| **Sev-1** | Production-tier C/I/A impact affecting multiple tenants; regulatory-notification triggers; data breach; safety violation | ≤ 5 min (24/7 on-call paged) | FM-05 Redis quorum loss cluster-wide; FM-09 cross-tenant subscription leak; FM-13 audit-chain seal gap |
+| **Sev-1** | Production-tier C/I/A impact affecting multiple tenants; regulatory-notification triggers; data breach; safety violation | ≤ 5 min (24/7 on-call paged) | FM-05 Valkey quorum loss cluster-wide; FM-09 cross-tenant subscription leak; FM-13 audit-chain seal gap |
 | **Sev-2** | Single-tenant or sub-tenant impact; operational degradation without data loss | ≤ 15 min (24/7 on-call paged) | FM-01 deadlock single-tenant; FM-02 backpressure single-subscriber; FM-03 replay storm; FM-07 outbox crash; FM-10 PII leakage |
 | **Sev-3** | Localized impact; degraded but functional; backlogged operations | ≤ 1h (business hours) | FM-04 lock contention; FM-06 spec downgrade attempt; FM-08 ClickHouse drift; FM-11 stuck run; FM-12 event poisoning |
 | **Sev-4** | Cosmetic; no operational impact | next business day | dashboard label typo; minor doc drift |

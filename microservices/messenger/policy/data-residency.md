@@ -64,7 +64,7 @@ OpenBao records both keys; messenger reads at every request.
 ### Default: forbidden
 
 - Postgres logical replication: within-pack only.
-- Redis cluster replication: within-pack only.
+- Valkey cluster replication: within-pack only.
 - S3 cross-region replication: within-pack only.
 - Tantivy/ES index replication: within-pack only.
 

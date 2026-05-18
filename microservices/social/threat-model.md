@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-social + ops-security
 deciders: council-architecture, ops-security, axis-social, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/social.json]
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:
@@ -48,7 +48,7 @@ All components introduced by parallel ADR-0135 (Connect dissolution → social �
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 LTS (profile + post + follow-graph + reactions + bookmarks store) | `oya-social-user-profile-*` (9 crates) |
-| Redis 7.2 (feed cache + reaction counters + trending + notification fanout) | `oya-social-follow-graph-*` (8 crates) |
+| Valkey 8.1 (Redis wire-compat) (feed cache + reaction counters + trending + notification fanout) | `oya-social-follow-graph-*` (8 crates) |
 | Meilisearch 0.10.0 (people + content + hashtag search) | `oya-social-post-composition-*` (13 crates) |
 | S3-compatible (media blobs + previews + quarantine) | `oya-social-feed-timeline-*` (10 crates) |
 | ImageMagick 7.1 (image transcode) | `oya-social-reactions-*` (8 crates) |
@@ -105,7 +105,7 @@ All components introduced by parallel ADR-0135 (Connect dissolution → social �
 │                                                                           │
 │  TB3: BC services → backing stores                                        │
 │                                                                           │
-│  ┌─ Postgres (per-tenant RLS) ─┐  ┌─ Redis cluster ─┐                     │
+│  ┌─ Postgres (per-tenant RLS) ─┐  ┌─ Valkey cluster ─┐                     │
 │  │ profiles, posts, follows    │  │ feed-cache, react│                     │
 │  └─────────────────────────────┘  └──────────────────┘                     │
 │  ┌─ S3 (media blobs; KMS) ──────┐  ┌─ Meilisearch ──┐                     │
@@ -151,15 +151,15 @@ Ten trust boundaries:
 | Posts (Professional) | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_IDENTIFYING` + occasionally `PHI` (pack-us-healthcare) | per-pack (90d hot, retention floor per regulator) | Postgres (tenant-DEK encrypted when configured) |
 | Posts (Personal) | `PERSONAL` + `BEHAVIORAL_USER_CONTENT` | per-user policy + per-pack | Postgres (server-stored; not E2E-encrypted because posts are public-by-default) |
 | Comments / replies | inherits parent | inherits | Postgres |
-| Reactions | `BEHAVIORAL_TENANT_PRODUCT` | 365d hot | Redis (persisted to Postgres asynchronously) |
+| Reactions | `BEHAVIORAL_TENANT_PRODUCT` | 365d hot | Valkey (persisted to Postgres asynchronously) |
 | Follow-graph (directed edges + block/mute lists) | `RELATIONSHIP_GRAPH` + `PII_QUASI_IDENTIFIER` | append-only with tombstone-on-unfollow | Postgres (adjacency-list) |
 | Media (image / video blobs) | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_IDENTIFYING` (faces) / `PHI` (pack-us-healthcare) | per-pack | S3 (KMS-encrypted; per-tenant prefix) |
 | Media metadata (digest, preview, transcode variant, scan-verdict) | `INTERNAL_ONLY` + `AUDIT` | append-only | Postgres |
-| Notification records | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` | 90d hot | Postgres + Redis |
-| Trending-topic windows | derived; `INTERNAL_ONLY` | rebuilt continuously | Redis |
+| Notification records | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` | 90d hot | Postgres + Valkey |
+| Trending-topic windows | derived; `INTERNAL_ONLY` | rebuilt continuously | Valkey |
 | Search index | derived from profiles + posts | rebuilt from source | Meilisearch (per-tenant index) |
 | Moderation verdicts + appeal trail | `AUDIT` + `INTERNAL_ONLY` + `PII_IDENTIFYING` (reporter ref) | append-only; immutable | Postgres + audit-chain seal |
-| Hashtag corpus | derived | rebuilt | Postgres + Redis |
+| Hashtag corpus | derived | rebuilt | Postgres + Valkey |
 | Bookmarks (per-user, private) | `BEHAVIORAL_USER_CONTENT` | user lifecycle | Postgres |
 | Lists | `BEHAVIORAL_USER_CONTENT` (private) or `BEHAVIORAL_TENANT_PRODUCT` (public) | user lifecycle | Postgres |
 | Verification badges | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | append-only history | Postgres |
@@ -245,7 +245,7 @@ Ten trust boundaries:
 **T-T-04 — Reaction-count tampering (vote-stuffing)**
 - Asset: Reaction tally
 - Likelihood M / Impact M / Risk **M**
-- Mitigations: per-user-per-post idempotency (one reaction per user per post per emoji); conflict-free counter; periodic reconciliation Postgres ↔ Redis.
+- Mitigations: per-user-per-post idempotency (one reaction per user per post per emoji); conflict-free counter; periodic reconciliation Postgres ↔ Valkey.
 
 **T-T-05 — Search index poisoning**
 - Asset: Meilisearch index
@@ -336,7 +336,7 @@ Ten trust boundaries:
 **T-D-01 — Feed-render storm: viral post causes mass concurrent feed-pulls**
 - Asset: Feed cache
 - Likelihood H / Impact H / Risk **H**
-- Mitigations: Redis hot-feed cache; fanout-on-write for hot accounts (precomputed feed); per-tenant feed-render rate limit; HPA on REST pods; runbook `runbooks/feed-cache-rebuild.md`.
+- Mitigations: Valkey hot-feed cache; fanout-on-write for hot accounts (precomputed feed); per-tenant feed-render rate limit; HPA on REST pods; runbook `runbooks/feed-cache-rebuild.md`.
 
 **T-D-02 — Mention storm: one post @-mentions thousands**
 - Asset: mentions worker queue

@@ -54,7 +54,7 @@ Define multi-region topology for social across the 11 oyatie packs: pack-pinning
 │  │ HA-RF=3                  │ replic     │ async; ≤ 5 s lag          │ │
 │  └──────────────────────────┘            └──────────────────────────┘ │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐ │
-│  │ Redis cluster (3 shards) │            │ Redis cluster warm        │ │
+│  │ Valkey cluster (3 shards) │            │ Valkey cluster warm        │ │
 │  └──────────────────────────┘            └──────────────────────────┘ │
 │  ┌──────────────────────────┐  CRR       ┌──────────────────────────┐ │
 │  │ S3 media bucket          │◀──────────▶│ S3 replica                │ │
@@ -80,7 +80,7 @@ Define multi-region topology for social across the 11 oyatie packs: pack-pinning
 | Component | Mode | RPO | Cross-region |
 |---|---|---|---|
 | Postgres profiles + posts + follows + moderation | Async logical replication | ≤ 5 s | intra-pack only |
-| Redis feed-cache + reactions + trending + notifications | Cluster-replicated (sentinel) | ≤ 1 s | intra-pack only |
+| Valkey feed-cache + reactions + trending + notifications | Cluster-replicated (sentinel) | ≤ 1 s | intra-pack only |
 | S3 media | Async CRR | ≤ 5 min | intra-pack only |
 | Meilisearch search index | Rebuilt from event stream in DR | ≤ 30 min lag during failover | intra-pack only |
 | Audit-chain seals | Cross-pack OK (no PII; just hashes) | ≤ 10 s | yes |
@@ -93,8 +93,8 @@ Define multi-region topology for social across the 11 oyatie packs: pack-pinning
 | Post store (personal) | ≤ 5 s | ≤ 15 min | same |
 | Follow-graph | ≤ 5 s | ≤ 15 min | Postgres logical-replica |
 | Media store | ≤ 5 min | ≤ 1 h | S3 CRR + lazy hydration |
-| Feed cache | ≤ 30 s (data lossy; rebuildable from posts) | ≤ 5 min | from Redis warm + fanout replay |
-| Reactions | ≤ 5 min (best-effort) | ≤ 15 min | from Redis warm + re-emit; Postgres flush |
+| Feed cache | ≤ 30 s (data lossy; rebuildable from posts) | ≤ 5 min | from Valkey warm + fanout replay |
+| Reactions | ≤ 5 min (best-effort) | ≤ 15 min | from Valkey warm + re-emit; Postgres flush |
 | Search index | ≤ 30 min lag | ≤ 1 h rebuild | replay from post stream |
 | Trending topics | ≤ 5 min lag | ≤ 5 min rebuild | recompute from windowed hashtag events |
 | Notifications | best-effort | ≤ 30 min | re-emit from event log |
@@ -108,7 +108,7 @@ Define multi-region topology for social across the 11 oyatie packs: pack-pinning
 | 2 | Incident Commander declares Sev-1; engages OpsLead | ≤ 5 min |
 | 3 | Verify DR pair Postgres replica < 30s lag; promote replica to primary | ≤ 5 min |
 | 4 | DNS TTL drains; clients reconnect to DR pair gateways | ≤ 10 min total |
-| 5 | Verify Redis warm cluster ready; rebuild feed cache from latest posts | ≤ 10 min |
+| 5 | Verify Valkey warm cluster ready; rebuild feed cache from latest posts | ≤ 10 min |
 | 6 | Verify S3 CRR replica reachable; lazy-hydrate cold-tier on demand | ≤ 5 min |
 | 7 | Replay Meilisearch index from post-stream event log (last 24h hot) | ≤ 30 min |
 | 8 | Verify follow-graph consistency: re-derive from authoritative replay | ≤ 30 min |
@@ -140,7 +140,7 @@ Any cross-pack-replication attempt outside the explicit exceptions triggers `soc
 
 - WebSocket gateways: active-active across AZs in primary region.
 - Postgres: primary + 2 read-replicas across AZs.
-- Redis: 3-node cluster across AZs.
+- Valkey: 3-node cluster across AZs.
 - S3: cross-AZ replication within bucket.
 - Meilisearch: shard-per-AZ.
 
@@ -158,7 +158,7 @@ Any cross-pack-replication attempt outside the explicit exceptions triggers `soc
 |---|---|---|
 | Primary Postgres failover | Quarterly | ops-sre-reliability |
 | WebSocket gateway pod-eviction storm | Quarterly | axis-social |
-| Redis cluster split-brain | Annually | ops-sre-reliability |
+| Valkey cluster split-brain | Annually | ops-sre-reliability |
 | Pack-wide DR failover | Annually (DR-pair packs only) | ops-sre-reliability |
 | Cross-context routing chaos (synthetic violation attempt) | Quarterly | ops-security |
 | Federation peer compromise drill | Annually | ops-security + axis-social |

@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baselines for every component (Postgres HA, Redis Cluster, Kubernetes Operator, REST, worker, app). Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + reference-architecture baselines for every component (Postgres HA, Valkey Cluster, Kubernetes Operator, REST, worker, app). Drives `cost-budget.md` and `multi-region.md`.
 
 ## Inputs
 
@@ -40,7 +40,7 @@ Sizing formulas + reference-architecture baselines for every component (Postgres
 ```
 total_fleet_rows           = N_tenants × (C_capabilities_per_tenant + A_agents_per_tenant)
 postgres_write_iops        = (N_deployment_events_per_min + N_kill_switch_state_changes_per_min) / 60
-postgres_read_iops         = N_tenants × precond_eval_rate / cache_hit_ratio   (cached in Redis; Postgres tail-end)
+postgres_read_iops         = N_tenants × precond_eval_rate / cache_hit_ratio   (cached in Valkey; Postgres tail-end)
 postgres_storage_per_tenant = ~5 MB row data + ~50 MB deployment history (2y retention)
 postgres_storage_total     = N_tenants × 55 MB × (1 + DR-replica-overhead)
 ```
@@ -66,7 +66,7 @@ References: PostgreSQL HA — `postgresql.org/docs/current/high-availability.htm
 
 Sharding triggers at M-tier (tenant_hash MOD num_shards).
 
-## Redis Cluster Sizing
+## Valkey Cluster Sizing
 
 ### Formulae
 
@@ -83,11 +83,11 @@ redis_shards    = max(3, ceil(redis_memory / 4 GB))           (one shard per 4 G
 redis_replicas  = 2 per shard (HA)
 ```
 
-References: Redis Cluster sizing — `redis.io/docs/management/scaling/`.
+References: Valkey Cluster sizing — `redis.io/docs/management/scaling/`.
 
 ### Reference baselines
 
-| Tier | N_tenants | Redis memory (per pack) | Redis shards × replicas |
+| Tier | N_tenants | Valkey memory (per pack) | Valkey shards × replicas |
 |---|---|---|---|
 | XS | 20 | ~50 MB | 3 × 2 (minimum) |
 | S | 100 | ~250 MB | 3 × 2 |
@@ -141,7 +141,7 @@ redis_memory          = ~50 MB
 redis_ops_per_sec     = (~1k poll/s + ~100 event-writes/s) ≈ 1.1k ops/s/cluster
 
 Postgres replica config: primary=1×8c + replica=1×8c; 1 TB PV each; PgBouncer × 2.
-Redis Cluster: 3 shards × 2 replicas (minimum HA); 4 GB allocated per shard (massively over-provisioned for XS; aligned to future scale).
+Valkey Cluster: 3 shards × 2 replicas (minimum HA); 4 GB allocated per shard (massively over-provisioned for XS; aligned to future scale).
 Kubernetes Operator: 3 replicas.
 REST: 3 replicas.
 Worker: 2 replicas.
@@ -164,7 +164,7 @@ Cost projections per scale tier in `cost-budget.md`.
 
 - PostgreSQL HA — `postgresql.org/docs/current/high-availability.html`.
 - PgBouncer — `pgbouncer.org`.
-- Redis Cluster — `redis.io/docs/management/scaling/`.
+- Valkey Cluster — `redis.io/docs/management/scaling/`.
 - Kubernetes Operator pattern — `kubernetes.io/docs/concepts/extend-kubernetes/operator/`.
 - controller-runtime + kube-rs.
 - OCI pricing — `oracle.com/cloud/storage/pricing/`.

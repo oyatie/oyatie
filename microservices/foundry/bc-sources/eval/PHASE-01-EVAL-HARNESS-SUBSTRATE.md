@@ -26,7 +26,7 @@ In-scope (M01-P01):
 - Eval-set authoring path: `microservices/foundry-eval/eval-sets/<capability>/v<n>.evalset.yaml` + Cosign signature.
 - Eval-runner full layer stack (kernel + domain + usecase + api + adapter + adapter-s3 + adapter-gpu + rest + worker + sdk + app).
 - Bootstrap of eval-set-registry, parity-analyzer, replay-engine, golden-output-store (kernel + domain + usecase + adapter + app each; full layer stack in M02).
-- Layer-A IaC: GPU runner pool Helm chart, Postgres Helm chart, ClickHouse Helm chart, golden-output-store (MinIO + KMS) Helm chart.
+- Layer-A IaC: GPU runner pool Helm chart, Postgres Helm chart, ClickHouse Helm chart, golden-output-store (SeaweedFS + KMS) Helm chart.
 - Layer-B CI lanes: `foundry-eval-coverage`, `foundry-eval-adversarial-coverage`, `foundry-eval-linguistic-coverage`, `foundry-eval-nightly`, `foundry-eval-route-ab`, `foundry-eval-replay`.
 - 3 capabilities (eval-run, parity-compare, replay-execute) + 3 dashboards + 6 runbooks + 6 policies + 3 contracts.
 - DSR cascade integration: per-subject DEK shred surface tested end-to-end.

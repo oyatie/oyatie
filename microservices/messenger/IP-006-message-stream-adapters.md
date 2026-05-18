@@ -13,12 +13,12 @@ acceptance_lanes: [cargo-nextest, e2e-message-roundtrip]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-006: message-stream adapters (Postgres + Meilisearch + Redis Streams)
+# IP-006: message-stream adapters (Postgres + Meilisearch + Valkey Streams (Redis wire-compat))
 
 ## Intent
 
 Implement `MessageStore` against Postgres; `MessageSearchIndex` against
-Meilisearch (fallback Tantivy); `RealtimeBroadcaster` against Redis Streams
+Meilisearch (fallback Tantivy); `RealtimeBroadcaster` against Valkey Streams (Redis wire-compat)
 (fallback KeyDB). Per ADR-0105 Amendment 3 — three backend-qualified
 `-adapter-<backend>` crates.
 
@@ -29,7 +29,7 @@ Meilisearch (fallback Tantivy); `RealtimeBroadcaster` against Redis Streams
 | `src/crates/oya-messenger-message-stream-adapter-postgres/{src,migrations}/...` | create |
 | `src/crates/oya-messenger-message-stream-adapter-meilisearch/src/...` | create |
 | `src/crates/oya-messenger-message-stream-adapter-redis-streams/src/...` | create |
-| `tests/message_roundtrip_e2e.rs` | create — testcontainers Postgres + Meilisearch + Redis |
+| `tests/message_roundtrip_e2e.rs` | create — testcontainers Postgres + Meilisearch + Valkey |
 
 ## Code Shape
 
@@ -61,9 +61,9 @@ cargo nextest run --test message_roundtrip_e2e
 
 ## Test Plan
 
-- E2E: POST message → Postgres write → Meilisearch index → Redis Streams xadd.
+- E2E: POST message → Postgres write → Meilisearch index → Valkey Streams (Redis wire-compat) xadd.
 - Search filter: query with Cedar policy stub; verify out-of-scope channels not returned.
-- Backpressure: Redis Streams full → producer blocks ≤ 100ms then 503.
+- Backpressure: Valkey Streams (Redis wire-compat) full → producer blocks ≤ 100ms then 503.
 
 ## Next IP
 

@@ -54,7 +54,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 | Runbook | `runbooks/postgres-primary-failover.md` (in cell µservice; messenger references) |
 | Postmortem | ops-sre-reliability + axis-messenger |
 
-## FM-03: Redis presence corruption
+## FM-03: Valkey presence corruption
 
 | Field | Value |
 |---|---|
@@ -162,7 +162,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 
 | Field | Value |
 |---|---|
-| Trigger | Mass read-receipt emission during peak hour; Redis coalescer overwhelmed |
+| Trigger | Mass read-receipt emission during peak hour; Valkey coalescer overwhelmed |
 | Detection | `messenger_read_receipt_coalesce_window_breach_total` > 0 sustained |
 | Tenant impact | Read-receipt updates lag (best-effort); no message loss |
 | Severity | Sev-3 |

@@ -4,7 +4,7 @@
 // read/write/share unless an explicit CrossTenantShareGrant is on file.
 // Owner: ops-security + axis-drive
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140, policy/dual-context-isolation.md, policy/data-residency.md, ADR-DRIVE-0003 (share-link), ADR-DRIVE-0006 (WORM)
+// Related: ADR-0140 (retired per ADR-0145), policy/dual-context-isolation.md, policy/data-residency.md, ADR-DRIVE-0003 (share-link), ADR-DRIVE-0006 (WORM)
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

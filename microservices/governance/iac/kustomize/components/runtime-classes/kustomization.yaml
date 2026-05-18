@@ -21,6 +21,9 @@
 #   - kata-qemu        (handler kata-qemu)        — LEGACY: prefer kata-clh
 #   - kata-fc          (handler kata-fc)          — per-request ephemeral isolation
 #   - wasmtime         (handler wasmtime)         — WASM-only workers
+#   - istio-ambient-waypoint (handler runc)       — Istio Ambient waypoint
+#                                                   Envoy pods for regulatory
+#                                                   packs per ADR-0174
 
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
@@ -33,3 +36,4 @@ resources:
   - kata-qemu-runtime-class.yaml
   - kata-firecracker-runtime-class.yaml
   - wasmtime-runtime-class.yaml
+  - istio-ambient-waypoint-runtime-class.yaml

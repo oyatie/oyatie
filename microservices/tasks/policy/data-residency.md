@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-tasks
-related_adrs: [ADR-0117, ADR-0140]
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145)]
 doc_status: published
 ---
 
@@ -21,21 +21,21 @@ Define where tasks data may be stored, processed, and replicated; how cross-bord
 
 ### Invariant DR-01 — Pack-pinned primary storage
 
-> Every tenant's task-store + project-list + dependency-edge Postgres rows + Redis view-cache + Meilisearch search-index live in exactly one `pack-<jurisdiction>` cluster. The pack is determined at tenant onboarding and pinned in the `tenant_registry` (owned by `tenancy` µservice).
+> Every tenant's task-store + project-list + dependency-edge Postgres rows + Valkey view-cache + Meilisearch search-index live in exactly one `pack-<jurisdiction>` cluster. The pack is determined at tenant onboarding and pinned in the `tenant_registry` (owned by `tenancy` µservice).
 
 | Pack | Region | Substrate |
 |---|---|---|
-| pack-kr | OCI ap-seoul-1 | Postgres + Redis + Meilisearch cluster KR-resident |
-| pack-eu | OCI eu-frankfurt-1 | Postgres + Redis + Meilisearch cluster EU-resident |
-| pack-us | OCI us-ashburn-1 + us-phoenix-1 | Postgres + Redis + Meilisearch cluster US-resident |
-| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | Postgres + Redis + Meilisearch cluster US-resident, HIPAA-compliant |
-| pack-jp | OCI ap-tokyo-1 | Postgres + Redis + Meilisearch cluster JP-resident |
-| pack-sg | OCI ap-singapore-1 | Postgres + Redis + Meilisearch cluster SG-resident |
-| pack-au | OCI ap-sydney-1 | Postgres + Redis + Meilisearch cluster AU-resident |
-| pack-in | OCI ap-mumbai-1 | Postgres + Redis + Meilisearch cluster IN-resident |
-| pack-br | OCI sa-saopaulo-1 | Postgres + Redis + Meilisearch cluster BR-resident |
-| pack-ae | OCI me-dubai-1 | Postgres + Redis + Meilisearch cluster AE-resident |
-| pack-ksa | OCI me-jeddah-1 | Postgres + Redis + Meilisearch cluster KSA-resident |
+| pack-kr | OCI ap-seoul-1 | Postgres + Valkey + Meilisearch cluster KR-resident |
+| pack-eu | OCI eu-frankfurt-1 | Postgres + Valkey + Meilisearch cluster EU-resident |
+| pack-us | OCI us-ashburn-1 + us-phoenix-1 | Postgres + Valkey + Meilisearch cluster US-resident |
+| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | Postgres + Valkey + Meilisearch cluster US-resident, HIPAA-compliant |
+| pack-jp | OCI ap-tokyo-1 | Postgres + Valkey + Meilisearch cluster JP-resident |
+| pack-sg | OCI ap-singapore-1 | Postgres + Valkey + Meilisearch cluster SG-resident |
+| pack-au | OCI ap-sydney-1 | Postgres + Valkey + Meilisearch cluster AU-resident |
+| pack-in | OCI ap-mumbai-1 | Postgres + Valkey + Meilisearch cluster IN-resident |
+| pack-br | OCI sa-saopaulo-1 | Postgres + Valkey + Meilisearch cluster BR-resident |
+| pack-ae | OCI me-dubai-1 | Postgres + Valkey + Meilisearch cluster AE-resident |
+| pack-ksa | OCI me-jeddah-1 | Postgres + Valkey + Meilisearch cluster KSA-resident |
 
 ### Invariant DR-02 — No default cross-pack replication
 

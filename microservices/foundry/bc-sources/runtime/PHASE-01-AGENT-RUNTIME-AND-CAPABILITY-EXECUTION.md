@@ -67,8 +67,8 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-runtime-cluster-iac.md`](IP-001-runtime-cluster-iac.md) | Helm/Kustomize charts for the runtime-pool, Redis 7.4 LTS, Postgres 16 LTS under `microservices/foundry-runtime/iac/helm/` | pending | ops-sre-reliability + axis-foundry-runtime | — |
-| [`IP-002-redis-and-postgres-baseline.md`](IP-002-redis-and-postgres-baseline.md) | Redis cluster + Postgres mirror schema + OpenBao secret references | pending | ops-sre-reliability | IP-001 |
+| [`IP-001-runtime-cluster-iac.md`](IP-001-runtime-cluster-iac.md) | Helm/Kustomize charts for the runtime-pool, Valkey 8.1 (Redis wire-compat), Postgres 16 LTS under `microservices/foundry-runtime/iac/helm/` | pending | ops-sre-reliability + axis-foundry-runtime | — |
+| [`IP-002-redis-and-postgres-baseline.md`](IP-002-redis-and-postgres-baseline.md) | Valkey cluster + Postgres mirror schema + OpenBao secret references | pending | ops-sre-reliability | IP-001 |
 | [`IP-003-capability-executor-kernel.md`](IP-003-capability-executor-kernel.md) | kernel layer crate: port traits + entities + errors | pending | axis-foundry-runtime | IP-002 |
 | [`IP-004-capability-executor-domain-and-usecase.md`](IP-004-capability-executor-domain-and-usecase.md) | domain (pure math) + usecase (orchestrator) crates for executor | pending | axis-foundry-runtime | IP-003 |
 | [`IP-005-capability-registry-cache-stack.md`](IP-005-capability-registry-cache-stack.md) | kernel + usecase + api + adapter + adapter-postgres + worker + app crates for registry-cache | pending | axis-foundry-runtime | IP-003 |
@@ -197,7 +197,7 @@ Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + 
 | domain crate | 1 per public function + property tests | 0 | 0 | 95% line; 90% branch |
 | usecase crate | 1 per use case (happy + 2 sad paths) | ≥3 against mocked ports | 0 | 90% line; 80% branch |
 | adapter crate | 1 per port-impl method | ≥2 against real backend (test container) | 0 | 85% line; 75% branch |
-| adapter-redis crate | 1 per method | ≥2 against testcontainers Redis 7.4 | 1 hot-read p99 load test | 85% line |
+| adapter-redis crate | 1 per method | ≥2 against testcontainers Valkey 8.1 (Redis wire-compat) | 1 hot-read p99 load test | 85% line |
 | adapter-postgres crate | 1 per method | ≥2 against testcontainers Postgres 16 | 1 cold-restore latency test | 85% line |
 | rest crate | 1 per route (happy + auth-fail + tenant-mismatch) | ≥2 cross-route flows | 1 per route via REST integration test | 85% line |
 | worker crate | 1 per orchestration arm | ≥1 long-lived loop integration test | 1 e2e (drain or hot-reload) | 85% line |

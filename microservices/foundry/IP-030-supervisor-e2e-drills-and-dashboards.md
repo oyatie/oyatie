@@ -57,7 +57,7 @@ cargo run -p oya-dev-cli -- gate validate authority-cohesion # HG-FND-SUP regist
 | AC-04 autonomy tier refusal | per-release | Cedar denies; AutonomyViolated audit-chain seal |
 | AC-06 drain no loss | per-release | drain completes; in-flight reach success |
 | AC-07 Postgres failover chaos | quarterly | control-plane available ≤ 30 s |
-| AC-08 Redis failover chaos | quarterly | kill-switch p99 stays ≤ 1 s during failover |
+| AC-08 Valkey failover chaos | quarterly | kill-switch p99 stays ≤ 1 s during failover |
 | EU AI Act Art. 60 post-market monitoring | quarterly | supervision-event + audit-chain + dashboards verified end-to-end |
 
 ## Halt Conditions

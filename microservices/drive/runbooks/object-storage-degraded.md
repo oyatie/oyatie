@@ -11,12 +11,12 @@ date: 2026-05-17
 doc_status: published
 ---
 
-# Runbook: Object-store degraded (Garage / MinIO / SeaweedFS cell loss)
+# Runbook: Object-store degraded (Garage / SeaweedFS / SeaweedFS cell loss)
 
 ## Symptom
 
 One or more of:
-- Garage / MinIO / SeaweedFS cell health metric degraded.
+- Garage / SeaweedFS / SeaweedFS cell health metric degraded.
 - `oya_drive_object_store_replica_count{tenant}` drops below replication-factor 3.
 - `oya_drive_object_store_request_failure_rate` rises.
 - Download / upload SLO burn-rate alert.
@@ -37,7 +37,7 @@ ops-sre-reliability on-call. Escalate to axis-drive if persistent or cross-tenan
 # Garage cluster status
 kubectl -n drive exec sts/oya-drive-garage-0 -- garage status
 
-# MinIO cluster status
+# SeaweedFS cluster status
 mc admin info oya-drive-minio --json | jq .
 
 # SeaweedFS health
@@ -92,10 +92,10 @@ grep replication-factor /etc/oya-drive-garage/config.toml
 3. RPO ≤ 60s; RTO ≤ 15 min (single-region).
 4. Cross-cell replication ensures secondary region has the data.
 
-### Case D — MinIO (pack-us-healthcare) degraded
+### Case D — SeaweedFS (pack-us-healthcare) degraded
 
-1. MinIO single-cluster deployment for pack-us-healthcare per ADR-DRIVE-0001.
-2. Engage `cloud-iac/runbooks/minio-cluster-degraded.md` for MinIO-specific recovery.
+1. SeaweedFS single-cluster deployment for pack-us-healthcare per ADR-DRIVE-0001.
+2. Engage `cloud-iac/runbooks/minio-cluster-degraded.md` for SeaweedFS-specific recovery.
 
 ### Case E — SeaweedFS archive tier degraded
 
@@ -126,11 +126,11 @@ cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo upload-
 
 ## References
 
-- ADR-DRIVE-0001 — object-storage substrate (Garage primary, MinIO secondary, SeaweedFS archive).
+- ADR-DRIVE-0001 — object-storage substrate (Garage primary, SeaweedFS secondary, SeaweedFS archive).
 - `slos/download-first-byte-latency.openslo.yaml`.
 - `slos/upload-multipart-throughput.openslo.yaml`.
 - `multi-region.md`.
 - `incident-response.md` IR-4.
 - Garage operator docs.
-- MinIO operator docs.
+- SeaweedFS operator docs.
 - SeaweedFS operator docs.

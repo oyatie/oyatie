@@ -6,7 +6,7 @@
 # or ignore. No autonomous action; no data flow change.
 #
 # Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 §"autonomy tiering".
-# Per ADR-0140 Cedar policy enforcement.
+# Per ADR-0140 (retired per ADR-0145) Cedar policy enforcement.
 # Per EU AI Act Art. 50 transparency (AI-generated suggestions labelled).
 
 doc_class: AutonomyTierCatalog

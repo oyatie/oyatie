@@ -23,8 +23,8 @@ Retention floors per pack (HIPAA 6y; SEC 17a-4 3-7y; MiFID II 5-7y; KR PIPA Art.
 
 ### Cross-µservice handoff to the `recordings` carrier
 
-Per ADR-0140 (cross-cutting-carriers adapter exemption) AND the
-Workflow+Ontology adapter rule (feedback_workflow_objectgraph_adapter_layer),
+Per ADR-0140 (retired per ADR-0145) (cross-cutting-carriers adapter exemption) AND the
+Workflow+Ontology adapter rule (feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145)),
 the meet → recordings handoff MUST flow through the workflow-engine event-bus
 for the orchestration leg, not via direct gRPC from a `meet` worker to the
 `recordings` namespace:

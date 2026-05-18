@@ -7,7 +7,7 @@ status: Active
 entry_gate: |
   PRD-sheets accepted; ADR-0135 net-new µservice scope accepted; cargo workspace ready to accept
   the new sheets crates under microservices/sheets/src/crates/; Layer-A IaC available via cloud-iac
-  µservice (CDN + WebSocket gateway + Postgres + Redis + S3 + Arrow/Parquet via OCI Object Storage);
+  µservice (CDN + WebSocket gateway + Postgres + Valkey + S3 + Arrow/Parquet via OCI Object Storage);
   foundry-runtime SDK available for AI-formula + smart-fill; tenancy SDK available for per-seat
   licensing; ontology SDK available for object-type descriptors; cell µservice SDK available for
   per-workbook cell substrate; audit-chain SDK available for Ed25519 seals.
@@ -35,7 +35,7 @@ depends_on:
     phase: prior phases per master-plan-sequencing
     reason: workspace + branch-protection + Cargo metadata authority must precede Sheets crate authoring
 owner_team: axis-sheets + council-design-system
-related_adrs: [ADR-0065, ADR-0103, ADR-0135, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0065, ADR-0103, ADR-0135, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -83,7 +83,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (Citus), Redis (ephemeral CRDT), WebSocket gateway, S3 (snapshots), OCI Object Storage (Arrow/Parquet large-sheet blocks), gVisor sandbox for XLSX export, AV-scan sidecars | pending | axis-sheets + cloud-iac | — |
+| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (Citus), Valkey (ephemeral CRDT), WebSocket gateway, S3 (snapshots), OCI Object Storage (Arrow/Parquet large-sheet blocks), gVisor sandbox for XLSX export, AV-scan sidecars | pending | axis-sheets + cloud-iac | — |
 | [`IP-002-cargo-workspace-cell-grid-kernel-domain.md`](IP-002-cargo-workspace-cell-grid-kernel-domain.md) | `oya-sheets-cell-grid-{kernel,domain}` crates: Workbook, Sheet, Cell, Range, Selection, ViewportState entities + pure cell-graph algebra | pending | axis-sheets + council-design-system | — |
 | [`IP-003-formula-engine-kernel-domain-400-functions.md`](IP-003-formula-engine-kernel-domain-400-functions.md) | `oya-sheets-formula-engine-{kernel,domain,usecase,api,adapter,sdk}` with ≥400-function library covering math/logical/lookup/statistical/financial/text/date/array; Excel-reference conformance corpus (LibreOffice Calc reference per ADR-SHEETS-0002) | pending | axis-sheets | IP-002 |
 | [`IP-004-recalc-engine-dep-graph-parallel.md`](IP-004-recalc-engine-dep-graph-parallel.md) | `oya-sheets-recalc-engine-{kernel,domain,usecase,api,adapter,worker,sdk}` — dep-graph builder + topological + parallel-task-graph (ADR-SHEETS-0004); 100k-cell ≤ 1s + 1M-cell ≤ 10s p95 | pending | axis-sheets | IP-003 |
@@ -302,4 +302,4 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - `/specs/microservices/sheets.json`.
 - `/specs/per-microservice-flat-layout.json`.
 - `microservices/sheets/PRD.md`.
-- Memory: `feedback_workflow_studio_scope.md`, `feedback_workflow_is_shared.md`, `feedback_workflow_objectgraph_adapter_layer.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.
+- Memory: `feedback_workflow_studio_scope.md`, `feedback_workflow_is_shared.md`, `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

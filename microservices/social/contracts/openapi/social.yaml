@@ -682,7 +682,7 @@ paths:
 
   /ready:
     get:
-      summary: Readiness (Postgres + Redis + Meilisearch + S3 reachable)
+      summary: Readiness (Postgres + Valkey + Meilisearch + S3 reachable)
       operationId: getReady
       security: []
       responses:

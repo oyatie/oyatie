@@ -30,7 +30,7 @@ End-to-end incident-response procedure for messenger events. Covers severity cla
 | Severity | Definition | Page-to-ack target | Examples |
 |---|---|---|---|
 | **Sev-1** | Cross-tenant or cross-context confidentiality / integrity / availability impact; regulatory notification triggers; data breach; safety violation | ≤ 5 min (24/7) | FM-05 channel ACL drift; FM-07 cross-tenant leak; FM-10 cross-context violation; FM-12 four-eyes violation; FM-13 pack misroute; FM-14 personal-DM admin decrypt attempt |
-| **Sev-2** | Single-tenant or sub-tenant impact; operational degradation without data loss; service unavailable for multi-tenant subset | ≤ 15 min (24/7) | FM-01 gateway storm; FM-02 Postgres primary outage; FM-03 Redis corruption; FM-04 attachment-store outage; FM-09 malware detection (organised pattern) |
+| **Sev-2** | Single-tenant or sub-tenant impact; operational degradation without data loss; service unavailable for multi-tenant subset | ≤ 15 min (24/7) | FM-01 gateway storm; FM-02 Postgres primary outage; FM-03 Valkey corruption; FM-04 attachment-store outage; FM-09 malware detection (organised pattern) |
 | **Sev-3** | Localised impact; degraded but functional | ≤ 1h (business hours) | FM-06 search lag; FM-08 mention storm; FM-11 read-receipt storm; FM-15 capacity exhaustion; FM-16 ontology degraded |
 | **Sev-4** | Cosmetic; tracked but not paged | next business day | dashboard label typos; minor doc drift |
 

@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Per-tier capacity envelope: dimensions, baseline, max, scale-out trigger. Drives Helm `replicas` + HPA `maxReplicas` + Postgres shard plan + Redis cluster sizing + ffmpeg worker pool autoscale + S3 + CDN sizing + DRM key-server HA + Meilisearch shard plan. Numbers cross-referenced with TikTok / Reels / Shorts / Snapchat Spotlight published telemetry estimates.
+Per-tier capacity envelope: dimensions, baseline, max, scale-out trigger. Drives Helm `replicas` + HPA `maxReplicas` + Postgres shard plan + Valkey cluster sizing + ffmpeg worker pool autoscale + S3 + CDN sizing + DRM key-server HA + Meilisearch shard plan. Numbers cross-referenced with TikTok / Reels / Shorts / Snapchat Spotlight published telemetry estimates.
 
 ## Tiers
 
@@ -42,7 +42,7 @@ Per-tier capacity envelope: dimensions, baseline, max, scale-out trigger. Drives
 | M | 1 × 64-core 512GB primary + tenant-sharded | 3 per shard | 600 TB | 4 shards | when tenant shard > 1k upload/sec |
 | L | tenant-sharded × 16 | 3 per shard | 6 PB | 16 shards | continuous monitoring |
 
-### Redis (feed-cache + watch-position + like-counters + trending + notifications)
+### Valkey (feed-cache + watch-position + like-counters + trending + notifications)
 
 | Tier | Shards | Memory per shard | Total memory |
 |---|---|---|---|
@@ -136,7 +136,7 @@ KEDA-style autoscaler tied to `oya_shorts_transcode_queue_depth`. Workers termin
 - HPA on REST pods: CPU > 70 %, min 8, max 200 replicas at XS; max scales linearly with tier.
 - ffmpeg transcode pool: KEDA queue-depth-based autoscale; min 16, max 200 at XS.
 - Postgres shard-by-tenant once cell hits 1k upload/sec aggregate.
-- Redis cluster sharding by `(tenant_id, video_id) mod N`; rebalance per 4x growth.
+- Valkey cluster sharding by `(tenant_id, video_id) mod N`; rebalance per 4x growth.
 - CDN POP-presence per pack region; multi-region for high-fanout videos.
 - DRM key-server HA cluster: rotation 90d; active-active across two AZ.
 - Fingerprint corpus partitions by `(pack, fingerprint_prefix mod N)`.
@@ -155,7 +155,7 @@ Celebrity tier (>1M followers): sharded notification workers; per-recipient idem
 | Burn rule | Action |
 |---|---|
 | Postgres CPU > 70 % sustained 10min | shard prep; capacity meeting |
-| Redis memory > 75 % | shard add |
+| Valkey memory > 75 % | shard add |
 | Transcode queue-depth > 1000 sustained 5min | autoscale workers up; if cap hit, defer to lower-priority tier (free users delayed) |
 | CDN cache-hit-ratio < 70 % | edge-tuning meeting |
 | ffmpeg worker error-rate > 1 % | gVisor sandbox CVE check; pin to last-known-good ffmpeg |

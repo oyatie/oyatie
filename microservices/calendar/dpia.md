@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-calendar
 methodology: ICO DPIA + CNIL DPIA + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/calendar/threat-model.md
   - microservices/calendar/policy/event-isolation.md
@@ -43,9 +43,9 @@ DPIA mandatory pre-deployment. Reviewed by EU DPAs (Art. 35) and KR PIPC (Art. 3
 
 **What:** Event creation, attendance management, recurring expansion, free/busy projection (within and across tenants), resource booking, RFC 5545 ITIP invitations, RFC 5546 RSVP, RFC 5545 .ics import/export, RFC 4791 CalDAV.
 
-**How:** REST + CalDAV ingress → Postgres event store (per-tenant RLS + tenant-DEK envelope encryption) → Redis availability cache → Workflow events to mail (invitation delivery) + audit-chain (seal emission) + observability (telemetry).
+**How:** REST + CalDAV ingress → Postgres event store (per-tenant RLS + tenant-DEK envelope encryption) → Valkey availability cache → Workflow events to mail (invitation delivery) + audit-chain (seal emission) + observability (telemetry).
 
-**Where:** Per-pack region-pinned Postgres + Redis (pack-kr → KR; pack-eu → EU; pack-us → US; pack-us-healthcare → BAA-eligible US; pack-jp → JP; etc.). Residency enforced via ADR-0117 + ADR-0140.
+**Where:** Per-pack region-pinned Postgres + Valkey (pack-kr → KR; pack-eu → EU; pack-us → US; pack-us-healthcare → BAA-eligible US; pack-jp → JP; etc.). Residency enforced via ADR-0117 + ADR-0140.
 
 **When:** Continuous; on-demand for user actions; recurring background sweeps for retention + recurrence expansion.
 

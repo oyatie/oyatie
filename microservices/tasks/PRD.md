@@ -8,7 +8,7 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0231-connect-tasks-board-and-views, ADR-0232-connect-tasks-dependency-graph, ADR-0233-connect-tasks-recurring-and-rsvp-equivalent]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145), ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
 related_specs: [/specs/microservices/tasks.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-tasks
@@ -303,7 +303,7 @@ Error budget: monthly 99.95% availability → ~22 min/month.
 
 ## Horizontal Scalability
 
-State strategy (per Bominal ADR-0019): `mixed`. Postgres (task-store + project-list + dependency-edge; per-tenant RLS); Redis (view-cache + presence); Meilisearch (per-tenant cross-project search); stateless workers for retention-sweep + recurrence-expansion + search-index-rebuild + importers + webhook-fanout.
+State strategy (per Bominal ADR-0019): `mixed`. Postgres (task-store + project-list + dependency-edge; per-tenant RLS); Valkey (view-cache + presence); Meilisearch (per-tenant cross-project search); stateless workers for retention-sweep + recurrence-expansion + search-index-rebuild + importers + webhook-fanout.
 
 Per-cell capacity envelope:
 
@@ -321,7 +321,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - Kubernetes HPA: rest pods scale on CPU > 70%; min 3, max 100.
 - Postgres: per-tenant logical shard; cross-cell replication-factor 3 with Patroni.
-- Redis: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru` for view-cache.
+- Valkey: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru` for view-cache.
 - Meilisearch: per-tenant index; cluster-mode (Meilisearch 0.10 LTS); rebuildable.
 - Pre-warmed pool: 5 standby pods; cold-start ≤ 700ms.
 

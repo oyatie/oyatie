@@ -39,12 +39,12 @@ Enumerate failure scenarios on-call must handle. Each carries: trigger; detectio
 | Recovery runbook | `runbooks/runtime-pod-crash.md` |
 | Postmortem owner | axis-foundry-runtime |
 
-## FM-02: Session-state Redis cluster partition (single AZ)
+## FM-02: Session-state Valkey cluster partition (single AZ)
 
 | Field | Value |
 |---|---|
 | Trigger | AZ network partition; OCI hardware failure |
-| Detection | `oya_foundry_runtime_redis_connection_failures_total > threshold` for ≥3min; some Redis shards report majority loss |
+| Detection | `oya_foundry_runtime_redis_connection_failures_total > threshold` for ≥3min; some Valkey shards report majority loss |
 | Tenant impact | Hot session reads latency-degraded on affected shards; sessions still recoverable from Postgres cold restore |
 | Severity | Sev-2 |
 | Immediate mitigation | Verify replication promote; HPA scales runtime-pool to absorb cold-restore latency hit; cordon affected AZ |
@@ -52,7 +52,7 @@ Enumerate failure scenarios on-call must handle. Each carries: trigger; detectio
 | Recovery runbook | `runbooks/redis-failover.md` |
 | Postmortem owner | ops-sre-reliability + axis-foundry-runtime |
 
-## FM-03: Session-state Redis ACL drift
+## FM-03: Session-state Valkey ACL drift
 
 | Field | Value |
 |---|---|
@@ -60,7 +60,7 @@ Enumerate failure scenarios on-call must handle. Each carries: trigger; detectio
 | Detection | `oya-check-session-prefix-isolation` lane fails OR continuous Helm-state-validator alarms |
 | Tenant impact | Potential cross-tenant session exposure if not caught pre-deploy |
 | Severity | Sev-1 (security breach risk) |
-| Immediate mitigation | Auto-rollback to last green Helm state via ArgoCD; isolate Redis; engage ops-security; declare Sev-1 |
+| Immediate mitigation | Auto-rollback to last green Helm state via ArgoCD; isolate Valkey; engage ops-security; declare Sev-1 |
 | RTO | ≤5min auto-rollback; investigation may take days |
 | Recovery runbook | `runbooks/redis-failover.md` §"ACL drift" + ops-security incident playbook |
 | Postmortem owner | ops-security + axis-foundry-runtime |
@@ -149,7 +149,7 @@ Enumerate failure scenarios on-call must handle. Each carries: trigger; detectio
 |---|---|
 | Trigger | Postgres-side latency uptick (vacuum, lock contention, IO saturation) |
 | Detection | `oya_foundry_runtime_session_cold_restore_duration_seconds{quantile="0.99"} > 100ms` |
-| Tenant impact | Session resume slower on Redis miss; tenant-facing latency observable |
+| Tenant impact | Session resume slower on Valkey miss; tenant-facing latency observable |
 | Severity | Sev-3 |
 | Immediate mitigation | Investigate Postgres slow log; tune autovacuum; scale Postgres vertically if pattern |
 | RTO | ≤1h for tuning; vertical scale ≤30min |
@@ -173,7 +173,7 @@ Enumerate failure scenarios on-call must handle. Each carries: trigger; detectio
 
 | Field | Value |
 |---|---|
-| Trigger | LEAN check or runtime audit detects cross-tenant session read; Redis prefix bypass |
+| Trigger | LEAN check or runtime audit detects cross-tenant session read; Valkey prefix bypass |
 | Detection | `oya_foundry_runtime_unauthorized_attempt_total > 0` over 5min OR continuous-compliance lane alarm |
 | Tenant impact | Potential confidentiality breach (DPIA R-02; threat T-I-01) |
 | Severity | Sev-1 (security breach) |
@@ -226,8 +226,8 @@ Enumerate failure scenarios on-call must handle. Each carries: trigger; detectio
 | Failure | RTO | RPO |
 |---|---|---|
 | FM-01 Pod crashloop | 5–15min | 0 (peer rebalance) |
-| FM-02 Redis cluster partition | 15min shard / 30min AZ | ≤30s (last AOF flush) |
-| FM-03 Redis ACL drift | 5min auto-rollback | 0 |
+| FM-02 Valkey cluster partition | 15min shard / 30min AZ | ≤30s (last AOF flush) |
+| FM-03 Valkey ACL drift | 5min auto-rollback | 0 |
 | FM-04 Registry cache stale | 30min | 0 (cache stays usable) |
 | FM-05 Descriptor signature invalid | 30min | 0 |
 | FM-06 Autonomy violation surge | 30min tenant comms | N/A |

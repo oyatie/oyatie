@@ -118,7 +118,7 @@
     {
       "id": 9,
       "type": "timeseries",
-      "title": "Redis lease state (split-brain detection)",
+      "title": "Valkey lease state (split-brain detection)",
       "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
       "targets": [
         {"expr": "sum(oya_workflow_studio_redis_lease_acquired_total{pack=\"$pack\"}) - sum(oya_workflow_studio_redis_lease_released_total{pack=\"$pack\"})", "legendFormat": "outstanding leases", "refId": "A"},

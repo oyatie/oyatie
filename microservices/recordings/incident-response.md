@@ -28,7 +28,7 @@ doc_status: published
 | Role | Responsibility |
 |---|---|
 | Incident Commander | drives the response; declares Sev; closes incident |
-| ops-sre-reliability on-call | substrate (Postgres, S3, Redis, CDN, Meilisearch) |
+| ops-sre-reliability on-call | substrate (Postgres, S3, Valkey, CDN, Meilisearch) |
 | axis-recordings on-call | recordings µservice code + ingest contract |
 | ops-security on-call | confidentiality + integrity incidents (FM-07, FM-11, FM-16, FM-18, FM-20) |
 | ops-compliance on-call | legal-hold + retention + ediscovery (FM-08, FM-09, FM-10, FM-19) |

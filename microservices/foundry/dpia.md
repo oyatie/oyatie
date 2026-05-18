@@ -20,7 +20,7 @@ flows. This document covers cross-BC data flows and aggregate risk.
 
 | Data category | BC of residence | Lawful basis | Retention | Cross-pack flow |
 |---|---|---|---|---|
-| Session conversation content (may incl. tenant-supplied PII) | runtime | Tenant contract (Art.6(1)(b)) + tenant data-processing agreement | 30d hot (Redis) + per-tenant cold retention (Postgres) | Forbidden (per-pack) |
+| Session conversation content (may incl. tenant-supplied PII) | runtime | Tenant contract (Art.6(1)(b)) + tenant data-processing agreement | 30d hot (Valkey) + per-tenant cold retention (Postgres) | Forbidden (per-pack) |
 | Invocation metadata (tenant_id, capability_id, started_at, status) | runtime + evidence | Legitimate interest (operations + audit) | 1y baseline; 6y for pack-us-healthcare (HIPAA) | Forbidden (per-pack) |
 | Supervision command log | supervisor + evidence | Legal obligation (audit) | 1y baseline | Forbidden (per-pack) |
 | Guardrail decision record (hash(prompt), decision, version) | guardrails + evidence | Legitimate interest (safety) | 1y baseline | Forbidden (per-pack) |
@@ -66,7 +66,7 @@ flows. This document covers cross-BC data flows and aggregate risk.
 - **Purpose limitation**: Each BC's port traits declare data classes;
   cross-BC traffic refuses unsupported classes (Cedar + data-class lane).
 - **Storage limitation**: Retention windows per data category enforced by
-  TTL on Redis + lifecycle policies on Postgres + S3.
+  TTL on Valkey + lifecycle policies on Postgres + S3.
 - **Integrity**: Audit-chain (Ed25519+Merkle) seals every cross-BC state
   transition.
 - **Confidentiality**: mTLS internal; TLS external; Redis/Postgres/S3
@@ -78,7 +78,7 @@ flows. This document covers cross-BC data flows and aggregate risk.
 
 | # | Risk | Likelihood | Impact | Mitigation in place | Residual |
 |---|---|---|---|---|---|
-| 1 | Session content leak via cross-tenant Redis collision | Low | High | Per-tenant key prefix + Cedar | Low |
+| 1 | Session content leak via cross-tenant Valkey collision | Low | High | Per-tenant key prefix + Cedar | Low |
 | 2 | Evidence pack assembly omits a BC's contribution | Low | Medium (audit incompleteness) | AC-X7 cross-BC pack e2e | Low |
 | 3 | DSR cascade misses a BC | Medium | High | Per-BC `bc-sources/<bc>/dpia.md` enumerates DSR endpoints; cascade event consumed by all 6 BCs | Low |
 | 4 | Cross-pack migration via misconfigured kustomize | Low | High | Per-pack overlay validated by `oya gate validate per-pack-residency` | Low |

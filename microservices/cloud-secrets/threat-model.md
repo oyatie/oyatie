@@ -499,7 +499,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - ADR-0131 (Cloud split)
 - NIST SP 800-57 Part 1 (Key Management)
 - FIPS 140-3 (Cryptographic Module Validation)
-- HashiCorp Vault → OpenBao migration notes (OpenBao governance)
+- OpenBao → OpenBao migration notes (OpenBao governance)
 - KR PIPA Art. 29 + Enforcement Decree Art. 30
 - HIPAA 45 CFR §164.312
 - GDPR Arts. 25, 28, 30, 32

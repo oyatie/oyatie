@@ -122,6 +122,6 @@ Per adapter class: 1 test per port-impl method + ≥2 against real Postgres (tes
 
 ## References
 
-- ADR-0056, ADR-0105, ADR-0140.
+- ADR-0056, ADR-0105, ADR-0140 (retired per ADR-0145).
 - `policy/tenant-isolation.md` (RLS spec).
 - `iac/postgres/migrations/002-rls-policies.sql`.

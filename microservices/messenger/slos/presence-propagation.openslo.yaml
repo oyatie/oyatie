@@ -12,7 +12,7 @@ metadata:
 spec:
   description: |
     Time from `PresenceChanged` event publish to delivery on subscribed
-    peer WebSocket frames. Redis Streams + WebSocket gateway pipeline.
+    peer WebSocket frames. Valkey Streams (Redis wire-compat) + WebSocket gateway pipeline.
     Excludes Offline transitions caused by socket-timeout (those are
     detection-bound, not propagation-bound).
   service: messenger

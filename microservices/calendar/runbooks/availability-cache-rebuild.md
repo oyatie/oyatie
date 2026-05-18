@@ -18,20 +18,20 @@ doc_status: published
 
 - `calendar_availability_cache_hit_ratio` < 30% for > 5min, OR
 - `cross_tenant_availability_p99_ms` > 500ms for > 5min, OR
-- Redis primary partition / failover event, OR
+- Valkey primary partition / failover event, OR
 - Cross-tenant grant revocation detected without cache invalidation.
 
 ## Symptoms
 
 - Tenant interactive scheduling slow (lookups > 500ms).
 - Postgres connection-pool spike (cache misses fall through to DB).
-- Redis CPU / memory high.
+- Valkey CPU / memory high.
 - Stale cross-tenant projection served post-revocation.
 
 ## Probable causes
 
 1. Synchronous TTL expiry across many tenants (cache stampede).
-2. Redis shard failure / failover.
+2. Valkey shard failure / failover.
 3. Cross-tenant grant revocation event dropped or not propagated.
 4. Cardinality spike on new tenant onboarding.
 
@@ -39,7 +39,7 @@ doc_status: published
 
 1. Acknowledge OnCall page.
 2. Check Grafana dashboard `availability-lookup-rate`.
-3. Identify cache hit ratio + Redis health:
+3. Identify cache hit ratio + Valkey health:
    ```bash
    kubectl exec -n calendar redis-0 -- redis-cli INFO replication
    kubectl exec -n calendar redis-0 -- redis-cli INFO memory
@@ -69,7 +69,7 @@ oya calendar feature-flag set --name availability_single_flight --value on
 oya calendar cache warm --tenant <hashed-id> --range "now+0h to now+72h" --audit-reason "RB-availability-cache-rebuild"
 ```
 
-### Step 3 — Scale Redis shards if memory > 80%
+### Step 3 — Scale Valkey shards if memory > 80%
 
 ```bash
 helm upgrade oya-calendar-redis ./iac/helm/redis --set shardCount=5
@@ -89,7 +89,7 @@ Or if widespread, rotate cache prefix (forces full cold-start):
 oya calendar cache rotate-prefix --pack <pack> --audit-reason "RB-availability-cache-rebuild"
 ```
 
-### Step 5 — If Redis shard down
+### Step 5 — If Valkey shard down
 
 Patroni-managed failover should auto-promote. Verify:
 
@@ -109,7 +109,7 @@ oya calendar redis promote --shard <n> --approver <ops-security-id> --audit-reas
 |---|---|---|
 | `calendar_availability_cache_hit_ratio` | > 80% | within 15 min |
 | `cross_tenant_availability_p99_ms` | < 500ms | within 5 min |
-| Redis memory util | < 70% | sustained |
+| Valkey memory util | < 70% | sustained |
 | Cross-tenant grant invalidation lag | < 5s | sustained |
 
 ## Post-incident review

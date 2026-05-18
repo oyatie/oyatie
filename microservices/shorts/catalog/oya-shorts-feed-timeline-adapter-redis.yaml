@@ -13,6 +13,6 @@ traceability:
 allowed_dependency_edges: [oya-shorts-feed-timeline-kernel]
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, INTERNAL_ONLY]
 backend_pinning:
-  redis_version: "7.2"  # Redis 7.2 LTS
+  redis_version: "7.2"  # Valkey 8.1 (Redis wire-compat)
   cluster_mode: enabled
 sharding_key: "(tenant_id, viewer_ref) mod N"

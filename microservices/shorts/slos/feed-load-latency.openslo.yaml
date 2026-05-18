@@ -17,7 +17,7 @@ spec:
     A request is "good" when its end-to-end latency (REST request received →
     response body sent) is ≤ 250ms. Distribution captured via Histogram with
     le buckets at [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.5, 1.0, 2.0]. Includes
-    Redis hot-cache hit + warm rebuild miss tail; excludes anonymous-public
+    Valkey hot-cache hit + warm rebuild miss tail; excludes anonymous-public
     feed (separate SLO).
     Reference: Google SRE Workbook ch. 5 multi-window multi-burn-rate.
     PRD §Performance NFR row 1.

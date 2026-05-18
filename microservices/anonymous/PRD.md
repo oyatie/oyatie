@@ -88,7 +88,7 @@ These seven invariants are the basis on which every downstream ADR, policy, sche
 
 | Metric | p50 | p95 | p99 | p999 | Notes |
 |---|---|---|---|---|---|
-| Feed-render latency (top 50 posts within affinity) | ≤ 80ms | ≤ 250ms | ≤ 500ms | ≤ 1.2s | Redis hot-feed cache + Cedar policy filter |
+| Feed-render latency (top 50 posts within affinity) | ≤ 80ms | ≤ 250ms | ≤ 500ms | ≤ 1.2s | Valkey hot-feed cache + Cedar policy filter |
 | Post-create latency (post → durable + indexed) | ≤ 30ms | ≤ 100ms | ≤ 250ms | ≤ 700ms | Postgres insert + async fanout |
 | Vote-action latency | ≤ 15ms | ≤ 30ms | ≤ 50ms | ≤ 150ms | Redis-buffered counter; Postgres flush |
 | Affinity-attestation-verify latency (cryptographic) | ≤ 150ms | ≤ 500ms | ≤ 1s | ≤ 2s | BBS+ verify; cached per session |
@@ -97,7 +97,7 @@ These seven invariants are the basis on which every downstream ADR, policy, sche
 | Legal-process disclosure E2E (court-order received → law-enforcement-delivery sealed) | n/a | n/a | n/a | n/a | manual workflow; SLA per `runbooks/legal-process-court-order-receipt.md` |
 | Comment / reply create | ≤ 30ms | ≤ 100ms | ≤ 250ms | ≤ 700ms | Postgres insert |
 | Search hashtag (within affinity) | ≤ 80ms | ≤ 300ms | ≤ 600ms | ≤ 1.2s | Meilisearch + Cedar filter |
-| Notification fanout (≤ 5k affinity members) | ≤ 100ms | ≤ 500ms | ≤ 1s | ≤ 3s | per-recipient async via Redis Streams; push payloads ALWAYS use opaque handle |
+| Notification fanout (≤ 5k affinity members) | ≤ 100ms | ≤ 500ms | ≤ 1s | ≤ 3s | per-recipient async via Valkey Streams (Redis wire-compat); push payloads ALWAYS use opaque handle |
 
 ### Security
 
@@ -300,9 +300,9 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for posts + votes + attestation-bindings; Redis for feed cache + vote-counter; Meilisearch for hashtag search.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for posts + votes + attestation-bindings; Valkey for feed cache + vote-counter; Meilisearch for hashtag search.
 
-**Active-active compatibility**: stateless REST + worker pods + Postgres logical-replicated within pack; Redis primary-replica HA.
+**Active-active compatibility**: stateless REST + worker pods + Postgres logical-replicated within pack; Valkey primary-replica HA.
 
 Per-cell capacity envelope:
 
@@ -311,13 +311,13 @@ Per-cell capacity envelope:
 | Active users / cell | 200k | 2M | feed-render p99 > 250ms |
 | Posts/sec sustained | 500 | 10k | Postgres write IOPS > 70% |
 | Affinity communities per tenant | 100 | 50k | per-tenant cardinality limit hit |
-| Vote events/sec | 2k | 50k | Redis counter saturation |
+| Vote events/sec | 2k | 50k | Valkey counter saturation |
 | Hashtag index size | 50GB | 2TB | shard count exceeded |
 
 Scale-out policy:
 - HPA on REST pods: CPU > 70%, min 4, max 100 replicas.
 - Postgres shard-by-tenant once cell hits 10k posts/sec aggregate.
-- Redis cluster sharding by `(tenant_id, affinity_id) mod N`.
+- Valkey cluster sharding by `(tenant_id, affinity_id) mod N`.
 
 Sharding:
 - Post store partitions by `(tenant_id, affinity_id, year-month)`.

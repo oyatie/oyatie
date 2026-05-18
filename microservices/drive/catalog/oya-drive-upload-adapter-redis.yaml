@@ -18,4 +18,4 @@ data_classes_owned: [PERSONAL_FILE_CONTENT, PROFESSIONAL_FILE_CONTENT]
 autonomy_tier_required: T1
 notes: |
   Stores upload session state (chunk manifest, progress, ttl). Per-tenant key prefix;
-  cross-tenant read refused by Redis ACL.
+  cross-tenant read refused by Valkey ACL.

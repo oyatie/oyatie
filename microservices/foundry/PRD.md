@@ -242,7 +242,7 @@ preserves all 135 crate-catalog records.
 
 ## Integration via Workflow + Ontology
 
-Per `feedback_workflow_objectgraph_adapter_layer.md`: all inter-BC and
+Per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`: all inter-BC and
 cross-µservice traffic flows through Workflow events + Ontology reads/writes.
 No direct cross-product crate dependency.
 
@@ -311,12 +311,12 @@ See per-BC `bc-sources/<bc>/PRD.md §"Performance Targets"`. Aggregate envelope:
 
 | BC | Strategy | Hot store | Cold store |
 |---|---|---|---|
-| runtime | stateless-compatible executor + Redis-shardable session-state | Redis | Postgres |
+| runtime | stateless-compatible executor + Redis-shardable session-state | Valkey | Postgres |
 | supervisor | stateless-compatible commands + Postgres fleet-state | — | Postgres |
 | eval | stateless-compatible runner + ClickHouse parity store | — | ClickHouse + S3 (golden) |
 | evidence | stateless-compatible builder + Postgres index + S3 blob | — | Postgres + S3 |
 | guardrails | stateless inline checkers + Postgres rule store + ONNX classifier | — | Postgres |
-| providers | stateless router + Redis rate-limit + OpenBao credential | Redis | OpenBao + Postgres |
+| providers | stateless router + Valkey rate-limit + OpenBao credential | Valkey | OpenBao + Postgres |
 
 **Active-active compatibility**: stateless-compatible (executor, supervisor,
 eval-runner, evidence-builder, guardrail checkers, providers router); state

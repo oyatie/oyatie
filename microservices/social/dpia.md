@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-social
 deciders: council-privacy, ops-security, axis-social, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/social.json]
 related_artifacts:
   - microservices/social/threat-model.md
@@ -62,7 +62,7 @@ DPIA is mandatory pre-deployment. This document is the canonical DPIA reviewed b
 
 **What:** End-users create profiles, publish posts (text + media), follow other users, react, comment, mention people / topics. The system stores, indexes, fans out via real-time delivery, surfaces algorithmic + chronological feeds, and applies content-moderation classifier.
 
-**How:** Client → ingress (TLS/WAF) → WebSocket gateway + REST → BC services (REST + worker) → Postgres (profiles, posts, follows, moderation) + Redis (feed cache, reactions, trending, notifications) + S3 (media) + Meilisearch (search) + audit-chain seal + foundry-runtime (classifier + ranking).
+**How:** Client → ingress (TLS/WAF) → WebSocket gateway + REST → BC services (REST + worker) → Postgres (profiles, posts, follows, moderation) + Valkey (feed cache, reactions, trending, notifications) + S3 (media) + Meilisearch (search) + audit-chain seal + foundry-runtime (classifier + ranking).
 
 **Where:** Per-pack region-pinned social clusters. pack-kr (KR), pack-eu (EU), pack-us (US), pack-us-healthcare (US, HIPAA-eligible), and conditional packs.
 

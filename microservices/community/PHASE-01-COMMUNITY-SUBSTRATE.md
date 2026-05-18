@@ -22,7 +22,7 @@ Ship the M02 community substrate: post-store, thread-tree, voting-engine, modera
 
 In-scope:
 - 6 BCs × layer set per ADR-0105.
-- Layer-A substrate: Postgres (post-store + voting-engine + moderation-queue + kb-article-store), Elasticsearch (search-index), Redis (hot-feed cache), S3 (KB attachment store).
+- Layer-A substrate: Postgres (post-store + voting-engine + moderation-queue + kb-article-store), Elasticsearch (search-index), Valkey (hot-feed cache), S3 (KB attachment store).
 - IPs IP-001 through IP-015 covered in this Phase.
 - All policy (Cedar fragments), runbooks, dashboards, capabilities, contracts.
 
@@ -65,7 +65,7 @@ Out of scope:
 | Risk | Mitigation |
 |---|---|
 | Search index rebuild storm under traffic spike | Per-tenant rebuild scheduler with token-bucket; staggered rebuild windows |
-| Vote race + double-count | Redis Lua script for atomic increment + idempotency key per (member, post) |
+| Vote race + double-count | Valkey Lua script for atomic increment + idempotency key per (member, post) |
 | Moderation queue OOM under flag storm | Per-tenant queue depth cap; overflow to S3 cold queue with worker drain |
 | KB attachment S3 outage | Cross-region replication + retry queue + degraded mode (show without attachment) |
 | Mass-spam abuse against new tenant | foundry-guardrails-driven per-member post rate-limit + new-member cooldown |

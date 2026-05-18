@@ -264,7 +264,7 @@ Concrete bindings:
   tenant satisfies the appointment-history reproducibility.
 - **EU regulation**: if/when the EU abolishes DST, the refresh
   worker picks up the IANA release within 30d; tenant comms are
-  emitted via the standard ADR-0140 Cedar-policy overlay.
+  emitted via the standard ADR-0140 (retired per ADR-0145) Cedar-policy overlay.
 - **KSA PDPL + UAE PDPL**: Hijri overlay consulted via ICU4X at the
   calendar-system layer; tz remains chrono-tz.
 

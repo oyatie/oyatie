@@ -19,7 +19,7 @@ doc_status: published
 | **P0** | Anonymity-leak class — platform's structural privacy promise is broken or at imminent risk of being broken | DB JOIN executed without legal-process Cedar; blind-signature key compromise; affinity-attestation key compromise; cross-tenant data exposure; analytics tracker SDK discovered in client; insider de-anonymization attempt detected | ops-security on-call + axis-anonymous on-call + council-privacy + legal counsel + CISO; PagerDuty Sev-1 + Slack #incident-anonymous |
 | **P1** | Legal-process disclosure correctness — chain-of-custody at risk, transparency-report omission, NCMEC reporting missed SLA | Legal-process disclosure executed without dual-control; transparency-report misses cadence; NCMEC CyberTipline exceeds 48h SLA on confirmed CSAM | ops-security + legal + axis-anonymous; PagerDuty Sev-2 |
 | **P2** | Service degradation impacting SLO | Feed-render p99 > 250ms sustained > 15min; post-create error rate > 1%; hard-delete propagation > 5s sustained > 15min | axis-anonymous on-call; PagerDuty Sev-3 |
-| **P3** | Capacity / operational concerns | Storage quota nearing 80%; vote-counter Redis nearing eviction threshold | axis-anonymous business-hours |
+| **P3** | Capacity / operational concerns | Storage quota nearing 80%; vote-counter Valkey nearing eviction threshold | axis-anonymous business-hours |
 
 ## P0 — Anonymity-leak incident
 

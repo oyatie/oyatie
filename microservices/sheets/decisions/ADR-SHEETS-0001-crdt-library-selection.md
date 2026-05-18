@@ -46,7 +46,7 @@ Performance envelope (PRD §"Performance"):
 Substrate constraints:
 - Rust kernel (ADR-0105 layer enum); CRDT merge engine lives in `oya-sheets-collab-crdt-domain` (pure, deterministic).
 - Browser-WASM target (per ADR-0065); CRDT library MUST compile to `wasm32-unknown-unknown`.
-- Ephemeral CRDT state in Redis (PRD §"Horizontal Scalability" mixed-state strategy); reconstructable from Postgres on cold-start.
+- Ephemeral CRDT state in Valkey (PRD §"Horizontal Scalability" mixed-state strategy); reconstructable from Postgres on cold-start.
 - WebSocket gateway long-lived worker (`-worker` crate) fans out CRDT ops via consistent-hash on `workbook_id`.
 
 Operational constraints:
@@ -61,7 +61,7 @@ Sheets is one of three sibling µservices that ship real-time collaborative edit
 - `sheets` — cell-grid workbook editor (this ADR).
 
 These three µservices share:
-- The same Layer-A Redis substrate per pack (cell cluster).
+- The same Layer-A Valkey substrate per pack (cell cluster).
 - The same WebSocket gateway operational pattern (lease-coordinated; consistent-hash on per-doc id).
 - The same threat model (T-T-01 CRDT op forgery; T-I-04 cross-tenant collab leak).
 - The same on-call rotation (axis-collab-experts span all three).
@@ -85,7 +85,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the sheets CRDT library, **align
 3. The Loro Map CRDT backs the workbook → sheets → cells nested structure; Loro Lists back row + column ordering; Loro Text backs cell formula source where applicable (for collaborative formula editing).
 4. Conflict surfacing uses Loro's built-in version-vector + frontier API; the `Conflict` entity in the kernel wraps Loro `Frontiers` into a UI-renderable shape.
 5. CRDT-to-canonical-cell-graph projection deterministically orders Loro nodes by their stable IDs at the cell-grid-domain boundary.
-6. Loro snapshot encoding is used for Redis persistence (`snapshot()` + `import_snapshot()`).
+6. Loro snapshot encoding is used for Valkey persistence (`snapshot()` + `import_snapshot()`).
 7. Loro version pinning + Ed25519-signed advisory feed monitoring; major-version upgrades require a fresh round-trip-corpus drill against the 100-workbook golden corpus before merge.
 8. The sheets-crdt-no-silent-loss CI lane runs Loro's example test suite + sheets's own AC-06 property test (10 concurrent editors, randomized cell-edit interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 9. **Cross-µservice port-trait sharing**: where compatible, the `CrdtMergeEngine` port trait shape is identical across workflow-studio, docs, and sheets, so an engineer working in any of the three µservices sees the same kernel-level abstraction.

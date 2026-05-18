@@ -4,7 +4,7 @@ description: |
   Helm chart for the oyatie drive µservice. Bundles file-store + folder-hierarchy +
   upload + download + sync + share-link + permissions + search-index + preview +
   dlp-virus-scan + immutability-tier bounded contexts, plus their Layer-A substrate
-  (object store, Postgres, Redis, Meilisearch, Tika, ClamAV, OPSWAT, preview workers).
+  (object store, Postgres, Valkey, Meilisearch, Tika, ClamAV, OPSWAT, preview workers).
 
   Per ADR-0131 (per-µservice flat layout) + ADR-0133 (LTS-pinned versions) +
   ADR-DRIVE-0001 (object-storage substrate selection) + ADR-DRIVE-0002 (FastCDC) +

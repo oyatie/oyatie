@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-forms + council-product
 deciders: council-product, council-architecture, axis-forms, ops-security, council-privacy, council-legal-compliance, council-design-system
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/forms.json]
 competitor_benchmark:
   - Google Forms (Google Workspace)
@@ -119,7 +119,7 @@ Forms competes head-to-head with the 14 industry leaders listed above and MUST m
 - Form-rest: stateless; HPA 4–80 replicas per region; per-tenant rate-limit at L7.
 - Response-collector-rest: stateless; HPA 4–80 replicas per region; sticky to Citus shard via tenant_id.
 - Response-store (Postgres + Citus 12.x): tenant_id shard key; 32 shards baseline; replication-factor 2.
-- Response-cache (Redis 7.2 LTS): per-cell HA; ephemeral; regenerable.
+- Response-cache (Valkey 8.1 (Redis wire-compat)): per-cell HA; ephemeral; regenerable.
 - Form-builder-wasm: served via CDN; tenant-agnostic; cached at edge.
 - Bulk-distribute-worker: async; back-pressured queue (Kafka); ≤ 1k recipients/sec per pack.
 - Export-worker: async; streaming to object storage; 100k-response export ≤ 5s.
@@ -142,7 +142,7 @@ Forms competes head-to-head with the 14 industry leaders listed above and MUST m
 | Component | Pin | Purpose |
 |---|---|---|
 | Postgres 16 LTS + Citus 12.x | 16.3 / Citus 12.1 | Form-definition + response-store; tenant_id shard key; RLS + column-level envelope encryption |
-| Redis 7.2 LTS | 7.2.5 | Rate-limit + session + WAF cache |
+| Valkey 8.1 (Redis wire-compat) | 7.2.5 | Rate-limit + session + WAF cache |
 | Meilisearch 0.10.0 | 0.10.0 | Response search (full-text + facet) |
 | Leptos 0.7.x | 0.7.3 | Form-builder + form-renderer WASM |
 | ClamAV 1.3 LTS | 1.3.1 | Upload scan (free path) |

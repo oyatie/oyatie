@@ -84,7 +84,7 @@ cost_profile:
   estimated_cost_usd_per_call: 0.0005
   cost_drivers:
     - Postgres + Citus run-state write
-    - Initial step dispatch via Redis lease
+    - Initial step dispatch via Valkey lease
     - Audit-chain Ed25519 seal emission
 
 cedar_policy_fragments:

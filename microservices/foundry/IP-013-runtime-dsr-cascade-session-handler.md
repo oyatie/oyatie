@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, dsr-cascade-coverage]
 
 ## Intent
 
-Implement DSR cascade in the session-state app: subscribe to `TenantDsrCascade` events from the tenancy µservice; scan Redis per-tenant prefix + Postgres session_mutation_log for affected subject identifiers; soft-delete affected session fragments with 30d grace; hard-delete after grace; emit `dsr_executed` audit-chain event. Per DPIA R-08 + R-12 mitigations + `policy/data-residency.md` §"DSR Cascade".
+Implement DSR cascade in the session-state app: subscribe to `TenantDsrCascade` events from the tenancy µservice; scan Valkey per-tenant prefix + Postgres session_mutation_log for affected subject identifiers; soft-delete affected session fragments with 30d grace; hard-delete after grace; emit `dsr_executed` audit-chain event. Per DPIA R-08 + R-12 mitigations + `policy/data-residency.md` §"DSR Cascade".
 
 ## ChangeSet boundary
 
@@ -43,7 +43,7 @@ pub struct DsrCascadeUseCase<S, L, A> {
 
 impl<S: SessionStore, L: SessionMutationLog, A: AuditChainEmitter> DsrCascadeUseCase<S, L, A> {
     pub async fn handle(&self, event: TenantDsrCascadeEvent) -> Result<DsrReport, DsrError> {
-        // 1. Identify affected sessions in Redis per-tenant prefix
+        // 1. Identify affected sessions in Valkey per-tenant prefix
         let redis_keys = self.session_store.scan_with_subject_hash(
             &event.tenant_id, &event.subject_hash,
         ).await?;
@@ -103,7 +103,7 @@ cargo run -p oya-dev-cli -- gate validate dsr-cascade-coverage --microservice fo
 
 | Test | Verifies |
 |---|---|
-| `test_dsr_cascade_marks_affected_sessions` | Redis SCAN + Postgres query identify subject_hash rows |
+| `test_dsr_cascade_marks_affected_sessions` | Valkey SCAN + Postgres query identify subject_hash rows |
 | `test_dsr_cascade_soft_delete_30d_grace` | grace_expires_at correctly set |
 | `test_dsr_hard_delete_after_grace` | scheduler hard-deletes past-grace rows |
 | `test_dsr_executed_audit_chain_emitted` | event reaches audit-chain |

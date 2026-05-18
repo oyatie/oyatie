@@ -53,6 +53,6 @@ cargo run -p oya-dev-cli -- gate validate port-location --microservice sites
 
 ## References
 
-- ADR-0105 (13-layer enum); ADR-0106 (usecase rename); ADR-0131; ADR-0140.
+- ADR-0105 (13-layer enum); ADR-0106 (usecase rename); ADR-0131; ADR-0140 (retired per ADR-0145).
 - PRD §"Bounded Contexts".
 - Bominal ADR-0028 (audit-chain).

@@ -49,7 +49,7 @@ Quantify per-cell + per-tenant capacity envelopes; drive HPA + autoscale + cost 
 | Component | Bottleneck dimension | Mitigation when hit |
 |---|---|---|
 | Postgres metadata | connection pool + index hot rows | per-tenant logical shard; read replicas |
-| Redis upload session + sync cache | memory + connection count | cluster scale-out; eviction tuning |
+| Valkey upload session + sync cache | memory + connection count | cluster scale-out; eviction tuning |
 | Object store (Garage) | per-cell free-space + cross-cell rebuild backlog | cell scale-out + rebalance |
 | Meilisearch | per-index size + query CPU | per-tenant index sharding |
 | Preview workers | CPU (LibreOffice + ffmpeg are CPU-bound) | HPA on queue depth; spot instance burst |
@@ -62,7 +62,7 @@ Quantify per-cell + per-tenant capacity envelopes; drive HPA + autoscale + cost 
 - Kubernetes HPA: rest pods scale on CPU > 70%; min 3, max 100.
 - HPA: worker pods scale on queue depth metric (60s lookback); min 2, max 50 per worker class.
 - Postgres: per-tenant logical shard; cross-cell replication-factor 3 with Patroni.
-- Redis: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru`.
+- Valkey: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru`.
 - Object store: per-cell deployment; per-tenant prefix; replication-factor 3.
 - Pre-warmed pool: 10 standby pods; cold-start ≤ 700ms.
 
@@ -87,7 +87,7 @@ Quantify per-cell + per-tenant capacity envelopes; drive HPA + autoscale + cost 
 |---|---|---|---|
 | Object store free | ≤ 50% | > 70% | > 80% |
 | Postgres connection pool | ≤ 50% | > 70% | > 80% |
-| Redis memory | ≤ 60% | > 75% | > 85% |
+| Valkey memory | ≤ 60% | > 75% | > 85% |
 | Worker pool depth | ≤ 30% | > 60% | > 80% |
 
 ## References

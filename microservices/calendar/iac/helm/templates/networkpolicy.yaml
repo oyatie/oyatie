@@ -1,6 +1,6 @@
 {{/*
 Mesh-only ingress for REST/CalDAV; egress to OpenBao + Postgres +
-Redis + mail µservice (for invitation bridge) + IANA tzdb refresh URL
+Valkey + mail µservice (for invitation bridge) + IANA tzdb refresh URL
 (for ADR-CAL-0004 worker).
 */}}
 {{- if $.Values.networkPolicy.enabled }}
@@ -58,7 +58,7 @@ spec:
         - podSelector:
             matchLabels: {app.kubernetes.io/name: oya-calendar-postgres}
       ports: [{port: 5432, protocol: TCP}]
-    # Redis for availability-resolver cache
+    # Valkey for availability-resolver cache
     - to:
         - podSelector:
             matchLabels: {app.kubernetes.io/name: oya-calendar-redis}

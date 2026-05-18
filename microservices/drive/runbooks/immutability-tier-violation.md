@@ -152,4 +152,4 @@ cargo run -p oya-dev-cli -- vcs query --microservice drive --audit-event worm-vi
 - SEC 17a-4(f); FINRA Rule 4511; HIPAA §164.316; GDPR Art. 33; KR PIPA Art. 34; APPI Art. 22.
 - AWS S3 Object Lock compliance mode reference.
 - Garage object-lock reference.
-- MinIO object-lock reference.
+- SeaweedFS object-lock reference.

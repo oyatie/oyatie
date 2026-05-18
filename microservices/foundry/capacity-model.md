@@ -19,10 +19,10 @@ Cross-BC capacity envelope for foundry. Per-BC capacity models preserved at
 | Dimension | Owner BC | Baseline | Max per cell | Scale-out trigger |
 |---|---|---|---|---|
 | Concurrent invocations | runtime | 5,000 | 50,000 | runtime-pool queue depth > 200/pod |
-| Active sessions | runtime | 50,000 | 500,000 | Redis memory > 70% |
+| Active sessions | runtime | 50,000 | 500,000 | Valkey memory > 70% |
 | Capabilities mirrored | runtime + supervisor | 10,000 | 100,000 | Postgres mirror > 1 GB |
 | Dispatch throughput | runtime | 1,000 rps | 10,000 rps | executor CPU > 70% |
-| Session-state ops/sec | runtime | 10,000 ops/s | 100,000 ops/s | Redis ops > 70% of cluster ceiling |
+| Session-state ops/sec | runtime | 10,000 ops/s | 100,000 ops/s | Valkey ops > 70% of cluster ceiling |
 | Supervision commands/sec | supervisor | 100 cmd/s | 1,000 cmd/s | event-bus lag > 5s |
 | Active fleets | supervisor | 1,000 | 10,000 | k8s operator queue > 100 |
 | Eval-runs in flight | eval | 50 | 500 | GPU pool > 80% utilisation |
@@ -40,7 +40,7 @@ Cross-BC capacity envelope for foundry. Per-BC capacity models preserved at
   > 70%; min 3 replicas (HA quorum); max varies per BC (200 for runtime
   executor; 50 for supervisor; 32 for eval-runner; 50 for evidence-builder;
   100 for guardrails inline; 50 for providers router).
-- **Redis cluster** (runtime + providers rate-limit): 6-shard primary +
+- **Valkey cluster** (runtime + providers rate-limit): 6-shard primary +
   replica per pack; scale shards on memory > 70%.
 - **Postgres** (supervisor fleet-state + runtime registry + guardrails
   rules + evidence pack-index + providers router config): read-replica

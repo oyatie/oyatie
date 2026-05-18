@@ -43,7 +43,7 @@ correction-replay:
     receivers replace prior preliminary with this corrected stable.
 ```
 
-Per-session state in Redis: `(session_id, prior_chunks, last_stable_sentence_id, replay_queue)`.
+Per-session state in Valkey: `(session_id, prior_chunks, last_stable_sentence_id, replay_queue)`.
 
 ## Per-session Authentication + Replay Protection
 

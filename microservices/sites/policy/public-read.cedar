@@ -4,7 +4,7 @@
 // that tenant has explicitly published (i.e., site.visibility == "public" + page.public_opt_in == true).
 // Owner: ops-security + axis-sites
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140, ADR-SITES-0002, ADR-SITES-0003
+// Related: ADR-0140 (retired per ADR-0145), ADR-SITES-0002, ADR-SITES-0003
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

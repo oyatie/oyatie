@@ -8,7 +8,7 @@ adr_naming: ADR-0056 BNF v4.1
 adr_layer: ADR-0105 13-value enum
 status: pending
 description: |
-  Outbox relay worker; HA via Redis lease.
+  Outbox relay worker; HA via Valkey lease.
 related_artifacts:
   - microservices/workflow-engine/PRD.md
   - microservices/workflow-engine/PHASE-01-DURABLE-EXECUTION-SUBSTRATE.md

@@ -131,7 +131,7 @@
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: IaC bootstrap (Helm + Kustomize + Terraform)",
+      "title": "IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-001-iac-bootstrap.md"
     },
@@ -161,13 +161,13 @@
     },
     {
       "id": "IP-006-message-stream-adapters",
-      "title": "IP-006: message-stream adapters (Postgres + Meilisearch + Redis Streams)",
+      "title": "IP-006: message-stream adapters (Postgres + Meilisearch + Valkey Streams (Redis wire-compat))",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-006-message-stream-adapters.md"
     },
     {
       "id": "IP-007-presence-bc",
-      "title": "IP-007: presence BC (Redis + WebSocket gateway + LiveKit signaling)",
+      "title": "IP-007: presence BC (Valkey + WebSocket gateway + LiveKit signaling)",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-007-presence-bc.md"
     },
@@ -185,7 +185,7 @@
     },
     {
       "id": "IP-010-read-receipt-tracker",
-      "title": "IP-010: read-receipt-tracker BC (Redis + coalesced fanout)",
+      "title": "IP-010: read-receipt-tracker BC (Valkey + coalesced fanout)",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-010-read-receipt-tracker.md"
     },
@@ -297,6 +297,12 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0172",
+      "title": "Cqrs Read Replicas",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0172-cqrs-read-replicas.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -316,5 +322,12 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

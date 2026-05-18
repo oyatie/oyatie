@@ -261,12 +261,6 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
-    },
-    {
-      "id": "ADR-0140",
-      "title": "Cross Cutting Carriers Adapter Exemption",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -286,5 +280,25 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "Tenant",
+      "projection_target_table": "ontology_tenants",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "TenantMembership",
+      "projection_target_table": "ontology_tenant_memberships",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

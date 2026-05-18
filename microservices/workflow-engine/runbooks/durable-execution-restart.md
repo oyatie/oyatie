@@ -32,7 +32,7 @@ ONE of:
 ## Pre-checks
 
 1. Verify engine worker pod state: `kubectl -n workflow-engine get pods -l app=execution-engine-worker`.
-2. Verify Postgres + Redis health.
+2. Verify Postgres + Valkey health.
 3. Verify resume-rate-limit configuration is active.
 
 ## Recovery Path A — HA failover single-pod kill

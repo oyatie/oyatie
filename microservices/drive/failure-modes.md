@@ -19,7 +19,7 @@ Enumerate plausible failure modes, expected behaviour under each, detection mech
 
 ### FM-01 — Object-store single-cell loss
 
-- **Trigger**: Garage / MinIO / SeaweedFS cell crash, disk failure, network partition.
+- **Trigger**: Garage / SeaweedFS / SeaweedFS cell crash, disk failure, network partition.
 - **Expected behaviour**: replication-factor 3 absorbs; reads route to healthy cells; writes still durable.
 - **Detection**: per-cell health metric; replication backlog metric.
 - **Graceful degradation**: zero customer impact; rebuild in background.
@@ -41,9 +41,9 @@ Enumerate plausible failure modes, expected behaviour under each, detection mech
 - **Graceful degradation**: write path briefly unavailable; read serves from replica.
 - **Runbook**: `cloud-iac` runbooks.
 
-### FM-04 — Redis cluster failure
+### FM-04 — Valkey cluster failure
 
-- **Trigger**: Redis cluster node loss.
+- **Trigger**: Valkey cluster node loss.
 - **Expected behaviour**: in-flight upload sessions tolerated lost; client must re-init multipart. Sync sessions tolerated lost; client must re-init.
 - **Detection**: per-node health.
 - **Graceful degradation**: re-init from client. Upload session has client-side resume marker; sync session re-syncs from manifest.

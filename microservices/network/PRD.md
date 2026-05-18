@@ -85,14 +85,14 @@ Bominal predecessor: the `connect-network` slice of Bominal's unified Connect su
 
 | Metric | p50 | p95 | p99 | p999 | Notes |
 |---|---|---|---|---|---|
-| Feed-render latency (top 50 posts; algorithmic mode) | ≤ 60ms | ≤ 200ms | ≤ 400ms | ≤ 1s | Redis hot-feed cache; warm hit on read |
-| Profile-view latency | ≤ 40ms | ≤ 150ms | ≤ 350ms | ≤ 800ms | Postgres + Redis cache; first-degree extension over Postgres |
+| Feed-render latency (top 50 posts; algorithmic mode) | ≤ 60ms | ≤ 200ms | ≤ 400ms | ≤ 1s | Valkey hot-feed cache; warm hit on read |
+| Profile-view latency | ≤ 40ms | ≤ 150ms | ≤ 350ms | ≤ 800ms | Postgres + Valkey cache; first-degree extension over Postgres |
 | Connection-action latency (request / accept / ignore) | ≤ 20ms | ≤ 50ms | ≤ 150ms | ≤ 400ms | Postgres adjacency-list write + audit-chain emit |
 | Search-people latency (≤ 25 results) | ≤ 80ms | ≤ 250ms | ≤ 600ms | ≤ 1.2s | Meilisearch + Cedar filter; most-searched surface |
 | Search-content latency (≤ 25 results) | ≤ 150ms | ≤ 500ms | ≤ 1s | ≤ 2s | Meilisearch + Cedar filter |
 | Search-jobs latency | ≤ 100ms | ≤ 400ms | ≤ 900ms | ≤ 1.8s | faceted Meilisearch index; jobs-handoff materialised view |
 | InMail-send latency | ≤ 40ms | ≤ 100ms | ≤ 300ms | ≤ 700ms | network → messenger bridge; per-tenant rate limit |
-| Notification fanout (30k followers) | ≤ 200ms | ≤ 1s | ≤ 2s | ≤ 5s | per-recipient async via Redis Streams |
+| Notification fanout (30k followers) | ≤ 200ms | ≤ 1s | ≤ 2s | ≤ 5s | per-recipient async via Valkey Streams (Redis wire-compat) |
 | Notification fanout (300k followers) | ≤ 600ms | ≤ 2.5s | ≤ 6s | ≤ 18s | sharded fanout workers |
 | Endorsement add | ≤ 15ms | ≤ 50ms | ≤ 120ms | ≤ 300ms | Redis-buffered + Postgres flush; audit-chain emit |
 | Recommendation publish | ≤ 30ms | ≤ 100ms | ≤ 250ms | ≤ 700ms | Postgres insert + audit-chain seal |
@@ -361,9 +361,9 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for profiles + posts + connection-graph + endorsements + recommendations + jobs + pages + groups; Redis for feed cache + reaction counters + presence + InMail rate-budget; S3 for media + document attachments; Meilisearch for people + content + skills + jobs + companies + events search.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for profiles + posts + connection-graph + endorsements + recommendations + jobs + pages + groups; Valkey for feed cache + reaction counters + presence + InMail rate-budget; S3 for media + document attachments; Meilisearch for people + content + skills + jobs + companies + events search.
 
-**Active-active compatibility**: stateless REST + worker pods + Postgres logical-replicated within pack; Redis primary-replica HA; S3 cross-AZ replication.
+**Active-active compatibility**: stateless REST + worker pods + Postgres logical-replicated within pack; Valkey primary-replica HA; S3 cross-AZ replication.
 
 Per-cell capacity envelope:
 
@@ -382,7 +382,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - HPA on REST pods: CPU > 70 %, min 6, max 200 replicas.
 - Postgres shard-by-tenant once cell hits 10k posts/sec aggregate.
-- Redis cluster sharding by `(tenant_id, user_ref) mod N`.
+- Valkey cluster sharding by `(tenant_id, user_ref) mod N`.
 - Connection-graph: adjacency-list sharded by `(tenant_id, a_ref mod N)`.
 
 Sharding:

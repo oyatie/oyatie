@@ -24,7 +24,7 @@ Finalize operational + IaC artifacts; register HG-GOV gate per ADR-0123; final v
 - 6 runbooks (already authored in this Turn): smoke-test that all paths in runbooks actually exist; verify CLI commands work.
 - Helm charts at `iac/helm/{lane-runner-pool,postgres,evidence-store}/`.
 - Kustomize overlays at `iac/kustomize/{base,overlays/pack-kr}/`.
-- Terraform module stubs at `iac/terraform/` for pack onboarding.
+- OpenTofu module stubs at `iac/terraform/` for pack onboarding.
 - Register `HG-GOV` in `/specs/hyperscaler-gates.json`.
 - Author `microservices/governance/audit/industry-best-practice-conformance.md` per-µservice audit overlay.
 

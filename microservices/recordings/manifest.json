@@ -128,7 +128,7 @@
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: IaC bootstrap (Helm + Kustomize + Terraform)",
+      "title": "IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-001-iac-bootstrap.md"
     },
@@ -283,5 +283,12 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

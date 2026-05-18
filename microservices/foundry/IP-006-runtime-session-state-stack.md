@@ -17,11 +17,11 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness, sessi
 
 ## Intent
 
-The full session-state BC: kernel + domain + usecase + api + adapter + adapter-redis + adapter-postgres + sdk + app. Implements `SessionStore` + `SessionLeaseManager` + `SessionMutationLog` ports. Hot path = Redis 7.4 with per-tenant prefix; cold restore = Postgres replay. Per `runtime-isolation.md` TI-01..TI-05 invariants.
+The full session-state BC: kernel + domain + usecase + api + adapter + adapter-redis + adapter-postgres + sdk + app. Implements `SessionStore` + `SessionLeaseManager` + `SessionMutationLog` ports. Hot path = Valkey 8.1 (Redis wire-compat) with per-tenant prefix; cold restore = Postgres replay. Per `runtime-isolation.md` TI-01..TI-05 invariants.
 
 ## ChangeSet boundary
 
-9 new Rust crates. Redis schema + Postgres schema initialised by IP-002.
+9 new Rust crates. Valkey schema + Postgres schema initialised by IP-002.
 
 ## Concrete File Targets
 
@@ -31,7 +31,7 @@ Per layer crate at `microservices/foundry/src/crates/oya-foundry-runtime-session
 - usecase: load/persist/extend-lease orchestrators + DSR cascade handler
 - api: typed contracts
 - adapter: default protocol-neutral wrapper (NOOP delegating to backend adapters via DI)
-- adapter-redis: Redis 7.4 client with TLS + AUTH + tenant-prefix enforcement
+- adapter-redis: Valkey 8.1 (Redis wire-compat) client with TLS + AUTH + tenant-prefix enforcement
 - adapter-postgres: Postgres 16 client for cold restore + session_mutation_log (audit)
 - sdk: tenant-facing Rust client
 - app: composition root
@@ -82,7 +82,7 @@ pub struct DsrCascadeHandler<S, L> { store: S, log: L }
 
 impl<S: SessionStore, L: SessionMutationLog> DsrCascadeHandler<S, L> {
     pub async fn handle(&self, tenant_id: &str, subject_hash: &str) -> Result<DsrReport, DsrError> {
-        // 1. Scan Redis per-tenant prefix for sessions containing subject_hash
+        // 1. Scan Valkey per-tenant prefix for sessions containing subject_hash
         // 2. Postgres session_mutation_log query for cold-tier sessions
         // 3. Soft-delete with 30d grace; mark status=soft_deleted
         // 4. Audit-chain emit `dsr_executed{tenant, subject_hash, removed_session_count}`
@@ -106,7 +106,7 @@ cargo run -p oya-dev-cli -- gate validate postgres-rls-coverage --microservice f
 
 | Test | Verifies |
 |---|---|
-| `test_session_hot_read_p99_under_10ms` | Redis adapter latency |
+| `test_session_hot_read_p99_under_10ms` | Valkey adapter (Redis wire-compat) latency |
 | `test_session_cold_restore_p99_under_100ms` | Postgres adapter latency |
 | `test_cross_tenant_read_empty` | TI-01 / TI-03: reading another tenant returns empty |
 | `test_redis_acl_refuses_cross_prefix` | TI-02 |
@@ -117,7 +117,7 @@ cargo run -p oya-dev-cli -- gate validate postgres-rls-coverage --microservice f
 
 ## Halt Conditions
 
-- Any Redis op without tenant prefix — refactor (TI-01 violation).
+- Any Valkey op without tenant prefix — refactor (TI-01 violation).
 - Any Postgres tenant-data query without RLS — refactor (TI-03 violation).
 - Session HMAC validation skipped — refactor (T-T-02).
 
@@ -131,5 +131,5 @@ cargo run -p oya-dev-cli -- gate validate postgres-rls-coverage --microservice f
 - `policy/runtime-isolation.md` TI-01..TI-05.
 - `threat-model.md` T-I-01, T-T-02.
 - `policy/data-residency.md` DSR cascade.
-- Redis 7.4 LTS docs.
+- Valkey 8.1 (Redis wire-compat) docs.
 - Postgres 16 LTS docs.

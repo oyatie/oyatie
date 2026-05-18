@@ -31,7 +31,7 @@ doc_status: published
 
 The `workflow-engine` µservice is oyatie's **durable workflow execution substrate**. It owns the state machine + DAG runtime; the durable-execution layer (Temporal-class semantics: deterministic replay, multi-week run lifetimes, crash-safe step persistence); the event bus that carries workflow events between µservices; the spec-store that holds compiled workflow definitions; and the replay/debugger backend that powers post-hoc inspection of completed and in-flight runs.
 
-This µservice is the **substrate half** of the workflow product unbundle (ADR-0131). The visual editor — drag-drop canvas, node library UX, template gallery — lives in the sibling `workflow-studio` µservice. The engine has **zero UI surface**; its consumers are: the Studio editor (via REST + gRPC); every other oyatie µservice (via Workflow events; this µservice is the cross-product orchestration adapter per `feedback_workflow_objectgraph_adapter_layer.md`); and tenant workloads that embed the engine SDK for in-process triggers.
+This µservice is the **substrate half** of the workflow product unbundle (ADR-0131). The visual editor — drag-drop canvas, node library UX, template gallery — lives in the sibling `workflow-studio` µservice. The engine has **zero UI surface**; its consumers are: the Studio editor (via REST + gRPC); every other oyatie µservice (via Workflow events; this µservice is the cross-product orchestration adapter per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`); and tenant workloads that embed the engine SDK for in-process triggers.
 
 This µservice is **shared substrate**, not a hero product. It is consumed by every other oyatie µservice. Direct product-to-product calls are prohibited (LEAN-A2); the engine is the load-bearing adapter that routes typed events between µservices via state machines + DAGs.
 
@@ -114,7 +114,7 @@ This µservice inherits Bominal ADRs 0035, 0103, 0148, 0028, 0107, 0037, 0009, 0
 
 ## Bounded Contexts
 
-Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates), layers used by this µservice are: `kernel`, `domain`, `usecase`, `api`, `adapter`, `rest`, `worker`, `sdk`, `app`. The `state-machine` and `execution-engine` BCs include backend-qualified `*-adapter-<backend>` crates per ADR-0105 Amendment 3 (Postgres for state; Redis for ephemeral; ClickHouse for analytics replay).
+Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates), layers used by this µservice are: `kernel`, `domain`, `usecase`, `api`, `adapter`, `rest`, `worker`, `sdk`, `app`. The `state-machine` and `execution-engine` BCs include backend-qualified `*-adapter-<backend>` crates per ADR-0105 Amendment 3 (Postgres for state; Valkey for ephemeral; ClickHouse for analytics replay).
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
@@ -277,7 +277,7 @@ CI lanes that must green:
 - `oya gate validate port-location --microservice workflow-engine`
 - `oya gate validate layer-correctness --microservice workflow-engine`
 - `oya gate validate per-microservice-layout --microservice workflow-engine`
-- `oya gate validate statelessness --microservice workflow-engine` — engine workers stateless beyond Postgres + Redis
+- `oya gate validate statelessness --microservice workflow-engine` — engine workers stateless beyond Postgres + Valkey
 - `oya gate validate shardability --microservice workflow-engine`
 - `oya gate validate deterministic-replay --microservice workflow-engine` — NEW lane (per spec) asserting replay determinism for shipped workflow specs
 
@@ -375,7 +375,7 @@ Error budget:
 - Analytics replay history (long-term): `clickhouse` (replica of run history; read-side only).
 - Object storage for large step payloads (e.g., file artifacts): OCI Object Storage.
 
-**Active-active compatibility**: `stateless-compatible` for REST/SDK/event-bus subscribers; `single-writer-compatible` for engine workers processing a specific run (one worker owns one run at a time via Redis lease; no concurrent writers per run).
+**Active-active compatibility**: `stateless-compatible` for REST/SDK/event-bus subscribers; `single-writer-compatible` for engine workers processing a specific run (one worker owns one run at a time via Valkey lease; no concurrent writers per run).
 
 Per-cell capacity envelope:
 
@@ -389,10 +389,10 @@ Per-cell capacity envelope:
 Scale-out policy:
 - Engine workers: stateless HPA on queue depth > 5k; min 3 replicas; max 200 replicas.
 - REST/gRPC: stateless HPA on CPU > 70%; min 2 replicas; max 50.
-- Outbox relay worker: stateless; one leader per partition via Redis lease.
+- Outbox relay worker: stateless; one leader per partition via Valkey lease.
 - Postgres + Citus: tenant_id shard key; linear shard addition; ADR-0117 sharding posture.
 - ClickHouse replica: read-replicated; sharded by tenant_id.
-- Redis: per-cell cluster; HA via Sentinel.
+- Valkey: per-cell cluster; HA via Sentinel.
 - Pre-warmed worker pool: 10 standby pods; cold-start budget ≤ 500ms.
 
 Cross-region story:
@@ -430,7 +430,7 @@ Sharding:
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | Durable-execution: bespoke Postgres-backed state machine vs embed Temporal SDK (Rust)? Bias: bespoke per `feedback_autonomous_implementation_artifacts.md` (no compat seams). | council-architecture | ADR-#### (highest priority; gates IP-005) |
-| 2 | Event-bus substrate: Postgres outbox + LISTEN/NOTIFY, NATS JetStream, Kafka KRaft, or Redis Streams? Latency vs durability vs operational complexity trade-off. | council-architecture + ops-sre-reliability | ADR-#### (gates IP-007) |
+| 2 | Event-bus substrate: Postgres outbox + LISTEN/NOTIFY, NATS JetStream, Kafka KRaft, or Valkey Streams (Redis wire-compat)? Latency vs durability vs operational complexity trade-off. | council-architecture + ops-sre-reliability | ADR-#### (gates IP-007) |
 | 3 | Workflow DSL format the engine accepts: YAML, JSON IR, or both? Bias: JSON IR canonical (machine-emitted by Studio), YAML accepted as input but compiled to JSON IR at submit time. | council-architecture | resolved inline; see spec-store IP |
 | 4 | ClickHouse replica: full mirror of Postgres run history, or selective columns? Mirror-cost vs query-richness trade-off. | axis-workflow + ops-finops | resolved inline |
 | 5 | Sub-workflow invocation: synchronous (caller blocks) or asynchronous (caller waits for completion event)? Both semantics needed; default = async with synchronous opt-in. | council-architecture | resolved inline; see execution-engine IP |

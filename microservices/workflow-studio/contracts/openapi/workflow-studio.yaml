@@ -453,7 +453,7 @@ paths:
 
   /ready:
     get:
-      summary: Readiness probe (Postgres + Redis + engine SDK + foundry-providers SDK reachable)
+      summary: Readiness probe (Postgres + Valkey + engine SDK + foundry-providers SDK reachable)
       operationId: getReady
       security: []
       responses:

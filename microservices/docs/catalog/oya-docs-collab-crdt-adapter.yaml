@@ -21,5 +21,5 @@ autonomy_tier_required: T1
 implementation_notes: |
   Loro 1.x CRDT engine wrapping. LoroTree backs block-tree; LoroMap backs
   block attributes; LoroList backs block ordering. Snapshot encoding for
-  Redis spool + Postgres persistence. Deterministic projection to canonical
+  Valkey spool + Postgres persistence. Deterministic projection to canonical
   block tree for AC-02 byte-equality + cross-µservice envelope consistency.

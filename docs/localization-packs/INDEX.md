@@ -80,5 +80,5 @@ CI lane `lean-a5-doc-coverage` enforces.
 - [ADR-0064 Canonical base + localization packs](../decisions/ADR-0064-canonical-base-and-localization-packs.md)
 - [ADR-0063 Documentation suite coverage](../decisions/ADR-0063-documentation-suite-coverage.md)
 - [MASTERPLAN §2.5, §5.5](../MASTERPLAN.md)
-- Bominal ADR-0140 (inherited regional-pack pattern)
+- Bominal ADR-0140 (retired per ADR-0145) (inherited regional-pack pattern)
 - Bominal ADR-0190 (inherited versioned regulatory corpus.lock)

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-foundry-control-plane
 deciders: council-architecture, ops-security, axis-foundry-control-plane, council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/foundry/threat-model.md (T-I-01, T-S-01, T-T-02, T-E-01)
   - microservices/foundry/dpia.md (R-01, R-02, R-14)
@@ -52,7 +52,7 @@ Reserved IDs never issued as customer tenant IDs. Supervisor admit-loop refuses 
 | `tenant_oya_self` | Supervisor's own self-observability + self-SLO authoring | supervisor controller pods only | observability + auditor scope |
 | `tenant_oya_aggregate` | DP-noise-cleaned cross-tenant aggregates (product metrics) | supervisor aggregator job (ε ≤ 1) | public-read.cedar |
 
-Any inbound write with `tenant_id = tenant_oya_*` from a non-authorised SPIFFE identity is **rejected at REST + Postgres + Redis layers** with HTTP 403 + emits `oya_supervisor_reserved_tenant_violation_total > 0` (alert > 0 over 5m).
+Any inbound write with `tenant_id = tenant_oya_*` from a non-authorised SPIFFE identity is **rejected at REST + Postgres + Valkey layers** with HTTP 403 + emits `oya_supervisor_reserved_tenant_violation_total > 0` (alert > 0 over 5m).
 
 ### Tenant scope enumeration
 
@@ -108,11 +108,11 @@ PgAudit logs every DML against `AUDIT`-class tables (deployment_history, kill_sw
 
 JIT elevation through OpenBao required for any `psql` access; 2-person rule for tables with `AUDIT`-class data. Every access audit-chain-emitted.
 
-## Redis Isolation Invariants (TI-R-*)
+## Valkey Isolation Invariants (TI-R-*)
 
 ### TI-R-01: ACL per-key pattern
 
-Redis Cluster ACLs scope each connection to keys matching the bound tenant pattern:
+Valkey Cluster ACLs scope each connection to keys matching the bound tenant pattern:
 
 ```text
 user supervisor on >$<openbao-token>
@@ -130,15 +130,15 @@ Tenant-side subscribers receive only their own scoped streams.
 
 ### TI-R-02: AOF every-second + replication-factor 2
 
-AOF persistence with `everysec` fsync; 3 shards × 2 replicas; loss of one replica per shard tolerated. Per Redis Cluster reference architecture.
+AOF persistence with `everysec` fsync; 3 shards × 2 replicas; loss of one replica per shard tolerated. Per Valkey Cluster reference architecture.
 
-### TI-R-03: Kill-switch state authoritative-truth in CRD (Redis is cache)
+### TI-R-03: Kill-switch state authoritative-truth in CRD (Valkey is cache)
 
-Redis kill-switch state is cache + sub-second propagation channel. The Kubernetes CRD (`KillSwitch` custom resource) is the source-of-truth. Periodic CRD-watch reconciliation overwrites Redis if divergence detected. Divergence alarm fires on `oya_kill_switch_state_divergence_total > 0`.
+Valkey kill-switch state is cache + sub-second propagation channel. The Kubernetes CRD (`KillSwitch` custom resource) is the source-of-truth. Periodic CRD-watch reconciliation overwrites Valkey if divergence detected. Divergence alarm fires on `oya_kill_switch_state_divergence_total > 0`.
 
-### TI-R-04: Fail-closed on Redis unavailability
+### TI-R-04: Fail-closed on Valkey unavailability
 
-When Redis is unreachable for > 2 s, supervisor returns "engaged" for all kill-switch queries (safe default). The runtime-side handshake refuses to invoke a capability with unknown kill-switch state. Recovery: CRD reconcile re-populates Redis.
+When Valkey is unreachable for > 2 s, supervisor returns "engaged" for all kill-switch queries (safe default). The runtime-side handshake refuses to invoke a capability with unknown kill-switch state. Recovery: CRD reconcile re-populates Valkey.
 
 ## Kubernetes Isolation Invariants (TI-K-*)
 
@@ -194,7 +194,7 @@ Anonymous reads succeed only against resources with `data_class == "PUBLIC"`.
 
 **Recovery:** Replica promotion (automatic); ops-sre-reliability paged for forensic if pattern suggests compromise.
 
-### FM-S-02: Redis cluster minor partition
+### FM-S-02: Valkey cluster minor partition
 
 **Behaviour:** Cluster mode tolerates 1 replica down per shard; 2 replicas down per shard → fail-closed.
 
@@ -287,7 +287,7 @@ Each pack's overlay at `regional-packs/<pack>/foundry-supervisor-isolation-overl
 - `microservices/foundry/policy/{tenant-scope, ci-scope, auditor-scope, public-read}.cedar`.
 - `microservices/foundry/policy/data-residency.md`.
 - PostgreSQL RLS docs — `postgresql.org/docs/current/ddl-rowsecurity.html`.
-- Redis Cluster spec — `redis.io/docs/management/scaling/`.
+- Valkey Cluster spec — `redis.io/docs/management/scaling/`.
 - Cedar v4 — `cedarpolicy.com`.
 - SPIFFE / SPIRE — `spiffe.io`.
 - OpenBao — `openbao.org`.

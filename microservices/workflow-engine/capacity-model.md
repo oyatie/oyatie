@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baseline numbers for every Layer-A (Postgres + Citus / Redis / ClickHouse) and Layer-B (engine workers / REST / SDK) component. Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + reference-architecture baseline numbers for every Layer-A (Postgres + Citus / Valkey / ClickHouse) and Layer-B (engine workers / REST / SDK) component. Drives `cost-budget.md` and `multi-region.md`.
 
 ## Inputs
 
@@ -107,7 +107,7 @@ All replica counts include buffer multipliers (1.2–1.5×). In addition:
 - **Pre-warmed pool**: 10 standby engine-worker pods per cell; cold-start budget ≤ 500ms.
 - **HPA**: scales on CPU > 70% OR step queue depth > 5k; ratchets 2 replicas per scale-out event.
 - **VPA**: vertical-pod-autoscaler for ClickHouse + Postgres workers; sized to recommended memory.
-- **Burst absorbing**: 30s of step backlog absorbed by ephemeral Redis lease queue before back-pressure.
+- **Burst absorbing**: 30s of step backlog absorbed by ephemeral Valkey lease queue before back-pressure.
 
 ## Postgres + Citus Sizing
 
@@ -122,7 +122,7 @@ shard_count                    = ceil(total_postgres_storage / per_shard_size_ta
 
 References: Citus docs — `docs.citusdata.com/`. Verify-at-deploy.
 
-## Redis Sizing
+## Valkey Sizing
 
 ```
 total_redis_keys               = total_active_runs × 3 (lease + step-claim + heartbeat)
@@ -131,7 +131,7 @@ redis_memory                   = total_redis_keys × 200B + 1GB Sentinel overhea
 redis_replicas                 = 3 (quorum)
 ```
 
-References: Redis Sentinel — `redis.io/topics/sentinel`.
+References: Valkey Sentinel — `redis.io/topics/sentinel`.
 
 ## ClickHouse Sizing
 
@@ -197,7 +197,7 @@ Cost projections per scale tier in `cost-budget.md`.
 ## References
 
 - Postgres + Citus docs — `docs.citusdata.com/`.
-- Redis Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `redis.io/topics/sentinel`.
 - ClickHouse operations — `clickhouse.com/docs/en/operations/`.
 - OCI pricing — `oracle.com/cloud/pricing/`.
 - `microservices/workflow-engine/cost-budget.md`.

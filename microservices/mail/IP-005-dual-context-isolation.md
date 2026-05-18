@@ -114,5 +114,5 @@ cargo run -p oya-dev-cli -- gate validate migration-context-tagging --microservi
 - Bominal ADR-0208 (dual-context unified channel hub)
 - Bominal ADR-0215 (retention/legal-hold dual-context)
 - ADR-0135 (Connect super-app dissolution authority)
-- ADR-0140 (Cedar policy enforcement)
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement)
 - Cedar policy language — `cedarpolicy.com`

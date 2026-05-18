@@ -28,7 +28,7 @@ One cohesive ChangeSet: 4 Helm chart bundles (ArgoCD + Flux + helm-controller + 
 | Path | Action | Description |
 |---|---|---|
 | `microservices/cloud-iac/iac/helm/argocd/Chart.yaml` | create | upstream dep on argoproj/argo-cd chart at pinned LTS |
-| `microservices/cloud-iac/iac/helm/argocd/values.yaml` | create | HA replicas + Redis sentinel + admission webhook |
+| `microservices/cloud-iac/iac/helm/argocd/values.yaml` | create | HA replicas + Valkey Sentinel + admission webhook |
 | `microservices/cloud-iac/iac/helm/flux/{Chart.yaml,values.yaml}` | create | source-controller + kustomize-controller + helm-controller |
 | `microservices/cloud-iac/iac/helm/helm-controller/{Chart.yaml,values.yaml}` | create | Flux Helm-controller standalone deployment |
 | `microservices/cloud-iac/iac/helm/kustomize-controller/{Chart.yaml,values.yaml}` | create | Flux Kustomize-controller standalone deployment |

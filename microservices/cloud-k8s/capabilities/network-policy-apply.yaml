@@ -18,7 +18,7 @@ description: |
 owner_team: axis-cloud + ops-security
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0121, ADR-0131, ADR-0140]
+related_adrs: [ADR-0121, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml
   - microservices/cloud-k8s/policy/cluster-isolation.md (CI-03, CI-04, CI-06)

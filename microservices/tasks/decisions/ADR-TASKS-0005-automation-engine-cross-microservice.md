@@ -21,7 +21,7 @@ related_artifacts:
 purpose: |
   Decide how the tasks µservice integrates with the workflow-engine —
   closes PRD-tasks "Tenant Outcome 5 — bidirectional task ↔ workflow"
-  + the cross-product-isolation invariant from feedback_workflow_objectgraph_adapter_layer.md.
+  + the cross-product-isolation invariant from feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md.
 ---
 
 # ADR-TASKS-0005: Automation engine cross-µservice — bidirectional workflow-engine bridge via canonical event bus + gRPC; no in-µservice durable-execution engine

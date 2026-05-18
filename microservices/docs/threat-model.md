@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-docs + ops-security
 deciders: council-architecture, ops-security, axis-docs, council-privacy
 methodology: STRIDE + LINDDUN + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS v4.0 + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
 review_cadence: quarterly + on every BC architectural change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1-CC6.8, CC7.1-CC7.5, CC8.1"
@@ -39,7 +39,7 @@ All components introduced for the docs µservice across the eight bounded contex
 |---|---|
 | Postgres 16 LTS (document-metadata store + RLS) | `oya-docs-document-store-*` (11 crates) |
 | S3-compatible (OCI Object Storage; content blobs + attachments) | `oya-docs-collab-crdt-*` (9 crates) |
-| Redis 7.4 LTS (collab-presence + CRDT op fan-out + cache) | `oya-docs-block-types-*` (7 crates) |
+| Valkey 8.1 (Redis wire-compat) (collab-presence + CRDT op fan-out + cache) | `oya-docs-block-types-*` (7 crates) |
 | Loro 1.x CRDT engine (per ADR-DOCS-0001) | `oya-docs-comments-and-suggestions-*` (9 crates) |
 | Pandoc 3.x (export-import substrate) | `oya-docs-version-history-*` (8 crates) |
 | WeasyPrint 62.x (PDF default backend) | `oya-docs-sharing-and-permissions-*` (8 crates) |
@@ -90,7 +90,7 @@ All components introduced for the docs µservice across the eight bounded contex
 │                                                                            │
 │  Trust boundary 3: REST → S3 (content blobs; per-tenant prefix; Object Lock)│
 │                                                                            │
-│  Trust boundary 4: REST → Redis (collab presence; CRDT op spool;            │
+│  Trust boundary 4: REST → Valkey (collab presence; CRDT op spool;            │
 │       per-tenant prefix)                                                   │
 │                                                                            │
 │  Trust boundary 5: Worker → Workflow-event-bus (downstream consumers)      │
@@ -126,14 +126,14 @@ Per Bominal ADR-0028 + `oya-check-data-class` LEAN lane.
 | Version snapshots | `PROFESSIONAL_DOC_CONTENT` / `PERSONAL_DOC_CONTENT` | Critical | per retention; pinned to compaction policy | Postgres + S3 |
 | Share-link tokens | `SECRET` | Critical | per share TTL | OpenBao |
 | Per-block ACL records | `BEHAVIORAL_TENANT_PRODUCT` | High | per document retention | Postgres |
-| CRDT op spool (transient) | `PROFESSIONAL_DOC_CONTENT` / `PERSONAL_DOC_CONTENT` (until merged + sealed) | Critical | TTL ≤ 60s | Redis |
-| Collab presence (cursors) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | session-only | Redis |
+| CRDT op spool (transient) | `PROFESSIONAL_DOC_CONTENT` / `PERSONAL_DOC_CONTENT` (until merged + sealed) | Critical | TTL ≤ 60s | Valkey |
+| Collab presence (cursors) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | session-only | Valkey |
 | Attachment payloads | as parent doc context | Critical | per retention; legal-hold preserves | S3 (Object Lock for held) |
 | Export job artifacts (PDF/DOCX) | as parent doc context | Critical | per retention; signed | S3 |
 | Import job source files | as parent | Critical | transient (parsed + dropped); audit-chain seals | tmpfs |
 | Legal-hold records | `AUDIT` | Critical | append-only; preserved past retention | Postgres + audit-chain |
 | Tenant-DEK | `SECRET` | Critical | OpenBao 90d rotation | OpenBao |
-| Embed snapshots (cross-µservice) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | TTL per embed policy | Redis + Postgres |
+| Embed snapshots (cross-µservice) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | TTL per embed policy | Valkey + Postgres |
 | Audit-chain seal records | `AUDIT` | High | append-only | audit-chain µservice |
 | WCAG accessibility evidence | `INTERNAL_ONLY` | Low | per export | S3 |
 
@@ -169,7 +169,7 @@ Per Bominal ADR-0028 + `oya-check-data-class` LEAN lane.
 - L M / I H / Risk H
 - Mitigations:
   - Share-link tokens are HMAC-Ed25519-signed `(document_id, grantee_ref, role, expires_at, share_nonce)`; key in OpenBao 90d rotation.
-  - Token verification rejects expired + revoked tokens; revocation list cached in Redis per-tenant prefix.
+  - Token verification rejects expired + revoked tokens; revocation list cached in Valkey per-tenant prefix.
   - Token-binding to receiving IP optional per tenant policy (high-security tenants enable).
 - Owner: ops-security + axis-docs
 - Residual: L

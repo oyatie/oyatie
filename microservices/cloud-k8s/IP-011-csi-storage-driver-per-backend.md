@@ -15,7 +15,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 ## Intent
 
-Scaffold `csi-storage-driver` BC: kernel (CsiProvisioner port + StorageClass / PersistentVolume / PersistentVolumeClaim / VolumeSnapshot / CsiBackend entities), usecase (provision / attach / detach / snapshot / delete orchestrators with QoS-class enforcement), THREE backend-qualified adapters: `-adapter-block` (OCI Block Volume + Ceph RBD), `-adapter-object` (OCI Object + MinIO), `-adapter-file` (OCI File + CephFS).
+Scaffold `csi-storage-driver` BC: kernel (CsiProvisioner port + StorageClass / PersistentVolume / PersistentVolumeClaim / VolumeSnapshot / CsiBackend entities), usecase (provision / attach / detach / snapshot / delete orchestrators with QoS-class enforcement), THREE backend-qualified adapters: `-adapter-block` (OCI Block Volume + Ceph RBD), `-adapter-object` (OCI Object + SeaweedFS), `-adapter-file` (OCI File + CephFS).
 
 ## ChangeSet boundary
 
@@ -89,7 +89,7 @@ cargo run -p oya-dev-cli -- gate validate lean-a3 --microservice cloud-k8s  # ad
 | `test_provision_refuses_cross_pack` | per-pack invariant |
 | `test_claim_ref_enforced` | tenant ownership |
 | `test_snapshot_block_volume_real` | OCI snapshot integration |
-| `test_provision_object_storage_real` | MinIO + OCI Object integration |
+| `test_provision_object_storage_real` | SeaweedFS + OCI Object integration |
 | `test_provision_file_storage_real` | CephFS + OCI File integration |
 | `test_audit_chain_emit_on_provision` | audit invariant |
 

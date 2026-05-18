@@ -76,7 +76,7 @@ conforming:
 
 Includes: 1:1 import-path map (60+ mappings); net-new-boundary
 features (Meilisearch search, 5 third-party importers, recurrence
-worker, view-engine Redis, dependency cycle prevention, workflow
+worker, view-engine Valkey, dependency cycle prevention, workflow
 bridge, EU AI Act Cedar refusal, create-task-from-{email,message,
 calendar-event}); concrete `use` and `Cargo.toml` rewrites;
 configuration delta table; dual-context isolation invariant

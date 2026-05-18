@@ -93,7 +93,7 @@ Cause: isolated row toast tear OR application-bug write.
 |---|---|
 | 1 | Engage ops-security; preserve evidence. |
 | 2 | Quarantine pack; lock all credentials. |
-| 3 | Forensic snapshot of Postgres + Redis + audit-chain WAL. |
+| 3 | Forensic snapshot of Postgres + Valkey + audit-chain WAL. |
 | 4 | Identify tamper vector: insider / external / supply-chain? |
 | 5 | Per-pack regulatory notification (criminal complaint where applicable). |
 | 6 | Restore as Path C. |

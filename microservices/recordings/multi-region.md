@@ -37,7 +37,7 @@ doc_status: published
   forbidden.
 - **S3 cold (Glacier-class)**: per ADR-RECORDINGS-0005 — same-pack only.
   Pack-us-financial: S3 object-lock (WORM) per SEC 17a-4(f).
-- **Redis**: primary-replica HA in-pack. Share-link cache + playback session
+- **Valkey**: primary-replica HA in-pack. Share-link cache + playback session
   rebuildable from Postgres on failover.
 - **Meilisearch**: snapshot DR within pack (primary-only; snapshot every
   6h to S3-cold; on restore, replay transcript Workflow events to
@@ -53,7 +53,7 @@ doc_status: published
 | 2 | Postgres logical-replication promotion of warm-standby | ≤ 5 min |
 | 3 | S3 endpoint flipped to DR-pair bucket | ≤ 30s (DNS TTL + Route53 health-check) |
 | 4 | CDN origin re-pointed via Lambda@Edge | ≤ 30s |
-| 5 | Redis HA promotion | ≤ 30s |
+| 5 | Valkey HA promotion | ≤ 30s |
 | 6 | Meilisearch restored from latest snapshot | ≤ 30 min |
 | 7 | foundry-runtime (Whisper + pyannote) is regional-native (no DR replay needed) | n/a |
 | 8 | Audit-chain seals re-anchored on DR | ≤ 5 min |

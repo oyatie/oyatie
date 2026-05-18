@@ -20,7 +20,7 @@ Define per-tenant and per-cell unit economics for docs. FinOps gate: per-tenant 
 | Unit | Baseline cost | Notes |
 |---|---|---|
 | Active document (1 user, 30d active) | $0.12 / mo | Postgres row + content blob + index footprint |
-| Edit-op (1 CRDT op) | $0.000005 / op | Loro op + Redis spool + audit emit |
+| Edit-op (1 CRDT op) | $0.000005 / op | Loro op + Valkey spool + audit emit |
 | Comment | $0.0001 / comment | Postgres + audit emit |
 | Suggestion | $0.0002 / suggestion | Postgres + audit emit + state-machine |
 | Version snapshot | $0.0008 / snapshot | Postgres + S3 blob |
@@ -29,7 +29,7 @@ Define per-tenant and per-cell unit economics for docs. FinOps gate: per-tenant 
 | Export DOCX | $0.010 / job | Pandoc CPU |
 | Import DOCX (50-page) | $0.014 / job | Pandoc + sanitisation |
 | Attachment upload (10MB) | $0.003 / upload | S3 PUT + ClamAV scan + image re-encode |
-| Embed-refresh | $0.00005 / refresh | cross-µservice mTLS + Redis cache |
+| Embed-refresh | $0.00005 / refresh | cross-µservice mTLS + Valkey cache |
 | AI writing-assist (T1 suggestion) | $0.012 / suggestion | foundry-runtime LLM inference |
 | Auto-summary (T2) | $0.025 / summary | LLM + tenant-DEK envelope |
 | Per-block ACL check | $0.000002 / check | Cedar policy eval cached |
@@ -40,7 +40,7 @@ Define per-tenant and per-cell unit economics for docs. FinOps gate: per-tenant 
 |---|---|---|
 | Postgres (document-metadata; 3-replica HA + per-tenant RLS) | $5,800 | OCI VM.Standard3.Flex 16 OCPU × 3 + 4TB persistent block + WAL retention |
 | S3 (content blobs + attachments; per-pack) | $1,800 | OCI Object Storage standard tier; 50TB baseline |
-| Redis (collab presence + CRDT spool + cache; cluster mode 5-shard) | $1,400 | OCI Caching Service |
+| Valkey (collab presence + CRDT spool + cache; cluster mode 5-shard) | $1,400 | OCI Caching Service |
 | Kubernetes nodes (rest + worker + gVisor pool) | $4,200 | OCI VM.Standard.E5.Flex × 12 baseline |
 | gVisor pool for export workers (pre-warmed 10 sandboxes) | $600 | E5.Flex × 2 dedicated |
 | ClamAV scanner | $80 | OCI VM.Standard.E5.Flex × 1 |

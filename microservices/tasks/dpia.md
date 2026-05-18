@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-tasks
 methodology: ICO DPIA + CNIL DPIA + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act Annex IV
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-TASKS-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-TASKS-0006]
 related_artifacts:
   - microservices/tasks/threat-model.md
   - microservices/tasks/policy/task-isolation.md
@@ -47,9 +47,9 @@ DPIA + EU AI Act conformity-assessment mandatory pre-deployment. Reviewed by EU 
 
 **What:** Task CRUD with title/description/status/priority/assignee/due-date/labels/parent; project + view + dependency-edge + recurrence + custom-field; bulk-edit; cross-project search via Meilisearch; importers (CSV + Jira + Asana + Trello + Linear + Todoist); T0/T1/T2 AI capabilities (suggest, assist, auto); bidirectional workflow-engine bridge.
 
-**How:** REST ingress → Postgres task-store (per-tenant RLS + tenant-DEK envelope encryption) → Redis view-cache → Meilisearch per-tenant index → Workflow events to workflow-engine + audit-chain + mail + messenger + calendar + foundry-runtime + observability.
+**How:** REST ingress → Postgres task-store (per-tenant RLS + tenant-DEK envelope encryption) → Valkey view-cache → Meilisearch per-tenant index → Workflow events to workflow-engine + audit-chain + mail + messenger + calendar + foundry-runtime + observability.
 
-**Where:** Per-pack region-pinned Postgres + Redis + Meilisearch (pack-kr → KR; pack-eu → EU; pack-us → US; pack-us-healthcare → BAA-eligible US; pack-jp → JP; etc.). Residency enforced via ADR-0117 + ADR-0140.
+**Where:** Per-pack region-pinned Postgres + Valkey + Meilisearch (pack-kr → KR; pack-eu → EU; pack-us → US; pack-us-healthcare → BAA-eligible US; pack-jp → JP; etc.). Residency enforced via ADR-0117 + ADR-0140.
 
 **When:** Continuous; on-demand for user actions; recurring background sweeps for retention + recurrence-expansion + search-index-rebuild + webhook-fanout + importer-runner.
 

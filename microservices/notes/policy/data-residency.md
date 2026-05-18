@@ -64,7 +64,7 @@ OpenBao records both keys; notes reads at every request.
 ### Default: forbidden
 
 - Postgres logical replication: within-pack only.
-- Redis cluster replication: within-pack only.
+- Valkey cluster replication: within-pack only.
 - S3 (Personal-tier ciphertext blobs > 100KB) cross-region replication: within-pack only.
 - Meilisearch index replication: within-pack only.
 - Loro CRDT op-log: within-pack only.

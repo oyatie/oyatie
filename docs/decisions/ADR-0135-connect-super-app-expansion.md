@@ -132,7 +132,7 @@ The legacy Connect super-app is **dissolved** into exactly 8 first-class flat
    `/specs/hyperscaler-gates.json`.
 5. **No direct cross-µservice imports.** Cross-µservice data flow uses Workflow
    events + Ontology reads/writes only, per
-   `feedback_workflow_objectgraph_adapter_layer.md`. Example: mail emits
+   `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`. Example: mail emits
    `MailReceived`; calendar may consume it via Workflow handoff, never via
    `use oya_mail_*` in a calendar crate.
 6. **Dual-context isolation invariant** (Personal vs. Professional) is preserved

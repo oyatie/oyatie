@@ -97,4 +97,4 @@ Phase-01 closes with this IP green + all 14 preceding IPs merged.
 - `microservices/cloud-secrets/threat-model.md` T-I-01, T-I-02
 - gitleaks (canonical pattern source)
 - tartufo (entropy analysis)
-- HashiCorp Vault leak-detection patterns
+- OpenBao leak-detection patterns

@@ -1,0 +1,90 @@
+{
+  "manifest_version": "v1.0.0",
+  "microservice": "comms-email",
+  "owner": "oya-substrate-comms",
+  "adr_anchors": [
+    "ADR-0201",
+    "ADR-0145",
+    "ADR-0166",
+    "ADR-0173",
+    "ADR-0149",
+    "ADR-0064",
+    "ADR-0144"
+  ],
+  "status": "draft",
+  "phase": "PHASE-01-COMMS-EMAIL-SUBSTRATE",
+  "naming_justification": "oya-microservice-comms-email per BNF v4.1: oya-<axis:microservice>-<topic:comms-email>",
+  "layer_enum_position": "kernel + domain + api + adapter (per ADR-0105 13-layer)",
+  "bounded_contexts": [
+    "transactional-send",
+    "deliverability",
+    "webhook-ingest",
+    "suppression-list",
+    "dkim-rotation",
+    "tenant-from-domain-onboarding",
+    "audit-emission"
+  ],
+  "ips": [
+    {"id": "IP-001", "title": "SES adapter implementation"},
+    {"id": "IP-002", "title": "Postal adapter implementation"},
+    {"id": "IP-003", "title": "SMTP fallback adapter implementation"},
+    {"id": "IP-004", "title": "Mailgun adapter implementation"},
+    {"id": "IP-005", "title": "DKIM key rotation pipeline"},
+    {"id": "IP-006", "title": "MJML template renderer"},
+    {"id": "IP-007", "title": "Liquid substitution engine"},
+    {"id": "IP-008", "title": "Webhook delivery pipeline"},
+    {"id": "IP-009", "title": "Bounce / complaint handler"},
+    {"id": "IP-010", "title": "Suppression list"},
+    {"id": "IP-011", "title": "Per-tenant from-domain onboarding"},
+    {"id": "IP-012", "title": "Audit-chain emission"},
+    {"id": "IP-013", "title": "Multi-region routing"},
+    {"id": "IP-014", "title": "Sovereign pack — Postal-only enforcement"},
+    {"id": "IP-015", "title": "In-house relay roadmap (Phase 2 marker)"}
+  ],
+  "capabilities": [
+    {"id": "T0-transactional-send", "tier": "T0"},
+    {"id": "T1-webhook-delivery-event", "tier": "T1"},
+    {"id": "T2-tenant-domain-mgmt", "tier": "T2"}
+  ],
+  "slos": [
+    "send-latency-p99",
+    "send-success-rate",
+    "deliverability-rate",
+    "dkim-signing-rate",
+    "dmarc-alignment-rate",
+    "webhook-success-rate",
+    "audit-chain-emit-lag-p99",
+    "suppression-lookup-latency-p99",
+    "from-domain-onboarding-time"
+  ],
+  "providers": [
+    {"id": "ses", "license": "proprietary", "tier": "saas", "default_for": ["us-*", "eu-*"]},
+    {"id": "postal", "license": "AGPL-3.0", "tier": "self-hosted", "default_for": ["sovereign-*", "kr-*"]},
+    {"id": "mailgun", "license": "proprietary", "tier": "saas", "default_for": []},
+    {"id": "smtp", "license": "open-rfc-5321", "tier": "fallback", "default_for": []}
+  ],
+  "localization_packs": ["canonical-base", "kr", "eu", "ksa", "uae", "us-healthcare"],
+  "sovereign_packs": ["ksa", "uae"],
+  "manifest_delta_keys": [
+    "comms.email.provider",
+    "comms.email.per_tenant_rate_limit_per_min",
+    "comms.email.dkim_rotation_days",
+    "comms.email.default_from_domain"
+  ],
+  "data_class_per_capability": {
+    "T0-transactional-send": "PII",
+    "T1-webhook-delivery-event": "PII",
+    "T2-tenant-domain-mgmt": "Tenant-Config"
+  },
+  "in_house_roadmap": {
+    "phase_2_build": "oya-comms-email-server",
+    "phase_2_triggers": [
+      "parity-with-SES at scale",
+      "sovereign Rust-native operator footprint required"
+    ]
+  },
+  "iac": {
+    "helm": ["iac/helm/postal", "iac/helm/ses-adapter"],
+    "packs": ["eu", "kr", "ksa", "uae", "us-healthcare"]
+  }
+}

@@ -1,5 +1,5 @@
 // network µservice — auditor-scope Cedar policy fragment
-// Cedar v4.2 LTS — default-deny per ADR-0140
+// Cedar v4.2 LTS — default-deny per ADR-0140 (retired per ADR-0145)
 //
 // Purpose: govern external + internal auditor access to network µservice
 //          artifacts + redacted aggregates. SOC 2 / ISO 27001 / GDPR DPA /

@@ -20,7 +20,7 @@ doc_status: published
 | Compute (K8s pods) | vCPU-hour | $0.18 (~28 vCPU-hour) | OCI ARM A1 / Ampere; HPA-driven |
 | Postgres storage | GB-month | $0.05 / GB | block storage |
 | Postgres IOPS | million-IOPS | $0.10 | provisioned high-IO |
-| Redis (managed) | instance-hour | $0.025 | per instance per hour |
+| Valkey (managed) | instance-hour | $0.025 | per instance per hour |
 | Meilisearch (self-hosted) | vCPU-hour | $0.18 | runs on same node pool |
 | S3 attachments (Personal-tier ciphertext blobs) | GB-month | $0.025 | + $0.005 per 1k PUT |
 | Egress (cross-region warm replication) | GB | $0.02 / GB | within-pack only |

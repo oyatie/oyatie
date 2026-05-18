@@ -35,7 +35,7 @@ a single claimable-verifiable-bundleable-promotable ChangeSet.
 
 | # | ChangeSet | Depends on | Reviewer-agent verdict required |
 |---|---|---|---|
-| IP-001 | IaC bootstrap (Helm + Kustomize + Terraform) | — | governance-iac-conformance |
+| IP-001 | IaC bootstrap (Helm + Kustomize + OpenTofu) | — | governance-iac-conformance |
 | IP-002 | Cargo workspace bootstrap (22 BC crate families, kernel layer) | IP-001 | layer-correctness + port-location |
 | IP-003 | Recording-ingest BC: kernel + domain + usecase + ingest contract | IP-002 | port-location + lean-a1 |
 | IP-004 | Recording BC: kernel + domain + usecase + REST (read-side) | IP-003 | port-location + lean-a1 |

@@ -63,6 +63,6 @@ In-scope:
 
 ## References
 
-- ADR-0006 (Ontology typed-entity layer); ADR-0140 (Cedar).
+- ADR-0006 (Ontology typed-entity layer); ADR-0140 (retired per ADR-0145) (Cedar).
 - Bominal ADR-0028 (audit-chain); ADR-0050 (outbox); ADR-0106 (Ontology); ADR-0107 (agent gateway).
 - `microservices/ontology/PRD.md` §"action-engine".

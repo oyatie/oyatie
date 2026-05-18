@@ -26,7 +26,7 @@ substrate, in chronological order, with their relevance to this µservice.
 | ADR-0108–0112 (Bominal) | Property types (vector, geo, timeseries, ciphertext, struct) | Inherited |
 | ADR-0122 | Ontology crate rename from Object Graph | Locks naming |
 | ADR-0132 (Bominal) | Data-ownership pillars (org / person) | Inherited; pillar BC |
-| ADR-0140 | Cedar policy enforcement | Enforces every Action Type |
+| ADR-0140 (retired per ADR-0145) | Cedar policy enforcement | Enforces every Action Type |
 
 ## Substrate
 

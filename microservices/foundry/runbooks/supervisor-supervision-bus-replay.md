@@ -32,7 +32,7 @@ ONE of:
 | Step | Action | Time |
 |---|---|---|
 | 1 | Open `#inc-<id>`; assign IC | ≤ 5 min |
-| 2 | Inspect Redis Streams consumer lag: `redis-cli XLEN supervision-events` vs `XPENDING supervision-events evidence-group` | ≤ 5 min |
+| 2 | Inspect Valkey Streams (Redis wire-compat) consumer lag: `redis-cli XLEN supervision-events` vs `XPENDING supervision-events evidence-group` | ≤ 5 min |
 | 3 | Apply backpressure: pause non-critical event publishing (e.g., FleetState rebroadcasts; keep critical KillSwitch + AutonomyViolated + DeploymentRolledBack flowing): `cargo run -p oya-dev-cli -- supervisor bus-backpressure --classes "non-critical"` | ≤ 1 min |
 | 4 | Scale foundry-evidence ingest: `kubectl scale deployment foundry-evidence-ingest --replicas=+2 -n foundry-evidence` | ≤ 5 min |
 | 5 | Verify bus lag clearing | ≤ 30 min |
@@ -71,5 +71,5 @@ If Merkle integrity check fails (events out-of-sequence, missing seals, signatur
 - `failure-modes.md` FM-08.
 - `contracts/asyncapi/foundry-supervisor-events.yaml`.
 - ADR-0028 (audit-chain).
-- Redis Streams — `redis.io/docs/data-types/streams/`.
+- Valkey Streams (Redis wire-compat) — `redis.io/docs/data-types/streams/`.
 - `incident-response.md` §"Sev-2 response".

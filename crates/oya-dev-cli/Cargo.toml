@@ -38,6 +38,19 @@ oya-check-glossary-vocabulary = { path = "../oya-check-glossary-vocabulary" }
 oya-check-honest-claims = { path = "../oya-check-honest-claims" }
 oya-check-aspirational-enforcement = { path = "../oya-check-aspirational-enforcement" }
 oya-check-license-policy = { path = "../oya-check-license-policy" }
+oya-check-vendor-lockin-discipline = { path = "../oya-check-vendor-lockin-discipline" }
+# PR #143 Fix-M/R/S/T/U advisory lanes (most report-only; promotion triggers in lanes.yaml).
+oya-check-authz-tier-discipline = { path = "../oya-check-authz-tier-discipline" }
+oya-check-tenant-cost-labels-coverage = { path = "../oya-check-tenant-cost-labels-coverage" }
+oya-check-backup-retention-discipline = { path = "../oya-check-backup-retention-discipline" }
+oya-check-vector-store-discipline = { path = "../oya-check-vector-store-discipline" }
+oya-check-olap-tier-discipline = { path = "../oya-check-olap-tier-discipline" }
+oya-check-wasm-runtime-discipline = { path = "../oya-check-wasm-runtime-discipline" }
+oya-check-iac-tier-discipline = { path = "../oya-check-iac-tier-discipline" }
+oya-check-a11y-discipline = { path = "../oya-check-a11y-discipline" }
+oya-check-i18n-coverage = { path = "../oya-check-i18n-coverage" }
+oya-check-compliance-evidence-coverage = { path = "../oya-check-compliance-evidence-coverage" }
+oya-check-realtime-transport-tier = { path = "../oya-check-realtime-transport-tier" }
 oya-foundry-mdbook-domain = { path = "../oya-foundry-mdbook-domain" }
 oya-foundry-openapi-domain = { path = "../oya-foundry-openapi-domain" }
 oya-check-mobile-native = { path = "../oya-check-mobile-native" }
@@ -58,6 +71,23 @@ oya-check-slo-coverage = { path = "../oya-check-slo-coverage" }
 oya-check-supply-chain = { path = "../oya-check-supply-chain" }
 oya-check-typescript-workspace = { path = "../oya-check-typescript-workspace" }
 oya-check-vendor-recency = { path = "../oya-check-vendor-recency" }
+# PR #143 Fix-D + ADR-0145 enforcement gates (some run in advisory/DEFERRED mode).
+oya-check-eu-ai-act-annex-iii-refusal = { path = "../oya-check-eu-ai-act-annex-iii-refusal" }
+oya-check-slsa-l3-evidence-grounded = { path = "../oya-check-slsa-l3-evidence-grounded" }
+oya-check-otel-trace-propagation = { path = "../oya-check-otel-trace-propagation" }
+oya-check-ontology-projection-coverage = { path = "../oya-check-ontology-projection-coverage" }
+oya-check-audit-chain-seal-coverage = { path = "../oya-check-audit-chain-seal-coverage" }
+# Tier-A hyperscaler pattern remediation gates (ADR-0149..ADR-0156).
+oya-check-idempotency-key-coverage = { path = "../oya-check-idempotency-key-coverage" }
+oya-check-cursor-pagination-coverage = { path = "../oya-check-cursor-pagination-coverage" }
+oya-check-rpo-rto-coverage = { path = "../oya-check-rpo-rto-coverage" }
+oya-check-metric-cardinality = { path = "../oya-check-metric-cardinality" }
+oya-check-event-schema-versioning = { path = "../oya-check-event-schema-versioning" }
+oya-check-id-discipline = { path = "../oya-check-id-discipline" }
+oya-check-image-signing-discipline = { path = "../oya-check-image-signing-discipline" }
+# ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 / ADR-0185 layered architecture discipline.
+oya-check-layered-architecture-discipline = { path = "../oya-check-layered-architecture-discipline" }
+oya-check-client-stack-discipline = { path = "../oya-check-client-stack-discipline" }
 oya-foundry-step-file-adapter = { path = "../oya-foundry-step-file-adapter" }
 oya-foundry-step-domain = { path = "../oya-foundry-step-domain" }
 oya-foundry-vcs-cli-ratchet-kernel = { path = "../oya-foundry-vcs-cli-ratchet-kernel" }

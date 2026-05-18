@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-observability
 deciders: council-architecture, ops-security, axis-observability, council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/observability/threat-model.md (Trust Boundary 2, T-S-01, T-I-01, T-E-01)
   - microservices/observability/dpia.md (R-02, R-15)
@@ -189,13 +189,13 @@ permit (
 
 ### FM-06: Cross-tenant data exposure via Grafana misconfiguration
 
-**Behaviour:** Grafana roles managed via Terraform; UI-based role editing forbidden by Grafana's `[security]` config; LEAN check asserts Terraform-declared roles match live state.
+**Behaviour:** Grafana roles managed via OpenTofu; UI-based role editing forbidden by Grafana's `[security]` config; LEAN check asserts Terraform-declared roles match live state.
 
 **Tenant impact:** Caught pre-deploy.
 
 **Detection:** Terraform-drift detector + `oya-governance-grafana-rbac-conformance` lane.
 
-**Recovery:** Terraform apply restores declared state; root-cause investigation; if exposed, breach-notification chain.
+**Recovery:** OpenTofu apply restores declared state; root-cause investigation; if exposed, breach-notification chain.
 
 ### FM-07: Tenant attempts to query Mimir directly bypassing slo-engine-rest
 
@@ -219,7 +219,7 @@ Every cross-tenant boundary event is audit-chain-emitted per Bominal ADR-0028:
 | API key issuance | OpenBao tenant-resolver | `key_id, bound_tenant, issued_by, requestor, ttl, timestamp` | ≥ 1y |
 | API key revocation | OpenBao | `key_id, revoked_by, reason, timestamp` | ≥ 1y |
 | Deployment salt rotation | OpenBao + observability admin | `prev_salt_hash, new_salt_hash, rotated_by, timestamp` | indefinite (rotation-history record) |
-| Grafana folder permission change | Terraform apply log | `folder_id, prev_perms, new_perms, applied_by, terraform_plan_id` | ≥ 2y |
+| Grafana folder permission change | OpenTofu apply log | `folder_id, prev_perms, new_perms, applied_by, terraform_plan_id` | ≥ 2y |
 | Cross-tenant aggregate query | slo-engine-worker | `aggregator_job_id, dp_epsilon, contributing_tenants_count, query_id` | ≥ 1y |
 
 The audit log is itself stored in Mimir under `tenant:oya-self` and replicated to the `audit-chain` µservice for Merkle-tree sealing. Audit-of-audits: every audit-log read is itself audited.

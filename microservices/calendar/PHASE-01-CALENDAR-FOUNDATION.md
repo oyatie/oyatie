@@ -22,7 +22,7 @@ Stand up the six bounded contexts (event-store, recurrence-engine, availability-
 In-scope:
 - 44 crates per the layer mapping table.
 - Postgres event-store schema + per-tenant RLS + tenant-DEK envelope encryption.
-- Redis availability cache + cross-tenant cache invalidation.
+- Valkey availability cache + cross-tenant cache invalidation.
 - IANA tzdata + chrono-tz integration.
 - RFC 5545 .ics parser + emitter (via `oya-calendar-ics-import-export-adapter-icalendar` wrapping a hardened parser; `icalendar-rs` adopted with `vetted-fork` posture per ADR-0133).
 - RFC 4791 CalDAV adapter (in-house implementation; no third-party crate adoption at GA).

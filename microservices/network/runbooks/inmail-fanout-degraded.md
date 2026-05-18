@@ -32,7 +32,7 @@ Sev-2 default. Escalate to Sev-1 if messenger µservice is itself in Sev-1 outag
 |---|---|---|
 | 1 | Verify messenger µservice health: `kubectl -n messenger get pods`; check messenger µservice OpenSLO burn-rate | ≤ 2 min |
 | 2 | Engage axis-messenger on-call if messenger is the root cause | ≤ 5 min |
-| 3 | Hold InMail sends in Redis Streams `network:inmail:bridge:queue:<tenant_id>` (worker continues batching, but does not drop messages) | ≤ 5 min |
+| 3 | Hold InMail sends in Valkey Streams (Redis wire-compat) `network:inmail:bridge:queue:<tenant_id>` (worker continues batching, but does not drop messages) | ≤ 5 min |
 | 4 | Surface backlog UI to senders: "InMail delivery pending — typically resolves within minutes" | ≤ 5 min |
 | 5 | Apply per-tenant rate limit on new InMail sends (drop to 50% of normal) to slow queue growth | ≤ 5 min |
 | 6 | Verify spam-classifier verdicts are still being emitted; do not bypass spam-check during backlog | ≤ 5 min |

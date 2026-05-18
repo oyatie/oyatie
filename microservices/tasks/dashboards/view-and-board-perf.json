@@ -50,7 +50,7 @@
       "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
       "targets": [{"expr": "sum(oya_tasks_board_dnd_active_sessions{pack=\"$pack\",tenant_id=\"$tenant\"})", "refId": "A"}]},
 
-    {"id": 4, "type": "stat", "title": "Redis view-cache hit ratio",
+    {"id": 4, "type": "stat", "title": "Valkey view-cache hit ratio",
       "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
       "targets": [{"expr": "sum(rate(oya_tasks_view_cache_hit_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])) / sum(rate(oya_tasks_view_render_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}],
       "fieldConfig": {"defaults": {"unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "red"}, {"value": 0.6, "color": "yellow"}, {"value": 0.8, "color": "green"}]}}}},

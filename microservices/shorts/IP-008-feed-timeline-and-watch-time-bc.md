@@ -41,7 +41,7 @@ E2E: feed-load p95 ≤ 250ms (top 10 videos); watch-time signal emits at complet
 
 ## Halt Conditions
 
-- Redis split-brain — engage cell + cloud-secrets.
+- Valkey split-brain — engage cell + cloud-secrets.
 - Feed-load p95 > 250ms — capacity revision.
 
 ## Next IP

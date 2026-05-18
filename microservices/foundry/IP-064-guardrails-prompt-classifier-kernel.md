@@ -156,6 +156,6 @@ Per kernel class: 1 test per public type + 1 per port trait + 1 sealed-trait smo
 
 ## References
 
-- ADR-0056 BNF v4.1; ADR-0105 13-layer; ADR-0106 usecase rename; ADR-0140 Cedar.
+- ADR-0056 BNF v4.1; ADR-0105 13-layer; ADR-0106 usecase rename; ADR-0140 (retired per ADR-0145) Cedar.
 - PRD §"Bounded Contexts" port-trait table.
 - Bominal ADR-0028 (data-class taxonomy).

@@ -7,7 +7,7 @@ deciders: axis-drive, council-architecture, ops-security, cloud-secrets, council
 owner: ops-security + axis-drive
 supersedes: []
 superseded_by: []
-related: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131, ADR-0133, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0003, ADR-DRIVE-0006]
+related: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0003, ADR-DRIVE-0006]
 related_artifacts:
   - microservices/drive/PRD.md (§Non-Functional Requirements security; §FR-19 E2E)
   - microservices/drive/threat-model.md (T-T-02 DEK substitution; T-I-06 DEK leak)
@@ -52,7 +52,7 @@ Industry precedent:
 Candidate envelope-encryption KMS:
 - **AWS KMS** — proprietary; FIPS 140-3 Level 2 modules available; vendor-tied.
 - **Google Cloud KMS** — proprietary; vendor-tied.
-- **HashiCorp Vault Transit** — open-source; widely deployed.
+- **OpenBao Transit** — open-source; widely deployed.
 - **OpenBao Transit** — IBM / Linux Foundation fork of Vault; OSS; FIPS 140-3 module available. ([openbao.org](https://openbao.org))
 
 Candidate symmetric-encryption ciphers (at-rest):
@@ -80,7 +80,7 @@ The drive µservice ships:
   - Per-tenant DEK derived from KEK (rotated every 90 days per ADR-DRIVE-0003 alignment).
   - Per-file CEK (Content Encryption Key) derived from DEK + `(tenant_id, file_id, version)`; one CEK per file version.
 - **Wrap**: every persisted ciphertext carries a binding tuple `(kek_id, dek_id, cek_derivation_path, ciphertext_iv, ciphertext_tag)`; integrity-protected against substitution.
-- **Object-store integration**: ciphertext bytes uploaded directly to Garage/MinIO/SeaweedFS; key material never persisted alongside ciphertext.
+- **Object-store integration**: ciphertext bytes uploaded directly to Garage/SeaweedFS/SeaweedFS; key material never persisted alongside ciphertext.
 
 ### Client-side E2E (optional for Personal pillar)
 
@@ -118,7 +118,7 @@ The drive µservice ships:
   - Inconsistent with `cloud-iac` self-hosted posture per ADR-0117.
 - **Rejected** as primary; retained as a tenant-choice alternative for tier-3 tenants with their own AWS DPA.
 
-### B. HashiCorp Vault Transit (the original)
+### B. OpenBao Transit (the original)
 
 - **Pros**:
   - Mature.
@@ -175,7 +175,7 @@ The drive µservice ships:
 
 - **Operator complexity** — OpenBao Transit HSM setup + per-pack KEK lifecycle + per-tenant DEK lifecycle + per-file CEK derivation = three layers of key lifecycle to manage. Mitigation: runbook + automation.
 - **E2E feature gaps** — server-side search / preview / scan unavailable for E2E files; tenant comms must clarify at activation.
-- **OpenBao operational maturity** — newer than HashiCorp Vault upstream. Mitigation: tracked CVE feed + fallback plan to HashiCorp Vault if OpenBao upstream cools.
+- **OpenBao operational maturity** — newer than OpenBao upstream. Mitigation: tracked CVE feed + fallback plan to OpenBao if OpenBao upstream cools.
 
 ### Hyrum's Law
 
@@ -221,7 +221,7 @@ Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law":
 - ADR-0028 (Bominal) — audit chain.
 - ADR-0117 — cloud-native infrastructure / data residency.
 - ADR-0140 — Cedar policy enforcement.
-- ADR-DRIVE-0001 — object-storage substrate (ciphertext bytes land on Garage/MinIO/SeaweedFS).
+- ADR-DRIVE-0001 — object-storage substrate (ciphertext bytes land on Garage/SeaweedFS/SeaweedFS).
 - ADR-DRIVE-0003 — share-link signing (Ed25519 + Argon2id; shared OpenBao Transit dependency).
 - ADR-DRIVE-0006 — WORM (envelope ciphertext is what's WORM'd).
 - `microservices/drive/PRD.md` §Security; §FR-19 E2E.

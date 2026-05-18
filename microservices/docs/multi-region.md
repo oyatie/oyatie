@@ -5,7 +5,7 @@ microservice: docs
 status: Accepted
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-docs + council-privacy
-related_adrs: [ADR-0117, ADR-0140, ADR-DOCS-0003]
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145), ADR-DOCS-0003]
 doc_status: published
 ---
 
@@ -19,7 +19,7 @@ Define the per-pack regional deployment topology, residency enforcement, cross-r
 
 ### Pack-to-region mapping (canonical)
 
-| Pack | Primary region | DR region (same jurisdiction) | Postgres cluster | S3 bucket | Redis cluster |
+| Pack | Primary region | DR region (same jurisdiction) | Postgres cluster | S3 bucket | Valkey cluster |
 |---|---|---|---|---|---|
 | pack-kr | OCI ap-seoul-1 | OCI ap-chuncheon-1 | KR-primary | KR-primary | KR-primary |
 | pack-eu | OCI eu-frankfurt-1 | OCI eu-amsterdam-1 | EU-primary | EU-primary | EU-primary |
@@ -37,7 +37,7 @@ Define the per-pack regional deployment topology, residency enforcement, cross-r
 
 Per `policy/data-residency.md`:
 - Each tenant pinned to exactly one pack at onboarding.
-- Postgres + S3 + Redis clusters pack-resident; no cross-pack replication by default.
+- Postgres + S3 + Valkey clusters pack-resident; no cross-pack replication by default.
 - Cross-pack data flow only via Cedar-admitted cross-µservice embed (snapshot only, never raw content).
 
 ## Cross-region replication policy
@@ -46,7 +46,7 @@ Per `policy/data-residency.md`:
 
 - Postgres: synchronous replication primary → first replica (intra-AZ), async to off-AZ replica + DR-region replica.
 - S3: per-pack bucket with cross-AZ replication enabled; cross-region DR replication enabled within-jurisdiction only.
-- Redis: cluster mode with 1 replica per shard; DR-region replica async.
+- Valkey: cluster mode with 1 replica per shard; DR-region replica async.
 - Replication factor: 3 (primary + 2 replicas).
 - Replication lag SLO: ≤ 5s within AZ; ≤ 30s cross-AZ; ≤ 60s cross-region (same jurisdiction).
 
@@ -94,7 +94,7 @@ When Doc-A in pack-kr embeds a workflow-studio canvas owned by pack-eu tenant:
 1. Cross-tenant share grant on file (Cedar policy `cross-tenant-embed`).
 2. pack-kr embed-resolver issues mTLS call to pack-eu workflow-studio.
 3. pack-eu source evaluates source-side ACL; returns snapshot only.
-4. Snapshot cached in pack-kr Redis with TTL ≤ 5min + jitter; invalidates on grant revocation.
+4. Snapshot cached in pack-kr Valkey with TTL ≤ 5min + jitter; invalidates on grant revocation.
 5. Cross-pack mesh latency budget: 200ms p99; timeout 5s; on timeout return prior cached snapshot.
 
 Cross-pack mesh:
@@ -121,7 +121,7 @@ When Tenant-A (pack-kr) shares a doc with an external recipient in Tenant-B (pac
 | Cross-pack mesh partition | mesh health-check | Cross-µservice embeds return stale snapshot; tenant operational impact bounded |
 | Backup corruption | weekly hash verification | Investigate; if corrupt, restore from prior backup |
 | S3 object integrity drift | per-blob checksum mismatch | Restore from prior version (Object Lock retains) |
-| Redis CRDT spool loss | health-check + Postgres-replay reconstruction | Reconstruct from Postgres seal-deltas |
+| Valkey CRDT spool loss | health-check + Postgres-replay reconstruction | Reconstruct from Postgres seal-deltas |
 
 ## Geo-load-balancing
 

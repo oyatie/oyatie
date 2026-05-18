@@ -354,7 +354,7 @@ Per-cell capacity envelope:
 
 Scale-out policy:
 - Kubernetes HPA: eval-runner workers scale on CPU `>70%`; min 2 max 50.
-- GPU pool: cluster-autoscaler-managed; min 2 max 64 GPUs per cell; spot-eligible for non-critical (nightly) workloads.
+- GPU pool: Karpenter-managed (per ADR-0198) via GPU-class NodePool; min 2 max 64 GPUs per cell; spot-eligible for non-critical (nightly) workloads.
 - Postgres: streaming-replication primary + read-replicas; HA promotion via Patroni.
 - ClickHouse: 3-replica ZooKeeper-coordinated cluster; shard-by-week partitioning.
 - Pre-warmed pool: 2 GPU pods + 2 worker pods; cold-start budget ≤ 60s for GPU, ≤ 500ms for worker.

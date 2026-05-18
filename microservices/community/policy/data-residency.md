@@ -23,7 +23,7 @@ Bind every community surface object to the tenant's `jurisdiction_code` per ADR-
 
 ## Binding
 
-Each tenant declares `jurisdiction_code` at onboarding (ISO 3166-1 alpha-2). Every Postgres / Elasticsearch / Redis / S3 cluster is regional; the tenant's cluster is selected from a region map at creation and immutable for the tenant's life.
+Each tenant declares `jurisdiction_code` at onboarding (ISO 3166-1 alpha-2). Every Postgres / Elasticsearch / Valkey / S3 cluster is regional; the tenant's cluster is selected from a region map at creation and immutable for the tenant's life.
 
 ## Retention Matrix
 
@@ -39,7 +39,7 @@ Each tenant declares `jurisdiction_code` at onboarding (ISO 3166-1 alpha-2). Eve
 | Audit log | 7 y | 5 y | 6 y | 6 y | 5 y | 5 y | 7 y |
 | IP / user-agent (abuse detection) | 30 d → aggregate | 30 d | 30 d | 30 d | 30 d | 30 d | 30 d |
 | Search index | matches source | matches source | matches source | matches source | matches source | matches source | matches source |
-| Hot-feed Redis cache | 7 d | 7 d | 7 d | 7 d | 7 d | 7 d | 7 d |
+| Hot-feed Valkey cache | 7 d | 7 d | 7 d | 7 d | 7 d | 7 d | 7 d |
 
 ## Cross-Border Transfer
 
@@ -78,7 +78,7 @@ Pack-specific overlays in `iac/kustomize/overlays/pack-<jurisdiction>/kustomizat
 ## Verification
 
 - Daily CI gate runs `data-residency-check`:
-  - Asserts every Postgres / Elasticsearch / Redis / S3 cluster's region matches tenant `jurisdiction_code`.
+  - Asserts every Postgres / Elasticsearch / Valkey / S3 cluster's region matches tenant `jurisdiction_code`.
   - Asserts retention TTL cron is configured per matrix.
   - Asserts cross-border replication is disabled unless tenant opt-in flag set.
 - Quarterly drill: simulate DSR cascade; verify all 9 steps complete within 30 days.

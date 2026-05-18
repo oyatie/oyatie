@@ -129,7 +129,7 @@ Layer assignments per ADR-0105 13-layer enum (canonical):
 | `oya-foundry-evidence-*-sdk` | `sdk` | own-BC `api` (read-only types) | adapter, rest, worker, app |
 | `oya-foundry-evidence-*-app` | `app` | own-BC `rest`, `worker`, `adapter` | — |
 
-Cross-BC imports forbidden except through own-BC `api` re-exports. Cross-µservice imports forbidden except via SDK + Workflow + Ontology adapter layer per `feedback_workflow_objectgraph_adapter_layer.md`.
+Cross-BC imports forbidden except through own-BC `api` re-exports. Cross-µservice imports forbidden except via SDK + Workflow + Ontology adapter layer per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`.
 
 ## Hyperscaler-grade gates registered
 

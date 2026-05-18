@@ -56,10 +56,10 @@ Inherits Bominal ADR-0208 dual-context posture (B2B tier + B2C tier) per `feedba
 
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
-| Feed render (per-space) | ≤80 ms | ≤300 ms | ≤800 ms | Redis hot-feed cache; warm hit on read |
+| Feed render (per-space) | ≤80 ms | ≤300 ms | ≤800 ms | Valkey hot-feed cache; warm hit on read |
 | Search query (cross-space, ranked) | ≤120 ms | ≤500 ms | ≤1.2 s | Elasticsearch / Tantivy multi-index query |
 | Vote cast (idempotent) | ≤25 ms | ≤100 ms | ≤300 ms | Redis-buffered + Postgres flush; conflict-free counter |
-| Post create | ≤80 ms | ≤250 ms | ≤700 ms | Postgres insert + async fan-out to search + Redis |
+| Post create | ≤80 ms | ≤250 ms | ≤700 ms | Postgres insert + async fan-out to search + Valkey |
 | Post edit | ≤80 ms | ≤250 ms | ≤700 ms | revision append; search reindex async |
 | KB article publish | ≤200 ms | ≤500 ms | ≤1.5 s | Postgres insert + S3 attachment uploads (resumable) |
 | Moderation action (hide/lock/pin) | ≤80 ms | ≤200 ms | ≤500 ms | Postgres update + audit-chain seal |
@@ -67,7 +67,7 @@ Inherits Bominal ADR-0208 dual-context posture (B2B tier + B2C tier) per `feedba
 
 ### Security
 
-- All writes are authenticated via `tenancy`-issued JWT; tenant boundary enforced at every layer (RLS in Postgres, multi-index isolation in Elasticsearch, per-tenant Redis key prefix, per-tenant S3 prefix in KB attachment store).
+- All writes are authenticated via `tenancy`-issued JWT; tenant boundary enforced at every layer (RLS in Postgres, multi-index isolation in Elasticsearch, per-tenant Valkey key prefix, per-tenant S3 prefix in KB attachment store).
 - Every moderation action and vote-cast event emits an audit-chain record (Merkle / Ed25519 per ADR-0028).
 - KB article attachments are antivirus-scanned (ClamAV inline) before publication; oversize / malicious uploads bounce at the adapter-s3 layer.
 - Cross-tenant mention-resolution is forbidden at the Cedar policy layer (see `policy/tenant-scope.cedar`).
@@ -83,12 +83,12 @@ Inherits Bominal ADR-0208 dual-context posture (B2B tier + B2C tier) per `feedba
 ### Availability + SLO
 
 - Availability target: 99.95 % monthly for read paths; 99.9 % monthly for write paths.
-- RTO ≤ 15 min; RPO ≤ 30 s (Postgres WAL + Redis AOF).
+- RTO ≤ 15 min; RPO ≤ 30 s (Postgres WAL + Valkey AOF).
 - Search index rebuild SLO ≤ 60 min for 10⁷ documents (drill quarterly).
 
 ### Data residency
 
-- Posts, KB articles, votes, and moderation records inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Elasticsearch + Redis + S3 are all per-region; cross-region replication is opt-in.
+- Posts, KB articles, votes, and moderation records inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Elasticsearch + Valkey + S3 are all per-region; cross-region replication is opt-in.
 
 ## Bounded Contexts
 

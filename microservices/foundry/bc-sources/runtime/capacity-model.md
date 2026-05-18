@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baseline numbers for every layer-A component (Redis 7.4 LTS cluster + Postgres 16 LTS) and layer-B component (`oya-foundry-runtime-*`). Drives `cost-budget.md` and `multi-region.md`. Numbers cite Redis Enterprise + Postgres reference architectures; verify-against-current-docs marker where upstream may have moved on.
+Sizing formulas + reference-architecture baseline numbers for every layer-A component (Valkey 8.1 (Redis wire-compat) cluster + Postgres 16 LTS) and layer-B component (`oya-foundry-runtime-*`). Drives `cost-budget.md` and `multi-region.md`. Numbers cite Valkey Enterprise + Postgres reference architectures; verify-against-current-docs marker where upstream may have moved on.
 
 ## Inputs
 
@@ -49,7 +49,7 @@ executor_replicas = max(3, ceil(total_dispatch_rate_per_sec / 1000)) × 1.3 buff
 
 References: empirical baseline from oyatie M0 prototype + Bedrock public benchmarks (`docs.aws.amazon.com/bedrock/latest/userguide/limits.html`). Verify-at-deploy.
 
-## Session-State Sizing (Redis 7.4 LTS)
+## Session-State Sizing (Valkey 8.1 (Redis wire-compat))
 
 ### Formulae
 
@@ -59,20 +59,20 @@ total_active_sessions = N_tenants × C_concurrent_per_tenant × 10
 total_session_bytes_hot = total_active_sessions × K_session_bytes_avg
 total_session_ops_per_sec = N_tenants × R_dispatch_per_sec_per_tenant × S_ops_per_invocation
 
-redis_shards = ceil(total_session_bytes_hot / 4 GB per shard)  (Redis 7.4 recommended per-shard memory cap)
+redis_shards = ceil(total_session_bytes_hot / 4 GB per shard)  (Valkey 8.1 (Redis wire-compat) recommended per-shard memory cap)
 redis_primary_replicas_per_shard = 1
 redis_replica_replicas_per_shard = 1  (replication factor 2 for HA)
 
-redis_ops_capacity_per_shard = 100_000 ops/sec  (Redis 7.4 benchmark, single-node)
+redis_ops_capacity_per_shard = 100_000 ops/sec  (Valkey 8.1 (Redis wire-compat) benchmark, single-node)
 redis_total_ops_capacity = redis_shards × redis_ops_capacity_per_shard
 assert total_session_ops_per_sec ≤ redis_total_ops_capacity × 0.7  (headroom)
 ```
 
-References: Redis 7.4 LTS release notes (`redis.io/docs/about/releases/7-4-0/`); Redis OSS sizing guide (`redis.io/docs/management/sizing/`).
+References: Valkey 8.1 (Redis wire-compat) release notes (`redis.io/docs/about/releases/7-4-0/`); Valkey OSS sizing guide (`redis.io/docs/management/sizing/`).
 
 ### Reference baselines
 
-| Tier | N_tenants | total_active_sessions | total_session_bytes_hot | Redis shards (primary + replica) |
+| Tier | N_tenants | total_active_sessions | total_session_bytes_hot | Valkey shards (primary + replica) |
 |---|---|---|---|---|
 | XS (M01 launch) | 20 | 50,000 | 2.5 GB | 6 shards (1 primary + 1 replica each = 12 nodes) |
 | S | 100 | 500,000 | 25 GB | 8 shards |
@@ -164,7 +164,7 @@ total_active_sessions = 20 × 50 × 10 = 10000
 total_session_bytes_hot = 10000 × 50KB = 500 MB
 total_session_ops_per_sec = 200 × 5 = 1000 ops/sec
 
-Redis shards: ceil(500MB / 4GB) → minimum 6 shards (rounded up to provide ops capacity 100k × 6 = 600k ops/sec headroom; latency target dominates over memory)
+Valkey shards: ceil(500MB / 4GB) → minimum 6 shards (rounded up to provide ops capacity 100k × 6 = 600k ops/sec headroom; latency target dominates over memory)
 Postgres data: 50 GB; 8-core primary; 1 replica
 Executor pods: 4; orchestrator pods: 2; pool warm: 8
 ```
@@ -179,7 +179,7 @@ Storage cost at OCI rates → ~$2,415 compute + $630 storage per pack region per
 
 ## References
 
-- Redis 7.4 LTS — `redis.io/docs/about/releases/7-4-0/`; sizing guide — `redis.io/docs/management/sizing/`.
+- Valkey 8.1 (Redis wire-compat) — `redis.io/docs/about/releases/7-4-0/`; sizing guide — `redis.io/docs/management/sizing/`.
 - Postgres 16 LTS — `postgresql.org/docs/16/`.
 - AWS Bedrock Agent runtime limits — `docs.aws.amazon.com/bedrock/latest/userguide/limits.html`.
 - GCP Vertex AI Agent Builder limits — `cloud.google.com/vertex-ai/docs/quotas`.

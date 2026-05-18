@@ -105,7 +105,7 @@
   "ips": [
     {
       "id": "IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac",
-      "title": "IP-001: Layer-A IaC — CDN + WAF + Postgres (Citus) + Redis + WebSocket gateway",
+      "title": "IP-001: Layer-A IaC — CDN + WAF + Postgres (Citus) + Valkey + WebSocket gateway",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md"
     },
@@ -279,10 +279,10 @@
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
     },
     {
-      "id": "ADR-0140",
-      "title": "Cross Cutting Carriers Adapter Exemption",
+      "id": "ADR-0164",
+      "title": "Sovereign Cloud Air Gapped",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
+      "file": "docs/decisions/ADR-0164-sovereign-cloud-air-gapped.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -302,5 +302,25 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "WorkflowDefinition",
+      "projection_target_table": "ontology_workflow_definitions",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "WorkflowRun",
+      "projection_target_table": "ontology_workflow_runs",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true,
+    "north_south_only": false
   }
 }

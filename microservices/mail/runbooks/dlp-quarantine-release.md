@@ -12,7 +12,7 @@ related_artifacts:
   - microservices/mail/policy/data-residency.md
   - microservices/mail/contracts/openapi.yaml §"/v1/dlp/quarantine"
   - microservices/mail/capabilities/T2-auto.yaml (DLP enforcement as T2)
-  - ADR-0140 Cedar policy enforcement
+  - ADR-0140 (retired per ADR-0145) Cedar policy enforcement
 doc_status: published
 ---
 

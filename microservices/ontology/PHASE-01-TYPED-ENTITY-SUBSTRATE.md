@@ -26,7 +26,7 @@ depends_on:
     phase: tenancy phase (tenant identity + Cedar entity types)
     reason: ontology depends on tenant resolver + JWT claims with tenant_id + pillar context.
 owner_team: axis-ontology
-related_adrs: [ADR-0006, ADR-0055, ADR-0059, ADR-0106, ADR-0107, ADR-0122, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0006, ADR-0055, ADR-0059, ADR-0106, ADR-0107, ADR-0122, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -36,7 +36,7 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full Ontology design — the Palantir-Foundry-class typed-entity substrate that every other oyatie µservice reads/writes through. It is the second of seven Tier-A µservice phases authored under ADR-0131 (per-microservice flat layout) and is the load-bearing precondition for every product because of `feedback_workflow_objectgraph_adapter_layer.md`: cross-µservice data flow is impossible without it.
+This phase ships the full Ontology design — the Palantir-Foundry-class typed-entity substrate that every other oyatie µservice reads/writes through. It is the second of seven Tier-A µservice phases authored under ADR-0131 (per-microservice flat layout) and is the load-bearing precondition for every product because of `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`: cross-µservice data flow is impossible without it.
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (Palantir parity on Function p99, AIP parity on agent gateway, AWS-Cedar parity on policy coverage).

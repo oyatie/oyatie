@@ -25,7 +25,7 @@ doc_status: published
 
 Specify how docs handles four scenarios:
 
-1. **Per-doc cache rebuild** — Redis doc-cache rebuild from canonical Postgres + S3 source (after corruption, after Cedar policy change, after upgrades).
+1. **Per-doc cache rebuild** — Valkey doc-cache rebuild from canonical Postgres + S3 source (after corruption, after Cedar policy change, after upgrades).
 2. **CRDT op-log compaction + snapshot rebuild** — version-aligned compaction per ADR-DOCS-0001.
 3. **Document-lifecycle replay** — re-fanout of historical doc-lifecycle events to a newly subscribed downstream consumer.
 4. **Embed-snapshot rebuild** — re-fetch cross-µservice embeds when source changed or grant revoked.
@@ -41,10 +41,10 @@ Trigger sources:
 
 Procedure:
 
-1. Acquire backfill lease in Redis (per tenant per doc; lease TTL = 1h).
+1. Acquire backfill lease in Valkey (per tenant per doc; lease TTL = 1h).
 2. Re-read canonical from Postgres + S3.
 3. Re-evaluate per-block ACL projection.
-4. Bulk-write to Redis with idempotency key `(tenant_id, doc_id, version_sha)`.
+4. Bulk-write to Valkey with idempotency key `(tenant_id, doc_id, version_sha)`.
 5. Emit `DocCacheBackfilled` event with tuple `(tenant_id, doc_id, version_sha, completed_at, signature)`.
 
 ### Performance
@@ -112,7 +112,7 @@ Per ADR-DOCS-0001 + capacity-model: per-doc op-log size ≤ 100MB warm; compacti
 
 1. Acquire embed-refresh lease per `(document_id, embed_ref)`.
 2. mTLS call to source µservice with embedding doc's principal (so source can evaluate ACL passthrough).
-3. If source returns snapshot: cache in Redis with TTL + jitter; emit `EmbedRefreshed` event.
+3. If source returns snapshot: cache in Valkey with TTL + jitter; emit `EmbedRefreshed` event.
 4. If source returns 403 (ACL revoked): replace cached snapshot with redacted placeholder; emit `EmbedAccessRevoked` event.
 5. If source timeout/unavailable: keep prior cached snapshot; emit `EmbedSourceUnavailable` event; surface "stale" banner to viewer.
 6. Embed depth bound: refuse fetch if depth > 3; emit `EmbedLoopDetected` event.

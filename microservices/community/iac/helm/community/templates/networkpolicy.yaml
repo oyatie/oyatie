@@ -45,11 +45,11 @@ spec:
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: community-postgres}}
       ports: [{protocol: TCP, port: 5432}]
-    # Redis hot-feed cache
+    # Valkey hot-feed cache
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: community-redis-hot}}
       ports: [{protocol: TCP, port: 6379}]
-    # Redis vote buffer
+    # Valkey vote buffer
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: community-redis-votes}}
       ports: [{protocol: TCP, port: 6379}]

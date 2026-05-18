@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + baseline numbers for every Layer-A component (Postgres / Redis / OpenBao agent) and Layer-B component (`oya-foundry-providers-router-*`, `oya-foundry-providers-adapter-*`). Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + baseline numbers for every Layer-A component (Postgres / Valkey / OpenBao agent) and Layer-B component (`oya-foundry-providers-router-*`, `oya-foundry-providers-adapter-*`). Drives `cost-budget.md` and `multi-region.md`.
 
 ## Inputs
 
@@ -110,7 +110,7 @@ postgres_replica_resources = 2 core / 4 Gi RAM / 50 GB SSD (XS)
 | M | 8 core | 16 Gi | 200 GB |
 | L | 16 core | 32 Gi | 500 GB |
 
-## Redis Sizing (rate-limit / token-bucket state)
+## Valkey Sizing (rate-limit / token-bucket state)
 
 ```
 buckets ≈ N_tenants × N_vendors × N_transports  # ~ 20 × 4 × 2 = 160 buckets for XS
@@ -118,7 +118,7 @@ bytes_per_bucket ≈ 200 bytes
 total_redis_state ≈ buckets × bytes_per_bucket  # ≈ 32 KB for XS
 ```
 
-Redis is small-state — sentinel HA with 3 replicas (each 1 core, 1 Gi RAM) is sufficient through L tier.
+Valkey is small-state — sentinel HA with 3 replicas (each 1 core, 1 Gi RAM) is sufficient through L tier.
 
 ## OpenBao Agent Sizing
 

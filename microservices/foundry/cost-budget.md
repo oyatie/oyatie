@@ -18,12 +18,12 @@ remain authoritative at `bc-sources/<bc>/cost-budget.md`.
 
 | BC | Compute (USD/mo) | Storage (USD/mo) | Egress (USD/mo) | Total (USD/mo) |
 |---|---|---|---|---|
-| runtime | 8,400 | 1,200 (Redis HA + Postgres) | 600 | 10,200 |
+| runtime | 8,400 | 1,200 (Valkey HA + Postgres) | 600 | 10,200 |
 | supervisor | 2,800 | 800 (Postgres) | 200 | 3,800 |
 | eval | 4,200 (incl. GPU pool baseline) | 1,800 (ClickHouse + S3 golden) | 400 | 6,400 |
 | evidence | 2,400 | 2,800 (Postgres + S3 blob) | 300 | 5,500 |
 | guardrails | 3,800 (incl. ONNX classifier serving) | 600 (Postgres rule store) | 100 | 4,500 |
-| providers | 1,800 (router + 8 adapters) | 400 (Redis rate-limit + OpenBao) | 200 | 2,400 |
+| providers | 1,800 (router + 8 adapters) | 400 (Valkey rate-limit + OpenBao) | 200 | 2,400 |
 | **Total** | **23,400** | **7,600** | **1,800** | **32,800** |
 
 Plus shared overhead (observability + audit-chain bridge + control-plane

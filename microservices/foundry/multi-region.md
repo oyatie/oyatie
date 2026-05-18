@@ -19,7 +19,7 @@ docs preserved at `bc-sources/<bc>/multi-region.md`.
 - **Single pack: pack-kr** on OCI ap-seoul-1.
 - All 6 BCs deployed in single Kubernetes cluster.
 - HA: per-BC Helm subchart declares `minReplicas: 3` for stateless tiers;
-  6-shard Redis cluster (runtime session-state); 3-replica Postgres
+  6-shard Valkey cluster (runtime session-state); 3-replica Postgres
   (per-BC); 3-replica ClickHouse (eval); 3-region S3 (evidence blob).
 
 ## Post-M01 expansion sequence
@@ -46,12 +46,12 @@ docs preserved at `bc-sources/<bc>/multi-region.md`.
 
 | BC | Pack-local state | Cross-pack flow | Latency sensitivity |
 |---|---|---|---|
-| runtime | session-state Redis + capability-cache Postgres | none | dispatch p99 ≤50ms — co-locate with caller |
+| runtime | session-state Valkey + capability-cache Postgres | none | dispatch p99 ≤50ms — co-locate with caller |
 | supervisor | fleet-state Postgres | none | command propagation ≤5s — same-pack |
 | eval | golden-store S3 + ClickHouse | optional cross-pack read of golden store (signed, content-addressed) | scheduling ≤500ms |
 | evidence | pack-builder Postgres + blob S3 | regulator-export across packs (signed envelope only) | pack assembly ≤2s/100MB |
 | guardrails | rule-store Postgres + ONNX serving | none | inline ≤20ms |
-| providers | router Postgres + Redis rate-limit + OpenBao | provider call goes to provider-side endpoint (provider's own region) | router ≤5ms |
+| providers | router Postgres + Valkey rate-limit + OpenBao | provider call goes to provider-side endpoint (provider's own region) | router ≤5ms |
 
 ## DR / failover
 
@@ -74,3 +74,59 @@ docs preserved at `bc-sources/<bc>/multi-region.md`.
 
 - ADR-0117: Data-residency + jurisdiction codes.
 - ADR-0136 / ADR-0137: foundry topology.
+
+---
+
+## ADR-0158 Multi-Region Disposition Statement
+
+**Disposition: `single_region` per cell (GPU pool pinned to region).**
+
+Per ADR-0158, the foundry µservice is declared `single_region`. The GPU pool is physically pinned to the region; cross-region GPU pool replication is operationally infeasible and economically dispositive. Tenant routing pins the tenant to a foundry GPU pool in their home region.
+
+| Property | Value |
+|---|---|
+| Disposition | `single_region` |
+| RPO (intra-cell) | ≤ 60 seconds (model-weight checkpoint replication) |
+| RTO (intra-cell) | ≤ 5 minutes (GPU pool failover within region) |
+| Cross-region GPU pool replication | FORBIDDEN (cost + sovereignty) |
+| Sovereign-pin behavior | tenant routes only to in-region foundry; pack-ksa tenant never reaches non-KSA GPU pool |
+
+## ADR-0164 Sovereign Cloud / Air-Gapped Deployment Variant
+
+Per ADR-0164, the foundry µservice ships a per-pack air-gap variant. In air-gap mode:
+
+### On-prem LLM only
+
+- External LLM provider calls (Anthropic, OpenAI, Google Gemini) are FORBIDDEN.
+- `foundry-providers` adapter code for external providers is ABSENT from air-gap pack image builds.
+- Egress NetworkPolicy + Cilium L7 egress policy deny external hosts.
+- Istio `ServiceEntry` for external LLM hosts is absent.
+
+### vLLM serving on cell GPU pool
+
+- vLLM 0.6+ serves Llama 3.x / DeepSeek / Qwen / Mistral / Falcon (G42) on the cell's GPU pool.
+- Ollama for smaller models / dev tier.
+- Per-pack model selection in `microservices/foundry/iac/kustomize/components/pack-{name}/values.yaml`.
+
+### Pack matrix (foundry perspective)
+
+| Pack | `air_gap` | LLM strategy |
+|---|---|---|
+| `pack-eu-sovereign-airgap` | true | vLLM Llama 3 + Mistral (EU-region GPUs) |
+| `pack-kr-fsc` | true | vLLM HyperCLOVA-X (Naver Cloud) + Llama 3 |
+| `pack-kr-public` | true | vLLM Llama 3 |
+| `pack-ksa` | true | vLLM Falcon (G42) + Llama 3 |
+| `pack-uae` | true | vLLM Falcon + Llama 3 |
+| `pack-us-gov` | true | vLLM Llama 3 |
+| `pack-us-shared` | false | external Anthropic / OpenAI default + on-prem fallback |
+| `pack-eu` | false | external EU-region only (Anthropic EU / OpenAI EU) |
+| `pack-kr` | false | external KR-region only (HyperCLOVA-X) |
+| `pack-jp` | false | external JP-region only |
+
+### vLLM Helm chart
+
+vLLM Helm chart at `microservices/foundry/iac/helm/vllm/` with per-pack model selection. Per-pack values.yaml selects model + GPU SKU + quantization tier.
+
+CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs reference no external LLM host, (b) foundry image build excludes external-provider adapter binaries, (c) vLLM Helm chart present in air-gap pack manifest.
+
+See `/specs/sovereign-cloud-air-gapped-canonical.json` for the canonical declaration.

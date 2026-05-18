@@ -66,5 +66,5 @@ For each of the three registries (3 BCs × 3 layers = 9 crates):
 
 - ADR-0006 (Ontology typed-entity layer).
 - Bominal ADR-0106 + ADR-0107 (Ontology + agent gateway).
-- ADR-0140 (Cedar policy enforcement).
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).
 - `microservices/ontology/PRD.md` §"Bounded Contexts".

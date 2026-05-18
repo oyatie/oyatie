@@ -1,0 +1,10 @@
+context: connect
+role: shared
+capability: collab-crdt-portability-kernel
+plane: data
+slo: preview-data-plane
+data_classes_owned: [TENANT_PRIVATE]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

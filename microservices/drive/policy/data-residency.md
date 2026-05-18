@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: ops-security + council-privacy + axis-drive
-related_adrs: [ADR-0117, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0006]
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0006]
 doc_status: published
 ---
 
@@ -26,7 +26,7 @@ Define per-pack data-residency posture and cross-pack transfer constraints for d
 | pack-kr | ap-seoul-1 | ap-seoul-2 | Garage (edge-distributed) |
 | pack-eu | eu-frankfurt-1 | eu-amsterdam-1 | Garage |
 | pack-us | us-east-1 | us-west-2 | Garage |
-| pack-us-healthcare | us-east-1-hipaa | us-west-2-hipaa | MinIO (single-cluster HIPAA-eligible) |
+| pack-us-healthcare | us-east-1-hipaa | us-west-2-hipaa | SeaweedFS (single-cluster HIPAA-eligible) |
 | pack-jp | ap-tokyo-1 | ap-osaka-1 | Garage |
 | pack-sg | ap-singapore-1 | ap-jakarta-1 | Garage |
 | pack-au | ap-sydney-1 | ap-melbourne-1 | Garage |

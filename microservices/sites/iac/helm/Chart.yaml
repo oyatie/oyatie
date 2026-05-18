@@ -5,7 +5,7 @@ description: |
   Deployments + Services + HPAs + PDBs + NetworkPolicies +
   ServiceMonitors + PrometheusRules + CronJobs (ACME cert renewal,
   sitemap regeneration). Pulls dependency charts for Postgres
-  (page + site + cms-collection store), Redis (page-render + CMS
+  (page + site + cms-collection store), Valkey (page-render + CMS
   cache), Meilisearch (per-tenant site search), cert-manager
   (ACME cert reconcile), and libvips worker pods.
 

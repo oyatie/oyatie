@@ -18,7 +18,7 @@ depends_on: [IP-004]
 
 ## Intent
 
-Author the `collab-crdt` BC's first six layers: CRDT merge engine (loro-based tree CRDT), conflict surfacer, editor-session store port, and Redis adapter for ephemeral CRDT state. The "never silent loss" invariant (AC-06) is the load-bearing assertion of this IP.
+Author the `collab-crdt` BC's first six layers: CRDT merge engine (loro-based tree CRDT), conflict surfacer, editor-session store port, and Valkey adapter (Redis wire-compat) for ephemeral CRDT state. The "never silent loss" invariant (AC-06) is the load-bearing assertion of this IP.
 
 ## ChangeSet boundary
 
@@ -131,7 +131,7 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workf
 ## Halt Conditions
 
 - `test_no_silent_overwrite` fails — STOP. This is the load-bearing AC-06 invariant.
-- Redis lease test reveals split-brain — STOP. Cannot ship without single-writer guarantee.
+- Valkey lease test reveals split-brain — STOP. Cannot ship without single-writer guarantee.
 
 ## Next IP
 

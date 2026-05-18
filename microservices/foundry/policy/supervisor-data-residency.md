@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define which jurisdictions' tenant fleet-state, autonomy entitlements, deployment history, and supervision events live in which Postgres / Redis cluster, the cross-pack replication policy, and the legal-transfer mechanisms that gate any exception. Canonical residency artifact reviewed by EU DPAs (GDPR Arts. 44–50), Korean PIPC (PIPA Art. 28 + Art. 23-2), HIPAA covered-entity counsel (BAA), and equivalent supervisory authorities in every active pack.
+Define which jurisdictions' tenant fleet-state, autonomy entitlements, deployment history, and supervision events live in which Postgres / Valkey cluster, the cross-pack replication policy, and the legal-transfer mechanisms that gate any exception. Canonical residency artifact reviewed by EU DPAs (GDPR Arts. 44–50), Korean PIPC (PIPA Art. 28 + Art. 23-2), HIPAA covered-entity counsel (BAA), and equivalent supervisory authorities in every active pack.
 
 ## Residency Model
 
@@ -62,7 +62,7 @@ Supervisor Operator picks up the new tenant ns; default kill-switch (disengaged)
 ### Default: forbidden
 
 - Postgres rows: intra-pack only (master + DR-pair replica).
-- Redis state: intra-pack only.
+- Valkey state: intra-pack only.
 - OpenBao secret trees: intra-pack only (`bao` clusters are per-pack).
 - Capability YAMLs: tenant-owned git; tenant decides replication.
 - Supervision-event-bus: intra-pack only.
@@ -116,7 +116,7 @@ Retention = MAX(asset default, pack statutory minimum, tenant DPA).
 | pack-br | `PII_IDENTIFYING` | LGPD Art. 16 | bounded |
 | (all packs) | `SECRET` | rotate per ISO 27001 A.5.17 | 30 d API keys; 90 d signing keys |
 
-`oya-check-retention-conformance` LEAN lane validates Postgres + Redis retention configs.
+`oya-check-retention-conformance` LEAN lane validates Postgres + Valkey retention configs.
 
 ## DSR Cascade
 

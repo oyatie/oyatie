@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-foundry-control-plane
 deciders: council-privacy, ops-security, axis-foundry-control-plane, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + EU AI Act Art. 27 (FRIA) + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/foundry-supervisor-control-plane.json]
 related_artifacts:
   - microservices/foundry-supervisor/threat-model.md
@@ -60,7 +60,7 @@ Therefore a DPIA + FRIA (the FRIA is embedded in this DPIA's §6 + §7) is manda
 
 **What:** foundry-supervisor ingests capability definitions, fleet membership telemetry, autonomy entitlements, and supervision events; emits per-invocation autonomy decisions, deployment rollouts/rollbacks, and kill-switch state transitions; the canonical control plane for every agentic capability in oyatie's tenant base.
 
-**How:** REST API (OIDC + Cedar) → Postgres (per-tenant RLS) + Redis Cluster (kill-switch state + supervision-event stream) → Kubernetes Operator (CRDs) → mTLS + SPIFFE to `foundry-runtime` workers; audit-chain seals every event.
+**How:** REST API (OIDC + Cedar) → Postgres (per-tenant RLS) + Valkey Cluster (kill-switch state + supervision-event stream) → Kubernetes Operator (CRDs) → mTLS + SPIFFE to `foundry-runtime` workers; audit-chain seals every event.
 
 **Where:** Per-pack region-pinned cluster (pack-kr → KR, pack-eu → EU, pack-us → US, etc.) per ADR-0117. Pack-pinning enforces residency.
 
@@ -152,12 +152,12 @@ Therefore a DPIA + FRIA (the FRIA is embedded in this DPIA's §6 + §7) is manda
 |---|---|---|---|
 | R-01 | Postgres RLS + Cedar tenant-scope + LEAN check + annual pen-test | L | ops-security |
 | R-02 | OpenBao-resident entitlements; Postgres reference is opaque token only; auditor scope per-tenant | L | ops-security + council-privacy |
-| R-03 | Kill-switch p99 ≤ 1 s SLO; fail-closed on Redis outage (assume engaged); chaos drill quarterly; AC-02 mandatory | L | axis-foundry-control-plane + ops-security |
+| R-03 | Kill-switch p99 ≤ 1 s SLO; fail-closed on Valkey outage (assume engaged); chaos drill quarterly; AC-02 mandatory | L | axis-foundry-control-plane + ops-security |
 | R-04 | 2-person rule for fleet-wide; 5-s post-engage cancel; pre-engage confirmation | L | ops-security |
 | R-05 | Per-tenant override path with 2-person rule; audit-chain emission; tenant can dispute via portal | L | axis-foundry-control-plane |
 | R-06 | Capability YAML LEAN schema + PR review by tenant DPO + admit-loop autonomy gate + observability rollout gate | L-M | axis-foundry-control-plane + ops-security |
 | R-07 | Pack-pinning at OTel + supervision-bus level; route by pack tag; mis-route caught by integration test | L | axis-foundry-control-plane |
-| R-08 | DSR cascade scans Postgres + Redis + supervision-event-bus; soft-delete then hard-delete after 30d grace; declared best-effort limitation | M | council-privacy |
+| R-08 | DSR cascade scans Postgres + Valkey + supervision-event-bus; soft-delete then hard-delete after 30d grace; declared best-effort limitation | M | council-privacy |
 | R-09 | Tenant DPA mandates joint-controllership disclosure; onboarding checklist verifies; non-disclosure = onboarding refused | L-M | council-privacy + gtm |
 | R-10 | Sub-processor list maintained; per-vendor DPA + SCCs; quarterly security review | M | council-privacy + cloud-secrets |
 | R-11 | Tenant DPA includes child-data clause; AI Act Art. 5 prohibitions enforced at admit-loop (specific patterns banned) | L | council-privacy |

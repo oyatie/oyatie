@@ -17,7 +17,7 @@ doc_status: published
 ## When to use
 
 - FM-05 (mass-spam abuse from compromised member)
-- FM-09 (Redis hot-feed cache stampede)
+- FM-09 (Valkey hot-feed cache stampede)
 - FM-11 (foundry-guardrails bridge backpressure)
 - FM-19 (worker pool fair-share starvation)
 
@@ -58,15 +58,15 @@ doc_status: published
 
 ### Legitimate event (e.g., town-hall announcement firestorm)
 
-1. Increase per-tenant capacity headroom: scale gateway + Redis.
-2. Pre-warm hot-feed Redis namespace.
+1. Increase per-tenant capacity headroom: scale gateway + Valkey.
+2. Pre-warm hot-feed Valkey namespace.
 3. Coordinate with tenant_admin for moderator surge.
 
-### Redis hot-feed stampede
+### Valkey hot-feed stampede
 
 1. Single-flight feed fill enabled by default; verify it's active (`oya_community_feed_fill_singleflight_active`).
 2. Pin trending post to in-memory L1 cache for 5 min.
-3. If Redis CPU > 90 % for 5 min: scale out Redis cluster.
+3. If Valkey CPU > 90 % for 5 min: scale out Valkey cluster.
 
 ### Foundry-guardrails backpressure
 

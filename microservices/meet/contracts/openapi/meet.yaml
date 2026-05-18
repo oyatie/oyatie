@@ -642,7 +642,7 @@ paths:
 
   /ready:
     get:
-      summary: Readiness (Postgres + Redis + LiveKit + coturn reachable)
+      summary: Readiness (Postgres + Valkey + LiveKit + coturn reachable)
       operationId: getReady
       security: []
       responses:

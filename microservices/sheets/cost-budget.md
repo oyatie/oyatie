@@ -28,7 +28,7 @@ Track the sheets µservice's monthly cloud cost across infrastructure (CDN + WAF
 | CDN (egress + edge cache) | WASM bundles, design-system assets, spec schema | `oracle.com/cloud/cdn/pricing/` |
 | WAF | Ingress in front of CDN + editor REST | `oracle.com/cloud/security/waf/pricing/` |
 | Compute (VM.Standard / OKE node) | Editor REST + WebSocket gateway + recalc worker + XLSX export worker + license-gate-cedar + composition-root pods | `oracle.com/cloud/compute/pricing/` |
-| Block storage (PV) | Postgres editor + cell store; Redis AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
+| Block storage (PV) | Postgres editor + cell store; Valkey AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Object storage | Arrow/Parquet large-sheet blocks + workbook snapshots + version-history binaries + XLSX export jobs + XLSX upload quarantine | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Network egress | WebSocket traffic + XLSX export download + cross-region replication | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-pack signing keys (audit chain + KMS-SSE for storage) | `oracle.com/security/key-management/pricing/` |
@@ -48,7 +48,7 @@ Per `capacity-model.md` §"Worked example: oyatie XS tier (M03 launch; 20 tenant
 | Postgres + Citus coordinator | 2 × VM.Standard.E4 4-core | $290 | $100 PV | $390 |
 | Postgres workers (Citus shards) | 4 × VM.Standard.E4 4-core | $580 | $400 PV | $980 |
 | Postgres read-replica | 4 × VM.Standard.E4 2-core | $290 | $200 PV | $490 |
-| Redis Sentinel HA (ephemeral CRDT) | 3 × VM.Standard.E4 2-core | $108 | $20 PV (AOF) | $128 |
+| Valkey Sentinel HA (ephemeral CRDT) | 3 × VM.Standard.E4 2-core | $108 | $20 PV (AOF) | $128 |
 | `cell-grid-rest` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | `collab-crdt-worker` (WebSocket gateway) | 3 × VM.Standard.E4 4-core | $217 | – | $217 |
 | `recalc-engine-worker` | 2 × VM.Standard.E4 4-core | $145 | – | $145 |
@@ -136,7 +136,7 @@ XS tier is uneconomic on per-seat basis (HA minimums dominate); GA target ≤ $5
 | OCI committed-use discounts (1y / 3y) | 20-40% compute | Vendor lock-in window |
 | AI-formula zero-retention provider mandate | 0% (cost-neutral; risk reduction) | Tenant choice constraint |
 | Per-tenant editor-session budget enforcement | 10-20% compute | Tenant disruption if too aggressive |
-| Redis memory cap per tenant | 5% Redis cost | Tenant disruption on overage |
+| Valkey memory cap per tenant | 5% Valkey cost | Tenant disruption on overage |
 | Object-storage lifecycle: workbook snapshots → archive after 30d | 15% object storage | Slower restore for older versions |
 | Arrow/Parquet hot↔cold tiering (>30d cold) | 15% large-sheet storage | Slower analytical recalc on cold blocks |
 | XLSX upload quarantine retention 7d → 3d | 5% object storage | Less forensic window |

@@ -63,7 +63,7 @@ Out-of-scope:
 
 ## References
 
-- ADR-0140 (Cedar policy enforcement).
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).
 - AWS Cedar v4 — `cedarpolicy.com`.
 - `cedar-policy` Rust crate — `docs.rs/cedar-policy`.
 - `microservices/ontology/policy/*.cedar`.

@@ -129,7 +129,7 @@ policyTypes: [Ingress, Egress]
       protocol: TCP   # Prometheus
 {{- end }}
 
-{{/* oya.networkPolicy.allowEgressToCarriers — cross-cutting-carriers exemption per ADR-0140.
+{{/* oya.networkPolicy.allowEgressToCarriers — cross-cutting-carriers exemption per ADR-0140 (retired per ADR-0145).
 
      Emits a NetworkPolicy egress block permitting direct gRPC (port 50051)
      to the five charter cross-cutting carrier namespaces:
@@ -284,6 +284,92 @@ periodSeconds: 30
 httpGet: {path: /healthz, port: metrics}
 initialDelaySeconds: 5
 periodSeconds: 10
+{{- end }}
+
+{{/* ----------------------------------------------------------------------
+     Tier-A hyperscaler pattern helpers (per ADR-0149..ADR-0156, 2026-05-18).
+   ---------------------------------------------------------------------- */}}
+
+{{/* oya.gracefulShutdown — canonical terminationGracePeriodSeconds value
+     per docs/standards/graceful-shutdown-canonical.md. Pod spec must
+     consume this at the SAME indentation as the canonical pod-spec
+     block (sibling to `containers:`).
+
+     Usage in a Deployment template:
+       spec:
+         template:
+           spec:
+             {{- include "oya.gracefulShutdown" $ | nindent 6 }}
+
+     Per-workload override via `.Values.terminationGracePeriodSeconds`:
+     30 for app-tier; 60 for workers with long-running batches; 120
+     for stateful cells (Postgres, Redis).
+   */}}
+{{- define "oya.gracefulShutdown" -}}
+terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
+{{- end }}
+
+{{/* oya.preStopHook.gracefulDelay — canonical preStop hook so the
+     load-balancer sees readiness failure before SIGTERM lands.
+     Usage in a container block:
+       lifecycle:
+         {{- include "oya.preStopHook.gracefulDelay" $ | nindent 10 }}
+   */}}
+{{- define "oya.preStopHook.gracefulDelay" -}}
+preStop:
+  exec:
+    command: ["/bin/sh", "-c", "sleep 5"]
+{{- end }}
+
+{{/* oya.probes.startupProbe — canonical Kubernetes startup probe per
+     ADR-0145 inv 4 + container ladder. Replaces failed-startup-as-
+     unhealthy with explicit slow-start awareness. The startupProbe
+     gives the pod up to ~5 minutes (30 × 10s) to become live.
+
+     Usage:
+       startupProbe:
+         {{- include "oya.probes.startupProbe" $ | nindent 10 }}
+   */}}
+{{- define "oya.probes.startupProbe" -}}
+httpGet: {path: /health, port: 8080}
+failureThreshold: 30
+periodSeconds: 10
+{{- end }}
+
+{{/* oya.probes.startupProbeOnMetrics — substrate µservices that expose
+     /livez on the metrics port (cell, foundry, etc.). */}}
+{{- define "oya.probes.startupProbeOnMetrics" -}}
+httpGet: {path: /livez, port: metrics}
+failureThreshold: 30
+periodSeconds: 10
+{{- end }}
+
+{{/* oya.priorityClass.critical — emits priorityClassName for
+     critical-path workloads (data-plane, auth, tenant-isolation).
+     Canonical PriorityClass manifests live at
+     microservices/governance/iac/kustomize/components/priority-classes/.
+     Usage in pod spec:
+       {{- include "oya.priorityClass.critical" $ | nindent 6 }}
+   */}}
+{{- define "oya.priorityClass.critical" -}}
+priorityClassName: oya-critical
+{{- end }}
+
+{{/* oya.priorityClass.important — non-critical app-tier µservices that
+     should preempt low-priority workloads (notifications, search). */}}
+{{- define "oya.priorityClass.important" -}}
+priorityClassName: oya-important
+{{- end }}
+
+{{/* oya.priorityClass.standard — default app-tier workloads. */}}
+{{- define "oya.priorityClass.standard" -}}
+priorityClassName: oya-standard
+{{- end }}
+
+{{/* oya.priorityClass.low — best-effort workloads (batch, backfill,
+     report generation). Preempted by everything above. */}}
+{{- define "oya.priorityClass.low" -}}
+priorityClassName: oya-low
 {{- end }}
 
 {{/* oya.envFromOpenBao — renders OpenBao secret-reference env vars */}}
@@ -464,4 +550,104 @@ runtimeClassName: kata-clh
      Hypervisor (kata-clh) is the primary untrusted-content runtime. */}}
 {{- define "oya.runtimeClassName.gvisor" -}}
 runtimeClassName: gvisor
+{{- end }}
+
+{{/* ----------------------------------------------------------------------
+     Layered architecture helpers (per ADR-0148, ADR-0182, ADR-0183, ADR-0184).
+
+     Each helper emits annotations / labels that mark a workload as belonging
+     to exactly one layer of the layered hyperscaler shape. The layered-
+     architecture-discipline fitness gate (oya gate validate
+     layered-architecture-discipline) cross-checks that no µservice
+     simultaneously declares conflicting layer ownerships.
+
+       oya.gateway.northSouthAnnotation — declares this workload owns
+         north-south ingress (per ADR-0182). MUST NOT appear on the same
+         workload as oya.mesh.eastWestLabels. Used by the api-gateway
+         µservice exclusively.
+
+       oya.mesh.eastWestLabels — declares this workload runs on the
+         east-west Istio Ambient + Cilium mesh layer (per ADR-0148).
+         Emits the canonical pair: istio.io/dataplane-mode=ambient +
+         cilium.io/identity-policy=enforced. Default for every µservice
+         except api-gateway.
+
+       oya.cache.redisSidecar — opt-in Valkey-cluster client config
+         (env vars + sidecar reference) for µservices using Tier-3 cache
+         per ADR-0184. Per ADR-0184 the cache project is Valkey 8.1 (BSD
+         3-Clause); the helper name retains the historical "redis" label
+         for client-library compatibility (valkey-cli is wire-compatible
+         with redis-cli at the protocol layer).
+
+       oya.kyverno.podSecurityPolicy — emits annotation pointing at the
+         canonical Kyverno PSS-restricted ClusterPolicy per ADR-0183.
+   ---------------------------------------------------------------------- */}}
+
+{{/* oya.gateway.northSouthAnnotation — marks workload as north-south ingress
+     per ADR-0182. Declared ONLY on the api-gateway µservice. The layered-
+     architecture-discipline gate rejects any other workload carrying this
+     annotation. */}}
+{{- define "oya.gateway.northSouthAnnotation" -}}
+gateway.networking.k8s.io/managed-by: envoy-gateway
+oyatie/traffic-direction: north-south
+{{- end }}
+
+{{/* oya.mesh.eastWestLabels — canonical east-west mesh layer labels per
+     ADR-0148. Emits Istio Ambient dataplane-mode + Cilium identity policy
+     enforcement. Default on every µservice EXCEPT api-gateway. */}}
+{{- define "oya.mesh.eastWestLabels" -}}
+istio.io/dataplane-mode: ambient
+cilium.io/identity-policy: enforced
+oyatie/traffic-direction: east-west
+{{- end }}
+
+{{/* oya.mesh.ambientWaypoint — opt-in waypoint enrollment per ADR-0148.
+     Emits the Gateway resource label declaring the namespace is enrolled
+     for Tier-3 L7 waypoint enforcement. Only µservices with
+     manifest.json `mesh_layering.ambient_waypoint: true` enroll this.
+     Reads `.Values.meshLayering.ambientWaypoint` boolean; emits the
+     Gateway-API-conformant label set when true. */}}
+{{- define "oya.mesh.ambientWaypoint" -}}
+{{- if .Values.meshLayering.ambientWaypoint -}}
+istio.io/use-waypoint: {{ printf "%s-waypoint" .Values.microservice | quote }}
+gateway.networking.k8s.io/gateway-name: {{ printf "%s-waypoint" .Values.microservice | quote }}
+{{- end -}}
+{{- end }}
+
+{{/* oya.cache.redisSidecar — Tier-3 Valkey-cluster client config block
+     per ADR-0184. Renders env vars + initContainer reference for
+     µservices opting into the canonical hot read-through cache. The
+     helper name preserves "redis" for wire-protocol-compatibility
+     readability; the deployed cluster is Valkey 8.1 (BSD 3-Clause)
+     per the Redis 7.4+ license-fork rejection in ADR-0184.
+
+     Required Values:
+       .Values.cache.enabled              (boolean)
+       .Values.cache.clusterEndpoint      (string; e.g. valkey-cluster.cache.svc.cluster.local:6379)
+       .Values.cache.tlsSecretName        (string; OpenBao-issued cert)
+       .Values.cache.defaultTtlSeconds    (integer; default 60 per ADR-0184) */}}
+{{- define "oya.cache.redisSidecar" -}}
+{{- if .Values.cache.enabled -}}
+- name: OYA_CACHE_BACKEND
+  value: "valkey-cluster"
+- name: OYA_CACHE_ENDPOINT
+  value: {{ .Values.cache.clusterEndpoint | quote }}
+- name: OYA_CACHE_TLS_SECRET
+  value: {{ .Values.cache.tlsSecretName | default "valkey-client-tls" | quote }}
+- name: OYA_CACHE_DEFAULT_TTL_SECONDS
+  value: {{ .Values.cache.defaultTtlSeconds | default 60 | quote }}
+- name: OYA_CACHE_LICENSE_NOTE
+  value: "Valkey 8.1 BSD-3-Clause (Linux Foundation fork; Redis 7.4+ rejected per ADR-0184 licensing)"
+{{- end -}}
+{{- end }}
+
+{{/* oya.kyverno.podSecurityPolicy — references the canonical Kyverno
+     PSS-restricted ClusterPolicy per ADR-0183. Emits the annotation
+     that the layered-architecture-discipline gate looks for to confirm
+     the workload is governed by Kyverno admission control. */}}
+{{- define "oya.kyverno.podSecurityPolicy" -}}
+oyatie/kyverno-cluster-policy: pod-security-restricted
+pod-security.kubernetes.io/enforce: restricted
+pod-security.kubernetes.io/audit: restricted
+pod-security.kubernetes.io/warn: restricted
 {{- end }}

@@ -29,7 +29,7 @@
       ]
     },
     {
-      "title": "Vote tally Redis vs Postgres divergence (%)",
+      "title": "Vote tally Valkey vs Postgres divergence (%)",
       "type": "timeseries",
       "datasource": "prometheus",
       "targets": [

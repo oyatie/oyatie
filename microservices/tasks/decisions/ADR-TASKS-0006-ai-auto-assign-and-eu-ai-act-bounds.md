@@ -13,7 +13,7 @@ related:
   - ADR-0117
   - ADR-0131
   - ADR-0132
-  - ADR-0140
+  - ADR-0140 (retired per ADR-0145)
   - ADR-WS-0005
   - ADR-NET-0002
 related_artifacts:

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-foundry-runtime + ops-security
 deciders: council-architecture, ops-security, axis-foundry-runtime, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP Top 10 for LLM Applications (2025) + NIST SP 800-154 + MITRE ATLAS
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/agent-operating-contract.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Foundry-substrate or runtime-pool architecture change
 enforced_frameworks:
@@ -45,7 +45,7 @@ All components introduced by ADR-0025 + ADR-0131 (per-microservice flat layout) 
 | Layer-A substrate (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Kubernetes runtime pods | `oya-foundry-runtime-capability-executor-*` (8 crates) |
-| Redis 7.4 OSS LTS (session-state hot tier) | `oya-foundry-runtime-session-state-*` (9 crates) |
+| Valkey 8.1 (Redis wire-compat) OSS LTS (session-state hot tier) | `oya-foundry-runtime-session-state-*` (9 crates) |
 | Postgres 16 LTS (session-state cold + registry mirror) | `oya-foundry-runtime-invocation-orchestrator-*` (7 crates) |
 | Istio mesh (mTLS + traffic split) | `oya-foundry-runtime-runtime-pool-*` (6 crates) |
 | SPIRE (SPIFFE identity for runtime pods) | `oya-foundry-runtime-capability-registry-cache-*` (7 crates) |
@@ -84,9 +84,9 @@ All components introduced by ADR-0025 + ADR-0131 (per-microservice flat layout) 
 │  │  Cedar policy at boundary          │                                    │
 │  └────────────────────────────────────┘                                    │
 │             │                                                              │
-│  Trust boundary 2: Per-tenant Redis multi-tenancy (KEYDB prefix isolation) │
+│  Trust boundary 2: Per-tenant Valkey multi-tenancy (KEYDB prefix isolation) │
 │             │                                                              │
-│  ┌─ Redis cluster (HA; per-pack) ────────────────────────────────────┐     │
+│  ┌─ Valkey cluster (HA; per-pack) ────────────────────────────────────┐     │
 │  │  Per-tenant key prefix `<tenant_hash>:` enforced by SessionStore  │     │
 │  │  TLS + AUTH; KMS-bound on-disk encryption                         │     │
 │  └───────────────────────────────────────────────────────────────────┘     │
@@ -120,7 +120,7 @@ All components introduced by ADR-0025 + ADR-0131 (per-microservice flat layout) 
 
 Five trust boundaries:
 1. **External → Cluster ingress** (TLS + WAF + OIDC).
-2. **Per-tenant Redis + Postgres multi-tenancy** (KEYDB prefix + RLS; the load-bearing isolation boundary for session-state).
+2. **Per-tenant Valkey + Postgres multi-tenancy** (KEYDB prefix + RLS; the load-bearing isolation boundary for session-state).
 3. **Runtime pod → sibling Foundry µservice** (mTLS + SPIFFE).
 4. **Runtime pod → LLM provider** (mediated via `foundry-providers`; credentials never resident in runtime).
 5. **Runtime pod → capability descriptor** (Cedar tenant-scope on registry-cache reads).
@@ -132,16 +132,16 @@ Per Bominal ADR-0028 + the `oya-check-data-class` lane.
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
 | Capability descriptor (tenant + system) | `INTERNAL_ONLY` (text); `BEHAVIORAL_TENANT_PRODUCT` when tenant-tailored | Medium | mirrored from foundry-supervisor | Postgres mirror (read-only mirror) |
-| Session conversation history | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` when user identifiers in payload + occasionally `PHI` (pack-us-healthcare) | High | 14d Redis hot + 90d Postgres cold + 6y for HIPAA scope | Redis + Postgres |
-| Session scratchpad (tool-call working state) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | same as conversation history | Redis + Postgres |
+| Session conversation history | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` when user identifiers in payload + occasionally `PHI` (pack-us-healthcare) | High | 14d Valkey hot + 90d Postgres cold + 6y for HIPAA scope | Valkey + Postgres |
+| Session scratchpad (tool-call working state) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | same as conversation history | Valkey + Postgres |
 | Invocation lifecycle record | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | High | 90d hot + 2y cold + 6y HIPAA | Postgres + audit-chain seal |
 | Invocation step trace (per provider/guardrail call) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | 7d hot + 6mo cold | foundry-evidence (downstream) |
 | Autonomy-tier ceiling per tenant | `INTERNAL_ONLY` | High | replicated from tenancy | local registry cache |
 | Cedar policy fragments | `INTERNAL_ONLY` (policy text) | Medium | git history | `microservices/foundry-runtime/policy/*.cedar` |
 | SPIFFE identity material (runtime pods) | `SECRET` | Critical | SPIRE TTL 24h | SPIRE |
-| Redis AUTH password | `SECRET` | Critical | OpenBao with 30d rotation | OpenBao |
+| Valkey AUTH password | `SECRET` | Critical | OpenBao with 30d rotation | OpenBao |
 | Postgres connection credential | `SECRET` | Critical | OpenBao with 30d rotation | OpenBao |
-| KMS keyring (per-pack; SSE for Redis + Postgres + S3) | `SECRET` | Critical | OpenBao with 90d rotation + HSM-backed where available | OpenBao + KMS |
+| KMS keyring (per-pack; SSE for Valkey + Postgres + S3) | `SECRET` | Critical | OpenBao with 90d rotation + HSM-backed where available | OpenBao + KMS |
 | Tenant identifier (hashed) | `SENSITIVE_PIPA_ART23` | High | salted-hash; raw mapping in OpenBao | OpenBao tenant-resolver |
 | Audit-chain seal records (per invocation event) | `AUDIT` | High | append-only; immutable | audit-chain µservice |
 | Provider credential | `SECRET` | Critical | **NOT** stored in runtime | `foundry-providers` µservice only |
@@ -223,10 +223,10 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 - Residual: L
 - Frameworks: SOC 2 CC8.1; ISO 27001 A.5.31, A.5.32, A.8.32, A.8.33; GDPR Art. 32(1)(b)
 
-**T-T-02 — Session-state tampering via Redis admin path**
-- Asset: Redis cluster
+**T-T-02 — Session-state tampering via Valkey admin path**
+- Asset: Valkey cluster
 - Likelihood: L / Impact: H (cross-session leakage, false conversation memory injection) / Risk: **M**
-- Mitigations: Redis ACL — `default` user disabled; per-app role with prefix-scoped commands only; admin commands (FLUSHDB / CONFIG SET) require JIT OpenBao elevation + 2-person rule; session writes carry per-turn HMAC validated by session-state usecase at read-time; HMAC mismatch quarantines the session.
+- Mitigations: Valkey ACL — `default` user disabled; per-app role with prefix-scoped commands only; admin commands (FLUSHDB / CONFIG SET) require JIT OpenBao elevation + 2-person rule; session writes carry per-turn HMAC validated by session-state usecase at read-time; HMAC mismatch quarantines the session.
 - Owner: axis-foundry-runtime + ops-security
 - Residual: L
 - Frameworks: SOC 2 CC6.6, CC7.1; ISO 27001 A.5.17, A.8.7, A.8.12
@@ -284,9 +284,9 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 ### Information Disclosure (I)
 
 **T-I-01 — Cross-tenant session leak via prefix-scope misconfiguration**
-- Asset: Redis session-state cluster
+- Asset: Valkey session-state cluster
 - Likelihood: M / Impact: H / Risk: **H**
-- Mitigations: SessionStore implementation enforces tenant-prefix on every Redis op; integration test asserts cross-tenant reads return empty; LEAN check `oya-check-session-prefix-isolation` greps for any unprefixed Redis call; per-tenant Redis ACL prevents prefix bypass.
+- Mitigations: SessionStore implementation enforces tenant-prefix on every Valkey op; integration test asserts cross-tenant reads return empty; LEAN check `oya-check-session-prefix-isolation` greps for any unprefixed Valkey call; per-tenant Valkey ACL prevents prefix bypass.
 - Owner: axis-foundry-runtime + ops-security
 - Residual: L
 - Frameworks: SOC 2 CC6.1, CC6.6; ISO 27001 A.5.15, A.8.3, A.8.12; GDPR Arts. 5(1)(f), 25, 32
@@ -341,10 +341,10 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 - Residual: L
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30, A.8.6, A.8.14; GDPR Art. 32(1)(c)
 
-**T-D-02 — Redis cluster overload via session-state burst writes**
-- Asset: Redis session-state cluster
+**T-D-02 — Valkey cluster overload via session-state burst writes**
+- Asset: Valkey session-state cluster
 - Likelihood: M / Impact: H / Risk: **H**
-- Mitigations: per-tenant rate limits on session-state ops (max ops/sec); Redis cluster horizontally sharded; replication factor 1 primary + 1 replica per shard; loss of one replica does not break ingest; backpressure → executor returns "session-state-busy" rather than crashing.
+- Mitigations: per-tenant rate limits on session-state ops (max ops/sec); Valkey cluster horizontally sharded; replication factor 1 primary + 1 replica per shard; loss of one replica does not break ingest; backpressure → executor returns "session-state-busy" rather than crashing.
 - Owner: axis-foundry-runtime + ops-sre-reliability
 - Residual: L
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30, A.8.14
@@ -407,8 +407,8 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 - Residual: L
 - Frameworks: SOC 2 CC6.1, CC8.1; ISO 27001 A.5.15, A.8.28
 
-**T-E-05 — Operator-level Redis or Postgres admin command used to delete tenant sessions**
-- Asset: Redis FLUSHDB / Postgres DROP
+**T-E-05 — Operator-level Valkey or Postgres admin command used to delete tenant sessions**
+- Asset: Valkey FLUSHDB / Postgres DROP
 - Likelihood: L (insider) / Impact: H / Risk: **M**
 - Mitigations: admin commands JIT-only via OpenBao; 2-person rule; every admin call audit-emitted; mass-deletion anomaly metric; soft-delete window 30d.
 - Owner: ops-security
@@ -433,7 +433,7 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 |---|---|---|---|
 | AutonomyGate as first step in usecase dispatch | Preventive | axis-foundry-runtime | `oya-check-autonomy-gate-presence` lane |
 | Provider credentials never resident in runtime pod | Architectural | foundry-providers + axis-foundry-runtime | e2e test `provider-credential-isolation` |
-| Redis tenant-prefix scoping enforced by SessionStore | Preventive | axis-foundry-runtime | `oya-check-session-prefix-isolation` |
+| Valkey tenant-prefix scoping enforced by SessionStore | Preventive | axis-foundry-runtime | `oya-check-session-prefix-isolation` |
 | mTLS + SPIFFE on every sibling call | Preventive | ops-security | Istio mesh telemetry |
 | Cedar tenant-scope on REST endpoints | Preventive | axis-foundry-runtime + ops-security | Cedar fuzz lane |
 | Capability descriptor signature validation on cache load | Preventive | axis-foundry-runtime | `oya_capability_mirror_signature_invalid_total > 0` alert |
@@ -473,7 +473,7 @@ Compliance frameworks engaged: KR-ISMS-P + KR PIPA + KR 전자문서법 + KR FSC
 
 ### pack-us-healthcare (HIPAA-scoped)
 
-- **HIPAA §164.312(a)(1)**: Cedar + Redis tenant-prefix + Postgres RLS satisfies; runtime as Business Associate.
+- **HIPAA §164.312(a)(1)**: Cedar + Valkey tenant-prefix + Postgres RLS satisfies; runtime as Business Associate.
 - **HIPAA §164.312(b)**: audit-chain on every invocation; retention ≥ 6y for PHI-touching sessions.
 - **HIPAA §164.502(b)**: data_class minimum-necessary redaction at step trace emission.
 - **FDA SaMD pre-market**: if a tenant capability is clinical decision support, capability descriptor must carry FDA classification tag; runtime refuses unclassified clinical capabilities in pack-us-healthcare.
@@ -504,7 +504,7 @@ Per-pack overlays at `regional-packs/<pack>/foundry-runtime-overlay.md`; each fo
 ## Re-review Triggers
 
 - Any change to trust boundary diagram (new boundary, removed boundary).
-- Any LTS upgrade (Redis / Postgres / Istio / SPIRE) with security-relevant release notes.
+- Any LTS upgrade (Valkey / Postgres / Istio / SPIRE) with security-relevant release notes.
 - Any new pack activation.
 - Annual scheduled review (Q2).
 - Post-incident review (Sev-1 or Sev-2 in foundry-runtime or any siblings).

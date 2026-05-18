@@ -5,7 +5,7 @@
 # are safe-by-construction because their effect is a UI suggestion the user
 # can accept or ignore. No autonomous action; no data flow change.
 #
-# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140 + ADR-TASKS-0006.
+# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140 (retired per ADR-0145) + ADR-TASKS-0006.
 # Per EU AI Act Art. 50 transparency (AI-generated suggestions labelled).
 
 doc_class: AutonomyTierCatalog

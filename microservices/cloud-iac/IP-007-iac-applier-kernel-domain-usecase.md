@@ -116,7 +116,7 @@ cargo run -p oya-dev-cli -- gate validate provenance-slsa-l3 --microservice clou
 
 ## References
 
-- ADR-0105; ADR-0139; ADR-0140.
+- ADR-0105; ADR-0139; ADR-0140 (retired per ADR-0145).
 - PRD §"Bounded Contexts" iac-applier BC.
 - ArgoCD reconciler API — `argo-cd.readthedocs.io/en/stable/operator-manual/`.
 - OpenSSF SLSA L3 — `slsa.dev/spec/v1.0/`.

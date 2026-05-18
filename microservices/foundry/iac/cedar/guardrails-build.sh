@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # cedar/build.sh — Cedar v4 policy bundle compilation pipeline.
 # Validates default-deny presence, compiles fragments to bundle, signs bundle SHA.
-# Per ADR-0140 + policy/guardrail-enforcement.md.
+# Per ADR-0140 (retired per ADR-0145) + policy/guardrail-enforcement.md.
 
 set -euo pipefail
 

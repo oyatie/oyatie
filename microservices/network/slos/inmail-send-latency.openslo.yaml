@@ -14,7 +14,7 @@ metadata:
 spec:
   description: |
     Latency SLO for POST /inmail. A request is "good" when InMail is queued for
-    bridge delivery within 100ms (REST handler + spam-classifier check + Redis
+    bridge delivery within 100ms (REST handler + spam-classifier check + Valkey
     Streams enqueue + messenger-bridge dispatch). Actual messenger-side
     delivery is bounded by the messenger µservice's own SLO.
 

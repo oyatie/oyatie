@@ -81,6 +81,6 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice tasks
 
 ## References
 
-- ADR-0140 (Cedar pack overlay); ADR-TASKS-0001 (schema-per-project);
+- ADR-0140 (retired per ADR-0145) (Cedar pack overlay); ADR-TASKS-0001 (schema-per-project);
   ADR-TASKS-0004 (rank-key + CRDT).
 - PRD AC-04 + PRD §FR-13 + FR-14.

@@ -32,7 +32,7 @@ doc_status: published
 | response-collector-rest (Deployment) | 4-80 (HPA) | 1 / 2Gi req; 4 / 8Gi limit | sticky-shard via tenant_id |
 | form-builder-wasm | CDN-only | – | served from pack-resident OCI CDN edge |
 | Postgres + Citus (primary + 3 workers) | 1 + 3 | 4 / 16Gi req; 8 / 32Gi limit per node | tenant_id shard key; 32 shards |
-| Redis 7.2 (Sentinel HA) | 3 (1 primary + 2 replica) | 2 / 8Gi req; 4 / 16Gi limit | rate-limit + session |
+| Valkey 8.1 (Redis wire-compat) (Sentinel HA) | 3 (1 primary + 2 replica) | 2 / 8Gi req; 4 / 16Gi limit | rate-limit + session |
 | Meilisearch | 3 | 2 / 8Gi req; 4 / 16Gi limit | per-pack index |
 | ClamAV sidecar | 4-20 (HPA) | 1 / 2Gi | streaming scan; 100MB/file |
 | Captcha sidecar | 2-10 (HPA) | 500m / 512Mi | hCaptcha proxy + Turnstile + Friendly Captcha verifier |
@@ -76,7 +76,7 @@ Per ADR-0164 cell-pinning policy; trigger migration when:
 | Component | Estimated USD |
 |---|---|
 | Postgres + Citus | $4,500 |
-| Redis | $800 |
+| Valkey | $800 |
 | Meilisearch | $1,200 |
 | Compute (rest + workers) | $3,800 |
 | ClamAV + Captcha sidecars | $400 |

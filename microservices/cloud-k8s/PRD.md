@@ -154,7 +154,7 @@ JUSTIFICATION:
 - bc-tokens = csi-storage-driver.
 - layer = <layer>: includes THREE backend-qualified adapters per ADR-0105 Amendment 3:
   - adapter-block (OCI Block Volume + Ceph RBD)
-  - adapter-object (OCI Object Storage + MinIO)
+  - adapter-object (OCI Object Storage + SeaweedFS)
   - adapter-file (OCI File Storage + CephFS)
   Each is a distinct *-adapter-<backend> crate; no exception required.
 ```
@@ -223,7 +223,7 @@ CI lanes that must green:
 
 | Event type | Produced by | Handler BC | Action |
 |---|---|---|---|
-| `IacResourcePlanned` | `cloud-iac` (Terraform plan accepted) | `cluster-bootstrap` | discover the new node fleet; pre-stage kubeadm join token; emit `ReadyForBootstrap` |
+| `IacResourcePlanned` | `cloud-iac` (OpenTofu plan accepted) | `cluster-bootstrap` | discover the new node fleet; pre-stage kubeadm join token; emit `ReadyForBootstrap` |
 | `TenantOnboarded` | `tenancy` | `network-policy` | derive Cedar policy fragment → emit per-tenant NetworkPolicy + AuthorizationPolicy in the tenant's namespace |
 | `CellProvisionRequested` | `cell` | `cluster-bootstrap` + `node-lifecycle` | allocate the right pack cluster + place the cell on the right worker nodes |
 
@@ -261,7 +261,7 @@ CI lanes that must green:
 Key parity gaps to close (ordered by priority):
 
 1. **Multi-cluster mesh** — EKS / GKE / AKS all have managed Istio or Anthos Service Mesh; oyatie ships Istio on day 1 but multi-cluster federation lands in M03 per ADR-0117.
-2. **Auto-scaling node groups** — managed cloud providers offer Karpenter / Cluster Autoscaler integration; oyatie ships manual node-add at M01 launch; cluster-autoscaler integration in M02.
+2. **Auto-scaling node groups** — managed cloud providers offer Karpenter (canonical per ADR-0198) and the legacy Cluster Autoscaler; oyatie ships manual node-add at M01 launch and Karpenter integration in M02 (Cluster Autoscaler is explicitly rejected per ADR-0198 — bin-pack-first node provisioning + heterogeneous instance-type selection are required).
 3. **Workload identity (IRSA / GKE WI / AKS WI)** — workload-to-IAM federation; oyatie integrates with OpenBao + SPIFFE per ADR-0028 but is not yet hyperscaler-parity for AWS / GCP / Azure SDK auto-discovery.
 4. **GitOps-native** — Argo CD / Flux integration is canonical in M01; matches Rancher Fleet + OpenShift GitOps.
 
@@ -306,7 +306,7 @@ Per-cell capacity envelope:
 
 Scale-out policy:
 - Per-pack cluster boundary: one cluster per pack; multi-cluster federation via Istio multi-cluster install at M03.
-- Cluster Autoscaler (M02): scales worker nodes on `unschedulable_pods > 0`.
+- Karpenter (M02 per ADR-0198): scales worker nodes on `unschedulable_pods > 0` with bin-pack-first heterogeneous-instance selection. Cluster Autoscaler is explicitly rejected (taint-based ASG model does not meet hyperscaler bin-pack latency target).
 - Pre-warmed pool: 2 idle worker nodes per cluster; cold-start budget ≤ 5 min (full node-join).
 
 Cross-region story:
@@ -329,7 +329,7 @@ Sharding:
 | AC-05 | Cosign-unsigned image is refused at admission | admission-webhook integration test |
 | AC-06 | Direct kube-apiserver access (port 6443) is refused; kubernetes-api-proxy is the only path | NetworkPolicy + e2e probe |
 | AC-07 | `oya-check-cis-k8s-benchmark` lane passes against bootstrapped cluster | LEAN lane exit 0 |
-| AC-08 | All IaC manifests (Helm + Terraform + Kustomize) deploy clean against a kind cluster | CI lane `oya-cloud-k8s-iac-smoke` |
+| AC-08 | All IaC manifests (Helm + OpenTofu + Kustomize) deploy clean against a kind cluster | CI lane `oya-cloud-k8s-iac-smoke` |
 | AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-k8s` exit 0 | ADR-0131 lane |
 | AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 | ADR-0123 lane; HG-CLOUD-K8S registered |
 
@@ -359,3 +359,29 @@ Sharding:
 | ADR-0133 | Industry-best-practice conformance program | CIS / NSA / NIST framework conformance |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-CLOUD-K8S registers here |
 | ADR-0116 | Retire external agent-coordination tooling | oya vcs primitives used throughout |
+
+## ADR-0164 Update — Sovereign Cloud / Air-Gapped Deployment Variant
+
+Per ADR-0164 (2026-05-18), the cloud-k8s µservice ships a per-pack air-gap variant for sovereign packs. See `multi-region.md` for the full statement.
+
+Highlights:
+- **In-cell container registry**: Harbor 2.x at `registry.{cell}.svc.cluster.local`. Image references rewritten via kustomize component. Sigstore + Kyverno admission verification.
+- **No external API egress**: NetworkPolicy + Cilium L7 egress deny all external hosts. DNS via in-cell CoreDNS, NTP via in-cell chrony, OCSP/CRL via in-cell PKI.
+- **Telemetry confinement**: external observability SaaS (Datadog, Honeycomb, New Relic) forbidden in air-gap mode; only in-cell observability backend permitted.
+- **In-region CI runner option**: per-pack overlay points deploy pipeline at in-region self-hosted runners.
+
+Per-pack overlays at `iac/kustomize/components/air-gap-{ksa,kr-fsc,kr-public,uae,eu-sovereign-airgap,us-gov}/` flip the air-gap mode. Pre-flight mirror job templated at `microservices/cloud-iac/iac/helm/harbor-mirror/`.
+
+CI lane `oya gate validate air-gap-overlay` enforces sovereign-pack containment.
+
+## ADR-0161 Update — Canonical StorageClass Catalog
+
+Per ADR-0161 (2026-05-18), this µservice ships the canonical StorageClass catalog at `iac/kustomize/components/storage-classes/` and the per-pack overlay surface at `iac/kustomize/components/pack-{name}/`.
+
+Canonical names workload µservices reference: `oya-pg-hot`, `oya-pg-warm`, `oya-pg-cold`, `oya-redis-hot`, `oya-s3-warm`, `oya-s3-cold`. Per-pack overlay binds each canonical name to a concrete CSI driver per the matrix in `/specs/csi-storage-class-canonical.json`.
+
+CI lane `oya gate validate storage-class-canonical` enforces (a) every workload µservice chart references only canonical names, (b) every active pack populates the full matrix.
+
+## ADR-0158 Update — Active-Passive Disposition
+
+Per ADR-0158 (2026-05-18), the cloud-k8s µservice's cluster control-plane is declared `active_passive` per cell. See `multi-region.md` for the full disposition statement.

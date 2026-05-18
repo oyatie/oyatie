@@ -21,7 +21,9 @@
     "adrs",
     "hyperscaler_inv_coverage",
     "audit_chain",
-    "secrets_substrate"
+    "secrets_substrate",
+    "ontology_projections",
+    "mesh_layering"
   ],
   "properties": {
     "schema_version": {
@@ -196,6 +198,356 @@
         "provider": {"type": "string", "const": "openbao"},
         "format": {"type": "string", "const": "${openbao:secret/<path>}"}
       }
+    },
+    "ontology_projections": {
+      "description": "ADR-0145 Invariant 3 — µservices owning canonical entities declare projection targets in Ontology. Empty array is permitted for µservices that own no canonical entities. Validated by oya-check-ontology-projection-coverage (advisory mode pending the strict-mode parser per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["entity_name", "projection_target_table"],
+        "properties": {
+          "entity_name": {"type": "string"},
+          "projection_target_table": {"type": "string"},
+          "projection_kind": {"enum": ["idempotent-rewrite", "append-only"]},
+          "lag_budget_seconds": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "data_classes_processed": {
+      "description": "ADR-0156 — UNION of per-BC `data_classes_owned`. Aggregated into specs/microservices/pii-registry.json by the DSR cascade. Per ADR-0008 the canonical taxonomy is shared with crates/oya-data-boundary-kernel.",
+      "type": "array",
+      "items": {
+        "enum": [
+          "PII_IDENTIFYING",
+          "PII_QUASI_IDENTIFYING",
+          "PII_SENSITIVE",
+          "FINANCIAL",
+          "HEALTH",
+          "AUTHENTICATION",
+          "AUDIT",
+          "INTERNAL_ONLY"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "rpo_rto": {
+      "description": "ADR-0152 — Per-µservice RPO/RTO declaration (five-tier model). Aggregated into specs/microservices/rpo-rto-targets.json.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "rto_target_seconds", "rpo_target_seconds"],
+      "properties": {
+        "tier": {"enum": ["realtime", "hot", "warm", "cold", "best-effort"]},
+        "rto_target_seconds": {"type": "integer", "minimum": 0},
+        "rpo_target_seconds": {"type": "integer", "minimum": 0},
+        "authority_adr": {"type": "string", "pattern": "^ADR-[0-9]{4}$"}
+      }
+    },
+    "outbox_required": {
+      "description": "ADR-0153 — Whether the µservice MUST integrate the transactional outbox pattern. True for the five charter carriers (messenger, mail, social, tasks, calendar) first; expanding across all event-emitters.",
+      "type": "boolean"
+    },
+    "mesh_layering": {
+      "description": "ADR-0148 layered service-mesh enrollment. Every µservice runs on Cilium L3/L4 (cilium_l4=true always) and Istio Ambient ztunnel mTLS (ambient_ztunnel=true always). The Tier-3 waypoint (ambient_waypoint) is per-µservice opt-in based on whether the µservice handles L7-policed traffic. Five µservices that handle L7-policed traffic at PR #143 landing declare ambient_waypoint=true: governance, foundry, audit-chain, application, workflow-studio. All others declare ambient_waypoint=false (default).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cilium_l4", "ambient_ztunnel", "ambient_waypoint"],
+      "properties": {
+        "cilium_l4": {
+          "type": "boolean",
+          "const": true,
+          "description": "Tier 1 — Cilium L3/L4 + CNI + Hubble flow observability. Always true per ADR-0148."
+        },
+        "ambient_ztunnel": {
+          "type": "boolean",
+          "const": true,
+          "description": "Tier 2 — Istio Ambient ztunnel mTLS via SPIFFE workload identity. Always true per ADR-0148."
+        },
+        "ambient_waypoint": {
+          "type": "boolean",
+          "description": "Tier 3 — Istio Ambient waypoint Envoy for L7 AuthorizationPolicy + Cedar ext_authz + response envelope shaping. Per-µservice opt-in. Default false. Required true for µservices handling L7-policed traffic (regulatory packs, sensitive ontology reads, canary routing)."
+        },
+        "north_south_only": {
+          "type": "boolean",
+          "description": "Reserved for the api-gateway µservice per ADR-0182. When true, this µservice owns north-south ingress and MUST NOT enroll the east-west mesh (cilium_l4 + ambient_ztunnel become advisory rather than enforced)."
+        }
+      }
+    },
+    "storage": {
+      "description": "ADR-0196 / ADR-0197 — Object store + backup namespace. Advisory in PR #143; per-µservice population begins in PR-145+.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "object_store": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {"type": "boolean", "default": false, "description": "ADR-0196 SeaweedFS object store enrollment."},
+            "buckets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "purpose"],
+                "properties": {
+                  "name": {"type": "string", "pattern": "^oya-[a-z0-9-]+$", "description": "Pattern: oya-<purpose>-<tenant-or-shared>-<env>."},
+                  "purpose": {"enum": ["workflow-artifacts", "evidence", "clickhouse-cold", "milvus-object", "velero-backup", "audit-chain-archive", "backup-postgres", "backup-filesystem", "tenant-uploads", "finops-focus-export"]},
+                  "quota": {"type": "string", "description": "Helm-style quota (e.g., 100Gi)."},
+                  "ttl": {"type": "string", "description": "ISO 8601 duration."}
+                }
+              }
+            }
+          }
+        },
+        "backup": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tier": {"$ref": "#/$defs/oya_workload_class", "description": "ADR-0197 tier-driven RPO/RTO floor."},
+            "retention_days": {"type": "integer", "minimum": 0, "description": "ADR-0197 retention floor in days."}
+          }
+        }
+      }
+    },
+    "compute": {
+      "description": "ADR-0198 — Karpenter node-pool selection namespace. Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "autoscaler": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "node_pool": {"$ref": "#/$defs/oya_workload_class", "description": "ADR-0198 node-pool class."}
+          }
+        }
+      }
+    },
+    "finops": {
+      "description": "ADR-0199 — FinOps cost-attribution namespace. Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cost_center": {"type": "string", "description": "Closed enum from registry/finops/cost-tag-vocabulary.yaml."},
+        "workload_class": {"$ref": "#/$defs/oya_workload_class"},
+        "regulatory_pack": {"enum": ["generic", "kr", "eu", "us-healthcare", "us-financial", "us-public-sector"]}
+      }
+    },
+    "data": {
+      "description": "ADR-0192/0193/0194/0195 — Data substrate namespaces (vector store, OLAP, timeseries, stream processing). Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "vector_store": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {"type": "boolean", "default": false},
+            "collections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["domain", "dimension", "index_type", "metric"],
+                "properties": {
+                  "domain": {"type": "string"},
+                  "dimension": {"description": "ADR-0192 dimension class. Closed enum or Custom(u32) escape hatch.", "oneOf": [{"enum": ["D384", "D768", "D1024", "D1536"]}, {"type": "object", "additionalProperties": false, "required": ["Custom"], "properties": {"Custom": {"type": "integer", "minimum": 1}}}]},
+                  "index_type": {"enum": ["hnsw", "ivf_flat", "ivf_sq8", "diskann", "gpu_cagra"]},
+                  "metric": {"enum": ["cosine", "l2", "ip"]},
+                  "data_classes": {"type": "array", "items": {"enum": ["Public", "TenantPublic", "TenantPrivate", "Regulated"]}}
+                }
+              }
+            }
+          }
+        },
+        "olap_client": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {"type": "boolean", "default": false},
+            "databases": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name"],
+                "properties": {
+                  "name": {"type": "string"},
+                  "tables": {"type": "array"},
+                  "materialized_views": {"type": "array"}
+                }
+              }
+            }
+          }
+        },
+        "timeseries": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {"type": "boolean", "default": false},
+            "hypertables": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "time_column", "cardinality_class", "retention_days"],
+                "properties": {
+                  "name": {"type": "string"},
+                  "time_column": {"type": "string"},
+                  "space_column": {"type": "string"},
+                  "cardinality_class": {"enum": ["low", "medium", "high", "very_high"]},
+                  "retention_days": {"type": "integer", "minimum": 0}
+                }
+              }
+            },
+            "continuous_aggregates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["view_name", "source", "select_expr", "refresh_interval_seconds"],
+                "properties": {
+                  "view_name": {"type": "string"},
+                  "source": {"type": "string"},
+                  "select_expr": {"type": "string", "description": "Must use time_bucket()."},
+                  "refresh_interval_seconds": {"type": "integer", "minimum": 1}
+                }
+              }
+            }
+          }
+        },
+        "stream_processing": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tier": {"enum": ["clickhouse_mv", "flink"], "default": "clickhouse_mv", "description": "ADR-0195 stream-processing tier."}
+          }
+        }
+      }
+    },
+    "runtime": {
+      "description": "ADR-0200 — WASM runtime namespace. Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "wasm": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {"type": "boolean", "default": false},
+            "sandbox_classes": {
+              "type": "array",
+              "items": {"enum": ["envoy-filter", "workflow-studio-node", "foundry-tool"]}
+            }
+          }
+        }
+      }
+    },
+    "comms": {
+      "description": "ADR-0201 — Communications (email/messaging) substrate namespace. Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "provider": {"enum": ["ses", "postal", "mailgun", "smtp"], "default": "ses"},
+            "per_tenant_rate_limit_per_min": {"type": "integer", "minimum": 0, "default": 1000},
+            "dkim_rotation_days": {"type": "integer", "minimum": 1, "default": 365},
+            "default_from_domain": {"type": "string", "default": ""}
+          }
+        }
+      }
+    },
+    "iac": {
+      "description": "ADR-0202 — IaC tier namespace. OpenTofu canonical; Terraform deprecated path during 90-day migration window.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "engine": {"enum": ["opentofu", "terraform-deprecated"], "default": "opentofu"}
+      }
+    },
+    "docs": {
+      "description": "ADR-0203 — Documentation substrate tier namespace.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tier": {"enum": ["mdbook", "techdocs", "sveltekit", "all"], "default": "all"}
+      }
+    },
+    "i18n": {
+      "description": "ADR-0206 — Fluent ICU locale coverage namespace. Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default_locale": {"type": "string", "description": "BCP-47 locale tag."},
+        "required_locales": {"type": "array", "items": {"type": "string", "description": "BCP-47 locale tag."}},
+        "rtl_support": {"type": "boolean"},
+        "min_coverage_bps": {"type": "integer", "minimum": 0, "maximum": 10000, "default": 9500}
+      }
+    },
+    "a11y": {
+      "description": "ADR-0207 — WCAG 2.2 AA coverage namespace. Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "wcag_target": {"enum": ["aa", "aaa"], "default": "aa"},
+        "test_runners": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "realtime": {
+      "description": "ADR-0208 — Real-time transport tier namespace. Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "transport": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tier": {"enum": ["sse", "websocket", "grpc-streaming"]}
+          }
+        },
+        "payload_budget_bytes": {"type": "integer", "minimum": 0, "description": "Defaults derive from PayloadBudget::defaults_for(tier)."}
+      }
+    },
+    "compliance": {
+      "description": "ADR-0209 — Compliance evidence pipeline namespace. Advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evidence_collectors": {"type": "array", "items": {"type": "string", "description": "EvidenceArtifactKind wire_label."}},
+        "audit_chain_seal_required": {"type": "boolean", "default": true},
+        "tamper_evidence_algorithm": {"type": "string", "default": "sha256-cosign-keyless-oidc"}
+      }
+    },
+    "observability_trace_sampling_recipe": {
+      "description": "ADR-0210 — Trace sampling recipe (head + tail policies). Sibling to top-level observability keys; advisory in PR #143.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "head_bps": {"type": "integer", "minimum": 0, "maximum": 10000, "default": 100},
+        "tail_policies": {"type": "array", "items": {"type": "string"}},
+        "p99_latency_threshold_ms": {"type": "integer", "minimum": 0},
+        "new_endpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["route", "added_at"],
+            "properties": {
+              "route": {"type": "string"},
+              "added_at": {"type": "string", "format": "date"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "oya_workload_class": {
+      "description": "Shared 4-value workload classification per ADR-0197/0198/0199. Resolves the conflict C1 (three independent enums in PR #143 atomic-wiring plan).",
+      "enum": ["app", "batch", "gpu", "regulatory"]
     }
   }
 }

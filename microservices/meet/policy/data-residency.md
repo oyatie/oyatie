@@ -60,7 +60,7 @@ A pack-eu user joining a pack-us tenant's meeting is allowed:
 ### Default: forbidden
 
 - Postgres logical replication: within-pack only.
-- Redis cluster replication: within-pack only.
+- Valkey cluster replication: within-pack only.
 - S3 recording + transcript cross-region replication: within-pack only.
 - Meilisearch transcript index replication: within-pack only.
 

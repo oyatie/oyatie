@@ -125,7 +125,7 @@ point forward.
 
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
-| Recording list (100 recordings) | ≤ 50ms | ≤ 200ms | ≤ 500ms | Postgres + Redis cache |
+| Recording list (100 recordings) | ≤ 50ms | ≤ 200ms | ≤ 500ms | Postgres + Valkey cache |
 | Playback-start latency (warm CDN) | ≤ 150ms | ≤ 400ms | ≤ 800ms | HLS manifest fetch + first segment |
 | Playback-start latency (cold) | ≤ 400ms | ≤ 1s | ≤ 2s | CDN miss; fallback to S3 + transcode hint |
 | Transcript-search across 1k-hour archive | ≤ 80ms | ≤ 300ms | ≤ 800ms | Meilisearch 0.10.0 |
@@ -381,11 +381,11 @@ Error budget:
 
 **State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for
 metadata + transcript + redaction overlay; S3 for media (multi-bitrate + raw
-source); Redis for share-link + playback session; Meilisearch for search;
+source); Valkey for share-link + playback session; Meilisearch for search;
 CDN for hot playback; foundry-runtime for Whisper + pyannote + summary.
 
 **Active-active compatibility**: stateless REST + WebSocket gateway; Postgres
-logical-replicated within pack; Redis primary-replica HA; S3 cross-AZ
+logical-replicated within pack; Valkey primary-replica HA; S3 cross-AZ
 replication; Meilisearch primary-only with snapshot DR.
 
 Per-cell capacity envelope:
@@ -402,7 +402,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - HPA on recording-rest pods: CPU > 70 %, min 4, max 200 replicas.
 - Postgres shard-by-tenant once cell hits 1M recordings/year aggregate.
-- Redis cluster sharding by `(tenant_id, recording_id) mod N`.
+- Valkey cluster sharding by `(tenant_id, recording_id) mod N`.
 - Meilisearch sharded by `tenant_id`.
 
 Sharding:

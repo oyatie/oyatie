@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-shorts + ops-security
 deciders: ops-sre-reliability, axis-shorts, council-architecture, ops-security, council-privacy
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/shorts/threat-model.md
   - microservices/shorts/incident-response.md
@@ -35,7 +35,7 @@ Enumerate every load-bearing failure mode, its detection signal, blast-radius, a
 |---|---|---|---|---|---|
 | FM-01 | Feed cache cold-restart | `oya_shorts_feed_cache_hit_ratio` < 70 % | Sev-2 | per-pack viewers; up to 30 min latency degradation | runbooks/feed-cache-rebuild.md |
 | FM-02 | Postgres primary failure | `up{job="shorts-postgres-primary"} == 0` | Sev-1 | per-pack videos write-blocked ≤ 5 min during failover | cell/runbooks/postgres-primary-failover.md |
-| FM-03 | Redis split-brain | sentinel quorum lost | Sev-1 | feed cache + watch-position + likes counters; rebuild | runbooks/feed-cache-rebuild.md |
+| FM-03 | Valkey split-brain | sentinel quorum lost | Sev-1 | feed cache + watch-position + likes counters; rebuild | runbooks/feed-cache-rebuild.md |
 | FM-04 | Transcode queue backup | `oya_shorts_transcode_queue_depth` > 1000 sustained 5min | Sev-2 | upload→playable latency degrades; affects new uploads | runbooks/transcode-queue-backup.md |
 | FM-05 | ffmpeg worker CVE → RCE | Trivy/Grype CVE scan + worker SBOM | Sev-1 | quarantine; rebuild from LTS | runbooks/transcode-queue-backup.md (sandbox section) |
 | FM-06 | CDN POP failure (single POP) | Cloudflare health-check failure | Sev-3 | latency for affected region; auto-failover to nearest healthy POP | runbooks/cdn-cache-invalidation-cascade.md |
@@ -61,7 +61,7 @@ Enumerate every load-bearing failure mode, its detection signal, blast-radius, a
 | FM-26 | Federation peer revocation (peer leaves allowlist mid-flight) | peer-allowlist mismatch | Sev-3 | federation egress blocked to that peer; in-flight activities held | (verify allowlist; engage federation-gateway) |
 | FM-27 | DRM license issuance overload | `oya_shorts_drm_license_request_rate` > capacity | Sev-2 | playback degradation for DRM-protected content | runbooks/drm-key-rotation.md (HA scaling section) |
 | FM-28 | Audio fingerprint corpus poisoning | per-licensor namespace mismatch | Sev-1 | spurious copyright claims at scale | (cordon affected namespace; ops-legal review) |
-| FM-29 | Eviction cascade (Redis eviction pressure) | Redis eviction-rate > 1% | Sev-2 | feed-cache freshness degraded; affects ranking | (memory shard scale-out) |
+| FM-29 | Eviction cascade (Valkey eviction pressure) | Valkey eviction-rate > 1% | Sev-2 | feed-cache freshness degraded; affects ranking | (memory shard scale-out) |
 | FM-30 | DMCA designated-agent unavailability | ops-legal DMCA agent on PTO + no backup | Sev-3 | counter-notice processing delays; risks Safe Harbor | (backup agent designation; ops-legal rotation) |
 | FM-31 | Audit-chain seal failure (sealing endpoint down) | `oya_audit_chain_seal_failure_total` > 0 | Sev-1 | state transitions unsealed; non-repudiation breach | audit-chain µservice runbook (cross-µservice) |
 | FM-32 | Per-tenant DEK rotation failure (OpenBao) | OpenBao alert | Sev-1 | Professional video bodies un-decryptable until resolved | cloud-secrets µservice runbook |
@@ -73,7 +73,7 @@ Enumerate every load-bearing failure mode, its detection signal, blast-radius, a
 
 | Origin | Cascade target | Mitigation |
 |---|---|---|
-| FM-02 Postgres primary | FM-03 Redis split-brain (cache invalidates) | failover scripted; cache rebuild lazy |
+| FM-02 Postgres primary | FM-03 Valkey split-brain (cache invalidates) | failover scripted; cache rebuild lazy |
 | FM-04 Transcode backup | FM-07 CDN invalidation cascade (mass purge on bulk publish post-thaw) | gradual thaw + rate-limit publish |
 | FM-09 Classifier false-positive event | FM-08 Copyright-claim storm (creators may file false counter-storm) | manual moderator throttle; classifier-rollback fast path |
 | FM-15 DRM key rotation failure | FM-27 DRM license overload (clients retry storm) | exponential backoff in client SDK |

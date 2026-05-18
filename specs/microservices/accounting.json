@@ -275,7 +275,7 @@
     }
   ],
   "regional_packs": {
-    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 (retired per ADR-0145) + $ref:bominal/decisions/ADR-0140",
     "packs": [
       {
         "pack": "KR",

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-foundry-guardrails
 deciders: ops-sre-reliability, axis-foundry-guardrails, ops-security, council-architecture
-related_adrs: [ADR-0022, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/foundry-guardrails/threat-model.md
   - microservices/foundry-guardrails/dpia.md

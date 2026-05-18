@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-sheets + council-design-system + ops-security
 deciders: council-architecture, ops-security, axis-sheets, council-design-system, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS L2 + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0140, ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0003, ADR-SHEETS-0004, ADR-SHEETS-0005, ADR-SHEETS-0006, ADR-SHEETS-0007]
+related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0003, ADR-SHEETS-0004, ADR-SHEETS-0005, ADR-SHEETS-0006, ADR-SHEETS-0007]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Sheets Layer-A substrate change OR new function-library release OR AI-formula provider change OR XLSX importer version bump
 enforced_frameworks:
@@ -47,7 +47,7 @@ All components introduced by the sheets PRD + PHASE-01:
 | CDN (OCI CDN; static asset distribution; per-pack edge) | `oya-sheets-cell-grid-*` |
 | WAF (OCI WAF; ingress in front of CDN + editor REST) | `oya-sheets-formula-engine-*` |
 | Postgres + Citus (workbook metadata + cell rows + per-seat license + sharing/ACL + comments + version-history pointers) | `oya-sheets-recalc-engine-*` |
-| Redis (ephemeral CRDT collab state + WebSocket lease coordination + recalc-progress streaming) | `oya-sheets-formatting-*` |
+| Valkey (ephemeral CRDT collab state + WebSocket lease coordination + recalc-progress streaming) | `oya-sheets-formatting-*` |
 | WebSocket gateway (axum-WS-based; CRDT op + cursor + recalc-progress fan-out) | `oya-sheets-pivot-tables-*` |
 | S3 (workbook snapshots + version-history binaries; per-pack bucket) | `oya-sheets-charts-*` |
 | OCI Object Storage (Arrow/Parquet large-sheet blocks; per-(tenant, workbook, sheet) key) | `oya-sheets-data-validation-*` |
@@ -116,7 +116,7 @@ All components introduced by the sheets PRD + PHASE-01:
 │  │  - tenant_id partition + RLS                                              │ │
 │  │  - per-tenant connection pool                                             │ │
 │  └────────────────────────────────────────────────────────────────────────────┘ │
-│  ┌─ Redis (ephemeral CRDT + recalc-progress) ─┐ ┌─ S3 (snapshots + history) ─┐│
+│  ┌─ Valkey (ephemeral CRDT + recalc-progress) ─┐ ┌─ S3 (snapshots + history) ─┐│
 │  │ tenant-prefixed key                         │ │ pack-scoped bucket          ││
 │  └──────────────────────────────────────────────┘ └─────────────────────────────┘│
 │  ┌─ OCI Object Storage (Arrow/Parquet large-sheet blocks) ─────────────────┐  │
@@ -126,7 +126,7 @@ All components introduced by the sheets PRD + PHASE-01:
 │  Trust boundary 3: WS gateway → CRDT op fan-out (per-workbook lease)           │
 │                                                                                │
 │  ┌─ WebSocket gateway lease coordinator ────────────────────────────────┐     │
-│  │  - one WS pod owns one (tenant, workbook_id) lease via Redis         │     │
+│  │  - one WS pod owns one (tenant, workbook_id) lease via Valkey         │     │
 │  │  - cross-tenant collab forbidden by tenant-binding on connect        │     │
 │  │  - per-workbook message routing                                      │     │
 │  └────────────────────────────────────────────────────────────────────────┘   │
@@ -184,9 +184,9 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
 | Workbook metadata + cell rows | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_QUASI_IDENTIFIER` / `PHI` | High | 30d hot (Postgres) + version-history S3 cold | Postgres + S3 |
-| Editor session state (active drafts, cursor, viewport) | `BEHAVIORAL_TENANT_PRODUCT` | High | 30d hot (Postgres) + Redis ephemeral while active | Postgres + Redis |
-| Collab CRDT op stream | `BEHAVIORAL_TENANT_PRODUCT` | High | Redis ephemeral while session active; sealed deltas to Postgres on save | Redis + Postgres |
-| Recalc-progress streaming events | `INTERNAL_ONLY` | Low | ephemeral; Redis | Redis |
+| Editor session state (active drafts, cursor, viewport) | `BEHAVIORAL_TENANT_PRODUCT` | High | 30d hot (Postgres) + Valkey ephemeral while active | Postgres + Valkey |
+| Collab CRDT op stream | `BEHAVIORAL_TENANT_PRODUCT` | High | Valkey ephemeral while session active; sealed deltas to Postgres on save | Valkey + Postgres |
+| Recalc-progress streaming events | `INTERNAL_ONLY` | Low | ephemeral; Valkey | Valkey |
 | Per-seat license attribution rows | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | High | 24mo cold (Postgres) + audit-chain seal | Postgres + audit-chain |
 | Per-range ACL rows | `AUDIT` | High | append-only; retention per pack | Postgres + audit-chain |
 | Comments + threaded notes | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_IDENTIFYING` | High | 30d hot; retention per pack | Postgres |
@@ -310,7 +310,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 - Likelihood: L / Impact: M / Risk: **L-M**
 - Mitigations:
   - Optimistic concurrency check (`version` column) on every workbook-meta update.
-  - Single-writer invariant: one WS gateway pod owns active workbook lease via Redis.
+  - Single-writer invariant: one WS gateway pod owns active workbook lease via Valkey.
   - Lease TTL ≤ 5min.
 - Owner: axis-sheets
 - Residual: L
@@ -528,12 +528,12 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 - Owner: axis-sheets + ops-security
 - Residual: L
 
-**T-D-04 — Collab desync flood: malicious user spams CRDT ops, exhausting Redis**
-- Asset: Redis ephemeral state
+**T-D-04 — Collab desync flood: malicious user spams CRDT ops, exhausting Valkey**
+- Asset: Valkey ephemeral state
 - Likelihood: M / Impact: H / Risk: **H**
 - Mitigations:
   - Per-(tenant, user) WS message rate limit (default 100 ops/sec).
-  - Per-tenant Redis memory cap.
+  - Per-tenant Valkey memory cap.
   - Slow-client quarantine.
 - Owner: axis-sheets + ops-sre-reliability
 - Residual: L
@@ -667,7 +667,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 | gVisor sandbox for XLSX import/export | Preventive | ops-security + axis-sheets | `oya-governance-sheets-import-sandboxed-and-avscan-required` lane |
 | ClamAV + OPSWAT AV scan (XLSX) | Preventive | ops-security | AV-scan integration test |
 | CRDT op HMAC + sequence counter | Preventive (replay) | axis-sheets | CRDT regression tests |
-| Single-writer Redis lease per workbook | Preventive | axis-sheets | concurrent-writer integration test |
+| Single-writer Valkey lease per workbook | Preventive | axis-sheets | concurrent-writer integration test |
 | Per-tenant rate limit | Preventive (DoS) | axis-sheets | Sheets REST metrics |
 | AI-formula PII redactor | Preventive | axis-sheets + council-privacy | quarterly synthetic-PII drill |
 | AI-formula completion schema validation | Preventive | axis-sheets | `oya-governance-ai-formula-validation-required` lane |
@@ -743,7 +743,7 @@ Pack-overlay sections at `regional-packs/<pack>/sheets-overlay.md`.
 ## Re-review Triggers
 
 - Any change to the trust boundary diagram.
-- Any Layer-A version upgrade (CDN / WAF / Postgres / Redis / WebSocket gateway / Loro / Arrow / Parquet / calamine / rust_xlsxwriter / ClamAV / OPSWAT).
+- Any Layer-A version upgrade (CDN / WAF / Postgres / Valkey / WebSocket gateway / Loro / Arrow / Parquet / calamine / rust_xlsxwriter / ClamAV / OPSWAT).
 - New function-library release (formula-engine version bump per ADR-SHEETS-0002).
 - AI-formula provider change.
 - New pack activation.

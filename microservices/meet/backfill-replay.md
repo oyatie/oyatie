@@ -35,7 +35,7 @@ Trigger sources:
 
 Procedure:
 
-1. Acquire backfill lease in Redis (per tenant per index partition; lease TTL = 1h).
+1. Acquire backfill lease in Valkey (per tenant per index partition; lease TTL = 1h).
 2. List S3 transcripts under `s3://oya-meet-transcripts-<pack>/<tenant_id>/` filtered by `[from, to]` window.
 3. Stream transcript JSON in batches of 1000 → Meilisearch `addDocuments` (idempotent on `transcript_id`).
 4. After bulk, emit `TranscriptSearchIndexBackfilled` event with tuple `(tenant_id, partition, row_count, completed_at, signature)`.

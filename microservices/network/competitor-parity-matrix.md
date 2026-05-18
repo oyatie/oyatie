@@ -155,7 +155,7 @@ Quantitative + qualitative parity comparison against industry-leading Profession
 | OpenSLO + agentic gate | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Workflow + Ontology native integration | ✅ | ❌ | ❌ | proprietary | proprietary |
 | Per-tenant Cedar policy | ✅ | ❌ | ❌ | partial | partial |
-| ATS-handoff contract (event-versioned) | ✅ to Tier-G ATS µservice via workflow-engine event-bus (no direct gRPC; ADR-0140) | partial | partial | ✅ proprietary | ✅ proprietary |
+| ATS-handoff contract (event-versioned) | ✅ to Tier-G ATS µservice via workflow-engine event-bus (no direct gRPC; ADR-0140 (retired per ADR-0145)) | partial | partial | ✅ proprietary | ✅ proprietary |
 | HRIS adapter SDK | ✅ (Workday / SAP / BambooHR / Personio patterns) | partial | partial | ✅ (is HRIS) | partial |
 
 ## Quantitative Performance Parity

@@ -92,4 +92,4 @@ After rollback:
 - `microservices/ontology/failure-modes.md` FM-06.
 - `microservices/ontology/policy/*.cedar`.
 - Cedar v4 reference — `cedarpolicy.com`.
-- ADR-0140 (Cedar policy enforcement).
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).

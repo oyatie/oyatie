@@ -1,5 +1,5 @@
 // network µservice — public-read policy fragment
-// Cedar v4.2 LTS — default-deny per ADR-0140
+// Cedar v4.2 LTS — default-deny per ADR-0140 (retired per ADR-0145)
 //
 // Purpose: govern anonymous / unauthenticated access. `network` allows some
 //          public reads (public-visibility Professional profiles + public posts

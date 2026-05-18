@@ -70,8 +70,8 @@ Per Art. 6: (b) contract with tenant; (c) legal obligation for retention; (f) le
 ### 2.4 Security (Art. 32)
 
 - Encryption in transit: TLS 1.3 + WSS.
-- Encryption at rest: SSE-KMS per-pack key for S3; pg_tde for Postgres; Redis at-rest encryption.
-- Per-tenant isolation: RLS + per-cell Redis cluster + per-tenant S3 prefix + per-tenant CDN cache key.
+- Encryption at rest: SSE-KMS per-pack key for S3; pg_tde for Postgres; Valkey at-rest encryption.
+- Per-tenant isolation: RLS + per-cell Valkey cluster + per-tenant S3 prefix + per-tenant CDN cache key.
 - Resilience: HPA + multi-AZ + cross-region DR (per-pack).
 - Testing: AC drills + threat-model verification + quarterly red-team.
 
@@ -118,7 +118,7 @@ Per Art. 6: (b) contract with tenant; (c) legal obligation for retention; (f) le
 - **Loro CRDT no-silent-loss invariant** (AC-06) — every edit either merged or surfaced as conflict; never dropped.
 - **gVisor sandbox + ClamAV + OPSWAT for imports** — untrusted file parsing isolated.
 - **Per-pack residency overlay** — cross-pack collab forbidden.
-- **Per-tenant CDN cache key + RLS + per-cell Redis + per-tenant S3 prefix** — isolation across all storage tiers.
+- **Per-tenant CDN cache key + RLS + per-cell Valkey + per-tenant S3 prefix** — isolation across all storage tiers.
 - **Chart-live-link revocation cascade** (ADR-SLIDES-0008) — ≤ 5s.
 - **Speaker-notes excluded from broadcast stream** by design (broadcast layer composes audience-frame only).
 - **EU AI Act risk-class stamp** (ADR-SLIDES-0006) — T2 refused on Annex III high-risk by default.

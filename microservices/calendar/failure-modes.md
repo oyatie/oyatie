@@ -62,10 +62,10 @@ Enumerate failure modes, blast radius, detection signals, automated recovery, an
 
 ### FM-06 — Cross-tenant grant revocation does not invalidate cache
 
-- **Cause:** Tenant-A revokes grant to Tenant-B at `t=0`; cached free/busy projection in Redis still served until TTL expires (up to 60s).
+- **Cause:** Tenant-A revokes grant to Tenant-B at `t=0`; cached free/busy projection in Valkey still served until TTL expires (up to 60s).
 - **Blast radius:** Tenant-B continues to see Tenant-A free/busy for up to 60s post-revocation.
 - **Detection:** Cache-invalidation lag metric `calendar_cross_tenant_grant_invalidation_lag_seconds > 5s` alert.
-- **Automated recovery:** Grant revocation emits explicit Redis DEL for affected cache keys; if Redis DEL fails, force-rotate the cache prefix.
+- **Automated recovery:** Grant revocation emits explicit Valkey DEL for affected cache keys; if Valkey DEL fails, force-rotate the cache prefix.
 - **Runbook:** `runbooks/availability-cache-rebuild.md`.
 - **Mitigation hardening:** Cache TTL ≤ 60s caps blast radius; revocation event chain includes mandatory cache-purge step.
 

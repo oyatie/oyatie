@@ -6,7 +6,7 @@
 # attributed to the agent + user clearly. User can cancel within the
 # reversibility window. After the window closes, the action stands.
 #
-# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140.
+# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140 (retired per ADR-0145).
 # Per EU AI Act Art. 50 transparency + Art. 14 human oversight.
 
 doc_class: AutonomyTierCatalog

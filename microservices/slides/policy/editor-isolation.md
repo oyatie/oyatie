@@ -21,7 +21,7 @@ This policy defines multi-tenant editor session safety guarantees for the slides
 ## Invariants
 
 1. **Tenant binding rebound at every WS message dispatch**. Server cannot trust client-supplied `tenant_id` mid-stream; the WS-upgrade OIDC sub is the binding authority.
-2. **Per-cell Redis cluster cell-locality**. CRDT state for a deck NEVER crosses cells.
+2. **Per-cell Valkey cluster cell-locality**. CRDT state for a deck NEVER crosses cells.
 3. **Per-tenant Postgres RLS**. Deck rows tagged with `tenant_id`; every query passes through RLS.
 4. **Per-tenant S3 prefix**. Deck content snapshots + assets under `<tenant_id>/...` prefix; per-tenant IAM condition.
 5. **Per-tenant CDN cache key**. Cache partitioned by `(tenant_hash, pack, version)`.
@@ -29,7 +29,7 @@ This policy defines multi-tenant editor session safety guarantees for the slides
 7. **Speaker-notes scope = presenter-view only**. Never broadcast frame. Never embed-bridged.
 8. **Per-pack residency overlay**. Cross-pack collab refused at admission gate.
 9. **Per-session HMAC** on CRDT op envelopes. Tampering surfaces as Sev-1 alarm.
-10. **Single-writer lease per deck** via Redis. Split-brain detected + reconciled.
+10. **Single-writer lease per deck** via Valkey. Split-brain detected + reconciled.
 11. **WASM bundle SRI**. Every chunk SHA-384 hash; mismatch refuses load.
 12. **Strict CSP**. No inline scripts; no eval; WASM-bootstrap nonce per request.
 13. **Embed-bridge sanitization at boundary**. Cross-µservice embed content sanitized at slides-side bridge before render.
@@ -40,7 +40,7 @@ This policy defines multi-tenant editor session safety guarantees for the slides
 
 - `innerHTML` on any deck content.
 - `eval()` anywhere in the slides client bundle.
-- Direct DB / Redis / S3 read or write from cross-µservice consumers (must go through SDK).
+- Direct DB / Valkey / S3 read or write from cross-µservice consumers (must go through SDK).
 - Loro types leaked through SDK boundaries (per ADR-SLIDES-0001).
 - LiveKit types leaked through SDK boundaries (per ADR-SLIDES-0005; messenger-SDK is the only client).
 - Cross-pack collab.

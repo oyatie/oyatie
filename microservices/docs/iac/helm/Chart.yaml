@@ -4,7 +4,7 @@ description: |
   Helm chart for the oyatie docs µservice. Bundles the per-BC Deployments +
   Services + HPAs + PDBs + NetworkPolicies + ServiceMonitors +
   PrometheusRules. Pulls dependency charts for Postgres (document-metadata),
-  Redis (collab presence + CRDT op spool), ClamAV (attachment scanner;
+  Valkey (collab presence + CRDT op spool), ClamAV (attachment scanner;
   default), OPSWAT MetaDefender (pack-us-healthcare overlay), gVisor pool
   (export workers per ADR-DOCS-0003).
 

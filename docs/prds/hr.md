@@ -29,7 +29,7 @@ It is the authoritative source for the `Employee`, `Employment`, and
 Inherits from Bominal ADR-0125 (domain naming canon: Tenant / Organization /
 User / Person / Employee / Employment distinctions) and ADR-0126 (8-class
 employment classification) 1:1 with oyatie glossary translation. Workflow and
-Ontology integration follows `feedback_workflow_objectgraph_adapter_layer.md`.
+Ontology integration follows `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`.
 
 ---
 

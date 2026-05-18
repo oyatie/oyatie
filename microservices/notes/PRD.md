@@ -88,7 +88,7 @@ The privacy posture is sharper than docs: notes are *first-thought capture* (cf.
 
 | Metric | p50 | p95 | p99 | p999 | Notes |
 |---|---|---|---|---|---|
-| Note-open (warm) | ≤ 20ms | ≤ 50ms | ≤ 100ms | ≤ 250ms | Postgres + Redis hot-cache; client-side render for E2E |
+| Note-open (warm) | ≤ 20ms | ≤ 50ms | ≤ 100ms | ≤ 250ms | Postgres + Valkey hot-cache; client-side render for E2E |
 | Note-create | ≤ 15ms | ≤ 30ms | ≤ 60ms | ≤ 150ms | Insert + audit-chain seal (Professional only) |
 | Sync-after-edit (single client) | ≤ 100ms | ≤ 250ms | ≤ 500ms | ≤ 1s | WebSocket delta + persist |
 | Tag-search | ≤ 40ms | ≤ 100ms | ≤ 250ms | ≤ 500ms | Tag adjacency index |
@@ -311,9 +311,9 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for note metadata + non-E2E body; S3 for attachments + E2E ciphertext; Redis for sync-session + hot-cache; Meilisearch for non-E2E full-text; Loro CRDT for opt-in collab.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for note metadata + non-E2E body; S3 for attachments + E2E ciphertext; Valkey for sync-session + hot-cache; Meilisearch for non-E2E full-text; Loro CRDT for opt-in collab.
 
-**Active-active compatibility**: stateless REST + Postgres logical-replicated within pack; Redis primary-replica HA; S3 cross-AZ replication.
+**Active-active compatibility**: stateless REST + Postgres logical-replicated within pack; Valkey primary-replica HA; S3 cross-AZ replication.
 
 Per-cell capacity envelope:
 
@@ -329,7 +329,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - HPA on REST pods: CPU > 70 %, min 4, max 100 replicas.
 - Postgres shard-by-tenant once cell hits 500k notes/sec aggregate.
-- Redis cluster sharding by `(tenant_id, user_id) mod N`.
+- Valkey cluster sharding by `(tenant_id, user_id) mod N`.
 
 Sharding:
 - Note metadata partitions by `(tenant_id, user_id, year-month)` for Personal; `(tenant_id, notebook_id, year-month)` for Professional.

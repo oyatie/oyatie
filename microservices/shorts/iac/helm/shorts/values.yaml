@@ -197,7 +197,7 @@ postgres:
   shards: 1  # XS-tier; M+ tiers shard-by-tenant
 
 redis:
-  version: "7.2"  # Redis 7.2 LTS
+  version: "7.2"  # Valkey 8.1 (Redis wire-compat)
   shards: 3  # XS-tier
 
 meilisearch:

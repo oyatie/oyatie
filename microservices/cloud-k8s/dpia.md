@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-cloud
 deciders: council-privacy, ops-security, axis-cloud, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/cloud-k8s/threat-model.md
   - microservices/cloud-k8s/policy/cluster-isolation.md

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-drive
 methodology: ICO DPIA + CNIL DPIA + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
 related_artifacts:
   - microservices/drive/threat-model.md
   - microservices/drive/policy/dual-context-isolation.md
@@ -43,7 +43,7 @@ DPIA mandatory pre-deployment. Reviewed by EU DPAs (Art. 35) and KR PIPC (Art. 3
 
 **What:** File upload (multipart resumable), download (range), folder organisation, share-link issuance, permissions, sync delta (FastCDC + LBFS), full-text search (Tika + Meilisearch), preview (image/PDF/Office/video), virus scan, DLP scan, retention/WORM tier, legal-hold, third-party-app OAuth.
 
-**How:** REST + S3-compatible + WebDAV + tus ingress → Postgres metadata (per-tenant RLS + tenant-DEK envelope) → object store (Garage / MinIO / SeaweedFS; per-tenant prefix; tenant-DEK-wrapped bytes) → Redis upload-session + delta cache → Meilisearch full-text → Tika extract → Workflow events to mail (attachment-bridge) + messenger (file-share embed) + audit-chain (seal) + observability + foundry-runtime (OCR/auto-tag).
+**How:** REST + S3-compatible + WebDAV + tus ingress → Postgres metadata (per-tenant RLS + tenant-DEK envelope) → object store (Garage / SeaweedFS / SeaweedFS; per-tenant prefix; tenant-DEK-wrapped bytes) → Valkey upload-session + delta cache → Meilisearch full-text → Tika extract → Workflow events to mail (attachment-bridge) + messenger (file-share embed) + audit-chain (seal) + observability + foundry-runtime (OCR/auto-tag).
 
 **Where:** Per-pack region-pinned cluster (pack-kr → KR; pack-eu → EU; pack-us → US; pack-us-healthcare → BAA-eligible US; pack-jp → JP; etc.). Residency enforced via ADR-0117 + ADR-0140.
 
@@ -155,7 +155,7 @@ Cross-reference: every risk has at least one corresponding STRIDE / LINDDUN thre
 | R-04 | Per-tenant Meilisearch index; cross-tenant query refused at API layer; LEAN check `oya-check-search-tenant-scoped` | L | axis-drive |
 | R-05 | gVisor + seccomp; no network + no host FS; rasterised output; CIS K8s 1.9.0; quarterly chaos exercise | L | ops-security |
 | R-06 | Per-tenant retention policy; default 24mo; WORM only on tenant-elected files; legal-hold reconciled with DSR | L-M | council-privacy |
-| R-07 | Chunk hashes stored never with plaintext; per-tenant Redis ACL; sync session bound to OIDC subject | L | axis-drive |
+| R-07 | Chunk hashes stored never with plaintext; per-tenant Valkey ACL; sync session bound to OIDC subject | L | axis-drive |
 | R-08 | DSR cascade with version + hold overlap policy: erasure honoured except where hold; partial-erasure (preserve audit-chain seal pointer) where compliant | M (hold-vs-erasure tension is accepted) | council-privacy |
 | R-09 | Tenant DPA mandates upstream disclosure; tenant-onboarding checklist verifies | L-M | council-privacy |
 | R-10 | pack-us-healthcare onboarding requires BAA pre-ingest; non-signed tenants pre-flighted to non-PHI pack | L | council-privacy |

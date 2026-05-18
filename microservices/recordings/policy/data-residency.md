@@ -55,7 +55,7 @@ is **forbidden by default**.
 
 - Postgres logical replication: within-pack only.
 - S3 hot + S3 cold cross-region replication: within-pack only.
-- Redis cluster replication: within-pack only.
+- Valkey cluster replication: within-pack only.
 - Meilisearch index replication: within-pack only.
 - foundry-runtime (Whisper + pyannote) inference: within-pack only.
 

@@ -20,5 +20,5 @@ operational_classes_owned: []
 autonomy_tier_required: T1
 implementation_notes: |
   Cache backend for free/busy projections; per-tenant key prefix;
-  eviction policy `allkeys-lru`. Redis 7.4 LTS pin per
+  eviction policy `allkeys-lru`. Valkey 8.1 (Redis wire-compat) pin per
   docs/standards/observability-slo.md.

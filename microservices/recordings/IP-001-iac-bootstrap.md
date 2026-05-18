@@ -13,7 +13,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: IaC bootstrap (Helm + Kustomize + Terraform)
+# IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)
 
 ## Intent
 
@@ -22,14 +22,14 @@ core workloads (recording-rest, recording-ingest, transcript-worker,
 diarization-worker, transcode-worker, search, retention-purge-worker,
 legal-hold-engager, ediscovery-export-worker, share-link-rest, playback-rest,
 ffmpeg-sandbox, watermark-stamper), upstream-dependency charts (Postgres
-16, Redis 7.2, Meilisearch 0.10.0, Pandoc 3.x), Kustomize base + per-pack
+16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10.0, Pandoc 3.x), Kustomize base + per-pack
 overlays, Terraform-managed Grafana RBAC + CloudFront / self-host CDN per
 pack.
 
 ## ChangeSet boundary
 
 One cohesive ChangeSet: 1 Helm chart bundle (recordings) + 1 shared
-Kustomize base + 4 per-pack Kustomize overlays + 1 Terraform module for
+Kustomize base + 4 per-pack Kustomize overlays + 1 OpenTofu module for
 Grafana RBAC + CDN backend wiring. No code; pure IaC + values. Per-pack
 secret references via OpenBao.
 
@@ -37,7 +37,7 @@ secret references via OpenBao.
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/recordings/iac/helm/recordings/Chart.yaml` | create | upstream pins: postgres 16, redis 7.2, meilisearch 0.10.0, pandoc 3.x |
+| `microservices/recordings/iac/helm/recordings/Chart.yaml` | create | upstream pins: postgres 16, valkey 8.1 (Redis wire-compat), meilisearch 0.10.0, pandoc 3.x |
 | `microservices/recordings/iac/helm/recordings/values.yaml` | create | per-BC replica sizing, OpenBao SecretReferences |
 | `microservices/recordings/iac/helm/recordings/templates/{deployment,service,hpa,pdb,networkpolicy,servicemonitor,prometheusrule}.yaml` | create | core Kubernetes resources |
 | `microservices/recordings/iac/kustomize/base/kustomization.yaml` | create | shared base |
@@ -51,7 +51,7 @@ helm lint microservices/recordings/iac/helm/recordings
 kubectl --dry-run=client apply -k microservices/recordings/iac/kustomize/overlays/pack-kr
 kubectl --dry-run=client apply -k microservices/recordings/iac/kustomize/overlays/pack-us-healthcare
 kubectl --dry-run=client apply -k microservices/recordings/iac/kustomize/overlays/pack-us-financial
-terraform -chdir=microservices/recordings/iac/terraform validate
+terraform -chdir=microservices/recordings/iac/tofu validate
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice recordings
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 ```

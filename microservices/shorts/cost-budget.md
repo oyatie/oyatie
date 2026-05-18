@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Track the shorts µservice's monthly cloud cost across Postgres + Redis + S3 + CDN + Meilisearch + WebSocket gateway + ffmpeg transcode pool + DRM key system + observability sidecars + Layer-B compute (Rust BC services), per pack region. Surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17) + Cloudflare R2 (per ADR-SHORTS-0001's CDN choice); verify-at-deploy markers called out.
+Track the shorts µservice's monthly cloud cost across Postgres + Valkey + S3 + CDN + Meilisearch + WebSocket gateway + ffmpeg transcode pool + DRM key system + observability sidecars + Layer-B compute (Rust BC services), per pack region. Surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17) + Cloudflare R2 (per ADR-SHORTS-0001's CDN choice); verify-at-deploy markers called out.
 
 ## Cost Categories
 
@@ -27,11 +27,11 @@ Track the shorts µservice's monthly cloud cost across Postgres + Redis + S3 + C
 |---|---|---|
 | Compute (OKE node) | Layer-B Rust services (rest + worker + app per BC) | `oracle.com/cloud/compute/pricing/` |
 | Postgres (managed or self-hosted on PV) | Video metadata + upload sessions + claims + ages + parental + analytics | `oracle.com/database/pricing/` |
-| Redis (managed or self-hosted) | Feed cache + watch-position + like-counters + trending + notifications + ephemeral | `oracle.com/cloud/cache/pricing/` |
+| Valkey (managed or self-hosted) | Feed cache + watch-position + like-counters + trending + notifications + ephemeral | `oracle.com/cloud/cache/pricing/` |
 | WebSocket gateway pods | Envoy + custom Rust gateway crate | bundled into compute |
 | Object storage (S3-compatible) | Video blobs + transcode variants + thumbnails + captions + quarantine | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Meilisearch | Hashtag + sound + creator search | self-hosted on PV |
-| Block storage (PV) | Postgres data + Meilisearch indexes + Redis AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
+| Block storage (PV) | Postgres data + Meilisearch indexes + Valkey AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Network egress | WebSocket fanout to public clients; CDN egress for video | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-tenant DEK envelope; media SSE-KMS; DRM key rotation | `oracle.com/security/key-management/pricing/` |
 | Load balancer | Per-pack ingress (Envoy / Cloudflare) | `oracle.com/cloud/networking/load-balancing/pricing/` |
@@ -73,7 +73,7 @@ Per `capacity-model.md` "XS: 20 tenants, ~100k MAU, ~50 video-upload/sec sustain
 | parental-controls-rest | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | Postgres primary | 1 × VM.Standard.E4 16-core | $290 | $600 PV (12 TB) | $890 |
 | Postgres replicas (2) | 2 × VM.Standard.E4 16-core | $580 | $1200 PV | $1780 |
-| Redis cluster (3 shards × primary+replica) | 6 × VM.Standard.E4 2-core | $216 | $80 PV | $296 |
+| Valkey cluster (3 shards × primary+replica) | 6 × VM.Standard.E4 2-core | $216 | $80 PV | $296 |
 | Meilisearch primary + replica | 2 × VM.Standard.E4 4-core | $145 | $400 PV (8 TB) | $545 |
 | Video S3 bucket (hot) | – | – | $1500 hot (60 TB) | $1500 |
 | Video S3 archive | – | – | $1500 archive (750 TB cold) | $1500 |

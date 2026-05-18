@@ -45,7 +45,7 @@ When historical workbook state needs reconstruction:
 
 ### Verification
 
-- Integration test: seed Postgres + Redis + S3 with synthetic workbook; reconstruct via backfill; verify reconstructed cell graph == original cell graph.
+- Integration test: seed Postgres + Valkey + S3 with synthetic workbook; reconstruct via backfill; verify reconstructed cell graph == original cell graph.
 - Audit-chain integrity: every backfilled event has seal lineage to original.
 - Determinism: re-running backfill emits identical reconstructed state.
 

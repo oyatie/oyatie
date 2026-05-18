@@ -111,7 +111,7 @@ When primary pack region degraded, failover to DR pair. Per `failure-modes.md` F
 
 - Postgres: WAL-streaming + 5-min snapshot → RPO ≤ 5 min.
 - Meilisearch: per-pack index re-built from Postgres → RPO ≤ 5 min (via re-index).
-- Redis: ephemeral session state; lost on failover (acceptable; user re-initiates).
+- Valkey: ephemeral session state; lost on failover (acceptable; user re-initiates).
 - S3 bulk-job artifacts: replicated within OCI Object Storage (intra-pack RF-3); RPO ≈ 0 within pack.
 
 ## Engine Adapter Behavior on Region Outage

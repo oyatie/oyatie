@@ -83,7 +83,7 @@ channels:
     messages:
       IacResourcePlannedMessage:
         $ref: '#/components/messages/IacResourcePlanned'
-    description: cloud-iac Terraform plan accepted — cloud-k8s consumes to pre-stage join token
+    description: cloud-iac OpenTofu plan accepted — cloud-k8s consumes to pre-stage join token
 
   tenant-onboarded:
     address: workflow-events/tenancy.tenant.onboarded

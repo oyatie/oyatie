@@ -42,7 +42,7 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice sites
 
 ## References
 
-- ADR-0105, ADR-0106, ADR-0117, ADR-0131, ADR-0140.
+- ADR-0105, ADR-0106, ADR-0117, ADR-0131, ADR-0140 (retired per ADR-0145).
 - ADR-SITES-0002 (rendering), ADR-SITES-0006 (AI-page-build bounds).
 - PRD §"Bounded Contexts" + AC-01/AC-13/AC-15.
 - RFC 3986 (URI generic syntax).

@@ -92,7 +92,7 @@ Key drill: AC-04 tier-escalation refusal — emit event chain validates `Autonom
 ## References
 
 - PRD §"Bounded Contexts" + §"Performance".
-- ADR-0140 (Cedar policy enforcement).
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).
 - `policy/tenant-scope.cedar` PERMIT 4.
 - `threat-model.md` T-E-01 + T-T-05.
 - Cedar v4 — `cedarpolicy.com`.

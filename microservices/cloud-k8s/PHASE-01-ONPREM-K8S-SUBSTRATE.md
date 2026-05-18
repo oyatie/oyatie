@@ -52,7 +52,7 @@ Naming justifications for the new crate families are in `microservices/cloud-k8s
 ### Out-of-scope
 
 - Multi-cluster Istio federation across packs (scheduled-for-distinct-tracked-work to M03 per ADR-0117 §"Cross-region story"). Each pack runs an isolated cluster at M01 launch.
-- Cluster Autoscaler integration (scheduled-for-distinct-tracked-work to M02; node-add is manual via Foundry capability at M01).
+- Karpenter integration (scheduled-for-distinct-tracked-work to M02 per ADR-0198 — Karpenter is the canonical node autoscaler; Cluster Autoscaler is explicitly rejected; node-add is manual via Foundry capability at M01).
 - Workload Identity Federation (SPIFFE-to-cloud-IAM-vendor automatic federation; scheduled-for-distinct-tracked-work to M03 when OCI / AWS / GCP packs activate).
 - In-process Kubernetes-API proxy (HTTP-reverse-proxy at M01; in-process fork scheduled-for-distinct-tracked-work to M04).
 - Tenant-facing kubectl SDK (only operator + agent access at M01; tenant kubectl exposure is a successor-IP ADR).
@@ -63,7 +63,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md`](IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md) | Layer-A IaC: Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + Terraform modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay; CSI drivers per backend (block-volume, object, file) deployed via Helm | pending | axis-cloud | — |
+| [`IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md`](IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md) | Layer-A IaC: Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + OpenTofu modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay; CSI drivers per backend (block-volume, object, file) deployed via Helm | pending | axis-cloud | — |
 | [`IP-002-onprem-k8s-stack-standard.md`](IP-002-onprem-k8s-stack-standard.md) | `docs/standards/cloud-k8s-stack.md` cross-cutting standard: LTS version pins (containerd 2.3.0, runc 1.4.0, CNI plugins 1.6.0, k8s 1.35, Istio 1.29.2); admission-controller config; etcd encryption posture | pending | axis-cloud + ops-security | — |
 | [`IP-003-cluster-bootstrap-kernel.md`](IP-003-cluster-bootstrap-kernel.md) | `oya-cloud-k8s-cluster-bootstrap-kernel`: port traits (KubeadmCommander, EtcdSnapshotter, ControlPlaneInspector), entities (Cluster, ControlPlaneNode, KubeadmConfig, EtcdSnapshot, BootstrapEvidence) | pending | axis-cloud | IP-002 |
 | [`IP-004-cluster-bootstrap-domain.md`](IP-004-cluster-bootstrap-domain.md) | `oya-cloud-k8s-cluster-bootstrap-domain`: kubeadm-version compatibility arithmetic; etcd-snapshot integrity computation; upgrade-window math | pending | axis-cloud | IP-003 |

@@ -28,7 +28,7 @@ Track the workflow-studio µservice's monthly cloud cost across infrastructure (
 | CDN (egress + edge cache) | WASM bundles, node library descriptors, design-system assets | `oracle.com/cloud/cdn/pricing/` |
 | WAF | Ingress in front of CDN + editor REST | `oracle.com/cloud/security/waf/pricing/` |
 | Compute (VM.Standard / OKE node) | Editor REST + WebSocket gateway + node-library-registry-rest + composition-root pods | `oracle.com/cloud/compute/pricing/` |
-| Block storage (PV) | Postgres editor session store; Redis AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
+| Block storage (PV) | Postgres editor session store; Valkey AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Object storage | Signed per-pack node library binaries | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Network egress | WebSocket traffic + cross-region replication | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-pack signing keys (node library + audit chain) | `oracle.com/security/key-management/pricing/` |
@@ -46,7 +46,7 @@ Per `capacity-model.md` §"Worked example: oyatie XS tier (M03 launch; 20 tenant
 | Postgres + Citus coordinator (editor sessions) | 2 × VM.Standard.E4 4-core | $290 | $100 PV | $390 |
 | Postgres workers (Citus shards) | 4 × VM.Standard.E4 4-core | $580 | $400 PV | $980 |
 | Postgres read-replica | 4 × VM.Standard.E4 2-core | $290 | $200 PV | $490 |
-| Redis Sentinel HA (ephemeral CRDT) | 3 × VM.Standard.E4 2-core | $108 | $20 PV (AOF) | $128 |
+| Valkey Sentinel HA (ephemeral CRDT) | 3 × VM.Standard.E4 2-core | $108 | $20 PV (AOF) | $128 |
 | `visual-canvas-rest` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | `collab-crdt-worker` (WebSocket gateway) | 3 × VM.Standard.E4 4-core | $217 | – | $217 |
 | `node-library-registry-rest` | 2 × VM.Standard.E4 1-core | $36 | – | $36 |
@@ -131,7 +131,7 @@ XS tier is uneconomic on per-seat basis (HA minimums dominate); GA target ≤ $5
 | OCI committed-use discounts (1y / 3y) | 20-40% compute | Vendor lock-in window |
 | LLM-assist zero-retention provider mandate | 0% (cost-neutral; risk reduction) | Tenant choice constraint |
 | Per-tenant editor-session budget enforcement | 10-20% compute | Tenant disruption if too aggressive |
-| Redis memory cap per tenant | 5% Redis cost | Tenant disruption on overage |
+| Valkey memory cap per tenant | 5% Valkey cost | Tenant disruption on overage |
 | Object-storage lifecycle: node library binaries → archive after 30d | 10% object storage | Slower library hot-reload after archive |
 
 ## Verification

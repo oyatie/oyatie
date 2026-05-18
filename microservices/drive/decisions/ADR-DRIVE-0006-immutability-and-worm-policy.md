@@ -7,7 +7,7 @@ deciders: axis-drive, council-architecture, ops-security, compliance, council-pr
 owner: compliance + axis-drive + ops-security
 supersedes: []
 superseded_by: []
-related: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131, ADR-0133, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0004]
+related: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0004]
 related_artifacts:
   - microservices/drive/PRD.md (§FR-12 immutability; §FR-21 legal-hold; AC-09 AC-10 worm correctness; AC-14 audit-chain)
   - microservices/drive/policy/tenant-scope.cedar (worm + legal-hold forbid clauses)
@@ -78,7 +78,7 @@ The drive µservice ships **defence-in-depth WORM enforcement across application
 1. **Application layer**: `oya-drive-file-store-usecase` refuses purge / delete / overwrite when `worm_tier_enabled == true && now < worm_retention_floor`.
 2. **Cedar policy layer**: `policy/tenant-scope.cedar` forbid clause on purge action when WORM open.
 3. **Postgres layer**: application role has no DELETE/UPDATE on `immutability_record` table.
-4. **Object-store layer**: per-object retention set at PutObject time via S3 Object Lock; all three backends (Garage / MinIO / SeaweedFS per ADR-DRIVE-0001) support compliance-mode lock.
+4. **Object-store layer**: per-object retention set at PutObject time via S3 Object Lock; all three backends (Garage / SeaweedFS / SeaweedFS per ADR-DRIVE-0001) support compliance-mode lock.
 
 ### Legal hold
 
@@ -207,7 +207,7 @@ Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law":
 - ADR-0028 (Bominal) — audit chain.
 - ADR-0117 — data residency.
 - ADR-0140 — Cedar policy enforcement (`tenant-scope.cedar` WORM + legal-hold forbid).
-- ADR-DRIVE-0001 — object-storage substrate (Garage/MinIO/SeaweedFS object-lock compliance support).
+- ADR-DRIVE-0001 — object-storage substrate (Garage/SeaweedFS/SeaweedFS object-lock compliance support).
 - ADR-DRIVE-0004 — encryption-at-rest (envelope ciphertext is what's WORM'd).
 - `microservices/drive/PRD.md` §FR-12 + §FR-21 + AC-09 + AC-10 + AC-14.
 - `microservices/drive/policy/tenant-scope.cedar`.

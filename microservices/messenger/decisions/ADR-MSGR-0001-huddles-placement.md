@@ -50,7 +50,7 @@ oyatie ships **huddles as a bounded context inside the `messenger` µservice**, 
 
 5. **Retention re-use**: recordings (when enabled) inherit the channel's retention policy. eDiscovery hold engages recordings the same way it engages text messages.
 
-6. **Cross-µservice rule**: messenger's huddles BC MUST NOT directly import any other product µservice's crates. The LiveKit substrate adapter is treated as an external substrate (analogous to Postgres / Redis adapters), not as a cross-product import.
+6. **Cross-µservice rule**: messenger's huddles BC MUST NOT directly import any other product µservice's crates. The LiveKit substrate adapter is treated as an external substrate (analogous to Postgres / Valkey adapters), not as a cross-product import.
 
 7. **Future calling features stay scoped**: PSTN dial-in, broadcast streams, large-scale webinar streaming — these are NOT in messenger's huddles BC. If oyatie ships any of them, they ship as a separate µservice with its own PRD (e.g., `voice-broadcast`), NOT as an expansion of huddles. Huddles stays scoped to "interactive voice/video within a channel or DM, ≤ 30 participants per session" per the LiveKit SFU sweet spot.
 

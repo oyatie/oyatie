@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-docs
-related_adrs: [ADR-0117, ADR-0140]
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145)]
 doc_status: published
 ---
 
@@ -21,21 +21,21 @@ Define where docs data may be stored, processed, and replicated; how cross-borde
 
 ### Invariant DR-01 — Pack-pinned primary storage
 
-> Every tenant's document-metadata Postgres rows + content blobs in S3 + Redis CRDT spool live in exactly one `pack-<jurisdiction>` cluster. The pack is determined at tenant onboarding and pinned in the `tenant_registry` (owned by `tenancy` µservice).
+> Every tenant's document-metadata Postgres rows + content blobs in S3 + Valkey CRDT spool live in exactly one `pack-<jurisdiction>` cluster. The pack is determined at tenant onboarding and pinned in the `tenant_registry` (owned by `tenancy` µservice).
 
 | Pack | Region | Substrate |
 |---|---|---|
-| pack-kr | OCI ap-seoul-1 | Postgres + S3 + Redis cluster KR-resident |
-| pack-eu | OCI eu-frankfurt-1 | Postgres + S3 + Redis cluster EU-resident |
-| pack-us | OCI us-ashburn-1 + us-phoenix-1 | Postgres + S3 + Redis cluster US-resident |
-| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | Postgres + S3 + Redis cluster US-resident, HIPAA-compliant |
-| pack-jp | OCI ap-tokyo-1 | Postgres + S3 + Redis cluster JP-resident |
-| pack-sg | OCI ap-singapore-1 | Postgres + S3 + Redis cluster SG-resident |
-| pack-au | OCI ap-sydney-1 | Postgres + S3 + Redis cluster AU-resident |
-| pack-in | OCI ap-mumbai-1 | Postgres + S3 + Redis cluster IN-resident |
-| pack-br | OCI sa-saopaulo-1 | Postgres + S3 + Redis cluster BR-resident |
-| pack-ae | OCI me-dubai-1 | Postgres + S3 + Redis cluster AE-resident |
-| pack-ksa | OCI me-jeddah-1 | Postgres + S3 + Redis cluster KSA-resident |
+| pack-kr | OCI ap-seoul-1 | Postgres + S3 + Valkey cluster KR-resident |
+| pack-eu | OCI eu-frankfurt-1 | Postgres + S3 + Valkey cluster EU-resident |
+| pack-us | OCI us-ashburn-1 + us-phoenix-1 | Postgres + S3 + Valkey cluster US-resident |
+| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | Postgres + S3 + Valkey cluster US-resident, HIPAA-compliant |
+| pack-jp | OCI ap-tokyo-1 | Postgres + S3 + Valkey cluster JP-resident |
+| pack-sg | OCI ap-singapore-1 | Postgres + S3 + Valkey cluster SG-resident |
+| pack-au | OCI ap-sydney-1 | Postgres + S3 + Valkey cluster AU-resident |
+| pack-in | OCI ap-mumbai-1 | Postgres + S3 + Valkey cluster IN-resident |
+| pack-br | OCI sa-saopaulo-1 | Postgres + S3 + Valkey cluster BR-resident |
+| pack-ae | OCI me-dubai-1 | Postgres + S3 + Valkey cluster AE-resident |
+| pack-ksa | OCI me-jeddah-1 | Postgres + S3 + Valkey cluster KSA-resident |
 
 ### Invariant DR-02 — No default cross-pack replication
 

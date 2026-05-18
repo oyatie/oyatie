@@ -15,7 +15,7 @@ metadata:
 spec:
   description: |
     Collab cursor-sync p99 latency SLO. A cursor-sync hop (presence broadcast
-    via Redis to all subscribers in the same (tenant, doc) lease) completes
+    via Valkey to all subscribers in the same (tenant, doc) lease) completes
     in ≤ 150ms. Mirrors workflow-studio §"Performance" cursor sync budget
     per ADR-DOCS-0001 + ADR-WS-0001 cross-µservice CRDT alignment.
   service: docs

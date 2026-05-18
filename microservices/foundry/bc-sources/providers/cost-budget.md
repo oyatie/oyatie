@@ -28,7 +28,7 @@ Track the foundry-providers µservice's monthly cloud cost and (separately) the 
 |---|---|---|
 | Compute (provider-router pods) | router-rest, router-worker, per-vendor adapter pods | `oracle.com/cloud/compute/pricing/` |
 | Postgres | provider-config persistence (per-pack HA primary+replica) | OCI block storage + compute |
-| Redis | rate-limit / token-bucket state (per-pack sentinel HA) | OCI block storage + compute |
+| Valkey | rate-limit / token-bucket state (per-pack sentinel HA) | OCI block storage + compute |
 | Network egress (to vendor) | All provider calls — typically the dominant traffic | OCI networking + vendor ingress (charged by vendor) |
 | KMS | Per-pack Ed25519 signing keys | `oracle.com/security/key-management/pricing/` |
 | **Upstream vendor cost** | Per-token costs charged by Anthropic / OpenAI / Google | per-vendor public pricing pages |
@@ -45,7 +45,7 @@ Per `capacity-model.md` reference XS-tier scenario (20 tenants, ~10⁶ provider 
 | `oya-foundry-providers-router-app` (composition root) | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | Adapter pods (anthropic / openai / gemini / in-house transports) | 2 × VM.Standard.E4 2-core each, × 4 transports = 8 pods | $288 | – | $288 |
 | Postgres (provider-config; HA primary+replica) | 2 × VM.Standard.E4 2-core | $72 | $50 PV | $122 |
-| Redis (rate-limit; sentinel HA) | 3 × VM.Standard.E4 1-core | $54 | $20 PV | $74 |
+| Valkey (rate-limit; sentinel HA) | 3 × VM.Standard.E4 1-core | $54 | $20 PV | $74 |
 | KMS keyring | – | $5 | – | $5 |
 | Load balancer (per-pack Istio gateway) | – | $20 | – | $20 |
 | **Substrate total per pack region (XS)** | | **~$727** | **~$70** | **~$800 / month** |

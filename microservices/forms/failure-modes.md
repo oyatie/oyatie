@@ -23,7 +23,7 @@ This document enumerates known failure modes, their detection, and the runbook t
 | FM-06 | PII leak from response export | `oya_forms_export_pii_unredacted_total > 0` | 1 (P0) | `runbooks/pii-leak-incident-p0.md` |
 | FM-07 | AI-form-build emits bad output | `oya_forms_ai_build_schema_invalid_total` rate > 30% | 3 | `runbooks/ai-form-build-rollback.md` |
 | FM-08 | Citus shard skew | `oya_forms_citus_shard_size_bytes{shard=*}` max/min > 5 | 3 | Cell migration per ADR-0164 |
-| FM-09 | Redis OOM | Redis `used_memory / maxmemory > 0.95` | 2 | Scale Redis cluster |
+| FM-09 | Valkey OOM | Valkey `used_memory / maxmemory > 0.95` | 2 | Scale Valkey cluster |
 | FM-10 | Webhook DLQ depth growing | `oya_forms_webhook_dlq_depth > 1k` ≥ 30min | 3 | Tenant notify + replay |
 | FM-11 | Bulk-distribute mail throttled by mail µservice | `oya_forms_bulk_distribute_throttle_total > 0` | 3 | Per-tenant back-pressure + queue depth alert |
 | FM-12 | E-signature CA outage | `oya_forms_esign_ca_up == 0` | 2 | Tenant notification + provider failover |
@@ -34,7 +34,7 @@ This document enumerates known failure modes, their detection, and the runbook t
 ## Cross-failure cascades
 
 - **FM-03 → FM-14**: Postgres corruption can cause DSR cascade to fail. DSR runner is idempotent; replay after restore.
-- **FM-09 → FM-01 amplification**: Redis OOM erodes rate-limit; spam flood amplifies. Both runbooks engage simultaneously.
+- **FM-09 → FM-01 amplification**: Valkey OOM erodes rate-limit; spam flood amplifies. Both runbooks engage simultaneously.
 - **FM-02 → FM-01**: captcha outage opens flood; multi-provider fallback bounds blast radius.
 - **FM-07 → tenant trust**: AI-form-build emitting bad output erodes T2 acceptance rate; cf. AI-Act Art. 72 post-market monitoring.
 

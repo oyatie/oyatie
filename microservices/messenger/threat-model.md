@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-messenger + ops-security
 deciders: council-architecture, ops-security, axis-messenger, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/messenger.json]
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:
@@ -44,7 +44,7 @@ All components introduced by parallel ADR-0135 (Connect dual-context inherited) 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres (message + channel + thread store) | `oya-messenger-channel-store-*` (9 crates) |
-| Redis (presence + read-receipt) | `oya-messenger-message-stream-*` (11 crates) |
+| Valkey (presence + read-receipt) | `oya-messenger-message-stream-*` (11 crates) |
 | S3-compatible (attachment blobs) | `oya-messenger-thread-tree-*` (7 crates) |
 | Tantivy / Elasticsearch (message search) | `oya-messenger-read-receipt-tracker-*` (7 crates) |
 | WebSocket gateway (Envoy + Cloudflare termination) | `oya-messenger-file-attachment-*` (8 crates) |
@@ -91,7 +91,7 @@ All components introduced by parallel ADR-0135 (Connect dual-context inherited) 
 │                                                                         │
 │  TB3: BC services → backing stores                                      │
 │                                                                         │
-│  ┌─ Postgres (per-tenant RLS) ─┐  ┌─ Redis cluster ─┐                   │
+│  ┌─ Postgres (per-tenant RLS) ─┐  ┌─ Valkey cluster ─┐                   │
 │  │ messages, channels, threads │  │ presence, recv  │                   │
 │  └─────────────────────────────┘  └─────────────────┘                   │
 │  ┌─ S3 (attachment blobs; KMS) ┐  ┌─ Tantivy/ES ────┐                   │
@@ -125,8 +125,8 @@ Seven trust boundaries:
 | Channel messages (professional) | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_IDENTIFYING` + occasionally `PHI` | per-pack (30d hot, retention floor per regulator) | Postgres (tenant-DEK encrypted) |
 | Channel messages (personal) | `PERSONAL` + E2E ciphertext | per-user policy | Postgres (E2E ciphertext only; no plaintext at rest server-side) |
 | Thread replies | inherits parent | inherits | Postgres |
-| Read receipts | `BEHAVIORAL_TENANT_PRODUCT` | 90d hot | Redis (persisted to Postgres asynchronously) |
-| Presence state | `BEHAVIORAL_TENANT_PRODUCT` | live + 15min trail | Redis |
+| Read receipts | `BEHAVIORAL_TENANT_PRODUCT` | 90d hot | Valkey (persisted to Postgres asynchronously) |
+| Presence state | `BEHAVIORAL_TENANT_PRODUCT` | live + 15min trail | Valkey |
 | File attachments | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_IDENTIFYING` / `PHI` | per-pack | S3 (KMS-encrypted; per-tenant prefix) |
 | Attachment metadata (digest, preview, malware-scan verdict) | `INTERNAL_ONLY` + `AUDIT` | append-only | Postgres |
 | Channel ACL + member list | `BEHAVIORAL_TENANT_PRODUCT` + `AUDIT` | append-only history | Postgres |
@@ -181,7 +181,7 @@ Seven trust boundaries:
 **T-S-04 — Attacker forges presence as user "online" to deceive recipients**
 - Asset: Presence
 - Likelihood L / Impact M / Risk **L**
-- Mitigations: presence transitions write through gateway → Redis with session-token-bound principal; no client-supplied presence except via authenticated connection.
+- Mitigations: presence transitions write through gateway → Valkey with session-token-bound principal; no client-supplied presence except via authenticated connection.
 
 ### Tampering (T)
 
@@ -293,7 +293,7 @@ Seven trust boundaries:
 - Likelihood M / Impact M / Risk **M**
 - Mitigations: backpressure on indexer; live-fallback to Postgres LIKE-search (slower but correct); runbook `runbooks/search-index-rebuild.md`.
 
-**T-D-05 — Redis presence corruption / eviction storm**
+**T-D-05 — Valkey presence corruption / eviction storm**
 - Asset: Presence store
 - Likelihood M / Impact M / Risk **M**
 - Mitigations: persistence enabled (AOF + RDB); replicated; rebuild from session connections; runbook `runbooks/presence-rebuild.md`.

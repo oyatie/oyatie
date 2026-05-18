@@ -128,6 +128,6 @@ Resource state: FormDraft::{tenant_id, draft_id, ai_build_origin=true, tier=T2, 
 
 - All four .cedar fragments in this directory.
 - `threat-model.md`.
-- ADR-0140 Cedar policy.
+- ADR-0140 (retired per ADR-0145) Cedar policy.
 - ADR-FORMS-0002, ADR-FORMS-0005.
 - Cedar v4 semantics documentation — `docs.cedarpolicy.com/`.

@@ -7,7 +7,7 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 related: [ADR-0022, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0136, ADR-0138]
-related_memory: [feedback_workflow_objectgraph_adapter_layer, feedback_naming_justification, feedback_quality_performance_scalability_bar]
+related_memory: [feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145), feedback_naming_justification, feedback_quality_performance_scalability_bar]
 related_specs:
   - /specs/microservices/foundry.json
 purpose: |

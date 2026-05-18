@@ -18,8 +18,8 @@ doc_status: published
 ## Trigger
 
 - `social_feed_render_requests_per_sec` > 10× baseline for ≥ 1 min OR feed-cache hit rate drops < 70%.
-- `social_feed_cache_inconsistency_total` > 0 (Redis split-brain or AOF corruption).
-- Manual rebuild after Redis flush or schema migration.
+- `social_feed_cache_inconsistency_total` > 0 (Valkey split-brain or AOF corruption).
+- Manual rebuild after Valkey flush or schema migration.
 
 ## Severity
 
@@ -29,7 +29,7 @@ Sev-2 default; escalate to Sev-1 if sustained > 30 min or if cascades to post-cr
 
 | Step | Action | Time |
 |---|---|---|
-| 1 | Verify Redis cluster status: `kubectl -n social get pods -l app=social-redis` (replicas Ready) | ≤ 2 min |
+| 1 | Verify Valkey cluster status: `kubectl -n social get pods -l app=social-redis` (replicas Ready) | ≤ 2 min |
 | 2 | Inspect cache breakdown: `social_feed_cache_hit_ratio` by `tenant_id`, `shard_id` | ≤ 3 min |
 | 3 | If cache flushed: pause fanout-on-write briefly to avoid thundering herd | ≤ 5 min |
 | 4 | Trigger per-user lazy rebuild: cache populates on next feed-render | ≤ 5 min |
@@ -45,7 +45,7 @@ If corruption forces full rebuild:
 |---|---|---|
 | 1 | Snapshot current cache state for forensics | ≤ 5 min |
 | 2 | Drop affected per-tenant cache shards | ≤ 5 min |
-| 3 | Replay from `social_posts` Postgres table for last 7 days; rank with current ranking heuristic; write to Redis | up to 30–60 min depending on tenant size |
+| 3 | Replay from `social_posts` Postgres table for last 7 days; rank with current ranking heuristic; write to Valkey | up to 30–60 min depending on tenant size |
 | 4 | Verify per-user feed slice exists for top-100k active users; lazy populate rest | ≤ 15 min |
 | 5 | Verify hit ratio returns to > 95 % within 1h | ≤ 1h |
 
@@ -54,7 +54,7 @@ If corruption forces full rebuild:
 | Hypothesis | Signal | Investigation |
 |---|---|---|
 | Viral post triggers mass concurrent feed-pulls | Single post in top-emitter; topk(channel) shows skew | accept as legitimate; expand cache TTL |
-| Redis split-brain | sentinel quorum lost; AOF mismatch | rebuild from primary; engage cloud-secrets if HA failure |
+| Valkey split-brain | sentinel quorum lost; AOF mismatch | rebuild from primary; engage cloud-secrets if HA failure |
 | Cache flush from misconfigured Helm | recent deploy correlates | rollback Helm; investigate misconfig |
 | Mass-deletion event invalidates cache | high delete rate | recompute ranking with new corpus |
 
@@ -68,12 +68,12 @@ If corruption forces full rebuild:
 ## Postmortem Triggers
 
 - If recurring: review feed-cache sizing in `capacity-model.md`.
-- If corruption pattern: investigate Redis cluster topology.
+- If corruption pattern: investigate Valkey cluster topology.
 - If tenant ingest pattern unsustainable: capacity review with FinOps.
 
 ## References
 
 - `microservices/social/failure-modes.md` FM-01, FM-03.
-- `microservices/social/capacity-model.md` §"Redis Sizing".
+- `microservices/social/capacity-model.md` §"Valkey Sizing".
 - `microservices/social/multi-region.md`.
-- Redis Cluster ops docs.
+- Valkey Cluster ops docs.

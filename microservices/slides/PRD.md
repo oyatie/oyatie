@@ -8,7 +8,7 @@ sales_segment: workspace-product
 tier: external-facing
 milestone_first_ship: M03-workspace-preview
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/microservices/workspace.json]
 related_unbundle_adr: ADR-0135
 unbundle_sibling_set:
@@ -29,7 +29,7 @@ The `slides` µservice is oyatie's **collaborative presentation product** — a 
 
 Slides is **net-new** per ADR-0135 (Connect dissolution) — there is no `oya-connect-slides-*` legacy. The µservice is a hero workspace surface alongside `docs`, `sheets`, `drive`, and `forms`.
 
-Slides operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer.md`): it consumes ontology object-type descriptors for embed-bridge typing; emits authoring + broadcast events to the workflow event-bus; routes cross-µservice flows (sheets chart links, docs quote-embeds, forms polls, messenger broadcast-signaling, drive storage) through SDKs only; runs in the application µservice's hosting shell.
+Slides operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`): it consumes ontology object-type descriptors for embed-bridge typing; emits authoring + broadcast events to the workflow event-bus; routes cross-µservice flows (sheets chart links, docs quote-embeds, forms polls, messenger broadcast-signaling, drive storage) through SDKs only; runs in the application µservice's hosting shell.
 
 Slides inherits the **Loro 1.x CRDT decision** structurally from workflow-studio's ADR-WS-0001 (and parallels docs + sheets) — see ADR-SLIDES-0001 for the slides-specific application. The visual canvas adopts the **Leptos WASM substrate** from ADR-WS-0003 — see ADR-SLIDES-0002 for the slides-specific rendering tier choice.
 
@@ -142,7 +142,7 @@ The load-bearing invariants are: **never silent loss** under concurrent edit (CR
 
 ### Data residency
 
-- Editor session state, deck content (Postgres metadata, S3 snapshots, Redis CRDT cache), per-deck ACL: pack-pinned per tenant `jurisdiction_code` (ADR-0117 inheritance).
+- Editor session state, deck content (Postgres metadata, S3 snapshots, Valkey CRDT cache), per-deck ACL: pack-pinned per tenant `jurisdiction_code` (ADR-0117 inheritance).
 - CDN static assets (WASM, theme gallery, template gallery): global with per-pack edge cache keys.
 - Broadcast-mode signaling: LiveKit nodes pack-pinned via messenger µservice.
 - AI-generation: foundry-runtime handles cross-pack residency; slides inherits.
@@ -308,7 +308,7 @@ CI lanes that must green:
 - `oya gate validate port-location --microservice slides`
 - `oya gate validate layer-correctness --microservice slides`
 - `oya gate validate per-microservice-layout --microservice slides`
-- `oya gate validate statelessness --microservice slides` — REST stateless (state in Postgres + Redis + S3)
+- `oya gate validate statelessness --microservice slides` — REST stateless (state in Postgres + Valkey + S3)
 - `oya gate validate shardability --microservice slides` — editor sessions sharded by tenant_id
 - `oya gate validate slides-pptx-roundtrip-subset --microservice slides` — round-trippable OOXML subset preserved
 - `oya gate validate cedar-preview-required --microservice slides` — every save path exercises Cedar policy preview
@@ -421,7 +421,7 @@ Error budget:
 - Static assets (WASM bundles + theme gallery + template gallery): `cdn` (global edge cache; per-tenant key partitioning).
 - Live broadcast media: LiveKit SFU nodes (consumed via messenger µservice; NOT hosted in slides).
 
-**Active-active compatibility**: `stateless-compatible` for REST/SDK; `single-writer-compatible` for collab CRDT (one WS gateway pod owns active sessions for a given deck; lease-coordinated via Redis); `single-writer-compatible` for broadcast-mode lease.
+**Active-active compatibility**: `stateless-compatible` for REST/SDK; `single-writer-compatible` for collab CRDT (one WS gateway pod owns active sessions for a given deck; lease-coordinated via Valkey); `single-writer-compatible` for broadcast-mode lease.
 
 Per-cell capacity envelope:
 
@@ -438,11 +438,11 @@ Per-cell capacity envelope:
 
 Scale-out policy:
 - Editor REST: stateless HPA on CPU > 70%; min 4 replicas; max 50.
-- WS gateway (real-time-collaboration-worker): stateful per active editor session; lease-coordinated via Redis; HPA on WS connection count; min 3 replicas; max 100.
-- Broadcast-mode worker: stateful per broadcast session; lease via Redis; HPA on session count; min 2 replicas; max 50.
+- WS gateway (real-time-collaboration-worker): stateful per active editor session; lease-coordinated via Valkey; HPA on WS connection count; min 3 replicas; max 100.
+- Broadcast-mode worker: stateful per broadcast session; lease via Valkey; HPA on session count; min 2 replicas; max 50.
 - Export workers (PPTX/PDF/MP4 in gVisor): job-queue HPA; min 4 replicas; max 100; per-job CPU + memory budgets.
 - Postgres + Citus on `tenant_id`; linear shard addition.
-- Redis per-cell cluster; cell-local CRDT + lease state.
+- Valkey per-cell cluster; cell-local CRDT + lease state.
 - CDN global; per-pack edge nodes.
 
 Cross-region story:
@@ -451,7 +451,7 @@ Cross-region story:
 
 Sharding:
 - Postgres on `tenant_id`; deck content snapshots S3 partitioned by `(tenant_id, deck_id)`.
-- Redis per-cell cluster; cell-local CRDT state.
+- Valkey per-cell cluster; cell-local CRDT state.
 - WS gateway: consistent-hash on `deck_id` ensures collab participants land on same gateway pod.
 
 ## Acceptance Criteria

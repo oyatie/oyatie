@@ -41,7 +41,7 @@ ONE of:
 
 1. Identify affected (tenant_id, workbook_id): query `kubectl -n sheets logs -l app=collab-crdt-worker --tail=500 | grep <tenant_id>` OR Grafana dashboard `dashboards/collab-and-fanout.json` filtered to that tenant.
 2. Identify CRDT op stream window: read `oya_sheets_collab_op_stream_seq` for the bracket.
-3. Verify Redis lease integrity: `kubectl -n sheets exec <redis-pod> -- redis-cli HGETALL "lease:tenant:<tenant_hash>:wb:<workbook_id>"`.
+3. Verify Valkey lease integrity: `kubectl -n sheets exec <redis-pod> -- redis-cli HGETALL "lease:tenant:<tenant_hash>:wb:<workbook_id>"`.
 4. Verify Postgres cell-edit seal is current: `SELECT version_sha, sealed_at FROM cell_edit_seals WHERE tenant_id = <h> AND workbook_id = <w> ORDER BY sealed_at DESC LIMIT 5`.
 
 ## Recovery Path A — Explicit conflict UI shown; users reconcile in-product
@@ -72,7 +72,7 @@ Cause: tenant reports cell edits disappeared; OR `silent_loss_attempt_total > 0`
 | Step | Action |
 |---|---|
 | 1 | Declare Sev-2; engage axis-sheets on-call + ops-security. |
-| 2 | Reconstruct CRDT op stream from Postgres cell-edit-seal-deltas + Redis ephemeral state: `cargo run -p oya-sheets-collab-crdt-domain --bin reconstruct -- --tenant <h> --workbook <w>`. |
+| 2 | Reconstruct CRDT op stream from Postgres cell-edit-seal-deltas + Valkey ephemeral state: `cargo run -p oya-sheets-collab-crdt-domain --bin reconstruct -- --tenant <h> --workbook <w>`. |
 | 3 | If reconstructed stream shows the user's ops present + ack'd by server BUT not in final workbook state: confirmed silent loss → Sev-1. |
 | 4 | If Sev-1: **stop all save-paths for the affected (tenant, workbook)**: `cargo run -p oya-dev-cli -- vcs override-paths --microservice sheets --halt-saves --tenant <h> --workbook <w>` (requires 2-person rule). |
 | 5 | Forensic analysis: which CRDT op was dropped? Loro adapter bug? |
@@ -80,7 +80,7 @@ Cause: tenant reports cell edits disappeared; OR `silent_loss_attempt_total > 0`
 | 7 | Tenant notification per `incident-response.md`. |
 | 8 | Postmortem within 5 business days. |
 
-## Recovery Path D — Redis lease split-brain
+## Recovery Path D — Valkey lease split-brain
 
 Cause: two WS gateway pods both claim ownership of the same (tenant, workbook_id) lease.
 
@@ -89,7 +89,7 @@ Cause: two WS gateway pods both claim ownership of the same (tenant, workbook_id
 | 1 | Verify lease object: `kubectl exec <redis> -- redis-cli HGETALL lease:tenant:<h>:wb:<w>`. |
 | 2 | If two pods present: kill the older lease-holder pod. |
 | 3 | Verify only one pod fans out ops for next 5 min. |
-| 4 | If recurring: investigate Redis Sentinel failover OR clock skew. |
+| 4 | If recurring: investigate Valkey Sentinel failover OR clock skew. |
 
 ## Recovery Path E — Mass conflict storm (suspected DoS)
 
@@ -99,7 +99,7 @@ Cause: `sheets_collab_conflict_surfaced_total` rate > 100/s across all workbooks
 |---|---|
 | 1 | Verify legitimacy. |
 | 2 | If suspicious: engage ops-security per `runbooks/recalc-storm-throttle.md`. |
-| 3 | If legitimate: scale WS gateway HPA; verify Redis memory headroom. |
+| 3 | If legitimate: scale WS gateway HPA; verify Valkey memory headroom. |
 
 ## Verification
 

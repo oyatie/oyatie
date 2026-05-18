@@ -8,7 +8,7 @@ entry_gate: |
   PRD-workflow-studio accepted; ADR-0131 unbundle accepted; sibling workflow-engine µservice substrate-ready
   (engine PHASE-01 exit_gate green); cargo workspace ready to accept the 52 new crates under
   microservices/workflow-studio/src/crates/; Layer-A IaC available via cloud-iac µservice (CDN +
-  WebSocket gateway + Postgres + Redis); foundry-providers SDK available for LLM-assist; tenancy
+  WebSocket gateway + Postgres + Valkey); foundry-providers SDK available for LLM-assist; tenancy
   SDK available for per-seat licensing; ontology SDK available for object-type descriptors.
 exit_gate: |
   All 15 IPs merged; Studio binary deployed to dev cluster (with WASM bundle on CDN); workflow-spec-roundtrip
@@ -29,7 +29,7 @@ depends_on:
     phase: prior phases per master-plan-sequencing
     reason: workspace + branch-protection + Cargo metadata authority must precede Studio crate authoring
 owner_team: axis-workflow + council-design-system
-related_adrs: [ADR-0065, ADR-0103, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0065, ADR-0103, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/workflow-studio.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -76,7 +76,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md`](IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (editor session store), Redis (ephemeral CRDT state), WebSocket gateway deployment | pending | axis-workflow + cloud-iac | — |
+| [`IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md`](IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (editor session store), Valkey (ephemeral CRDT state), WebSocket gateway deployment | pending | axis-workflow + cloud-iac | — |
 | [`IP-002-visual-canvas-kernel-domain.md`](IP-002-visual-canvas-kernel-domain.md) | `oya-workflow-studio-visual-canvas-{kernel,domain}` crates: Canvas, Node, Edge, Selection, ViewportState entities + pure layout algebra | pending | axis-workflow + council-design-system | — |
 | [`IP-003-dsl-emitter-loader-kernel-domain.md`](IP-003-dsl-emitter-loader-kernel-domain.md) | `oya-workflow-studio-dsl-emitter-{kernel,domain}` + `oya-workflow-studio-dsl-loader-{kernel,domain}`: pure visual ↔ workflow_spec.v1.json mapping; round-trip byte-equality invariant authored as property test | pending | axis-workflow | IP-002 |
 | [`IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md`](IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md) | dsl-emitter + dsl-loader remaining layers (usecase + api + adapter + sdk) | pending | axis-workflow | IP-003 |
@@ -206,13 +206,13 @@ Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + 
 | kernel crate (`*-kernel`) | 1 per public type + 1 per port trait | 0 (pure) | 0 | 90% line; 80% branch |
 | domain crate (`*-domain`) | 1 per public function + property tests for round-trip + CRDT invariants | 0 | 0 | 95% line; 90% branch |
 | usecase crate (`*-usecase`) | 1 per use case (happy + 2 sad paths) | ≥ 3 against mocked ports | 0 | 90% line; 80% branch |
-| adapter crate (`*-adapter*`) | 1 per port-impl method | ≥ 2 against real backend (Postgres / Redis / CDN test container) | 0 | 85% line; 75% branch |
+| adapter crate (`*-adapter*`) | 1 per port-impl method | ≥ 2 against real backend (Postgres / Valkey / CDN test container) | 0 | 85% line; 75% branch |
 | adapter-leptos-wasm crate | 1 per Leptos component | ≥ 2 component-render tests via wasm-bindgen-test | 0 | 80% line |
 | rest crate (`*-rest`) | 1 per route (happy + auth-fail + tenant-mismatch) | ≥ 2 cross-route flows | 1 per route via REST integration test | 85% line; 75% branch |
 | worker crate (`*-worker`) | 1 per orchestration arm | ≥ 1 long-lived loop integration test (WS gateway) | 1 e2e (10-user collab drill) | 85% line; 75% branch |
 | sdk crate (`*-sdk`) | 1 per public client method (happy + retry + auth-fail) | ≥ 2 against rest crate | 0 | 90% line; 80% branch |
 | app crate (`*-app`) | composition-root smoke tests | 0 (delegates to worker/rest tests) | 1 startup-and-shutdown smoke | 60% line (mostly wiring) |
-| IaC IPs (Helm / Terraform) | n/a | ≥ 1 helm-install + helm-test smoke per chart | 1 against kind/k3d cluster | n/a |
+| IaC IPs (Helm / OpenTofu) | n/a | ≥ 1 helm-install + helm-test smoke per chart | 1 against kind/k3d cluster | n/a |
 
 ## branch-protection.yaml diff preview
 
@@ -291,4 +291,4 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - `/specs/microservices/workflow-studio.json`.
 - `/specs/per-microservice-flat-layout.json`.
 - `microservices/workflow-studio/PRD.md`.
-- Memory: `feedback_workflow_studio_scope.md`, `feedback_workflow_is_shared.md`, `feedback_workflow_objectgraph_adapter_layer.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.
+- Memory: `feedback_workflow_studio_scope.md`, `feedback_workflow_is_shared.md`, `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

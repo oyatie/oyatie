@@ -34,7 +34,7 @@ messenger inbox per ADR-SOC successor-IP); per-tenant pack-aware throttle.
 | `src/crates/oya-social-notifications-domain/src/{notification,digest_bucket,realtime_frame,backpressure}.rs` | create |
 | `src/crates/oya-social-notifications-usecase/src/{emit,dispatch,coalesce}.rs` | create |
 | `src/crates/oya-social-notifications-adapter-postgres/src/repository.rs` | create |
-| `src/crates/oya-social-notifications-adapter-redis/src/queue.rs` | create — Redis Streams for fanout |
+| `src/crates/oya-social-notifications-adapter-redis/src/queue.rs` | create — Valkey Streams (Redis wire-compat) for fanout |
 | `src/crates/oya-social-notifications-worker/src/{dispatcher,digest_builder,messenger_bridge}.rs` | create |
 | `tests/notifications_fanout_e2e.rs` | create |
 

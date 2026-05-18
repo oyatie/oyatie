@@ -43,7 +43,7 @@ Identify, classify, and mitigate threats to the confidentiality, integrity, avai
 |---|---|
 | Postgres + Citus + Patroni (post-store / voting-engine / moderation-queue / kb-article-store) | `oya-community-post-store-*` (10 crates) |
 | Elasticsearch / Tantivy (search-index) | `oya-community-thread-tree-*` (7 crates) |
-| Redis (hot-feed cache + vote buffer) | `oya-community-voting-engine-*` (8 crates) |
+| Valkey (hot-feed cache + vote buffer) | `oya-community-voting-engine-*` (8 crates) |
 | S3 (KB attachment store) | `oya-community-moderation-queue-*` (9 crates) |
 | ClamAV (attachment AV scan inline) | `oya-community-kb-article-store-*` (10 crates) |
 | OpenBao (secrets) | `oya-community-search-index-*` (8 crates) |
@@ -76,7 +76,7 @@ Identify, classify, and mitigate threats to the confidentiality, integrity, avai
 │                                                                           │
 │  oya-community-post-store-rest ───► Postgres (Citus + RLS per tenant)     │
 │  oya-community-kb-article-store-rest ─► Postgres + S3 (per-tenant prefix) │
-│  oya-community-voting-engine-rest ──► Redis (per-tenant key prefix)       │
+│  oya-community-voting-engine-rest ──► Valkey (per-tenant key prefix)       │
 │  oya-community-search-index-rest ───► Elasticsearch (per-tenant index)    │
 │  oya-community-moderation-queue-rest ─► Postgres + audit-chain bridge     │
 │                                                                           │
@@ -145,7 +145,7 @@ Identify, classify, and mitigate threats to the confidentiality, integrity, avai
 | T5.3 | Search-index rebuild storm | Cascading tenant reindex triggers | Critical | Per-tenant rebuild scheduler with token-bucket; staggered windows; runbook `search-rebuild.md` |
 | T5.4 | Moderation queue OOM | Coordinated flag campaign | High | Per-tenant queue depth cap; overflow to S3 cold queue; worker drain priority |
 | T5.5 | Large-attachment upload DoS | Multi-GB resumable upload across many sessions | High | Per-tenant upload bandwidth cap; chunk-size cap; ClamAV inline scan budget |
-| T5.6 | Hot-feed Redis eviction storm | Trending post causing whole-tenant eviction | Medium | Per-tenant Redis namespace + memory quota; LFU eviction; fallback to Postgres warm path |
+| T5.6 | Hot-feed Valkey eviction storm | Trending post causing whole-tenant eviction | Medium | Per-tenant Valkey namespace + memory quota; LFU eviction; fallback to Postgres warm path |
 
 ### T6 — Elevation of Privilege (E)
 
@@ -175,8 +175,8 @@ Identify, classify, and mitigate threats to the confidentiality, integrity, avai
 | A02 Cryptographic Failures | S3 attachment in plaintext / backup unencrypted | KMS-encrypted everything; rotation policy in incident-response.md |
 | A03 Injection | SQL injection via post body; ES query injection | Parameterised queries; ES query templates; tokeniser sanitisation |
 | A04 Insecure Design | Moderation bypass via direct adapter-postgres write | All writes via usecase; domain invariants enforced |
-| A05 Security Misconfiguration | Elasticsearch open to internet; Redis no AUTH | mTLS-only mesh; secrets via OpenBao; CIS Postgres + ES + Redis benchmarks |
-| A06 Vulnerable Components | Outdated ES / Postgres / Redis | Renovate + Trivy CI gate |
+| A05 Security Misconfiguration | Elasticsearch open to internet; Valkey no AUTH | mTLS-only mesh; secrets via OpenBao; CIS Postgres + ES + Valkey benchmarks |
+| A06 Vulnerable Components | Outdated ES / Postgres / Valkey | Renovate + Trivy CI gate |
 | A07 Identification + Auth Failures | JWT replay; weak tenant binding | Short-lived JWT; mTLS; refresh rotation |
 | A08 Software + Data Integrity | Tampered Helm chart; supply-chain attack | Sigstore-signed images; SBOM in CI; cosign verify on admission |
 | A09 Logging + Monitoring Failures | Missing audit log entries | audit-chain seal on every write; gap-detector alert |
@@ -190,7 +190,7 @@ Vote manipulation is the highest-effort threat per parallel-session ADR-0135. La
 2. **Reputation gate** — members < 100 reputation can downvote no more than 30 / day.
 3. **Velocity detector** — `foundry-guardrails` consumes `VoteCast` events; alert + auto-pause on z-score > 5 vs. tenant baseline.
 4. **Coordinated cohort detector** — graph clustering on IP + user-agent + session; same-cluster bursts auto-quarantined to moderation-queue.
-5. **Idempotency** — per `(member_id, post_id)` only one vote (Redis SET NX + Postgres unique constraint).
+5. **Idempotency** — per `(member_id, post_id)` only one vote (Valkey SET NX + Postgres unique constraint).
 
 ## Moderation-Bypass Specific Controls
 

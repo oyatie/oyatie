@@ -1,6 +1,6 @@
 # Per-pack node library publisher set + Ed25519 signing key references.
 # Per threat-model.md T-S-04 (publisher impersonation) + T-T-03 (CDN tampering).
-# Per ADR-0131 + ADR-0140.
+# Per ADR-0131 + ADR-0140 (retired per ADR-0145).
 
 terraform {
   required_providers {

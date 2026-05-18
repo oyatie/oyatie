@@ -68,7 +68,7 @@ acceptance_status: ga
 |---|---|
 | PRD-sites NFR | Security, Audit + Compliance, Data residency |
 | PRD-sites AC | AC-12, AC-13, AC-14 |
-| ADR | ADR-0140 (Cedar pack overlays), ADR-SITES-0007 |
+| ADR | ADR-0140 (retired per ADR-0145) (Cedar pack overlays), ADR-SITES-0007 |
 
 ## Risk + Mitigation
 

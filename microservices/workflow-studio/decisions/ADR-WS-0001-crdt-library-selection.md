@@ -46,7 +46,7 @@ Performance envelope (PRD §"Performance"):
 Substrate constraints:
 - Rust kernel (ADR-0105 layer enum); CRDT merge engine lives in `oya-workflow-studio-collab-crdt-domain` (pure, deterministic).
 - Browser-WASM target (per ADR-0065 Leptos WASM frontend, settled by ADR-WS-0003); CRDT library MUST compile to `wasm32-unknown-unknown`.
-- Ephemeral CRDT state in Redis (PRD §"Horizontal Scalability" mixed-state strategy); reconstructable from Postgres on cold-start.
+- Ephemeral CRDT state in Valkey (PRD §"Horizontal Scalability" mixed-state strategy); reconstructable from Postgres on cold-start.
 - WebSocket gateway long-lived worker (`-worker` crate) fans out CRDT ops via consistent-hash on `definition_id` to keep collaborators on the same pod.
 
 Operational constraints:
@@ -60,7 +60,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the workflow-studio CRDT library
 1. Loro types are wrapped in workflow-studio's own `oya-workflow-studio-collab-crdt-kernel` port traits (`CrdtMergeEngine`, `CrdtState`, `MergeOp`); the library is an implementation detail of the `-domain` crate. Public APIs across BCs MUST NOT leak Loro types — this preserves the option to swap the library without breaking the canvas, dsl-emitter, or SDK contracts.
 2. The Loro tree CRDT (`LoroTree`) backs the node/edge graph; Loro maps (`LoroMap`) back node parameter dictionaries; Loro lists (`LoroList`) back edge ordering. Conflict surfacing uses Loro's built-in version-vector + frontier API; the `Conflict` entity in the kernel wraps Loro `Frontiers` into a UI-renderable shape.
 3. CRDT-to-spec projection (`emit`) deterministically orders Loro nodes by their stable `TreeID`s, with map keys lex-sorted at the dsl-emitter boundary. This makes Loro state projection deterministic and is the seam that lets AC-02 (round-trip byte-equality) hold even though Loro's internal op log is not byte-canonical.
-4. Loro snapshot encoding is used for Redis persistence (`snapshot()` + `import_snapshot()`); JSON projection is used only for the canonical spec emission.
+4. Loro snapshot encoding is used for Valkey persistence (`snapshot()` + `import_snapshot()`); JSON projection is used only for the canonical spec emission.
 5. Loro version pinning + Ed25519-signed advisory feed monitoring; major-version upgrades require a fresh round-trip-corpus drill against the 100-spec golden corpus before merge.
 6. The collab-crdt CI lane (`oya-governance-collab-no-silent-loss`) runs Loro's example test suite + workflow-studio's own AC-06 property test (10 concurrent editors, randomized op interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 

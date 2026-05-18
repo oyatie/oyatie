@@ -43,7 +43,7 @@ Identify, classify, and mitigate threats to the foundry-providers µservice's co
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres (provider-config persistence) | `oya-foundry-providers-router-*` (9 crates) |
-| Redis (rate-limit / token-bucket state) | `oya-foundry-providers-adapter-*` (8 crates per-vendor + transport) |
+| Valkey (rate-limit / token-bucket state) | `oya-foundry-providers-adapter-*` (8 crates per-vendor + transport) |
 | OpenBao agent socket (credential resolution) | provider-router decision algebra |
 | Upstream proxy fleet (mTLS egress) | per-vendor BLAKE3+Ed25519 envelope |
 | Istio service mesh (intra-cluster mTLS) | adapter-substitution defence (signed crate digests) |
@@ -137,7 +137,7 @@ Identify, classify, and mitigate threats to the foundry-providers µservice's co
 **Vector.** A tenant (intentionally or via a compromised workload µservice) drives provider calls past the vendor's published rate limit, incurring upstream throttles or vendor cost overruns.
 
 **Mitigations.**
-1. **In-process token bucket** per (tenant, vendor) keyed in Redis (per-pack sentinel HA); rejected calls return 429 before any upstream HTTP attempt.
+1. **In-process token bucket** per (tenant, vendor) keyed in Valkey (per-pack sentinel HA); rejected calls return 429 before any upstream HTTP attempt.
 2. **Per-tenant per-vendor cost ceiling** (configured by tenant operator; default capped at 100× median); ceiling breach emits `CostCeilingBreached` event + opens `#inc-` channel.
 3. **Vendor-published rate-limit floor** enforced at adapter level even when tenant config requests higher.
 4. **Backpressure to provider-router** when sustained throttling detected; router demotes the vendor for the affected tenant for a configurable cool-down (default 5 min) and routes to next-best.

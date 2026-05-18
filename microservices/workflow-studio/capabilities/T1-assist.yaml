@@ -17,7 +17,7 @@ description: |
 owner_team: axis-workflow + foundry-providers-team
 maturity: preview
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0131, ADR-0140, ADR-0164]
+related_adrs: [ADR-0022, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-0164]
 related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md FR-12

@@ -1,7 +1,7 @@
 {
   "$schema": "https://oyatie.dev/schemas/eu-ai-act-risk-class-registry.json",
   "registry_version": "1.0",
-  "canonical_authority": "ADR-0064 + ADR-0140 EU AI Act compliance",
+  "canonical_authority": "ADR-0064 + ADR-0140 (retired per ADR-0145) EU AI Act compliance",
   "regulation": "EU AI Act 2024/1689",
   "consumer_pattern": "microservices/<ms>/capabilities/{T0,T1,T2}.yaml references entries by archetype",
   "_doc": "Per-µservice capability YAMLs reference a registry entry to derive their EU AI Act risk class + Annex III mapping. Canonical mapping by capability archetype.",

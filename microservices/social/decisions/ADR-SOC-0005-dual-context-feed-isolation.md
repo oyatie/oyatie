@@ -144,7 +144,7 @@ oyatie social adopts the **dual-context isolation pattern from parallel ADR-0135
 - Code-duplication overhead: ~2x crate count vs single-context model (distinct PersonalPost vs ProfessionalPost adapter / usecase / api).
 - Migration scenarios complicated: a user who started as Personal and wants to migrate to Professional (e.g., monetising as creator) cannot convert; must re-create profile + re-establish followers; UX friction.
 - gtm narrative must explain why we don't blend (some tenant-admins may want LinkedIn-style activity-stream view).
-- Storage / indexing overhead: per-context partitions consume additional Postgres + Redis + Meilisearch shards.
+- Storage / indexing overhead: per-context partitions consume additional Postgres + Valkey + Meilisearch shards.
 
 ### Operational
 

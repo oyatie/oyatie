@@ -30,7 +30,7 @@ Specify how workflow-studio handles two scenarios:
 
 When historical editor session state needs reconstruction:
 
-1. **Read source**: Postgres `editor_session_seals` table (Ed25519-sealed per-save) + Redis ephemeral state (if still in memory) + audit-chain seal log (cross-µservice fallback).
+1. **Read source**: Postgres `editor_session_seals` table (Ed25519-sealed per-save) + Valkey ephemeral state (if still in memory) + audit-chain seal log (cross-µservice fallback).
 2. **Reconstruct CRDT op stream**: from per-save seal-deltas, replay merged ops in sequence; validate sequence-num monotonic; verify HMAC on every op.
 3. **Verify audit-chain integrity**: every reconstructed save event must have a corresponding seal in audit-chain µservice; chain must be reconstructable.
 4. **Emit `EditorSessionReconstructed` event**: consumed by observability for forensic dashboards; audit-chain seals the reconstruction itself.
@@ -45,7 +45,7 @@ When historical editor session state needs reconstruction:
 
 ### Verification
 
-- Integration test: seed Postgres + Redis with synthetic session; reconstruct via backfill; verify reconstructed canvas == original canvas (CRDT state isomorphism).
+- Integration test: seed Postgres + Valkey with synthetic session; reconstruct via backfill; verify reconstructed canvas == original canvas (CRDT state isomorphism).
 - Audit-chain integrity: every backfilled event has seal lineage to original.
 - Determinism: re-running backfill emits identical reconstructed state.
 

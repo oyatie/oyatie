@@ -39,7 +39,7 @@ Define per-tenant and per-cell unit economics for tasks. FinOps gate: per-tenant
 | Component | Baseline / cell / mo | Notes |
 |---|---|---|
 | Postgres (task-store + project-list + dependency-edge; 3-replica HA + per-tenant RLS) | $4,800 | OCI VM.Standard3.Flex 16 OCPU × 3 + 4TB persistent block + S3 backup |
-| Redis (view-cache + presence; cluster mode 3-shard) | $1,100 | OCI Caching Service standard tier |
+| Valkey (view-cache + presence; cluster mode 3-shard) | $1,100 | OCI Caching Service standard tier |
 | Meilisearch (search-index; 3-node cluster) | $1,800 | OCI VM.Standard.E5.Flex × 3 (4 OCPU + 32 GB + 500 GB SSD per node) |
 | Kubernetes nodes (rest + worker pods) | $2,800 | OCI VM.Standard.E5.Flex × 8 baseline |
 | Foundry-runtime quota (T0/T1/T2 LLM invocations) | $2,500 | per-tenant tier-bound; pay-per-invocation |
@@ -88,7 +88,7 @@ Cost-meter emitted as Mimir metric per ADR-0123 + finops standards:
 | Optimisation | Estimated savings | Status |
 |---|---|---|
 | Per-tenant partition pruning on Postgres | 40% on read latency + 25% on storage | Implemented in PHASE-01 CS-02 |
-| Redis view-cache TTL ≤ 60s + single-flight | 70% on view-render Postgres reads | Implemented in PHASE-01 CS-07 |
+| Valkey view-cache TTL ≤ 60s + single-flight | 70% on view-render Postgres reads | Implemented in PHASE-01 CS-07 |
 | Meilisearch incremental indexing (delta-only) | 80% on indexing CPU vs full-rebuild | Implemented in PHASE-01 CS-08 |
 | Pre-warm pod pool (5 standby) | sub-1s cold-start vs 5s on-demand | Implemented in PHASE-01 CS-03 |
 | Foundry-runtime quota caching (T0 same-prompt) | 50% on T0 invocation cost | Implemented in PHASE-01 CS-15 |

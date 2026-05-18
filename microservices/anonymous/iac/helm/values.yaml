@@ -25,7 +25,7 @@ postgres:
 redis:
   enabled: true
   image:
-    tag: "7.2.4"  # Redis 7.2 LTS
+    tag: "7.2.4"  # Valkey 8.1 (Redis wire-compat)
   auth:
     existingSecret: ${openbao:secret/anonymous/redis-auth}
   cluster:

@@ -172,7 +172,7 @@ Scaffolding for `pack-cn-stub` ships in M01 IaC but **production activation is N
 ### negative
 
 1. **Reduced engine selection latitude in restrictive packs** (pack-kr, pack-jp, pack-in, pack-br, pack-ae, pack-ksa, pack-cn-stub) — in-house parity bar must close gap; ADR-0026 + ADR-TRANSLATE-0001 fallback constraints.
-2. **Per-pack engineering + ops cost** — 11 packs × per-pack overlays + 11 Postgres clusters + 11 Meilisearch + 11 Redis; folded into capacity-model.md.
+2. **Per-pack engineering + ops cost** — 11 packs × per-pack overlays + 11 Postgres clusters + 11 Meilisearch + 11 Valkey; folded into capacity-model.md.
 3. **Per-vendor regional-endpoint operational variance** — each vendor's regional endpoint matrix changes; per-vendor adapter-pin runbook tracks.
 
 ### neutral

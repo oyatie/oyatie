@@ -104,5 +104,5 @@ cargo run -p oya-dev-cli -- gate validate cedar-derived-policy-paired --microser
 
 ## References
 
-- ADR-0140 (Cedar); ADR-0121; `policy/cluster-isolation.md` CI-06.
+- ADR-0140 (retired per ADR-0145) (Cedar); ADR-0121; `policy/cluster-isolation.md` CI-06.
 - Cedar — `docs.cedarpolicy.com`.

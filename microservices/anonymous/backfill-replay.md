@@ -29,8 +29,8 @@ Define the canonical procedures for **backfill** (initial data load into a new r
 | New region / cell onboarding within an existing pack | per-cell | ops-sre-reliability |
 | Postgres shard split (when a cell hits 10k posts/sec aggregate per PRD §"Horizontal Scalability") | rare; per shard split | ops-sre-reliability |
 | Meilisearch hashtag index rebuild after corruption | rare; on hashtag-index FM-08 incident | ops-data |
-| Redis feed-cache warm after a flush | rolling; routine | ops-sre-reliability |
-| Vote-counter Postgres flush after Redis loss | per Redis FM-04 incident | ops-sre-reliability |
+| Valkey feed-cache warm after a flush | rolling; routine | ops-sre-reliability |
+| Vote-counter Postgres flush after Valkey loss | per Valkey FM-04 incident | ops-sre-reliability |
 
 ## When replay is needed
 

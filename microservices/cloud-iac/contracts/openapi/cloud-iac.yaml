@@ -190,7 +190,7 @@ security:
 paths:
   /microservices/{microservice}/render:
     post:
-      summary: Trigger a render of a µservice's IaC sources (Helm + Kustomize + Terraform-plan)
+      summary: Trigger a render of a µservice's IaC sources (Helm + Kustomize + OpenTofu-plan)
       operationId: triggerRender
       parameters:
         - $ref: '#/components/parameters/XMicroservice'

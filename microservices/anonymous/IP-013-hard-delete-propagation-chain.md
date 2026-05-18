@@ -12,11 +12,11 @@ acceptance_lanes: [cargo-test, oya-governance-propagation-correctness]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-013: Hard-delete propagation chain (Postgres → Redis → Meilisearch → audit-chain tombstone)
+# IP-013: Hard-delete propagation chain (Postgres → Valkey → Meilisearch → audit-chain tombstone)
 
 ## Intent
 
-Implement the cross-BC propagation chain ensuring a hard-delete on the post-thread BC propagates to feed-timeline (Redis), search-index (Meilisearch), and audit-chain (tombstone seal) within p99 ≤ 5s. The propagation is the load-bearing surface for the I3 invariant.
+Implement the cross-BC propagation chain ensuring a hard-delete on the post-thread BC propagates to feed-timeline (Valkey), search-index (Meilisearch), and audit-chain (tombstone seal) within p99 ≤ 5s. The propagation is the load-bearing surface for the I3 invariant.
 
 ## ChangeSet
 
@@ -28,7 +28,7 @@ Implement the cross-BC propagation chain ensuring a hard-delete on the post-thre
 
 - E2E propagation test: delete a post; verify within 5s that:
   - Postgres no longer returns the post
-  - Redis feed cache no longer returns the post
+  - Valkey feed cache no longer returns the post
   - Meilisearch index no longer returns the post
   - Audit-chain tombstone seal verifiable
 - Failure injection: kill propagation worker mid-flight; verify resumption

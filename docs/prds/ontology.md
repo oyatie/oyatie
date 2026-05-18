@@ -36,7 +36,7 @@ pillar enforcement, and a plugin SDK for custom renderers.
 All cross-µservice data sharing flows through Ontology. No µservice reads
 another µservice's Postgres tables directly. Products write Object Types and
 read them via Ontology Functions — Ontology is the canonical data adapter
-(per `feedback_workflow_objectgraph_adapter_layer.md`).
+(per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`).
 
 Inherits from Bominal ADR-0106 (Ontology architecture) 1:1 with one naming
 override: Bominal calls this "Object Graph"; oyatie renames it "Ontology"
@@ -88,7 +88,7 @@ Ontology is internal substrate; value manifests through every product built on i
 
 ### Security
 - Postgres RLS `tenant_id` enforced on every Object Type table; `FORCE ROW LEVEL SECURITY`.
-- Cedar policy enforced on every Action Type invocation (ADR-0007 + ADR-0140).
+- Cedar policy enforced on every Action Type invocation (ADR-0007 + ADR-0140 (retired per ADR-0145)).
 - Pillar enforcement (ADR-0132): org-pillar Object Types require `org_id` in JWT;
   person-pillar require `user_id`; cross-pillar reads require explicit Cedar grant.
 - Agent gateway (ADR-0107): LLM tool calls validated against Function schema;

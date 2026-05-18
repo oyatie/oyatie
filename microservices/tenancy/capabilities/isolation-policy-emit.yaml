@@ -18,7 +18,7 @@ description: |
 owner_team: axis-tenancy + ops-security
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0018, ADR-0028, ADR-0105, ADR-0131, ADR-0140]
+related_adrs: [ADR-0018, ADR-0028, ADR-0105, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/tenancy/PRD.md (FR-12)
   - microservices/tenancy/policy/rls-isolation.md (Invariants RLS-01..RLS-08)

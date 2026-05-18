@@ -30,7 +30,7 @@ End-to-end incident-response procedure for social events. Covers severity classi
 | Severity | Definition | Page-to-ack target | Examples |
 |---|---|---|---|
 | **Sev-1** | Cross-tenant or cross-context confidentiality / integrity / availability impact; regulatory notification triggers; data breach; safety violation | ≤ 5 min (24/7) | FM-05 follow-graph corruption; FM-07 cross-tenant leak; FM-10 cross-context violation; FM-12 four-eyes violation; FM-13 pack misroute; FM-14 personal-tier-federation leak; FM-15 minor-list pivot |
-| **Sev-2** | Single-tenant or sub-tenant impact; operational degradation without data loss; service unavailable for multi-tenant subset | ≤ 15 min (24/7) | FM-01 feed-render storm; FM-02 Postgres primary outage; FM-03 Redis corruption; FM-04 media-store outage; FM-09 media-malware detected (pattern); FM-16 moderation classifier drift |
+| **Sev-2** | Single-tenant or sub-tenant impact; operational degradation without data loss; service unavailable for multi-tenant subset | ≤ 15 min (24/7) | FM-01 feed-render storm; FM-02 Postgres primary outage; FM-03 Valkey corruption; FM-04 media-store outage; FM-09 media-malware detected (pattern); FM-16 moderation classifier drift |
 | **Sev-3** | Localised impact; degraded but functional | ≤ 1h (business hours) | FM-06 search lag; FM-08 mention storm; FM-11 notification fanout backlog; FM-17 trending poisoning; FM-18 capacity exhaustion; FM-19 ontology degraded |
 | **Sev-4** | Cosmetic; tracked but not paged | next business day | dashboard label typos; minor doc drift |
 

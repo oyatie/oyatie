@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-ontology + ops-security
 deciders: council-architecture, ops-security, axis-ontology, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0006, ADR-0028, ADR-0055, ADR-0056, ADR-0059, ADR-0106, ADR-0107, ADR-0117, ADR-0122, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0006, ADR-0028, ADR-0055, ADR-0056, ADR-0059, ADR-0106, ADR-0107, ADR-0117, ADR-0122, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Cedar / Postgres / ClickHouse / Agent gateway architecture change
 enforced_frameworks:

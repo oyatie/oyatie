@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-cloud-iac + ops-security
 deciders: council-architecture, ops-security, axis-cloud-iac, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154 + SLSA L3
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 review_cadence: quarterly + on every Layer-A or Layer-B architecture change
 enforced_frameworks:
@@ -142,7 +142,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
-| IaC manifest text (Helm charts, Terraform modules, Kustomize overlays) | `INTERNAL_ONLY` | Medium | git history append-only | git + `microservices/<ms>/iac/` |
+| IaC manifest text (Helm charts, OpenTofu modules, Kustomize overlays) | `INTERNAL_ONLY` | Medium | git history append-only | git + `microservices/<ms>/iac/` |
 | Rendered manifest output (post-template-resolve) | `INTERNAL_ONLY` + transient | Low | not persisted; content-addressable digest stored in registry | iac-registry (digest only) |
 | Apply state index (per-µservice, per-pack, per-env current-SHA + applied-at) | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | High | append-only Postgres; backed up to S3 per pack; ≥6y for HIPAA pack, ≥3y for KR pack, ≥2y universal | Postgres + S3 |
 | Terraform/OpenTofu state files | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `SECRET` (state can contain secret values; we redact + encrypt) | High | per-pack object storage; SSE-KMS; versioned | S3 per pack |
@@ -454,7 +454,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Residual: L
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30, A.8.14; GDPR Art. 32(1)(c)
 
-**T-D-04 — State-lock contention (concurrent Terraform applies race on the same state)**
+**T-D-04 — State-lock contention (concurrent OpenTofu applies race on the same state)**
 - Asset: OpenTofu state-lock Postgres advisory lock
 - Likelihood: M / Impact: M / Risk: **M**
 - Mitigations:
@@ -533,7 +533,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Likelihood: L (insider-malicious threat) / Impact: H / Risk: **M**
 - Mitigations:
   - State file write requires OpenBao JIT elevation + 2-person rule.
-  - Mass-destroy patterns (e.g., terraform destroy across many resources) trigger anomaly alert and require ExecSponsor approval.
+  - Mass-destroy patterns (e.g., tofu destroy across many resources) trigger anomaly alert and require ExecSponsor approval.
   - Soft-deletion: terraform destroys mark resources for deletion + 30-day grace; actual delete scheduled-for-distinct-tracked-work unless override.
   - Bucket versioning enables state restore.
 - Owner: ops-security + axis-cloud-iac
@@ -572,7 +572,7 @@ Cross-cuts STRIDE + LINDDUN. Each mitigation appears in at least one threat row 
 | Network policy: applier → workload-cluster apiservers only | Preventive | ops-sre-reliability | Kubernetes NetworkPolicy review |
 | Stuck-apply timeout (15min p999) + bounded retry budget | Preventive (DoS) | axis-cloud-iac | apply-timeout integration test |
 | HA Postgres iac-state-index + WAL-archive + PITR | Recovery | cloud-secrets + axis-cloud-iac | DR drill quarterly |
-| Soft-deletion (30d grace) on terraform destroy | Recovery | axis-cloud-iac | terraform-destroy anomaly alert |
+| Soft-deletion (30d grace) on tofu destroy | Recovery | axis-cloud-iac | terraform-destroy anomaly alert |
 | Cosign keyless signing (Fulcio + Rekor) | Preventive | ops-security | Sigstore docs |
 | LEAN check oya-check-cluster-drift-baseline | Detective | axis-cloud-iac | per-PR lane |
 

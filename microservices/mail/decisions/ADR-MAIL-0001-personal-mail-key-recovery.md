@@ -117,7 +117,7 @@ Both modes share three invariants:
 - RFC 9580 — OpenPGP (cryptographic envelope for signing certs)
 - RFC 4880 — OpenPGP predecessor (still cited by many tooling chains)
 - RFC 8551 — S/MIME 4.0 (alternative signing chain at user preference)
-- Shamir, A. — "How to share a secret" (CACM 1979) + modern implementations (`vsss-rs`, HashiCorp Vault Shamir, Signal Secure Value Recovery v3)
+- Shamir, A. — "How to share a secret" (CACM 1979) + modern implementations (`vsss-rs`, OpenBao Shamir, Signal Secure Value Recovery v3)
 - NIST SP 800-57 Part 1 Rev. 5 — Recommendation for Key Management
 - KR PIPA (Personal Information Protection Act) Art. 23-2 — substitute decision provisions
 - GDPR Art. 32 — security of processing; Recital 27 — data of the deceased

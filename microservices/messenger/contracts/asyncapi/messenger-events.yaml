@@ -181,11 +181,41 @@ operations:
       address: workflow-events/audit_chain.sealed
 
 components:
+  # Canonical event envelope header per ADR-0154
+  # (event-schema-versioning). Every message MUST carry the
+  # `version` header (SemVer) plus `event_id` (ULID), `event_kind`,
+  # `tenant_id` (ULID), `occurred_at` (RFC 3339).
+  messageTraits:
+    OyaEventEnvelope:
+      headers:
+        type: object
+        required: [event_id, event_kind, version, tenant_id, occurred_at]
+        properties:
+          event_id:
+            type: string
+            format: ulid
+            description: Per-event ULID per ADR-0156 id-discipline.
+          event_kind:
+            type: string
+            pattern: '^oya\.'
+            description: Canonical event kind (`oya.<microservice>.<verb>.<aggregate>`).
+          version:
+            type: string
+            pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+            description: SemVer schema version per ADR-0154.
+          tenant_id:
+            type: string
+            format: ulid
+          occurred_at:
+            type: string
+            format: date-time
   messages:
     MessagePosted:
       name: MessagePosted
       contentType: application/json
       summary: A message was posted to a channel
+      traits:
+        - $ref: '#/components/messageTraits/OyaEventEnvelope'
       payload:
         $ref: '#/components/schemas/MessagePostedPayload'
 

@@ -76,7 +76,7 @@ acceptance_status: ga
 - Meilisearch documentation (`meilisearch.com/docs`).
 - Elasticsearch multi-tenancy reference (Elastic Docs).
 - Otter.ai search infrastructure overview (Otter.ai engineering blog).
-- ADR-0140 (Cedar policy).
+- ADR-0140 (retired per ADR-0145) (Cedar policy).
 
 ## Next IP
 

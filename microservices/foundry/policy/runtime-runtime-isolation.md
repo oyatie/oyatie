@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-foundry-runtime
 deciders: council-architecture, ops-security, axis-foundry-runtime, council-privacy
-related_adrs: [ADR-0022, ADR-0025, ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0025, ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/foundry/threat-model.md (Trust Boundaries 2 + 3; T-S-01, T-I-01, T-E-01)
   - microservices/foundry/dpia.md (R-02, R-05, R-15, R-17)
@@ -62,13 +62,13 @@ Drives capacity-allocator + retention-policy + autonomy-ceiling defaults but doe
 
 ## Runtime Isolation Invariants
 
-### Invariant TI-01: Redis tenant-prefix mandatory
+### Invariant TI-01: Valkey tenant-prefix mandatory
 
-Every Redis key written by SessionStore MUST be prefixed `<hashed_tenant_id>:` regardless of code path. The LEAN check `oya-check-session-prefix-isolation` greps for any unprefixed Redis op in `oya-foundry-runtime-session-state-adapter-redis` source; presence fails the lane. Integration test asserts cross-tenant read returns empty (not an error — returns empty so adversarial probing yields no signal).
+Every Valkey key written by SessionStore MUST be prefixed `<hashed_tenant_id>:` regardless of code path. The LEAN check `oya-check-session-prefix-isolation` greps for any unprefixed Valkey op in `oya-foundry-runtime-session-state-adapter-redis` source; presence fails the lane. Integration test asserts cross-tenant read returns empty (not an error — returns empty so adversarial probing yields no signal).
 
-### Invariant TI-02: Per-tenant Redis ACL
+### Invariant TI-02: Per-tenant Valkey ACL
 
-Per-tenant Redis ACL restricts the application user's command set to read/write on prefix `<hashed_tenant_id>:*` only. Cross-prefix reads return `(error) NOPERM`. Admin commands (`FLUSHDB`, `CONFIG SET`, `KEYS *`) require JIT OpenBao elevation + 2-person rule.
+Per-tenant Valkey ACL restricts the application user's command set to read/write on prefix `<hashed_tenant_id>:*` only. Cross-prefix reads return `(error) NOPERM`. Admin commands (`FLUSHDB`, `CONFIG SET`, `KEYS *`) require JIT OpenBao elevation + 2-person rule.
 
 ### Invariant TI-03: Postgres row-level security (RLS) on every multi-tenant table
 
@@ -82,7 +82,7 @@ CI lane: `oya-check-foundry-runtime-no-wildcard-tenant-query` greps for any `ten
 
 ### Invariant TI-05: No client-side tenant filtering as the only check
 
-Application-layer tenant filtering is advisory; the load-bearing checks are server-side (Redis ACL + Postgres RLS + Cedar at REST). This invariant exists to prevent reliance on a single layer.
+Application-layer tenant filtering is advisory; the load-bearing checks are server-side (Valkey ACL + Postgres RLS + Cedar at REST). This invariant exists to prevent reliance on a single layer.
 
 ### Invariant TI-06: Per-tenant + per-capability rate limits
 
@@ -124,11 +124,11 @@ Every runtime pod:
 
 ## Failure Modes
 
-### FM-01: Redis cluster partition / overload
+### FM-01: Valkey cluster partition / overload
 
 Per `failure-modes.md` FM-01: replication; rate limits; autoscale. Tenant impact: bounded latency, no data loss within ingester window.
 
-### FM-02: Redis ACL drift
+### FM-02: Valkey ACL drift
 
 CI refuses merge; live-cluster ACL change reverted automatically; ops-security incident if intentional.
 
@@ -163,7 +163,7 @@ Every cross-tenant boundary event is audit-chain-emitted per Bominal ADR-0028:
 | Event | Emitter | Fields | Retention |
 |---|---|---|---|
 | Tenant spoofing attempt | REST handler | `attempted_tenant_id, source_ip, source_spiffe_id, timestamp, request_id` | ≥1y (HIPAA 6y) |
-| Reserved-namespace write attempt | Postgres RLS / Redis ACL | `target_table_or_key, source_spiffe_id, attempted_tenant_id, timestamp` | ≥1y |
+| Reserved-namespace write attempt | Postgres RLS / Valkey ACL | `target_table_or_key, source_spiffe_id, attempted_tenant_id, timestamp` | ≥1y |
 | Unauthorised read attempt | REST Cedar evaluator | `principal_id, requested_tenant_id, action, resource, timestamp` | ≥1y |
 | AutonomyViolationDetected | usecase orchestrator | `tenant_id, capability_id, requested_tier, ceiling_at_check_time, timestamp` | indefinite |
 | Provider credential rotation | OpenBao + foundry-providers | `provider, prev_credential_id_hash, new_credential_id_hash, rotated_by, timestamp` | ≥1y |
@@ -224,6 +224,6 @@ Per-pack overlays at `regional-packs/<pack>/foundry-runtime-isolation-overlay.md
 - `microservices/foundry/policy/data-residency.md`.
 - SPIFFE / SPIRE — `spiffe.io`.
 - OpenBao — `openbao.org`.
-- Redis ACL — `redis.io/docs/management/security/acl/`.
+- Valkey ACL — `redis.io/docs/management/security/acl/`.
 - Postgres RLS — `postgresql.org/docs/16/ddl-rowsecurity.html`.
 - Kubernetes Pod Security Standards — `kubernetes.io/docs/concepts/security/pod-security-standards/`.

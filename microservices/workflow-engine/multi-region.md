@@ -50,7 +50,7 @@ For packs with a DR pair:
 │  ┌──────────────────────────┐            ┌──────────────────────────┐    │
 │  │ Engine workers (active)  │            │ Engine workers (warm)    │    │
 │  │  - HPA min 3, max 200    │   replic   │  - 0.6× capacity         │    │
-│  │  - lease state in Redis  │ ◀────────▶ │  - cold; warmed at FO    │    │
+│  │  - lease state in Valkey  │ ◀────────▶ │  - cold; warmed at FO    │    │
 │  └──────────────────────────┘   intra-   └──────────────────────────┘    │
 │  ┌──────────────────────────┐   pack     ┌──────────────────────────┐    │
 │  │ Postgres + Citus (active) │           │ Postgres replica (warm)  │    │
@@ -58,7 +58,7 @@ For packs with a DR pair:
 │  │  - RF=3 within region     │           │  - lag ≤ 30s              │    │
 │  └──────────────────────────┘            └──────────────────────────┘    │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐    │
-│  │ Redis Sentinel (active)  │            │ Redis Sentinel (warm)    │    │
+│  │ Valkey Sentinel (active)  │            │ Valkey Sentinel (warm)    │    │
 │  └──────────────────────────┘            └──────────────────────────┘    │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐    │
 │  │ ClickHouse (active)      │            │ ClickHouse (warm)        │    │
@@ -77,7 +77,7 @@ For packs with a DR pair:
 | Component | Mode | RPO | Cross-region |
 |---|---|---|---|
 | Postgres + Citus | Streaming replication (synchronous on coordinator; async on workers) | ≤ 5s on writes; ≤ 30s on bulk | intra-pack only |
-| Redis Sentinel | Async cross-AZ within region; cross-region on demand at failover | Lease state regenerable from Postgres on cold-start | intra-pack only |
+| Valkey Sentinel | Async cross-AZ within region; cross-region on demand at failover | Lease state regenerable from Postgres on cold-start | intra-pack only |
 | ClickHouse | Async replication (replicated tables) | ≤ 30s | intra-pack only |
 | Outbox event log | Postgres-native; same as Postgres replication | ≤ 5s | intra-pack only |
 | Spec versions | Postgres-replicated + git-versioned | 0 (declarative) | intra-pack only |
@@ -93,7 +93,7 @@ Per `policy/data-residency.md`, no run state or event data crosses pack boundari
 
 ### Primary-region degraded (Sev-2)
 
-1. Detection: engine workers + Postgres + Redis `request_failures_total > threshold` for ≥ 5min; or AZ-level OCI outage.
+1. Detection: engine workers + Postgres + Valkey `request_failures_total > threshold` for ≥ 5min; or AZ-level OCI outage.
 2. ops-sre-reliability on-call paged.
 3. Verify failure scope (component-level vs region-level).
 4. If component-level: scale out unaffected; await OCI recovery (see `failure-modes.md` FM-05).
@@ -104,9 +104,9 @@ Per `policy/data-residency.md`, no run state or event data crosses pack boundari
 
 | Phase | Step | Time budget |
 |---|---|---|
-| 1 | Verify DR-pair region healthy (Postgres replica caught up; Redis Sentinel reachable; engine workers warm) | ≤ 2 min |
+| 1 | Verify DR-pair region healthy (Postgres replica caught up; Valkey Sentinel reachable; engine workers warm) | ≤ 2 min |
 | 2 | Promote Postgres replica → primary (Citus coordinator + workers; cuts off old primary writes) | ≤ 5 min |
-| 3 | Promote Redis Sentinel quorum → DR-pair | ≤ 2 min |
+| 3 | Promote Valkey Sentinel quorum → DR-pair | ≤ 2 min |
 | 4 | Update Global Traffic Manager: DNS → DR-pair endpoints | ≤ 1 min (TTL 60s) |
 | 5 | Scale engine workers in DR-pair from 0.6× to 1.0× primary capacity (HPA) | ≤ 10 min |
 | 6 | Resume in-flight runs from Postgres state in DR-pair; rate-limited replay storm cadence | ≤ 10 min |
@@ -194,7 +194,25 @@ Per-pack BCDR specifics live at `regional-packs/<pack>/multi-region-overlay.md`.
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
 - Postgres + Citus replication — `docs.citusdata.com/`.
 - ClickHouse replicated tables — `clickhouse.com/docs/en/engines/table-engines/mergetree-family/replication`.
-- Redis Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `redis.io/topics/sentinel`.
 - ISO/IEC 22301:2019 (Business continuity).
 - NIST SP 800-34 (Contingency planning).
 - EU DORA Regulation 2022/2554.
+
+---
+
+## ADR-0158 Multi-Region Disposition Statement
+
+**Disposition: `active_passive` per cell (state machine with per-cell strong consistency).**
+
+Per ADR-0158, the workflow-engine µservice is declared `active_passive`. The durable state machine requires strong consistency within a cell; cross-region failover is intra-region only with warm-standby semantics.
+
+| Property | Value |
+|---|---|
+| Disposition | `active_passive` per cell |
+| RPO (intra-region) | ≤ 10 seconds (synchronous PostgreSQL replication) |
+| RTO (intra-region) | ≤ 90 seconds (warm-standby promotion) |
+| Cross-region replication model | warm-standby async (~5 second lag) |
+| Sovereign-pin behavior | tenant pinned to home region; cross-region promotion forbidden |
+
+The deterministic-replay lane (per IP-015) requires that workflow execution be reproducible from event log. Cross-region "active" execution of the same workflow would violate the determinism invariant; hence the strict `active_passive` shape.

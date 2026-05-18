@@ -43,7 +43,7 @@ Implement the Postgres + Citus adapter per ADR-FORMS-0003. Per-tenant DEK with e
 ## References
 
 - ADR-FORMS-0003 PII column encryption.
-- ADR-0140 Cedar.
+- ADR-0140 (retired per ADR-0145) Cedar.
 - Citus docs.
 - OpenBao docs.
 

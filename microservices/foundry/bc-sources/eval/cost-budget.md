@@ -48,7 +48,7 @@ Track foundry-eval's monthly cloud cost across infrastructure (compute + GPU + s
 | ClickHouse (3-replica × 3-shard) | 9 × VM.Standard.E4 8-core | $1300 | $400 PV | $1700 |
 | ZooKeeper (ClickHouse coordination) | 3 × VM.Standard.E4 2-core | $108 | $30 PV | $138 |
 | GPU pool (eval-case dispatcher) | 8 × Standard.GPU.A10 | $2200 | – | $2200 |
-| MinIO (golden + replay store) | 4 × VM.Standard.E4 2-core | $144 | $200 PV cache | $344 |
+| SeaweedFS (golden + replay store) | 4 × VM.Standard.E4 2-core | $144 | $200 PV cache | $344 |
 | Object storage hot-tier (goldens + recent runs) | – | – | $250 (10 TB) | $250 |
 | Object storage cold-tier (replay 24mo retention) | – | – | $350 (175 TB archive) | $350 |
 | KMS keyring + DEK operations | – | $15 | – | $15 |

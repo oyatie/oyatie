@@ -81,7 +81,7 @@ WS     /v1/stream/translate                — real-time caption stream (per-ses
 
 1. OpenBao agent socket → `cloud-secrets-adapter`.
 2. Postgres pool → `tm-adapter-postgres` + `termbase-adapter-postgres` + `bulk-adapter-postgres`.
-3. Redis pool → `bulk-adapter-redis` + `stream-adapter-redis`.
+3. Valkey pool → `bulk-adapter-redis` + `stream-adapter-redis`.
 4. Meilisearch client → `tm-adapter-meilisearch`.
 5. S3 client → `doc-adapter-s3` + `bulk-adapter-s3`.
 6. foundry-providers SDK → engine adapters (anthropic + openai + google + deepl + foundry-runtime).

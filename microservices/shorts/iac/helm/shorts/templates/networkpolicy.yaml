@@ -46,7 +46,7 @@ spec:
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: shorts-postgres}}
       ports: [{protocol: TCP, port: 5432}]
-    # Redis
+    # Valkey
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: shorts-redis}}
       ports: [{protocol: TCP, port: 6379}]

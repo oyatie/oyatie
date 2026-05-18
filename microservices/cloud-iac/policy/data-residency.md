@@ -54,7 +54,7 @@ Workload µservices are pack-pinned
     ↓
 cloud-iac's iac-applier-worker reads µservice→pack mapping from OpenBao tenant-resolver
     ↓
-Terraform state + iac-state-index entry written to that pack's regional store
+OpenTofu state + iac-state-index entry written to that pack's regional store
     ↓
 Cross-pack apply forbidden; integration test catches misroute (per FM-13 in observability failure-modes.md)
 ```

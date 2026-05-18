@@ -5,7 +5,7 @@ microservice: calendar
 status: Accepted
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + council-privacy
-related_adrs: [ADR-0139, ADR-0140]
+related_adrs: [ADR-0139, ADR-0140 (retired per ADR-0145)]
 doc_status: published
 ---
 

@@ -25,8 +25,8 @@ Track the workflow-engine µservice's monthly cloud cost across infrastructure (
 
 | Category | What | OCI pricing reference |
 |---|---|---|
-| Compute (VM.Standard / OKE node) | Engine workers, REST, outbox-relay, replay workers, Postgres / Citus / Redis / ClickHouse pods | `oracle.com/cloud/compute/pricing/` |
-| Block storage (PV) | Postgres + Citus data; Redis AOF; ClickHouse local cache | `oracle.com/cloud/storage/block-volume/pricing/` |
+| Compute (VM.Standard / OKE node) | Engine workers, REST, outbox-relay, replay workers, Postgres / Citus / Valkey / ClickHouse pods | `oracle.com/cloud/compute/pricing/` |
+| Block storage (PV) | Postgres + Citus data; Valkey AOF; ClickHouse local cache | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Object storage | Large step payloads; ClickHouse cold tier | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Network egress | Cross-region replication; Studio + SDK clients | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-pack signing keys (spec + audit chain) | `oracle.com/security/key-management/pricing/` |
@@ -42,7 +42,7 @@ Per `capacity-model.md` §"Worked example: oyatie XS tier (M02b launch; 20 tenan
 | Postgres coordinator (Citus head) | 2 × VM.Standard.E4 8-core (HA) | $580 | $200 PV | $780 |
 | Postgres worker nodes (Citus shards) | 4 × VM.Standard.E4 8-core | $1160 | $800 PV | $1960 |
 | Postgres read-replica (per worker) | 4 × VM.Standard.E4 4-core | $580 | $400 PV | $980 |
-| Redis Sentinel HA cluster | 3 × VM.Standard.E4 2-core | $108 | $30 PV (AOF) | $138 |
+| Valkey Sentinel HA cluster | 3 × VM.Standard.E4 2-core | $108 | $30 PV (AOF) | $138 |
 | ClickHouse replica | 2 × VM.Standard.E4 4-core | $290 | $300 PV + $50 cold | $640 |
 | `execution-engine-worker` | 3 × VM.Standard.E4 4-core | $217 | – | $217 |
 | `execution-engine-rest` | 2 × VM.Standard.E4 2-core | $72 | – | $72 |

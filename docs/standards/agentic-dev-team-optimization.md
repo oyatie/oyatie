@@ -138,7 +138,7 @@ The `oya-governance-industry-best-practice-conformance` CI lane (BLOCKER on dev;
 - ADR-0110 (ChangeSet state machine — Principle 2)
 - ADR-0028 (Bominal audit-chain — Principle 4)
 - ADR-0139 (SLO gate fail-closed — Principle 5)
-- ADR-0140 (Cedar default-deny — Principle 5)
+- ADR-0140 (retired per ADR-0145) (Cedar default-deny — Principle 5)
 - `feedback_durable_goal_spec` (Principle 1)
 - `feedback_no_silent_regression` (Principle 5)
 - `/specs/microservice-migration-tooling.json` §"parallel_safety" + "idempotency" (Principles 2, 3)

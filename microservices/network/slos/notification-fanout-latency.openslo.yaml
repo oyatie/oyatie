@@ -15,7 +15,7 @@ spec:
   description: |
     Latency SLO for notification fanout for accounts up to 30k followers
     (the per-tenant default ceiling). A fanout invocation is "good" when its
-    end-to-end p99 latency is ≤ 2s (per-recipient async via Redis Streams +
+    end-to-end p99 latency is ≤ 2s (per-recipient async via Valkey Streams (Redis wire-compat) +
     notification-worker dispatch). Larger accounts (300k+ followers) follow a
     sharded fanout path with separately-tracked SLO.
   service: network

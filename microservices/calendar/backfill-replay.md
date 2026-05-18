@@ -25,7 +25,7 @@ doc_status: published
 
 Specify how calendar handles three scenarios:
 
-1. **Free/busy cache rebuild** — Redis availability-resolver cache
+1. **Free/busy cache rebuild** — Valkey availability-resolver cache
    rebuild from canonical event store (after corruption, after a tzdb
    bump per ADR-CAL-0004, after Cedar policy change that changes
    cross-tenant disclosure rules).
@@ -50,11 +50,11 @@ Trigger sources:
 
 Procedure:
 
-1. Acquire backfill lease in Redis (per tenant per partition; lease TTL = 1h).
+1. Acquire backfill lease in Valkey (per tenant per partition; lease TTL = 1h).
 2. Enumerate Postgres `calendar_events` rows in `(tenant_id, context, starts_at_year_month)` partition.
 3. For each event, expand recurrence per the (potentially new) RRULE engine.
 4. Compute the free/busy projection for the event's window (respecting context isolation).
-5. Bulk-write to Redis with idempotency key `(tenant_id, context, attendee_id, slot_hash)`.
+5. Bulk-write to Valkey with idempotency key `(tenant_id, context, attendee_id, slot_hash)`.
 6. Emit `FreeBusyCacheBackfilled` event with tuple
    `(tenant_id, partition, row_count, completed_at, signature)`.
 7. Per-pack retention: backfill window bounded by retention floor.

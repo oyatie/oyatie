@@ -26,7 +26,7 @@ outputs:
   - name: tally
     type: VoteTally
 side_effects:
-  - "Redis SET NX on (tenant_id, member_id, post_id)"
+  - "Valkey SET NX on (tenant_id, member_id, post_id)"
   - "Async Postgres flush"
   - "Audit-chain seal of VoteCast event"
   - "AsyncAPI emit community.vote.cast"

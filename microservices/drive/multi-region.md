@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: axis-drive + ops-sre-reliability
-related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0006]
+related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0006]
 doc_status: published
 ---
 
@@ -39,9 +39,9 @@ Tenant bytes pinned to the tenant's pack region per ADR-0117 + ADR-0140. Cross-r
 
 | Component | Strategy | RPO | RTO |
 |---|---|---|---|
-| Object store (Garage / MinIO / SeaweedFS) | replication-factor 3 within-pack; sync across primary + secondary region | ≤ 60s | ≤ 15min |
+| Object store (Garage / SeaweedFS / SeaweedFS) | replication-factor 3 within-pack; sync across primary + secondary region | ≤ 60s | ≤ 15min |
 | Postgres metadata | logical replication primary→secondary; sync replicas in primary region | ≤ 30s | ≤ 5min |
-| Redis (upload session + sync cache) | not replicated cross-region; reconstructable on failover | tolerated loss; sessions re-issued | n/a |
+| Valkey (upload session + sync cache) | not replicated cross-region; reconstructable on failover | tolerated loss; sessions re-issued | n/a |
 | Meilisearch (full-text index) | sync across primary + secondary region | ≤ 60s | ≤ 30min |
 | Audit-chain seal records | replicated via audit-chain µservice (out-of-scope here) | per audit-chain | per audit-chain |
 
@@ -82,4 +82,4 @@ Pack-pinning is enforced at three layers:
 - ADR-DRIVE-0006 — Immutability + WORM policy (replication respects WORM semantics).
 - `microservices/drive/policy/data-residency.md`.
 - `microservices/drive/runbooks/object-storage-degraded.md`.
-- Garage replication docs; MinIO replication docs; SeaweedFS replication docs.
+- Garage replication docs; SeaweedFS replication docs; SeaweedFS replication docs.

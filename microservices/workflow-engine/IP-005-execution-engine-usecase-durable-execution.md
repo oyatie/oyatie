@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 ## Intent
 
-The engineering heart of this phase: durable-execution authoritative store (Postgres) + ephemeral lease state (Redis) + usecase orchestrators that compose state-machine transitions + retry + SLA-timer + audit-chain emission. This is where PRD AC-02 (deterministic replay) and AC-03 (durable-execution restart) invariants are realised.
+The engineering heart of this phase: durable-execution authoritative store (Postgres) + ephemeral lease state (Valkey) + usecase orchestrators that compose state-machine transitions + retry + SLA-timer + audit-chain emission. This is where PRD AC-02 (deterministic replay) and AC-03 (durable-execution restart) invariants are realised.
 
 ## ChangeSet boundary
 
@@ -36,7 +36,7 @@ The engineering heart of this phase: durable-execution authoritative store (Post
 | `src/crates/oya-workflow-engine-execution-engine-api/{...}` | create | RunStartRequest/Response, StepDispatchRequest/Response, error variants |
 | `src/crates/oya-workflow-engine-execution-engine-adapter/{...}` | create | protocol-neutral impls |
 | `src/crates/oya-workflow-engine-execution-engine-adapter-postgres/{Cargo.toml,src/{lib,run_store,step_store,migrations}.rs,migrations/V1__initial_schema.sql,migrations/V2__add_idempotency.sql,migrations/V3__add_citus_distribution.sql}` | create | Postgres-backed run state + outbox cross-references |
-| `src/crates/oya-workflow-engine-execution-engine-adapter-redis/{Cargo.toml,src/{lib,lease_store,ephemeral_state}.rs}` | create | Redis lease coordinator |
+| `src/crates/oya-workflow-engine-execution-engine-adapter-redis/{Cargo.toml,src/{lib,lease_store,ephemeral_state}.rs}` | create | Valkey lease coordinator |
 | `microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-{usecase,api,adapter,adapter-postgres,adapter-redis}.yaml` | create | 5 catalog rows |
 | `Cargo.toml` (workspace) | update | register 5 crates |
 
@@ -65,14 +65,14 @@ impl<RS, ES, TE, IV, EB, AC> RunLifecycleOrchestrator<RS, ES, TE, IV, EB, AC> {
         // 1. Validate spec version is published
         // 2. Allocate run_id (ULID)
         // 3. Persist initial WorkflowRun row (Postgres)
-        // 4. Claim Redis lease for step 0
+        // 4. Claim Valkey lease for step 0
         // 5. Emit WorkflowStarted event (via outbox)
         // 6. Audit-chain seal
         // Returns run_id; step dispatch is async via worker
     }
 
     pub async fn dispatch_step(&self, run_id: &RunId) -> Result<StepExecution, RunError> {
-        // 1. Verify worker holds Redis lease
+        // 1. Verify worker holds Valkey lease
         // 2. Read current state from Postgres
         // 3. Evaluate transition via TransitionEngine
         // 4. Validate invariants

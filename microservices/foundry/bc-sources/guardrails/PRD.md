@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal-and-tenant-product
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0022, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0114, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0022, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0114, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/agent-operating-contract.json, /specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-foundry-guardrails

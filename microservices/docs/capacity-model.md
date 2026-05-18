@@ -64,7 +64,7 @@ Model per-cell capacity envelope, scale-out triggers, and headroom posture. Driv
 | Embed-refresh/s | 500 | 5k | embed-resolver worker queue > 60s |
 | AI writing-assist/s | 100 | 1k | foundry-runtime rate-limit |
 | Postgres replica lag | < 5s | 30s | scale-out |
-| Redis CRDT spool memory | < 60% | 80% | shard split |
+| Valkey CRDT spool memory | < 60% | 80% | shard split |
 
 ## Substrate sizing
 
@@ -91,7 +91,7 @@ Model per-cell capacity envelope, scale-out triggers, and headroom posture. Driv
 | Cross-region (intra-pack DR) | yes | yes |
 | Cross-region (cross-pack) | NO | NO |
 
-### Redis (collab presence + CRDT op spool + cache)
+### Valkey (collab presence + CRDT op spool + cache)
 
 | Param | Baseline | Max |
 |---|---|---|

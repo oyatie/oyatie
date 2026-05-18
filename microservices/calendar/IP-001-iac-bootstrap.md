@@ -13,14 +13,14 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: IaC bootstrap — Helm + Kustomize for Radicale + Postgres + Redis + SabreDAV (us-healthcare)
+# IP-001: IaC bootstrap — Helm + Kustomize for Radicale + Postgres + Valkey + SabreDAV (us-healthcare)
 
 ## Intent
 
 Author Helm + Kustomize manifests for the calendar µservice substrate.
 Two CalDAV backends supported per ADR-CAL-0001 (`radicale` primary +
 `sabredav` for `pack-us-healthcare`); Postgres 16 LTS for event store
-(RLS per-tenant per ADR-0117); Redis 7.4 LTS for the availability-
+(RLS per-tenant per ADR-0117); Valkey 8.1 (Redis wire-compat) for the availability-
 resolver cache; OpenBao for per-tenant DEK envelope encryption.
 CronJob for the tzdb refresh worker per ADR-CAL-0004. Pack-aware
 overlays for 11 packs.
@@ -36,13 +36,13 @@ SecretReferences.
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/calendar/iac/helm/Chart.yaml` | created in this ChangeSet | dependencies: radicale 3.2.3, sabredav 4.6.0, postgres 16.4.0, redis 7.4.0 |
+| `microservices/calendar/iac/helm/Chart.yaml` | created in this ChangeSet | dependencies: radicale 3.2.3, sabredav 4.6.0, postgres 16.4.0, valkey 8.1 (Redis wire-compat) |
 | `microservices/calendar/iac/helm/values.yaml` | created | per-BC replica sizing; CalDAV backend gating; OpenBao SecretReferences |
 | `microservices/calendar/iac/helm/templates/deployment.yaml` | created | per-BC Deployment (6 BCs) |
 | `microservices/calendar/iac/helm/templates/service.yaml` | created | per-BC Service |
 | `microservices/calendar/iac/helm/templates/hpa.yaml` | created | per-BC HPA (CPU 70%; min 3 max 100) |
 | `microservices/calendar/iac/helm/templates/pdb.yaml` | created | PodDisruptionBudget min-available 50% |
-| `microservices/calendar/iac/helm/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Redis + mail µservice + IANA tzdb |
+| `microservices/calendar/iac/helm/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + mail µservice + IANA tzdb |
 | `microservices/calendar/iac/helm/templates/servicemonitor.yaml` | created | Prometheus scrape config |
 | `microservices/calendar/iac/helm/templates/prometheusrule.yaml` | created | per-BC fast-burn + slow-burn alert rules |
 | `microservices/calendar/iac/helm/templates/cronjob.yaml` | created | tzdb refresh worker (ADR-CAL-0004) |
@@ -72,7 +72,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 - helm lint + helm-test per chart against kind/k3d cluster.
 - E2E smoke: spin kind cluster; apply pack-kr overlay; verify all 6
-  BC deployments + Radicale + Postgres + Redis reach Ready within
+  BC deployments + Radicale + Postgres + Valkey reach Ready within
   10 min.
 - CalDAV smoke: PROPFIND against the Radicale Service; expect
   RFC-4791 conformant XML response.
@@ -95,4 +95,4 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - RFC 4791 — CalDAV.
 - Radicale — `radicale.org`; SabreDAV — `sabre.io/dav/`.
 - Postgres CloudNativePG operator — `cloudnative-pg.io`.
-- Redis cluster mode — `redis.io/docs/management/scaling/`.
+- Valkey cluster mode — `redis.io/docs/management/scaling/`.

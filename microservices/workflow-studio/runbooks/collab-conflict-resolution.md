@@ -41,7 +41,7 @@ ONE of:
 
 1. Identify affected (tenant_id, definition_id): query `kubectl -n workflow-studio logs -l app=collab-crdt-worker --tail=500 | grep <tenant_id>` OR Grafana dashboard `dashboards/collab-health.json` filtered to that tenant.
 2. Identify CRDT op stream window: read `oya_workflow_studio_collab_op_stream_seq` for the (tenant, definition_id) bracket.
-3. Verify Redis lease integrity: `kubectl -n workflow-studio exec <redis-pod> -- redis-cli HGETALL "lease:tenant:<tenant_hash>:def:<definition_id>"`.
+3. Verify Valkey lease integrity: `kubectl -n workflow-studio exec <redis-pod> -- redis-cli HGETALL "lease:tenant:<tenant_hash>:def:<definition_id>"`.
 4. Verify Postgres seal-delta is current: `SELECT version_sha, sealed_at FROM editor_session_seals WHERE tenant_id = <h> AND definition_id = <d> ORDER BY sealed_at DESC LIMIT 5`.
 
 ## Recovery Path A — Explicit conflict UI shown; users reconcile in-product
@@ -72,7 +72,7 @@ Cause: tenant reports edits disappeared; OR `silent_loss_attempt_total > 0`.
 | Step | Action | Time |
 |---|---|---|
 | 1 | Declare Sev-2; engage axis-workflow on-call + ops-security. | ≤ 5 min |
-| 2 | Reconstruct CRDT op stream from Postgres seal-deltas + Redis ephemeral state (if still present): `cargo run -p oya-workflow-studio-collab-crdt-domain --bin reconstruct -- --tenant <h> --definition <d>`. | ≤ 10 min |
+| 2 | Reconstruct CRDT op stream from Postgres seal-deltas + Valkey ephemeral state (if still present): `cargo run -p oya-workflow-studio-collab-crdt-domain --bin reconstruct -- --tenant <h> --definition <d>`. | ≤ 10 min |
 | 3 | If reconstructed stream shows the user's ops present + ack'd by server BUT not in final spec: confirmed silent loss → Sev-1. | – |
 | 4 | If Sev-1: **stop all save-paths for the affected (tenant, definition)**: `cargo run -p oya-dev-cli -- vcs override-paths --microservice workflow-studio --halt-saves --tenant <h> --definition <d>` (requires 2-person rule). | ≤ 10 min |
 | 5 | Forensic analysis: which CRDT op was dropped? engine-bug or adapter-bug? | ≤ 1h |
@@ -80,7 +80,7 @@ Cause: tenant reports edits disappeared; OR `silent_loss_attempt_total > 0`.
 | 7 | Tenant notification per `incident-response.md` §"Severity-1 response" — including PIPA Art. 34 / GDPR Art. 33 / HIPAA §164.408 timelines if breach-class data involved. | per pack |
 | 8 | Postmortem within 5 business days. | – |
 
-## Recovery Path D — Redis lease split-brain
+## Recovery Path D — Valkey lease split-brain
 
 Cause: two WS gateway pods both claim ownership of the same (tenant, definition_id) lease; CRDT ops fan out twice; observed as duplicate ops in stream.
 
@@ -89,7 +89,7 @@ Cause: two WS gateway pods both claim ownership of the same (tenant, definition_
 | 1 | Verify lease object: `kubectl exec <redis> -- redis-cli HGETALL lease:tenant:<h>:def:<d>` — check `owner_pod_id` + `acquired_at`. |
 | 2 | If two pods present: kill the older lease-holder pod (force-delete) to break split-brain. |
 | 3 | Verify only one pod fans out ops for next 5 min. |
-| 4 | If recurring: investigate Redis Sentinel failover OR clock skew across WS gateway nodes. |
+| 4 | If recurring: investigate Valkey Sentinel failover OR clock skew across WS gateway nodes. |
 
 ## Recovery Path E — Mass conflict storm (suspected DoS)
 
@@ -99,7 +99,7 @@ Cause: `studio_collab_conflict_surfaced_total` rate > 100/s across all definitio
 |---|---|
 | 1 | Verify legitimacy: is this tenant a known high-volume authoring tenant? |
 | 2 | If suspicious: engage ops-security per `runbooks/session-storm-throttle.md`; apply per-tenant rate-limit. |
-| 3 | If legitimate: scale WS gateway HPA; verify Redis memory headroom. |
+| 3 | If legitimate: scale WS gateway HPA; verify Valkey memory headroom. |
 
 ## Verification
 

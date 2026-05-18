@@ -123,9 +123,10 @@ pub fn resolve_scorecard(
         .ok_or_else(|| Error::UnknownFramework(framework.to_string()))?;
     let fw_overrides = overrides.get(fw_key).cloned().unwrap_or_else(|| json!({}));
     if let Some(status) = fw_overrides.get("overall_status").and_then(|v| v.as_str())
-        && let Value::Object(map) = &mut resolved {
-            map.insert("overall_status".into(), Value::String(status.to_string()));
-        }
+        && let Value::Object(map) = &mut resolved
+    {
+        map.insert("overall_status".into(), Value::String(status.to_string()));
+    }
     if let Some(deltas) = fw_overrides.get("deltas").and_then(|v| v.as_array()) {
         for delta in deltas {
             apply_delta(framework, &mut resolved, delta);
@@ -319,9 +320,10 @@ fn apply_delta(framework: &str, resolved: &mut Value, delta: &Value) {
             {
                 for sect in reqs.values_mut() {
                     if let Value::Object(map) = sect
-                        && let Some(item) = map.get_mut(control) {
-                            apply_field_update(item, field, &value);
-                        }
+                        && let Some(item) = map.get_mut(control)
+                    {
+                        apply_field_update(item, field, &value);
+                    }
                 }
             }
         }

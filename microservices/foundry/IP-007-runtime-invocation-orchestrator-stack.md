@@ -30,7 +30,7 @@ Per layer crate at `microservices/foundry/src/crates/oya-foundry-runtime-invocat
 - domain: lifecycle-state-machine validity (pending → running → completed | failed | cancelled) + deadline arithmetic
 - usecase: orchestrator + idempotency-key dedup + cancellation propagation
 - api: typed contracts
-- adapter: in-memory lifecycle store backed by Redis hot index + Postgres durable + AsyncAPI emitter
+- adapter: in-memory lifecycle store backed by Valkey hot index + Postgres durable + AsyncAPI emitter
 - worker: timeout monitor + idempotent re-emission for downstream delivery guarantees
 - app: composition root
 

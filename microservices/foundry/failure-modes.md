@@ -27,7 +27,7 @@ Cross-BC failure-mode analysis. Per-BC FMEAs preserved at
 | F-X7 | Autonomy-tier-ceiling cache stale (tenancy → runtime) | autonomy-violation false-negative on tier downgrade | `TenantTierCeilingChanged` debounce ≤5s; cache TTL ≤60s; cold-recheck on cache-miss | runbook `runtime-autonomy-violation-quarantine.md` | SEV-1 |
 | F-X8 | Audit-chain bridge backlog | seal latency > 1s SLO breach | bridge HPA on queue depth; secondary bridge endpoint per pack | runbook `evidence-audit-chain-backlog.md` | SEV-2 |
 | F-X9 | Cross-tenant request bypass via Cedar policy regression | red-team test failure; tenant report | refuse via authz; recall offending policy; emit audit-chain incident | post-mortem template | SEV-1 |
-| F-X10 | Session-state hot-tier Redis cluster split-brain | quorum loss detected by sentinel | promote secondary; refuse writes during election; AOF flush before resume | runbook `runtime-redis-failover.md` | SEV-1 |
+| F-X10 | Session-state hot-tier Valkey cluster split-brain | quorum loss detected by sentinel | promote secondary; refuse writes during election; AOF flush before resume | runbook `runtime-redis-failover.md` | SEV-1 |
 | F-X11 | Provider router circuit-breaker false-positive trips primary provider | error spike on primary that recovers within 30s | hysteresis on breaker open; secondary-provider fallback chain | runbook `providers-provider-outage-failover.md` | SEV-2 |
 | F-X12 | Eval-run divergence on replay (golden mismatch) | parity-analyzer flags drift | quarantine capability version; halt promotion; investigate provider drift | runbook `eval-replay-divergence-investigation.md` | SEV-2 |
 

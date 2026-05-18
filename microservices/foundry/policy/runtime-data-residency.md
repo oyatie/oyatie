@@ -73,7 +73,7 @@ Pack-pinning is invariant per tenant; `tenant_scope` (trial / production / sandb
 
 Cross-pack replication of any tenant data is forbidden by default. Specifically:
 
-- Session-state (Redis + Postgres): replicate within-pack only.
+- Session-state (Valkey + Postgres): replicate within-pack only.
 - Capability descriptor mirror (Postgres): pulled from foundry-supervisor with pack-pinned scope; cross-pack capability templates only for `tenant:oya-system` (oyatie-owned templates).
 - Invocation lifecycle records (Postgres): replicate within-pack only.
 - Audit-chain seals: replicate within-pack (each pack has its own audit-chain instance).
@@ -137,7 +137,7 @@ record_label:
 | pack-br | `PII_IDENTIFYING` | LGPD Art. 16 | bounded |
 | (all packs) | `SECRET` | ISO 27001 A.5.17 rotation | 30d API, 90d signing |
 
-CI lane `oya-governance-retention-conformance` validates Postgres + Redis retention configs against this table.
+CI lane `oya-governance-retention-conformance` validates Postgres + Valkey retention configs against this table.
 
 ## DSR (Data Subject Request) Cascade
 
@@ -146,7 +146,7 @@ Right-to-erasure honoured via `oya-dsr-cascade-runner` skill:
 1. Tenant raises DSR for end-user (joint controllership per Art. 26).
 2. DSR runner identifies end-user identifiers (user-id hash, IP hash patterns).
 3. Session-state worker:
-   - Redis: SCAN per-tenant prefix; identify affected session keys; delete.
+   - Valkey: SCAN per-tenant prefix; identify affected session keys; delete.
    - Postgres: per-tenant session_mutation_log; soft-delete with 30d grace; hard-delete after grace.
 4. Audit-chain seal: `dsr_executed{tenant, subject_hash, removed_session_count, removed_record_count, timestamp}`.
 5. Tenant notified within 30d SLA per GDPR; pack-specific shorter SLAs (KR 30d, BR 15d, EU 30d) honoured.

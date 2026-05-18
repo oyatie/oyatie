@@ -16,7 +16,7 @@ depends_on: [IP-002, IP-004]
 
 ## Intent
 
-AMQP + Redis Streams substrate; per-event Ed25519 signature; subscriber registration. 7 crates: kernel, usecase, api, adapter, worker, sdk, app.
+AMQP + Valkey Streams (Redis wire-compat) substrate; per-event Ed25519 signature; subscriber registration. 7 crates: kernel, usecase, api, adapter, worker, sdk, app.
 
 ## Concrete File Targets
 
@@ -65,4 +65,4 @@ cargo nextest run -p oya-foundry-supervisor-supervision-event-bus-worker --test 
 
 - PRD FR-06; `contracts/asyncapi/foundry-supervisor-events.yaml`.
 - ADR-0028 (audit-chain).
-- Redis Streams — `redis.io/docs/data-types/streams/`.
+- Valkey Streams (Redis wire-compat) — `redis.io/docs/data-types/streams/`.

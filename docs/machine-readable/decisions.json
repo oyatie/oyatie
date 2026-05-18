@@ -762,7 +762,7 @@
       "path": "decisions/ADR-0064-canonical-base-and-localization-packs.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0056", "ADR-0058", "ADR-0059", "ADR-0060", "ADR-0062", "ADR-0063", "Bominal ADR-0140 (inherited)"]
+      "related": ["ADR-0056", "ADR-0058", "ADR-0059", "ADR-0060", "ADR-0062", "ADR-0063", "Bominal ADR-0140 (retired per ADR-0145) (inherited)"]
     },
     {
       "adr": "ADR-0065",

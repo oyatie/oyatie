@@ -153,15 +153,15 @@ Enumerate the failure scenarios on-call must handle. Each entry: trigger, detect
 | Recovery runbook | inherited from `cell/runbooks/postgres-failover.md` |
 | Postmortem owner | ops-sre-reliability |
 
-## FM-FP-11: Redis token-bucket outage
+## FM-FP-11: Valkey token-bucket outage
 
 | Field | Value |
 |---|---|
-| Trigger | Redis primary failover or full unavailability |
+| Trigger | Valkey primary failover or full unavailability |
 | Detection | `oya_foundry_providers_redis_connection_errors_total` rate |
 | Tenant impact | Rate-limit enforcement degrades to per-pod local counter (looser limit) during failover |
 | Severity | Sev-3 (degraded; not failing) |
-| Immediate mitigation | Redis sentinel failover; local in-process bucket as soft fallback |
+| Immediate mitigation | Valkey Sentinel failover; local in-process bucket as soft fallback |
 | RTO | ≤ 30 s sentinel failover |
 | Recovery runbook | inherited from `cell/runbooks/redis-failover.md` |
 | Postmortem owner | ops-sre-reliability |

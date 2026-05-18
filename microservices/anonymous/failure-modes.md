@@ -89,11 +89,11 @@ FMEA + chaos-engineering-class scenarios. For each failure: (a) detection signal
 - **Prevention:** Slot count provisioning + replication monitoring + per-slot back-pressure
 - **Runbook:** (inherited from cloud-db runbooks; cross-reference)
 
-### F-10 Redis cluster split-brain
+### F-10 Valkey cluster split-brain
 
 - **Detection:** Sentinel split-brain alert; vote-count divergence between nodes
 - **Blast radius:** Medium — vote-counts temporarily inconsistent
-- **Recovery:** Reconcile via Postgres source-of-truth; reset Redis counters
+- **Recovery:** Reconcile via Postgres source-of-truth; reset Valkey counters
 - **Prevention:** Sentinel quorum config; multi-AZ
 - **Runbook:** (inherited from cloud-redis runbooks)
 

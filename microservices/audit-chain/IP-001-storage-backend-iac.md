@@ -21,7 +21,7 @@ Helm + Kustomize for Postgres HA + S3 WORM bucket (Object Lock Compliance mode) 
 
 ## ChangeSet boundary
 
-Pure IaC. 3 Helm chart bundles + shared Kustomize base + pack-kr overlay (M01 launch). HSM partition provisioning via OCI Terraform (separate manifest). Per-pack secret references via OpenBao.
+Pure IaC. 3 Helm chart bundles + shared Kustomize base + pack-kr overlay (M01 launch). HSM partition provisioning via OCI OpenTofu (separate manifest). Per-pack secret references via OpenBao.
 
 ## Concrete File Targets
 
@@ -44,7 +44,7 @@ helm lint microservices/audit-chain/iac/helm/postgres
 helm lint microservices/audit-chain/iac/helm/audit-storage
 helm lint microservices/audit-chain/iac/helm/hsm-operator
 kubectl --dry-run=client apply -k microservices/audit-chain/iac/kustomize/overlays/pack-kr
-terraform plan microservices/audit-chain/iac/terraform/
+tofu plan microservices/audit-chain/iac/terraform/
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice audit-chain
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 cargo run -p oya-dev-cli -- gate validate cross-pack-replication-forbidden --microservice audit-chain
@@ -53,7 +53,7 @@ cargo run -p oya-dev-cli -- gate validate cross-pack-replication-forbidden --mic
 ## Halt Conditions
 
 - Object Lock Compliance mode policy fails to deploy — block; this is the load-bearing immutability invariant.
-- HSM partition Terraform fails — block; engage cloud-secrets.
+- HSM partition OpenTofu fails — block; engage cloud-secrets.
 - Postgres role grant LEAN check fails — block; emitter must be INSERT-only.
 
 ## Next IP

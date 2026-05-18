@@ -34,7 +34,7 @@ Per Bominal ADR-0028 (inherited) and oyatie incident-severity standard (`docs/st
 | Severity | Definition | Response time (page-to-ack) | Examples |
 |---|---|---|---|
 | **Sev-1** | Supervisor control-plane unavailable; kill-switch latency breach; autonomy-policy fail-open; cross-pack misroute; cross-tenant leak; **any supervisor-down event** | ≤ 5 min (24/7) | FM-01 kill-switch latency; FM-13 cross-pack misroute; T-I-01 cross-tenant leak |
-| **Sev-2** | Degraded but functioning; gate fail-closed safe default applies | ≤ 15 min (24/7) | FM-02 deployment stuck; FM-04 Redis failover; FM-05 Postgres master loss; FM-06 Operator crashloop; FM-08 supervision-bus backlog |
+| **Sev-2** | Degraded but functioning; gate fail-closed safe default applies | ≤ 15 min (24/7) | FM-02 deployment stuck; FM-04 Valkey failover; FM-05 Postgres master loss; FM-06 Operator crashloop; FM-08 supervision-bus backlog |
 | **Sev-3** | Localized + degraded; not blocking | ≤ 1 h (business hrs) | FM-09 Cedar latency; FM-12 schema-violation flood |
 | **Sev-4** | Cosmetic; not paged | next business day | dashboard label typo; minor doc drift |
 

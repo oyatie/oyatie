@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-calendar
-related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/calendar/policy/tenant-scope.cedar
   - microservices/calendar/policy/ci-scope.cedar

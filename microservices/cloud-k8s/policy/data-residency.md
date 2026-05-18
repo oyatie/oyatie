@@ -96,7 +96,7 @@ Each cluster's CSI drivers provision PV from per-pack storage backends:
 
 | Pack | Block-volume backend | Object backend | File backend |
 |---|---|---|---|
-| pack-kr | OCI Block Volume (KR) + Ceph RBD on-prem | OCI Object (KR) + MinIO on-prem | OCI File (KR) + CephFS on-prem |
+| pack-kr | OCI Block Volume (KR) + Ceph RBD on-prem | OCI Object (KR) + SeaweedFS on-prem | OCI File (KR) + CephFS on-prem |
 | pack-eu | OCI Block Volume (EU) | OCI Object (EU) | OCI File (EU) |
 | pack-us | OCI Block Volume (US) | OCI Object (US) | OCI File (US) |
 | pack-us-healthcare | OCI Block Volume (HIPAA-eligible) | OCI Object (HIPAA-eligible) | OCI File (HIPAA-eligible) |

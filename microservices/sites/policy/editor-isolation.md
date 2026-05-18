@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-sites
-related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-SITES-0001]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140 (retired per ADR-0145), ADR-SITES-0001]
 related_artifacts:
   - microservices/sites/policy/tenant-scope.cedar
   - microservices/sites/policy/ci-scope.cedar

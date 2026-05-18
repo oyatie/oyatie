@@ -40,7 +40,7 @@ doc_status: published
 ### S4 — Vote tally rebuild (after divergence detection)
 
 - Source-of-truth: Postgres `community.votes`.
-- Target: Redis tally counter.
+- Target: Valkey tally counter.
 - Worker: `oya-community-voting-engine-worker` reconcile job.
 - Pause vote writes during rebuild; resume after verification.
 - SLO: per-tenant rebuild in ≤ 5 min for 10⁶ votes.

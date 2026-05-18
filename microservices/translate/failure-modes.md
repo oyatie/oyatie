@@ -117,7 +117,7 @@ Each Failure Mode = (id, summary, severity, detection signal, runbook, mitigatio
 
 - Router decision is stateless; restart-safe.
 - TM + termbase reads are RLS-isolated; per-pack failover safe.
-- Bulk-jobs persisted in Redis + S3; replay on worker restart.
+- Bulk-jobs persisted in Valkey + S3; replay on worker restart.
 - Stream sessions reconnect with last-correction replay per ADR-TRANSLATE-0006.
 
 ## Verification

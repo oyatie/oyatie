@@ -76,12 +76,12 @@ Plus cross-cutting:
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm/Kustomize/Terraform for network cluster; Postgres + Redis + Meilisearch + S3 + ClamAV/OPSWAT + ImageMagick + ffmpeg | pending | axis-network + ops-sre-reliability | observability IP-001 |
+| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm/Kustomize/Terraform for network cluster; Postgres + Valkey + Meilisearch + S3 + ClamAV/OPSWAT + ImageMagick + ffmpeg | pending | axis-network + ops-sre-reliability | observability IP-001 |
 | [`IP-002-cargo-workspace-bootstrap.md`](IP-002-cargo-workspace-bootstrap.md) | Cargo workspace + ~165 crate scaffolds per ADR-0131 | pending | axis-network | — |
 | [`IP-003-professional-profile-bc.md`](IP-003-professional-profile-bc.md) | `professional-profile` kernel + domain + usecase + api + adapter-postgres + rest + sdk + app; resume sections; vCard 4.0 + JSON Resume export | pending | axis-network | IP-002 |
 | [`IP-004-professional-graph-and-connection-request-bcs.md`](IP-004-professional-graph-and-connection-request-bcs.md) | `professional-graph` + `connection-request` BCs end-to-end; degree-of-separation; per-week rate limit | pending | axis-network | IP-003 |
 | [`IP-005-post-composition-bc.md`](IP-005-post-composition-bc.md) | `post-composition` BC end-to-end + media transcode adapters + document attach | pending | axis-network | IP-003 |
-| [`IP-006-feed-timeline-and-reactions-bcs.md`](IP-006-feed-timeline-and-reactions-bcs.md) | `feed-timeline` BC with fanout-on-write + fanout-on-read + Redis hot-cache; `reactions` BC with extended Professional set | pending | axis-network | IP-004 + IP-005 |
+| [`IP-006-feed-timeline-and-reactions-bcs.md`](IP-006-feed-timeline-and-reactions-bcs.md) | `feed-timeline` BC with fanout-on-write + fanout-on-read + Valkey hot-cache; `reactions` BC with extended Professional set | pending | axis-network | IP-004 + IP-005 |
 | [`IP-007-endorsement-engine-bc.md`](IP-007-endorsement-engine-bc.md) | `endorsement-engine` BC; Ed25519 chain via audit-chain; per-endorser signature; revocation flow | pending | axis-network + axis-audit-chain | IP-003 |
 | [`IP-008-skill-assessments-and-profile-verification-bcs.md`](IP-008-skill-assessments-and-profile-verification-bcs.md) | `skill-assessments` + `profile-verification` BCs (ID-attest + employer-confirm) | pending | axis-network + council-privacy | IP-003 |
 | [`IP-009-pages-groups-events-bcs.md`](IP-009-pages-groups-events-bcs.md) | `pages` + `groups` + `events-bridge` BCs together; mail + calendar bridges | pending | axis-network + axis-mail + axis-calendar | IP-005 |
@@ -99,7 +99,7 @@ Plus cross-cutting:
 | kernel | 90 % / 80 % | per-port-trait + per-entity unit; sealed-trait smoke; data-class annotation check |
 | domain | 90 % / 80 % | pure-math / pure-logic unit |
 | usecase | 85 % / 75 % | orchestrator unit with port mocks; happy + error path |
-| adapter | 80 % / 70 % | integration vs real backend (Postgres / Redis / S3 / Meilisearch / ClamAV / messenger-bridge / calendar-bridge / mail-bridge / ats-bridge) where feasible; otherwise contract-mock |
+| adapter | 80 % / 70 % | integration vs real backend (Postgres / Valkey / S3 / Meilisearch / ClamAV / messenger-bridge / calendar-bridge / mail-bridge / ats-bridge) where feasible; otherwise contract-mock |
 | rest | 85 % / 75 % | per-endpoint happy + 401 + 403 + 422 |
 | worker | 85 % / 75 % | event-loop unit + integration |
 | app | 75 % / 65 % | smoke startup |

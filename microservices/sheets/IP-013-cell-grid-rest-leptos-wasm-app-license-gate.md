@@ -82,4 +82,4 @@ cargo run -p oya-dev-cli -- gate validate wasm-bundle-sri --microservice sheets
 - PRD AC-09 + AC-10 + AC-14 + AC-03.
 - threat-model.md T-I-02 + T-T-06 + T-E-04 + T-S-01.
 - ADR-0065 (Leptos WASM).
-- ADR-0140 (Cedar policy enforcement).
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).

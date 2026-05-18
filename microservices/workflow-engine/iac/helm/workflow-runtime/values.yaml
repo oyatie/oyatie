@@ -46,7 +46,7 @@ executionEngine:
 
 eventBus:
   worker:
-    replicas: 2          # outbox relay; HA via Redis lease
+    replicas: 2          # outbox relay; HA via Valkey lease
     resources:
       requests: {cpu: 500m, memory: 1Gi}
     leaderElection:

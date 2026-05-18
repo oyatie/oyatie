@@ -29,7 +29,7 @@ Out-of-scope: messenger LiveKit cluster operation (covered by messenger threat-m
 1. **Browser ↔ slides-rest** — OIDC tenant boundary; WASM bundle SRI; CSP enforced.
 2. **Browser ↔ real-time-collaboration-worker (WS)** — OIDC token rebound per WS message; per-tenant session isolation.
 3. **slides-rest ↔ Postgres** — RLS per tenant_id; Cedar enforcement at usecase layer.
-4. **slides-rest ↔ Redis** — per-cell cluster; cell-local CRDT state; cross-tenant key namespace.
+4. **slides-rest ↔ Valkey** — per-cell cluster; cell-local CRDT state; cross-tenant key namespace.
 5. **slides-rest ↔ S3** — per-tenant prefix; SSE-KMS per-pack key.
 6. **slides ↔ sheets (chart-live-link)** — SDK boundary; sheets ACL is authority; cross-µservice direct DB read forbidden by LEAN-A2.
 7. **slides ↔ messenger (broadcast-mode)** — SDK boundary; LiveKit room created by messenger; slides holds the lease, never the LiveKit credentials.
@@ -73,7 +73,7 @@ Out-of-scope: messenger LiveKit cluster operation (covered by messenger threat-m
 |---|---|---|---|---|
 | T-I-01 | Cross-tenant deck content leakage via Postgres | slides-rest | RLS on tenant_id; Cedar evaluation at usecase; LEAN-A2 cross-product refusal | unit `oya-slides-presentation-adapter-postgres::test_rls` |
 | T-I-02 | Cross-tenant CDN cache pollution | CDN | per-tenant CDN cache keys; `(tenant_hash, pack, version)` partitioning; verified at edge | edge config test |
-| T-I-03 | Cross-tenant Redis CRDT state leakage | real-time-collaboration | per-cell cluster; cell-local CRDT state; tenant_id prefix in Redis key; pod-level isolation; HMAC binding | integration `tests/security/redis_isolation.rs` |
+| T-I-03 | Cross-tenant Valkey CRDT state leakage | real-time-collaboration | per-cell cluster; cell-local CRDT state; tenant_id prefix in Valkey key; pod-level isolation; HMAC binding | integration `tests/security/redis_isolation.rs` |
 | T-I-04 | Cross-tenant S3 asset leakage | image / video-embed | per-tenant prefix; SSE-KMS per-pack key; tenant_id in IAM condition; cross-tenant read fail-closed | unit + integration |
 | T-I-05 | XSS via rich-text or embed-bridge | text-box / embed-bridge | virtual-DOM text nodes; sanitization at embed-bridge boundary; CSP strict | unit `tests/security/xss.rs` |
 | T-I-06 | Chart-live-link reads beyond sheet-side ACL | chart | sheets SDK enforces ACL; cell-range bound at bind-time; revocation cascade | ADR-SLIDES-0008 + integration |

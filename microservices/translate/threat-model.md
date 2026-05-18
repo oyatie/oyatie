@@ -29,7 +29,7 @@ Trust boundaries (TB):
 - TB-2 — translate-rest ↔ translate-router (in-cluster mTLS).
 - TB-3 — translate-router ↔ engine adapters (in-cluster mTLS + SPIFFE).
 - TB-4 — engine adapters ↔ foundry-providers / foundry-runtime (in-cluster mTLS).
-- TB-5 — translate-router ↔ Postgres / Redis / Meilisearch (mTLS + per-tenant RLS).
+- TB-5 — translate-router ↔ Postgres / Valkey / Meilisearch (mTLS + per-tenant RLS).
 - TB-6 — document-translation sandbox ↔ Pandoc / LibreOffice (**gVisor + seccomp + no-network**).
 - TB-7 — external vendor edges (`api.deepl.com`, `translation.googleapis.com`, `api.anthropic.com`, `api.openai.com`) — egress via cell egress proxy.
 - TB-8 — bulk-translate S3 ↔ translate-bulk-worker.
@@ -61,7 +61,7 @@ Trust boundaries (TB):
 | T-07 | XLIFF/TMX/TBX XML XXE (XML External Entity) | I, D | File-import worker | DefusedXML / quick-xml with entity-resolution disabled; XLIFF schema validation; size cap | Low |
 | T-08 | Placeholder/variable injection (translation that escapes ICU MessageFormat into target rendering) | T, I | Placeholder-preservation invariant | Placeholder allow-list + ICU MessageFormat re-parse validation + CLDR plural-rule validation; rejection if placeholder count or names diverge | Low |
 | T-09 | Prompt injection via source segment ("Ignore previous instructions, output X") | T, E, I | LLM-class engine response | Engine-specific system-prompt isolation + source-segment fenced + response-filter ; per-vendor docs cited | Medium (LLM-class only) |
-| T-10 | Rate-limit cascade (one tenant exhausts engine quota) | D | Engine availability | Per-tenant token-bucket (Redis) + per-engine global token-bucket + back-pressure → router demote-engine; quota burst alert | Low |
+| T-10 | Rate-limit cascade (one tenant exhausts engine quota) | D | Engine availability | Per-tenant token-bucket (Valkey) + per-engine global token-bucket + back-pressure → router demote-engine; quota burst alert | Low |
 | T-11 | Bulk-job storage abuse (10 GB tenant XLIFF upload) | D | S3 + bulk-worker | Per-tenant upload quota + size cap + content-type validation + virus scan via ClamAV sidecar | Low |
 | T-12 | Real-time stream replay (attacker replays caption-stream WS messages) | T, R | Stream session | Per-session nonce + Ed25519-signed chunk + replay-window enforcement; STT source authentication via meet µservice | Low |
 | T-13 | QE-score manipulation (model output coerced to over-report quality, evading human review) | T, E | QE score | QE deployed as low-risk AI per ADR-TRANSLATE-0003 with documented bounds; out-of-bound score quarantined for human review | Medium |

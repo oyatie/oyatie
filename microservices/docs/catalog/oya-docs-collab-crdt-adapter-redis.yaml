@@ -19,7 +19,7 @@ data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, PERSONAL_DOC_CONTENT, PROFESSION
 operational_classes_owned: [AUDIT]
 autonomy_tier_required: T1
 implementation_notes: |
-  Implements PresenceBroadcast + CrdtOpSpool against Redis 7.4 cluster mode.
+  Implements PresenceBroadcast + CrdtOpSpool against Valkey 8.1 (Redis wire-compat) cluster mode.
   Per-tenant key prefix. AOF every-sec persistence. Per ADR-DOCS-0001
   ephemeral spool TTL ≤ 60s; reconstruction from Postgres seal-deltas on
   cold-start.

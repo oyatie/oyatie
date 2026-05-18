@@ -43,10 +43,10 @@ Cross-pack flows that DO occur:
 
 | Failure scenario | RTO | RPO | Strategy |
 |---|---|---|---|
-| Single-AZ failure (within primary region) | ≤ 5 min | ≤ 0 (Postgres logical replication) | Auto-failover via Postgres patroni + Redis Sentinel |
+| Single-AZ failure (within primary region) | ≤ 5 min | ≤ 0 (Postgres logical replication) | Auto-failover via Postgres patroni + Valkey Sentinel |
 | Primary region failure | ≤ 30 min | ≤ 1 min | DR region promotion; pre-baked replicas in DR region; Postgres cross-AZ replication |
 | Postgres data loss | ≤ 1h | ≤ 5 min | Point-in-time recovery from 30-day backups; rerun retention-policy worker if needed |
-| Redis cache loss | ≤ 1 min | n/a (cache only) | Cold rebuild from Postgres |
+| Valkey cache loss | ≤ 1 min | n/a (cache only) | Cold rebuild from Postgres |
 | Meilisearch index loss | ≤ 30 min | ≤ 5 min | Rebuild from Postgres |
 | Blind-signature key compromise | n/a — Sev-1 event | n/a | Runbook `runbooks/blind-signature-key-ceremony.md` — emergency rotation + all in-flight credentials invalidated |
 | Affinity-attestation key compromise | n/a — Sev-1 event | n/a | Runbook `runbooks/affinity-attestation-key-rotation.md` — emergency rotation + tenant-IdP renegotiation |
@@ -70,7 +70,7 @@ Cross-pack flows that DO occur:
 
 | Region pair | Cross-AZ replication mode | Lag p99 |
 |---|---|---|
-| ap-northeast-2 / ap-northeast-1 | Postgres logical async + Redis cluster mode | ≤ 1 min |
+| ap-northeast-2 / ap-northeast-1 | Postgres logical async + Valkey cluster mode | ≤ 1 min |
 | eu-central-1 / eu-west-1 | Postgres logical async | ≤ 30s |
 | us-east-1 / us-west-2 | Postgres logical async | ≤ 1 min |
 | Others | varies | ≤ 1 min |

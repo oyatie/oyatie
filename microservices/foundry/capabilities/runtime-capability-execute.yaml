@@ -104,7 +104,7 @@ cost_profile:
   cost_drivers:
     - capability-registry-cache lookup (in-memory; negligible)
     - autonomy gate check (in-memory; negligible)
-    - session-state hot read (Redis; small)
+    - session-state hot read (Valkey; small)
     - sibling mTLS calls (1× providers + 2× guardrails + 1× evidence)
     - lifecycle record write (Postgres)
     - audit-chain seal (foundry-evidence)

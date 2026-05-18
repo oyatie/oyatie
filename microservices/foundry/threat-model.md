@@ -66,7 +66,7 @@ The foundry µservice has the following trust boundaries:
 | ID | Threat | Affected BCs | Mitigation |
 |---|---|---|---|
 | I1 | Provider credential leak from any non-providers BC | providers, runtime, supervisor, eval, evidence, guardrails | Credentials only resident in providers/openbao-adapter; never in env vars, logs, or cross-BC traffic; AC-X4 verification |
-| I2 | Session content leak via cross-tenant Redis collision | runtime | Per-tenant Redis key prefix + Cedar enforcement |
+| I2 | Session content leak via cross-tenant Valkey collision | runtime | Per-tenant Valkey key prefix + Cedar enforcement |
 | I3 | Eval replay leaks production session content | eval, runtime | Eval-run sandbox pool uses synthetic-only data per `policy/eval-synthetic-phi-only.md` |
 | I4 | Evidence-pack export to regulator includes wrong-tenant content | evidence | Per-export Cedar scope check; regulator-export scope policy is BC-owned |
 | I5 | Guardrail decision log leaks prompt content | guardrails | Decision log records decision + hash(prompt), not prompt itself |
@@ -99,7 +99,7 @@ Per Bominal ADR-0028 + ADR-0117 + `feedback_quality_performance_scalability_bar.
 | Data | Class | Resident BC | Touchpoints |
 |---|---|---|---|
 | Capability descriptor | INTERNAL_ONLY (descriptor); BEHAVIORAL_TENANT_PRODUCT (per-tenant variants) | supervisor (canonical) + runtime (cache) + eval (read) | mTLS; signed |
-| Session content | SENSITIVE_PIPA_ART23 (per session jurisdiction) | runtime | Redis TLS + per-pack KMS |
+| Session content | SENSITIVE_PIPA_ART23 (per session jurisdiction) | runtime | Valkey TLS + per-pack KMS |
 | Invocation result | BEHAVIORAL_TENANT_PRODUCT | runtime + evidence (sealed) | mTLS; audit-chain |
 | Provider credential | RESTRICTED_PROVIDER_SECRET | providers (OpenBao) | OpenBao only; never elsewhere |
 | Guardrail decision log | AUDIT | guardrails + evidence | audit-chain |

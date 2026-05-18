@@ -8,7 +8,7 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M02-product-tier-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/calendar.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-calendar
@@ -61,7 +61,7 @@ Bominal inheritance: ADR-0208 dual-context unified-channel hub + ADR-0215 retent
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
 | Single event fetch | ≤30ms | ≤200ms | ≤500ms | Postgres read; cache-hit ratio >80% |
-| Cross-tenant availability lookup | ≤100ms | ≤500ms | ≤1s | up to 100 attendees; Redis cache |
+| Cross-tenant availability lookup | ≤100ms | ≤500ms | ≤1s | up to 100 attendees; Valkey cache |
 | Recurrence expansion (single RRULE; 1y horizon) | ≤200ms | ≤1s | ≤3s | bounded window |
 | Event write (with invitation fanout) | ≤80ms | ≤300ms | ≤800ms | sync write; async fanout |
 | .ics import (10k events) | — | ≤60s | ≤120s | streaming parse |
@@ -260,7 +260,7 @@ Error budget: monthly 99.95% availability → ~22 min/month.
 
 ## Horizontal Scalability
 
-State strategy (per Bominal ADR-0019): `mixed`. Postgres (event-store; per-tenant RLS); Redis (availability-resolver cache; per-tenant key prefix); stateless workers for invitation-fanout + retention-sweep + recurrence-expansion + ics-import.
+State strategy (per Bominal ADR-0019): `mixed`. Postgres (event-store; per-tenant RLS); Valkey (availability-resolver cache; per-tenant key prefix); stateless workers for invitation-fanout + retention-sweep + recurrence-expansion + ics-import.
 
 Per-cell capacity envelope:
 
@@ -275,7 +275,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - Kubernetes HPA: rest pods scale on CPU > 70%; min 3, max 100.
 - Postgres: per-tenant logical shard; cross-cell replication-factor 3 with Patroni.
-- Redis: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru` for free/busy cache.
+- Valkey: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru` for free/busy cache.
 - Pre-warmed pool: 5 standby pods; cold-start ≤ 700ms.
 
 Cross-region: M02 launches in KR (ap-seoul-1); M03 expands to EU + US per ADR-0117 jurisdiction pack.

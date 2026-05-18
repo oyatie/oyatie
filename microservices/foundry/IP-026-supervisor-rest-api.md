@@ -94,6 +94,6 @@ Per route: happy + auth-fail (no OIDC) + tenant-mismatch + cedar-deny + insuffic
 ## References
 
 - PRD §"Bounded Contexts" + `contracts/openapi/foundry-supervisor.yaml`.
-- ADR-0140 (Cedar).
+- ADR-0140 (retired per ADR-0145) (Cedar).
 - `policy/tenant-scope.cedar` + `policy/auditor-scope.cedar` + `policy/public-read.cedar`.
 - axum — `docs.rs/axum`.

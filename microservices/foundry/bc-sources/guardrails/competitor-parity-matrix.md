@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-foundry-guardrails + council-architecture
 deciders: axis-foundry-guardrails, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0131, ADR-0133, ADR-0140]
+related_adrs: [ADR-0123, ADR-0131, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/foundry-guardrails/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-FGUARD gate)

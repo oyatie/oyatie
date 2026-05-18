@@ -51,7 +51,7 @@ For packs with a DR pair:
 │  │ provider-router-rest (HA)   │         │ provider-router-rest (HA)   │   │
 │  │ adapter pods (per vendor)   │         │ adapter pods (per vendor)   │   │
 │  │ Postgres primary + replica  │ ←async→ │ Postgres replica            │   │
-│  │ Redis sentinel HA           │ ←async→ │ Redis replica               │   │
+│  │ Valkey Sentinel HA           │ ←async→ │ Valkey replica               │   │
 │  │ OpenBao agent (per pod)     │         │ OpenBao agent (per pod)     │   │
 │  │ Egress proxy → vendor edges │         │ Egress proxy → vendor edges │   │
 │  └─────────────────────────────┘         └─────────────────────────────┘   │
@@ -63,7 +63,7 @@ For packs with a DR pair:
 
 DR-pair semantics:
 - **Async streaming replication** for Postgres provider-config (RPO ≤ 60 s).
-- **Async replication** for Redis state (RPO ≤ 60 s; bucket recovery is operationally OK with brief over-throttle window).
+- **Async replication** for Valkey state (RPO ≤ 60 s; bucket recovery is operationally OK with brief over-throttle window).
 - **Independent OpenBao deployment per region** (no cross-region credential replication; OpenBao agent in the DR region reads from the DR OpenBao primary). Cross-region OpenBao is owned by `cloud-secrets` µservice.
 - **DNS-based failover** + SPIFFE identity remains valid (multi-region trust bundle).
 
@@ -84,7 +84,7 @@ Exception: per-pack SCC entitlement in tenant config (rare; recorded at onboardi
 
 - Provider-router is **stateless** at runtime (decisions are per-call); on restart, no provider-router-owned state is lost.
 - Postgres provider-config: async replication ≤ 60 s lag.
-- Redis token-bucket state: async replication ≤ 60 s lag; brief over-throttle window after failover is acceptable.
+- Valkey token-bucket state: async replication ≤ 60 s lag; brief over-throttle window after failover is acceptable.
 - OpenBao credentials: owned by `cloud-secrets`; inherits its RPO.
 
 ### RTO drills
@@ -99,7 +99,7 @@ For DR-pair packs:
 1. Primary-region health degraded (multiple AZs affected); declare Sev-1.
 2. CommsLead notifies tenants of DR cutover in ≤ 30 min.
 3. OpsLead executes: `cargo run -p oya-dev-cli -- vcs region-failover --pack <p> --to-region <dr-region> --reason "<id>"`.
-4. The CLI: (a) updates DNS to point to DR region; (b) promotes DR Postgres replica to primary; (c) DR Redis takes over; (d) DR OpenBao instance is queried by DR adapter pods; (e) emit `RegionFailover` audit-chain event.
+4. The CLI: (a) updates DNS to point to DR region; (b) promotes DR Postgres replica to primary; (c) DR Valkey takes over; (d) DR OpenBao instance is queried by DR adapter pods; (e) emit `RegionFailover` audit-chain event.
 5. Verify tenant invocations resume; observability shows `provider-router` qps recovering.
 6. Postmortem; re-establish replication from new primary back to recovered region; eventually fail back if desired.
 

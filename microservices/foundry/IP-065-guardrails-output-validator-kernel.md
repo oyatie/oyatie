@@ -113,5 +113,5 @@ Same as IP-004.
 
 ## References
 
-- ADR-0056, ADR-0105, ADR-0140.
+- ADR-0056, ADR-0105, ADR-0140 (retired per ADR-0145).
 - PRD §"Bounded Contexts".

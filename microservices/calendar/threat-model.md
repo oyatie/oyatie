@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-calendar + ops-security
 deciders: council-architecture, ops-security, axis-calendar, council-privacy
 methodology: STRIDE + LINDDUN + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 review_cadence: quarterly + on every BC architectural change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1-CC6.8, CC7.1-CC7.5, CC8.1"
@@ -37,7 +37,7 @@ All components introduced for the calendar µservice across the six bounded cont
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres (event store) | `oya-calendar-event-store-*` (10 crates) |
-| Redis (availability cache) | `oya-calendar-recurrence-engine-*` (6 crates) |
+| Valkey (availability cache) | `oya-calendar-recurrence-engine-*` (6 crates) |
 | chrono-tz / IANA tzdata | `oya-calendar-availability-resolver-*` (9 crates) |
 | `icalendar-rs` (vetted fork, RFC 5545 parse/emit) | `oya-calendar-room-booking-*` (7 crates) |
 | in-house CalDAV (RFC 4791) adapter | `oya-calendar-invitation-flow-*` (7 crates) |
@@ -80,7 +80,7 @@ All components introduced for the calendar µservice across the six bounded cont
 │  │  Row-level security; encryption-at-rest; tenant-DEK envelope     │      │
 │  └──────────────────────────────────────────────────────────────────┘      │
 │                                                                            │
-│  Trust boundary 3: REST → Redis (availability cache, per-tenant key prefix)│
+│  Trust boundary 3: REST → Valkey (availability cache, per-tenant key prefix)│
 │                                                                            │
 │  Trust boundary 4: Cross-tenant availability resolver → remote tenant      │
 │       (over mTLS internal mesh; Cedar `cross-tenant-grant` policy)         │
@@ -109,7 +109,7 @@ Per Bominal ADR-0028 + `oya-check-data-class` LEAN lane.
 | Event title + description + location (Personal context) | `PERSONAL_EVENT_CONTENT` (E2E where tenant declares) | Critical | per jurisdiction + legal hold | Postgres |
 | Attendee list (emails + display names) | `PII_IDENTIFYING` | High | per event retention | Postgres + audit-chain |
 | RSVP state | `PII_IDENTIFYING` | Medium | per event retention | Postgres |
-| Cross-tenant availability projection (free/busy only) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | cache TTL ≤ 60s | Redis |
+| Cross-tenant availability projection (free/busy only) | `BEHAVIORAL_TENANT_PRODUCT` | Medium | cache TTL ≤ 60s | Valkey |
 | Cross-tenant invitation grant | `AUDIT` + `SENSITIVE_PIPA_ART23` | High | append-only | Postgres + audit-chain |
 | Resource (room) graph | `BEHAVIORAL_TENANT_PRODUCT` | Medium | per resource retention | Postgres |
 | Bookings | `BEHAVIORAL_TENANT_PRODUCT` | Medium | per event retention | Postgres |
@@ -230,7 +230,7 @@ Each threat: ID; asset; description; likelihood (L/M/H); impact (L/M/H); risk; m
 - L L / I M / Risk L-M
 - Mitigations:
   - Cache key is `(event_id, version, window_hash)`; cache invalidates on event version increment.
-  - Cache stored in Redis with per-tenant prefix; cross-tenant read forbidden by Redis ACL.
+  - Cache stored in Valkey with per-tenant prefix; cross-tenant read forbidden by Valkey ACL.
 - Owner: axis-calendar
 - Residual: L
 - Frameworks: SOC 2 CC6.6; ISO 27001 A.8.21
@@ -357,7 +357,7 @@ Each threat: ID; asset; description; likelihood (L/M/H); impact (L/M/H); risk; m
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30, A.8.6, A.8.14; GDPR Art. 32(1)(c)
 
 **T-D-02 — Availability resolver cache-miss storm**
-- Asset: Redis availability cache
+- Asset: Valkey availability cache
 - L M / I H / Risk H
 - Mitigations:
   - Cache TTL ≤ 60s + jitter ± 5s prevents synchronized expiry.

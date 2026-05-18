@@ -16,7 +16,7 @@ data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, SECRET]
 operational_classes_owned: [SECRET]
 autonomy_tier_required: T2
 backend: redis
-backend_version: "7.2"  # Redis 7.2 LTS
+backend_version: "7.2"  # Valkey 8.1 (Redis wire-compat)
 implements:
   - FeedCache
 storage_invariants:

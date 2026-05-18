@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-sheets + ops-security + council-design-system
 deciders: axis-sheets, ops-security, council-architecture, council-design-system
-related_adrs: [ADR-0028, ADR-0065, ADR-0103, ADR-0135, ADR-0131, ADR-0140, ADR-SHEETS-0006]
+related_adrs: [ADR-0028, ADR-0065, ADR-0103, ADR-0135, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-SHEETS-0006]
 related_artifacts:
   - microservices/sheets/threat-model.md (T-I-01, T-I-04, T-I-06, T-I-07, T-I-08, T-T-07)
   - microservices/sheets/dpia.md (R-02, R-14, R-16, R-22)
@@ -28,7 +28,7 @@ Define the load-bearing isolation contract between tenant workbook sessions, fun
 
 Every workbook session belongs to exactly one tenant. The session boundary applies to:
 
-1. **Workbook metadata + cell rows** — Postgres + Redis tagged by tenant_id; Arrow/Parquet large-sheet blocks per-(tenant, workbook, sheet) key.
+1. **Workbook metadata + cell rows** — Postgres + Valkey tagged by tenant_id; Arrow/Parquet large-sheet blocks per-(tenant, workbook, sheet) key.
 2. **CRDT op stream** — WebSocket gateway lease is keyed (tenant_id, workbook_id); cross-tenant lease denied.
 3. **Per-seat license attribution** — tenancy SDK lookup scoped to tenant.
 4. **Per-range ACL** — Cedar policy fragments enforce read/edit per range_id within tenant scope.
@@ -47,7 +47,7 @@ Every workbook session belongs to exactly one tenant. The session boundary appli
 | Postgres Row-Level Security (RLS) | Predicate on every row: `tenant_id = current_setting('app.current_tenant_id')` | Postgres returns empty result; audit `sheets_postgres_rls_block` |
 | Citus partition | Tenant_id is partition key | Cross-shard query denied at coordinator |
 | Per-tenant Postgres connection pool | Connection-level session variable carries tenant_id | Pool returns 503; audit `sheets_pool_rebinding_denied` |
-| WebSocket gateway lease | Per (tenant_id, workbook_id) lease via Redis | WS upgrade rejected; audit `sheets_ws_lease_cross_tenant` |
+| WebSocket gateway lease | Per (tenant_id, workbook_id) lease via Valkey | WS upgrade rejected; audit `sheets_ws_lease_cross_tenant` |
 | Server-side stamping | Editor REST + WS handler overwrites any client-supplied tenant_id with OIDC claim | Spoofing attempt logged |
 | gVisor sandbox per XLSX import job | Sandbox boundary; tenant data inside cannot reach other tenant | Sandbox escape would breach (mitigated by gVisor mature posture) |
 
@@ -158,7 +158,7 @@ cache_key = (asset_path, pack, hashed_tenant_id?, version)
 
 ### Tenant-specific content forbidden at CDN
 
-**No tenant workbook content is EVER cached at CDN edge.** Workbook state lives in Postgres + Redis + S3 + Arrow/Parquet only; CDN serves only tenant-agnostic assets.
+**No tenant workbook content is EVER cached at CDN edge.** Workbook state lives in Postgres + Valkey + S3 + Arrow/Parquet only; CDN serves only tenant-agnostic assets.
 
 LEAN check `oya-governance-cdn-cache-key-tenant-isolated` validates CDN cache configuration against this rule.
 

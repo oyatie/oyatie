@@ -71,7 +71,7 @@ Plus cross-cutting:
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-iac.md`](IP-001-iac.md) | Helm/Kustomize + Terraform for notes (Postgres + Redis + Meilisearch + S3 + Loro server-side + MLS key-bundle directory) | pending | axis-notes + ops-sre-reliability | observability IP-001 |
+| [`IP-001-iac.md`](IP-001-iac.md) | Helm/Kustomize + OpenTofu for notes (Postgres + Valkey + Meilisearch + S3 + Loro server-side + MLS key-bundle directory) | pending | axis-notes + ops-sre-reliability | observability IP-001 |
 | [`IP-002-cargo-workspace-bootstrap.md`](IP-002-cargo-workspace-bootstrap.md) | Register 111 crates in workspace Cargo.toml | pending | axis-notes | — |
 | [`IP-003-note-store-kernel-domain.md`](IP-003-note-store-kernel-domain.md) | `oya-notes-note-store-kernel` + `-domain` port traits + entities | pending | axis-notes | IP-002 |
 | [`IP-004-tag-graph-kernel-domain.md`](IP-004-tag-graph-kernel-domain.md) | `oya-notes-tag-graph-{kernel,domain}` | pending | axis-notes | IP-003 |
@@ -94,7 +94,7 @@ Plus cross-cutting:
 | kernel | 90 % / 80 % | per-port-trait + per-entity unit; sealed-trait smoke; data-class annotation check |
 | domain | 90 % / 80 % | pure-math / pure-logic unit |
 | usecase | 85 % / 75 % | orchestrator unit with port mocks; happy + error path |
-| adapter | 80 % / 70 % | integration vs real backend (Postgres / Redis / S3 / Meilisearch / Loro / MLS) where feasible; otherwise contract-mock |
+| adapter | 80 % / 70 % | integration vs real backend (Postgres / Valkey / S3 / Meilisearch / Loro / MLS) where feasible; otherwise contract-mock |
 | rest | 85 % / 75 % | per-endpoint happy + 401 + 403 + 422 |
 | worker | 85 % / 75 % | event-loop unit + integration |
 | app | 75 % / 65 % | smoke startup |

@@ -46,7 +46,7 @@ spec:
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: messenger-postgres}}
       ports: [{protocol: TCP, port: 5432}]
-    # Redis (presence + streams)
+    # Valkey (presence + streams)
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: messenger-redis}}
       ports: [{protocol: TCP, port: 6379}]

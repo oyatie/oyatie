@@ -11,11 +11,11 @@ acceptance_lanes: [helm-lint, helm-install-smoke, oya-check-redis-acl-enforced]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-002: Redis Cluster Layer-A IaC
+# IP-002: Valkey Cluster Layer-A IaC
 
 ## Intent
 
-Helm chart for Redis Cluster (3 shards × 2 replicas per pack region); kill-switch state cache + supervision-event-bus Redis Streams; per-pod ACL tokens.
+Helm chart for Valkey Cluster (3 shards × 2 replicas per pack region); kill-switch state cache + supervision-event-bus Valkey Streams (Redis wire-compat); per-pod ACL tokens.
 
 ## Concrete File Targets
 
@@ -27,7 +27,7 @@ Helm chart for Redis Cluster (3 shards × 2 replicas per pack region); kill-swit
 
 ## Substrate selections
 
-- Redis 7.x LTS (cite redis.io/docs/management/scaling/).
+- Valkey 8.1 (Redis wire-compat) (cite redis.io/docs/management/scaling/).
 - Cluster mode with 3 shards × 2 replicas.
 - AOF every-second.
 - Per-user ACL with pattern-bounded key access.
@@ -62,6 +62,6 @@ cargo run -p oya-dev-cli -- gate validate redis-acl-enforced --microservice foun
 ## References
 
 - `policy/supervisor-isolation.md` TI-R-*.
-- Redis Cluster — `redis.io/docs/management/scaling/`.
-- Redis ACL — `redis.io/docs/management/security/acl/`.
-- `capacity-model.md` §"Redis Cluster Sizing".
+- Valkey Cluster — `redis.io/docs/management/scaling/`.
+- Valkey ACL — `redis.io/docs/management/security/acl/`.
+- `capacity-model.md` §"Valkey Cluster Sizing".

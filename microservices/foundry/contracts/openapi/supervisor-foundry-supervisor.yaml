@@ -449,7 +449,7 @@ paths:
 
   /ready:
     get:
-      summary: Readiness probe (Postgres + Redis + Operator-lease healthy)
+      summary: Readiness probe (Postgres + Valkey + Operator-lease healthy)
       operationId: getReady
       security: []
       responses:

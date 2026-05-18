@@ -167,7 +167,7 @@
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: IaC bootstrap — Helm + Kustomize for Postgres + S3 + Redis + ClamAV + OPSWAT + gVisor",
+      "title": "IP-001: IaC bootstrap — Helm + Kustomize for Postgres + S3 + Valkey + ClamAV + OPSWAT + gVisor",
       "acceptance_status": "ga",
       "file": "microservices/docs/IP-001-iac-bootstrap.md"
     },
@@ -339,12 +339,6 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
-    },
-    {
-      "id": "ADR-0140",
-      "title": "Cross Cutting Carriers Adapter Exemption",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -364,5 +358,12 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

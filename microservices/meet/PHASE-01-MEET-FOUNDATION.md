@@ -61,7 +61,7 @@ Plus cross-cutting:
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm chart + Kustomize overlays + Terraform for LiveKit + coturn + Whisper GPU pool + ffmpeg gVisor + SRS RTMP + Postgres + Redis + S3 + Meilisearch | pending | axis-meet + ops-sre-reliability | observability IP-001 |
+| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm chart + Kustomize overlays + OpenTofu for LiveKit + coturn + Whisper GPU pool + ffmpeg gVisor + SRS RTMP + Postgres + Valkey + S3 + Meilisearch | pending | axis-meet + ops-sre-reliability | observability IP-001 |
 | [`IP-002-cargo-workspace-bootstrap.md`](IP-002-cargo-workspace-bootstrap.md) | Cargo workspace; ~80 crate stubs per BC | pending | axis-meet | — |
 | [`IP-003-meeting-room-kernel-domain.md`](IP-003-meeting-room-kernel-domain.md) | `oya-meet-meeting-room-{kernel,domain,usecase}` port traits + entities | pending | axis-meet | IP-002 |
 | [`IP-004-meeting-room-adapter-postgres.md`](IP-004-meeting-room-adapter-postgres.md) | Postgres RLS + room CRUD adapter | pending | axis-meet | IP-003 |
@@ -84,7 +84,7 @@ Plus cross-cutting:
 | kernel | 90 % / 80 % | per-port-trait + per-entity unit; sealed-trait smoke; data-class annotation check |
 | domain | 90 % / 80 % | pure-math / pure-logic unit |
 | usecase | 85 % / 75 % | orchestrator unit with port mocks; happy + error path |
-| adapter (Postgres / Redis / S3 / Meilisearch) | 80 % / 70 % | integration vs real backend |
+| adapter (Postgres / Valkey / S3 / Meilisearch) | 80 % / 70 % | integration vs real backend |
 | adapter (LiveKit / Whisper / ffmpeg / SRS / MLS) | 80 % / 70 % | integration vs real substrate where feasible; else contract-mock |
 | rest | 85 % / 75 % | per-endpoint happy + 401 + 403 + 422 |
 | worker | 85 % / 75 % | event-loop unit + integration |

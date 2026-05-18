@@ -67,7 +67,7 @@ Replay re-emits existing events for downstream consumer catch-up. Triggers:
 
 1. Operator invokes: `cargo run -p oya-dev-cli -- supervisor replay-events --window <start_ts,end_ts> --consumer <foundry-evidence|observability|...> --reason "<rfc>"`.
 2. CLI requires 2-person rule + ops-security approval for cross-tenant replays.
-3. Supervisor reads events from supervision-event-bus (Redis Streams) over the window.
+3. Supervisor reads events from supervision-event-bus (Valkey Streams (Redis wire-compat)) over the window.
 4. Re-emits with `replayed=true` label; signatures unchanged (originals preserved).
 5. Audit-chain seal: the replay-window itself is sealed, distinguishing replay from originals.
 
@@ -75,7 +75,7 @@ Replay re-emits existing events for downstream consumer catch-up. Triggers:
 
 - Replayed events have `replayed=true` AND `original_event_id` label.
 - Replay does NOT trigger live kill-switch engagement, deployment phase advance, or rollback.
-- Replay cannot exceed event-bus retention (Redis Streams: 7 d at-rest + 6 mo in audit-chain).
+- Replay cannot exceed event-bus retention (Valkey Streams (Redis wire-compat): 7 d at-rest + 6 mo in audit-chain).
 - Replay output never re-applies state mutations (no double-deployment, no double-kill-switch).
 
 ### Verification
@@ -108,4 +108,4 @@ Cost surfaced in `cost-budget.md`.
 - `microservices/foundry-supervisor/contracts/asyncapi/foundry-supervisor-events.yaml`.
 - `microservices/foundry-supervisor/runbooks/supervision-bus-replay.md`.
 - ADR-0028, ADR-0139, ADR-0131.
-- Redis Streams — `redis.io/docs/data-types/streams/`.
+- Valkey Streams (Redis wire-compat) — `redis.io/docs/data-types/streams/`.

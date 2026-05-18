@@ -148,6 +148,28 @@ adapter and shares it as `Arc<dyn HyperscalerMetrics>` across the BCs;
 see `microservices/messenger/IP-NEW-hyperscaler-metric-emission.md` for
 the canonical wiring pattern (pilot µservice, M02-P14).
 
+## Cardinality discipline (ADR-0151)
+
+Per `docs/standards/request-id-canonical.md` + ADR-0151, the following
+labels MUST NEVER appear on any Prometheus / Mimir metric. They are
+high-cardinality (one-series-per-request or per-entity); emitting them
+on metrics blows up the TSDB. They MAY appear in Tempo span attributes
+and Loki log fields only.
+
+Six canonical high-cardinality labels:
+
+- `request_id` — per-request correlation id (ULID) per ADR-0151.
+- `user_id` — per-user identifier.
+- `session_id` — per-session identifier.
+- `document_id` — per-document identifier (drive, docs, notes).
+- `message_id` — per-message identifier (messenger, mail).
+- `channel_id` — per-channel identifier (messenger).
+
+Every µservice's `ServiceMonitor.metricRelabelings` MUST emit a
+`labeldrop` action for each label above that the µservice's runtime
+plausibly emits. Compliance enforced by the
+`oya gate validate metric-cardinality` lane.
+
 ## CI enforcement
 
 A Rust check (planned: `oya-check-canonical-base-cohesion`) verifies:

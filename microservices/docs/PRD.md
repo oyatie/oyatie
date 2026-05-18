@@ -8,7 +8,7 @@ sales_segment: shared-substrate + hero-product
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/docs.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-docs
@@ -65,7 +65,7 @@ Bominal inheritance: ADR-0208 dual-context unified-channel hub + ADR-0215 retent
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
 | Document open (cold) | ≤150ms | ≤300ms | ≤700ms | Postgres + S3 read; first paint |
-| Document open (warm) | ≤30ms | ≤100ms | ≤250ms | Redis cache hit |
+| Document open (warm) | ≤30ms | ≤100ms | ≤250ms | Valkey cache hit |
 | Save | ≤30ms | ≤100ms | ≤300ms | CRDT op commit + audit emit |
 | Collab cursor sync | ≤40ms | ≤150ms | ≤400ms | aligns with workflow-studio §"Performance" |
 | Search-within-doc | ≤30ms | ≤100ms | ≤250ms | per-doc full-text index |
@@ -304,7 +304,7 @@ Error budget: monthly 99.95% availability → ~22 min/month.
 
 ## Horizontal Scalability
 
-State strategy (per Bominal ADR-0019): `mixed`. Postgres (document metadata + per-tenant RLS); S3 (block content blobs + attachments; per-tenant prefix); Redis (collab presence + CRDT op fan-out + per-doc cache; per-tenant key prefix); stateless workers for export + import + version compaction + embed-refresh + retention-sweep.
+State strategy (per Bominal ADR-0019): `mixed`. Postgres (document metadata + per-tenant RLS); S3 (block content blobs + attachments; per-tenant prefix); Valkey (collab presence + CRDT op fan-out + per-doc cache; per-tenant key prefix); stateless workers for export + import + version compaction + embed-refresh + retention-sweep.
 
 Per-cell capacity envelope:
 
@@ -321,7 +321,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - Kubernetes HPA: rest pods scale on CPU > 70%; min 5, max 100.
 - Postgres: per-tenant logical shard; cross-cell replication-factor 3 with Patroni.
-- Redis: cluster mode; per-tenant key prefix; eviction policy `volatile-lru` for collab presence; persistent for CRDT op spool.
+- Valkey: cluster mode; per-tenant key prefix; eviction policy `volatile-lru` for collab presence; persistent for CRDT op spool.
 - S3: per-pack bucket; per-tenant prefix; Object Lock for legal-hold blobs.
 - Export-pipeline workers: pre-warmed pool of 10 gVisor sandboxes; cold-start ≤ 800ms.
 

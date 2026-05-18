@@ -310,17 +310,78 @@ affinity.
   extensions, workflow-studio custom WASM nodes). Cells declare
   `oyatie/runtime-class-supported=wasmtime`.
 
+#### Regulated-pack cell tiers (per ADR-0174)
+
+Per ADR-0174 (Istio Ambient waypoint for regulatory-heavy packs, layered
+on top of Cilium per ADR-0148) the cell substrate carries additional
+regulated-pack tiers. Each regulated-pack tier requires its host-pool to
+host Istio Ambient waypoint Envoy pods and to advertise the namespace
+label `istio.io/dataplane-mode=ambient` on the regulated namespaces it
+schedules.
+
+- **cell-pack-eu** — pack-EU regulated cells. Host-pool must host
+  the Istio Ambient waypoint Deployment for the regulated namespaces
+  it schedules (employment-context refusal, GDPR Art. 22 routing, DSA
+  Art. 17 transparency response shaping). Cells declare label
+  `oyatie/istio-ambient-waypoint-supported=true` and
+  `oyatie/regulatory-pack=pack-eu` on every node. Composes the EU
+  variant of the waypoint Helm chart from
+  `microservices/governance/iac/helm/istio-ambient-waypoint/` plus the
+  three EU policy fragments from
+  `microservices/governance/iac/kustomize/components/istio-waypoint-policies/`.
+- **cell-pack-kr** — pack-KR regulated cells. Host-pool must host the
+  Istio Ambient waypoint for KR PIPA Art. 17 cross-border enforcement
+  and 통신비밀보호법 Art. 9 lawful-interception envelope shaping. Cells
+  declare label `oyatie/istio-ambient-waypoint-supported=true` and
+  `oyatie/regulatory-pack=pack-kr` on every node.
+- **cell-pack-us-healthcare** — pack-US-healthcare regulated cells.
+  Host-pool must host the Istio Ambient waypoint for HIPAA
+  minimum-necessary scrubbing (Wasm filter
+  `oyatie-hipaa-min-necessary-scrubber`) and BAA boundary
+  enforcement. Cells declare label
+  `oyatie/istio-ambient-waypoint-supported=true` and
+  `oyatie/regulatory-pack=pack-us-healthcare` on every node.
+- **cell-pack-ksa** — pack-KSA regulated cells. Host-pool must host
+  the Istio Ambient waypoint for KSA PDPL sovereign routing + SAMA-CSF
+  monitoring header injection. The sovereign-tier variant of
+  cell-pack-ksa additionally pins the waypoint pod runtime to
+  `kata-clh-sev-snp` per the ADR-0147 ladder (firmware-attested
+  confidential VM for regulatory enforcement plane). Cells declare
+  label `oyatie/istio-ambient-waypoint-supported=true` and
+  `oyatie/regulatory-pack=pack-ksa`.
+- **cell-pack-uae** — pack-UAE regulated cells. Host-pool must host
+  the Istio Ambient waypoint for UAE PDPL Arts. 22-24 cross-border
+  enforcement and UAE Cybersecurity Council monitoring header
+  injection. Cells declare label
+  `oyatie/istio-ambient-waypoint-supported=true` and
+  `oyatie/regulatory-pack=pack-uae`.
+
+The scheduler refuses to bind a regulated tenant (tenant whose
+`tenant.regulatory_pack` is non-null) to a non-Ambient-capable cell.
+The check is symmetric to the existing kata-clh-sev-snp /
+kata-clh-tdx host-pool capability check: a regulated tenant requires a
+cell whose host-pool advertises the matching `oyatie/regulatory-pack`
+label AND the `oyatie/istio-ambient-waypoint-supported=true` label.
+
 The scheduler refuses to bind a tenant whose required RuntimeClass set
 exceeds the cell's declared host-pool capabilities (e.g., a sovereign-
 tier tenant requiring `kata-clh-sev-snp` cannot be placed on a
 `kata-clh`-only cell because the AMD SEV-SNP firmware capability is
 absent). Cell-decommission flow also refuses to drop a SEV-SNP / TDX
 capable cell that is the last one in its pack supporting any required
-RuntimeClass.
+RuntimeClass. The same refusal applies to regulated-pack cells: the
+last `cell-pack-eu` / `cell-pack-kr` / `cell-pack-us-healthcare` /
+`cell-pack-ksa` / `cell-pack-uae` in its pack cannot be decommissioned
+while any tenant in that regulatory pack remains bound.
 
 The canonical RuntimeClass install component lives at
-`microservices/governance/iac/kustomize/components/runtime-classes/` and
-is composed by the cloud-k8s µservice base.
+`microservices/governance/iac/kustomize/components/runtime-classes/`
+(including `istio-ambient-waypoint-runtime-class.yaml` for the
+waypoint Envoy pods per ADR-0174) and is composed by the cloud-k8s
+µservice base. The canonical Istio Ambient waypoint Helm chart lives
+at `microservices/governance/iac/helm/istio-ambient-waypoint/` and is
+composed per regulated pack by the cell µservice's overlays at
+`microservices/cell/iac/kustomize/overlays/pack-<eu|kr|us-healthcare|ksa|uae>/`.
 
 ## Acceptance Criteria
 

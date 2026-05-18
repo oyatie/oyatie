@@ -323,7 +323,7 @@ paths:
 
   /ready:
     get:
-      summary: Readiness probe (cache reachable + Redis reachable + sibling siblings reachable)
+      summary: Readiness probe (cache reachable + Valkey reachable + sibling siblings reachable)
       operationId: getReady
       security: []
       responses:

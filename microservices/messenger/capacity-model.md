@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baselines for every messenger component: WebSocket gateway, Postgres message store, Redis presence/read-receipt, S3 attachments, Tantivy search index, Layer-B Rust services. Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + reference-architecture baselines for every messenger component: WebSocket gateway, Postgres message store, Valkey presence/read-receipt, S3 attachments, Tantivy search index, Layer-B Rust services. Drives `cost-budget.md` and `multi-region.md`.
 
 ## Inputs
 
@@ -73,7 +73,7 @@ write_iops_peak     = M_peak × 4
 
 Per-cell envelope: Postgres primary handles ≤ 50k msg/sec at HA-RF=3; beyond this, shard by `(tenant_id mod N)`.
 
-## Redis Presence + Read-Receipt Sizing
+## Valkey Presence + Read-Receipt Sizing
 
 ```
 presence_ops_per_sec     = C_active_conn / 30 (1 heartbeat per 30s)
@@ -158,7 +158,7 @@ mention_workers        = ceil(mention_events_per_sec / 2000) (each handles 2k me
 |---|---|
 | Gateway CPU sustained > 70 % | HPA scale-up (≤ 200 replicas) |
 | Postgres primary write-IOPS > 70 % | Shard by tenant_id |
-| Redis shard CPU > 70 % | Add Redis shard |
+| Valkey shard CPU > 70 % | Add Valkey shard |
 | Tantivy indexer lag > 60s sustained | Add indexer worker; enable Postgres-LIKE fallback |
 | S3 PUT rate > 70 % provisioned | Sharded bucket prefix per-tenant |
 | Per-tenant max channels > 50k | Shard tenant across cells |
@@ -175,4 +175,4 @@ mention_workers        = ceil(mention_events_per_sec / 2000) (each handles 2k me
 - `microservices/observability/capacity-model.md` (shape reference).
 - Postgres tuning: PostgreSQL 16 ops docs.
 - Tantivy ops: `github.com/quickwit-oss/tantivy/wiki/Operations`.
-- Redis Cluster ops: `redis.io/docs/management/scaling/`.
+- Valkey Cluster ops: `redis.io/docs/management/scaling/`.

@@ -8,7 +8,7 @@ owner: axis-workspace + ops-security + council-architecture
 deciders: council-architecture, axis-workspace, ops-security, dpo-office
 supersedes: []
 superseded_by: []
-related: [ADR-0105, ADR-0135, ADR-0131, ADR-0140]
+related: [ADR-0105, ADR-0135, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: []
 related_artifacts:
   - microservices/slides/PRD.md (FR-30, AC-08, AC-15)

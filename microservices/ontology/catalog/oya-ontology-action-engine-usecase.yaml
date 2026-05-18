@@ -16,4 +16,4 @@ spec:
             oya-ontology-cedar-fragment-coverage-usecase,
             oya-ontology-audit-chain-usecase, oya-ontology-entity-store-usecase]
   related_ip: IP-007
-  related_adrs: [ADR-0028, ADR-0050, ADR-0106, ADR-0107, ADR-0140]
+  related_adrs: [ADR-0028, ADR-0050, ADR-0106, ADR-0107, ADR-0140 (retired per ADR-0145)]

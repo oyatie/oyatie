@@ -21,7 +21,7 @@ Per-pack monthly steady-state cost envelope at the M03 preview target (10k activ
 | broadcast-mode-worker (2 replicas × 2 vCPU × 4 GiB) | OCI VM.Standard.E5.Flex | $310 | OCI list |
 | Export pool — gVisor workers (4 replicas × 4 vCPU × 8 GiB) | OCI VM.Standard.E5.Flex 4-OCPU | $1,240 | OCI list |
 | Postgres (Citus 3-node × 8 vCPU × 32 GiB + 1 TB SSD) | OCI VM.DenseIO.E5 | $3,400 | OCI list + storage |
-| Redis (3-node sentinel cluster × 4 vCPU × 16 GiB) | OCI VM.Standard.E5.Flex | $920 | OCI list |
+| Valkey (3-node sentinel cluster × 4 vCPU × 16 GiB) | OCI VM.Standard.E5.Flex | $920 | OCI list |
 | S3 (deck snapshots + assets; 5 TB; 1M PUT + 5M GET / month) | OCI Object Storage standard | $130 | OCI Object pricing |
 | CDN (WASM + theme/template gallery; 2 TB egress / month) | OCI CDN egress | $200 | OCI CDN |
 | WAF + API gateway | OCI WAF | $80 | OCI list |

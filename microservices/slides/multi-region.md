@@ -31,19 +31,19 @@ doc_status: published
 | Surface | Mode | Rationale |
 |---|---|---|
 | editor-rest | active-active within pack | stateless; per-pack residency holds |
-| real-time-collaboration-worker (CRDT WS) | active-active within pack; deck-shard via consistent-hash | single-writer per deck via Redis lease; lease pack-pinned |
-| broadcast-mode-worker | active-active within pack; deck-shard | single-writer per broadcast session via Redis lease; LiveKit SFU pack-pinned via messenger |
+| real-time-collaboration-worker (CRDT WS) | active-active within pack; deck-shard via consistent-hash | single-writer per deck via Valkey lease; lease pack-pinned |
+| broadcast-mode-worker | active-active within pack; deck-shard | single-writer per broadcast session via Valkey lease; LiveKit SFU pack-pinned via messenger |
 | Postgres (Citus) | primary write + read-replicas; cross-region async replica for DR | RPO 5s via WAL async ship |
-| Redis | primary cluster + sentinel; cross-region not replicated (ephemeral) | RPO 1s via in-memory; reconstructable from Postgres on cold-start |
+| Valkey | primary cluster + sentinel; cross-region not replicated (ephemeral) | RPO 1s via in-memory; reconstructable from Postgres on cold-start |
 | S3 deck snapshots + assets | cross-region replication (per-pack policy) | RPO 5s; bucket-replication |
-| Export workers (PPTX/PDF/MP4 in gVisor) | active-active within pack | stateless; job-queue claims via Redis |
+| Export workers (PPTX/PDF/MP4 in gVisor) | active-active within pack | stateless; job-queue claims via Valkey |
 | CDN (WASM + theme/template gallery) | global multi-edge | TTL-cached; immutable WASM chunks |
 
 ## Failover playbook
 
 1. **Detection**: pack SLI burn-rate alarm fires (10× burn 1h or 6× burn 6h); ops-sre-reliability on-call paged.
 2. **Triage** (5min): confirm primary region degraded vs slides-pod-level issue; check messenger + sheets + foundry-runtime status; check CDN edge status.
-3. **Region failover**: per `runbooks/`, promote secondary read-replica to primary; flip CDN origin DNS; drain primary editor-rest pods; flush Redis lease state to force re-acquisition on secondary; messenger LiveKit pack failover triggered.
+3. **Region failover**: per `runbooks/`, promote secondary read-replica to primary; flip CDN origin DNS; drain primary editor-rest pods; flush Valkey lease state to force re-acquisition on secondary; messenger LiveKit pack failover triggered.
 4. **Verify**: editor REST `/health` + WS `/upgrade` on secondary; cargo-leptos WASM bundle SRI verifies; CDN warm-up for top 100 tenants per pack.
 5. **Announce**: tenant comms via mail/banner; SLO burn-rate dashboard shared.
 6. **Rollback**: when primary recovers and async replica catches up to within RPO, plan failback at next maintenance window.
@@ -82,7 +82,7 @@ doc_status: published
 |---|---|---|---|---|
 | Postgres | Continuous WAL + nightly snapshot | 5s | 30min | TDE + per-pack KMS |
 | S3 deck snapshots | Cross-region replication + lifecycle (per-pack retention) | 5s | 30min | SSE-KMS per-pack |
-| Redis CRDT cache | none (ephemeral; reconstruct from Postgres) | — | 1min cold-start | KMS-encrypted on disk if persisted |
+| Valkey CRDT cache | none (ephemeral; reconstruct from Postgres) | — | 1min cold-start | KMS-encrypted on disk if persisted |
 | Audit-chain seals | append-only ledger + cross-region replication | 5s | 30min | Ed25519 signed; per-pack ledger |
 | Per-pack themes/templates | signed bundles in S3 + CDN | 5s | 30min | Ed25519 signed; SSE-KMS |
 

@@ -160,7 +160,7 @@ Right-to-erasure (GDPR Art. 17 / PIPA Art. 36 / DPDPA §12 / LGPD Art. 18) honou
    - Webhook delivery logs.
    - Bulk-distribute recipient logs.
    - File uploads (cascade to drive µservice DSR).
-3. Postgres + Redis + Meilisearch + audit-chain searched; per-row deletion with 30-day soft-delete grace; hard-delete after.
+3. Postgres + Valkey + Meilisearch + audit-chain searched; per-row deletion with 30-day soft-delete grace; hard-delete after.
 4. Audit-chain seal: `forms_dsr_executed{tenant, subject_hash, removed_response_count, timestamp}`.
 5. Submitter / tenant notified within 30d per GDPR; per-pack SLAs (KR 30d, BR 15d, EU 30d) respect strictest applicable.
 

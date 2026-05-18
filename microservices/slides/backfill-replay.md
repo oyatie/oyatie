@@ -18,7 +18,7 @@ Source: S3 deck-snapshot bucket (cross-region replicated).
 
 Steps:
 1. Identify affected `(tenant_id, deck_id)` set + corruption point-in-time.
-2. Freeze writes for affected decks via per-deck lease in Redis (refuse new edits).
+2. Freeze writes for affected decks via per-deck lease in Valkey (refuse new edits).
 3. Restore Postgres rows from latest pre-corruption snapshot.
 4. Replay CRDT op stream from `oya-slides-collab-op-log` archive (S3 partitioned by tenant_id × day).
 5. Re-issue Ed25519 audit seals for replay (audit-chain accepts seal_kind=backfill).

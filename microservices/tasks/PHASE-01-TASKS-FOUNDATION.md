@@ -29,7 +29,7 @@ In-scope:
 - 57 crates per the layer mapping table in `PRD.md`.
 - Postgres task-store + project-list + dependency-edge schema + per-
   tenant RLS + tenant-DEK envelope encryption.
-- Redis view-cache + presence + bulk-edit dedup.
+- Valkey view-cache + presence + bulk-edit dedup.
 - Meilisearch per-tenant cross-project search index; rebuildable.
 - IANA tzdata + chrono-tz integration (shared with calendar via
   Workflow handoff; tasks does NOT ship its own tzdb worker — relies

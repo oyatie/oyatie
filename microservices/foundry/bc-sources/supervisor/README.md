@@ -7,7 +7,7 @@ This µservice owns:
 - Capability deployment (admit → canary → roll-forward / roll-back)
 - Agent-fleet lifecycle (Kubernetes Operator pattern; per-tenant namespaces)
 - Autonomy-tier policy enforcement (Cedar v4 default-deny)
-- Supervision event bus (Redis Streams + AMQP; Ed25519-signed)
+- Supervision event bus (Valkey Streams (Redis wire-compat) + AMQP; Ed25519-signed)
 - Kill-switch / circuit-breaker (p99 ≤ 1 s engage; 2-person rule on fleet-wide)
 
 ## Documents
@@ -29,7 +29,7 @@ This µservice owns:
 | [`competitor-parity-matrix.md`](competitor-parity-matrix.md) | AWS Bedrock / Anthropic / OpenAI / Vertex AI / Databricks parity |
 
 Policy fragments under [`policy/`](policy/):
-- `supervisor-isolation.md` — per-tenant fleet boundaries (Postgres RLS + Redis ACL + K8s ns + Cedar)
+- `supervisor-isolation.md` — per-tenant fleet boundaries (Postgres RLS + Valkey ACL + K8s ns + Cedar)
 - `data-residency.md` — pack-pinning + cross-pack-forbidden + retention
 - `tenant-scope.cedar`, `ci-scope.cedar`, `auditor-scope.cedar`, `public-read.cedar`
 
@@ -55,7 +55,7 @@ Five BCs (per PRD §"Bounded Contexts"):
 1. **agent-fleet-lifecycle** (11 crates) — register, drain, evict, replace agents via K8s CRDs
 2. **capability-deployment** (10 crates) — admit + canary + roll-forward + roll-back; SLO-gated
 3. **autonomy-policy-enforcement** (8 crates) — Cedar v4 + tenant entitlements; per-invocation precondition
-4. **supervision-event-bus** (7 crates) — Redis Streams + AMQP; Ed25519-signed
+4. **supervision-event-bus** (7 crates) — Valkey Streams (Redis wire-compat) + AMQP; Ed25519-signed
 5. **kill-switch-circuit-breaker** (10 crates incl. `-adapter-k8s-operator`) — p99 ≤ 1 s; multi-scope; 2-person rule fleet-wide
 
 Total Rust crates: 46.
@@ -86,4 +86,4 @@ M01-foundation, Phase 01 (P01-control-plane-landing). 15 IPs pending implementat
 
 ## References
 
-ADR-0024, ADR-0028 (Bominal), ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140. EU AI Act 2024/1689. AWS Bedrock Agents control-plane (peer benchmark).
+ADR-0024, ADR-0028 (Bominal), ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145). EU AI Act 2024/1689. AWS Bedrock Agents control-plane (peer benchmark).

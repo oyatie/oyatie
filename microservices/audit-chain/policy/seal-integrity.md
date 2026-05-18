@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-audit-chain + cloud-secrets
 deciders: council-architecture, ops-security, axis-audit-chain, council-privacy
-related_adrs: [ADR-0028, ADR-0003, ADR-0117, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0003, ADR-0117, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/audit-chain/threat-model.md (T-T-01..T-T-06, T-S-02, T-E-02)
   - microservices/audit-chain/dpia.md (R-08)

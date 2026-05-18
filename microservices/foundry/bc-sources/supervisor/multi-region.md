@@ -51,7 +51,7 @@ Define multi-region topology across 11 oyatie packs: pack-pinning, in-pack DR pa
 │  │  - WAL archive to S3     │   intra-   │  - WAL replay continuous │    │
 │  └──────────────────────────┘   pack     └──────────────────────────┘    │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐    │
-│  │ Redis Cluster (3×2)      │            │ Redis Cluster (warm)     │    │
+│  │ Valkey Cluster (3×2)      │            │ Valkey Cluster (warm)     │    │
 │  │  - AOF every-second      │            │  - AOF replay            │    │
 │  └──────────────────────────┘            └──────────────────────────┘    │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐    │
@@ -76,7 +76,7 @@ Define multi-region topology across 11 oyatie packs: pack-pinning, in-pack DR pa
 |---|---|---|---|
 | Postgres primary→replica | Synchronous streaming | ≤ 0 s | intra-pack only |
 | Postgres WAL archive (S3) | Async (every-1-min cadence) | ≤ 1 min | intra-pack only |
-| Redis Cluster cross-shard replication | Async (every-second AOF) | ≤ 1 s | intra-pack only |
+| Valkey Cluster cross-shard replication | Async (every-second AOF) | ≤ 1 s | intra-pack only |
 | Kubernetes CRDs | Native etcd consensus across AZs | ≤ 0 s | intra-pack only |
 | OpenBao secret tree | Per-pack OpenBao instance; raft | ≤ 5 s | intra-pack only |
 | Capability YAMLs | Git-versioned | 0 | global (tenant-owned repos) |
@@ -104,7 +104,7 @@ Per `policy/data-residency.md`. SCC + intra-pack DR exceptions documented inline
 |---|---|---|
 | 1 | Verify DR-pair healthy | ≤ 2 min |
 | 2 | Promote Postgres replica via Patroni (synchronous → primary) | ≤ 30 s |
-| 3 | Promote Redis Cluster (already in warm-standby) | ≤ 1 min |
+| 3 | Promote Valkey Cluster (already in warm-standby) | ≤ 1 min |
 | 4 | Promote Kubernetes Operator (lease-leadership re-runs) | ≤ 30 s |
 | 5 | Update Global Traffic Manager DNS to DR-pair (TTL 60s) | ≤ 1 min |
 | 6 | Update foundry-runtime + foundry-evidence configs to DR-pair endpoints | ≤ 5 min Helm rollout |
@@ -113,7 +113,7 @@ Per `policy/data-residency.md`. SCC + intra-pack DR exceptions documented inline
 | 9 | Engage OCI on primary-region restoration | ongoing |
 | **Total** | **end-to-end DR failover** | **≤ 35 min** (RTO target) |
 
-RPO: ≤ 1 min (Postgres sync replication tail; Redis AOF tail).
+RPO: ≤ 1 min (Postgres sync replication tail; Valkey AOF tail).
 RTO: ≤ 35 min.
 
 ### Failback
@@ -176,6 +176,6 @@ Per-pack BCDR specifics live at `regional-packs/<pack>/foundry-supervisor-multi-
 - `microservices/foundry-supervisor/incident-response.md`.
 - OCI region docs — `oracle.com/cloud/data-regions/`.
 - PostgreSQL Patroni — `patroni.readthedocs.io`.
-- Redis Cluster — `redis.io/docs/management/scaling/`.
+- Valkey Cluster — `redis.io/docs/management/scaling/`.
 - ISO/IEC 22301:2019; NIST SP 800-34; EU DORA 2022/2554.
 - EU AI Act 2024/1689 Art. 60 + Art. 73.

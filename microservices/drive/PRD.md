@@ -8,7 +8,7 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M02-product-tier-foundation
 bominal_source: [ADR-Bominal-workspace-drive, ADR-Bominal-connect-files]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
 related_specs: [/specs/microservices/workspace/drive.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-drive
@@ -149,7 +149,7 @@ JUSTIFICATION:
   - api: protocol-neutral typed contracts.
   - adapter: protocol-neutral implementations of kernel ports.
   - adapter-postgres: backend-qualified adapter (per ADR-0105 Amendment 3) for metadata.
-  - adapter-s3: backend-qualified adapter for S3-compatible object store (Garage / MinIO
+  - adapter-s3: backend-qualified adapter for S3-compatible object store (Garage / SeaweedFS
     / SeaweedFS / Ceph RGW pluggable per ADR-DRIVE-0001).
   - adapter-garage / adapter-seaweedfs: alternate backend-qualified adapters per
     ADR-DRIVE-0001 backend-pluggability matrix.
@@ -300,12 +300,12 @@ Key parity gaps to close (ordered):
 2. **E2E for personal-pillar matching Proton Drive / Tresorit / MEGA** — Google Drive doesn't have it; Dropbox doesn't have it default. **Differentiator vs incumbents.**
 3. **Cross-tenant "Shared with me" with policy-bounded disclosure** — none of the competitors gate cross-org sharing with Cedar-policy + audit-chain. **Differentiator.**
 4. **Dual-context (Personal / Professional) isolation enforced structurally** — no competitor enforces context-separation in code. **Differentiator.**
-5. **S3-compatible API parity** — required for AWS / Wasabi / Backblaze SDK reuse; passes `s3cmd` / `aws s3` / `mc` (MinIO Client) end-to-end.
+5. **S3-compatible API parity** — required for AWS / Wasabi / Backblaze SDK reuse; passes `s3cmd` / `aws s3` / `mc` (SeaweedFS Client) end-to-end.
 6. **WebDAV (RFC 4918) read+write parity** — required for Nextcloud / pCloud / macOS Finder / Windows Explorer native mount.
 7. **Delta-sync (FastCDC + LBFS) matching Dropbox** — Google Drive doesn't have it; required for low-bandwidth desktop sync.
 8. **Per-folder + per-file permission inheritance + override matching Box** — Box ships 7 access levels; we ship 4 (read/comment/edit/manage) with per-file override.
 9. **Native preview parity (image / PDF / Office / video) matching Google Drive** — covered via libvips + qpdf + LibreOffice-in-gVisor + ffmpeg.
-10. **Object-store backend pluggability (S3 / Garage / SeaweedFS / MinIO / Ceph RGW)** — gives operator choice between centralised (S3) and edge-distributed (Garage / SeaweedFS) deployment; ADR-DRIVE-0001.
+10. **Object-store backend pluggability (S3 / Garage / SeaweedFS / SeaweedFS / Ceph RGW)** — gives operator choice between centralised (S3) and edge-distributed (Garage / SeaweedFS) deployment; ADR-DRIVE-0001.
 
 ## Performance Targets (canonical bench surface)
 
@@ -325,7 +325,7 @@ Error budget: monthly 99.95% availability → ~22 min/month.
 
 ## Horizontal Scalability
 
-State strategy (per Bominal ADR-0019): `mixed`. Postgres (metadata; per-tenant RLS); Redis (upload-session in-flight + delta-sync cache; per-tenant key prefix); S3-compatible object store (bytes; per-tenant prefix); Meilisearch (full-text index; per-tenant index); stateless workers for retention sweep + version pruner + preview renderer + virus scanner + DLP scanner.
+State strategy (per Bominal ADR-0019): `mixed`. Postgres (metadata; per-tenant RLS); Valkey (upload-session in-flight + delta-sync cache; per-tenant key prefix); S3-compatible object store (bytes; per-tenant prefix); Meilisearch (full-text index; per-tenant index); stateless workers for retention sweep + version pruner + preview renderer + virus scanner + DLP scanner.
 
 Per-cell capacity envelope:
 
@@ -344,7 +344,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - Kubernetes HPA: rest pods scale on CPU > 70%; min 3, max 100.
 - Postgres: per-tenant logical shard; cross-cell replication-factor 3 with Patroni.
-- Redis: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru` for upload-session + delta-sync cache.
+- Valkey: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru` for upload-session + delta-sync cache.
 - Object store: per-cell deployment (S3 / Garage / SeaweedFS); per-tenant prefix; replication-factor 3.
 - Pre-warmed pool: 10 standby pods; cold-start ≤ 700ms.
 

@@ -215,5 +215,5 @@ Bench suite at `microservices/cloud-secrets/tests/bench/sdk-resolution-latency.r
 - `microservices/cloud-secrets/policy/secret-isolation.md`
 - `microservices/cloud-secrets/PRD.md` FR-01, FR-02, FR-08
 - Bominal ADR-0028 (audit-chain + data-class taxonomy)
-- HashiCorp Vault SDK (informing patterns)
+- OpenBao SDK (informing patterns)
 - AWS SDK for Secrets Manager (informing wrapper patterns)

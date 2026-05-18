@@ -36,7 +36,7 @@ InMail must reach the recipient through the `messenger` µservice's Professional
 Key constraints:
 
 1. **Professional-tier-only invariant** (PCI-09): the InMail-bridge must NEVER deliver to messenger's Personal-tier DM surface. This is enforced compile-time + runtime + Cedar + at messenger µservice's bridge-receive endpoint.
-2. **Rate budget**: per-tenant InMail send-rate budget (default 250/day production tier); per ADR-0140 default-deny posture, additional sends rejected at REST handler.
+2. **Rate budget**: per-tenant InMail send-rate budget (default 250/day production tier); per ADR-0140 (retired per ADR-0145) default-deny posture, additional sends rejected at REST handler.
 3. **Spam classifier**: every InMail body classified by foundry-runtime spam-classifier before bridge dispatch; spam verdicts are surfaced to user but do NOT auto-drop (false-positive avoidance — recruiters often write similar-looking InMails); high-confidence spam verdicts queue for human-review.
 4. **Audit-chain seal**: every send + delivery + read receipt sealed for retention + employment-law audit.
 5. **Cross-µservice contract**: the bridge protocol must be contract-versioned per ADR-0131 µservice-boundary discipline; future schema evolution managed via dual-version window.
@@ -60,7 +60,7 @@ oyatie network's InMail-bridge BC implements the following:
    - Trial: 5/day.
    - Sandbox: 25/day.
    - Internal: 2500/day.
-   - Enforced at REST handler via Redis token-bucket per tenant_id × user_ref.
+   - Enforced at REST handler via Valkey token-bucket per tenant_id × user_ref.
 5. **Spam classifier**:
    - foundry-runtime spam-classifier invoked before bridge dispatch.
    - Verdict surfaced to sender: "Your message may be flagged as promotional. Send anyway? [Y/N]".
@@ -68,7 +68,7 @@ oyatie network's InMail-bridge BC implements the following:
    - Verdict + audit-chain seal recorded per send.
    - Classifier bounds per `runbooks/recruiter-classifier-rollback.md` §"ranker fallback" pattern.
 6. **Audit-chain seal**: every `InMailSent`, `InMailDelivered`, `InMailRead` event sealed per Bominal ADR-0028.
-7. **Backpressure**: per `runbooks/inmail-fanout-degraded.md`, queue holds in Redis Streams; per-tenant rate-degradation when messenger µservice or spam-classifier degraded.
+7. **Backpressure**: per `runbooks/inmail-fanout-degraded.md`, queue holds in Valkey Streams (Redis wire-compat); per-tenant rate-degradation when messenger µservice or spam-classifier degraded.
 8. **Minor-account FORBID**: Cedar `tenant-scope.cedar` `forbid send_inmail when resource.minor_protect == true && context.sender_connected_to_target == false`.
 9. **Recipient opt-out**: recipient profile flag `inmail_opt_out: bool`; when true, sender receives 403 + opt-out message. Per pack-eu, this is the default for minor accounts; tenants may default-on for all accounts.
 10. **eDiscovery hold**: tenant-admin may issue hold on InMail thread per `tenant-scope.cedar` PERMIT 6.

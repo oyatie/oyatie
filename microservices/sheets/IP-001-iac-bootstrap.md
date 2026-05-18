@@ -13,11 +13,11 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: Layer-A IaC — CDN + WAF + Postgres + Redis + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars
+# IP-001: Layer-A IaC — CDN + WAF + Postgres + Valkey + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars
 
 ## Intent
 
-Author Helm + Kustomize manifests for the sheets Layer-A substrate: OCI CDN (per-pack edge), OCI WAF, Postgres + Citus (workbook + cell + sharing-ACL + license + comments + version-pointers), Redis (ephemeral CRDT + recalc-progress + WS lease), S3 (workbook snapshots + version-history + XLSX quarantine + export jobs), OCI Object Storage (Arrow/Parquet large-sheet blocks per ADR-SHEETS-0003), gVisor RuntimeClass (XLSX import/export sandboxing), ClamAV + OPSWAT MetaDefender sidecars (AV-scan), WebSocket gateway scaffold, under `microservices/sheets/iac/`. Versions pinned to LTS per `docs/standards/observability-slo.md` § "Layer-A components".
+Author Helm + Kustomize manifests for the sheets Layer-A substrate: OCI CDN (per-pack edge), OCI WAF, Postgres + Citus (workbook + cell + sharing-ACL + license + comments + version-pointers), Valkey (ephemeral CRDT + recalc-progress + WS lease), S3 (workbook snapshots + version-history + XLSX quarantine + export jobs), OCI Object Storage (Arrow/Parquet large-sheet blocks per ADR-SHEETS-0003), gVisor RuntimeClass (XLSX import/export sandboxing), ClamAV + OPSWAT MetaDefender sidecars (AV-scan), WebSocket gateway scaffold, under `microservices/sheets/iac/`. Versions pinned to LTS per `docs/standards/observability-slo.md` § "Layer-A components".
 
 ## ChangeSet boundary
 
@@ -138,7 +138,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - `microservices/sheets/capacity-model.md`.
 - `microservices/sheets/threat-model.md` §"Trust Boundaries" + §"T-S-04".
 - Citus docs — `docs.citusdata.com`.
-- Redis Sentinel docs — `redis.io/docs/management/sentinel/`.
+- Valkey Sentinel docs — `redis.io/docs/management/sentinel/`.
 - Apache Arrow 18.x — `arrow.apache.org/docs/`.
 - Apache Parquet 18.x — `parquet.apache.org/`.
 - OCI CDN docs — `docs.oracle.com/iaas/Content/CDN/`.

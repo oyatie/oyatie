@@ -9,7 +9,7 @@ entry_gate: |
   force; sibling docs + sheets µservices co-authored under same Loro CRDT family; messenger µservice
   LiveKit infra available for broadcast-mode signaling reuse; foundry-runtime SDK available for T0/T1/T2
   AI capabilities; tenancy + audit-chain + ontology + observability SDKs available; Layer-A IaC available
-  via cloud-iac µservice (CDN + WebSocket gateway + Postgres + Redis + S3 + gVisor sandbox for export
+  via cloud-iac µservice (CDN + WebSocket gateway + Postgres + Valkey + S3 + gVisor sandbox for export
   workers); cargo workspace ready to accept the ~210 new crates under microservices/slides/src/crates/;
   ADR-SLIDES-0001 through ADR-SLIDES-0008 all merged.
 exit_gate: |
@@ -30,7 +30,7 @@ depends_on:
     phase: workspace-substrate prerequisites
     reason: docs + sheets co-authored; messenger LiveKit available; foundry-runtime gating wired
 owner_team: axis-workspace + council-design-system
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -74,7 +74,7 @@ Ordered. Each IP is one ChangeSet.
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| `IP-001-layer-a-cdn-postgres-redis-s3-ws-gateway-iac.md` | IaC for CDN + Postgres + Redis + S3 + WS gateway + gVisor export pool | pending | axis-workspace + cloud-iac | — |
+| `IP-001-layer-a-cdn-postgres-redis-s3-ws-gateway-iac.md` | IaC for CDN + Postgres + Valkey + S3 + WS gateway + gVisor export pool | pending | axis-workspace + cloud-iac | — |
 | `IP-002-presentation-slide-kernel-domain.md` | presentation + slide BCs kernel + domain | pending | axis-workspace + council-design-system | — |
 | `IP-003-slide-layout-text-box-shape-kernel-domain.md` | slide-layout + text-box + shape + table + equation BCs kernel + domain | pending | axis-workspace | IP-002 |
 | `IP-004-asset-bcs-image-video-audio-adapters.md` | image + video-embed + audio-embed BCs with ImageMagick / ffmpeg / ClamAV / OPSWAT adapters | pending | axis-workspace + ops-security | IP-002 |

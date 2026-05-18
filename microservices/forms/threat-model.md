@@ -37,7 +37,7 @@ doc_status: published
               | tenant-id-scoped queries (Citus RLS)
               v
 +--------------------------------+
-| Postgres + Citus (PII-encrypted column) + Redis + Meilisearch |
+| Postgres + Citus (PII-encrypted column) + Valkey + Meilisearch |
 +--------------------------------+
               | gRPC + mTLS via Workflow + Ontology adapter
               v
@@ -135,7 +135,7 @@ doc_status: published
 - `runbooks/*.md`.
 - ADR-FORMS-0001..0006.
 - ADR-0028 audit-chain.
-- ADR-0140 Cedar default-deny.
+- ADR-0140 (retired per ADR-0145) Cedar default-deny.
 - OWASP Top 10 for LLM Applications.
 - LINDDUN privacy threat modelling — KU Leuven 2018; ENISA 2023 update.
 - STRIDE — Microsoft SDL; "Threat Modeling: Designing for Security" Shostack 2014.

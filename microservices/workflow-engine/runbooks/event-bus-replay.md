@@ -34,7 +34,7 @@ doc_status: published
 
 1. Verify event-bus health: `kubectl -n workflow-engine get pods -l app=event-bus-worker`.
 2. Verify outbox Postgres: SELECT count FROM outbox WHERE published_at IS NULL — should be bounded (< 10k).
-3. Verify subscription registry in Redis: `redis-cli SCAN 0 MATCH 'oya:workflow:sub:*' COUNT 100`.
+3. Verify subscription registry in Valkey: `redis-cli SCAN 0 MATCH 'oya:workflow:sub:*' COUNT 100`.
 
 ## Recovery Path A — Backpressure on single slow subscription
 

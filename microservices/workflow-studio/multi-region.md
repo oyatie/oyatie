@@ -55,7 +55,7 @@ For packs with a DR pair:
 │  ┌──────────────────────────┐   pack     ┌──────────────────────────┐      │
 │  │ collab-crdt-worker       │            │ collab-crdt-worker (warm)│      │
 │  │  - HPA min 3, max 100    │            │  - 0.6× capacity         │      │
-│  │  - WS lease in Redis     │            │  - cold; warmed at FO    │      │
+│  │  - WS lease in Valkey     │            │  - cold; warmed at FO    │      │
 │  └──────────────────────────┘            └──────────────────────────┘      │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐      │
 │  │ Postgres + Citus (active) │           │ Postgres replica (warm)  │      │
@@ -63,7 +63,7 @@ For packs with a DR pair:
 │  │  - RF=3 within region     │           │  - lag ≤ 30s              │      │
 │  └──────────────────────────┘            └──────────────────────────┘      │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐      │
-│  │ Redis Sentinel (active)  │            │ Redis Sentinel (warm)    │      │
+│  │ Valkey Sentinel (active)  │            │ Valkey Sentinel (warm)    │      │
 │  └──────────────────────────┘            └──────────────────────────┘      │
 │                                                                            │
 │  Global CDN (OCI; per-pack edge PoPs)                                      │
@@ -83,7 +83,7 @@ For packs with a DR pair:
 | Component | Mode | RPO | Cross-region |
 |---|---|---|---|
 | Postgres + Citus | Streaming replication (sync on coordinator; async on workers) | ≤ 5s writes; ≤ 30s bulk | intra-pack only |
-| Redis Sentinel | Async cross-AZ within region; cross-region on demand at failover | CRDT state regenerable from Postgres | intra-pack only |
+| Valkey Sentinel | Async cross-AZ within region; cross-region on demand at failover | CRDT state regenerable from Postgres | intra-pack only |
 | WebSocket sessions | Ephemeral; client auto-reconnects after region failover | 0 (sessions re-established) | intra-pack only |
 | Per-seat license attribution | Postgres-native; same as Postgres replication | ≤ 5s | intra-pack only |
 | LLM-assist prompts + completions | Postgres-native | ≤ 5s | intra-pack only |
@@ -111,9 +111,9 @@ Per `policy/data-residency.md`, no editor session state, draft contents, CRDT st
 
 | Phase | Step | Time budget |
 |---|---|---|
-| 1 | Verify DR-pair region healthy (Postgres replica current; Redis Sentinel reachable; WS gateway warm) | ≤ 2 min |
+| 1 | Verify DR-pair region healthy (Postgres replica current; Valkey Sentinel reachable; WS gateway warm) | ≤ 2 min |
 | 2 | Promote Postgres replica → primary (cuts off old primary writes) | ≤ 5 min |
-| 3 | Promote Redis Sentinel quorum → DR-pair | ≤ 2 min |
+| 3 | Promote Valkey Sentinel quorum → DR-pair | ≤ 2 min |
 | 4 | Update Global Traffic Manager: DNS → DR-pair endpoints | ≤ 1 min (TTL 60s) |
 | 5 | Scale WS gateway in DR-pair from 0.6× to 1.0× primary capacity (HPA) | ≤ 10 min |
 | 6 | Browser clients auto-reconnect to DR-pair endpoints; resume from local edit buffer | ≤ 5 min |
@@ -201,7 +201,7 @@ Per-pack BCDR specifics live at `regional-packs/<pack>/workflow-studio-multi-reg
 - `regional-packs/<pack>/workflow-studio-multi-region-overlay.md`.
 - OCI region documentation.
 - Postgres + Citus replication — `docs.citusdata.com/`.
-- Redis Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `redis.io/topics/sentinel`.
 - ISO/IEC 22301:2019 (Business continuity).
 - NIST SP 800-34 (Contingency planning).
 - EU DORA Regulation 2022/2554.

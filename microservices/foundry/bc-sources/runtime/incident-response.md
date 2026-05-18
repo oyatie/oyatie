@@ -31,8 +31,8 @@ Per Bominal ADR-0028 (inherited) and oyatie incident-severity standard.
 
 | Severity | Definition | Response time (page-to-ack) | Examples |
 |---|---|---|---|
-| **Sev-1** | Production-tier confidentiality, integrity, or availability impact affecting multiple tenants; regulatory-notification triggers; data breach; safety violation; autonomy bypass | ≤5min (24/7) | FM-03 Redis ACL drift; FM-05 descriptor signature invalid (tampering); FM-07 provider credential leak; FM-12 cross-tenant leak |
-| **Sev-2** | Single-tenant or sub-tenant impact; operational degradation without data loss; gate fail-closed; security signal | ≤15min (24/7) | FM-01 pod crashloop; FM-02 Redis partition; FM-04 registry cache stale; FM-06 autonomy violation surge; FM-08 sibling unreachable; FM-11 pod drain failure; FM-13 prompt-injection contamination |
+| **Sev-1** | Production-tier confidentiality, integrity, or availability impact affecting multiple tenants; regulatory-notification triggers; data breach; safety violation; autonomy bypass | ≤5min (24/7) | FM-03 Valkey ACL drift; FM-05 descriptor signature invalid (tampering); FM-07 provider credential leak; FM-12 cross-tenant leak |
+| **Sev-2** | Single-tenant or sub-tenant impact; operational degradation without data loss; gate fail-closed; security signal | ≤15min (24/7) | FM-01 pod crashloop; FM-02 Valkey partition; FM-04 registry cache stale; FM-06 autonomy violation surge; FM-08 sibling unreachable; FM-11 pod drain failure; FM-13 prompt-injection contamination |
 | **Sev-3** | Localized impact; degraded but functional | ≤1h (business hours) | FM-09 Postgres replica fail; FM-10 cold-restore latency; FM-14 capacity exhaustion; FM-15 long invocation |
 | **Sev-4** | Cosmetic; no operational impact | next business day | dashboard label typo; minor doc drift |
 

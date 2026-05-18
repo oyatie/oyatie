@@ -42,7 +42,7 @@ cargo run -p oya-dev-cli -- gate validate crdt-tenant-scope --microservice sites
 
 ## References
 
-- ADR-0105, ADR-0131, ADR-0140.
+- ADR-0105, ADR-0131, ADR-0140 (retired per ADR-0145).
 - ADR-SITES-0001 (Loro CRDT 1.x).
 - ADR-WS-0001 (Loro alignment across docs + sheets + slides + workflow-studio).
 - PRD §"Bounded Contexts" + AC-10.

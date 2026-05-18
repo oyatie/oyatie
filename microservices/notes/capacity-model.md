@@ -32,7 +32,7 @@ Note workloads are bimodal:
 | Active notes accounts | 50k | 200k | 500k | API CPU > 70 % |
 | Notes/sec creates | 1k | 5k | 20k | Postgres write IOPS > 70 % |
 | Notes/sec edits | 2k | 10k | 50k | Postgres write IOPS > 70 % |
-| Notes/sec opens (warm) | 5k | 25k | 100k | Redis cache hit ratio < 80 % |
+| Notes/sec opens (warm) | 5k | 25k | 100k | Valkey cache hit ratio < 80 % |
 | Tags per tenant | 100k | 1M | 10M | tag-graph adjacency cardinality |
 | Backlinks per note | 200 baseline | 1k baseline | 50k cap | per-note fan-in cap |
 | Web-clipper installations | 50k | 200k | 500k | per-installation rate-limit cap |
@@ -72,7 +72,7 @@ Note workloads are bimodal:
 | Postgres (Personal-tier ciphertext) | 200GB | 2TB | 20TB | append + tombstone |
 | Postgres (tag adjacency + backlink) | 50GB | 500GB | 5TB | indexed heavily |
 | Postgres (version-history) | 1TB | 10TB | 100TB | compacted at 90d for inactive |
-| Redis (sync + hot cache) | 16GB | 64GB | 256GB | per-pack |
+| Valkey (sync + hot cache) | 16GB | 64GB | 256GB | per-pack |
 | Meilisearch (Professional search) | 50GB | 500GB | 2TB | per-tenant namespace |
 | S3 (attachments via drive µservice) | n/a (drive-µservice owns) | — | — | — |
 | S3 (Personal-tier ciphertext blobs > 100KB) | 1TB | 10TB | 100TB | tenant-pinned bucket |

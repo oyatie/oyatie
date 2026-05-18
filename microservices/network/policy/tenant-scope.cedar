@@ -1,5 +1,5 @@
 // network µservice — tenant-scope Cedar policy fragment
-// Cedar v4.2 LTS — default-deny per ADR-0140
+// Cedar v4.2 LTS — default-deny per ADR-0140 (retired per ADR-0145)
 //
 // Purpose: govern tenant-scoped reads + writes for the `network` Professional
 //          µservice. All actions tenant-scoped via tenant_id binding. Cross-

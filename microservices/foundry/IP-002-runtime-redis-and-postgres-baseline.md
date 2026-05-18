@@ -13,11 +13,11 @@ acceptance_lanes: [helm-install-smoke, postgres-rls-coverage, session-prefix-iso
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-002: Redis 7.4 LTS + Postgres 16 LTS baseline
+# IP-002: Valkey 8.1 (Redis wire-compat) + Postgres 16 LTS baseline
 
 ## Intent
 
-Ship Helm charts for Redis 7.4 OSS LTS cluster (6 shards × 1 primary + 1 replica) and Postgres 16 LTS primary + read-replica. Bind ACLs + RLS to tenant-isolation invariants TI-01..TI-05. Wire OpenBao SecretReferences for Redis AUTH + Postgres credentials. Provision capability_mirror + session_mutation_log + invocation_lifecycle tables with RLS policies.
+Ship Helm charts for Valkey 8.1 (Redis wire-compat) OSS LTS cluster (6 shards × 1 primary + 1 replica) and Postgres 16 LTS primary + read-replica. Bind ACLs + RLS to tenant-isolation invariants TI-01..TI-05. Wire OpenBao SecretReferences for Valkey AUTH + Postgres credentials. Provision capability_mirror + session_mutation_log + invocation_lifecycle tables with RLS policies.
 
 ## ChangeSet boundary
 
@@ -27,7 +27,7 @@ All paths under `microservices/foundry/iac/helm/{redis,postgres}/` + `iac/postgr
 
 | Path | Action |
 |---|---|
-| `iac/helm/redis/Chart.yaml` | create (Redis 7.4 OSS LTS pin) |
+| `iac/helm/redis/Chart.yaml` | create (Valkey 8.1 (Redis wire-compat) OSS LTS pin) |
 | `iac/helm/redis/values.yaml` | create (cluster mode; 6 shards; TLS + AUTH; ACL declared inline) |
 | `iac/helm/redis/expected-acl.txt` | create (canonical ACL for drift detection) |
 | `iac/helm/postgres/Chart.yaml` | create (Postgres 16 LTS pin) |
@@ -52,15 +52,15 @@ cargo run -p oya-dev-cli -- gate validate session-prefix-isolation --microservic
 
 | Test | Verifies |
 |---|---|
-| Redis ACL probe | `default` user disabled; per-tenant role refused on cross-prefix |
+| Valkey ACL probe | `default` user disabled; per-tenant role refused on cross-prefix |
 | Postgres RLS coverage | Every multi-tenant table has RLS policy + denies cross-tenant SELECT |
-| OpenBao SecretReference materialisation | Pods receive Redis AUTH + Postgres creds without raw values in environment |
+| OpenBao SecretReference materialisation | Pods receive Valkey AUTH + Postgres creds without raw values in environment |
 | Streaming replication health | `pg_replication_lag_seconds < 30` for ≥5min |
 
 ## Halt Conditions
 
 - Any table without RLS — refactor.
-- Redis `default` user enabled — refactor (security risk).
+- Valkey `default` user enabled — refactor (security risk).
 - Raw secrets in pod env — refactor.
 
 ## Next IP
@@ -70,5 +70,5 @@ cargo run -p oya-dev-cli -- gate validate session-prefix-isolation --microservic
 ## References
 
 - `policy/runtime-isolation.md` TI-01..TI-05.
-- Redis 7.4 LTS — `redis.io/docs/about/releases/7-4-0/`.
+- Valkey 8.1 (Redis wire-compat) — `redis.io/docs/about/releases/7-4-0/`.
 - Postgres 16 LTS RLS — `postgresql.org/docs/16/ddl-rowsecurity.html`.

@@ -30,7 +30,7 @@ ONE of:
 
 ## Source-of-truth invariant
 
-**Kubernetes CRDs are source-of-truth.** Postgres + Redis are derived state. Reconcile always flows CRD → Postgres / Redis, never the reverse.
+**Kubernetes CRDs are source-of-truth.** Postgres + Valkey are derived state. Reconcile always flows CRD → Postgres / Valkey, never the reverse.
 
 ## Steps
 
@@ -62,7 +62,7 @@ ONE of:
 
 - Drift detector returns 0.
 - `oya_supervisor_fleet_state_divergence_total == 0` for ≥ 1 h.
-- CRD + Postgres + Redis all consistent.
+- CRD + Postgres + Valkey all consistent.
 - `oya_supervisor_drain_in_flight_count` matches expected.
 - Per-changeset evidence updated.
 

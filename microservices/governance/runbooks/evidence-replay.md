@@ -46,7 +46,7 @@ doc_status: published
 
 1. Auditor identity + scope window negotiated in advance.
 2. DPA addendum signed (per `compliance.md` Cross-Border Transfer Mechanisms).
-3. JIT OIDC token issued via OpenBao: `vault write auth/oidc/role/external-auditor-<auditor-id> ttl=1h scope_microservices=<list> audit_window_start=<unix> audit_window_end=<unix>`.
+3. JIT OIDC token issued via OpenBao: `bao write auth/oidc/role/external-auditor-<auditor-id> ttl=1h scope_microservices=<list> audit_window_start=<unix> audit_window_end=<unix>`.
 4. Auditor acknowledges JIT scope acceptance (per `policy/auditor-scope.cedar` P5).
 
 ### Steps

@@ -28,7 +28,7 @@ Complete execution-engine BC. The engine worker binary; rest surface for operato
 | Path | Action | Description |
 |---|---|---|
 | `src/crates/oya-workflow-engine-execution-engine-rest/{Cargo.toml,src/{lib,routes,middleware}.rs}` | create | HTTP routes per `contracts/openapi/workflow-engine.yaml`; OIDC + Cedar |
-| `src/crates/oya-workflow-engine-execution-engine-worker/{Cargo.toml,src/{lib,run_dispatcher,step_executor,resume_throttle}.rs}` | create | Long-lived step-dispatch worker; HA via Redis lease; resume-rate-limit at cold-start |
+| `src/crates/oya-workflow-engine-execution-engine-worker/{Cargo.toml,src/{lib,run_dispatcher,step_executor,resume_throttle}.rs}` | create | Long-lived step-dispatch worker; HA via Valkey lease; resume-rate-limit at cold-start |
 | `src/crates/oya-workflow-engine-execution-engine-sdk/{Cargo.toml,src/{lib,client}.rs}` | create | Tenant SDK |
 | `src/crates/oya-workflow-engine-execution-engine-app/{Cargo.toml,src/main.rs}` | create | Composition root binary |
 | `microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-*.yaml` | create | 4 catalog rows |

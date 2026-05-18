@@ -59,7 +59,7 @@ If docs picks a different CRDT library, the cross-µservice CrdtOp envelope sche
 Substrate constraints:
 - Rust kernel (ADR-0105 layer enum); CRDT merge engine lives in `oya-docs-collab-crdt-domain` (pure, deterministic).
 - Browser-WASM target (per ADR-0065 Leptos WASM frontend); CRDT library MUST compile to `wasm32-unknown-unknown`.
-- Ephemeral CRDT state in Redis (PRD §"Horizontal Scalability" mixed-state strategy); reconstructable from Postgres on cold-start.
+- Ephemeral CRDT state in Valkey (PRD §"Horizontal Scalability" mixed-state strategy); reconstructable from Postgres on cold-start.
 - WebSocket gateway long-lived worker (`-worker` crate) fans out CRDT ops via consistent-hash on `document_id` to keep collaborators on the same pod.
 
 Operational constraints:
@@ -75,7 +75,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the docs µservice's CRDT librar
 3. **Loro types wrapped in port traits**: the same shape as workflow-studio. `oya-docs-collab-crdt-kernel` declares `CrdtMergeEngine`, `CrdtState`, `MergeOp`, `Conflict` port traits; Loro is an implementation detail of the `-domain` + `-adapter` crates. Public APIs across BCs MUST NOT leak Loro types.
 4. **Loro tree CRDT backs the block tree**. Loro maps back block attribute dictionaries; Loro lists back block children ordering; Loro text backs inline runs. Conflict surfacing uses Loro's built-in version-vector + frontier API; the `Conflict` entity in the kernel wraps Loro `Frontiers` into a UI-renderable shape.
 5. **CRDT-to-spec projection (`emit`) deterministically orders Loro nodes by their stable `TreeID`s, with map keys lex-sorted at the document-store boundary. This makes Loro state projection deterministic and is the seam that lets AC-02 (round-trip byte-equality) hold even though Loro's internal op log is not byte-canonical.
-6. **Loro snapshot encoding is used for Redis persistence; JSON projection is used only for the canonical spec emission**.
+6. **Loro snapshot encoding is used for Valkey persistence; JSON projection is used only for the canonical spec emission**.
 7. **Version-aligned op-log compaction**: per the discussion in PRD §"Open Questions" #1, op-log is compacted at version increments (default every 100 versions). Compaction runs through the same pinned Loro version + re-projects to canonical block tree; AC-02 byte-equality is preserved.
 8. **The collab-crdt CI lane** (`oya-governance-crdt-no-silent-loss`) runs Loro's example test suite + docs's own AC-06 property test (10 concurrent editors, randomized op interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 9. **Loro authorship at WS gateway**: every CRDT op carries OIDC-derived author SPIFFE-identity + Ed25519 signature added at the WS gateway boundary (per `policy/editor-isolation.md` §"CRDT Op Authenticity"). Unsigned ops refused at adapter boundary.

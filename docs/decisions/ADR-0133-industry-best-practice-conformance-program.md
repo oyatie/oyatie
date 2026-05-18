@@ -125,7 +125,7 @@ Audit oyatie's repo-wide development practices against the canonical agentic-dev
 2. **Parallel-safe operations** (per `dispatching-parallel-agents` skill + ADR-0110 ChangeSet boundary).
 3. **Idempotent operations** (every CLI subcommand re-runnable; every migration replayable).
 4. **Audit-chain seals on every state transition** (Ed25519 + Merkle per Bominal ADR-0028).
-5. **Fail-closed on every gate** (default-deny per ADR-0139 + ADR-0140).
+5. **Fail-closed on every gate** (default-deny per ADR-0139 + ADR-0140 (retired per ADR-0145)).
 6. **Smallest-actionable artifact format** (per durable user preference; no repeated memory dumps).
 7. **No-blanket-sed** (per ADR-0131 migration-tooling; structured ast-grep / Cargo workspace operations).
 8. **No-deeper-hole rule** (Oya façade over external framework when adding-cheap; per durable preference).

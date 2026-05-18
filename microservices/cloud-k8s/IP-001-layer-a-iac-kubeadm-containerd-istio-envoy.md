@@ -17,13 +17,13 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, terraform-validate, oya-gov
 
 ## Intent
 
-Author Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + Terraform modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay + CSI driver Helm deployments per backend (block-volume, object, file) under `microservices/cloud-k8s/iac/`. Deploys to the on-prem KR primary cell per ADR-0121 and to OCI OKE peers subsequent-to-M03-completion.
+Author Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + OpenTofu modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay + CSI driver Helm deployments per backend (block-volume, object, file) under `microservices/cloud-k8s/iac/`. Deploys to the on-prem KR primary cell per ADR-0121 and to OCI OKE peers subsequent-to-M03-completion.
 
-Per ADR-0121, kubeadm + containerd are Terraform-applied (lifecycle-managed by the cloud-iac µservice's Terraform runner; cloud-k8s declares the module); Istio + Envoy + Cilium are Helm-applied. CSI drivers are Helm-applied with per-backend values.
+Per ADR-0121, kubeadm + containerd are Terraform-applied (lifecycle-managed by the cloud-iac µservice's OpenTofu runner; cloud-k8s declares the module); Istio + Envoy + Cilium are Helm-applied. CSI drivers are Helm-applied with per-backend values.
 
 ## ChangeSet boundary
 
-One cohesive ChangeSet: 4 Helm charts (istio-base, istiod, envoy-gateway, cni-cilium) + 2 Terraform modules (kubeadm-cluster, containerd-config) + 1 Kustomize base + per-pack overlays (pack-kr at M01 launch) + CSI driver Helm deployments per backend. No Rust code; pure IaC + values. Per-pack secrets via OpenBao (no raw secrets in repo).
+One cohesive ChangeSet: 4 Helm charts (istio-base, istiod, envoy-gateway, cni-cilium) + 2 OpenTofu modules (kubeadm-cluster, containerd-config) + 1 Kustomize base + per-pack overlays (pack-kr at M01 launch) + CSI driver Helm deployments per backend. No Rust code; pure IaC + values. Per-pack secrets via OpenBao (no raw secrets in repo).
 
 ## Concrete File Targets
 
@@ -38,7 +38,7 @@ One cohesive ChangeSet: 4 Helm charts (istio-base, istiod, envoy-gateway, cni-ci
 | `microservices/cloud-k8s/iac/kustomize/base/kustomization.yaml` | create | Shared base referencing all Helm releases |
 | `microservices/cloud-k8s/iac/kustomize/overlays/pack-kr/kustomization.yaml` | create | pack-kr overlay (initial active pack) |
 | `microservices/cloud-k8s/iac/helm/csi-block-volume/{Chart.yaml,values.yaml}` | create | OCI Block Volume CSI driver |
-| `microservices/cloud-k8s/iac/helm/csi-object/{Chart.yaml,values.yaml}` | create | OCI Object / MinIO CSI driver |
+| `microservices/cloud-k8s/iac/helm/csi-object/{Chart.yaml,values.yaml}` | create | OCI Object / SeaweedFS CSI driver |
 | `microservices/cloud-k8s/iac/helm/csi-file/{Chart.yaml,values.yaml}` | create | OCI File / CephFS CSI driver |
 
 ## Crate Naming

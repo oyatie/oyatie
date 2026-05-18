@@ -39,6 +39,8 @@ spec:
       {{- include "oya.runtimeClassName.federationGateway" $ | nindent 6 }}
       {{- end }}
       serviceAccountName: notes-{{ . | kebabcase }}
+      {{- include "oya.gracefulShutdown" $ | nindent 6 }}
+      {{- include "oya.priorityClass.standard" $ | nindent 6 }}
       securityContext:
         {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
@@ -51,10 +53,14 @@ spec:
             - {name: metrics, containerPort: 9091}
           resources:
             {{- include "oya.resourceRequests" (dict "tier" $c.resourceTier) | nindent 12 }}
+          startupProbe:
+            {{- include "oya.probes.startupProbe" $ | nindent 12 }}
           livenessProbe:
             {{- include "oya.probes.httpHealthLiveness8080" $ | nindent 12 }}
           readinessProbe:
             {{- include "oya.probes.httpHealthReadiness8080" $ | nindent 12 }}
+          lifecycle:
+            {{- include "oya.preStopHook.gracefulDelay" $ | nindent 12 }}
           envFrom:
             - secretRef: {name: notes-openbao-injected}
           securityContext:

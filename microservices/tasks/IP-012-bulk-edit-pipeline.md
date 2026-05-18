@@ -29,7 +29,7 @@ Cycle-aware refusal: a bulk patch that would induce a dependency cycle
 (e.g., reassigning a task into a different project that creates a
 cross-project edge cycle) is refused with row-level errors per
 ADR-TASKS-0002. Idempotency: `idempotency_key` (uuid) deduplicates
-retries via per-tenant Redis SET with 24h TTL.
+retries via per-tenant Valkey SET with 24h TTL.
 
 ≥ 10k-task operations are refused at the API edge (validation per
 OpenAPI `maxItems: 10000`) and require explicit second-confirmation
@@ -38,7 +38,7 @@ per PRD §Security.
 ## ChangeSet boundary
 
 `task-store-usecase` + `task-store-worker` + `task-store-rest`. Bulk
-job state persisted in Postgres + Redis idempotency cache.
+job state persisted in Postgres + Valkey idempotency cache.
 
 ## Crate Naming
 

@@ -12,7 +12,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, eu-ai-
 related_adrs:
   - ADR-0064
   - ADR-0133
-  - ADR-0140
+  - ADR-0140 (retired per ADR-0145)
   - ADR-0144
 related_crates:
   - oya-check-eu-ai-act-annex-iii-refusal

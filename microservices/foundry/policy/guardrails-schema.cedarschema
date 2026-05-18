@@ -1,6 +1,6 @@
 // foundry-guardrails — Cedar v4 schema
 // Defines entity types, action set, and context shape used by all Cedar fragments.
-// Per ADR-0140 + policy/guardrail-enforcement.md.
+// Per ADR-0140 (retired per ADR-0145) + policy/guardrail-enforcement.md.
 //
 // All Cedar fragments under microservices/foundry/policy/*.cedar MUST
 // validate against this schema; the oya-foundry-fitness-cedar-fragment-coverage

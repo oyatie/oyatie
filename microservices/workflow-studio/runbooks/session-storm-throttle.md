@@ -18,7 +18,7 @@ doc_status: published
 
 ## Purpose
 
-Studio runs a per-cell WS gateway + Postgres + Redis cluster sized for `100K active editor sessions per region`. A misbehaving tenant (or attack) can spam editor-open / save / collab-op requests, threatening cluster availability for legitimate tenants. This runbook provides throttling, quarantining, and recovery steps.
+Studio runs a per-cell WS gateway + Postgres + Valkey cluster sized for `100K active editor sessions per region`. A misbehaving tenant (or attack) can spam editor-open / save / collab-op requests, threatening cluster availability for legitimate tenants. This runbook provides throttling, quarantining, and recovery steps.
 
 ## Trigger
 
@@ -51,7 +51,7 @@ ONE of:
 1. Identify burst source: `dashboards/editor-experience.json` panel "active sessions by tenant top-N" + "ops/sec by tenant top-N".
 2. Verify HPA state: `kubectl -n workflow-studio get hpa collab-crdt-worker visual-canvas-rest`.
 3. Verify Postgres health: `kubectl -n workflow-studio exec postgres-primary -- psql -c "SELECT count(*) FROM pg_stat_activity"`.
-4. Verify Redis memory: `kubectl exec redis-primary -- redis-cli INFO memory`.
+4. Verify Valkey memory: `kubectl exec redis-primary -- redis-cli INFO memory`.
 5. Identify attack vector: legitimate burst (e.g., tenant migrating 1000 workflows simultaneously) OR malicious (single tenant ID pattern, synthetic-looking traffic)?
 
 ## Recovery Path A — Single-tenant burst (legitimate)
@@ -100,7 +100,7 @@ Cause: legitimate tenant growth has outpaced cluster sizing; new editor opens fa
 | 2 | Add cell-cluster nodes: `cargo run -p oya-dev-cli -- cloud-iac scale-cell --pack <pack> --ms workflow-studio --add-nodes 5`. |
 | 3 | Re-balance WS gateway lease assignments (consistent-hash auto-spreads). |
 | 4 | Verify Postgres has connection-pool headroom; tune `max_connections` if necessary. |
-| 5 | Verify Redis capacity (if needed: add Redis cluster nodes). |
+| 5 | Verify Valkey capacity (if needed: add Valkey cluster nodes). |
 | 6 | Update `capacity-model.md` with the new baseline; this informs next cell-cluster provisioning. |
 
 ## Recovery Path E — Save backpressure from engine
@@ -120,7 +120,7 @@ Cause: a WS gateway pod is evicted by Kubernetes; active sessions on that pod se
 
 | Step | Action |
 |---|---|
-| 1 | Verify auto-reconnect: clients reconnect within ≤ 5s; CRDT state preserved (Redis ephemeral + Postgres seal-deltas). |
+| 1 | Verify auto-reconnect: clients reconnect within ≤ 5s; CRDT state preserved (Valkey ephemeral + Postgres seal-deltas). |
 | 2 | Tune pod memory limits if eviction recurring: `kubectl -n workflow-studio edit deployment collab-crdt-worker` → bump memory limit. |
 | 3 | If recurring during low-load: memory-leak suspect; engage workflow-studio team. |
 
@@ -131,7 +131,7 @@ After recovery:
 - `oya_workflow_studio_collab_op_published_total` rate within budget.
 - WS gateway HPA at < 70% target; replicas stable.
 - Postgres connection pool < 70% saturation.
-- Redis memory < 80% used.
+- Valkey memory < 80% used.
 - `editor_session_429_total` rate < 1/min cluster-wide.
 - Save round-trip p99 returns to budget.
 

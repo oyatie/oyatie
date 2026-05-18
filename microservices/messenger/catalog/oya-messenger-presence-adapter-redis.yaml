@@ -15,7 +15,7 @@ allowed_dependency_edges: [kernel, domain, usecase]
 data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT, AUDIT, SECRET]
 operational_classes_owned: [AUDIT, SECRET]
 autonomy_tier_required: T2
-backend: redis  # Redis Cluster 7.2 LTS; KeyDB LTS hot-swap-compatible
+backend: redis  # Valkey Cluster 7.2 LTS; KeyDB LTS hot-swap-compatible
 implements: [PresenceStore]
 fallback_backend: keydb
 partition_key: "(tenant_id, user_id)"

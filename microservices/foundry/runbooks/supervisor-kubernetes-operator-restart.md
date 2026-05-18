@@ -1,6 +1,6 @@
 ---
 doc_class: Runbook
-title: Kubernetes Operator restart (controller crashloop / Postgres / Redis / admission webhook / signing key)
+title: Kubernetes Operator restart (controller crashloop / Postgres / Valkey / admission webhook / signing key)
 microservice: foundry-supervisor
 severity: "Sev-2 (HA failover) / Sev-1 (all replicas crashlooping > 10 min)"
 status: Accepted
@@ -13,7 +13,7 @@ doc_status: published
 
 # Runbook: Kubernetes Operator restart
 
-Covers operator crashloop (FM-06), Postgres master loss (FM-05), Redis failover (FM-04), admission webhook outage (FM-10), signing-key rotation failure (FM-14).
+Covers operator crashloop (FM-06), Postgres master loss (FM-05), Valkey failover (FM-04), admission webhook outage (FM-10), signing-key rotation failure (FM-14).
 
 ## Operator crashloop (FM-06)
 
@@ -48,7 +48,7 @@ Patroni `postgres_master_unreachable`, OR PgBouncer connection failures spike.
 | 5 | If compromise-suspected: engage ops-security + escalate to Sev-1 | – |
 | 6 | New replica provisioned to replace promoted master: `patronictl reinit <old-master>` | ≤ 30 min |
 
-## Redis failover (FM-04)
+## Valkey failover (FM-04)
 
 ### Trigger
 
@@ -108,7 +108,7 @@ Patroni `postgres_master_unreachable`, OR PgBouncer connection failures spike.
 
 - `failure-modes.md` FM-04, FM-05, FM-06, FM-10, FM-14.
 - Patroni — `patroni.readthedocs.io`.
-- Redis Cluster operations — `redis.io/docs/management/scaling/`.
+- Valkey Cluster operations — `redis.io/docs/management/scaling/`.
 - cert-manager — `cert-manager.io/docs/`.
 - OpenBao — `openbao.org`.
 - Kubernetes Operator pattern — `kubernetes.io/docs/concepts/extend-kubernetes/operator/`.

@@ -193,7 +193,7 @@ The schema is validated by the `oya-governance-multispectrum-evidence` lane agai
 | worker crate (`*-worker`) | 1 per orchestration arm | ≥ 1 long-lived loop integration test | 1 e2e (60s evaluator cycle injecting synthetic SLI) | 85% line; 75% branch |
 | sdk crate (`*-sdk`) | 1 per public client method (happy + retry + auth-fail) | ≥ 2 against rest crate | 0 | 90% line; 80% branch |
 | app crate (`*-app`) | composition-root smoke tests | 0 (delegates to worker/rest tests) | 1 startup-and-shutdown smoke | 60% line (mostly wiring) |
-| IaC IPs (Helm / Terraform) | n/a | ≥ 1 helm-install + helm-test smoke per chart | 1 against kind/k3d cluster | n/a |
+| IaC IPs (Helm / OpenTofu) | n/a | ≥ 1 helm-install + helm-test smoke per chart | 1 against kind/k3d cluster | n/a |
 
 Enforced by:
 - `cargo nextest run --workspace --all-features` exits 0 (overall test runner).

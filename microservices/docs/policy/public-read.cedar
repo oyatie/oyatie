@@ -6,7 +6,7 @@
 // to ensure no implicit public exposure during the Strangler migration.
 // Owner: ops-security
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140, PRD §"Open Questions" #6
+// Related: ADR-0140 (retired per ADR-0145), PRD §"Open Questions" #6
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baselines for every social component: WebSocket gateway, Postgres profile + post + follow-graph store, Redis feed cache + reactions + trending + notifications, S3 media, Meilisearch search, Layer-B Rust services, foundry-runtime classifier calls. Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + reference-architecture baselines for every social component: WebSocket gateway, Postgres profile + post + follow-graph store, Valkey feed cache + reactions + trending + notifications, S3 media, Meilisearch search, Layer-B Rust services, foundry-runtime classifier calls. Drives `cost-budget.md` and `multi-region.md`.
 
 ## Inputs
 
@@ -77,7 +77,7 @@ follow_edges_added_per_sec = C_active × 0.0001 (one new follow per 10000 active
 
 Per-cell envelope: Postgres primary handles ≤ 25k post/sec at HA-RF=3; beyond this, shard by `(tenant_id mod N)`.
 
-## Redis Sizing
+## Valkey Sizing
 
 ```
 feed_cache_ops_per_sec     = Fr_per_sec × 2 (read + write-back)
@@ -200,7 +200,7 @@ ranking_calls_per_sec    = Fr_per_sec (every feed-render asks for ranking)
 |---|---|
 | Gateway CPU sustained > 70 % | HPA scale-up (≤ 200 replicas) |
 | Postgres primary write-IOPS > 70 % | Shard by tenant_id |
-| Redis shard CPU > 70 % | Add Redis shard |
+| Valkey shard CPU > 70 % | Add Valkey shard |
 | Meilisearch indexer lag > 60s sustained | Add indexer worker; enable Postgres-ILIKE fallback |
 | S3 PUT rate > 70 % provisioned | Sharded bucket prefix per-tenant |
 | Per-tenant max accounts > 1M | Shard tenant across cells |
@@ -220,4 +220,4 @@ ranking_calls_per_sec    = Fr_per_sec (every feed-render asks for ranking)
 - `microservices/messenger/capacity-model.md` (sibling reference).
 - Postgres tuning: PostgreSQL 16 ops docs.
 - Meilisearch ops: `docs.meilisearch.com`.
-- Redis Cluster ops: `redis.io/docs/management/scaling/`.
+- Valkey Cluster ops: `redis.io/docs/management/scaling/`.

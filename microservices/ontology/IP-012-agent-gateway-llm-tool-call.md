@@ -60,6 +60,6 @@ In-scope:
 ## References
 
 - Bominal ADR-0107 (agent gateway).
-- ADR-0140 (Cedar autonomy_tier).
+- ADR-0140 (retired per ADR-0145) (Cedar autonomy_tier).
 - OpenAI tool-call spec — `platform.openai.com/docs/guides/function-calling`.
 - EU AI Act 2024/1689 Arts. 9–15 (compliance).

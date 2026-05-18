@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, cedar-fragment-coverage,
 
 ## Intent
 
-Two crates: `-kernel` (port traits + `AutonomyTierClaim`, `EffectiveCeiling`, `TierViolation` entities; effective-ceiling computation per ADR-0022) + `-adapter-cedar` (Cedar v4 client + policy-bundle loader; in-process Cedar engine for sidecar pattern). The adapter is backend-qualified per ADR-0105 Amendment 3 (`*-adapter-cedar`) since Cedar v4 is the sanctioned backend per ADR-0140.
+Two crates: `-kernel` (port traits + `AutonomyTierClaim`, `EffectiveCeiling`, `TierViolation` entities; effective-ceiling computation per ADR-0022) + `-adapter-cedar` (Cedar v4 client + policy-bundle loader; in-process Cedar engine for sidecar pattern). The adapter is backend-qualified per ADR-0105 Amendment 3 (`*-adapter-cedar`) since Cedar v4 is the sanctioned backend per ADR-0140 (retired per ADR-0145).
 
 ## ChangeSet boundary
 

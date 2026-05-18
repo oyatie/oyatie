@@ -17,7 +17,7 @@ doc_status: published
 | Component | Baseline / 1M MAU | Notes |
 |---|---|---|
 | Postgres 16 (posts + votes + attestation-bindings, multi-AZ) | $1,800 | db.m6gd.large × 3 |
-| Redis 7.2 cluster (feed cache + vote counter, multi-AZ) | $900 | cache.r6g.large × 6 nodes |
+| Valkey 8.1 (Redis wire-compat) cluster (feed cache + vote counter, multi-AZ) | $900 | cache.r6g.large × 6 nodes |
 | Meilisearch 0.10 (hashtag search) | $400 | 2 × 4 vCPU / 8 GiB |
 | Postgres backup (30-day rolling, encrypted) | $250 | (small because retention is short) |
 | Object storage (T2 attachments, when enabled; default off) | $200 | per pack avg |
@@ -47,8 +47,8 @@ doc_status: published
 | Operation | Marginal cost (¢) | Driver |
 |---|---|---|
 | Post-create | 0.0008 | Postgres insert + fanout queue |
-| Vote-action | 0.0001 | Redis increment + Postgres flush batched |
-| Feed-render (top 50) | 0.0030 | Redis read + Cedar evaluation |
+| Vote-action | 0.0001 | Valkey increment + Postgres flush batched |
+| Feed-render (top 50) | 0.0030 | Valkey read + Cedar evaluation |
 | Affinity-attestation verify | 0.0200 | BBS+ verify CPU-bound |
 | Abuse-classifier inference | 0.0200 | batched; per-post |
 | Hard-delete (initial) | 0.0010 | Postgres delete + tombstone |

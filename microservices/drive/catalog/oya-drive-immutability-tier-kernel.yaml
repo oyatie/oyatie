@@ -10,7 +10,7 @@ contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare]
 lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
-  source_adrs: [ADR-0056, ADR-0105, ADR-0140, ADR-DRIVE-0006]
+  source_adrs: [ADR-0056, ADR-0105, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0006]
 allowed_dependency_edges: []
 data_classes_owned: [AUDIT]
 autonomy_tier_required: T2

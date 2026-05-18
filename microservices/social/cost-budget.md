@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Track the social µservice's monthly cloud cost across Postgres + Redis + S3 + Meilisearch + WebSocket gateway + observability sidecars + Layer-B compute (Rust BC services), per pack region. Surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers called out.
+Track the social µservice's monthly cloud cost across Postgres + Valkey + S3 + Meilisearch + WebSocket gateway + observability sidecars + Layer-B compute (Rust BC services), per pack region. Surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers called out.
 
 ## Cost Categories
 
@@ -27,11 +27,11 @@ Track the social µservice's monthly cloud cost across Postgres + Redis + S3 + M
 |---|---|---|
 | Compute (OKE node) | Layer-B Rust services (rest + worker + app per BC) | `oracle.com/cloud/compute/pricing/` |
 | Postgres (managed or self-hosted on PV) | Profiles + posts + follow-graph + reactions + moderation + bookmarks + lists | `oracle.com/database/pricing/` |
-| Redis (managed or self-hosted) | Feed cache + reactions + trending + notifications + ephemeral | `oracle.com/cloud/cache/pricing/` |
+| Valkey (managed or self-hosted) | Feed cache + reactions + trending + notifications + ephemeral | `oracle.com/cloud/cache/pricing/` |
 | WebSocket gateway pods | Envoy + custom Rust gateway crate | bundled into compute |
 | Object storage (S3-compatible) | Media blobs + previews + quarantine + transcode variants | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Meilisearch | People + content + hashtag search | self-hosted on PV |
-| Block storage (PV) | Postgres data + Meilisearch indexes + Redis AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
+| Block storage (PV) | Postgres data + Meilisearch indexes + Valkey AOF | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Network egress | WebSocket fanout to public clients; CDN egress for media | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-tenant DEK envelope; media SSE-KMS | `oracle.com/security/key-management/pricing/` |
 | Load balancer | Per-pack ingress (Envoy / Cloudflare) | `oracle.com/cloud/networking/load-balancing/pricing/` |
@@ -62,7 +62,7 @@ Per `capacity-model.md` "XS: 20 tenants, ~500k MAU, ~1k post/sec sustained".
 | search-worker (indexer) | 4 × VM.Standard.E4 4-core | $290 | – | $290 |
 | Postgres primary | 1 × VM.Standard.E4 8-core | $145 | $300 PV (6 TB) | $445 |
 | Postgres replicas (2) | 2 × VM.Standard.E4 8-core | $290 | $600 PV | $890 |
-| Redis cluster (3 shards × primary+replica) | 6 × VM.Standard.E4 2-core | $216 | $40 PV | $256 |
+| Valkey cluster (3 shards × primary+replica) | 6 × VM.Standard.E4 2-core | $216 | $40 PV | $256 |
 | Meilisearch primary + replica | 2 × VM.Standard.E4 4-core | $145 | $400 PV (8 TB) | $545 |
 | Media S3 bucket | – | – | $500 hot (20 TB) + $300 cold (150 TB archive) | $800 |
 | OPSWAT scan SaaS | – | $400 (8k scans/day) | – | $400 |
@@ -97,7 +97,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 
 | Lever | Saving | Effort |
 |---|---|---|
-| Hot-tier feed cache TTL tune (Redis hot 24h → 12h) | ~5% | Low |
+| Hot-tier feed cache TTL tune (Valkey hot 24h → 12h) | ~5% | Low |
 | Cold-media archive after 90d (S3 Standard → Archive) | ~30% S3 cost | Low |
 | Postgres aggressive vacuuming on tombstoned posts | ~10% storage | Low |
 | Meilisearch shard rebalance per-tenant | ~5% search-storage | Medium |

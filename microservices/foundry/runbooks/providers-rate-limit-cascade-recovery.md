@@ -32,7 +32,7 @@ ONE of:
 ## Pre-checks
 
 1. Identify which tenants are throttled: `oya_foundry_providers_provider_429_total{vendor="<v>"}` grouped by tenant.
-2. Confirm whether the throttle is at the in-process token bucket (Redis) or upstream (vendor returns 429).
+2. Confirm whether the throttle is at the in-process token bucket (Valkey) or upstream (vendor returns 429).
 3. Pull current rate vs ceiling: `oya_foundry_providers_provider_invocations_total[1m]` vs the configured per-tenant rate limit.
 4. Check cost-ceiling status: `oya_foundry_providers_provider_cost_usd_total{tenant="<t>"}` vs ceiling.
 
@@ -68,7 +68,7 @@ ONE of:
 | Gemini API | 60 req/min, 32K tok/min | tier-dependent | Per vendor docs |
 | in-house | per-pod-served-capacity | per pack capacity | self-served; no upstream throttle |
 
-Token-bucket implementation lives in `oya-foundry-providers-router-adapter` (Redis-backed). Per ADR-0117, per-pack Redis sentinel HA ensures bucket state survives a single-node failure.
+Token-bucket implementation lives in `oya-foundry-providers-router-adapter` (Redis-backed). Per ADR-0117, per-pack Valkey Sentinel HA ensures bucket state survives a single-node failure.
 
 ## Cost Ceiling Tuning
 

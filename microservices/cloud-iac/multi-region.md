@@ -50,8 +50,8 @@ For packs with a DR pair:
 │  ┌──────────────────────────┐            ┌──────────────────────────┐    │
 │  │ ArgoCD (active)          │            │ ArgoCD (warm-standby)    │    │
 │  │  - app-controller HA     │   replic   │  - same; 0.6× capacity   │    │
-│  │  - repo-server / server  │ ◀────────▶ │  - redis sentinel cluster│    │
-│  │  - redis sentinel cluster│   intra-   │                          │    │
+│  │  - repo-server / server  │ ◀────────▶ │  - valkey sentinel cluster│    │
+│  │  - valkey sentinel cluster│   intra-   │                          │    │
 │  └──────────────────────────┘   pack     └──────────────────────────┘    │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐    │
 │  │ Postgres iac-state-index │            │ Postgres replica         │    │
@@ -86,7 +86,7 @@ For packs with a DR pair:
 |---|---|---|---|
 | Postgres iac-state-index | Streaming replication primary→replica + S3 archive WAL | ≤ 30s | intra-pack only |
 | OpenTofu state buckets | Async via S3 cross-region replication (CRR) | ≤ 5min | intra-pack only |
-| ArgoCD application records | etcd-backed; replicated via redis sentinel | ≤ 30s | intra-pack only |
+| ArgoCD application records | etcd-backed; replicated via valkey sentinel | ≤ 30s | intra-pack only |
 | ArgoCD Applications (manifest content) | Git-versioned; source of truth | 0 | global (manifests not tenant data) |
 | Helm chart artifacts | Sigstore Rekor public log + per-pack registry cache | 0 (declarative) | intra-pack mirror only |
 | iac-state-index Postgres backups | S3 archive per pack with versioning | ≤ 5min | intra-pack only |

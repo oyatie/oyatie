@@ -145,4 +145,4 @@ After incident closure:
 - `microservices/ontology/incident-response.md` §"Severity 1 response" + §"Regulatory Notifications".
 - `microservices/ontology/policy/{tenant-scope, pillar, ci-scope}.cedar`.
 - ADR-0028 (audit-chain).
-- ADR-0140 (Cedar policy enforcement).
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).

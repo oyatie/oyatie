@@ -10,7 +10,7 @@ contracts_exposed: [openapi:drive.yaml]
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare]
 lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
-  source_adrs: [ADR-0105, ADR-0140]
+  source_adrs: [ADR-0105, ADR-0140 (retired per ADR-0145)]
 allowed_dependency_edges: [oya-drive-file-store-kernel, oya-drive-file-store-usecase, oya-drive-file-store-api]
 data_classes_owned: [AUDIT]
 autonomy_tier_required: T1

@@ -89,7 +89,7 @@ Concrete implementation:
 - **Cons**:
   - Page-render p95 ≤ 200ms is impossible at scale without aggressive
     CDN caching → which would re-introduce SSG/ISR anyway.
-  - Cost: every anonymous read consumes Postgres + Redis + render compute.
+  - Cost: every anonymous read consumes Postgres + Valkey + render compute.
     At 50k RPS per cell, this is ~$100k/mo extra compute cost.
   - Cold-start latency on first request to a rarely-viewed page.
 - **Rejected** because it violates the p95 ≤ 200ms target at the

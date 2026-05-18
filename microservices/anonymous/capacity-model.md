@@ -59,7 +59,7 @@ Partition strategy:
 - `anonymous.affinity_attestation_binding`: partitioned by `(tenant_id, affinity_id)`.
 - `anonymous.legal_process_disclosure`: partitioned by `(tenant_id, received_at year)` — small table.
 
-## Redis sizing
+## Valkey sizing
 
 | Cluster | Memory | Nodes | Purpose |
 |---|---|---|---|
@@ -87,14 +87,14 @@ Partition strategy:
 | Feed-render p99 latency | > 250ms 5min | Add 2 feed-timeline pods |
 | Post-create p99 latency | > 100ms 5min | Add 2 post-thread-rest pods |
 | Postgres write IOPS | > 70% sustained 10min | Scale Postgres class one tier |
-| Redis memory | > 75% | Evict + scale cluster |
+| Valkey memory | > 75% | Evict + scale cluster |
 | Foundry-runtime classifier queue depth | > 5k | Scale classifier inference pods |
 | Hard-delete worker lag | > 10s | Scale retention-policy-worker pods |
 
 ## Capacity headroom
 
 - 30% headroom maintained against forecasted peak.
-- Black-friday-class spike absorbed via HPA + Redis ENI prewarm.
+- Black-friday-class spike absorbed via HPA + Valkey ENI prewarm.
 - Per-tenant rate-limit prevents runaway tenant.
 
 ## Tail-latency budget
@@ -104,7 +104,7 @@ Per Hyrum's-law of dependencies:
 | Path | Component-by-component p99 budget |
 |---|---|
 | Post-create p99 = 250ms | Cedar 10ms + Postgres write 80ms + audit-chain seal 50ms + fanout queue 20ms + buffer 90ms |
-| Feed-render p99 = 500ms | Cedar 10ms + Redis cache 50ms + Postgres backfill 200ms + Cedar filter 100ms + buffer 140ms |
-| Vote-action p99 = 50ms | Cedar 10ms + Redis increment 5ms + buffer 35ms |
+| Feed-render p99 = 500ms | Cedar 10ms + Valkey cache 50ms + Postgres backfill 200ms + Cedar filter 100ms + buffer 140ms |
+| Vote-action p99 = 50ms | Cedar 10ms + Valkey increment 5ms + buffer 35ms |
 | Affinity-attestation verify p99 = 1s | BBS+ verify (CPU-bound) 600ms + cache miss path + buffer |
 | Abuse-classifier p99 = 400ms | foundry-runtime RTT 50ms + inference 200ms + buffer 150ms |

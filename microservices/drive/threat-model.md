@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-drive + ops-security
 deciders: council-architecture, ops-security, axis-drive, council-privacy
 methodology: STRIDE + LINDDUN + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS v4.0.3 + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
 review_cadence: quarterly + on every BC architectural change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1-CC6.8, CC7.1-CC7.5, CC8.1"
@@ -44,10 +44,10 @@ All components introduced for the drive µservice across the eleven bounded cont
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Garage 1.0.x (S3-compatible edge-distributed object store; primary) | `oya-drive-file-store-*` (13 crates) |
-| MinIO RELEASE.2024-08 (S3-compatible single-cluster; secondary) | `oya-drive-folder-hierarchy-*` (8 crates) |
+| SeaweedFS RELEASE.2024-08 (S3-compatible single-cluster; secondary) | `oya-drive-folder-hierarchy-*` (8 crates) |
 | SeaweedFS 3.x (archive tier) | `oya-drive-upload-*` (10 crates) |
 | Postgres 16 LTS (metadata) | `oya-drive-download-*` (8 crates) |
-| Redis 7.4 LTS (upload-session + delta-sync cache) | `oya-drive-sync-*` (10 crates) |
+| Valkey 8.1 (Redis wire-compat) (upload-session + delta-sync cache) | `oya-drive-sync-*` (10 crates) |
 | Meilisearch 1.10.x (full-text index) | `oya-drive-share-link-*` (10 crates) |
 | Apache Tika 2.9.x (content extraction) | `oya-drive-permissions-*` (8 crates) |
 | ClamAV 1.4.x (virus scan) | `oya-drive-search-index-*` (10 crates) |
@@ -97,9 +97,9 @@ All components introduced for the drive µservice across the eleven bounded cont
 │                                                                                        │
 │  Trust boundary 2: REST → Postgres (per-tenant RLS + tenant-DEK)                       │
 │                                                                                        │
-│  Trust boundary 3: REST → Redis (upload-session + delta-sync cache, per-tenant prefix) │
+│  Trust boundary 3: REST → Valkey (upload-session + delta-sync cache, per-tenant prefix) │
 │                                                                                        │
-│  Trust boundary 4: REST → Object store (Garage / MinIO / SeaweedFS; per-tenant prefix) │
+│  Trust boundary 4: REST → Object store (Garage / SeaweedFS / SeaweedFS; per-tenant prefix) │
 │                                                                                        │
 │  Trust boundary 5: REST → Meilisearch (per-tenant index; cross-tenant query refused)   │
 │                                                                                        │
@@ -136,8 +136,8 @@ Per Bominal ADR-0028 + `oya-check-data-class` LEAN lane.
 | Folder hierarchy | `BEHAVIORAL_TENANT_PRODUCT` | Medium | per tenant retention | Postgres |
 | Permission ACLs | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | High | append-only | Postgres + audit-chain |
 | Share-link records (link_id, signed-blob, ttl, view-cap) | `SECRET` (signing key) + `PII_QUASI_IDENTIFIER` (link bound to recipient identity in cross-tenant case) | Critical | per-link retention | Postgres + audit-chain |
-| Upload session state (in-flight chunks) | `PERSONAL_FILE_CONTENT` / `PROFESSIONAL_FILE_CONTENT` (per source) | Critical | transient (≤ 24h) | Redis + object store staging |
-| Sync session + chunk manifest | `INTERNAL_ONLY` (chunk hashes only; never plaintext bytes) | Medium | per-session ≤ 7d | Postgres + Redis |
+| Upload session state (in-flight chunks) | `PERSONAL_FILE_CONTENT` / `PROFESSIONAL_FILE_CONTENT` (per source) | Critical | transient (≤ 24h) | Valkey + object store staging |
+| Sync session + chunk manifest | `INTERNAL_ONLY` (chunk hashes only; never plaintext bytes) | Medium | per-session ≤ 7d | Postgres + Valkey |
 | Search index (full-text + filename) | `PERSONAL_FILE_CONTENT` / `PROFESSIONAL_FILE_CONTENT` (per-tenant index) | Critical | per file retention | Meilisearch + Tika |
 | Preview artifacts (thumbnail / first-page render) | inherits from source file | High | LRU cache; ≤ 30d | object store cache bucket |
 | Virus scan verdict + quarantine record | `AUDIT` | Critical | append-only ≥ 7y | Postgres + audit-chain |
@@ -251,7 +251,7 @@ Each threat: ID; asset; description; likelihood (L/M/H); impact (L/M/H); risk; m
 - L L / I H / Risk M
 - Mitigations:
   - Postgres role for application has no UPDATE / DELETE permission on `immutability_record` table.
-  - Object-store backend enforces object-lock at the storage layer (Garage `bucket.object-lock=COMPLIANCE`; MinIO `mc retention set compliance`; S3 Object Lock compliance mode).
+  - Object-store backend enforces object-lock at the storage layer (Garage `bucket.object-lock=COMPLIANCE`; SeaweedFS `mc retention set compliance`; S3 Object Lock compliance mode).
   - Periodic integrity scan: compare hold-set vs storage layer; mismatch alerts.
   - Even tenant-root cannot release WORM before retention floor expires.
 - Owner: ops-security + compliance + axis-drive
@@ -386,7 +386,7 @@ Each threat: ID; asset; description; likelihood (L/M/H); impact (L/M/H); risk; m
 - Asset: upload session in-flight chunks
 - L L / I M / Risk L-M
 - Mitigations:
-  - Redis ACL per-tenant key prefix; cross-tenant read forbidden.
+  - Valkey ACL per-tenant key prefix; cross-tenant read forbidden.
   - Session bound to OIDC subject; resumption requires re-auth on expired ticket.
 - Owner: axis-drive
 - Residual: L
@@ -418,11 +418,11 @@ Each threat: ID; asset; description; likelihood (L/M/H); impact (L/M/H); risk; m
 - Frameworks: SOC 2 CC7.1; ISO 27001 A.5.30, A.8.6
 
 **T-D-03 — Object-store cell loss → degraded download**
-- Asset: Garage / MinIO / SeaweedFS backend
+- Asset: Garage / SeaweedFS / SeaweedFS backend
 - L L / I H / Risk M
 - Mitigations:
   - Replication-factor 3; one cell loss tolerated transparently.
-  - Cross-cell replication via Garage layout (or MinIO erasure code); rebuild on cell rejoin.
+  - Cross-cell replication via Garage layout (or SeaweedFS erasure code); rebuild on cell rejoin.
   - Runbook `object-storage-degraded.md` for two-cell loss.
 - Owner: ops-sre-reliability
 - Residual: L

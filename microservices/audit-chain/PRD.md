@@ -342,4 +342,59 @@ Sharding:
 | ADR-0117 | Cloud-native infrastructure | storage backend (Postgres + S3-compatible + Cloud-HSM) |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-AUDIT registers here |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
-| ADR-0140 | Cedar policy enforcement | tenant + auditor + CI + public-read scopes |
+| ADR-0140 (retired per ADR-0145) | Cedar policy enforcement | tenant + auditor + CI + public-read scopes |
+
+## ADR-0162 Update — Per-Tenant Audit-Chain Slicing
+
+Per ADR-0162 (2026-05-18), audit-chain seals partition by `tenant_id`. The µservice maintains:
+
+- **Per-pack shared shard** for multi-tenant packs (pack-us-shared, pack-global): per-pack Merkle tree with tenant_id leaf partition; per-tenant subtree retrieval O(log n).
+- **Per-sovereign-tenant dedicated shard** for packs marked `dedicated_audit_shard: true` (pack-ksa, pack-uae, pack-eu-sovereign, pack-ru-if-onboarded, pack-us-gov, pack-kr-fsc, pack-kr-public).
+- **Per-cell sharding within shared shards**: a tenant pinned to cell `kr-seoul1` stores leaves in that cell's shard; cross-cell DR replicates per ADR-0009 (intra-region only for sovereign).
+
+### Sealing cadence (refined per ADR-0162)
+
+- Hot leaf append: ≤ 100 ms p99 (per ADR-0003).
+- Hourly: per-tenant subtree root recomputed + Ed25519-signed.
+- Daily: per-pack root anchored to `oya-s3-cold` (per ADR-0161).
+- Daily: fleet-wide root computed; published to trust portal (ADR-0038) for non-sovereign tenants; in-region only for sovereign-pinned tenants.
+
+### Per-tenant retrieval API (new in ADR-0162)
+
+```
+GET /v1/audit-chain/tenant/{tenant_id}/seals
+    ?since={iso8601}
+    &until={iso8601}
+    &event_class={class}
+    &proof={true|false}
+```
+
+- Cedar-gated: `principal.tenant_id == path.tenant_id` (cross-tenant requires explicit Cedar grant).
+- Cursor-based pagination, 1000 seals per page.
+- `?proof=true` returns Merkle inclusion proof per seal.
+- DSR-cascade-safe: PII fields zeroed per ADR-0008 DUBO.
+
+### Sovereign-tenant dedicated-shard contract (new in ADR-0162)
+
+- Shard storage in-cell only.
+- Shard encryption key custody in-region HSM (per ADR-0043 + ADR-0164 air-gap variant).
+- Shard sealing private key in-region HSM.
+- Shard deletion on tenant offboarding leaves no residue in other tenants' shards.
+- Sovereign-pinned tenants do NOT contribute to global fleet root.
+
+### CI lane (new)
+
+`oya gate validate audit-chain-per-tenant-slicing` enforces:
+- Every retrieval API call Cedar-gated and tenant-scoped.
+- Every sovereign pack overlay declares dedicated shards.
+- Every per-tenant subtree's leaves contain only that tenant's events.
+
+### Per-pack overlay (new)
+
+`microservices/audit-chain/iac/kustomize/components/pack-{name}/values.yaml#dedicated_audit_shard` is the per-pack toggle.
+
+See `/specs/per-tenant-audit-log-slicing-canonical.json` for the canonical declaration.
+
+## ADR-0158 Update — Active-Active Disposition
+
+Per ADR-0158 (2026-05-18), audit-chain is declared `active_active` per cell. Append-only Merkle merge naturally converges; per-tenant subtree replicates intra-region for DR and globally for the fleet-wide root anchor. See `multi-region.md` for the full disposition statement.

@@ -13,11 +13,11 @@ acceptance_lanes: [cargo-nextest, ws-soak-test]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-007: presence BC (Redis + WebSocket gateway + LiveKit signaling)
+# IP-007: presence BC (Valkey + WebSocket gateway + LiveKit signaling)
 
 ## Intent
 
-Implement `PresenceStore` against Redis Cluster; `WebSocketGateway` per
+Implement `PresenceStore` against Valkey Cluster; `WebSocketGateway` per
 RFC 6455 + Envoy WebSocket upgrade; LiveKit signaling adapter for huddle
 voice/video (later phase huddle BC). Per-tenant connection registry with
 sharding by `tenant_id mod N`.

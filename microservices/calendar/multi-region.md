@@ -5,7 +5,7 @@ microservice: calendar
 status: Accepted
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-calendar + council-privacy
-related_adrs: [ADR-0117, ADR-0140]
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145)]
 doc_status: published
 ---
 
@@ -19,7 +19,7 @@ Define the per-pack regional deployment topology, residency enforcement, cross-r
 
 ### Pack-to-region mapping (canonical)
 
-| Pack | Primary region | DR region (same jurisdiction) | Postgres cluster | Redis cluster |
+| Pack | Primary region | DR region (same jurisdiction) | Postgres cluster | Valkey cluster |
 |---|---|---|---|---|
 | pack-kr | OCI ap-seoul-1 | OCI ap-chuncheon-1 | KR-primary | KR-primary |
 | pack-eu | OCI eu-frankfurt-1 | OCI eu-amsterdam-1 | EU-primary | EU-primary |
@@ -37,7 +37,7 @@ Define the per-pack regional deployment topology, residency enforcement, cross-r
 
 Per `policy/data-residency.md`:
 - Each tenant pinned to exactly one pack at onboarding.
-- Postgres + Redis clusters pack-resident; no cross-pack replication by default.
+- Postgres + Valkey clusters pack-resident; no cross-pack replication by default.
 - Cross-pack data flow only via SCC-gated cross-tenant availability projection (free/busy only).
 
 ## Cross-region replication policy
@@ -91,7 +91,7 @@ When Tenant-A (pack-kr) needs availability of Tenant-B's attendee (pack-eu):
 1. Cross-tenant invite grant on file (Cedar policy `cross-tenant-grant`).
 2. Tenant-A's availability-resolver issues mTLS call to pack-eu availability-resolver.
 3. pack-eu resolver returns `FreeBusyProjection` only (Invariant 4 of `event-isolation.md`).
-4. Projection cached in pack-kr Redis with TTL ≤ 60s + jitter; cache invalidates on grant revocation.
+4. Projection cached in pack-kr Valkey with TTL ≤ 60s + jitter; cache invalidates on grant revocation.
 5. Cross-pack mesh latency budget: 100ms p99; timeout 2s; on timeout return "unknown" projection.
 
 Cross-pack mesh:

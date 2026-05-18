@@ -1,9 +1,9 @@
 apiVersion: v2
 name: oya-foundry-supervisor-redis
-description: Redis Cluster (3 shards × 2 replicas per pack region) for kill-switch state cache + supervision-event-bus Redis Streams. Per policy/supervisor-isolation.md TI-R-*.
+description: Valkey Cluster (3 shards × 2 replicas per pack region) for kill-switch state cache + supervision-event-bus Valkey Streams (Redis wire-compat). Per policy/supervisor-isolation.md TI-R-*.
 type: application
 version: 0.1.0
-appVersion: "7.2"  # Redis 7.x LTS
+appVersion: "7.2"  # Valkey 8.1 (Redis wire-compat)
 maintainers:
   - name: ops-sre-reliability
     email: ops-sre-reliability@oyatie.dev

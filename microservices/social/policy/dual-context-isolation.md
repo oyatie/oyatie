@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-social
 deciders: council-architecture, ops-security, axis-social, council-privacy
-related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/social/threat-model.md (T-I-07; cross-context invariant violation)
   - microservices/social/dpia.md (R-07)

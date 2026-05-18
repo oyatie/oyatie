@@ -41,7 +41,7 @@ Evidence pack data MUST NOT replicate across packs at the data plane.
 - Postgres replicas are pack-local only.
 - audit-chain Merkle root publication is pack-local; the `tenant:oya-aggregate` series carries hashes only, never tenant-distinguishable data.
 - WORM blob (audit-chain substrate) is pack-local; cross-region replication is opt-in per-tenant DPA and uses the substrate's cross-region path which is **disabled by default** per ADR-0028 §"Chain locality".
-- LEAN lane `cross-pack-replication-forbidden` blocks any Helm or Terraform change that introduces cross-pack data-plane edges.
+- LEAN lane `cross-pack-replication-forbidden` blocks any Helm or OpenTofu change that introduces cross-pack data-plane edges.
 
 ## DR-03 — Regulator-export cross-jurisdiction
 

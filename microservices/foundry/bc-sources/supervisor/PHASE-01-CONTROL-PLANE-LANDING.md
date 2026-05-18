@@ -27,7 +27,7 @@ depends_on:
     phase: PHASE-01 (already landed)
     reason: SLO gate consumes supervision events; supervisor consumes EligibilityChanged
 owner_team: axis-foundry-control-plane
-related_adrs: [ADR-0024, ADR-0105, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0024, ADR-0105, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/foundry-supervisor-control-plane.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -37,7 +37,7 @@ doc_status: published
 
 ## Purpose
 
-Ship the full ADR-0131 §"Foundry split" supervisor scope — Layer-A substrate (Postgres, Redis, Kubernetes Operator pattern), all five BCs (agent-fleet-lifecycle, capability-deployment, autonomy-policy-enforcement, supervision-event-bus, kill-switch-circuit-breaker), supervisor self-SLOs authored, integration with `observability` SLO gate (ADR-0139) and `foundry-evidence` audit chain wired.
+Ship the full ADR-0131 §"Foundry split" supervisor scope — Layer-A substrate (Postgres, Valkey, Kubernetes Operator pattern), all five BCs (agent-fleet-lifecycle, capability-deployment, autonomy-policy-enforcement, supervision-event-bus, kill-switch-circuit-breaker), supervisor self-SLOs authored, integration with `observability` SLO gate (ADR-0139) and `foundry-evidence` audit chain wired.
 
 Hyperscaler-grade in every practice: the supervisor's own kill-switch engage is itself an SLO observed by `observability`; the µservice ships dashboards on day 1 (deployment-rate, kill-switch-coverage, autonomy-violation-rate) per ADR-0133.
 
@@ -67,13 +67,13 @@ Plus cross-cutting:
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
 | [`IP-001-postgres-layer-a-iac.md`](IP-001-postgres-layer-a-iac.md) | Helm chart for HA Postgres (master + replica per pack region); OpenBao-managed credentials | pending | ops-sre-reliability | — |
-| [`IP-002-redis-layer-a-iac.md`](IP-002-redis-layer-a-iac.md) | Helm chart for Redis Cluster (3 shards × 2 replicas per pack region); kill-switch state + supervision-event-bus stream | pending | ops-sre-reliability | — |
+| [`IP-002-redis-layer-a-iac.md`](IP-002-redis-layer-a-iac.md) | Helm chart for Valkey Cluster (3 shards × 2 replicas per pack region); kill-switch state + supervision-event-bus stream | pending | ops-sre-reliability | — |
 | [`IP-003-k8s-operator-iac.md`](IP-003-k8s-operator-iac.md) | Kubernetes Operator deployment (kube-rs based controller-runtime); CRDs (`Agent`, `AgentDeployment`, `AutonomyPolicy`, `KillSwitch`); RBAC | pending | axis-foundry-control-plane | IP-001, IP-002 |
 | [`IP-004-agent-fleet-lifecycle-kernel.md`](IP-004-agent-fleet-lifecycle-kernel.md) | Kernel crate: port traits + entities | pending | axis-foundry-control-plane | — |
 | [`IP-005-autonomy-policy-enforcement.md`](IP-005-autonomy-policy-enforcement.md) | Cedar evaluator + tenant-entitlement store; default-deny; per-invocation precondition | pending | ops-security + axis-foundry-control-plane | IP-004 |
 | [`IP-006-capability-deployment.md`](IP-006-capability-deployment.md) | Admit + canary rollout + roll-forward + roll-back; integrates `EligibilityChanged` gate | pending | axis-foundry-control-plane | IP-003, IP-005 |
-| [`IP-007-supervision-event-bus.md`](IP-007-supervision-event-bus.md) | AMQP + Redis Streams substrate; per-event Ed25519 signature; subscriber registration | pending | axis-foundry-control-plane | IP-002, IP-004 |
-| [`IP-008-kill-switch-engage-state.md`](IP-008-kill-switch-engage-state.md) | Kill-switch state model in Redis; CRD watch fan-out; engage/disengage with audit-chain | pending | axis-foundry-control-plane | IP-002, IP-003, IP-007 |
+| [`IP-007-supervision-event-bus.md`](IP-007-supervision-event-bus.md) | AMQP + Valkey Streams (Redis wire-compat) substrate; per-event Ed25519 signature; subscriber registration | pending | axis-foundry-control-plane | IP-002, IP-004 |
+| [`IP-008-kill-switch-engage-state.md`](IP-008-kill-switch-engage-state.md) | Kill-switch state model in Valkey; CRD watch fan-out; engage/disengage with audit-chain | pending | axis-foundry-control-plane | IP-002, IP-003, IP-007 |
 | [`IP-009-kill-switch-propagation.md`](IP-009-kill-switch-propagation.md) | Sub-second propagation to in-flight workers via runtime-side handshake; integration test ≤ 1s p99 | pending | axis-foundry-control-plane | IP-008 |
 | [`IP-010-fleet-state-postgres-adapter.md`](IP-010-fleet-state-postgres-adapter.md) | Postgres-backed fleet-state repository + tenant-shard routing | pending | axis-foundry-control-plane | IP-001, IP-004 |
 | [`IP-011-rest-api.md`](IP-011-rest-api.md) | REST surface per `contracts/openapi/foundry-supervisor.yaml`; OIDC + Cedar gating | pending | axis-foundry-control-plane | IP-005, IP-006, IP-008, IP-010 |
@@ -119,7 +119,7 @@ oya gate validate hyperscaler-maturity-claims
 | Autonomy tier refusal | `cargo nextest run -p oya-foundry-supervisor-autonomy-policy-enforcement-usecase --test tier_escalation_refused` | Cedar denies; audit-chain emits `AutonomyViolated` |
 | Drain with zero loss | `cargo nextest run -p oya-foundry-supervisor-agent-fleet-lifecycle-worker --test drain_zero_loss` | drain completes; in-flight reach `success`; no `AgentEvicted{reason=lost}` |
 | Postgres failover | scripted chaos: kill master pod | control-plane available ≤ 30 s |
-| Redis failover | scripted chaos: kill one replica | kill-switch engage p99 stays ≤ 1 s |
+| Valkey failover | scripted chaos: kill one replica | kill-switch engage p99 stays ≤ 1 s |
 
 ## Clean Architecture Compliance
 
@@ -150,7 +150,7 @@ Each IP emits a ChangeSet per ADR-0110 at `microservices/foundry-supervisor/evid
 | kernel | 1 per public type + 1 per port | 0 | 0 | 90 % line / 80 % branch |
 | domain | 1 per public fn + property tests | 0 | 0 | 95 % line / 90 % branch |
 | usecase | 1 per use-case (happy + 2 sad) | ≥ 3 against mocks | 0 | 90 % line / 80 % branch |
-| adapter / adapter-postgres / adapter-k8s-operator | 1 per port-impl method | ≥ 2 against real backend (testcontainers Postgres + Redis + kind k8s) | 0 | 85 % line / 75 % branch |
+| adapter / adapter-postgres / adapter-k8s-operator | 1 per port-impl method | ≥ 2 against real backend (testcontainers Postgres + Valkey + kind k8s) | 0 | 85 % line / 75 % branch |
 | rest | 1 per route (happy + auth-fail + cedar-deny) | ≥ 2 cross-route flows | 1 per route | 85 % line / 75 % branch |
 | worker | 1 per orchestration arm | ≥ 1 long-lived loop test | 1 e2e | 85 % line / 75 % branch |
 | sdk | 1 per public method | ≥ 2 against rest | 0 | 90 % line / 80 % branch |

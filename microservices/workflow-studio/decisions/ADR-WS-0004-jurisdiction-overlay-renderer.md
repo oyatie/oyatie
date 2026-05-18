@@ -8,7 +8,7 @@ owner: axis-workflow + council-architecture
 deciders: council-architecture, axis-workflow, ops-security, axis-tenancy
 supersedes: []
 superseded_by: []
-related: [ADR-0105, ADR-0117, ADR-0131, ADR-0140]
+related: [ADR-0105, ADR-0117, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md (FR-08, FR-09, FR-16, AC-04, AC-07)
@@ -139,7 +139,7 @@ A degenerate hybrid: compute the overlay-decision-bundle once on editor open, ne
 3. **tenancy µservice** — Cedar policy fragments per tenant; tenant policy-version change invalidates bundle cache.
 4. **workflow-engine µservice** — engine save path runs the same Cedar evaluation as the bundle computation; ensures preview-vs-save parity.
 5. **observability µservice** — `editor-experience.json` dashboard gains `overlay_bundle_refresh_p99_ms`, `overlay_stale_render_count`, `overlay_preview_save_divergence_count` SLIs. The divergence count MUST be zero in any 24h window; non-zero is a Sev-2 alert.
-6. **cloud-iac µservice** — bundle cache (Redis) sizing per pack; per-tenant cache key partitioning.
+6. **cloud-iac µservice** — bundle cache (Valkey) sizing per pack; per-tenant cache key partitioning.
 7. **All 11 jurisdiction packs** (pack-kr, pack-eu-gdpr, pack-us-healthcare, etc.) — author Cedar policy fragments + marker mappings that feed the bundle computation.
 
 ### Trust-boundary contract

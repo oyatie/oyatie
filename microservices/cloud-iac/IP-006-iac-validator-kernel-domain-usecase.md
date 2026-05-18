@@ -103,6 +103,6 @@ cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice
 
 ## References
 
-- ADR-0105; ADR-0140 (Cedar).
+- ADR-0105; ADR-0140 (retired per ADR-0145) (Cedar).
 - PRD §"Bounded Contexts" iac-validator BC.
 - Cedar v4 — `docs.cedarpolicy.com/`.

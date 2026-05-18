@@ -96,8 +96,8 @@ Quantitative + qualitative parity comparison vs the industry-leading IaC orchest
 
 | Metric | oyatie target | ArgoCD reference | Spacelift reference | Notes |
 |---|---|---|---|---|
-| Apply p99 latency (single µservice) | ≤ 5min | ~3min (Helm only) | ~5min (Terraform) | parity |
-| Render p99 latency | ≤ 5s | ~3s (Helm template) | ~10s (Terraform plan only) | better |
+| Apply p99 latency (single µservice) | ≤ 5min | ~3min (Helm only) | ~5min (OpenTofu) | parity |
+| Render p99 latency | ≤ 5s | ~3s (Helm template) | ~10s (OpenTofu plan only) | better |
 | Drift detection cycle per cluster | ≤ 1h | ~3min default (configurable) | ~1h | parity |
 | Plan-preview at PR-time | ≤ 30s | n/a (no PR integration native) | ~30s | parity |
 | Rollback execution | ≤ 2min | manual (3-5min) | ~3min | better |

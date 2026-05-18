@@ -11,7 +11,7 @@ related_artifacts:
   - microservices/mail/policy/data-residency.md
   - microservices/mail/contracts/openapi.yaml §"/v1/tenants/{tenantId}/dkim/rotate"
   - ADR-0133 cross-tenant mail-server pattern
-  - ADR-0140 Cedar policy enforcement
+  - ADR-0140 (retired per ADR-0145) Cedar policy enforcement
 doc_status: published
 ---
 
@@ -40,7 +40,7 @@ CI lane `oya-governance-dkim-key-rotation-conformance` refuses any DKIM key olde
 | 1 | Current selector + age | `kubectl exec -n mail <pod> -- oya-mail-cli dkim list --tenant=<t>` |
 | 2 | Tenant domain ownership verified (recent SPF/DMARC/MX records confirm tenant control) | `dig +short TXT <tenant-domain>` |
 | 3 | DNS publish path operational (Route53 / Cloudflare / OCI DNS API reachable) | `kubectl exec <pod> -- oya-mail-cli dns probe --tenant=<t>` |
-| 4 | OpenBao key path accessible | `vault kv get secret/mail/<tenant>/dkim/<selector>` (mTLS) |
+| 4 | OpenBao key path accessible | `bao kv get secret/mail/<tenant>/dkim/<selector>` (mTLS) |
 | 5 | Recent outbound volume (so we can compute dual-publish overlap window) | `oya_mail_outbound_message_volume_total{tenant_id=<t>}[7d]` |
 | 6 | Active inbound replies expected to in-flight messages (estimates verifiability needs) | estimate from prior-window response rate |
 

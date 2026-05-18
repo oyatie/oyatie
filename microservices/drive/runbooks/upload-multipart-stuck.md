@@ -42,7 +42,7 @@ kubectl -n drive exec deploy/oya-drive-upload-rest -- \
 ### Step 2 — Inspect a sample stuck session
 
 ```bash
-# Per-session state from Redis (upload session in-flight)
+# Per-session state from Valkey (upload session in-flight)
 kubectl -n drive exec sts/oya-drive-redis-0 -- redis-cli \
   --scan --pattern 'upload-session:<tenant>:*' |
   head -5 |
@@ -88,7 +88,7 @@ mc ls --recursive oya-drive-garage/staging/<tenant>/ | wc -l
      --duration 1h
    ```
 
-### Case C — Object-store backend hot-spot (Garage rebalance / MinIO degradation)
+### Case C — Object-store backend hot-spot (Garage rebalance / SeaweedFS degradation)
 
 1. Inspect object-store health:
    ```bash
@@ -139,5 +139,5 @@ cargo run -p oya-dev-cli -- gate validate slo --microservice drive --slo upload-
 - ADR-DRIVE-0002 — CDC + delta-sync.
 - `slos/upload-multipart-throughput.openslo.yaml`.
 - Garage operator docs.
-- MinIO administration guide.
+- SeaweedFS administration guide.
 - tus.io 1.0 server troubleshooting.

@@ -82,7 +82,7 @@ one Workflow event or Ontology write.
 
 ### Security
 - JWT `tenant_id` claim enforced on every request (per Bominal ADR-0018 RLS posture).
-- Cedar policy enforcement for cross-tenant data access (per ADR-0140).
+- Cedar policy enforcement for cross-tenant data access (per ADR-0140 (retired per ADR-0145)).
 - Per-tenant Postgres RLS; no cross-tenant query possible.
 
 ### Audit + Compliance
@@ -150,7 +150,7 @@ CI lanes that must green:
 
 All cross-µservice integration flows through Workflow (action/orchestration
 adapter) or Ontology (information adapter). Direct µservice-to-µservice calls
-are prohibited (LEAN-A2 enforcement). Per `feedback_workflow_objectgraph_adapter_layer.md`.
+are prohibited (LEAN-A2 enforcement). Per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`.
 
 ### Workflow events produced
 

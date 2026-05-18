@@ -12,7 +12,7 @@ metadata:
 spec:
   description: |
     Latency SLO for note-open (warm). A request is "good" when end-to-end
-    latency (REST GET → Postgres + Redis cache + Cedar evaluation → response)
+    latency (REST GET → Postgres + Valkey cache + Cedar evaluation → response)
     is ≤ 50ms. Distribution captured via Histogram with le buckets at
     [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 1.0].
   service: notes

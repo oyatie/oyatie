@@ -62,7 +62,7 @@ Performance envelope (PRD §"Performance"):
 Substrate constraints:
 - Rust kernel + domain layers (ADR-0105 13-layer enum); CRDT merge engine lives in `oya-slides-real-time-collaboration-domain` (pure, deterministic).
 - Browser-WASM target (per ADR-0065 Leptos WASM frontend, applied to slides per ADR-SLIDES-0002).
-- Ephemeral CRDT state in Redis; reconstructable from Postgres on cold-start.
+- Ephemeral CRDT state in Valkey; reconstructable from Postgres on cold-start.
 - WebSocket gateway long-lived worker (`-worker` crate) fans out CRDT ops via consistent-hash on `deck_id`.
 
 Slides-specific constraints (different from workflow-studio):
@@ -83,10 +83,10 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the slides CRDT library, with th
 1. Loro types are wrapped in slides' own `oya-slides-real-time-collaboration-kernel` port traits (`CrdtMergeEngine`, `CrdtState`, `MergeOp`); the library is an implementation detail of the `-domain` crate + backend-qualified `-adapter-loro` crate. Public APIs across BCs and across µservices MUST NOT leak Loro types — this preserves the option to swap the library without breaking the canvas, presentation rest, SDK, or cross-µservice consumers.
 2. The Loro tree CRDT (`LoroTree`) backs the deck → slide → placeholder hierarchy; Loro maps (`LoroMap`) back placeholder/text-box/shape attribute dictionaries; Loro lists (`LoroList`) back slide-ordering + content-array structures.
 3. CRDT-to-canonical-spec projection deterministically orders Loro nodes by stable `TreeID`s, with map keys lex-sorted at the projection boundary. Per-slide ACL filter applied AT PROJECTION TIME so each subscriber receives only ops + state for slides they're permitted to read/edit.
-4. Loro snapshot encoding for Redis persistence (`snapshot()` + `import_snapshot()`); canonical JSON projection ONLY for the deck-spec emission + import/export pipelines (per ADR-SLIDES-0003).
+4. Loro snapshot encoding for Valkey persistence (`snapshot()` + `import_snapshot()`); canonical JSON projection ONLY for the deck-spec emission + import/export pipelines (per ADR-SLIDES-0003).
 5. Loro version pinning (`^1.0`); major-version upgrade gated by (a) AC-06 property test green, (b) PPTX round-trip subset fidelity drill green, (c) WASM bundle size delta ≤ +50 KB gzip.
 6. The slides-side CI lane `oya-governance-collab-no-silent-loss` runs Loro upstream's example test suite + slides' own AC-06 property test (10 concurrent editors, randomized op interleaving + slide-ACL-refinement variants, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
-7. Per-session HMAC-SHA-256 over each op envelope (T-T-01 mitigation); HMAC keys held in Redis per-session; rotate on suspected tampering (per `runbooks/collab-conflict-resolution-crdt.md` Step 3a).
+7. Per-session HMAC-SHA-256 over each op envelope (T-T-01 mitigation); HMAC keys held in Valkey per-session; rotate on suspected tampering (per `runbooks/collab-conflict-resolution-crdt.md` Step 3a).
 8. Animation + transition op-class: ops touching animation/transition objects are CRDT-merged with the same semantic as other ops; replay during present-mode must produce byte-identical frame timing (deterministic Loro projection ordering).
 9. Speaker-notes carrying a per-field `data_class = SPEAKER_NOTE` annotation; gateway projection filter MUST exclude speaker-notes from any subscriber whose stream is the broadcast-frame subscriber (audience-view). Enforced at the kernel port boundary.
 

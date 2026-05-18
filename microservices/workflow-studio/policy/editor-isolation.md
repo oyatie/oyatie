@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-workflow + ops-security + council-design-system
 deciders: axis-workflow, ops-security, council-architecture, council-design-system
-related_adrs: [ADR-0028, ADR-0065, ADR-0103, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0065, ADR-0103, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/workflow-studio/threat-model.md (T-I-01, T-I-04, T-I-07, T-I-08)
   - microservices/workflow-studio/dpia.md (R-02, R-16)
@@ -28,7 +28,7 @@ Define the load-bearing isolation contract between tenant editor sessions, node 
 
 Every editor session belongs to exactly one tenant, identified by the OIDC `tenant_id` claim. The session boundary applies to:
 
-1. **Editor session state** (active drafts, cursor, viewport, undo history) — Postgres + Redis row-tagged by tenant_id.
+1. **Editor session state** (active drafts, cursor, viewport, undo history) — Postgres + Valkey row-tagged by tenant_id.
 2. **CRDT op stream** — WebSocket gateway lease is keyed (tenant_id, definition_id); cross-tenant lease denied.
 3. **Per-seat license attribution** — tenancy SDK lookup scoped to tenant.
 4. **LLM-assist invocations** — foundry-providers SDK call carries tenant context; cross-tenant prompt leakage denied.
@@ -44,7 +44,7 @@ Every editor session belongs to exactly one tenant, identified by the OIDC `tena
 | Postgres Row-Level Security (RLS) | Predicate on every row: `tenant_id = current_setting('app.current_tenant_id')` | Postgres returns empty result; audit `studio_postgres_rls_block` |
 | Citus partition | Tenant_id is partition key; queries route to single shard | Cross-shard query denied at coordinator |
 | Per-tenant Postgres connection pool | Connection-level session variable carries tenant_id; rebinding requires re-auth | Pool returns 503; audit `studio_pool_rebinding_denied` |
-| WebSocket gateway lease | Per (tenant_id, definition_id) lease via Redis; consistent-hash routing | WS upgrade rejected; audit `studio_ws_lease_cross_tenant` |
+| WebSocket gateway lease | Per (tenant_id, definition_id) lease via Valkey; consistent-hash routing | WS upgrade rejected; audit `studio_ws_lease_cross_tenant` |
 | Server-side stamping | Editor REST + WS handler overwrites any client-supplied tenant_id with OIDC claim | Spoofing attempt logged; no behavior change |
 
 All seven layers must fail simultaneously for cross-tenant access. LEAN check `oya-governance-citus-rls-enforced` validates layers 3 + 4 + 5 at every PR.
@@ -146,7 +146,7 @@ cache_key = (asset_path, pack, hashed_tenant_id?, version)
 
 ### Tenant-specific content forbidden at CDN
 
-**No tenant draft content is EVER cached at CDN edge.** Editor session state lives in Postgres + Redis only; CDN serves only:
+**No tenant draft content is EVER cached at CDN edge.** Editor session state lives in Postgres + Valkey only; CDN serves only:
 - WASM bundles (per-release; tenant-agnostic).
 - Spec schema (tenant-agnostic).
 - Node library descriptors (per-pack; tenant-agnostic).

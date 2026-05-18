@@ -188,3 +188,53 @@ Per-pack BCDR specifics at `regional-packs/<pack>/tenancy-multi-region-overlay.m
 - ISO/IEC 22301:2019 (Business continuity).
 - NIST SP 800-34 (Contingency planning).
 - EU DORA Regulation 2022/2554.
+
+---
+
+## ADR-0158 Multi-Region Disposition Statement
+
+**Disposition: `active_active` (global tenant registry replicated).**
+
+Per ADR-0158, the tenancy µservice is declared `active_active`. The tenant-registry (`tenant_id → home_region + allowed_regions + residency_class + pack_id`) is a global table replicated via Patroni cross-region async (~5 second lag). DNS anycast points the api-gateway tier (ADR-0157) at the nearest replica for routing decisions.
+
+| Property | Value |
+|---|---|
+| Disposition | `active_active` |
+| RPO (cross-region) | ≤ 5 seconds (async replication lag) |
+| RTO (intra-region) | ≤ 60 seconds |
+| Sovereign-pin behavior | sovereign tenants pinned to their cell at the api-gateway routing layer |
+| Convergence model | last-writer-wins on tenant-config updates; conflicts resolved by `updated_at` |
+| Cross-region transaction policy | forbidden |
+
+This µservice IS the global control plane for ADR-0158 sovereign-tenant routing. Its tenant-registry replica in every cell lets the local api-gateway tier reject mismatched cells at edge.
+
+## ADR-0163 Per-Tenant Environment Tiers Statement
+
+Per ADR-0163, every tenant has three environment tiers — `test`, `staging`, `prod` — cell-isolated; API keys prefix-tagged.
+
+**Tier definitions:**
+- **`test`** — sandbox. 90-day TTL default. Outbound side effects intercepted + logged, not delivered. API keys `sk_test_` / `pk_test_`.
+- **`staging`** — pre-production. Durable. Outbound to test recipients only. API keys `sk_stage_` / `pk_stage_`. No prod-data copy without ChangeSet approval.
+- **`prod`** — production. Durable + residency-bound. Outbound live. API keys `sk_live_` / `pk_live_`. Destructive ops require admin acknowledgment.
+
+**Isolation contract:**
+- Separate PostgreSQL schemas per tier within the cell's PG cluster; RLS enforced.
+- api-gateway tier (ADR-0157) reads API-key prefix; routes to env-tier-specific workload pool. `sk_test_` request never reaches `prod` schema.
+- Audit-chain per-tier subtree (audit-chain µservice partitions by `(tenant_id, env_tier)` per ADR-0162).
+
+**API-key issuance Cedar gates:**
+- `sk_test_` issuable by tenant developer or higher.
+- `sk_stage_` issuable by tenant maintainer or higher.
+- `sk_live_` issuable by tenant admin only.
+
+**Destructive-operation acknowledgment (prod tier only):**
+- Cedar condition `prod_destructive_acknowledged: true`.
+- Request header `x-oya-prod-destructive-ack: true`.
+- UI prompt before send.
+- Audit-chain seal captures (who, when, what).
+
+**Operations covered:** DSR delete, tenant offboarding, bulk delete > 100 rows, cell migration, residency-class change.
+
+CI lane `oya gate validate tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier`, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
+
+See `/specs/tenant-environment-tiers-canonical.json` for the canonical declaration.

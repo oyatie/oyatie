@@ -79,7 +79,7 @@ If compromise indicator triggers:
 
 If license issuance rate > 80% of key-server capacity:
 
-1. Trigger HA cluster scale-up via Terraform (per-pack DRM key-server cluster).
+1. Trigger HA cluster scale-up via OpenTofu (per-pack DRM key-server cluster).
 2. Per-tenant rate limit at gateway to smooth spikes.
 3. Client SDK exponential backoff on license-acquisition retry.
 4. Verify DRM-protected content playback latency p95 ≤ 150ms.

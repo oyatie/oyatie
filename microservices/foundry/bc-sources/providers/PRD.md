@@ -90,7 +90,7 @@ This µservice supersedes the existing per-vendor crates under `crates/oya-found
 
 - Availability target: 99.95 % monthly for the `provider-router` decision path; failover to next-best provider when the primary is degraded so that downstream tenants never see a hard 5xx.
 - Provider-specific availability is upstream-bounded; observability publishes per-provider SLI but the µservice itself does not own the upstream SLA.
-- RTO: ≤ 10 min for `provider-router` recovery (stateless restart). RPO: 0 (no µservice-owned state lost on restart; OpenBao + Postgres + Redis externalised).
+- RTO: ≤ 10 min for `provider-router` recovery (stateless restart). RPO: 0 (no µservice-owned state lost on restart; OpenBao + Postgres + Valkey externalised).
 
 ### Data residency
 
@@ -150,7 +150,7 @@ JUSTIFICATION:
 | Concern | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|---|
 | Provider config persistence | Postgres (HA primary+replica) per pack | `oya-foundry-providers-router-adapter` (provider-config repo impl) |
-| Rate-limit / token-bucket state | Redis (per-pack; sentinel HA) | `oya-foundry-providers-router-adapter` (token-bucket impl) |
+| Rate-limit / token-bucket state | Valkey (per-pack; sentinel HA) | `oya-foundry-providers-router-adapter` (token-bucket impl) |
 | Credentials | OpenBao (`cloud-secrets` µservice) | `oya-foundry-providers-adapter-openbao` (resolver) |
 | Health telemetry | Mimir + Alertmanager (via `observability`) | recording rules in `iac/helm/provider-router/values.yaml` |
 | Request/response evidence | `foundry-evidence` µservice | event emission only here |

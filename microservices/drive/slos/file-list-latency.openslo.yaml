@@ -16,7 +16,7 @@ spec:
   description: |
     File-list folder p99 latency SLO. A request is "good" when a folder-listing
     query for ≤ 1,000 entries resolves in ≤ 150ms. PRD-drive §"Performance"
-    p99 target. Cache-hit ratio target > 80% (Postgres + Redis).
+    p99 target. Cache-hit ratio target > 80% (Postgres + Valkey).
   service: drive
   indicator:
     metadata: {name: drive-file-list-p99}

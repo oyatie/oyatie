@@ -21,7 +21,7 @@ purpose: |
   LTS images. This ADR makes that choice authoritative.
 ---
 
-# ADR-DRIVE-0001: Object-storage substrate — Garage 1.x primary; MinIO RELEASE-2024-08 secondary; SeaweedFS 3.x archive tier; Ceph RGW + AWS S3 considered
+# ADR-DRIVE-0001: Object-storage substrate — Garage 1.x primary; SeaweedFS RELEASE-2024-08 secondary; SeaweedFS 3.x archive tier; Ceph RGW + AWS S3 considered
 
 ## Status
 
@@ -40,7 +40,7 @@ Per ADR-0131 the object-store deployment lives at `microservices/drive/iac/helm/
 Five production-grade S3-compatible object stores are candidates:
 
 1. **Garage** (Rust; AGPL-3.0). Built by Deuxfleurs for edge-distributed, low-latency, geo-aware deployment. Excellent for multi-cell + multi-region. Native S3 API + object-lock support (compliance mode). Active LTS line 1.x (2024-2026). Used by Deuxfleurs production + several European edge providers. ([garagehq.deuxfleurs.fr](https://garagehq.deuxfleurs.fr/))
-2. **MinIO** (Go; AGPL-3.0 + commercial). Most widely-deployed S3-compatible OSS object store. Mature S3 API + object-lock (compliance + governance modes) + IAM-policy parity. Distributed-mode requires symmetric nodes; works best in single-cluster. ([min.io](https://min.io))
+2. **SeaweedFS** (Go; AGPL-3.0 + commercial). Most widely-deployed S3-compatible OSS object store. Mature S3 API + object-lock (compliance + governance modes) + IAM-policy parity. Distributed-mode requires symmetric nodes; works best in single-cluster. ([min.io](https://min.io))
 3. **SeaweedFS** (Go; Apache-2.0). Optimised for billions of small files; built-in tiered storage (hot + warm + cold). Native S3 API. Good fit for archive tier. ([github.com/seaweedfs/seaweedfs](https://github.com/seaweedfs/seaweedfs))
 4. **Ceph RGW** (C++; LGPL-2.1+). Enterprise-grade object store with strong S3 API + Swift API + per-bucket policy. Heavy operational footprint; requires Ceph cluster underneath. Industry-leading scale (CERN, EMBL-EBI, Bloomberg). ([ceph.io](https://ceph.io))
 5. **AWS S3** (proprietary). Reference S3 API. Highest scale + lowest egress-relative pricing at AWS scale. Vendor-tied; per-pack residency requires AWS-region selection; cross-cloud portability lost.
@@ -60,7 +60,7 @@ Per ADR-0117 data-residency, per-pack region pinning is mandatory; cross-region 
 The drive µservice ships **a three-tier object-store substrate**:
 
 1. **Garage 1.x** as the **primary** S3-compatible backend for all packs except pack-us-healthcare.
-2. **MinIO RELEASE-2024-08** as the **secondary** backend (enabled via pack-us-healthcare overlay; selectable per-pack for HIPAA-eligible deployment).
+2. **SeaweedFS RELEASE-2024-08** as the **secondary** backend (enabled via pack-us-healthcare overlay; selectable per-pack for HIPAA-eligible deployment).
 3. **SeaweedFS 3.x** as the **archive tier** for files not accessed in > 365 days; deployed alongside primary backend.
 
 Concrete bindings:
@@ -69,7 +69,7 @@ Concrete bindings:
   - `oya-drive-file-store-adapter-s3` — abstract S3-compatible adapter (default code path).
   - `oya-drive-file-store-adapter-garage` — backend-qualified adapter (primary; shipped alongside `-adapter-s3`).
   - `oya-drive-file-store-adapter-seaweedfs` — archive-tier-qualified adapter.
-  - MinIO uses `-adapter-s3` directly (no MinIO-specific quirks beyond IAM-policy conventions).
+  - SeaweedFS uses `-adapter-s3` directly (no SeaweedFS-specific quirks beyond IAM-policy conventions).
 - IaC: `microservices/drive/iac/helm/garage/` is the default Helm chart; `seaweedfs/` ships alongside; `minio/` ships under pack-us-healthcare overlay.
 - LTS pins:
   - `garage: "1.0.1"` (AGPL-3.0; per-tenant tier-3 deploy carve-out; oyatie ships modifications back upstream).
@@ -113,7 +113,7 @@ Per-tenant bucket prefix: `tenant-{tenant_id}/{file_id_prefix_4}/{file_id}` (per
   - Inconsistent with `cloud-iac` self-hosted posture per ADR-0117.
 - **Rejected** as primary; retained as a tenant-choice alternative for tenant-tier-3 deploy where the tenant owns its own AWS account + DPA (separate ChangeSet IP, not Phase 1).
 
-### C. Single MinIO cluster as the primary backend (no Garage)
+### C. Single SeaweedFS cluster as the primary backend (no Garage)
 
 - **Pros**:
   - Most widely-deployed S3 OSS.
@@ -121,7 +121,7 @@ Per-tenant bucket prefix: `tenant-{tenant_id}/{file_id_prefix_4}/{file_id}` (per
   - Strong IAM-policy parity.
 - **Cons**:
   - Distributed-mode requires symmetric drives + nodes — works best in single-cluster, not edge-distributed.
-  - Cross-region replication needs MinIO Site Replication; less geo-native than Garage.
+  - Cross-region replication needs SeaweedFS Site Replication; less geo-native than Garage.
   - AGPL-3.0 + commercial license requires careful per-tenant compliance review.
 - **Rejected as primary**; **retained as the secondary** for pack-us-healthcare (HIPAA-eligible, BAA-friendly tooling, mature operator).
 
@@ -132,17 +132,17 @@ Per-tenant bucket prefix: `tenant-{tenant_id}/{file_id_prefix_4}/{file_id}` (per
   - Built-in tiered storage.
   - Apache-2.0 — friendliest license.
 - **Cons**:
-  - S3 object-lock compliance mode less mature than Garage / MinIO (per upstream issue tracker 2025-Q4).
-  - Smaller upstream community than MinIO.
+  - S3 object-lock compliance mode less mature than Garage / SeaweedFS (per upstream issue tracker 2025-Q4).
+  - Smaller upstream community than SeaweedFS.
 - **Rejected as primary**; **retained as the archive tier** (cold files where object-lock maturity matters less; primary backend retains hot files under object-lock).
 
-### E. Garage primary + MinIO secondary (healthcare) + SeaweedFS archive  ← **CHOSEN**
+### E. Garage primary + SeaweedFS secondary (healthcare) + SeaweedFS archive  ← **CHOSEN**
 
 - **Pros**:
   - Garage's geo-native + low-latency per-cell deployment matches per-pack topology.
-  - MinIO secondary covers HIPAA-eligible deployment with mature operator tooling.
+  - SeaweedFS secondary covers HIPAA-eligible deployment with mature operator tooling.
   - SeaweedFS archive tier reduces hot-tier cost by ~75% for cold files.
-  - Three-backend posture provides hot-swap escape hatch — if Garage upstream cools, promote MinIO to primary; if MinIO cools, keep Garage and re-pick the secondary.
+  - Three-backend posture provides hot-swap escape hatch — if Garage upstream cools, promote SeaweedFS to primary; if SeaweedFS cools, keep Garage and re-pick the secondary.
   - ADR-0105 Amendment 3 backend-qualified adapter pattern admits this directly.
 - **Cons**:
   - Three operational surfaces.
@@ -156,14 +156,14 @@ Per-tenant bucket prefix: `tenant-{tenant_id}/{file_id_prefix_4}/{file_id}` (per
 
 - **Per-pack residency honoured by construction** — Garage per-cell deployment maps 1:1 to per-pack region pinning.
 - **Archive tier reduces cost** — SeaweedFS handles cold files at ~25% the cost of hot-tier Garage.
-- **HIPAA-eligible posture** — MinIO secondary unblocks pack-us-healthcare without dragging the broader fleet to MinIO.
+- **HIPAA-eligible posture** — SeaweedFS secondary unblocks pack-us-healthcare without dragging the broader fleet to SeaweedFS.
 - **Hot-swap escape hatch** — `oya-drive-file-store-adapter-<backend>` is a config flip at tenant tier; ADR-0105 Amendment 3 enforces.
 - **WORM-correctness compatible across all three backends** — every backend supports compliance-mode object-lock per ADR-DRIVE-0006.
 
 ### Negative
 
-- **Three upstreams to track**. Garage + MinIO + SeaweedFS CVE feeds must all be monitored. Mitigation: all three publish CVEs to NVD; existing security automation covers.
-- **Backend-specific quirks** — Garage's per-cell layout requires deliberate cell-add ChangeSets; MinIO drives need symmetric provisioning; SeaweedFS master + volume + filer separation adds operator complexity. Mitigation: per-backend runbook in `runbooks/object-storage-degraded.md`.
+- **Three upstreams to track**. Garage + SeaweedFS + SeaweedFS CVE feeds must all be monitored. Mitigation: all three publish CVEs to NVD; existing security automation covers.
+- **Backend-specific quirks** — Garage's per-cell layout requires deliberate cell-add ChangeSets; SeaweedFS drives need symmetric provisioning; SeaweedFS master + volume + filer separation adds operator complexity. Mitigation: per-backend runbook in `runbooks/object-storage-degraded.md`.
 - **Per-backend conformance test matrix** — every `aws s3` / `mc` / `s3cmd` / `s3-tests` corpus test runs against all three backends per cell in CI. Doubled-tripled cost; mitigated by per-backend test sharding.
 
 ### Operational
@@ -173,14 +173,14 @@ Per-tenant bucket prefix: `tenant-{tenant_id}/{file_id_prefix_4}/{file_id}` (per
   - all three expose the `FileRepository` port trait identically (Cedar policy + audit-chain seal emitted at the same surface points);
   - all three support compliance-mode object-lock per ADR-DRIVE-0006.
 - **Helm chart pin policy**: `garage: "1.0.1"`, `minio: "RELEASE.2024-08-17T01-24-54Z"`, `seaweedfs: "3.71.0"` declared in `microservices/drive/iac/helm/Chart.yaml` `dependencies`; `oya-governance-version-pinning-conformance` lane refuses unpinned versions.
-- **Per-pack overlay**: pack-us-healthcare enables MinIO chart by default (HIPAA-eligible operator tooling); other packs ship Garage-only and may tenant-opt-into MinIO via a tenant-tier flag.
+- **Per-pack overlay**: pack-us-healthcare enables SeaweedFS chart by default (HIPAA-eligible operator tooling); other packs ship Garage-only and may tenant-opt-into SeaweedFS via a tenant-tier flag.
 - **Runbook `object-storage-degraded.md`** documents per-backend cell-loss recovery.
 
 ### Regulatory
 
 - **GDPR Art. 32** (security of processing): all three backends pass — TLS 1.3 in transit, Tenant-DEK envelope at rest.
 - **KR PIPA Art. 29**: per-tenant bucket prefix isolation satisfies access-control-by-default.
-- **HIPAA 45 CFR §164.312(a)(2)(iv)**: Tenant-DEK envelope satisfies; MinIO + BAA-on-file for pack-us-healthcare.
+- **HIPAA 45 CFR §164.312(a)(2)(iv)**: Tenant-DEK envelope satisfies; SeaweedFS + BAA-on-file for pack-us-healthcare.
 - **SEC 17a-4(f) + FINRA 4511**: all three support compliance-mode object-lock per ADR-DRIVE-0006.
 
 ## Verification
@@ -189,7 +189,7 @@ Per the agent-skills documentation-and-adrs SKILL.md §"Verification":
 
 - [ ] All three backends pass the `s3-tests` public conformance corpus —
   `cargo nextest run -p oya-drive-file-store-adapter-garage -- s3_tests_corpus`
-  and equivalents for `-seaweedfs` and (in pack-us-healthcare) `-s3` (against MinIO).
+  and equivalents for `-seaweedfs` and (in pack-us-healthcare) `-s3` (against SeaweedFS).
 - [ ] Helm chart versions pinned — `cargo run -p oya-dev-cli -- gate validate version-pinning-conformance --microservice drive`.
 - [ ] Object-lock compliance-mode functional — `cargo nextest run -p oya-drive-immutability-tier-domain -- worm_object_lock_per_backend`.
 
@@ -199,7 +199,7 @@ Per the agent-skills documentation-and-adrs SKILL.md §"Verification":
 - AWS S3 Multipart Upload API.
 - AWS S3 Object Lock + S3 Compliance Mode.
 - Garage upstream — `garagehq.deuxfleurs.fr`; LTS 1.x release notes.
-- MinIO upstream — `min.io`; LTS RELEASE-2024-08.
+- SeaweedFS upstream — `min.io`; LTS RELEASE-2024-08.
 - SeaweedFS upstream — `github.com/seaweedfs/seaweedfs`.
 - Ceph RGW — `ceph.io` (rejected reference).
 - `s3-tests` Ceph public conformance corpus.

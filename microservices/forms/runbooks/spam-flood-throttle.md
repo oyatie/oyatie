@@ -51,7 +51,7 @@ ONE of:
 1. Identify burst source: `dashboards/response-pipeline.json` panel "submits by form top-N" + "submits by IP/24 top-N".
 2. Verify captcha provider: `kubectl -n forms get pod -l app=captcha-sidecar -o wide`.
 3. Verify HPA state: `kubectl -n forms get hpa response-collector-rest`.
-4. Verify Postgres + Redis health.
+4. Verify Postgres + Valkey health.
 5. Classify attack pattern: low-IP-cardinality (likely script-kiddie) vs high-IP-cardinality (likely botnet).
 
 ## Recovery Path A — Single-form burst (tenant ack)
@@ -130,7 +130,7 @@ After recovery:
 - `oya_forms_submission_total` rate returns to baseline.
 - Captcha solve rate < 70% (humans).
 - Postgres connection pool < 70% saturation.
-- Redis memory < 80%.
+- Valkey memory < 80%.
 - Workflow-trigger queue depth < 1k.
 - Submission p95 ≤ 150ms.
 

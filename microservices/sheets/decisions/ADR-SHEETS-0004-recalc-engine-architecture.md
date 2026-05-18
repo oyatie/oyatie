@@ -53,7 +53,7 @@ Adopt **dependency-graph + topological sort + parallel-task-graph** recalc archi
 ### Dependency-graph
 
 - Built incrementally per workbook session at open time + on every cell-edit.
-- Stored in Redis hot for active sessions; reconstructable from Postgres `cells_hot.formula` field.
+- Stored in Valkey hot for active sessions; reconstructable from Postgres `cells_hot.formula` field.
 - Cycle detection at insert: a new edge that would create a cycle is rejected; affected cells return `#CIRCULAR` error per PRD formula-error taxonomy.
 
 ### Topological sort

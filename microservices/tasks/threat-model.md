@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-tasks + ops-security
 deciders: council-architecture, ops-security, axis-tasks, council-privacy
 methodology: STRIDE + LINDDUN + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0005, ADR-TASKS-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0005, ADR-TASKS-0006]
 review_cadence: quarterly + on every BC architectural change + on every AI capability promotion (T0→T1→T2)
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1-CC6.8, CC7.1-CC7.5, CC8.1"
@@ -50,7 +50,7 @@ workload cluster:
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 LTS (task + project + dependency-edge store) | `oya-tasks-task-store-*` (10 crates) |
-| Redis 7.2 LTS (view-cache + presence) | `oya-tasks-project-list-*` (8 crates) |
+| Valkey 8.1 (Redis wire-compat) (view-cache + presence) | `oya-tasks-project-list-*` (8 crates) |
 | Meilisearch 0.10.0 LTS (cross-project search) | `oya-tasks-view-engine-*` (8 crates) |
 | Loro 1.x CRDT (collab description editing only) | `oya-tasks-dependency-graph-*` (7 crates) |
 | `rrule-rs` 0.13.x (recurrence; shared pin with calendar) | `oya-tasks-recurrence-*` (7 crates) |
@@ -90,7 +90,7 @@ workload cluster:
 │                                                                            │
 │  Trust boundary 2: REST → Postgres (per-tenant RLS + tenant-DEK)           │
 │                                                                            │
-│  Trust boundary 3: REST → Redis (view-cache, per-tenant key prefix)        │
+│  Trust boundary 3: REST → Valkey (view-cache, per-tenant key prefix)        │
 │                                                                            │
 │  Trust boundary 4: REST → Meilisearch (per-tenant index + key)             │
 │                                                                            │

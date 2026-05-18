@@ -13,7 +13,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: IaC bootstrap (Helm + Kustomize + Terraform)
+# IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)
 
 ## Intent
 
@@ -21,7 +21,7 @@ Author the meet µservice's deployment substrate: Helm chart for the core worklo
 
 ## ChangeSet boundary
 
-One cohesive ChangeSet: 1 Helm chart bundle (meet) + 1 shared Kustomize base + 11 per-pack Kustomize overlays + 1 Terraform module for Grafana RBAC. No code; pure IaC + values. Per-pack secret references via OpenBao.
+One cohesive ChangeSet: 1 Helm chart bundle (meet) + 1 shared Kustomize base + 11 per-pack Kustomize overlays + 1 OpenTofu module for Grafana RBAC. No code; pure IaC + values. Per-pack secret references via OpenBao.
 
 ## Concrete File Targets
 
@@ -44,7 +44,7 @@ n/a — IaC only.
 helm lint microservices/meet/iac/helm/meet
 kubectl --dry-run=client apply -k microservices/meet/iac/kustomize/overlays/pack-kr
 kubectl --dry-run=client apply -k microservices/meet/iac/kustomize/overlays/pack-eu
-terraform -chdir=microservices/meet/iac/terraform validate
+terraform -chdir=microservices/meet/iac/tofu validate
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice meet
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 ```

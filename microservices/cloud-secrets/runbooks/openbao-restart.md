@@ -30,8 +30,8 @@ kubectl -n cloud-secrets-<pack> get pods -w
 Verify Raft cluster healthy:
 
 ```bash
-kubectl -n cloud-secrets-<pack> exec openbao-0 -- vault status
-kubectl -n cloud-secrets-<pack> exec openbao-0 -- vault operator raft list-peers
+kubectl -n cloud-secrets-<pack> exec openbao-0 -- bao status
+kubectl -n cloud-secrets-<pack> exec openbao-0 -- bao operator raft list-peers
 ```
 
 ## §B — Two-pod degradation (Sev-2)
@@ -63,7 +63,7 @@ Apply fix; restart pods; verify quorum.
 
 ```bash
 # From any healthy peer (or external client with token)
-vault operator raft list-peers
+bao operator raft list-peers
 # Expect: ≥3 peers showing as "voter" + healthy
 ```
 
@@ -100,7 +100,7 @@ kubectl get events -n cloud-secrets-<pack> --sort-by='.lastTimestamp' | tail 50
 for i in 4 3 2 1 0; do
   kubectl -n cloud-secrets-<pack> delete pod openbao-$i
   sleep 30
-  kubectl -n cloud-secrets-<pack> exec openbao-$i -- vault status
+  kubectl -n cloud-secrets-<pack> exec openbao-$i -- bao status
 done
 ```
 
@@ -112,7 +112,7 @@ If a peer is permanently lost:
 
 ```bash
 # From a healthy peer
-vault operator raft remove-peer <lost-peer-id>
+bao operator raft remove-peer <lost-peer-id>
 
 # Provision a replacement peer (via openbao-operator reconciler; or manual)
 kubectl -n cloud-secrets-<pack> scale statefulset openbao --replicas=4
@@ -129,8 +129,8 @@ See §"Backend recovery" below.
 ### Step 5 — Verify
 
 ```bash
-vault operator raft list-peers
-vault status
+bao operator raft list-peers
+bao status
 cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- health-check --pack <pack>
 ```
 
@@ -227,8 +227,8 @@ Once primary region recovers, plan return-to-primary at next maintenance window.
 
 ```bash
 # Cluster healthy
-vault status
-vault operator raft list-peers
+bao status
+bao operator raft list-peers
 
 # Resolve operations succeed
 cargo run -p oya-cloud-secrets-secret-reference-resolver-app -- bench resolve \

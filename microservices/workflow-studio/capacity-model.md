@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baseline numbers for every Layer-A (CDN + WAF + Postgres + Redis + WebSocket gateway) and Layer-B (visual-canvas-rest + collab-crdt-worker + node-library-registry) component. Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + reference-architecture baseline numbers for every Layer-A (CDN + WAF + Postgres + Valkey + WebSocket gateway) and Layer-B (visual-canvas-rest + collab-crdt-worker + node-library-registry) component. Drives `cost-budget.md` and `multi-region.md`.
 
 ## Inputs
 
@@ -113,8 +113,8 @@ All replica counts include buffer multipliers (1.2-1.5×). In addition:
 
 - **Pre-warmed pool**: 5 standby WS gateway pods per cell; cold-start budget ≤ 1s.
 - **HPA**: scales on CPU > 70% OR WS connection count > 70% pod cap; ratchets 2 replicas per scale-out event.
-- **VPA**: vertical-pod-autoscaler for Postgres workers + Redis; sized to recommended memory.
-- **Burst absorbing**: 30s of session-open backlog absorbed by Redis ephemeral queue before back-pressure.
+- **VPA**: vertical-pod-autoscaler for Postgres workers + Valkey; sized to recommended memory.
+- **Burst absorbing**: 30s of session-open backlog absorbed by Valkey ephemeral queue before back-pressure.
 
 ## Postgres + Citus Sizing
 
@@ -127,7 +127,7 @@ per_shard_size_target          = ≤ 500 GB (Citus reference)
 shard_count                    = ceil(total_postgres_storage / per_shard_size_target)
 ```
 
-## Redis Sizing
+## Valkey Sizing
 
 ```
 total_redis_keys               = total_active_sessions × 4 (CRDT state + cursor + presence + lease)
@@ -192,7 +192,7 @@ CDN egress (XS):
   cdn_egress_per_month     ≈ 220 GB
 
 Total Studio storage (XS, M03 launch):
-  ~21 GB Postgres hot + 10 GB Redis + 220 GB CDN egress
+  ~21 GB Postgres hot + 10 GB Valkey + 220 GB CDN egress
   ~$2600/month per pack region (per cost-budget.md)
 ```
 
@@ -205,7 +205,7 @@ Total Studio storage (XS, M03 launch):
 ## References
 
 - Postgres + Citus docs — `docs.citusdata.com/`.
-- Redis Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `redis.io/topics/sentinel`.
 - axum WebSocket — `docs.rs/axum/latest/axum/extract/ws/`.
 - OCI CDN — `oracle.com/cloud/cdn/`.
 - `microservices/workflow-studio/cost-budget.md`.

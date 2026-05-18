@@ -17,11 +17,11 @@ acceptance_lanes: [helm-lint, terraform-validate, oya-governance-per-microservic
 
 ## Intent
 
-Helm chart for OpenTofu self-hosted runner (Terraform-Cloud-equivalent) + per-pack S3 state-bucket Terraform config under `microservices/cloud-iac/iac/`. Provides the OpenTofu execution surface used by iac-renderer (`-adapter-opentofu`) and iac-applier.
+Helm chart for OpenTofu self-hosted runner (Terraform-Cloud-equivalent) + per-pack S3 state-bucket OpenTofu config under `microservices/cloud-iac/iac/`. Provides the OpenTofu execution surface used by iac-renderer (`-adapter-opentofu`) and iac-applier.
 
 ## ChangeSet boundary
 
-One ChangeSet: 1 Helm chart for OpenTofu runner + 1 Terraform module for per-pack state buckets + Kustomize base patches.
+One ChangeSet: 1 Helm chart for OpenTofu runner + 1 OpenTofu module for per-pack state buckets + Kustomize base patches.
 
 ## Concrete File Targets
 
@@ -80,14 +80,14 @@ resource "oci_objectstorage_bucket" "cloud_iac_state" {
 
 ```bash
 helm lint microservices/cloud-iac/iac/helm/opentofu
-terraform validate microservices/cloud-iac/iac/terraform/
+tofu validate microservices/cloud-iac/iac/terraform/
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-iac
 ```
 
 ## Test Plan
 
-- IaC class: helm-install smoke + Terraform plan dry-run.
-- E2E: spin up kind; apply OpenTofu chart; verify runner Ready; submit a trivial Terraform plan; verify state stored in test bucket.
+- IaC class: helm-install smoke + OpenTofu plan dry-run.
+- E2E: spin up kind; apply OpenTofu chart; verify runner Ready; submit a trivial OpenTofu plan; verify state stored in test bucket.
 
 ## Halt Conditions
 

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-sheets
 deciders: council-privacy, ops-security, axis-sheets, council-design-system, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act 2024 conformity assessment
-related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0140, ADR-SHEETS-0005]
+related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-SHEETS-0005]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/sheets/threat-model.md
@@ -47,7 +47,7 @@ DPIA is mandatory pre-deployment. This document is reviewed by EU DPAs (Art. 35)
 
 **How:** Tenant browser loads Leptos WASM bundle from CDN → OIDC tenant-binding established → editor REST issues workbook session → CRDT ops route through WebSocket gateway → cell-edit emits canonical cell event → cell µservice durably persists; recalc engine fires dependency-graph topological recalc on each edit.
 
-**Where:** Per-pack region-pinned Sheets clusters; each pack has its own Postgres + Redis + S3 + Arrow/Parquet substrate; CDN is global edge with per-pack cache keys.
+**Where:** Per-pack region-pinned Sheets clusters; each pack has its own Postgres + Valkey + S3 + Arrow/Parquet substrate; CDN is global edge with per-pack cache keys.
 
 **When:** On-demand; sub-second sheet-open; per-save audit seal within 1s of submit; recalc within seconds for 100k cells.
 

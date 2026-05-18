@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-sites
-related_adrs: [ADR-0028, ADR-0117, ADR-0140, ADR-SITES-0001, ADR-SITES-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0140 (retired per ADR-0145), ADR-SITES-0001, ADR-SITES-0006]
 doc_status: published
 gdpr_art_35_threshold: yes — (a) systematic monitoring of public accessible area (public-facing sites + analytics); (c) processing of sensitive personal data when pack-us-healthcare patient portals are deployed
 ---

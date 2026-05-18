@@ -4,7 +4,7 @@
 // production-tenant access from CI.
 // Owner: ops-security
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140, ADR-0117
+// Related: ADR-0140 (retired per ADR-0145), ADR-0117
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

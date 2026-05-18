@@ -31,7 +31,7 @@ The community µservice processes user-generated content (posts, replies, votes,
 
 ### 1.1 Nature
 
-- Storage of UGC on tenant-isolated Postgres (Citus) + Elasticsearch + Redis + S3.
+- Storage of UGC on tenant-isolated Postgres (Citus) + Elasticsearch + Valkey + S3.
 - Profiling via vote-velocity + coordinated-cohort detection (only for abuse; never for content ranking visible to other members).
 - Retention per `data-residency.md` retention matrix.
 
@@ -111,7 +111,7 @@ DPIA outcome: **proceed with controls**. No high-risk residual finding requires 
 | AWS S3 (or equivalent per pack) | KB attachment store | Per tenant region | Standard DPA |
 | Elastic / OpenSearch operator | Search index | Self-hosted in oyatie cluster | N/A (no external sub-processor) |
 | Postgres + Citus | Post / vote / moderation / KB store | Self-hosted | N/A |
-| Redis | Hot-feed cache + vote buffer | Self-hosted | N/A |
+| Valkey | Hot-feed cache + vote buffer | Self-hosted | N/A |
 
 ## Annex C — Pack-specific Overlays
 

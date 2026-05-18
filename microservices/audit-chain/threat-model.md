@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-audit-chain + ops-security
 deciders: council-architecture, ops-security, axis-audit-chain, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0003, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0003, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/audit-chain-merkle-ed25519.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every HSM/cryptography library upgrade + after any verification-failed Sev-1 incident
 enforced_frameworks:

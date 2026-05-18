@@ -19,14 +19,14 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-port-location, oya
 
 Author both BCs together (tightly coupled):
 
-- `professional-graph`: 1st/2nd/3rd-degree connection edges (directed-bidirectional-on-acceptance); follow edges; block / restrict / disconnect; BFS-based degree-of-separation up to depth 3 with Redis cache.
+- `professional-graph`: 1st/2nd/3rd-degree connection edges (directed-bidirectional-on-acceptance); follow edges; block / restrict / disconnect; BFS-based degree-of-separation up to depth 3 with Valkey cache.
 - `connection-request`: lifecycle (open → accepted | rejected | ignored | withdrawn); per-user-per-week rate limit; spam classifier signal.
 
 Land the `synchronous_commit = remote_write` consistency posture per ADR-NET-0001.
 
 ## ChangeSet boundary
 
-Both BCs across all layers; shared `network_connection_edges` Postgres table; Redis cache for degree-of-separation.
+Both BCs across all layers; shared `network_connection_edges` Postgres table; Valkey cache for degree-of-separation.
 
 ## Code Shape
 

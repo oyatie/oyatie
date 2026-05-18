@@ -141,7 +141,7 @@
     {
       "id": 10,
       "type": "timeseries",
-      "title": "Redis memory usage (rate-limit + session)",
+      "title": "Valkey memory usage (rate-limit + session)",
       "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
       "targets": [
         {"expr": "oya_forms_redis_memory_used_bytes{pack=\"$pack\"} / oya_forms_redis_memory_max_bytes{pack=\"$pack\"}", "legendFormat": "{{cluster}}", "refId": "A"}

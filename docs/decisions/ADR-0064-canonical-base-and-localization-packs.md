@@ -9,7 +9,7 @@ doc_status: published
 > **Status:** Accepted
 > **Owner:** `council-architecture`
 > **Date:** 2026-05-13
-> **Related:** ADR-0056, ADR-0058, ADR-0059, ADR-0060, ADR-0062, ADR-0063, Bominal ADR-0140 (inherited)
+> **Related:** ADR-0056, ADR-0058, ADR-0059, ADR-0060, ADR-0062, ADR-0063, Bominal ADR-0140 (retired per ADR-0145) (inherited)
 
 ---
 

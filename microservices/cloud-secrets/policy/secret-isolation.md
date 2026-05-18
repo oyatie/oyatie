@@ -169,5 +169,5 @@ Monthly chaos drills:
 - `microservices/cloud-secrets/policy/data-residency.md`
 - `microservices/cloud-secrets/policy/{tenant-scope,ci-scope,auditor-scope,public-read}.cedar`
 - ADR-0028, ADR-0131
-- HashiCorp Vault best-practices (informing OpenBao migration)
+- OpenBao best-practices (informing OpenBao migration)
 - NIST SP 800-57 Part 1 (Key Management — General)

@@ -75,7 +75,7 @@ cargo run -p oya-dev-cli -- gate validate sheets-crdt-no-silent-loss --microserv
 ## Halt Conditions
 
 - `test_no_silent_overwrite` fails — STOP. AC-06 load-bearing.
-- Redis lease test reveals split-brain — STOP.
+- Valkey lease test reveals split-brain — STOP.
 
 ## Next IP
 

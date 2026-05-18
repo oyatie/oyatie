@@ -184,7 +184,7 @@ Default: inherit Bominal ADR decisions 1:1 with glossary translation. Explicit o
 | 8 | Sales segmentation | GTM only — NOT architecture |
 | 9 | Workflow+Ontology centrality | THE ecosystem adapter layer |
 
-Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR-0021, ADR-0028, ADR-0100–ADR-0112, ADR-0116–ADR-0128, ADR-0132, ADR-0140, ADR-0208–ADR-0215, ADR-0223–ADR-0232.
+Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR-0021, ADR-0028, ADR-0100–ADR-0112, ADR-0116–ADR-0128, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-0208–ADR-0215, ADR-0223–ADR-0232.
 
 ---
 

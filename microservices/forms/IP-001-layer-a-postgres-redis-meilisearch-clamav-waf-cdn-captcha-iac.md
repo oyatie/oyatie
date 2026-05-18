@@ -13,15 +13,15 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: Layer-A IaC — Postgres (Citus) + Redis + Meilisearch + ClamAV + WAF + CDN + Captcha sidecar
+# IP-001: Layer-A IaC — Postgres (Citus) + Valkey + Meilisearch + ClamAV + WAF + CDN + Captcha sidecar
 
 ## Intent
 
-Author Helm + Kustomize manifests for the forms Layer-A substrate: OCI CDN (per-pack edge for form-renderer WASM + design-system primitives), OCI WAF (rate-limit + bot-detection + CSP enforcement), Postgres + Citus 12.x (form-definition + response-store with tenant_id shard key + column-level envelope encryption per ADR-FORMS-0003), Redis 7.2 (rate-limit + session + WAF cache), Meilisearch 0.10.0 (response search; PII-redacted index per AC-09), ClamAV 1.3 + OPSWAT MetaDefender (file-upload scan), Captcha sidecar (hCaptcha primary; Cloudflare Turnstile fallback; Friendly Captcha tertiary per ADR-FORMS-0002).
+Author Helm + Kustomize manifests for the forms Layer-A substrate: OCI CDN (per-pack edge for form-renderer WASM + design-system primitives), OCI WAF (rate-limit + bot-detection + CSP enforcement), Postgres + Citus 12.x (form-definition + response-store with tenant_id shard key + column-level envelope encryption per ADR-FORMS-0003), Valkey 8.1 (Redis wire-compat) (rate-limit + session + WAF cache), Meilisearch 0.10.0 (response search; PII-redacted index per AC-09), ClamAV 1.3 + OPSWAT MetaDefender (file-upload scan), Captcha sidecar (hCaptcha primary; Cloudflare Turnstile fallback; Friendly Captcha tertiary per ADR-FORMS-0002).
 
 ## ChangeSet boundary
 
-One cohesive ChangeSet: 12 Helm chart bundles + shared Kustomize base + 11 per-pack overlays + 2 Terraform files (CDN edge config + node-library publishers). No Rust code; pure IaC. Per-pack secret references via OpenBao SecretReference.
+One cohesive ChangeSet: 12 Helm chart bundles + shared Kustomize base + 11 per-pack overlays + 2 OpenTofu files (CDN edge config + node-library publishers). No Rust code; pure IaC. Per-pack secret references via OpenBao SecretReference.
 
 ## Concrete File Targets
 
@@ -101,4 +101,4 @@ cargo run -p oya-dev-cli -- gate validate forms-recaptcha-forbidden-pack-eu-kr-u
 - ADR-FORMS-0002 captcha selection.
 - ADR-FORMS-0003 PII column encryption.
 - `multi-region.md`, `capacity-model.md`, `threat-model.md`.
-- Citus docs, Redis Sentinel docs, Meilisearch docs, ClamAV docs, hCaptcha docs, Cloudflare Turnstile docs.
+- Citus docs, Valkey Sentinel docs, Meilisearch docs, ClamAV docs, hCaptcha docs, Cloudflare Turnstile docs.

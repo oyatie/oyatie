@@ -20,7 +20,7 @@ Model unit-economics of sites delivery so axis-sites + ops-finops + council-prod
 | Driver | Cost source | Scale | Notes |
 |---|---|---|---|
 | Postgres OCPU + storage | OCI Bare Metal | per-cell | 3-replica HA; 16-64 OCPU primary; 2-16 TB block |
-| Redis OCPU + RAM | OCI cluster | per-cell | cluster mode; 3-15 shards × 16-64 GB |
+| Valkey OCPU + RAM | OCI cluster | per-cell | cluster mode; 3-15 shards × 16-64 GB |
 | Meilisearch OCPU + RAM | OCI VM | per-cell | 3-12 instances × 16-64 GB |
 | S3 storage (published artifacts) | OCI Object Storage | per-cell | per-tenant prefix; WORM for public |
 | S3 GET requests | OCI Object Storage | per-cell | only on CDN miss (cache-hit > 95% target) |
@@ -37,7 +37,7 @@ Model unit-economics of sites delivery so axis-sites + ops-finops + council-prod
 | Component | Monthly cost (USD, OCI list price) |
 |---|---|
 | Postgres footprint share | $8 |
-| Redis cache share | $2 |
+| Valkey cache share | $2 |
 | Meilisearch share | $4 |
 | S3 storage (1 GB/site × ~ 5k assets) | $0.50 |
 | S3 GETs (cache-miss; ~ 5% of 100k visitors × 5 pages) | $0.05 |

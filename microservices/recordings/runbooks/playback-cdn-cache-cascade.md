@@ -40,7 +40,7 @@ origin and degrades playback-start latency past SLO.
 |---|---|---|---|
 | 1 | Page ops-sre + axis-recordings | on-call | immediate |
 | 2 | Activate origin shielding: route all cold-misses through a regional shield bucket | ops-sre | ≤ 5 min |
-| 3 | Pre-warm CDN for the top-N popular recordings by reading the playback heat-map (Redis `popular-recordings`) | ops-sre | ≤ 10 min |
+| 3 | Pre-warm CDN for the top-N popular recordings by reading the playback heat-map (Valkey `popular-recordings`) | ops-sre | ≤ 10 min |
 | 4 | If a single tenant is dominating: engage per-tenant playback rate-limit at the CDN edge | ops-sre | ≤ 5 min |
 | 5 | Activate degraded mode: HLS-low-bitrate-only (480p) for non-paid tenants | axis-recordings | ≤ 5 min |
 | 6 | If CDN edge outage in a region: route to DR-pair pack region per `multi-region.md` (subject to residency — only within-pack) | ops-sre | ≤ 10 min |

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security + ops-legal
 deciders: council-privacy, ops-security, axis-mail, council-architecture, ops-compliance, ops-legal
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0131, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/mail/threat-model.md
   - microservices/mail/dpia.md
@@ -82,7 +82,7 @@ Canonical control-to-framework mapping for the mail µservice. Tells an external
 | A.5.14 | Information transfer | TLS 1.3 + MTA-STS + cross-pack-replication-forbidden | `policy/data-residency.md` |
 | A.5.15 | Access control | OIDC + Cedar + per-context-pillar | `policy/dual-context-isolation.md` |
 | A.5.17 | Authentication information | OpenBao secret rotation (30d / 90d cadences) | OpenBao audit |
-| A.5.18 | Access rights | RBAC via Terraform; per-tenant compliance-officer scope | `iac/terraform/cedar-rbac.tf` |
+| A.5.18 | Access rights | RBAC via OpenTofu; per-tenant compliance-officer scope | `iac/terraform/cedar-rbac.tf` |
 | A.5.23 | Cloud security | OCI HIPAA-eligible regions for pack-us-healthcare | `policy/data-residency.md` |
 | A.5.24 | Incident planning | Incident-response playbook | `incident-response.md` |
 | A.5.25 | Incident assessment | Severity classification | `incident-response.md` §Severity |

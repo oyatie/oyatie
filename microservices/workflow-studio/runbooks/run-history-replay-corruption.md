@@ -75,7 +75,7 @@ Cause: > 5 consecutive frames missing in step-sequence; either engine didn't emi
 | Step | Action |
 |---|---|
 | 1 | Verify engine emission completeness: `kubectl logs <engine-pod> | grep "run_id=<id>" | wc -l` vs expected step count. |
-| 2 | If engine emitted: WS gateway dropped frames — likely Redis backpressure on op-stream OR client slow-consumer. |
+| 2 | If engine emitted: WS gateway dropped frames — likely Valkey backpressure on op-stream OR client slow-consumer. |
 | 3 | Mitigation: replay from authoritative engine event-store on user request (`POST /v1/debugger/sessions/{id}:resync`); engine re-streams from sequence_num + N. |
 | 4 | If engine didn't emit: engine bug; engage workflow-engine team. |
 

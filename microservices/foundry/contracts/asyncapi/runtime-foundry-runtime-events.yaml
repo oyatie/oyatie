@@ -71,7 +71,7 @@ channels:
     messages:
       SessionEvictedMessage:
         $ref: '#/components/messages/SessionEvicted'
-    description: Redis evicted a session (LRU or TTL).
+    description: Valkey evicted a session (LRU or TTL).
 
   runtime-pod-drained:
     address: workflow-events/foundry-runtime.runtime.pod.drained

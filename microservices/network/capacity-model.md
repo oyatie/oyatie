@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baselines for every `network` component: WebSocket gateway, Postgres profile + post + connection-graph + endorsement-chain + jobs + groups + pages + events store, Redis feed cache + reactions + trending + notifications + InMail queue, S3 media + document, Meilisearch search (multi-index), Layer-B Rust services, foundry-runtime classifier calls (caption assist T1 + ranker T2 + people-you-may-know T2 + recruiter-stub ranker T2 when activated). Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + reference-architecture baselines for every `network` component: WebSocket gateway, Postgres profile + post + connection-graph + endorsement-chain + jobs + groups + pages + events store, Valkey feed cache + reactions + trending + notifications + InMail queue, S3 media + document, Meilisearch search (multi-index), Layer-B Rust services, foundry-runtime classifier calls (caption assist T1 + ranker T2 + people-you-may-know T2 + recruiter-stub ranker T2 when activated). Drives `cost-budget.md` and `multi-region.md`.
 
 Difference vs sibling `social`: lower posts/sec (Professional users post less), higher search-people QPS (network is the most-searched surface industry-wide), higher endorsement + connection-action volume, additional indexes (skills, jobs, companies, events).
 
@@ -89,7 +89,7 @@ write_iops_peak            = baseline × 5
 
 Per-cell envelope: Postgres primary handles ≤ 25k post/sec at HA-RF=3; beyond this, shard by `(tenant_id mod N)`.
 
-## Redis Sizing
+## Valkey Sizing
 
 ```
 feed_cache_ops_per_sec     = Fr_per_sec × 2 (read + write-back)
@@ -227,14 +227,14 @@ batch_size               = 100
 |---|---|
 | Gateway CPU sustained > 70 % | HPA scale-up (≤ 200 replicas) |
 | Postgres primary write-IOPS > 70 % | Shard by tenant_id |
-| Redis shard CPU > 70 % | Add Redis shard |
+| Valkey shard CPU > 70 % | Add Valkey shard |
 | Meilisearch indexer lag > 60s sustained | Add indexer worker; per-index sharding |
 | S3 PUT rate > 70 % provisioned | Sharded bucket prefix per-tenant |
 | Per-tenant max accounts > 1M | Shard tenant across cells |
 | Notification worker queue depth > 100k | Add notification worker; coalesce more digest |
 | InMail-bridge queue > 100k | Add inmail-bridge worker; throttle per-tenant |
 | Endorsement-chain seal worker lag > 30s | Add seal-batcher worker |
-| Connection-graph degree-of-separation cache miss rate > 30% | Expand Redis cache slice; recompute warm tier |
+| Connection-graph degree-of-separation cache miss rate > 30% | Expand Valkey cache slice; recompute warm tier |
 
 ## Cross-Region Story
 
@@ -250,5 +250,5 @@ batch_size               = 100
 - `microservices/social/capacity-model.md` (sibling reference).
 - Postgres tuning: PostgreSQL 16 ops docs.
 - Meilisearch ops: `docs.meilisearch.com`.
-- Redis Cluster ops: `redis.io/docs/management/scaling/`.
+- Valkey Cluster ops: `redis.io/docs/management/scaling/`.
 - LinkedIn engineering blog (FollowGraph + Identity Service public posts) — `engineering.linkedin.com`.

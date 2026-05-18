@@ -54,7 +54,7 @@ Define multi-region topology for `network` across the 11 oyatie packs: pack-pinn
 │  │ HA-RF=3                  │ replic     │ async; ≤ 5 s lag          │ │
 │  └──────────────────────────┘            └──────────────────────────┘ │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐ │
-│  │ Redis cluster (3 shards) │            │ Redis cluster warm        │ │
+│  │ Valkey cluster (3 shards) │            │ Valkey cluster warm        │ │
 │  └──────────────────────────┘            └──────────────────────────┘ │
 │  ┌──────────────────────────┐  CRR       ┌──────────────────────────┐ │
 │  │ S3 media + doc bucket    │◀──────────▶│ S3 replica                │ │
@@ -86,7 +86,7 @@ Define multi-region topology for `network` across the 11 oyatie packs: pack-pinn
 | Component | Mode | RPO | Cross-region |
 |---|---|---|---|
 | Postgres profiles + posts + connections + endorsements + jobs + pages + groups + events | Async logical replication | ≤ 5 s | intra-pack only |
-| Redis feed-cache + reactions + trending + notifications + InMail queue | Cluster-replicated (sentinel) | ≤ 1 s | intra-pack only |
+| Valkey feed-cache + reactions + trending + notifications + InMail queue | Cluster-replicated (sentinel) | ≤ 1 s | intra-pack only |
 | S3 media + documents | Async CRR | ≤ 5 min | intra-pack only |
 | Meilisearch search indexes | Rebuilt from canonical PG + event stream in DR | ≤ 30 min lag during failover | intra-pack only |
 | Audit-chain seals | Cross-pack OK (no PII; just hashes) | ≤ 10 s | yes |
@@ -103,8 +103,8 @@ Define multi-region topology for `network` across the 11 oyatie packs: pack-pinn
 | Jobs-handoff event ledger | ≤ 5 s | ≤ 5 min | contract-versioned event log; ATS bridge re-emits if needed |
 | InMail-bridge queue | ≤ 30 s (best-effort) | ≤ 15 min | messenger µservice has its own DR; bridge is stateless |
 | Media + document store | ≤ 5 min | ≤ 1 h | S3 CRR + lazy hydration |
-| Feed cache | ≤ 30 s (data lossy; rebuildable from posts) | ≤ 5 min | from Redis warm + fanout replay |
-| Reactions | ≤ 5 min (best-effort) | ≤ 15 min | from Redis warm + re-emit; Postgres flush |
+| Feed cache | ≤ 30 s (data lossy; rebuildable from posts) | ≤ 5 min | from Valkey warm + fanout replay |
+| Reactions | ≤ 5 min (best-effort) | ≤ 15 min | from Valkey warm + re-emit; Postgres flush |
 | Search indexes (multi-index) | ≤ 30 min lag | ≤ 1 h rebuild | replay from canonical PG event stream |
 | Trending topics | ≤ 5 min lag | ≤ 5 min rebuild | recompute from windowed hashtag events |
 | Notifications | best-effort | ≤ 30 min | re-emit from event log |
@@ -118,7 +118,7 @@ Define multi-region topology for `network` across the 11 oyatie packs: pack-pinn
 | 2 | Incident Commander declares Sev-1; engages OpsLead | ≤ 5 min |
 | 3 | Verify DR pair Postgres replica < 30s lag; promote replica to primary | ≤ 5 min |
 | 4 | DNS TTL drains; clients reconnect to DR pair gateways | ≤ 10 min total |
-| 5 | Verify Redis warm cluster ready; rebuild feed cache from latest posts | ≤ 10 min |
+| 5 | Verify Valkey warm cluster ready; rebuild feed cache from latest posts | ≤ 10 min |
 | 6 | Verify S3 CRR replica reachable; lazy-hydrate cold-tier on demand | ≤ 5 min |
 | 7 | Replay Meilisearch indexes from canonical PG event log (last 24h hot per index: people, content, skills, jobs, companies, events) | ≤ 30 min |
 | 8 | Verify connection-graph + endorsement-chain consistency: re-derive from audit-chain authoritative replay | ≤ 30 min |
@@ -152,13 +152,13 @@ Any cross-pack-replication attempt outside the explicit exceptions triggers `net
 
 - WebSocket gateways: active-active across AZs in primary region.
 - Postgres: primary + 2 read-replicas across AZs.
-- Redis: 3-node cluster across AZs.
+- Valkey: 3-node cluster across AZs.
 - S3: cross-AZ replication within bucket.
 - Meilisearch: shard-per-AZ; per-index sharding (people, content, skills, jobs, companies, events).
 
 ## Cross-µservice Bridge Failure Modes
 
-- **messenger-bridge degraded**: InMail send queues to local Redis Streams; per-tenant rate limit unchanged; bridge retries with exponential backoff; surfaces alert when queue depth > 100k.
+- **messenger-bridge degraded**: InMail send queues to local Valkey Streams (Redis wire-compat); per-tenant rate limit unchanged; bridge retries with exponential backoff; surfaces alert when queue depth > 100k.
 - **calendar-bridge degraded**: event RSVP and iCal emission queues; downstream calendar µservice replay on recovery.
 - **mail-bridge degraded**: page newsletter sends queue; replay on recovery.
 - **ATS-bridge degraded**: jobs-handoff events queue; ATS µservice (Tier G) replay on recovery; contract-versioned event log ensures idempotent re-delivery.
@@ -171,7 +171,7 @@ All cross-µservice bridges are stateless on the `network` side; failures are vi
 |---|---|---|
 | Primary Postgres failover | Quarterly | ops-sre-reliability |
 | WebSocket gateway pod-eviction storm | Quarterly | axis-network |
-| Redis cluster split-brain | Annually | ops-sre-reliability |
+| Valkey cluster split-brain | Annually | ops-sre-reliability |
 | Pack-wide DR failover | Annually (DR-pair packs only) | ops-sre-reliability |
 | Connection-graph corruption + audit-replay rebuild | Quarterly | axis-network + ops-security |
 | Endorsement-chain integrity verification drill | Quarterly | axis-network + axis-audit-chain |

@@ -11,7 +11,7 @@ acceptance_lanes: [cargo-test]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-007: Redis adapter (rate-limit + session)
+# IP-007: Valkey adapter (Redis wire-compat) (rate-limit + session)
 
 ## Intent
 
@@ -35,7 +35,7 @@ Per-IP / per-form / per-tenant rate-limit token-bucket; submitter session state 
 
 ## References
 
-- Redis Sentinel docs.
+- Valkey Sentinel docs.
 
 ## Next IP
 

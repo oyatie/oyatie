@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-tasks
-related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-TASKS-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140 (retired per ADR-0145), ADR-TASKS-0006]
 related_artifacts:
   - microservices/tasks/policy/tenant-scope.cedar
   - microservices/tasks/policy/ci-scope.cedar
@@ -100,7 +100,7 @@ This policy is enforced by:
 > Task data resident in jurisdiction-pack-A (e.g., pack-kr) is NOT replicated to jurisdiction-pack-B (e.g., pack-eu) at the tasks µservice level. Cross-pack task creation (e.g., via workflow-engine bridge from pack-eu workflow to pack-kr task) is refused at Cedar unless tenant-executed SCC is on file AND the cross-µservice handoff has been approved.
 
 **Enforcement:**
-- Postgres + Redis + Meilisearch clusters per pack; cross-cluster replication forbidden by default.
+- Postgres + Valkey + Meilisearch clusters per pack; cross-cluster replication forbidden by default.
 - Ingress routing: per-tenant pack tag derived at OIDC-token issuance; REST routes to per-pack cluster.
 - LEAN check refuses cross-pack route at config layer.
 - See `policy/data-residency.md` + `multi-region.md` for full enforcement chain.

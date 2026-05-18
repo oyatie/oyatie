@@ -8,7 +8,7 @@ owner: axis-workflow + council-architecture
 deciders: council-architecture, axis-workflow, ops-security, council-legal-compliance, axis-foundry-providers
 supersedes: []
 superseded_by: []
-related: [ADR-0110, ADR-0131, ADR-0140]
+related: [ADR-0110, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md (FR-12, AC-05, §"Open Questions" Q4)
@@ -146,7 +146,7 @@ Cedar gates cross-µservice copilot output but, on Cedar pass, the fragment auto
 
 ### Alternative D — Copilot intra-µservice only; cross-µservice ALWAYS gated via Workflow + Ontology adapter explicitly composed by tenant
 
-The copilot stays strictly intra-product; if tenant wants cross-µservice composition, they must compose it via the canonical Workflow + Ontology adapter pattern (per `feedback_workflow_objectgraph_adapter_layer.md`) — composition is a separate manual step.
+The copilot stays strictly intra-product; if tenant wants cross-µservice composition, they must compose it via the canonical Workflow + Ontology adapter pattern (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`) — composition is a separate manual step.
 
 - **Pros**
   - Honours `feedback_workflow_objectgraph_adapter_layer.md` strictly — all inter-product flows go through Workflow + Ontology.

@@ -6,7 +6,7 @@ description: |
   ServiceMonitors + PrometheusRules + CronJob for the IANA tzdb
   refresh worker. Pulls dependency charts for the CalDAV backends
   (Radicale primary, SabreDAV for pack-us-healthcare per ADR-CAL-0001),
-  Postgres (event-store), and Redis (availability-resolver cache).
+  Postgres (event-store), and Valkey (availability-resolver cache).
 
   Per ADR-0131 (per-µservice flat layout) + ADR-0133 (LTS-pinned
   versions) + ADR-CAL-0001 (CalDAV backend selection) + ADR-CAL-0004

@@ -45,7 +45,7 @@ Two principal architectural options exist:
 1. **Postgres adjacency-list**: edges as rows in `social_follow_edges (follower_ref, followee_ref, tenant_id, established_at)` with a reverse index on `(tenant_id, followee_ref)`.
 2. **Graph database** (Dgraph, JanusGraph, Neo4j): native graph storage with edge-traversal queries.
 
-A third option — Redis adjacency-sets — is rejected upfront because Redis is in-memory + memory-cost-prohibitive at the scale (capacity-model L-tier: 80B edges × 64 bytes ≈ 5 TB; Redis would cost ~$50k/month per cell for this alone vs Postgres ~$500/month).
+A third option — Valkey adjacency-sets — is rejected upfront because Valkey is in-memory + memory-cost-prohibitive at the scale (capacity-model L-tier: 80B edges × 64 bytes ≈ 5 TB; Valkey would cost ~$50k/month per cell for this alone vs Postgres ~$500/month).
 
 The social platform competitive landscape (Twitter/X, Facebook, Instagram, LinkedIn) is reported by various trade press to use sharded relational stores for follow-graph at production scale; Twitter's "FlockDB" was a sharded MySQL adjacency-list; Facebook TAO is sharded MySQL with cache. Bluesky AT Protocol uses content-addressed records that effectively materialise to relational/disk-backed adjacency. The mature, audit-compatible, hyperscaler-cost-efficient default at oyatie's scale is sharded Postgres adjacency-list.
 
@@ -60,7 +60,7 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
    - Reverse index on `(tenant_id, followee_ref)` for fanout-on-write lookups.
    - Per-tenant RLS via `tenant_id = current_setting('app.tenant_id')`.
    - Sister tables `social_block_edges`, `social_mute_edges` with same shape.
-   - Mutual-follow = friend derived view via JOIN of `social_follow_edges` on (a, b) AND (b, a); refreshed lazily on read; cached short-TTL in Redis when hot.
+   - Mutual-follow = friend derived view via JOIN of `social_follow_edges` on (a, b) AND (b, a); refreshed lazily on read; cached short-TTL in Valkey when hot.
    - Audit-chain seal per edge mutation: every `INSERT` and `DELETE` (tombstone) emits `FollowEdgeAdded` / `FollowEdgeRemoved` event via outbox pattern; periodic drift detector compares Postgres state vs audit-chain authoritative replay.
    - Cell-shard trigger: per `capacity-model.md`, when `(tenant total edges) > 5B` or per-cell `(follow_edges_added_per_sec) > envelope`, shard tenant across cells.
 2. **Future (M04-onward): Graph-DB adapter (future-pluggable per ADR-0105 Amendment 3 backend-qualified naming).**
@@ -89,11 +89,11 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
 - Cons: weaker audit-chain integration vs Postgres; less mature operational substrate at oyatie's other µservices; higher operational cost; P01 doesn't need deep traversals; transition risk high.
 - Rejected (for P01); kept open for M04-onward via the future-pluggable adapter.
 
-### C. Postgres + Redis-cached graph (hybrid; Redis as full source-of-truth)
+### C. Postgres + Redis-cached graph (hybrid; Valkey as full source-of-truth)
 
 - Pros: very fast in-memory traversals.
-- Cons: memory cost prohibitive at L-scale (80B edges); audit-chain consistency complicated; durability questions; Redis is a cache not a graph database.
-- Rejected; Redis is used only as a short-TTL cache for hot lookups (mutual-follow derivation, viral-account follower-list), never as source-of-truth.
+- Cons: memory cost prohibitive at L-scale (80B edges); audit-chain consistency complicated; durability questions; Valkey is a cache not a graph database.
+- Rejected; Valkey is used only as a short-TTL cache for hot lookups (mutual-follow derivation, viral-account follower-list), never as source-of-truth.
 
 ### D. Sharded MySQL adjacency-list (Twitter FlockDB lineage)
 
@@ -130,7 +130,7 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
 - Cargo workspace: `oya-social-follow-graph-adapter-postgres` is the P01 backend; future `oya-social-follow-graph-adapter-dgraph` (or other) lands as parallel adapter per ADR-0105 Amendment 3.
 - Postgres migrations: `0001_init.sql` per IP-004 creates partitioned tables + RLS + reverse-index.
 - Audit-chain integration: outbox pattern via `social_follow_audit_events` table with worker emitter.
-- Per-tenant Redis counter for mass-follow rate-limit (foundry-guardrails sybil-detector consumes).
+- Per-tenant Valkey counter for mass-follow rate-limit (foundry-guardrails sybil-detector consumes).
 - CI lane `oya-check-shardability-cli` verifies partition keys.
 - Runbook `runbooks/follow-graph-corruption.md` covers Postgres / audit-chain drift recovery.
 

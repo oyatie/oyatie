@@ -11,7 +11,7 @@ description: |
 owner_team: axis-foundry-control-plane
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/foundry-supervisor-control-plane.json]
 related_artifacts:
   - microservices/foundry/PRD.md
@@ -58,7 +58,7 @@ cost_profile:
   type: per-query
   estimated_cost_usd_per_call: 0.00001
   cost_drivers:
-    - Postgres read (with RLS scope) — cached in Redis materialized view
+    - Postgres read (with RLS scope) — cached in Valkey materialized view
 
 cedar_policy_fragments:
   - microservices/foundry/policy/tenant-scope.cedar

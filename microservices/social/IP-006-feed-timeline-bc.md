@@ -19,7 +19,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-shardability, oya-
 
 Author the full `feed-timeline` BC: chronological + heuristic-algorithmic feed
 materialisation with fanout-on-write for hot-tier accounts (>10k followers) and
-fanout-on-read for cold-tier. Redis hot-cache for per-user feed slices; Postgres
+fanout-on-read for cold-tier. Valkey hot-cache for per-user feed slices; Postgres
 authoritative store. EU AI Act Art. 27 ranking-explanation API.
 
 ML-driven ranking is P03 (depends on foundry-runtime); P01 ships chronological
@@ -69,7 +69,7 @@ pub fn rank_score(post: &Post, recency_minutes: u64, engagement_signal: f64, fol
 |---|---|---|
 | < 1k followers (cold) | fanout-on-read | feed-render queries Postgres at fetch time |
 | 1k–10k (warm) | hybrid | hot-followers fanout-on-write; cold-followers fanout-on-read |
-| > 10k (hot/celebrity) | fanout-on-write | precomputed feed slice in Redis per follower |
+| > 10k (hot/celebrity) | fanout-on-write | precomputed feed slice in Valkey per follower |
 
 ## Acceptance Gates
 
@@ -83,14 +83,14 @@ cargo run -p oya-dev-cli -- gate validate shardability --microservice social
 ## Test Plan
 
 - Heuristic ranking unit tests (recency decay, weighted score bounds).
-- Fanout-on-write E2E: 10k follower account → precomputed Redis slices verified.
+- Fanout-on-write E2E: 10k follower account → precomputed Valkey slices verified.
 - Fanout-on-read E2E: cold account → on-demand Postgres query under p95 ≤ 200ms.
 - Feed-cache invalidation on post-delete + tombstone propagation.
 - EU AI Act Art. 27 ranking_explanation API exposes contributing signals.
 
 ## Halt Conditions
 
-- Feed slice exceeds memory per Redis shard — re-shard.
+- Feed slice exceeds memory per Valkey shard — re-shard.
 - Fanout-on-write queue depth > 100k per cell — escalate; auto-degrade to fanout-on-read.
 
 ## Next IP

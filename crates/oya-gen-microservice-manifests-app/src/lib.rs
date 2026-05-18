@@ -23,8 +23,10 @@ use std::collections::BTreeSet;
 
 use serde_json::{Map, Value, json};
 
-/// Spec-mandated 32-µservice scope (matches the legacy Python list verbatim
-/// and the order is preserved so the aggregate index byte-matches).
+/// Spec-mandated 33-µservice scope (matches the legacy Python list verbatim
+/// and the order is preserved so the aggregate index byte-matches). Expanded
+/// from 32 → 33 on 2026-05-18 to add `identity` (OIDC + Passkey + SCIM
+/// substrate per ADR-0187 / ADR-0188 / ADR-0189 / ADR-0190 / ADR-0191).
 pub const MICROSERVICES: &[&str] = &[
     "application",
     "audit-chain",
@@ -58,6 +60,7 @@ pub const MICROSERVICES: &[&str] = &[
     "cloud-k8s",
     "cloud-secrets",
     "governance",
+    "identity",
 ];
 
 pub const ALLOWED_LAYERS: &[&str] = &[
@@ -322,6 +325,9 @@ pub fn build_manifest(inputs: &ManifestInputs) -> Value {
         Value::Array(contracts.proto.into_iter().map(Value::String).collect()),
     );
 
+    let ontology_projections = canonical_ontology_projections_for(&ms);
+    let mesh_layering = canonical_mesh_layering_for(&ms);
+
     json!({
         "schema_version": "1.0",
         "microservice": ms,
@@ -341,8 +347,76 @@ pub fn build_manifest(inputs: &ManifestInputs) -> Value {
         "secrets_substrate": {
             "provider": "openbao",
             "format": "${openbao:secret/<path>}"
-        }
+        },
+        "ontology_projections": ontology_projections,
+        "mesh_layering": mesh_layering,
     })
+}
+
+/// Canonical mesh-layering declaration per ADR-0148 layered service mesh.
+/// Every µservice runs on Cilium L3/L4 (Tier 1) and Istio Ambient ztunnel
+/// (Tier 2) by default. Tier-3 waypoint enrollment is per-µservice opt-in:
+/// the 5 µservices that handle L7-policed traffic declare
+/// `ambient_waypoint=true`; all others declare `false`. The api-gateway
+/// µservice is the sole north-south owner per ADR-0182.
+fn canonical_mesh_layering_for(ms: &str) -> Value {
+    let ambient_waypoint = matches!(
+        ms,
+        "governance" | "foundry" | "audit-chain" | "application" | "workflow-studio"
+    );
+    let north_south_only = ms == "api-gateway";
+    json!({
+        "cilium_l4": true,
+        "ambient_ztunnel": true,
+        "ambient_waypoint": ambient_waypoint,
+        "north_south_only": north_south_only,
+    })
+}
+
+/// Canonical-entity-owning µservices populated with at-least-2 projection
+/// entries per ADR-0145 Invariant 3. Non-owning µservices receive an
+/// empty `ontology_projections: []` array. The strict-mode validator
+/// (tracked under
+/// `registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator`)
+/// will cross-check this list against `registry/ontology/entities.json`.
+fn canonical_ontology_projections_for(ms: &str) -> Value {
+    let projections: &[(&str, &str)] = match ms {
+        "ontology" => &[
+            ("Person", "ontology_persons"),
+            ("Document", "ontology_documents"),
+            ("Recording", "ontology_recordings"),
+        ],
+        "tenancy" => &[
+            ("Tenant", "ontology_tenants"),
+            ("TenantMembership", "ontology_tenant_memberships"),
+        ],
+        "audit-chain" => &[
+            ("AuditEvent", "ontology_audit_events"),
+            ("AuditShard", "ontology_audit_shards"),
+        ],
+        "foundry" => &[
+            ("AgentFleet", "ontology_agent_fleets"),
+            ("CapabilityCard", "ontology_capability_cards"),
+        ],
+        "governance" => &[
+            ("CedarFragment", "ontology_cedar_fragments"),
+            ("PolicyDecision", "ontology_policy_decisions"),
+        ],
+        _ => &[],
+    };
+    Value::Array(
+        projections
+            .iter()
+            .map(|(entity, table)| {
+                json!({
+                    "entity_name": entity,
+                    "projection_target_table": table,
+                    "projection_kind": "idempotent-rewrite",
+                    "lag_budget_seconds": 60,
+                })
+            })
+            .collect(),
+    )
 }
 
 /// Build the aggregate index JSON.

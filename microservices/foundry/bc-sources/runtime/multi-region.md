@@ -53,7 +53,7 @@ For packs with a DR pair:
 │  │  - pool warm pods        │ ◀────────▶ │  - 0.6× capacity         │    │
 │  └──────────────────────────┘   intra-   └──────────────────────────┘    │
 │  ┌──────────────────────────┐   pack     ┌──────────────────────────┐    │
-│  │ Redis cluster (primary)  │            │ Redis warm-standby       │    │
+│  │ Valkey cluster (primary)  │            │ Valkey warm-standby       │    │
 │  │  - 6 shards × RF 2       │            │   0.6× shard count       │    │
 │  └──────────────────────────┘            └──────────────────────────┘    │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐    │
@@ -62,7 +62,7 @@ For packs with a DR pair:
 │  └──────────────────────────┘            └──────────────────────────┘    │
 │                                                                          │
 │  Global Traffic Manager (per-pack DNS):                                  │
-│  - Health check on primary's executor + Redis + Postgres                 │
+│  - Health check on primary's executor + Valkey + Postgres                 │
 │  - On failure: DNS failover → DR pair (≤60s TTL)                         │
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -72,7 +72,7 @@ For packs with a DR pair:
 
 | Component | Mode | RPO | Cross-region |
 |---|---|---|---|
-| Redis AOF + RDB snapshots | Async via S3 cross-region replication (intra-pack) | ≤30s | intra-pack only |
+| Valkey AOF + RDB snapshots | Async via S3 cross-region replication (intra-pack) | ≤30s | intra-pack only |
 | Postgres streaming replication | Synchronous within-AZ + async cross-AZ within pack | ≤5s | intra-pack only |
 | Capability mirror | Pulled from foundry-supervisor (pack-pinned scope) | per supervisor RPO | intra-pack only |
 | Invocation lifecycle records | Postgres replication | ≤5s | intra-pack only |
@@ -97,10 +97,10 @@ Per `policy/data-residency.md`, no tenant session-state or invocation record cro
 
 | Phase | Step | Time budget |
 |---|---|---|
-| 1 | Verify DR-pair region is healthy (executor + Redis + Postgres reachable) | ≤2min |
+| 1 | Verify DR-pair region is healthy (executor + Valkey + Postgres reachable) | ≤2min |
 | 2 | Promote DR-pair runtime cluster to active (HPA scales to primary capacity) | ≤10min |
 | 3 | Promote DR-pair Postgres replica to primary | ≤5min |
-| 4 | Promote DR-pair Redis warm-standby to primary | ≤5min |
+| 4 | Promote DR-pair Valkey warm-standby to primary | ≤5min |
 | 5 | Update Global Traffic Manager: DNS records to DR-pair endpoints | ≤1min (TTL 60s) |
 | 6 | Update workload µservices' invocation client configs (Helm rollout) | ≤5min |
 | 7 | Verify dispatch is flowing to DR-pair; invocation lifecycle records emitting | ≤5min |
@@ -109,7 +109,7 @@ Per `policy/data-residency.md`, no tenant session-state or invocation record cro
 | 10 | Engage with OCI on primary-region restoration | ongoing |
 | **Total** | **end-to-end DR failover** | **≤35min** (RTO target) |
 
-RPO: ≤30s for session-state (Redis AOF cadence); ≤5s for Postgres lifecycle records.
+RPO: ≤30s for session-state (Valkey AOF cadence); ≤5s for Postgres lifecycle records.
 RTO: ≤35min (DR failover complete; tenant traffic stable on DR-pair region).
 
 ### Failback (after primary region recovers)
@@ -169,6 +169,6 @@ Per-pack BCDR specifics at `regional-packs/<pack>/foundry-runtime-multi-region-o
 - `microservices/foundry-runtime/capacity-model.md`; `cost-budget.md`; `failure-modes.md`; `incident-response.md`.
 - `regional-packs/<pack>/foundry-runtime-multi-region-overlay.md`.
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
-- Redis 7.4 LTS HA — `redis.io/docs/management/replication/`.
+- Valkey 8.1 (Redis wire-compat) HA — `redis.io/docs/management/replication/`.
 - Postgres 16 LTS replication — `postgresql.org/docs/16/high-availability.html`.
 - ISO/IEC 22301:2019; NIST SP 800-34; EU DORA Regulation 2022/2554.

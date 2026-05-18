@@ -131,7 +131,7 @@ Concretely:
 ### Risk register
 
 - **Risk**: messenger LiveKit cluster failure cascades to slides. **Mitigation**: graceful degradation to non-broadcast present-mode; per `runbooks/broadcast-mode-degraded.md`.
-- **Risk**: messenger team release breaks LiveKit SDK contract. **Mitigation**: SDK semver; cross-µservice ADR for breaking changes per ADR-0140; integration tests in slides-side SDK consumer.
+- **Risk**: messenger team release breaks LiveKit SDK contract. **Mitigation**: SDK semver; cross-µservice ADR for breaking changes per ADR-0140 (retired per ADR-0145); integration tests in slides-side SDK consumer.
 - **Risk**: Audience overlay (reactions, polls, Q&A) drowns out slides WS. **Mitigation**: per-deck audience-engagement rate limiting + WS backpressure.
 - **Risk**: Per-pack LiveKit node failure. **Mitigation**: per-pack failover (messenger-owned playbook); slides reconnects.
 - **Risk**: Recording opt-in mis-use (recorded broadcasts retained beyond tenant intent). **Mitigation**: explicit tenant opt-in flag per session; retention bound to deck retention.

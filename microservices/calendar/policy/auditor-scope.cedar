@@ -4,7 +4,7 @@
 // to time-boxed read-only access scoped to specific engagement-target tenants.
 // Owner: ops-security + council-privacy
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140
+// Related: ADR-0140 (retired per ADR-0145)
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 ## Intent
 
-Typed workflow-event publish/subscribe + outbox + replay-from-offset + backpressure. Postgres outbox = durable; Redis = ephemeral subscription state. Kernel: port traits + entities. Domain: pure event serialization + offset arithmetic.
+Typed workflow-event publish/subscribe + outbox + replay-from-offset + backpressure. Postgres outbox = durable; Valkey = ephemeral subscription state. Kernel: port traits + entities. Domain: pure event serialization + offset arithmetic.
 
 ## ChangeSet boundary
 

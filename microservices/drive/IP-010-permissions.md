@@ -48,7 +48,7 @@ acceptance_status: ga
 | AC-01 | 5-level inheritance computes correct effective ACL | `cargo nextest run -p oya-drive-permissions-domain -- inheritance_5levels` |
 | AC-02 | Per-file override shadows inherited entry deterministically | `cargo nextest run -p oya-drive-permissions-domain -- per_file_override` |
 | AC-03 | Ownership transfer is atomic + audit-chain sealed; never partial | `cargo nextest run -p oya-drive-permissions-domain -- ownership_transfer_ceremony` |
-| AC-04 | `oya gate validate cedar-policy-coverage --microservice drive --bc permissions` exits 0 | ADR-0140 |
+| AC-04 | `oya gate validate cedar-policy-coverage --microservice drive --bc permissions` exits 0 | ADR-0140 (retired per ADR-0145) |
 
 ## Build Sequence
 

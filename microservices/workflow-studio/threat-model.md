@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-workflow + council-design-system + ops-security
 deciders: council-architecture, ops-security, axis-workflow, council-design-system, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS L2 + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0035, ADR-0037, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140, ADR-0164]
+related_adrs: [ADR-0028, ADR-0035, ADR-0037, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-0164]
 related_specs: [/specs/microservices/workflow-studio.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Studio Layer-A substrate change OR new node-library activation OR LLM-assist provider change
 enforced_frameworks:
@@ -47,7 +47,7 @@ All components introduced by the workflow-studio PRD + PHASE-01:
 | CDN (OCI CDN; static asset distribution; per-pack edge) | `oya-workflow-studio-visual-canvas-*` (9 crates) |
 | WAF (OCI WAF; ingress in front of CDN + editor REST) | `oya-workflow-studio-dsl-emitter-*` (6 crates) |
 | Postgres + Citus (editor session state, per-seat license attribution, draft persistence) | `oya-workflow-studio-dsl-loader-*` (6 crates) |
-| Redis (ephemeral CRDT collab state + WebSocket lease coordination) | `oya-workflow-studio-collab-crdt-*` (8 crates) |
+| Valkey (ephemeral CRDT collab state + WebSocket lease coordination) | `oya-workflow-studio-collab-crdt-*` (8 crates) |
 | WebSocket gateway (axum-WS-based; CRDT op fan-out + debugger streaming) | `oya-workflow-studio-node-library-registry-*` (9 crates) |
 | Object storage (signed per-pack node library binaries) | `oya-workflow-studio-jurisdiction-overlay-renderer-*` (5 crates) |
 | LLM-assist bridge to foundry-providers (out-of-process; SDK boundary) | `oya-workflow-studio-replay-debugger-frontend-*` (6 crates) |
@@ -103,14 +103,14 @@ All components introduced by the workflow-studio PRD + PHASE-01:
 │  │  - tenant_id partition + RLS                                          │     │
 │  │  - per-tenant connection pool                                         │     │
 │  └────────────────────────────────────────────────────────────────────────┘    │
-│  ┌─ Redis (ephemeral CRDT) ─┐ ┌─ Object storage (node libraries) ───────┐     │
+│  ┌─ Valkey (ephemeral CRDT) ─┐ ┌─ Object storage (node libraries) ───────┐     │
 │  │ tenant-prefixed key       │ │ pack-scoped bucket                       │     │
 │  └───────────────────────────┘ └──────────────────────────────────────────┘    │
 │                                                                                │
 │  Trust boundary 3: WS gateway → CRDT op fan-out (per-definition lease)         │
 │                                                                                │
 │  ┌─ WebSocket gateway lease coordinator ────────────────────────────────┐     │
-│  │  - one WS pod owns one (tenant, definition_id) lease via Redis       │     │
+│  │  - one WS pod owns one (tenant, definition_id) lease via Valkey       │     │
 │  │  - cross-tenant collab forbidden by tenant-binding on connect        │     │
 │  │  - per-definition message routing                                    │     │
 │  └────────────────────────────────────────────────────────────────────────┘   │
@@ -155,9 +155,9 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
-| Editor session state (active drafts, cursor, viewport) | `BEHAVIORAL_TENANT_PRODUCT` | High | 30d hot (Postgres) + Redis ephemeral while active | Postgres + Redis |
+| Editor session state (active drafts, cursor, viewport) | `BEHAVIORAL_TENANT_PRODUCT` | High | 30d hot (Postgres) + Valkey ephemeral while active | Postgres + Valkey |
 | Spec drafts (unsigned, pre-submit) | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_QUASI_IDENTIFIER` | Medium-High | 30d hot until tenant promotes or discards | Postgres |
-| Collab CRDT op stream | `BEHAVIORAL_TENANT_PRODUCT` | High | Redis ephemeral while session active; sealed deltas to Postgres on save | Redis + Postgres |
+| Collab CRDT op stream | `BEHAVIORAL_TENANT_PRODUCT` | High | Valkey ephemeral while session active; sealed deltas to Postgres on save | Valkey + Postgres |
 | Per-seat license attribution rows | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | High | 24mo cold (Postgres) + audit-chain seal | Postgres + audit-chain µservice |
 | Node library descriptors + signatures | `INTERNAL_ONLY` + `AUDIT` (signature) | Low-Medium | append-only git history + per-pack signed distribution | Object storage + git |
 | WASM bundle chunks + SRI hashes | `INTERNAL_ONLY` | Low | per-release; previous versions retained 90d | CDN + repo |
@@ -271,7 +271,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 - Likelihood: L / Impact: M / Risk: **L-M**
 - Mitigations:
   - Optimistic concurrency check (`version` column) on every session update.
-  - Single-writer invariant: one WS gateway pod owns active editor session via Redis lease.
+  - Single-writer invariant: one WS gateway pod owns active editor session via Valkey lease.
   - Lease TTL ≤ 5min.
 - Owner: axis-workflow
 - Residual: L
@@ -465,12 +465,12 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 - Residual: L
 - Frameworks: SOC 2 CC7.1, CC7.2; ISO 27001 A.5.30, A.8.6, A.8.14; GDPR Art. 32(1)(c)
 
-**T-D-02 — Collab desync flood: malicious user spams CRDT ops, exhausting Redis**
-- Asset: Redis ephemeral state
+**T-D-02 — Collab desync flood: malicious user spams CRDT ops, exhausting Valkey**
+- Asset: Valkey ephemeral state
 - Likelihood: M / Impact: H / Risk: **H**
 - Mitigations:
   - Per-(tenant, user) WS message rate limit (default 100 ops/sec); excess refused + connection throttled.
-  - Per-tenant Redis memory cap.
+  - Per-tenant Valkey memory cap.
   - Slow-client quarantine: client > 10× rate-limit threshold → disconnect after 60s + tenant notified.
 - Owner: axis-workflow + ops-sre-reliability
 - Residual: L
@@ -613,7 +613,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 | SRI hashes on WASM chunks | Preventive | axis-workflow | `oya-governance-wasm-bundle-sri` lane |
 | Per-pack node library Ed25519 signing | Preventive | ops-security | `oya-governance-node-library-signature-verification` lane |
 | CRDT op HMAC + sequence counter | Preventive (replay) | axis-workflow | CRDT regression tests |
-| Single-writer Redis lease per editor session | Preventive | axis-workflow | concurrent-writer integration test |
+| Single-writer Valkey lease per editor session | Preventive | axis-workflow | concurrent-writer integration test |
 | Per-tenant Studio session rate limit | Preventive (DoS) | axis-workflow | Studio REST metrics |
 | LLM-assist PII redactor | Preventive | axis-workflow + council-privacy | quarterly synthetic-PII drill |
 | LLM-assist completion schema validation | Preventive | axis-workflow | `oya-governance-llm-assist-validation-required` lane |
@@ -685,7 +685,7 @@ Pack-overlay sections at `regional-packs/<pack>/workflow-studio-overlay.md`; eac
 ## Re-review Triggers
 
 - Any change to the trust boundary diagram (new boundary, removed boundary, modified actor).
-- Any Layer-A version upgrade (CDN / WAF / Postgres / Redis / WebSocket gateway library) where upstream release notes mention security fixes.
+- Any Layer-A version upgrade (CDN / WAF / Postgres / Valkey / WebSocket gateway library) where upstream release notes mention security fixes.
 - New node library activation (each new library is a new code-distribution surface).
 - LLM-assist provider change.
 - New pack activation.

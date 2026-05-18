@@ -5,7 +5,7 @@ milestone: M01-foundation
 phase: P01-guardrails-safety-and-policy-enforcement
 status: Active
 entry_gate: |
-  ADR-0022 + ADR-0131 + ADR-0140 accepted; foundry-runtime PRD published; observability PHASE-01 substrate live so guardrails' self-SLOs can be evaluated; cargo workspace ready to accept the new crates under microservices/foundry-guardrails/src/crates/.
+  ADR-0022 + ADR-0131 + ADR-0140 (retired per ADR-0145) accepted; foundry-runtime PRD published; observability PHASE-01 substrate live so guardrails' self-SLOs can be evaluated; cargo workspace ready to accept the new crates under microservices/foundry-guardrails/src/crates/.
 exit_gate: |
   All 15 IPs merged; classifier-model-serving Helm chart deployed; Cedar v4 policy bundle validates default-deny; rule-store Postgres schema migrated; pre-invocation classification p99 ≤ 50ms on reference workload; post-output validation p99 ≤ 100ms; Sev-1 jailbreak drill auto-creates post-mortem; foundry-runtime calls guardrails on every dispatch (verified by oya-foundry-fitness-runtime-guardrails-coupling lane); HG-FGUARD gate green; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice foundry-guardrails exits 0; oya gate validate authority-cohesion exits 0.
 depends_on:

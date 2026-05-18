@@ -6,7 +6,7 @@ info:
     REST surface for the foundry-eval eval-runner BC. Exposes publish-gate verdict,
     eval-run history, ad-hoc eval-run dispatch, and EU AI Act §15/§17 evidence
     retrieval. Per ADR-0024 (eval harness) + ADR-0131 (per-microservice flat
-    layout) + ADR-0140 (Cedar policy).
+    layout) + ADR-0140 (retired per ADR-0145) (Cedar policy).
   contact:
     name: axis-foundry
     email: axis-foundry@oyatie.internal

@@ -15,7 +15,7 @@ spec:
   description: |
     Latency SLO for POST /connection-requests and POST /connection-requests/{id}.
     A request is "good" when its end-to-end latency is ≤ 50ms (Postgres write +
-    audit-chain emit + Redis degree-cache invalidation). Connection actions are
+    audit-chain emit + Valkey degree-cache invalidation). Connection actions are
     interactive; latency directly affects user perception of the platform.
   service: network
   indicator:

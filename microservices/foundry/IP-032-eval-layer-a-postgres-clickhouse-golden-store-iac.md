@@ -17,7 +17,7 @@ acceptance_lanes: [foundry-eval-iac-smoke, ci-helm-lint, oya-governance-per-micr
 
 ## Intent
 
-Bundle: Helm charts for Postgres (eval-set metadata; CloudNativePG-backed), ClickHouse (parity-analytics MergeTree), and golden-store (MinIO + KMS integration). Each chart with HA configuration + per-pack region pinning.
+Bundle: Helm charts for Postgres (eval-set metadata; CloudNativePG-backed), ClickHouse (parity-analytics MergeTree), and golden-store (SeaweedFS + KMS integration). Each chart with HA configuration + per-pack region pinning.
 
 ## ChangeSet boundary
 

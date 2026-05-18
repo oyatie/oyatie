@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, ops-security, council-design-system, council-privacy
-related: [ADR-0028, ADR-0135, ADR-0131, ADR-0140]
+related: [ADR-0028, ADR-0135, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/sheets/PRD.md (FR-11, AC-04)
   - microservices/sheets/policy/tenant-scope.cedar

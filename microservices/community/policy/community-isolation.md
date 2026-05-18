@@ -44,9 +44,9 @@ Same pattern applies to: `posts`, `revisions`, `threads`, `votes`, `moderation_a
 
 Each tenant gets a dedicated index name: `community-<tenant_id_short>-<bc>`. The gateway binds the index name to the JWT tenant claim; query templates never accept a tenant_id from the request body.
 
-### Invariant CI-04 — Per-tenant Redis namespace
+### Invariant CI-04 — Per-tenant Valkey namespace
 
-Redis keys are prefixed with `c:<tenant_id_short>:`. Redis ACLs scope clients to `~c:<tenant_id_short>:*` per tenant connection pool.
+Valkey keys are prefixed with `c:<tenant_id_short>:`. Valkey ACLs scope clients to `~c:<tenant_id_short>:*` per tenant connection pool.
 
 ### Invariant CI-05 — Per-tenant S3 prefix + bucket
 
@@ -77,7 +77,7 @@ Worker pools (search-reindex, foundry-guardrails-bridge, audit-chain-seal) use p
 - Daily CI gate runs `community-isolation-check` which:
   - Asserts every table has RLS enabled + FORCE'd.
   - Asserts every ES index follows `community-<tenant_id_short>-<bc>`.
-  - Asserts Redis ACL scope matches namespace pattern.
+  - Asserts Valkey ACL scope matches namespace pattern.
   - Asserts S3 bucket policy includes per-tenant prefix conditions.
 - Quarterly red-team: attempt cross-tenant read with crafted JWT; expected outcome is Cedar deny + audit-chain alert.
 

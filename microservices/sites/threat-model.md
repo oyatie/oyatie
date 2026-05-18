@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-sites + council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-SITES-0001, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140 (retired per ADR-0145), ADR-SITES-0001, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0006]
 doc_status: published
 ---
 
@@ -23,7 +23,7 @@ lane. This document is the security baseline for HG-SITES.
 In-scope: site / page / block / theme / navigation / url-routing /
 domain-binding / seo / cms-collection / search / cdn-delivery BCs;
 their adapters; their REST + Workflow event surfaces; their persisted
-state (Postgres + Redis + S3 + Meilisearch + Loro CRDT log).
+state (Postgres + Valkey + S3 + Meilisearch + Loro CRDT log).
 
 Out-of-scope: substrate µservices (`tenancy`, `audit-chain`, `ontology`,
 `workflow-engine`, `observability`); they carry their own threat models.

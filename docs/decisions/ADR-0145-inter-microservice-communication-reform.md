@@ -57,6 +57,30 @@ Enforcement: per-µservice manifest.json declares `ontology_projections: [...]`.
 
 µservices MAY use Workflow for durable long-running cross-µservice orchestration (sagas, retry-with-backoff, human-in-the-loop, multi-step transactions). Workflow is NOT a mandatory mediator. Direct µservice-to-µservice calls are permitted under invariants 1+2+3.
 
+### Rubric: when to use Workflow vs direct gRPC
+
+Use **Workflow** when the call has ANY of these properties:
+
+1. Durable execution required (retries spanning hours; state persists across pod restart).
+2. Multi-step transaction with rollback (saga pattern).
+3. Long-running with human-in-loop (approval steps, manual review).
+4. Async with audit-chain causal ordering across multiple µservices.
+5. Multi-tenant fan-out with bounded concurrency.
+
+Use **direct gRPC** when ALL of these are true:
+
+1. Synchronous request-response; latency budget under ~2 seconds.
+2. Latency-sensitive (P99 < 500ms).
+3. Read-only OR at-most-once semantics OK.
+4. Transient state acceptable; caller retries idempotently.
+5. Single-hop or fan-out without saga.
+
+The full rubric with worked examples lives at `docs/standards/workflow-vs-direct-grpc-rubric.md`.
+
+### Service-mesh substrate
+
+Direct gRPC under mTLS requires a service-mesh tool. **Cilium Service Mesh** (sidecarless eBPF, single-project parity with the Cilium CNI already adopted in ADR-0121) is the canonical PRIMARY substrate; **Istio Ambient waypoint** is an opt-in per-namespace Tier-2 overlay for the small set of µservices needing advanced L7 traffic management — see `ADR-0148-service-mesh-cilium.md` for alternatives considered (Istio classic sidecar, Istio Ambient as-primary, Linkerd, AWS App Mesh, no-mesh) and rationale.
+
 ### Direct sibling-µservice egress is permitted
 
 NetworkPolicy egress rules MAY allow direct egress to sibling µservices' gRPC endpoints, subject to:
@@ -118,6 +142,31 @@ NetworkPolicy egress rules MAY allow direct egress to sibling µservices' gRPC e
 4. Fix-D agent's ADR-0141-workflow-ontology-read-path-direct (queued for authoring) is SUBSUMED. The 3 weaker invariants make the read-path-direct split irrelevant.
 5. `feedback_workflow_objectgraph_adapter_layer` auto-memory marked superseded.
 6. CLAUDE.md updated to reference ADR-0145 in place of the old "products never call each other directly" assertion.
+
+## Rollback
+
+ADR-0145 is reversible. Operators revert via:
+
+```bash
+git revert <merge-commit-of-this-ADR-and-the-skeleton-PR>
+```
+
+State-change one-way analysis (per shipping-readiness checklist):
+
+1. **Audit-chain seals are append-only.** No rollback corruption risk — old seals remain valid as Ed25519-signed leaves of the Merkle tree. Reverting stops new seals on the relaxed code paths; existing seals stay.
+2. **Ontology projections are idempotent re-writes.** The projection target tables are re-derivable from the canonical entity source (the entity-owning µservice's own database). Rollback re-runs the canonical projection pipeline; no data loss.
+3. **NetworkPolicy egress relaxations are reversible.** Reverting tightens egress; in-flight connections drain via Istio's `terminationDrainDuration` (default 5s, configurable).
+4. **Mesh dataplane changes are reversible.** Cilium agent runs as a node DaemonSet — revert removes mesh policy/identity configuration but keeps the CNI dataplane intact. For Tier-2 Istio Ambient namespaces, revert removes the waypoint; mTLS connections drain via Ambient's ztunnel drain window.
+5. **Cedar policy fragment changes are reversible.** Cedar fragments are pure-text data; revert restores the prior fragment. No persisted state depends on a specific fragment version.
+
+No one-way state changes. The revert is operationally safe.
+
+If a partial revert is required (e.g. only one µservice rolls back while others stay on the new shape):
+
+- The skeleton-mode audit/tracing clients are designed to be removable per-µservice — they're path-dependencies, not workspace-wide deps.
+- The advisory-mode gates (`otel-trace-propagation`, `ontology-projection-coverage`, `audit-chain-seal-coverage`) do not error on partial rollouts; they surface findings without failing CI.
+
+Operator runtime-impact details live in `docs/operators/ADR-0145-runtime-impact-changelog.md`; the per-µservice 6-step adoption guide lives in `docs/operators/microservice-migration-guide-adr-0145.md`.
 
 ## References
 

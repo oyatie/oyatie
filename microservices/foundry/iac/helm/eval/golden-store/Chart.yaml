@@ -1,7 +1,7 @@
 apiVersion: v2
 name: golden-store
 description: |
-  Golden-output store for foundry-eval. MinIO-backed S3-compatible storage
+  Golden-output store for foundry-eval. SeaweedFS-backed S3-compatible storage
   + KMS integration. Per-subject-keyed envelope encryption per ADR-0024
   §"Resolved 1" cryptographic shredding. Cosign-signed objects with Rekor
   inclusion-proof verification.

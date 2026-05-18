@@ -13,7 +13,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: IaC bootstrap (Helm + Kustomize + Terraform)
+# IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)
 
 ## Intent
 
@@ -29,7 +29,7 @@ Versions pinned per LTS policy.
 ## ChangeSet boundary
 
 One cohesive ChangeSet: 1 Helm chart bundle (social) + 1 shared Kustomize
-base + 11 per-pack Kustomize overlays + 1 Terraform module for Grafana RBAC.
+base + 11 per-pack Kustomize overlays + 1 OpenTofu module for Grafana RBAC.
 No code; pure IaC + values. Per-pack secret references via OpenBao.
 
 ## Concrete File Targets
@@ -37,7 +37,7 @@ No code; pure IaC + values. Per-pack secret references via OpenBao.
 | Path | Action | Description |
 |---|---|---|
 | `microservices/social/iac/helm/social/Chart.yaml` | exists | upstream dep meilisearch 0.10.0 LTS |
-| `microservices/social/iac/helm/social/values.yaml` | exists | Per-BC replica sizing, OpenBao SecretReferences, LTS pins (Postgres 16, Redis 7.2, Meilisearch 0.10, ClamAV 1.x, OPSWAT 5.x, ImageMagick 7.1, ffmpeg 7.x), Cedar v4.2 |
+| `microservices/social/iac/helm/social/values.yaml` | exists | Per-BC replica sizing, OpenBao SecretReferences, LTS pins (Postgres 16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10, ClamAV 1.x, OPSWAT 5.x, ImageMagick 7.1, ffmpeg 7.x), Cedar v4.2 |
 | `microservices/social/iac/helm/social/templates/{deployment,service,hpa,pdb,networkpolicy,servicemonitor,prometheusrule}.yaml` | exists | core Kubernetes resources |
 | `microservices/social/iac/kustomize/base/kustomization.yaml` | exists | shared base |
 | `microservices/social/iac/kustomize/overlays/pack-{kr,eu,us,us-healthcare,jp,sg,au,in,br,ae,ksa}/kustomization.yaml` | 2 done (kr, us-healthcare), 9 follow | per-pack overlay |

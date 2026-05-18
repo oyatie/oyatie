@@ -67,7 +67,7 @@ Per `capacity-model.md` resource estimates × OCI per-vCPU + per-GiB pricing:
 | Memory (70 Gi requests; included in compute) | (folded in) | |
 | Postgres (HA primary + replica; 8 cores × 32 Gi) | ~ $1k | |
 | Meilisearch (2 nodes × 4 cores × 16 Gi) | ~ $600 | |
-| Redis (HA sentinel; 2 cores × 8 Gi) | ~ $200 | |
+| Valkey (HA sentinel; 2 cores × 8 Gi) | ~ $200 | |
 | S3 (OCI Object Storage; 500 GB base + tenant growth) | ~ $15 base + per-GB tenant growth | |
 | Network egress (per-pack inter-AZ + external vendor calls) | ~ $200–500 | tenant-rate-dependent |
 | **Baseline per-pack** | **~ $3.5k–$4.5k / month** | scales with tenant base |
@@ -106,7 +106,7 @@ Alerts:
 2. **Increase TM leverage** — per-tenant TM accumulation; goal ≥ 30 % at month 3, ≥ 60 % at month 12.
 3. **Per-tenant content-class hint** — route short segments to NMT (cheap), long contextual to LLM (expensive); per ADR-TRANSLATE-0001.
 4. **Batch fan-out** — batch up to 100 segments / call; amortize per-vendor overhead.
-5. **Cache identical segments** — Redis cache on (segment_hash, target_lang, content_class); TTL 24 h.
+5. **Cache identical segments** — Valkey cache on (segment_hash, target_lang, content_class); TTL 24 h.
 6. **gVisor sandbox pool warm** — avoid 200 ms cold-start per doc.
 
 ## Verification

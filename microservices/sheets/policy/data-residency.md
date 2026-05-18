@@ -62,7 +62,7 @@ Connected-sheets external SQL sources must be reachable from the pack-resident n
 ### Default: forbidden
 
 - Postgres workbook + cell + edit-log + license-attribution + share-ACL + range-ACL + comments + version-pointers: replicate within-pack only.
-- Redis ephemeral CRDT: per-cell; not cross-region replicated (regenerable from Postgres).
+- Valkey ephemeral CRDT: per-cell; not cross-region replicated (regenerable from Postgres).
 - S3 workbook snapshots + version-history: replicate within-pack only.
 - OCI Object Storage Arrow/Parquet large-sheet blocks: replicate within-pack only.
 - AI-formula prompts + completions (90d retention): within-pack only.
@@ -136,7 +136,7 @@ Right-to-erasure honoured via `oya-dsr-cascade-runner`:
    - Version-history snapshots.
    - Per-seat license attribution.
    - Audit-chain seals.
-3. Postgres + Redis + S3 + Arrow/Parquet + audit-chain searched; per-row deletion with 30-day soft-delete grace; hard-delete after.
+3. Postgres + Valkey + S3 + Arrow/Parquet + audit-chain searched; per-row deletion with 30-day soft-delete grace; hard-delete after.
 4. Audit-chain seal: `dsr_executed{tenant, subject_hash, removed_rows_count, timestamp}`.
 5. Tenant notified within 30d per GDPR; per-pack SLAs.
 

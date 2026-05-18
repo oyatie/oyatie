@@ -18,11 +18,11 @@ doc_status: published
 
 - `messenger_presence_inconsistency_total` > 0 sustained.
 - Presence stale globally for > 5 min.
-- Redis cluster split-brain or AOF corruption.
+- Valkey cluster split-brain or AOF corruption.
 
 ## Severity
 
-- Single Redis shard issue: Sev-3.
+- Single Valkey shard issue: Sev-3.
 - Multiple shards or global presence outage: Sev-2.
 - Combined with message-send breakage: escalate to Sev-1.
 
@@ -30,7 +30,7 @@ doc_status: published
 
 | Step | Action | Time |
 |---|---|---|
-| 1 | Verify Redis cluster health: `redis-cli --cluster check redis-primary.messenger.svc:6379` | ≤ 2 min |
+| 1 | Verify Valkey cluster health: `redis-cli --cluster check redis-primary.messenger.svc:6379` | ≤ 2 min |
 | 2 | If shard down: failover replica to primary; promote replica | ≤ 5 min |
 | 3 | Flush stale presence keys for affected shard: `KEYS pattern → DEL` (rebuilds from active sessions) | ≤ 5 min |
 | 4 | Trigger gateway re-emission: each gateway pod walks its active connection table and re-emits presence | ≤ 5 min |
@@ -38,7 +38,7 @@ doc_status: published
 
 ## Read-Receipt Path (FM-11)
 
-If read-receipt coalescer storms (separate Redis usage):
+If read-receipt coalescer storms (separate Valkey usage):
 
 | Step | Action |
 |---|---|
@@ -51,7 +51,7 @@ If read-receipt coalescer storms (separate Redis usage):
 
 | Hypothesis | Signal | Investigation |
 |---|---|---|
-| AOF corruption | Redis startup logs | restore from RDB snapshot |
+| AOF corruption | Valkey startup logs | restore from RDB snapshot |
 | Split-brain | conflicting cluster topology | enforce single-primary via sentinel failover |
 | Eviction storm | `evicted_keys` growth | check memory pressure; scale shards |
 | Network partition | inter-AZ latency spike | engage cloud-k8s + cloud-iac |
@@ -65,10 +65,10 @@ If read-receipt coalescer storms (separate Redis usage):
 ## Postmortem
 
 - If recurring (≥ 2 in 90d): redesign presence resilience.
-- If Redis cluster capacity insufficient: revisit sizing.
+- If Valkey cluster capacity insufficient: revisit sizing.
 
 ## References
 
 - `microservices/messenger/failure-modes.md` FM-03, FM-11.
-- `microservices/messenger/capacity-model.md` §"Redis Presence".
-- Redis cluster docs.
+- `microservices/messenger/capacity-model.md` §"Valkey Presence".
+- Valkey cluster docs.

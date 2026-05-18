@@ -17,7 +17,7 @@ acceptance_lanes: [iac-helm-lint, iac-kustomize-build, iac-terraform-validate, c
 
 ## Intent
 
-Stand up the Helm chart, kustomize base, and per-pack overlays (`pack-kr`, `pack-eu`, `pack-jp`, `pack-cn-stub`) for the `translate` µservice. Wire Postgres + Redis + Meilisearch + S3. Configure Istio mTLS + SPIFFE per `cell`. Bind to per-pack OpenBao endpoint. Emit no live workload — substrate only, ready for IP-002+ to land code.
+Stand up the Helm chart, kustomize base, and per-pack overlays (`pack-kr`, `pack-eu`, `pack-jp`, `pack-cn-stub`) for the `translate` µservice. Wire Postgres + Valkey + Meilisearch + S3. Configure Istio mTLS + SPIFFE per `cell`. Bind to per-pack OpenBao endpoint. Emit no live workload — substrate only, ready for IP-002+ to land code.
 
 ## ChangeSet boundary
 
@@ -41,7 +41,7 @@ Creates `iac/` subtree only. No source code in this IP.
 | `iac/helm/translate-router/templates/pdb-*.yaml` | create |
 | `iac/helm/translate-router/templates/istio-virtualservice.yaml` | create — mTLS STRICT |
 | `iac/helm/postgres/values.yaml` | create — per-pack Postgres 16 HA |
-| `iac/helm/redis/values.yaml` | create — Redis 7.2 sentinel HA |
+| `iac/helm/redis/values.yaml` | create — Valkey 8.1 (Redis wire-compat) sentinel HA |
 | `iac/helm/meilisearch/values.yaml` | create — Meilisearch 0.10.0 LTS |
 | `iac/kustomize/base/kustomization.yaml` | create — namespace `oya-translate`; commonLabels |
 | `iac/kustomize/overlays/pack-kr/kustomization.yaml` | create — namespace `oya-translate-kr`; engine whitelist patch (in-house + Anthropic + Google + DeepL conditional) |
@@ -122,7 +122,7 @@ kustomize build iac/kustomize/overlays/pack-kr
 kustomize build iac/kustomize/overlays/pack-eu
 kustomize build iac/kustomize/overlays/pack-jp
 kustomize build iac/kustomize/overlays/pack-cn-stub
-terraform validate iac/terraform/
+tofu validate iac/terraform/
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice translate
 ```
 

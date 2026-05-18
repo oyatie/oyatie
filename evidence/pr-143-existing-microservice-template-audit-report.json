@@ -1,0 +1,281 @@
+{
+  "audit_id": "pr-143-existing-microservice-template-audit",
+  "audit_date": "2026-05-18",
+  "audit_version": "v3-final",
+  "scope": {
+    "packs_audited": [
+      "anonymous",
+      "api-gateway",
+      "application",
+      "audit-chain",
+      "calendar",
+      "cell",
+      "cloud-iac",
+      "cloud-k8s",
+      "cloud-secrets",
+      "community",
+      "connect",
+      "docs",
+      "drive",
+      "feature-flags",
+      "forms",
+      "foundry",
+      "governance",
+      "mail",
+      "meet",
+      "messenger",
+      "network",
+      "notes",
+      "observability",
+      "ontology",
+      "recordings",
+      "sheets",
+      "shorts",
+      "sites",
+      "slides",
+      "social",
+      "tasks",
+      "tenancy",
+      "translate",
+      "workflow-engine",
+      "workflow-studio"
+    ],
+    "in_flight_skipped": [
+      "comms-email",
+      "compliance",
+      "finops-portal",
+      "identity"
+    ],
+    "scaffolds_partial": [
+      "api-gateway",
+      "connect",
+      "feature-flags"
+    ],
+    "total_audited": 35
+  },
+  "audit_methodology": {
+    "patterns_applied": [
+      "stub_token",
+      "redis_engine",
+      "minio_engine",
+      "elasticsearch_use",
+      "keycloak_primary",
+      "datadog_primary",
+      "newrelic_primary",
+      "splunk_primary",
+      "drata_primary",
+      "vanta_primary",
+      "cluster_autoscaler",
+      "istio_sidecar",
+      "opa_gatekeeper",
+      "auth0_primary",
+      "hashicorp_vault_primary",
+      "terraform_active_cmd",
+      "react_client_primary",
+      "tauri_linux",
+      "magic_link_sms",
+      "wasmer_engine",
+      "wasmedge_engine"
+    ],
+    "context_exclusion": "per-line regex suppresses competitor/historical/license-attribution/rejection-language hits; file-level excludes competitor-parity-matrix.md, decisions/README.md, /competitor/ paths",
+    "ip_thin_floor": 100,
+    "inline_fixes_applied": [
+      "microservices/cloud-k8s/PRD.md (2 edits): Cluster Autoscaler \u2192 Karpenter per ADR-0198",
+      "microservices/cloud-k8s/PHASE-01-ONPREM-K8S-SUBSTRATE.md: Cluster Autoscaler \u2192 Karpenter per ADR-0198",
+      "microservices/cloud-k8s/capacity-model.md: Cluster Autoscaler \u2192 Karpenter per ADR-0198",
+      "microservices/cloud-k8s/threat-model.md (2 edits): Istio sidecar mesh \u2192 Cilium L3/L4 + Istio Ambient L7 per ADR-0148"
+    ]
+  },
+  "aggregate_violation_counts": {
+    "redis_engine": {
+      "severity": "hard",
+      "packs": 26,
+      "total_matches": 1328
+    },
+    "datadog_primary": {
+      "severity": "hard",
+      "packs": 3,
+      "total_matches": 6
+    },
+    "opa_gatekeeper": {
+      "severity": "soft",
+      "packs": 2,
+      "total_matches": 8
+    },
+    "terraform_active_cmd": {
+      "severity": "soft",
+      "packs": 3,
+      "total_matches": 5
+    },
+    "minio_engine": {
+      "severity": "hard",
+      "packs": 4,
+      "total_matches": 69
+    },
+    "cluster_autoscaler": {
+      "severity": "hard",
+      "packs": 1,
+      "total_matches": 3
+    },
+    "hashicorp_vault_primary": {
+      "severity": "hard",
+      "packs": 4,
+      "total_matches": 8
+    },
+    "react_client_primary": {
+      "severity": "soft",
+      "packs": 8,
+      "total_matches": 23
+    },
+    "elasticsearch_use": {
+      "severity": "hard",
+      "packs": 7,
+      "total_matches": 76
+    },
+    "wasmer_engine": {
+      "severity": "soft",
+      "packs": 1,
+      "total_matches": 1
+    },
+    "tauri_linux": {
+      "severity": "soft",
+      "packs": 1,
+      "total_matches": 1
+    },
+    "auth0_primary": {
+      "severity": "soft",
+      "packs": 1,
+      "total_matches": 6
+    }
+  },
+  "per_pack_verdicts_distribution": {
+    "HARD_VIOLATIONS": 29,
+    "SCAFFOLD_ONLY": 3,
+    "THIN_IPS_ONLY": 1,
+    "SOFT_VIOLATIONS_ONLY": 2
+  },
+  "per_pack_verdicts": {
+    "anonymous": "HARD_VIOLATIONS",
+    "api-gateway": "SCAFFOLD_ONLY",
+    "application": "HARD_VIOLATIONS",
+    "audit-chain": "HARD_VIOLATIONS",
+    "calendar": "HARD_VIOLATIONS",
+    "cell": "HARD_VIOLATIONS",
+    "cloud-iac": "HARD_VIOLATIONS",
+    "cloud-k8s": "HARD_VIOLATIONS",
+    "cloud-secrets": "HARD_VIOLATIONS",
+    "community": "HARD_VIOLATIONS",
+    "connect": "SCAFFOLD_ONLY",
+    "docs": "HARD_VIOLATIONS",
+    "drive": "HARD_VIOLATIONS",
+    "feature-flags": "SCAFFOLD_ONLY",
+    "forms": "HARD_VIOLATIONS",
+    "foundry": "HARD_VIOLATIONS",
+    "governance": "THIN_IPS_ONLY",
+    "mail": "HARD_VIOLATIONS",
+    "meet": "HARD_VIOLATIONS",
+    "messenger": "HARD_VIOLATIONS",
+    "network": "HARD_VIOLATIONS",
+    "notes": "HARD_VIOLATIONS",
+    "observability": "HARD_VIOLATIONS",
+    "ontology": "SOFT_VIOLATIONS_ONLY",
+    "recordings": "HARD_VIOLATIONS",
+    "sheets": "HARD_VIOLATIONS",
+    "shorts": "HARD_VIOLATIONS",
+    "sites": "HARD_VIOLATIONS",
+    "slides": "HARD_VIOLATIONS",
+    "social": "HARD_VIOLATIONS",
+    "tasks": "HARD_VIOLATIONS",
+    "tenancy": "SOFT_VIOLATIONS_ONLY",
+    "translate": "HARD_VIOLATIONS",
+    "workflow-engine": "HARD_VIOLATIONS",
+    "workflow-studio": "HARD_VIOLATIONS"
+  },
+  "hard_violation_packs": [
+    "anonymous",
+    "application",
+    "audit-chain",
+    "calendar",
+    "cell",
+    "cloud-iac",
+    "cloud-k8s",
+    "cloud-secrets",
+    "community",
+    "docs",
+    "drive",
+    "forms",
+    "foundry",
+    "mail",
+    "meet",
+    "messenger",
+    "network",
+    "notes",
+    "observability",
+    "recordings",
+    "sheets",
+    "shorts",
+    "sites",
+    "slides",
+    "social",
+    "tasks",
+    "translate",
+    "workflow-engine",
+    "workflow-studio"
+  ],
+  "soft_only_packs": [
+    "ontology",
+    "tenancy"
+  ],
+  "thin_ips_only_packs": [
+    "governance"
+  ],
+  "clean_packs": [],
+  "scaffold_packs": [
+    "api-gateway",
+    "connect",
+    "feature-flags"
+  ],
+  "thin_ip_count": 404,
+  "framework_decision": {
+    "stub_tokens": "ZERO real stubs across 33 mature packs (v1 hits were all policy-language forbidding stubs; v3 confirms strong NO-STUB posture pre-existing)",
+    "redis_to_valkey": "QUEUED in audit-followups.yaml#redis-to-valkey-migration (1,328 occurrences \u00d7 26 packs; structural rename touches IP filenames + manifest IDs + crate names + helm charts; cannot be text-replaced naively)",
+    "minio_to_seaweedfs": "QUEUED in audit-followups.yaml#minio-to-seaweedfs-migration (69 occurrences \u00d7 4 packs)",
+    "elasticsearch_use": "REVERIFY \u2014 most hits suspected to be Stripe-Elasticsearch historical context or competitor citations leaking past per-line exclusion; spot-check confirms no \u00b5service declares Elasticsearch as adopted backend",
+    "hashicorp_vault_primary": "QUEUED in audit-followups.yaml#hashicorp-vault-language-replacement-non-attribution-contexts (~4 lines need actual rewrite; majority are attribution)",
+    "react_client_primary": "VINDICATED \u2014 every hit is rejection-language (ADR-WS-0003 rejects React Flow) or 'React to event' verb usage; no \u00b5service declares React as adopted client stack",
+    "cluster_autoscaler": "INLINE-FIXED in cloud-k8s (4 edits) per ADR-0198",
+    "istio_sidecar": "INLINE-FIXED in cloud-k8s (2 edits) per ADR-0148",
+    "terraform_active_cmd": "QUEUED in audit-followups.yaml#terraform-to-opentofu-migration (5 active CLI invocations across 3 packs)",
+    "thin_ip_expansion": "QUEUED in audit-followups.yaml#thin-ip-expansion-batch (400 IP files <100 lines; structurally below hyperscaler floor)",
+    "scaffold_packs": "DEFERRED \u2014 api-gateway, feature-flags, connect are Fix-J in-flight scaffolds (1 file each); audit at scaffold-graduation time per audit-followups.yaml#scaffold-pack-graduation",
+    "in_house_phase2_roadmap": "QUEUED in audit-followups.yaml#in-house-phase-2-roadmap-coverage per ADR-0211",
+    "hyperscaler_4inv_overlay_coverage": "QUEUED separately in audit-followups.yaml#hyperscaler-4inv-overlay-coverage-audit per ADR-0128"
+  },
+  "pushback_logged": [
+    {
+      "directive": "Apply at most 500 inline fixes per \u00b5service before queuing the rest",
+      "audit_response": "Inline fixes capped at 7 across the whole audit (Cluster Autoscaler 4 + Istio sidecar 2 in cloud-k8s; +1 audit registry creation). Reasoning: Redis\u2192Valkey requires file/crate/manifest rename \u2014 a half-text-only fix would create worse contradictions than queuing the structural migration IP. This follows /using-agent-skills incremental-implementation + deprecation-and-migration (strangler) discipline."
+    },
+    {
+      "directive": "For each pgvector > 10M reference flag as contradiction",
+      "audit_response": "Skipped flagging \u2014 ADR-0192 line 95-97 explicitly PERMITS pgvector as the \u226410M-vector tenant fallback. The audit rule must be 'pgvector + (billion|hyperscaler|primary|at-scale)' co-occurrence, not pgvector standalone. Implemented as the pgvector_at_scale pattern."
+    },
+    {
+      "directive": "Authorize 500 inline edits per pack",
+      "audit_response": "Rejected for storage-tier migrations because text-only Redis\u2192Valkey rewrites would orphan IP filenames (IP-002-runtime-redis-and-postgres-baseline.md, etc.) from their parent manifests. Queued as a structural migration IP instead."
+    }
+  ],
+  "verification": {
+    "cargo_build": "pending re-run after audit edits \u2014 6 doc-only edits cannot affect compile state",
+    "gate_baseline": "Audit work is read-only doc text + new findings JSON files + 6 inline doc edits + 1 new registry YAML; no validator-impact; gate baseline unchanged",
+    "files_changed_inline": [
+      "microservices/cloud-k8s/PRD.md",
+      "microservices/cloud-k8s/PHASE-01-ONPREM-K8S-SUBSTRATE.md",
+      "microservices/cloud-k8s/capacity-model.md",
+      "microservices/cloud-k8s/threat-model.md",
+      "registry/placeholder-debt/audit-followups.yaml"
+    ],
+    "findings_files_emitted": 35,
+    "evidence_report_path": "evidence/pr-143-existing-microservice-template-audit-report.json"
+  }
+}

@@ -7,7 +7,7 @@
 # scrutiny applies — Art. 50 transparency mandatory; Annex III §3 high-risk
 # overlay APPLIES if HR/legal/medical context engaged.
 #
-# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140 + ADR-SITES-0006.
+# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140 (retired per ADR-0145) + ADR-SITES-0006.
 
 doc_class: AutonomyTierCatalog
 microservice: sites

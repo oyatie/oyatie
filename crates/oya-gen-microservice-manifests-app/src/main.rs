@@ -87,10 +87,7 @@ fn main() -> ExitCode {
     }
 
     if !check {
-        let index = build_manifests_index(
-            "2026-05-18",
-            MICROSERVICES,
-        );
+        let index = build_manifests_index("2026-05-18", MICROSERVICES);
         let mut idx = serde_json::to_string_pretty(&index).expect("serialize");
         idx.push('\n');
         let idx_path = repo_root.join("specs/microservices/manifests-index.json");
@@ -130,9 +127,10 @@ fn load_docs_decisions(repo_root: &Path) -> Result<Vec<String>, String> {
     for entry in fs::read_dir(&dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))? {
         let entry = entry.map_err(|e| e.to_string())?;
         if entry.file_type().map(|t| t.is_file()).unwrap_or(false)
-            && let Some(name) = entry.file_name().to_str() {
-                out.push(name.to_string());
-            }
+            && let Some(name) = entry.file_name().to_str()
+        {
+            out.push(name.to_string());
+        }
     }
     Ok(out)
 }

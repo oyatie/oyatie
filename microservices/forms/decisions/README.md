@@ -9,7 +9,7 @@ doc_status: published
 
 # forms service-scoped ADRs
 
-This directory holds **service-scoped** Architecture Decision Records owned by the `forms` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs live at `docs/decisions/` (e.g., ADR-0105, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140).
+This directory holds **service-scoped** Architecture Decision Records owned by the `forms` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs live at `docs/decisions/` (e.g., ADR-0105, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)).
 
 Service-scoped ADRs are numbered `ADR-FORMS-####` (four-digit, sequential within this directory). The `FORMS` prefix prevents collision with the repo-wide `ADR-####` series and matches the convention adopted by sibling µservices migrating to ADR-0131 per-microservice flat layout (e.g., `ADR-WS-####` for workflow-studio).
 

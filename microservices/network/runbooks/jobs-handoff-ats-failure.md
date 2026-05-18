@@ -32,7 +32,7 @@ Sev-2 default. Escalate to Sev-1 if ATS outage extends beyond 24h and tenant ATS
 |---|---|---|
 | 1 | Verify ATS µservice health: `kubectl -n ats get pods`; check ATS OpenSLO burn-rate | ≤ 2 min |
 | 2 | Engage axis-ats on-call if ATS is the root cause | ≤ 5 min |
-| 3 | Hold jobs-handoff events in Redis Streams `network:ats:bridge:queue:<tenant_id>` (worker continues batching; events are durable for 24h) | ≤ 5 min |
+| 3 | Hold jobs-handoff events in Valkey Streams (Redis wire-compat) `network:ats:bridge:queue:<tenant_id>` (worker continues batching; events are durable for 24h) | ≤ 5 min |
 | 4 | Surface backlog UI to tenant-admins: "Jobs-pipeline handoff pending — ATS µservice degraded; queued events will replay automatically" | ≤ 5 min |
 | 5 | Verify event contract-version compatibility: if ATS upgraded to v2 contract but network still on v1, coordinate with axis-ats for adapter | ≤ 30 min |
 | 6 | Once ATS restored: invoke `runbooks` §"Jobs-Handoff Replay" via backfill-replay procedure; ATS POSTs `ATSResumeReady{from_event_id, contract_version}` | – |

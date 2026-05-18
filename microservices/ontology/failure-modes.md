@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-ontology
 deciders: ops-sre-reliability, axis-ontology, ops-security, council-architecture
-related_adrs: [ADR-0028, ADR-0059, ADR-0106, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0059, ADR-0106, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/ontology/threat-model.md
   - microservices/ontology/dpia.md

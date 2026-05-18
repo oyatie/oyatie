@@ -23,7 +23,7 @@ In-scope:
 - 65 crates per the layer mapping table.
 - Postgres document-metadata schema + per-tenant RLS + tenant-DEK envelope encryption.
 - S3 content-blob storage + per-tenant prefix + Object Lock for legal-hold.
-- Redis collab-presence + CRDT op fan-out + per-doc cache; cluster mode.
+- Valkey collab-presence + CRDT op fan-out + per-doc cache; cluster mode.
 - Loro 1.x CRDT engine adoption with shared library alignment to workflow-studio (per ADR-DOCS-0001 + ADR-WS-0001).
 - Block-type schema + sanitisation (paragraph, heading, list, table, image, embed, code, math, callout).
 - Comments + suggestions BC with anchor stability across edits.

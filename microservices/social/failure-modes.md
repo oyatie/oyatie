@@ -54,7 +54,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 | Runbook | `runbooks/postgres-primary-failover.md` (in cell µservice; social references) |
 | Postmortem | ops-sre-reliability + axis-social |
 
-## FM-03: Redis feed-cache corruption
+## FM-03: Valkey feed-cache corruption
 
 | Field | Value |
 |---|---|

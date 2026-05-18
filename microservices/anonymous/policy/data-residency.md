@@ -81,7 +81,7 @@ Per ADR-0117 (tenant pack jurisdiction), each tenant is bound to exactly one **r
 | Postgres `votes` table | primary region of pack | within-pack DR replica only | RLS |
 | Postgres `affinity_attestation_bindings` table | primary region of pack | within-pack DR replica only | RLS + blinded-commitment columns |
 | Postgres `legal_process_orders` table | primary region of pack | within-pack DR replica only; audit-chain seal additionally globally replicated as hash | sealed records |
-| Redis feed-cache | primary region of pack | none (cache; reconstructed) | per-affinity-cluster prefix |
+| Valkey feed-cache | primary region of pack | none (cache; reconstructed) | per-affinity-cluster prefix |
 | Meilisearch hashtag index | primary region of pack | within-pack DR replica only | anonymised corpus |
 | MLS DM ciphertext store (anonymous-DM via messenger) | primary region of pack | within-pack DR replica only | ciphertext only |
 | OpenBao secrets | per-pack OpenBao cluster | none | secret references in code via `${openbao:secret/<path>}` |

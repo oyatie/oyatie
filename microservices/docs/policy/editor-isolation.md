@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-docs + ops-security + council-design-system
 deciders: axis-docs, ops-security, council-architecture, council-design-system
-related_adrs: [ADR-0028, ADR-0065, ADR-0131, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0004]
+related_adrs: [ADR-0028, ADR-0065, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-DOCS-0001, ADR-DOCS-0004]
 related_artifacts:
   - microservices/docs/threat-model.md (T-T-01, T-I-01, T-I-02, T-I-03, T-E-01)
   - microservices/docs/dpia.md (R-01, R-02, R-16)
@@ -28,7 +28,7 @@ Define the load-bearing isolation contract between tenant editor sessions, block
 
 Every editor session belongs to exactly one tenant, identified by the OIDC `tenant_id` claim. The session boundary applies to:
 
-1. **Editor session state** (active drafts, cursor, viewport, undo history, presence) — Postgres + Redis row-tagged by tenant_id.
+1. **Editor session state** (active drafts, cursor, viewport, undo history, presence) — Postgres + Valkey row-tagged by tenant_id.
 2. **CRDT op stream** — WebSocket gateway lease is keyed (tenant_id, document_id); cross-tenant lease denied.
 3. **Block-tree state** — every block carries tenant_id; queries filtered.
 4. **Comment + suggestion threads** — scoped to (document_id, thread_id); tenant_id inherited from doc.
@@ -47,7 +47,7 @@ Every editor session belongs to exactly one tenant, identified by the OIDC `tena
 | Postgres block-level RLS (per ADR-DOCS-0004) | Predicate on `blocks` table: includes per-block ACL check | empty result; audit `docs_postgres_block_acl_block` |
 | Per-tenant Postgres connection pool | Connection-level session variable carries tenant_id; rebinding requires re-auth | Pool returns 503; audit `docs_pool_rebinding_denied` |
 | S3 per-tenant prefix | Tenant ID is part of the object key prefix; cross-prefix access denied at IAM | 403; audit `docs_s3_cross_tenant_block` |
-| WebSocket gateway lease | Per (tenant_id, document_id) lease via Redis; consistent-hash routing | WS upgrade rejected; audit `docs_ws_lease_cross_tenant` |
+| WebSocket gateway lease | Per (tenant_id, document_id) lease via Valkey; consistent-hash routing | WS upgrade rejected; audit `docs_ws_lease_cross_tenant` |
 | Server-side stamping | Editor REST + WS handler overwrites any client-supplied tenant_id with OIDC claim | Spoofing attempt logged; no behavior change |
 
 All eight layers must fail simultaneously for cross-tenant access. LEAN check `oya-governance-citus-rls-enforced` validates layers 3 + 4 + 5 at every PR.

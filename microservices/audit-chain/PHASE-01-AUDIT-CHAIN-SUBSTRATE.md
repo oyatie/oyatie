@@ -166,4 +166,4 @@ Per ADR-0116; same primitives as observability P01.
 - ADR-0056 BNF v4.1; ADR-0105 13-layer enum; ADR-0110 ChangeSet; ADR-0117 cloud-native infra; ADR-0123 hyperscaler-maturity claim gate; ADR-0131 per-microservice flat layout.
 - `/specs/audit-chain-merkle-ed25519.json`.
 - `microservices/audit-chain/PRD.md`.
-- Memory: `feedback_bominal_inheritance_precedence.md`, `feedback_milestone_phase_hierarchy.md`, `feedback_oya_vcs_canonical_2026_05_16.md`, `feedback_clean_architecture_requirements.md`, `feedback_no_silent_regression.md`, `feedback_workflow_objectgraph_adapter_layer.md`.
+- Memory: `feedback_bominal_inheritance_precedence.md`, `feedback_milestone_phase_hierarchy.md`, `feedback_oya_vcs_canonical_2026_05_16.md`, `feedback_clean_architecture_requirements.md`, `feedback_no_silent_regression.md`, `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`.

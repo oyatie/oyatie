@@ -19,7 +19,7 @@ doc_status: published
 
 Stand up the forms µservice from zero to GA-eligible foundation. This phase delivers:
 
-1. Layer-A substrate (Postgres + Citus + Redis + Meilisearch + ClamAV + WAF + CDN + hCaptcha sidecar).
+1. Layer-A substrate (Postgres + Citus + Valkey + Meilisearch + ClamAV + WAF + CDN + hCaptcha sidecar).
 2. Core domain kernel (form / field / section / response / submission with type-safe schema).
 3. Form-builder Leptos-WASM editor + form-renderer (Leptos-WASM + plain HTML fallback for accessibility).
 4. Response-collector REST surface (anonymous + authenticated + pre-filled-link).
@@ -62,13 +62,13 @@ All of:
 
 | IP | Title | Layer focus |
 |---|---|---|
-| IP-001 | Layer-A IaC (Postgres + Citus + Redis + Meilisearch + ClamAV + WAF + CDN + hCaptcha + Turnstile + Friendly Captcha sidecar) | infra |
+| IP-001 | Layer-A IaC (Postgres + Citus + Valkey + Meilisearch + ClamAV + WAF + CDN + hCaptcha + Turnstile + Friendly Captcha sidecar) | infra |
 | IP-002 | Form / field / section / response domain kernel | kernel + domain |
 | IP-003 | Conditional-logic engine (declarative DAG; ADR-FORMS-0004) | domain |
 | IP-004 | Validation engine (per-field + cross-field; JSON Schema bridge) | domain |
 | IP-005 | Versioning + ChangeSet binding (ADR-0110) | domain |
 | IP-006 | Postgres adapter (Citus shard; column-level envelope encryption per ADR-FORMS-0003) | adapter |
-| IP-007 | Redis adapter (rate-limit + session) | adapter |
+| IP-007 | Valkey adapter (Redis wire-compat) (rate-limit + session) | adapter |
 | IP-008 | Meilisearch adapter (response search) | adapter |
 | IP-009 | Captcha adapter (hCaptcha + Turnstile + Friendly Captcha) | adapter |
 | IP-010 | Form-builder Leptos-WASM (authoring UI) | app/frontend |
@@ -80,7 +80,7 @@ All of:
 
 ## Cross-product Boundaries (Workflow + Ontology adapter mandatory)
 
-- Forms NEVER calls a sibling µservice directly; every cross-product flow goes through the Workflow + Ontology adapter pattern (per `feedback_workflow_objectgraph_adapter_layer.md`).
+- Forms NEVER calls a sibling µservice directly; every cross-product flow goes through the Workflow + Ontology adapter pattern (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`).
 - Workflow-trigger on submission → workflow-engine: adapter via `oya-forms-workflow-trigger-adapter` (no direct workflow-engine REST call from form-rest).
 - Response-bridge to sheets: adapter via `oya-forms-sheets-bridge-adapter`.
 - File-upload backend to drive: adapter via `oya-forms-drive-upload-adapter`.

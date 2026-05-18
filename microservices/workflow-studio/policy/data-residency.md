@@ -78,7 +78,7 @@ Tenant may opt-out of LLM-assist entirely (no foundry-providers invocation). Ten
 ### Default: forbidden
 
 - Postgres editor session state: replicate within-pack only.
-- Redis ephemeral CRDT: per-cell; not cross-region replicated (regenerable from Postgres).
+- Valkey ephemeral CRDT: per-cell; not cross-region replicated (regenerable from Postgres).
 - Per-seat license attribution: within-pack only.
 - LLM-assist prompts + completions (90d retention): within-pack only.
 - Studio audit-chain seals: replicate within-pack only.
@@ -145,7 +145,7 @@ Right-to-erasure (GDPR Art. 17 / PIPA Art. 36 / DPDPA §12 / LGPD Art. 18) honou
    - Spec draft contents (user-id field patterns).
    - LLM-assist prompts (prose mentioning end-user).
    - Per-seat license attribution.
-3. Postgres + Redis + audit-chain searched; per-row deletion with 30-day soft-delete grace; hard-delete after.
+3. Postgres + Valkey + audit-chain searched; per-row deletion with 30-day soft-delete grace; hard-delete after.
 4. Audit-chain seal: `dsr_executed{tenant, subject_hash, removed_rows_count, timestamp}`.
 5. Tenant notified within 30d per GDPR; per-pack SLAs (KR 30d, BR 15d, EU 30d) respect strictest applicable.
 

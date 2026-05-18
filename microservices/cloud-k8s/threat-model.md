@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-cloud + ops-security
 deciders: council-architecture, ops-security, axis-cloud, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154 + CIS Kubernetes Benchmark v1.9 + NSA/CISA Kubernetes Hardening Guide v1.2
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 review_cadence: quarterly + on every Kubernetes / containerd / Istio / Envoy / Cilium version change
 enforced_frameworks:
@@ -44,7 +44,7 @@ All components introduced by ADR-0121 (on-prem k8s stack) and ADR-0131 (per-micr
 | Cilium CNI 1.16 LTS (eBPF dataplane + NetworkPolicy + Hubble) | `oya-cloud-k8s-network-policy-*` (8 crates) |
 | Istio 1.29.2 (istiod control-plane) | `oya-cloud-k8s-service-mesh-control-plane-*` (9 crates) |
 | Envoy 1.32 (Istio sidecars + ingress gateway) | `oya-cloud-k8s-ingress-controller-*` (9 crates) |
-| CSI drivers (OCI Block Volume + Object Storage + File Storage; CephFS / Ceph RBD / MinIO on-prem) | `oya-cloud-k8s-csi-storage-driver-*` (11 crates) |
+| CSI drivers (OCI Block Volume + Object Storage + File Storage; CephFS / Ceph RBD / SeaweedFS on-prem) | `oya-cloud-k8s-csi-storage-driver-*` (11 crates) |
 | kube-apiserver / kube-controller-manager / kube-scheduler / etcd | `oya-cloud-k8s-kubernetes-api-proxy-*` (10 crates) |
 | Cosign + Kyverno admission controller | (uses governance µservice supply-chain authority) |
 
@@ -78,10 +78,12 @@ All components introduced by ADR-0121 (on-prem k8s stack) and ADR-0131 (per-micr
 │                                                                              │
 │  Trust boundary 1: External → Ingress (Envoy/Istio Gateway)                  │
 │                                                                              │
-│  ┌─ Istio sidecar mesh ────────────────────────────────────────────────┐     │
-│  │  - mTLS strict between every Pod (Envoy sidecars)                   │     │
-│  │  - per-namespace AuthorizationPolicy (Cedar-derived)                │     │
-│  │  - per-namespace NetworkPolicy (Cilium eBPF; Cedar-derived)         │     │
+│  ┌─ Cilium L3/L4 + Istio Ambient L7 (per ADR-0148; no sidecars) ──────┐     │
+│  │  - L3/L4: Cilium eBPF mTLS + identity-aware NetworkPolicy           │     │
+│  │  - L7: Istio Ambient ztunnel (node-level) + per-namespace waypoints │     │
+│  │  - mTLS strict via Cilium + Istio Ambient (no Envoy sidecar)        │     │
+│  │  - per-namespace AuthorizationPolicy at waypoint (Cedar-derived)    │     │
+│  │  - per-namespace NetworkPolicy via Cilium eBPF (Cedar-derived)      │     │
 │  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
 │  Trust boundary 2: Pod → kube-apiserver (mediated by api-proxy)              │
@@ -158,7 +160,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 |---|---|---|---|
 | External tenant API consumer | Untrusted | OIDC + per-tenant API key (rotated 30d) | Read/write own tenant's resources via Envoy Gateway → Pod |
 | External tenant browser user | Untrusted | OIDC + MFA | Same, plus admin UI per Cedar |
-| Workload µservice in own cluster | Semi-trusted | SPIFFE SVID; mTLS via Istio sidecar | Pod-to-Pod within namespace; cross-namespace per AuthorizationPolicy |
+| Workload µservice in own cluster | Semi-trusted | SPIFFE SVID; mTLS via Cilium L3/L4 + Istio Ambient ztunnel/waypoint (no sidecar; per ADR-0148) | Pod-to-Pod within namespace; cross-namespace per AuthorizationPolicy at the waypoint |
 | Operator (axis-cloud) | Trusted internal | OIDC + MFA + JIT via OpenBao | Cluster mutation through `kubernetes-api-proxy`; never direct 6443 |
 | Foundry agent | Trusted internal | OIDC-bound + autonomy-ceiling | Cluster mutation via Foundry capability surface (`cloud-k8s.cluster.bootstrap`, etc.); audit-chain emit per call |
 | CI runner | Semi-trusted internal | `WORKFLOW_PAT` + reserved Mimir tenant + namespace-scoped SA | Read-only on cluster + write to `oya-ci` namespace |
@@ -517,7 +519,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: Kubernetes RBAC
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - All RBAC managed via Terraform / Kustomize at `microservices/cloud-k8s/iac/`; PR-reviewed.
+  - All RBAC managed via OpenTofu / Kustomize at `microservices/cloud-k8s/iac/`; PR-reviewed.
   - kubernetes-api-proxy adds Cedar layer ON TOP of RBAC; no operator gets cluster-admin without JIT.
   - LEAN check `oya-check-rbac-conformance` greps for `cluster-admin` binding + flags.
   - Annual RBAC audit.

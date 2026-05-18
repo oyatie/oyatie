@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-cell-substrate
 deciders: council-architecture, ops-security, axis-cell-substrate, council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/cell/threat-model.md (Trust Boundary 2/3/4/5, T-S-01..T-S-04, T-I-01)
   - microservices/cell/dpia.md (R-01, R-02, R-03)

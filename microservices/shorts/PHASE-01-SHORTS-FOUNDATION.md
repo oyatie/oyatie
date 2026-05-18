@@ -73,7 +73,7 @@ Plus cross-cutting:
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm/Kustomize/Terraform for shorts cluster; Postgres + Redis + Meilisearch + S3 + CloudFront + ClamAV/OPSWAT + ffmpeg + DRM substrate | pending | axis-shorts + ops-sre-reliability + cloud-secrets | observability IP-001 |
+| [`IP-001-iac-bootstrap.md`](IP-001-iac-bootstrap.md) | Helm/Kustomize/Terraform for shorts cluster; Postgres + Valkey + Meilisearch + S3 + CloudFront + ClamAV/OPSWAT + ffmpeg + DRM substrate | pending | axis-shorts + ops-sre-reliability + cloud-secrets | observability IP-001 |
 | [`IP-002-cargo-workspace-bootstrap.md`](IP-002-cargo-workspace-bootstrap.md) | Cargo workspace + ~140 crate scaffolds per ADR-0131 | pending | axis-shorts | IP-001 |
 | [`IP-003-video-upload-bc.md`](IP-003-video-upload-bc.md) | `video-upload` kernel + domain + usecase + api + adapter-postgres + adapter-s3 + scan-first lifecycle + rest + sdk + app | pending | axis-shorts | IP-002 |
 | [`IP-004-video-transcode-bc.md`](IP-004-video-transcode-bc.md) | `video-transcode` BC end-to-end; ffmpeg 7.x sandboxed worker; HLS/DASH ladder; H.264/H.265/AV1 + AAC/Opus; CMAF | pending | axis-shorts | IP-003 |
@@ -96,7 +96,7 @@ Plus cross-cutting:
 | kernel | 90 % / 80 % | per-port-trait + per-entity unit; sealed-trait smoke; data-class annotation check |
 | domain | 90 % / 80 % | pure-math / pure-logic unit |
 | usecase | 85 % / 75 % | orchestrator unit with port mocks; happy + error path |
-| adapter | 80 % / 70 % | integration vs real backend (Postgres / Redis / S3 / Meilisearch / ClamAV / ffmpeg / Widevine sandbox) where feasible; otherwise contract-mock |
+| adapter | 80 % / 70 % | integration vs real backend (Postgres / Valkey / S3 / Meilisearch / ClamAV / ffmpeg / Widevine sandbox) where feasible; otherwise contract-mock |
 | rest | 85 % / 75 % | per-endpoint happy + 401 + 403 + 422 |
 | worker | 85 % / 75 % | event-loop unit + integration |
 | app | 75 % / 65 % | smoke startup |

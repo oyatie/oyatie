@@ -8,7 +8,7 @@ owner: axis-forms + ops-security + council-privacy
 deciders: council-architecture, axis-forms, ops-security, council-privacy, council-legal-compliance
 supersedes: []
 superseded_by: []
-related: [ADR-0117, ADR-0131, ADR-0140, ADR-FORMS-0001]
+related: [ADR-0117, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-FORMS-0001]
 related_specs: [/specs/microservices/forms.json]
 related_artifacts:
   - microservices/forms/PRD.md FR-06 + AC-08

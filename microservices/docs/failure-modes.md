@@ -20,12 +20,12 @@ Enumerate failure modes, blast radius, detection signals, automated recovery, an
 
 ### FM-01 — CRDT silent loss (op accepted but not reflected in final state)
 
-- **Cause:** Loro adapter regression, op-serialisation bug, or Redis spool eviction before persistence ack.
+- **Cause:** Loro adapter regression, op-serialisation bug, or Valkey spool eviction before persistence ack.
 - **Blast radius:** Sev-1; tenant trust impact; AC-06 invariant breach.
 - **Detection:** `docs_collab_silent_loss_attempt_total > 0`.
 - **Automated recovery:** halt save-paths for affected (tenant, doc); reconstruct from seal-deltas.
 - **Runbook:** `runbooks/collab-conflict-resolution.md` (Path C — Sev-1 escalation).
-- **Mitigation hardening:** AC-06 property test in CI; pinned Loro version; Redis AOF every-sec.
+- **Mitigation hardening:** AC-06 property test in CI; pinned Loro version; Valkey AOF every-sec.
 
 ### FM-02 — CRDT conflict explosion (high conflict rate on a document)
 

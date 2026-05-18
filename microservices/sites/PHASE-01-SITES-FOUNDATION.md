@@ -22,7 +22,7 @@ Stand up the eleven bounded contexts (site, page, block, theme, navigation, url-
 In-scope:
 - 78 crates per the layer mapping table.
 - Postgres site/page/cms-collection schema + per-tenant RLS + tenant-DEK envelope encryption for non-public content.
-- Redis page-render + CMS-collection cache + signed CDN purge events.
+- Valkey page-render + CMS-collection cache + signed CDN purge events.
 - S3 published-artifact store (HTML + assets) per pack residency.
 - Meilisearch per-tenant site-search index.
 - Loro CRDT 1.x block-store alignment with docs + sheets + slides + workflow-studio.

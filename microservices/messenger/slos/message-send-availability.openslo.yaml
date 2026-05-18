@@ -15,7 +15,7 @@ spec:
   description: |
     Availability SLO for the POST message → fanout-ack path. A request is "good"
     when it returns 2xx from the channel-store-rest API AND the broadcast worker
-    has acked durable handoff to Redis Streams within the per-cell broadcast
+    has acked durable handoff to Valkey Streams (Redis wire-compat) within the per-cell broadcast
     window. Per Google SRE Workbook ch. 5 multi-window multi-burn-rate.
   service: messenger
   indicator:

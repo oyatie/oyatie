@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness]
 
 ## Intent
 
-Composition root binary wiring all five BCs' app crates: capability-executor + invocation-orchestrator + runtime-pool + capability-registry-cache + session-state. Owns the binary boot sequence: load config → bind OpenBao secrets → connect Redis + Postgres → register Cedar policy fragments → start REST/gRPC servers → start workers → register self-observability.
+Composition root binary wiring all five BCs' app crates: capability-executor + invocation-orchestrator + runtime-pool + capability-registry-cache + session-state. Owns the binary boot sequence: load config → bind OpenBao secrets → connect Valkey + Postgres → register Cedar policy fragments → start REST/gRPC servers → start workers → register self-observability.
 
 ## ChangeSet boundary
 

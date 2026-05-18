@@ -54,7 +54,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 | Runbook | `runbooks/postgres-primary-failover.md` (in cell µservice; network references) |
 | Postmortem | ops-sre-reliability + axis-network |
 
-## FM-03: Redis feed-cache corruption
+## FM-03: Valkey feed-cache corruption
 
 | Field | Value |
 |---|---|
@@ -270,7 +270,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 | Detection | `network_ats_bridge_queue_depth` > 50k OR `network_ats_bridge_contract_mismatch_total` > 0 |
 | Tenant impact | Job-postings queue; applicant referrals delayed; tenant ATS pipelines stall |
 | Severity | Sev-2 |
-| Immediate mitigation | Hold queue in Redis Streams; replay on ATS recovery; emit ContractMismatch event to ops-architecture if version drift |
+| Immediate mitigation | Hold queue in Valkey Streams (Redis wire-compat); replay on ATS recovery; emit ContractMismatch event to ops-architecture if version drift |
 | RTO | ≤ 30 min queue drain post-recovery |
 | Runbook | `runbooks/jobs-handoff-ats-failure.md` |
 | Postmortem | axis-network + axis-ats |
@@ -309,7 +309,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 | Detection | `network_inmail_bridge_queue_depth` > 100k OR `network_inmail_send_failure_rate` > 5% |
 | Tenant impact | InMail sends queue; users see "delivery pending" UI |
 | Severity | Sev-2 |
-| Immediate mitigation | Hold in Redis Streams; surface backlog UI; replay on messenger recovery; honor spam-classifier verdicts |
+| Immediate mitigation | Hold in Valkey Streams (Redis wire-compat); surface backlog UI; replay on messenger recovery; honor spam-classifier verdicts |
 | RTO | ≤ 30 min queue drain |
 | Runbook | `runbooks/inmail-fanout-degraded.md` |
 | Postmortem | axis-network + axis-messenger |

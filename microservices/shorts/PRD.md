@@ -77,7 +77,7 @@ This µservice is **a hero product**, end-user-facing through Workflow Studio sh
 
 | Metric | p50 | p95 | p99 | p999 | Notes |
 |---|---|---|---|---|---|
-| Feed-load latency (top 10 videos) | ≤ 80ms | ≤ 250ms | ≤ 500ms | ≤ 1.2s | Redis hot-feed cache; ranking precomputed for hot accounts |
+| Feed-load latency (top 10 videos) | ≤ 80ms | ≤ 250ms | ≤ 500ms | ≤ 1.2s | Valkey hot-feed cache; ranking precomputed for hot accounts |
 | Video-start latency (first frame) | ≤ 150ms | ≤ 400ms | ≤ 800ms | ≤ 1.8s | CDN-edge HLS segment + ABR start-up |
 | Transcode 60s video (5 bitrate rungs) | ≤ 15s | ≤ 30s | ≤ 60s | ≤ 120s | ffmpeg 7.x sandboxed worker pool (gVisor) |
 | Like-action latency | ≤ 15ms | ≤ 35ms | ≤ 50ms | ≤ 150ms | Redis-buffered + Postgres flush |
@@ -88,7 +88,7 @@ This µservice is **a hero product**, end-user-facing through Workflow Studio sh
 | Comment / reply create | ≤ 30ms | ≤ 100ms | ≤ 250ms | ≤ 700ms | Postgres insert |
 | Reaction add | ≤ 15ms | ≤ 50ms | ≤ 120ms | ≤ 300ms | Redis-buffered + Postgres flush |
 | Trending-sound compute | n/a | n/a | n/a | n/a | batched 5min windowed |
-| Notification fanout (10k followers) | ≤ 200ms | ≤ 1s | ≤ 2s | ≤ 5s | per-recipient async via Redis Streams |
+| Notification fanout (10k followers) | ≤ 200ms | ≤ 1s | ≤ 2s | ≤ 5s | per-recipient async via Valkey Streams (Redis wire-compat) |
 | Notification fanout (1M followers; celebrity) | ≤ 1s | ≤ 5s | ≤ 15s | ≤ 60s | sharded fanout workers |
 | Feed-render content-policy correctness | 100 % | 100 % | 100 % | 100 % | zero-tolerance SLO for cross-context + minor-protection + DRM-tier violations |
 | DRM license issuance | ≤ 50ms | ≤ 150ms | ≤ 300ms | ≤ 700ms | EME licence-acquisition |
@@ -326,9 +326,9 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for upload sessions + claims + age + parental + audio-track-library + analytics; Redis for feed cache + watch-position + like-counters + trending; S3 for video blobs + transcode variants; CloudFront-class CDN for delivery; Meilisearch for hashtag + sound search; ffmpeg worker pool for transcode; DRM-license issuer stateless beyond per-content-key Cache.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for upload sessions + claims + age + parental + audio-track-library + analytics; Valkey for feed cache + watch-position + like-counters + trending; S3 for video blobs + transcode variants; CloudFront-class CDN for delivery; Meilisearch for hashtag + sound search; ffmpeg worker pool for transcode; DRM-license issuer stateless beyond per-content-key Cache.
 
-**Active-active compatibility**: stateless REST + worker pods + Postgres logical-replicated within pack; Redis primary-replica HA; S3 cross-AZ replication; CDN naturally edge-distributed.
+**Active-active compatibility**: stateless REST + worker pods + Postgres logical-replicated within pack; Valkey primary-replica HA; S3 cross-AZ replication; CDN naturally edge-distributed.
 
 Per-cell capacity envelope:
 
@@ -346,7 +346,7 @@ Scale-out policy:
 - HPA on REST pods: CPU > 70 %, min 8, max 200 replicas.
 - ffmpeg transcode worker pool: queue-depth-based (separate KEDA-style autoscaler); min 16, max 1000 workers.
 - Postgres shard-by-tenant once cell hits 1000 upload/sec aggregate.
-- Redis cluster sharding by `(tenant_id, video_id) mod N`.
+- Valkey cluster sharding by `(tenant_id, video_id) mod N`.
 - CDN POP-presence per pack region; multi-region for high-fanout videos.
 
 Sharding:

@@ -84,7 +84,7 @@ Two-tier precedence for all architectural decisions in oyatie:
 | ADR-0127 | Sector × tier compliance packs |
 | ADR-0128 + ADR-0190 | Versioned regulatory corpus (bominal-law / corpus.lock) |
 | ADR-0132 | Data ownership pillars (org-pillar / person-pillar; Cedar enforcement) |
-| ADR-0140 | Multi-jurisdiction policy (per-jurisdiction Cedar overlays) |
+| ADR-0140 (retired per ADR-0145) | Multi-jurisdiction policy (per-jurisdiction Cedar overlays) |
 | ADR-0208 | Connect dual-context (Personal + Professional) |
 | ADR-0209 | Client architecture (Leptos web + 5 native + SvelteKit prototype lane) |
 | ADR-0210 | M03 KR group payroll + mail launch (= oyatie M03 first-paying-tenant target) |

@@ -8,7 +8,7 @@ owner: axis-forms + council-architecture + council-privacy + council-legal-compl
 deciders: council-architecture, axis-forms, ops-security, council-legal-compliance, council-privacy, foundry-providers-team
 supersedes: []
 superseded_by: []
-related: [ADR-0110, ADR-0131, ADR-0140, ADR-WS-0005, ADR-FORMS-0001, ADR-FORMS-0004]
+related: [ADR-0110, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-WS-0005, ADR-FORMS-0001, ADR-FORMS-0004]
 related_specs: [/specs/microservices/forms.json]
 related_artifacts:
   - microservices/forms/PRD.md FR-22 + AC-25
@@ -142,7 +142,7 @@ Cedar gates cross-µservice AI output but auto-commits on Cedar pass.
 
 AI stays strictly intra-product; cross-µservice composition is a tenant-manual step via Workflow + Ontology adapter.
 
-- **Pros**: honours `feedback_workflow_objectgraph_adapter_layer.md` strictly. Architecturally clean.
+- **Pros**: honours `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md` strictly. Architecturally clean.
 - **Cons**: tenant UX friction; most cross-product asks come in prose; forcing manual composition adds an authoring step. Tier T2 capability slot unused.
 - **Note**: chosen Decision actually preserves the architectural property — AI-emitted cross-µservice fragments STILL flow through the Workflow + Ontology adapter pattern at run-time; the AI drafts the adapter composition, but it's still composed-through-Workflow+Ontology. The chosen design adds the tier gate on top of that adapter pattern.
 - **Rejected reason** (as standalone): unnecessarily restrictive; chosen design preserves invariant via gated T2-cross.

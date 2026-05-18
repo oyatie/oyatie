@@ -308,6 +308,12 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0171",
+      "title": "Multi Cluster Federation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0171-multi-cluster-federation.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -327,5 +333,12 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

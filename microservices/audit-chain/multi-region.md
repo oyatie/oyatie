@@ -186,3 +186,47 @@ Per-pack BCDR specifics at `regional-packs/<pack>/audit-chain-multi-region-overl
 - ADR-0117 + ADR-0028.
 - OCI region docs + Cloud-HSM partition-replication docs.
 - ISO/IEC 22301:2019; NIST SP 800-34; EU DORA Regulation 2022/2554.
+
+---
+
+## ADR-0158 Multi-Region Disposition Statement
+
+**Disposition: `active_active` per cell.**
+
+Per ADR-0158 (per-µservice multi-region disposition), audit-chain is declared `active_active`. Append-only Merkle log naturally merges; per-tenant subtree (per ADR-0162 per-tenant audit-log slicing) replicates intra-region for DR and globally for the fleet-wide root anchor. Sovereign-pinned tenants (per ADR-0162 + ADR-0164) get dedicated shards confined to their region.
+
+| Property | Value |
+|---|---|
+| Disposition | `active_active` |
+| RPO (intra-region) | ≤ 1 second (synchronous replication of hot leaves) |
+| RTO (intra-region) | ≤ 60 seconds (failover) |
+| Sovereign-pin behavior | dedicated shard in-region only; no cross-region replication beyond DR |
+| Convergence model | append-only Merkle merge (no CRDT required; appends commute) |
+| Cross-region transaction policy | forbidden (data plane is strictly regional) |
+
+Sovereign packs (`pack-ksa`, `pack-uae`, `pack-eu-sovereign`, `pack-us-gov`, `pack-kr-fsc`, `pack-kr-public`) override: per-tenant dedicated shard per ADR-0162; in-region key custody per ADR-0043 + ADR-0164.
+
+## ADR-0162 Per-Tenant Audit-Chain Slicing Statement
+
+Per ADR-0162, audit-chain seals partition by `tenant_id`. Per-pack shared shards use leaf-level partition; sovereign-tenant packs use dedicated shards.
+
+**Sharding scheme:**
+- **Shared shard per pack** — multi-tenant packs (pack-us-shared, pack-global, etc.) — per-pack Merkle tree with tenant_id leaf partition; per-tenant subtree retrieval O(log n).
+- **Dedicated shard per sovereign tenant** — packs marked `dedicated_audit_shard: true` (pack-ksa, pack-uae, pack-eu-sovereign, pack-ru-if-onboarded) — per-tenant Merkle tree with in-region storage + key custody + sealing.
+
+**Sealing cadence:**
+- Hot leaf append ≤ 100 ms p99.
+- Hourly subtree root recomputed + Ed25519-signed.
+- Daily per-pack root anchored to `oya-s3-cold` (per ADR-0161).
+- Daily fleet-wide root published to trust portal (ADR-0038) for non-sovereign tenants; in-region only for sovereign-pinned.
+
+**Per-tenant retrieval API:**
+- `GET /v1/audit-chain/tenant/{tenant_id}/seals?since=...&until=...&event_class=...&proof=true`
+- Cedar-gated: `principal.tenant_id == path.tenant_id`.
+- Cursor pagination; 1000 seals per page.
+- Optional Merkle inclusion proof per seal.
+- DSR-cascade-safe: seal contains hashes + metadata only; PII fields zeroed per ADR-0008.
+
+CI lane `oya gate validate audit-chain-per-tenant-slicing` enforces (a) Cedar-gated retrieval, (b) sovereign packs declare dedicated shards, (c) subtree leaves contain only that tenant's events.
+
+Per-pack overlay declares `dedicated_audit_shard: true|false` at `microservices/audit-chain/iac/kustomize/components/pack-{name}/values.yaml`. See `/specs/per-tenant-audit-log-slicing-canonical.json` for the canonical declaration.

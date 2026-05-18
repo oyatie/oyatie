@@ -18,7 +18,7 @@ doc_status: published
 
 ## Purpose
 
-Sheets runs a per-cell recalc-engine + WS gateway + Postgres + Redis cluster sized for `100K active workbook sessions per region` and `1M-cell recalc p95 ≤ 10s`. A hot formula dependency chain (shared model workbook with 1k+ concurrent editors) can cause recalc-engine queue saturation. This runbook provides throttling, quarantining, and recovery steps.
+Sheets runs a per-cell recalc-engine + WS gateway + Postgres + Valkey cluster sized for `100K active workbook sessions per region` and `1M-cell recalc p95 ≤ 10s`. A hot formula dependency chain (shared model workbook with 1k+ concurrent editors) can cause recalc-engine queue saturation. This runbook provides throttling, quarantining, and recovery steps.
 
 ## Trigger
 
@@ -51,7 +51,7 @@ ONE of:
 1. Identify burst source: `dashboards/recalc-engine-health.json` panel "queue depth by workbook top-N" + "recalcs/sec by tenant top-N".
 2. Verify HPA state: `kubectl -n sheets get hpa recalc-engine-worker collab-crdt-worker cell-grid-rest`.
 3. Verify Postgres health.
-4. Verify Redis memory.
+4. Verify Valkey memory.
 5. Identify attack vector vs legitimate burst (e.g., end-of-quarter financial-modelling spike).
 
 ## Recovery Path A — Single-workbook burst (legitimate; e.g., 1k+ users in shared model)
@@ -88,7 +88,7 @@ ONE of:
 | 1 | Declare Sev-1; engage ops-sre-reliability + capacity-planning. |
 | 2 | Add cell-cluster nodes: `cargo run -p oya-dev-cli -- cloud-iac scale-cell --pack <pack> --ms sheets --add-nodes 5 --component recalc-engine-worker`. |
 | 3 | Re-balance recalc lease assignments. |
-| 4 | Verify Postgres + Redis headroom. |
+| 4 | Verify Postgres + Valkey headroom. |
 | 5 | Update `capacity-model.md` baseline. |
 
 ## Recovery Path E — Slow-formula budget breach (single formula > 30s)
@@ -118,7 +118,7 @@ After recovery:
 - `oya_sheets_recalc_p99_seconds` within budget (≤ 1s for 100k-cell; ≤ 10s for 1M-cell).
 - HPA at < 70% target; replicas stable.
 - Postgres connection pool < 70% saturation.
-- Redis memory < 80% used.
+- Valkey memory < 80% used.
 
 ## Post-incident updates
 

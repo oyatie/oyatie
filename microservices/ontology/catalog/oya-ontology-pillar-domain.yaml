@@ -16,4 +16,4 @@ spec:
   imports: [oya-ontology-pillar-kernel]
   test_coverage_threshold: {line: 95, branch: 90}
   related_ip: IP-013
-  related_adrs: [ADR-0132, ADR-0140]
+  related_adrs: [ADR-0132, ADR-0140 (retired per ADR-0145)]

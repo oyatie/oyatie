@@ -12,7 +12,7 @@ metadata:
 spec:
   description: |
     Vote action latency (cast / retract). Per PRD §"Performance" vote p99 ≤ 50ms.
-    Blinded vote tokens verified inline; Redis dedupe; Postgres flush async.
+    Blinded vote tokens verified inline; Valkey dedupe; Postgres flush async.
   service: oya-anonymous-upvote-downvote-rest
   indicator:
     metadata:

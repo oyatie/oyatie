@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baseline numbers for every Layer-A (CDN + WAF + Postgres + Redis + WebSocket gateway + Arrow/Parquet OCI Object Storage + S3) and Layer-B (cell-grid-rest + collab-crdt-worker + recalc-engine-worker + xlsx-export-worker + license-gate-cedar) component. Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + reference-architecture baseline numbers for every Layer-A (CDN + WAF + Postgres + Valkey + WebSocket gateway + Arrow/Parquet OCI Object Storage + S3) and Layer-B (cell-grid-rest + collab-crdt-worker + recalc-engine-worker + xlsx-export-worker + license-gate-cedar) component. Drives `cost-budget.md` and `multi-region.md`.
 
 ## Inputs
 
@@ -138,8 +138,8 @@ All replica counts include buffer multipliers (1.2-1.5×). In addition:
 
 - **Pre-warmed pool**: 5 standby WS gateway pods + 3 standby recalc-worker pods + 3 standby xlsx-export-worker pods per cell; cold-start budget ≤ 1s for WS, ≤ 5s for recalc/export.
 - **HPA**: scales on CPU > 70% OR WS connection count > 70% pod cap OR recalc queue depth > 100 OR export queue depth > 20; ratchets 2 replicas per scale-out event.
-- **VPA**: vertical-pod-autoscaler for Postgres workers + Redis.
-- **Burst absorbing**: 60s of session-open backlog absorbed by Redis ephemeral queue before back-pressure.
+- **VPA**: vertical-pod-autoscaler for Postgres workers + Valkey.
+- **Burst absorbing**: 60s of session-open backlog absorbed by Valkey ephemeral queue before back-pressure.
 
 ## Postgres + Citus Sizing
 
@@ -163,7 +163,7 @@ hot_to_cold_promotion          = workbook idle > 24h AND cells > 100k → migrat
 cold_to_hot_promotion          = first-edit on cold tier triggers materialize back to Postgres hot for the touched range
 ```
 
-## Redis Sizing
+## Valkey Sizing
 
 ```
 total_redis_keys               = total_active_sessions × 6 (CRDT state + cursor + presence + lease + recalc-progress + edit-buffer-tip)
@@ -264,7 +264,7 @@ CDN egress (XS):
   cdn_egress_per_month     ≈ 255 GB
 
 Total Sheets storage (XS, M03 launch):
-  ~30 GB Postgres hot + 10 GB Redis + 1 GB S3 + 255 GB CDN egress
+  ~30 GB Postgres hot + 10 GB Valkey + 1 GB S3 + 255 GB CDN egress
   ~$2880/month per pack region (per cost-budget.md)
 ```
 
@@ -277,7 +277,7 @@ Total Sheets storage (XS, M03 launch):
 ## References
 
 - Postgres + Citus docs — `docs.citusdata.com/`.
-- Redis Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `redis.io/topics/sentinel`.
 - axum WebSocket — `docs.rs/axum/latest/axum/extract/ws/`.
 - Apache Arrow 18.x — `arrow.apache.org/docs/`.
 - Apache Parquet 18.x — `parquet.apache.org/`.

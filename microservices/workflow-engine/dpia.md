@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-workflow
 deciders: council-privacy, ops-security, axis-workflow, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/workflow-engine/threat-model.md
@@ -44,7 +44,7 @@ DPIA is mandatory pre-deployment. This document is reviewed by EU DPAs (Art. 35)
 
 **How:** Tenant SDK → engine REST (mTLS + OIDC) → spec compiled at submit time → run starts → step body executed in Wasmtime sandbox → state checkpointed to Postgres → audit-chain seal emitted → next event dispatched.
 
-**Where:** Per-pack region-pinned engine clusters (pack-kr → KR / pack-eu → EU / pack-us → US / etc.); each pack has its own Postgres + Citus cluster, Redis cluster, ClickHouse replica.
+**Where:** Per-pack region-pinned engine clusters (pack-kr → KR / pack-eu → EU / pack-us → US / etc.); each pack has its own Postgres + Citus cluster, Valkey cluster, ClickHouse replica.
 
 **When:** Continuous; sub-second event-to-action; per-run audit seal within 1s of completion.
 

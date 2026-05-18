@@ -18,4 +18,4 @@ spec:
             oya-ontology-cedar-fragment-coverage-api]
   external_deps: [cedar-policy]
   related_ip: IP-006
-  related_adrs: [ADR-0140]
+  related_adrs: [ADR-0140 (retired per ADR-0145)]

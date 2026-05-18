@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-sites
-related_adrs: [ADR-0117, ADR-0140, ADR-SITES-0003, ADR-SITES-0004]
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145), ADR-SITES-0003, ADR-SITES-0004]
 doc_status: published
 ---
 
@@ -32,17 +32,17 @@ residency invariant is enforced.
 
 | Pack | Region | Substrate |
 |---|---|---|
-| pack-kr | OCI ap-seoul-1 | Postgres + Redis + Meilisearch + S3 KR-resident |
-| pack-eu | OCI eu-frankfurt-1 | Postgres + Redis + Meilisearch + S3 EU-resident |
-| pack-us | OCI us-ashburn-1 + us-phoenix-1 | Postgres + Redis + Meilisearch + S3 US-resident |
-| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | Postgres + Redis + Meilisearch + S3 US-resident, HIPAA-eligible |
-| pack-jp | OCI ap-tokyo-1 | Postgres + Redis + Meilisearch + S3 JP-resident |
-| pack-sg | OCI ap-singapore-1 | Postgres + Redis + Meilisearch + S3 SG-resident |
-| pack-au | OCI ap-sydney-1 | Postgres + Redis + Meilisearch + S3 AU-resident |
-| pack-in | OCI ap-mumbai-1 | Postgres + Redis + Meilisearch + S3 IN-resident |
-| pack-br | OCI sa-saopaulo-1 | Postgres + Redis + Meilisearch + S3 BR-resident |
-| pack-ae | OCI me-jeddah-1 / me-dubai-1 | Postgres + Redis + Meilisearch + S3 ME-resident |
-| pack-ksa | OCI me-jeddah-1 | Postgres + Redis + Meilisearch + S3 KSA-resident |
+| pack-kr | OCI ap-seoul-1 | Postgres + Valkey + Meilisearch + S3 KR-resident |
+| pack-eu | OCI eu-frankfurt-1 | Postgres + Valkey + Meilisearch + S3 EU-resident |
+| pack-us | OCI us-ashburn-1 + us-phoenix-1 | Postgres + Valkey + Meilisearch + S3 US-resident |
+| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | Postgres + Valkey + Meilisearch + S3 US-resident, HIPAA-eligible |
+| pack-jp | OCI ap-tokyo-1 | Postgres + Valkey + Meilisearch + S3 JP-resident |
+| pack-sg | OCI ap-singapore-1 | Postgres + Valkey + Meilisearch + S3 SG-resident |
+| pack-au | OCI ap-sydney-1 | Postgres + Valkey + Meilisearch + S3 AU-resident |
+| pack-in | OCI ap-mumbai-1 | Postgres + Valkey + Meilisearch + S3 IN-resident |
+| pack-br | OCI sa-saopaulo-1 | Postgres + Valkey + Meilisearch + S3 BR-resident |
+| pack-ae | OCI me-jeddah-1 / me-dubai-1 | Postgres + Valkey + Meilisearch + S3 ME-resident |
+| pack-ksa | OCI me-jeddah-1 | Postgres + Valkey + Meilisearch + S3 KSA-resident |
 
 ### Invariant DR-02 — No default cross-pack replication
 

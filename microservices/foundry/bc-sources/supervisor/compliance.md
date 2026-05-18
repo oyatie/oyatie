@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-foundry-control-plane, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/foundry-supervisor/threat-model.md
   - microservices/foundry-supervisor/dpia.md
@@ -44,10 +44,10 @@ Canonical control-to-framework mapping for the foundry-supervisor µservice. Tel
 | CC6.1 | Logical + physical access | OIDC + MFA + Cedar + JIT via OpenBao | `policy/tenant-scope.cedar` etc. |
 | CC6.2 | Authentication + authorization | OIDC + per-tenant SPIFFE | `policy/supervisor-isolation.md` §"Tenant Identity Model" |
 | CC6.3 | Adds/removes access | OpenBao lifecycle | OpenBao audit log |
-| CC6.6 | Logical access control | Postgres RLS + Redis ACL + Cedar | `policy/supervisor-isolation.md` TI-* |
+| CC6.6 | Logical access control | Postgres RLS + Valkey ACL + Cedar | `policy/supervisor-isolation.md` TI-* |
 | CC6.7 | Transmission + disposal | mTLS in transit + KMS at rest + DSR cascade | `policy/data-residency.md` §"DSR" |
 | CC6.8 | Vulnerability management | `cargo deny` + Trivy + Grype | `/specs/supply-chain.json` |
-| CC7.1 | System operations | HA Postgres + Redis Cluster + autoscaling | `capacity-model.md` |
+| CC7.1 | System operations | HA Postgres + Valkey Cluster + autoscaling | `capacity-model.md` |
 | CC7.2 | Monitoring inputs | Self-observability + OnCall | `failure-modes.md` |
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + autonomy-violation rate | `/specs/foundry-supervisor-control-plane.json` |
 | CC7.4 | Incident response | Severity-classified + escalation | `incident-response.md` |
@@ -64,7 +64,7 @@ Canonical control-to-framework mapping for the foundry-supervisor µservice. Tel
 | A.5.14 | Information transfer | mTLS + cross-pack-forbidden | `policy/data-residency.md` |
 | A.5.15 | Access control | OIDC + Cedar + Postgres RLS | `policy/supervisor-isolation.md` |
 | A.5.17 | Authentication info | OpenBao rotation (30d / 90d cadences) | OpenBao audit |
-| A.5.18 | Access rights | RBAC via Terraform; UI forbidden | IaC |
+| A.5.18 | Access rights | RBAC via OpenTofu; UI forbidden | IaC |
 | A.5.23 | Cloud services security | OCI HIPAA-eligible regions for pack-us-healthcare | `policy/data-residency.md` |
 | A.5.24 | Incident management planning | Playbook | `incident-response.md` |
 | A.5.25 | Assessment + decision | Severity classification | `incident-response.md` |
@@ -76,13 +76,13 @@ Canonical control-to-framework mapping for the foundry-supervisor µservice. Tel
 | A.5.33 | Records protection | Audit-chain immutability + retention | `policy/data-residency.md` |
 | A.5.34 | Privacy + PII protection | DPIA + DSR + Cedar | `dpia.md` |
 | A.8.2 | Privileged access | JIT via OpenBao; 2-person rule | OpenBao audit |
-| A.8.3 | Info access restriction | Postgres RLS + Redis ACL + Cedar | `policy/supervisor-isolation.md` |
+| A.8.3 | Info access restriction | Postgres RLS + Valkey ACL + Cedar | `policy/supervisor-isolation.md` |
 | A.8.4 | Source code access | CODEOWNERS + branch-protection | branch-protection.yaml |
 | A.8.5 | Secure authentication | OIDC + MFA + SPIFFE | `policy/supervisor-isolation.md` |
 | A.8.7 | Malware protection | Trivy + Grype + signed images (Cosign) | `.github/workflows/cosign.yml` |
 | A.8.11 | Data masking | PII redactor at OTel SDK + tenant-id pseudonymisation | `policy/supervisor-isolation.md` |
 | A.8.12 | Data leakage prevention | Cross-tenant query refusal + DP aggregation | `policy/supervisor-isolation.md` TI-* |
-| A.8.14 | Redundancy | Postgres replica + Redis Cluster + Operator HA | `multi-region.md` |
+| A.8.14 | Redundancy | Postgres replica + Valkey Cluster + Operator HA | `multi-region.md` |
 | A.8.15 | Logging | Audit-chain + structured logs | ADR-0028 |
 | A.8.16 | Monitoring activities | Self-observability + OnCall | `failure-modes.md` |
 | A.8.20 | Network security | Network policies + Istio mTLS | `cloud-k8s` µservice |

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-ontology
 deciders: council-privacy, ops-security, axis-ontology, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/ontology/threat-model.md (T-I-01, T-T-04, T-L-09)
   - microservices/ontology/dpia.md (R-11)

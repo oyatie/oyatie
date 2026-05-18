@@ -8,7 +8,7 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145), ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-sites
@@ -75,9 +75,9 @@ Per ADR-0132 (no-suite forward-policy) and parallel-session ADR-0135 (Connect un
 
 | Metric | p50 | p95 | p99 | Notes |
 |---|---|---|---|---|
-| Page-render (cached SSG) | ≤30ms | ≤200ms | ≤400ms | Postgres + Redis page-record + Brotli/Zstd response |
+| Page-render (cached SSG) | ≤30ms | ≤200ms | ≤400ms | Postgres + Valkey page-record + Brotli/Zstd response |
 | Static-asset (CDN warm) | ≤20ms | ≤100ms | ≤200ms | Cloudflare-class edge cache |
-| CMS-collection query | ≤50ms | ≤150ms | ≤300ms | indexed Postgres + Redis cache |
+| CMS-collection query | ≤50ms | ≤150ms | ≤300ms | indexed Postgres + Valkey cache |
 | Site-search | ≤100ms | ≤300ms | ≤600ms | Meilisearch per-tenant index |
 | Publish (100-page site) | ≤2s | ≤5s | ≤10s | parallel SSG render + S3 upload + CDN purge |
 | ACME cert renew | ≤15s | ≤30s | ≤60s | Let's Encrypt DNS-01 |
@@ -321,7 +321,7 @@ Error budget: monthly 99.99% availability for read path → ~4.3 min/month.
 
 ## Horizontal Scalability
 
-State strategy (per Bominal ADR-0019): `mixed`. Postgres (site/page/collection metadata; per-tenant RLS); Redis (page-render cache; per-tenant key prefix); S3 (published artifacts); Meilisearch (per-tenant index); Loro CRDT log (per-page edit history); stateless workers for publish-pipeline + cert-renew + image-optimize + search-reindex.
+State strategy (per Bominal ADR-0019): `mixed`. Postgres (site/page/collection metadata; per-tenant RLS); Valkey (page-render cache; per-tenant key prefix); S3 (published artifacts); Meilisearch (per-tenant index); Loro CRDT log (per-page edit history); stateless workers for publish-pipeline + cert-renew + image-optimize + search-reindex.
 
 Per-cell capacity envelope:
 
@@ -339,7 +339,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - Kubernetes HPA: rest pods scale on CPU > 70%; min 3, max 100.
 - Postgres: per-tenant logical shard; cross-cell replication-factor 3 with Patroni.
-- Redis: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru` for page-render cache.
+- Valkey: cluster mode; per-tenant key prefix; eviction policy `allkeys-lru` for page-render cache.
 - Meilisearch: per-tenant index; sharded by tenant_id hash; cross-cell replication 2.
 - Pre-warmed pool: 5 standby pods; cold-start ≤ 700ms.
 

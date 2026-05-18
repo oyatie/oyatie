@@ -10,7 +10,7 @@ redis-cluster:
     enabled: true
     existingSecret: "openbao://secret/foundry-supervisor/redis/auth-token"
 
-  # ACL configuration (Redis 7.x; per TI-R-01)
+  # ACL configuration (Valkey 8.1 (Redis wire-compat); per TI-R-01)
   acl:
     enabled: true
     sourceFiles:
@@ -52,12 +52,12 @@ redis-cluster:
       # TLS
       tls-port 6379
       port 0  # disable non-TLS
-      tls-cert-file /opt/bitnami/redis/certs/server.crt
-      tls-key-file /opt/bitnami/redis/certs/server.key
-      tls-ca-cert-file /opt/bitnami/redis/certs/ca.crt
+      tls-cert-file /opt/valkey/valkey/certs/server.crt
+      tls-key-file /opt/valkey/valkey/certs/server.key
+      tls-ca-cert-file /opt/valkey/valkey/certs/ca.crt
       tls-auth-clients yes
       # ACL
-      aclfile /opt/bitnami/redis/etc/users.acl
+      aclfile /opt/valkey/valkey/etc/users.acl
 
   # TLS via cert-manager
   tls:

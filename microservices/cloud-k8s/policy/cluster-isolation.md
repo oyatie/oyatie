@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-cloud
 deciders: council-architecture, ops-security, axis-cloud, council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/cloud-k8s/threat-model.md (T-S-04, T-I-02, T-E-02, T-E-03)
   - microservices/cloud-k8s/dpia.md (R-01, R-05, R-06)

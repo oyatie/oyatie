@@ -1,4 +1,4 @@
-asyncapi: 3.0.0
+asyncapi: 3.1.0
 info:
   title: oyatie Forms — Async API (Kafka + Webhook)
   version: 1.0.0

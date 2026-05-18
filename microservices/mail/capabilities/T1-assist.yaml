@@ -7,7 +7,7 @@
 # mail, apply rule, archive thread) on accept.
 #
 # Per `/specs/agentic-tiers.json` v1.0 + ADR-0133.
-# Per ADR-0140 Cedar policy enforcement.
+# Per ADR-0140 (retired per ADR-0145) Cedar policy enforcement.
 # Per EU AI Act Art. 50 (transparency) + Annex III if applicable.
 
 doc_class: AutonomyTierCatalog

@@ -1,7 +1,7 @@
 apiVersion: v2
 name: oya-foundry-providers-redis
 description: |
-  Redis Sentinel HA for foundry-providers µservice token-bucket / rate-limit
+  Valkey Sentinel HA for foundry-providers µservice token-bucket / rate-limit
   state. Per-pack deployment per ADR-0117. Low total state; sentinel-HA across
   3 replicas is sufficient through L tier.
 type: application

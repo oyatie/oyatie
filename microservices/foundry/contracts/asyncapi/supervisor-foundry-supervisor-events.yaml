@@ -22,7 +22,7 @@ servers:
   redis-streams:
     host: redis-cluster.foundry-supervisor.svc.cluster.local
     protocol: redis
-    description: Redis Streams substrate; per-tenant scoped consumer groups
+    description: Valkey Streams (Redis wire-compat) substrate; per-tenant scoped consumer groups
   workflow-events-bus:
     host: workflow-events.foundry-supervisor.svc.cluster.local
     protocol: amqp

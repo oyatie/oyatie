@@ -44,7 +44,7 @@ doc_status: published
 - p99 cursor sync ≤ 150ms requires WS RTT ≤ 50ms + CRDT merge ≤ 30ms + dispatch ≤ 70ms.
 - 3 replicas × 2 vCPU × 8 GiB baseline handles 50,000 WS connections.
 - HPA on WS connection count > 70% of cap.
-- Lease via Redis: single-writer per deck.
+- Lease via Valkey: single-writer per deck.
 
 ### broadcast-mode-worker
 
@@ -72,7 +72,7 @@ doc_status: published
 - Write capacity: 10,000 IOPS sustained; 5,000 writes/sec mixed; shard by tenant_id.
 - Linear scale: each added shard adds ~3,000 writes/sec.
 
-### Redis
+### Valkey
 
 - 3-node sentinel cluster: 4 vCPU + 16 GiB.
 - CRDT cache + lease coordination + presence: ~50k connections × 1 KiB session = 50 MiB working set.
@@ -105,7 +105,7 @@ doc_status: published
 | Alarm | Source | Threshold | Severity |
 |---|---|---|---|
 | Postgres write IOPS saturation | Postgres metrics | > 80% sustained | Sev-2 |
-| Redis connection-pool saturation | Redis metrics | > 80% sustained | Sev-2 |
+| Valkey connection-pool saturation | Valkey metrics | > 80% sustained | Sev-2 |
 | WS dispatch queue depth | metrics | > 1000 | Sev-2 |
 | Export queue depth | metrics | > 500 | Sev-2 |
 | gVisor worker OOM rate | metrics | > 3 / 5min | Sev-1 |

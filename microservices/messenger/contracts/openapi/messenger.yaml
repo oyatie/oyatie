@@ -48,6 +48,53 @@ components:
         type: string
         enum: [Personal, Professional]
       description: Dual-context invariant per parallel ADR-0135
+    # Tier-A canonical parameter components (Fix-Agent-I, 2026-05-18).
+    # Per ADR-0149..ADR-0151. Every state-changing op MUST ref
+    # IdempotencyKey; every list op MUST ref Cursor + PageSize;
+    # every op SHOULD ref XRequestId.
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 256
+      description: |
+        Opaque idempotency key per docs/standards/idempotency-keys-canonical.md
+        (Stripe + AWS ClientToken pattern). Server caches the response
+        keyed by (tenant_id, capability_id, Idempotency-Key) for 24h.
+    XRequestId:
+      in: header
+      name: X-Request-Id
+      required: false
+      schema:
+        type: string
+        format: ulid
+      description: |
+        Per-request correlation id (ULID) per
+        docs/standards/request-id-canonical.md. If absent, the edge
+        middleware mints one and echoes it on the response.
+    Cursor:
+      in: query
+      name: cursor
+      required: false
+      schema:
+        type: string
+      description: |
+        Opaque cursor for cursor pagination per
+        docs/standards/cursor-pagination-canonical.md. Mutually
+        exclusive with offset (FORBIDDEN).
+    PageSize:
+      in: query
+      name: page_size
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+      description: Page size; server may clamp to [1, 100].
     ChannelId:
       in: path
       name: channel_id
@@ -209,6 +256,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/XScopeOrgID'
         - $ref: '#/components/parameters/XContextKind'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/XRequestId'
       requestBody:
         required: true
         content:
@@ -631,7 +680,7 @@ paths:
 
   /ready:
     get:
-      summary: Readiness (Postgres + Redis + S3 reachable)
+      summary: Readiness (Postgres + Valkey + S3 reachable)
       operationId: getReady
       security: []
       responses:

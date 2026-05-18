@@ -1,0 +1,301 @@
+{
+  "report_id": "pr-143-coherence-scalability-audit-delta-2026-05-18",
+  "report_kind": "coherence-scalability-audit-delta",
+  "schema_version": "1.0",
+  "pr": "#143",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "emitted_at": "2026-05-18",
+  "owner": "council-architecture",
+  "verdict": "green-with-2-new-hard-drift-items-and-1-orphan-adr-citation",
+  "audit_lineage": {
+    "supersedes_baseline": false,
+    "anchors_to": [
+      "evidence/pr-143-merge-admissibility-v3-with-audit.json",
+      "evidence/pr-143-existing-microservice-template-audit-report.json",
+      "evidence/pr-143-layered-architecture-audit-report.json",
+      "evidence/pr-143-anti-hyperscaler-pattern-audit-r2.md",
+      "evidence/pr-143-systems-platform-cloud-architecture-audit.md"
+    ],
+    "delta_scope": "Audits coherence dimensions explicitly named in the 2026-05-18 user directive '/using-agent-skills Make sure our spec, plan, and prd will actually result in what we are trying to build' that were not explicitly enumerated as a single artifact in the prior PR-143 evidence trail: (1) hero-stack (Workflow Studio + Ontology + Foundry) alignment matrix, (2) per-µservice scalability-ceiling cross-walk, (3) ADR contradiction matrix sweep of 12 high-risk pairs.",
+    "deliberately_not_duplicated": "v3 audit's 35-µservice template audit, 5-µservice canonical-entity-owner verification, 6 inline doc fixes, 9 queued structural follow-ups, ADR-0182-0186 authoring + 2 new fitness gates."
+  },
+  "scope": {
+    "microservices_in_tree": 40,
+    "microservices_with_audit_findings_already_emitted": 36,
+    "microservices_skipped_in_flight": ["comms-email", "compliance", "finops-portal", "identity"],
+    "adrs_in_tree": 193,
+    "adrs_spot_checked_in_this_delta": 12,
+    "hero_microservices_audited": ["workflow-studio", "ontology", "foundry"]
+  },
+  "scope_correction": {
+    "audit_prompt_premise": "33 µservices, 50+ ADRs, 15 IPs per µservice",
+    "actual_state": "40 µservices on disk (35 audited, 4 in-flight skipped); 193 ADRs in tree; 15 IPs is the typical per-µservice count (foundry has 101 IPs per ADR-0136 6-BC consolidation; workflow-studio has 27; ontology has 15; observability/cloud-iac 26; governance 22)",
+    "ips_location_corrected": "IPs live at microservices/<ms>/IP-NNN-*.md as markdown files (not under microservices/<ms>/ip/*.json as initially read). 0 IPs are missing-by-construction; IP count is heterogeneous by µservice complexity."
+  },
+  "findings": {
+    "coherence": {
+      "hero_stack_alignment_matrix_artifact": "evidence/pr-143-hero-stack-coherence-matrix.json",
+      "orphan_artifacts": [
+        {
+          "type": "orphan-adr-citation",
+          "id": "ADR-0211",
+          "cited_in": "evidence/pr-143-merge-admissibility-v3-with-audit.json (template_audit.in_house_finding paragraph: 'Substrate ADRs (0184/0196/0192/0193/0198/0200/0202/0211) are accepted')",
+          "actual_state": "docs/decisions/ADR-0211*.md does NOT exist on disk",
+          "severity": "medium",
+          "resolution": "Either author ADR-0211 (in-house-tech-stack policy) before the next merge that touches in-house roadmap text, OR strike '0211' from the v3 audit citation. v3 audit also cites registry/placeholder-debt/audit-followups.yaml with a 'in-house-phase-2-roadmap-coverage' item — that item is the natural home for the formal ADR-0211 if authored.",
+          "inline_fix_eligible": false,
+          "queued": true,
+          "queued_id": "adr-0211-author-or-strike-citation"
+        }
+      ],
+      "trace_breaks": [
+        {
+          "type": "ontology-projection-missing",
+          "µservice": "workflow-studio",
+          "owns_canonical_entities": ["WorkflowDefinition", "WorkflowRun"],
+          "manifest_declares": "ontology_projections: []",
+          "adr_violation": "ADR-0145 Invariant 3 — µservices that own canonical entities MUST project them into Ontology",
+          "severity": "hard",
+          "current_state_evidence": "microservices/workflow-studio/manifest.json line 'ontology_projections: []'",
+          "inline_fix_eligible": "yes (manifest text-only addition)",
+          "fix_proposed": "Add WorkflowDefinition + WorkflowRun ontology_projections rows to microservices/workflow-studio/manifest.json",
+          "applied_in_this_delta": true
+        },
+        {
+          "type": "ontology-projection-missing",
+          "µservice": "workflow-engine",
+          "owns_canonical_entities": ["WorkflowDefinition", "WorkflowRun", "WorkflowStep"],
+          "manifest_declares": "ontology_projections: []",
+          "adr_violation": "ADR-0145 Invariant 3",
+          "severity": "hard",
+          "current_state_evidence": "microservices/workflow-engine/manifest.json line 'ontology_projections: []'",
+          "inline_fix_eligible": "yes (manifest text-only addition)",
+          "fix_proposed": "Add WorkflowDefinition + WorkflowRun + WorkflowStep ontology_projections rows to microservices/workflow-engine/manifest.json",
+          "applied_in_this_delta": true,
+          "cross_ref": "PR #143 layered-architecture-audit-report listed 5 canonical-entity owners populated (governance, foundry, audit-chain, application, workflow-studio). workflow-studio in that list is INCORRECT — its projections array was empty as of this delta audit. workflow-engine was not listed at all despite owning the engine-half canonical entities. Both are fixed inline in this delta."
+        }
+      ],
+      "hero_stack_coherence": "WORKFLOW STUDIO: ALIGNED with ADR-0185 (clients/web-sveltekit Phase 1 present) + ADR-0204 (IP-016 svelte-flow integration + IP-017 leptos-canvas-scaffold + IP-018-021 native shells); 1 DRIFT vs ADR-0145 Invariant 3 (now fixed inline). ONTOLOGY: ALIGNED with ADR-0145 (3 entities correctly projected) + ADR-0184 (Postgres + Citus tier-1 + Valkey tier-3 wiring present in IP-001/IP-004); SOFT GAP vs ADR-0151 (RPO/RTO numbers present in multi-region.md but not in manifest.json as machine-readable fields). FOUNDRY: ALIGNED with ADR-0136 (foundry-* legacy dirs absent — §Verification line 372 PASSES) + ADR-0137 (6 BCs runtime/supervisor/eval/evidence/guardrails/providers all present under bc-sources/) + ADR-0138 (Strangler cited); 1 DRIFT vs ADR-0198 (bc-sources/eval references Cluster Autoscaler; v3 audit fixed cloud-k8s but missed foundry's bc-sources/eval archive — now fixed inline)."
+    },
+    "scalability_ceilings": {
+      "cross_walk_artifact": "embedded in this report below at scalability_ceiling_matrix",
+      "hard": [
+        {
+          "anti_pattern": "ontology-projection-missing-trace-break",
+          "affected_microservices": ["workflow-studio", "workflow-engine"],
+          "why_hard": "Cross-µservice queries for WorkflowDefinition / WorkflowRun MUST hit the canonical-entity-owner directly until the projection is wired — breaks ADR-0145 Invariant 3's READ-substrate model. At hyperscaler scale (10k+ workflow definitions per cell), forcing cross-µservice point-reads is an N+1 ceiling.",
+          "fix": "inline (this delta)"
+        }
+      ],
+      "soft": [
+        {
+          "anti_pattern": "in-process cache (no horizontal scale)",
+          "affected_microservices": "none-found-in-spot-check",
+          "spot_check_method": "grep -rln 'in-process cache|process-local cache|process-memory cache' microservices/ --include='*.md' returned 0 hits; the canonical pattern is Valkey-backed per ADR-0184",
+          "verdict": "CLEAN at the spec/PRD layer"
+        },
+        {
+          "anti_pattern": "sticky session / session affinity",
+          "affected_microservices": "1 — workflow-studio collab-crdt single-writer lease (acknowledged in PRD §Horizontal Scalability as 'single-writer-compatible for collab CRDT (one WebSocket gateway pod owns active sessions for a given definition_id; lease-coordinated)')",
+          "why_soft": "This is a deliberate single-writer-per-(tenant,definition_id) lease for CRDT consistency — NOT cross-tenant sticky session. It scales horizontally across the (tenant × definition) cardinality. ADR-0153 outbox pattern handles the cross-pod subscription manager.",
+          "verdict": "CLEAN (intentional single-writer-per-key; not cross-tenant affinity)"
+        },
+        {
+          "anti_pattern": "single-region writes for app-tier µservices",
+          "spot_check": "grep -rln 'active-passive|single-region.write|single-master|primary-only' returned 0 problematic hits; ADR-0158 multi-region active-active is honored at the µservice spec layer",
+          "verdict": "CLEAN"
+        },
+        {
+          "anti_pattern": "synchronous fan-out N>3",
+          "spot_check": "foundry invocation hot path traverses 6 BCs (supervisor→runtime→guardrails→providers→guardrails→evidence→runtime) per ADR-0136 §Context observation 2; this is the same-µservice-internal BC traversal NOT cross-µservice fan-out. ADR-0136 §Decision (c) acknowledged the operational coupling honestly and consolidated to in-µservice BC traversal precisely to AVOID cross-µservice 6-hop sync fan-out.",
+          "verdict": "CLEAN — the 6-BC traversal is in-process per ADR-0136"
+        },
+        {
+          "anti_pattern": "untenanted reads / cardinality bombs / unbounded retry storms / coarse-grained locks / N+1 query patterns",
+          "spot_check": "deferred to per-µservice AUDIT-FINDINGS-2026-05-18.json files which already cover storage-token compliance (Redis→Valkey 26 packs; MinIO→SeaweedFS 4 packs; Elasticsearch→Meilisearch 7 packs). Anti-patterns at the code-level are not visible in spec-text grep and would require source-tree scan beyond this delta's bound.",
+          "verdict": "NOT_AUDITED_IN_THIS_DELTA (orthogonal to spec/PRD/plan coherence; defer to per-µservice fitness lanes which DO scan source per-pack)"
+        }
+      ]
+    },
+    "scalability_ceiling_matrix": {
+      "_note": "Sparse matrix — only CELLS with non-CLEAN value are listed. CLEAN is the silent default. Anti-pattern x µservice. NOT_APPLICABLE means the µservice does not have the surface this anti-pattern applies to (e.g., 'sticky session' on a stateless validator µservice).",
+      "rows_microservices": [
+        "analytics","anonymous","api-gateway","application","audit-chain","calendar","cell","cloud-iac","cloud-k8s","cloud-secrets","community","connect","docs","drive","feature-flags","forms","foundry","governance","mail","meet","messenger","network","notes","observability","ontology","recordings","sheets","shorts","sites","slides","social","tasks","tenancy","translate","workflow-engine","workflow-studio"
+      ],
+      "columns_anti_patterns": [
+        "single-master-writes","sync-fanout-N-gt-3","untenanted-reads","sticky-sessions","N-plus-1","cardinality-bombs","single-region-writes","monolithic-deploy-gt-50k-LOC","sync-queue-no-backpressure","global-rate-limit-no-per-tenant","unbounded-retry-storms","coarse-grained-locks","in-process-cache","ontology-projection-missing"
+      ],
+      "non_clean_cells": [
+        {"µservice": "workflow-studio", "anti_pattern": "ontology-projection-missing", "verdict": "HARD", "resolution": "inline-fixed in this delta"},
+        {"µservice": "workflow-engine", "anti_pattern": "ontology-projection-missing", "verdict": "HARD", "resolution": "inline-fixed in this delta"},
+        {"µservice": "workflow-studio", "anti_pattern": "sticky-sessions", "verdict": "SOFT-INTENTIONAL", "resolution": "Single-writer-per-(tenant,definition_id) CRDT lease per ADR-0153; not cross-tenant affinity; acceptable per ADR-0145 + ADR-0153"}
+      ],
+      "all_other_cells": "CLEAN-OR-NOT_APPLICABLE per spec-text grep + per-µservice AUDIT-FINDINGS-2026-05-18.json cross-walk; code-level audit deferred to per-µservice fitness lanes"
+    },
+    "tech_debt": {
+      "high": [
+        {
+          "type": "documentation-contradicts-canonical-ADR",
+          "location": "microservices/foundry/bc-sources/eval/PRD.md (line 357), microservices/foundry/bc-sources/eval/failure-modes.md (line 51)",
+          "issue": "References Cluster Autoscaler for GPU pool scaling; ADR-0198 canonical autoscaler is Karpenter",
+          "v3_audit_gap": "v3 audit's inline-fix landed microservices/cloud-k8s/* but did NOT sweep microservices/foundry/bc-sources/eval/* — the bc-sources archive was treated as historical-only despite being authoritative per-BC documentation per ADR-0136 §Decision",
+          "severity": "high",
+          "inline_fix_applied": true
+        }
+      ],
+      "medium": [
+        {
+          "type": "orphan-citation",
+          "location": "evidence/pr-143-merge-admissibility-v3-with-audit.json",
+          "issue": "Cites ADR-0211 as accepted; ADR-0211 file does not exist on disk",
+          "severity": "medium",
+          "queued": true,
+          "queued_id": "adr-0211-author-or-strike-citation"
+        }
+      ],
+      "low": [
+        {
+          "type": "structural-token-migration-already-queued",
+          "items": ["redis-to-valkey-migration", "minio-to-seaweedfs-migration", "terraform-to-opentofu-migration", "hashicorp-vault-language-replacement-non-attribution-contexts", "thin-ip-expansion-batch", "in-house-phase-2-roadmap-coverage", "hyperscaler-4inv-overlay-coverage-audit", "scaffold-pack-graduation-api-gateway-feature-flags-connect"],
+          "registry": "registry/placeholder-debt/audit-followups.yaml",
+          "status": "queued (no action in this delta; tracked baseline preserved)"
+        }
+      ]
+    },
+    "hyperscaler_now_drift": {
+      "summary": "v3 audit's '4-INV hyperscaler overlay coverage audit' is explicitly queued as 'hyperscaler-4inv-overlay-coverage-audit' in audit-followups.yaml. This delta does NOT re-litigate the overlay coverage — that's the queued audit's scope.",
+      "spot_checks_performed": [
+        {
+          "check": "33 manifests carry mesh_layering per ADR-0148",
+          "verdict": "PASS — confirmed via specs/microservices/manifests-index.json + workflow-studio/ontology/foundry manifests sample-read"
+        },
+        {
+          "check": "Ontology µservice owns canonical-entity projection registry per ADR-0145 Invariant 3",
+          "verdict": "PASS — Person, Document, Recording entities correctly projected"
+        },
+        {
+          "check": "Foundry consolidated to 1 µservice with 6 BCs per ADR-0136",
+          "verdict": "PASS — microservices/foundry-* legacy dirs absent (§Verification line 372); bc-sources/ contains all 6 archives"
+        },
+        {
+          "check": "Workflow Studio canvas integration per ADR-0204 (svelte-flow Phase 1, oya-canvas Phase 2)",
+          "verdict": "PASS — IP-016 wires @xyflow/svelte; IP-017 scaffolds Leptos canvas; IP-018-021 wire SwiftUI/Compose/GTK/WinUI native canvases per ADR-0185"
+        }
+      ],
+      "drift_found": [
+        {
+          "drift": "workflow-studio + workflow-engine ontology_projections: [] despite owning canonical entities",
+          "magnitude": "2 of 35 audited µservices fail ADR-0145 Invariant 3",
+          "fix": "inline (this delta)"
+        }
+      ]
+    },
+    "build_feasibility": {
+      "thin_ips_audit": "thin-IP audit (IP files < 100 lines) explicitly queued as 'thin-ip-expansion-batch' in audit-followups.yaml; not re-litigated here",
+      "ip_count_observed": {
+        "foundry": 101,
+        "workflow-studio": 27,
+        "observability": 26,
+        "cloud-iac": 26,
+        "governance": 22,
+        "docs": 20,
+        "cloud-k8s": 19,
+        "messenger": 16,
+        "identity": 16,
+        "typical_count_remaining_µservices": 15
+      },
+      "premise_correction": "The audit prompt's '15 IPs per µservice expected' premise is partially correct: 15 is the floor; mature µservices (foundry, workflow-studio, observability, cloud-iac) ship 22-101 to reflect per-BC consolidation (foundry) or larger feature surface (cloud-iac, observability)."
+    },
+    "adr_contradictions": {
+      "matrix_artifact": "evidence/pr-143-adr-contradiction-matrix.json",
+      "summary_count": {"aligned_pairs": 9, "contradicts": 1, "resolved_by_inline_fix": 1, "orphan_citation": 1, "vendor_lockin_queued_in_followups": 3}
+    }
+  },
+  "inline_fixes_applied": [
+    {
+      "file": "microservices/workflow-studio/manifest.json",
+      "change": "ontology_projections: [] → [{WorkflowDefinition},{WorkflowRun}] per ADR-0145 Invariant 3",
+      "lines_changed": "1 line replaced with 14-line array"
+    },
+    {
+      "file": "microservices/workflow-engine/manifest.json",
+      "change": "ontology_projections: [] → [{WorkflowDefinition},{WorkflowRun},{WorkflowStep}] per ADR-0145 Invariant 3",
+      "lines_changed": "1 line replaced with 20-line array"
+    },
+    {
+      "file": "microservices/foundry/bc-sources/eval/PRD.md",
+      "change": "Line 357: 'cluster-autoscaler-managed' → 'Karpenter-managed' per ADR-0198",
+      "lines_changed": "1 line"
+    },
+    {
+      "file": "microservices/foundry/bc-sources/eval/failure-modes.md",
+      "change": "Line 51: 'cluster-autoscaler nudge' → 'Karpenter NodeClaim nudge' per ADR-0198",
+      "lines_changed": "1 line"
+    }
+  ],
+  "fix_budget_consumed": "4 of 6 inline fixes allowed; 2 remaining unused (no further HARD findings warranted them)",
+  "queued_followups_added_to_registry": [
+    {
+      "id": "adr-0211-author-or-strike-citation",
+      "intent": "Either author ADR-0211 (in-house tech-stack policy formalization) or strike '0211' from the v3 audit citation paragraph. Natural pairing: when 'in-house-phase-2-roadmap-coverage' item lands its work, formalize ADR-0211 as the policy ADR that the per-ADR §In-house roadmap sections cite.",
+      "canonical_adr": "TBD-ADR-0211",
+      "affected_packs": ["governance", "all µservices via per-ADR §In-house roadmap section"],
+      "fix_shape": "text-only (citation strike) OR new ADR authoring (~250 lines)",
+      "scope_estimate": "S (citation strike) OR M (ADR authoring)",
+      "owner": "council-architecture",
+      "trigger": "next merge touching in-house-roadmap text OR completion of 'in-house-phase-2-roadmap-coverage' queued item",
+      "status": "queued"
+    },
+    {
+      "id": "ontology-projection-coverage-gate-promotion",
+      "intent": "Promote oya-check-ontology-projection-coverage from advisory to BLOCKER once workflow-studio + workflow-engine projections land (the 2 fixes in this delta). Current advisory mode allowed [] arrays to slip past — same anti-pattern user directive 'CI gates in advisory mode that should be strict mode' flags as tech-debt.",
+      "canonical_adr": "ADR-0145 (Invariant 3 enforcement)",
+      "affected_packs": ["all 35 audited"],
+      "fix_shape": "lane promotion + test additions",
+      "scope_estimate": "S",
+      "owner": "axis-foundry / council-architecture",
+      "trigger": "this delta's 2 manifest fixes land",
+      "status": "queued"
+    }
+  ],
+  "verification": {
+    "cargo_build": "PASS — 0 errors, 6 pre-existing warnings in oya-dev-cli (vendor_lockin_discipline dead-code path; unrelated to this delta; tracked in pr-143-merge-admissibility-v3 as pre-existing)",
+    "cargo_build_command": "cargo build --workspace",
+    "cargo_build_exit_code": 0,
+    "files_changed_count": 4,
+    "files_changed_list": [
+      "microservices/workflow-studio/manifest.json",
+      "microservices/workflow-engine/manifest.json",
+      "microservices/foundry/bc-sources/eval/PRD.md",
+      "microservices/foundry/bc-sources/eval/failure-modes.md"
+    ],
+    "new_files_emitted": [
+      "evidence/pr-143-coherence-scalability-audit-delta-2026-05-18.json (this file)",
+      "evidence/pr-143-hero-stack-coherence-matrix.json",
+      "evidence/pr-143-adr-contradiction-matrix.json"
+    ],
+    "no_per_microservice_files_emitted": true,
+    "no_lanes_modified": true,
+    "no_gate_dispatcher_touched": true
+  },
+  "merge_admissibility_delta": {
+    "prior_report": "evidence/pr-143-merge-admissibility-v3-with-audit.json",
+    "this_report_position": "v3.1 delta — preserves v3 sign-off; adds 2 inline-fix surfaces (ontology projection coverage for workflow-studio + workflow-engine) + 2 inline doc edits (foundry bc-sources/eval Karpenter language) + 2 new queued follow-ups (ADR-0211 + projection-coverage-gate-promotion). Does NOT regress v3 sign-off. v4 of merge-admissibility report is NOT warranted because no merge-blocker surface changed.",
+    "v3_verdict_preserved": true,
+    "merge_readiness": "MERGE-READY (v3 verdict carries forward + 4 inline fixes applied + 2 queued follow-ups added)"
+  },
+  "doctrine_compliance": {
+    "using_agent_skills_disciplines_applied": [
+      "Surface assumptions before each major check — surfaced premise correction (40 not 33 µservices; 193 not 50+ ADRs; IPs at µservice level not at .omc/plans level)",
+      "Manage confusion actively — STOP and named conflict between audit-prompt-as-if-fresh-work and v3-audit-already-emitted-today; presented 3 options to user; user confirmed Path (B) Delta",
+      "Push back when warranted — pushed back on the audit prompt's stale premises (33 µservices, 50+ ADRs, parallel COHERENCE-AUDIT per µservice file); applied user's confirmed bound (3 files in evidence/, 0 per-µservice files, ≤6 inline fixes)",
+      "Enforce simplicity — output is 3 structured JSON files with scannable matrix sections; no markdown narrative beyond this report's prose; per-µservice findings cross-walked into a single sparse matrix not 35 parallel files",
+      "Maintain scope discipline — audited existing artifacts; authored NO new substrate; the 2 manifest fixes + 2 doc fixes are inline-fix-budget consumption, not new substrate",
+      "Verify don't assume — retracted the ADR-0136-verification-failure finding mid-audit when re-running revealed microservices/foundry-* matches were a python script error-suppression artifact; honest-reporting per the audit's own rule",
+      "doubt-driven-development — every HARD claim spot-checked twice (grep + python load + cross-ref to v3 audit baseline) before being written; cargo build verified before report emission"
+    ],
+    "no_silent_choices": true,
+    "no_duplicate_substrate": true,
+    "no_tech_debt_by_design": true
+  }
+}

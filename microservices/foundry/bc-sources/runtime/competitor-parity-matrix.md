@@ -61,7 +61,7 @@ Quantitative + qualitative parity comparison vs industry-leading agent runtime +
 
 | Capability | oyatie | AWS Bedrock | GCP Vertex | Azure AI Foundry | LangServe | OpenAI Assistants | LlamaCloud | CrewAI |
 |---|---|---|---|---|---|---|---|---|
-| Self-hosted (no vendor lock) | ✅ (Kubernetes + Redis OSS + Postgres OSS) | ❌ SaaS only | ❌ SaaS only | ❌ SaaS only | ✅ | ❌ SaaS only | ❌ SaaS only | partial |
+| Self-hosted (no vendor lock) | ✅ (Kubernetes + Valkey OSS + Postgres OSS) | ❌ SaaS only | ❌ SaaS only | ❌ SaaS only | ✅ | ❌ SaaS only | ❌ SaaS only | partial |
 | Multi-region data-residency | ✅ (11 packs) | ✅ (per-region; ~17 regions) | ✅ (per-region; ~30 regions) | ✅ | n/a | ❌ (US default) | partial | n/a |
 | HIPAA BAA | conditional | ✅ | ✅ | ✅ | n/a | ❌ (no Assistants BAA today) | n/a | n/a |
 | KR PIPA compliance | conditional | partial | partial | partial | n/a | ❌ | n/a | n/a |
@@ -75,7 +75,7 @@ Quantitative + qualitative parity comparison vs industry-leading agent runtime +
 | On-call paging integration | Grafana OnCall (OSS) | CloudWatch | Cloud Monitoring | Azure Monitor | external | ❌ | external | external |
 | Multi-language SDK | M01: Rust; M01+1: TS; M02: Py/Go; M03: JVM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Cedar / Rego / OPA policy | ✅ Cedar v4 | partial (IAM) | partial (IAM) | partial | ❌ | ❌ | ❌ | ❌ |
-| Tenant isolation (multi-tenant) | ✅ Redis prefix + Postgres RLS + Cedar | per-AWS-account | per-GCP-project | per-Azure-subscription | tenant-built | per-OpenAI-org | per-LlamaCloud-org | partial |
+| Tenant isolation (multi-tenant) | ✅ Valkey prefix + Postgres RLS + Cedar | per-AWS-account | per-GCP-project | per-Azure-subscription | tenant-built | per-OpenAI-org | per-LlamaCloud-org | partial |
 
 ## Quantitative Performance Parity
 
@@ -84,7 +84,7 @@ Quantitative + qualitative parity comparison vs industry-leading agent runtime +
 | Metric | oyatie target | AWS Bedrock reference | GCP Vertex reference | Notes |
 |---|---|---|---|---|
 | Capability dispatch p99 (runtime overhead excluding LLM) | ≤ 50ms | undisclosed; whole round-trip target ≤ 2s including LLM | undisclosed | oyatie targets tightest overhead among self-hosted |
-| Session-state hot read p99 | ≤ 10ms | undisclosed | undisclosed | parity hard to verify; oyatie targets known-good Redis 7.4 LTS baseline |
+| Session-state hot read p99 | ≤ 10ms | undisclosed | undisclosed | parity hard to verify; oyatie targets known-good Valkey 8.1 (Redis wire-compat) baseline |
 | Session-state cold restore p99 | ≤ 100ms | undisclosed | undisclosed | parity hard to verify |
 | Invocation completion event lag p99 | ≤ 80ms | undisclosed | undisclosed | first-party measurement |
 | Pool warm-pod cold start | ≤ 500ms | Lambda cold start: 100ms–2s | Cloud Run cold start: 1–4s | oyatie matches Lambda fast-start |

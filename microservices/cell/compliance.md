@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-cell-substrate, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/cell/threat-model.md
   - microservices/cell/dpia.md
@@ -62,7 +62,7 @@ Canonical control-to-framework mapping. Tells an external auditor (SOC 2 Type 2 
 | A.5.14 | Information transfer | mTLS + cross-pack-forbidden | `policy/data-residency.md` |
 | A.5.15 | Access control | OIDC + Cedar + Postgres RLS + cell namespace | `policy/cell-boundary.md` |
 | A.5.17 | Authentication information | OpenBao rotation 24h/30d | OpenBao audit |
-| A.5.18 | Access rights | RBAC via Terraform; UI editing forbidden | `iac/terraform/cluster-api-rbac.tf` |
+| A.5.18 | Access rights | RBAC via OpenTofu; UI editing forbidden | `iac/terraform/cluster-api-rbac.tf` |
 | A.5.23 | Cloud services security | OCI HIPAA-eligible regions for pack-us-healthcare | `policy/data-residency.md` |
 | A.5.24 | Incident management planning | Incident-response playbook | `incident-response.md` |
 | A.5.25 | Assessment of events | Severity classification | `incident-response.md` §"Severity" |

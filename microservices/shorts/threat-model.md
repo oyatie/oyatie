@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-shorts + ops-security
 deciders: council-architecture, ops-security, axis-shorts, council-privacy, ops-legal
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:
@@ -51,7 +51,7 @@ All components introduced by parallel ADR-0135 (Connect dissolution → shorts �
 | Layer-A (adopted OSS / SaaS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 LTS (video metadata + upload-sessions + claims + ages + parental + analytics + audio-track-library) | `oya-shorts-video-upload-*` (10 crates) |
-| Redis 7.2 (feed cache + watch-position + like-counters + trending + notification fanout) | `oya-shorts-video-transcode-*` (9 crates) |
+| Valkey 8.1 (Redis wire-compat) (feed cache + watch-position + like-counters + trending + notification fanout) | `oya-shorts-video-transcode-*` (9 crates) |
 | Meilisearch 0.10.0 (hashtag + sound + creator search) | `oya-shorts-video-storage-*` (8 crates) |
 | S3-compatible (video blobs + transcode variants + thumbnails + quarantine) | `oya-shorts-thumbnail-generation-*` (8 crates) |
 | CloudFront-class CDN (Cloudflare R2 + Workers; or OCI CDN) | `oya-shorts-audio-track-library-*` (7 crates) |
@@ -152,17 +152,17 @@ Fifteen trust boundaries:
 | Captions (auto + manual) | `BEHAVIORAL_TENANT_PRODUCT` | per-video | S3 + Postgres |
 | Audio-track-library (licensed + UGC) | `BEHAVIORAL_TENANT_PRODUCT` + `AUDIT` (licensing metadata) | append-only history | Postgres + S3 |
 | Audio attribution (per-video → sound rights chain) | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | append-only | Postgres |
-| Watch-time sessions (per (viewer, video) seconds + completion-ratio) | `BEHAVIORAL_TENANT_PRODUCT` + `PII_QUASI_IDENTIFIER` (when joined to viewer_ref) | 90d hot, aggregated permanently | Postgres + Redis |
-| Like / share / comment | `BEHAVIORAL_TENANT_PRODUCT` | 365d hot | Postgres + Redis |
+| Watch-time sessions (per (viewer, video) seconds + completion-ratio) | `BEHAVIORAL_TENANT_PRODUCT` + `PII_QUASI_IDENTIFIER` (when joined to viewer_ref) | 90d hot, aggregated permanently | Postgres + Valkey |
+| Like / share / comment | `BEHAVIORAL_TENANT_PRODUCT` | 365d hot | Postgres + Valkey |
 | Repost-stitch / repost-duet records | `BEHAVIORAL_TENANT_PRODUCT` + rights chain | append-only | Postgres |
-| Notification records | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` | 90d hot | Postgres + Redis |
-| Trending windows + sound-of-the-week | derived; `INTERNAL_ONLY` | rebuilt continuously | Redis |
+| Notification records | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` | 90d hot | Postgres + Valkey |
+| Trending windows + sound-of-the-week | derived; `INTERNAL_ONLY` | rebuilt continuously | Valkey |
 | Search index | derived from videos + sounds + creators + hashtags | rebuilt from source | Meilisearch (per-tenant index) |
 | Moderation verdicts + appeal trail | `AUDIT` + `INTERNAL_ONLY` + `PII_IDENTIFYING` (reporter_ref) | append-only; immutable | Postgres + audit-chain seal |
 | **Copyright fingerprint corpus** | `INTERNAL_ONLY` + `AUDIT` | append-only with licensor-controlled lifecycle | Postgres + per-pack |
 | **Copyright claims + counter-notices + repeat-infringer records** | `AUDIT` + `PII_IDENTIFYING` (claimant + creator refs) | append-only; per DMCA retention floor (3y default; pack-us 6y) | Postgres + audit-chain seal |
 | **Age attestations + parental-link records** | `PII_QUASI_IDENTIFIER` + `SENSITIVE_CHILD_PROTECTION` (when minor) | per-pack | Postgres (separated table; restricted access) |
-| Creator-analytics aggregates | derived; `INTERNAL_ONLY` for cluster, `BEHAVIORAL_TENANT_PRODUCT` exposed to creator | rebuilt | Postgres + Redis |
+| Creator-analytics aggregates | derived; `INTERNAL_ONLY` for cluster, `BEHAVIORAL_TENANT_PRODUCT` exposed to creator | rebuilt | Postgres + Valkey |
 | Audit-chain seals (every state transition) | `AUDIT` | append-only; immutable | audit-chain µservice |
 | Per-tenant DEK | `SECRET` | OpenBao 30d rotation; envelope KMS | OpenBao |
 | **DRM per-content keys** | `SECRET` | per-content rotation 7d; replaceable | OpenBao + DRM key system |
@@ -260,7 +260,7 @@ Fifteen trust boundaries:
 **T-T-05 — Like-counter tampering (vote-stuffing)**
 - Asset: Like tallies
 - Likelihood M / Impact M / Risk **M**
-- Mitigations: per-user-per-video idempotency; conflict-free counter; periodic reconciliation Postgres ↔ Redis.
+- Mitigations: per-user-per-video idempotency; conflict-free counter; periodic reconciliation Postgres ↔ Valkey.
 
 **T-T-06 — Moderation classifier verdict tampering**
 - Asset: Moderation verdict ledger
@@ -366,7 +366,7 @@ Fifteen trust boundaries:
 **T-D-01 — Feed-load storm: viral video causes mass concurrent feed-pulls**
 - Asset: Feed cache + CDN
 - Likelihood H / Impact H / Risk **H**
-- Mitigations: Redis hot-feed cache; precomputed For-You for hot accounts; per-tenant feed-load rate limit; HPA on REST pods; CDN edge cache absorbs blob fetches; runbook `runbooks/feed-cache-rebuild.md`.
+- Mitigations: Valkey hot-feed cache; precomputed For-You for hot accounts; per-tenant feed-load rate limit; HPA on REST pods; CDN edge cache absorbs blob fetches; runbook `runbooks/feed-cache-rebuild.md`.
 
 **T-D-02 — Transcode queue backup (mass-upload abuse or unexpected celebrity event)**
 - Asset: ffmpeg worker pool

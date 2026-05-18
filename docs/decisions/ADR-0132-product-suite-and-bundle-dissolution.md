@@ -43,7 +43,7 @@ Effective immediately and going forward, every new µservice in oyatie ships as 
 The following patterns are **mandatory**:
 
 - One concern, one µservice, one `microservices/<ms>/` folder, one PRD.
-- Cross-µservice composition flows through Workflow events and Ontology reads/writes, per `feedback_workflow_objectgraph_adapter_layer.md`.
+- Cross-µservice composition flows through Workflow events and Ontology reads/writes, per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`.
 - Categorization (e.g., `DomainTag = {Agentic, Dev, Business, Healthcare, SupplyChain, Delivery}` inside Workflow Studio) stays as metadata, NOT as a directory split.
 
 Existing suite wrappers (Connect Suite, Workspace Productivity Suite, Enterprise Suite, Foundry, Workflow, Cloud) are not touched by this ADR. Their refactor — if any — is owned by their respective teams under separate ADRs.

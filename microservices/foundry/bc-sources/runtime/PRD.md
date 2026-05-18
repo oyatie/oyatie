@@ -41,7 +41,7 @@ This µservice has no direct Bominal equivalent and originates in oyatie per ADR
 | FR-01 | tenant operator | to register a capability descriptor and target autonomy tier (T0–T4) | the runtime can execute it within tenant-authorised bounds | capability-registry-cache | Must |
 | FR-02 | workflow-engine | to dispatch a capability invocation by `(tenant, capability_id, input_payload)` | my workflow step's agent invocation resolves to a hosted runtime call | capability-executor | Must |
 | FR-03 | invocation orchestrator | to read the capability descriptor from the local registry mirror in ≤10ms p99 | per-invocation dispatch latency stays within the 50ms p99 envelope | capability-registry-cache | Must |
-| FR-04 | session-state | to load and persist per-session conversation history + tool-call scratchpad in Redis with p99 ≤10ms | multi-turn agent interactions resume on any runtime pod within the pool | session-state | Must |
+| FR-04 | session-state | to load and persist per-session conversation history + tool-call scratchpad in Valkey with p99 ≤10ms | multi-turn agent interactions resume on any runtime pod within the pool | session-state | Must |
 | FR-05 | capability-executor | to invoke `foundry-providers` (LLM adapter) and `foundry-guardrails` (safety check) per dispatch | the runtime never reaches an LLM provider directly or bypasses guardrails | capability-executor | Must |
 | FR-06 | runtime-pool | to maintain a warm pool of N runtime pods sized per `capacity-model.md` | cold-start cost is amortised; cold-start p99 ≤500ms per ADR-0020 | runtime-pool | Must |
 | FR-07 | invocation orchestrator | to emit `InvocationStarted`, `InvocationStepEmitted`, `InvocationCompleted`, `InvocationFailed`, `InvocationCancelled` events | foundry-evidence and observability can stitch the timeline | invocation-orchestrator | Must |
@@ -58,8 +58,8 @@ This µservice has no direct Bominal equivalent and originates in oyatie per ADR
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
 | Capability dispatch latency (request → first provider call) | ≤15ms | ≤50ms | ≤120ms | the headline scalability requirement; end-to-end runtime overhead excluding LLM round-trip |
-| Session-state hot read (Redis hit) | ≤3ms | ≤10ms | ≤25ms | per-session conversation history + scratchpad |
-| Session-state cold load (Redis miss → Postgres restore) | ≤30ms | ≤100ms | ≤250ms | bounded to RPO of session-state subsystem |
+| Session-state hot read (Valkey hit) | ≤3ms | ≤10ms | ≤25ms | per-session conversation history + scratchpad |
+| Session-state cold load (Valkey miss → Postgres restore) | ≤30ms | ≤100ms | ≤250ms | bounded to RPO of session-state subsystem |
 | Registry-cache lookup | ≤1ms | ≤10ms | ≤30ms | in-memory dictionary backed by Postgres mirror |
 | Pool warm-pod cold-start budget | — | ≤500ms | — | per ADR-0020; pre-warmed pool size sized in capacity-model.md |
 | Invocation completion event emission lag | ≤20ms | ≤80ms | ≤200ms | event → AsyncAPI bus → foundry-evidence |
@@ -68,9 +68,9 @@ This µservice has no direct Bominal equivalent and originates in oyatie per ADR
 ### Security
 
 - All runtime pods authenticate to foundry-providers, foundry-guardrails, and foundry-evidence over mTLS with per-pod SPIFFE identity (`spiffe://oyatie/foundry-runtime/<pod>`).
-- Per-capability execution is scoped by Cedar policy fragments (this µservice ships `tenant-scope`, `ci-scope`, `auditor-scope`, `public-read` per ADR-0140); cross-tenant invocation is default-deny.
+- Per-capability execution is scoped by Cedar policy fragments (this µservice ships `tenant-scope`, `ci-scope`, `auditor-scope`, `public-read` per ADR-0140 (retired per ADR-0145)); cross-tenant invocation is default-deny.
 - Provider credentials are never resident in runtime pods; the runtime asks `foundry-providers` to invoke the LLM with provider-side credentials that runtime never sees (mitigation for "provider-credential leakage from runtime" threat).
-- Session-state is encrypted at rest in Redis (Redis TLS + per-pack KMS-bound encryption key) and in Postgres (TDE).
+- Session-state is encrypted at rest in Valkey (Valkey TLS + per-pack KMS-bound encryption key) and in Postgres (TDE).
 - Capability dispatch is rate-limited per (tenant, capability_id) per autonomy tier; excess returns 429 + per-tenant quota emission.
 - Secrets follow the OpenBao SecretReference pattern; raw secrets never enter the repo, chat, checkpoints, or runtime pod environment variables.
 
@@ -83,12 +83,12 @@ This µservice has no direct Bominal equivalent and originates in oyatie per ADR
 ### Availability + SLO
 
 - Availability target: 99.95% monthly for the capability-dispatch path (the executor must remain available even when individual provider backends are degraded; circuit-breakers fail-fast).
-- Session-state hot read availability target: 99.9% monthly (Redis HA cluster with cross-AZ replication).
-- RTO: ≤5 min for runtime-pool component (HA failover). RPO: ≤30s for session-state (one Redis AOF flush cycle).
+- Session-state hot read availability target: 99.9% monthly (Valkey HA cluster with cross-AZ replication).
+- RTO: ≤5 min for runtime-pool component (HA failover). RPO: ≤30s for session-state (one Valkey AOF flush cycle).
 
 ### Data residency
 
-- Sessions inherit the tenant's `jurisdiction_code` per ADR-0117. Per-pack Redis and Postgres instances enforce data residency; cross-pack session migration is forbidden by default.
+- Sessions inherit the tenant's `jurisdiction_code` per ADR-0117. Per-pack Valkey and Postgres instances enforce data residency; cross-pack session migration is forbidden by default.
 
 ## Bounded Contexts
 
@@ -142,7 +142,7 @@ JUSTIFICATION:
   - api: typed contracts.
   - adapter: protocol-neutral default.
   - adapter-redis: backend-qualified adapter per ADR-0105 Amendment 3 (*-adapter-<backend>);
-    implements SessionStore + SessionLeaseManager against Redis 7.4 LTS with TLS + AUTH.
+    implements SessionStore + SessionLeaseManager against Valkey 8.1 (Redis wire-compat) with TLS + AUTH.
   - adapter-postgres: backend-qualified adapter for cold-tier session restore and the
     SessionMutationLog audit table (Postgres 16 LTS).
   - sdk: tenant-facing client library for direct session read (debugging + tenant tooling).
@@ -231,10 +231,10 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `SessionStore` | `oya-foundry-runtime-session-state-kernel` | `-adapter-redis` (hot tier) + `-adapter-postgres` (cold restore) | `BEHAVIORAL_TENANT_PRODUCT`, `SENSITIVE_PIPA_ART23` (per session jurisdiction tag) |
 | `SessionLeaseManager` | same | `-adapter-redis` | `INTERNAL_ONLY` |
 | `SessionMutationLog` | same | `-adapter-postgres` | `AUDIT` |
-| `LifecycleStore` | `oya-foundry-runtime-invocation-orchestrator-kernel` | `-adapter` (Redis backing for hot lifecycle index) | `AUDIT` |
+| `LifecycleStore` | `oya-foundry-runtime-invocation-orchestrator-kernel` | `-adapter` (Valkey backing for hot lifecycle index) | `AUDIT` |
 | `EventEmitter` | same | `-adapter` (AsyncAPI bus client) | `AUDIT` |
 | `TimeoutClock` | same | `-adapter` (monotonic clock) | `INTERNAL_ONLY` |
-| `CancellationSignal` | same | `-adapter` (Redis pub/sub) | `INTERNAL_ONLY` |
+| `CancellationSignal` | same | `-adapter` (Valkey pub/sub) | `INTERNAL_ONLY` |
 | `PodFactory` | `oya-foundry-runtime-runtime-pool-kernel` | `-adapter` (Kubernetes client-go) | `INTERNAL_ONLY` |
 | `PoolHealthProbe` | same | `-adapter` (HTTP probe + kube watch) | `INTERNAL_ONLY` |
 | `DrainController` | same | `-adapter` (graceful pod retire + invocation re-park) | `INTERNAL_ONLY` |
@@ -269,7 +269,7 @@ CI lanes that must green:
 | `InvocationFailed` | terminal failure (provider error, guardrail block, timeout) | foundry-evidence; observability; workflow-engine | — |
 | `InvocationCancelled` | tenant or supervisor cancellation; pod drain | foundry-evidence; observability | — |
 | `AutonomyViolationDetected` | capability requested above tenant tier ceiling | foundry-evidence; ops-security; observability OnCall | — |
-| `SessionEvicted` | Redis evicts a session (LRU or TTL); audit emitted | foundry-evidence; tenant ops portal | — |
+| `SessionEvicted` | Valkey evicts a session (LRU or TTL); audit emitted | foundry-evidence; tenant ops portal | — |
 
 ### Workflow events consumed
 
@@ -320,8 +320,8 @@ Key parity gaps to close (ordered by priority):
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
 | Capability dispatch latency | ≤15ms | ≤50ms | ≤120ms | excluding LLM round-trip |
-| Session-state hot read | ≤3ms | ≤10ms | ≤25ms | Redis hit |
-| Session-state cold restore | ≤30ms | ≤100ms | ≤250ms | Redis miss → Postgres |
+| Session-state hot read | ≤3ms | ≤10ms | ≤25ms | Valkey hit |
+| Session-state cold restore | ≤30ms | ≤100ms | ≤250ms | Valkey miss → Postgres |
 | Registry-cache lookup | ≤1ms | ≤10ms | ≤30ms | in-memory |
 | Pool warm-pod cold-start | — | ≤500ms | — | per ADR-0020 |
 | Invocation completion event | ≤20ms | ≤80ms | ≤200ms | event emission lag |
@@ -334,23 +334,23 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Rationale: capability-executor + invocation-orchestrator + runtime-pool components are stateless-compatible (state externalised to Redis + Postgres + foundry-supervisor); session-state owns hot state in Redis cluster; capability-registry-cache owns a Postgres-backed mirror with in-memory cache.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Rationale: capability-executor + invocation-orchestrator + runtime-pool components are stateless-compatible (state externalised to Valkey + Postgres + foundry-supervisor); session-state owns hot state in Valkey cluster; capability-registry-cache owns a Postgres-backed mirror with in-memory cache.
 
-**Active-active compatibility**: `stateless-compatible` for executor + orchestrator + pool components; session-state is horizontally shardable by `(tenant, session_id_prefix)` to Redis cluster slots; capability-registry-cache replicates the Postgres mirror.
+**Active-active compatibility**: `stateless-compatible` for executor + orchestrator + pool components; session-state is horizontally shardable by `(tenant, session_id_prefix)` to Valkey cluster slots; capability-registry-cache replicates the Postgres mirror.
 
 Per-cell capacity envelope (XS tier, M01 launch):
 
 | Dimension | Baseline per cell | Max per cell | Scale-out trigger |
 |---|---|---|---|
 | Max concurrent invocations | 5,000 | 50,000 | runtime-pool queue depth > 200 per pod |
-| Max active sessions | 50,000 | 500,000 | Redis memory > 70% |
+| Max active sessions | 50,000 | 500,000 | Valkey memory > 70% |
 | Capabilities mirrored | 10,000 | 100,000 | Postgres mirror table > 1 GB |
 | Dispatch throughput | 1,000/s | 10,000/s | executor CPU > 70% |
-| Session-state ops/sec | 10,000/s | 100,000/s | Redis ops/s > 70% of cluster ceiling |
+| Session-state ops/sec | 10,000/s | 100,000/s | Valkey ops/s > 70% of cluster ceiling |
 
 Scale-out policy:
 - Kubernetes HPA: executor + orchestrator + pool worker pods scale on CPU `>70%`; min 3 replicas (HA quorum), max 200 replicas per pack.
-- Redis cluster: 6-shard primary + replica per pack; scale shards on memory > 70%.
+- Valkey cluster: 6-shard primary + replica per pack; scale shards on memory > 70%.
 - Postgres mirror: read-replica fanout up to 8 replicas per pack; primary scales vertically until `db.standard.E4.16`.
 - Pre-warmed pool: per `capacity-model.md`; cold-start ≤500ms.
 
@@ -359,7 +359,7 @@ Cross-region story:
 - Post-M01: per-pack expansion to EU, US, US-HC, JP, SG, AU, IN, BR, AE, KSA; cross-pack-forbidden invariant matches observability µservice.
 
 Sharding:
-- Sessions shard by `(tenant_id, session_id_prefix)` to Redis cluster slot.
+- Sessions shard by `(tenant_id, session_id_prefix)` to Valkey cluster slot.
 - Invocation lifecycle records shard by `(tenant_id, invocation_id_prefix)`.
 - Capability mirror partitions by `tenant_id` for Postgres mirror tables.
 - `oya-check-shardability-cli` CI lane verifies partition key presence.
@@ -386,7 +386,7 @@ Sharding:
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | Should the runtime-pool live in the same cluster as observability or its own? Default leaning: dedicated cluster matching AWS Bedrock + GCP Vertex isolation posture. | ops-sre-reliability + axis-foundry-runtime | resolved in IP-001 |
-| 2 | Session-state hot tier — Redis OSS vs Redis Stack vs KeyDB; trade-off of streams + JSON modules vs OSS LTS posture | axis-foundry-runtime | resolved in IP-002 (Redis 7.4 OSS LTS) |
+| 2 | Session-state hot tier — Valkey OSS vs Valkey Stack vs KeyDB; trade-off of streams + JSON modules vs OSS LTS posture | axis-foundry-runtime | resolved in IP-002 (Valkey 8.1 (Redis wire-compat) OSS LTS) |
 | 3 | Multi-tenant capability registry mirror — Postgres logical replication vs CDC stream from foundry-supervisor | axis-foundry-runtime + axis-foundry | ADR-#### successor-IP |
 | 4 | Capability cold-load (cache miss + supervisor pull) cost — acceptable to defer first-call by ≤500ms or must keep ≤50ms always (pre-warming required) | axis-foundry-runtime | resolved in IP-005 (pre-warmed on registration) |
 | 5 | Tenant-supplied capability code (custom logic) execution model — sandboxed WASM vs out-of-process container vs disallowed for M01 | council-architecture + axis-foundry-runtime | resolved in IP-008 (disallowed in M01; tenant capabilities are descriptor-only until ADR-0NNN sandbox decision) |

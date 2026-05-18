@@ -45,7 +45,7 @@ All replay paths MUST be idempotent. Each operation carries `idempotency_key = (
 
 ### BF-02: Feed-timeline cache rebuild
 
-**When**: Redis flush; Redis cluster rebuild; ranking-model version promotion (P03+).
+**When**: Valkey flush; Valkey cluster rebuild; ranking-model version promotion (P03+).
 
 **Procedure**:
 1. Snapshot current cache for forensics.

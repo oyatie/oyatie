@@ -70,7 +70,7 @@ acceptance_status: ga
 | Risk | Mitigation |
 |---|---|
 | Deep-tree pathological queries (>20 levels) — Postgres recursive CTE blow-up | Cap depth at 20 in `domain`; refuse beyond per AC verified test |
-| ACL inheritance cache stampede under bulk move | Per-tenant Redis lock + invalidation broadcast |
+| ACL inheritance cache stampede under bulk move | Per-tenant Valkey lock + invalidation broadcast |
 | Cross-tenant folder reparent attempted | `domain` refuses cross-tenant; covered by `cross_tenant_refused` UI test |
 
 ## References

@@ -55,7 +55,7 @@
       "targets": [{"expr": "sum(rate(oya_drive_cdn_cache_hit_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])) / sum(rate(oya_drive_cdn_request_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}],
       "fieldConfig": {"defaults": {"unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "red"}, {"value": 0.7, "color": "yellow"}, {"value": 0.9, "color": "green"}]}}}},
 
-    {"id": 5, "type": "timeseries", "title": "Object-store backend health (Garage / MinIO / SeaweedFS)",
+    {"id": 5, "type": "timeseries", "title": "Object-store backend health (Garage / SeaweedFS / SeaweedFS)",
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "targets": [
         {"expr": "oya_drive_object_store_replica_count{pack=\"$pack\",backend=\"garage\"}", "legendFormat": "garage replicas", "refId": "A"},

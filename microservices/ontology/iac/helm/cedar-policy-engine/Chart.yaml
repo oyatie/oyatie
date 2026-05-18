@@ -22,5 +22,5 @@ maintainers:
     email: ops-security@oyatie.dev
 annotations:
   artifacthub.io/license: Apache-2.0
-  oyatie.dev/related-adrs: ADR-0140,ADR-0107,ADR-0132
+  oyatie.dev/related-adrs: ADR-0140 (retired per ADR-0145),ADR-0107,ADR-0132
   oyatie.dev/runbook: runbooks/cedar-fragment-rollback.md

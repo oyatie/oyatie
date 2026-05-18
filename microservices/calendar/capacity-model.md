@@ -75,7 +75,7 @@ Scale-out triggers:
 - CPU > 70% sustained → vertical scale primary; replicas can take horizontal-scale reads.
 - Storage > 70% → expand persistent block; consider per-tenant partition pruning if pruning < 60%.
 
-### Redis (availability cache)
+### Valkey (availability cache)
 
 | Param | Baseline | Max |
 |---|---|---|

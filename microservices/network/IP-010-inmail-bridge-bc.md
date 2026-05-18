@@ -20,10 +20,10 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-professional-conte
 Author the full `inmail-bridge` BC per ADR-NET-0003:
 
 - gRPC contract to messenger µservice with `context_kind: Professional` + `inmail_target_channel: professional` invariant (PCI-09).
-- Per-tenant rate budget enforced at REST handler (Redis token-bucket).
+- Per-tenant rate budget enforced at REST handler (Valkey token-bucket).
 - foundry-runtime spam-classifier invoked before bridge dispatch; verdict surfaced to sender.
 - Audit-chain seal on every send + delivery + read receipt.
-- Backpressure via Redis Streams `network:inmail:bridge:queue:<tenant_id>` per `runbooks/inmail-fanout-degraded.md`.
+- Backpressure via Valkey Streams (Redis wire-compat) `network:inmail:bridge:queue:<tenant_id>` per `runbooks/inmail-fanout-degraded.md`.
 - Minor-account FORBID: minor cannot receive InMail from unconnected adult (Cedar `tenant-scope.cedar`).
 
 ## Code Shape

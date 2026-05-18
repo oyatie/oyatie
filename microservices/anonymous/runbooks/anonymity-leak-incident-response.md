@@ -49,7 +49,7 @@ An anonymity leak — any event in which the platform structurally fails to hono
 |---|---|---|
 | 1 | Declare Sev-1 in `#inc-<id>`; page IC + executive-on-call + general-counsel | ops-security |
 | 2 | Halt the suspected leaking code path: `cargo run -p oya-dev-cli -- anonymous halt-component --component <X> --reason "anonymity-leak-investigation"` | ops-security |
-| 3 | Snapshot relevant Postgres + Redis + Meilisearch + audit-chain state for forensic analysis | ops-data |
+| 3 | Snapshot relevant Postgres + Valkey + Meilisearch + audit-chain state for forensic analysis | ops-data |
 | 4 | Begin investigation; collect evidence in `evidence/anonymity-leak/<incident-id>/` | IC |
 | 5 | Notify Council Privacy chair + Council Architecture chair | IC |
 | 6 | If a public claim has been made (researcher / journalist): coordinate with comms + general-counsel | exec-on-call |

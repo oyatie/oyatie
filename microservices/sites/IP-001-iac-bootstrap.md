@@ -13,13 +13,13 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: IaC bootstrap — Helm + Kustomize for Postgres + Redis + Meilisearch + cert-manager + libvips-worker
+# IP-001: IaC bootstrap — Helm + Kustomize for Postgres + Valkey + Meilisearch + cert-manager + libvips-worker
 
 ## Intent
 
 Author Helm + Kustomize manifests for the sites µservice substrate.
 Postgres 16 LTS for site/page/cms-collection event store (RLS per-tenant
-per ADR-0117); Redis 7.2 LTS for the page-render + CMS-collection
+per ADR-0117); Valkey 8.1 (Redis wire-compat) for the page-render + CMS-collection
 cache; Meilisearch 0.10.0 LTS for per-tenant site search;
 cert-manager 1.16 LTS for ACME cert reconciliation (per ADR-SITES-0004);
 libvips 8.16 worker pods for image pipeline (per ADR-SITES-0007);
@@ -72,7 +72,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 - helm lint per chart against kind/k3d cluster.
 - E2E smoke: spin kind cluster; apply pack-kr overlay; verify all 11
-  BC deployments + Postgres + Redis + Meilisearch + cert-manager
+  BC deployments + Postgres + Valkey + Meilisearch + cert-manager
   reach Ready within 10 min.
 - ACME smoke: bind `acme-test.test.oyatie.dev`; verify cert issuance
   against Let's Encrypt staging.
@@ -93,7 +93,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - ADR-0117 (data residency); ADR-0131 (per-µservice flat layout); ADR-0133.
 - ADR-SITES-0001 (Loro CRDT); ADR-SITES-0004 (ACME); ADR-SITES-0007 (image pipeline).
 - Postgres CloudNativePG operator — `cloudnative-pg.io`.
-- Redis cluster mode — `redis.io/docs/management/scaling/`.
+- Valkey cluster mode — `redis.io/docs/management/scaling/`.
 - Meilisearch — `meilisearch.com/docs`.
 - cert-manager — `cert-manager.io/docs`.
 - libvips — `libvips.github.io/libvips`.

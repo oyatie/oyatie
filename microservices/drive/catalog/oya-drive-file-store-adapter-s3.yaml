@@ -6,7 +6,7 @@ bc: file-store
 plane: data
 slo: preview-data-plane
 backend: s3-compatible
-backend_version_pin: "minio:RELEASE.2024-08-17T01-24-54Z (when targeting MinIO)"
+backend_version_pin: "minio:RELEASE.2024-08-17T01-24-54Z (when targeting SeaweedFS)"
 contracts_consumed: [oya-drive-file-store-kernel]
 contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-us-healthcare]

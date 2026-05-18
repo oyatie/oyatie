@@ -5,7 +5,7 @@ info:
   summary: GuardrailDecisionEmitted, JailbreakDetected, AutonomyTierViolation, ContentSafetyRuleFired, RuleStoreMutated, ClassifierModelDeployed, FalsePositiveEscalated events
   description: |
     Cross-µservice Workflow events emitted by foundry-guardrails BCs.
-    Per ADR-0131 + ADR-0140.
+    Per ADR-0131 + ADR-0140 (retired per ADR-0145).
 
     Consumers:
     - foundry-evidence (decision history persistence; per its own retention policy)

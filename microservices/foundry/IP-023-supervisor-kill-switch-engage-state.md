@@ -44,7 +44,7 @@ pub async fn engage_kill_switch(
 ) -> Result<EngagedAt, KernelError> {
     // 1. Verify signature count: fleet=2, else 1
     // 2. Verify Ed25519 signatures against authorising principal pubkey
-    // 3. Write Redis state
+    // 3. Write Valkey state
     // 4. Write CRD (Operator picks up + propagates)
     // 5. Publish KillSwitchEngaged event Ed25519-signed
     // 6. Audit-chain seal

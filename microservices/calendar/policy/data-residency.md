@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-calendar
-related_adrs: [ADR-0117, ADR-0140]
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145)]
 doc_status: published
 ---
 
@@ -25,13 +25,13 @@ Define where calendar data may be stored, processed, and replicated; how cross-b
 
 | Pack | Region | Substrate |
 |---|---|---|
-| pack-kr | OCI ap-seoul-1 | Postgres + Redis cluster KR-resident |
-| pack-eu | OCI eu-frankfurt-1 | Postgres + Redis cluster EU-resident |
-| pack-us | OCI us-ashburn-1 + us-phoenix-1 | Postgres + Redis cluster US-resident |
-| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | Postgres + Redis cluster US-resident, HIPAA-compliant |
-| pack-jp | OCI ap-tokyo-1 | Postgres + Redis cluster JP-resident |
-| pack-sg | OCI ap-singapore-1 | Postgres + Redis cluster SG-resident |
-| pack-au | OCI ap-sydney-1 | Postgres + Redis cluster AU-resident |
+| pack-kr | OCI ap-seoul-1 | Postgres + Valkey cluster KR-resident |
+| pack-eu | OCI eu-frankfurt-1 | Postgres + Valkey cluster EU-resident |
+| pack-us | OCI us-ashburn-1 + us-phoenix-1 | Postgres + Valkey cluster US-resident |
+| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | Postgres + Valkey cluster US-resident, HIPAA-compliant |
+| pack-jp | OCI ap-tokyo-1 | Postgres + Valkey cluster JP-resident |
+| pack-sg | OCI ap-singapore-1 | Postgres + Valkey cluster SG-resident |
+| pack-au | OCI ap-sydney-1 | Postgres + Valkey cluster AU-resident |
 
 ### Invariant DR-02 — No default cross-pack replication
 

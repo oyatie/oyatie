@@ -16,7 +16,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 ## Intent
 
-Repository implementations for `ProviderConfigRepository` (Postgres) and `TokenBucket` (Redis). Connects domain ports to Layer-A substrate.
+Repository implementations for `ProviderConfigRepository` (Postgres) and `TokenBucket` (Valkey). Connects domain ports to Layer-A substrate.
 
 ## ChangeSet boundary
 
@@ -52,7 +52,7 @@ CREATE TABLE tenant_provider_config (
 CREATE INDEX idx_tenant_provider_config_pack ON tenant_provider_config(pack);
 ```
 
-Redis bucket key shape: `oyp:bucket:{tenant_id}:{vendor}` (token-count + last-refill-time hash).
+Valkey bucket key shape: `oyp:bucket:{tenant_id}:{vendor}` (token-count + last-refill-time hash).
 
 ## Test Plan
 
@@ -66,7 +66,7 @@ Redis bucket key shape: `oyp:bucket:{tenant_id}:{vendor}` (token-count + last-re
 
 ## Acceptance Gates
 
-Standard + `integration-test` lane (against ephemeral Postgres + Redis).
+Standard + `integration-test` lane (against ephemeral Postgres + Valkey).
 
 ## Next IP
 

@@ -96,6 +96,6 @@ bash microservices/mail/tests/e2e/workflow-handoff.sh
 - PRD FR-09; capabilities/T1-assist.yaml T1-mail-handoff-to-workflow
 - `policy/dual-context-isolation.md` Invariant DCI-06
 - ADR-0008 (data-use boundary)
-- ADR-0140 (Cedar policy enforcement)
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement)
 - GDPR Art. 6 (lawful basis) + Art. 7 (consent)
 - KR PIPA Art. 15 (consent for collection)

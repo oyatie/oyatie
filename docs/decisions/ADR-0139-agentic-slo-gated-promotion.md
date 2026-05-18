@@ -142,7 +142,7 @@ Layer mapping respects clean-arch dependency direction per `feedback_clean_archi
 
 ### Integration via Workflow + Ontology
 
-This ADR introduces typed events and Ontology writes per `feedback_workflow_objectgraph_adapter_layer.md`:
+This ADR introduces typed events and Ontology writes per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`:
 
 - **Workflow events produced**: `EligibilityChanged{microservice, source_sha, target_env, verdict, evaluated_at}` — consumed by the promote-workflow trigger and the OnCall paging path.
 - **Workflow events produced**: `PromotionExecuted{microservice, target_env, sha, executed_at}` — consumed by audit-chain and the per-component release-pointer ledger.

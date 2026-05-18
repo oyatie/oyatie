@@ -6,7 +6,7 @@ Per ADR-0131 (per-microservice flat layout) §"What stays central", **service-sc
 
 | ID | Title | Status |
 |---|---|---|
-| ADR-DRIVE-0001 | Object-storage substrate selection (Garage primary; MinIO + SeaweedFS alternates; Ceph RGW + AWS S3 considered) | Accepted |
+| ADR-DRIVE-0001 | Object-storage substrate selection (Garage primary; SeaweedFS + SeaweedFS alternates; Ceph RGW + AWS S3 considered) | Accepted |
 | ADR-DRIVE-0002 | Content-defined-chunking + delta-sync (FastCDC chosen; Rabin / BuzHash / fixed-size considered; LBFS reference) | Accepted |
 | ADR-DRIVE-0003 | Share-link security model (Ed25519 + HKDF signing; Argon2id KDF; view-count cap; revocation cascade) | Accepted |
 | ADR-DRIVE-0004 | Encryption-at-rest + E2E (OpenBao Transit envelope encryption; libsodium secretstream for Personal pillar opt-in) | Accepted |

@@ -58,7 +58,7 @@ Define multi-region topology for meet across the 11 oyatie packs: pack-pinning, 
 │  │ HA-RF=3                  │ replic     │ async; ≤ 5 s lag          │ │
 │  └──────────────────────────┘            └──────────────────────────┘ │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐ │
-│  │ Redis cluster (3 nodes)  │            │ Redis warm                │ │
+│  │ Valkey cluster (3 nodes)  │            │ Valkey warm                │ │
 │  └──────────────────────────┘            └──────────────────────────┘ │
 │  ┌──────────────────────────┐  CRR       ┌──────────────────────────┐ │
 │  │ S3 recording bucket      │◀──────────▶│ S3 replica                │ │
@@ -86,7 +86,7 @@ Define multi-region topology for meet across the 11 oyatie packs: pack-pinning, 
 | Component | Mode | RPO | Cross-region |
 |---|---|---|---|
 | Postgres meeting + participant + recording manifest | Async logical replication | ≤ 5 s | intra-pack only |
-| Redis lobby + presence + signaling session | Cluster-replicated (sentinel) | ≤ 1 s | intra-pack only |
+| Valkey lobby + presence + signaling session | Cluster-replicated (sentinel) | ≤ 1 s | intra-pack only |
 | S3 recordings + transcripts | Async CRR | ≤ 5 min | intra-pack only |
 | Meilisearch transcript index | Rebuilt from S3 transcripts in DR | ≤ 60 min lag during failover | intra-pack only |
 | LiveKit room state | NOT replicated (in-memory; ephemeral) | active calls drop on failover | n/a |
@@ -113,7 +113,7 @@ Define multi-region topology for meet across the 11 oyatie packs: pack-pinning, 
 | 3 | Verify DR pair Postgres replica < 30s lag; promote replica to primary | ≤ 5 min |
 | 4 | DNS TTL drains; clients reconnect to DR pair meet-rest endpoints | ≤ 10 min total |
 | 5 | Notify active-meeting hosts: "Your meeting has experienced a service disruption; please rejoin via the same link" | continuous |
-| 6 | Verify Redis warm cluster ready; rebuild lobby state from active connections | ≤ 5 min |
+| 6 | Verify Valkey warm cluster ready; rebuild lobby state from active connections | ≤ 5 min |
 | 7 | Verify S3 CRR replica reachable; lazy-hydrate recordings on demand | ≤ 5 min |
 | 8 | Spin up DR Whisper GPU pool (cold-spare → warm in ≤ 5 min) | ≤ 5 min |
 | 9 | Replay Meilisearch transcript index from S3 (last 24h hot) | ≤ 60 min |
@@ -157,7 +157,7 @@ A pack-eu user joining a pack-us tenant's meeting routes their media via inter-r
 - LiveKit SFU: active-active across AZs (room-affinity by hash).
 - coturn: active-active across AZs (anycast).
 - Postgres: primary + 2 read-replicas across AZs.
-- Redis: 3-node cluster across AZs.
+- Valkey: 3-node cluster across AZs.
 - S3: cross-AZ replication within bucket.
 - Whisper GPU pool: distributed across AZs with GPU node selector.
 

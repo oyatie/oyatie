@@ -1,5 +1,5 @@
 {{/*
-Mesh-only ingress for REST/WS; egress to OpenBao + Postgres + Redis + S3 +
+Mesh-only ingress for REST/WS; egress to OpenBao + Postgres + Valkey + S3 +
 ClamAV + (pack-us-healthcare) OPSWAT + cross-µservice mTLS for embed-resolver.
 
 Export-import pods (gVisor runtime) have NO network egress per ADR-DOCS-0003
@@ -64,7 +64,7 @@ spec:
         - podSelector:
             matchLabels: {app.kubernetes.io/name: oya-docs-postgres}
       ports: [{port: 5432, protocol: TCP}]
-    # Redis for collab-crdt + cache
+    # Valkey for collab-crdt + cache
     - to:
         - podSelector:
             matchLabels: {app.kubernetes.io/name: oya-docs-redis}

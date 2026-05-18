@@ -31,7 +31,7 @@ description: |
 owner_team: axis-sheets + ops-security
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0028, ADR-0110, ADR-0135, ADR-0131, ADR-0140, ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0005, ADR-SHEETS-0006]
+related_adrs: [ADR-0022, ADR-0028, ADR-0110, ADR-0135, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0005, ADR-SHEETS-0006]
 related_specs: [/specs/microservices/sheets.json]
 related_artifacts:
   - microservices/sheets/PRD.md FR-04 (recalc), FR-06 (CRDT), FR-08 (pivot), FR-10 (data-validation), FR-20 (license-gate), FR-21 (offline buffer)
@@ -128,7 +128,7 @@ cost_profile:
   estimated_cost_usd_per_call: 0.0008
   cost_drivers:
     - Postgres write (per save: 2-4ms)
-    - Redis read+write (per CRDT op: 0.5ms)
+    - Valkey read+write (per CRDT op: 0.5ms)
     - Cell µservice SDK round-trip (per save: 50-100ms)
     - Audit-chain seal (Ed25519 sign + emit: 1-2ms)
     - Cedar policy evaluation including per-range ACL (constant-time, < 1ms)
@@ -174,7 +174,7 @@ invariants:
       Every Cedar policy evaluation that doesn't match a permit returns deny + audit row.
       Asserted by policy-fragment compilation tests.
   - tenant_isolation: |
-      Every Postgres + Redis + S3 + Arrow/Parquet write tenant_id-scoped.
+      Every Postgres + Valkey + S3 + Arrow/Parquet write tenant_id-scoped.
       Asserted by oya-governance-citus-rls-enforced lane.
   - ed25519_seal_chain: |
       Every cell-edit + share + license-gate event's seal references its predecessor; chain reconstructable.

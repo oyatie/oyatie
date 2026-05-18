@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, ops-security, council-legal-compliance, axis-foundry-runtime
-related: [ADR-0110, ADR-0135, ADR-0131, ADR-0140]
+related: [ADR-0110, ADR-0135, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_external_adrs: [microservices/workflow-studio/decisions/ADR-WS-0005, microservices/docs/decisions/ADR-DOCS-0005]
 related_artifacts:
   - microservices/sheets/PRD.md (FR-14, FR-15, AC-05, AC-16)

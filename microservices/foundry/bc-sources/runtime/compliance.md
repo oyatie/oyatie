@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-foundry-runtime, council-architecture, ops-compliance
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/foundry-runtime/threat-model.md
   - microservices/foundry-runtime/dpia.md
@@ -45,12 +45,12 @@ Canonical control-to-framework mapping for the foundry-runtime µservice. Tells 
 | CC4.1 | Internal monitoring | LEAN lanes + SLOs | `/specs/quality/lanes.yaml` |
 | CC4.2 | Deficiency communication | Audit-chain on every state transition | ADR-0028 |
 | CC5.1 | Control activities | LEAN lanes | `microservices/governance/` |
-| CC5.2 | Technology controls | Cedar + Redis ACL + Postgres RLS + signed commits | `policy/*.cedar` |
+| CC5.2 | Technology controls | Cedar + Valkey ACL + Postgres RLS + signed commits | `policy/*.cedar` |
 | CC5.3 | Policy deployment | Runbooks + standards | `docs/standards/*` + `runbooks/*` |
 | CC6.1 | Logical access | OIDC + MFA + Cedar + JIT OpenBao | `policy/tenant-scope.cedar`, `policy/auditor-scope.cedar`, `policy/ci-scope.cedar` |
 | CC6.2 | Authentication / authorization | OIDC + per-tenant key + SPIFFE | `policy/runtime-isolation.md` |
 | CC6.3 | Access lifecycle | OpenBao access lifecycle + audit | OpenBao audit log |
-| CC6.6 | Logical access control | Redis tenant-prefix + Postgres RLS + Cedar | `policy/runtime-isolation.md` TI-01..TI-08 |
+| CC6.6 | Logical access control | Valkey tenant-prefix + Postgres RLS + Cedar | `policy/runtime-isolation.md` TI-01..TI-08 |
 | CC6.7 | Transmission + disposal | mTLS in transit + KMS at rest + DSR cascade | `policy/data-residency.md` §"DSR Cascade" |
 | CC6.8 | Vulnerability management | `cargo deny` + Trivy + Grype | `/specs/supply-chain.json` |
 | CC7.1 | System operations | HA + per-tenant rate limits + HPA | `capacity-model.md` |
@@ -81,9 +81,9 @@ Canonical control-to-framework mapping for the foundry-runtime µservice. Tells 
 | A.5.7 Threat intelligence | Annual threat-model + quarterly review |
 | A.5.10 Acceptable use | Cedar policy + per-tenant scoping |
 | A.5.14 Information transfer | mTLS in transit + cross-pack-forbidden |
-| A.5.15 Access control | OIDC + Cedar + Redis ACL + Postgres RLS |
+| A.5.15 Access control | OIDC + Cedar + Valkey ACL + Postgres RLS |
 | A.5.17 Authentication info | OpenBao secret rotation (30d/90d) |
-| A.5.18 Access rights | Cedar + RBAC managed via Terraform |
+| A.5.18 Access rights | Cedar + RBAC managed via OpenTofu |
 | A.5.23 Information security for cloud | OCI HIPAA-eligible for pack-us-healthcare |
 | A.5.24–A.5.27 Incident management | `incident-response.md` |
 | A.5.28 Evidence | Audit-chain Ed25519 |
@@ -93,13 +93,13 @@ Canonical control-to-framework mapping for the foundry-runtime µservice. Tells 
 | A.5.33 Records protection | Audit-chain immutability + Mimir retention |
 | A.5.34 Privacy / PII | DPIA + DSR + Cedar |
 | A.8.2 Privileged access | JIT OpenBao + 2-person rule |
-| A.8.3 Access restriction | Redis prefix + Postgres RLS + Cedar |
+| A.8.3 Access restriction | Valkey prefix + Postgres RLS + Cedar |
 | A.8.4 Source code access | CODEOWNERS + branch-protection |
 | A.8.5 Secure authentication | OIDC + MFA + SPIFFE |
 | A.8.7 Malware protection | Trivy + Grype + Cosign |
 | A.8.11 Data masking | OTel SDK redactor + guardrails |
 | A.8.12 DLP | Cross-tenant query refusal |
-| A.8.14 Redundancy | HA replicas + Redis cluster RF≥1 + Postgres replica |
+| A.8.14 Redundancy | HA replicas + Valkey cluster RF≥1 + Postgres replica |
 | A.8.15 Logging | Audit-chain + Loki structured logs |
 | A.8.16 Monitoring activities | Self-observability + OnCall |
 | A.8.20–A.8.21 Networks security | Istio mTLS + NetworkPolicy |
@@ -122,7 +122,7 @@ Canonical control-to-framework mapping for the foundry-runtime µservice. Tells 
 | 5(1)(c) Minimisation | guardrails + data_class + sampling |
 | 5(1)(d) Accuracy | Capability descriptor schema + audit-chain |
 | 5(1)(e) Storage limitation | Retention matrix |
-| 5(1)(f) Integrity / confidentiality | Redis prefix + Postgres RLS + encryption |
+| 5(1)(f) Integrity / confidentiality | Valkey prefix + Postgres RLS + encryption |
 | 5(2) Accountability | This + DPIA + ROPA |
 | 6 Lawful basis | Art. 6(1)(b)/(c)/(f) per purpose |
 | 9 Special category | Art. 9(2)(h) PHI; PIPA Art. 23(2) sensitive |
@@ -177,7 +177,7 @@ Canonical control-to-framework mapping for the foundry-runtime µservice. Tells 
 | 45 CFR | Implementation |
 |---|---|
 | §164.308(a)(1)(ii)(A) Risk analysis | `threat-model.md` + `dpia.md` |
-| §164.308(a)(4)(ii)(B) Access authorization | Cedar + Redis prefix + Postgres RLS |
+| §164.308(a)(4)(ii)(B) Access authorization | Cedar + Valkey prefix + Postgres RLS |
 | §164.308(a)(6) Incident procedures | `incident-response.md` |
 | §164.308(a)(7) Contingency plan | `multi-region.md` |
 | §164.310 Physical safeguards | OCI HIPAA-eligible inherited |

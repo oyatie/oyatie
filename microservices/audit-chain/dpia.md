@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-audit-chain
 deciders: council-privacy, ops-security, axis-audit-chain, council-architecture
 methodology: ICO DPIA + CNIL PIA + GDPR Art. 35 + KR PIPA Art. 33 (개인정보영향평가)
-related_adrs: [ADR-0028, ADR-0003, ADR-0117, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0003, ADR-0117, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/audit-chain-merkle-ed25519.json]
 related_artifacts:
   - microservices/audit-chain/threat-model.md

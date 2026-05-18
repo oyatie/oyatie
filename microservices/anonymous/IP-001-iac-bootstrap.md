@@ -24,7 +24,7 @@ Author Helm chart + Kustomize base + pack-kr + pack-eu overlays for the `anonymo
 | Path | Action | Description |
 |---|---|---|
 | `microservices/anonymous/iac/helm/Chart.yaml` | create | Helm chart manifest; appVersion pinned to 1.0.0 |
-| `microservices/anonymous/iac/helm/values.yaml` | create | default values; LTS pins (Postgres 16, Redis 7.2, Meilisearch 0.10.0, rust-bls 0.5, Cedar v4.2) |
+| `microservices/anonymous/iac/helm/values.yaml` | create | default values; LTS pins (Postgres 16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10.0, rust-bls 0.5, Cedar v4.2) |
 | `microservices/anonymous/iac/helm/templates/{deployment,service,hpa,pdb,networkpolicy,servicemonitor,prometheusrule}.yaml` | create | 7 templates; EGRESS-DENY-DEFAULT NetworkPolicy enforces I4 |
 | `microservices/anonymous/iac/kustomize/base/{kustomization,namespace}.yaml` | create | shared base |
 | `microservices/anonymous/iac/kustomize/overlays/pack-kr/*` | create | pack-kr overlay (Seoul region; KR PIPA Art. 24-2 toggle) |

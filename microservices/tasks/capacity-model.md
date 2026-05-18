@@ -13,7 +13,7 @@ doc_status: published
 
 ## Purpose
 
-Model per-cell capacity envelope, scale-out triggers, and headroom posture for tasks. Drives Helm `replicas` / HPA / Postgres / Redis / Meilisearch configuration + finops cost budget.
+Model per-cell capacity envelope, scale-out triggers, and headroom posture for tasks. Drives Helm `replicas` / HPA / Postgres / Valkey / Meilisearch configuration + finops cost budget.
 
 ## Demand model
 
@@ -81,7 +81,7 @@ Scale-out triggers:
 - CPU > 70% sustained → vertical scale primary; replicas take horizontal read scale.
 - Storage > 70% → expand persistent block; consider per-tenant partition pruning.
 
-### Redis (view-cache + presence)
+### Valkey (view-cache + presence)
 
 | Param | Baseline | Max |
 |---|---|---|
@@ -148,7 +148,7 @@ Scale-out plan: at Q4 2026, expand from single-cell to 3-cell deployment (pack-k
 
 ## Disaster-recovery sizing
 
-- RTO ≤ 15 min: requires hot standby replica with auto-promotion (Patroni for Postgres; Sentinel for Redis).
+- RTO ≤ 15 min: requires hot standby replica with auto-promotion (Patroni for Postgres; Sentinel for Valkey).
 - RPO ≤ 60s: synchronous replication to nearest standby; async to off-site.
 - Meilisearch search-index can be **rebuilt** from Postgres in ≤30 min (PRD AC-09); RPO for search-index is effectively infinite (rebuild from source).
 - Backup retention: 30d hot + 12mo cold (S3-compatible WORM); pack-us-healthcare ≥ 6y.

@@ -85,7 +85,7 @@ Per rest class: 1 test per route (happy + auth-fail + tenant-mismatch) + ≥ 2 c
 
 ## References
 
-- ADR-0056, ADR-0105, ADR-0140.
+- ADR-0056, ADR-0105, ADR-0140 (retired per ADR-0145).
 - `contracts/openapi/guardrails.yaml`.
 - `contracts/proto/guardrails.proto`.
 - `policy/tenant-scope.cedar`.

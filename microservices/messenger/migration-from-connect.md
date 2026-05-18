@@ -159,7 +159,7 @@ operational surface** (per this migration prompt's runbook callout):
 | New runbook | Legacy operational surface | Semantic preservation |
 |---|---|---|
 | `search-index-rebuild.md` | Connect-messenger Elasticsearch rebuild procedure | Preserved verbatim: same trigger conditions, same expected rebuild window, same KPI (full-rebuild ≤6h for 1B documents) |
-| `presence-rebuild.md` | Connect-messenger presence-cache cold-start | Preserved verbatim: same trigger (Redis flush + restart), same warmup (~3 min for 1M users) |
+| `presence-rebuild.md` | Connect-messenger presence-cache cold-start | Preserved verbatim: same trigger (Valkey flush + restart), same warmup (~3 min for 1M users) |
 | `mention-storm-throttle.md` | Connect-messenger mention fan-out throttle | Preserved verbatim: same per-channel mention-rate ceiling (100 mentions / 60s per channel) |
 | `websocket-storm.md` | Connect-messenger websocket reconnect-storm dampening | Preserved verbatim: same exponential-backoff schedule (1s, 2s, 4s, 8s, capped 60s + jitter) |
 | `attachment-restore.md` | Connect-messenger S3 attachment restore from versioning | Preserved verbatim: same restore-window (90 days), same chain-of-custody seal requirement |

@@ -73,7 +73,7 @@ E2E: POST /upload-sessions → multipart upload to S3 quarantine → finalize �
 - domain: 90% line / 80% branch on validation logic.
 - usecase: 85% line / 75% branch with port mocks; happy + error paths.
 - adapter-postgres: integration vs real Postgres 16; RLS verified.
-- adapter-s3: integration vs LocalStack or MinIO; signed-URL roundtrip.
+- adapter-s3: integration vs LocalStack or SeaweedFS; signed-URL roundtrip.
 - rest: 85% line / 75% branch; per-endpoint 200 / 401 / 403 / 422.
 
 ## Halt Conditions

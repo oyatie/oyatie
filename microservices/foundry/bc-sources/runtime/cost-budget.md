@@ -19,19 +19,19 @@ doc_status: published
 
 ## Purpose
 
-Track the foundry-runtime µservice's monthly cloud cost across compute + Redis + Postgres + KMS + network egress; surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17) and Redis 7.4 + Postgres 16 reference architectures from `capacity-model.md`; verify-at-deploy markers called out.
+Track the foundry-runtime µservice's monthly cloud cost across compute + Valkey + Postgres + KMS + network egress; surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17) and Valkey 8.1 (Redis wire-compat) + Postgres 16 reference architectures from `capacity-model.md`; verify-at-deploy markers called out.
 
 ## Cost Categories
 
 | Category | What | OCI pricing reference |
 |---|---|---|
 | Compute (VM.Standard / OKE node) | Runtime pool pods + capability-executor pods + invocation-orchestrator pods + session-state app + cache app | `oracle.com/cloud/compute/pricing/` |
-| Redis-as-service (or self-hosted Redis on OKE) | Session-state hot tier | self-hosted on VM.Standard.E4 + persistent volumes |
+| Redis-as-service (or self-hosted Valkey on OKE) | Session-state hot tier | self-hosted on VM.Standard.E4 + persistent volumes |
 | Postgres-as-service (or self-hosted Postgres on OKE) | Session cold restore + capability mirror + invocation lifecycle records | self-hosted on VM.Standard.E4 + persistent volumes |
 | Network egress | Sibling µservice mTLS traffic (intra-region; minimal); ingress for tenant traffic | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-pack keyring for Redis-AUTH + Postgres-TDE + audit-chain signing | `oracle.com/security/key-management/pricing/` |
 | Load balancer | Istio gateway per pack | `oracle.com/cloud/networking/load-balancing/pricing/` |
-| Object storage | Postgres WAL archives + Redis AOF snapshots for cold-tier session restore | `oracle.com/cloud/storage/object-storage/pricing/` |
+| Object storage | Postgres WAL archives + Valkey AOF snapshots for cold-tier session restore | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Observability cost | Self-monitoring SLI emission cost (small) | shared with observability µservice cost |
 
 ## Per-Component Monthly Cost (XS tier, single pack-kr region, M01 launch)
@@ -47,8 +47,8 @@ Per `capacity-model.md` §"Worked example: XS tier (M01 launch; 20 tenants pack-
 | runtime pool warm pods | 8 × VM.Standard.E4 4-core | $580 | – | $580 |
 | session-state-app | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | capability-registry-cache-app + worker | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
-| Redis primary nodes (6 shards × 1 primary) | 6 × VM.Standard.E4 4-core | $435 | $200 PV (AOF) | $635 |
-| Redis replicas (6 shards × 1 replica) | 6 × VM.Standard.E4 4-core | $435 | $200 PV | $635 |
+| Valkey primary nodes (6 shards × 1 primary) | 6 × VM.Standard.E4 4-core | $435 | $200 PV (AOF) | $635 |
+| Valkey replicas (6 shards × 1 replica) | 6 × VM.Standard.E4 4-core | $435 | $200 PV | $635 |
 | Postgres primary (mirror + cold + lifecycle) | 1 × VM.Standard.E4 8-core | $145 | $100 PV (16 LTS data) | $245 |
 | Postgres read replica | 1 × VM.Standard.E4 8-core | $145 | $100 PV | $245 |
 | Postgres WAL archive (object storage) | – | – | $30 | $30 |
@@ -102,11 +102,11 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 | Lever | Estimated saving | Trade-off |
 |---|---|---|
 | Increase pool warm-pod TTL | 5–10% compute | Cold-start uptick on low-utilisation tenants |
-| Reduce session-state hot-tier retention (14d → 7d) | 30–40% Redis | More frequent cold restores |
+| Reduce session-state hot-tier retention (14d → 7d) | 30–40% Valkey | More frequent cold restores |
 | Spot-instance fleet for runtime-pool warm pods | 30–50% compute | Spot eviction → cold-start uptick |
 | OCI committed-use discounts (1y / 3y) | 20–40% compute | Vendor lock-in window |
 | Postgres connection pooling tighter | 5–10% Postgres | Fewer concurrent connections; latency sensitivity |
-| Per-tenant cardinality budget on session-state | 5–20% Redis | Tenant disruption if too aggressive |
+| Per-tenant cardinality budget on session-state | 5–20% Valkey | Tenant disruption if too aggressive |
 | Capability cache TTL extension | 5% compute | Slightly slower descriptor freshness |
 
 ## Verification
@@ -121,6 +121,6 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 - `microservices/foundry-runtime/multi-region.md`.
 - `microservices/foundry-runtime/policy/data-residency.md` (per-pack retention multipliers).
 - OCI pricing — `oracle.com/cloud/pricing/`.
-- Redis 7.4 LTS — `redis.io/docs/about/releases/`.
+- Valkey 8.1 (Redis wire-compat) — `redis.io/docs/about/releases/`.
 - Postgres 16 LTS — `postgresql.org/about/news/postgresql-160-released/`.
 - FinOps Foundation framework — `finops.org`.

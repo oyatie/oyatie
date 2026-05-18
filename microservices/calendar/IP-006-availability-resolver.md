@@ -19,7 +19,7 @@ acceptance_lanes: [cargo-nextest, oya-governance-layer-correctness, oya-governan
 
 Implement the availability-resolver BC per PRD §"Bounded Contexts"
 row 3. Cross-tenant free/busy with Cedar-gated minimum-necessary
-projection (PRD AC-02). Redis 7.4 LTS cache (per-tenant key prefix;
+projection (PRD AC-02). Valkey 8.1 (Redis wire-compat) cache (per-tenant key prefix;
 `allkeys-lru` eviction).
 
 ## ChangeSet boundary
@@ -33,7 +33,7 @@ projection (PRD AC-02). Redis 7.4 LTS cache (per-tenant key prefix;
 | `microservices/calendar/src/crates/oya-calendar-availability-resolver-kernel/` | create | FreeBusyProjector + CrossTenantInviteResolver port traits |
 | `microservices/calendar/src/crates/oya-calendar-availability-resolver-domain/` | create | minimum-necessary projection invariant |
 | `microservices/calendar/src/crates/oya-calendar-availability-resolver-usecase/` | create | query-freebusy orchestrator |
-| `microservices/calendar/src/crates/oya-calendar-availability-resolver-adapter-redis/` | create | Redis cache backend |
+| `microservices/calendar/src/crates/oya-calendar-availability-resolver-adapter-redis/` | create | Valkey cache backend |
 | `microservices/calendar/src/crates/oya-calendar-availability-resolver-rest/` | create | REST handler |
 
 ## Acceptance Gates
@@ -64,6 +64,6 @@ cargo run -p oya-dev-cli -- gate validate dual-context-correctness --microservic
 
 ## References
 
-- ADR-0105; ADR-0131; ADR-0140 (Cedar).
+- ADR-0105; ADR-0131; ADR-0140 (retired per ADR-0145) (Cedar).
 - PRD-calendar AC-02 + AC-07.
-- Redis 7.4 — `redis.io`.
+- Valkey 8.1 (Redis wire-compat) — `redis.io`.

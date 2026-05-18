@@ -150,7 +150,7 @@ Adopt the following chart-live-link contract:
 - `microservices/slides/policy/public-read.cedar`.
 - `microservices/slides/failure-modes.md` FM-12, FM-13.
 - `microservices/slides/threat-model.md` T-I-06.
-- ADR-0140 (Cedar policy enforcement).
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).
 - ADR-0105 (backend-qualified adapters).
 - ADR-0131 (per-microservice flat layout).
 - sheets µservice PRD + ADR family.

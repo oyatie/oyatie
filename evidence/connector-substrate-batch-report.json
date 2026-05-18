@@ -1,0 +1,164 @@
+{
+  "kind": "connector-substrate-batch-report",
+  "schema_version": "1.0",
+  "authored_at": "2026-05-18",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "mission": "oya-shared-connector-kernel + 10 first-wave enterprise connectors",
+  "kernel": {
+    "name": "oya-shared-connector-kernel",
+    "layer": "kernel (Layer 1 per ADR-0148)",
+    "purpose": "Enterprise integration substrate — Connector trait + types every external SaaS adapter implements.",
+    "tests": 16,
+    "auth_schemes_declared": ["OAuth2", "ApiKey", "MutualTls", "SignedJwt"],
+    "design_notes": [
+      "Trait surface is synchronous so the kernel stays runtime-agnostic (ADR-0148).",
+      "SecretReference Debug is redacted; raw bytes never live in kernel memory (CLAUDE.md OpenBao note).",
+      "Every Connector call receives an AuditSealHandle (ADR-0145) and emits a seal.",
+      "OntologyProjection envelope per ADR-0145 inter-µservice contract — Ontology µservice consumes projections.",
+      "IdempotencyKey enforced 8..=128 chars (ADR-0149); Cursor non-empty (ADR-0150)."
+    ]
+  },
+  "adapters": [
+    {
+      "name": "oya-connector-slack-adapter",
+      "provider_id": "slack",
+      "auth_scheme": "OAuth2",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": true, "subscribe": true },
+      "entity_kinds": ["conversation", "message", "file"],
+      "rate_limits": { "rps": 1, "burst": 5, "note": "slack tier-3 bot (~50/min)" },
+      "tests": 13,
+      "ontology_projections": ["Channel", "Message"]
+    },
+    {
+      "name": "oya-connector-teams-adapter",
+      "provider_id": "teams",
+      "auth_scheme": "OAuth2",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": true, "subscribe": true },
+      "entity_kinds": ["channel", "message", "adaptive-card"],
+      "rate_limits": { "rps": 16, "burst": 100, "daily_quota": 1000000, "note": "Graph API: 10k req / 10min / app / tenant" },
+      "tests": 13,
+      "ontology_projections": ["Channel", "Message"]
+    },
+    {
+      "name": "oya-connector-workday-adapter",
+      "provider_id": "workday",
+      "auth_scheme": "SignedJwt",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": false, "subscribe": false },
+      "entity_kinds": ["worker", "job-profile", "compensation"],
+      "rate_limits": { "rps": 10, "burst": 30, "daily_quota": 500000, "note": "Workday REST per-ISU throttle" },
+      "tests": 13,
+      "ontology_projections": ["Employee", "JobProfile"],
+      "smoke_proof": "lists 10 workers via cargo test smoke_lists_ten_workers"
+    },
+    {
+      "name": "oya-connector-adp-adapter",
+      "provider_id": "adp",
+      "auth_scheme": "MutualTls",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": false, "subscribe": false },
+      "entity_kinds": ["worker", "pay-statement", "time-card", "benefit-coverage"],
+      "rate_limits": { "rps": 5, "burst": 20, "daily_quota": 100000, "note": "ADP Marketplace standard tier" },
+      "tests": 11,
+      "ontology_projections": ["Employee", "PayStatement"]
+    },
+    {
+      "name": "oya-connector-rippling-adapter",
+      "provider_id": "rippling",
+      "auth_scheme": "ApiKey",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": true, "subscribe": false },
+      "entity_kinds": ["employee", "device", "transaction"],
+      "rate_limits": { "rps": 10, "burst": 50, "daily_quota": 250000, "note": "Rippling REST default" },
+      "tests": 11,
+      "ontology_projections": ["Employee", "Device"]
+    },
+    {
+      "name": "oya-connector-gusto-adapter",
+      "provider_id": "gusto",
+      "auth_scheme": "OAuth2",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": false, "subscribe": false },
+      "entity_kinds": ["employee", "payroll", "contractor"],
+      "rate_limits": { "rps": 4, "burst": 20, "daily_quota": 100000, "note": "Gusto Embedded standard" },
+      "tests": 11,
+      "ontology_projections": ["Employee", "Payroll"]
+    },
+    {
+      "name": "oya-connector-salesforce-adapter",
+      "provider_id": "salesforce",
+      "auth_scheme": "OAuth2",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": true, "subscribe": true },
+      "entity_kinds": ["Account", "Contact", "Opportunity"],
+      "rate_limits": { "rps": 25, "burst": 100, "daily_quota": 100000, "note": "Salesforce Enterprise daily_api_request_quota" },
+      "tests": 12,
+      "ontology_projections": ["Customer", "Contact", "Deal"]
+    },
+    {
+      "name": "oya-connector-netsuite-adapter",
+      "provider_id": "netsuite",
+      "auth_scheme": "SignedJwt",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": true, "subscribe": false },
+      "entity_kinds": ["customer", "vendor", "salesOrder", "journalEntry"],
+      "rate_limits": { "rps": 4, "burst": 10, "note": "SuiteTalk concurrency-gov 10 Enterprise" },
+      "tests": 12,
+      "ontology_projections": ["Customer", "Vendor", "SalesOrder"]
+    },
+    {
+      "name": "oya-connector-quickbooks-adapter",
+      "provider_id": "quickbooks",
+      "auth_scheme": "OAuth2",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": true, "subscribe": false },
+      "entity_kinds": ["Customer", "Vendor", "Invoice", "Bill"],
+      "rate_limits": { "rps": 8, "burst": 40, "daily_quota": 500000, "note": "QBO 500 req/min per realm" },
+      "tests": 11,
+      "ontology_projections": ["Customer", "Vendor", "Invoice"]
+    },
+    {
+      "name": "oya-connector-epic-fhir-adapter",
+      "provider_id": "epic-fhir",
+      "auth_scheme": "SignedJwt",
+      "capabilities": { "list": true, "get": true, "create": true, "update": true, "delete": false, "subscribe": false },
+      "entity_kinds": ["Patient", "Encounter", "MedicationRequest", "Observation"],
+      "rate_limits": { "rps": 5, "burst": 20, "note": "Epic FHIR tenant-configurable conservative default" },
+      "tests": 11,
+      "ontology_projections": ["Patient", "Encounter", "Observation"],
+      "compliance_note": "PHI passes through audit-chain seal (ADR-0145). Tenants must configure endpoint base URL via Connect µservice."
+    }
+  ],
+  "totals": {
+    "new_crates": 11,
+    "total_tests": 134,
+    "test_outcome": "all green (134 passed, 0 failed)",
+    "build_outcome": "cargo build green for all 11 crates",
+    "clippy_outcome": "workspace deny set (unwrap_used/expect_used/panic) green; 0 errors, 0 warnings under plain clippy after fix"
+  },
+  "buildability_bar": {
+    "sandbox_creds_documented": "every adapter README references the OpenBao SecretReference path and vendor sandbox source",
+    "smoke_test_ten_employees": "workday + adp + rippling + gusto each list 10 workers via cargo test smoke",
+    "rate_limit_published": "every adapter publishes a RateLimitDescriptor with rps + burst",
+    "openapi_snapshot": "every adapter ships specs/openapi.snapshot.yaml covering the upstream surface",
+    "cedar_policy": "every adapter ships specs/cedar-policy.cedar with tenant→provider rules"
+  },
+  "discipline_bars_satisfied": [
+    "/api-and-interface-design — port-trait kernel + adapter sibling crates; trait stable; capability set declared honestly",
+    "/deprecation-and-migration — Workday delete/subscribe + ADP delete/subscribe + Gusto delete + Epic delete return ConnectorError::Unsupported with reason; no false API promise",
+    "/code-review-and-quality — 134 tests; multi-axis coverage (auth, capability, idempotency, rate-limit, ontology, error path)",
+    "buildability bar — cargo build clean; cargo test clean; smoke fixtures work without upstream network",
+    "integrity bar — SecretReference Debug redaction; AuthScheme honestly declared; capabilities honestly declared",
+    "in-house tech stack — OpenBao SecretReference referenced; ADR-0145 audit-chain seal emitted on every call; ontology projection envelopes published"
+  ],
+  "scope_lock_audit": {
+    "touched": [
+      "crates/oya-shared-connector-kernel/**",
+      "crates/oya-connector-slack-adapter/**",
+      "crates/oya-connector-teams-adapter/**",
+      "crates/oya-connector-workday-adapter/**",
+      "crates/oya-connector-adp-adapter/**",
+      "crates/oya-connector-rippling-adapter/**",
+      "crates/oya-connector-gusto-adapter/**",
+      "crates/oya-connector-salesforce-adapter/**",
+      "crates/oya-connector-netsuite-adapter/**",
+      "crates/oya-connector-quickbooks-adapter/**",
+      "crates/oya-connector-epic-fhir-adapter/**",
+      "Cargo.toml (workspace members registration only)"
+    ],
+    "untouched": "no existing µservice or other crate was modified"
+  }
+}

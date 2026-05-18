@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-workflow, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0035, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0035, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/workflow-engine/threat-model.md
   - microservices/workflow-engine/dpia.md
@@ -83,7 +83,7 @@ Canonical control-to-framework mapping for workflow-engine. Tells external audit
 | A.5.14 | Information transfer | mTLS + cross-pack-replication-forbidden | `policy/data-residency.md` §"Cross-Pack Replication" |
 | A.5.15 | Access control | OIDC + Cedar + Citus + RLS | `threat-model.md` |
 | A.5.17 | Authentication information | OpenBao rotation (30d / 90d) | OpenBao audit log |
-| A.5.18 | Access rights | RBAC managed via Terraform | `iac/terraform/engine-rbac.tf` |
+| A.5.18 | Access rights | RBAC managed via OpenTofu | `iac/terraform/engine-rbac.tf` |
 | A.5.23 | Cloud services | OCI HIPAA-eligible for pack-us-healthcare | `policy/data-residency.md` |
 | A.5.24 | Incident management planning | Incident-response playbook | `incident-response.md` |
 | A.5.25 | Assessment of security events | Severity classification | `incident-response.md` §"Severity Definitions" |
@@ -104,7 +104,7 @@ Canonical control-to-framework mapping for workflow-engine. Tells external audit
 | A.8.12 | Data leakage prevention | OTel redactor + log sampling | `threat-model.md` T-I-02 |
 | A.8.15 | Logging | Audit-chain emission | ADR-0028 |
 | A.8.16 | Monitoring activities | Engine self-SLI + Grafana | `dashboards/*.json` |
-| A.8.20 | Network security | Network policies; engine → Postgres / Redis / ClickHouse only | Kubernetes NetworkPolicy review |
+| A.8.20 | Network security | Network policies; engine → Postgres / Valkey / ClickHouse only | Kubernetes NetworkPolicy review |
 | A.8.21 | Network services security | mTLS internal; TLS public | ingress configuration |
 | A.8.23 | Web filtering | n/a (engine is API-only) | — |
 | A.8.25 | Secure development life cycle | LEAN gates + multispectrum review | per-IP evidence |
@@ -140,7 +140,7 @@ KR PIPA Art. 29 (technical safeguards) — cross-mapped to engine mitigations:
 |---|---|
 | Access control | OIDC + Cedar + Citus + RLS |
 | Encryption (transit) | mTLS internal; TLS public ingress |
-| Encryption (at rest) | KMS-SSE for Postgres + Redis AOF + ClickHouse + object-storage |
+| Encryption (at rest) | KMS-SSE for Postgres + Valkey AOF + ClickHouse + object-storage |
 | Integrity verification | Spec signature + audit-chain Merkle |
 | Audit log retention ≥ 1y | 3y default for KR-FSS sector |
 | IDS / IPS | Network policies + WAF |

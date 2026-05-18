@@ -92,7 +92,7 @@ oya gate validate no-silent-loss --microservice slides
 ## Halt Conditions
 
 - `test_no_silent_overwrite` fails — STOP. AC-06 load-bearing.
-- Redis lease split-brain detected — STOP. Single-writer guarantee.
+- Valkey lease split-brain detected — STOP. Single-writer guarantee.
 - Loro type leaked through kernel port — STOP. ADR-SLIDES-0001 invariant.
 
 ## Next IP

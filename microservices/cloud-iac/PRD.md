@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0120, ADR-0121, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0120, ADR-0121, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0171]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-cloud-iac
@@ -54,8 +54,8 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
-| Render latency (Helm/Kustomize/Terraform-plan; per µservice) | ≤1s | ≤5s | ≤10s | end-to-end from PR webhook to rendered diff |
-| Apply latency p99 (per µservice; not waiting on workload health) | ≤90s | ≤5min | ≤15min | dependency-ordered apply across resources; bounded by k8s reconcile + Terraform refresh |
+| Render latency (Helm/Kustomize/OpenTofu-plan; per µservice) | ≤1s | ≤5s | ≤10s | end-to-end from PR webhook to rendered diff |
+| Apply latency p99 (per µservice; not waiting on workload health) | ≤90s | ≤5min | ≤15min | dependency-ordered apply across resources; bounded by k8s reconcile + OpenTofu refresh |
 | Drift-detection cycle per cluster | — | ≤1h | — | continuous; one full cluster diff per hour minimum |
 | Validator plan-preview p99 (PR-time) | ≤10s | ≤30s | ≤60s | per-µservice; runs in CI lane before merge |
 | Rollback execution p99 | ≤30s | ≤2min | ≤5min | fast-revert when paired with SLO gate auto-rollback |
@@ -94,7 +94,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
-| `iac-renderer` | `oya-cloud-iac-iac-renderer-{kernel,domain,usecase,api,adapter,adapter-helm,adapter-kustomize,adapter-opentofu,rest,worker,sdk,app}` | Render Helm/Kustomize/Terraform-plan deterministically from `microservices/<ms>/iac/` sources; emit `RenderCompleted` event with content-addressable digest | `ChartSource`, `ModuleSource`, `OverlaySource`, `RenderedManifest`, `ContentDigest` |
+| `iac-renderer` | `oya-cloud-iac-iac-renderer-{kernel,domain,usecase,api,adapter,adapter-helm,adapter-kustomize,adapter-opentofu,rest,worker,sdk,app}` | Render Helm/Kustomize/OpenTofu-plan deterministically from `microservices/<ms>/iac/` sources; emit `RenderCompleted` event with content-addressable digest | `ChartSource`, `ModuleSource`, `OverlaySource`, `RenderedManifest`, `ContentDigest` |
 | `iac-validator` | `oya-cloud-iac-iac-validator-{kernel,domain,usecase,api,adapter,rest,worker,app}` | Schema + policy + plan-preview + drift-diff; refuses applies that would mutate out-of-scope resources or violate Cedar policy | `PlanPreview`, `DriftReport`, `ValidationVerdict`, `PolicyViolation` |
 | `iac-applier` | `oya-cloud-iac-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd,rest,worker,app}` | Apply orchestration: dependency-correct apply, retry, idempotency, per-µservice scope enforcement; mediates ArgoCD/Flux reconciler | `ApplyJob`, `ApplyResult`, `ApplyOrder`, `RetryBudget` |
 | `iac-rollback` | `oya-cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter,rest,worker,app}` | State-revert engine: revert to last-green apply; coordinate with observability SLO gate rollback primitive | `RollbackTarget`, `StateRevertPlan`, `RollbackVerdict` |
@@ -319,7 +319,7 @@ Key parity gaps to close (ordered by priority):
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
 | Render latency | ≤1s | ≤5s | ≤10s | per µservice; deterministic |
-| Apply latency | ≤90s | ≤5min | ≤15min | per µservice; bounded by k8s reconcile + Terraform refresh |
+| Apply latency | ≤90s | ≤5min | ≤15min | per µservice; bounded by k8s reconcile + OpenTofu refresh |
 | Validator plan-preview at PR-time | ≤10s | ≤30s | ≤60s | feeds into CI lane decision |
 | Drift-detection cycle per cluster | — | ≤1h | — | continuous; one full diff per hour minimum |
 | Rollback execution | ≤30s | ≤2min | ≤5min | when paired with SLO gate |
@@ -402,3 +402,42 @@ Sharding:
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 | No-suite policy | cloud-iac stands alone, not a suite member |
 | ADR-0133 | Industry-best-practice conformance | competitor parity authority |
+| ADR-0171 | Multi-cluster federation (ArgoCD ApplicationSets + Cluster API) | this PRD's canonical multi-cluster surface |
+
+## Multi-Cluster Federation Addendum (per ADR-0171)
+
+Per ADR-0171 (2026-05-18), cloud-iac adopts a three-component multi-cluster federation substrate as the canonical scaling shape from ≥12 clusters at M02:
+
+### Component 1 — ArgoCD ApplicationSets (application deployment across N clusters)
+
+- Every µservice's `iac/helm/<ms>/` chart references a single `ApplicationSet` declaration.
+- Cluster-list / cluster-decision-resource generators fan out to each target cluster with per-pack value overrides.
+- Per-pack overlays live as `values-<pack>.yaml` under `microservices/<ms>/iac/helm/<ms>/`.
+- ArgoCD federation control plane lives in a dedicated meta-pack ("federation") — NOT a tenant data residency boundary; carries only ApplicationSets, CAPI controllers, and routing config.
+
+### Component 2 — Cluster API (CAPI) (cluster lifecycle)
+
+- Cluster create / upgrade / delete declarative via Cluster API CRDs.
+- Per-environment providers:
+  - On-prem sovereign packs → `cluster-api-provider-metal3` (bare-metal) per ADR-0117.
+  - EU pack → `cluster-api-provider-openstack` or `cluster-api-provider-azure` per ADR-0049.
+  - KR pack → sovereign on-prem; metal3.
+  - Foundry GPU pools → cell-isolated CAPI clusters per ADR-0009.
+- CAPI provider versions tracked in `registry/cluster-api-providers.json` (new registry entry; M02 deliverable).
+
+### Component 3 — Federation control plane (cross-region routing)
+
+- GeoDNS + multi-cluster Ingress pattern adapted from GKE Multi-Cluster Ingress to on-prem.
+- Tenant DNS resolves to per-pack GeoDNS pool; per-tenant residency (per ADR-0010) constrains which pack receives the request.
+- Failover within a pack: warm-standby DR cluster receives traffic via DNS-failover (TTL ≤60s).
+- Failover across packs: ONLY for non-residency-bound tenants; otherwise fail-closed per ADR-0008 data-use boundary.
+
+### Migration trigger
+
+This addendum applies from M02 graduation (fleet ≥12 clusters). At M01-foundation scale (≤6 clusters) the kustomize+kubectl-context per-pack model continues; the federation tier is not deployed until M02 prep.
+
+### Federation SLO
+
+- Federation control plane availability: 99.95% (one nine below the platform — federation outage degrades new-deploy velocity, not tenant-facing traffic).
+- ApplicationSet sync latency p99: ≤2min from PR-merge to first cluster acknowledged apply.
+- CAPI cluster-provision time: ≤30min from `kubectl apply` to ready-cluster.

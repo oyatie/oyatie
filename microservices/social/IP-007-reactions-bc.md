@@ -34,8 +34,8 @@ conflict-free counter, Redis-buffered + Postgres flush, per-user idempotency
 | `src/crates/oya-social-reactions-usecase/src/{add,remove,tally}.rs` | create |
 | `src/crates/oya-social-reactions-adapter-postgres/src/repository.rs` | create |
 | `src/crates/oya-social-reactions-adapter-postgres/migrations/0001_init.sql` | create |
-| `src/crates/oya-social-reactions-adapter-redis/src/counter.rs` | create — Redis HINCRBY-based counter |
-| `src/crates/oya-social-reactions-worker/src/flush_postgres.rs` | create — periodic Redis → Postgres flush |
+| `src/crates/oya-social-reactions-adapter-redis/src/counter.rs` | create — Valkey HINCRBY-based counter |
+| `src/crates/oya-social-reactions-worker/src/flush_postgres.rs` | create — periodic Valkey → Postgres flush |
 | `tests/reactions_e2e.rs` | create |
 
 ## Acceptance Gates
@@ -49,7 +49,7 @@ cargo nextest run -p oya-social-reactions-adapter-redis
 ## Test Plan
 
 - Per-user-per-post idempotency: add same reaction twice → single record.
-- Redis ↔ Postgres reconciliation: synthetic divergence flagged.
+- Valkey ↔ Postgres reconciliation: synthetic divergence flagged.
 - Reaction count consistency after restart.
 - React p99 ≤ 50ms.
 

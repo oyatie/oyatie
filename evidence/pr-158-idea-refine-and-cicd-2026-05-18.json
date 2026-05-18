@@ -1,0 +1,193 @@
+{
+  "doc_kind": "idea-refine-and-cicd-analysis",
+  "scope": "PR-158 agent-skills vendoring + lifecycle-skill encouragement + auto-update mechanism",
+  "session_date": "2026-05-18",
+  "skills_applied": ["agent-skills:idea-refine", "agent-skills:ci-cd-and-automation", "agent-skills:context-engineering", "agent-skills:using-agent-skills"],
+  "references": {
+    "upstream": "https://github.com/addyosmani/agent-skills",
+    "upstream_license": "MIT",
+    "pr_158_base_design": "evidence/pr-143-agentic-pipeline-hooks-bootstrap-design-2026-05-18.json",
+    "pr_158_amendment": "evidence/pr-143-hooks-bootstrap-design-amendment-2026-05-18.json",
+    "agent_id_in_flight": "PR-158 hooks+CLI bootstrap implementation (a12e6637a2c95b110)",
+    "addendum_message_sent": "Scope addendum delivered via SendMessage 2026-05-18; agent should fold in vendoring + workflows + hook payload extensions on its next tool round"
+  },
+
+  "idea_refine_output": {
+    "how_might_we": "How might we make agent-skills + lifecycle-skill encouragement reproducible, fresh, and useful as part of ONE bootstrap — without user-level state, drift bugs, or upstream coupling we cannot roll back?",
+
+    "sharpening_answers": {
+      "audience": "Contributors who clone the repo + AI agents (Claude/Codex/Gemini/OpenCode) that operate inside it",
+      "success_criteria": [
+        "Single command: `./tools/hook-bootstrap/install.sh` produces a fully-skilled environment",
+        "Agents discover the right lifecycle skill for the task automatically via SessionStart payload",
+        "Upstream drift caught daily and reviewed via PR (never silent)",
+        "Zero user-level state — clone + bootstrap + uninstall round-trips to clean repo state",
+        "Offline-tolerant — `--skip-skills` flag for contributors without network at install time"
+      ],
+      "constraints": [
+        "MIT license attribution preserved verbatim (LICENSE + UPSTREAM.json.attribution)",
+        "Idempotent install.sh + uninstall.sh",
+        "Encourage-don't-prevent hook design (per amendment 2026-05-18)",
+        "Multi-tool (Claude/Codex/Gemini/OpenCode) — honor upstream's multi-format skill content"
+      ],
+      "what_been_tried": "User-level plugin install (`agent-skills@addy-agent-skills: true` in ~/.claude/settings.json) — violates reproducibility per `if it's not in repo and reproducible, get rid of it`",
+      "why_now": "PR-158 bootstrap in flight; perfect moment to fold this scope in as same install.sh additions rather than separate PR"
+    },
+
+    "variations_explored": [
+      {
+        "lens": "inversion",
+        "idea": "Don't vendor — declare a manifest dep, fetch on demand",
+        "verdict": "REJECTED — offline-fragile, drift uncaptured, no provenance"
+      },
+      {
+        "lens": "constraint-removal",
+        "idea": "Fork agent-skills + customize per-skill for oyatie",
+        "verdict": "REJECTED — silent upstream drift, loses upstream improvements, vendor-lockin pattern"
+      },
+      {
+        "lens": "audience-shift",
+        "idea": "Honor upstream's multi-tool support (.claude/, .gemini/, .opencode/) in bootstrap",
+        "verdict": "ADOPTED — bootstrap detects Claude/Codex/Gemini/OpenCode and wires hooks accordingly"
+      },
+      {
+        "lens": "combination",
+        "idea": "SessionStart hook injects both canonical-primitives AND lifecycle-skill map from vendored skills/",
+        "verdict": "ADOPTED — extends `tools/hooks/_canonical-primitives.md` with Lifecycle Skill Map section"
+      },
+      {
+        "lens": "simplification",
+        "idea": "Install = `git clone --depth=1 addyosmani/agent-skills tools/agent-skills/`",
+        "verdict": "UPGRADED — keep shallow-clone simplicity, add UPSTREAM.json for provenance + sync_policy lock"
+      },
+      {
+        "lens": "10x-version",
+        "idea": "Cross-vendor multiple skill libraries into tools/agent-skills/{vendor}/",
+        "verdict": "ARCHITECTURE-READY (UPSTREAM.json supports multi-vendor); DO NOT BUILD NOW — addyosmani is the only one at this quality bar; premature abstraction"
+      },
+      {
+        "lens": "expert-CI/CD",
+        "idea": "Mirror upstream's own CI pattern (validate-skills.js) + add shellcheck + install dry-run + license preservation gate",
+        "verdict": "ADOPTED — `.github/workflows/validate-agent-skills.yml` mirrors upstream's `test-plugin-install.yml` + extends"
+      },
+      {
+        "lens": "hyrum's-law",
+        "idea": "Vendored paths (tools/agent-skills/skills/<name>/) become public contracts once cited in PRs",
+        "verdict": "ADOPTED — UPSTREAM.json.sync_policy locks directory structure; sync workflow fails CI on structural breakage"
+      }
+    ],
+
+    "convergence_directions": {
+      "A_vendor_plus_auto_PR_on_drift": {
+        "user_value": "high — agents always have fresh skills, contributors get one-command setup",
+        "feasibility": "high — already half-built; addyosmani has validate-skills.js we can reuse verbatim",
+        "differentiation": "provenance + sync workflow is novel; most vendor-and-forget",
+        "verdict": "WINNER"
+      },
+      "B_plugin_marketplace_no_vendor": {
+        "user_value": "medium — native Claude Code integration",
+        "feasibility": "high — already exists",
+        "killed_by": "Reproducibility doctrine + multi-tool support requirement (Codex/Gemini/OpenCode get nothing); user-level state"
+      },
+      "C_git_submodule": {
+        "user_value": "medium — cleanest git semantics",
+        "killed_by": "--recursive footgun, CI complexity, harder to drop our own _canonical-primitives.md alongside without polluting submodule"
+      }
+    },
+
+    "hidden_assumptions": [
+      {"id": "A1", "assumption": "Daily cron cadence is right", "validation": "Monitor sync-PR frequency for 4 weeks; tune cron if noisy or stale"},
+      {"id": "A2", "assumption": "Upstream validate-skills.js works on our vendor unchanged", "validation": "Run in CI on first install; if breaks, do not auto-PR — open ISSUE instead"},
+      {"id": "A3", "assumption": "Vendor ALL skills, not curated subset", "validation": "Simplicity beats curation; users ignore unused at runtime; downstream addition cost is zero"},
+      {"id": "A4", "assumption": "MIT attribution via LICENSE + UPSTREAM.json.attribution is sufficient", "validation": "MIT § requires verbatim license inclusion; we ship LICENSE; satisfied"},
+      {"id": "A5", "assumption": "Upstream stays at github.com/addyosmani/agent-skills", "validation": "UPSTREAM.json captures URL; if moves, sync PR fails noisily — manual update of UPSTREAM.json triggers reconciliation"}
+    ],
+
+    "not_doing_and_why": [
+      "Plugin marketplace dependency — violates reproducibility, multi-tool block",
+      "Git submodule — contributor friction, CI complexity",
+      "Forking + customizing per-skill — silent upstream drift",
+      "Cross-vendor aggregator (Anthropic-skills + others) — premature; build when 2nd vendor emerges at quality bar",
+      "Auto-merging sync PRs — review IS the audit point; never auto-merge upstream content"
+    ]
+  },
+
+  "cicd_quality_gates": {
+    "shift_left_on_PR_touching_vendor_or_bootstrap": {
+      "trigger": "push/PR touching tools/agent-skills/** OR tools/hook-bootstrap/** OR tools/hooks/** OR bin/oya",
+      "workflow_file": ".github/workflows/validate-agent-skills.yml",
+      "gates_in_order": [
+        {"gate": "validate-skills.js", "source": "tools/agent-skills/scripts/validate-skills.js (vendored)", "what_it_checks": "Skill frontmatter + structure + cross-refs per upstream's own tests"},
+        {"gate": "shellcheck", "scope": "tools/hook-bootstrap/*.sh + tools/hooks/*.sh + bin/oya", "fail_on": "any warning"},
+        {"gate": "install.sh --dry-run", "what_it_checks": "Idempotency + dry-run output sane + no destructive ops on dry-run path"},
+        {"gate": "license-preservation", "what_it_checks": "tools/agent-skills/LICENSE present + contains 'MIT' + UPSTREAM.json.attribution non-empty"},
+        {"gate": "path-structure-invariant", "what_it_checks": "tools/agent-skills/{skills,agents,references,hooks}/ all present (Hyrum's-Law lock)"}
+      ],
+      "no_skip_policy": "Even doc-only PRs touching this directory get the full validation set. No --no-verify bypass."
+    },
+
+    "scheduled_upstream_sync": {
+      "workflow_file": ".github/workflows/sync-agent-skills.yml",
+      "trigger": {"cron": "0 9 * * *", "workflow_dispatch": true},
+      "jobs": [
+        {"name": "check-upstream", "what": "Fetch addyosmani HEAD SHA → compare with tools/agent-skills/UPSTREAM.json.commit_sha → output drift: true|false"},
+        {"name": "validate-vendored", "what": "Run upstream validate-skills.js against current vendored content (catches drift bugs early — if upstream broke something, we know before re-vendoring)", "depends_on": "check-upstream"},
+        {"name": "open-sync-pr", "condition": "drift == true AND validate-vendored passed", "what": "Re-vendor, update UPSTREAM.json (new SHA + fetched_at), create branch chore/sync-agent-skills-<sha>, open PR with diff + upstream changelog link", "labels": ["auto-vendor-sync", "agent-skills"]},
+        {"name": "open-issue-if-broken", "condition": "drift == true AND validate-vendored FAILED", "what": "Open ISSUE (not PR) with upstream commit range + validation output; pin requests user attention before re-vendoring; do not silently propagate broken upstream"}
+      ],
+      "honesty_principle": "Never auto-PR a broken vendor. Issue > silent green."
+    },
+
+    "feedback_loop_to_agents": {
+      "pattern": "When validate-skills.js fails in CI, the failure output goes to PR comments — next agent run reads them via existing ci-failure-fix-loop.yml infrastructure",
+      "encouragement_oriented_fix_suggestion": "Bot comment: 'ℹ Consider pinning UPSTREAM.json to last-known-good SHA <X>. Manual review needed before re-vendoring.' (Not blocking; agent decides.)"
+    },
+
+    "rollback_mechanism": {
+      "atomic": "Revert the sync PR → UPSTREAM.json restored → next nightly retries from clean state",
+      "manual": "Edit UPSTREAM.json.commit_sha to last-good SHA + re-run install.sh; cron will retry from there"
+    }
+  },
+
+  "deliverables_added_to_PR_158_scope": {
+    "vendor": "tools/agent-skills/ (vendored from addyosmani/agent-skills@<latest HEAD>) + tools/agent-skills/UPSTREAM.json + LICENSE preservation",
+    "bootstrap_extension": "tools/hook-bootstrap/install.sh adds sync_agent_skills() step + --skip-skills flag + --dry-run honored",
+    "uninstall_extension": "tools/hook-bootstrap/uninstall.sh prompts 'Remove vendored skills? [y/N]' (preserves by default)",
+    "workflows": [
+      ".github/workflows/sync-agent-skills.yml (daily upstream drift check → auto-PR)",
+      ".github/workflows/validate-agent-skills.yml (validate vendored content on every relevant PR)"
+    ],
+    "hook_payload_extensions": [
+      "tools/hooks/_canonical-primitives.md gains LIFECYCLE SKILLS section pointing at tools/agent-skills/skills/",
+      "tools/hooks/session-start-context-inject.sh injects Lifecycle Skill Map",
+      "tools/hooks/pre-dispatch-guide.sh suggests vendored agent personas (code-reviewer / security-auditor / test-engineer) from tools/agent-skills/agents/"
+    ],
+    "docs": "docs/bootstrap.md gains 'What you get' (23 skills table) + 'Staying current' (daily sync) + 'Offline contributors' (--skip-skills) + Attribution"
+  },
+
+  "verification_checklist": [
+    "git clone . /tmp/oyatie-fresh && cd /tmp/oyatie-fresh && ./tools/hook-bootstrap/install.sh → produces identical state to source repo (modulo UPSTREAM.json fetched_at timestamp)",
+    "./tools/hook-bootstrap/install.sh --skip-skills → bootstrap completes; tools/agent-skills/ absent",
+    "./tools/hook-bootstrap/install.sh --dry-run → prints plan; no writes",
+    "./tools/hook-bootstrap/uninstall.sh → reverses hooks + .envrc; tools/agent-skills/ preserved unless prompt answered y",
+    "shellcheck tools/hook-bootstrap/*.sh tools/hooks/*.sh bin/oya → clean",
+    "node tools/agent-skills/scripts/validate-skills.js → exit 0",
+    ".github/workflows/sync-agent-skills.yml workflow_dispatch run → on no-drift = green; on drift = PR opened",
+    "tools/agent-skills/UPSTREAM.json has commit_sha, fetched_at, license=MIT, attribution non-empty"
+  ],
+
+  "open_questions_to_resolve_in_PR_158_review": [
+    {"q": "What if upstream renames a skill?", "candidate_answer": "validate-skills.js catches it; sync PR contains rename; reviewer maps any local citations"},
+    {"q": "What if upstream license changes?", "candidate_answer": "License-preservation gate fails CI; manual triage required; do not auto-PR"},
+    {"q": "Should we mirror their .claude/commands/ slash commands into our own .claude/commands/?", "candidate_answer": "NO — would clobber project-specific commands; expose them via tools/agent-skills/.claude/commands/ and reference path in docs"},
+    {"q": "How do we detect that we have already vendored upstream once?", "candidate_answer": "Marker file tools/agent-skills/.vendored + UPSTREAM.json presence; install.sh idempotent on second run"}
+  ],
+
+  "non_goals_for_PR_158": [
+    "Curating which skills to include (vendor all)",
+    "Per-skill customization (modify _canonical-primitives.md instead)",
+    "Auto-merging sync PRs",
+    "Multi-vendor aggregator (premature; UPSTREAM.json schema is multi-vendor ready)",
+    "Migrating the user-level ~/.claude/plugin-installed agent-skills out (that's user's machine state; bootstrap is repo-state)"
+  ]
+}

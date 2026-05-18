@@ -5,7 +5,7 @@
 # must explicitly accept before any state mutation occurs. No reversibility window
 # is engaged because no action has been taken.
 #
-# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140.
+# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140 (retired per ADR-0145).
 # Per EU AI Act Art. 50 transparency (informational labels apply even at T0).
 
 doc_class: AutonomyTierCatalog

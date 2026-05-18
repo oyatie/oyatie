@@ -79,7 +79,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-iac-and-pack-overlays.md`](IP-001-iac-and-pack-overlays.md) | Helm chart + kustomize base + pack-kr/pack-eu/pack-jp/pack-cn-stub overlays; Postgres + Redis + Meilisearch + S3 wiring | pending | axis-translate + ops-iac | — |
+| [`IP-001-iac-and-pack-overlays.md`](IP-001-iac-and-pack-overlays.md) | Helm chart + kustomize base + pack-kr/pack-eu/pack-jp/pack-cn-stub overlays; Postgres + Valkey + Meilisearch + S3 wiring | pending | axis-translate + ops-iac | — |
 | [`IP-002-translate-router-kernel.md`](IP-002-translate-router-kernel.md) | `oya-translate-router-kernel`: port traits (`TranslateInvoker`, `EngineRouter`, `TmLeverageQuery`, `TermbaseQuery`, `QualityEstimator`, `LanguageDetector`, `DocumentTranslator`), entities, sealed traits | pending | axis-translate | IP-001 |
 | [`IP-003-translate-router-domain.md`](IP-003-translate-router-domain.md) | `oya-translate-router-domain`: routing algebra (capability-fit × cost × residency × quality-tier × health); placeholder/plural preservation logic; pure | pending | axis-translate | IP-002 |
 | [`IP-004-translate-router-usecase-and-api.md`](IP-004-translate-router-usecase-and-api.md) | `oya-translate-router-usecase` + `oya-translate-router-api`: orchestration + protocol-neutral typed contracts | pending | axis-translate | IP-003 |

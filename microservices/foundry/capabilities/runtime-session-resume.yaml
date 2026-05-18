@@ -6,7 +6,7 @@ display_name: Resume Session
 description: |
   Resume an existing session by session_id. Validates the principal's tenant matches the
   session's owning tenant (Cedar tenant-scope). Restores conversation history + scratchpad
-  from Redis hot tier; on cache miss, falls back to Postgres cold restore (cold-load budget
+  from Valkey hot tier; on cache miss, falls back to Postgres cold restore (cold-load budget
   p99 ≤100ms per PRD performance targets).
 
 owner_team: axis-foundry-runtime
@@ -49,7 +49,7 @@ outputs:
     type: integer
   - name: cold_restore_occurred
     type: boolean
-    description: true if Redis miss → Postgres restore happened
+    description: true if Valkey miss → Postgres restore happened
   - name: signature
     type: string
 
@@ -78,7 +78,7 @@ cost_profile:
   type: per-invocation
   estimated_cost_usd_per_call: 0.0001
   cost_drivers:
-    - Redis MGET on tenant-prefixed session key (cache hit) OR
+    - Valkey MGET on tenant-prefixed session key (cache hit) OR
     - Postgres SELECT on session_mutation_log + replay (cache miss)
 
 cedar_policy_fragments:

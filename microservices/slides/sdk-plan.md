@@ -45,7 +45,7 @@ Per-BC SDK crates under `oya-slides-<bc>-sdk` (Rust, semver-pinned to µservice 
 - Every SDK respects per-tenant OIDC; no SDK consumer can spoof tenant binding.
 - Pagination via cursor (opaque tokens) per `contracts/openapi/slides.yaml`.
 - WS streaming uses the typed AsyncAPI 3.1.0 event envelope.
-- Backward compatibility per semver; breaking changes require ADR-0140 deprecation cycle.
+- Backward compatibility per semver; breaking changes require ADR-0140 (retired per ADR-0145) deprecation cycle.
 
 ## Tenant SDK consumers
 
@@ -55,7 +55,7 @@ Per-BC SDK crates under `oya-slides-<bc>-sdk` (Rust, semver-pinned to µservice 
 
 ## Cross-µservice consumption pattern
 
-Per `feedback_workflow_objectgraph_adapter_layer.md`: all cross-µservice flows MUST route through SDK boundaries. Slides consumes:
+Per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`: all cross-µservice flows MUST route through SDK boundaries. Slides consumes:
 
 | Target | Slides SDK consumer call site |
 |---|---|

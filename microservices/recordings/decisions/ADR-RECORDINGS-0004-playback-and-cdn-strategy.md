@@ -106,7 +106,7 @@ watermark + DRM stub**:
 7. **Signed-URL share-link**:
    - HMAC-SHA256 per-tenant secret from `${openbao:secret/recordings/<tenant>/share-link-hmac}`.
    - 24h default TTL (max 7d).
-   - View-count cap enforced via Redis counter (per-share-link).
+   - View-count cap enforced via Valkey counter (per-share-link).
    - Optional password (bcrypt hash; client supplies password → server
      verifies → emits playback-session token).
    - Per ADR-0117 residency — share-links are pack-local; cross-pack

@@ -19,6 +19,10 @@ use oya_check_mobile_native::{
     MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
     MobileNativeProductRecord, validate_mobile_native,
 };
+use oya_check_vendor_lockin_discipline::{
+    VendorLockinReport, parse_registry_json as parse_vendor_lockin_registry,
+    validate_registry as validate_vendor_lockin_registry,
+};
 use oya_check_vendor_recency::{
     VendorContractRecencyPolicy, VendorContractRecord, validate_vendor_contract_recency,
 };
@@ -26,6 +30,8 @@ use oya_foundry_api_semver_domain::validate_api_semver;
 use oya_foundry_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
 
 mod active_artifact_contract_gate;
+mod adr_0145_gates;
+mod advisory_lanes_pr143;
 mod api_contract_registry;
 mod architecture_map_emit_gate;
 mod architecture_plane_gates;
@@ -54,6 +60,7 @@ mod honest_claims_gate;
 mod hyperscaler_arch_invariants_gate;
 mod hyperscaler_maturity_claims_gate;
 mod json_scan;
+mod layered_architecture_gates;
 mod loop_recovery_patterns_gate;
 mod openapi_rest_route_parity_gate;
 mod path_format;
@@ -67,6 +74,7 @@ mod scalability_gates;
 mod scalar_parse;
 mod supply_chain_gates;
 mod team_ownership_gates;
+mod tier_a_gates;
 mod typescript_workspace_gates;
 mod workspace_hygiene_gate;
 mod workspace_manifest;
@@ -74,6 +82,15 @@ mod yaml_scan;
 
 pub(crate) use active_artifact_contract_gate::{
     parse_active_artifact_contract_validate_args, validate_active_artifact_contract_gate,
+};
+// PR #143 Fix-M/R/S/T/U advisory lane re-exports (1 strict ref via local fn + 11 advisory).
+pub(crate) use advisory_lanes_pr143::{
+    validate_a11y_discipline_gate, validate_authz_tier_discipline_gate,
+    validate_backup_retention_discipline_gate, validate_compliance_evidence_coverage_gate,
+    validate_i18n_coverage_gate, validate_iac_tier_discipline_gate,
+    validate_olap_tier_discipline_gate, validate_realtime_transport_tier_gate,
+    validate_tenant_cost_labels_coverage_gate, validate_vector_store_discipline_gate,
+    validate_wasm_runtime_discipline_gate,
 };
 pub(crate) use api_contract_registry::{is_api_contract_metadata_path, read_api_contract_records};
 pub(crate) use architecture_map_emit_gate::{
@@ -276,6 +293,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/microservices/workflow-studio.json>] [--workflow <specs/microservices/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"
         + "\n       oya gate validate workspace-hygiene [--policy <specs/workspace-hygiene.json>] [--no-scan] [--strict] [--clean-build-artifacts] [--clean-temp-artifacts]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
+        + "\n       oya gate validate vendor-lockin-discipline [--registry <registry/vendor-lockin-phaseout/index.json>] [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-contract-recency [--ledger <docs/VENDOR-PARTNER-LEDGER.md>] [--today <YYYY-MM-DD>] [--renewal-window-days <90>]"
         + "\n       oya gate validate planes --all [--repo-root <.>]"
         + "\n       oya gate validate wave-integration --milestone <M02> [--manifest <.omc/plans/M01-M03-parallelization-manifest.md>] [--phases-dir <.omc/plans/milestones/M02b-substrate/phases>]"
@@ -1074,6 +1092,126 @@ fn validate_license_policy_gate(args: LicensePolicyValidateArgs) -> Result<usize
             .map_err(|error| format!("{}: {error:?}", manifest_path.display()))?;
     }
     Ok(member_paths.len())
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct VendorLockinDisciplineValidateArgs {
+    pub(crate) registry_path: PathBuf,
+    pub(crate) workspace_manifest_path: PathBuf,
+}
+
+pub(crate) fn parse_vendor_lockin_discipline_validate_args(
+    args: Vec<String>,
+) -> Result<VendorLockinDisciplineValidateArgs, String> {
+    let mut parsed = VendorLockinDisciplineValidateArgs {
+        registry_path: PathBuf::from("registry/vendor-lockin-phaseout/index.json"),
+        workspace_manifest_path: PathBuf::from("Cargo.toml"),
+    };
+    let mut iter = args.into_iter();
+    while let Some(flag) = iter.next() {
+        let Some(path) = iter.next() else {
+            return Err(usage());
+        };
+        match flag.as_str() {
+            "--registry" => parsed.registry_path = PathBuf::from(path),
+            "--workspace" => parsed.workspace_manifest_path = PathBuf::from(path),
+            _ => return Err(usage()),
+        }
+    }
+    Ok(parsed)
+}
+
+pub(crate) fn validate_vendor_lockin_discipline_gate(
+    args: VendorLockinDisciplineValidateArgs,
+) -> Result<VendorLockinReport, String> {
+    let source = fs::read_to_string(&args.registry_path).map_err(|error| {
+        format!(
+            "vendor-lockin registry unreadable {}: {error}",
+            args.registry_path.display()
+        )
+    })?;
+    let entries = parse_vendor_lockin_registry(&source)
+        .map_err(|error| format!("vendor-lockin registry parse failed: {error}"))?;
+    let report = validate_vendor_lockin_registry(&entries)
+        .map_err(|error| format!("vendor-lockin discipline violated: {error}"))?;
+
+    // Second-impl rule for Tier II: every declared seam_adapter_trait that
+    // points into the workspace MUST resolve to an existing workspace member;
+    // and at least one of the registered seam_adapter_impls MUST also resolve.
+    // This closes the gap where the JSON registry references a vendor seam
+    // crate that has not actually landed.
+    let workspace_members =
+        read_workspace_member_paths(&args.workspace_manifest_path).map_err(|error| {
+            format!("vendor-lockin workspace audit unable to read members: {error}")
+        })?;
+    let workspace_dir = args
+        .workspace_manifest_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
+    let member_set: std::collections::BTreeSet<String> = workspace_members
+        .into_iter()
+        .map(|member| {
+            // Normalize against the workspace root so trait paths stored as
+            // `crates/oya-foo` match `crates/oya-foo` entries from the
+            // workspace manifest regardless of relative-path framing.
+            let joined = workspace_dir.join(&member);
+            joined
+                .strip_prefix(workspace_dir)
+                .map(|stripped| slash_path_component(stripped))
+                .unwrap_or_else(|_| slash_path_component(&joined))
+        })
+        .collect();
+    for entry in entries.iter() {
+        let Some(trait_ref) = entry.seam_adapter_trait.as_deref() else {
+            continue;
+        };
+        if !trait_ref.starts_with("crates/") {
+            continue;
+        }
+        if !member_set.contains(trait_ref) {
+            return Err(format!(
+                "vendor-lockin discipline violated: vendor {} declares seam_adapter_trait `{}` but no matching workspace member exists",
+                entry.name, trait_ref
+            ));
+        }
+        let any_impl_present = entry
+            .seam_adapter_impls
+            .iter()
+            .filter(|impl_path| impl_path.starts_with("crates/"))
+            .any(|impl_path| {
+                // Trim trailing parenthetical annotations like "(planned)".
+                let normalized = impl_path
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or(impl_path.as_str());
+                member_set.contains(normalized)
+            });
+        // Adopted Tier II MUST have at least one impl resolve. Pre-classified
+        // Tier II is exempt — it's a placeholder declaring future seam shape.
+        if matches!(
+            entry.tier,
+            oya_check_vendor_lockin_discipline::VendorTier::TierII
+        ) && !any_impl_present
+            && entry
+                .seam_adapter_impls
+                .iter()
+                .any(|impl_path| impl_path.starts_with("crates/"))
+        {
+            return Err(format!(
+                "vendor-lockin discipline violated: vendor {} declares workspace-rooted seam impls but none resolve to a workspace member",
+                entry.name
+            ));
+        }
+    }
+
+    Ok(report)
+}
+
+fn slash_path_component(path: &Path) -> String {
+    path.components()
+        .filter_map(|component| component.as_os_str().to_str())
+        .collect::<Vec<_>>()
+        .join("/")
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

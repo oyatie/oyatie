@@ -96,6 +96,6 @@ cargo run -p oya-dev-cli -- gate validate kubernetes-api-proxy-only-path --micro
 
 ## References
 
-- ADR-0121; ADR-0140 (Cedar); ADR-0028 (audit-chain).
+- ADR-0121; ADR-0140 (retired per ADR-0145) (Cedar); ADR-0028 (audit-chain).
 - `microservices/cloud-k8s/policy/cluster-isolation.md` CI-07, CI-08, CI-09.
 - Cedar — `docs.cedarpolicy.com`.

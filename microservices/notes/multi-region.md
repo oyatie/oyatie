@@ -40,7 +40,7 @@ Per ADR-0117 + parallel ADR-0135:
 | Store | Strategy |
 |---|---|
 | Postgres | logical replication primary → warm-standby; sync replication for AUDIT-class rows |
-| Redis | primary-replica HA within AZ pair |
+| Valkey | primary-replica HA within AZ pair |
 | Meilisearch | per-tenant index; per-AZ replicas; rebuild from Postgres source-of-truth on restart |
 | S3 (Personal-tier ciphertext blobs) | cross-AZ replication within-region only |
 | Loro CRDT op-log | broker active-active per-AZ; op-log Postgres-backed |
@@ -61,7 +61,7 @@ Per ADR-0117 + parallel ADR-0135:
 
 1. Detect AZ outage via OCI health-check.
 2. Postgres warm-standby promoted to primary (5 min RTO).
-3. Redis replica promoted.
+3. Valkey replica promoted.
 4. K8s pods re-scheduled to surviving AZ within-pack.
 5. Meilisearch index re-built from Postgres replay if needed (5-10 min).
 6. Status page update.
@@ -78,7 +78,7 @@ Per ADR-0117 + parallel ADR-0135:
 
 When a new pack is activated:
 
-1. Cloud-K8s provisions cluster + DB + Redis + Meilisearch + S3 buckets in target region.
+1. Cloud-K8s provisions cluster + DB + Valkey + Meilisearch + S3 buckets in target region.
 2. OpenBao mount + KMS keys per pack.
 3. `iac/kustomize/overlays/pack-<id>/` patch applied.
 4. Pre-launch CI gates:

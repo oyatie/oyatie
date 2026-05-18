@@ -67,7 +67,7 @@ cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice calendar
 
 ## References
 
-- `feedback_workflow_objectgraph_adapter_layer.md` — Workflow +
+- `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md` — Workflow +
   Ontology = adapter layer.
 - ADR-0131 (per-µservice flat layout); ADR-0132.
 - LEAN-A2 cross-product CI lane.

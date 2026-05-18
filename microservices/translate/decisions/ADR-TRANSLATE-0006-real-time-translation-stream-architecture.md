@@ -60,7 +60,7 @@ The chunk carries `(target_text, kind, source_chunk_id, correction_of: Option<ch
 
 ### 3. Correction-replay window
 
-Per-session state in Redis holds a **replay queue** bounded at 100 chunks per session. When an STT final supersedes a prior interim, the stream worker:
+Per-session state in Valkey holds a **replay queue** bounded at 100 chunks per session. When an STT final supersedes a prior interim, the stream worker:
 
 1. Looks up the prior preliminary by `source_chunk_id`.
 2. Translates the now-final source.

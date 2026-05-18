@@ -11,7 +11,7 @@ description: |
 owner_team: axis-foundry-control-plane
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0024, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0024, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/foundry-supervisor-control-plane.json]
 related_artifacts:
   - microservices/foundry/PRD.md

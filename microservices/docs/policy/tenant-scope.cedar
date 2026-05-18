@@ -4,7 +4,7 @@
 // read/write unless an explicit ShareGrant is on file.
 // Owner: ops-security + axis-docs
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140, policy/editor-isolation.md, policy/data-residency.md,
+// Related: ADR-0140 (retired per ADR-0145), policy/editor-isolation.md, policy/data-residency.md,
 //          ADR-DOCS-0004 (per-block ACL)
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 

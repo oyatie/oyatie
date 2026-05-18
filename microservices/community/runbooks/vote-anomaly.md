@@ -23,7 +23,7 @@ doc_status: published
 ## Symptoms
 
 - Vote rate z-score > 5 for a single post.
-- Vote tally divergence between Redis and Postgres > 0.1 %.
+- Vote tally divergence between Valkey and Postgres > 0.1 %.
 - `oya_community_vote_cast_total` for a (post_id) growing > 100 / min.
 - Coordinated cohort detector emits alert.
 
@@ -40,7 +40,7 @@ doc_status: published
    - Single bot farm (one cluster, same IP / UA family)
    - Distributed brigading (many IPs, geographically diverse)
    - Legitimate viral event (trending KB article release)
-3. Check vote tally divergence: Redis vs. Postgres counter.
+3. Check vote tally divergence: Valkey vs. Postgres counter.
 
 ## Mitigation
 
@@ -81,7 +81,7 @@ doc_status: published
 
 ## Post-Incident
 
-- If structural: idempotency key audit; possibly tighten Redis Lua script.
+- If structural: idempotency key audit; possibly tighten Valkey Lua script.
 - Coordinate with foundry-guardrails on detector tuning.
 - Per-tenant transparency report entry.
 

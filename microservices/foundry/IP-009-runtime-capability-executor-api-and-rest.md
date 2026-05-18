@@ -130,4 +130,4 @@ cargo run -p oya-dev-cli -- gate validate openapi-conformance --microservice fou
 
 - `contracts/openapi/foundry-runtime.yaml`.
 - `policy/{tenant-scope,ci-scope,auditor-scope,public-read}.cedar`.
-- ADR-0140 (Cedar policy enforcement).
+- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).

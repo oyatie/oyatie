@@ -65,5 +65,5 @@ cargo run -p oya-dev-cli -- gate validate pack-residency --microservice meet
 
 - Cedar v4.2 docs `cedarpolicy.com/docs`.
 - ADR-0008 (Data Use Boundary).
-- ADR-0140 (Cedar pack overlay).
+- ADR-0140 (retired per ADR-0145) (Cedar pack overlay).
 - ADR-MEET-0003.

@@ -80,7 +80,7 @@ S3 storage:
 | GPU pool | Pending-case backlog > 5min | Cluster-autoscaler provisions +2 GPU nodes (up to 64 max) |
 | Postgres | Replica CPU > 70% | Add read replica (manual; 2-person rule) |
 | ClickHouse | Shard CPU > 70% sustained | Provision new shard (manual; 2-person rule) |
-| MinIO / S3 | Storage > 70% of allocation | Provision new bucket OR archive cold-tier earlier |
+| SeaweedFS / S3 | Storage > 70% of allocation | Provision new bucket OR archive cold-tier earlier |
 | KMS | Approaching rate-limit quota | Pre-provision KMS keyring expansion (cloud-secrets ticket) |
 
 ## Per-Cell Capacity Envelope

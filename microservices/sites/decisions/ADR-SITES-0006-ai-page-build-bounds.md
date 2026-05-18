@@ -8,7 +8,7 @@ owner: axis-sites + council-privacy
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0140
+  - ADR-0140 (retired per ADR-0145)
   - ADR-0133
   - ADR-WS-0006
   - ADR-DOCS-0006

@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-Sizing formulas + reference-architecture baselines for every meet component: LiveKit SFU cluster, coturn TURN cluster, Postgres meeting/recording metadata, Redis lobby/presence/signaling, S3 recordings + transcripts, Whisper GPU transcription pool, ffmpeg recording mux pool (gVisor), SRS RTMP egress, Meilisearch transcript search, Layer-B Rust services. Drives `cost-budget.md` and `multi-region.md`.
+Sizing formulas + reference-architecture baselines for every meet component: LiveKit SFU cluster, coturn TURN cluster, Postgres meeting/recording metadata, Valkey lobby/presence/signaling, S3 recordings + transcripts, Whisper GPU transcription pool, ffmpeg recording mux pool (gVisor), SRS RTMP egress, Meilisearch transcript search, Layer-B Rust services. Drives `cost-budget.md` and `multi-region.md`.
 
 ## Inputs
 
@@ -92,7 +92,7 @@ write_iops_baseline   = MC_create_per_sec × 6 (meeting + participants + audit d
 
 Per-cell envelope: Postgres primary handles ≤ 5000 meeting-creates/sec at HA-RF=3.
 
-## Redis Sizing (lobby + presence + signaling session state)
+## Valkey Sizing (lobby + presence + signaling session state)
 
 ```
 redis_ops_per_sec   = P_concurrent_participants / 5 (1 heartbeat per 5s during active session)
@@ -212,7 +212,7 @@ indexer_workers          = ceil(transcript_docs_per_day / 5000)
 | coturn bandwidth > 70 % provisioned | HPA scale-up |
 | Whisper GPU pool depth > 5 sustained | Burst-pool scale-up; downgrade Whisper-large → Whisper-medium |
 | Postgres write-IOPS > 70 % | Shard by tenant_id |
-| Redis shard CPU > 70 % | Add Redis shard |
+| Valkey shard CPU > 70 % | Add Valkey shard |
 | Meilisearch indexer lag > 60s sustained | Add indexer worker |
 | S3 PUT rate > 70 % provisioned | Sharded bucket prefix per-tenant |
 | Per-tenant max meetings > 50k concurrent | Shard tenant across cells |
@@ -233,6 +233,6 @@ indexer_workers          = ceil(transcript_docs_per_day / 5000)
 - Whisper.cpp ops: `github.com/ggerganov/whisper.cpp`.
 - faster-whisper: `github.com/SYSTRAN/faster-whisper`.
 - Meilisearch ops: `docs.meilisearch.com`.
-- Redis Cluster ops: `redis.io/docs/management/scaling/`.
+- Valkey Cluster ops: `redis.io/docs/management/scaling/`.
 - gVisor ops: `gvisor.dev/docs/user_guide/`.
 - SRS RTMP ops: `github.com/ossrs/srs/wiki`.

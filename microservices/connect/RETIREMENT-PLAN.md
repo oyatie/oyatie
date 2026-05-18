@@ -138,7 +138,7 @@ During the retirement window (2026-05-17 through trigger-fire):
 - The 5 net-new µservices (community, social, shorts, network, anonymous)
   stand up independently; each has its own phase-01 plan + IPs.
 - Cross-µservice handoffs continue via Workflow events + Ontology
-  reads/writes per `feedback_workflow_objectgraph_adapter_layer.md`.
+  reads/writes per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`.
   Examples:
   - `mail.MessageReceived` → calendar reads for invitation parsing.
   - `messenger.HuddleRecordingFinalised` → mail emits an email summary.

@@ -1,18 +1,27 @@
 ---
 doc_class: ImplementationPlan
-ip_id: IP-010
-title: audit-chain (Merkle tree + Ed25519 sealing via OpenBao)
+template_id: TPL-IMPL
 microservice: ontology
+ip_id: IP-010
+impl_plan_id: IP-010-audit-chain-merkle-ed25519
+title: ontology audit-chain BC (Merkle tree + Ed25519 sealing via OpenBao)
+milestone: M01-foundation
 phase: P01-typed-entity-substrate
 status: pending
-owner_team: axis-ontology + audit-chain µservice owner
-date: 2026-05-17
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+owner_team: axis-ontology
+co_owners: [axis-audit-chain, axis-security]
+date: 2026-05-18
+related_adrs: [ADR-0028, ADR-0117, ADR-0064]
 depends_on: [IP-007]
 acceptance_lanes:
   - cargo-check
   - cargo-clippy
   - cargo-nextest
   - oya-foundry-fitness-audit-chain-emission
+  - audit-chain-tamper-detect
+  - oya-vcs-promotion-readiness
 related_artifacts:
   - microservices/ontology/src/crates/oya-ontology-audit-chain-{kernel,domain,usecase,adapter,worker}/
 doc_status: published
@@ -20,41 +29,132 @@ doc_status: published
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-010: audit-chain (Merkle + Ed25519)
+# IP-010 — Ontology audit-chain BC (Merkle + Ed25519)
 
-## Intent
+## Goal
 
-Author the audit-chain BC: per-tenant Merkle tree; per-period segment (60 s rolling OR 10⁴ events whichever first); Ed25519 sealing via OpenBao Transit; chain-of-chains mirror to platform `audit-chain` µservice per Bominal ADR-0028.
+Author the ontology audit-chain bounded context: per-tenant Merkle tree, per-period segment (60s rolling OR 10^4 events, whichever first), Ed25519 sealing via OpenBao Transit, and chain-of-chains mirror to the platform `audit-chain` µservice per ADR-0028. Per-pack (US-healthcare, EU) HSM-backed Ed25519 keys for residency compliance (ADR-0117).
 
-## Scope
+## Files to create or modify
 
-In-scope:
-- `oya-ontology-audit-chain-{kernel,domain,usecase,adapter,worker}` crates.
-- Merkle tree builder (deterministic; concatenated event hashes; sha256 leaves; sha256 internal).
-- Ed25519 signing via OpenBao Transit API; per-tenant key bound at issuance.
-- Outbox-consumer worker reads `ontology.events.*` topics; appends to Merkle; seals on cadence.
-- HSM-backed Ed25519 for pack-us-healthcare + pack-eu where available.
+| Path | Action | Line range (approx) |
+|---|---|---|
+| `microservices/ontology/src/crates/oya-ontology-audit-chain-kernel/Cargo.toml` + `src/lib.rs` | create | ~140 LoC; pure trait surface (Merkle types, signing port) |
+| `microservices/ontology/src/crates/oya-ontology-audit-chain-domain/Cargo.toml` + `src/lib.rs` | create | ~220 LoC; Merkle builder (deterministic; sha256 leaves; sha256 internal); segment-rollover logic |
+| `microservices/ontology/src/crates/oya-ontology-audit-chain-usecase/Cargo.toml` + `src/lib.rs` | create | ~180 LoC; orchestration: consume outbox → append → seal cadence |
+| `microservices/ontology/src/crates/oya-ontology-audit-chain-adapter/Cargo.toml` + `src/lib.rs` | create | ~220 LoC; OpenBao Transit signing adapter + Postgres append-only adapter + Kafka outbox consumer |
+| `microservices/ontology/src/crates/oya-ontology-audit-chain-worker/Cargo.toml` + `src/main.rs` | create | ~180 LoC; daemon entrypoint |
+| `microservices/ontology/src/crates/oya-ontology-audit-chain-domain/tests/merkle_test.rs` | create | ~240 LoC; 6 deterministic + tamper-detect tests |
+| `microservices/ontology/src/crates/oya-ontology-audit-chain-adapter/tests/transit_signing_test.rs` | create | ~140 LoC; 3 OpenBao-signing tests |
+| `microservices/ontology/src/crates/oya-ontology-audit-chain-worker/tests/replay_test.rs` | create | ~160 LoC; replay-from-outbox reproduces same root |
+| `microservices/ontology/iac/postgres-audit-chain.sql` | create | ~80 LoC; append-only table + trigger forbidding UPDATE/DELETE |
+| `microservices/ontology/runbooks/audit-chain-tamper-response.md` | create | ~120 LoC operator playbook |
+| `microservices/ontology/decisions/ADR-0028.md` | append §"Ontology audit-chain BC landed" | +6 LoC |
 
-## Implementation
+## Code shape
 
-| Step | Action |
-|---|---|
-| 1 | Scaffold 5 crates |
-| 2 | Author Merkle tree builder + tests (deterministic; tamper-evident) |
-| 3 | Wire OpenBao Transit signing |
-| 4 | Author worker: consume Kafka outbox; append events; seal segments |
-| 5 | Postgres audit-chain table (append-only via trigger) |
-| 6 | Chain-of-chains mirror to platform audit-chain µservice |
-| 7 | Tests: tampered Merkle node detected; replay from outbox reproduces same root |
+`audit-chain-domain/src/lib.rs` (excerpt — Merkle builder):
 
-## Verification
+```rust
+pub struct Segment {
+    pub tenant_id: TenantId,
+    pub period: PeriodWindow,
+    pub events: SmallVec<[EventHash; 1024]>,
+    pub root: MerkleRoot,
+    pub signature: Option<Ed25519Signature>,
+}
 
-- `cargo nextest run -p oya-ontology-audit-chain-worker --test merkle_verify` — exit 0.
-- `oya gate validate audit-chain-emission --microservice ontology` — exit 0; emission rate = 1.0.
-- Synthetic tamper → verification fails (expected).
+impl Segment {
+    pub fn append(&mut self, event: EventHash) -> Result<(), AuditChainError> {
+        if self.is_full() { return Err(SegmentFull); }
+        self.events.push(event);
+        self.root = recompute_root_incremental(&self.root, event);
+        Ok(())
+    }
+
+    pub fn seal(&mut self, signer: &dyn Ed25519Signer) -> Result<Ed25519Signature, AuditChainError> {
+        let sig = signer.sign(self.root.as_bytes())?;
+        self.signature = Some(sig);
+        Ok(sig)
+    }
+}
+```
+
+## Tests to write (acceptance)
+
+| Test name | File | Asserts |
+|---|---|---|
+| `merkle_root_is_deterministic` | merkle_test.rs | Same event sequence → same root across runs |
+| `merkle_tampered_node_detected_during_verify` | merkle_test.rs | Mutate one event hash → verify fails |
+| `segment_rolls_over_at_period_boundary` | merkle_test.rs | 60s elapsed → new segment opens |
+| `segment_rolls_over_at_10000_events` | merkle_test.rs | 10001th event → new segment |
+| `incremental_root_matches_full_recompute` | merkle_test.rs | Streaming append matches batch root |
+| `concurrent_appends_no_interleave_corruption` | merkle_test.rs | Concurrent appends preserve order under lock |
+| `openbao_transit_signs_with_per_tenant_key` | transit_signing_test.rs | Sign uses tenant-bound key (verified by key URN) |
+| `pack_us_healthcare_uses_hsm_backed_key` | transit_signing_test.rs | US-healthcare pack signs with HSM key (verified via Transit metadata) |
+| `transit_signing_fails_closed_on_outage` | transit_signing_test.rs | OpenBao down → signing returns error (no fallback to plaintext) |
+| `replay_from_outbox_reproduces_same_root` | replay_test.rs | Replay Kafka outbox → identical Merkle root |
+| `chain_of_chains_mirror_appended_at_platform` | replay_test.rs | After seal, platform audit-chain µservice has matching root |
+
+Minimum 6 required; 11 specified.
+
+## Evidence to emit
+
+- `evidence/microservices/ontology/audit-chain-merkle-correctness-{date}.json`
+- `evidence/microservices/ontology/audit-chain-tamper-detect-{date}.json`
+- Audit-chain seal: `oya audit-chain seal --kind ontology-audit-chain --window 30d`
+- Metrics: `oya_ontology_audit_chain_segment_seal_latency_ms_bucket`, `oya_ontology_audit_chain_events_appended_total`, `oya_ontology_audit_chain_tamper_detect_total`, `oya_ontology_audit_chain_chain_of_chains_lag_seconds`
+
+## Rollback procedure
+
+1. Revert ChangeSet for the 5 audit-chain BC crates + IaC + runbook.
+2. Worker daemon stopped via `systemctl stop oya-ontology-audit-chain-worker` (or k8s equivalent).
+3. Outbox topic drains naturally; no audit-chain seals until restored.
+4. Existing sealed segments remain valid (no destructive operation).
+5. Emit rollback evidence JSON; alert audit-chain owner that ontology emissions are paused.
+
+## Blocking dependencies
+
+- IP-007 — typed-entity substrate (event hashes must be addressable + ordered).
+- Platform audit-chain µservice — chain-of-chains mirror endpoint must accept appends.
+- OpenBao Transit deployed with per-tenant keys; HSM-backed keys for US-healthcare + EU packs.
+- ADR-0028 — audit-chain Merkle/Ed25519 canonical.
+- ADR-0117 — residency + per-pack key custody.
+
+## Acceptance gates
+
+```bash
+cargo nextest run -p oya-ontology-audit-chain-worker --test merkle_verify
+cargo run -p oya-dev-cli -- gate validate audit-chain-emission --microservice ontology
+cargo run -p oya-dev-cli -- gate validate audit-chain-tamper-detect --microservice ontology
+cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice ontology
+```
+
+## Halt conditions
+
+- Tamper-detect test fails (verification did not catch mutation): STOP, security-critical.
+- Replay-reproduces-root test fails: STOP, determinism violated.
+- OpenBao Transit signing succeeds with non-bound key: STOP, security-critical.
+
+## Exit criteria
+
+1. All 11 tests green on CI.
+2. `audit-chain-emission`, `audit-chain-tamper-detect`, `oya-vcs-promotion-readiness` lanes green.
+3. Evidence ledger sealed.
+4. Postgres append-only trigger live in dev cluster.
+5. Worker daemon deployed; emission rate matches expected event volume (verified via metric).
+6. Runbook published.
+7. ADR-0028 status updated for ontology audit-chain BC.
+
+## Next IP
+
+[`IP-011-ontology-rls-row-level-security.md`](IP-011-ontology-rls-row-level-security.md)
 
 ## References
 
-- Bominal ADR-0028 (audit-chain Merkle/Ed25519).
-- OpenBao Transit API — `openbao.org/docs/secrets/transit`.
-- ADR-0117 (residency; per-pack key custody).
+- ADR-0028 — audit-chain Merkle/Ed25519 (canonical heritage from Bominal).
+- ADR-0117 — residency + per-pack key custody.
+- ADR-0064 — canonical base + localization overlay.
+- OpenBao Transit API — `https://openbao.org/docs/secrets/transit/`.
+- RFC 6962 Certificate Transparency (Merkle log design heritage).
+- Trillian (Google) — `https://github.com/google/trillian`.

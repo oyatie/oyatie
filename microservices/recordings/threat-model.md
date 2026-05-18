@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-recordings + ops-security
 deciders: council-architecture, ops-security, axis-recordings, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154 + NIST SP 800-86 (forensic-integrity)
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145), ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
 related_specs: [/specs/microservices/recordings.json]
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:
@@ -63,7 +63,7 @@ dedicated recordings Kubernetes namespace.
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 (recording metadata + transcript JSON + redaction overlay + retention + legal-hold + ediscovery) | `oya-recordings-recording-*` (10 crates) |
-| Redis 7.2 (share-link signed-URL cache + playback session) | `oya-recordings-media-segment-*` (8 crates) |
+| Valkey 8.1 (Redis wire-compat) (share-link signed-URL cache + playback session) | `oya-recordings-media-segment-*` (8 crates) |
 | S3-compatible (media — hot tier) + S3-Glacier-class (cold tier) | `oya-recordings-transcript-*` (10 crates) |
 | CloudFront (primary) / Bunny + Fastly + nginx-vod (self-host pack-cn / pack-ksa) | `oya-recordings-redaction-*` (9 crates) |
 | Meilisearch 0.10.0 LTS (search index) | `oya-recordings-retention-policy-*` (9 crates) |
@@ -216,7 +216,7 @@ dedicated recordings Kubernetes namespace.
 - `oya gate validate authority-cohesion --microservice recordings` (HG-RECORDINGS).
 - `oya gate validate lean-a*` lanes.
 - `oya gate validate version-pinning-conformance` — Whisper, pyannote, ffmpeg,
-  Pandoc, Postgres, Redis, Meilisearch, Cedar pins.
+  Pandoc, Postgres, Valkey, Meilisearch, Cedar pins.
 - `oya gate validate cve-freshness --microservice recordings` — quarterly.
 
 ## Residual Risk

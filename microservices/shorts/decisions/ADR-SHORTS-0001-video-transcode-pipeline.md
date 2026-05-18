@@ -132,7 +132,7 @@ oyatie shorts adopts the **following pipeline**:
 
 - Worker pool runs under gVisor runtimeclass: `runtimeClassName: gvisor` in pod spec.
 - ffmpeg LTS pin recorded in `iac/helm/shorts/values.yaml` (currently 7.1).
-- Per-worker CVE scan via Trivy + Grype weekly; SBOM signed via sigstore per ADR-0140.
+- Per-worker CVE scan via Trivy + Grype weekly; SBOM signed via sigstore per ADR-0140 (retired per ADR-0145).
 - CDN failover: in-pack S3 origin as primary fallback if Cloudflare R2 outage; per `runbooks/cdn-cache-invalidation-cascade.md`.
 - Backfill operations (BF-01): off-peak windowed; per-tenant rate-limited.
 - KEDA queue-depth metric exported per pack: `oya_shorts_transcode_queue_depth{pack=X}`.

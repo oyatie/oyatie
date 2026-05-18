@@ -13,15 +13,15 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: IaC bootstrap (Helm + Kustomize + Terraform)
+# IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)
 
 ## Intent
 
-Author the notes µservice's deployment substrate: Helm chart for the core workloads (note-store REST + workers; tag-graph + backlink-graph + checklist + share-link + web-clipper-bridge + collab-edit-broker; import + export workers; ai-assist worker; e2e-key-management) plus upstream-dependency charts (Postgres 16 LTS, Redis 7.2, Meilisearch 0.10.0, Loro broker container), Kustomize base + 11 per-pack overlays, and Terraform-managed Grafana RBAC.
+Author the notes µservice's deployment substrate: Helm chart for the core workloads (note-store REST + workers; tag-graph + backlink-graph + checklist + share-link + web-clipper-bridge + collab-edit-broker; import + export workers; ai-assist worker; e2e-key-management) plus upstream-dependency charts (Postgres 16 LTS, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10.0, Loro broker container), Kustomize base + 11 per-pack overlays, and Terraform-managed Grafana RBAC.
 
 ## ChangeSet boundary
 
-One cohesive ChangeSet: 1 Helm chart bundle (notes) + 1 shared Kustomize base + 11 per-pack Kustomize overlays + 1 Terraform module for Grafana RBAC. No code; pure IaC + values.
+One cohesive ChangeSet: 1 Helm chart bundle (notes) + 1 shared Kustomize base + 11 per-pack Kustomize overlays + 1 OpenTofu module for Grafana RBAC. No code; pure IaC + values.
 
 ## Concrete File Targets
 
@@ -40,7 +40,7 @@ One cohesive ChangeSet: 1 Helm chart bundle (notes) + 1 shared Kustomize base + 
 helm lint microservices/notes/iac/helm/notes
 kubectl --dry-run=client apply -k microservices/notes/iac/kustomize/overlays/pack-kr
 kubectl --dry-run=client apply -k microservices/notes/iac/kustomize/overlays/pack-us-healthcare
-terraform -chdir=microservices/notes/iac/terraform validate
+terraform -chdir=microservices/notes/iac/tofu validate
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice notes
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 ```
@@ -49,7 +49,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 - helm install --dry-run + helm test per chart.
 - E2E: kind cluster; pack-kr overlay; all components Ready within 10 min.
-- Postgres + Redis + Meilisearch + Loro broker smoke tests.
+- Postgres + Valkey + Meilisearch + Loro broker smoke tests.
 
 ## Halt Conditions
 

@@ -35,7 +35,7 @@ constraints (ADR-SITES-0003).
 
 ## Cell topology
 
-Per cell: Postgres primary + 2 replicas (Patroni-managed); Redis
+Per cell: Postgres primary + 2 replicas (Patroni-managed); Valkey
 cluster (3 shards); Meilisearch (3 instances); S3-compatible storage;
 Loro CRDT relay (3 pods); per-BC rest/worker pods.
 
@@ -44,7 +44,7 @@ Loro CRDT relay (3 pods); per-BC rest/worker pods.
 | Layer | Strategy | RPO | RTO |
 |---|---|---|---|
 | Postgres | streaming + 1 sync replica + N async | ≤ 60s | ≤ 15min (Patroni failover) |
-| Redis | cluster mode replication (per-shard primary + 1 replica) | ≤ 1s | ≤ 60s |
+| Valkey | cluster mode replication (per-shard primary + 1 replica) | ≤ 1s | ≤ 60s |
 | Meilisearch | cross-instance replication (factor 2) | ≤ 5s | ≤ 5min (reindex from Postgres if needed) |
 | S3 published artifacts | within-pack cross-AD; cross-region only within pack | ≤ 60s | ≤ 5min |
 | Loro CRDT log | persisted per-tenant in S3 + Postgres journal; relay reconstructs on failover | ≤ 60s | ≤ 5min |
@@ -100,7 +100,7 @@ Loro CRDT relay (3 pods); per-BC rest/worker pods.
 | Drill | Cadence | Owner |
 |---|---|---|
 | Postgres primary failover (Patroni) | quarterly | ops-sre-reliability |
-| Redis primary failover | quarterly | ops-sre-reliability |
+| Valkey primary failover | quarterly | ops-sre-reliability |
 | Meilisearch instance loss + reindex | quarterly | axis-sites |
 | Full pack-region loss + failover region promotion | annually | ops-sre-reliability |
 | CDN edge poisoning + signed-purge cascade | quarterly | axis-sites |

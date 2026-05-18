@@ -88,11 +88,11 @@ Each failure carries:
 | Recovery runbook | `runbooks/spec-rollback.md` if spec-induced; otherwise capacity-model recalibration |
 | Postmortem owner | axis-workflow + ops-finops |
 
-## FM-05: Redis lease coordinator outage halts step dispatch
+## FM-05: Valkey lease coordinator outage halts step dispatch
 
 | Field | Value |
 |---|---|
-| Trigger | Redis Sentinel quorum loss (e.g., AZ outage); lease coordination unavailable |
+| Trigger | Valkey Sentinel quorum loss (e.g., AZ outage); lease coordination unavailable |
 | Detection | `oya_workflow_engine_redis_sentinel_quorum_healthy == 0` for ≥ 30s OR step claim failures spike |
 | Tenant impact | New step dispatch fails; in-flight runs paused at next step boundary |
 | Severity | Sev-1 (cluster-wide impact) |
@@ -213,7 +213,7 @@ Each failure carries:
 | Event-bus backpressure | 5min quarantine | 0 (outbox durable) |
 | Durable-execution replay storm | 10min | 0 |
 | Postgres lock contention | 30min identification | 0 |
-| Redis lease coordinator outage | 5min failover | 0 (state in Postgres) |
+| Valkey lease coordinator outage | 5min failover | 0 (state in Postgres) |
 | Spec version downgrade attempt | 1h investigation | N/A |
 | Outbox relay worker crash | 5min HA failover | 0 (durable outbox) |
 | ClickHouse drift / corruption | 4h restore from Postgres | varies (analytics-only) |

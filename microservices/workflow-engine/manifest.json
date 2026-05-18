@@ -137,7 +137,7 @@
   "ips": [
     {
       "id": "IP-001-layer-a-postgres-citus-redis-clickhouse-iac",
-      "title": "IP-001: Layer-A Postgres + Citus + Redis + ClickHouse + workflow-runtime IaC",
+      "title": "IP-001: Layer-A Postgres + Citus + Valkey + ClickHouse + workflow-runtime IaC",
       "acceptance_status": "ga",
       "file": "microservices/workflow-engine/IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md"
     },
@@ -242,7 +242,7 @@
   "lts_pins": {
     "clickhouse": "24.3\"  # ClickHouse 24.3 LTS per docs/standards/workflow-engine-substrate.md",
     "postgres": "16.0\"  # Postgres 16 LTS line per docs/standards/workflow-engine-substrate.md",
-    "redis": "7.2\"  # Redis 7.2 LTS per docs/standards/workflow-engine-substrate.md",
+    "redis": "7.2\"  # Valkey 8.1 (Redis wire-compat) per docs/standards/workflow-engine-substrate.md",
     "rust": "1.83"
   },
   "adrs": [
@@ -306,5 +306,31 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "WorkflowDefinition",
+      "projection_target_table": "ontology_workflow_definitions",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "WorkflowRun",
+      "projection_target_table": "ontology_workflow_runs",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "WorkflowStep",
+      "projection_target_table": "ontology_workflow_steps",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

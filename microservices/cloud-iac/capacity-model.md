@@ -157,7 +157,7 @@ Per PRD §"Performance Targets":
 |---|---|---|---|
 | Render | ≤1s | ≤5s | ≤10s |
 | Validate (Cedar + plan-preview) | ≤2s | ≤10s | ≤30s |
-| Apply (k8s reconcile or terraform apply) | ≤60s | ≤4min | ≤14min |
+| Apply (k8s reconcile or tofu apply) | ≤60s | ≤4min | ≤14min |
 | Audit-chain seal | ≤500ms | ≤2s | ≤5s |
 | **End-to-end** | **≤90s** | **≤5min** | **≤15min** |
 

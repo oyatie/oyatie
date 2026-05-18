@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-observability, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/observability/threat-model.md
   - microservices/observability/dpia.md
@@ -83,7 +83,7 @@ The canonical control-to-framework mapping for the observability µservice. Tell
 | A.5.14 | Information transfer | mTLS in transit + cross-pack-replication-forbidden | `data-residency.md` §"Cross-Pack Replication" |
 | A.5.15 | Access control | OIDC + Cedar + Mimir multi-tenancy | `tenant-isolation.md` |
 | A.5.17 | Authentication information | OpenBao secret rotation (30d/90d cadences) | OpenBao audit log |
-| A.5.18 | Access rights | RBAC managed via Terraform; UI editing forbidden | `iac/terraform/grafana-rbac.tf` (Slice C) |
+| A.5.18 | Access rights | RBAC managed via OpenTofu; UI editing forbidden | `iac/terraform/grafana-rbac.tf` (Slice C) |
 | A.5.23 | Information security for use of cloud services | OCI HIPAA-eligible regions for pack-us-healthcare | `data-residency.md` §"pack-us-healthcare" |
 | A.5.24 | Information security incident management planning + preparation | Incident-response playbook | `incident-response.md` |
 | A.5.25 | Assessment and decision on information security events | Severity classification | `incident-response.md` §"Severity Definitions" |

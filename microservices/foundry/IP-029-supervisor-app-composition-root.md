@@ -45,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
     // Postgres pool
     let postgres_pool = build_postgres_pool(&openbao).await?;
 
-    // Redis cluster
+    // Valkey cluster
     let redis = build_redis_cluster_client(&openbao).await?;
 
     // Kubernetes client
@@ -60,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
     // Wire REST surface
     let rest_app = build_rest_app(state_store.clone(), propagator.clone(), publisher.clone(), cedar.clone());
 
-    // Wire worker (CRD watch + Redis pub-sub fan-out)
+    // Wire worker (CRD watch + Valkey pub-sub fan-out)
     let worker = KillSwitchWorker::new(state_store.clone(), propagator.clone(), publisher.clone());
 
     // Lease-leadership election for worker

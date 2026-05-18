@@ -37,9 +37,9 @@ Per Bominal ADR-0028 + ADR-0117, the canonical source-of-truth ordering for site
 3. **Loro CRDT log** (per-page edit history; can reconstruct page block-tree).
 4. **S3** (published-artifact HTML + assets; derived from Postgres + block-tree).
 5. **Meilisearch index** (derived from Postgres + cms-collection).
-6. **Redis cache** (derived; rebuildable on demand).
+6. **Valkey cache** (derived; rebuildable on demand).
 
-Any inconsistency is resolved by re-rendering from Postgres + Loro CRDT log; S3 + Meilisearch + Redis are treated as derived.
+Any inconsistency is resolved by re-rendering from Postgres + Loro CRDT log; S3 + Meilisearch + Valkey are treated as derived.
 
 ## Backfill procedures
 

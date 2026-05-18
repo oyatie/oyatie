@@ -51,7 +51,7 @@ All components introduced by ADR-0135 (net-new µservice) + ADR-0132 (single-con
 | LiveKit 1.6.2 SFU (substrate adapter shared in pattern with messenger ADR-MSGR-0001) | `oya-meet-meeting-room-*` (8 crates) |
 | coturn 0.2.0 (STUN + TURN) | `oya-meet-meeting-instance-*` (10 crates) |
 | Postgres 16 (meeting + participant + recording metadata) | `oya-meet-participant-*` (10 crates) |
-| Redis 7.2 (lobby + presence + signaling session) | `oya-meet-audio-*` (6 crates) |
+| Valkey 8.1 (Redis wire-compat) (lobby + presence + signaling session) | `oya-meet-audio-*` (6 crates) |
 | S3-compatible (recordings + transcripts + summaries) | `oya-meet-video-*` (6 crates) |
 | Whisper-large (Whisper.cpp 1.7 + faster-whisper) for transcription | `oya-meet-screen-share-*` (6 crates) |
 | ffmpeg 7.x mux + thumbnail extraction (gVisor sandbox) | `oya-meet-recording-*` (10 crates) |
@@ -100,7 +100,7 @@ All components introduced by ADR-0135 (net-new µservice) + ADR-0132 (single-con
 │                                                                         │
 │  TB3: BC services → backing stores                                      │
 │                                                                         │
-│  ┌─ Postgres (per-tenant RLS) ──┐  ┌─ Redis cluster ───────┐            │
+│  ┌─ Postgres (per-tenant RLS) ──┐  ┌─ Valkey cluster ───────┐            │
 │  │ meetings, participants, ACL  │  │ lobby, presence       │            │
 │  └──────────────────────────────┘  └───────────────────────┘            │
 │  ┌─ S3 (recordings + transcripts;┐  ┌─ Meilisearch ────────┐            │

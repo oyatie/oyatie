@@ -4,7 +4,7 @@
 // read/write except via explicitly-public projections.
 // Owner: ops-security + axis-sites
 // Status: Accepted (2026-05-17)
-// Related: ADR-0140, policy/editor-isolation.md, policy/data-residency.md, policy/public-read.cedar
+// Related: ADR-0140 (retired per ADR-0145), policy/editor-isolation.md, policy/data-residency.md, policy/public-read.cedar
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

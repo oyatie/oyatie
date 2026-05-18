@@ -22,7 +22,7 @@ doc_status: published
 
 Specify how social handles these scenarios:
 
-1. **Backfill** — search index + feed cache rebuild from canonical Postgres post + profile + follow-graph stores (e.g., after a Meilisearch corruption, Redis flush, or new ranking version shipped).
+1. **Backfill** — search index + feed cache rebuild from canonical Postgres post + profile + follow-graph stores (e.g., after a Meilisearch corruption, Valkey flush, or new ranking version shipped).
 2. **Replay** — re-fanout of historical events to a newly subscribed downstream consumer (audit-chain, workflow-engine, mail action-card processor, ontology), or to replay missed events for a tenant onboarded mid-stream.
 3. **Federation replay** — bounded re-emission of historical Professional-tier ActivityPub outbox to a federation peer that requests re-sync.
 
@@ -36,7 +36,7 @@ Trigger sources:
 
 Procedure:
 
-1. Acquire backfill lease in Redis (per tenant per index partition; lease TTL = 1h).
+1. Acquire backfill lease in Valkey (per tenant per index partition; lease TTL = 1h).
 2. Snapshot Postgres `social_posts` + `social_profiles` rows in `(tenant_id, context_kind)` partition, ordered by `posted_at`.
 3. Stream rows in batches of 1000 → Meilisearch `addDocuments` (idempotent on `post_id` / `profile_id`).
 4. After bulk, emit `SearchIndexBackfilled` event with tuple `(tenant_id, partition, row_count, completed_at, signature)`.
@@ -61,14 +61,14 @@ Procedure:
 
 Trigger sources:
 - Operator-invoked: `cargo run -p oya-dev-cli -- social rebuild-feed-cache --tenant <t> --user-ref <u>`.
-- Auto: Redis cache eviction triggers per-user lazy rebuild on next feed-render.
+- Auto: Valkey cache eviction triggers per-user lazy rebuild on next feed-render.
 
 Procedure:
 
 1. Identify scope: per-user or per-tenant.
 2. For each affected user, query Postgres for posts from followed accounts within feed window (default 7 days hot).
 3. Rank using current ranking heuristic / model.
-4. Write feed slice to Redis cache with TTL.
+4. Write feed slice to Valkey cache with TTL.
 5. Emit `FeedCacheRebuilt` event.
 
 ### Constraints

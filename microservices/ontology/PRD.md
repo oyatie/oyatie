@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M02b-substrate-ready
 bominal_source: [ADR-0106, ADR-0107, ADR-0108, ADR-0109, ADR-0110, ADR-0111, ADR-0112, ADR-0132, ADR-0018, ADR-0028]
-related_adrs: [ADR-0006, ADR-0028, ADR-0055, ADR-0056, ADR-0059, ADR-0105, ADR-0106, ADR-0107, ADR-0110, ADR-0114, ADR-0122, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0006, ADR-0028, ADR-0055, ADR-0056, ADR-0059, ADR-0105, ADR-0106, ADR-0107, ADR-0110, ADR-0114, ADR-0122, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-0172]
 related_specs: [/specs/microservices/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 owner_team: axis-ontology
@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `ontology` microservice is oyatie's **Palantir-Foundry-class typed-entity substrate** — the canonical information adapter through which every other µservice reads and writes typed Object Types, Link Types, Action Types, and Functions. Per ADR-0059, Ontology is one half of the inter-µservice integration plane (Workflow handles action/orchestration; Ontology handles information). Per `feedback_workflow_objectgraph_adapter_layer.md` this is **THE load-bearing architectural rule** of the platform: µservices never call each other directly — they exchange typed entities through Ontology and typed events through Workflow.
+The `ontology` microservice is oyatie's **Palantir-Foundry-class typed-entity substrate** — the canonical information adapter through which every other µservice reads and writes typed Object Types, Link Types, Action Types, and Functions. Per ADR-0059, Ontology is one half of the inter-µservice integration plane (Workflow handles action/orchestration; Ontology handles information). Per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md` this is **THE load-bearing architectural rule** of the platform: µservices never call each other directly — they exchange typed entities through Ontology and typed events through Workflow.
 
 This µservice is **shared substrate**, not a hero product. It is consumed by every other oyatie µservice + agent + product. Its existence is the precondition for cross-tenant isolation at the data layer (Postgres RLS), audit-grade provenance (Merkle/Ed25519 audit chain per Bominal ADR-0028), jurisdiction overlays (per-pack Cedar policy overlays), and pillar enforcement (org/person property-tier separation per Bominal ADR-0132).
 
@@ -371,3 +371,28 @@ Sharding:
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 (Bominal) | Data-ownership pillars | inherited |
 | ADR-0140 | Cedar policy enforcement | enforces every Action Type |
+| ADR-0172 | Read replicas + CQRS where appropriate | this µservice's `ontology.entity-query` BC opts in |
+
+## CQRS Read-Replica Addendum — `ontology.entity-query` BC (per ADR-0172)
+
+Per ADR-0172 (2026-05-18), the `ontology.entity-query` bounded context opts in to the read-replica CQRS split as one of the three M02 high-read BCs. Per ADR-0141 (workflow → ontology read path direct), every cross-product call to "get entity X" routes through ontology; this is the highest read-amplification BC in the fleet.
+
+### Declaration
+
+| Field | Value |
+|---|---|
+| Bounded context | `ontology.entity-query` |
+| Command-side primary | `oya-ontology-entity-primary` (Postgres 17 LTS) |
+| Query-side replicas | 7 read replicas + per-pack cell-affinity routing per ADR-0049 |
+| Read-staleness budget | ≤1s p99 (tightest of the three M02 BCs — ontology reads are dominant cross-product traffic) |
+| Read:write ratio justifying split | ~500× (per ADR-0172 §"Context") |
+| Read-after-write mechanism | per-tenant LSN pinning via `oya-read-after-write-lsn` header |
+| Cross-pack residency | replicas live in the same cell as the primary per ADR-0009; no cross-cell fanout |
+
+### Migration
+
+Migration follows the ADR-0172 §"Migration / rollout plan" sequenced cutover. Because ontology is the read-amplification fan-in for the workflow → ontology direct read path per ADR-0141, the Phase 3 shadow-reads phase runs longer (4 weeks vs the standard 2) to capture cross-product staleness telemetry.
+
+### SLO + observability
+
+Read-staleness SLO authored under `microservices/ontology/slos/entity-query-read-staleness.openslo.yaml` (M02 deliverable per ADR-0139). Alert at p99 staleness > 1s.

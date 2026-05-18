@@ -55,5 +55,5 @@ In-scope:
 ## References
 
 - Bominal ADR-0132 (pillars).
-- ADR-0140 (Cedar).
+- ADR-0140 (retired per ADR-0145) (Cedar).
 - `microservices/ontology/policy/type-isolation.md` §"Pillar Isolation Invariants" TI-11..TI-13.

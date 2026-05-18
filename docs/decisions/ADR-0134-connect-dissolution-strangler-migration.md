@@ -7,7 +7,7 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0135]
-related_memory: [feedback_no_silent_regression, feedback_workflow_objectgraph_adapter_layer, feedback_bominal_inheritance_precedence]
+related_memory: [feedback_no_silent_regression, feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145), feedback_bominal_inheritance_precedence]
 related_specs:
   - /specs/per-microservice-flat-layout.json
   - /specs/microservices/mail.json

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-tenancy
 deciders: council-architecture, ops-security, axis-tenancy, council-privacy
-related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/tenancy/threat-model.md (Trust Boundary 3, T-T-01, T-I-01, T-I-02, T-E-01)
   - microservices/tenancy/dpia.md (R-01)

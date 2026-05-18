@@ -56,7 +56,7 @@ CDN POPs (Cloudflare R2 + Workers): per-pack regional POPs; cross-pack edge repl
 │  │ HA-RF=3                  │ replic     │ async; ≤ 5 s lag          │ │
 │  └──────────────────────────┘            └──────────────────────────┘ │
 │  ┌──────────────────────────┐            ┌──────────────────────────┐ │
-│  │ Redis cluster (3 shards) │            │ Redis cluster warm        │ │
+│  │ Valkey cluster (3 shards) │            │ Valkey cluster warm        │ │
 │  └──────────────────────────┘            └──────────────────────────┘ │
 │  ┌──────────────────────────┐  CRR       ┌──────────────────────────┐ │
 │  │ S3 video bucket          │◀──────────▶│ S3 replica                │ │
@@ -95,7 +95,7 @@ CDN POPs (Cloudflare R2 + Workers): per-pack regional POPs; cross-pack edge repl
 | Component | Mode | RPO | Cross-region |
 |---|---|---|---|
 | Postgres (metadata + claims + ages + parental + analytics) | Logical replication; async to DR-pair | ≤ 5s | within-pack DR-pair only |
-| Redis (feed cache + watch + counters) | Cluster replicas + cross-AZ; DR-pair rebuild from Postgres | ≤ 60s | within-pack DR-pair only |
+| Valkey (feed cache + watch + counters) | Cluster replicas + cross-AZ; DR-pair rebuild from Postgres | ≤ 60s | within-pack DR-pair only |
 | S3 (video blobs + transcode variants + thumbnails + captions) | Cross-region replication (CRR) | ≤ 15min | within-pack DR-pair only |
 | Meilisearch | Rebuilt from Postgres in DR-pair | depends on rebuild SLA | within-pack DR-pair only |
 | DRM key system | Active-active HSM cluster per pack | 0 | within-pack DR-pair only |
@@ -107,7 +107,7 @@ CDN POPs (Cloudflare R2 + Workers): per-pack regional POPs; cross-pack edge repl
 ### Default: forbidden
 
 - Postgres logical replication: within-pack only.
-- Redis cluster replication: within-pack only.
+- Valkey cluster replication: within-pack only.
 - S3 cross-region replication: within-pack only.
 - Meilisearch index replication: within-pack only.
 - ffmpeg transcode jobs: within-pack only.
@@ -135,7 +135,7 @@ CDN POPs (Cloudflare R2 + Workers): per-pack regional POPs; cross-pack edge repl
 | Video metadata (Postgres) | ≤ 5s | ≤ 5 min failover; ≤ 30 min full recovery |
 | Video blobs (S3 originals) | ≤ 15 min | provider-dependent (≤ 1h DR pair; ≤ 4h single-region) |
 | Transcode variants (S3 + CDN) | regeneratable from originals | ≤ 30 min rebuild |
-| Feed cache (Redis) | regeneratable from Postgres | ≤ 15 min rebuild |
+| Feed cache (Valkey) | regeneratable from Postgres | ≤ 15 min rebuild |
 | Audit-chain seals | 0 (synchronous within-pack) | 0 |
 | DRM key system | active-active | 0 |
 | Search index (Meilisearch) | rebuilt from Postgres | ≤ 1h rebuild |

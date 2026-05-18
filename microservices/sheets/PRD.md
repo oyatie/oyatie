@@ -9,7 +9,7 @@ tier: external-facing
 milestone_first_ship: M03-sheets-preview
 bominal_source: []
 net_new: true
-related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0135
 sibling_products:
@@ -30,7 +30,7 @@ The `sheets` µservice is oyatie's **spreadsheet + structured-data authoring pro
 
 Sheets is **NOT a substrate**. It is a tenant-facing product surface with five distinct user personas (business power user, business analyst, financial-modelling specialist, vertical specialist, agentic developer role). The cell grid is the second-largest Leptos application in oyatie (sibling to workflow-studio's visual canvas, per ADR-0065 Rust-WASM SSR + browser-WASM hybrid). The canonical source of truth is the workbook's structured cell graph; the visual grid derives from the graph, never vice-versa.
 
-This µservice operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer.md`): Sheets consumes ontology object-type descriptors for typed-column configuration (Airtable / Notion-database parity); emits cell-edit events to the workflow-engine event-bus (for sheet-edit-triggers-workflow); bridges to foundry-runtime for AI-formulas + smart-fill; routes through tenancy for per-seat licensing; bridges to drive for workbook storage hierarchy; embeds into docs (live cell ranges) and slides (charts).
+This µservice operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`): Sheets consumes ontology object-type descriptors for typed-column configuration (Airtable / Notion-database parity); emits cell-edit events to the workflow-engine event-bus (for sheet-edit-triggers-workflow); bridges to foundry-runtime for AI-formulas + smart-fill; routes through tenancy for per-seat licensing; bridges to drive for workbook storage hierarchy; embeds into docs (live cell ranges) and slides (charts).
 
 This µservice is **shared substrate AND hero product** simultaneously: the cell-grid + formula-engine + recalc-engine are shared substrate consumed by every oyatie product that needs grid-class structured data (forms responses, workflow-engine state observation, cost-budget dashboards); the editor shell is end-user product packaged as the Sheets brand.
 
@@ -134,7 +134,7 @@ This µservice is **shared substrate AND hero product** simultaneously: the cell
 
 ### Data residency
 
-- Workbook metadata, cell storage, edit buffer, collab CRDT state, AI-formula prompts, and per-seat license attribution inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Redis + Arrow/Parquet large-sheet storage + S3 snapshots are per-pack region-pinned.
+- Workbook metadata, cell storage, edit buffer, collab CRDT state, AI-formula prompts, and per-seat license attribution inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Valkey + Arrow/Parquet large-sheet storage + S3 snapshots are per-pack region-pinned.
 - CDN static assets are global (no PII; spec schema + design-system primitives + WASM bundles); per-pack CDN edge keys segregate tenant-rendered content where applicable.
 
 ## Bounded Contexts
@@ -495,7 +495,7 @@ Error budget:
 - Workbook snapshots + version-history binaries: `s3` (object storage; per-pack bucket).
 - Static assets (WASM bundles + design-system primitives): `cdn` (global edge cache; per-pack key partitioning).
 
-**Active-active compatibility**: `stateless-compatible` for REST/SDK; `single-writer-compatible` for collab CRDT (one WebSocket gateway pod owns active sessions for a given workbook; lease-coordinated via Redis).
+**Active-active compatibility**: `stateless-compatible` for REST/SDK; `single-writer-compatible` for collab CRDT (one WebSocket gateway pod owns active sessions for a given workbook; lease-coordinated via Valkey).
 
 Per-cell capacity envelope:
 
@@ -510,11 +510,11 @@ Per-cell capacity envelope:
 
 Scale-out policy:
 - Editor REST: stateless HPA on CPU > 70%; min 2 replicas; max 50.
-- WebSocket gateway: stateful per active editor session; lease-coordinated via Redis; HPA on WS connection count; min 3 replicas; max 100.
+- WebSocket gateway: stateful per active editor session; lease-coordinated via Valkey; HPA on WS connection count; min 3 replicas; max 100.
 - Recalc worker: HPA on queue depth; min 2 replicas; max 50.
 - XLSX export worker: HPA on queue depth + gVisor sandbox capacity; min 2 replicas; max 20.
 - Postgres + Citus: tenant_id shard key; linear shard addition.
-- Redis: per-cell cluster; HA via Sentinel.
+- Valkey: per-cell cluster; HA via Sentinel.
 - CDN: global; per-pack edge nodes; OCI CDN service.
 
 Cross-region story:
@@ -525,7 +525,7 @@ Cross-region story:
 Sharding:
 - Postgres + Citus on `tenant_id`; cell-edit log append-only; Citus distributed table.
 - Arrow/Parquet large-sheet blocks: per-(tenant_id, workbook_id, sheet_id) key.
-- Redis per-cell cluster; cell-local CRDT state.
+- Valkey per-cell cluster; cell-local CRDT state.
 - WebSocket gateway: consistent-hash on `workbook_id` ensures collab participants land on same gateway pod.
 
 ## Acceptance Criteria

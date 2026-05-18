@@ -13,7 +13,7 @@ acceptance_lanes: [helm-lint, kustomize-build, oya-governance-version-pinning-co
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: IaC bootstrap — Helm + Kustomize + Terraform for the network cluster
+# IP-001: IaC bootstrap — Helm + Kustomize + OpenTofu for the network cluster
 
 ## Intent
 
@@ -21,10 +21,10 @@ Land the IaC substrate for the `network` µservice cluster per ADR-0131:
 
 - Helm chart `iac/helm/network/` with deployment + service + HPA + PDB + NetworkPolicy + PrometheusRule + ServiceMonitor templates.
 - Kustomize base + per-pack overlays (pack-kr + pack-eu in P01; remaining packs follow).
-- Terraform module references for OKE node pools, OCI Object Storage, OCI KMS keyring (per ADR-NET-0005 endorsement-chain), pack-aware Postgres + Redis + Meilisearch provisioning.
+- OpenTofu module references for OKE node pools, OCI Object Storage, OCI KMS keyring (per ADR-NET-0005 endorsement-chain), pack-aware Postgres + Valkey + Meilisearch provisioning.
 - Per-pack secret references in OpenBao.
 - gVisor runtime class for media/document transcode worker per threat-model T-E-05.
-- LTS pins: Postgres 16, Redis 7.2, Meilisearch 0.10.0, Cedar v4.2, ImageMagick 7.1, ffmpeg 7.x, ClamAV 1.x, OPSWAT 5.x.
+- LTS pins: Postgres 16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10.0, Cedar v4.2, ImageMagick 7.1, ffmpeg 7.x, ClamAV 1.x, OPSWAT 5.x.
 
 ## ChangeSet boundary
 
@@ -85,4 +85,4 @@ cargo run -p oya-dev-cli -- gate validate cedar-policy-spec --microservice netwo
 - `microservices/network/multi-region.md`.
 - `microservices/network/threat-model.md` (T-E-05 sandboxed transcode).
 - `microservices/observability/IP-001-layer-a-grafana-stack-iac.md` (precedent shape).
-- ADR-0131 (per-µservice flat layout); ADR-0140 (Cedar v4.2 default-deny).
+- ADR-0131 (per-µservice flat layout); ADR-0140 (retired per ADR-0145) (Cedar v4.2 default-deny).

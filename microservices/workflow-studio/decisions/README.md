@@ -9,7 +9,7 @@ doc_status: published
 
 # workflow-studio service-scoped ADRs
 
-This directory holds **service-scoped** Architecture Decision Records owned by the `workflow-studio` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs continue to live at `/Users/jasonlee/oyatie/docs/decisions/` (e.g., ADR-0105, ADR-0131, ADR-0132, ADR-0133, ADR-0140).
+This directory holds **service-scoped** Architecture Decision Records owned by the `workflow-studio` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs continue to live at `/Users/jasonlee/oyatie/docs/decisions/` (e.g., ADR-0105, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)).
 
 Service-scoped ADRs are numbered `ADR-WS-####` (four-digit, sequential within this directory). The `WS` prefix prevents collision with the repo-wide `ADR-####` series and matches the convention adopted by sibling µservices migrating to ADR-0131 per-microservice flat layout.
 

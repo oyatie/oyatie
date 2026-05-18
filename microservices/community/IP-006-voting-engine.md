@@ -17,21 +17,21 @@ doc_status: published
 
 ## Intent
 
-Ship the voting BC with conflict-free counter (Redis Lua) and idempotent vote cast.
+Ship the voting BC with conflict-free counter (Valkey Lua) and idempotent vote cast.
 
 ## Scope
 
 - Types: `Vote`, `Tally`, `Acceptance`, `VoteDirection`.
-- Storage: Redis (live counter) + Postgres (source of truth + audit).
+- Storage: Valkey (live counter) + Postgres (source of truth + audit).
 - Operations: `cast_vote(post_id, direction, idempotency_key)`, `read_tally(post_id)`, `accept_answer(question_id, reply_id)`.
-- Redis Lua script for atomic SET NX + INCRBY + audit append.
+- Valkey Lua script for atomic SET NX + INCRBY + audit append.
 - Async Postgres flush via worker.
 
 ## Deliverables
 
 - Crate set: kernel + domain + usecase + api + adapter + adapter-postgres + worker + sdk.
-- Redis Lua script in `src/lua/vote_cast.lua`.
-- Reconciliation worker for Redis vs. Postgres divergence detection.
+- Valkey Lua script in `src/lua/vote_cast.lua`.
+- Reconciliation worker for Valkey vs. Postgres divergence detection.
 
 ## Acceptance
 

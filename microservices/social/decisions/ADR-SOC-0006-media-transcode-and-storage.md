@@ -188,7 +188,7 @@ oyatie social adopts a **single canonical media stack** for P01:
 - Weekly CVE scan via Trivy + Grype on transcode worker images.
 - LTS pin tracking: ImageMagick 7.1 + ffmpeg 7.x + libwebp + libaom (AVIF encoder) in `Cargo.toml` + Helm values.
 - Quarantine bucket + production bucket lifecycle managed via S3 bucket policies + IAM (per-bucket service-account scopes).
-- Cloudflare R2 + Workers config managed via Terraform.
+- Cloudflare R2 + Workers config managed via OpenTofu.
 - Per-pack S3 + CDN bucket naming: `oya-social-media-<pack>` + `oya-social-cdn-<pack>` + `oya-social-quarantine-<pack>`.
 - Integrity check worker: periodic digest verification on Postgres-stored digests vs S3-fetched blobs.
 - Runbook: `runbooks/media-transcode-degraded.md` (Slice B; same shape as messenger attachment-restore).

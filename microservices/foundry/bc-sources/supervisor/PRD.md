@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0024, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0024, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/foundry-split.json, /specs/foundry-supervisor-control-plane.json]
 date: 2026-05-17
 owner_team: axis-foundry-control-plane
@@ -64,7 +64,7 @@ Hyperscaler peers: AWS Bedrock Agents control plane, Anthropic Claude control pl
 | Capability deployment latency (admit → 100 % rollout) | ≤ 90 s | ≤ 5 min | ≤ 15 min | gated by canary + SLO observe windows |
 | Supervision-event emission lag (event → bus) | ≤ 50 ms | ≤ 200 ms | ≤ 500 ms | end-to-end from controller reconcile to AsyncAPI publish |
 | Autonomy-policy evaluation (Cedar) | ≤ 5 ms | ≤ 15 ms | ≤ 50 ms | per-invocation precondition |
-| Fleet-state query (per-tenant snapshot) | ≤ 30 ms | ≤ 100 ms | ≤ 300 ms | Postgres + Redis materialized view |
+| Fleet-state query (per-tenant snapshot) | ≤ 30 ms | ≤ 100 ms | ≤ 300 ms | Postgres + Valkey materialized view |
 | Operator reconcile loop (one CRD object) | ≤ 200 ms | ≤ 1 s | ≤ 3 s | per Kubernetes Operator best-practice |
 | Deployment admit-loop throughput | — | 100 capability-defs/s/cell | — | bounded by Postgres write IOPS |
 
@@ -73,7 +73,7 @@ Hyperscaler peers: AWS Bedrock Agents control plane, Anthropic Claude control pl
 - All control-plane writes (admit, deploy, engage, drain) are signed by the supervisor's per-environment Ed25519 key (per Bominal ADR-0028).
 - All cross-µservice calls (to `foundry-runtime`, `foundry-guardrails`, `foundry-evidence`) use mTLS + SPIFFE identity.
 - Cedar v4 evaluator, default-deny; fragments fuzzed per `oya-check-cedar-fragment-coverage`.
-- Secrets (Postgres credentials, Redis ACL tokens, signing keys, OpenBao-issued tenant entitlements) follow the OpenBao SecretReference pattern; raw secrets never enter repo or logs.
+- Secrets (Postgres credentials, Valkey ACL tokens, signing keys, OpenBao-issued tenant entitlements) follow the OpenBao SecretReference pattern; raw secrets never enter repo or logs.
 - Kill-switch authority restricted to: tenant DPO (own scope only), ops-security on-call (any scope; 2-person rule for fleet-wide), supervisor controller (autonomy-policy auto-triggered scope).
 
 ### Audit + Compliance
@@ -87,11 +87,11 @@ Hyperscaler peers: AWS Bedrock Agents control plane, Anthropic Claude control pl
 - Availability target: 99.99 % monthly for the kill-switch engage path (the safety-critical surface).
 - 99.95 % monthly for the deployment admit/rollout path.
 - 99.9 % monthly for fleet-state query path.
-- RTO: ≤ 5 min for control-plane availability. RPO: ≤ 30 s for fleet-state Postgres + Redis.
+- RTO: ≤ 5 min for control-plane availability. RPO: ≤ 30 s for fleet-state Postgres + Valkey.
 
 ### Data residency
 
-- Per-tenant fleet metadata, autonomy entitlements, deployment history inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Redis instances are pack-pinned; cross-pack replication forbidden by default per `policy/data-residency.md`.
+- Per-tenant fleet metadata, autonomy entitlements, deployment history inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Valkey instances are pack-pinned; cross-pack replication forbidden by default per `policy/data-residency.md`.
 
 ## Bounded Contexts
 
@@ -169,7 +169,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `RolloutVerdictEmitter` | same | `-adapter-postgres` + supervision-event-bus | `AUDIT` |
 | `AutonomyEntitlementStore` | `oya-foundry-supervisor-autonomy-policy-enforcement-kernel` | `-adapter` (OpenBao-backed) | `SENSITIVE_PIPA_ART23`, `AUDIT` |
 | `CedarEvaluator` | same | `-adapter` (Cedar v4 runtime) | `INTERNAL_ONLY` |
-| `SupervisionEventPublisher` | `oya-foundry-supervisor-supervision-event-bus-kernel` | `-adapter` (Redis Streams + AMQP) | `AUDIT`, `BEHAVIORAL_TENANT_PRODUCT` |
+| `SupervisionEventPublisher` | `oya-foundry-supervisor-supervision-event-bus-kernel` | `-adapter` (Valkey Streams (Redis wire-compat) + AMQP) | `AUDIT`, `BEHAVIORAL_TENANT_PRODUCT` |
 | `KillSwitchStateStore` | `oya-foundry-supervisor-kill-switch-circuit-breaker-kernel` | `-adapter` (Redis-replicated) | `BEHAVIORAL_TENANT_PRODUCT`, `AUDIT` |
 | `KillSwitchPropagator` | same | `-adapter-k8s-operator` (CRD watch fan-out) | `BEHAVIORAL_TENANT_PRODUCT` |
 
@@ -259,7 +259,7 @@ Key parity gaps to close (ordered):
 | Supervision event lag | ≤ 50 ms | ≤ 200 ms | ≤ 500 ms | controller reconcile → bus publish |
 | Autonomy-policy eval (Cedar) | ≤ 5 ms | ≤ 15 ms | ≤ 50 ms | per-invocation precondition |
 | Postgres write IOPS (admit-loop) | — | 100 capability-defs/s | — | XS tier baseline |
-| Redis read IOPS (kill-switch query) | — | 50k ops/s/node | — | per Redis Cluster sizing |
+| Valkey read IOPS (kill-switch query) | — | 50k ops/s/node | — | per Valkey Cluster sizing |
 
 Error budget:
 - Monthly error budget for kill-switch engage path: 0.01 % (≈ 4 min/month). Burn-rate alarm: 14.4× over 1h triggers Sev-1 page.
@@ -268,9 +268,9 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres (fleet state, deployment history, entitlement store) is sharded by tenant; Redis Cluster (kill-switch state, supervision-event-bus stream) is replicated; controllers (Kubernetes Operator) are leased-leadership stateless.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres (fleet state, deployment history, entitlement store) is sharded by tenant; Valkey Cluster (kill-switch state, supervision-event-bus stream) is replicated; controllers (Kubernetes Operator) are leased-leadership stateless.
 
-**Active-active compatibility**: controllers + REST + worker are `stateless-compatible` (leadership election via Kubernetes leases). Postgres is master-replica per pack region; Redis Cluster is 3-replica per pack region.
+**Active-active compatibility**: controllers + REST + worker are `stateless-compatible` (leadership election via Kubernetes leases). Postgres is master-replica per pack region; Valkey Cluster is 3-replica per pack region.
 
 Per-cell capacity envelope:
 
@@ -279,14 +279,14 @@ Per-cell capacity envelope:
 | Active tenants per cell | 1000 | 10000 | Postgres connection-pool > 70 % |
 | Concurrent agent fleets | 5000 | 50000 | controller reconcile lag > 1 s |
 | Deployment admit rate | 50/s | 200/s | admit-loop queue > 60 s |
-| Kill-switch state in Redis | 10k engaged switches | 100k | Redis cluster CPU > 70 % |
+| Kill-switch state in Valkey | 10k engaged switches | 100k | Valkey cluster CPU > 70 % |
 
 Scale-out:
 - Controllers: HPA on CPU > 70 %; min 3 replicas (Kubernetes-leader-elected; only one is active reconciler per shard).
 - REST: HPA on RPS; min 3 replicas.
 - Worker: HPA on queue depth; min 2 replicas.
 - Postgres: vertical scale + horizontal sharding by tenant hash; PgBouncer pooled.
-- Redis: horizontal scale-out via Cluster shards; per-pack replication.
+- Valkey: horizontal scale-out via Cluster shards; per-pack replication.
 
 Sharding:
 - Postgres partitions by `tenant_hash MOD num_shards`.
@@ -304,7 +304,7 @@ Sharding:
 | AC-05 | Supervision event published to bus within ≤ 200 ms p99 of state transition | timed integration test |
 | AC-06 | Fleet drain completes with zero in-flight loss for ≤ 100 agents | e2e drill `tests/e2e/drain-no-loss.rs` |
 | AC-07 | Postgres failover (master loss) recovers control-plane availability within ≤ 30 s | chaos drill |
-| AC-08 | Redis failover (one replica loss) does not breach kill-switch p99 ≤ 1 s | chaos drill |
+| AC-08 | Valkey failover (one replica loss) does not breach kill-switch p99 ≤ 1 s | chaos drill |
 | AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-supervisor` exit 0 | ADR-0131 lane |
 | AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 with HG-FND-SUP registered | ADR-0123 lane |
 
@@ -313,9 +313,9 @@ Sharding:
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | Kubernetes Operator framework: kube-rs vs operator-rs vs in-house controller-runtime port | axis-foundry-control-plane | resolved IP-001 — kube-rs (Rust-native, oyatie-language alignment) |
-| 2 | Redis Cluster vs Sentinel for kill-switch state | ops-sre-reliability | resolved IP-006 — Cluster (3-replica, automatic sharding) |
+| 2 | Valkey Cluster vs Sentinel for kill-switch state | ops-sre-reliability | resolved IP-006 — Cluster (3-replica, automatic sharding) |
 | 3 | Cedar fragment authoring: in-repo vs OpenBao-stored | ops-security | resolved IP-005 — in-repo (PR-reviewed) + per-tenant overlays in OpenBao |
-| 4 | Kill-switch propagation channel: CRD watch vs Redis pub-sub | axis-foundry-control-plane | resolved IP-009 — both; CRD watch primary, Redis fallback for sub-second |
+| 4 | Kill-switch propagation channel: CRD watch vs Valkey pub-sub | axis-foundry-control-plane | resolved IP-009 — both; CRD watch primary, Valkey fallback for sub-second |
 
 ## Related ADRs
 

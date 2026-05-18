@@ -179,3 +179,70 @@ Per-pack BCDR specifics at `regional-packs/<pack>/cloud-k8s-multi-region-overlay
 - Kubernetes DR — `kubernetes.io/docs/tasks/administer-cluster/`.
 - Istio multi-cluster — `istio.io/latest/docs/setup/install/multicluster/`.
 - ISO/IEC 22301:2019 (Business continuity); NIST SP 800-34; EU DORA Regulation 2022/2554; APRA-CPS 232.
+
+---
+
+## ADR-0158 Multi-Region Disposition Statement
+
+**Disposition: `active_passive` per cell (cluster control-plane is per-cell).**
+
+Per ADR-0158, the cloud-k8s µservice's cluster control-plane runs per cell. Cross-cell failover uses the global anycast routing layer; intra-cell HA via 3+ control-plane nodes per kubeadm topology (per ADR-0121).
+
+| Property | Value |
+|---|---|
+| Disposition | `active_passive` per cell |
+| RPO (intra-region) | ≤ 30 seconds |
+| RTO (intra-region) | ≤ 5 minutes (Kubernetes control-plane leader-election) |
+| Sovereign-pin behavior | cells deploy per sovereign region only |
+| Cross-region transaction policy | forbidden (control-plane is per-cell) |
+
+## ADR-0164 Sovereign Cloud / Air-Gapped Deployment Variant
+
+Per ADR-0164, the cloud-k8s µservice ships a per-pack air-gap variant for sovereign packs. The variant flips the following dependencies:
+
+### Container registry (in-cell)
+
+- **Tool**: Harbor 2.x (CNCF graduated) at `registry.{cell}.svc.cluster.local`.
+- **Image pull policy**: `IfNotPresent`.
+- **Image reference rewrite**: `registry.{cell}.svc.cluster.local/oya/<ms>:<tag>` (kustomize component rewrites).
+- **Pre-flight mirror job**: external build registry → per-cell Harbor BEFORE the cell loses external egress. Helm chart at `microservices/cloud-iac/iac/helm/harbor-mirror/`.
+- **Signature verification**: Sigstore Cosign + Kyverno admission controller (per ADR-0146 + SLSA L3).
+
+### No external API egress
+
+- NetworkPolicy + Cilium L7 egress deny all external hosts by default.
+- DNS resolution via in-cell CoreDNS.
+- NTP via in-cell chrony.
+- OCSP / CRL via in-cell PKI.
+- Telemetry: Datadog / Honeycomb / New Relic forbidden in air-gap mode; observability µservice (Prometheus/Mimir + Tempo + Loki) is the only sink.
+
+### CI runner option
+
+- Sovereign tenants may require in-region CI runners. Per-pack overlay points deploy pipeline at in-region self-hosted runners in a separate "build cell" with the same air-gap shape.
+
+### Pack matrix (cloud-k8s perspective)
+
+| Pack | `air_gap` | Container registry |
+|---|---|---|
+| `pack-eu-sovereign-airgap` | true | in-cell Harbor (EU region) |
+| `pack-kr-fsc` | true | in-cell Harbor (KR region) |
+| `pack-kr-public` | true | in-cell Harbor (KR region) |
+| `pack-ksa` | true | in-cell Harbor (KSA region) |
+| `pack-uae` | true | in-cell Harbor (UAE region) |
+| `pack-us-gov` | true | in-cell Harbor (US-Gov region) |
+| `pack-us-shared` | false | external (ghcr.io / gcr.io) |
+| `pack-eu` | false | external (EU-region only) |
+| `pack-kr` | false | external (KR-region only) |
+| `pack-jp` | false | external (JP-region only) |
+
+CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs reference no external host in ServiceEntry / NetworkPolicy egress, (b) image refs rewritten to in-cell Harbor, (c) foundry-providers external LLM client code absent from air-gap pack image build, (d) per-pack compliance attestation present at `microservices/governance/catalog/pack-{name}-air-gap-attestation.md`.
+
+See `/specs/sovereign-cloud-air-gapped-canonical.json` for the canonical declaration.
+
+## ADR-0161 Canonical StorageClass + CSI Driver Matrix
+
+Per ADR-0161, this pack ships canonical StorageClass manifests at `iac/kustomize/components/storage-classes/` (catalog) and per-pack overlays at `iac/kustomize/components/pack-{name}/` (CSI driver binding).
+
+Canonical names declared at workload µservice level: `oya-pg-hot`, `oya-pg-warm`, `oya-pg-cold`, `oya-redis-hot`, `oya-s3-warm`, `oya-s3-cold`.
+
+Per-pack overlay binds each canonical name to a concrete CSI driver per the matrix in `/specs/csi-storage-class-canonical.json`. CI lane `oya gate validate storage-class-canonical` enforces.

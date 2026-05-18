@@ -81,7 +81,7 @@ Scale-out triggers:
 - CPU > 70% sustained → vertical scale primary; replicas can take horizontal-scale reads.
 - Storage > 70% → expand persistent block; consider per-tenant partition pruning.
 
-### Redis (page-render cache + CMS-collection cache)
+### Valkey (page-render cache + CMS-collection cache)
 
 | Param | Baseline | Max |
 |---|---|---|

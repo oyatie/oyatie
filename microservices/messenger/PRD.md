@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md, ADR-0215-connect-retention-legal-hold-dual-context.md]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0172]
 related_specs: [/specs/microservices/messenger.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-messenger
@@ -60,8 +60,8 @@ Bominal predecessor: the `connect-messenger` slice of Bominal's unified Connect 
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
 | Message-send latency (post → fanout-ack) | ≤ 30ms | ≤ 100ms | ≤ 250ms | within-region; cross-region fans out asynchronously |
-| Channel-fetch latency (cold list of ≤ 50 channels) | ≤ 60ms | ≤ 200ms | ≤ 500ms | Postgres + Redis cache |
-| Presence-update propagation | ≤ 200ms | ≤ 1s | ≤ 3s | Redis pub/sub + WebSocket gateway |
+| Channel-fetch latency (cold list of ≤ 50 channels) | ≤ 60ms | ≤ 200ms | ≤ 500ms | Postgres + Valkey cache |
+| Presence-update propagation | ≤ 200ms | ≤ 1s | ≤ 3s | Valkey pub/sub + WebSocket gateway |
 | Read-receipt fan-out (per-recipient) | ≤ 50ms | ≤ 150ms | ≤ 500ms | coalesced under 250ms windows |
 | File-attachment upload init (5MB chunk) | ≤ 100ms | ≤ 300ms | ≤ 1s | S3 multipart |
 | Message-search query (≤ 50 results, single tenant) | ≤ 80ms | ≤ 350ms | ≤ 1s | Tantivy / Elasticsearch |
@@ -103,7 +103,7 @@ The messenger µservice's wire formats are pinned to the following published spe
 |---|---|---|---|
 | Federated Client-Server | Matrix Client-Server API | **r0.6.1** (matrix.org LTS) | governs the federated client surface; r0.6.1 is the long-term stable line currently mandated; upgrades to v1.x require an ADR per the no-silent-regression rule |
 | Federated Server-Server | Matrix Server-Server API | **r0.1.4** (matrix.org LTS) | governs cross-pack federation hop; cross-pack routing remains default-deny per data-residency above, but where a tenant opts in, the Matrix r0.1.4 federation spec is the wire format |
-| E2E key agreement | Matrix Olm + Megolm | Olm 3.x line; Megolm 1.x line | personal-context DM end-to-end encryption (`feedback_workflow_objectgraph_adapter_layer` carrier exemption permits direct egress only at the transport layer; payloads remain E2E) |
+| E2E key agreement | Matrix Olm + Megolm | Olm 3.x line; Megolm 1.x line | personal-context DM end-to-end encryption (`feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145)` carrier exemption permits direct egress only at the transport layer; payloads remain E2E) |
 | Real-time transport | WebSocket (RFC 6455) + mTLS | RFC 6455 (final) | client connections; per-tenant API-token-bound at OpenBao per `feedback_no_silent_regression` rotation 30d |
 | Action-card carrier | AsyncAPI 2.6 | contracts/asyncapi/action-cards.yaml | mail → messenger action-card ingest contract (channel-mention carrier path) |
 | Search index protocol | Tantivy 0.21 / Elasticsearch 8.x | search backend pinned per AdR-MSG-0001 | indexed surface only; Cedar-policy-filtered |
@@ -249,9 +249,9 @@ Error budget:
 
 ## Horizontal Scalability
 
-**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for message store; Redis for presence + read-receipts; S3 for attachments; Tantivy/Elasticsearch for search; WebSocket gateway stateless beyond connection registry.
+**State strategy** (per Bominal ADR-0019 enum): `mixed`. Postgres for message store; Valkey for presence + read-receipts; S3 for attachments; Tantivy/Elasticsearch for search; WebSocket gateway stateless beyond connection registry.
 
-**Active-active compatibility**: stateless WebSocket gateway + Postgres logical-replicated within pack; Redis primary-replica HA; S3 cross-AZ replication.
+**Active-active compatibility**: stateless WebSocket gateway + Postgres logical-replicated within pack; Valkey primary-replica HA; S3 cross-AZ replication.
 
 Per-cell capacity envelope:
 
@@ -266,7 +266,7 @@ Per-cell capacity envelope:
 Scale-out policy:
 - HPA on WebSocket gateway pods: CPU > 70 %, min 4, max 200 replicas.
 - Postgres shard-by-tenant once cell hits 1M messages/sec aggregate.
-- Redis cluster sharding by `(tenant_id, channel_id) mod N`.
+- Valkey cluster sharding by `(tenant_id, channel_id) mod N`.
 
 Sharding:
 - Message store partitions by `(tenant_id, channel_id, year-month)`.
@@ -317,3 +317,27 @@ Sharding:
 | Bominal ADR-0215 | Connect retention legal-hold dual-context | inherited |
 | Bominal ADR-0028 | Audit-chain Merkle + Ed25519 | inherited |
 | Bominal ADR-0111 | Ciphertext property type + envelope encryption | inherited |
+| ADR-0172 | Read replicas + CQRS where appropriate | this µservice's `messenger.search` BC opts in |
+
+## CQRS Read-Replica Addendum — `messenger.search` BC (per ADR-0172)
+
+Per ADR-0172 (2026-05-18), the `messenger.search` bounded context opts in to the read-replica CQRS split as one of the three M02 high-read BCs. Search-as-you-type produces high read traffic at every keystroke; writes happen only at message arrival.
+
+### Declaration
+
+| Field | Value |
+|---|---|
+| Bounded context | `messenger.search` |
+| Command-side primary | `oya-messenger-search-primary` (Postgres 17 LTS + pg_trgm full-text index) |
+| Query-side replicas | 5 read replicas + 1 dedicated full-text-search replica via pgpool-II |
+| Read-staleness budget | ≤5s p99 |
+| Read:write ratio justifying split | ~50×–200× (per ADR-0172 §"Context") |
+| Read-after-write mechanism | per-tenant LSN pinning via `oya-read-after-write-lsn` header |
+
+### Migration
+
+Migration follows the ADR-0172 §"Migration / rollout plan" sequenced cutover. The dedicated FTS replica receives the heaviest GIN-index load isolated from the general read replicas; this protects general read latency from FTS query bursts.
+
+### SLO + observability
+
+Read-staleness SLO authored under `microservices/messenger/slos/search-read-staleness.openslo.yaml` (M02 deliverable per ADR-0139). Alert at p99 staleness > 5s.

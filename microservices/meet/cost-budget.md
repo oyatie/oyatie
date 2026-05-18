@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Track the meet µservice's monthly cloud cost across LiveKit SFU + coturn + Postgres + Redis + S3 + Whisper GPU pool + ffmpeg gVisor pool + SRS RTMP egress + Meilisearch + observability sidecars + Layer-B compute, per pack region. Surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers called out.
+Track the meet µservice's monthly cloud cost across LiveKit SFU + coturn + Postgres + Valkey + S3 + Whisper GPU pool + ffmpeg gVisor pool + SRS RTMP egress + Meilisearch + observability sidecars + Layer-B compute, per pack region. Surface budget breach via the `oya-check-cost-budget` LEAN lane. Numbers cite OCI public pricing (2026-05-17); verify-at-deploy markers called out.
 
 ## Cost Categories
 
@@ -28,7 +28,7 @@ Track the meet µservice's monthly cloud cost across LiveKit SFU + coturn + Post
 | Compute (OKE node) | Layer-B Rust services + LiveKit SFU + coturn + SRS | `oracle.com/cloud/compute/pricing/` |
 | GPU compute (A10 / L4 node) | Whisper transcription pool | `oracle.com/cloud/compute/gpu/pricing/` |
 | Postgres (managed or self-hosted on PV) | Meeting + participant + recording manifest store | `oracle.com/database/pricing/` |
-| Redis (managed or self-hosted) | Lobby + presence + signaling session | `oracle.com/cloud/cache/pricing/` |
+| Valkey (managed or self-hosted) | Lobby + presence + signaling session | `oracle.com/cloud/cache/pricing/` |
 | Object storage (S3-compatible) | Recordings + transcripts + summaries + quarantine | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Search backend (Meilisearch on PV) | Transcript search | self-hosted (PV cost) |
 | Block storage (PV) | Postgres data + Meilisearch indexes + ffmpeg scratch + Whisper model weights | `oracle.com/cloud/storage/block-volume/pricing/` |
@@ -55,7 +55,7 @@ Per `capacity-model.md` "XS: 20 tenants, ~6k concurrent participants, 500 record
 | live-stream-egress (SRS) | 1 × VM.Standard.E4 4-core | $73 | – | $73 |
 | Postgres primary | 1 × VM.Standard.E4 8-core | $145 | $100 PV (1 TB) | $245 |
 | Postgres replicas (2) | 2 × VM.Standard.E4 8-core | $290 | $200 PV | $490 |
-| Redis cluster (3 nodes HA) | 3 × VM.Standard.E4 2-core | $108 | $10 PV | $118 |
+| Valkey cluster (3 nodes HA) | 3 × VM.Standard.E4 2-core | $108 | $10 PV | $118 |
 | Meilisearch | 1 × VM.Standard.E4 4-core | $73 | $50 PV (1 TB) | $123 |
 | Recording S3 bucket | – | – | $200 hot (8 TB) + $400 cold (200 TB archive) | $600 |
 | Transcripts + summaries S3 | – | – | $20 hot + $30 cold | $50 |

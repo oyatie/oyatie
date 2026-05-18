@@ -1,7 +1,7 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: oya-observability-grafana
-description: Grafana UI + dashboards per ADR-0139 Layer-A; RBAC managed via Terraform per policy/tenant-isolation.md FM-06
+description: Grafana UI + dashboards per ADR-0139 Layer-A; RBAC managed via OpenTofu per policy/tenant-isolation.md FM-06
 type: application
 version: 0.1.0
 appVersion: "12.0.0"  # Grafana LTS line per docs/standards/observability-slo.md

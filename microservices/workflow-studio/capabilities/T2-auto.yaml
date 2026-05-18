@@ -5,7 +5,7 @@ namespace: workflow-studio
 display_name: Studio T2 — Authoring autosave + CRDT merge + audit emission
 description: |
   T2-tier capability: workflow-studio autonomously merges CRDT ops, persists editor
-  session state to Postgres + Redis, emits audit-chain seals on save events, and
+  session state to Postgres + Valkey, emits audit-chain seals on save events, and
   triggers per-seat license-gate evaluation at editor open. These operations write
   to state and emit billable + auditable events; they do not require human approval
   per call but are heavily constrained:
@@ -20,7 +20,7 @@ description: |
 owner_team: axis-workflow + ops-security
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0028, ADR-0110, ADR-0131, ADR-0140, ADR-0164]
+related_adrs: [ADR-0022, ADR-0028, ADR-0110, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-0164]
 related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md FR-04 + FR-06 + FR-07 + FR-13 + FR-14
@@ -94,7 +94,7 @@ cost_profile:
   estimated_cost_usd_per_call: 0.0005
   cost_drivers:
     - Postgres write (per save: 2-4ms)
-    - Redis read+write (per CRDT op: 0.5ms)
+    - Valkey read+write (per CRDT op: 0.5ms)
     - Engine SDK round-trip (per save: 50-100ms)
     - Audit-chain seal (Ed25519 sign + emit: 1-2ms)
     - Cedar policy evaluation (constant-time, < 1ms)
@@ -128,7 +128,7 @@ invariants:
       Every Cedar policy evaluation that doesn't match a permit returns deny + audit
       row. Asserted by policy-fragment compilation tests.
   - tenant_isolation: |
-      Every Postgres + Redis write tenant_id-scoped (RLS + Citus partition).
+      Every Postgres + Valkey write tenant_id-scoped (RLS + Citus partition).
       Asserted by oya-governance-citus-rls-enforced lane.
   - ed25519_seal_chain: |
       Every save event's seal references its predecessor; chain reconstructable.

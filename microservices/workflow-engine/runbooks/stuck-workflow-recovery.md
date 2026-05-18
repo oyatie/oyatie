@@ -73,10 +73,10 @@ Affected run(s) will never complete without intervention. Downstream subscribers
 
 | Step | Action |
 |---|---|
-| 1 | Verify the timer record in Redis: `redis-cli HGETALL oya:workflow:sla_timer:<run_id>` |
-| 2 | If timer is missing: indicates a Redis Sentinel outage during arming. Re-arm via `cargo run -p oya-dev-cli -- workflow-engine rearm-timer --run-id <id> --reason "<rfc>"` |
+| 1 | Verify the timer record in Valkey: `redis-cli HGETALL oya:workflow:sla_timer:<run_id>` |
+| 2 | If timer is missing: indicates a Valkey Sentinel outage during arming. Re-arm via `cargo run -p oya-dev-cli -- workflow-engine rearm-timer --run-id <id> --reason "<rfc>"` |
 | 3 | If timer exists but expired without firing: indicates a worker-leader-election failure. Restart timer-firing worker pods. |
-| 4 | Postmortem: harden the timer-firing path (e.g., add Postgres-backed durable timer mirror as Redis fallback). |
+| 4 | Postmortem: harden the timer-firing path (e.g., add Postgres-backed durable timer mirror as Valkey fallback). |
 
 ## Recovery Path E — Operator override for genuine stuck-cannot-cancel cases
 

@@ -16,7 +16,7 @@ acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-object-store-backe
 
 ## Intent
 
-Author the metadata + object-store adapters: `oya-drive-file-store-adapter-postgres` (per-tenant RLS schema), `oya-drive-file-store-adapter-s3` (abstract S3-compat), `oya-drive-file-store-adapter-garage` (primary backend per ADR-DRIVE-0001), `oya-drive-file-store-adapter-seaweedfs` (archive tier). MinIO uses `-adapter-s3` directly.
+Author the metadata + object-store adapters: `oya-drive-file-store-adapter-postgres` (per-tenant RLS schema), `oya-drive-file-store-adapter-s3` (abstract S3-compat), `oya-drive-file-store-adapter-garage` (primary backend per ADR-DRIVE-0001), `oya-drive-file-store-adapter-seaweedfs` (archive tier). SeaweedFS uses `-adapter-s3` directly.
 
 ## Concrete File Targets
 

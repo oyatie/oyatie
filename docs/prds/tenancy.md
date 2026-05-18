@@ -95,7 +95,7 @@ and every oyatie customer organization.
 - Tenant data residency: `jurisdiction_code` pinned at creation; immutable.
 - GDPR Article 17 (right to erasure): deletion workflow generates erasure
   certificate; audit chain proves completeness.
-- Jurisdiction overlay per ADR-0127 + ADR-0140.
+- Jurisdiction overlay per ADR-0127 + ADR-0140 (retired per ADR-0145).
 
 ### Availability + SLO
 - 99.99% monthly (highest bar; Tenancy failure = all products fail for affected

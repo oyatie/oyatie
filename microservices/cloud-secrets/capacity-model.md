@@ -121,5 +121,5 @@ Tenants approaching limits receive quota-warning events 7d ahead; exceeding trig
 - `microservices/cloud-secrets/failure-modes.md`
 - `microservices/cloud-secrets/PRD.md`
 - `microservices/cloud-secrets/slos/*.openslo.yaml` (authored under observability gate)
-- HashiCorp Vault performance benchmarks (informing OpenBao expectations)
+- OpenBao performance benchmarks (informing OpenBao expectations)
 - OCI Cloud-HSM published throughput

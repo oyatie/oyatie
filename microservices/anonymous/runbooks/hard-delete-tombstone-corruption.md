@@ -49,7 +49,7 @@ doc_status: published
 | 5 | Categorise the corruption: (a) orphan tombstone (record was never present); (b) missing tombstone (record was hard-deleted but no tombstone); (c) propagation-incomplete (tombstone exists but read path returns record); (d) audit-chain seal mismatch | ≤ 15 min |
 | 6a (orphan tombstone) | Investigate replay: was a tombstone replayed without corresponding record? Audit-chain seal `OrphanTombstoneObserved`; do NOT remove the tombstone (defence: orphan tombstone is harmless) | – |
 | 6b (missing tombstone) | This is a privacy regression. Identify the deleted records via audit-chain `HardDeleteJobCompleted` events; verify the records are deleted from every read path; if records still exist, force re-delete + tombstone | within 1h |
-| 6c (propagation-incomplete) | Force propagation: `cargo run -p oya-dev-cli -- anonymous retention propagate --tombstone-id <id>`. Verify Postgres + Redis + Meilisearch + audit-chain all reflect the deletion within p99 ≤ 5s | within 30 min |
+| 6c (propagation-incomplete) | Force propagation: `cargo run -p oya-dev-cli -- anonymous retention propagate --tombstone-id <id>`. Verify Postgres + Valkey + Meilisearch + audit-chain all reflect the deletion within p99 ≤ 5s | within 30 min |
 | 6d (audit-chain seal mismatch) | Engage audit-chain ops; the Merkle root must be reconciled; if reconciliation fails, the audit-chain is compromised and a Sev-0 (cross-µservice) incident must be declared | within 2h |
 | 7 | Verify post-fix: `cargo run -p oya-dev-cli -- anonymous retention verify --shard <id>` returns green | ≤ 30 min |
 | 8 | Resume retention worker | ≤ 1 min |

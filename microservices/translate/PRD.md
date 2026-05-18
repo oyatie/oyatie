@@ -188,7 +188,7 @@ JUSTIFICATION:
 |---|---|---|
 | TM + termbase + project metadata | **PostgreSQL 16** (HA primary+replica per pack) | `oya-translate-tm-adapter-postgres`, `oya-translate-termbase-adapter-postgres` |
 | TM leverage search + termbase lookup | **Meilisearch 0.10.0** (per pack) | `oya-translate-tm-adapter-meilisearch` |
-| Session + bulk-job state cache | **Redis 7.2** (per pack; sentinel HA) | `oya-translate-bulk-adapter-redis` |
+| Session + bulk-job state cache | **Valkey 8.1 (Redis wire-compat)** (per pack; sentinel HA) | `oya-translate-bulk-adapter-redis` |
 | Document storage + bulk-job artifacts | **S3-compatible (OCI Object Storage)** per pack | `oya-translate-doc-adapter-s3`, `oya-translate-bulk-adapter-s3` |
 | In-house MT + QE + LangDetect inference | `foundry-runtime` (vLLM / TGI in-house endpoint) | `oya-translate-adapter-foundry-runtime` |
 | External MT vendors (Anthropic / OpenAI / Google / DeepL) | `foundry-providers` adapter substrate | `oya-translate-adapter-{anthropic, openai, google-translate, deepl}` |
@@ -201,7 +201,7 @@ JUSTIFICATION:
 
 LTS pins per ADR-0133:
 - Postgres 16 (LTS through 2028-11).
-- Redis 7.2 (LTS through 2027-Q4).
+- Valkey 8.1 (Redis wire-compat) (LTS through 2027-Q4).
 - Meilisearch 0.10.0 LTS line.
 - Pandoc 3.x (stable; tracked).
 - LibreOffice 24.x community LTS.

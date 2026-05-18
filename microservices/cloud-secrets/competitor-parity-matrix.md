@@ -85,13 +85,13 @@ Parity dimensions are derived from competitor product documentation (canonical s
 1. **D11 Cascade rotation** — only HashiCorp partial; oyatie's cascade DAG is automatic, with topological-order rotation and revocation propagation.
 2. **D17 Audit-chain Merkle + Ed25519** — none of the competitors offer cryptographic non-repudiation; oyatie inherits Bominal ADR-0028 audit-chain.
 3. **D20-D23 SDK-enforced safety contract** — competitors offer SDKs but don't enforce `Secret<T>` wrapper, cache TTL ceiling, no-log, or mechanical raw-secret prevention; oyatie enforces all four at SDK + CI layers.
-4. **D30 OSS substrate** — HashiCorp Vault's BSL re-license (2023) is the rationale for OpenBao fork; oyatie commits to Apache-2.0 OSS-only forever.
+4. **D30 OSS substrate** — OpenBao's BSL re-license (2023) is the rationale for OpenBao fork; oyatie commits to Apache-2.0 OSS-only forever.
 5. **D18 Per-pack audit residency** — each pack has its own audit-chain instance; cross-pack audit replication forbidden. Competitors typically have per-region audit but not per-pack regulatory binding.
 6. **D26 OpenBao Sentinel 4-eye break-glass** — strongest in industry (only HashiCorp and Akeyless approach this).
 
 ## Gaps to Close (oyatie behind)
 
-1. **D2/D5/D6 — Transit + PKI maturity**: HashiCorp Vault's Transit + PKI engines have ~10 years of features; oyatie inherits via OpenBao but operational maturity is still nascent. Mitigation: pin to OpenBao 2.x LTS; track feature parity quarterly.
+1. **D2/D5/D6 — Transit + PKI maturity**: OpenBao's Transit + PKI engines have ~10 years of features; oyatie inherits via OpenBao but operational maturity is still nascent. Mitigation: pin to OpenBao 2.x LTS; track feature parity quarterly.
 2. **D19 — Go + Java SDK**: scheduled-for-distinct-tracked-work to subsequent-to-M01-completion. Mitigation: schedule for M02/M03.
 3. **D7 — KMIP**: OpenBao inherits HashiCorp's partial KMIP support; not native. Mitigation: gateway pattern via separate KMIP proxy if needed.
 

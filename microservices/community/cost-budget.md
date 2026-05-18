@@ -28,7 +28,7 @@ doc_status: published
 |---|---|---|---|---|---|
 | Postgres + Citus (workers + coordinator) | $400 | $1 200 | $4 800 | $18 000 | $72 000 |
 | Elasticsearch (data + master + ingest) | $300 | $900 | $3 600 | $14 000 | $56 000 |
-| Redis (hot-feed + vote buffer) | $80 | $240 | $1 000 | $4 000 | $16 000 |
+| Valkey (hot-feed + vote buffer) | $80 | $240 | $1 000 | $4 000 | $16 000 |
 | S3 (KB attachment store, 5 TB → 500 TB) | $115 | $345 | $1 380 | $5 500 | $22 000 |
 | Worker fleet (reindex / guardrails-bridge / audit-chain-seal) | $200 | $600 | $2 400 | $9 000 | $36 000 |
 | REST / SDK gateways | $100 | $300 | $1 200 | $4 500 | $18 000 |
@@ -43,9 +43,9 @@ doc_status: published
 | Action | Compute | Notes |
 |---|---|---|
 | Post create | $0.000 03 | Postgres insert + search async + audit-chain seal |
-| Post read (feed hit) | $0.000 002 | Redis hot-feed hit |
+| Post read (feed hit) | $0.000 002 | Valkey hot-feed hit |
 | Post read (cold miss) | $0.000 02 | Postgres + warm cache fill |
-| Vote cast | $0.000 008 | Redis SET NX + async Postgres flush |
+| Vote cast | $0.000 008 | Valkey SET NX + async Postgres flush |
 | Search query | $0.000 05 | Elasticsearch fanned across shards |
 | KB article publish (5 MB attachment) | $0.005 | S3 PUT + ClamAV scan + sha256 + audit-chain seal |
 | Moderation action | $0.000 04 | Postgres + audit-chain seal + audit log |
@@ -59,7 +59,7 @@ doc_status: published
 ## Cost-Saving Levers
 
 1. **Per-tenant compaction window** — KB attachments older than 90 d move from S3 standard to S3 IA (saves ~40 % on cold storage).
-2. **Redis LFU eviction** — replace LRU with LFU; saves ~15 % Redis memory.
+2. **Valkey LFU eviction** — replace LRU with LFU; saves ~15 % Valkey memory.
 3. **Elasticsearch index-lifecycle** — hot (7 d) → warm (30 d) → cold (90 d) → frozen (indefinite).
 4. **Worker right-sizing** — quarterly capacity review; HPA per worker fleet.
 5. **Per-tenant chargeback** — XL tenants billed at usage; XS bundled in subscription.

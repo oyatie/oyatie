@@ -12,11 +12,11 @@ acceptance_lanes: [cargo-check, cargo-test]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-005: Redis cache (feed + vote-token dedupe + handle-rotation pool)
+# IP-005: Valkey cache (feed + vote-token dedupe + handle-rotation pool)
 
 ## Intent
 
-Author Redis 7.2 LTS adapters for feed-timeline (hot-feed cache), vote-engine (HyperLogLog dedupe + blinded vote-token dedupe), and pseudonymous-identity (per-thread handle-rotation pool). Cluster mode required per PRD §"Horizontal Scalability".
+Author Valkey 8.1 (Redis wire-compat) adapters for feed-timeline (hot-feed cache), vote-engine (HyperLogLog dedupe + blinded vote-token dedupe), and pseudonymous-identity (per-thread handle-rotation pool). Cluster mode required per PRD §"Horizontal Scalability".
 
 ## ChangeSet
 
@@ -33,5 +33,5 @@ Author Redis 7.2 LTS adapters for feed-timeline (hot-feed cache), vote-engine (H
 ## Acceptance
 
 - `cargo check` passes
-- Cache key inspection: no Redis key contains `user_id` (LEAN lane)
+- Cache key inspection: no Valkey key contains `user_id` (LEAN lane)
 - Tier-aware TTL test passes

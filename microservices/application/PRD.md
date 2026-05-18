@@ -305,7 +305,7 @@ Error budget: **0.05 % monthly**. SLO burn-rate alarm: **3×**.
 ## Horizontal Scalability
 
 **State strategy**: `mixed` — Application Shell is stateless at the HTTP
-edge (route resolution + bundle serve); sessions live in Valkey / Redis
+edge (route resolution + bundle serve); sessions live in Valkey / Valkey
 (eviction-friendly); admin / audit state lives in Postgres + Citus
 (tenant-partitioned).
 
@@ -326,7 +326,7 @@ edge (route resolution + bundle serve); sessions live in Valkey / Redis
 
 Scale-out policy:
 - Kubernetes HPA on each REST layer (CPU 70%); cold-start budget ≤500 ms.
-- Valkey/Redis Sentinel/Cluster for session store; multi-AZ.
+- Valkey/Valkey Sentinel/Cluster for session store; multi-AZ.
 - Postgres + Citus sharded on `tenant_id`; RLS row-level scope.
 - CDN: pack-pinned primary (OCI CDN) + global overlay (Cloudflare) for
   public-class assets only.

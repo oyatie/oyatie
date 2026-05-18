@@ -25,7 +25,7 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion (observability)
     reason: tenancy emits OpenSLOs and depends on the gate; observability must precede.
 owner_team: axis-tenancy
-related_adrs: [ADR-0018, ADR-0011, ADR-0019, ADR-0009, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0018, ADR-0011, ADR-0019, ADR-0009, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published

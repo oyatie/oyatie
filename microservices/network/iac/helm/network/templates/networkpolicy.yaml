@@ -46,7 +46,7 @@ spec:
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: network-postgres}}
       ports: [{protocol: TCP, port: 5432}]
-    # Redis (cache + streams)
+    # Valkey (cache + streams)
     - to:
         - podSelector: {matchLabels: {app.kubernetes.io/name: network-redis}}
       ports: [{protocol: TCP, port: 6379}]
@@ -67,18 +67,34 @@ spec:
     - to:
         - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: tenancy}}
       ports: [{protocol: TCP, port: 50051}]
-    # Cross-cutting carriers per ADR-0140 (drive / mail / messenger / calendar
-    # / recordings). network's PRD declares carry concerns for messenger (InMail
-    # bridge), calendar (events bridge), and mail (newsletter-of-record send).
-    # The canonical-base helper emits all five; the unused three are harmless
+    # Cross-µservice carriers (drive / mail / messenger / calendar / recordings).
+    # network's PRD declares carry concerns for messenger (InMail bridge),
+    # calendar (events bridge), and mail (newsletter-of-record send). The
+    # canonical-base helper emits all five; the unused three are harmless
     # under default-deny posture and align with the ADR-0064 canonical-base
     # pattern.
+    #
+    # Under ADR-0145, these direct egresses are no longer a "carrier exemption";
+    # they are simply the default direct-sibling-µservice path that ADR-0145
+    # permits. The prior ADR-0140 (retired per ADR-0145) carrier-exemption framing is retired per
+    # ADR-0145 (kept for back-reference only).
     {{- include "oya.networkPolicy.allowEgressToCarriers" $ | nindent 4 }}
     # Jobs-handoff to Tier-G ATS µservice flows through workflow-engine event-bus
-    # per Workflow+Ontology adapter rule (feedback_workflow_objectgraph_adapter_layer).
+    # per the workflow-vs-direct-gRPC rubric (durable execution + saga semantics +
+    # audit-chain causal ordering, per docs/standards/workflow-vs-direct-grpc-rubric.md).
     # network emits oya.network.jobposting.v1.published → workflow-engine routes
-    # → ATS consumes; ATS ack returns via workflow-engine. ADR-0140 declares ATS
-    # is an app-tier µservice, NOT a cross-cutting carrier — direct gRPC forbidden.
+    # → ATS consumes; ATS ack returns via workflow-engine.
+    #
+    # ATS µservice does NOT exist yet as a shipping µservice; it is
+    # tracked-for-tier-g-onboarding per ADR-0132 forward policy and activates
+    # when the first ATS-tier tenant signals onboarding. Until then, the
+    # workflow-engine egress carries jobposting events into a bounded queue
+    # that ATS will consume once deployed.
+    #
+    # ADR-0145 supersedes the prior ADR-0140 carrier-exemption framing: direct
+    # sibling-µservice gRPC is now permitted in general. This BC retains the
+    # workflow-engine egress for the rubric-driven reasons above, NOT because
+    # of a universal-mediator rule.
     - to:
         - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: workflow-engine}}
       ports: [{protocol: TCP, port: 50051}]

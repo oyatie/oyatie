@@ -40,7 +40,7 @@ handoffs, supply-chain orchestration, and delivery logistics.
    route through Workflow. Products emit typed events; Workflow routes them via
    state machines + DAGs; consumers subscribe. Direct product-to-product calls
    are prohibited (LEAN-A2). This is the load-bearing architectural rule
-   (per `feedback_workflow_objectgraph_adapter_layer.md`).
+   (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`).
 
 2. **End-user product** (B2B SaaS): tenant teams author, test, deploy, and
    monitor their own workflows via the visual Studio editor. No engineering

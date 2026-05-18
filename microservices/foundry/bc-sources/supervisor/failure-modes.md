@@ -28,11 +28,11 @@ Enumerate the failure scenarios on-call must handle; the detection signal; immed
 
 | Field | Value |
 |---|---|
-| Trigger | Redis cluster slow; CRD watch fan-out delayed; supervisor REST queue backlog |
+| Trigger | Valkey cluster slow; CRD watch fan-out delayed; supervisor REST queue backlog |
 | Detection | `oya_supervisor_kill_switch_engage_latency_p99 > 1s` for ≥ 2 min |
 | Tenant impact | Safety-critical SLO breach; runaway capabilities may continue acting briefly |
 | Severity | **Sev-1 (always)** — supervisor-down on safety surface |
-| Immediate mitigation | Verify Redis cluster health; engage degradation mode (assume-engaged fail-closed); engage ops-security on-call |
+| Immediate mitigation | Verify Valkey cluster health; engage degradation mode (assume-engaged fail-closed); engage ops-security on-call |
 | RTO | ≤ 5 min for fail-closed mode; ≤ 30 min for root-cause fix |
 | Recovery runbook | `runbooks/kill-switch-engage.md` |
 | Postmortem owner | axis-foundry-control-plane + ops-security |
@@ -63,17 +63,17 @@ Enumerate the failure scenarios on-call must handle; the detection signal; immed
 | Recovery runbook | `runbooks/fleet-state-recovery.md` |
 | Postmortem owner | axis-foundry-control-plane |
 
-## FM-04: Redis failover (one shard fails over to replica)
+## FM-04: Valkey failover (one shard fails over to replica)
 
 | Field | Value |
 |---|---|
-| Trigger | Redis shard pod loss; OOMkilled; network partition |
+| Trigger | Valkey shard pod loss; OOMkilled; network partition |
 | Detection | `redis_cluster_replica_promoted_total > 0`; `oya_supervisor_kill_switch_engage_latency_p99` may briefly spike |
 | Tenant impact | Brief latency spike (≤ 2 s); kill-switch SLO normally preserved |
 | Severity | Sev-2 if latency stays elevated, else Sev-3 |
-| Immediate mitigation | Verify Redis cluster mode is functioning; rescale shards if persistent |
+| Immediate mitigation | Verify Valkey cluster mode is functioning; rescale shards if persistent |
 | RTO | ≤ 5 min replica promotion (automatic) |
-| Recovery runbook | `runbooks/kubernetes-operator-restart.md` (covers Redis chaos) |
+| Recovery runbook | `runbooks/kubernetes-operator-restart.md` (covers Valkey chaos) |
 | Postmortem owner | ops-sre-reliability |
 
 ## FM-05: Postgres master loss
@@ -119,7 +119,7 @@ Enumerate the failure scenarios on-call must handle; the detection signal; immed
 
 | Field | Value |
 |---|---|
-| Trigger | Deployment storm; Redis Streams consumer lag; foundry-evidence ingest slow |
+| Trigger | Deployment storm; Valkey Streams (Redis wire-compat) consumer lag; foundry-evidence ingest slow |
 | Detection | `oya_supervisor_supervision_event_bus_lag_p99 > 500 ms` |
 | Tenant impact | Audit-chain seals delayed; observability dashboards lagging |
 | Severity | Sev-2 |
@@ -226,7 +226,7 @@ Enumerate the failure scenarios on-call must handle; the detection signal; immed
 | Kill-switch latency spike | 5 min fail-closed; 30 min fix | 0 (state in CRD source-of-truth) |
 | Deployment stuck | 15 min | 0 |
 | Fleet-state corruption | 30 min reconcile | 0 (CRDs authoritative) |
-| Redis failover | 5 min (auto) | 0 (AOF + cluster replication) |
+| Valkey failover | 5 min (auto) | 0 (AOF + cluster replication) |
 | Postgres master loss | 30 s (auto Patroni) | 0 (synchronous replication) |
 | Operator crashloop | 5 min HA failover | 0 |
 | Autonomy denial flood | 15 min rollback | 0 |
@@ -254,5 +254,5 @@ Enumerate the failure scenarios on-call must handle; the detection signal; immed
 - `microservices/foundry-supervisor/incident-response.md`.
 - `microservices/foundry-supervisor/runbooks/`.
 - `microservices/foundry-supervisor/capacity-model.md`.
-- PostgreSQL HA, Redis Cluster, kube-rs, Cedar v4.
+- PostgreSQL HA, Valkey Cluster, kube-rs, Cedar v4.
 - Google SRE Workbook ch. 12.

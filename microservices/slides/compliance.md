@@ -60,7 +60,7 @@ Cross-walk: each standard / regulation / certification → control → slides ar
 | PS.1 Protect all forms of code from unauthorized access + tampering | Branch protection + signed commits | `.github/branch-protection.yaml` |
 | PS.2 Provide a mechanism for verifying software release integrity | SBOM + cosign signatures + SRI | release pipeline |
 | PS.3 Archive + protect each software release | Per-pack release pointers + retention | `release/slides/{staging,production}` pattern |
-| PW.4 Reuse existing well-secured software | LTS-pinned Loro / Leptos / Pandoc / WeasyPrint / ffmpeg / Chromium-headless / LiveKit / Postgres / Redis | `Cargo.lock` + Helm `values.yaml` LTS pins |
+| PW.4 Reuse existing well-secured software | LTS-pinned Loro / Leptos / Pandoc / WeasyPrint / ffmpeg / Chromium-headless / LiveKit / Postgres / Valkey | `Cargo.lock` + Helm `values.yaml` LTS pins |
 | PW.5 Create source code by adhering to secure coding practices | Clippy + ASVS + per-lint gates | CI |
 | PW.6 Configure compilation + build processes | cargo-leptos + WASM SRI | IP-014 |
 | PW.7 Review + analyze human-readable code | Multi-spectrum review per axis-skills | `docs/standards/code-review.md` |

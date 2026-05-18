@@ -38,7 +38,7 @@ grafana:
     enabled: true
   dashboardsConfigMaps:
     - configMapName: oya-observability-dashboards  # bundles microservices/observability/dashboards/*.json
-  # SSO + RBAC declared via Terraform; UI editing forbidden
+  # SSO + RBAC declared via OpenTofu; UI editing forbidden
   grafana.ini:
     security:
       disable_initial_admin_creation: false

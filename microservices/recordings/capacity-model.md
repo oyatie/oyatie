@@ -61,7 +61,7 @@ Tiering per ADR-RECORDINGS-0005: hot → cold after 90 days of inactivity per
 pack default (pack-us-financial: hot for SEC 17a-4 36mo; pack-us-healthcare:
 hot for HIPAA 6y).
 
-### Redis 7.2 (share-link + playback session)
+### Valkey 8.1 (Redis wire-compat) (share-link + playback session)
 
 | Metric | Baseline | Peak |
 |---|---|---|

@@ -18,7 +18,7 @@ depends_on: [IP-008]
 
 Implement sub-second propagation to in-flight foundry-runtime workers via dual channels:
 1. **Primary**: Kubernetes CRD watch (`KillSwitch` CR) — foundry-runtime workers subscribe to the watch.
-2. **Fallback**: Redis pub-sub on `kill-switch-events:<tenant>` channel — covers CRD-watch delays.
+2. **Fallback**: Valkey pub-sub on `kill-switch-events:<tenant>` channel — covers CRD-watch delays.
 
 Worker + adapter-k8s-operator crates for kill-switch-circuit-breaker BC.
 
@@ -63,7 +63,7 @@ cargo run -p oya-dev-cli -- gate validate kill-switch-latency-p99 --microservice
 |---|---|
 | `kill_switch_latency_at_scale` | end-to-end p99 ≤ 1 s for 100k workers (AC-02) |
 | `crd_watch_propagation` | CRD update reaches workers within p99 ≤ 500 ms |
-| `redis_pubsub_fallback` | Redis pub-sub reaches workers within p99 ≤ 200 ms |
+| `redis_pubsub_fallback` | Valkey pub-sub reaches workers within p99 ≤ 200 ms |
 | `dual_channel_redundancy` | One channel down still keeps p99 ≤ 1 s |
 | `fail_closed_on_both_unreachable` | If both channels unreachable, workers assume engaged |
 

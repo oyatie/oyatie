@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-foundry + ops-security
 deciders: council-architecture, ops-security, axis-foundry, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP LLM Top 10 (2024) + NIST SP 800-154 + NIST AI RMF (AI 100-1)
-related_adrs: [ADR-0024, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0024, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Layer-A or Layer-B architecture change + on every new eval-set cohort
 enforced_frameworks:
@@ -46,7 +46,7 @@ All components introduced by ADR-0024 (eval harness + replay) and ADR-0026 (in-h
 |---|---|
 | Postgres (eval-set metadata; via CloudNativePG) | `oya-foundry-eval-eval-set-registry-*` |
 | ClickHouse (parity analytics, week-partitioned MergeTree) | `oya-foundry-eval-eval-runner-*` (11 crates) |
-| MinIO / S3-compatible (golden-outputs + replay traces, per-subject-keyed envelope) | `oya-foundry-eval-parity-analyzer-*` |
+| SeaweedFS / S3-compatible (golden-outputs + replay traces, per-subject-keyed envelope) | `oya-foundry-eval-parity-analyzer-*` |
 | KMS (per-tenant KEK + per-subject DEK wrap) | `oya-foundry-eval-replay-engine-*` |
 | Sigstore Cosign + Rekor (eval-set signature verification) | `oya-foundry-eval-golden-output-store-*` |
 | Kubernetes Job controller + GPU node pool (case dispatch; gVisor / Kata sandbox) | Eval-set manifests at `microservices/foundry-eval/eval-sets/<capability>/v<n>.evalset.yaml` |

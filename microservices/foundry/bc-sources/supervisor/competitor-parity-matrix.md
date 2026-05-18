@@ -81,7 +81,7 @@ Quantitative + qualitative parity comparison vs the industry-leading agentic-con
 
 | Capability | oyatie | AWS Bedrock | Anthropic | OpenAI | Vertex AI | Databricks | HF | Azure |
 |---|---|---|---|---|---|---|---|---|
-| Self-hosted (no vendor lock) | ✅ (Postgres + Redis + kube-rs) | ❌ (SaaS only) | ❌ (SaaS only) | ❌ (SaaS only) | ❌ (SaaS only) | ❌ (SaaS only) | partial | ❌ |
+| Self-hosted (no vendor lock) | ✅ (Postgres + Valkey + kube-rs) | ❌ (SaaS only) | ❌ (SaaS only) | ❌ (SaaS only) | ❌ (SaaS only) | ❌ (SaaS only) | partial | ❌ |
 | Multi-region data residency | ✅ 11 packs | ✅ | ✅ | partial | ✅ | ✅ | partial | ✅ |
 | Kubernetes Operator pattern | ✅ kube-rs | ❌ (proprietary) | ❌ (proprietary) | ❌ (proprietary) | ❌ (proprietary) | partial (Spark) | partial | partial |
 | Cedar policy integration | ✅ | partial (IAM) | ❌ | ❌ | partial (IAM) | partial (UC) | ❌ | partial (RBAC) |
@@ -92,7 +92,7 @@ Quantitative + qualitative parity comparison vs the industry-leading agentic-con
 |---|---|---|---|---|---|---|---|---|
 | On-call paging | Grafana OnCall (OSS) | CloudWatch + 3rd-party | unknown | unknown | Cloud Monitoring + 3rd-party | Databricks Alerts | n/a | Action Groups |
 | Multi-language SDK | M01: Rust; M01+1: TS; M02: Py/Go; M03: JVM | extensive | extensive | extensive | extensive | extensive | extensive | extensive |
-| Tenant isolation | ✅ Postgres RLS + Redis ACL + Cedar | per-account | per-org | per-org | per-project | per-workspace | per-account | per-tenant |
+| Tenant isolation | ✅ Postgres RLS + Valkey ACL + Cedar | per-account | per-org | per-org | per-project | per-workspace | per-account | per-tenant |
 | Cost budget per capability + per-tenant | ✅ | ✅ | per-org | per-org | per-project | per-workspace | per-endpoint | per-resource |
 
 ## Quantitative Performance Parity

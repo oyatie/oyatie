@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-cloud-iac
 deciders: council-privacy, ops-security, axis-cloud-iac, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/cloud-iac/threat-model.md
@@ -47,7 +47,7 @@ GDPR Art. 35(1) requires a DPIA where processing is likely to result in a high r
 | Trigger | Engaged? | Reasoning |
 |---|---|---|
 | Art. 35(3)(a): Systematic + extensive evaluation including profiling | NO | cloud-iac doesn't evaluate data subjects; it evaluates IaC manifests and cluster state. |
-| Art. 35(3)(b): Large-scale processing of special-category data | **CONDITIONAL** | OpenTofu/Terraform state files may inadvertently carry hashed tenant identifiers; pack-us-healthcare deployments may carry PHI in resource names/labels if redactor fails. Conditional ⇒ pack-activated. |
+| Art. 35(3)(b): Large-scale processing of special-category data | **CONDITIONAL** | OpenTofu/OpenTofu state files may inadvertently carry hashed tenant identifiers; pack-us-healthcare deployments may carry PHI in resource names/labels if redactor fails. Conditional ⇒ pack-activated. |
 | Art. 35(3)(c): Systematic monitoring of publicly accessible area | NO | cloud-iac doesn't monitor any public area. |
 
 In addition, when pack-us-healthcare or pack-kr (PIPA Art. 23 sensitive) is activated, the conditional trigger applies. Therefore: a DPIA is mandatory pre-deployment for pack-us-healthcare and pack-kr (and prudent for all packs).

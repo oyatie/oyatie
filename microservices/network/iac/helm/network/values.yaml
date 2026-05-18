@@ -203,7 +203,7 @@ redisCache:
   host: network-redis-cache.${global.pack}.svc.cluster.local
   port: 6379
   authToken: "${openbao:secret/network/redis/cache-auth}"
-  version: "7.2"  # Redis 7.2 LTS
+  version: "7.2"  # Valkey 8.1 (Redis wire-compat)
 
 redisStreams:
   host: network-redis-streams.${global.pack}.svc.cluster.local

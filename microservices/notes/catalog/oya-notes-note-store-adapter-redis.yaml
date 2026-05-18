@@ -19,6 +19,6 @@ backend: redis
 implements:
   - NoteHotCache (sync-session + recently-opened metadata)
 storage_invariants:
-  - per-pack Redis cluster
+  - per-pack Valkey cluster
   - TTL ≤ 1h on hot-cache entries
   - Personal-tier ciphertext blob NEVER cached (server has no plaintext; ciphertext re-fetched from S3 on demand)

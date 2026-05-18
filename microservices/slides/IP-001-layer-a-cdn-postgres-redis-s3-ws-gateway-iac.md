@@ -14,11 +14,11 @@ depends_on: []
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-001: Layer-A IaC — CDN, WAF, Postgres, Redis, S3, WS gateway, gVisor export pool
+# IP-001: Layer-A IaC — CDN, WAF, Postgres, Valkey, S3, WS gateway, gVisor export pool
 
 ## Intent
 
-Author the Layer-A infrastructure for slides: CDN edge cache + WAF + Postgres (Citus) deck metadata + Redis (per-cell sentinel) for CRDT cache + S3 for deck snapshots/assets + WebSocket gateway service + gVisor export-worker pool. Per ADR-0131 + multi-region.md per-pack topology.
+Author the Layer-A infrastructure for slides: CDN edge cache + WAF + Postgres (Citus) deck metadata + Valkey (per-cell sentinel) for CRDT cache + S3 for deck snapshots/assets + WebSocket gateway service + gVisor export-worker pool. Per ADR-0131 + multi-region.md per-pack topology.
 
 ## ChangeSet boundary
 

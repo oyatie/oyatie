@@ -5,7 +5,7 @@ microservice: tasks
 status: Accepted
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-tasks + council-privacy
-related_adrs: [ADR-0117, ADR-0140]
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145)]
 doc_status: published
 ---
 
@@ -19,7 +19,7 @@ Define the per-pack regional deployment topology, residency enforcement, cross-r
 
 ### Pack-to-region mapping (canonical)
 
-| Pack | Primary region | DR region (same jurisdiction) | Postgres cluster | Redis cluster | Meilisearch cluster |
+| Pack | Primary region | DR region (same jurisdiction) | Postgres cluster | Valkey cluster | Meilisearch cluster |
 |---|---|---|---|---|---|
 | pack-kr | OCI ap-seoul-1 | OCI ap-chuncheon-1 | KR-primary | KR-primary | KR-primary |
 | pack-eu | OCI eu-frankfurt-1 | OCI eu-amsterdam-1 | EU-primary | EU-primary | EU-primary |
@@ -37,7 +37,7 @@ Define the per-pack regional deployment topology, residency enforcement, cross-r
 
 Per `policy/data-residency.md`:
 - Each tenant pinned to exactly one pack at onboarding.
-- Postgres + Redis + Meilisearch clusters pack-resident; no cross-pack replication by default.
+- Postgres + Valkey + Meilisearch clusters pack-resident; no cross-pack replication by default.
 - Cross-pack data flow only via SCC-gated cross-µservice handoffs (e.g., calendar µservice's cross-pack availability projection for due-date bridge); tasks itself does NOT directly replicate cross-pack.
 
 ## Cross-region replication policy

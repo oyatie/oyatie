@@ -8,7 +8,7 @@ owner: axis-docs + ops-security
 deciders: council-architecture, axis-docs, ops-security, council-privacy
 supersedes: []
 superseded_by: []
-related: [ADR-0140, ADR-0131, ADR-DOCS-0002]
+related: [ADR-0140 (retired per ADR-0145), ADR-0131, ADR-DOCS-0002]
 related_artifacts:
   - microservices/docs/PRD.md (FR-07, FR-08, AC-04)
   - microservices/docs/policy/tenant-scope.cedar (per-block ACL section)
@@ -77,7 +77,7 @@ pub struct BlockAcl {
 
 ### Performance optimisation
 
-- Per-(doc_id, principal_id) ACL projection cache in Redis with TTL 5min + jitter.
+- Per-(doc_id, principal_id) ACL projection cache in Valkey with TTL 5min + jitter.
 - Cache invalidated on grant change via Workflow event subscription.
 - Single-flight per (doc_id, principal_id) prevents cache-miss storm.
 - p99 budget ≤ 50ms even at cold-cache; `oya-docs-per-block-acl-check-p99` SLO.

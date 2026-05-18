@@ -72,7 +72,7 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Redis cluster health",
+      "title": "Valkey cluster health",
       "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
       "targets": [
         {"expr": "min(redis_cluster_state{pack=\"$pack\"})", "refId": "A"}
@@ -88,7 +88,7 @@
     {
       "id": 5,
       "type": "timeseries",
-      "title": "Session hot read latency (Redis) p50/p99",
+      "title": "Session hot read latency (Valkey) p50/p99",
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "targets": [
         {"expr": "histogram_quantile(0.5, sum by (le) (rate(oya_foundry_runtime_session_hot_read_latency_seconds_bucket{pack=\"$pack\"}[1m])))", "legendFormat": "p50", "refId": "A"},

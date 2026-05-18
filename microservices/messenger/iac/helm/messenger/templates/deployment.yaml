@@ -28,6 +28,8 @@ spec:
         prometheus.io/port: "9091"
     spec:
       serviceAccountName: messenger-{{ . | kebabcase }}
+      {{- include "oya.gracefulShutdown" $ | nindent 6 }}
+      {{- include "oya.priorityClass.important" $ | nindent 6 }}
       securityContext:
         {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
@@ -44,10 +46,14 @@ spec:
               containerPort: 8443
           resources:
             {{- include "oya.resourceRequests" (dict "tier" $c.resourceTier) | nindent 12 }}
+          startupProbe:
+            {{- include "oya.probes.startupProbe" $ | nindent 12 }}
           livenessProbe:
             {{- include "oya.probes.httpHealthLiveness8080" $ | nindent 12 }}
           readinessProbe:
             {{- include "oya.probes.httpHealthReadiness8080" $ | nindent 12 }}
+          lifecycle:
+            {{- include "oya.preStopHook.gracefulDelay" $ | nindent 12 }}
           envFrom:
             - secretRef:
                 name: messenger-openbao-injected

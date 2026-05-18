@@ -150,7 +150,7 @@
     },
     {
       "id": "IP-005-redis-cache",
-      "title": "IP-005: Redis cache (feed + vote-token dedupe + handle-rotation pool)",
+      "title": "IP-005: Valkey cache (feed + vote-token dedupe + handle-rotation pool)",
       "acceptance_status": "ga",
       "file": "microservices/anonymous/IP-005-redis-cache.md"
     },
@@ -198,7 +198,7 @@
     },
     {
       "id": "IP-013-hard-delete-propagation-chain",
-      "title": "IP-013: Hard-delete propagation chain (Postgres → Redis → Meilisearch → audit-chain tombstone)",
+      "title": "IP-013: Hard-delete propagation chain (Postgres → Valkey → Meilisearch → audit-chain tombstone)",
       "acceptance_status": "ga",
       "file": "microservices/anonymous/IP-013-hard-delete-propagation-chain.md"
     },
@@ -305,5 +305,12 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

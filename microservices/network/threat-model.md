@@ -52,7 +52,7 @@ All components introduced by parallel ADR-0135 (Connect dissolution → network 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 LTS (profile + post + connection-graph + endorsement + recommendation + page + group + event + job store) | `oya-network-professional-profile-*` (9 crates) |
-| Redis 7.2 (feed cache + reaction counters + trending + notification fanout + InMail rate budget) | `oya-network-professional-graph-*` (8 crates) |
+| Valkey 8.1 (Redis wire-compat) (feed cache + reaction counters + trending + notification fanout + InMail rate budget) | `oya-network-professional-graph-*` (8 crates) |
 | Meilisearch 0.10.0 (people + content + skills + companies + jobs + events search; faceted) | `oya-network-connection-request-*` (8 crates) |
 | S3-compatible (media blobs + document attachments + previews + quarantine) | `oya-network-post-composition-*` (13 crates) |
 | ImageMagick 7.1 (image transcode) | `oya-network-feed-timeline-*` (10 crates) |
@@ -120,7 +120,7 @@ All components introduced by parallel ADR-0135 (Connect dissolution → network 
 │                                                                           │
 │  TB3: BC services → backing stores                                        │
 │                                                                           │
-│  ┌─ Postgres (per-tenant RLS) ─┐  ┌─ Redis cluster ─┐                     │
+│  ┌─ Postgres (per-tenant RLS) ─┐  ┌─ Valkey cluster ─┐                     │
 │  │ profiles, posts, graph,     │  │ feed-cache,     │                     │
 │  │ endorsements, jobs, etc.    │  │ react, InMail RB │                     │
 │  └─────────────────────────────┘  └──────────────────┘                    │
@@ -169,7 +169,7 @@ Fourteen trust boundaries — extension of the social pattern with Professional-
 | Resume sections (experience, education, skills, certifications) | `EMPLOYMENT_RECORD` (network-specific class) | per-pack labor floor | Postgres |
 | Posts (article, status, document, poll, carousel) | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_IDENTIFYING` | per-pack | Postgres (tenant-DEK encrypted when configured) |
 | Comments / replies | inherits parent | inherits | Postgres |
-| Reactions | `BEHAVIORAL_TENANT_PRODUCT` | 365d hot | Redis (persisted to Postgres asynchronously) |
+| Reactions | `BEHAVIORAL_TENANT_PRODUCT` | 365d hot | Valkey (persisted to Postgres asynchronously) |
 | Connection graph (directed-bidirectional-on-acceptance edges + block / restrict / disconnect lists) | `RELATIONSHIP_GRAPH` + `EMPLOYMENT_RECORD` + `PII_QUASI_IDENTIFIER` | append-only with tombstone-on-disconnect | Postgres (adjacency-list) |
 | Connection requests | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` | 90d retained then tombstone | Postgres |
 | InMail bodies (Professional-tier-only) | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` | per-pack | (lives at messenger µservice; network holds only routing metadata) |
@@ -185,8 +185,8 @@ Fourteen trust boundaries — extension of the social pattern with Professional-
 | Bias-audit records (per release + per invocation) | `AUDIT` + `EMPLOYMENT_RECORD` | append-only; immutable | foundry-runtime evidence pipeline + audit-chain |
 | Media (image / video blobs) + document attachments | `BEHAVIORAL_TENANT_PRODUCT` + sometimes `PII_IDENTIFYING` | per-pack | S3 (KMS-encrypted; per-tenant prefix) |
 | Media metadata (digest, preview, transcode variant, scan-verdict) | `INTERNAL_ONLY` + `AUDIT` | append-only | Postgres |
-| Notification records | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` | 90d hot | Postgres + Redis |
-| Trending-topic windows (Professional context only) | derived; `INTERNAL_ONLY` | rebuilt continuously | Redis |
+| Notification records | `BEHAVIORAL_TENANT_PRODUCT` + `PII_IDENTIFYING` | 90d hot | Postgres + Valkey |
+| Trending-topic windows (Professional context only) | derived; `INTERNAL_ONLY` | rebuilt continuously | Valkey |
 | Search index | derived from profiles + posts + skills + jobs + companies + events | rebuilt from source | Meilisearch (per-tenant index) |
 | Moderation verdicts + appeal trail | `AUDIT` + `INTERNAL_ONLY` + `PII_IDENTIFYING` | append-only; immutable | Postgres + audit-chain seal |
 | Salary-insights aggregate snapshots | `INTERNAL_ONLY` + `EMPLOYMENT_RECORD` | rebuilt weekly | Postgres |
@@ -279,7 +279,7 @@ Fourteen trust boundaries — extension of the social pattern with Professional-
 **T-T-04 — Reaction-count tampering (vote-stuffing)**
 - Asset: Reaction tally
 - Likelihood M / Impact L / Risk **L**
-- Mitigations: per-user-per-post idempotency (one reaction per user per post per emoji); conflict-free counter; periodic reconciliation Postgres ↔ Redis.
+- Mitigations: per-user-per-post idempotency (one reaction per user per post per emoji); conflict-free counter; periodic reconciliation Postgres ↔ Valkey.
 
 **T-T-05 — Search index poisoning**
 - Asset: Meilisearch index
@@ -400,7 +400,7 @@ Fourteen trust boundaries — extension of the social pattern with Professional-
 **T-D-01 — Feed-render storm: viral Professional article causes mass concurrent feed-pulls**
 - Asset: Feed cache
 - Likelihood M / Impact H / Risk **H**
-- Mitigations: Redis hot-feed cache; fanout-on-write for hot accounts (precomputed feed); per-tenant feed-render rate limit; HPA on REST pods; runbook `runbooks/feed-cache-rebuild.md`.
+- Mitigations: Valkey hot-feed cache; fanout-on-write for hot accounts (precomputed feed); per-tenant feed-render rate limit; HPA on REST pods; runbook `runbooks/feed-cache-rebuild.md`.
 
 **T-D-02 — Endorsement storm: one user receives thousands of sybil endorsements**
 - Asset: Endorsement worker queue + endorsement-chain throughput

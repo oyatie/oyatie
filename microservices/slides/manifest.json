@@ -139,7 +139,7 @@
   "ips": [
     {
       "id": "IP-001-layer-a-cdn-postgres-redis-s3-ws-gateway-iac",
-      "title": "IP-001: Layer-A IaC — CDN, WAF, Postgres, Redis, S3, WS gateway, gVisor export pool",
+      "title": "IP-001: Layer-A IaC — CDN, WAF, Postgres, Valkey, S3, WS gateway, gVisor export pool",
       "acceptance_status": "ga",
       "file": "microservices/slides/IP-001-layer-a-cdn-postgres-redis-s3-ws-gateway-iac.md"
     },
@@ -311,12 +311,6 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
-    },
-    {
-      "id": "ADR-0140",
-      "title": "Cross Cutting Carriers Adapter Exemption",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -336,5 +330,12 @@
   "secrets_substrate": {
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

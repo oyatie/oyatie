@@ -149,7 +149,7 @@ cargo run -p oya-dev-cli -- gate validate cedar-preview-required --microservice 
 
 ## References
 
-- ADR-0140 Cedar policy enforcement.
+- ADR-0140 (retired per ADR-0145) Cedar policy enforcement.
 - threat-model.md T-T-05, T-D-07, T-I-01, T-E-03.
 - Cedar v4 docs — `cedarpolicy.com`.
 - AWS Cedar paper — "Cedar: A new language for expressive, fast, safe, and analyzable authorization".

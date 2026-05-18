@@ -65,7 +65,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-002-router-domain.md`](IP-002-router-domain.md) | `oya-foundry-providers-router-domain`: routing algebra (capability-fit × cost × residency × health weighting); pure | pending | axis-foundry | IP-001 |
 | [`IP-003-router-usecase.md`](IP-003-router-usecase.md) | `oya-foundry-providers-router-usecase`: orchestration that composes router + invoker + credential-resolver + health-monitor | pending | axis-foundry | IP-002 |
 | [`IP-004-router-api.md`](IP-004-router-api.md) | `oya-foundry-providers-router-api`: protocol-neutral typed contracts (`ProviderInvokeRequest`, `RouterDecision`, etc.) | pending | axis-foundry | IP-001 |
-| [`IP-005-router-adapter.md`](IP-005-router-adapter.md) | `oya-foundry-providers-router-adapter`: Postgres + Redis repository impls (provider-config + token-bucket) | pending | axis-foundry | IP-001 |
+| [`IP-005-router-adapter.md`](IP-005-router-adapter.md) | `oya-foundry-providers-router-adapter`: Postgres + Valkey repository impls (provider-config + token-bucket) | pending | axis-foundry | IP-001 |
 | [`IP-006-adapter-anthropic-api.md`](IP-006-adapter-anthropic-api.md) | `oya-foundry-providers-adapter-anthropic-api`: Claude API HTTP transport; BLAKE3 + Ed25519 envelope | pending | axis-foundry | IP-001 |
 | [`IP-007-adapter-anthropic-subscription.md`](IP-007-adapter-anthropic-subscription.md) | `oya-foundry-providers-adapter-anthropic-subscription`: Claude Pro/Max subscription transport | pending | axis-foundry | IP-001 |
 | [`IP-008-adapter-openai-api.md`](IP-008-adapter-openai-api.md) | `oya-foundry-providers-adapter-openai-api`: OpenAI API HTTP transport | pending | axis-foundry | IP-001 |

@@ -106,7 +106,7 @@
     {
       "id": 6,
       "type": "stat",
-      "title": "State divergence (CRD vs Redis cache)",
+      "title": "State divergence (CRD vs Valkey cache)",
       "gridPos": {"x": 0, "y": 26, "w": 12, "h": 4},
       "fieldConfig": {
         "defaults": {

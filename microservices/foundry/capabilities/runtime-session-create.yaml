@@ -77,7 +77,7 @@ cost_profile:
   type: per-invocation
   estimated_cost_usd_per_call: 0.0001
   cost_drivers:
-    - Redis SET on tenant-prefixed key
+    - Valkey SET on tenant-prefixed key
     - Postgres INSERT on session_mutation_log
 
 cedar_policy_fragments:

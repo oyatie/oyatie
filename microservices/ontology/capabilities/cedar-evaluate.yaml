@@ -65,6 +65,6 @@ spec:
       - dashboards/cedar-policy-coverage.json
 
   source_evidence:
-    - "ADR-0140 (Cedar policy enforcement)"
+    - "ADR-0140 (retired per ADR-0145) (Cedar policy enforcement)"
     - "AWS Cedar v4 — cedarpolicy.com"
     - "Bominal ADR-0107 (autonomy_tier_ceiling)"

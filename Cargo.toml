@@ -33,6 +33,12 @@ members = [
   "crates/oya-check-glossary-vocabulary",
   "crates/oya-check-honest-claims",
   "crates/oya-check-aspirational-enforcement",
+  "crates/oya-check-saga-shape",
+  "crates/oya-shared-oidc-client-kernel",
+  "crates/oya-shared-webauthn-server-kernel",
+  "crates/oya-shared-scim-server-kernel",
+  "crates/oya-check-step-up-auth-coverage",
+  "crates/oya-check-authz-tier-discipline",
   "crates/oya-foundry-mdbook-domain",
   "crates/oya-foundry-openapi-domain",
   "crates/oya-check-placeholder-debt",
@@ -45,9 +51,16 @@ members = [
   "crates/oya-check-cohesion",
   "crates/oya-check-statelessness",
   "crates/oya-check-shardability",
+  "crates/oya-check-vector-store-discipline",
+  "crates/oya-check-olap-tier-discipline",
+  "crates/oya-shared-vector-store-kernel",
+  "crates/oya-shared-olap-client-kernel",
+  "crates/oya-shared-timeseries-kernel",
   "crates/oya-check-perf-budget",
   "crates/oya-check-benchmark",
   "crates/oya-check-license-policy",
+  "crates/oya-check-vendor-lockin-discipline",
+  "crates/oya-collab-crdt-portability-kernel",
   "crates/oya-foundry-evidence-domain",
   "crates/oya-foundry-evidence-file-adapter",
   "crates/oya-foundry-eval-domain",
@@ -293,6 +306,72 @@ members = [
   "crates/oya-resolve-scorecards-app",
   "crates/oya-check-adr-placeholders",
   "crates/oya-check-container-base-image",
+  # ADR-0145 inter-microservice communication reform — enforcement skeletons
+  # authored 2026-05-18. Full impl tracked under
+  # registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-*.
+  "crates/oya-shared-audit-chain-client-kernel",
+  "crates/oya-shared-tracing-client-kernel",
+  "crates/oya-check-otel-trace-propagation",
+  "crates/oya-check-ontology-projection-coverage",
+  "crates/oya-check-audit-chain-seal-coverage",
+  # Tier-A hyperscaler pattern remediation (Fix-Agent-I, 2026-05-18).
+  # Per ADR-0149..ADR-0156. Substrate kernels:
+  "crates/oya-shared-idempotency-key-kernel",
+  "crates/oya-shared-cursor-pagination-kernel",
+  "crates/oya-shared-outbox-pattern-kernel",
+  "crates/oya-shared-tenant-quota-kernel",
+  "crates/oya-shared-ulid-id-kernel",
+  # Storage/Backup/Autoscaling/FinOps substrate kernels (ADR-0196..0199, 2026-05-18):
+  "crates/oya-shared-object-store-kernel",
+  "crates/oya-shared-backup-kernel",
+  "crates/oya-check-tenant-cost-labels-coverage",
+  "crates/oya-check-backup-retention-discipline",
+  # Tier-A enforcement gates:
+  "crates/oya-check-idempotency-key-coverage",
+  "crates/oya-check-cursor-pagination-coverage",
+  "crates/oya-check-rpo-rto-coverage",
+  "crates/oya-check-metric-cardinality",
+  "crates/oya-check-event-schema-versioning",
+  "crates/oya-check-id-discipline",
+  "crates/oya-check-image-signing-discipline",
+  # ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 / ADR-0185 layered architecture
+  # discipline gates (authored 2026-05-18).
+  "crates/oya-check-layered-architecture-discipline",
+  "crates/oya-check-client-stack-discipline",
+  # Tier-C hyperscaler pattern remediation (Fix-Agent-K, 2026-05-18).
+  # Per ADR-0167..ADR-0172. Skeleton crates; full impl tracked under
+  # registry/placeholder-debt/adr-follow-ups.yaml#adr-0167-* / #adr-0169-*.
+  "crates/oya-tenant-cli",
+  "crates/oya-shared-webhook-delivery-kernel",
+  # ADR-0204..ADR-0210 frontend / realtime / compliance / tail-sampling
+  # substrate (authored 2026-05-18). Kernel + gate crates; manifest /
+  # dispatcher / lanes.yaml wiring is parent-handled.
+  "crates/oya-shared-i18n-kernel",
+  "crates/oya-shared-realtime-transport-kernel",
+  "crates/oya-shared-presence-kernel",
+  "crates/oya-shared-compliance-evidence-kernel",
+  "crates/oya-check-a11y-discipline",
+  "crates/oya-check-i18n-coverage",
+  "crates/oya-check-compliance-evidence-coverage",
+  "crates/oya-check-realtime-transport-tier",
+  "crates/oya-shared-wasm-runtime-kernel",
+  "crates/oya-shared-email-comms-kernel",
+  "crates/oya-check-wasm-runtime-discipline",
+  "crates/oya-check-iac-tier-discipline",
+  # Enterprise integration substrate — kernel + 10 first-wave connectors
+  # (authored 2026-05-18). Every external SaaS integration sits behind
+  # oya-shared-connector-kernel; adapters live in sibling crates.
+  "crates/oya-shared-connector-kernel",
+  "crates/oya-connector-slack-adapter",
+  "crates/oya-connector-teams-adapter",
+  "crates/oya-connector-workday-adapter",
+  "crates/oya-connector-adp-adapter",
+  "crates/oya-connector-rippling-adapter",
+  "crates/oya-connector-gusto-adapter",
+  "crates/oya-connector-salesforce-adapter",
+  "crates/oya-connector-netsuite-adapter",
+  "crates/oya-connector-quickbooks-adapter",
+  "crates/oya-connector-epic-fhir-adapter",
 ]
 resolver = "2"
 

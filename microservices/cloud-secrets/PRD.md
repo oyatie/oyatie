@@ -345,3 +345,19 @@ Sharding:
 | ADR-0133 | (Cloud split formalisation) | this µservice scaffolds under it |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-CLOUD-SECRETS registers here |
 | ADR-0116 | Retire external agent-coordination tooling | oya vcs primitives throughout |
+
+## ADR-0164 Update — Sovereign Cloud / Air-Gapped Deployment Variant
+
+Per ADR-0164 (2026-05-18), the cloud-secrets µservice ships a per-pack air-gap variant. See `multi-region.md` for the full statement.
+
+Highlights:
+- **No external KMS dependency** — all KMS code paths replaced by OpenBao Transit secrets-engine. Cloud KMS adapter ABSENT from air-gap pack image builds.
+- **HSM-backed OpenBao seal** — OpenBao auto-unseal uses in-cell HSM partition (PKCS#11). Quorum recovery (Shamir 5-of-9 default; per-pack overlay).
+- **BYOK + sovereign-tenant key custody** — sovereign tenant may bring its own HSM-generated KEK; cloud-secrets accepts the KEK wrapped under cell KEK-of-KEKs. BYOK material is HSM-stored; never exported.
+- **In-cell HSM partition** — per-pack: Thales Luna (KSA / EU-sovereign), financial-grade HSM (KR FSC), FIPS 140-3 L4 (US-Gov).
+
+CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM, (c) BYOK paths use HSM-wrapped material only.
+
+## ADR-0158 Update — Single-Region Disposition
+
+Per ADR-0158 (2026-05-18), the cloud-secrets µservice is declared `single_region`. Secret material does not cross region. Cross-region replication is forbidden by construction; failover is intra-region only via OpenBao Raft + Patroni HA. See `multi-region.md` for the full disposition statement.

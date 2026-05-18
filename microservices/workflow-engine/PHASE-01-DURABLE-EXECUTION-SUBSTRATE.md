@@ -7,7 +7,7 @@ status: Active
 entry_gate: |
   PRD-workflow-engine accepted; ADR-0131 unbundle accepted; sibling workflow-studio µservice scaffolded;
   cargo workspace ready to accept the 41 new crates under microservices/workflow-engine/src/crates/;
-  Postgres + Citus + Redis + ClickHouse Layer-A IaC available via cloud-iac µservice.
+  Postgres + Citus + Valkey + ClickHouse Layer-A IaC available via cloud-iac µservice.
 exit_gate: |
   All 15 IPs merged; engine binary deployed to dev cluster; deterministic-replay CI lane present in
   .github/branch-protection.yaml required_status_checks on dev and staging; release/workflow-engine/{staging,production}
@@ -32,7 +32,7 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full workflow-engine substrate (engine half of the ADR-0131 workflow unbundle) — durable execution at Temporal parity, deterministic replay, sub-second event-to-action latency, per-tenant Citus sharding, audit-sealed run history, replay-debugger-backend. It is delivered as one phase in M02b-substrate-ready because every other oyatie µservice depends on the engine to route cross-product events via the orchestration adapter (per `feedback_workflow_objectgraph_adapter_layer.md`).
+This phase ships the full workflow-engine substrate (engine half of the ADR-0131 workflow unbundle) — durable execution at Temporal parity, deterministic replay, sub-second event-to-action latency, per-tenant Citus sharding, audit-sealed run history, replay-debugger-backend. It is delivered as one phase in M02b-substrate-ready because every other oyatie µservice depends on the engine to route cross-product events via the orchestration adapter (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`).
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (Temporal-class durable execution + per-tenant linear sharding).
@@ -69,7 +69,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md`](IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md) | Helm + Kustomize charts for Postgres+Citus, Redis (Sentinel HA), ClickHouse, workflow-runtime deployment under `microservices/workflow-engine/iac/helm/` | pending | axis-workflow | — |
+| [`IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md`](IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md) | Helm + Kustomize charts for Postgres+Citus, Valkey (Sentinel HA), ClickHouse, workflow-runtime deployment under `microservices/workflow-engine/iac/helm/` | pending | axis-workflow | — |
 | [`IP-002-spec-store-kernel-domain.md`](IP-002-spec-store-kernel-domain.md) | `oya-workflow-engine-spec-store-{kernel,domain}` crates: WorkflowSpec, SpecVersion, SpecSignature entities + pure compile/validate domain | pending | axis-workflow | — |
 | [`IP-003-state-machine-kernel-domain.md`](IP-003-state-machine-kernel-domain.md) | `oya-workflow-engine-state-machine-{kernel,domain,usecase,api,adapter,adapter-postgres}` — pure transition evaluation + checkpoint persistence | pending | axis-workflow | IP-002 |
 | [`IP-004-execution-engine-kernel-domain.md`](IP-004-execution-engine-kernel-domain.md) | `oya-workflow-engine-execution-engine-{kernel,domain}` crates: WorkflowRun, StepExecution, RetryAttempt, SlaTimer entities; pure retry-backoff + SLA-timer arithmetic | pending | axis-workflow | IP-003 |
@@ -198,12 +198,12 @@ The schema is validated by the `oya-governance-multispectrum-evidence` lane agai
 | kernel crate (`*-kernel`) | 1 per public type + 1 per port trait | 0 (pure) | 0 | 90% line; 80% branch |
 | domain crate (`*-domain`) | 1 per public function + property tests for math + deterministic-replay invariant | 0 | 0 | 95% line; 90% branch |
 | usecase crate (`*-usecase`) | 1 per use case (happy + 2 sad paths) | ≥ 3 against mocked ports | 0 | 90% line; 80% branch |
-| adapter crate (`*-adapter*`) | 1 per port-impl method | ≥ 2 against real backend (Postgres / Redis / ClickHouse test container) | 0 | 85% line; 75% branch |
+| adapter crate (`*-adapter*`) | 1 per port-impl method | ≥ 2 against real backend (Postgres / Valkey / ClickHouse test container) | 0 | 85% line; 75% branch |
 | rest crate (`*-rest`) | 1 per route (happy + auth-fail + tenant-mismatch) | ≥ 2 cross-route flows | 1 per route via REST integration test | 85% line; 75% branch |
 | worker crate (`*-worker`) | 1 per orchestration arm | ≥ 1 long-lived loop integration test | 1 e2e (durable-execution restart drill) | 85% line; 75% branch |
 | sdk crate (`*-sdk`) | 1 per public client method (happy + retry + auth-fail) | ≥ 2 against rest crate | 0 | 90% line; 80% branch |
 | app crate (`*-app`) | composition-root smoke tests | 0 (delegates to worker/rest tests) | 1 startup-and-shutdown smoke | 60% line (mostly wiring) |
-| IaC IPs (Helm / Terraform) | n/a | ≥ 1 helm-install + helm-test smoke per chart | 1 against kind/k3d cluster | n/a |
+| IaC IPs (Helm / OpenTofu) | n/a | ≥ 1 helm-install + helm-test smoke per chart | 1 against kind/k3d cluster | n/a |
 
 Enforced by:
 - `cargo nextest run --workspace --all-features` exits 0.

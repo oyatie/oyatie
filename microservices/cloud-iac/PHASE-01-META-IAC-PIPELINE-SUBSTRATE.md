@@ -33,7 +33,7 @@ doc_status: published
 This phase ships the full cloud-iac design: Layer-A self-hosted IaC OSS stack (ArgoCD + Flux + OpenTofu + Helm-controller + Kustomize-controller + Postgres iac-state-index) and Layer-B oyatie-owned crates (iac-renderer + iac-validator + iac-applier + iac-rollback + iac-registry). Delivered as one phase in M01-foundation because every other oyatie µservice depends on cloud-iac to render + apply its IaC; the SLO gate (ADR-0139) needs ApplyExecuted signals to advance per-component release pointers.
 
 This phase advances master-plan principles:
-- Hyperscaler-grade in every practice (one IaC pipeline canonicalised across Helm + Kustomize + Terraform; not three diverging tools).
+- Hyperscaler-grade in every practice (one IaC pipeline canonicalised across Helm + Kustomize + OpenTofu; not three diverging tools).
 - Nothing scheduled-for-distinct-tracked-work (SLSA L3 + Sigstore + Cedar policy + audit-chain seal default day-1).
 - No silent regression (drift detection ≤1h per cluster; rollback signed + audit-emitted).
 - Per-microservice flat layout (this phase native author under ADR-0131).
@@ -65,7 +65,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
 | [`IP-001-layer-a-argocd-flux-iac.md`](IP-001-layer-a-argocd-flux-iac.md) | Helm/Kustomize charts for ArgoCD + Flux + Helm-controller + Kustomize-controller under `microservices/cloud-iac/iac/helm/` | pending | axis-cloud-iac | — |
-| [`IP-002-layer-a-opentofu-iac.md`](IP-002-layer-a-opentofu-iac.md) | Helm chart for OpenTofu self-hosted runner + per-pack state-bucket Terraform config | pending | axis-cloud-iac | — |
+| [`IP-002-layer-a-opentofu-iac.md`](IP-002-layer-a-opentofu-iac.md) | Helm chart for OpenTofu self-hosted runner + per-pack state-bucket OpenTofu config | pending | axis-cloud-iac | — |
 | [`IP-003-iac-renderer-kernel.md`](IP-003-iac-renderer-kernel.md) | `oya-cloud-iac-iac-renderer-kernel`: port traits + entities + sealed traits | pending | axis-cloud-iac | — |
 | [`IP-004-iac-renderer-domain-usecase.md`](IP-004-iac-renderer-domain-usecase.md) | `-domain` + `-usecase`: dependency-ordering + content-digest + render orchestrator | pending | axis-cloud-iac | IP-003 |
 | [`IP-005-iac-renderer-adapter-trio.md`](IP-005-iac-renderer-adapter-trio.md) | `-adapter-helm` + `-adapter-kustomize` + `-adapter-opentofu`: backend-qualified renderers | pending | axis-cloud-iac | IP-003 |

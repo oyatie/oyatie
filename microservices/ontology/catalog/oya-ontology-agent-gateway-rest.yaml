@@ -17,4 +17,4 @@ spec:
             oya-ontology-cedar-fragment-coverage-usecase]
   external_deps: [tower, axum, jsonwebtoken]
   related_ip: IP-012
-  related_adrs: [ADR-0107, ADR-0140]
+  related_adrs: [ADR-0107, ADR-0140 (retired per ADR-0145)]

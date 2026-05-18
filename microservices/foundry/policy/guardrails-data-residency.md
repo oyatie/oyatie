@@ -163,7 +163,7 @@ Per-pack overlay at `regional-packs/<pack>/foundry-guardrails-data-residency-ove
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0139; ADR-0131; ADR-0140.
+- ADR-0139; ADR-0131; ADR-0140 (retired per ADR-0145).
 - `microservices/foundry/threat-model.md`.
 - `microservices/foundry/dpia.md`.
 - `microservices/foundry/policy/tenant-isolation.md`.

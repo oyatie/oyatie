@@ -63,7 +63,7 @@ Plus cross-cutting:
 |---|---|---|---|---|
 | [`IP-001-websocket-gateway-iac.md`](IP-001-websocket-gateway-iac.md) | Helm/Kustomize for WebSocket gateway + Envoy / Cloudflare termination | pending | axis-messenger | observability IP-001 |
 | [`IP-002-postgres-message-store-iac.md`](IP-002-postgres-message-store-iac.md) | Postgres HA + per-tenant sharding for message + channel + thread | pending | axis-messenger | observability IP-001 |
-| [`IP-003-redis-presence-iac.md`](IP-003-redis-presence-iac.md) | Redis cluster for presence + read-receipt; pub/sub topology | pending | axis-messenger | observability IP-001 |
+| [`IP-003-redis-presence-iac.md`](IP-003-redis-presence-iac.md) | Valkey cluster for presence + read-receipt; pub/sub topology | pending | axis-messenger | observability IP-001 |
 | [`IP-004-attachment-store-iac.md`](IP-004-attachment-store-iac.md) | S3-compatible blob store; multipart upload; KMS encryption | pending | axis-messenger | observability IP-001 |
 | [`IP-005-search-index-iac.md`](IP-005-search-index-iac.md) | Tantivy (self-hosted) + optional Elasticsearch fallback | pending | axis-messenger | observability IP-001 |
 | [`IP-006-channel-store-kernel.md`](IP-006-channel-store-kernel.md) | `oya-messenger-channel-store-kernel` port traits + entities | pending | axis-messenger | — |
@@ -84,7 +84,7 @@ Plus cross-cutting:
 | kernel | 90 % / 80 % | per-port-trait + per-entity unit; sealed-trait smoke; data-class annotation check |
 | domain | 90 % / 80 % | pure-math / pure-logic unit |
 | usecase | 85 % / 75 % | orchestrator unit with port mocks; happy + error path |
-| adapter | 80 % / 70 % | integration vs real backend (Postgres / Redis / S3 / Tantivy) where feasible; otherwise contract-mock |
+| adapter | 80 % / 70 % | integration vs real backend (Postgres / Valkey / S3 / Tantivy) where feasible; otherwise contract-mock |
 | rest | 85 % / 75 % | per-endpoint happy + 401 + 403 + 422 |
 | worker | 85 % / 75 % | event-loop unit + integration |
 | app | 75 % / 65 % | smoke startup |
