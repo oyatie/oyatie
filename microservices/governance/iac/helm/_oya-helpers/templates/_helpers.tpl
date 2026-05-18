@@ -370,24 +370,29 @@ limits:
 {{- end }}
 
 {{/* ----------------------------------------------------------------------
-     Container sandboxing runtime LADDER (per ADR-0147).
+     Container sandboxing runtime LADDER (per ADR-0147, amended 2026-05-18).
 
      The five helpers below replace the universal `runtimeClassName: gvisor`
      anti-pattern with workload-class-tiered selection matching AWS/Google/
-     Microsoft/Cloudflare per-workload practice:
+     Microsoft/Cloudflare per-workload practice. Per the 2026-05-18 amendment
+     ("switch to cloud hypervisor") Kata Containers + Cloud Hypervisor
+     (`kata-clh`) is the primary untrusted-content / AI-inference (CPU) /
+     federation-gateway runtime; gVisor is retained only as opt-in for cold-
+     start-sensitive workloads.
 
        oya.runtimeClassName.appTier            — emits NOTHING (bare Linux + CIS restricted)
-       oya.runtimeClassName.untrustedContent   — gVisor default; Kata for sovereign tenant tier
-       oya.runtimeClassName.crypto             — Kata (full-VM blast radius)
-       oya.runtimeClassName.aiInference        — gVisor (CPU); Kata-with-GPU for confidential compute
-       oya.runtimeClassName.federationGateway  — gVisor + restrictive egress NetworkPolicy
+       oya.runtimeClassName.untrustedContent   — kata-clh default; kata-clh-sev-snp for sovereign tenant tier
+       oya.runtimeClassName.crypto             — kata-clh-sev-snp (AMD SEV-SNP, full-VM + memory-encrypted blast radius)
+       oya.runtimeClassName.aiInference        — kata-clh (CPU); kata-clh-tdx for GPU-passthrough confidential compute
+       oya.runtimeClassName.federationGateway  — kata-clh + restrictive egress NetworkPolicy
 
      Per-tenant override: each helper reads `.Values.tenantTier` (string)
-     and upgrades to Kata when the tenant_tier is "sovereign".
+     and upgrades the runtime per the ladder (sovereign → SEV-SNP;
+     confidential-compute → TDX; fips-140-3-level-3 → bare HSM).
 
      The legacy `oya.runtimeClassName.gvisor` helper is retained for
-     transitional compatibility but new uses MUST select one of the five
-     workload-class helpers above.
+     transitional compatibility (cold-start-sensitive opt-in only); new
+     uses MUST select one of the five workload-class helpers above.
    ---------------------------------------------------------------------- */}}
 
 {{/* oya.runtimeClassName.appTier — App-tier µservices run on bare Linux + CIS
@@ -397,60 +402,66 @@ limits:
 {{- /* No runtimeClassName — bare Linux + CIS restricted per ADR-0147 */ -}}
 {{- end }}
 
-{{/* oya.runtimeClassName.untrustedContent — gVisor default for content-
-     transcoder/renderer workloads (Pandoc, LibreOffice, Chromium-headless,
-     WeasyPrint, ffmpeg, ImageMagick). Sovereign-tier tenants upgrade to
-     Kata Containers for full-VM blast radius. */}}
+{{/* oya.runtimeClassName.untrustedContent — Kata + Cloud Hypervisor default
+     (kata-clh) for content-transcoder/renderer workloads (Pandoc,
+     LibreOffice, Chromium-headless, WeasyPrint, ffmpeg, ImageMagick).
+     Sovereign-tier tenants upgrade to Kata + Cloud Hypervisor + AMD SEV-SNP
+     (kata-clh-sev-snp) for cryptographic memory isolation. */}}
 {{- define "oya.runtimeClassName.untrustedContent" -}}
 {{- $tenantTier := .Values.tenantTier | default "default" -}}
 {{- if eq $tenantTier "sovereign" -}}
-runtimeClassName: kata-qemu
+runtimeClassName: kata-clh-sev-snp
 {{- else -}}
-runtimeClassName: gvisor
+runtimeClassName: kata-clh
 {{- end -}}
 {{- end }}
 
 {{/* oya.runtimeClassName.crypto — Cryptographic workers (blind-signature
-     ceremony nodes, KMS-bound signers, signing oracles). gVisor's user-
-     space-kernel emulation provides insufficient blast-radius guarantees
-     for crypto workloads; Kata Containers (full VM) is the default.
-     FIPS 140-3 Level 3 tenants further upgrade to bare HSM. */}}
+     ceremony nodes, KMS-bound signers, signing oracles). Kata + Cloud
+     Hypervisor + AMD SEV-SNP (kata-clh-sev-snp) for sovereign-tier
+     cryptographic memory isolation; default tier still gets the full-VM
+     blast radius via kata-clh-sev-snp (crypto always uses the
+     confidential-compute variant). FIPS 140-3 Level 3 tenants route to
+     bare HSM (RuntimeClass-less). */}}
 {{- define "oya.runtimeClassName.crypto" -}}
 {{- $tenantTier := .Values.tenantTier | default "default" -}}
 {{- if eq $tenantTier "fips-140-3-level-3" -}}
 {{- /* Bare HSM — RuntimeClass-less; pod schedules to HSM-attached host pool */ -}}
 {{- else -}}
-runtimeClassName: kata-qemu
+runtimeClassName: kata-clh-sev-snp
 {{- end -}}
 {{- end }}
 
 {{/* oya.runtimeClassName.aiInference — AI inference workloads (Whisper
-     transcription, ML model inference). Default gVisor on CPU paths;
-     confidential-compute tier upgrades to Kata with GPU passthrough. */}}
+     transcription, ML model inference). Kata + Cloud Hypervisor (kata-clh)
+     on CPU paths; confidential-compute tier upgrades to Kata + Cloud
+     Hypervisor + Intel TDX (kata-clh-tdx) for GPU-passthrough CC. */}}
 {{- define "oya.runtimeClassName.aiInference" -}}
 {{- $tenantTier := .Values.tenantTier | default "default" -}}
 {{- if eq $tenantTier "confidential-compute" -}}
-runtimeClassName: kata-qemu
+runtimeClassName: kata-clh-tdx
 {{- else -}}
-runtimeClassName: gvisor
+runtimeClassName: kata-clh
 {{- end -}}
 {{- end }}
 
 {{/* oya.runtimeClassName.federationGateway — Federation/internet-egress
-     gateway workers. gVisor by default with restrictive egress NetworkPolicy;
-     highest-risk packs upgrade to Kata. */}}
+     gateway workers. Kata + Cloud Hypervisor (kata-clh) by default paired
+     with restrictive egress NetworkPolicy; sovereign tier upgrades to
+     kata-clh-sev-snp for cryptographic memory isolation. */}}
 {{- define "oya.runtimeClassName.federationGateway" -}}
 {{- $tenantTier := .Values.tenantTier | default "default" -}}
 {{- if eq $tenantTier "sovereign" -}}
-runtimeClassName: kata-qemu
+runtimeClassName: kata-clh-sev-snp
 {{- else -}}
-runtimeClassName: gvisor
+runtimeClassName: kata-clh
 {{- end -}}
 {{- end }}
 
-{{/* oya.runtimeClassName.gvisor — DEPRECATED per ADR-0147. Retained for
-     transitional compatibility only. New uses MUST select one of the five
-     workload-class helpers above. */}}
+{{/* oya.runtimeClassName.gvisor — DEPRECATED per ADR-0147 (amended 2026-05-18).
+     Retained only as opt-in for cold-start-sensitive µservices. New uses
+     MUST select one of the five workload-class helpers above; Cloud
+     Hypervisor (kata-clh) is the primary untrusted-content runtime. */}}
 {{- define "oya.runtimeClassName.gvisor" -}}
 runtimeClassName: gvisor
 {{- end }}

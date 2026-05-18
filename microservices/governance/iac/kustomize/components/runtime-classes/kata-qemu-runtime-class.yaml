@@ -1,6 +1,12 @@
 ---
 # Kata Containers (QEMU) RuntimeClass — full-VM isolation via kata-qemu handler.
-# Selected workload classes per ADR-0147:
+# LEGACY per ADR-0147 (amended 2026-05-18: Cloud Hypervisor primary). New
+# charts should prefer kata-clh (Cloud Hypervisor) for the same isolation
+# posture at lower steady-state overhead (~5-15% vs QEMU's ~20-30%), Rust-
+# primary alignment, and a native confidential-compute path
+# (kata-clh-sev-snp / kata-clh-tdx). Retained for transitional compatibility.
+#
+# Originally selected workload classes per the pre-amendment ADR-0147:
 #   - cryptographic workers (blind-signature ceremony, KMS-bound signers)
 #   - sovereign-tier tenant override for untrusted-content workloads
 #   - confidential-compute tier for AI inference (paired with GPU passthrough)

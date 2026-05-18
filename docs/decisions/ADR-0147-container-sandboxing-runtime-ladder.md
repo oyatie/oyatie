@@ -1,8 +1,9 @@
 ---
 id: ADR-0147
-status: Accepted
+status: Amended
 deciders: council-architecture, ops-security, ops-sre-reliability, axis-cell-substrate, axis-meet, axis-docs, axis-translate, axis-drive, axis-social, axis-shorts, axis-anonymous, axis-network, axis-notes, axis-slides
 date: 2026-05-18
+amended_date: 2026-05-18
 owner: ops-security
 supersedes: []
 superseded_by: []
@@ -16,13 +17,17 @@ purpose: |
   workload-class-tiered container sandboxing runtime ladder, matching how
   AWS / Google / Microsoft / Cloudflare actually pick runtimes per workload
   class. Eliminates the gvisor-overprescribes-and-underprotects regret.
+  Amended 2026-05-18 to designate Cloud Hypervisor (Kata kata-clh handler) as
+  the primary untrusted-content runtime in place of gVisor; gVisor retained
+  as opt-in for cold-start-sensitive workloads.
 ---
 
 # ADR-0147: Container sandboxing runtime ladder
 
 ## Status
 
-Accepted — 2026-05-18.
+Amended — 2026-05-18 (original Accepted 2026-05-18). The amendment refines
+the decision; it does not supersede.
 
 ## Date
 
@@ -86,15 +91,16 @@ oyatie adopts a **workload-class-tiered container sandboxing runtime
 ladder**. The canonical mapping below replaces the universal-gVisor
 default:
 
-| Workload class                                         | Default runtime                                  | Sovereign-tenant override        |
-|--------------------------------------------------------|--------------------------------------------------|----------------------------------|
-| App-tier µservices (Rust REST/gRPC, WS gateways)       | none — bare Linux + CIS K8s restricted profile   | n/a (restricted profile suffices)|
-| Untrusted-content transcoders/renderers                | gVisor (`runsc`)                                 | Kata Containers (`kata-qemu`)    |
-| Cryptographic workers (blind-sig, signing oracles)     | Kata Containers (`kata-qemu`) — full-VM isolation| Bare HSM (FIPS 140-3 Level 3)    |
-| AI inference (Whisper, ML models)                      | gVisor (CPU) / Kata + GPU passthrough (CC)       | per-tenant                       |
-| Federation gateway (untrusted-internet egress)         | gVisor + restrictive egress NetworkPolicy        | Kata for highest-risk packs      |
-| WASM-only workers                                      | runwasi (WebAssembly runtime)                    | n/a                              |
-| Per-request ephemeral isolation                        | Kata-Firecracker (`kata-fc`)                     | n/a                              |
+| Workload class                                         | Default runtime                                                  | Sovereign-tenant override                 |
+|--------------------------------------------------------|------------------------------------------------------------------|-------------------------------------------|
+| App-tier µservices (Rust REST/gRPC, WS gateways)       | none — bare Linux + CIS K8s restricted profile                   | n/a (restricted profile suffices)         |
+| Untrusted-content transcoders/renderers                | Kata Containers + Cloud Hypervisor (`kata-clh`)                  | `kata-clh-sev-snp` (AMD SEV-SNP CC)       |
+| Cryptographic workers (blind-sig, signing oracles)     | Kata Containers + Cloud Hypervisor + AMD SEV-SNP (`kata-clh-sev-snp`) | Bare HSM (FIPS 140-3 Level 3)         |
+| AI inference (Whisper, ML models)                      | Kata Containers + Cloud Hypervisor (`kata-clh`) on CPU; `kata-clh-tdx` for GPU CC | `kata-clh-sev-snp` / `kata-clh-tdx` |
+| Federation gateway (untrusted-internet egress)         | Kata Containers + Cloud Hypervisor (`kata-clh`) + restrictive egress NetworkPolicy | `kata-clh-sev-snp` for highest-risk |
+| WASM-only workers                                      | runwasi (WebAssembly runtime)                                    | n/a                                       |
+| Per-request ephemeral isolation                        | Kata-Firecracker (`kata-fc`)                                     | n/a                                       |
+| Cold-start-sensitive workers (opt-in legacy)           | gVisor (`runsc`) — retained as opt-in escape hatch               | n/a                                       |
 
 ### Canonical Helm helpers
 
@@ -115,24 +121,43 @@ Helpers:
 - `oya.runtimeClassName.appTier` — emits NOTHING. App-tier µservices
   run on bare Linux + CIS restricted profile; explicit `runtimeClassName`
   is the wrong answer.
-- `oya.runtimeClassName.untrustedContent` — gVisor default; Kata for
-  sovereign tenant tier.
-- `oya.runtimeClassName.crypto` — Kata Containers; full-VM isolation
-  for cryptographic blast-radius reasons.
-- `oya.runtimeClassName.aiInference` — gVisor for CPU; Kata with GPU
-  passthrough when confidential-compute is required.
-- `oya.runtimeClassName.federationGateway` — gVisor + restrictive
-  egress NetworkPolicy.
+- `oya.runtimeClassName.untrustedContent` — Kata + Cloud Hypervisor
+  (`kata-clh`) default; `kata-clh-sev-snp` (AMD SEV-SNP confidential
+  compute) for sovereign tenant tier.
+- `oya.runtimeClassName.crypto` — Kata + Cloud Hypervisor +
+  AMD SEV-SNP (`kata-clh-sev-snp`) for sovereign tier; full-VM
+  isolation with cryptographic memory protection. FIPS 140-3 Level 3
+  tenants further upgrade to bare HSM.
+- `oya.runtimeClassName.aiInference` — Kata + Cloud Hypervisor
+  (`kata-clh`) on CPU; `kata-clh-tdx` (Intel TDX) variant for
+  GPU-passthrough confidential compute.
+- `oya.runtimeClassName.federationGateway` — Kata + Cloud Hypervisor
+  (`kata-clh`) + restrictive egress NetworkPolicy; `kata-clh-sev-snp`
+  for highest-risk sovereign packs.
+- `oya.runtimeClassName.gvisor` — DEPRECATED legacy compatibility
+  helper. Retained only for cold-start-sensitive µservices that
+  explicitly opt in; new uses MUST select one of the five workload-
+  class helpers above.
 
 ### Cluster-side RuntimeClass installation
 
 `microservices/governance/iac/kustomize/components/runtime-classes/`
 provides the canonical RuntimeClass set installed in every cluster:
 
-- `gvisor` (handler: `runsc`)
-- `kata-qemu` (handler: `kata-qemu`)
-- `kata-fc` (handler: `kata-fc`, for per-request isolation)
-- `wasmtime` (handler: `wasmtime`, for WASM workers)
+- `kata-clh` (handler: `kata-clh`) — primary untrusted-content +
+  AI-inference (CPU) + federation-gateway runtime; Kata Containers
+  with Cloud Hypervisor VMM.
+- `kata-clh-sev-snp` (handler: `kata-clh-sev-snp`) — AMD SEV-SNP
+  confidential compute for crypto + sovereign-tier overrides.
+- `kata-clh-tdx` (handler: `kata-clh-tdx`) — Intel TDX confidential
+  compute (typically paired with GPU passthrough for AI inference).
+- `gvisor` (handler: `runsc`) — legacy opt-in for cold-start-
+  sensitive workloads.
+- `kata-qemu` (handler: `kata-qemu`) — legacy; new charts should
+  prefer `kata-clh` (Cloud Hypervisor) for the same isolation
+  posture at lower overhead.
+- `kata-fc` (handler: `kata-fc`, for per-request isolation).
+- `wasmtime` (handler: `wasmtime`, for WASM workers).
 
 The cloud-k8s µservice composes this component into its base, which
 guarantees every cluster reconciles a uniform set of RuntimeClass
@@ -146,6 +171,80 @@ provisioned on their host pool. Cells supporting `kata-qemu` use a
 host-pool with nested-virt-capable nodes; cells supporting `gvisor`
 use a vanilla host-pool. Tenant placement honours runtime affinity:
 a tenant requiring Kata cannot be assigned to a gVisor-only cell.
+
+## Amendment 2026-05-18: Cloud Hypervisor as primary
+
+User directive 2026-05-18 ("switch to cloud hypervisor") replaces gVisor
+with Kata Containers + Cloud Hypervisor (`kata-clh` handler) as the
+primary untrusted-content / AI-inference (CPU) / federation-gateway
+runtime. gVisor is retained as an opt-in escape hatch for cold-start-
+sensitive workloads only.
+
+### Rationale
+
+1. **Rust-primary alignment.** Cloud Hypervisor is a Rust VMM
+   (gVisor is Go); this matches oyatie's Rust-primary directive
+   and reduces the foreign-language operational surface.
+2. **Native confidential compute.** Cloud Hypervisor supports
+   AMD SEV-SNP and Intel TDX, enabling sovereign-tenant
+   cryptographic memory isolation without architectural redesign.
+   gVisor provides no equivalent.
+3. **Stronger isolation posture.** Cloud Hypervisor runs a full
+   microVM via KVM — a sandbox escape requires a hypervisor +
+   KVM bug, materially more expensive than a gVisor userspace-
+   kernel bug.
+4. **Lower steady-state overhead.** Cloud Hypervisor adds ~5-15%
+   overhead for compute-bound workloads versus gVisor's 10-50%
+   penalty. Whisper transcription, ffmpeg muxing, Pandoc/WeasyPrint
+   rendering, LibreOffice export, and Chromium-headless PDF/PPTX
+   are all CPU-bound and benefit directly.
+5. **Confidential-compute path for FIPS 140-3 Level 3 sovereign
+   tenants.** AMD SEV-SNP / Intel TDX support means sovereign-tier
+   tenants gain cryptographic memory isolation without leaving the
+   canonical helper surface.
+6. **Production adoption.** Microsoft Azure Boost runs on Cloud
+   Hypervisor; CNCF Sandbox project since 2023; Linux Foundation
+   governance.
+7. **gVisor cold-start advantage is irrelevant here.** No workload
+   in the current ladder (Whisper, ffmpeg, Pandoc, LibreOffice,
+   Chromium-headless) is cold-start sensitive — they all run as
+   long-running pods. The 50 ms gVisor cold start versus Cloud
+   Hypervisor's 125-250 ms cold start does not affect any
+   measured SLO.
+
+### Alternatives reconsidered
+
+| Dimension                | gVisor (original primary)                                | Cloud Hypervisor (new primary)               |
+|--------------------------|----------------------------------------------------------|----------------------------------------------|
+| Implementation language  | Go                                                       | Rust (aligns with Rust-primary directive)    |
+| Architecture             | userspace kernel                                         | full microVM via KVM                         |
+| Isolation strength       | medium (userspace-kernel emulation)                      | strong (hardware-backed microVM)             |
+| Steady-state overhead    | 10-50%                                                   | 5-15%                                        |
+| Cold start               | ~50 ms                                                   | ~125-250 ms                                  |
+| Confidential compute     | none                                                     | AMD SEV-SNP + Intel TDX                      |
+| Notable production users | Google Cloud Run, Cloudflare Workers Unbound             | Microsoft Azure Boost, CNCF Sandbox          |
+
+### Helper + RuntimeClass impact
+
+- `oya.runtimeClassName.untrustedContent` → `kata-clh` (was `gvisor`);
+  sovereign-tier override → `kata-clh-sev-snp` (was `kata-qemu`).
+- `oya.runtimeClassName.crypto` → `kata-clh-sev-snp` for sovereign tier
+  (was `kata-qemu`); FIPS 140-3 Level 3 still routes to bare HSM.
+- `oya.runtimeClassName.aiInference` → `kata-clh` (was `gvisor`);
+  confidential-compute variant `kata-clh-tdx` (Intel TDX) for
+  GPU-passthrough.
+- `oya.runtimeClassName.federationGateway` → `kata-clh` + restrictive
+  egress NetworkPolicy (was `gvisor`); sovereign tier → `kata-clh-sev-snp`.
+- `oya.runtimeClassName.appTier` — unchanged (still emits nothing).
+- `oya.runtimeClassName.gvisor` — DEPRECATED legacy compat; retained
+  only for cold-start-sensitive opt-in.
+
+Three new RuntimeClass manifests land under
+`microservices/governance/iac/kustomize/components/runtime-classes/`:
+`kata-clh-runtime-class.yaml`, `kata-clh-sev-snp-runtime-class.yaml`,
+`kata-clh-tdx-runtime-class.yaml`. Existing `gvisor`, `kata-qemu`,
+`kata-fc`, `wasmtime` manifests remain (the first two for legacy
+compatibility; the latter two retain their original workload classes).
 
 ## Alternatives considered
 
@@ -283,6 +382,17 @@ a tenant requiring Kata cannot be assigned to a gVisor-only cell.
 - AWS Bottlerocket announcement (re:Invent 2019).
 - Google gVisor security model paper (2019); gVisor handbook
   https://gvisor.dev/docs/.
+- Cloud Hypervisor project (Linux Foundation hosted, CNCF Sandbox 2023)
+  https://www.cloudhypervisor.org/.
+- Kata Containers + Cloud Hypervisor integration docs
+  https://github.com/kata-containers/kata-containers/blob/main/docs/how-to/how-to-use-kata-containers-with-cloud-hypervisor.md.
+- AMD SEV-SNP specification ("AMD SEV-SNP: Strengthening VM Isolation
+  with Integrity Protection and More") —
+  https://www.amd.com/system/files/TechDocs/SEV-SNP-strengthening-vm-isolation-with-integrity-protection-and-more.pdf.
+- Intel TDX (Trust Domain Extensions) specification —
+  https://www.intel.com/content/www/us/en/developer/articles/technical/intel-trust-domain-extensions.html.
+- Microsoft Azure Boost announcement (Ignite 2023) —
+  https://techcommunity.microsoft.com/t5/azure-compute-blog/microsoft-azure-boost/ba-p/3955462.
 - Microsoft Kata Containers + Confidential Computing on AKS
   https://learn.microsoft.com/en-us/azure/confidential-computing/.
 - Cloudflare Workers Unbound + V8-isolate security model

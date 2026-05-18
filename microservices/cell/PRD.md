@@ -273,29 +273,50 @@ Sharding:
 
 ### Runtime-class affinity (per ADR-0147)
 
-Per ADR-0147 (container sandboxing runtime ladder) the cell substrate is
-runtime-affinity-aware. Cells declare their host-pool's supported
-RuntimeClass handlers in `cell.host_pool.runtime_classes`; tenant
-placement honours runtime-affinity.
+Per ADR-0147 (container sandboxing runtime ladder, amended 2026-05-18:
+Cloud Hypervisor primary) the cell substrate is runtime-affinity-aware.
+Cells declare their host-pool's supported RuntimeClass handlers in
+`cell.host_pool.runtime_classes`; tenant placement honours runtime-
+affinity.
 
-- **gVisor-only cells** — vanilla host-pool (commodity nodes). Used for
-  untrusted-content / AI-inference (CPU) / federation-gateway workloads.
-  Cheapest cell tier; serves default-tier tenants.
-- **Kata-capable cells** — nested-virtualisation-capable host-pool (AWS
-  bare-metal / Azure CC-DC / EQX). Used for crypto workloads, sovereign-
-  tier untrusted-content overrides, and confidential-compute AI
-  inference. Cells declare label
-  `oyatie/runtime-class-supported=kata-qemu` and
-  `oyatie/nested-virt=true` on every node.
+- **kata-clh cells** (PRIMARY) — KVM-capable host-pool (AWS metal/m6a /
+  EQX bare-metal / Azure CC-DC-series / GCP C3-Bare). Used for
+  untrusted-content, AI-inference (CPU), and federation-gateway
+  workloads. Cells declare label `oyatie/runtime-class-supported=kata-clh`
+  and `oyatie/kvm=true` on every node. Serves default-tier tenants;
+  steady-state overhead 5-15%.
+- **kata-clh-sev-snp cells** — AMD SEV-SNP-capable host-pool
+  (AWS m7a / Azure DCasv5 / Azure ECasv5 / GCP C3D-Confidential).
+  AMD EPYC Milan or newer with SEV-SNP enabled in firmware. Used for
+  cryptographic workers (default tier) and sovereign-tier untrusted-
+  content / federation-gateway overrides (KSA-government, EU-defense).
+  Cells declare label `oyatie/runtime-class-supported=kata-clh-sev-snp`
+  and `oyatie/amd-sev-snp=true` on every node.
+- **kata-clh-tdx cells** — Intel TDX-capable host-pool (Azure
+  DCsv5/ECsv5 TDX preview, GCP C3-Confidential, Intel Tiber Trust
+  Services). Intel Sapphire Rapids / Xeon Scalable 4th gen+ with TDX
+  enabled in firmware. Used for AI inference with GPU passthrough under
+  confidential-compute tier (NVIDIA H100/H200 CC). Cells declare label
+  `oyatie/runtime-class-supported=kata-clh-tdx` and
+  `oyatie/intel-tdx=true` on every node.
+- **gVisor cells** (LEGACY opt-in) — vanilla host-pool retained for
+  cold-start-sensitive opt-in workloads only. No workload in the
+  current ladder is cold-start sensitive; this tier is documented
+  but not currently used.
+- **Kata-QEMU cells** (LEGACY) — nested-virtualisation-capable host-
+  pool. Retained for transitional compatibility; new tenants prefer
+  kata-clh.
 - **Wasmtime-only cells** — WASM workers (foundry-runtime tenant
   extensions, workflow-studio custom WASM nodes). Cells declare
   `oyatie/runtime-class-supported=wasmtime`.
 
 The scheduler refuses to bind a tenant whose required RuntimeClass set
 exceeds the cell's declared host-pool capabilities (e.g., a sovereign-
-tier tenant requiring Kata cannot be placed on a gVisor-only cell).
-Cell-decommission flow also refuses to drop a Kata-capable cell that is
-the last one in its pack supporting any required RuntimeClass.
+tier tenant requiring `kata-clh-sev-snp` cannot be placed on a
+`kata-clh`-only cell because the AMD SEV-SNP firmware capability is
+absent). Cell-decommission flow also refuses to drop a SEV-SNP / TDX
+capable cell that is the last one in its pack supporting any required
+RuntimeClass.
 
 The canonical RuntimeClass install component lives at
 `microservices/governance/iac/kustomize/components/runtime-classes/` and

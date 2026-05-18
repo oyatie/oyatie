@@ -179,13 +179,19 @@ opswat:
 
 # ---- Untrusted-content sandbox pool (export workers per ADR-DOCS-0003) -----
 # RuntimeClass selection delegated to oya.runtimeClassName.untrustedContent
-# canonical Helm helper per ADR-0147 (gVisor default; Kata for sovereign tier).
+# canonical Helm helper per ADR-0147 (amended 2026-05-18: Cloud Hypervisor
+# / kata-clh default; kata-clh-sev-snp for sovereign tier).
 
+# NOTE: the values key `gvisor:` is a historical chart-input name; the
+# active runtime is now Cloud Hypervisor (kata-clh). The key name is
+# retained because the chart template references `.Values.gvisor.perJobTmpfsBytes`;
+# rename will follow in a coordinated chart-input migration.
 gvisor:
   enabled: true
-  # runtimeClassName moved to canonical helper per ADR-0147; this key retained
-  # only as a transitional fallback for tooling that still reads it.
-  runtimeClassName: gvisor
+  # runtimeClassName moved to canonical helper per ADR-0147 (amended:
+  # Cloud Hypervisor primary). This key retained only as a transitional
+  # fallback for tooling that still reads it; the helper emits kata-clh.
+  runtimeClassName: kata-clh
   poolSize: 10
   perJobTmpfsBytes: 1073741824   # 1 GiB tmpfs
   noNetworkEgress: true

@@ -103,8 +103,10 @@ exportPool:
   gvisor:
     enabled: true
     # runtimeClassName resolved via oya.runtimeClassName.untrustedContent
-    # canonical helper per ADR-0147 (gVisor default; Kata for sovereign tier).
-    runtimeClassName: gvisor
+    # canonical helper per ADR-0147 (amended 2026-05-18: Cloud Hypervisor
+    # primary). Helper emits kata-clh; this key retained only as a
+    # transitional fallback for tooling that still reads it.
+    runtimeClassName: kata-clh
 
 broadcastWorker:
   replicaCount: 2
