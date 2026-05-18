@@ -55,18 +55,6 @@ info() { echo "ℹ $*"; }
 warn() { echo "⚠ $*" >&2; }
 dry()  { echo "[dry-run] $*"; }
 
-# Note: write_file is retained for potential future use by extended steps.
-# shellcheck disable=SC2329
-write_file() {
-    local path="$1"
-    local content="$2"
-    if $DRY_RUN; then
-        dry "Would write: $path"
-    else
-        printf '%s' "$content" > "$path"
-    fi
-}
-
 # ── Verify hook scripts are executable ──────────────────────────────────────
 
 echo ""
