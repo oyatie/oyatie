@@ -1,9 +1,9 @@
 context: connect
-role: shared
+role: kernel
 capability: collab-crdt-portability-kernel
 plane: data
 slo: preview-data-plane
-data_classes_owned: [TENANT_PRIVATE]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT]
 operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed

@@ -1,3 +1,12 @@
+context: foundry
+role: worker
+capability: check-client-stack-discipline
+plane: control
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
 artifact_id: oya-check-client-stack-discipline
 kind: rust-crate
 path: crates/oya-check-client-stack-discipline
