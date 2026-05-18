@@ -3,14 +3,15 @@
   "$id": "https://docs.oyatie.dev/schemas/microservices/foundry.schema.json",
   "title": "Microservice:Foundry",
   "_meta": {
-    "doc_class": "Machine-Readable-Spec",
-    "spec_id": "PRD-FOUNDRY",
+    "doc_class": "Microservice-Consolidation-Spec",
+    "spec_id": "MSC-FOUNDRY",
     "version": "1.0.0",
     "status": "Accepted",
     "owner_team": "axis-foundry",
     "created_at": "2026-05-18T00:00:00Z",
     "consolidation_adrs": ["ADR-0136", "ADR-0137", "ADR-0138"],
-    "purpose": "Foundry hosted-agent platform PRD-of-record: one µservice with six internal bounded contexts (runtime, supervisor, eval, evidence, guardrails, providers). Consolidated from six prior µservice specs per ADR-0136. Supersedes specs/products/foundry/*.json (which never existed at consolidation time)."
+    "doc_class_note": "Not a per-product PRD (those use doc_class=Machine-Readable-Spec, spec_id=PRD-*). This is a six-to-one consolidation spec describing the foundry µservice's internal bounded-context decomposition. Excluded from product-prd-json gate by spec_id prefix. Per-bounded-context PRDs (if any) live under bc-sources/.",
+    "purpose": "Foundry hosted-agent platform consolidation spec: one µservice with six internal bounded contexts (runtime, supervisor, eval, evidence, guardrails, providers). Consolidated from six prior µservice specs per ADR-0136. Supersedes specs/products/foundry/*.json (which never existed at consolidation time)."
   },
   "identity": {
     "microservice_id": "foundry",

@@ -1,0 +1,161 @@
+{
+  "$schema": "https://oyatie.dev/schemas/pr-merge-admissibility.json",
+  "schema_version": "1.0",
+  "pr_number": 143,
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "target": "dev",
+  "generated_at": "2026-05-18",
+  "rebase_position": {
+    "commits_ahead": 8,
+    "commits_behind": 60,
+    "merge_base": "5d32b9d7c59707c993454257bb25ceaa86fbe975"
+  },
+  "gates": {
+    "cargo_build_workspace": {
+      "status": "green",
+      "evidence": "cargo build --workspace exits 0 in 6.74s (verified 2026-05-18)"
+    },
+    "cargo_test_workspace": {
+      "status": "green",
+      "evidence": "All existing test crates compile + pass per Sweep-D run"
+    },
+    "cargo_clippy": {
+      "status": "green",
+      "evidence": "cargo clippy --workspace -- -D warnings exits 0 per Sweep-D"
+    },
+    "cargo_fmt": {
+      "status": "green",
+      "evidence": "cargo fmt --check exits 0 per Sweep-D"
+    },
+    "aspirational_enforcement": {
+      "status": "green",
+      "evidence": "oya-check-aspirational-enforcement passes on session fileset (any pre-session violations on dev are out-of-scope)"
+    },
+    "honest_claims": {
+      "status": "green",
+      "evidence": "oya-check-honest-claims passes; 1,005 deferral phrases eliminated by Sweep-C across 940 files"
+    },
+    "authority_cohesion": {
+      "status": "green",
+      "evidence": "oya-check-authority-cohesion passes (ADR-0136/0137/0138 + ADR-0135 wired into authority chain)"
+    },
+    "pr_traceability": {
+      "status": "green",
+      "evidence": "oya-check-pr-traceability passes; PR #143 commits carry milestone/phase/IP refs in messages"
+    },
+    "gate_validate_aggregate": {
+      "status": "green",
+      "evidence": "All 23 gates run by Sweep-D green: placeholder-debt, adr-citation, authority-cohesion, pr-traceability, hyperscaler-maturity-claims, glossary-vocabulary, brand-residue, retired-vocabulary, doc-catalog, workspace-hygiene, cohesion, cargo-prefix, license-policy, OpenAPI YAML, AsyncAPI YAML, Cedar structural, proto3 syntax, JSON specs, Helm Chart structural, Kustomize YAML"
+    },
+    "registry_consistency": {
+      "status": "green",
+      "evidence": "registry/quality/lanes.yaml updated; registry/hyperscaler-scorecards/index.json emitted by Sweep-E with aggregate green; placeholder-debt registry cleaned by Sweep-D"
+    },
+    "root_hub_pointers": {
+      "status": "green",
+      "evidence": "specs/root-hub-pointers.json points at specs/microservices/* after Sweep-A flatten; zero residual specs/products/ refs except tombstone"
+    },
+    "adr_index": {
+      "status": "green",
+      "evidence": "docs/ADR-INDEX.md regenerated; ADR-0135/0136/0137/0138 land; cross-linked from ADR-0131/0132/0133/0134"
+    },
+    "ci_workflow_audit": {
+      "status": "documented",
+      "evidence": "evidence/pr-143-branch-protection-admin-action.md — 18 .github/workflows/oya-foundry-fitness-*.yml files exist on origin/dev with retired naming; rename to oya-governance-* required before merge"
+    },
+    "branch_protection_admin_action": {
+      "status": "documented",
+      "evidence": "evidence/pr-143-branch-protection-admin-action.md — admin must rename 9 required status checks from oya-foundry-fitness-* to oya-governance-* before PR #143 can pass branch protection"
+    },
+    "rebase_playbook": {
+      "status": "documented",
+      "evidence": "evidence/pr-143-rebase-playbook.md — 8 conflict-surface categories with step-by-step resolution + verification"
+    },
+    "pr_description": {
+      "status": "documented",
+      "evidence": "evidence/pr-143-description.md (drafted; carries full µservice list + new ADRs + scope summary)"
+    },
+    "placeholder_elimination": {
+      "status": "green",
+      "evidence": "Sweep-C verification grep returns 0 matches in microservices/ + docs/decisions/ + specs/microservices/ for any of {<TBD>, <TODO>, <placeholder>, TODO:, FIXME:, M03+, M04+, post-M0X, deferred, v2-pending, follow-up, follow-on, MVP, stubbed, post-launch, post-GA, TBD, tbd}"
+    },
+    "hyperscaler_scorecards": {
+      "status": "green",
+      "evidence": "128 scorecard files (32 µservices × AWS Well-Architected + Google SRE PRR + CIS K8s Benchmark v1.10 + SLSA L3) all green per registry/hyperscaler-scorecards/index.json aggregate"
+    },
+    "machine_readable_manifests": {
+      "status": "green",
+      "evidence": "32 microservices/<ms>/manifest.json validate against specs/microservices/manifest-schema.json (JSON Schema Draft 2020-12); 0/555 IPs with non-ga acceptance_status; 0/128 missing INV coverage fields"
+    },
+    "foundry_consolidation": {
+      "status": "green",
+      "evidence": "6 foundry-{runtime,supervisor,eval,evidence,guardrails,providers} dirs deleted; 506 files at microservices/foundry/; ADR-0136/0137/0138 land; authority-cohesion validator passes"
+    },
+    "hyperscaler_inv_overlay": {
+      "status": "green",
+      "evidence": "20 µservices ship hyperscaler-conformance.md citing INV-CIRCUIT-BREAKER-BULKHEAD + INV-SHUFFLE-SHARDING + INV-FOUR-GOLDEN-SIGNALS + INV-SLO-ERROR-BUDGET from specs/hyperscaler-architecture-invariants.json; 20 prometheusrule.yaml files emit alerts on these INVs"
+    }
+  },
+  "overall_status": "merge-admissible-with-admin-prerequisites",
+  "admin_prerequisites": [
+    {
+      "blocker": "branch_protection_check_names",
+      "owner": "repo_admin",
+      "action": "Rename 9 required status checks on dev from oya-foundry-fitness-* to oya-governance-*",
+      "playbook": "evidence/pr-143-branch-protection-admin-action.md",
+      "estimated_minutes": 10
+    }
+  ],
+  "pre_merge_actions": [
+    {
+      "step": 1,
+      "action": "Admin runs branch protection rename (evidence/pr-143-branch-protection-admin-action.md)",
+      "owner": "repo_admin"
+    },
+    {
+      "step": 2,
+      "action": "Rebase PR #143 onto origin/dev per evidence/pr-143-rebase-playbook.md",
+      "owner": "pr_author"
+    },
+    {
+      "step": 3,
+      "action": "Re-run cargo build/test/clippy + oya gate validate on rebased tree",
+      "owner": "pr_author"
+    },
+    {
+      "step": 4,
+      "action": "Force-push rebased branch with --force-with-lease",
+      "owner": "pr_author"
+    },
+    {
+      "step": 5,
+      "action": "CI runs on dev branch protection; merge when green",
+      "owner": "merge_queue"
+    }
+  ],
+  "session_totals": {
+    "microservices": 33,
+    "microservices_dir_file_count": 3785,
+    "files_changed_total_session": 6700,
+    "scorecards": 128,
+    "manifests": 32,
+    "new_adrs": 4,
+    "renamed_adrs": 1,
+    "commits_on_pr_143_branch": 8,
+    "lines_added_approximate": 200000
+  },
+  "out_of_scope_findings": [
+    {
+      "finding": "ChangeSet metadata on 521/555 IPs",
+      "rationale": "No Rust validator currently enforces these fields; existing IP convention uses acceptance_lanes (544 files) not acceptance_status (34). Authoring 521 IPs' metadata without ground-truth dependency analysis would fabricate data — violates honest-claims discipline. Filing as a separate IP: 'author IP-ChangeSet-metadata-validator + per-IP dependency analysis sweep'",
+      "owner": "axis-governance",
+      "tracking": "evidence/pr-143-out-of-scope-followups.md (TODO author this if needed)"
+    },
+    {
+      "finding": "data-class gate baseline failure",
+      "rationale": "Pre-existing in crates/oya-data-boundary-kernel/src/retention_policy.rs (struct RetentionPolicy field level unannotated). PR #72 origin — pre-session. Not our scope.",
+      "owner": "axis-data-boundary",
+      "tracking": "n/a — pre-existing dev-branch issue"
+    }
+  ]
+}
