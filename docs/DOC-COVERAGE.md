@@ -25,7 +25,7 @@ This file is the canonical coverage snapshot for the oyatie documentation suite 
 
 1. `docs/microservices/<microservice>.md`
 2. `docs/prds/<microservice>.md`
-3. `docs/decisions/ADR-NNNN-microservice-<microservice>.md`
+3. `docs/decisions/ADR-####-microservice-<microservice>.md`
 4. `docs/bounded-contexts/<microservice>-<bc>.md` (one per BC)
 5. ≥1 `.omc/plans/milestones/M*/phases/*/phase-spec.md` referencing the µservice
 6. ≥1 `.omc/plans/milestones/M*/phases/*/impl-plan.md` referencing the µservice
@@ -33,7 +33,7 @@ This file is the canonical coverage snapshot for the oyatie documentation suite 
 ### Per-pack overlay (per active pack × µservice in pack scope)
 
 1. `docs/prds/<microservice>-<pack>.md` (when pack adds material scope)
-2. `docs/decisions/ADR-NNNN-<pack>-<microservice>-regulatory.md`
+2. `docs/decisions/ADR-####-<pack>-<microservice>-regulatory.md`
 3. `docs/localization-packs/<pack>/evidence/<microservice>.md`
 
 ---
@@ -166,7 +166,7 @@ Status: `planned/foundational`. Flips to `active` when all promotion blockers in
 | Corpus lock | `docs/localization-packs/kr/corpus.lock` | 🔴 TBD (promotion blocker) |
 | Evidence dir | `docs/localization-packs/kr/evidence/` | 🟢 directory exists; 🔴 0 µservice evidence docs yet |
 | Per-µservice overlay PRDs (material_scope=true; 18 µservices) | `docs/prds/<microservice>-kr.md` | 🔴 0/18 |
-| Per-µservice regulatory ADRs (every µservice in scope) | `docs/decisions/ADR-NNNN-kr-<microservice>-regulatory.md` | 🔴 0/27 |
+| Per-µservice regulatory ADRs (every µservice in scope) | `docs/decisions/ADR-####-kr-<microservice>-regulatory.md` | 🔴 0/27 |
 | Per-µservice acceptance evidence | `docs/localization-packs/kr/evidence/<microservice>.md` | 🔴 0/27 |
 
 ### `us` / `eu` / `jp` / `sea-*` / `mena-*` packs

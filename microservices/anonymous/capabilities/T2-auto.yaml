@@ -1,0 +1,99 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+# T2 capability: auto-moderation actions (anonymous µservice)
+# Tier per ADR-0119: T2-auto
+# Owner: axis-anonymous + axis-foundry-runtime + council-privacy
+# Privacy invariants enforced: I1, I4, I7
+# Regulatory flags: EU AI Act Art. 50 transparency + EU DSA Art. 14/16/17
+
+capability_id: oya-anonymous-auto-moderate
+tier: T2-auto
+microservice: anonymous
+status: Accepted
+date: 2026-05-17
+owner_team: axis-anonymous
+deciders: axis-foundry-runtime, council-privacy, council-architecture, ops-security
+
+purpose: |
+  Allow the platform to take auto-moderation actions WITHOUT human review when
+  the classifier confidence is extremely high (≥ 0.95) AND the action is
+  reversible AND the affected user can appeal. Reversible auto-actions:
+
+    1. Hide post (soft-hide; visible only to author + moderators) — reversible
+    2. Quarantine post body (hide body, preserve metadata for appeal) — reversible
+    3. Revoke affinity credential (force re-attestation) — reversible by re-attestation
+
+  Per EU AI Act Art. 50 transparency, every auto-action carries the
+  "AI-assessed" label + appeal-link. Per EU DSA Art. 17, statement-of-reasons
+  is delivered to the affected user.
+
+  IRREVERSIBLE actions (hard-delete, ban) are NOT permitted in T2-auto; they
+  require human-moderator review per ADR-COMM-0001 inherited.
+
+scope:
+  authorised:
+    - auto-hide on confidence ≥ 0.95 for CSAM-suspect, threat, doxxing classes
+    - auto-quarantine on confidence ≥ 0.95 for hate-speech class
+    - auto-revoke affinity credential on confidence ≥ 0.95 for impersonation class
+  forbidden:
+    - auto-delete (irreversible; human-only per ADR-COMM-0001)
+    - auto-ban user (irreversible; human-only)
+    - auto-correlate user_id ↔ post_id (I1)
+    - auto-action without ai_assessed_label
+    - auto-action without appeal-link
+    - auto-action without statement-of-reasons (EU DSA Art. 17)
+
+inputs:
+  - classifier_verdict { class, confidence }
+  - target_id
+  - target_kind
+  - tenant_id
+  - applicable_policy_fragment (Cedar policy ID)
+
+outputs:
+  - auto_action_verdict { kind, target_id, ai_assessed_label, appeal_link, statement_of_reasons }
+  - appeal_path_initialized (Boolean)
+  - audit_chain_seal (Merkle root)
+
+human_oversight_required: No (T2-auto by definition); but human review is AVAILABLE on appeal
+risk_class_eu_ai_act: "limited risk" (per ADR-ANON-0005 + Art. 50)
+ai_assessed_label: "T2 — auto-action; AI-assessed; appeal available; classifier_version <version>"
+
+invariant_enforcement:
+  - I1: auto-action does not access user_id; only target_id (blinded post_id) and classifier_verdict
+  - I4: no third-party SDK
+  - I7: auto-action does NOT correlate user_id ↔ post_id (only legal-process-disclosure does)
+  - EU AI Act Art. 50: ai_assessed_label mandatory on every auto-action
+  - EU DSA Art. 14: appeal-link mandatory; appeal handled by human moderator
+  - EU DSA Art. 17: statement-of-reasons mandatory; structured per DSA Annex format
+  - EU DSA Arts. 27/28: auto-action volume reported in quarterly transparency-report
+
+decision_thresholds:
+  - confidence < 0.7 → no auto-action; verdict surfaces to moderator queue only
+  - confidence 0.7-0.95 → T1-assist (human-review); no auto-action
+  - confidence ≥ 0.95 → T2-auto eligible; check action-class
+  - irreversible action (delete, ban) → ALWAYS escalate to human-moderator regardless of confidence
+
+appeal_workflow:
+  - affected user receives notification with: action_kind + ai_assessed_label + appeal_link + statement_of_reasons
+  - appeal opens within 30 days
+  - human-moderator review: upheld | reversed | partial
+  - if reversed: auto-action is reverted; audit-chain seal records the reversal
+  - if upheld: optional escalation to tenant moderator or council
+
+acceptance_criteria:
+  - auto-action latency from classifier verdict p99 ≤ 1 s
+  - every auto-action emits ai_assessed_label (LEAN lane verifies)
+  - every auto-action emits appeal_link (LEAN lane verifies)
+  - every auto-action emits statement_of_reasons (LEAN lane verifies)
+  - appeal-reversal causes immediate state revert (p99 ≤ 30 s)
+  - auto-action volume + reversal rate surfaced in quarterly transparency-report
+
+references:
+  - ADR-0119 capability-tier enum
+  - ADR-ANON-0005 abuse-classifier-bounds
+  - ADR-COMM-0001 moderation chain-of-responsibility (inherited)
+  - EU AI Act Reg. 2024/1689 Art. 50
+  - EU DSA Reg. 2022/2065 Arts. 14, 16, 17, 27, 28
+  - GDPR Art. 22 (automated decision-making; not applicable per ADR-ANON-0005 analysis)
+  - PRD-anonymous FR-19, FR-20
+  - `runbooks/abuse-classifier-rollback.md`

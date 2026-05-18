@@ -1,0 +1,316 @@
+{
+  "schema_version": "1.0",
+  "microservice": "anonymous",
+  "version": "0.1.0",
+  "owner": "axis-anonymous",
+  "bounded_contexts": [
+    {
+      "name": "anonymous",
+      "description": "Bounded context 'anonymous' within anonymous (data plane)",
+      "crates": [
+        "oya-anonymous-affinity-attestation-adapter-oidc",
+        "oya-anonymous-affinity-attestation-adapter-saml",
+        "oya-anonymous-affinity-attestation-kernel",
+        "oya-anonymous-blind-signatures-adapter-ring",
+        "oya-anonymous-blind-signatures-adapter-rust-bls",
+        "oya-anonymous-blind-signatures-kernel",
+        "oya-anonymous-content-moderation-adapter-foundry-runtime",
+        "oya-anonymous-feed-timeline-adapter-meilisearch",
+        "oya-anonymous-feed-timeline-adapter-redis",
+        "oya-anonymous-legal-process-disclosure-adapter-workflow-engine",
+        "oya-anonymous-post-thread-adapter-postgres",
+        "oya-anonymous-post-thread-kernel",
+        "oya-anonymous-pseudonymous-identity-adapter-postgres",
+        "oya-anonymous-pseudonymous-identity-domain",
+        "oya-anonymous-pseudonymous-identity-kernel",
+        "oya-anonymous-pseudonymous-identity-usecase",
+        "oya-anonymous-retention-policy-worker",
+        "oya-anonymous-vote-engine-adapter-redis"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "domain",
+    "kernel",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/anonymous/contracts/openapi/anonymous.yaml"
+    ],
+    "asyncapi": [
+      "microservices/anonymous/contracts/asyncapi/anonymous-events.yaml"
+    ],
+    "proto": [
+      "microservices/anonymous/contracts/proto/anonymous.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "T0-suggest",
+      "file": "microservices/anonymous/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "T1-assist",
+      "file": "microservices/anonymous/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "T2-auto",
+      "file": "microservices/anonymous/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    }
+  ],
+  "slos": [
+    {
+      "name": "anonymous-abuse-classifier-latency",
+      "target": "0.95",
+      "sli": "total:",
+      "file": "microservices/anonymous/slos/abuse-classifier-latency.openslo.yaml"
+    },
+    {
+      "name": "anonymous-affinity-attestation-verify-latency",
+      "target": "0.95",
+      "sli": "total:",
+      "file": "microservices/anonymous/slos/affinity-attestation-verify-latency.openslo.yaml"
+    },
+    {
+      "name": "anonymous-anonymity-correlation-resistance",
+      "target": "1.0",
+      "sli": "sum(rate(oya_anonymous_post_published_total[5m])) -",
+      "file": "microservices/anonymous/slos/anonymity-correlation-resistance.openslo.yaml"
+    },
+    {
+      "name": "anonymous-content-policy-enforcement-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_anonymous_moderation_verdict_total{ai_assessed_label_present=\"true\",appeal_link_present=\"true\",statement_of_reasons_present=\"true\"}[5m]))",
+      "file": "microservices/anonymous/slos/content-policy-enforcement-correctness.openslo.yaml"
+    },
+    {
+      "name": "anonymous-feed-render-latency",
+      "target": "0.95",
+      "sli": "total:",
+      "file": "microservices/anonymous/slos/feed-render-latency.openslo.yaml"
+    },
+    {
+      "name": "anonymous-hard-delete-propagation-correctness",
+      "target": "1.0",
+      "sli": "total:",
+      "file": "microservices/anonymous/slos/hard-delete-propagation-correctness.openslo.yaml"
+    },
+    {
+      "name": "anonymous-legal-process-disclosure-chain-of-custody-correctness",
+      "target": "1.0",
+      "sli": "total:",
+      "file": "microservices/anonymous/slos/legal-process-disclosure-chain-of-custody-correctness.openslo.yaml"
+    },
+    {
+      "name": "anonymous-post-create-latency",
+      "target": "0.95",
+      "sli": "total:",
+      "file": "microservices/anonymous/slos/post-create-latency.openslo.yaml"
+    },
+    {
+      "name": "anonymous-vote-action-latency",
+      "target": "0.99",
+      "sli": "total:",
+      "file": "microservices/anonymous/slos/vote-action-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac-bootstrap",
+      "title": "IP-001: IaC Bootstrap (Helm + Kustomize + per-pack overlays)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-001-iac-bootstrap.md"
+    },
+    {
+      "id": "IP-002-cargo-workspace-kernels",
+      "title": "IP-002: Cargo workspace + kernel crates (per BC, zero-I/O)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-002-cargo-workspace-kernels.md"
+    },
+    {
+      "id": "IP-003-domain-crates-per-bc",
+      "title": "IP-003: Domain crates per BC (pure logic)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-003-domain-crates-per-bc.md"
+    },
+    {
+      "id": "IP-004-postgres-adapters-blinding-migration",
+      "title": "IP-004: Postgres adapters with blinding-column migration",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-004-postgres-adapters-blinding-migration.md"
+    },
+    {
+      "id": "IP-005-redis-cache",
+      "title": "IP-005: Valkey cache (feed + vote-token dedupe + handle-rotation pool)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-005-redis-cache.md"
+    },
+    {
+      "id": "IP-006-affinity-attestation-bc",
+      "title": "IP-006: Affinity-attestation BC end-to-end (OIDC + SAML + ZK-proof)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-006-affinity-attestation-bc.md"
+    },
+    {
+      "id": "IP-007-blind-signatures-crypto",
+      "title": "IP-007: Blind-signatures crypto crate (BBS+ + ring 0.17 behind feature flag)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-007-blind-signatures-crypto.md"
+    },
+    {
+      "id": "IP-008-post-store-bc",
+      "title": "IP-008: Post-store BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-008-post-store-bc.md"
+    },
+    {
+      "id": "IP-009-vote-engine-bc",
+      "title": "IP-009: Vote-engine BC (blinded vote tokens, Wilson ranking)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-009-vote-engine-bc.md"
+    },
+    {
+      "id": "IP-010-abuse-classifier-wire",
+      "title": "IP-010: Abuse-classifier wire (foundry-runtime T1 adapter)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-010-abuse-classifier-wire.md"
+    },
+    {
+      "id": "IP-011-legal-process-workflow",
+      "title": "IP-011: Legal-process workflow (workflow-engine cross-link, dual-control, audit-chain)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-011-legal-process-workflow.md"
+    },
+    {
+      "id": "IP-012-retention-policy-worker",
+      "title": "IP-012: Retention-policy worker (30/60/90-day tiers, hard-delete propagation)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-012-retention-policy-worker.md"
+    },
+    {
+      "id": "IP-013-hard-delete-propagation-chain",
+      "title": "IP-013: Hard-delete propagation chain (Postgres → Valkey → Meilisearch → audit-chain tombstone)",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-013-hard-delete-propagation-chain.md"
+    },
+    {
+      "id": "IP-014-rest-api-openapi-sdk",
+      "title": "IP-014: REST API surface + OpenAPI 3.2.0 contract + SDK generation",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-014-rest-api-openapi-sdk.md"
+    },
+    {
+      "id": "IP-015-hg-anonymous-registration-branch-protection",
+      "title": "IP-015: HG-ANONYMOUS hyperscaler-gate + branch-protection registration",
+      "acceptance_status": "ga",
+      "file": "microservices/anonymous/IP-015-hg-anonymous-registration-branch-protection.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0008",
+      "title": "Data Use Boundary",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0008-data-use-boundary.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.anonymous.T0-suggest",
+      "oya.anonymous.T1-assist",
+      "oya.anonymous.T2-auto"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

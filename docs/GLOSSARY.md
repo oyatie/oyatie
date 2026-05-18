@@ -472,7 +472,7 @@ Per ADR-0105 + ADR-0106: `oya-<context>-<role>[-<capability>]`. Canonical roles:
 
 ### 12.2 ADR naming
 
-`decisions/ADR-NNNN-<kebab-title>.md`. Status header is one of `Accepted`, `Proposed`, `Deprecated`, `Superseded`. Always include `Supersedes:` and `Superseded by:` lines (use `-` if none).
+`decisions/ADR-####-<kebab-title>.md`. Status header is one of `Accepted`, `Proposed`, `Deprecated`, `Superseded`. Always include `Supersedes:` and `Superseded by:` lines (use `-` if none).
 
 ### 12.3 Issue / PR vocabulary
 

@@ -65,7 +65,7 @@ We adopt the **glossary canon** with five rules, an industry-aligned vocabulary 
 | `<shared\|vertical>` (BNF slot2 enum) | `<microservice>` open kebab (BNF v4.1) | ADR-0056 v4.1 |
 | `oya-platform-*` crate prefix | `oya-<microservice>-*` per BNF v4.1 | ADR-0056 |
 | `oya-shared-*` crate prefix for products | `oya-<microservice>-*` per BNF v4.1 (shared only for substrate) | ADR-0056 |
-| M0 / M1 / M2 / M3 / MVP (milestone labels) | Wave names per ADR-0016 | ADR-0016 |
+| M0 / M1 / M2 / M3 / minimum-shippable-tier (milestone labels) | Wave names per ADR-0016 | ADR-0016 |
 
 ### Korean-English parity (illustrative — full list in GLOSSARY.md §9)
 

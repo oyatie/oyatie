@@ -4,8 +4,8 @@ doc_status: published
 # Oyatie ADR Pack
 
 > **Status:** Draft v0.1 — 2026-05-09. The new self-contained ADR pack per user directive 2026-05-09: "I want a consolidated ADR pack. that means no reference to our old ADRs."
-> **Authority:** This pack is the authoritative decisions ledger going forward. Legacy `decisions/ADR-NNNN-*.md` files are RETIRED — they remain in the directory for forensic / git-blame integrity but are NOT referenced from active consolidated docs.
-> **Location:** All new ADRs live at `docs/decisions/ADR-NNNN-<slug>.md`.
+> **Authority:** This pack is the authoritative decisions ledger going forward. Legacy `decisions/ADR-####-*.md` files are RETIRED — they remain in the directory for forensic / git-blame integrity but are NOT referenced from active consolidated docs.
+> **Location:** All new ADRs live at `docs/decisions/ADR-####-<slug>.md`.
 > **Owner:** `crew-adr-promotion` + `council-architecture`.
 
 ---
@@ -79,7 +79,7 @@ doc_status: published
 
 ## 2. Citation rules (effective 2026-05-09)
 
-**Active consolidated docs MUST cite ADRs from this pack ONLY** (`ADR-0001..0051`, plus future pack ADRs after their files exist). Citations to legacy `decisions/ADR-NNNN-*.md` files are forbidden in active docs. CI lane `oya-foundry-fitness-adr-citation` enforces.
+**Active consolidated docs MUST cite ADRs from this pack ONLY** (`ADR-0001..0051`, plus future pack ADRs after their files exist). Citations to legacy `decisions/ADR-####-*.md` files are forbidden in active docs. CI lane `oya-foundry-fitness-adr-citation` enforces.
 
 **Forensic mention** of legacy ADR numbers is allowed only in:
 - `ADR-CONSOLIDATION-PLAN.md` (the meta-doc that documents the consolidation)

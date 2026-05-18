@@ -32,7 +32,7 @@ date: YYYY-MM-DD
 owner_team: <team-id>
 co_owners: [<team-id>]
 reviewers: [<role | agent-id>]
-related_adrs: [ADR-NNNN, ...]
+related_adrs: [ADR-####, ...]
 related_ips: [IP-NNN-<slug>, ...]
 supersedes: [DD-NNNN, ...]
 superseded_by: [DD-NNNN, ...]
@@ -134,7 +134,7 @@ Numbered list. Each item routes to: a future ADR, an IP follow-up, or an explici
 
 ## Cross-references
 
-- ADR(s) authored / amended: `ADR-NNNN`. ADR-0052 (inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim).
+- ADR(s) authored / amended: `ADR-####`. ADR-0052 (inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim).
 - Implementation Plan(s): `IP-NNN-<slug>`.
 - Related design docs: `DD-NNNN`.
 - Hyperscaler practice inherited: per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §<domain>`.

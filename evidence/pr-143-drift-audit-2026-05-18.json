@@ -1,0 +1,239 @@
+{
+  "$schema_note": "Drift audit emitted under /using-agent-skills discipline per user directive 2026-05-18. Branch oya-microservice-flat-layout-buildout-2026-05-17 / PR #143.",
+  "report_id": "pr-143-drift-audit-2026-05-18",
+  "emitted_at_utc": "2026-05-18T00:00:00Z",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "auditor": "claude-opus-4-7 (drift-audit subagent)",
+  "scope": {
+    "directories_swept": [
+      "docs/",
+      "microservices/",
+      "specs/",
+      "evidence/",
+      "registry/",
+      ".omc/hooks/ (verified does not exist on disk)"
+    ],
+    "directories_excluded": [
+      "~/.claude/ (user-scope settings, out of repo scope)",
+      "in-flight test directories",
+      "auto-generated artifacts",
+      "BNF crate paths (oya-platform-*, oya-*-redis*) — FLAGGED but per task instructions retained pending ADR-grade rename"
+    ],
+    "fix_budget": 30,
+    "fix_budget_used": 11,
+    "fix_budget_remaining": 19,
+    "fix_class": "DOC-ONLY text replacement (no code/config changes)",
+    "build_verification": "cargo build --workspace exit code 0 after fixes (only pre-existing dead-code warnings unrelated to edits)"
+  },
+  "method": {
+    "discipline": "agent-skills:using-agent-skills",
+    "principles_applied": [
+      "Surface assumptions before each sweep",
+      "Verify before classifying (read actual content)",
+      "Push back on apparent drift that is actually intentional historical attribution",
+      "Enforce simplicity — one sweep per category",
+      "Scope discipline — audit only; queue most, fix at most 30 inline"
+    ],
+    "supporting_skills": [
+      "agent-skills:code-review-and-quality",
+      "agent-skills:deprecation-and-migration",
+      "agent-skills:documentation-and-adrs"
+    ]
+  },
+  "categories": {
+    "A_deprecated_primitives": {
+      "definition": "Deprecated agent-coord primitives that must have zero ACTIVE canonical references in repo: grit, rtk, icm, vox, direct git/gh as canonical, Bominal-only without inheritance context, Object Graph (renamed to Ontology), platform (renamed to shared).",
+      "total_hits": 1668,
+      "hits_classified": {
+        "grit_active": 0,
+        "rtk_active": 0,
+        "icm_active": 0,
+        "vox_active": 0,
+        "git_push_or_gh_pr_create_as_canonical": 0,
+        "Bominal_total": 1557,
+        "Bominal_active_drift": 0,
+        "Object_Graph_total": 111,
+        "Object_Graph_HARD_drift": 11,
+        "Object_Graph_SOFT_historical_attribution": 100,
+        "platform_terminology_total": "~200+ in prose; ~203 in BNF crate paths",
+        "platform_terminology_HARD_drift_inline_addressed": 1,
+        "platform_terminology_HARD_drift_queued": "BNF crate paths (oya-platform-*) — needs ADR-grade rename per ADR-0184 pattern"
+      },
+      "inline_fixed": 11,
+      "leave_alone_count": 1657,
+      "leave_alone_rationale": [
+        "Bominal references (1557 hits) are parent-codebase inheritance citations per feedback_bominal_inheritance_precedence — Bominal is the canonical parent of oyatie; citing it is MANDATORY, not drift.",
+        "Object Graph hits in MASTERPLAN.md §2.4/§3 glossary/override tables, GLOSSARY.md legacy-term entries, ADR-INDEX.md ADR-0055 ledger row, ADR-LEGACY-REGRESSION-MAPPING.md, CHANGELOG.md historical entries — all are intentional supersession documentation, not drift."
+      ]
+    },
+    "B_superseded_adr_references": {
+      "definition": "Citations to deleted/retired ADRs (0174, 0140) or to queued ADRs as if Accepted (0211, 0212, 0215-0221).",
+      "total_hits": 0,
+      "hits_classified": {
+        "ADR_0174_active_citations": 0,
+        "ADR_0140_active_citations": 0,
+        "ADR_0211_through_0221_Accepted_citations": 0,
+        "ADR_0211_through_0221_files_on_disk": 0,
+        "verification_method": "Checked docs/ADR-INDEX.md and docs/ADR-LEGACY-REGRESSION-MAPPING.md for status rows; checked docs/decisions/ for ADR-NNNN-*.md files"
+      },
+      "inline_fixed": 0,
+      "queued": 1,
+      "queued_item": "queued-adrs-0211-0221-status-clarification (tripwire entry)"
+    },
+    "C_stale_spec_versions": {
+      "definition": "OpenAPI <3.2.0, AsyncAPI <3.1.0, Cedar <4.2",
+      "total_hits": 0,
+      "hits_classified": {
+        "openapi_3_0_or_3_1": 0,
+        "asyncapi_2_x_or_3_0": 0,
+        "cedar_pre_4_2": 0
+      },
+      "inline_fixed": 0,
+      "note": "Prior structural-migration agent already executed these bumps; clean."
+    },
+    "D_stale_tech_stack_residue": {
+      "definition": "Redis-the-product (vs wire-protocol), MinIO, HashiCorp Vault, terraform, cluster autoscaler, Drata/Vanta, Istio sidecar, OPA Gatekeeper, bitnami/* Docker images.",
+      "total_hits": 0,
+      "hits_classified": {
+        "Redis_active_product_ref": 0,
+        "MinIO": 0,
+        "HashiCorp_Vault": 0,
+        "terraform_active": 0,
+        "cluster_autoscaler": 0,
+        "Drata_or_Vanta": 0,
+        "Istio_sidecar": 0,
+        "OPA_Gatekeeper_for_admission": 0,
+        "bitnami_or_hashicorp_docker_images": 0
+      },
+      "inline_fixed": 0,
+      "note": "All clean. Confirmed prior Structural Migration agent already executed Cat-D rewrites (per task description). Spot-check confirmed zero residue."
+    },
+    "E_stale_architectural_framings": {
+      "definition": "ecosystem-marketplace (renamed plugin-app-store), aborted-persona µservices, Foundry-as-external-feature framing, universal-mediator framing, self-merge on CI green, 12-layer enum, gVisor primary.",
+      "total_hits": 0,
+      "hits_classified": {
+        "ecosystem_marketplace_residue": 0,
+        "aborted_persona_uservices_as_live": 0,
+        "Foundry_for_HR_or_customer_features": 0,
+        "Workflow_Ontology_as_universal_mediator": 0,
+        "self_merge_on_CI_green_active": 0,
+        "12_layer_enum_active": 0,
+        "gVisor_primary_active": 0
+      },
+      "inline_fixed": 0,
+      "note": "All clean. Prior plugin-app-store-pivot and ADR-0145/0147/0148 agents executed thoroughly."
+    },
+    "F_hook_references_in_repo": {
+      "definition": "grit/rtk/icm hook references in repo-tracked files; .omc/hooks/grit-*.sh files for deletion.",
+      "total_hits": 0,
+      "hits_classified": {
+        "omc_hooks_directory_exists": false,
+        "grit_hook_claude_active": 0,
+        "rtk_hook_claude_active": 0,
+        "icm_hook_pre_or_post_active": 0
+      },
+      "inline_fixed": 0,
+      "note": "Directory .omc/hooks/ does not exist on disk; nothing to delete."
+    }
+  },
+  "inline_fixed_files": [
+    {
+      "path": "docs/DESIGN.md",
+      "fixes": 3,
+      "fix_descriptions": [
+        "Line 25 (Axis-1 row): 'SaaS multi-tenant platform' → 'SaaS multi-tenant shared substrate'; 'Object Graph' → 'Ontology' with legacy-name attribution; BNF-path retention note added.",
+        "Line 544 (Cross-axis contracts matrix): 'Object Graph property tier' → 'Ontology property tier' with legacy attribution; BNF-path retention note added.",
+        "Line 686 (§13.1 TODO): 'Object Graph' → 'Ontology' with legacy attribution."
+      ]
+    },
+    {
+      "path": "docs/PRD.md",
+      "fixes": 3,
+      "fix_descriptions": [
+        "Line 65 (Tenant builder/IT persona): 'Object Graph' → 'Ontology' with legacy attribution.",
+        "Line 103 (W-SaaS-Preview wave row): 'SaaS platform preview' → 'SaaS shared-substrate preview'; 'Object Graph' → 'Ontology' with legacy attribution.",
+        "Line 180 (SaaS↔Search contract row): 'Object Graph' → 'Ontology' with legacy attribution."
+      ]
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "fixes": 2,
+      "fix_descriptions": [
+        "Line 56 (Foundation gate list): 'Object Graph property tiers ADR' → 'Ontology property tiers ADR' with legacy attribution.",
+        "Line 115 (W-SaaS-Preview §2.4): 'SaaS platform preview' → 'SaaS shared-substrate preview'; 'Object Graph properties' → 'Ontology properties' with legacy attribution."
+      ]
+    },
+    {
+      "path": "docs/SPEC.md",
+      "fixes": 1,
+      "fix_descriptions": [
+        "Line 106 (workspace.forms.submission.ingest row): 'routed into Object Graph' → 'routed into Ontology' with legacy attribution."
+      ]
+    },
+    {
+      "path": "docs/checklists/wave-gate.md",
+      "fixes": 2,
+      "fix_descriptions": [
+        "Line 35 (W-Foundation gate): 'Object Graph property tiers' → 'Ontology property tiers' with legacy attribution.",
+        "Line 38 (W-SaaS-Preview gate): 'Object Graph properties' → 'Ontology properties' with legacy attribution."
+      ]
+    }
+  ],
+  "queued_items": [
+    {
+      "registry": "registry/placeholder-debt/audit-followups.yaml",
+      "id": "oya-platform-bnf-rename-pending-adr",
+      "category": "A (deprecated primitives — BNF crate path scope)",
+      "why_queued": "BNF crate paths (oya-platform-*, oya-*-object-graph-*) touch ~203 occurrences spanning Cargo workspace members, catalog entries, dependency graphs. Cannot be doc-only text fix; requires an ADR-grade canonical-rename decision (analogous to ADR-0184 redis→valkey) with a dual-read/rename transition pattern. Task instructions explicitly excluded BNF paths from inline modification."
+    },
+    {
+      "registry": "registry/placeholder-debt/audit-followups.yaml",
+      "id": "queued-adrs-0211-0221-status-clarification",
+      "category": "B (superseded/queued ADR references)",
+      "why_queued": "Tripwire entry: no current drift detected (zero Accepted citations exist for these missing-on-disk ADR IDs), but recorded so the next audit can re-check. ADR IDs 0211, 0212, 0215, 0216, 0217, 0218, 0219, 0220, 0221 are all absent from docs/decisions/ and absent from any active citation context."
+    }
+  ],
+  "borderline_cases_disclosed": [
+    {
+      "case": "docs/DESIGN.md line 19-25 use of 'engineering platform' as Foundry's compound role-name",
+      "verdict": "NOT drift — left alone",
+      "rationale": "The retired term per MASTERPLAN.md §2.4 is 'platform (architectural)' as a standalone axis label. 'Engineering platform' is a compound name for Foundry's engineering-axis surface (per DESIGN.md §1 Axis 4 cell), which is still canonical per CLAUDE.md and the Foundry-as-internal-only framing. Renaming would damage the Foundry definition."
+    },
+    {
+      "case": "1557 Bominal references across 566 files",
+      "verdict": "NOT drift — left alone",
+      "rationale": "Bominal is the parent codebase per feedback_bominal_inheritance_precedence ([[bominal-inheritance-precedence]]); citing it is MANDATORY for inheritance, glossary translation, ADR-portfolio-parent attribution, and cross-reference. Removing or rewriting these would violate ADR-0060."
+    },
+    {
+      "case": "DESIGN.md §8 historical migration table (lines 472-481) lists oya-platform-* kernel/app split targets",
+      "verdict": "NOT drift — left alone",
+      "rationale": "Per ADR-0015 historical migration ledger; the table is intentionally pinned to the names that shipped at that time. Renaming retroactively would destroy audit-chain provenance."
+    },
+    {
+      "case": "MASTERPLAN.md:438 'Palantir Foundry (Ontology + Object Graph)' competitor parity row",
+      "verdict": "NOT drift — left alone",
+      "rationale": "Palantir's actual taxonomy uses both terms; citing them accurately preserves competitive-parity reasoning. Per /using-agent-skills 'push back' discipline: this is intentional external-attribution, not internal terminology drift."
+    },
+    {
+      "case": "GLOSSARY.md:230, 391, 392 — explicit legacy-term definitions for Object Graph / OG / OG-AG",
+      "verdict": "NOT drift — left alone",
+      "rationale": "Glossaries by definition record retired terms with their canonical successors. Removing the legacy entry would orphan all historical citations and break document-coverage rule."
+    }
+  ],
+  "verification_evidence": {
+    "cargo_build_workspace_exit": 0,
+    "cargo_build_warning_class": "pre-existing dead_code warnings unrelated to text-only edits",
+    "post_fix_grep_object_graph_remaining_hits_in_touched_files": 11,
+    "post_fix_grep_object_graph_remaining_hit_class": "all are now historical-attribution parentheticals ('legacy: Object Graph — renamed per MASTERPLAN.md §2.4')",
+    "no_code_or_config_changes": true
+  },
+  "summary": {
+    "total_categories_swept": 6,
+    "categories_with_HARD_drift_found": 1,
+    "categories_clean": 5,
+    "total_inline_fixes_applied": 11,
+    "total_queue_items_added": 2,
+    "borderline_cases_documented": 5,
+    "headline": "Repo is overwhelmingly clean. Only ACTIVE drift detected was 11 Object Graph / platform prose citations across DESIGN.md / PRD.md / ROADMAP.md / SPEC.md / wave-gate.md — all fixed inline with legacy-attribution parentheticals. BNF crate path rename (oya-platform-*, ~203 occurrences) queued pending ADR-grade decision."
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0",
+  "microservice": "finops-portal",
+  "version": "0.0.1",
+  "status": "full-pack-ready",
+  "seeded_date": "2026-05-18",
+  "pack_expanded_date": "2026-05-18",
+  "owner": "ops-finops",
+  "owner_council": "council-architecture",
+  "doctrine": {
+    "canonical_authority": "ADR-0199",
+    "in_house_roadmap_phase": "phase-2-target",
+    "data_plane_dependency": "OpenCost + Mimir + FOCUS 1.3 (per ADR-0199 D-3..D-4)"
+  },
+  "bounded_contexts": [
+    {
+      "name": "tenant-billing-presentation",
+      "description": "Tenant-facing invoice presentation + drill-down dashboards.",
+      "crates": [
+        "oya-finops-portal-tenant-billing-presentation-kernel",
+        "oya-finops-portal-tenant-billing-presentation-domain",
+        "oya-finops-portal-tenant-billing-presentation-usecase",
+        "oya-finops-portal-tenant-billing-presentation-api",
+        "oya-finops-portal-tenant-billing-presentation-app"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "cost-allocation-policy",
+      "description": "Who-pays-for-what policy editor (shared-resource attribution).",
+      "crates": [
+        "oya-finops-portal-cost-allocation-policy-kernel",
+        "oya-finops-portal-cost-allocation-policy-domain",
+        "oya-finops-portal-cost-allocation-policy-usecase",
+        "oya-finops-portal-cost-allocation-policy-api"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "anomaly-explanation",
+      "description": "Surface why-did-spend-spike root-cause attribution.",
+      "crates": [
+        "oya-finops-portal-anomaly-explanation-kernel",
+        "oya-finops-portal-anomaly-explanation-domain",
+        "oya-finops-portal-anomaly-explanation-usecase"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "focus-export",
+      "description": "FOCUS 1.3 export download surface (per ADR-0199 D-4).",
+      "crates": [
+        "oya-finops-portal-focus-export-kernel",
+        "oya-finops-portal-focus-export-adapter-seaweedfs"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "credit-ledger",
+      "description": "Customer-success negotiated credits + committed-use discount ledger.",
+      "crates": [
+        "oya-finops-portal-credit-ledger-kernel",
+        "oya-finops-portal-credit-ledger-domain",
+        "oya-finops-portal-credit-ledger-usecase"
+      ],
+      "status": "planned"
+    }
+  ],
+  "depends_on": [
+    {"microservice": "observability", "via": "opencost-prom-federation"},
+    {"microservice": "cloud-iac", "via": "seaweedfs-s3"},
+    {"microservice": "tenancy", "via": "tenant-id-resolver"},
+    {"microservice": "audit-chain", "via": "regulator-evidence-emit"}
+  ],
+  "regulatory_pack_compatibility": ["generic", "kr", "eu", "us-healthcare", "us-financial", "us-public-sector"],
+  "lts_pins": {
+    "opencost": "1.110.0",
+    "focus_spec": "1.3",
+    "rust_workspace": "see workspace Cargo.toml"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "FinOpsQuarterlyReport",
+      "TenantInvoiceFinalized",
+      "CostAllocationPolicyChanged",
+      "CreditApplied",
+      "FocusExportDownloaded"
+    ]
+  },
+  "promotion_status": {
+    "current_stage": "full-pack-ready",
+    "next_gate": "IP-001 through IP-015 implemented (crates compile + tests green)",
+    "blocked_by": "implementation phase; planning artifacts complete"
+  },
+  "follow_up_scope_ledger": "evidence/storage-batch-followup-scope.json",
+  "expansion_evidence": "evidence/finops-portal-full-pack-expansion-report.json"
+}

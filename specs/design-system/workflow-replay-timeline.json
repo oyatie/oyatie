@@ -42,8 +42,8 @@
     "crates/oya-saas-workflow-studio-app/tests/replay.rs::test_audit_gap_blocks_retry"
   ],
   "consumers": [
-    "$ref:specs/products/workflow.json#frontend_components",
-    "$ref:specs/products/workflow-studio.json#frontend_components"
+    "$ref:specs/microservices/workflow.json#frontend_components",
+    "$ref:specs/microservices/workflow-studio.json#frontend_components"
   ],
   "verification_commands": [
     "target/debug/oya gate validate product-prd-json",

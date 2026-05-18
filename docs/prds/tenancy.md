@@ -95,7 +95,7 @@ and every oyatie customer organization.
 - Tenant data residency: `jurisdiction_code` pinned at creation; immutable.
 - GDPR Article 17 (right to erasure): deletion workflow generates erasure
   certificate; audit chain proves completeness.
-- Jurisdiction overlay per ADR-0127 + ADR-0140.
+- Jurisdiction overlay per ADR-0127 + ADR-0140 (retired per ADR-0145).
 
 ### Availability + SLO
 - 99.99% monthly (highest bar; Tenancy failure = all products fail for affected
@@ -218,7 +218,7 @@ Cross-region: M03 KR only; post-M03 global per ADR-0117 stages.
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| 1 | Schema-per-tenant vs shared-schema-RLS: decision needed before M02 scaffolding | council-architecture | ADR-XXXX |
+| 1 | Schema-per-tenant vs shared-schema-RLS: decision needed before M02 scaffolding | council-architecture | ADR-#### |
 | 2 | Cell assignment algorithm: consistent hashing or weighted-round-robin? | council-infrastructure | M02/P01 |
 
 ---

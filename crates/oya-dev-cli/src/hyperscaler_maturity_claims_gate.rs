@@ -33,8 +33,8 @@ pub(crate) fn parse_hyperscaler_maturity_claims_validate_args(
 ) -> Result<HyperscalerMaturityClaimsValidateArgs, String> {
     let mut parsed = HyperscalerMaturityClaimsValidateArgs {
         gates_path: PathBuf::from("specs/hyperscaler-gates.json"),
-        workflow_studio_path: PathBuf::from("specs/products/workflow-studio.json"),
-        workflow_path: PathBuf::from("specs/products/workflow.json"),
+        workflow_studio_path: PathBuf::from("specs/microservices/workflow-studio.json"),
+        workflow_path: PathBuf::from("specs/microservices/workflow.json"),
         workspace_hygiene_path: PathBuf::from("specs/workspace-hygiene.json"),
         branch_protection_path: PathBuf::from(".github/branch-protection.yaml"),
         pr_review_workflow_path: PathBuf::from(".github/workflows/pr-review.yml"),

@@ -1,0 +1,191 @@
+---
+doc_class: MultiRegion
+template_id: TPL-MULTI-REGION
+microservice: docs
+status: Accepted
+date: 2026-05-17
+owner_team: ops-sre-reliability + axis-docs + council-privacy
+related_adrs: [ADR-0117, ADR-0140 (retired per ADR-0145), ADR-DOCS-0003]
+doc_status: published
+---
+
+# Multi-Region — docs µservice
+
+## Purpose
+
+Define the per-pack regional deployment topology, residency enforcement, cross-region replication policy, and disaster-recovery + failover model for docs.
+
+## Regional topology
+
+### Pack-to-region mapping (canonical)
+
+| Pack | Primary region | DR region (same jurisdiction) | Postgres cluster | S3 bucket | Valkey cluster |
+|---|---|---|---|---|---|
+| pack-kr | OCI ap-seoul-1 | OCI ap-chuncheon-1 | KR-primary | KR-primary | KR-primary |
+| pack-eu | OCI eu-frankfurt-1 | OCI eu-amsterdam-1 | EU-primary | EU-primary | EU-primary |
+| pack-us | OCI us-ashburn-1 | OCI us-phoenix-1 | US-primary | US-primary | US-primary |
+| pack-us-healthcare | OCI us-ashburn-1 (BAA-eligible) | OCI us-phoenix-1 (BAA-eligible) | US-HIPAA-primary | US-HIPAA-primary | US-HIPAA-primary |
+| pack-jp | OCI ap-tokyo-1 | OCI ap-osaka-1 | JP-primary | JP-primary | JP-primary |
+| pack-sg | OCI ap-singapore-1 | OCI ap-melbourne-1 | SG-primary | SG-primary | SG-primary |
+| pack-au | OCI ap-sydney-1 | OCI ap-melbourne-1 | AU-primary | AU-primary | AU-primary |
+| pack-in | OCI ap-mumbai-1 | OCI ap-hyderabad-1 | IN-primary | IN-primary | IN-primary |
+| pack-br | OCI sa-saopaulo-1 | OCI sa-vinhedo-1 | BR-primary | BR-primary | BR-primary |
+| pack-ae | OCI me-dubai-1 | OCI me-jeddah-1 | AE-primary | AE-primary | AE-primary |
+| pack-ksa | OCI me-jeddah-1 | OCI me-dubai-1 | KSA-primary | KSA-primary | KSA-primary |
+
+### Residency invariants
+
+Per `policy/data-residency.md`:
+- Each tenant pinned to exactly one pack at onboarding.
+- Postgres + S3 + Valkey clusters pack-resident; no cross-pack replication by default.
+- Cross-pack data flow only via Cedar-admitted cross-µservice embed (snapshot only, never raw content).
+
+## Cross-region replication policy
+
+### Within-pack replication (DR)
+
+- Postgres: synchronous replication primary → first replica (intra-AZ), async to off-AZ replica + DR-region replica.
+- S3: per-pack bucket with cross-AZ replication enabled; cross-region DR replication enabled within-jurisdiction only.
+- Valkey: cluster mode with 1 replica per shard; DR-region replica async.
+- Replication factor: 3 (primary + 2 replicas).
+- Replication lag SLO: ≤ 5s within AZ; ≤ 30s cross-AZ; ≤ 60s cross-region (same jurisdiction).
+
+### Cross-pack replication
+
+- **FORBIDDEN by default.**
+- LEAN check `oya-check-cross-pack-replication-prohibition` refuses build if any config introduces cross-pack replication.
+- Cross-pack data flow happens at access-time only (cross-µservice embed snapshot fetch via mTLS); never at-rest.
+
+### Backup + cold storage
+
+- Per-pack S3-compatible cold-tier (OCI Object Storage); WORM via Object Lock for legal-hold blobs.
+- Backup retention: 30d hot + 12mo cold; pack-us-healthcare ≥ 6y.
+- Backup encryption: pack-resident KMS keys; cross-pack restore blocked at KMS level.
+- Backup integrity: weekly hash verification + monthly restore-test drill.
+
+## Disaster recovery
+
+### RTO + RPO
+
+- RTO ≤ 15 min (production tier).
+- RPO ≤ 60s (within-pack same-jurisdiction).
+- DR-region failover: automated via Patroni leader election + DNS update.
+- Failover steps:
+  1. Primary fails health-check; Patroni elects new primary in DR region.
+  2. DNS TTL ≤ 30s; clients re-resolve within 30-60s.
+  3. WebSocket clients reconnect to DR-region gateway; CRDT op spool replayed.
+  4. Worker pods drain pending writes; resume against new primary.
+  5. Audit-chain emission for failover event.
+
+### DR drill cadence
+
+- Quarterly: simulated primary-region outage; failover to DR region; validate audit-chain seal continuity + CRDT state restoration + S3 object integrity.
+- Annual: full-pack restore-from-cold (PITR + WAL replay + S3 object listing).
+- DR-drill evidence committed at `evidence/dr-drills/<pack>-<unix_ts>.json`.
+
+### Failover gate
+
+- Auto-failover requires: primary health-check fail + Patroni quorum + observability `held` SLO state cleared.
+- Manual override: ops-sre-reliability + ops-security 2-person rule via OpenBao JIT.
+
+## Cross-µservice embed across packs
+
+When Doc-A in pack-kr embeds a workflow-studio canvas owned by pack-eu tenant:
+1. Cross-tenant share grant on file (Cedar policy `cross-tenant-embed`).
+2. pack-kr embed-resolver issues mTLS call to pack-eu workflow-studio.
+3. pack-eu source evaluates source-side ACL; returns snapshot only.
+4. Snapshot cached in pack-kr Valkey with TTL ≤ 5min + jitter; invalidates on grant revocation.
+5. Cross-pack mesh latency budget: 200ms p99; timeout 5s; on timeout return prior cached snapshot.
+
+Cross-pack mesh:
+- mTLS between pack mesh-gateways; SPIFFE-identity verified.
+- Network policy: only embed-resolver pods may make cross-pack calls.
+- Per-pack-pair rate limit: max 5k cross-pack req/s.
+
+## Cross-pack share flow (mail bridge)
+
+When Tenant-A (pack-kr) shares a doc with an external recipient in Tenant-B (pack-eu):
+1. Doc stored in pack-kr (Tenant-A's primary); never replicated.
+2. Share-link issued via OpenBao pack-kr key; signed token.
+3. Notification dispatched via `mail` µservice cross-pack delivery (mail µservice's multi-region policy applies).
+4. External recipient's redemption hits pack-kr ingress; share-link verified pack-kr-side.
+
+## Failover scenarios
+
+| Scenario | Detection | Action |
+|---|---|---|
+| Primary Postgres outage (intra-AZ) | health-check fail | Patroni promotes synchronous replica; ≤ 5s |
+| AZ outage | AZ network partition | Patroni promotes cross-AZ replica; ≤ 30s |
+| Region outage | region partition | Patroni promotes DR-region replica; DNS update; ≤ 15 min |
+| Pack-wide outage (cross-jurisdiction) | pack mesh down | NOT covered by failover; pack is residency boundary; tenant degraded until pack recovers; no cross-pack failover |
+| Cross-pack mesh partition | mesh health-check | Cross-µservice embeds return stale snapshot; tenant operational impact bounded |
+| Backup corruption | weekly hash verification | Investigate; if corrupt, restore from prior backup |
+| S3 object integrity drift | per-blob checksum mismatch | Restore from prior version (Object Lock retains) |
+| Valkey CRDT spool loss | health-check + Postgres-replay reconstruction | Reconstruct from Postgres seal-deltas |
+
+## Geo-load-balancing
+
+- Per-pack ingress: tenant API key pre-resolves to pack tag at OIDC issuance; ingress routes to per-pack cluster.
+- Cross-tenant operations: explicit per-tenant pack tag in OIDC; ingress refuses cross-pack route.
+
+## Latency budgets
+
+| Path | p99 budget |
+|---|---|
+| Intra-pack doc-open (cold) | ≤ 300ms |
+| Intra-pack doc-open (warm) | ≤ 100ms |
+| Intra-pack save | ≤ 100ms |
+| Intra-pack collab cursor sync | ≤ 150ms |
+| Cross-pack embed fetch | ≤ 500ms (cross-pack hop adds ≤ 250ms) |
+| Cross-pack share-via-mail dispatch | ≤ 1s |
+
+## References
+
+- ADR-0117: cloud-native infrastructure.
+- ADR-0140: Cedar policy.
+- ADR-DOCS-0003 (export backend selection).
+- `policy/data-residency.md`, `policy/editor-isolation.md`, `incident-response.md`, `failure-modes.md`, `capacity-model.md`.
+- Patroni HA documentation.
+- OCI region map (2026-05).
+
+## Per-Pack Multi-Region Overlay Sections
+
+### pack-kr (ap-seoul-1)
+
+- **Primary region**: ap-seoul-1 (KR; on-shore per KR PIPA Art. 17).
+- **HA topology**: 3 AZs within ap-seoul-1; sync replicas ≥1; streaming replica 2.
+- **DR region**: ap-seoul-2 (warm-standby; tested quarterly).
+- **Cross-pack route**: refused by default; KR PIPA Art. 17 SCC-equivalent required.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-eu (eu-frankfurt-1 + eu-paris-1)
+
+- **Primary region**: eu-frankfurt-1.
+- **HA topology**: 3 AZs.
+- **DR region**: eu-paris-1 (active-passive; SCC-bound by GDPR Chapter V).
+- **EU AI Act**: T1/T2 HR-context overlays REFUSED at Cedar layer for this pack pending ADR-DOCS-0005 conformity assessment.
+- **eIDAS PAdES**: PDF exports may include advanced electronic signature.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-us (us-east-1 + us-west-2)
+
+- **Primary region**: us-east-1; **DR region**: us-west-2.
+- **Cross-pack route**: intra-US cross-region allowed; cross-pack to EU SCC-gated.
+- **RTO/RPO**: ≤15 min / ≤60s.
+
+### pack-us-healthcare (us-east-1-hipaa)
+
+- **Primary region**: us-east-1 HIPAA-eligible zone.
+- **DR region**: us-west-2 HIPAA-eligible (active-passive).
+- **Cross-pack route**: forbidden by default; ePHI must remain in HIPAA-eligible US zones.
+- **BAA**: every cloud provider in scope has a signed BAA.
+- **Attachment scan**: OPSWAT MetaDefender (HIPAA-compliance bar above ClamAV default).
+- **RTO/RPO**: ≤15 min / ≤60s.
+
+### pack-jp (ap-tokyo-1) / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
+
+Per-pack: primary + DR region same-country; cross-pack consent-/treaty-/SDAIA-/ANPD-/DPB-gated per respective law.
+
+- **pack-ae / pack-ksa Hijri/Gregorian dual-calendar rendering** in document timestamps + audit-chain via ICU4X overlay.
+- **pack-ksa Sharia retention extension**: per-tenant retention extension supported; refusal of premature deletion logged.
+- **RTO/RPO** uniform: ≤15 min / ≤60s.

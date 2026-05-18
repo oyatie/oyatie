@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/microservices/foundry.schema.json",
+  "title": "Microservice:Foundry",
+  "_meta": {
+    "doc_class": "Microservice-Consolidation-Spec",
+    "spec_id": "MSC-FOUNDRY",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "axis-foundry",
+    "created_at": "2026-05-18T00:00:00Z",
+    "consolidation_adrs": ["ADR-0136", "ADR-0137", "ADR-0138"],
+    "doc_class_note": "Not a per-product PRD (those use doc_class=Machine-Readable-Spec, spec_id=PRD-*). This is a six-to-one consolidation spec describing the foundry µservice's internal bounded-context decomposition. Excluded from product-prd-json gate by spec_id prefix. Per-bounded-context PRDs (if any) live under bc-sources/.",
+    "purpose": "Foundry hosted-agent platform consolidation spec: one µservice with six internal bounded contexts (runtime, supervisor, eval, evidence, guardrails, providers). Consolidated from six prior µservice specs per ADR-0136. Supersedes specs/products/foundry/*.json (which never existed at consolidation time)."
+  },
+  "identity": {
+    "microservice_id": "foundry",
+    "owning_axis": "axis-foundry",
+    "product_class": "shared-substrate-and-tenant-product",
+    "user_facing_surface": true,
+    "context_model": [
+      "tenant-product",
+      "internal-substrate"
+    ],
+    "bounded_contexts": [
+      "runtime",
+      "supervisor",
+      "eval",
+      "evidence",
+      "guardrails",
+      "providers"
+    ],
+    "directory": "microservices/foundry/",
+    "bc_archive_directory": "microservices/foundry/bc-sources/",
+    "ops_surface": "managed through OpenTofu/Helm subcharts under microservices/foundry/iac/helm/<bc>/; per-BC Kustomize overlays under microservices/foundry/iac/kustomize/{base,overlays/pack-<pack>}/<bc>/"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0019-state-strategy-enum.md",
+      "$ref:bominal/decisions/ADR-0028-audit-chain-ed25519-merkle.md"
+    ],
+    "oyatie_adrs": [
+      "ADR-0022",
+      "ADR-0024",
+      "ADR-0025",
+      "ADR-0056",
+      "ADR-0105",
+      "ADR-0106",
+      "ADR-0110",
+      "ADR-0114",
+      "ADR-0117",
+      "ADR-0123",
+      "ADR-0139",
+      "ADR-0131",
+      "ADR-0132",
+      "ADR-0133",
+      "ADR-0136",
+      "ADR-0137",
+      "ADR-0138"
+    ],
+    "oyatie_specs": [
+      "$ref:/specs/per-microservice-flat-layout.json",
+      "$ref:/specs/hyperscaler-gates.json",
+      "$ref:/specs/agent-operating-contract.json"
+    ]
+  },
+  "bounded_contexts_detail": {
+    "runtime": {
+      "purpose": "Hosts the capability invocation hot path — capability executor, session state, invocation lifecycle orchestrator, runtime pod pool, capability registry cache.",
+      "owner_sub_axis": "axis-foundry-runtime",
+      "tenant_facing": true,
+      "headline_nfr": {
+        "metric": "dispatch_p99_ms",
+        "target": 50,
+        "envelope_note": "excludes LLM round-trip"
+      },
+      "contract_surface": {
+        "openapi": "microservices/foundry/contracts/openapi/runtime-foundry-runtime.yaml",
+        "asyncapi": "microservices/foundry/contracts/asyncapi/runtime-foundry-runtime-events.yaml",
+        "proto": "microservices/foundry/contracts/proto/runtime-foundry-runtime.proto"
+      },
+      "ip_range": "IP-001..IP-015",
+      "bc_archive": "microservices/foundry/bc-sources/runtime/"
+    },
+    "supervisor": {
+      "purpose": "Control plane — fleet lifecycle, capability deployment, kill-switch + circuit-breaker, autonomy policy enforcement, supervision event bus.",
+      "owner_sub_axis": "axis-foundry-supervisor",
+      "tenant_facing": true,
+      "headline_nfr": {
+        "metric": "command_propagation_p99_s",
+        "target": 5
+      },
+      "contract_surface": {
+        "openapi": "microservices/foundry/contracts/openapi/supervisor-foundry-supervisor.yaml",
+        "asyncapi": "microservices/foundry/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml",
+        "proto": "microservices/foundry/contracts/proto/supervisor-foundry-supervisor.proto"
+      },
+      "ip_range": "IP-016..IP-030",
+      "bc_archive": "microservices/foundry/bc-sources/supervisor/"
+    },
+    "eval": {
+      "purpose": "Eval harness — eval runner, parity analyzer, replay engine, golden-output store.",
+      "owner_sub_axis": "axis-foundry-eval",
+      "tenant_facing": true,
+      "headline_nfr": {
+        "metric": "eval_scheduling_p99_ms",
+        "target": 500
+      },
+      "contract_surface": {
+        "openapi": "microservices/foundry/contracts/openapi/eval-eval-runner.yaml",
+        "asyncapi": "microservices/foundry/contracts/asyncapi/eval-eval-events.yaml",
+        "proto": "microservices/foundry/contracts/proto/eval-eval_runner.proto"
+      },
+      "ip_range": "IP-031..IP-045",
+      "bc_archive": "microservices/foundry/bc-sources/eval/"
+    },
+    "evidence": {
+      "purpose": "Capability-invocation recorder, evidence pack builder, regulator export, audit-chain bridge.",
+      "owner_sub_axis": "axis-foundry-evidence",
+      "tenant_facing": true,
+      "headline_nfr": {
+        "metric": "pack_assembly_p99_s_per_100MB",
+        "target": 2
+      },
+      "contract_surface": {
+        "openapi": "microservices/foundry/contracts/openapi/evidence-foundry-evidence.yaml",
+        "asyncapi": "microservices/foundry/contracts/asyncapi/evidence-foundry-evidence-events.yaml",
+        "proto": "microservices/foundry/contracts/proto/evidence-foundry-evidence.proto"
+      },
+      "ip_range": "IP-046..IP-060",
+      "bc_archive": "microservices/foundry/bc-sources/evidence/"
+    },
+    "guardrails": {
+      "purpose": "Prompt classifier, output validator, autonomy-tier gate, content-safety rule engine, jailbreak detector, AI-slop detector.",
+      "owner_sub_axis": "axis-foundry-guardrails",
+      "tenant_facing": false,
+      "headline_nfr": {
+        "metric": "inline_check_p99_ms",
+        "target": 20
+      },
+      "contract_surface": {
+        "openapi": "microservices/foundry/contracts/openapi/guardrails-guardrails.yaml",
+        "asyncapi": "microservices/foundry/contracts/asyncapi/guardrails-decision-events.yaml",
+        "proto": "microservices/foundry/contracts/proto/guardrails-guardrails.proto"
+      },
+      "ip_range": "IP-061..IP-075",
+      "bc_archive": "microservices/foundry/bc-sources/guardrails/"
+    },
+    "providers": {
+      "purpose": "LLM provider router + 8 adapters (Anthropic API + Subscription, OpenAI API + Subscription, Gemini API + Subscription, in-house, OpenBao credential isolation).",
+      "owner_sub_axis": "axis-foundry-providers",
+      "tenant_facing": true,
+      "headline_nfr": {
+        "metric": "router_decision_p99_ms",
+        "target": 5
+      },
+      "contract_surface": {
+        "openapi": "microservices/foundry/contracts/openapi/providers-provider-router.yaml",
+        "asyncapi": "microservices/foundry/contracts/asyncapi/providers-provider-events.yaml",
+        "proto": "microservices/foundry/contracts/proto/providers-provider-invoke.proto"
+      },
+      "ip_range": "IP-076..IP-090",
+      "bc_archive": "microservices/foundry/bc-sources/providers/"
+    }
+  },
+  "cross_bc_invariants": [
+    {
+      "id": "FR-X1",
+      "rule": "Every invocation traverses supervisor (admit) → runtime (dispatch) → guardrails (pre-check) → providers (LLM call) → guardrails (post-check) → evidence (seal) → runtime (return)."
+    },
+    {
+      "id": "FR-X2",
+      "rule": "Capability deployment by supervisor mirrors to runtime registry-cache within 30s."
+    },
+    {
+      "id": "FR-X3",
+      "rule": "Provider credential rotation drains in-flight invocations bound to old credential generation."
+    },
+    {
+      "id": "FR-X4",
+      "rule": "Autonomy-tier violation refuses dispatch + emits AutonomyViolationDetected."
+    },
+    {
+      "id": "FR-X5",
+      "rule": "Eval harness consumes capability descriptors from supervisor mirror; replays through runtime sandbox pool."
+    },
+    {
+      "id": "FR-X6",
+      "rule": "Evidence packs aggregate contributions from all 6 BCs."
+    },
+    {
+      "id": "FR-X7",
+      "rule": "Kill-switch by supervisor halts runtime fleets within 10s + emits audit-chain record."
+    }
+  ],
+  "cross_bc_events": [
+    {"event": "CapabilityRegistryUpdated", "producer": "supervisor", "consumers": ["runtime"]},
+    {"event": "KillSwitchEngaged", "producer": "supervisor", "consumers": ["runtime", "evidence"]},
+    {"event": "SupervisionCommandIssued", "producer": "supervisor", "consumers": ["evidence"]},
+    {"event": "CapabilityVersionPromotionRequested", "producer": "supervisor", "consumers": ["eval"]},
+    {"event": "ProviderCredentialRotated", "producer": "providers", "consumers": ["runtime"]},
+    {"event": "ProviderReceiptEmitted", "producer": "providers", "consumers": ["evidence"]},
+    {"event": "GuardrailRulesetUpdated", "producer": "guardrails", "consumers": ["runtime"]},
+    {"event": "GuardrailDecisionEmitted", "producer": "guardrails", "consumers": ["evidence"]},
+    {"event": "EvalRunCompleted", "producer": "eval", "consumers": ["supervisor"]},
+    {"event": "EvalEvidenceEmitted", "producer": "eval", "consumers": ["evidence"]},
+    {"event": "InvocationCompleted", "producer": "runtime", "consumers": ["evidence"]},
+    {"event": "AutonomyViolationDetected", "producer": "runtime", "consumers": ["guardrails", "supervisor", "evidence"]},
+    {"event": "RuntimePodDrainCompleted", "producer": "runtime", "consumers": ["supervisor"]}
+  ],
+  "ci_lanes_required_green": [
+    "oya gate validate lean-a1 --microservice foundry",
+    "oya gate validate lean-a2 --microservice foundry",
+    "oya gate validate port-location --microservice foundry",
+    "oya gate validate layer-correctness --microservice foundry",
+    "oya gate validate per-microservice-layout --microservice foundry",
+    "oya gate validate statelessness --microservice foundry",
+    "oya gate validate shardability --microservice foundry",
+    "oya gate validate authority-cohesion",
+    "oya gate validate foundry-bc-boundary",
+    "oya gate validate foundry-bc-source-coherence",
+    "oya gate validate foundry-six-path-zero-usage"
+  ],
+  "hyperscaler_gate": {
+    "id": "HG-FOUNDRY",
+    "definition_source": "specs/hyperscaler-gates.json",
+    "consolidation_replaces": ["HG-FR", "HG-FS", "HG-FE", "HG-FEV", "HG-FG", "HG-FP"]
+  },
+  "deprecation": {
+    "supersedes_paths": [
+      "microservices/foundry-runtime/",
+      "microservices/foundry-supervisor/",
+      "microservices/foundry-eval/",
+      "microservices/foundry-evidence/",
+      "microservices/foundry-guardrails/",
+      "microservices/foundry-providers/"
+    ],
+    "supersedes_specs": [
+      "specs/products/foundry/*"
+    ],
+    "supersedes_adr": "ADR-0138",
+    "strangler_phase_at_creation": "Phase 0 — atomic consolidation",
+    "soak_end_date": "2026-11-18",
+    "blocker_promotion_date": "2026-11-18"
+  },
+  "asset_counts": {
+    "total_artifacts": 493,
+    "catalog_records": 135,
+    "implementation_plans": 90,
+    "runbooks": 36,
+    "dashboards": 18,
+    "capabilities": 18,
+    "slos": 4,
+    "contracts_openapi": 6,
+    "contracts_asyncapi": 6,
+    "contracts_proto": 6,
+    "policy_files": 41,
+    "iac_artifacts": 53,
+    "bc_archive_files": 80
+  },
+  "references": {
+    "prd": "microservices/foundry/PRD.md",
+    "phase_01": "microservices/foundry/PHASE-01-FOUNDRY-FOUNDATION.md",
+    "threat_model": "microservices/foundry/threat-model.md",
+    "dpia": "microservices/foundry/dpia.md",
+    "compliance": "microservices/foundry/compliance.md",
+    "cost_budget": "microservices/foundry/cost-budget.md",
+    "multi_region": "microservices/foundry/multi-region.md",
+    "incident_response": "microservices/foundry/incident-response.md",
+    "capacity_model": "microservices/foundry/capacity-model.md",
+    "failure_modes": "microservices/foundry/failure-modes.md",
+    "sdk_plan": "microservices/foundry/sdk-plan.md",
+    "competitor_parity": "microservices/foundry/competitor-parity-matrix.md",
+    "backfill_replay": "microservices/foundry/backfill-replay.md",
+    "bc_archive": "microservices/foundry/bc-sources/"
+  }
+}

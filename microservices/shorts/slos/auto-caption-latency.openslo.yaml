@@ -1,0 +1,48 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: shorts-auto-caption-latency
+  displayName: "shorts: auto-caption p95 ≤ video-duration × 0.3"
+  labels:
+    microservice: shorts
+    bc: accessibility-captions
+    sli_class: latency
+    owner_team: axis-shorts + axis-foundry-runtime
+    pack_scope: all
+spec:
+  description: |
+    Time from `VideoUploaded` event (transcode-complete) to caption-track
+    available. Measured as wallclock-time / source-video-duration ratio.
+    Budget: 0.3× (real-time × 0.3); via foundry-runtime ASR (Whisper-class T1
+    capability).
+    Reference: PRD §Performance NFR row 7; capabilities/T1-assist.yaml.
+    EU AI Act Art. 50 transparency label required on emitted caption track.
+  service: shorts
+  indicator:
+    metadata:
+      name: shorts-auto-caption-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_shorts_caption_generation_video_duration_ratio_bucket{le="0.3"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_shorts_caption_generation_video_duration_ratio_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 caption-gen wallclock ≤ 0.3 × source-video-duration"
+  alertPolicies:
+    - alertPolicyRef: shorts-auto-caption-fast-burn-1h-14x

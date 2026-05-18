@@ -19,7 +19,7 @@ doc_status: published
 
 The PRD declares horizontal-scale-end-to-end and cell-isolation-evidence as foundation invariants. Without explicit cell architecture, the flat-catalog cohesion claim degrades in two predictable ways: (a) a single tenant's runaway query, audit emission, or capability invocation starves other tenants in the same shared compute pool; (b) regulator-required isolation evidence (KR CSAP, K-ISMS-P; EU GAIA-X; US FedRAMP; SOC 2 CC7) cannot be produced because the deployment topology has no isolation primitive smaller than "region." LEDG-010 captures the prior single-cluster OCI posture as a contradiction with the AWS-class cloud claim; this ADR closes it.
 
-The cell concept is well established in industry (AWS cell-based architecture, Google's per-locale shards, Azure scale units) and provides the right size — large enough for operational efficiency, small enough that a noisy-neighbor incident is bounded to a known blast radius. Oyatie's flat-catalog posture intensifies the requirement: a cell needs to absorb cross-microservice traffic for the tenants it hosts (workflow + connect + capability + cloud + search + ads) and must isolate audit-chain shards (ADR-0003), eventing partitions (ADR-0005), Ontology row-level boundaries (ADR-0006), and HSM partitions (KCMVP, FIPS 140-3) cleanly.
+The cell concept is well established in industry (AWS cell-based architecture, Google's per-locale shards, Azure scale units) and provides the right size — large enough for operational efficiency, small enough that a noisy-neighbor incident is bounded to a known blast radius. Oyatie's flat-catalog posture intensifies the requirement: a cell needs to absorb cross-microservice traffic for the tenants it hosts (workflow + connect + capability + cloud + search + ads) and must isolate audit-chain shards (ADR-0003), eventing partitions (ADR-0005), Ontology row-level boundaries (ADR-0006), and HSM partitions (KCminimum-shippable-tier, FIPS 140-3) cleanly.
 
 ---
 
@@ -52,7 +52,7 @@ pub struct Cell {
     pub az: AvailabilityZone,         // intra-region failure domain
     pub tier: CellTier,
     pub tenants: BTreeSet<TenantId>,
-    pub hsm_partition: HsmPartitionRef,  // per-cell KCMVP / FIPS 140-3 partition
+    pub hsm_partition: HsmPartitionRef,  // per-cell KCminimum-shippable-tier / FIPS 140-3 partition
     pub broker_pool: BrokerPoolRef,      // per-cell or per-region pool with cell-keyed partitions (ADR-0005)
     pub audit_shard: AuditShardRef,      // ADR-0003
     pub ontology_shard: OntologyShardRef,  // ADR-0006 Citus shard
@@ -70,7 +70,7 @@ pub struct Cell {
 
 ### Per-cell HSM partition
 
-Every cell has its own KCMVP-validated (KR), FIPS 140-3 (US/EU), or per-region equivalent HSM partition. Per-record DEK lives in the cell's HSM; KEK is per-cell. DSR-driven shred destroys the DEK in the cell's HSM, fulfilling cryptographic-erasure requirements (ADR-0008 §8). HSM lead time is 6–9 months for KR CSAP / KCMVP; cell architecture must factor this into capacity planning.
+Every cell has its own KCminimum-shippable-tier-validated (KR), FIPS 140-3 (US/EU), or per-region equivalent HSM partition. Per-record DEK lives in the cell's HSM; KEK is per-cell. DSR-driven shred destroys the DEK in the cell's HSM, fulfilling cryptographic-erasure requirements (ADR-0008 §8). HSM lead time is 6–9 months for KR CSAP / KCminimum-shippable-tier; cell architecture must factor this into capacity planning.
 
 ### Cell-isolation evidence (quarterly)
 
@@ -152,7 +152,7 @@ Evidence emits to the trust portal per ADR-0003.
 
 - `docs/DESIGN.md` §9 (horizontal scalability primitives — cell routing)
 - `docs/PRD.md` §6 constraint 3 (tenancy isolation under formal proof), constraint 6 (horizontal scaling end-to-end)
-- `docs/COMPLIANCE-MATRIX.md` (KR CSAP, K-ISMS-P, KCMVP HSM; EU GAIA-X; US FedRAMP; SOC 2 CC7)
+- `docs/COMPLIANCE-MATRIX.md` (KR CSAP, K-ISMS-P, KCminimum-shippable-tier HSM; EU GAIA-X; US FedRAMP; SOC 2 CC7)
 - `docs/CONTRADICTION-LEDGER.md` LEDG-010 (single-cluster posture)
 - `docs/GLOSSARY.md` §1 ("Cell architecture", "Shuffle sharding") — AWS canon
 - ADR-0001 (cohesion), ADR-0002 (Tenant.region_binding), ADR-0003 (audit shards), ADR-0005 (per-cell partition keys), ADR-0006 (Citus shard), ADR-0010 (regional pack residency contract)

@@ -228,7 +228,7 @@ icm store \
 ## References
 
 - Milestone README: `../../README.md`
-- Bominal ADRs inherited: `<ADR-NNNN (inherited)>`
-- oyatie ADRs cited: `ADR-XXXX`
+- Bominal ADRs inherited: `<ADR-#### (inherited)>`
+- oyatie ADRs cited: `ADR-####`
 - Memory files: `feedback_milestone_phase_hierarchy.md`,
   `feedback_grit_claim_work_done.md`, `feedback_naming_justification.md`

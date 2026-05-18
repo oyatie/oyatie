@@ -1,0 +1,24 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-anonymous-legal-process-disclosure-adapter-workflow-engine
+role: adapter
+context: anonymous
+plane: data
+backend: workflow-engine
+lts_pin: "workflow-engine-1.x"
+slo: legal-process-disclosure-chain-of-custody-correctness
+contracts_consumed: [oya-anonymous-legal-process-disclosure-kernel]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-uk, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-ANON-0003]
+allowed_dependency_edges: [oya-anonymous-legal-process-disclosure-kernel]
+data_classes_owned: [AUDIT, PII_IDENTIFYING]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T0
+regulatory_flags:
+  - ECPA / SCA
+  - UK Investigatory Powers Act 2016
+  - KR 통신비밀보호법
+  - JP 通信の秘密
+  - "EU DSA Art. 27 — transparency"

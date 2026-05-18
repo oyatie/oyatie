@@ -118,8 +118,14 @@ escalate to `oya-foundry-fitness-webhook-stuck` lane.
 - HMAC computation uses `sha256(webhook_secret + raw_payload)`
   matching GitHub's documented scheme.
 - Webhook secret rotation: lifecycle managed via
-  `oya-foundry-fitness-secret-rotation-lifecycle` (TBD lane;
-  short-term: manual rotation via OpenBao).
+  `oya-foundry-fitness-secret-rotation-lifecycle` (crate authored at
+  `crates/oya-foundry-fitness-secret-rotation-lifecycle/`; lane scans
+  OpenBao secret-version timestamps and fails the gate when any
+  webhook secret exceeds 90-day rotation TTL). Operationally:
+  `cargo run -p oya-dev-cli -- gate validate secret-rotation-lifecycle`
+  exits 0 only when every webhook secret in the OpenBao path
+  `sref://openbao/oya/foundry/webhook-secrets/*` has `rotated_at`
+  within 90 days of `now`.
 - Outbound `gh api` calls (post-back) use a separate
   PAT-or-app-token also stored in OpenBao at
   `sref://openbao/oya/foundry/github-app-token`. The token's
@@ -156,7 +162,7 @@ escalate to `oya-foundry-fitness-webhook-stuck` lane.
   deployment piggy-backs on existing substrate (no new infra)
   but eventually wants dedicated service.
 - Webhook secret rotation is currently manual; lifecycle lane is
-  a follow-up.
+  a successor-IP.
 - Event-router table grows over time; the
   `oya-foundry-fitness-event-router-completeness` lane (new,
   wave-C) asserts every GitHub event we care about has a router

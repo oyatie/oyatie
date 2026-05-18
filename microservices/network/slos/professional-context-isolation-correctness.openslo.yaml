@@ -1,0 +1,86 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: network-professional-context-isolation-correctness
+  displayName: "network: Professional-context isolation + integrity-class invariants correctness = 100 %"
+  labels:
+    microservice: network
+    bc: cross-cutting
+    sli_class: correctness
+    tier: hero-product
+    owner_team: axis-network + ops-security + council-privacy + ops-compliance
+    pack_scope: all
+spec:
+  description: |
+    Correctness SLO covering load-bearing policy + integrity invariants:
+      - Professional-context isolation (PCI-01..PCI-10)
+      - Pack residency (FM-13)
+      - Tenant-scope (T-I-01 / FM-07 RLS)
+      - Endorsement-chain integrity (FM-14)
+      - Four-eyes disclosure pairing (FM-12)
+      - Minor-account leak / pivot (FM-16)
+      - InMail-bridge Professional-tier guard (PCI-09)
+      - Recruiter cross-tenant attempt (PCI-10)
+
+    A measurement window is "good" when the sum of the following violation
+    counters is exactly zero:
+
+      - oya_network_professional_context_violation_total
+      - oya_network_pack_residency_violation_total
+      - oya_network_cross_tenant_leak_detector_total
+      - oya_network_endorsement_chain_integrity_failure_total
+      - oya_network_endorsement_signature_verify_failure_total
+      - oya_network_four_eyes_pairing_violation_total
+      - oya_network_minor_protect_unauthorized_read_total
+      - oya_network_inmail_bridge_personal_tier_attempt_total
+      - oya_network_recruiter_cross_tenant_attempt_total
+
+    Target: 100 %. Any non-zero violation is a Sev-1 incident and burns the
+    entire 30d window's budget (zero-budget; no error budget for security +
+    privacy + integrity invariants). This is the load-bearing SLO that
+    underpins SOC 2 CC6.1 / CC6.6, ISO 27001 A.5.34, GDPR Art. 25, KR PIPA
+    Art. 28, HIPAA §164.312, EU AI Act + NYC LL144 + EEOC + CA AB-331 + CO
+    SB 24-205 reporting fidelity.
+  service: network
+  indicator:
+    metadata:
+      name: network-professional-context-isolation-correctness
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                # Number of 5-minute windows with zero violations across all invariants
+                count_over_time(
+                  (
+                    (sum(increase(oya_network_professional_context_violation_total[5m])) or vector(0)) +
+                    (sum(increase(oya_network_pack_residency_violation_total[5m])) or vector(0)) +
+                    (sum(increase(oya_network_cross_tenant_leak_detector_total[5m])) or vector(0)) +
+                    (sum(increase(oya_network_endorsement_chain_integrity_failure_total[5m])) or vector(0)) +
+                    (sum(increase(oya_network_endorsement_signature_verify_failure_total[5m])) or vector(0)) +
+                    (sum(increase(oya_network_four_eyes_pairing_violation_total[5m])) or vector(0)) +
+                    (sum(increase(oya_network_minor_protect_unauthorized_read_total[5m])) or vector(0)) +
+                    (sum(increase(oya_network_inmail_bridge_personal_tier_attempt_total[5m])) or vector(0)) +
+                    (sum(increase(oya_network_recruiter_cross_tenant_attempt_total[5m])) or vector(0))
+                    == 0
+                  )[5m:5m]
+                )
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                count_over_time(vector(1)[5m:5m])
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 1.0
+      displayName: "100 % correctness over 30d (zero violation tolerance for integrity + isolation invariants)"
+  alertPolicies:
+    - alertPolicyRef: network-correctness-immediate-page

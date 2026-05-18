@@ -28,13 +28,13 @@ After deletion, the question was: do we reintroduce them? The user's
 directive that defines the answer:
 
 > "Reintroduce them with real implementation not just stubs and finish
-> the deferred items as well. ... Our toolchain expands with expansion
+> the scheduled-for-distinct-tracked-work items as well. ... Our toolchain expands with expansion
 > of our ecosystem."
 
 The principle: a crate exists when the part of the ecosystem it serves
-exists. Premature crate-shelling is the failure mode; deferred-on-ship
+exists. Premature crate-shelling is the failure mode; scheduled-for-distinct-tracked-work-on-ship
 is the success mode. This ADR formalizes the rule and records which of
-the 18 deleted crates were reintroduced now, which are deferred to
+the 18 deleted crates were reintroduced now, which are scheduled-for-distinct-tracked-work to
 ecosystem-trigger, and what the trigger is for each deferral.
 
 ## Decision
@@ -57,10 +57,10 @@ target surface exists.
 |---|---|---|
 | `oya-check-statelessness` | **REINTRODUCED** with real implementation (commit after `34c62f2`). | Workspace has 79 outer-ring source files; lane runs against them today and exits clean. |
 | `oya-check-shardability` | **REINTRODUCED** with real implementation. | Currently scans `migrations/` (empty until M02-P04 audit-chain ships PostgreSQL+Citus schema). Lane refuses to falsely claim pass on empty input (requires `--allow-empty`). Becomes mechanically enforcing once the substrate ships migrations. |
-| `oya-check-perf-budget` | **REINTRODUCED** with real implementation. | Scans IP markdowns under `.omc/plans/milestones/`. Already surfaces 2 real violations (IP-001-saas-pairs, IP-002-cloud-pairs) — driven to zero in follow-up. |
+| `oya-check-perf-budget` | **REINTRODUCED** with real implementation. | Scans IP markdowns under `.omc/plans/milestones/`. Already surfaces 2 real violations (IP-001-saas-pairs, IP-002-cloud-pairs) — driven to zero in successor-IP. |
 | `oya-check-benchmark` | **REINTRODUCED** with real implementation. | Scans PRDs. Currently surfaces 7 real violations across docs/prds/ + docs/products/. Follow-up: per-PRD `## Competitive benchmark` authoring sweep. |
 
-**Cloud-adapter family** — deferred to consumer-ship.
+**Cloud-adapter family** — scheduled-for-distinct-tracked-work to consumer-ship.
 
 Twelve `oya-cloud-{billing,marketplace,capacity,data,finops,observability}-adapter-{aws,fake,oci}` crates were deleted. They are NOT being reintroduced today because:
 
@@ -96,7 +96,7 @@ deleted form. The pair was never coherent.
 ## Consequences
 
 - **The 18-crate ledger is no longer a hidden defect.** Future audits run against the audit-named patterns and find no doc-stub residue.
-- **`specs/crate-naming-audit.json` must be amended** to reflect the new state: 4 check-lane reintroductions are now compliant; 14 deferred crates are tracked but not workspace.members.
+- **`specs/crate-naming-audit.json` must be amended** to reflect the new state: 4 check-lane reintroductions are now compliant; 14 scheduled-for-distinct-tracked-work crates are tracked but not workspace.members.
 - **`specs/masterplan.json` adds a new section** (or extends the M02-P18 phase descriptors) documenting that each cloud sub-µservice's adapter family ships in the same PR as its runtime.
 - **PR template gains a new check**: any new `*-adapter-*` crate must declare a consumer in the same PR. Mechanical-prevention candidate landed separately as `oya-foundry-fitness-adapter-with-no-importer-kernel`; do not extend the retired archive-orphan lane (ADR-0118).
 - **The "toolchain expands with the ecosystem" principle is now ADR-anchored** — agents and humans cite this ADR to refuse premature crate creation.

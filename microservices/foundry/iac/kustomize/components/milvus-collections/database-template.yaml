@@ -1,0 +1,14 @@
+# Per-µservice Milvus database. Overlays patch `metadata.name` to the
+# canonical per-µservice value (e.g., `foundry`, `search`, `connect`).
+apiVersion: milvus.io/v1alpha1
+kind: MilvusDatabase
+metadata:
+  name: REPLACE_DATABASE
+  annotations:
+    oya.adr: "0192"
+spec:
+  cluster:
+    name: oya-foundry-milvus  # Helm release name
+  properties:
+    db.replica.num: "2"
+    db.resource_groups: '["__default_resource_group"]'

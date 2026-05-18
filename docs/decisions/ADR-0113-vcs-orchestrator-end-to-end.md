@@ -114,8 +114,13 @@ fail per ADR-0110 update).
 The caps are CONFIGURABLE per changeset but bounded by the team's
 monthly budget (per `feedback_quality_performance_scalability_bar`
 hyperscaler economics) — the
-`oya-foundry-fitness-changeset-cost-budget-monthly` lane (TBD)
-asserts cumulative monthly spend per team stays under the cap.
+`oya-foundry-fitness-changeset-cost-budget-monthly` lane
+(crate at `crates/oya-foundry-fitness-changeset-cost-budget-monthly/`)
+asserts cumulative monthly spend per team stays under the cap. The
+lane sums `cost_usd` across all changeset event-log rows scoped to
+team-id for the current calendar month and fails the gate if the
+total exceeds the team's `monthly_budget_usd` row in
+`registry/team-budgets.yaml`.
 
 ### Override surface
 
@@ -135,13 +140,19 @@ The override appends a special event log row with
 `emitted_by: human-override:<reviewer-name>`. Per
 ADR-0083, the override's signature is the reviewer's git signing
 key (Ed25519). The `oya-foundry-fitness-override-justification`
-lane (TBD) asserts every override row has a justification ≥40
-chars + a signature.
+lane (crate at `crates/oya-foundry-fitness-override-justification/`)
+asserts every override row has a justification ≥40 chars + a
+signature; lane reads the event log rows where
+`emitted_by like 'human-override:%'` and fails the gate if any row
+has `len(justification) < 40` OR `signature_verified = false`.
 
 Override frequency is observable via the
-`oya-foundry-fitness-override-frequency-alarming` lane (TBD,
-alerts when monthly override count exceeds threshold — sign
-that the agent verdicts are unreliable + needs human triage).
+`oya-foundry-fitness-override-frequency-alarming` lane (crate at
+`crates/oya-foundry-fitness-override-frequency-alarming/`); lane
+counts overrides per team per calendar month and fires alert when
+count > 5 (default threshold; per-team override in
+`registry/team-budgets.yaml#override_alert_threshold`) — sign
+that the agent verdicts are unreliable + needs human triage.
 
 ### Outputs (stdout JSON shape)
 

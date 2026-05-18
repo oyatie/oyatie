@@ -1,0 +1,130 @@
+{
+  "doc_kind": "close-out-plan-and-hyperscaler-gap-audit",
+  "purpose": "Single comprehensive plan + gap audit for PR-143 close-out (Option A confirmed by user 2026-05-18) AND post-close hyperscaler-grade improvements for follow-up PRs. Uses POINTERS to existing artifacts (no content duplication). Survives session/context boundary; canonical until close-out completes.",
+  "session_date": "2026-05-18",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "pr": "#143",
+  "status": "plan-active-during-close-out",
+  "integrity_bar": "Per user directive 'no empty promises, no false signals' — every line below is either a pointer to existing artifact OR an explicit gap that must be addressed. Padding forbidden.",
+  "doctrine_anchor": "ADR-0212 Buildability Doctrine (in evidence/pr-143-session-decisions-checkpoint-2026-05-18.json#queued_adrs_to_author.ADR-0212; promotion to docs/decisions/ADR-0212-*.md in close-out step 7) — a stranger walks up cold and builds production-grade output from this plan alone.",
+
+  "pointer_index": {
+    "session_decisions_checkpoint": "/Users/jasonlee/oyatie/evidence/pr-143-session-decisions-checkpoint-2026-05-18.json — preserves all queued ADR doctrines (0211, 0212, 0215, 0216, 0217, 0218, 0219, 0220, 0136-amendment) until promotion to disk",
+    "atomic_wiring_plan": "/Users/jasonlee/oyatie/evidence/pr-143-atomic-wiring-plan.json — 12 dispatcher arms + 11 deps + 12 lanes.yaml + 13 manifest-schema namespaces + 2 debt-ledger entries to wire",
+    "structural_migration_report": "/Users/jasonlee/oyatie/evidence/pr-143-structural-migration-report.json — Redis→Valkey 592 files / MinIO→SeaweedFS 38 / Vault→OpenBao 19 / Terraform→OpenTofu 66",
+    "merge_admissibility_v3": "/Users/jasonlee/oyatie/evidence/pr-143-merge-admissibility-v3-with-audit.json — current verdict MERGE-READY (will be superseded by v4)",
+    "coherence_audit_delta": "/Users/jasonlee/oyatie/evidence/pr-143-coherence-scalability-audit-delta-2026-05-18.json — hero-stack alignment + scalability cross-walk + ADR contradiction matrix",
+    "hero_stack_matrix": "/Users/jasonlee/oyatie/evidence/pr-143-hero-stack-coherence-matrix.json — 14 ALIGNED / 0 DRIFT after fixes",
+    "adr_contradiction_matrix": "/Users/jasonlee/oyatie/evidence/pr-143-adr-contradiction-matrix.json — 9 ALIGNED / 1 ALIGNED-INTENTIONAL / 1 ORPHAN_CITATION / 2 QUEUED",
+    "audit_followups_registry": "/Users/jasonlee/oyatie/registry/placeholder-debt/audit-followups.yaml — 9+ structural follow-ups including BNF rename, schema field rename, redis crate disambiguation",
+    "layered_architecture_report": "/Users/jasonlee/oyatie/evidence/pr-143-layered-architecture-audit-report.json — Cilium+Ambient layered substrate verification + in-house roadmap addendum"
+  },
+
+  "on_disk_substrate_authored_in_session": {
+    "adrs_landed_disk": {
+      "fix_p_layered": "docs/decisions/ADR-{0148,0182,0183,0184,0185,0186}-*.md — Cilium+Ambient mesh layered + gateway-vs-mesh separation + Cedar/Kyverno separation + storage tier layering + native client stack + observability backplane",
+      "fix_q_identity": "docs/decisions/ADR-{0187,0188,0189,0190,0191}-*.md — Zitadel OIDC + WebAuthn L3 + step-up ACR + SCIM 2.0 + edge authz tier",
+      "fix_r_data": "docs/decisions/ADR-{0192,0193,0194,0195}-*.md — Milvus + ClickHouse + TimescaleDB + stream tier",
+      "fix_s_storage": "docs/decisions/ADR-{0196,0197,0198,0199}-*.md — SeaweedFS + Velero/pgbackrest/Restic + Karpenter + OpenCost",
+      "fix_t_build": "docs/decisions/ADR-{0200,0201,0202,0203}-*.md — Wasmtime + Email/Comms + GitOps-IaC-ClusterAPI + Docs engine",
+      "fix_u_frontend": "docs/decisions/ADR-{0204,0205,0206,0207,0208,0209,0210}-*.md — Canvas + CodeMirror + i18n/Fluent + WCAG 2.2 AA + realtime transport + compliance evidence + tail sampling",
+      "ecosystem_substrate": "docs/decisions/{ADR-0213-ecosystem-as-a-service-architecture.md, ADR-0214-cross-tenant-real-time-visibility.md}",
+      "fix_i_tier_a": "docs/decisions/ADR-{0149,0150,0151,0152,0153,0154,0155,0156}-*.md — idempotency keys + cursor pagination + X-Request-Id + RPO/RTO + outbox + event schema versioning + per-tenant quotas + PII registry",
+      "fix_j_tier_b": "docs/decisions/ADR-{0157,0158,0159,0160,0161,0162,0163,0164,0165,0166}-*.md — API gateway tier + multi-region + feature flags + Flagger + CSI storage + per-tenant audit slicing + tenant env tiers + sovereign air-gap + chaos engineering + schema registry",
+      "fix_k_tier_c": "docs/decisions/ADR-{0167,0168,0169,0170,0171,0172}-*.md — tenant CLI + status page + webhook DLQ + Backstage + multi-cluster federation + CQRS read replicas",
+      "fix_l_anti_hyperscaler_hunt": "docs/decisions/ADR-{0179,0180,0181}-*.md — pgcat Postgres pooling + SLO composition arithmetic + container image promotion pipeline"
+    },
+    "full_audit_grade_microservice_packs_landed": {
+      "comms_email": "microservices/comms-email/ — full ~90-artifact pack (Fix-T)",
+      "compliance": "microservices/compliance/ — full pack with 15 IPs ≥150 substantive lines (Fix-U)",
+      "identity": "microservices/identity/ — full ~90-artifact pack with 16 IPs incl scale-validation gate (Fix-Q)",
+      "plugin_app_store": "microservices/plugin-app-store/ — 118 audit-grade files (Plugin-app-store agent; renamed from ecosystem-marketplace)",
+      "developer_sdk": "microservices/developer-sdk/ — 117 audit-grade files (Plugin-app-store agent)",
+      "analytics": "microservices/analytics/ — 119 files; all 15 IPs ≥150 substantive lines (Doc-coverage Analytics)",
+      "finops_portal": "microservices/finops-portal/ — 85 files; full pack closing Fix-S ledger (Doc-coverage FinOps-portal)",
+      "consent_graph": "microservices/consent-graph/ — in flight; ADR-0214 already on disk at 15.3K"
+    },
+    "substrate_crates_landed": {
+      "connector_kernel_plus_10_adapters": "crates/oya-shared-connector-kernel + crates/oya-connector-{slack,teams,workday,adp,rippling,gusto,salesforce,netsuite,quickbooks,epic-fhir}-adapter — 134 tests pass, cargo clippy 0 errors/0 warnings",
+      "fix_q_identity_crates": "crates/oya-shared-{oidc-client,webauthn-server,scim-server}-kernel + 2 check crates — 69 tests pass",
+      "fix_r_data_crates": "crates/oya-shared-{vector-store,olap-client,timeseries}-kernel + 2 check crates — 72 tests pass",
+      "fix_s_storage_crates": "crates/oya-shared-{object-store,backup}-kernel + 2 check crates — 48 tests pass",
+      "fix_t_build_crates": "crates/oya-shared-{wasm-runtime,email-comms}-kernel + 2 check crates — 35 tests pass",
+      "fix_u_frontend_crates": "crates/oya-shared-{i18n,realtime-transport,presence,compliance-evidence}-kernel + 4 check crates — 93 tests pass",
+      "fix_p_fitness_gates": "crates/oya-check-{layered-architecture,client-stack}-discipline — 23 tests pass",
+      "fix_h_adr_0145_gates": "crates/oya-shared-{audit-chain-client,tracing-client}-kernel + 3 check crates — 21 tests pass",
+      "fix_i_tier_a_crates": "12 new kernel + check crates wired into oya-dev-cli, 7 advisory-mode gates",
+      "fix_n_vendor_lockin": "crates/oya-check-vendor-lockin-discipline — 1019 LOC, 20+ tests",
+      "fix_m_authz_tier": "crates/oya-check-authz-tier-discipline — 133 LOC, scan_cedar + scan_envoy_filter",
+      "fix_k_advisory_skeletons": "crates/oya-tenant-cli + crates/oya-shared-webhook-delivery-kernel — LEGITIMATE-ADVISORY (verified by wiring-prep audit; not stubs)"
+    },
+    "workflow_templates_landed": "microservices/workflow-studio/templates/ — 25 audit-grade templates × Draft 2020-12 schema × SvelteKit CatalogBrowser UI (85 files)",
+    "structural_migrations_complete": "Redis→Valkey (592 files / 2,374 lines) + MinIO→SeaweedFS (38/122) + Vault→OpenBao (19/33) + Terraform→OpenTofu (66/104) — idempotency verified",
+    "thin_ip_expansion": "18 hero µservice thin IPs expanded ≥150 lines (workflow-studio + audit-chain + ontology + governance + cell + workflow-engine + foundry) — remaining 419 queued in evidence/thin-ip-expansion-tier3-followup.json"
+  },
+
+  "close_out_10_step_sequence": [
+    {"step": 1, "action": "Wait for Consent-graph agent (a70971bfe1f5e2fa3) to finish — ADR-0214 already on disk; agent finalizing batch report + parent-wiring-todo", "owner": "parent-waits", "blocking": true, "est_minutes": "5-30"},
+    {"step": 2, "action": "Atomic parent-side wiring per pointer_index.atomic_wiring_plan", "owner": "parent", "blocking": true, "est_minutes": "30", "concrete_steps": ["edit crates/oya-dev-cli/src/commands/gate/mod.rs (12 dispatch arms)", "edit crates/oya-dev-cli/Cargo.toml (11 deps)", "edit crates/oya-foundry-gate-catalog-domain/src/lib.rs (AGGREGATED_VALIDATE_LANES +12)", "edit registry/quality/lanes.yaml (12 entries)", "edit specs/microservices/manifest-schema.json (13 namespaces with $defs.oya_workload_class dedupe)", "append registry/placeholder-debt/adr-follow-ups.yaml (2 Fix-K debt entries: adr-0167-tenant-cli-commands + adr-0169-webhook-impl)"]},
+    {"step": 3, "action": "Promote ADR-0211 (in-house tech stack policy) from checkpoint to docs/decisions/ADR-0211-in-house-tech-stack-policy.md — orphan citation resolution", "owner": "parent", "blocking": true, "est_minutes": "15", "source": "evidence/pr-143-session-decisions-checkpoint-2026-05-18.json#queued_adrs_to_author.ADR-0211"},
+    {"step": 4, "action": "Complete Fix-N + Fix-M dispatcher wiring (tasks #2 + #3)", "owner": "parent", "blocking": true, "est_minutes": "15", "concrete_steps": ["Fix-N: add dispatcher arm + AGGREGATED constant entry + lanes.yaml entry (function already at oya-check-vendor-lockin-discipline/src/lib.rs:1114, dep already in Cargo.toml:41)", "Fix-M: add oya-dev-cli/Cargo.toml dep + dispatcher arm + AGGREGATED entry + lanes.yaml + validate_authz_tier_discipline_gate function"]},
+    {"step": 5, "action": "Promote oya-check-ontology-projection-coverage advisory→BLOCKER (workflow-studio + workflow-engine manifests now populated)", "owner": "parent", "blocking": false, "est_minutes": "10", "source": "evidence/pr-143-coherence-scalability-audit-delta-2026-05-18.json findings"},
+    {"step": 6, "action": "Dispatch final adversarial audit (4 lenses: hyperscaler-pattern + clean-architecture + API-first + buildability + false-signal-hunt) with /using-agent-skills doctrine-driven discipline — task #19", "owner": "agent", "blocking": true, "est_minutes": "45-90"},
+    {"step": 7, "action": "Promote ADR-0212 (Buildability Doctrine) + ADR-0136 amendment (Foundry scope = internal only) from checkpoint to disk — task #25 + new", "owner": "parent", "blocking": true, "est_minutes": "30", "source": "evidence/pr-143-session-decisions-checkpoint-2026-05-18.json#queued_adrs_to_author.{ADR-0212,ADR-0136-amendment}", "defers": "ADR-0215/0216/0217/0218/0219/0220 to PR-144 Wave 3A"},
+    {"step": 8, "action": "False-signal remediation pass — task #26 — fix any HIGH findings from step 6 adversarial audit", "owner": "parent-or-agent", "blocking": true, "est_minutes": "15-30"},
+    {"step": 9, "action": "Final workspace verification — task #6", "owner": "parent", "blocking": true, "est_minutes": "10", "commands": ["cargo build --workspace", "cargo clippy --workspace -- -D warnings", "cargo fmt --check", "cargo nextest run --workspace", "cargo run -p oya-dev-cli -- gate run-all"]},
+    {"step": 10, "action": "Commit + push via grit pipeline (claim → work → done per AGENTIC PIPELINE HARDENING RULE 2026-05-12); emit final merge-admissibility report v4 — task #7", "owner": "parent", "blocking": true, "est_minutes": "10", "primitives": "grit claim --agent close-out --intent 'pr-143 close-out' → grit done --agent close-out (absorbs branch + rebase + atomic land)"}
+  ],
+
+  "follow_up_pr_roadmap": "POINTER: see evidence/pr-143-session-decisions-checkpoint-2026-05-18.json#wave_3_plan.follow_up_pr_mapping — 14 follow-up PRs (PR-144 through PR-157+) sequenced per ADR-0217 Vertical Slice Rollout Order. Each PR scoped + reviewable + first-class + dispatchable in own session.",
+
+  "hyperscaler_gap_audit": {
+    "purpose": "Honest /using-agent-skills audit identifying improvement areas to reach hyperscaler bar across rich UX + retention via openness + maintainability + scalability + optimization. Each gap is actionable (concrete owner + concrete PR target). Push-back welcome.",
+    "audit_lens": ["Rich UX", "Retention via openness (per ADR-0216 no-lock-in)", "Maintainability", "Scalability", "Optimization"],
+    "high_value_gaps": [
+      {"id": "GAP-UX-01", "lens": "Rich UX", "gap": "Onboarding wizard UX per persona — time-to-value optimization is THE retention driver for first-touch", "owner": "PR-144 substrate + each B2B SaaS product PR", "concrete_action": "Each µservice PRD must include §'First-run experience' with: ≤30min time-to-value SLO, persona-specific wizard flows, sample data import, AI-assisted onboarding (oyatie intelligence agent walks user through setup), white-glove enterprise path + self-serve SMB path", "industry_precedent": "Stripe Atlas (incorporation in 30min), Linear onboarding (template-driven), Notion templates gallery"},
+      {"id": "GAP-UX-02", "lens": "Rich UX", "gap": "Cross-product command palette + keyboard shortcuts (Linear/Slack-class power-user surface)", "owner": "PR-144 Application B2B shell extension", "concrete_action": "Author Cmd-K palette in Application shell that spans ALL enabled µservices (search ontology + run workflows + navigate any surface); per-stack keyboard shortcut substrate per ADR-0185 (web/Apple/Android/Windows/Linux); cross-product action dispatcher", "industry_precedent": "Linear Cmd-K (cross-everything), Slack /commands, Notion Cmd-P", "trigger": "ship in Wave 3A (Application extension)"},
+      {"id": "GAP-UX-03", "lens": "Rich UX", "gap": "Unified notification + inbox (cross-µservice anti-fatigue surface)", "owner": "new µservice microservices/notifications/ — defer to follow-up PR after Wave 3D", "concrete_action": "Author microservices/notifications/ µservice that aggregates approvals + alerts + mentions + DMs + system events across all µservices; per-user delivery channel (push/email/SMS/in-app); intelligent batching to prevent fatigue; multi-context aware (work-context notifications vs personal)", "industry_precedent": "Slack notification preferences, Linear inbox, GitHub notifications, Apple Notification Center"},
+      {"id": "GAP-UX-04", "lens": "Rich UX", "gap": "Real-time collaboration depth specified per-product (Loro CRDT integration not per-product yet)", "owner": "each B2B SaaS product PR + Connect retrofit waves", "concrete_action": "Each µservice PRD must declare §'Collaboration model': what's CRDT-shared (e.g., workflow canvas state, doc body) vs server-of-record (e.g., comp data); per-product presence + cursors + co-editing semantics", "industry_precedent": "Figma multi-cursor, Notion live blocks, Google Docs"},
+      {"id": "GAP-UX-05", "lens": "Rich UX", "gap": "Search UX (semantic + full-text + faceted + cross-product) — global search surface missing", "owner": "PR-144 substrate + Meilisearch/Tantivy decision", "concrete_action": "Author microservices/search/ µservice (extracted from Meilisearch overlap on community + messenger; promote to dedicated search substrate); semantic search via oyatie intelligence + lexical via Meilisearch/Tantivy; faceted UI in Application shell", "industry_precedent": "Algolia, Glean enterprise search, Linear search"},
+      {"id": "GAP-UX-06", "lens": "Rich UX", "gap": "Mobile-first parity SLO not declared (we have ADR-0185 native client stack; per-feature parity timeline not committed)", "owner": "follow-up cross-PR amendment to ADR-0185", "concrete_action": "Author ADR-0185 amendment: §'Feature parity SLO' — every new product feature ships within N weeks across all 5 stacks (SvelteKit/Leptos web + Apple + Android + WinUI3 + GTK Linux) OR is web-only-flagged; Apple/Android stay current-2 OS versions"},
+      {"id": "GAP-UX-07", "lens": "Rich UX", "gap": "Empty-state + first-run experience per product (activation moments)", "owner": "each B2B SaaS product PR", "concrete_action": "Each product PRD §'Empty states' — first-time-user view, no-data view, no-permission view; templates gallery for instant value; sample-data toggle"},
+      {"id": "GAP-UX-08", "lens": "Rich UX", "gap": "Accessibility beyond WCAG 2.2 AA checklist — cognitive accessibility + motion sensitivity + low-vision + audio captions", "owner": "amendment to ADR-0207", "concrete_action": "Author ADR-0207 amendment: §'Beyond WCAG' — prefers-reduced-motion respected; cognitive accessibility (plain language toggle); high-contrast + dyslexia-friendly font option; auto-caption for video/meetings"},
+
+      {"id": "GAP-RETENTION-01", "lens": "Retention via openness", "gap": "Per-persona engagement loops + activation milestones not tracked", "owner": "PR-148 management-cockpit + intelligence", "concrete_action": "Author per-persona daily/weekly/monthly engagement loop spec; activation milestones tracked in analytics + intelligence; AI agent suggests next action based on milestone progress"},
+      {"id": "GAP-RETENTION-02", "lens": "Retention via openness", "gap": "Win-back flows + at-risk-user detection", "owner": "PR-148 intelligence", "concrete_action": "AI agent detects engagement decline → triggers win-back workflow (email + in-product + manager notification); per-tenant adjustable thresholds"},
+      {"id": "GAP-RETENTION-03", "lens": "Retention via openness", "gap": "Importers/exporters not yet implemented (ADR-0216 says we ship them; reality is most µservices don't have one yet)", "owner": "each B2B SaaS product PR", "concrete_action": "Every product PRD must declare §'Import/export adapter list' with concrete top-3 competitors; implementation IP queued in product's PHASE-01"},
+      {"id": "GAP-RETENTION-04", "lens": "Retention via openness", "gap": "Personalization (per-user, per-tenant, per-role) — preference store missing", "owner": "PR-144 identity multi-context extension", "concrete_action": "Author microservices/preferences/ sub-BC within identity (or standalone) — per-user theme/layout/notification/AI-assist preferences; multi-context aware (work pref ≠ personal pref)"},
+      {"id": "GAP-RETENTION-05", "lens": "Retention via openness", "gap": "Time-to-value SLO per product not codified", "owner": "amendment to each product PRD", "concrete_action": "Each product PRD §'TTV SLO' with concrete number per persona (e.g., 'HR Partner reaches first-insight in ≤15min from sign-up')"},
+
+      {"id": "GAP-MAINT-01", "lens": "Maintainability", "gap": "Single source of truth audit — where data could drift across µservices (e.g., Employee entity in HR + Payroll + Hiring)", "owner": "PR-150 substrate thin-IP expansion + Ontology", "concrete_action": "Ontology µservice declares canonical entity ownership per-entity; CI gate oya-check-canonical-entity-ownership refuses drift; reads always project from canonical"},
+      {"id": "GAP-MAINT-02", "lens": "Maintainability", "gap": "Zero-downtime schema evolution tooling — Postgres migration substrate not yet specified per ADR-0151 RPO/RTO bar", "owner": "PR-150 substrate", "concrete_action": "Author ADR for schema migration patterns (expand-contract, blue-green, online schema change via Citus/pgroll); chaos drill for migration rollback"},
+      {"id": "GAP-MAINT-03", "lens": "Maintainability", "gap": "Feature flag substrate (ADR-0159) implementation timeline not declared", "owner": "PR-148 or earlier", "concrete_action": "microservices/feature-flags/ implementation IPs (kernel + adapter + per-tenant flag store); rollout strategy (gradual + percentage + condition)"},
+      {"id": "GAP-MAINT-04", "lens": "Maintainability", "gap": "Dead-code + dependency cycle detection not in CI", "owner": "follow-up", "concrete_action": "Add gate oya-check-dead-code (cargo-machete) + oya-check-cycle-free (cargo-tree + custom)"},
+      {"id": "GAP-MAINT-05", "lens": "Maintainability", "gap": "Documentation freshness automation per session-start directive 2026-05-12 not yet implemented", "owner": "PR-150 substrate", "concrete_action": "Author crate oya-foundry-architecture-map-kernel + freshness lane oya-foundry-fitness-architecture-map-freshness per session-start directive; auto-generate ADR-INDEX, runbook-freshness, schema docs; deletion-targets for orphans"},
+
+      {"id": "GAP-SCALE-01", "lens": "Scalability", "gap": "Multi-region active-active failover drills cadence not declared per ADR-0158 + ADR-0165 chaos", "owner": "PR-150 substrate + chaos engineering", "concrete_action": "Quarterly multi-region failover drill via Chaos Mesh (ADR-0165); RTO ≤30s + RPO ≤1s validated quantitatively; evidence emitted to compliance µservice"},
+      {"id": "GAP-SCALE-02", "lens": "Scalability", "gap": "Cardinality bombs in Prometheus per-µservice not audited (ADR-0151 covers discipline; spot-check not run)", "owner": "follow-up", "concrete_action": "Promote oya-check-metric-cardinality gate from advisory→BLOCKER once 33+ µservices pass; per-µservice cardinality audit + drop-label discipline"},
+      {"id": "GAP-SCALE-03", "lens": "Scalability", "gap": "Per-tenant cost ceilings + brown-out modes (ADR-0155 quotas) — brown-out behaviors not specified per-µservice", "owner": "follow-up", "concrete_action": "Each µservice PRD §'Cost ceiling + brown-out behavior' — what gets shed when tenant exceeds quota (e.g., AI calls degrade to deterministic; queries time out at lower bound)"},
+      {"id": "GAP-SCALE-04", "lens": "Scalability", "gap": "Backup restore drill cadence — ADR-0197 declares the substrate; drill cadence not codified", "owner": "PR-150 substrate", "concrete_action": "Quarterly restore drill per backup tier (app / batch / GPU / regulatory); chaos engineering substrate runs; restore-receipt sealed in compliance evidence pipeline"},
+      {"id": "GAP-SCALE-05", "lens": "Scalability", "gap": "Search index sharding strategy for Meilisearch — cross-tenant isolation at scale", "owner": "GAP-UX-05 (search µservice extraction)", "concrete_action": "Per-tenant index OR sharded multi-tenant index with row-level filter; capacity model: searches/sec p99; document count ceiling per index"},
+
+      {"id": "GAP-OPT-01", "lens": "Optimization", "gap": "Caching strategy (Valkey usage per µservice) not codified per-µservice", "owner": "follow-up", "concrete_action": "Each µservice PRD §'Cache tier' — what's cached in Valkey, TTL, invalidation strategy, cache stampede prevention"},
+      {"id": "GAP-OPT-02", "lens": "Optimization", "gap": "CDN + edge caching strategy for web clients (SvelteKit Phase 1 + Leptos Phase 2)", "owner": "PR-149 or earlier", "concrete_action": "Author ADR: edge caching tier (CDN provider neutral; Cloudflare/Fastly/CloudFront adapter); SvelteKit ISR; Leptos SSG/ISG"},
+      {"id": "GAP-OPT-03", "lens": "Optimization", "gap": "Compression + image optimization not in standard per-client stack", "owner": "amendment to ADR-0185", "concrete_action": "Mandatory: brotli + zstd for text; WebP + AVIF for images; lazy loading; bundle splitting; tree-shaking"},
+      {"id": "GAP-OPT-04", "lens": "Optimization", "gap": "Postgres connection pool sizing per-µservice (pgcat per ADR-0179) not codified", "owner": "follow-up", "concrete_action": "Each µservice declares pool max + transaction-mode vs session-mode in manifest.json; sizing model in capacity-model.md"},
+      {"id": "GAP-OPT-05", "lens": "Optimization", "gap": "Service mesh sidecar/ambient overhead not profiled — Cilium L4 + Istio Ambient ztunnel + waypoint", "owner": "post-deploy benchmark in chaos drill", "concrete_action": "Benchmark p99 latency per traffic class (no-mesh vs Cilium-only vs Ambient-ztunnel vs Ambient-waypoint); document in ADR-0148 §Verification"}
+    ],
+    "low_value_or_already_addressed": [
+      {"item": "GraphQL federation", "addressed_by": "OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 contracts are first-class; GraphQL is optional per-µservice (analytics added GraphQL SDL)"},
+      {"item": "API versioning", "addressed_by": "Tier-A patterns (ADR-0149-0156); per-endpoint version + deprecation policy"},
+      {"item": "Audit chain at scale", "addressed_by": "Bominal ADR-0028 Ed25519 + Merkle; tenancy + per-tenant audit-log slicing per ADR-0162"},
+      {"item": "PII handling", "addressed_by": "ADR-0156 PII registry + data_class annotations + Cedar enforcement"},
+      {"item": "Multi-tenancy isolation", "addressed_by": "tenancy µservice RLS + JWT + cells + DSR cascade — comprehensive (per microservices/tenancy/policy/rls-isolation.md)"}
+    ]
+  },
+
+  "doctrines_locked_this_session_summary": "POINTER: see evidence/pr-143-session-decisions-checkpoint-2026-05-18.json#doctrines_codified_this_session_summary for full summary. Key locks: thin-sprawl-anti-pattern, first-class bar, in-house-tech policy (ADR-0211), open-integration policy (ADR-0216), buildability doctrine (ADR-0212), no-code-first UX (ADR-0219), multi-context platform (ADR-0215), ecosystem-as-a-service (ADR-0213), vertical-slice-rollout (ADR-0217), foundry-internal-intelligence-consumer separation (ADR-0136-amendment + ADR-0220), tenant granular control surface (ADR-0218).",
+
+  "context_rot_prevention": "This file + evidence/pr-143-session-decisions-checkpoint-2026-05-18.json + evidence/pr-143-atomic-wiring-plan.json + per-µservice AUDIT-FINDINGS-2026-05-18.json are the canonical session memory. If conversation context is lost, these 4 files plus the on-disk ADRs + µservice packs reconstruct the full state."
+}

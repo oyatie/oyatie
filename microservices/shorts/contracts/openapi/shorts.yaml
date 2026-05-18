@@ -1,0 +1,789 @@
+openapi: 3.2.0
+info:
+  title: oya-shorts
+  version: 1.0.0
+  summary: REST API for the shorts µservice — upload + transcode + storage + thumbnails + audio-track + composition + feed + watch-time + like-share-comment + repost-stitch-duet + hashtag + trending + notifications + content-moderation + copyright-claim + age-gate + parental-controls + captions + creator-analytics + DRM
+  description: |
+    Tenant-facing REST surface for the shorts µservice. All endpoints require
+    OIDC + Cedar authorisation (per `microservices/shorts/policy/*.cedar`)
+    and are tenant-scoped via `X-Scope-OrgID` header.
+
+    Real-time path is via WebSocket at `wss://shorts-{pack}.oyatie.dev/ws/v1`
+    documented in `contracts/asyncapi/shorts-events.yaml`.
+
+    Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.
+    The JWT carries the principal's tenant_id claim. The X-Scope-OrgID header
+    MUST match the claim; mismatch returns 401.
+
+    Dual-context invariant: every write carries `X-Context-Kind: Personal | Professional`;
+    cross-context writes refused per ADR-0135 (parallel) + `policy/dual-context-isolation.md`.
+
+    DRM-protected resources require valid EME license; SDK helpers handle license
+    acquisition per W3C EME 2017 + Widevine/FairPlay/PlayReady per ADR-SHORTS-0004.
+
+    EU AI Act Art. 50 transparency labels rendered on every classifier output;
+    ranking_explanation API per EU DSA Art. 27.
+  contact:
+    name: axis-shorts
+    url: https://oyatie.dev/teams/axis-shorts
+  license:
+    name: Internal
+
+servers:
+  - url: https://shorts-{pack}.oyatie.dev/api/v1
+    description: Per-pack endpoint
+    variables:
+      pack:
+        enum: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
+        default: kr
+
+components:
+  securitySchemes:
+    OIDC:
+      type: openIdConnect
+      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+
+  parameters:
+    XScopeOrgID:
+      in: header
+      name: X-Scope-OrgID
+      required: true
+      schema: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+    XContextKind:
+      in: header
+      name: X-Context-Kind
+      required: true
+      schema: {type: string, enum: [Personal, Professional]}
+      description: Dual-context invariant per parallel ADR-0135
+    XAgePackThreshold:
+      in: header
+      name: X-Age-Pack-Threshold
+      required: false
+      schema: {type: integer}
+      description: Pack-aware minor threshold (KR 14, EU 16-default, US-COPPA 13, etc.); resolved server-side
+    VideoId:
+      in: path
+      name: video_id
+      required: true
+      schema: {type: string, format: ulid}
+    SoundId:
+      in: path
+      name: sound_id
+      required: true
+      schema: {type: string, format: ulid}
+    HashtagTag:
+      in: path
+      name: hashtag
+      required: true
+      schema: {type: string, maxLength: 100}
+
+  schemas:
+    Video:
+      type: object
+      required: [video_id, creator_ref, tenant_id, context_kind, visibility, posted_at, duration_seconds, age_classification]
+      properties:
+        video_id: {type: string, format: ulid}
+        creator_ref: {type: string}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Personal, Professional]}
+        caption: {type: string, maxLength: 2200}
+        visibility: {type: string, enum: [public, followers, private]}
+        duration_seconds: {type: integer, minimum: 1, maximum: 60}
+        posted_at: {type: string, format: date-time}
+        sound_ref: {type: string, nullable: true}
+        hashtags: {type: array, items: {type: string}}
+        age_classification: {type: string, enum: [general_audience, sensitive, mature, adult, restricted]}
+        drm_protected: {type: boolean, default: false}
+        manifest_hls_url: {type: string, format: uri, nullable: true}
+        manifest_dash_url: {type: string, format: uri, nullable: true}
+        thumbnail_poster_url: {type: string, format: uri}
+        thumbnail_animated_url: {type: string, format: uri}
+        caption_track_webvtt_url: {type: string, format: uri, nullable: true}
+        caption_track_ttml_url: {type: string, format: uri, nullable: true}
+        moderation_status: {type: string, enum: [pending, ok, flagged, auto_hidden, manually_reviewed_ok, manually_reviewed_removed]}
+        copyright_status: {type: string, enum: [pending, clear, flagged, claimed, taken_down]}
+        view_count: {type: integer}
+        like_count: {type: integer}
+        comment_count: {type: integer}
+        share_count: {type: integer}
+        federation_opt_in: {type: boolean, default: false, description: Professional-tier opt-in to ActivityPub federation; Personal-tier always false}
+        eu_ai_act_label: {type: string, enum: [ai_generated_assessment, human_assessment, hybrid], description: present when moderation_status reflects AI verdict}
+
+    UploadSession:
+      type: object
+      required: [upload_id, tenant_id, creator_ref, context_kind, expires_at]
+      properties:
+        upload_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        creator_ref: {type: string}
+        context_kind: {type: string, enum: [Personal, Professional]}
+        upload_url: {type: string, format: uri}
+        chunk_size_bytes: {type: integer}
+        max_video_size_bytes: {type: integer, default: 524288000}  # 500 MB
+        max_duration_seconds: {type: integer, default: 60}
+        expires_at: {type: string, format: date-time}
+
+    Sound:
+      type: object
+      required: [sound_id, kind, attribution_required, licensing_tier]
+      properties:
+        sound_id: {type: string, format: ulid}
+        kind: {type: string, enum: [licensed, ugc]}
+        title: {type: string}
+        artist: {type: string, nullable: true}
+        licensor_namespace: {type: string, nullable: true}
+        licensing_tier: {type: string, enum: [free, royalty_free, premium_licensed, ugc]}
+        attribution_required: {type: boolean}
+        duration_seconds: {type: integer}
+        preview_url: {type: string, format: uri}
+
+    Comment:
+      type: object
+      required: [comment_id, video_id, author_ref, posted_at]
+      properties:
+        comment_id: {type: string, format: ulid}
+        video_id: {type: string, format: ulid}
+        author_ref: {type: string}
+        body: {type: string, maxLength: 500}
+        posted_at: {type: string, format: date-time}
+        like_count: {type: integer}
+        reply_count: {type: integer}
+
+    ModerationVerdict:
+      type: object
+      required: [verdict, action_taken, statement_of_reasons, eu_ai_act_label]
+      properties:
+        verdict: {type: string, enum: [ok, sensitive, nsfw, violence, minor_protection_concern, csam_suspect, self_harm_suspect, harassment]}
+        confidence: {type: number, minimum: 0, maximum: 1}
+        action_taken: {type: string, enum: [auto_hide, flag_for_review, no_action, hold_for_minor_protection_review]}
+        statement_of_reasons:
+          type: object
+          required: [grounds, facts_and_circumstances, automated_means, redress]
+          properties:
+            grounds: {type: string}
+            facts_and_circumstances: {type: string}
+            automated_means: {type: boolean, default: true}
+            redress: {type: string, description: appeal URL per EU DSA Art. 20}
+        eu_ai_act_label: {type: string, enum: [ai_generated_assessment, human_assessment, hybrid]}
+        classifier_version: {type: string}
+
+    CopyrightClaim:
+      type: object
+      required: [claim_id, video_id, claimant_ref, status, filed_at, perjury_attestation]
+      properties:
+        claim_id: {type: string, format: ulid}
+        video_id: {type: string, format: ulid}
+        claimant_ref: {type: string}
+        status: {type: string, enum: [filed, validated, taken_down, counter_noticed, restored, dismissed]}
+        filed_at: {type: string, format: date-time}
+        perjury_attestation: {type: boolean, description: DMCA §512(c)(3)(A)(vi) statutory attestation}
+        claim_text: {type: string}
+        matched_corpus_entry_id: {type: string, nullable: true}
+
+    Appeal:
+      type: object
+      required: [appeal_id, verdict_id, opened_at, status]
+      properties:
+        appeal_id: {type: string, format: ulid}
+        verdict_id: {type: string, format: ulid}
+        creator_ref: {type: string}
+        opened_at: {type: string, format: date-time}
+        status: {type: string, enum: [open, in_review, resolved_upheld, resolved_reversed]}
+        resolution_text: {type: string, nullable: true}
+
+    AgeAttestation:
+      type: object
+      required: [attestation_id, user_ref, age_bracket, attested_at, pack_threshold]
+      properties:
+        attestation_id: {type: string, format: ulid}
+        user_ref: {type: string}
+        age_bracket: {type: integer, description: User self-reported age; minor flag derived from pack_threshold comparison}
+        pack_threshold: {type: integer, description: Pack-aware minor threshold (KR 14, EU 16-default, US-COPPA 13, etc.)}
+        attested_at: {type: string, format: date-time}
+        is_minor: {type: boolean}
+        parental_consent_required: {type: boolean}
+        parental_consent_attested: {type: boolean, default: false}
+
+    DrmLicenseResponse:
+      type: object
+      required: [license_blob, key_system, expires_at]
+      properties:
+        license_blob: {type: string, description: base64-encoded EME license per key_system}
+        key_system: {type: string, enum: [com.widevine.alpha, com.apple.fps, com.microsoft.playready]}
+        expires_at: {type: string, format: date-time}
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid OIDC token / tenant scope mismatch
+    Forbidden:
+      description: Cedar policy denied; dual-context violation; tier mismatch; etc.
+    NotFound:
+      description: Resource not found
+    UnprocessableEntity:
+      description: Validation failure (length, age, classification, format)
+    RateLimited:
+      description: Per-tenant or per-claimant rate limit triggered
+
+paths:
+
+  # ===========================================================================
+  # video-upload BC
+  # ===========================================================================
+
+  /upload-sessions:
+    post:
+      summary: Initiate a resumable multipart video upload
+      operationId: initiate_upload
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/XContextKind'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [video_size_bytes, duration_seconds]
+              properties:
+                video_size_bytes: {type: integer, maximum: 524288000}
+                duration_seconds: {type: integer, minimum: 1, maximum: 60}
+                content_hash_sha256: {type: string}
+      responses:
+        '201':
+          description: Upload session created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/UploadSession'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+
+  /upload-sessions/{upload_id}/finalize:
+    post:
+      summary: Finalize upload session; triggers scan + transcode + thumbnail + fingerprint pipeline
+      operationId: finalize_upload
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/XContextKind'
+        - in: path
+          name: upload_id
+          required: true
+          schema: {type: string, format: ulid}
+      responses:
+        '202':
+          description: Pipeline accepted; video will be available after processing
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Video'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+
+  # ===========================================================================
+  # video CRUD
+  # ===========================================================================
+
+  /videos/{video_id}:
+    get:
+      summary: Read video metadata (Cedar-bound)
+      operationId: get_video
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Video
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Video'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      summary: Edit video caption / hashtags / visibility (creator only)
+      operationId: edit_video
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/XContextKind'
+        - $ref: '#/components/parameters/VideoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                caption: {type: string, maxLength: 2200}
+                hashtags: {type: array, items: {type: string}}
+                visibility: {type: string, enum: [public, followers, private]}
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Video'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+    delete:
+      summary: Delete video (creator only; DSR-cascade)
+      operationId: delete_video
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '204':
+          description: Deleted
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  # ===========================================================================
+  # feed-timeline BC
+  # ===========================================================================
+
+  /feed/for-you:
+    get:
+      summary: Render For-You algorithmic feed (top N videos)
+      operationId: render_for_you_feed
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - in: query
+          name: limit
+          schema: {type: integer, default: 10, maximum: 50}
+        - in: query
+          name: cursor
+          schema: {type: string, nullable: true}
+      responses:
+        '200':
+          description: Feed slice with ranking_explanation per EU DSA Art. 27
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  videos: {type: array, items: {$ref: '#/components/schemas/Video'}}
+                  next_cursor: {type: string, nullable: true}
+                  ranking_explanation:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        video_id: {type: string, format: ulid}
+                        contributing_signals: {type: array, items: {type: object}}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /feed/chronological:
+    get:
+      summary: Render chronological feed (always available; EU DSA Art. 27 opt-out; minor-account default)
+      operationId: render_chronological_feed
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - in: query
+          name: limit
+          schema: {type: integer, default: 10, maximum: 50}
+        - in: query
+          name: cursor
+          schema: {type: string, nullable: true}
+      responses:
+        '200':
+          description: Feed slice
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  videos: {type: array, items: {$ref: '#/components/schemas/Video'}}
+                  next_cursor: {type: string, nullable: true}
+
+  # ===========================================================================
+  # like-share-comment + repost-stitch-duet
+  # ===========================================================================
+
+  /videos/{video_id}/likes:
+    post:
+      summary: Add like
+      operationId: like_video
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '201': {description: Liked}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /videos/{video_id}/comments:
+    post:
+      summary: Add comment
+      operationId: comment_on_video
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/VideoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body: {type: string, maxLength: 500}
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Comment'}
+
+  /videos/{video_id}/stitch:
+    post:
+      summary: Repost via Stitch (clip + append own video)
+      operationId: repost_stitch
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/XContextKind'
+        - $ref: '#/components/parameters/VideoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_clip_start_ms, source_clip_end_ms, new_upload_id]
+              properties:
+                source_clip_start_ms: {type: integer}
+                source_clip_end_ms: {type: integer}
+                new_upload_id: {type: string, format: ulid}
+      responses:
+        '201':
+          description: Stitch created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Video'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /videos/{video_id}/duet:
+    post:
+      summary: Repost via Duet (side-by-side composition)
+      operationId: repost_duet
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/XContextKind'
+        - $ref: '#/components/parameters/VideoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [new_upload_id]
+              properties:
+                new_upload_id: {type: string, format: ulid}
+      responses:
+        '201':
+          description: Duet created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Video'}
+
+  # ===========================================================================
+  # content-moderation + appeals
+  # ===========================================================================
+
+  /videos/{video_id}/moderation-verdicts:
+    get:
+      summary: Read moderation verdict for video (creator + moderator scope)
+      operationId: get_moderation_verdict
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Verdict with Statement of Reasons (EU DSA Art. 17) + eu_ai_act_label
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ModerationVerdict'}
+
+  /appeals:
+    post:
+      summary: Open appeal against moderation verdict (EU DSA Art. 20 — 7d SLA)
+      operationId: open_appeal
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verdict_id, reason]
+              properties:
+                verdict_id: {type: string, format: ulid}
+                reason: {type: string, maxLength: 2000}
+      responses:
+        '201':
+          description: Appeal opened
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Appeal'}
+
+  /abuse-reports:
+    post:
+      summary: File abuse report against video / comment / creator
+      operationId: report_abuse
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_video_id, abuse_category]
+              properties:
+                target_video_id: {type: string, format: ulid}
+                abuse_category: {type: string, enum: [nsfw, violence, harassment, csam_suspect, self_harm_suspect, minor_protection_concern, copyright_infringement, hate_speech, other]}
+                description: {type: string, maxLength: 2000}
+      responses:
+        '202': {description: Abuse report queued for review}
+
+  # ===========================================================================
+  # copyright-claim BC
+  # ===========================================================================
+
+  /copyright-claims:
+    post:
+      summary: File DMCA copyright claim (rights-holder verified-business required)
+      operationId: file_copyright_claim
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_video_id, claim_text, perjury_attestation]
+              properties:
+                target_video_id: {type: string, format: ulid}
+                claim_text: {type: string}
+                perjury_attestation: {type: boolean, description: DMCA §512(c)(3)(A)(vi); must be true}
+      responses:
+        '201':
+          description: Claim filed
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CopyrightClaim'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/RateLimited'}
+
+  /copyright-claims/{claim_id}/counter-notice:
+    post:
+      summary: File DMCA counter-notice (DMCA §512(g); creator only)
+      operationId: file_counter_notice
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - in: path
+          name: claim_id
+          required: true
+          schema: {type: string, format: ulid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [counter_notice_text, jurisdiction_consent, perjury_attestation]
+              properties:
+                counter_notice_text: {type: string}
+                jurisdiction_consent: {type: boolean, description: DMCA §512(g)(3)(D)}
+                perjury_attestation: {type: boolean, description: DMCA §512(g)(3)(C)}
+      responses:
+        '201': {description: Counter-notice filed; 10-14 business day waiting period begins}
+
+  # ===========================================================================
+  # age-gate + parental-controls
+  # ===========================================================================
+
+  /age-attestations:
+    post:
+      summary: Attest age at signup; routes minor accounts to parental-consent flow
+      operationId: attest_age
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/XAgePackThreshold'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [self_reported_age]
+              properties:
+                self_reported_age: {type: integer, minimum: 0, maximum: 150}
+      responses:
+        '201':
+          description: Attestation created; if minor, parental_consent_required=true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgeAttestation'}
+
+  /parental-links:
+    post:
+      summary: Parent links to a minor account (parental-consent attestation)
+      operationId: create_parental_link
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [minor_user_ref, parent_user_ref, attestation_text]
+              properties:
+                minor_user_ref: {type: string}
+                parent_user_ref: {type: string}
+                attestation_text: {type: string}
+      responses:
+        '201': {description: Parental link established; minor-account defaults applied}
+
+  # ===========================================================================
+  # search BC (hashtag / sound / creator)
+  # ===========================================================================
+
+  /search/hashtags/{hashtag}:
+    get:
+      summary: Search videos by hashtag
+      operationId: search_hashtag
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - $ref: '#/components/parameters/HashtagTag'
+        - in: query
+          name: limit
+          schema: {type: integer, default: 25, maximum: 100}
+      responses:
+        '200':
+          description: Videos (Cedar-filtered)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  videos: {type: array, items: {$ref: '#/components/schemas/Video'}}
+
+  /search/sounds:
+    get:
+      summary: Search sounds in audio-track-library
+      operationId: search_sound
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+        - in: query
+          name: q
+          required: true
+          schema: {type: string, maxLength: 200}
+      responses:
+        '200':
+          description: Sounds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sounds: {type: array, items: {$ref: '#/components/schemas/Sound'}}
+
+  /trending:
+    get:
+      summary: Read trending sounds + hashtags (per pack; sound-of-the-week)
+      operationId: get_trending
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+      responses:
+        '200':
+          description: Trending windows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trending_hashtags: {type: array, items: {type: object}}
+                  trending_sounds: {type: array, items: {$ref: '#/components/schemas/Sound'}}
+                  sound_of_the_week: {$ref: '#/components/schemas/Sound', nullable: true}
+
+  # ===========================================================================
+  # DRM substrate (tenant-tier-gated)
+  # ===========================================================================
+
+  /drm/license:
+    post:
+      summary: Acquire EME license for DRM-protected video (Premium tier only)
+      operationId: issue_drm_license
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [video_id, key_system, license_challenge_blob, device_fingerprint]
+              properties:
+                video_id: {type: string, format: ulid}
+                key_system: {type: string, enum: [com.widevine.alpha, com.apple.fps, com.microsoft.playready]}
+                license_challenge_blob: {type: string, description: base64-encoded EME license request}
+                device_fingerprint: {type: string, description: hashed device fingerprint; salted per tenant}
+      responses:
+        '200':
+          description: License blob
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DrmLicenseResponse'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '429': {$ref: '#/components/responses/RateLimited'}
+
+  # ===========================================================================
+  # creator-analytics
+  # ===========================================================================
+
+  /creator-analytics/me:
+    get:
+      summary: Read own creator analytics dashboard (k-anonymity ≥ 10 on slices)
+      operationId: get_creator_analytics
+      security: [{OIDC: []}]
+      parameters:
+        - $ref: '#/components/parameters/XScopeOrgID'
+      responses:
+        '200':
+          description: Analytics (k-anonymity-floor-applied)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_views: {type: integer}
+                  total_likes: {type: integer}
+                  total_comments: {type: integer}
+                  total_shares: {type: integer}
+                  audience_slices: {type: array, items: {type: object, description: aggregate; k≥10 suppressed}}
+                  posting_cadence: {type: object}
+                  audience_growth_trend: {type: object}

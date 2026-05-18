@@ -20,7 +20,7 @@ Resolved during Architect run, between Planner and Critic phases. The Critic SHO
 **Actual**: Highest existing is **ADR-0051** (`mobile-and-native-client-strategy.md`). Plan's assumption is wrong by ~25 slots.
 
 **Correct slot allocation:**
-- **ADR-0052** — `inventory-grit-cutover.md` (was P1's ADR-NNNN target)
+- **ADR-0052** — `inventory-grit-cutover.md` (was P1's ADR-#### target)
 - **ADR-0053** — `grit-icm-as-sanctioned-primitives.md` (the central direction ADR)
 - **ADR-0054** — `grit-scaffold-claim-pattern.md` (the chicken-and-egg resolution; new — see Q1 resolution below)
 

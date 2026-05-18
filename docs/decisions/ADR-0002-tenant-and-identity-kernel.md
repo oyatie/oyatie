@@ -140,7 +140,7 @@ pub struct AccessDecision {
 ### Alternative B — Vendor IdP as authoritative identity (e.g. Auth0, Okta)
 
 - **Pros:** zero day-one identity build cost.
-- **Cons:** sovereignty + KCMVP/CSAP constraints in KR, GAIA-X in EU; vendor lock; per-region failover impossible without rebuilding the surface.
+- **Cons:** sovereignty + KCminimum-shippable-tier/CSAP constraints in KR, GAIA-X in EU; vendor lock; per-region failover impossible without rebuilding the surface.
 - **Rejected because:** the regulatory packs (esp. KR-pack, EU-pack) require kernel-level control over credential rotation, audit emission, and policy evaluation.
 
 ### Alternative C — Cedar but without STS — long-lived service credentials

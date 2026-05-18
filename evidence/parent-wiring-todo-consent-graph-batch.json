@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "todo_id": "parent-wiring-todo-consent-graph-batch-2026-05-18",
+  "microservice": "consent-graph",
+  "phase": "PHASE-01-CONSENT-GRAPH-SUBSTRATE",
+  "generated_at": "2026-05-18T00:00:00Z",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "pr": "#143",
+  "rationale": "This PR is scope-locked to microservices/consent-graph/** + ADR-0214 + microservices/ontology/IP-CT-*. Parent-wiring (workspace Cargo.toml + MICROSERVICES const) is OUT OF SCOPE and deferred to a follow-up PR per scope-lock directive 2026-05-18.",
+  "items": [
+    {
+      "id": "workspace-cargo-toml",
+      "target_file": "/Cargo.toml",
+      "section": "[workspace] members",
+      "action": "append",
+      "crates_to_add": [
+        "microservices/consent-graph/src/oya-consent-graph-agreement-adapter",
+        "microservices/consent-graph/src/oya-consent-graph-agreement-api",
+        "microservices/consent-graph/src/oya-consent-graph-agreement-app",
+        "microservices/consent-graph/src/oya-consent-graph-agreement-domain",
+        "microservices/consent-graph/src/oya-consent-graph-agreement-kernel",
+        "microservices/consent-graph/src/oya-consent-graph-agreement-rest",
+        "microservices/consent-graph/src/oya-consent-graph-agreement-sdk",
+        "microservices/consent-graph/src/oya-consent-graph-agreement-usecase",
+        "microservices/consent-graph/src/oya-consent-graph-agreement-worker",
+        "microservices/consent-graph/src/oya-consent-graph-enforcement-adapter",
+        "microservices/consent-graph/src/oya-consent-graph-enforcement-adapter-cedar",
+        "microservices/consent-graph/src/oya-consent-graph-enforcement-api",
+        "microservices/consent-graph/src/oya-consent-graph-enforcement-app",
+        "microservices/consent-graph/src/oya-consent-graph-enforcement-domain",
+        "microservices/consent-graph/src/oya-consent-graph-enforcement-kernel",
+        "microservices/consent-graph/src/oya-consent-graph-enforcement-sdk",
+        "microservices/consent-graph/src/oya-consent-graph-enforcement-usecase",
+        "microservices/consent-graph/src/oya-consent-graph-revocation-adapter",
+        "microservices/consent-graph/src/oya-consent-graph-revocation-adapter-pulsar",
+        "microservices/consent-graph/src/oya-consent-graph-revocation-api",
+        "microservices/consent-graph/src/oya-consent-graph-revocation-app",
+        "microservices/consent-graph/src/oya-consent-graph-revocation-domain",
+        "microservices/consent-graph/src/oya-consent-graph-revocation-kernel",
+        "microservices/consent-graph/src/oya-consent-graph-revocation-usecase",
+        "microservices/consent-graph/src/oya-consent-graph-revocation-worker",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-adapter",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-adapter-pulsar",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-api",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-app",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-domain",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-kernel",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-sdk",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-usecase",
+        "microservices/consent-graph/src/oya-consent-graph-projection-gateway-worker",
+        "microservices/consent-graph/src/oya-consent-graph-audit-bridge-adapter",
+        "microservices/consent-graph/src/oya-consent-graph-audit-bridge-api",
+        "microservices/consent-graph/src/oya-consent-graph-audit-bridge-app",
+        "microservices/consent-graph/src/oya-consent-graph-audit-bridge-domain",
+        "microservices/consent-graph/src/oya-consent-graph-audit-bridge-kernel",
+        "microservices/consent-graph/src/oya-consent-graph-audit-bridge-usecase",
+        "microservices/consent-graph/src/oya-consent-graph-audit-bridge-worker",
+        "microservices/consent-graph/src/oya-consent-graph-partner-directory-adapter",
+        "microservices/consent-graph/src/oya-consent-graph-partner-directory-api",
+        "microservices/consent-graph/src/oya-consent-graph-partner-directory-app",
+        "microservices/consent-graph/src/oya-consent-graph-partner-directory-domain",
+        "microservices/consent-graph/src/oya-consent-graph-partner-directory-kernel",
+        "microservices/consent-graph/src/oya-consent-graph-partner-directory-rest",
+        "microservices/consent-graph/src/oya-consent-graph-partner-directory-usecase"
+      ],
+      "total_count": 47,
+      "note": "Crate names also need 4 audit-bridge-sdk + partner-directory-sdk variants (3 more = 51 total per manifest); add per manifest.json bounded_contexts list of record."
+    },
+    {
+      "id": "microservices-const",
+      "target_file": "crates/oya-dev-cli/src/scaffold.rs (or wherever MICROSERVICES const lives)",
+      "action": "append-literal",
+      "value": "consent-graph",
+      "context": "Existing MICROSERVICES const enumerates flat-layout µservices for scaffold/gen-crate/promote commands."
+    },
+    {
+      "id": "ontology-cross-tenant-crates-todo",
+      "target_file": "/Cargo.toml",
+      "section": "[workspace] members",
+      "action": "append",
+      "crates_to_add": [
+        "microservices/ontology/src/oya-ontology-cross-tenant-projection-kernel",
+        "microservices/ontology/src/oya-ontology-cross-tenant-projection-adapter-pulsar",
+        "microservices/ontology/src/oya-ontology-cross-tenant-projection-usecase",
+        "microservices/ontology/src/oya-ontology-cross-tenant-projection-aggregate-usecase",
+        "microservices/ontology/src/oya-ontology-cross-tenant-projection-aggregate-worker",
+        "microservices/ontology/src/oya-ontology-cross-tenant-projection-sovereignty"
+      ],
+      "total_count": 6,
+      "note": "Ontology extension crates per IP-CT-001..005."
+    },
+    {
+      "id": "ontology-manifest-update",
+      "target_file": "microservices/ontology/manifest.json",
+      "action": "append-bounded-context",
+      "value": {
+        "name": "cross-tenant-projection",
+        "description": "Cross-tenant projection extension gated by consent-graph (IP-CT-001..005)",
+        "crates": [
+          "oya-ontology-cross-tenant-projection-kernel",
+          "oya-ontology-cross-tenant-projection-adapter-pulsar",
+          "oya-ontology-cross-tenant-projection-usecase",
+          "oya-ontology-cross-tenant-projection-aggregate-usecase",
+          "oya-ontology-cross-tenant-projection-aggregate-worker",
+          "oya-ontology-cross-tenant-projection-sovereignty"
+        ]
+      }
+    },
+    {
+      "id": "follow-up-pr",
+      "title": "feat(parent-wiring): wire consent-graph µservice + ontology cross-tenant extension into workspace",
+      "body": "Companion to PR #143. Adds 51 consent-graph crates + 6 ontology cross-tenant extension crates to workspace.members, appends 'consent-graph' to MICROSERVICES const, runs oya gen crate from manifests to emit crate skeletons. cargo build clean required pre-merge.",
+      "base": "dev"
+    }
+  ],
+  "out_of_scope_note": "Per coordinator scope-lock 2026-05-18, this PR (#143) deliberately leaves workspace.members + MICROSERVICES const untouched. Cargo build before/after this PR is expected to be unchanged because no Cargo.toml or source files were added. Parent-wiring PR creates the workspace registration in a separate reviewable change."
+}

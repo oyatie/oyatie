@@ -34,7 +34,7 @@ doc_status: published
 
 ## 2. Lift target
 
-All files lift to `oyatie/docs/release/branch-pipeline/` on approval. ADR draft lifts to `oyatie/docs/decisions/ADR-XXXX-four-layer-branch-pipeline.md` and supersedes `oyatie/docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md`.
+All files lift to `oyatie/docs/release/branch-pipeline/` on approval. ADR draft lifts to `oyatie/docs/decisions/registry/placeholder-debt/adr-follow-ups.yaml#four-layer-branch-pipeline (drafting)` and supersedes `oyatie/docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md`.
 
 ## 3. Cross-references
 
