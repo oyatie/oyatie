@@ -39,6 +39,58 @@ cargo test --test enex-import
 cargo test --test export-roundtrip-canonical
 ```
 
+## ChangeSet metadata
+
+```yaml
+changeset_id: CS-NOTES-IP-012-import-export-pipelines
+depends_on_changesets: [CS-NOTES-IP-003-note-store-kernel-domain]
+parallel_safe_with_changesets: [CS-NOTES-IP-011-collab-edit-loro]
+enables: []
+acceptance_status: ga
+```
+
+## Acceptance Criteria
+
+| AC-ID | Criterion | Verification |
+|---|---|---|
+| AC-01 | Export → import → re-export produces byte-identical JSON Canonical (RFC 8785) | `cargo test --test export-roundtrip-canonical` |
+| AC-02 | Obsidian vault roundtrip preserves wikilinks + frontmatter + tag-graph | `cargo test --test obsidian-vault-roundtrip` |
+| AC-03 | Evernote ENEX import preserves note + tags + attachments + creation/mod timestamps | `cargo test --test enex-import` |
+| AC-04 | Markdown export preserves frontmatter YAML key order + body | `cargo nextest run -p oya-notes-export-pipeline-domain -- md_canonical` |
+| AC-05 | PDF export embeds Unicode CJK glyphs (KR + JP + ZH characters present) | `cargo nextest run -p oya-notes-export-pipeline-adapter-pdf -- cjk_glyphs` |
+
+## Build Sequence
+
+1. Kernel: `Importer`, `Exporter`, `FormatAdapter` ports.
+2. Domain: `SourceFormat` enum (obsidian/enex/apple-notes/onenote/notion/bear), `TargetFormat` enum (md/json-canonical/pdf).
+3. Per-format adapters per table above.
+4. Roundtrip test fixtures at `tests/fixtures/import-export/`.
+5. `cargo test --test export-roundtrip-canonical`.
+
+## Traceability
+
+| Sibling artifact | Reference |
+|---|---|
+| PRD-notes FR | FR-15 (import), FR-16 (export) |
+| PRD-notes AC | AC-16 (roundtrip) |
+| ADR | ADR-NOTES-0006 (import format coverage) |
+
+## Risk + Mitigation
+
+| Risk | Mitigation |
+|---|---|
+| ENEX format ambiguity loses inline attachments | Test fixture covers attachment + cross-link cases |
+| Apple Notes archive format private | Document parser at the format-version we support; refuse unknown |
+| PDF export omits CJK glyphs | Bundled noto-cjk; CJK glyph test |
+
+## References
+
+- RFC 8785 (JSON Canonicalization Scheme).
+- Evernote ENEX format reference (Evernote Developer docs — "Evernote XML Export Format").
+- Obsidian vault format documentation (Obsidian Help — "Vault").
+- Notion Markdown export reference (Notion Help — "Export your content").
+- ADR-NOTES-0006.
+
 ## Next IP
 
 [`IP-013-ai-assist-and-e2e-refusal.md`](IP-013-ai-assist-and-e2e-refusal.md)

@@ -29,7 +29,54 @@ cargo nextest run -p oya-drive-search-index-adapter-meilisearch -- query_1m
 cargo run -p oya-dev-cli -- gate validate search-tenant-scoped --microservice drive
 ```
 
+## ChangeSet metadata
+
+```yaml
+changeset_id: CS-DRIVE-IP-011-search-index
+depends_on_changesets: [CS-DRIVE-IP-003-file-store-kernel-domain, CS-DRIVE-IP-010-permissions]
+parallel_safe_with_changesets: [CS-DRIVE-IP-009-share-link, CS-DRIVE-IP-012-preview]
+enables: []
+acceptance_status: ga
+```
+
+## Acceptance Criteria
+
+| AC-ID | Criterion | Verification |
+|---|---|---|
+| AC-01 | Per-tenant Meilisearch index namespace; cross-tenant query refused at compile + runtime | `cargo nextest run -p oya-drive-search-index-domain -- per_tenant_index` |
+| AC-02 | Cross-tenant query returns 403 + audit-chain seal | `cargo nextest run -p oya-drive-search-index-domain -- cross_tenant_refused` |
+| AC-03 | Search across 1M-file tenant corpus p95 ≤ 400ms | `cargo nextest run -p oya-drive-search-index-adapter-meilisearch -- query_1m` |
+| AC-04 | `oya gate validate search-tenant-scoped --microservice drive` exits 0 | governance lane |
+
+## Build Sequence
+
+1. Kernel: `SearchIndex`, `TextExtractor`, `OcrHandoff` ports.
+2. Domain: `IndexableDocument`, `Query`, `Hit`, `Facet`.
+3. Usecase: `IndexFile`, `QueryFiles`, `ReindexAfterPermissionChange`.
+4. Adapters: `-adapter-meilisearch` + `-adapter-tika`.
+5. Worker drains index queue + OCR handoff via foundry-runtime event.
+6. `cargo nextest run -p oya-drive-search-index-*`.
+
+## Traceability
+
+| Sibling artifact | Reference |
+|---|---|
+| PRD-drive FR | FR-08 (search by filename + full-text) |
+| PRD-drive NFR | NFR perf — search 1M corpus p99 ≤ 1s |
+| PRD-drive AC | AC-07 |
+
+## Risk + Mitigation
+
+| Risk | Mitigation |
+|---|---|
+| Tika sandbox escape via crafted document | Tika runs in gVisor sandbox; output rasterised to bytes |
+| Cross-tenant index leak via Meilisearch global keys | Per-tenant Meilisearch master key; never shared |
+| Reindex storm on bulk permission change | Coalesce reindex events; max-batch 500 docs |
+
 ## References
 
 - PRD-drive §FR-08; AC-07.
-- Meilisearch docs; Apache Tika docs.
+- Meilisearch documentation (`meilisearch.com/docs`).
+- Apache Tika 2.x documentation (`tika.apache.org/2.9.0/index.html`).
+- Elasticsearch tenancy model reference (Elastic docs — "Multi-tenancy").
+- Google Drive search reference (Workspace Help — "Search and find files").

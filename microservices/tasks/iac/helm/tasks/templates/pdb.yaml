@@ -1,0 +1,14 @@
+{{- range tuple "taskStoreRest" "viewEngineRest" "searchIndexWorker" "recurringTaskMaterializer" "dependencyGraphValidator" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: tasks-{{ . | kebabcase }}-pdb
+  namespace: tasks
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tasks
+      app.kubernetes.io/component: {{ . | kebabcase }}
+{{- end }}
