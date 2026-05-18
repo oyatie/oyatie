@@ -1,0 +1,31 @@
+{
+  "upstream": "https://github.com/addyosmani/agent-skills",
+  "commit_sha": "f17c6e88c904dc747381c374312c2d58e10647ae",
+  "fetched_at": "2026-05-18T13:21:28Z",
+  "license": "MIT",
+  "license_file": "tools/agent-skills/LICENSE",
+  "attribution": "Addy Osmani and contributors",
+  "vendor_method": "tarball-extract",
+  "vendor_managed_by": "tools/hook-bootstrap/install.sh + .github/workflows/sync-agent-skills.yml",
+  "manual_edits_prohibited": true,
+  "sync_policy": "auto-PR on upstream drift; never edit in place",
+  "inheritance_pattern": "addyosmani is inheritance base; oyatie governance overlays; oyatie WINS on conflict (per Bominal-inheritance precedence)",
+  "oyatie_authored_files": [
+    "INHERITANCE.md"
+  ],
+  "import_targets": {
+    "CLAUDE.md": "tools/agent-skills/CLAUDE.md is repo-introspective (describes upstream repo); root CLAUDE.md remains authoritative for oyatie. Inheritance is INFORMATIONAL — agents should treat upstream CLAUDE.md as describing the vendored subtree, not oyatie itself.",
+    "AGENTS.md": "tools/agent-skills/AGENTS.md is INHERITED BASE — intent→skill mapping, anti-rationalization, persona/skill/command orchestration. docs/AGENTS.md OVERLAYS oyatie governance (multispectrum review, authority chain, Foundry pipeline). Authority chain places docs/AGENTS.md ABOVE tools/agent-skills/AGENTS.md."
+  },
+  "skill_count": 23,
+  "persona_count": 4,
+  "reference_count": 5,
+  "structural_invariants_for_sync_pr": [
+    "skills/ directory must exist",
+    "agents/ directory must exist",
+    "references/ directory must exist",
+    "hooks/ directory must exist",
+    "LICENSE must contain 'MIT'",
+    "scripts/validate-skills.js must exist (used by validate-agent-skills.yml)"
+  ]
+}

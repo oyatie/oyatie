@@ -1,0 +1,81 @@
+#compdef oya
+# tools/completions/zsh/_oya — zsh completion for the oya CLI wrapper
+#
+# Installation (manual):
+#   fpath+=($(pwd)/tools/completions/zsh)
+#   autoload -Uz compinit && compinit
+# Installation (system):
+#   cp tools/completions/zsh/_oya /usr/local/share/zsh/site-functions/_oya
+
+_oya() {
+    local -a subcommands
+    subcommands=(
+        'vcs:Version control operations (canonical primitive; replaces grit/rtk)'
+        'gate:Run foundry quality gates'
+        'governance-gates:Governance-layer gate checks'
+        'foundation-audit-gates:Foundation audit gate suite'
+        'catalog:Crate and product catalog operations'
+        'check:Run individual check validators'
+        'demo:Demo scaffolding helpers'
+        'doc:Documentation generation (ADR index, OpenAPI, mdBook, rustdoc)'
+        'lint:Lint checks across workspace'
+        'onprem:On-premises deployment helpers'
+        'ops:Operations commands'
+        'submit:Submit artifacts to the Foundry pipeline'
+        'supply-chain:Supply chain verification'
+        'verify:Verification suite'
+        'help:Print help for a subcommand'
+    )
+
+    local -a vcs_subcommands
+    vcs_subcommands=(
+        'status:Show working tree status'
+        'log:Show commit log'
+        'diff:Show changes'
+        'commit:Record changes'
+        'push:Push branch to remote'
+        'pull:Pull from remote'
+        'branch:List or create branches'
+        'checkout:Switch branches'
+        'merge:Merge branches'
+        'rebase:Rebase onto branch'
+        'pr:Pull request operations'
+        'review:Trigger review pipeline'
+        'admit:Admission gate check'
+    )
+
+    local -a doc_subcommands
+    doc_subcommands=(
+        'adr-index:Generate ADR index'
+        'mdbook:Build mdBook documentation'
+        'openapi:Generate OpenAPI spec'
+        'rustdoc:Generate rustdoc'
+        'milestone-audit:Audit milestone completion'
+        'product-index:Generate product index'
+    )
+
+    _arguments -C \
+        '1: :->subcommand' \
+        '*: :->args'
+
+    case $state in
+        subcommand)
+            _describe 'oya subcommand' subcommands
+            ;;
+        args)
+            case ${words[2]} in
+                vcs)
+                    _describe 'vcs subcommand' vcs_subcommands
+                    ;;
+                doc)
+                    _describe 'doc subcommand' doc_subcommands
+                    ;;
+                *)
+                    _files
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_oya "$@"

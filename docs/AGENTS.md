@@ -34,8 +34,10 @@ authority_chain_declaration: |
   system / developer / user instructions
     > /specs/root-hub-pointers.json
     > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
+    > tools/agent-skills/AGENTS.md (inherited base from addyosmani/agent-skills MIT — universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration; oyatie overlays via this file and wins on conflict)
     > machine-readable specs and registries under .omc/
     > docs/ authority files during markdown-retirement compatibility
+    > tools/agent-skills/CLAUDE.md (informational; describes vendored subtree, not oyatie)
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
 purpose: "Operating-Contract: Oyatie Agent Operating Contract."
@@ -74,13 +76,17 @@ The higher source wins on conflict.
 system / developer / user instructions
   > /specs/root-hub-pointers.json
   > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
+  > tools/agent-skills/AGENTS.md (inherited base from addyosmani/agent-skills MIT)
   > machine-readable specs and registries under .omc/
   > docs/ authority files during markdown-retirement compatibility
+  > tools/agent-skills/CLAUDE.md (informational; describes vendored subtree, not oyatie)
   > repo-root Redirect-class files (non-authoritative; lane-thin)
   > working drafts (never authoritative)
 ```
 
 The chain is mirrored from `/specs/root-hub-pointers.json` and the markdown-retirement policy. The `oya-foundry-fitness-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
+
+`tools/agent-skills/AGENTS.md` is the inherited base from `addyosmani/agent-skills` (MIT) — universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration. Oyatie governance (this file) OVERLAYS and WINS on conflict per Bominal-inheritance precedence (`feedback_bominal_inheritance_precedence`). See `tools/agent-skills/INHERITANCE.md` for the full pattern.
 
 ## RFC-2119 normative-language statement
 
@@ -94,6 +100,9 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 
 | Question | Authority |
 |---|---|
+| Intent→skill mapping, lifecycle phases, anti-rationalization, persona/skill/command orchestration | [`tools/agent-skills/AGENTS.md`](../tools/agent-skills/AGENTS.md) (inherited from addyosmani/agent-skills MIT — oyatie overlays via this file; see [`tools/agent-skills/INHERITANCE.md`](../tools/agent-skills/INHERITANCE.md)) |
+| Universal skill catalog (23 lifecycle skills) | [`tools/agent-skills/skills/`](../tools/agent-skills/skills/) |
+| Reusable agent personas (code-reviewer, security-auditor, test-engineer) | [`tools/agent-skills/agents/`](../tools/agent-skills/agents/) |
 | Project mission, decision rights, prohibited primitives, amendments | [`MASTERPLAN.md`](MASTERPLAN.md), [`/specs/master-plan-sequencing.json`](..//specs/master-plan-sequencing.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
 | Bootstrap routing for the canonical tree | [`README.md`](README.md) |
 | Architecture, planes, cross-axis contracts, cohesion thesis | [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> |

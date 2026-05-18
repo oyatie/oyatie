@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# tools/completions/bash/_oya — bash completion for the oya CLI wrapper
+#
+# Installation (manual):
+#   source tools/completions/bash/_oya
+# Installation (system):
+#   cp tools/completions/bash/_oya /etc/bash_completion.d/_oya
+#
+# To activate in current shell: source tools/completions/bash/_oya
+
+_oya_complete() {
+    local cur prev words cword
+    _init_completion 2>/dev/null || {
+        COMPREPLY=()
+        cur="${COMP_WORDS[COMP_CWORD]}"
+        prev="${COMP_WORDS[COMP_CWORD-1]}"
+    }
+
+    local subcommands="vcs gate governance-gates foundation-audit-gates catalog check demo doc lint onprem ops submit supply-chain verify help"
+
+    case "${COMP_CWORD}" in
+        1)
+            COMPREPLY=( $(compgen -W "${subcommands}" -- "${cur}") )
+            ;;
+        2)
+            case "${prev}" in
+                vcs)
+                    local vcs_cmds="status log diff commit push pull branch checkout merge rebase pr review admit"
+                    COMPREPLY=( $(compgen -W "${vcs_cmds}" -- "${cur}") )
+                    ;;
+                gate)
+                    local gate_cmds="run list check status"
+                    COMPREPLY=( $(compgen -W "${gate_cmds}" -- "${cur}") )
+                    ;;
+                doc)
+                    local doc_cmds="adr-index mdbook openapi rustdoc milestone-audit product-index"
+                    COMPREPLY=( $(compgen -W "${doc_cmds}" -- "${cur}") )
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            ;;
+        *)
+            COMPREPLY=()
+            ;;
+    esac
+
+    return 0
+}
+
+complete -F _oya_complete oya
