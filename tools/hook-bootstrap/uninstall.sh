@@ -181,8 +181,9 @@ for agent in claude codex gemini hermes; do
 done
 
 # Clean up empty .<agent>/commands/ dirs if we created them
+# (rmdir silently no-ops on non-empty or non-existent; || true catches both)
 for d in "$REPO_ROOT"/.claude/commands "$REPO_ROOT"/.gemini/commands; do
-    [ -d "$d" ] && rmdir "$d" 2>/dev/null || true
+    rmdir "$d" 2>/dev/null || true
 done
 
 # ── Remove PATH_add bin from .envrc if we added it ──────────────────────────
