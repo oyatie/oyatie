@@ -1,0 +1,88 @@
+name: Validate Agent Skills
+
+# Runs on every push/PR touching tools/agent-skills/** or tools/hook-bootstrap/**.
+# Validates vendored skill structure, runs shellcheck on all hook scripts,
+# and smoke-tests the install.sh --dry-run path.
+
+on:
+  push:
+    paths:
+      - 'tools/agent-skills/**'
+      - 'tools/hook-bootstrap/**'
+      - 'tools/hooks/**'
+      - 'bin/oya'
+  pull_request:
+    paths:
+      - 'tools/agent-skills/**'
+      - 'tools/hook-bootstrap/**'
+      - 'tools/hooks/**'
+      - 'bin/oya'
+
+jobs:
+  validate:
+    name: Validate skills + hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate vendored skill structure
+        run: |
+          if [ -f tools/agent-skills/scripts/validate-skills.js ]; then
+            node tools/agent-skills/scripts/validate-skills.js
+          else
+            echo "ℹ validate-skills.js not found — agent-skills not yet vendored"
+            echo "  Run: ./tools/hook-bootstrap/install.sh to vendor agent-skills"
+          fi
+
+      - name: Install shellcheck
+        run: |
+          if ! command -v shellcheck >/dev/null 2>&1; then
+            sudo apt-get install -y shellcheck
+          fi
+
+      - name: shellcheck — hook scripts
+        run: |
+          shellcheck tools/hook-bootstrap/install.sh
+          shellcheck tools/hook-bootstrap/uninstall.sh
+          shellcheck bin/oya
+          for f in tools/hooks/*.sh; do
+            shellcheck "$f"
+          done
+
+      - name: Smoke test — install.sh --dry-run
+        run: |
+          bash tools/hook-bootstrap/install.sh --dry-run --skip-skills
+          echo "install.sh --dry-run exited 0"
+
+      - name: Smoke test — uninstall.sh --dry-run
+        run: |
+          bash tools/hook-bootstrap/uninstall.sh --dry-run
+          echo "uninstall.sh --dry-run exited 0"
+
+      - name: Verify UPSTREAM.json provenance (if vendored)
+        run: |
+          if [ -f tools/agent-skills/UPSTREAM.json ]; then
+            python3 - <<'PYEOF'
+import json, sys
+with open("tools/agent-skills/UPSTREAM.json") as f:
+    data = json.load(f)
+required = ["upstream", "commit_sha", "fetched_at", "license", "attribution", "manual_edits_prohibited"]
+missing = [k for k in required if k not in data]
+if missing:
+    print(f"UPSTREAM.json missing required fields: {missing}", file=sys.stderr)
+    sys.exit(1)
+if data["license"] != "MIT":
+    print(f"Expected MIT license, got: {data['license']}", file=sys.stderr)
+    sys.exit(1)
+if not data["manual_edits_prohibited"]:
+    print("manual_edits_prohibited must be true", file=sys.stderr)
+    sys.exit(1)
+print(f"UPSTREAM.json valid — SHA: {data['commit_sha'][:12]}, fetched: {data['fetched_at']}")
+PYEOF
+          else
+            echo "ℹ UPSTREAM.json not present — agent-skills not yet vendored (OK for base branch)"
+          fi

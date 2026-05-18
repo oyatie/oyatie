@@ -1,0 +1,185 @@
+name: Sync Agent Skills
+
+# Checks addyosmani/agent-skills daily for upstream drift.
+# On drift: re-vendors content, updates UPSTREAM.json, opens a review PR.
+# Required reviewer: per repo branch-protection policy — do NOT auto-merge.
+# The review is the audit point.
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # daily at 09:00 UTC
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force re-vendor even if SHA matches'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-upstream:
+    name: Check upstream drift
+    runs-on: ubuntu-latest
+    outputs:
+      drift: ${{ steps.compare.outputs.drift }}
+      upstream_sha: ${{ steps.compare.outputs.upstream_sha }}
+      vendored_sha: ${{ steps.compare.outputs.vendored_sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream HEAD SHA
+        id: upstream
+        run: |
+          SHA=$(gh api repos/addyosmani/agent-skills/commits/main --jq '.sha')
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read vendored SHA
+        id: vendored
+        run: |
+          if [ -f tools/agent-skills/UPSTREAM.json ]; then
+            SHA=$(jq -r '.commit_sha' tools/agent-skills/UPSTREAM.json)
+          else
+            SHA=""
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Compare SHAs
+        id: compare
+        run: |
+          UPSTREAM_SHA="${{ steps.upstream.outputs.sha }}"
+          VENDORED_SHA="${{ steps.vendored.outputs.sha }}"
+          FORCE="${{ github.event.inputs.force_sync }}"
+          if [ "$UPSTREAM_SHA" != "$VENDORED_SHA" ] || [ "$FORCE" = "true" ]; then
+            echo "drift=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "upstream_sha=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+          echo "vendored_sha=$VENDORED_SHA" >> "$GITHUB_OUTPUT"
+
+  validate-vendored:
+    name: Validate vendored content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run validate-skills.js
+        run: |
+          if [ -f tools/agent-skills/scripts/validate-skills.js ]; then
+            node tools/agent-skills/scripts/validate-skills.js
+          else
+            echo "validate-skills.js not found — vendored content may be missing; run install.sh first"
+            exit 1
+          fi
+
+  open-sync-pr:
+    name: Re-vendor and open sync PR
+    needs: [check-upstream, validate-vendored]
+    if: needs.check-upstream.outputs.drift == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vendor upstream tarball
+        id: vendor
+        run: |
+          UPSTREAM_SHA="${{ needs.check-upstream.outputs.upstream_sha }}"
+          SKILLS_DIR="tools/agent-skills"
+
+          # Download tarball
+          gh api repos/addyosmani/agent-skills/tarball/main > /tmp/skills.tar.gz
+          mkdir -p /tmp/skills-extract
+          tar -xzf /tmp/skills.tar.gz -C /tmp/skills-extract
+          EXTRACTED=$(find /tmp/skills-extract -maxdepth 1 -type d -name 'addyosmani-agent-skills-*' | head -1)
+
+          # Replace vendored directory (exclude .github/)
+          rm -rf "$SKILLS_DIR"
+          mkdir -p "$SKILLS_DIR"
+          rsync -a --exclude='.github/' "$EXTRACTED/" "$SKILLS_DIR/"
+          rm -rf "$SKILLS_DIR/.github"
+
+          # Update UPSTREAM.json
+          FETCH_TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat > "$SKILLS_DIR/UPSTREAM.json" <<UPSTREAM_EOF
+          {
+            "upstream": "https://github.com/addyosmani/agent-skills",
+            "commit_sha": "$UPSTREAM_SHA",
+            "fetched_at": "$FETCH_TS",
+            "license": "MIT",
+            "license_file": "tools/agent-skills/LICENSE",
+            "attribution": "Addy Osmani and contributors",
+            "vendor_method": "tarball-extract",
+            "vendor_managed_by": "tools/hook-bootstrap/install.sh + .github/workflows/sync-agent-skills.yml",
+            "manual_edits_prohibited": true,
+            "sync_policy": "auto-PR on upstream drift; never edit in place"
+          }
+          UPSTREAM_EOF
+
+          touch "$SKILLS_DIR/.vendored"
+          echo "upstream_sha_short=${UPSTREAM_SHA:0:12}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get upstream changelog link
+        id: changelog
+        run: |
+          OLD="${{ needs.check-upstream.outputs.vendored_sha }}"
+          NEW="${{ needs.check-upstream.outputs.upstream_sha }}"
+          if [ -n "$OLD" ]; then
+            COMPARE_URL="https://github.com/addyosmani/agent-skills/compare/${OLD}...${NEW}"
+          else
+            COMPARE_URL="https://github.com/addyosmani/agent-skills/commits/main"
+          fi
+          echo "url=$COMPARE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Create sync branch and PR
+        run: |
+          SHORT_SHA="${{ steps.vendor.outputs.upstream_sha_short }}"
+          BRANCH="chore/sync-agent-skills-${SHORT_SHA}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add tools/agent-skills/
+          git commit -m "chore(vendor): sync agent-skills to upstream ${SHORT_SHA}
+
+          Automated vendor sync from addyosmani/agent-skills.
+          Upstream changelog: ${{ steps.changelog.outputs.url }}
+
+          Co-Authored-By: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "chore(vendor): sync agent-skills to ${SHORT_SHA}" \
+            --body "$(cat <<'EOF'
+## Automated Agent Skills Sync
+
+Upstream drift detected in [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills).
+
+**Upstream changelog:** ${{ steps.changelog.outputs.url }}
+
+## Changes
+- Re-vendored `tools/agent-skills/` from upstream HEAD
+- Updated `tools/agent-skills/UPSTREAM.json` with new SHA + fetch timestamp
+
+## Review checklist
+- [ ] Review upstream diff for breaking changes to skill structure
+- [ ] Confirm `validate-skills.js` passes (required CI check)
+- [ ] Confirm session-start hook payload still references valid skill names
+- [ ] Merge when satisfied — do NOT auto-merge
+
+**Attribution:** Lifecycle skills vendored from addyosmani/agent-skills (MIT).
+EOF
+            )" \
+            --label "auto-vendor-sync,agent-skills" \
+            --base dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
