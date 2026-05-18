@@ -153,3 +153,49 @@ jobs:
           CARGO_TERM_COLOR: always
           CARGO_INCREMENTAL: "0"
         run: cargo run -q -p oya-foundry-vcs-admission-gate-app
+
+  oya-git-cutover-inventory:
+    name: oya-git-cutover-inventory
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inventory oya vcs policy-ratchet invocations
+        run: bash tools/hooks/oya-git-cutover-inventory.sh
+
+  oya-governance-vacuous-green:
+    name: oya-governance-vacuous-green
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify vacuous-green gate detects a bad fixture
+        run: bash tools/governance/adr-0221-governance-gates.sh vacuous-green
+
+  oya-governance-adr-orphan-citation:
+    name: oya-governance-adr-orphan-citation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify orphan-citation gate detects a bad fixture
+        run: bash tools/governance/adr-0221-governance-gates.sh orphan-citation
+
+  oya-governance-version-pin-source-citation:
+    name: oya-governance-version-pin-source-citation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify version-pin gate detects bad fixtures
+        run: bash tools/governance/adr-0221-governance-gates.sh version-pin
+
+  oya-governance-buildability-line-count:
+    name: oya-governance-buildability-line-count
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify buildability-line-count gate detects bad and good fixtures
+        run: bash tools/governance/adr-0221-governance-gates.sh buildability-line-count

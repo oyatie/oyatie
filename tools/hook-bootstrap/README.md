@@ -39,6 +39,7 @@ tools/hooks/
 ├── buildability-line-count.sh             # PostToolUse(Write µservice docs) — line count
 ├── adr-orphan-detect.sh                   # PostToolUse(Edit|Write .md|.json) — ADR refs
 ├── microservice-quality-bar.sh            # PostToolUse(Write µservice) + Stop — artifact count
+├── oya-git-cutover-inventory.sh           # CI notice-only — oya-git cutover inventory
 └── vacuous-green-gate-detect.sh           # PostToolUse(Edit|Write lanes|check) — gate honesty
 
 bin/oya                                    # CLI wrapper (PATH_add bin via .envrc)
@@ -89,6 +90,10 @@ bash tools/hooks/session-start-context-inject.sh
 
 # Test stale-tool suggester with mock input
 TOOL_INPUT='{"command":"grit done"}' bash tools/hooks/stale-tool-suggester.sh
+TOOL_INPUT='{"command":"git status --short"}' bash tools/hooks/stale-tool-suggester.sh
+
+# Test oya-git cutover inventory warning
+bash tools/hooks/oya-git-cutover-inventory.sh
 
 # Test spec version suggester on a real file
 TOOL_INPUT='{"path":"contracts/example.yaml"}' bash tools/hooks/spec-version-pin-suggester.sh

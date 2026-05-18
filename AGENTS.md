@@ -10,6 +10,7 @@ Manual Wave-B bootstrap note (prose only): until the webhook receiver is deploye
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
+  - oya-git
   - oya-vcs
   - oya-vcs-admission
 required_sequence:
@@ -20,5 +21,5 @@ required_sequence:
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-retirement_note: external agent-coordination tools are retired per ADR-0116; omx/omc/oya-tooling-agent-read remain compatibility/provenance-only during the cutover window. Oya VCS ChangeBundle -> Promotion -> ReleaseTrain is the forward closure authority.
+retirement_note: external agent-coordination tools are retired per ADR-0116; omx/omc/oya-tooling-agent-read remain compatibility/provenance-only during the cutover window. `oya git <git-subcommand>` is the git drop-in surface; Oya VCS remains the compatibility policy-ratchet spelling for claim / verify / done / promote until those policy verbs split explicitly.
 <!-- agent-instructions:end -->

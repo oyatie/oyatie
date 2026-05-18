@@ -36,7 +36,11 @@ pub(crate) fn read_workspace_member_paths(path: &Path) -> Result<Vec<String>, St
     let member_paths = members
         .split(',')
         .filter_map(|entry| {
-            let path = entry.trim().trim_matches('"');
+            let trimmed = entry.trim();
+            let first_quote = trimmed.find('"')?;
+            let rest = &trimmed[first_quote + 1..];
+            let second_quote = rest.find('"')?;
+            let path = &rest[..second_quote];
             if path.is_empty() {
                 None
             } else {
@@ -102,4 +106,39 @@ pub(crate) fn read_package_name(path: &Path) -> Result<String, String> {
         "package manifest missing package name: {}",
         path.display()
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use super::read_workspace_member_paths;
+
+    #[test]
+    fn workspace_member_parser_ignores_comments_in_members_array() {
+        let dir = std::env::temp_dir().join(format!(
+            "oya-workspace-manifest-test-{}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&dir).expect("fixture dir created");
+        let manifest = dir.join("Cargo.toml");
+        fs::write(
+            &manifest,
+            r#"[workspace]
+members = [
+  "crates/one",
+  # comment inside TOML array
+  "crates/two",
+  # another comment
+]
+"#,
+        )
+        .expect("manifest written");
+
+        let members = read_workspace_member_paths(&manifest).expect("members parsed");
+        assert_eq!(members, vec!["crates/one", "crates/two"]);
+
+        fs::remove_file(manifest).expect("manifest removed");
+        fs::remove_dir_all(dir).expect("fixture dir removed");
+    }
 }

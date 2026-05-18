@@ -25,11 +25,11 @@ use std::fmt;
 
 /// Opaque cursor value (base64-URL-encoded payload).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Cursor(pub String);
+pub struct Cursor(pub String); // data_class: INTERNAL_ONLY
 
 /// Bounded page size with canonical clamp `[1, 100]`.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PageSize(u32);
+pub struct PageSize(u32); // data_class: INTERNAL_ONLY
 
 impl PageSize {
     /// # Errors
@@ -56,10 +56,10 @@ impl Default for PageSize {
 /// Page result envelope.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Page<T> {
-    pub items: Vec<T>,
-    pub next_cursor: Option<Cursor>,
-    pub has_more: bool,
-    pub page_size: PageSize,
+    pub items: Vec<T>,               // data_class: INTERNAL_ONLY
+    pub next_cursor: Option<Cursor>, // data_class: INTERNAL_ONLY
+    pub has_more: bool,              // data_class: INTERNAL_ONLY
+    pub page_size: PageSize,         // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

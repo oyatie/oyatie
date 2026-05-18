@@ -9,7 +9,7 @@
     "enforcement_status": "advisory-until-cross-flow-recatalogued",
     "owner_team": "council-architecture",
     "created_at": "2026-05-18T00:00:00Z",
-    "binding_adr": "ADR-0173",
+    "binding_adr": "ADR-0222",
     "purpose": "Canonical saga shape for cross-microservice writes. Every cross-microservice write is a saga consisting of an ordered list of steps; each step declares (forward_action, compensation_action, idempotency_key_strategy, timeout_budget_ms, retry_policy, audit_class).",
     "user_directive_2026_05_18": "Saga + compensating actions are the only sanctioned shape for cross-microservice writes."
   },

@@ -2,8 +2,9 @@
 # tools/hooks/stale-tool-suggester.sh
 #
 # Trigger:  Claude Code PreToolUse(Bash)
-# Purpose:  When a Bash command references retired tools (grit, rtk, icm, vox),
-#           suggest the canonical oya vcs equivalent. Encouragement, not blockage.
+# Purpose:  When a Bash command references retired tools (grit, rtk, icm, vox)
+#           or plain git, suggest the oya git cutover target and current
+#           policy-ratchet surface.
 # Behavior: Reads $TOOL_INPUT (JSON with "command" field) from environment or stdin.
 #           Greps for retired tool names. If found, prints a suggestion to stderr
 #           with the canonical replacement. Agent decides whether to rewrite.
@@ -16,7 +17,7 @@ COMMAND_TEXT=""
 if [ -n "${TOOL_INPUT:-}" ]; then
     # Extract command field from JSON if jq available
     if command -v jq >/dev/null 2>&1; then
-        COMMAND_TEXT=$(echo "$TOOL_INPUT" | jq -r '.command // ""' 2>/dev/null || echo "")
+        COMMAND_TEXT=$(echo "$TOOL_INPUT" | jq -r '.command // .input.command // .tool_input.command // .parameters.command // ""' 2>/dev/null || echo "")
     else
         COMMAND_TEXT="$TOOL_INPUT"
     fi
@@ -26,7 +27,7 @@ fi
 if [ -z "$COMMAND_TEXT" ] && [ ! -t 0 ]; then
     STDIN_CONTENT=$(cat 2>/dev/null || true)
     if command -v jq >/dev/null 2>&1; then
-        COMMAND_TEXT=$(echo "$STDIN_CONTENT" | jq -r '.command // ""' 2>/dev/null || echo "$STDIN_CONTENT")
+        COMMAND_TEXT=$(echo "$STDIN_CONTENT" | jq -r '.command // .input.command // .tool_input.command // .parameters.command // ""' 2>/dev/null || echo "$STDIN_CONTENT")
     else
         COMMAND_TEXT="$STDIN_CONTENT"
     fi
@@ -35,6 +36,8 @@ fi
 if [ -z "$COMMAND_TEXT" ]; then
     exit 0
 fi
+
+GIT_COMMAND_PATTERN='(^|[;&|][;&|]?[[:space:]]*|\([[:space:]]*)git([[:space:]]|$)'
 
 # Check for retired tool references
 RETIRED_FOUND=""
@@ -47,10 +50,16 @@ done
 if [ -n "$RETIRED_FOUND" ]; then
     echo "ℹ [stale-tool-suggester] Retired tool(s) detected:${RETIRED_FOUND}" >&2
     echo "ℹ  These are retired per ADR-0116. Canonical replacement:" >&2
-    echo "ℹ    oya vcs <subcommand>" >&2
-    echo "ℹ    cargo run --quiet -p oya-dev-cli -- vcs <subcommand>" >&2
+    echo "ℹ    oya git <git-subcommand> for git operations (drop-in pass-through + local ledger)" >&2
+    echo "ℹ    oya vcs <claim|work|verify|done|status|symbols|queue|watch|promote> for the current policy ratchet compatibility surface" >&2
     echo "ℹ  See tools/hooks/_canonical-primitives.md for the full primitives reference." >&2
     echo "ℹ  Continuing as requested — agent decides whether to rewrite." >&2
+fi
+
+if printf '%s\n' "$COMMAND_TEXT" | grep -Eq "$GIT_COMMAND_PATTERN" 2>/dev/null; then
+    echo "ℹ [stale-tool-suggester] Plain git invocation detected." >&2
+    echo "ℹ  Preferred drop-in surface: oya git <git-subcommand> [git-specific args]" >&2
+    echo "ℹ  This is advisory only; command semantics are not changed by the hook." >&2
 fi
 
 exit 0

@@ -16,7 +16,7 @@ _oya_complete() {
         prev="${COMP_WORDS[COMP_CWORD-1]}"
     }
 
-    local subcommands="vcs gate governance-gates foundation-audit-gates catalog check demo doc lint onprem ops submit supply-chain verify help"
+    local subcommands="git vcs gate governance-gates foundation-audit-gates catalog check demo doc lint onprem ops submit supply-chain verify help"
 
     case "${COMP_CWORD}" in
         1)
@@ -25,8 +25,12 @@ _oya_complete() {
         2)
             case "${prev}" in
                 vcs)
-                    local vcs_cmds="status log diff commit push pull branch checkout merge rebase pr review admit"
+                    local vcs_cmds="claim work verify done status symbols queue watch promote"
                     COMPREPLY=( $(compgen -W "${vcs_cmds}" -- "${cur}") )
+                    ;;
+                git)
+                    local git_cmds="status add commit diff log show branch checkout switch restore stash fetch pull push merge rebase tag remote rev-parse"
+                    COMPREPLY=( $(compgen -W "${git_cmds}" -- "${cur}") )
                     ;;
                 gate)
                     local gate_cmds="run list check status"

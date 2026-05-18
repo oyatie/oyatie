@@ -226,13 +226,16 @@ fn parse_adr_title(contents: &str, expected_id: &str, path: &Path) -> Result<Str
     let contents = content_after_leading_frontmatter(contents);
     let first_line = contents
         .lines()
-        .find(|line| !line.trim().is_empty())
+        .find(|line| {
+            let line = line.trim();
+            !line.is_empty() && !line.starts_with("<!--")
+        })
         .ok_or_else(|| format!("ADR file empty {}", path.display()))?;
     let title_line = first_line
         .trim()
         .strip_prefix("# ")
         .ok_or_else(|| format!("ADR first line must be an H1 in {}", path.display()))?;
-    let Some((id, title)) = title_line.split_once(':') else {
+    let Some((id, title)) = split_adr_h1_title(title_line) else {
         return Err(format!(
             "ADR H1 must use '<id>: <title>' in {}",
             path.display()
@@ -251,6 +254,17 @@ fn parse_adr_title(contents: &str, expected_id: &str, path: &Path) -> Result<Str
         Err(format!("ADR title empty in {}", path.display()))
     } else {
         Ok(title.into())
+    }
+}
+
+fn split_adr_h1_title(title_line: &str) -> Option<(&str, &str)> {
+    match (title_line.find(':'), title_line.find(" — ")) {
+        (Some(colon), Some(dash)) if dash < colon => {
+            Some((&title_line[..dash], &title_line[dash + " — ".len()..]))
+        }
+        (Some(colon), _) => Some((&title_line[..colon], &title_line[colon + 1..])),
+        (None, Some(dash)) => Some((&title_line[..dash], &title_line[dash + " — ".len()..])),
+        (None, None) => None,
     }
 }
 
@@ -298,6 +312,14 @@ fn parse_adr_metadata(contents: &str) -> BTreeMap<String, String> {
         if let Some(rest) = trimmed.strip_prefix("- ") {
             trimmed = rest.trim();
         }
+        if !trimmed.starts_with("**")
+            && let Some((key, value)) = trimmed.split_once(':')
+        {
+            metadata
+                .entry(canonical_adr_metadata_key(key.trim()).into())
+                .or_insert_with(|| clean_adr_metadata_value(value));
+            continue;
+        }
         let Some(rest) = trimmed.strip_prefix("**") else {
             continue;
         };
@@ -305,8 +327,32 @@ fn parse_adr_metadata(contents: &str) -> BTreeMap<String, String> {
             continue;
         };
         metadata
-            .entry(key.trim().into())
+            .entry(canonical_adr_metadata_key(key.trim()).into())
             .or_insert_with(|| clean_adr_metadata_value(value));
+    }
+    for line in contents.lines().take(40) {
+        let trimmed = line.trim();
+        if trimmed.starts_with("## ") {
+            break;
+        }
+        if !trimmed.starts_with('|') || !trimmed.ends_with('|') {
+            continue;
+        }
+        let cells = trimmed
+            .trim_matches('|')
+            .split('|')
+            .map(str::trim)
+            .collect::<Vec<_>>();
+        if cells.len() < 2
+            || cells[0].eq_ignore_ascii_case("field")
+            || cells[0].chars().all(|character| character == '-')
+            || cells[1].chars().all(|character| character == '-')
+        {
+            continue;
+        }
+        metadata
+            .entry(canonical_adr_metadata_key(cells[0]).into())
+            .or_insert_with(|| clean_adr_metadata_value(cells[1]));
     }
     metadata
 }
@@ -359,7 +405,8 @@ fn frontmatter_metadata_key(key: &str) -> Option<&'static str> {
     match key {
         "status" => Some("Status"),
         "date" => Some("Date"),
-        "owner" => Some("Owner"),
+        "deciders" => Some("Deciders"),
+        "owner" | "owner_team" => Some("Owner"),
         "owners" => Some("Owners"),
         "supersedes" => Some("Supersedes"),
         "superseded_by" => Some("Superseded-by"),
@@ -368,9 +415,17 @@ fn frontmatter_metadata_key(key: &str) -> Option<&'static str> {
     }
 }
 
+fn canonical_adr_metadata_key(key: &str) -> &str {
+    match key {
+        "Superseded by" => "Superseded-by",
+        "Related ADRs" => "Related",
+        value => value,
+    }
+}
+
 fn clean_yaml_metadata_values(value: &str) -> Vec<String> {
     let value = value.trim();
-    if value.is_empty() || value == "~" || value == "[]" {
+    if is_empty_metadata_value(value) || value == "~" || value == "[]" {
         return Vec::new();
     }
     if let Some(inner) = value.strip_prefix('[').and_then(|v| v.strip_suffix(']')) {
@@ -424,13 +479,16 @@ fn required_adr_metadata(
 ) -> Result<String, String> {
     let value = metadata.get(key).or_else(|| {
         if key == "Owner" {
-            metadata.get("Owners")
+            metadata
+                .get("Owners")
+                .or_else(|| metadata.get("Deciders"))
+                .or_else(|| metadata.get("Authors"))
         } else {
             None
         }
     });
     value
-        .filter(|value| !value.trim().is_empty() && value.trim() != "-")
+        .filter(|value| !is_empty_metadata_value(value.trim()))
         .cloned()
         .ok_or_else(|| format!("ADR metadata {key} missing in {}", path.display()))
 }
@@ -439,7 +497,7 @@ fn optional_single_adr_metadata(metadata: &BTreeMap<String, String>, key: &str) 
     metadata
         .get(key)
         .map(|value| value.trim())
-        .filter(|value| !value.is_empty() && *value != "-")
+        .filter(|value| !is_empty_metadata_value(value))
         .map(|value| vec![value.to_string()])
         .unwrap_or_default()
 }
@@ -451,8 +509,8 @@ fn optional_list_adr_metadata(metadata: &BTreeMap<String, String>, key: &str) ->
             value
                 .split(',')
                 .map(str::trim)
-                .filter(|item| !item.is_empty() && *item != "-")
-                .map(ToOwned::to_owned)
+                .filter(|item| !is_empty_metadata_value(item))
+                .map(|item| extract_adr_id(item).unwrap_or_else(|| item.to_string()))
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default()
@@ -460,4 +518,13 @@ fn optional_list_adr_metadata(metadata: &BTreeMap<String, String>, key: &str) ->
 
 fn clean_adr_metadata_value(value: &str) -> String {
     value.trim().replace('`', "")
+}
+
+fn is_empty_metadata_value(value: &str) -> bool {
+    let value = value.trim();
+    value.is_empty()
+        || value == "-"
+        || value == "—"
+        || value.eq_ignore_ascii_case("none")
+        || value.eq_ignore_ascii_case("n/a")
 }

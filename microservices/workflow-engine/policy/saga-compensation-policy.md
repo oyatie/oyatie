@@ -2,14 +2,14 @@
 microservice: workflow-engine
 contract: saga-compensation-policy
 authored: 2026-05-18
-canonical_authority: ADR-0173
+canonical_authority: ADR-0222
 canonical_base: /docs/standards/saga-compensation-policy.md
 related_specs:
   - /specs/saga-shape.json
 related_adrs:
   - ADR-0035
   - ADR-0145
-  - ADR-0173
+  - ADR-0222
 status: microservice-overlay
 ---
 

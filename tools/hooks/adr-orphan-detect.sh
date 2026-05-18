@@ -46,8 +46,12 @@ if [ ! -f "$ABS_PATH" ]; then
     exit 0
 fi
 
-# Extract unique ADR-NNNN references (10-second budget)
-ADR_REFS=$(timeout 10 grep -oE 'ADR-[0-9]{4}' "$ABS_PATH" 2>/dev/null | sort -u || true)
+# Extract unique ADR-NNNN references (10-second budget when GNU timeout exists).
+if command -v timeout >/dev/null 2>&1; then
+    ADR_REFS=$(timeout 10 grep -oE 'ADR-[0-9]{4}' "$ABS_PATH" 2>/dev/null | sort -u || true)
+else
+    ADR_REFS=$(grep -oE 'ADR-[0-9]{4}' "$ABS_PATH" 2>/dev/null | sort -u || true)
+fi
 
 if [ -z "$ADR_REFS" ]; then
     exit 0

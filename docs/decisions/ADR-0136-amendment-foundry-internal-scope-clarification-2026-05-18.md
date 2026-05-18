@@ -1,9 +1,10 @@
-# ADR-0136 Amendment — Foundry Scope Clarification (INTERNAL only)
+# ADR-0136: Foundry Scope Clarification (Internal-Only Amendment)
 
 - **Status:** Accepted (amendment)
 - **Date:** 2026-05-18
+- **Owner:** council-architecture
 - **Amends:** ADR-0136 (Foundry consolidation 6→1)
-- **Related:** ADR-0220 (Consumer Intelligence Substrate — `microservices/intelligence/`) — DEFERRED to PR-144 Wave 3A; this amendment forward-references that scope split.
+- **Related:** ADR-0220 (Consumer Intelligence Substrate — `microservices/intelligence/`)
 - **PR:** #143 close-out
 
 ## Context
@@ -24,7 +25,7 @@ User directive 2026-05-18: "Foundry is internal tool. oyatie intelligence + onto
 3. Internal eval substrate (multispectrum review, A-family adherence facets).
 4. Internal evidence collection (audit chain integration for build provenance).
 
-Consumer-facing AI is a SEPARATE µservice **`microservices/intelligence/`** (canonical pathing per ADR-0220, to be authored in PR-144 Wave 3A). The brand label shown to users is "oyatie intelligence" — similar to Apple Intelligence / Microsoft Copilot / Google AI.
+Consumer-facing AI is a SEPARATE µservice **`microservices/intelligence/`** (canonical pathing per ADR-0220). The brand label shown to users is "oyatie intelligence" — similar to Apple Intelligence / Microsoft Copilot / Google AI.
 
 ### Concrete impact on past references
 
@@ -92,7 +93,7 @@ Both Foundry AND Intelligence are Class C in-house mandatory per ADR-0211 — th
 - ADR-0192 — Milvus vector DB (shared substrate).
 - ADR-0200 — Wasmtime substrate (shared sandbox runtime).
 - ADR-0211 — In-house tech stack policy (Foundry + Intelligence both Class C).
-- ADR-0220 — Consumer intelligence substrate (`microservices/intelligence/`) — DEFERRED to PR-144 Wave 3A.
+- ADR-0220 — Consumer intelligence substrate (`microservices/intelligence/`).
 - ADR-0221 — Agentic dev pipeline hardening (§M-03 canonical glossary; §M-04 audience-of-µservice field).
 
 ## Named industry sources

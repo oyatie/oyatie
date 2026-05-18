@@ -10,7 +10,7 @@ related_specs:
 related_adrs:
   - ADR-0002
   - ADR-0038
-  - ADR-0173
+  - ADR-0222
   - ADR-0175
 status: microservice-overlay
 ---
@@ -20,7 +20,7 @@ status: microservice-overlay
 ## Purpose
 
 Implements the canonical six-state tenant lifecycle (per ADR-0175) as
-a set of sagas hosted by the workflow-engine (per ADR-0173).
+a set of sagas hosted by the workflow-engine (per ADR-0222).
 
 The canonical-base lives at `/docs/standards/tenant-lifecycle.md`.
 
@@ -78,7 +78,7 @@ Hosted at `microservices/tenancy/specs/saga-*.json`:
 - `saga-delete.json`
 
 Each saga's full step list and compensation declaration follows the
-ADR-0173 saga shape.
+ADR-0222 saga shape.
 
 ## Fan-out catalog
 

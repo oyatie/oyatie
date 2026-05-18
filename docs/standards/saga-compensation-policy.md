@@ -1,14 +1,14 @@
 ---
 contract: saga-compensation-policy
 authored: 2026-05-18
-canonical_authority: ADR-0173
+canonical_authority: ADR-0222
 related_specs:
   - /specs/saga-shape.json
 related_adrs:
   - ADR-0005
   - ADR-0035
   - ADR-0145
-  - ADR-0173
+  - ADR-0222
 status: canonical-base
 overlay_consumers:
   - microservices/workflow-engine/policy/saga-compensation-policy.md
@@ -143,7 +143,7 @@ The workflow engine exposes:
 
 ## Compensation kinds the policy rejects
 
-- "Best-effort compensate on error" — banned by D-6 of ADR-0173.
+- "Best-effort compensate on error" — banned by D-6 of ADR-0222.
 - Cross-microservice compensation (compensation that mutates a
   *different* microservice than the forward action) — banned by D-6.
 - "Compensation will be added later" — every step MUST declare its

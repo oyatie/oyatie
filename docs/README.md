@@ -23,8 +23,10 @@ authority_chain_declaration: |
   system / developer / user instructions
     > /specs/root-hub-pointers.json
     > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
+    > tools/agent-skills/AGENTS.md (inherited base from addyosmani/agent-skills MIT — universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration; oyatie overlays via this file and wins on conflict)
     > machine-readable specs and registries under .omc/
     > docs/ authority files during markdown-retirement compatibility
+    > tools/agent-skills/CLAUDE.md (informational; describes vendored subtree, not oyatie)
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
 doc_status: published
@@ -76,6 +78,7 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 | id | doc | tier | owner_team |
 |---|---|---|---|
 | `doc.readme` | [`README.md`](README.md) | `cross-cutting` | `council-architecture` |
+| `doc.bootstrap` | [`bootstrap.md`](bootstrap.md) | `cross-cutting` | `axis-foundry` |
 | `doc.masterplan` | [`MASTERPLAN.md`](MASTERPLAN.md) | `0` | `council-architecture` |
 | `doc.agents` | [`AGENTS.md`](AGENTS.md) | `1` | `axis-foundry, council-architecture` |
 | `doc.agent_instruction_sources` | [`AGENT-INSTRUCTION-SOURCES.md`](AGENT-INSTRUCTION-SOURCES.md) | `cross-cutting` | `axis-foundry, council-architecture` |

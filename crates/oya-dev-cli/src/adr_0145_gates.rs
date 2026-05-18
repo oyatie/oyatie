@@ -5,7 +5,7 @@
 //! 1. `eu-ai-act-annex-iii-refusal` — strict; SEC-MAJ-02.
 //! 2. `slsa-l3-evidence-grounded` — strict; SEC-MAJ-01.
 //! 3. `otel-trace-propagation` — DEFERRED (advisory); ADR-0145 Invariant 2.
-//! 4. `ontology-projection-coverage` — DEFERRED (advisory); ADR-0145 Invariant 3.
+//! 4. `ontology-projection-coverage` — strict; ADR-0145 Invariant 3.
 //! 5. `audit-chain-seal-coverage` — DEFERRED (advisory); ADR-0145 Invariant 1.
 //!
 //! The advisory-mode gates return SUCCESS even when findings exist; the
@@ -278,7 +278,7 @@ pub(crate) fn run_otel_trace_propagation(args: Vec<String>) -> ExitCode {
     ExitCode::SUCCESS
 }
 
-// ---------- Gate 4: ontology-projection-coverage (advisory) ----------
+// ---------- Gate 4: ontology-projection-coverage (strict) ----------
 
 pub(crate) fn run_ontology_projection_coverage(args: Vec<String>) -> ExitCode {
     let root = PathBuf::from(
@@ -295,22 +295,23 @@ pub(crate) fn run_ontology_projection_coverage(args: Vec<String>) -> ExitCode {
             contents: m.contents.clone(),
         })
         .collect();
-    let report = ontology_check::validate_advisory(advisory_inputs);
+    let report = ontology_check::validate_strict(advisory_inputs);
     println!(
-        "ontology-projection-coverage (DEFERRED/advisory per ADR-0145): {} manifests, {} with projections, {} canonical-entity owners, {} findings",
+        "ontology-projection-coverage (strict per ADR-0145): {} manifests, {} with projections, {} canonical-entity owners, {} projections, {} findings",
         report.manifests_checked,
         report.manifests_with_projections,
         report.manifests_owning_entities,
-        report.advisory_findings.len(),
+        report.projections_checked,
+        report.strict_findings.len(),
     );
-    for finding in &report.advisory_findings {
-        println!("  advisory: {finding}");
+    for finding in &report.strict_findings {
+        println!("  blocker: {finding}");
     }
-    println!(
-        "(advisory mode; strict-mode promotion tracked under \
-         registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator)"
-    );
-    ExitCode::SUCCESS
+    if report.is_success() {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::from(1)
+    }
 }
 
 // ---------- Gate 5: audit-chain-seal-coverage (advisory) ----------
