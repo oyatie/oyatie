@@ -173,11 +173,11 @@ drmKeyServer:
   rootKeyRotationDays: 90
 
 monetizationStub:
-  enabled: false  # OFF by default per PRD Open Question 2 + ADR-SHORTS follow-up
+  enabled: false  # OFF by default per PRD Open Question 2 + ADR-SHORTS successor-IP
   replicas: 0
 
 liveStreamingStub:
-  enabled: false  # OFF at M03 per PRD Open Question 1; M05+ activation
+  enabled: false  # OFF at M03 per PRD Open Question 1; M05-onward activation
   replicas: 0
 
 federationGateway:

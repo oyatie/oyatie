@@ -8,7 +8,7 @@ owner: axis-workspace + council-architecture
 deciders: council-architecture, axis-workspace, council-design-system, ops-security
 supersedes: []
 superseded_by: []
-related: [ADR-0065, ADR-0105, ADR-0126, ADR-0131, ADR-WS-0001]
+related: [ADR-0065, ADR-0105, ADR-0135, ADR-0131, ADR-WS-0001]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/slides/PRD.md (AC-06, Open Question 1)
@@ -214,7 +214,7 @@ Re-use `oya-workflow-studio-collab-crdt-{kernel,domain,...}` directly.
 - `microservices/slides/slos/crdt-merge-no-silent-loss.openslo.yaml`.
 - ADR-WS-0001 (parent — workflow-studio CRDT decision).
 - ADR-0105 (13-layer + backend-qualified adapters Amendment 3).
-- ADR-0126 (Connect dissolution).
+- ADR-0135 (Connect dissolution).
 - Loro — `loro.dev`, `github.com/loro-dev/loro`.
 - yrs (Yjs Rust port) — `github.com/y-crdt/y-crdt`.
 - Automerge 2.0 — `automerge.org`.

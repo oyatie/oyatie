@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/workflow-studio/failure-modes.md (FM-04, FM-05 CRDT)
   - microservices/workflow-studio/threat-model.md §"T-T-01" CRDT op forgery + §"T-T-02" session corruption
   - microservices/workflow-studio/PRD.md §"Functional Requirements" FR-07
-  - /specs/products/workflow-studio.json §anti_patterns silent_merge_on_concurrent_edit
+  - /specs/microservices/workflow-studio.json §anti_patterns silent_merge_on_concurrent_edit
 doc_status: published
 ---
 
@@ -121,7 +121,7 @@ After recovery:
 - `microservices/workflow-studio/PRD.md` FR-07 + AC-06.
 - `microservices/workflow-studio/threat-model.md` T-T-01, T-T-02.
 - `microservices/workflow-studio/failure-modes.md` FM-04, FM-05.
-- `/specs/products/workflow-studio.json` §anti_patterns + §best_practices BP-06 (CRDT for collab; never last-writer-wins).
+- `/specs/microservices/workflow-studio.json` §anti_patterns + §best_practices BP-06 (CRDT for collab; never last-writer-wins).
 - yrs (Yjs Rust port) docs — `github.com/y-crdt/y-crdt`.
 - loro CRDT docs — `loro.dev/docs`.
 - Google SRE Workbook ch. 8 (handling overload).

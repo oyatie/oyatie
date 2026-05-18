@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: axis-social + ops-security
 deciders: council-architecture, ops-security, axis-social, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
-related_specs: [/specs/products/connect/social.json]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
+related_specs: [/specs/microservices/social.json]
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC6.7, CC7.1, CC7.2, CC7.4, CC8.1"
@@ -43,7 +43,7 @@ Identify, classify, and mitigate threats to social's confidentiality, integrity,
 
 ### In-scope
 
-All components introduced by parallel ADR-0126 (Connect dissolution → social µservice) and ADR-0132 (suite dissolution into social surface) for the social µservice. Deployed in the dedicated social Kubernetes cluster.
+All components introduced by parallel ADR-0135 (Connect dissolution → social µservice) and ADR-0132 (suite dissolution into social surface) for the social µservice. Deployed in the dedicated social Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -62,7 +62,7 @@ All components introduced by parallel ADR-0126 (Connect dissolution → social �
 | | `oya-social-search-*` (8 crates) |
 | | `oya-social-profile-verification-*` (7 crates) |
 | | `oya-social-age-verification-*` (7 crates) |
-| | `oya-social-federation-gateway-*` (8 crates; M02+1) |
+| | `oya-social-federation-gateway-*` (8 crates; M02-onward1) |
 
 ### Out-of-scope
 
@@ -135,7 +135,7 @@ Ten trust boundaries:
 1. **External → Cluster ingress** (TLS, WAF, DDoS, WebSocket upgrade).
 2. **Gateway → BC services** (mTLS + SPIFFE identity).
 3. **BC services → backing stores** (RLS + per-tenant prefix isolation).
-4. **Personal/Professional context isolation** (data-model invariant per parallel ADR-0126).
+4. **Personal/Professional context isolation** (data-model invariant per parallel ADR-0135).
 5. **BC services → audit-chain** (Ed25519 seal).
 6. **BC services → ontology** (Workflow event bus).
 7. **Media scan path** (untrusted blob → scanner → quarantine vs production).
@@ -319,7 +319,7 @@ Ten trust boundaries:
 **T-I-08 — Federation egress leak (Personal-tier post escapes via ActivityPub)**
 - Asset: Personal-tier confidentiality
 - Likelihood L / Impact H / Risk **H**
-- Mitigations: `federation-gateway` rejects any Personal-tier post at the egress port (compile-time type signature: outbox accepts only `ProfessionalPost`); Cedar `policy/federation.cedar` (TBD slice-B) forbid; runtime guard + LEAN lane.
+- Mitigations: `federation-gateway` rejects any Personal-tier post at the egress port (compile-time type signature: outbox accepts only `ProfessionalPost`); Cedar `policy/federation.cedar` forbid rule (ships in IP-016-federation-egress-cedar-rules of the social µservice's federation slice); runtime guard + LEAN lane.
 
 **T-I-09 — Notification metadata leak (notification body reveals private post body to non-member)**
 - Asset: Notification body
@@ -508,7 +508,7 @@ Per pack overlay at `regional-packs/<pack>/social-overlay.md`; cross-mapped via 
 
 ## References
 
-- Parallel ADR-0126 (Connect dissolution; social as a sibling µservice).
+- Parallel ADR-0135 (Connect dissolution; social as a sibling µservice).
 - Bominal ADR-0028, ADR-0111, ADR-0208, ADR-0215.
 - ADR-0008 Data Use Boundary.
 - `microservices/social/PRD.md`.

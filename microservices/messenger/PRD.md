@@ -8,8 +8,8 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md, ADR-0215-connect-retention-legal-hold-dual-context.md]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
-related_specs: [/specs/products/connect/messenger.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_specs: [/specs/microservices/messenger.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-messenger
 doc_status: published
@@ -19,16 +19,16 @@ doc_status: published
 
 ## Purpose
 
-The `messenger` microservice is the native team-channels-plus-direct-messages surface that ships under ADR-0132 (product-suite-and-bundle dissolution) as a stand-alone hero µservice, factored out of the legacy Connect-suite by parallel-session ADR-0126. It owns **team channels + direct messages + threaded conversation + read receipts + file sharing + inline reactions + @mentions + channel-level RBAC + message search**, across the dual-context model (Personal B2C + Professional B2B) inherited from Bominal ADR-0208 via parallel ADR-0126.
+The `messenger` microservice is the native team-channels-plus-direct-messages surface that ships under ADR-0132 (product-suite-and-bundle dissolution) as a stand-alone hero µservice, factored out of the legacy Connect-suite by parallel-session ADR-0135. It owns **team channels + direct messages + threaded conversation + read receipts + file sharing + inline reactions + @mentions + channel-level RBAC + message search**, across the dual-context model (Personal B2C + Professional B2B) inherited from Bominal ADR-0208 via parallel ADR-0135.
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone messenger clients (web + desktop + mobile). It is also consumable as a shared substrate by other oyatie products via the `messenger.message.v1` Workflow events and the `MessageThread` Ontology object type.
 
-Bominal predecessor: the `connect-messenger` slice of Bominal's unified Connect suite. Per parallel ADR-0126, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical messenger landing in oyatie.
+Bominal predecessor: the `connect-messenger` slice of Bominal's unified Connect suite. Per parallel ADR-0135, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical messenger landing in oyatie.
 
 ## Tenant Value
 
 - **Tenant Outcome 1 — Team coordination without app fragmentation.** Tenants get Slack/Teams-class channel + DM + thread workflows in the same shell as mail, calendar, workflow studio, ontology browser — switching personal/professional context without leaving the surface.
-- **Tenant Outcome 2 — Dual-context-safe collaboration.** Personal (B2C) DMs never cross into professional (B2B) audit scope per parallel ADR-0126; professional channels carry tenant-DEK encryption + four-eyes audit disclosure inherited from Bominal ADR-0215.
+- **Tenant Outcome 2 — Dual-context-safe collaboration.** Personal (B2C) DMs never cross into professional (B2B) audit scope per parallel ADR-0135; professional channels carry tenant-DEK encryption + four-eyes audit disclosure inherited from Bominal ADR-0215.
 - **Tenant Outcome 3 — Real-time delivery with read-receipt and presence integrity.** p99 message-send ≤ 100ms within region; presence-update p99 ≤ 1s; read-receipt fan-out under WebSocket backpressure remains idempotent.
 - **Tenant Outcome 4 — Channel-scoped RBAC + message search that respects Cedar policy.** Search results are filtered server-side by Cedar evaluation; no client-side trust; pack-aware retention bounds (KR PIPA / GDPR / HIPAA when channels carry PHI).
 - **Tenant Outcome 5 — Native Workflow + Ontology integration.** Mention-resolution reads from Ontology (`Person`, `Team`, `Channel`); action-cards from `mail` µservice surface inline; channel events feed Workflow Studio engines.
@@ -154,7 +154,7 @@ CI lanes that must green:
 - `oya gate validate statelessness --microservice messenger`
 - `oya gate validate shardability --microservice messenger`
 - `oya gate validate authority-cohesion --microservice messenger` (HG-MESSENGER)
-- `oya gate validate dual-context-isolation --microservice messenger` (NEW; per parallel ADR-0126)
+- `oya gate validate dual-context-isolation --microservice messenger` (NEW; per parallel ADR-0135)
 
 ## Integration via Workflow + Ontology
 
@@ -271,17 +271,17 @@ Sharding:
 | AC-08 | eDiscovery export bundles message + attachment + audit-chain seal | `tests/e2e/ediscovery-export.rs` |
 | AC-09 | `oya gate validate per-microservice-layout --microservice messenger` exit 0 | ADR-0131 lane |
 | AC-10 | `oya gate validate authority-cohesion --microservice messenger` exit 0 | ADR-0123 lane; HG-MESSENGER registered |
-| AC-11 | `oya gate validate dual-context-isolation --microservice messenger` exit 0 | NEW per parallel ADR-0126 |
+| AC-11 | `oya gate validate dual-context-isolation --microservice messenger` exit 0 | NEW per parallel ADR-0135 |
 
 ## Open Questions
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | Search backend: Tantivy (self-hosted) only, or Elasticsearch fallback for large tenants? | axis-messenger | ADR after S-tier launch |
-| 2 | Voice / video signaling: own µservice or messenger BC? | council-architecture | follow-up ADR |
+| 2 | Voice / video signaling: own µservice or messenger BC? | council-architecture | successor-IP ADR |
 | 3 | Federation with external Slack/Teams via adapter — security review owner | ops-security | per-tenant opt-in ADR |
 | 4 | Self-observability: messenger emits to observability µservice as one tenant or per-pack? | axis-messenger + axis-observability | resolved in IP-007 |
-| 5 | E2E personal-DM key escrow policy — none, or platform-recovery only? | council-privacy | ADR follow-up |
+| 5 | E2E personal-DM key escrow policy — none, or platform-recovery only? | council-privacy | ADR successor-IP |
 
 ## Related ADRs
 
@@ -291,7 +291,7 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0126 | Connect dual-context (parallel) | dual-context isolation source |
+| ADR-0135 | Connect dual-context (parallel) | dual-context isolation source |
 | ADR-0130 | Agentic SLO-gated promotion | gates messenger releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |

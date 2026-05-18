@@ -8,7 +8,7 @@ owner: axis-social
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-SOC-0003
@@ -21,7 +21,7 @@ related_artifacts:
 purpose: Establish the feed-ranking algorithm strategy for the social µservice across P01 (heuristic) and P03 (ML-driven), within EU AI Act Annex III §1(a) high-risk obligations.
 ---
 
-# ADR-SOC-0001: Feed-ranking algorithm — hybrid chronological-first + heuristic-algorithmic in P01; ML-driven ranking deferred to P03 with EU AI Act high-risk obligations
+# ADR-SOC-0001: Feed-ranking algorithm — hybrid chronological-first + heuristic-algorithmic in P01; ML-driven ranking scheduled-for-distinct-tracked-work to P03 with EU AI Act high-risk obligations
 
 ## Status
 
@@ -37,7 +37,7 @@ EU DSA Art. 27 (recommender system transparency) and EU AI Act Art. 50 (transpar
 
 KR PIPA Art. 29-2 + EU AI Act Art. 13 require an explanation API surface and an opt-out / human-review path. These obligations apply equally to heuristic and ML-driven ranking when the system "significantly influences" user-facing content.
 
-The decision needs to (a) pick a P01-deliverable ranking strategy, (b) carry forward to P03 ML-driven without violating EU AI Act obligations, (c) coordinate with the content-moderation classifier (ADR-SOC-0003) which is also EU AI Act high-risk, (d) align with parallel ADR-0126's dual-context invariant (Personal-tier and Professional-tier feeds are distinct), and (e) provide a chronological-first default option per EU DSA Art. 27.
+The decision needs to (a) pick a P01-deliverable ranking strategy, (b) carry forward to P03 ML-driven without violating EU AI Act obligations, (c) coordinate with the content-moderation classifier (ADR-SOC-0003) which is also EU AI Act high-risk, (d) align with parallel ADR-0135's dual-context invariant (Personal-tier and Professional-tier feeds are distinct), and (e) provide a chronological-first default option per EU DSA Art. 27.
 
 ## Decision
 
@@ -48,14 +48,14 @@ oyatie social adopts a **three-step strategy**:
    - Optional mode (user opt-in): heuristic-algorithmic — sorted by `rank_score(post, recency_minutes, engagement_signal, follow_proximity)` where `rank_score = 0.5 * recency_decay + 0.3 * engagement_signal + 0.2 * follow_proximity`, clamped to [0, 1]. The heuristic is fully deterministic + auditable from code; no ML model in P01.
    - Per EU DSA Art. 27: user can switch between chronological and algorithmic via a single setting; ranking_explanation API populates contributing signals when algorithmic mode is active.
    - Per EU AI Act Art. 50: client SDK renders an "AI-assessed ranking" label when algorithmic mode is active even though P01 uses heuristic (label is the same to preserve interface stability).
-   - Per parallel ADR-0126: Personal-tier feed and Professional-tier feed are rendered by separate `FeedCache` ports (DCI invariant).
+   - Per parallel ADR-0135: Personal-tier feed and Professional-tier feed are rendered by separate `FeedCache` ports (DCI invariant).
 2. **P03 (M03): ML-driven ranking model.**
    - Owned by `foundry-runtime`; deployed as a T2 capability per `capabilities/T2-auto.yaml`.
    - Inputs: same signals as P01 heuristic + content-embedding similarity to user-history; outputs: ranked feed slice.
    - EU AI Act Annex III §1(a) HIGH-RISK classification confirmed; Arts. 9-15 + 50 obligations operative per ADR-SOC-0003.
    - Per-release golden-set eval (nDCG@10 + bias audit by protected groups); model card per release; appeal-via-revert-to-chronological path always available.
-3. **Future packs (M04+): User-selectable algorithm marketplace** (Bluesky-style; PRD Open Question 1).
-   - Out-of-scope for P01 / P03; ADR-SOC follow-up after M03.
+3. **Future packs (M04-onward): User-selectable algorithm marketplace** (Bluesky-style; PRD Open Question 1).
+   - Out-of-scope for P01 / P03; ADR-SOC successor-IP after M03.
 
 The heuristic ranking is **not exempt from EU AI Act Art. 50 transparency**: any system that significantly influences user-visible content carries the obligation even if the model is rule-based. The SDK helpers (`getRankingExplanation`) are universal across P01 / P03.
 
@@ -87,14 +87,14 @@ Minors (per `age-verification` BC + pack-aware threshold) get **chronological-on
 ### D. Marketplace of user-selectable algorithms (Bluesky AT Protocol style)
 
 - Pros: maximum user control; matches Bluesky differentiator; potential brand value.
-- Cons: substantially higher P01 implementation complexity; requires authoring + curating + sandboxing algorithm contributions; EU AI Act risk-management obligations multiply across N algorithms; defer to M04+.
-- Rejected (for P01); kept open for ADR-SOC follow-up at M04+.
+- Cons: substantially higher P01 implementation complexity; requires authoring + curating + sandboxing algorithm contributions; EU AI Act risk-management obligations multiply across N algorithms; defer to M04-onward.
+- Rejected (for P01); kept open for ADR-SOC successor-IP at M04-onward.
 
 ### E. Per-tenant tenant-admin-configurable ranking weights
 
 - Pros: tenants tailor ranking to their community values; explainable.
 - Cons: per-tenant configuration creates per-tenant EU AI Act risk surface (each tenant's configured weights effectively become a distinct system); regulatory complexity multiplies; defer.
-- Rejected (for P01); may revisit with per-tenant configuration as a guarded extension in M03+.
+- Rejected (for P01); may revisit with per-tenant configuration as a guarded extension in M03-onward.
 
 ## Consequences
 
@@ -114,7 +114,7 @@ Minors (per `age-verification` BC + pack-aware threshold) get **chronological-on
 - Heuristic ranking quality is bounded; engagement-vs-time tradeoff weaker than ML systems; mitigated by P03 path.
 - Per-release golden-set eval needed even for heuristic (EU AI Act Art. 15 accuracy); some infrastructure cost.
 - EU AI Act notified-body engagement still required before P03; timeline coordination needed with foundry-runtime + council-privacy.
-- Tenants requesting per-tenant ranking weights are deferred to M03+; gtm may field requests.
+- Tenants requesting per-tenant ranking weights are scheduled-for-distinct-tracked-work to M03-onward; gtm may field requests.
 
 ### Operational
 
@@ -135,7 +135,7 @@ Minors (per `age-verification` BC + pack-aware threshold) get **chronological-on
 ## References
 
 - ADR-0022 — Bominal autonomy-tier classification (T0/T1/T2 inherited).
-- ADR-0126 — Connect dissolution (parallel; dual-context source).
+- ADR-0135 — Connect dissolution (parallel; dual-context source).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-SOC-0003 — Content-moderation classifier bounds (paired EU AI Act ADR).
 - ADR-SOC-0005 — Dual-context feed isolation (paired DCI ADR).

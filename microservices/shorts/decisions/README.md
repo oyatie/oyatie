@@ -20,7 +20,7 @@ Each ADR closes one Open Question (or derived gap) surfaced in `microservices/sh
 | [ADR-SHORTS-0002](./ADR-SHORTS-0002-copyright-claim-system.md) | Copyright-claim system — Content-ID-class fingerprint matching via Chromaprint audio + DCT video perceptual-hash; DMCA Title II Safe Harbor cycle | Accepted | 2026-05-17 | PRD Open Question 7 + derived gap from compliance.md §DMCA |
 | [ADR-SHORTS-0003](./ADR-SHORTS-0003-content-moderation-classifier-bounds.md) | Content-moderation classifier bounds — EU AI Act high-risk; Arts. 9-15 + Art. 50 obligations operative; aligned with social ADR-SOC-0003 + messenger ADR-MSGR-0003 patterns | Accepted | 2026-05-17 | derived gap from compliance.md + capabilities/T2-auto.yaml; EU AI Act 2024/1689 |
 | [ADR-SHORTS-0004](./ADR-SHORTS-0004-drm-substrate-tenant-tier.md) | DRM substrate + tenant-tier gating — Widevine + FairPlay + PlayReady; Premium-tier-only by default; per-content key rotation 7d; root key rotation 90d; HSM-bound | Accepted | 2026-05-17 | PRD Open Question 3 + threat-model T-I-10 + T-E-06 |
-| [ADR-SHORTS-0005](./ADR-SHORTS-0005-feed-ranking-algorithm.md) | Feed-ranking algorithm — hybrid chronological-first + heuristic-algorithmic in P01; ML-driven ranking deferred to P03 with EU AI Act high-risk obligations; aligned with social ADR-SOC-0001 | Accepted | 2026-05-17 | derived gap from PRD §"Out-of-scope"; ranking model is high-risk per EU AI Act Annex III §1(a) |
+| [ADR-SHORTS-0005](./ADR-SHORTS-0005-feed-ranking-algorithm.md) | Feed-ranking algorithm — hybrid chronological-first + heuristic-algorithmic in P01; ML-driven ranking scheduled-for-distinct-tracked-work to P03 with EU AI Act high-risk obligations; aligned with social ADR-SOC-0001 | Accepted | 2026-05-17 | derived gap from PRD §"Out-of-scope"; ranking model is high-risk per EU AI Act Annex III §1(a) |
 | [ADR-SHORTS-0006](./ADR-SHORTS-0006-minor-protection-and-age-gate.md) | Minor protection + age-gate — pack-aware thresholds (KR 14, EU 16-default member-state-adjustable 13-16, US-COPPA 13, AU 16, BR 12); default-deny posture; parental-controls as first-class BC | Accepted | 2026-05-17 | derived gap from PRD §FR-18, FR-19; EU DSA Art. 28 + KR 청소년 보호법 + COPPA + CA AB-2273 + UT SMRA + AU OSA + LGPD Art. 14 |
 
 ## Authoring conventions
@@ -34,10 +34,10 @@ Each ADR closes one Open Question (or derived gap) surfaced in `microservices/sh
 
 | PRD Open Question | Status | Notes |
 |---|---|---|
-| #1 (Live-streaming-stub: keep stub vs activate M05+ vs split into sibling µservice) | open | ADR-SHORTS follow-up after M04 |
-| #2 (Monetization-stub: keep stubbed vs delete vs activate M04+) | open | ADR-SHORTS follow-up after M03 |
-| #4 (Ranking-model openness: closed-weights vs published-weights for EU AI Act audit) | open | ADR-SHORTS follow-up post-M04; paired with social Open Q 1 |
-| #5 (Federation: inherit social posture or shorts-specific more conservative for copyright?) | open | ADR-SHORTS follow-up post federation MVP |
-| #6 (Per-tenant ranking weights) | open | ADR-SHORTS follow-up; aligned with social pattern |
+| #1 (Live-streaming-stub: keep stub vs activate M05-onward vs split into sibling µservice) | open | ADR-SHORTS successor-IP after M04 |
+| #2 (Monetization-stub: keep interface-only-pending-impl vs delete vs activate M04-onward) | open | ADR-SHORTS successor-IP after M03 |
+| #4 (Ranking-model openness: closed-weights vs published-weights for EU AI Act audit) | open | ADR-SHORTS successor-IP subsequent-to-M04-completion; paired with social Open Q 1 |
+| #5 (Federation: inherit social posture or shorts-specific more conservative for copyright?) | open | ADR-SHORTS successor-IP post federation minimum-shippable-tier |
+| #6 (Per-tenant ranking weights) | open | ADR-SHORTS successor-IP; aligned with social pattern |
 
 Future ADRs land here with sequential `ADR-SHORTS-XXXX` IDs.

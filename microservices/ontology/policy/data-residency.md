@@ -64,7 +64,7 @@ SDK at tenant µservice pinned to pack endpoint
 Object Type / Link Type / Action / Function reads + writes flow to pack cluster; never cross-pack
 ```
 
-Routing encoded in Cedar at `microservices/ontology/policy/pack-routing.cedar` (Slice D follow-up).
+Routing encoded in Cedar at `microservices/ontology/policy/pack-routing.cedar` (Slice D successor-IP).
 
 ### Per-tenant tenant_scope influences capacity, not residency
 

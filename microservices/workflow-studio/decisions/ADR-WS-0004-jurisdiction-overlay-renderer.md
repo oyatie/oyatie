@@ -9,7 +9,7 @@ deciders: council-architecture, axis-workflow, ops-security, axis-tenancy
 supersedes: []
 superseded_by: []
 related: [ADR-0105, ADR-0117, ADR-0131, ADR-0140]
-related_specs: [/specs/products/workflow-studio.json]
+related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md (FR-08, FR-09, FR-16, AC-04, AC-07)
   - microservices/workflow-studio/IP-010-jurisdiction-overlay-renderer-full.md

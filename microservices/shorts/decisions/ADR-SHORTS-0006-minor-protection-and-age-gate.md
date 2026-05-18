@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0008
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-SHORTS-0003
   - ADR-SHORTS-0005
@@ -103,7 +103,7 @@ oyatie shorts adopts a **default-deny minor-protection posture**:
 - **DM-restricted** (share-to-DM blocked). Per OSA + KR 청소년 보호법 + COPPA.
 - **Adult / mature content** restricted to `general_audience` classification only. Per AVMSD Art. 28b(2).
 - **No behavioural profile**. Watch-time stored but not used for behavioural ranking. Per EU DSA Art. 28 + CA AB-2273.
-- **No commercial advertising** (when monetization-stub activated; future M05+). Per AVMSD Art. 28b(4) + COPPA.
+- **No commercial advertising** (when monetization-stub activated; future M05-onward). Per AVMSD Art. 28b(4) + COPPA.
 - **No federation** (Personal-tier always; per DCI-08). Per data-residency invariant.
 - **Screen-time supervision** (parental-control configurable; daily cap optional).
 
@@ -154,7 +154,7 @@ oyatie shorts adopts a **default-deny minor-protection posture**:
 
 - Pros: single source of truth across products (shorts + social + messenger).
 - Cons: large architectural lift; out-of-scope for M03; tight per-product policy requirements differ.
-- Rejected (for M03); kept open for cross-product harmonisation in M05+.
+- Rejected (for M03); kept open for cross-product harmonisation in M05-onward.
 
 ### F. Skip parental-controls BC; rely on tenant-of-tenant flow
 
@@ -205,7 +205,7 @@ oyatie shorts adopts a **default-deny minor-protection posture**:
 ## References
 
 - ADR-0008 Data Use Boundary (paired; sensitive data class enforcement).
-- Parallel ADR-0126 dual-context (paired; minor protection cross-cuts context).
+- Parallel ADR-0135 dual-context (paired; minor protection cross-cuts context).
 - ADR-0131 per-µservice flat layout.
 - ADR-SHORTS-0003 (content-moderation classifier; minor-protection verdicts mandatory + irreversible without human review per AVMSD Art. 28b(2)).
 - ADR-SHORTS-0005 (feed ranking; minor-account chronological-only default).

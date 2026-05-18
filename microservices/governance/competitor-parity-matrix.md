@@ -101,7 +101,7 @@ Per ADR-0123 (hyperscaler-maturity-claim-gate) + `feedback_quality_performance_s
 
 - **Their strength**: maintainability scoring; tech-debt dashboards.
 - **Our advantage**: 6-axis + industry-baseline citation + audit-chain seal + replayability.
-- **Where we lag**: tech-debt scoring (we don't have a maturity metric on tech-debt; consider adding ADR follow-up).
+- **Where we lag**: tech-debt scoring (we don't have a maturity metric on tech-debt; consider adding ADR successor-IP).
 - **Source**: `docs.codeclimate.com`.
 
 ### Trivy (Aqua Security)

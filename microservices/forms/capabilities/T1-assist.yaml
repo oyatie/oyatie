@@ -24,7 +24,7 @@ owner_team: axis-forms + foundry-providers-team + council-privacy
 maturity: stable
 created_at: 2026-05-17
 related_adrs: [ADR-0022, ADR-0028, ADR-0110, ADR-0131, ADR-0140, ADR-FORMS-0005]
-related_specs: [/specs/products/forms.json]
+related_specs: [/specs/microservices/forms.json]
 related_artifacts:
   - microservices/forms/PRD.md FR-22 + AC-25
   - microservices/forms/decisions/ADR-FORMS-0005-ai-form-build-bounds.md

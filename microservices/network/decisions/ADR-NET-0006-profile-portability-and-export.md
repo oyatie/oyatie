@@ -8,7 +8,7 @@ owner: axis-network + council-privacy
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-NET-0001
@@ -131,7 +131,7 @@ Every export emit produces:
 
 - Pros: user has cryptographic ownership.
 - Cons: user-controlled signing-key management is hard; key loss = profile-export integrity loss; UX friction; doesn't match user expectation; cf. ADR-NET-0005 rejection of client-side endorsement signing.
-- Rejected for P01; revisit at M05+ when FIDO2 / Passkeys mature.
+- Rejected for P01; revisit at M05-onward when FIDO2 / Passkeys mature.
 
 ## Consequences
 
@@ -174,7 +174,7 @@ Every export emit produces:
 
 ## References
 
-- ADR-0126 (Connect dissolution, parallel).
+- ADR-0135 (Connect dissolution, parallel).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-NET-0001 (storage; export reads from canonical PG).

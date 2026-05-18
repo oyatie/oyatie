@@ -49,7 +49,7 @@ oyatie notes adopts **Loro 1.x as the canonical CRDT** for opt-in real-time coll
 3. **E2E-tier (Personal) collab is structurally refused.** `oya-notes-collab-edit-usecase::start_session()` accepts only `ProfessionalNoteRef`; `PersonalNoteRef` cannot be passed. The `CollabSessionStore` port's signature enforces this. Cedar `collab-edit-scope.cedar` also forbids `Action::start_collab_session` on Personal resources.
 4. **Server-side reconciliation**. `oya-notes-collab-edit-worker` hosts the per-session Loro doc state in memory; persists op-log to Postgres `loro_op` table for replay; emits per-op `LoroOpAppended` events to peers via WebSocket.
 5. **Op-log compaction** at 1h idle: compact to current snapshot + truncate op-log; emit `LoroSnapshotPersisted`.
-6. **Cross-region collab** out of scope at MVP; future ADR if needed.
+6. **Cross-region collab** out of scope at minimum-shippable-tier; future ADR if needed.
 7. **Convergence latency target**: p99 ≤ 250ms intra-region; p99 ≤ 500ms cross-AZ.
 8. **Loro version pin: 1.x LTS** (specific minor pinned in `Cargo.lock` + tracked by `oya gate validate version-pinning-conformance`).
 9. **Sibling alignment**: docs / sheets / slides / sites / workflow-studio all converge to Loro 1.x. Future migration (if any) is coordinated cross-µservice via a substrate-level ADR.
@@ -97,7 +97,7 @@ oyatie notes adopts **Loro 1.x as the canonical CRDT** for opt-in real-time coll
 ### Negative
 
 - Loro 1.x is newer than Yjs / Automerge — bus-factor risk. Mitigated by Rust-native (oyatie can fork if needed); active upstream development.
-- Cross-region collab deferred. Customers wanting it must accept intra-region grouping at MVP.
+- Cross-region collab scheduled-for-distinct-tracked-work. Customers wanting it must accept intra-region grouping at minimum-shippable-tier.
 - Loro-broker is stateful (in-memory doc state) — careful HPA + session-affinity required. Documented in `iac/helm/notes/templates/`.
 
 ### Operational

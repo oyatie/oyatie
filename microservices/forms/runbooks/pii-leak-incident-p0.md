@@ -90,7 +90,7 @@ Sev-1 (P0). Privacy team always paged; legal-compliance always paged.
 
 1. Blameless postmortem template (`evidence/incidents/<id>.md`).
 2. ADR for control gap.
-3. Pen-test follow-up scheduled.
+3. Pen-test successor-IP scheduled.
 4. Per-pack DPO sign-off.
 
 ## Phase 6 — REGULATORY FOLLOW-UP (per statute)

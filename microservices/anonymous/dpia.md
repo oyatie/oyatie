@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: council-privacy + axis-anonymous
 deciders: council-privacy, ops-security, axis-anonymous, council-architecture
 methodology: GDPR Art. 35 DPIA template (EDPB Guidelines 4/2019) + ICO DPIA framework + CNIL PIA software
-related_adrs: [ADR-0008, ADR-0117, ADR-0126, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0004, ADR-ANON-0005, ADR-ANON-0006, ADR-ANON-0007]
-related_specs: [/specs/products/connect/anonymous.json]
+related_adrs: [ADR-0008, ADR-0117, ADR-0135, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0004, ADR-ANON-0005, ADR-ANON-0006, ADR-ANON-0007]
+related_specs: [/specs/microservices/anonymous.json]
 review_cadence: annually + on substrate change + on every new pack onboarding
 doc_status: published
 ---

@@ -9,7 +9,7 @@ date: 2026-05-17
 microservice: translate
 supersedes: []
 superseded_by: []
-related_adrs: [ADR-0117, ADR-0126, ADR-0131, ADR-TRANSLATE-0001]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131, ADR-TRANSLATE-0001]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/policy/data-residency.md
@@ -158,7 +158,7 @@ Scaffolding for `pack-cn-stub` ships in M01 IaC but **production activation is N
 
 - **Pros**: addressable market.
 - **Cons**: CN regulatory regime (CSL + DSL + PIPL) requires CN-licensed entity + in-country LLM compliance review + Aliyun KMS + significant additional engineering; not feasible M01.
-- **Verdict**: rejected M01; scaffolding only; tracked M03+.
+- **Verdict**: rejected M01; scaffolding only; tracked M03-onward.
 
 ## Consequences
 
@@ -193,7 +193,7 @@ Scaffolding for `pack-cn-stub` ships in M01 IaC but **production activation is N
 ## References
 
 - ADR-0117 — pack residency model (canonical).
-- ADR-0126 — connect super-app expansion (parent ADR).
+- ADR-0135 — connect super-app expansion (parent ADR).
 - ADR-0131 — per-microservice flat layout.
 - ADR-TRANSLATE-0001 — engine routing (residency-bound).
 - GDPR Arts. 5/6/9/22/25/32/44–50.

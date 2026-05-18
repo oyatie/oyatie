@@ -5,7 +5,7 @@ display_name: Render Shell Frame
 description: |
   Render the Application Shell HTML frame for a tenant + user, including hydration
   payload, the Leptos WASM bundle URL with SRI hash, and the active module-loader
-  manifest list. Server-side rendered (Leptos SSR) with deferred client hydration.
+  manifest list. Server-side rendered (Leptos SSR) with scheduled-for-distinct-tracked-work client hydration.
 
 owner_team: axis-application
 maturity: stable

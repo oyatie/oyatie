@@ -63,7 +63,7 @@ A fitness lane is producing false-positive BLOCKERs, lane registry is corrupt, o
 2. **Inspect** evidence blob for the failing lane: `cargo run -p oya-dev-cli -- governance evidence get --pr <N> --lane <lane>` → look for `cgroup-oom` marker.
 3. **Re-queue** once: `cargo run -p oya-dev-cli -- governance lane-rerun --pr <N> --lane <lane>` (1 retry per `failure-modes.md` F-01).
 4. **If re-run fails**: file `oya-check-<lane>` issue on `microservices/governance/` repo with PR diff + OOM marker; engage axis-foundry SME.
-5. **Outcome**: PR may proceed if lane returns PASS on retry; otherwise file follow-up IP.
+5. **Outcome**: PR may proceed if lane returns PASS on retry; otherwise file successor-IP IP.
 
 ## §B — Single-µservice scoped false-positive
 
@@ -107,7 +107,7 @@ A fitness lane is producing false-positive BLOCKERs, lane registry is corrupt, o
    - Two ops-security signatures.
    - Documented in `runbooks/lane-bypass-emergency.md`.
    - Per-bypass record in `evidence/audits/break-glass/<incident-id>.md`.
-5. **Permanent fix**: follow-up IP with rule-pack correction + retroactive scan + restoration of BLOCKER severity.
+5. **Permanent fix**: successor-IP IP with rule-pack correction + retroactive scan + restoration of BLOCKER severity.
 
 ### F-13 self-lock (governance fails its own conformance lane)
 
@@ -118,7 +118,7 @@ A fitness lane is producing false-positive BLOCKERs, lane registry is corrupt, o
 3. **Land structural fix** in same 24h window (priority IP).
 4. **Verify** self-application passes on next PR.
 5. **Disable amnesty**: `cargo run -p oya-dev-cli -- governance self-application-mode --disable-amnesty`.
-6. **Post-incident**: RCA + ADR follow-up if amnesty was needed.
+6. **Post-incident**: RCA + ADR successor-IP if amnesty was needed.
 
 ## §D — Other scoped failure
 
@@ -137,7 +137,7 @@ A fitness lane is producing false-positive BLOCKERs, lane registry is corrupt, o
 
 - File postmortem at `evidence/audits/postmortems/<incident-id>.md` within 1 week.
 - Update this runbook if new failure pattern observed.
-- File follow-up IP for any structural change.
+- File successor-IP IP for any structural change.
 
 ## References
 

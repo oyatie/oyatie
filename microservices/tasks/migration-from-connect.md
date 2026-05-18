@@ -5,8 +5,8 @@ microservice: tasks
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-TASKS accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
-related_specs: [/specs/products/connect/tasks.json, /specs/products/tasks/tasks.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
+related_specs: [/specs/microservices/tasks.json, /specs/microservices/tasks/tasks.json]
 owner_team: axis-tasks
 date: 2026-05-17
 doc_status: published
@@ -17,7 +17,7 @@ doc_status: published
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **tasks** µservice. It is the
 consumer-facing companion to ADR-0134 (cross-µservice migration policy)
-and ADR-0126 (target topology).
+and ADR-0135 (target topology).
 
 ## Status
 
@@ -27,7 +27,7 @@ proven in dev cluster.**
 | Field | Value |
 |---|---|
 | Replacement | `oya-tasks-*` crate family under `microservices/tasks/src/crates/` |
-| Removal date | **Advisory** — concrete target is HG-TASKS accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #3) |
+| Removal date | **Advisory** — concrete target is HG-TASKS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
 | Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 7-BC tasks surface (task-store / project-list / view-engine / dependency-graph / recurrence / search-index / importers) is only addressable at µservice granularity, not at Connect-suite granularity |
 | Migration owner (Churn Rule) | axis-tasks |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
@@ -407,7 +407,7 @@ satisfy these checks. Each is gated by a concrete command:
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
   find crates -maxdepth 1 -type d -name "oya-connect-tasks-*" | wc -l   # expect 0
-  test ! -f /specs/products/connect/tasks.json                          # expect file absent
+  test ! -f /specs/microservices/tasks.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase**
   (excluding historical ADR / RETIRED.md / git-log surfaces):
@@ -465,15 +465,15 @@ did not migrate during the 5-month adapter+canary window. Per
   gating).
 - Owning axis (axis-tasks) ships migration ChangeSets for every
   internal consumer per the Churn Rule before Phase 5.
-- External consumers (reading `/specs/products/connect/tasks.json`)
+- External consumers (reading `/specs/microservices/tasks.json`)
   receive a 6-month sunset window from this notice; the spec file's
   `deprecated: true` + `replacement_path:
-  /specs/products/tasks/tasks.json` fields render in the
+  /specs/microservices/tasks/tasks.json` fields render in the
   agent-coordination dashboard.
 
 ## References
 
-- ADR-0126: Connect super-app expansion into flat µservices.
+- ADR-0135: Connect super-app expansion into flat µservices.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.
@@ -491,5 +491,5 @@ did not migrate during the 5-month adapter+canary window. Per
 - `feedback_no_silent_regression.md` — no-silent-regression principle.
 - agent-skills deprecation-and-migration SKILL.md — Strangler Pattern + Adapter Pattern + Churn Rule + Verification.
 - RFC 5545 — iCalendar VTODO + RRULE subset (aligned).
-- draft-ietf-jmap-tasks — JMAP Tasks (deferred to M05).
+- draft-ietf-jmap-tasks — JMAP Tasks (scheduled-for-distinct-tracked-work to M05).
 - `microservices/calendar/migration-from-connect.md` — sibling reference template.

@@ -12,7 +12,7 @@ bominal_source:
   - ADR-0103   # Workflow hexagonal migration
   - ADR-0037   # Plugin substrate (node-library scaffolding)
 related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
-related_specs: [/specs/products/workflow-studio.json, /specs/products/workflow.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/workflow-studio.json, /specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0131
 unbundle_sibling: microservices/workflow-engine/
 date: 2026-05-17
@@ -36,7 +36,7 @@ This µservice is **shared substrate AND hero product** simultaneously per `feed
 
 ## Tenant Value
 
-- **Tenant Outcome 1 — Time to first valid workflow under 15 minutes.** Business power user opens Studio, drags 3-5 nodes, sees inline validation + policy preview, saves canonical spec. No code; no terminal; no documentation reading required. Time-to-success target per `/specs/products/workflow-studio.json` §user_experience.
+- **Tenant Outcome 1 — Time to first valid workflow under 15 minutes.** Business power user opens Studio, drags 3-5 nodes, sees inline validation + policy preview, saves canonical spec. No code; no terminal; no documentation reading required. Time-to-success target per `/specs/microservices/workflow-studio.json` §user_experience.
 - **Tenant Outcome 2 — TTI under 2 seconds cold load (CDN cached).** Editor opens fast even for tenants in single-region packs; CDN edge cache for spec schema, node library, and design-system primitives; WASM bundle split per route; progressive component loading. n8n parity (n8n claims TTI ≤ 3s typical).
 - **Tenant Outcome 3 — Round-trip byte-equality 100% at GA.** Visual edit → emit spec → load spec → render visual → emit again produces byte-identical output. Tenant developers can mix visual + git-PR workflows without surprises; spec author can hand-edit JSON, load in Studio, save, and verify their hand-edit survived.
 - **Tenant Outcome 4 — Collaborative editing without silent loss.** Two business users editing same workflow definition simultaneously: CRDT merge applies non-conflicting edits; conflicting edits surface explicit conflict UI; no last-writer-wins. Verified by AC-06.
@@ -74,7 +74,7 @@ This µservice is **shared substrate AND hero product** simultaneously per `feed
 
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
-| Editor TTI cold (CDN-cached) | 1s | 2s | 5s | GA target; per `/specs/products/workflow-studio.json` §metrics |
+| Editor TTI cold (CDN-cached) | 1s | 2s | 5s | GA target; per `/specs/microservices/workflow-studio.json` §metrics |
 | Save round-trip (emit → engine spec-store → ack) | 80ms | 200ms | 500ms | stable; GA target 100ms p99 |
 | Round-trip byte-equality rate | — | — | — | 100% at GA per AC-02 |
 | Collab CRDT merge | 30ms | 100ms | 250ms | sub-100ms p99 GA |
@@ -92,7 +92,7 @@ This µservice is **shared substrate AND hero product** simultaneously per `feed
 - OIDC tenant-scoped at every REST/WebSocket entry; Studio refuses opens without resolvable tenant identity.
 - Per-seat license-gate Cedar fragment enforced at editor open; refusal emits `studio_per_seat_license_denied` audit row.
 - Strict CSP (`default-src 'self' https://cdn-<pack>.oyatie.dev; script-src 'self' 'wasm-unsafe-eval' 'nonce-<random>'`) — no inline scripts except WASM bootstrap nonce; no eval.
-- XSS-free architecture: spec body fields rendered via virtual-DOM text nodes; never `innerHTML`. Anti-pattern `per_tenant_branding_mid_render` is forbidden per `/specs/products/workflow-studio.json` §anti_patterns.
+- XSS-free architecture: spec body fields rendered via virtual-DOM text nodes; never `innerHTML`. Anti-pattern `per_tenant_branding_mid_render` is forbidden per `/specs/microservices/workflow-studio.json` §anti_patterns.
 - Per-tenant CDN cache key: CDN partitions cache by `(tenant_hash, pack, version)`; no cross-tenant cache pollution.
 - WebSocket auth: OIDC token validated at WS upgrade; tenant binding rebound at WS message dispatch (server cannot trust client-supplied tenant_id mid-stream).
 - LLM-assist content never trusted: spec emitted by LLM-assist passes through full schema + policy + signature pipeline before save. Anti-pattern: bypassing the validation pipeline for LLM-assist drafts.
@@ -154,7 +154,7 @@ JUSTIFICATION:
   - adapter-leptos-wasm: Leptos-component implementations (browser-WASM target);
     backend-qualified per ADR-0105 Amendment 3.
   - rest: HTTP handler/route layer (editor session CRUD).
-  - sdk: client library for tenant-side Studio embed (post-GA marketplace).
+  - sdk: client library for tenant-side Studio embed (subsequent-to-GA-tier-promotion marketplace).
   - app: composition-root binary; SSR + WASM emit per ADR-0065.
 - exemptions claimed: none.
 ```
@@ -346,7 +346,7 @@ CI lanes that must green:
 - `oya gate validate workflow-spec-roundtrip --microservice workflow-studio` — NEW lane asserting load(emit(x)) byte-equal to x for ≥ 100 golden specs
 - `oya gate validate cedar-preview-required --microservice workflow-studio` — every save path exercises Cedar policy preview
 - `oya gate validate editor-execution-forbidden --microservice workflow-studio` — Studio never executes; only emits
-- `oya gate validate node-library-determinism --microservice workflow-studio` — 3x re-load assertion per `/specs/products/workflow-studio.json` §anti_patterns
+- `oya gate validate node-library-determinism --microservice workflow-studio` — 3x re-load assertion per `/specs/microservices/workflow-studio.json` §anti_patterns
 - `oya gate validate wasm-bundle-sri --microservice workflow-studio` — every WASM chunk has SRI hash
 
 ## Integration via Workflow + Ontology
@@ -413,7 +413,7 @@ Key parity gaps to close (ordered by priority for M03 preview milestone):
 3. **Per-pack node libraries (6 domains)** — n8n has ~400 nodes; Workato has 1200+ connectors. oyatie's per-pack discipline is the differentiator; raw count not the claim.
 4. **Cedar policy preview before save** — none of n8n / Zapier / Workato / Make show policy impact before save. oyatie unique.
 5. **Jurisdiction-overlay visual diff** — oyatie unique; competitors do not have multi-jurisdiction overlay UX.
-6. **LLM-assist authoring** — Zapier has AI generation (entry-level); Workato has recipe copilot. oyatie M03+ target with foundry-providers backbone.
+6. **LLM-assist authoring** — Zapier has AI generation (entry-level); Workato has recipe copilot. oyatie M03-onward target with foundry-providers backbone.
 7. **Per-seat Cedar licensing** — competitors use SaaS-account billing; oyatie's per-seat Cedar enforcement is fine-grained.
 
 Detailed quantitative comparison in `competitor-parity-matrix.md`.

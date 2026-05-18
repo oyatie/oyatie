@@ -258,7 +258,7 @@ capabilities:
     enabled: true
     moderation: true
     ranking: true
-    adsSubstrateStub: false  # OFF BY DEFAULT per ADR follow-up
+    adsSubstrateStub: false  # OFF BY DEFAULT per ADR successor-IP
 
 # ============================================================================
 # Observability

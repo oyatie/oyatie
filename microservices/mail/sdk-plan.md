@@ -38,10 +38,10 @@ Tenants integrate with mail via three primary surfaces: standard mail protocols 
 |---|---|---|---|
 | **Rust** | M03 (oyatie's own language) | First-party authored (`oya-mail-*-sdk` crates per BC; per PRD §"BC layer mapping") | axis-mail |
 | **TypeScript** | M03 (Node + Browser; bundled JMAP-Mail-shaped client) | OpenAPI-generated baseline + first-party ergonomic wrappers; published to npm | axis-mail + gtm |
-| **Python** | M03+1 (data-pipeline + scripting tenants) | OpenAPI-generated; published to PyPI; pairs with JMAP `pyjmap` reference lib | axis-mail + gtm |
+| **Python** | M03-onward1 (data-pipeline + scripting tenants) | OpenAPI-generated; published to PyPI; pairs with JMAP `pyjmap` reference lib | axis-mail + gtm |
 | **Go** | M04 (backend services + ops tools) | gRPC-generated baseline + ergonomic wrappers; published as go-module | axis-mail + gtm |
 | **JVM (Kotlin / Java)** | M04 (enterprise tenants) | gRPC-generated baseline; Maven Central | axis-mail + gtm |
-| **Swift / Objective-C** | M03+1 (iOS / macOS partner-app integrators) | thin wrapper over JMAP-Core HTTP; published as Swift Package | axis-mail |
+| **Swift / Objective-C** | M03-onward1 (iOS / macOS partner-app integrators) | thin wrapper over JMAP-Core HTTP; published as Swift Package | axis-mail |
 | **C# / .NET** | M05 (Microsoft-ecosystem tenants) | OpenAPI-generated; NuGet | axis-mail + gtm |
 
 Prioritisation: oyatie's languages first (Rust), then tenant developer-population leaders (TS + Python), then mobile (Swift), then enterprise (Go/JVM/C#).

@@ -96,7 +96,7 @@ PR is opened by `axis-foundry-bot` but **cannot be merged by the bot**. Council-
 
 1. **Validate** each pin delta against the source-URL changelog.
 2. **Apply** ADR-0133 §"Operational" baseline-softening guard:
-   - If any pin SOFTER than previous → require explicit ADR follow-up rationale before merge.
+   - If any pin SOFTER than previous → require explicit ADR successor-IP rationale before merge.
    - If pin STRICTER → standard review.
 3. **Identify** affected µservices: a stricter pin may surface new findings on existing µservices.
 4. **File** per-axis remediation IPs at `microservices/governance/IP-M01-AUDIT-<axis>-<NNN>.md` for each new finding the stricter pin would emit.

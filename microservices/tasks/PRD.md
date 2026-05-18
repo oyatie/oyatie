@@ -8,8 +8,8 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0231-connect-tasks-board-and-views, ADR-0232-connect-tasks-dependency-graph, ADR-0233-connect-tasks-recurring-and-rsvp-equivalent]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
-related_specs: [/specs/products/connect/tasks.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
+related_specs: [/specs/microservices/tasks.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-tasks
 doc_status: published
@@ -19,11 +19,11 @@ doc_status: published
 
 ## Purpose
 
-The `tasks` µservice is oyatie's native **work-item / task management** substrate — the user-facing CRUD surface that humans use to organise actionable work. Per ADR-0132 (product-suite + bundle dissolution) and parallel-session ADR-0126 (Connect unbundle), `tasks` is a standalone tenant-facing µservice — no longer part of any Connect suite — owning: task CRUD with title/description/status/priority/assignee/due-date/labels/parent-subtask; list/project (collection-of-tasks with custom-field schema); board (kanban view with columns); view (list + board + gantt + calendar + timeline + table — multi-view per project); assignee + watcher; due-date + reminder; recurring-task (RRULE-aligned subset per RFC 5545); dependency graph (blocks / blocked-by / relates-to); checklist (subtasks-lite); attachment (cross-µservice to drive); comment + reaction; time-tracking (start/stop timer + manual entry; M02+); custom-field (text/number/date/dropdown/multi-select/person/url/checkbox); saved-filter + view-template; label/tag; sprint/iteration (Linear-class agile); milestone; status-workflow (per-project; configurable Todo→InProgress→Review→Done); priority (P0..P3 + Linear-style); automation (cross-µservice to workflow-engine — task-state-change triggers); notifications (cross-µservice to mail + messenger); bulk-edit; multi-assignee (with primary-assignee semantics); templates + template-marketplace; cross-task + cross-project search (Meilisearch); import (CSV + Jira + Asana + Trello + Linear + Todoist); export (CSV + JSON); API + webhooks; integrations (calendar bridge for due-date → event); epic-roadmap (Linear/Jira); portfolio-view (cross-project rollup); AI-task-suggest (T0 next-task suggest, T1 auto-categorise + priority-suggest, T2 auto-assign).
+The `tasks` µservice is oyatie's native **work-item / task management** substrate — the user-facing CRUD surface that humans use to organise actionable work. Per ADR-0132 (product-suite + bundle dissolution) and parallel-session ADR-0135 (Connect unbundle), `tasks` is a standalone tenant-facing µservice — no longer part of any Connect suite — owning: task CRUD with title/description/status/priority/assignee/due-date/labels/parent-subtask; list/project (collection-of-tasks with custom-field schema); board (kanban view with columns); view (list + board + gantt + calendar + timeline + table — multi-view per project); assignee + watcher; due-date + reminder; recurring-task (RRULE-aligned subset per RFC 5545); dependency graph (blocks / blocked-by / relates-to); checklist (subtasks-lite); attachment (cross-µservice to drive); comment + reaction; time-tracking (start/stop timer + manual entry; M02-onward); custom-field (text/number/date/dropdown/multi-select/person/url/checkbox); saved-filter + view-template; label/tag; sprint/iteration (Linear-class agile); milestone; status-workflow (per-project; configurable Todo→InProgress→Review→Done); priority (P0..P3 + Linear-style); automation (cross-µservice to workflow-engine — task-state-change triggers); notifications (cross-µservice to mail + messenger); bulk-edit; multi-assignee (with primary-assignee semantics); templates + template-marketplace; cross-task + cross-project search (Meilisearch); import (CSV + Jira + Asana + Trello + Linear + Todoist); export (CSV + JSON); API + webhooks; integrations (calendar bridge for due-date → event); epic-roadmap (Linear/Jira); portfolio-view (cross-project rollup); AI-task-suggest (T0 next-task suggest, T1 auto-categorise + priority-suggest, T2 auto-assign).
 
 The µservice differentiates from `workflow-engine` (durable execution engine) by being the **user-facing CRUD primitive for work-items that humans manage manually**. Calendar binds time-blocks; tasks binds work-items.
 
-The µservice carries dual-context (Personal / Professional) per parallel ADR-0126; task details never cross context boundaries except via explicit project membership or policy-bound projection.
+The µservice carries dual-context (Personal / Professional) per parallel ADR-0135; task details never cross context boundaries except via explicit project membership or policy-bound projection.
 
 Bominal inheritance: ADR-0231 board+views + ADR-0232 dependency graph + ADR-0233 recurring/RSVP-equivalent semantics inherited 1:1 per `feedback_bominal_inheritance_precedence.md`; oyatie additions captured below.
 
@@ -57,7 +57,7 @@ Bominal inheritance: ADR-0231 board+views + ADR-0232 dependency graph + ADR-0233
 | FR-14 | tenant operator | to declare a milestone with target date | release planning works | milestone | Should |
 | FR-15 | tenant operator | to roll up tasks across projects into a portfolio view | senior management visibility | portfolio | Should |
 | FR-16 | tenant operator | to add custom fields (text/number/date/dropdown/multi-select/person/url/checkbox) per project | I can model arbitrary attributes | custom-field | Must |
-| FR-17 | tenant operator | to time-track via start/stop timer + manual entry (M02+) | I can bill / forecast | time-tracking | Should |
+| FR-17 | tenant operator | to time-track via start/stop timer + manual entry (M02-onward) | I can bill / forecast | time-tracking | Should |
 | FR-18 | tenant compliance officer | to put a task under legal hold | task + history + dependencies preserved past retention | task-store | Must |
 | FR-19 | tenant operator | to define a project template + share to template marketplace | I can codify repeatable work | template-marketplace | Should |
 | FR-20 | tenant operator | to consume T0 next-task / T1 priority + auto-categorise / T2 auto-assign | AI assists task work | foundry-bridge | Should |
@@ -351,9 +351,9 @@ Sharding: tasks partitioned by `(tenant_id, project_id_hash)`; comments partitio
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| 1 | Should we ship a native Gantt timeline editor or rely on view-engine → workflow-studio bridge? Currently both; revisit at M04 | council-product | post-M04 |
-| 2 | Time-tracking M03 vs M02+ — current scope is M02+; user opt-in via tenant tier | axis-tasks | resolved at M02+ |
-| 3 | AI-task-suggest T2 auto-assign in non-EU jurisdictions — relax Cedar refusal? | council-product + council-privacy | ADR follow-up |
+| 1 | Should we ship a native Gantt timeline editor or rely on view-engine → workflow-studio bridge? Currently both; revisit at M04 | council-product | subsequent-to-M04-completion |
+| 2 | Time-tracking M03 vs M02-onward — current scope is M02-onward; user opt-in via tenant tier | axis-tasks | resolved at M02-onward |
+| 3 | AI-task-suggest T2 auto-assign in non-EU jurisdictions — relax Cedar refusal? | council-product + council-privacy | ADR successor-IP |
 | 4 | JMAP-Tasks (draft) protocol portability — defer to M05 | axis-tasks | M05 |
 | 5 | Apple Reminders compatibility via VTODO over CalDAV — defer to M05; align with calendar's CalDAV chart | axis-tasks | M05 |
 
@@ -365,7 +365,7 @@ Sharding: tasks partitioned by `(tenant_id, project_id_hash)`; comments partitio
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0126 | Connect unbundle (parallel session) | dual-context inheritance |
+| ADR-0135 | Connect unbundle (parallel session) | dual-context inheritance |
 | ADR-0130 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
 | ADR-0132 | Product-suite + bundle dissolution | µservice independence |

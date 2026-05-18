@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-community + ops-security
 deciders: council-architecture, ops-security, axis-community, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/connect-unbundle.json]
 review_cadence: quarterly + on every architecture change
 enforced_frameworks:
@@ -184,7 +184,7 @@ Identify, classify, and mitigate threats to the confidentiality, integrity, avai
 
 ## Vote-Manipulation Specific Controls
 
-Vote manipulation is the highest-effort threat per parallel-session ADR-0126. Layered controls:
+Vote manipulation is the highest-effort threat per parallel-session ADR-0135. Layered controls:
 
 1. **Account-age gate** — votes from accounts < 24 h old are rate-limited 10×.
 2. **Reputation gate** — members < 100 reputation can downvote no more than 30 / day.

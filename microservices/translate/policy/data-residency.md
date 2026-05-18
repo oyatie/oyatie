@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-translate + ops-security
 deciders: council-privacy, ops-security, axis-translate, council-architecture
-related_adrs: [ADR-0117, ADR-0126, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/dpia.md
   - microservices/translate/threat-model.md
@@ -206,7 +206,7 @@ When tenant raises a DSR per GDPR Art. 17 / PIPA Art. 36 / DPDPA §12 / LGPD Art
 ## References
 
 - ADR-0117 (pack residency model).
-- ADR-0126 (connect super-app expansion).
+- ADR-0135 (connect super-app expansion).
 - ADR-TRANSLATE-0004 (residency-bound inference).
 - ALL legal citations in matrix above.
 - `microservices/translate/threat-model.md` T-05 + FM-70 + FM-71 + FM-72 + FM-73.

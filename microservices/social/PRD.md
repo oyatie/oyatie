@@ -8,8 +8,8 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
-related_specs: [/specs/products/connect/social.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_specs: [/specs/microservices/social.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-social
 doc_status: published
@@ -19,16 +19,16 @@ doc_status: published
 
 ## Purpose
 
-The `social` microservice is oyatie's native Twitter/X-class first-party social platform. Per parallel-session ADR-0126 (Connect dissolution), it is one of the 8 first-class µservices factored out of the legacy Connect umbrella. It owns **user-profile + follow-graph + chronological-and-algorithmic feed + post-composition + reactions + comments + reposts/quote-posts + mentions + hashtags + trending-topics + content-discovery + content-moderation + blocking + muting + lists + bookmarks + people-and-content-search + real-time-and-digest notifications + cross-context dual-pillar isolation (Personal B2C vs Professional B2B) + optional ActivityPub federation + content-moderation classifier + ranking model + abuse-reporting + appeal-workflow + age-verification + accessibility-alt-text + ads-substrate-stub (T2 capability, off by default)** across the 11 oyatie regulatory packs.
+The `social` microservice is oyatie's native Twitter/X-class first-party social platform. Per parallel-session ADR-0135 (Connect dissolution), it is one of the 8 first-class µservices factored out of the legacy Connect umbrella. It owns **user-profile + follow-graph + chronological-and-algorithmic feed + post-composition + reactions + comments + reposts/quote-posts + mentions + hashtags + trending-topics + content-discovery + content-moderation + blocking + muting + lists + bookmarks + people-and-content-search + real-time-and-digest notifications + cross-context dual-pillar isolation (Personal B2C vs Professional B2B) + optional ActivityPub federation + content-moderation classifier + ranking model + abuse-reporting + appeal-workflow + age-verification + accessibility-alt-text + ads-substrate-stub (T2 capability, off by default)** across the 11 oyatie regulatory packs.
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone social clients (web + desktop + mobile). It is also consumable as a shared substrate by other oyatie products via the `social.post.v1` Workflow events and the `Person`, `Post`, `Topic` Ontology object types.
 
-Bominal predecessor: the `connect-social` slice of Bominal's unified Connect suite. Per parallel ADR-0126, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical social landing in oyatie. **social is NET-NEW** — no `oya-connect-social-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md.
+Bominal predecessor: the `connect-social` slice of Bominal's unified Connect suite. Per parallel ADR-0135, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical social landing in oyatie. **social is NET-NEW** — no `oya-connect-social-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md.
 
 ## Tenant Value
 
 - **Tenant Outcome 1 — Native social presence without identity fragmentation.** Tenants and their end-users get Twitter/X-class profile + follow-graph + feed UX inside the same shell as mail, messenger, calendar, workflow studio — switching personal/professional context without leaving the surface.
-- **Tenant Outcome 2 — Dual-context-safe social.** Personal (B2C) profiles never cross into professional (B2B) audit scope per parallel ADR-0126; Professional posts carry tenant-DEK encryption when configured and four-eyes audit disclosure inherited from Bominal ADR-0215. Personal-tier never federates.
+- **Tenant Outcome 2 — Dual-context-safe social.** Personal (B2C) profiles never cross into professional (B2B) audit scope per parallel ADR-0135; Professional posts carry tenant-DEK encryption when configured and four-eyes audit disclosure inherited from Bominal ADR-0215. Personal-tier never federates.
 - **Tenant Outcome 3 — Real-time feed + notification delivery.** Feed-render p95 ≤ 200ms (top 50 posts); notification-fanout p99 ≤ 2s for 10k-follower accounts; post-create p95 ≤ 100ms.
 - **Tenant Outcome 4 — Moderation that is auditable.** Every moderation verdict + appeal-action emits an audit-chain record (Merkle / Ed25519); EU AI Act high-risk classification for content-moderation + ranking model carries transparency obligations per Art. 50.
 - **Tenant Outcome 5 — Cross-product mention-and-link integration.** Posts cross-link to messenger DMs (deep-link to-messenger bridge), community discussions, ontology entities, and workflow events natively; competitors expose webhooks only.
@@ -194,7 +194,7 @@ CI lanes that must green:
 - `oya gate validate statelessness --microservice social`
 - `oya gate validate shardability --microservice social`
 - `oya gate validate authority-cohesion --microservice social` (HG-SOCIAL)
-- `oya gate validate dual-context-isolation --microservice social` (per parallel ADR-0126)
+- `oya gate validate dual-context-isolation --microservice social` (per parallel ADR-0135)
 
 ## Integration via Workflow + Ontology
 
@@ -334,7 +334,7 @@ Sharding:
 | AC-10 | Age-gate: minor signup on pack-eu requires parental consent attestation | `tests/e2e/age-gate-pack-eu.rs` |
 | AC-11 | `oya gate validate per-microservice-layout --microservice social` exit 0 | ADR-0131 lane |
 | AC-12 | `oya gate validate authority-cohesion --microservice social` exit 0 | ADR-0123 lane; HG-SOCIAL registered |
-| AC-13 | `oya gate validate dual-context-isolation --microservice social` exit 0 | per parallel ADR-0126 |
+| AC-13 | `oya gate validate dual-context-isolation --microservice social` exit 0 | per parallel ADR-0135 |
 | AC-14 | EU AI Act transparency label appears on every classifier verdict on pack-eu | `tests/e2e/eu-ai-act-transparency.rs` |
 | AC-15 | Ads-substrate-stub T2 capability is disabled by default; tenant-admin opt-in required | `tests/e2e/ads-substrate-default-off.rs` |
 
@@ -342,11 +342,11 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Ranking-model openness: closed-weights vs published-weights for trust + EU AI Act audit transparency | axis-social + council-privacy | ADR-SOC follow-up |
-| 2 | Federation: ActivityPub only, or also AT Protocol (Bluesky)? | axis-social + council-architecture | follow-up ADR after federation MVP |
-| 3 | Ads-substrate-stub: keep stubbed indefinitely vs delete vs activate-with-tenant-opt-in | council-architecture + gtm | ADR follow-up after M03 |
+| 1 | Ranking-model openness: closed-weights vs published-weights for trust + EU AI Act audit transparency | axis-social + council-privacy | ADR-SOC successor-IP |
+| 2 | Federation: ActivityPub only, or also AT Protocol (Bluesky)? | axis-social + council-architecture | successor-IP ADR after federation minimum-shippable-tier |
+| 3 | Ads-substrate-stub: keep interface-only-pending-impl indefinitely vs delete vs activate-with-tenant-opt-in | council-architecture + gtm | ADR successor-IP after M03 |
 | 4 | Self-observability: social emits to observability µservice as one tenant or per-pack? | axis-social + axis-observability | resolved in IP-014 |
-| 5 | Verified-handle uniqueness scope: per-tenant or per-pack or global? | axis-social + gtm | ADR-SOC follow-up |
+| 5 | Verified-handle uniqueness scope: per-tenant or per-pack or global? | axis-social + gtm | ADR-SOC successor-IP |
 
 ## Related ADRs
 
@@ -356,7 +356,7 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0126 | Connect dissolution (parallel) | dual-context isolation source; social as a sibling µservice |
+| ADR-0135 | Connect dissolution (parallel) | dual-context isolation source; social as a sibling µservice |
 | ADR-0130 | Agentic SLO-gated promotion | gates social releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |

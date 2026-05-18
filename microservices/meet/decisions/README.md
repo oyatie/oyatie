@@ -34,7 +34,7 @@ Each ADR closes one Open Question (or anchors one foundational decision) surface
 
 | PRD Open Question | Status | Notes |
 |---|---|---|
-| #1 PSTN dial-in (Twilio Voice / Vonage) | Deferred | M03+ ADR pending |
+| #1 PSTN dial-in (Twilio Voice / Vonage) | Deferred | M03-onward ADR pending |
 | #2 SIP / Matrix federation | Deferred | Post-S-tier ADR pending |
 | #3 Interpretation channels: human-only, AI-only, or both | Open | ADR-MEET-0007 (next sprint) |
 | #4 Self-observability emission posture | Resolved | per-pack emission with per-tenant tags — no ADR needed |

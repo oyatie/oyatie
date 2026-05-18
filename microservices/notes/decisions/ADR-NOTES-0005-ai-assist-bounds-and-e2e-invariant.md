@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0008
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-NOTES-0001
   - ADR-NOTES-0004
@@ -31,7 +31,7 @@ Accepted — 2026-05-17.
 
 ## Context
 
-The notes µservice introduces an AI surface (T0 next-word / title suggest; T1 summarize / tag-suggest / link-suggest; T2 auto-organize). Without bounds, AI features create a **structural backdoor in the E2E posture**: a malicious or compromised AI provider (or a future PM who wires AI on Personal notes) would become an effective decryption oracle. This vector is unique to notes-µservice in the oyatie portfolio — the docs µservice (collaborative long-form) doesn't have this risk surface at MVP, and messenger's AI features are restricted to Professional channels by ADR-MSGR-0003.
+The notes µservice introduces an AI surface (T0 next-word / title suggest; T1 summarize / tag-suggest / link-suggest; T2 auto-organize). Without bounds, AI features create a **structural backdoor in the E2E posture**: a malicious or compromised AI provider (or a future PM who wires AI on Personal notes) would become an effective decryption oracle. This vector is unique to notes-µservice in the oyatie portfolio — the docs µservice (collaborative long-form) doesn't have this risk surface at minimum-shippable-tier, and messenger's AI features are restricted to Professional channels by ADR-MSGR-0003.
 
 Regulatory drivers:
 
@@ -70,7 +70,7 @@ oyatie notes adopts a **structural-impossibility posture for AI assist over Pers
    - Capability tiers per `capabilities/`:
      - **T0 next-word / title suggest** (no autonomy; user-keystroke-driven) — minimum disclosure; included in standard product copy.
      - **T1 summarize / tag-suggest / link-suggest** (user-invoked; human-in-loop) — explicit per-tenant opt-in; transparency label "AI-generated" on output; `evidence_topic: oya.notes.capability.t1_assist.evidence` records every call for EU AI Act Art. 13 obligation.
-     - **T2 auto-organize** (autonomous reorganisation suggestions) — disabled at MVP; if enabled, requires explicit per-user opt-in + tenant-admin enable + human-in-loop "review changes before apply"; falls under GDPR Art. 22 caveat.
+     - **T2 auto-organize** (autonomous reorganisation suggestions) — disabled at minimum-shippable-tier; if enabled, requires explicit per-user opt-in + tenant-admin enable + human-in-loop "review changes before apply"; falls under GDPR Art. 22 caveat.
    - foundry-runtime provider must contract no-train clause via DPA; per-pack provider gating (e.g., pack-eu uses EU-regional providers only).
    - Every AI call writes audit-chain seal `AiAssistInvoked{request_id, capability_tier, model_version, input_hash, output_hash, principal_ref, tenant_ref}` (Bominal ADR-0028 Merkle + Ed25519).
 
@@ -112,13 +112,13 @@ oyatie notes adopts a **structural-impossibility posture for AI assist over Pers
 
 ### E. On-device-only AI for both tiers (client SDK runs local LLM; no server AI)
 - Pros: server is uninvolved across both tiers; cleanest privacy posture.
-- Cons: local LLM at MVP is impractical for the breadth of capabilities (summarize-of-long-note + tag-suggest with vocab-of-tenant); restricts to small models only; longer-term direction but not MVP.
-- Rejected at MVP; tracked as direction.
+- Cons: local LLM at minimum-shippable-tier is impractical for the breadth of capabilities (summarize-of-long-note + tag-suggest with vocab-of-tenant); restricts to small models only; longer-term direction but not minimum-shippable-tier.
+- Rejected at minimum-shippable-tier; tracked as direction.
 
 ### F. Confidential-compute / TEE on server (oyatie holds plaintext only inside enclave for AI calls)
 - Pros: server-side processing with privacy preservation.
 - Cons: TEE adds complexity + attack surface + ops cost; vulnerable to side-channel attacks; defeats the structural-impossibility claim (the enclave is still server-side); not battle-tested at this scale.
-- Rejected at MVP; tracked as future research.
+- Rejected at minimum-shippable-tier; tracked as future research.
 
 ## Consequences
 
@@ -135,7 +135,7 @@ oyatie notes adopts a **structural-impossibility posture for AI assist over Pers
 
 - Personal-tier users wanting AI must mark notes Professional (UX must surface this clearly).
 - Cost of two paths (T0/T1 only for Professional; nothing for Personal server-side).
-- Local-LLM-on-device direction not MVP; Personal-tier on-device AI requires SDK-feature-build customisation.
+- Local-LLM-on-device direction not minimum-shippable-tier; Personal-tier on-device AI requires SDK-feature-build customisation.
 - Tenants migrating from Notion / Mem / Reflect lose AI on Personal notes by default; UX should communicate this clearly.
 
 ### Operational

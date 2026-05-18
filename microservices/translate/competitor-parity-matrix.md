@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-translate + gtm-product
-related_adrs: [ADR-0126, ADR-0131, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
+related_adrs: [ADR-0135, ADR-0131, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
 related_artifacts:
   - microservices/translate/PRD.md
 review_cadence: quarterly + on every major competitor product release
@@ -32,9 +32,9 @@ Per `PRD.md` §"Competitive Benchmark" + LISA/LocWorld + Slator industry reports
 | MateCat | Open-source TMS | Surface parity (TMS + leverage) |
 | Trados Studio | Desktop CAT | Out of scope (desktop; we are API + web) |
 | OmegaT | Open-source desktop CAT | TM leverage algorithm cited in ADR-TRANSLATE-0002 |
-| Apertium | Open-source rule-based MT | Tracked for low-resource pairs (M03+) |
+| Apertium | Open-source rule-based MT | Tracked for low-resource pairs (M03-onward) |
 | MarianNMT | Research NMT framework | Underlies in-house models (via foundry-runtime + ADR-0026) |
-| Argos Translate | Open-source self-host MT | Open-source path for cost-sensitive tenants (M03+) |
+| Argos Translate | Open-source self-host MT | Open-source path for cost-sensitive tenants (M03-onward) |
 | Apple Translate | iOS-bundled | N/A (OS; we cover via shorts) |
 | Yandex Translate | Hosted MT (RU) | Not in M01 (geopolitical risk) |
 

@@ -459,7 +459,7 @@ Each row: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H); 
 - Mitigations:
   - Postgres superuser gated by 2-person OpenBao JIT.
   - `registry/cell-assignment.jsonl` git-committed; even Postgres-side delete recoverable from git + audit-chain.
-  - Soft-deletion: superuser delete marks rows; actual delete deferred 30d.
+  - Soft-deletion: superuser delete marks rows; actual delete scheduled-for-distinct-tracked-work 30d.
 - Owner: ops-security
 - Residual: L
 - Frameworks: SOC 2 CC6.6; ISO 27001 A.5.27, A.8.4

@@ -9,7 +9,7 @@ doc_status: published
 
 # sheets service-scoped ADRs
 
-This directory holds **service-scoped** Architecture Decision Records owned by the `sheets` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs continue to live at `/Users/jasonlee/oyatie/docs/decisions/` (e.g., ADR-0105, ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0140).
+This directory holds **service-scoped** Architecture Decision Records owned by the `sheets` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs continue to live at `/Users/jasonlee/oyatie/docs/decisions/` (e.g., ADR-0105, ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0140).
 
 Service-scoped ADRs are numbered `ADR-SHEETS-NNNN` (four-digit, sequential within this directory). The `SHEETS` prefix prevents collision with the repo-wide `ADR-NNNN` series and matches the convention adopted by sibling µservices.
 
@@ -23,11 +23,11 @@ Service-scoped ADRs are numbered `ADR-SHEETS-NNNN` (four-digit, sequential withi
 | [ADR-SHEETS-0004](ADR-SHEETS-0004-recalc-engine-architecture.md) | Recalc-engine architecture — dependency-graph + topological + parallel-task-graph (rayon-backed); 100k-cell ≤ 1s + 1M-cell ≤ 10s defensible | Accepted | Q4 (recalc-engine architecture) |
 | [ADR-SHEETS-0005](ADR-SHEETS-0005-ai-formula-and-smart-fill-bounds.md) | AI-formula + smart-fill capability tier bounds — T0/T1 intra-sheets by default; T2-cross gated by Cedar + ChangeSet review + 2-person rule | Accepted | Q5 (AI-formula scope) |
 | [ADR-SHEETS-0006](ADR-SHEETS-0006-per-range-acl-granularity.md) | Per-range ACL granularity — named-range ACL via Cedar policy fragments; column/range-level enforcement at every read/write path | Accepted | Q6 (per-range ACL granularity) |
-| [ADR-SHEETS-0007](ADR-SHEETS-0007-export-fidelity-policy.md) | XLSX export fidelity — best-effort tier at M03 with named-limit list (no VBA, no ActiveX, image downgrade); gVisor + ClamAV + OPSWAT sandboxed; strict-OOXML deferred post-M03 | Accepted | Q7 (XLSX export fidelity) |
+| [ADR-SHEETS-0007](ADR-SHEETS-0007-export-fidelity-policy.md) | XLSX export fidelity — best-effort tier at M03 with named-limit list (no VBA, no ActiveX, image downgrade); gVisor + ClamAV + OPSWAT sandboxed; strict-OOXML scheduled-for-distinct-tracked-work subsequent-to-M03-completion | Accepted | Q7 (XLSX export fidelity) |
 
 ## Cross-reference policy
 
-- Every service-scoped ADR in this directory MUST reference the repo-wide ADRs it inherits from (e.g., ADR-0126 sheets net-new µservice, ADR-0131 layout, ADR-0140 Cedar, ADR-0105 layer enum).
+- Every service-scoped ADR in this directory MUST reference the repo-wide ADRs it inherits from (e.g., ADR-0135 sheets net-new µservice, ADR-0131 layout, ADR-0140 Cedar, ADR-0105 layer enum).
 - Repo-wide ADRs in `/Users/jasonlee/oyatie/docs/decisions/` MUST NOT depend on service-scoped ADRs in this directory; the dependency direction is one-way.
 - Service-scoped ADRs may reference each other freely within this directory.
 - **Cross-µservice ADRs** (e.g., ADR-SHEETS-0001 ↔ ADR-WS-0001 ↔ ADR-DOCS-0001 Loro alignment) reference each other as `related_external_adrs` in frontmatter. Coordinated upgrade contract per ADR-SHEETS-0001 §"Cross-µservice operational" applies.

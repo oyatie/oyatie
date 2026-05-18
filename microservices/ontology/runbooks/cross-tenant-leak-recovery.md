@@ -92,7 +92,7 @@ Possible vectors:
 | 2 | Revoke grant: `UPDATE cross_pillar_grants SET revoked_at = now() WHERE id = <id>` |
 | 3 | Verify Cedar evaluator picked up the revoke (hot-reload via cedar-fragment-coverage worker). |
 | 4 | Audit reads that exercised the grant during the misuse window; engage council-privacy. |
-| 5 | If forged grant: tighten 2-person rule enforcement; ADR follow-up. |
+| 5 | If forged grant: tighten 2-person rule enforcement; ADR successor-IP. |
 
 ## Pack misroute (FM-16)
 
@@ -130,7 +130,7 @@ After incident closure:
 - All affected tenants notified per their DPA.
 - Regulatory notifications transmitted within respective timelines.
 - Postmortem published at `evidence/postmortems/<year>/<incident-id>.md`.
-- ADR follow-up filed for systemic remediation.
+- ADR successor-IP filed for systemic remediation.
 
 ## Post-incident updates
 

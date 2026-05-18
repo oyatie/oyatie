@@ -95,7 +95,7 @@ Canonical control-to-framework mapping for workflow-studio. Tells external audit
 | A.8.5 | Secure authentication | mTLS + OIDC + signed SDK API keys | `threat-model.md` |
 | A.8.7 | Protection against malware | Node library Ed25519 signing + WASM SRI | `threat-model.md` T-T-03, T-T-06 |
 | A.8.11 | Data masking | SDK redactor for LLM-assist + data_class markers | `threat-model.md` T-I-05 |
-| A.8.12 | Data leakage prevention | Strict CSP + Trusted Types + sandboxed iframes (post-GA branding) | `threat-model.md` T-I-02 |
+| A.8.12 | Data leakage prevention | Strict CSP + Trusted Types + sandboxed iframes (subsequent-to-GA-tier-promotion branding) | `threat-model.md` T-I-02 |
 | A.8.15 | Logging | Audit-chain emission | ADR-0028 |
 | A.8.16 | Monitoring activities | Studio self-SLI + Grafana | `dashboards/*.json` |
 | A.8.20 | Network security | Network policies; Studio → engine/ontology/foundry/tenancy SDKs only | Kubernetes NetworkPolicy review |

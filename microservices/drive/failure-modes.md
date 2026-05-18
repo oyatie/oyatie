@@ -120,7 +120,7 @@ Enumerate plausible failure modes, expected behaviour under each, detection mech
 - **Trigger**: worker pod crashes or DB connection failure during WORM scan.
 - **Expected behaviour**: worker idempotent; resumes from checkpoint; never violates WORM under failure.
 - **Detection**: per-worker health + checkpoint-lag metric.
-- **Graceful degradation**: retention sweep deferred; WORM tier invariants preserved.
+- **Graceful degradation**: retention sweep scheduled-for-distinct-tracked-work; WORM tier invariants preserved.
 
 ### FM-15 — Audit-chain emission failure
 

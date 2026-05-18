@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0117
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-SHORTS-0001
 related_artifacts:
@@ -175,7 +175,7 @@ oyatie shorts adopts:
 ## References
 
 - ADR-0117 OCI primary cloud.
-- Parallel ADR-0126 dual-context.
+- Parallel ADR-0135 dual-context.
 - ADR-0131 per-µservice flat layout.
 - ADR-SHORTS-0001 (transcode pipeline; DRM operates over HLS/DASH manifest layer).
 - W3C EME 2017 `www.w3.org/TR/encrypted-media`.

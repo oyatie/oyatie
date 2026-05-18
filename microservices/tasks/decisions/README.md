@@ -40,7 +40,7 @@ runbook / threat-model / DPIA artifact under `microservices/tasks/`.
 
 | PRD Open Question | Status | Notes |
 |---|---|---|
-| #1 (Gantt timeline editor in tasks vs workflow-studio bridge) | Open | post-M04 ADR; will pair with workflow-studio's view-bridge ADR |
+| #1 (Gantt timeline editor in tasks vs workflow-studio bridge) | Open | subsequent-to-M04-completion ADR; will pair with workflow-studio's view-bridge ADR |
 | #3 (T2 auto-assign in non-EU jurisdictions — when to relax Cedar refusal) | Open | depends on per-pack conformity-assessment ADRs (ADR-TASKS-XXXX per pack) |
 | #4 (JMAP-Tasks adapter at M05) | Open | depends on draft-ietf-jmap-tasks IETF stabilisation |
 | #5 (Apple Reminders compat via CalDAV-Tasks VTODO at M05) | Open | depends on calendar's CalDAV stack maturity + iOS/macOS demand |

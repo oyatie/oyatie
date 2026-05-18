@@ -209,7 +209,7 @@ When ADR-0131 layout changes require Cargo.toml updates (e.g., move all `crates/
 
 - Update `multi-region.md` Roadmap row (for §B).
 - Update postmortem if applicable (for §C).
-- File follow-up IPs for any structural improvement opportunity surfaced.
+- File successor-IP IPs for any structural improvement opportunity surfaced.
 
 ## References
 

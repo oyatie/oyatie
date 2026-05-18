@@ -6,8 +6,8 @@ deprecated_artifact: oya-connect-sites-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-SITES accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
-related_specs: [/specs/products/connect/sites.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
+related_specs: [/specs/microservices/sites.json]
 owner_team: axis-sites
 date: 2026-05-17
 doc_status: published
@@ -36,7 +36,7 @@ migration guide.
 ## Removal date
 
 **Advisory — no hard deadline.** Concrete removal target is HG-SITES
-accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #3).
+accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3).
 Following the 5-month Strangler window in ADR-0134 (Phase 2 adapter
 soak + Phase 3 canary), the indicative advisory removal date is
 **2026-11-17**, gated on the SLO trigger.
@@ -144,7 +144,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
 ## References
 
-- ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
+- ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
 - ADR-SITES-0001 (Loro CRDT 1.x); ADR-SITES-0002 (rendering — SSG/ISR
   hybrid); ADR-SITES-0003 (CDN substrate); ADR-SITES-0004 (ACME +
   custom-domain); ADR-SITES-0005 (CMS-collection — hybrid); ADR-SITES-

@@ -397,7 +397,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - Repo is private by default; per-tenant overlay files marked `INTERNAL_ONLY` data-class.
   - LEAN check `oya-check-tenant-config-not-in-public-overlay` (NEW) — refuses tenant-bound config in `regional-packs/*` global overlays.
   - Sensitive values referenced via OpenBao; not embedded in manifest text.
-  - Open-source-of-charts decision deferred (per PRD §"SDK Plan" parallel pattern); default closed-source.
+  - Open-source-of-charts decision scheduled-for-distinct-tracked-work (per PRD §"SDK Plan" parallel pattern); default closed-source.
 - Owner: ops-security
 - Residual: L-M
 - Frameworks: SOC 2 CC6.1; ISO 27001 A.8.12; GDPR Art. 32(1)(b)
@@ -534,7 +534,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - State file write requires OpenBao JIT elevation + 2-person rule.
   - Mass-destroy patterns (e.g., terraform destroy across many resources) trigger anomaly alert and require ExecSponsor approval.
-  - Soft-deletion: terraform destroys mark resources for deletion + 30-day grace; actual delete deferred unless override.
+  - Soft-deletion: terraform destroys mark resources for deletion + 30-day grace; actual delete scheduled-for-distinct-tracked-work unless override.
   - Bucket versioning enables state restore.
 - Owner: ops-security + axis-cloud-iac
 - Residual: L

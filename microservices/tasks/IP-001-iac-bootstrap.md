@@ -52,7 +52,7 @@ PrometheusRule wired (ADR-TASKS-0006 EU AI Act Annex III §4 surface).
 | `microservices/tasks/iac/kustomize/base/namespace.yaml` | created | tasks namespace + restricted pod-security |
 | `microservices/tasks/iac/kustomize/overlays/pack-kr/kustomization.yaml` | created | initial active pack |
 | `microservices/tasks/iac/kustomize/overlays/pack-eu/kustomization.yaml` | created | eu pack |
-| (additional packs: us/us-healthcare/jp/sg/au/in/br/ae/ksa) | follow-up | per-pack overlays |
+| (additional packs: us/us-healthcare/jp/sg/au/in/br/ae/ksa) | successor-IP | per-pack overlays |
 
 ## Crate Naming
 

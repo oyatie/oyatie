@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-sheets
 deciders: council-privacy, ops-security, axis-sheets, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/sheets/threat-model.md
   - microservices/sheets/dpia.md
@@ -178,7 +178,7 @@ Per-pack overlays at `regional-packs/<pack>/sheets-data-residency-overlay.md`.
 
 ## References
 
-- ADR-0117, ADR-0126, ADR-0131.
+- ADR-0117, ADR-0135, ADR-0131.
 - ADR-SHEETS-0005 (AI-formula bounds + routing).
 - `microservices/sheets/threat-model.md` T-I-01.
 - `microservices/sheets/dpia.md` R-09 + R-11 + R-13.

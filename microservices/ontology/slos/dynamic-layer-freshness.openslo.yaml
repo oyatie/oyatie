@@ -11,7 +11,7 @@ spec:
   service: ontology
   description: |
     Freshness of the 3-layer Knowledge Graph dynamic layer. Per
-    /specs/products/ontology.json AC-12, dynamic-layer reads MUST be ≤ 2 s
+    /specs/microservices/ontology.json AC-12, dynamic-layer reads MUST be ≤ 2 s
     p99 lag against canonical Postgres state. Violation = silent stale
     reads (DPIA R-04 anti-pattern).
   indicator:

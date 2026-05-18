@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-meet
 deciders: axis-meet, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0126, ADR-0131]
+related_adrs: [ADR-0028, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/meet/PRD.md
   - microservices/meet/capacity-model.md
@@ -135,6 +135,6 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers".
 - `microservices/meet/cost-budget.md`.
 - `microservices/meet/contracts/asyncapi/meet-events.yaml`.
 - ADR-0028 audit-chain.
-- ADR-0126 (net-new µservice).
+- ADR-0135 (net-new µservice).
 - ADR-0131 (per-microservice flat layout).
 - `microservices/messenger/backfill-replay.md` (shape reference).

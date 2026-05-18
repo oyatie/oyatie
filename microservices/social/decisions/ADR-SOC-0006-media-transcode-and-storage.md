@@ -10,7 +10,7 @@ superseded_by: []
 related:
   - ADR-0105
   - ADR-0117
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
 related_artifacts:
   - microservices/social/PRD.md (§"Performance" + §"Bounded Contexts" post-composition + §"Functional Requirements" FR-19 alt-text)
@@ -208,7 +208,7 @@ oyatie social adopts a **single canonical media stack** for P01:
 
 - ADR-0105 + Amendment 3 (backend-qualified adapter naming).
 - ADR-0117 (single-cloud-substrate; primary OCI).
-- ADR-0126 (parallel; dual-context).
+- ADR-0135 (parallel; dual-context).
 - ADR-0131 (per-microservice flat layout).
 - ImageMagick 7.1 LTS docs `imagemagick.org/script/release-notes.php`.
 - ffmpeg 7.x docs `ffmpeg.org/documentation.html`.

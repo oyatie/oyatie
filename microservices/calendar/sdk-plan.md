@@ -34,7 +34,7 @@ and programmatic SDKs. This document specifies the SDK strategy.
 | iMIP / iTIP (mail-based invitations) | Cross-org invitations via standard mail | RFC 5546 + RFC 6047 |
 | REST facade (calendar.yaml) | Tenant writes a custom calendar app or backend pipeline | OpenAPI 3.1.0 |
 | gRPC (calendar.proto) | Tenant runs a backend service; wants strongly-typed contracts | proto3 |
-| JMAP Calendars (M04+) | Modern JSON-over-HTTP; Fastmail-style integrations | draft-ietf-jmap-calendars (M04 once IETF stabilises per ADR-CAL-0003) |
+| JMAP Calendars (M04-onward) | Modern JSON-over-HTTP; Fastmail-style integrations | draft-ietf-jmap-calendars (M04 once IETF stabilises per ADR-CAL-0003) |
 | Per-language SDK | Tenant wants ergonomic auth + tenant binding + retry | this plan |
 
 ## Launch order (per ADR-CAL-0003)
@@ -43,14 +43,14 @@ and programmatic SDKs. This document specifies the SDK strategy.
 |---|---|---|---|
 | **Rust** | M03 (oyatie's own language) | First-party authored `oya-calendar-<bc>-sdk` crates per BC | axis-calendar |
 | **TypeScript** | M03 (Node + Browser) | OpenAPI-generated baseline + first-party CalDAV client wrapper; published to npm | axis-calendar + gtm |
-| **Python** | M03+1 (data-pipeline + scripting tenants) | OpenAPI-generated; published to PyPI; pairs with `caldav` reference lib | axis-calendar + gtm |
-| **Swift** | M03+1 (iOS / macOS partner-app integrators) | thin wrapper over CalDAV + EventKit-shaped API; eventual JMAP switch at M04 | axis-calendar |
+| **Python** | M03-onward1 (data-pipeline + scripting tenants) | OpenAPI-generated; published to PyPI; pairs with `caldav` reference lib | axis-calendar + gtm |
+| **Swift** | M03-onward1 (iOS / macOS partner-app integrators) | thin wrapper over CalDAV + EventKit-shaped API; eventual JMAP switch at M04 | axis-calendar |
 | **Go** | M04 (backend services + ops tools) | gRPC-generated baseline + ergonomic wrappers | axis-calendar + gtm |
 | **JVM (Kotlin / Java)** | M04 (enterprise tenants) | gRPC-generated baseline; Maven Central | axis-calendar + gtm |
 | **C# / .NET** | M05 (Microsoft-ecosystem tenants) | OpenAPI-generated; NuGet | axis-calendar + gtm |
 
 Per ADR-CAL-0003: CalDAV (RFC 4791) ships first at M03; JMAP Calendars
-deferred to M04 once the IETF draft stabilises. M03 SDKs accordingly
+scheduled-for-distinct-tracked-work to M04 once the IETF draft stabilises. M03 SDKs accordingly
 ship CalDAV-wrapping clients; M04 SDKs gain JMAP Calendars support
 additively (no breaking change to M03 surface).
 

@@ -73,7 +73,7 @@ cargo run -p oya-dev-cli -- gate validate residency-conformance --microservice m
 
 ## Per-pack overlay rollout (subsequent packs)
 
-This IP delivers pack-kr. Subsequent IPs (M03+1 onward) deliver:
+This IP delivers pack-kr. Subsequent IPs (M03-onward1 onward) deliver:
 - pack-eu (GDPR + ePrivacy + DORA)
 - pack-us (CCPA + CAN-SPAM + SOC 2)
 - pack-us-healthcare (HIPAA + BAA + 6y retention)

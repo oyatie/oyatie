@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-shorts + ops-sre-reliability
 deciders: axis-shorts, ops-sre-reliability, council-architecture
-related_adrs: [ADR-0028, ADR-0126, ADR-0131]
+related_adrs: [ADR-0028, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/shorts/failure-modes.md
   - microservices/shorts/incident-response.md
@@ -137,7 +137,7 @@ All replay paths MUST be idempotent. Each operation carries `idempotency_key = (
 
 ### BF-08: DSR-cascade re-run
 
-**When**: Right-to-erasure request audit reveals incomplete propagation (cache or search staleness); regulatory follow-up.
+**When**: Right-to-erasure request audit reveals incomplete propagation (cache or search staleness); regulatory successor-IP.
 
 **Procedure**:
 1. Identify subject's ULID + all affected videos / comments / reactions / shares.
@@ -188,7 +188,7 @@ CI lane `oya-governance-backfill-idempotency --microservice shorts` validates:
 ## References
 
 - ADR-0028 audit-chain.
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - ADR-0131.
 - `microservices/shorts/failure-modes.md`.
 - `microservices/shorts/incident-response.md`.

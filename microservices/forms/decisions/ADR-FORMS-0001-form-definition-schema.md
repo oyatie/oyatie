@@ -8,8 +8,8 @@ owner: axis-forms + council-architecture
 deciders: council-architecture, axis-forms, ops-security, council-design-system, axis-sdk
 supersedes: []
 superseded_by: []
-related: [ADR-0105, ADR-0126, ADR-0131, ADR-0132, ADR-WS-0002]
-related_specs: [/specs/products/forms.json]
+related: [ADR-0105, ADR-0135, ADR-0131, ADR-0132, ADR-WS-0002]
+related_specs: [/specs/microservices/forms.json]
 related_artifacts:
   - microservices/forms/PRD.md FR-01 + AC-02
   - microservices/forms/contracts/openapi/forms.openapi.yaml /components/schemas/FormSpecV1

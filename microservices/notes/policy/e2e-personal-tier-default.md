@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-notes + ops-security
 deciders: council-privacy, ops-security, axis-notes, ops-legal
-related_adrs: [ADR-NOTES-0001, ADR-NOTES-0004, ADR-NOTES-0005, ADR-0126, ADR-0131]
+related_adrs: [ADR-NOTES-0001, ADR-NOTES-0004, ADR-NOTES-0005, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/notes/PRD.md (NFR §Security)
   - microservices/notes/policy/dual-context-isolation.md (DCI-03, DCI-08, DCI-09)

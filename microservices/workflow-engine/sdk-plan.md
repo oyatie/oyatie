@@ -31,8 +31,8 @@ Workload µservices + tenant applications need first-party SDKs to publish workf
 | **Python** | M03 | OpenAPI-generated; published to PyPI | axis-workflow + gtm |
 | **Go** | M03 | gRPC-generated baseline + ergonomic wrappers; published as go-module | axis-workflow + gtm |
 | **JVM (Kotlin / Java)** | M04 | gRPC-generated baseline + ergonomic wrappers; published to Maven Central | axis-workflow + gtm |
-| **C# / .NET** | M04+ | OpenAPI-generated; published to NuGet | axis-workflow + gtm |
-| **Ruby** | M05+ (only if tenant demand surfaces) | OpenAPI-generated | axis-workflow |
+| **C# / .NET** | M04-onward | OpenAPI-generated; published to NuGet | axis-workflow + gtm |
+| **Ruby** | M05-onward (only if tenant demand surfaces) | OpenAPI-generated | axis-workflow |
 | **PHP** | (none — no current tenant demand) | n/a | n/a |
 
 Prioritisation drivers: oyatie's own µservice languages first (Rust); then largest tenant developer-population languages (TypeScript + Python lead).

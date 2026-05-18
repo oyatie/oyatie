@@ -133,13 +133,13 @@ Enumerate failure modes, blast radius, detection signals, automated recovery, an
 - **Automated recovery:** Task write blocks (fail-closed) when emission ack > 30s; user sees "operation pending due to audit-chain unavailable"; ack-or-fail.
 - **Runbook:** runbook reused from calendar's `audit-chain-emission-recovery.md` pattern.
 
-### FM-15 — Time-tracking tick worker queue overflow (M02+)
+### FM-15 — Time-tracking tick worker queue overflow (M02-onward)
 
 - **Cause:** 1Hz tick rate × many concurrent timers × multi-tenant → tick worker queue grows.
 - **Blast radius:** Time-tracking ticks delayed in append; ticks > 5s old may be coalesced.
 - **Detection:** `tasks_time_tracking_tick_queue_depth_seconds > 5` alert.
 - **Automated recovery:** Worker pod HPA scales out; queue drains within 1 min.
-- **Runbook:** new runbook deferred to M02+; pattern follows webhook-fanout-degraded.md.
+- **Runbook:** new runbook scheduled-for-distinct-tracked-work to M02-onward; pattern follows webhook-fanout-degraded.md.
 
 ## Failure-mode aggregation gates
 

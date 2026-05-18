@@ -1,12 +1,12 @@
 ---
 id: ADR-SHEETS-0007
-title: XLSX export fidelity policy — best-effort tier at M03 with named-limit list; strict OOXML round-trip deferred post-M03
+title: XLSX export fidelity policy — best-effort tier at M03 with named-limit list; strict OOXML round-trip scheduled-for-distinct-tracked-work subsequent-to-M03-completion
 microservice: sheets
 status: Accepted
 date: 2026-05-17
 owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, ops-security, council-design-system
-related: [ADR-0056, ADR-0126, ADR-0131]
+related: [ADR-0056, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/sheets/PRD.md (AC-02, AC-12, AC-15)
   - microservices/sheets/IP-009-import-export-xlsx-calamine-rust-xlsxwriter-sandboxed.md
@@ -16,7 +16,7 @@ purpose: Resolve PRD Open Question 7 — choose the XLSX import/export fidelity 
 doc_status: published
 ---
 
-# ADR-SHEETS-0007: XLSX export fidelity — best-effort tier at M03 with named-limit list; gVisor + ClamAV + OPSWAT sandboxed pipeline; strict OOXML round-trip deferred post-M03
+# ADR-SHEETS-0007: XLSX export fidelity — best-effort tier at M03 with named-limit list; gVisor + ClamAV + OPSWAT sandboxed pipeline; strict OOXML round-trip scheduled-for-distinct-tracked-work subsequent-to-M03-completion
 
 ## Status
 
@@ -92,7 +92,7 @@ Per threat-model T-S-04 + T-E-05:
 - Formula-bomb detection (> 10M cell formulas refused).
 - Export pipeline (rust_xlsxwriter 0.79) also runs inside gVisor with per-job resource budget.
 
-### Strict-OOXML round-trip — deferred post-M03
+### Strict-OOXML round-trip — scheduled-for-distinct-tracked-work subsequent-to-M03-completion
 
 A future ADR may upgrade specific tenants to a strict-OOXML tier if there is demonstrated demand. The strict-tier engineering scope includes:
 - Bit-exact OOXML element ordering preservation.
@@ -100,7 +100,7 @@ A future ADR may upgrade specific tenants to a strict-OOXML tier if there is dem
 - VBA macro preservation (with gVisor execution sandbox + tenant-side opt-in per ADR-SHEETS-0005 T2 review).
 - Custom XML parts preserved.
 
-Estimated scope: 2-3 quarters post-M03.
+Estimated scope: 2-3 quarters subsequent-to-M03-completion.
 
 ## Alternatives Considered
 
@@ -109,9 +109,9 @@ Estimated scope: 2-3 quarters post-M03.
 - **Pros**: parity with OnlyOffice + LibreOffice; maximum tenant compatibility.
 - **Cons**:
   - Multi-quarter engineering scope; delays M03 hero-product launch.
-  - VBA macro preservation requires execution sandbox + tenant opt-in (deferred per ADR-SHEETS-0005).
+  - VBA macro preservation requires execution sandbox + tenant opt-in (scheduled-for-distinct-tracked-work per ADR-SHEETS-0005).
   - Custom XML parts + ActiveX preservation expands attack surface.
-- **Rejected at M03**: scope too large; deferred post-M03.
+- **Rejected at M03**: scope too large; scheduled-for-distinct-tracked-work subsequent-to-M03-completion.
 
 ### Alternative B — CSV-only at M03 (no XLSX at all)
 
@@ -172,6 +172,6 @@ Estimated scope: 2-3 quarters post-M03.
 - OnlyOffice OOXML claim — `api.onlyoffice.com/editors`.
 - LibreOffice ODF / OOXML round-trip — `documentation.libreoffice.org`.
 - ADR-0056 — BNF v4.1.
-- ADR-0126 — Sheets net-new µservice.
+- ADR-0135 — Sheets net-new µservice.
 - ADR-0131 — Per-microservice flat layout.
-- ADR-SHEETS-0005 — AI-formula T2 deferred (Apps-Script-equivalent post-GA).
+- ADR-SHEETS-0005 — AI-formula T2 scheduled-for-distinct-tracked-work (Apps-Script-equivalent subsequent-to-GA-tier-promotion).

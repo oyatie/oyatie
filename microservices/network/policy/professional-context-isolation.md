@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-network
 deciders: council-architecture, ops-security, axis-network, council-privacy
-related_adrs: [ADR-0008, ADR-0028, ADR-0126, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-0132, ADR-0140]
 related_artifacts:
   - microservices/network/threat-model.md (T-I-07; Professional-context invariant violation)
   - microservices/network/dpia.md
@@ -22,7 +22,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing Professional-context invariants of the `network` substrate. Per parallel ADR-0126 (which inherits Bominal ADR-0208's dual-context model) and ADR-0132 (suite-and-bundle dissolution), the `network` µservice is **Professional-tier-only**. The `social` sibling owns Personal/General context. This document is the authoritative reference for SOC 2 examiners (CC6.1), ISO 27001 auditors (A.5.15, A.8.3), GDPR Art. 25 reviewers, KR PIPA Art. 28 reviewers, HIPAA OCR, EU DSA Coordinator, EU AI Act notified body, EEOC examiner, NYC DCWP LL144 auditor asking *"how does network keep Professional and Personal separated?"*
+Define the load-bearing Professional-context invariants of the `network` substrate. Per parallel ADR-0135 (which inherits Bominal ADR-0208's dual-context model) and ADR-0132 (suite-and-bundle dissolution), the `network` µservice is **Professional-tier-only**. The `social` sibling owns Personal/General context. This document is the authoritative reference for SOC 2 examiners (CC6.1), ISO 27001 auditors (A.5.15, A.8.3), GDPR Art. 25 reviewers, KR PIPA Art. 28 reviewers, HIPAA OCR, EU DSA Coordinator, EU AI Act notified body, EEOC examiner, NYC DCWP LL144 auditor asking *"how does network keep Professional and Personal separated?"*
 
 `network` inherits the dual-context-isolation pattern from the sibling `social` µservice (`microservices/social/policy/dual-context-isolation.md`) but adopts the **Professional-only specialisation**: the only valid `ContextKind` for `network` resources is `Professional`. Personal entities never appear in `network` at any layer.
 
@@ -41,7 +41,7 @@ Properties:
 - Enum is sealed at the kernel layer with exactly one variant.
 - The kernel exposes ZERO methods that produce a Personal-tier value.
 - Cross-context coercion from `social::ContextKind::Personal` to `NetworkContextKind::Professional` is rejected at compile-time because no such conversion exists.
-- Runtime config CANNOT introduce a Personal entity into `network`; this is a compile-time + data-model invariant per parallel ADR-0126.
+- Runtime config CANNOT introduce a Personal entity into `network`; this is a compile-time + data-model invariant per parallel ADR-0135.
 
 ## Entity Type Invariants
 
@@ -117,7 +117,7 @@ Critical for federation safety. Per the absence of a `federation-gateway` in `ne
 
 - No outbox port trait exists in `network`. The Helm chart contains no `federation-gateway` deployment.
 - LEAN lane `oya-check-professional-context-isolation` validates that no federation egress port exists at compile time.
-- If federation is added in a follow-up ADR-NET, the new outbox trait will accept only `ProfessionalPost` and federate only to Professional-tier peers (Personal-tier federation will remain compile-time-impossible because Personal entities never exist in `network`'s type system).
+- If federation is added in a successor-IP ADR-NET, the new outbox trait will accept only `ProfessionalPost` and federate only to Professional-tier peers (Personal-tier federation will remain compile-time-impossible because Personal entities never exist in `network`'s type system).
 
 ### Invariant PCI-09: `network` never bridges to Personal-tier messenger DM
 
@@ -202,7 +202,7 @@ In addition to compile-time + LEAN-lane enforcement, runtime guards:
 
 ## References
 
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - ADR-0132 (suite-and-bundle dissolution; suite-removal makes Professional-only µservice canonical).
 - Bominal ADR-0208 (Connect dual-context unified channel hub; inherited).
 - Bominal ADR-0215 (Connect retention legal-hold dual-context; inherited).

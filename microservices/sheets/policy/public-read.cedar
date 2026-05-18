@@ -100,7 +100,7 @@ forbid (
 // FORBID — per-tenant branding mid-render (anti-pattern)
 // =============================================================================
 //
-// Anti-pattern per /specs/products/sheets.json §anti_patterns:
+// Anti-pattern per /specs/microservices/sheets.json §anti_patterns:
 // per-tenant branding rendered in same DOM tree as cell-grid is forbidden.
 
 forbid (

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security + ops-legal
 deciders: council-privacy, ops-security, axis-mail, council-architecture, ops-compliance, ops-legal
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0126, ADR-0131, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/mail/threat-model.md
   - microservices/mail/dpia.md
@@ -87,7 +87,7 @@ Canonical control-to-framework mapping for the mail µservice. Tells an external
 | A.5.24 | Incident planning | Incident-response playbook | `incident-response.md` |
 | A.5.25 | Incident assessment | Severity classification | `incident-response.md` §Severity |
 | A.5.26 | Incident response | Severity-driven runbooks | `incident-response.md` + `runbooks/*` |
-| A.5.27 | Learning from incidents | Postmortem template + ADR follow-up | `runbooks/postmortem-template.md` (cross-ref) |
+| A.5.27 | Learning from incidents | Postmortem template + ADR successor-IP | `runbooks/postmortem-template.md` (cross-ref) |
 | A.5.28 | Collection of evidence | Audit-chain Ed25519 emission | ADR-0028 |
 | A.5.30 | ICT readiness for business continuity | Multi-region DR + RPO/RTO | `multi-region.md` |
 | A.5.31 | Legal, statutory | This document + per-pack overlays | `compliance.md` |
@@ -272,7 +272,7 @@ Auditors receive frozen evidence pack per `docs/templates/evidence-pack-template
 - `microservices/mail/policy/{dual-context-isolation, data-residency}.md`.
 - `microservices/mail/policy/*.cedar`.
 - `microservices/mail/incident-response.md`.
-- ADR-0008 (data-use-boundary); ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (HG-MAIL); ADR-0126 (Connect dissolution); ADR-0131 (per-µservice layout); ADR-0140 (Cedar).
+- ADR-0008 (data-use-boundary); ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (HG-MAIL); ADR-0135 (Connect dissolution); ADR-0131 (per-µservice layout); ADR-0140 (Cedar).
 - SOC 2 Type 2: TSC 2017 + 2022 Points of Focus — `aicpa.org`.
 - ISO/IEC 27001:2022 + ISO/IEC 27002:2022 — `iso.org`.
 - GDPR — `gdpr-info.eu`; EDPB Guidelines — `edpb.europa.eu`.

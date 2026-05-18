@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-docs
 deciders: axis-docs, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0126, ADR-0131, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0006]
+related_adrs: [ADR-0028, ADR-0135, ADR-0131, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0006]
 related_artifacts:
   - microservices/docs/PRD.md
   - microservices/docs/capacity-model.md

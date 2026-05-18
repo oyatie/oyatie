@@ -9,7 +9,7 @@ doc_status: published
 
 # Slides ADR index
 
-Per-µservice ADRs for the slides product (per ADR-0131 per-microservice flat layout + ADR-0126 Connect dissolution + ADR-0132 single-concern microservices). Each ADR carries ≥ 3 alternatives + ≥ 3 Consequences per `documentation-and-adrs` skill lens and ADR-0133 axis-4 industry-best-practice conformance.
+Per-µservice ADRs for the slides product (per ADR-0131 per-microservice flat layout + ADR-0135 Connect dissolution + ADR-0132 single-concern microservices). Each ADR carries ≥ 3 alternatives + ≥ 3 Consequences per `documentation-and-adrs` skill lens and ADR-0133 axis-4 industry-best-practice conformance.
 
 | ID | Title | Status | Date | Resolves |
 |---|---|---|---|---|

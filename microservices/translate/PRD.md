@@ -7,8 +7,8 @@ status: Accepted
 sales_segment: shared-substrate + standalone
 tier: hero-and-substrate
 milestone_first_ship: M01-foundation
-bominal_source: NONE  # net-new per ADR-0126 (no Bominal antecedent)
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
+bominal_source: NONE  # net-new per ADR-0135 (no Bominal antecedent)
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-translate + ops-security + council-privacy
@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `translate` microservice is oyatie's machine-translation (MT) and software-localization platform. It is **net-new per ADR-0126 "connect-super-app expansion"** — there is no Bominal antecedent and no `oya-connect-translate-*` crate to relocate. It owns:
+The `translate` microservice is oyatie's machine-translation (MT) and software-localization platform. It is **net-new per ADR-0135 "connect-super-app expansion"** — there is no Bominal antecedent and no `oya-connect-translate-*` crate to relocate. It owns:
 
 - **Real-time text translation** (sub-250 ms p95 for ≤ 500-char segments) routed across in-house oyatie-trained models, external MT vendors (DeepL, Google Cloud Translation, Microsoft Translator, Amazon Translate), and frontier LLMs (Anthropic, OpenAI, Gemini) via `foundry-providers`.
 - **Translation Memory (TM)** with leverage-match scoring: exact (100 %), in-context exact (ICE), fuzzy (75–99 % via minhash-LSH per OmegaT), and TM-leverage decisions per ADR-TRANSLATE-0002.
@@ -245,7 +245,7 @@ oyatie differentiators:
 1. **In-house MT parity bar (when does router prefer in-house over external).** Default rule: prefer in-house if `(BLEU-on-eval-set ≥ 0.95× of incumbent) AND (cost ≤ 0.5× of incumbent) AND (p99 ≤ 1.2× of incumbent)`. Quarterly council-architecture review; tracked separately under ADR-0026 + ADR-TRANSLATE-0001.
 2. **Human-translator marketplace integration (Tier-G).** Future; integrates with Smartling/Lokalise-style LSP marketplaces. Not in M01 scope; tracked under Phase 3.
 3. **TMX 2 (proposed).** TMX 1.4 ships M01; TMX 2 (proposed by GALA TAPICC) tracked as it stabilizes; placeholder in import/export.
-4. **CN-pack production activation.** `pack-cn-stub` ships with overlay scaffolding in M01 (per ADR-0126), but production activation requires KR-PIPA-equivalent CN regulatory mapping + China-resident-key KMS + CN-resident vLLM cluster; tracked as M03+.
+4. **CN-pack production activation.** `pack-cn-stub` ships with overlay scaffolding in M01 (per ADR-0135), but production activation requires KR-PIPA-equivalent CN regulatory mapping + China-resident-key KMS + CN-resident vLLM cluster; tracked as M03-onward.
 5. **Apple Translate parity for iOS / macOS shorts widgets.** Apple Translate is OS-bundled; we do not call it; we cover the same UX surface via in-house MT through `shorts`. No work in M01.
 6. **Yandex Translate.** Not in M01 vendor list per geopolitical risk; tracked separately for tenant demand.
 7. **Domain-adapted custom models (per-tenant fine-tune).** Tracked under ADR-0026 Phase 4; not in M01 scope.
@@ -271,7 +271,7 @@ oyatie differentiators:
 - ADR-0105 — 13-layer enum + check-family patterns.
 - ADR-0106 — `application` → `usecase` rename for new crates.
 - ADR-0117 — pack residency model.
-- ADR-0126 — connect super-app expansion (parent ADR; translate is per ADR-0126 §"shared substrate µservices").
+- ADR-0135 — connect super-app expansion (parent ADR; translate is per ADR-0135 §"shared substrate µservices").
 - ADR-0130 — agentic SLO-gated promotion.
 - ADR-0131 — per-microservice flat layout.
 - ADR-0132 — product suite and bundle dissolution.

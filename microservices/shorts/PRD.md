@@ -7,8 +7,8 @@ status: Accepted
 sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M03-foundation
-bominal_source: []  # NET-NEW per ADR-0126; no Bominal predecessor
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+bominal_source: []  # NET-NEW per ADR-0135; no Bominal predecessor
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-shorts
@@ -19,11 +19,11 @@ doc_status: published
 
 ## Purpose
 
-The `shorts` microservice is oyatie's native TikTok-/Instagram-Reels-/YouTube-Shorts-/Snapchat-Spotlight-class short-form-video platform. Per parallel ADR-0126 (Connect dissolution), it is one of the first-class µservices factored out of the legacy Connect umbrella. It owns **video-upload + video-transcode (multi-bitrate HLS/DASH ABR ladder) + video-storage (S3 + CDN) + thumbnail-generation + audio-track-library (licensed + UGC) + audio-attribution + video-composition (clip + cut + sticker + caption overlay) + feed-timeline (algorithmic + chronological) + watch-time-tracking + like + share + comment + repost (stitch + duet) + hashtag + sound-of-the-week trending + content-moderation (NSFW + violence + minor-protection classifier) + copyright-claim (Content-ID-class hash matching) + age-gate + parental-controls + accessibility-captions (auto-generated + manual) + notifications + creator-analytics + monetization-stub (off by default; tip-jar M04+) + live-streaming-stub (M05+; off at M03) + DRM-stub (HLS + DASH + Widevine/FairPlay/PlayReady; tenant-tier gated)** across the 11 oyatie regulatory packs.
+The `shorts` microservice is oyatie's native TikTok-/Instagram-Reels-/YouTube-Shorts-/Snapchat-Spotlight-class short-form-video platform. Per parallel ADR-0135 (Connect dissolution), it is one of the first-class µservices factored out of the legacy Connect umbrella. It owns **video-upload + video-transcode (multi-bitrate HLS/DASH ABR ladder) + video-storage (S3 + CDN) + thumbnail-generation + audio-track-library (licensed + UGC) + audio-attribution + video-composition (clip + cut + sticker + caption overlay) + feed-timeline (algorithmic + chronological) + watch-time-tracking + like + share + comment + repost (stitch + duet) + hashtag + sound-of-the-week trending + content-moderation (NSFW + violence + minor-protection classifier) + copyright-claim (Content-ID-class hash matching) + age-gate + parental-controls + accessibility-captions (auto-generated + manual) + notifications + creator-analytics + monetization-stub (off by default; tip-jar M04-onward) + live-streaming-stub (M05-onward; off at M03) + DRM-stub (HLS + DASH + Widevine/FairPlay/PlayReady; tenant-tier gated)** across the 11 oyatie regulatory packs.
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone shorts clients (web + desktop + mobile). It is also consumable as a shared substrate by other oyatie products via the `shorts.video.v1` Workflow events and the `Video`, `Sound`, `Sticker`, `Hashtag` Ontology object types.
 
-**shorts is NET-NEW** per ADR-0126 — no `oya-connect-shorts-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md. Bominal had no short-video product; this is greenfield in oyatie.
+**shorts is NET-NEW** per ADR-0135 — no `oya-connect-shorts-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md. Bominal had no short-video product; this is greenfield in oyatie.
 
 ## Tenant Value
 
@@ -69,7 +69,7 @@ This µservice is **a hero product**, end-user-facing through Workflow Studio sh
 | FR-28 | tenant-operator | to query upload + transcode + feed + moderation + copyright metrics | I plan capacity + verify SLAs | observability | Must |
 | FR-29 | tenant-admin | to enable Premium-tier DRM (Widevine + FairPlay + PlayReady) | content protection | drm-stub | Should |
 | FR-30 | tenant-admin | to disable monetization-stub T2 capability (off by default) | tenants choose monetisation | monetization-stub | Must |
-| FR-31 | tenant-admin | to disable live-streaming-stub (off at M03; M05+ activation) | scope creep avoided | live-streaming-stub | Must |
+| FR-31 | tenant-admin | to disable live-streaming-stub (off at M03; M05-onward activation) | scope creep avoided | live-streaming-stub | Must |
 
 ## Non-Functional Requirements
 
@@ -156,8 +156,8 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | `parental-controls` | `oya-shorts-parental-controls-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Linked-account parental supervision; per-minor controls (screen-time, content-filter level, DM-restriction) | `ParentalLink`, `ParentalControlPolicy`, `MinorScreenTime` |
 | `accessibility-captions` | `oya-shorts-accessibility-captions-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,worker,sdk}` | Auto-caption (foundry-runtime ASR T1 capability) + manual override; WebVTT + TTML emission | `Caption`, `CaptionTrack`, `WebVttManifest`, `TtmlManifest` |
 | `creator-analytics` | `oya-shorts-creator-analytics-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis,worker,sdk}` | Per-creator dashboards: watch-time, audience demographics, posting cadence, audience growth | `CreatorMetric`, `AudienceSlice`, `PostingCadence`, `AudienceGrowth` |
-| `monetization-stub` | `oya-shorts-monetization-stub-{kernel,domain,usecase,api,sdk}` | Stub T2 capability (off by default); tip-jar + creator-fund placeholder; M04+ activation per ADR follow-up | `TipJarStub`, `CreatorFundStub` |
-| `live-streaming-stub` | `oya-shorts-live-streaming-stub-{kernel,sdk}` | Stub-only at M03; M05+ activation; signals scope-creep refusal | `LiveSessionStub` |
+| `monetization-stub` | `oya-shorts-monetization-stub-{kernel,domain,usecase,api,sdk}` | Stub T2 capability (off by default); tip-jar + creator-fund placeholder; M04-onward activation per ADR successor-IP | `TipJarStub`, `CreatorFundStub` |
+| `live-streaming-stub` | `oya-shorts-live-streaming-stub-{kernel,sdk}` | Stub-only at M03; M05-onward activation; signals scope-creep refusal | `LiveSessionStub` |
 | `drm-stub` | `oya-shorts-drm-{kernel,domain,usecase,api,adapter,adapter-widevine,adapter-fairplay,adapter-playready,sdk}` | Widevine + FairPlay + PlayReady EME license issuance; tenant-tier gated (Premium tier) | `DrmLicense`, `KeySystem`, `LicenseRequest`, `DrmTier` |
 
 Naming justification — `video-upload`:
@@ -216,7 +216,7 @@ CI lanes that must green:
 - `oya gate validate statelessness --microservice shorts`
 - `oya gate validate shardability --microservice shorts`
 - `oya gate validate authority-cohesion --microservice shorts` (HG-SHORTS)
-- `oya gate validate dual-context-isolation --microservice shorts` (per parallel ADR-0126)
+- `oya gate validate dual-context-isolation --microservice shorts` (per parallel ADR-0135)
 - `oya gate validate eu-ai-act-conformance --microservice shorts` (per ADR-SHORTS-0003)
 - `oya gate validate eu-dsa-conformance --microservice shorts`
 - `oya gate validate pack-aware-age-gate --microservice shorts` (per ADR-SHORTS-0006)
@@ -374,7 +374,7 @@ Sharding:
 | AC-12 | DRM Widevine + FairPlay + PlayReady license issuance for Premium-tier tenant succeeds; non-Premium-tier denied | `tests/e2e/drm-tier-gating.rs` |
 | AC-13 | `oya gate validate per-microservice-layout --microservice shorts` exit 0 | ADR-0131 lane |
 | AC-14 | `oya gate validate authority-cohesion --microservice shorts` exit 0 | ADR-0123 lane; HG-SHORTS registered |
-| AC-15 | `oya gate validate dual-context-isolation --microservice shorts` exit 0 | per parallel ADR-0126 |
+| AC-15 | `oya gate validate dual-context-isolation --microservice shorts` exit 0 | per parallel ADR-0135 |
 | AC-16 | EU AI Act transparency label appears on every moderation verdict + ranking explanation on pack-eu | `tests/e2e/eu-ai-act-transparency.rs` |
 | AC-17 | Monetization-stub + live-streaming-stub T2 capabilities are disabled by default; admin opt-in required | `tests/e2e/stubs-default-off.rs` |
 | AC-18 | Auto-caption (WebVTT) produced within video_duration × 0.3 p95 for English; manual-override path works | `tests/e2e/captions.rs` |
@@ -384,12 +384,12 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Live-streaming-stub: keep as stub vs activate in M05+ vs split into separate sibling µservice | axis-shorts + council-architecture | ADR-SHORTS follow-up after M04 |
-| 2 | Monetization-stub: keep stubbed vs delete vs activate-with-tenant-opt-in (tip-jar + creator-fund) | council-architecture + gtm | ADR-SHORTS follow-up after M03 |
+| 1 | Live-streaming-stub: keep as stub vs activate in M05-onward vs split into separate sibling µservice | axis-shorts + council-architecture | ADR-SHORTS successor-IP after M04 |
+| 2 | Monetization-stub: keep interface-only-pending-impl vs delete vs activate-with-tenant-opt-in (tip-jar + creator-fund) | council-architecture + gtm | ADR-SHORTS successor-IP after M03 |
 | 3 | DRM substrate: ship all three (Widevine + FairPlay + PlayReady) at M03 or sequence; Premium-tier-only gating threshold | council-architecture + ops-security | ADR-SHORTS-0004 |
-| 4 | Ranking-model openness: closed-weights vs published-weights for EU AI Act audit transparency (paired with social Open Q 1) | axis-shorts + council-privacy | ADR-SHORTS follow-up post-M04 |
-| 5 | Federation (ActivityPub video): inherit social posture or shorts-specific (more conservative due to copyright)? | axis-shorts + council-architecture | ADR-SHORTS follow-up post federation MVP |
-| 6 | Per-tenant ranking weights: deferred to M04+ per social pattern | axis-shorts | ADR-SHORTS follow-up |
+| 4 | Ranking-model openness: closed-weights vs published-weights for EU AI Act audit transparency (paired with social Open Q 1) | axis-shorts + council-privacy | ADR-SHORTS successor-IP subsequent-to-M04-completion |
+| 5 | Federation (ActivityPub video): inherit social posture or shorts-specific (more conservative due to copyright)? | axis-shorts + council-architecture | ADR-SHORTS successor-IP post federation minimum-shippable-tier |
+| 6 | Per-tenant ranking weights: scheduled-for-distinct-tracked-work to M04-onward per social pattern | axis-shorts | ADR-SHORTS successor-IP |
 | 7 | Fingerprint-corpus governance: per-tenant private corpus + global licensed corpus split | axis-shorts + ops-legal | ADR-SHORTS-0002 |
 
 ## Related ADRs
@@ -400,7 +400,7 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0126 | Connect dissolution (parallel) | dual-context isolation source; shorts as a sibling µservice |
+| ADR-0135 | Connect dissolution (parallel) | dual-context isolation source; shorts as a sibling µservice |
 | ADR-0130 | Agentic SLO-gated promotion | gates shorts releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |

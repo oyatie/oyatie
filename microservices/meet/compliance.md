@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-meet, council-architecture, ops-compliance
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/meet/threat-model.md
   - microservices/meet/dpia.md
@@ -206,6 +206,6 @@ Output: `microservices/meet/evidence/compliance-evidence-<unix_ts>.json`.
 - `microservices/meet/policy/data-residency.md`.
 - `microservices/meet/policy/recording-consent.md`.
 - `microservices/observability/compliance.md` (shape reference).
-- ADR-0028 (Bominal) + ADR-0008 + ADR-0126 + ADR-0130 + ADR-0131.
+- ADR-0028 (Bominal) + ADR-0008 + ADR-0135 + ADR-0130 + ADR-0131.
 - ADR-MEET-0001..0006.
 - Standards cited inline above.

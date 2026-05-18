@@ -8,7 +8,7 @@ owner: council-privacy
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-MSGR-0002
@@ -41,7 +41,7 @@ Two regulatory and ethical drivers reinforce this:
 
 Professional-tier notes face the opposite legal force: SEC Rule 17a-4(f), HIPAA 45 CFR §164.312, KR PIPA Art. 29 require admin-disclosable + WORM-retainable records. A blanket E2E posture on Professional content makes regulated enterprises non-viable as customers (cf. messenger ADR-MSGR-0002).
 
-Furthermore, notes-µservice introduces an AI surface (T1 summarize / tag-suggest / link-suggest) that, if not bounded, would create a structural backdoor — the AI provider would become the decryption oracle. This is unique to notes-µservice (the docs µservice has no AI surface at MVP). Therefore the E2E posture must be bound to a structural AI-refusal invariant (ADR-NOTES-0005).
+Furthermore, notes-µservice introduces an AI surface (T1 summarize / tag-suggest / link-suggest) that, if not bounded, would create a structural backdoor — the AI provider would become the decryption oracle. This is unique to notes-µservice (the docs µservice has no AI surface at minimum-shippable-tier). Therefore the E2E posture must be bound to a structural AI-refusal invariant (ADR-NOTES-0005).
 
 ## Decision
 
@@ -79,7 +79,7 @@ oyatie notes adopts a **strict tier-split E2E posture**:
 ### A. Default OFF for Personal-tier; user opts in
 - Pros: closest to current incumbent default (Apple Notes / OneNote); lowest UX friction.
 - Cons: contradicts Personal-pillar privacy promise; equivalent to Notion's posture which fails GDPR Art. 9 best-practice; leaves AI-surface vulnerability open by default.
-- Rejected: contradicts parallel ADR-0126 dual-context posture + Standard Notes precedent.
+- Rejected: contradicts parallel ADR-0135 dual-context posture + Standard Notes precedent.
 
 ### B. Default ON for both tiers
 - Pros: cleanest E2E posture across the board.
@@ -158,7 +158,7 @@ MLS RFC 9420 currently uses ECDH (X25519) + Ed25519. Post-quantum MLS draft (`dr
 - Standard Notes E2E Whitepaper (publicly available).
 - Apple iCloud Advanced Data Protection.
 - Obsidian End-to-End Encryption Sync documentation.
-- ADR-0126 — Connect dual-context (parallel).
+- ADR-0135 — Connect dual-context (parallel).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0132 — Suite-and-bundle dissolution.
 - ADR-MSGR-0002 — Messenger E2E tier-split (paired pattern).

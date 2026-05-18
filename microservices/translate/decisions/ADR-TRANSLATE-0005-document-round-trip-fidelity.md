@@ -9,7 +9,7 @@ date: 2026-05-17
 microservice: translate
 supersedes: []
 superseded_by: []
-related_adrs: [ADR-0126, ADR-0131, ADR-TRANSLATE-0001]
+related_adrs: [ADR-0135, ADR-0131, ADR-TRANSLATE-0001]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/threat-model.md
@@ -203,7 +203,7 @@ PDF lacks semantic structure; extract-translate-merge → re-render via LibreOff
 - LibreOffice — `www.libreoffice.org/`.
 - gVisor — `gvisor.dev/`.
 - OWASP File Upload Cheat Sheet.
-- ADR-0126 — connect super-app expansion (parent ADR).
+- ADR-0135 — connect super-app expansion (parent ADR).
 - ADR-0131 — per-microservice flat layout.
 - ADR-TRANSLATE-0001 — engine routing.
 - ICU MessageFormat — `unicode-org.github.io/icu/userguide/format_parse/messages/`.

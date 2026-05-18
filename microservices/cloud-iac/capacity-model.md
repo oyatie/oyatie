@@ -68,7 +68,7 @@ Flux runs alongside ArgoCD for tenant-choice GitOps reconciler. Sized at lower r
 flux_source_controller_replicas    = 2 (HA min)
 flux_kustomize_controller_replicas = 2
 flux_helm_controller_replicas      = 2
-flux_image_automation_controller   = 0 (deferred to post-M01)
+flux_image_automation_controller   = 0 (scheduled-for-distinct-tracked-work to subsequent-to-M01-completion)
 ```
 
 References: `fluxcd.io/docs/installation/configuration/sharding/`.
@@ -114,7 +114,7 @@ storage_per_million_rows  ≈ 1 GB (with indexes + signatures)
 postgres_replica_replicas = 1 primary + 1 read-replica (HA min)
 postgres_replica_size     = VM.Standard.E4 4-core / 16GB
 postgres_pv_size_initial  = 200 GB (handles ~5y XS-tier growth + WAL archive)
-postgres_pgbouncer        = optional; deferred until S tier
+postgres_pgbouncer        = optional; scheduled-for-distinct-tracked-work until S tier
 ```
 
 References: `postgresql.org/docs/current/high-availability.html`.

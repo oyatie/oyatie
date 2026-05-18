@@ -21,8 +21,8 @@ description: |
 owner_team: axis-sheets + council-design-system
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0028, ADR-0126, ADR-0131, ADR-0140, ADR-SHEETS-0002, ADR-SHEETS-0006]
-related_specs: [/specs/products/sheets.json]
+related_adrs: [ADR-0022, ADR-0028, ADR-0135, ADR-0131, ADR-0140, ADR-SHEETS-0002, ADR-SHEETS-0006]
+related_specs: [/specs/microservices/sheets.json]
 related_artifacts:
   - microservices/sheets/PRD.md FR-17 (data-class markers)
   - microservices/sheets/policy/tenant-scope.cedar

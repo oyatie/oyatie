@@ -128,7 +128,7 @@
         "handoff priorities F-PRD-CONNECT-SUITE-AUTHOR and F-PRD-ENTERPRISE-SUITE-AUTHOR",
         "docs/MASTERPLAN.md M03 exit requires HR, Payroll, Accounting, Connect Pro Mail/Messenger"
       ],
-      "required_action": "author specs/products/connect/* and specs/products/enterprise/* JSON PRDs"
+      "required_action": "author specs/microservices/* and specs/microservices/* JSON PRDs"
     },
     {
       "id": "F-AUDIT-005",
@@ -165,7 +165,7 @@
       "id": "F-PRD-CONNECT-SUITE-AUTHOR",
       "status": "safe_parallel",
       "write_scope": [
-        "specs/products/connect/"
+        "specs/microservices/"
       ],
       "reason": "Connect suite/sub-PRDs are independent from Enterprise suite and unblock M03"
     },
@@ -173,7 +173,7 @@
       "id": "F-PRD-ENTERPRISE-SUITE-AUTHOR",
       "status": "safe_parallel_with_bounded_scope",
       "write_scope": [
-        "specs/products/enterprise/"
+        "specs/microservices/"
       ],
       "reason": "HR/Payroll/Accounting suite PRDs can proceed with explicit expansion ledger for broader business SaaS scope"
     },

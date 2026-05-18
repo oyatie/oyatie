@@ -39,10 +39,10 @@ Author Helm + Kustomize manifests for the drive µservice substrate. Three objec
 | `microservices/drive/iac/kustomize/base/serviceaccount.yaml` | created | per-BC SA + OpenBao role binding |
 | `microservices/drive/iac/kustomize/overlays/pack-kr/kustomization.yaml` | created | initial active pack |
 | `microservices/drive/iac/kustomize/overlays/pack-eu/kustomization.yaml` | created | EU pack (OPSWAT enabled; T2 HR-overlay refused) |
-| `microservices/drive/iac/kustomize/overlays/pack-us/...` | follow-up | US pack (SEC 17a-4) |
-| `microservices/drive/iac/kustomize/overlays/pack-us-healthcare/...` | follow-up | HIPAA pack (MinIO + OPSWAT enabled) |
-| `microservices/drive/iac/kustomize/overlays/pack-jp/...` | follow-up | JP pack |
-| (pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa) | follow-up | per-pack overlays |
+| `microservices/drive/iac/kustomize/overlays/pack-us/...` | successor-IP | US pack (SEC 17a-4) |
+| `microservices/drive/iac/kustomize/overlays/pack-us-healthcare/...` | successor-IP | HIPAA pack (MinIO + OPSWAT enabled) |
+| `microservices/drive/iac/kustomize/overlays/pack-jp/...` | successor-IP | JP pack |
+| (pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa) | successor-IP | per-pack overlays |
 
 ## Crate Naming
 

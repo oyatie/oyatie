@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-finops + axis-sheets + ops-sre-reliability
 deciders: ops-finops, axis-sheets, ops-sre-reliability, council-architecture
-related_adrs: [ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/sheets/capacity-model.md
   - microservices/sheets/multi-region.md
@@ -92,7 +92,7 @@ AI-formula cost is per-tenant billed pass-through.
 
 ## Per-Seat Unit-Economics Target
 
-Per `/specs/products/sheets.json` §goals.efficiency: ≤ $5 per-seat per-month at GA.
+Per `/specs/microservices/sheets.json` §goals.efficiency: ≤ $5 per-seat per-month at GA.
 
 | Tier | N_seats | Sheets infra cost per seat-month | AI-formula cost per seat-month | Total per seat-month |
 |---|---|---|---|---|
@@ -152,7 +152,7 @@ XS tier is uneconomic on per-seat basis (HA minimums dominate); GA target ≤ $5
 - `microservices/sheets/capacity-model.md`.
 - `microservices/sheets/multi-region.md`.
 - `microservices/sheets/policy/data-residency.md`.
-- `/specs/products/sheets.json` §goals.efficiency.
+- `/specs/microservices/sheets.json` §goals.efficiency.
 - OCI pricing — `oracle.com/cloud/pricing/`.
 - FinOps Foundation framework — `finops.org`.
 - ClamAV pricing — `clamav.net`.

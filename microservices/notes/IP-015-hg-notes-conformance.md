@@ -15,7 +15,7 @@ acceptance_lanes: [hg-notes, oya-governance-per-microservice-layout, oya-governa
 Register the `HG-NOTES` hyperscaler-grade conformance gate per ADR-0133. The gate asserts the notes µservice meets the conformance bar across all relevant facets:
 
 - per-microservice flat layout (ADR-0131)
-- dual-context isolation (parallel ADR-0126)
+- dual-context isolation (parallel ADR-0135)
 - e2e-ai-refusal invariant (ADR-NOTES-0005)
 - pack residency (ADR-0117)
 - documentation suite coverage (ADR-0063)

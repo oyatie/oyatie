@@ -9,7 +9,7 @@ deciders: council-architecture, axis-workflow, axis-workflow-engine
 supersedes: []
 superseded_by: []
 related: [ADR-0056, ADR-0105, ADR-0131]
-related_specs: [/specs/products/workflow-studio.json, /specs/products/workflow.json]
+related_specs: [/specs/microservices/workflow-studio.json, /specs/microservices/workflow.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md (AC-02, FR-04, FR-05, FR-06)
   - microservices/workflow-studio/IP-003-dsl-emitter-loader-kernel-domain.md

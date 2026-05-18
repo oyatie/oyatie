@@ -126,7 +126,7 @@ Per the embed-resolver BC: when a doc embeds a workflow-studio canvas, the embed
   - Notion's per-block + nested-block model is more flexible at marginal additional cost.
 - **Rejected reason**: addressing fragility; awkward UX; less flexible.
 
-### Alternative D — Per-block ACL with deferred enforcement (advisory only)
+### Alternative D — Per-block ACL with scheduled-for-distinct-tracked-work enforcement (advisory only)
 
 - **Pros**:
   - Allows shipping the data model now; enforcement enabled later.

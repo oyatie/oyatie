@@ -17,7 +17,7 @@ bominal_source:
   - ADR-0009   # Cell architecture
   - ADR-0019   # Runtime target metadata model
 related_adrs: [ADR-0056, ADR-0103, ADR-0105, ADR-0110, ADR-0123, ADR-0130, ADR-0131]
-related_specs: [/specs/products/workflow.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0131
 unbundle_sibling: microservices/workflow-studio/
 date: 2026-05-17
@@ -434,7 +434,7 @@ Sharding:
 | 3 | Workflow DSL format the engine accepts: YAML, JSON IR, or both? Bias: JSON IR canonical (machine-emitted by Studio), YAML accepted as input but compiled to JSON IR at submit time. | council-architecture | resolved inline; see spec-store IP |
 | 4 | ClickHouse replica: full mirror of Postgres run history, or selective columns? Mirror-cost vs query-richness trade-off. | axis-workflow + ops-finops | resolved inline |
 | 5 | Sub-workflow invocation: synchronous (caller blocks) or asynchronous (caller waits for completion event)? Both semantics needed; default = async with synchronous opt-in. | council-architecture | resolved inline; see execution-engine IP |
-| 6 | Replay determinism guarantee: which standard-library / time / random APIs are forbidden inside step bodies? | council-architecture | ADR-XXXX (`docs/standards/workflow-step-determinism.md` follow-up) |
+| 6 | Replay determinism guarantee: which standard-library / time / random APIs are forbidden inside step bodies? | council-architecture | ADR-XXXX (`docs/standards/workflow-step-determinism.md` successor-IP) |
 
 ## Related ADRs
 

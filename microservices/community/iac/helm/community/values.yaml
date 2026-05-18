@@ -178,11 +178,11 @@ cedar:
     - ci-scope.cedar
     - auditor-scope.cedar
     - public-read.cedar
-    # Hop-level fragments per ADR-COMM-0001 (added in IP-011 follow-up)
+    # Hop-level fragments per ADR-COMM-0001 (added in IP-011 successor-IP)
     - moderation-hop-classifier.cedar
     - moderation-hop-moderator.cedar
     - moderation-hop-appeal.cedar
-    # Q&A shape per ADR-COMM-0005 (added in IP-005 follow-up)
+    # Q&A shape per ADR-COMM-0005 (added in IP-005 successor-IP)
     - qa-shape.cedar
 
 # ============================================================================

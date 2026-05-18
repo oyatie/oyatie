@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-meet + gtm-customer-success
 deciders: axis-meet, council-architecture
-related_adrs: [ADR-0126, ADR-0131, ADR-0132]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132]
 related_artifacts:
   - microservices/meet/contracts/openapi/meet.yaml
   - microservices/meet/contracts/asyncapi/meet-events.yaml
@@ -29,12 +29,12 @@ Tenants embed meet functionality in their own surfaces (mobile / desktop / embed
 |---|---|---|---|
 | **Rust** | M02 (primary; oyatie's own language) | First-party authored (`oya-meet-*-sdk` crates per BC) | axis-meet |
 | **TypeScript + Browser SDK** | M02 (web-client + ts-server) | OpenAPI + AsyncAPI generation + first-party ergonomic + WebRTC peer-conn helpers + LiveKit-client re-export | axis-meet + gtm |
-| **Kotlin (Android) + Swift (iOS)** | M02+1 | gRPC-generated + first-party ergonomic + native WebSocket + WebRTC bindings + LiveKit native SDKs | axis-meet + gtm |
+| **Kotlin (Android) + Swift (iOS)** | M02-onward1 | gRPC-generated + first-party ergonomic + native WebSocket + WebRTC bindings + LiveKit native SDKs | axis-meet + gtm |
 | **Python** | M03 | OpenAPI-generated + ergonomic (bot-only; no native WebRTC) | axis-meet + gtm |
 | **Go** | M03 | gRPC-generated + ergonomic (bot-only) | axis-meet + gtm |
-| **JVM (Java/Kotlin)** | M03+1 | gRPC-generated + ergonomic; published to Maven Central | axis-meet + gtm |
-| **C# / .NET** | M04+ | OpenAPI-generated + ergonomic; published to NuGet | axis-meet + gtm |
-| **C++ (embedded / desktop)** | M05+ (only if tenant demand surfaces) | gRPC-generated | axis-meet |
+| **JVM (Java/Kotlin)** | M03-onward1 | gRPC-generated + ergonomic; published to Maven Central | axis-meet + gtm |
+| **C# / .NET** | M04-onward | OpenAPI-generated + ergonomic; published to NuGet | axis-meet + gtm |
+| **C++ (embedded / desktop)** | M05-onward (only if tenant demand surfaces) | gRPC-generated | axis-meet |
 | **Dart (Flutter)** | M03 | OpenAPI-generated + WebRTC wrapper + LiveKit Flutter SDK | axis-meet + gtm |
 
 Driver: mobile clients lead because video usage is heavily mobile. Web SDK ties to Workflow Studio shell + standalone meet web client. Server-language SDKs follow for bot scenarios (e.g., recording-bot that joins meetings programmatically).

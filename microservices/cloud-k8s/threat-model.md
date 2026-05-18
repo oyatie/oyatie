@@ -430,7 +430,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
   - 5-min snapshot cadence; etcd restore primitive tested quarterly.
   - On 2/3 loss: cluster freezes (read-only); cluster-bootstrap worker initiates restore from latest snapshot.
 - Owner: ops-sre-reliability + axis-cloud
-- Residual: L (post-M04)
+- Residual: L (subsequent-to-M04-completion)
 - Frameworks: SOC 2 CC7.1, CC9.1; ISO 27001 A.5.30, A.8.14
 
 **T-D-03 — Node-network partition isolates worker pool**

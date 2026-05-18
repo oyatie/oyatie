@@ -7,7 +7,7 @@ contracts_consumed: [oya-community-search-index-adapter]
 contracts_exposed: []
 lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
-  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+  source_adrs: [ADR-0105, ADR-0135, ADR-0131]
 allowed_dependency_edges: [oya-community-search-index-adapter, oya-community-search-index-domain, oya-community-search-index-kernel]
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT]
 autonomy_tier_required: T1

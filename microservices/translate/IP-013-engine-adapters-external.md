@@ -14,7 +14,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 ## Intent
 
-External vendor adapter crates that route through `foundry-providers` µservice (per ADR-0126 + foundry-providers PRD — no direct vendor calls from translate). Each adapter implements `TranslateInvoker` over a specific vendor's translation surface.
+External vendor adapter crates that route through `foundry-providers` µservice (per ADR-0135 + foundry-providers PRD — no direct vendor calls from translate). Each adapter implements `TranslateInvoker` over a specific vendor's translation surface.
 
 ## ChangeSet boundary
 

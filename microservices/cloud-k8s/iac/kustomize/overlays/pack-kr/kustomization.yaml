@@ -49,5 +49,5 @@ configMapGenerator:
       - kms_key_id=ocid1.key.oc1.ap-seoul-1.<key-id>
       - audit_retention_years=5  # KR commercial code + KR-FSS sector minimum
       - cross_border_replication=forbidden  # per KR PIPA Art. 23-2
-      - control_plane_count=1  # M01 launch; 3 post-M04 HA per ADR-0121
+      - control_plane_count=1  # M01 launch; 3 subsequent-to-M04-completion HA per ADR-0121
       - worker_count=17  # per capacity-model.md XS tier

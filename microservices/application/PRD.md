@@ -82,7 +82,7 @@ module-registration protocol). It hosts; it does not author.
 |---|---|---|---|---|
 | Time-to-Interactive (TTI), warm cache | 600 ms | 2 s | 4 s | Leptos WASM + CDN; per `feedback_quality_performance_scalability_bar.md` |
 | Time-to-Interactive (TTI), cold cache | 1.2 s | 3 s | 6 s | First visit; budget allowance |
-| Shell frame render | 30 ms | 100 ms | 200 ms | Leptos hydration only; product content deferred |
+| Shell frame render | 30 ms | 100 ms | 200 ms | Leptos hydration only; product content scheduled-for-distinct-tracked-work |
 | Route resolution (server-side) | 20 ms | 100 ms | 250 ms | Cedar-gated routing |
 | OIDC sign-in round-trip | 50 ms | 200 ms | 500 ms | per Bominal ADR-0123 |
 | Module-loader bundle fetch | 100 ms | 500 ms | 1 s | CDN edge; cache-hit |
@@ -331,7 +331,7 @@ Scale-out policy:
 - CDN: pack-pinned primary (OCI CDN) + global overlay (Cloudflare) for
   public-class assets only.
 
-Cross-region: M03 KR-only launch; post-M03 multi-region requires DNS
+Cross-region: M03 KR-only launch; subsequent-to-M03-completion multi-region requires DNS
 (OCI Traffic Management) + cert sync + per-pack session-store federation.
 See `multi-region.md`.
 
@@ -362,7 +362,7 @@ manifest tables partitioned on the same key. LEAN shardability lane verifies.
 | 1 | SAML IdP for M03: Azure AD / Okta / KR-specific (KISA-approved)? | council-product | M03/P01 |
 | 2 | Module-loader sandbox: iframe-with-postMessage vs. Web Workers + structured-clone? | council-architecture | ADR-XXXX |
 | 3 | CDN provider for global overlay (Cloudflare vs. Fastly) — cost vs. KR-residency latency | ops-finops | M03/P02 |
-| 4 | Native client tiers (iOS / Android / desktop) — same module-loader contract or distinct? | council-architecture | post-M03 ADR |
+| 4 | Native client tiers (iOS / Android / desktop) — same module-loader contract or distinct? | council-architecture | subsequent-to-M03-completion ADR |
 
 ## Related ADRs
 

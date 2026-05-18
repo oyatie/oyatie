@@ -17,14 +17,14 @@ doc_status: published
 ## Trigger
 
 - etcd `has_leader == 0` for ≥ 1 min OR
-- 2/3 etcd members down (post-M04 HA) OR
+- 2/3 etcd members down (subsequent-to-M04-completion HA) OR
 - Single etcd corrupted at M01
 
 ## Severity
 
 Sev-1 — cluster mutations frozen; reads degraded.
 
-## Recovery — HA (post-M04)
+## Recovery — HA (subsequent-to-M04-completion)
 
 | Step | Action | Time |
 |---|---|---|

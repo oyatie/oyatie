@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-social + gtm-customer-success
 deciders: axis-social, council-architecture
-related_adrs: [ADR-0126, ADR-0131, ADR-0132]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132]
 related_artifacts:
   - microservices/social/contracts/openapi/social.yaml
   - microservices/social/contracts/asyncapi/social-events.yaml
@@ -29,11 +29,11 @@ Tenants embed social functionality in their own surfaces (mobile / desktop / emb
 |---|---|---|---|
 | **Rust** | M02 (primary; oyatie's own language) | First-party authored (`oya-social-*-sdk` crates per BC) | axis-social |
 | **TypeScript + Browser SDK** | M02 (web-client + ts-server) | OpenAPI + AsyncAPI generation + first-party ergonomic + WebSocket reconnect | axis-social + gtm |
-| **Kotlin (Android) + Swift (iOS)** | M02+1 | gRPC-generated + first-party ergonomic + native WebSocket + multipart-upload | axis-social + gtm |
+| **Kotlin (Android) + Swift (iOS)** | M02-onward1 | gRPC-generated + first-party ergonomic + native WebSocket + multipart-upload | axis-social + gtm |
 | **Python** | M03 | OpenAPI-generated + ergonomic | axis-social + gtm |
 | **Go** | M03 | gRPC-generated + ergonomic | axis-social + gtm |
-| **JVM (Java/Kotlin)** | M03+1 | gRPC-generated + ergonomic; published to Maven Central | axis-social + gtm |
-| **C# / .NET** | M04+ | OpenAPI-generated + ergonomic; published to NuGet | axis-social + gtm |
+| **JVM (Java/Kotlin)** | M03-onward1 | gRPC-generated + ergonomic; published to Maven Central | axis-social + gtm |
+| **C# / .NET** | M04-onward | OpenAPI-generated + ergonomic; published to NuGet | axis-social + gtm |
 | **Dart (Flutter)** | M03 | OpenAPI-generated + multipart-upload helpers | axis-social + gtm |
 
 Driver: mobile clients lead because most social usage is mobile (per industry data: ~80% of Twitter/X + Instagram + Threads usage is mobile). Web SDK ties to Workflow Studio shell. Server-language SDKs follow.

@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, ops-sre-reliability, ops-finops
-related: [ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0131]
+related: [ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/sheets/PRD.md (FR-04, AC-07, AC-08)
   - microservices/sheets/capacity-model.md
@@ -185,5 +185,5 @@ Use Citus columnar tables (within Postgres) instead of separate Arrow/Parquet.
 - ADR-0056 — BNF v4.1.
 - ADR-0105 — 13-layer enum + adapter-* backend-qualified.
 - ADR-0117 — Cloud-native infrastructure.
-- ADR-0126 — Sheets net-new µservice.
+- ADR-0135 — Sheets net-new µservice.
 - ADR-0131 — Per-microservice flat layout.

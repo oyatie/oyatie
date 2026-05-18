@@ -59,7 +59,7 @@ when {
 // FORBID — tenant-admin disclosure on personal DM
 // =============================================================================
 //
-// Per parallel ADR-0126: personal-context DMs are never disclosed to tenant
+// Per parallel ADR-0135: personal-context DMs are never disclosed to tenant
 // admin, oyatie operator, or auditor. They are E2E and stored as ciphertext
 // only. There is no four-eyes path for Personal context.
 

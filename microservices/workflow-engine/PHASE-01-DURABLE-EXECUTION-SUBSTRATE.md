@@ -23,7 +23,7 @@ depends_on:
     reason: workspace + branch-protection + Cargo metadata authority must precede engine crate authoring
 owner_team: axis-workflow
 related_adrs: [ADR-0103, ADR-0130, ADR-0131]
-related_specs: [/specs/products/workflow.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
 ---
@@ -36,7 +36,7 @@ This phase ships the full workflow-engine substrate (engine half of the ADR-0131
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (Temporal-class durable execution + per-tenant linear sharding).
-- Nothing deferred (every FUTURE-marked stub in any consumer µservice's workflow-event handling is decommissioned by this phase's event-bus SDK).
+- Nothing scheduled-for-distinct-tracked-work (every FUTURE-marked stub in any consumer µservice's workflow-event handling is decommissioned by this phase's event-bus SDK).
 - No silent regression (deterministic-replay CI lane is BLOCKER day 1).
 - Per-microservice flat layout (this phase ships natively under ADR-0131; sibling = workflow-studio).
 
@@ -59,9 +59,9 @@ Naming justifications for the new crate families are in `microservices/workflow-
 ### Out-of-scope
 
 - The visual editor surface — separate µservice (`microservices/workflow-studio/`) per ADR-0131; runs in parallel phase.
-- KR carrier connector library + government API connectors — owned by a follow-up `integrations` µservice phase; out of scope for engine substrate.
-- Plugin marketplace — deferred to a post-M02b plugin-substrate phase.
-- Cross-region active-active engine — deferred to a post-M02b ADR per PRD §"Horizontal Scalability".
+- KR carrier connector library + government API connectors — owned by a successor-IP `integrations` µservice phase; out of scope for engine substrate.
+- Plugin marketplace — scheduled-for-distinct-tracked-work to a subsequent-to-M02b-completion plugin-substrate phase.
+- Cross-region active-active engine — scheduled-for-distinct-tracked-work to a subsequent-to-M02b-completion ADR per PRD §"Horizontal Scalability".
 
 ## Implementation Plans
 
@@ -179,7 +179,7 @@ Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + 
   "phase": "P01-durable-execution-substrate",
   "claim_paths": ["microservices/workflow-engine/src/crates/<crate>/**", "..."],
   "intent": "<one-line>",
-  "spec_refs": ["microservices/workflow-engine/PRD.md§<section>", "/specs/products/workflow.json§<section>"],
+  "spec_refs": ["microservices/workflow-engine/PRD.md§<section>", "/specs/microservices/workflow.json§<section>"],
   "acceptance_lanes_green": ["cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny", "lean-a1", "lean-a2", "per-microservice-layout", "deterministic-replay"],
   "test_count": {"unit": <int>, "integration": <int>, "e2e": <int>},
   "coverage_pct": <float>,
@@ -281,7 +281,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0123: Hyperscaler maturity claim gate.
 - ADR-0130: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout + workflow unbundle.
-- `/specs/products/workflow.json`.
+- `/specs/microservices/workflow.json`.
 - `/specs/per-microservice-flat-layout.json`.
 - `microservices/workflow-engine/PRD.md`.
 - Memory: `feedback_workflow_is_shared.md`, `feedback_workflow_studio_scope.md`, `feedback_workflow_objectgraph_adapter_layer.md`, `feedback_milestone_phase_hierarchy.md`, `feedback_naming_justification.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

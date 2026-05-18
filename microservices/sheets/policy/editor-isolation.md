@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-sheets + ops-security + council-design-system
 deciders: axis-sheets, ops-security, council-architecture, council-design-system
-related_adrs: [ADR-0028, ADR-0065, ADR-0103, ADR-0126, ADR-0131, ADR-0140, ADR-SHEETS-0006]
+related_adrs: [ADR-0028, ADR-0065, ADR-0103, ADR-0135, ADR-0131, ADR-0140, ADR-SHEETS-0006]
 related_artifacts:
   - microservices/sheets/threat-model.md (T-I-01, T-I-04, T-I-06, T-I-07, T-I-08, T-T-07)
   - microservices/sheets/dpia.md (R-02, R-14, R-16, R-22)
@@ -250,7 +250,7 @@ All write paths require tenant-owned OIDC; operator OIDC refused at write Cedar 
 
 - ADR-0028 (audit-chain).
 - ADR-0065 (Leptos for browser UI).
-- ADR-0126 (sheets net-new µservice).
+- ADR-0135 (sheets net-new µservice).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0140 (Cedar policy enforcement).
 - ADR-SHEETS-0006 (per-range ACL granularity).

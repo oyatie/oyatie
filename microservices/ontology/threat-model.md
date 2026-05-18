@@ -9,7 +9,7 @@ owner_team: axis-ontology + ops-security
 deciders: council-architecture, ops-security, axis-ontology, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
 related_adrs: [ADR-0006, ADR-0028, ADR-0055, ADR-0056, ADR-0059, ADR-0106, ADR-0107, ADR-0117, ADR-0122, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
-related_specs: [/specs/products/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Cedar / Postgres / ClickHouse / Agent gateway architecture change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC7.1, CC7.2, CC7.4, CC8.1"
@@ -631,7 +631,7 @@ Sign-off:
 - **HIPAA §164.312(b) (audit controls)**: audit-chain seal on every PHI-touching Object Type write + Action.
 - **HIPAA §164.502 (minimum necessary)**: Function projection tier-filters PHI properties; Cedar permits per role.
 - **HIPAA §164.502(a) (TPO)**: Action Type registry tags TPO scope.
-- **BAA template**: per-tenant BAA at `microservices/ontology/legal/baa-template.md` (Slice D follow-up).
+- **BAA template**: per-tenant BAA at `microservices/ontology/legal/baa-template.md` (Slice D successor-IP).
 
 ### pack-eu (GDPR + EDPB + NIS2 + eIDAS)
 
@@ -689,7 +689,7 @@ Per-pack overlays at `regional-packs/<pack>/ontology-overlay.md` carry the local
 - `microservices/ontology/dpia.md`.
 - `microservices/ontology/policy/type-isolation.md`.
 - `microservices/ontology/policy/data-residency.md`.
-- `/specs/products/ontology.json`.
+- `/specs/microservices/ontology.json`.
 - Microsoft STRIDE; LINDDUN (KU Leuven); OWASP Top 10 (2021); NIST SP 800-154.
 - Palantir Foundry Ontology security model — `palantir.com/docs/foundry/ontology/security`.
 - AWS Cedar — `cedarpolicy.com`.

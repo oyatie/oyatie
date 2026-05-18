@@ -34,7 +34,9 @@
       "specs/workspace-hygiene.json",
       "docs/prds/workflow.md",
       "evidence/autoresearch/workflow-competitive-map.json",
-      "evidence/audits/pipeline-maturity-audit-2026-05-15.md"
+      "evidence/audits/pipeline-maturity-audit-2026-05-15.md",
+      "specs/microservices/workflow.json",
+      "specs/microservices/workflow-studio.json"
     ],
     "official_competitor_sources": [
       "https://docs.n8n.io/integrations/",

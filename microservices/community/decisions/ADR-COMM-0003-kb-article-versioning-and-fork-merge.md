@@ -10,7 +10,7 @@ superseded_by: []
 related:
   - ADR-0028
   - ADR-0105
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
 related_artifacts:
@@ -169,7 +169,7 @@ The KB article store ships a **Wikipedia-style immutable revision history with t
 - CRDTs (Conflict-free Replicated Data Types) reference — Shapiro et al., INRIA — `https://hal.inria.fr/inria-00609399`
 - Yjs / Automerge CRDT libraries
 - ADR-0028 — audit-chain sealing
-- ADR-0126 — Connect-unbundle
+- ADR-0135 — Connect-unbundle
 - ADR-0131 — Per-microservice flat layout
 - `microservices/community/PRD.md` FR-03, FR-11
 - `microservices/community/IP-008-kb-article-store-s3.md`

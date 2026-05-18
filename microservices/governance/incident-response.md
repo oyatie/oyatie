@@ -103,7 +103,7 @@ Incident response procedures for governance µservice; aligns with Google SRE Wo
 ```text
 DETECT → TRIAGE → MITIGATE → STAND-DOWN → RCA → POSTMORTEM → CHANGE
    │        │         │            │         │         │            │
-   ≤5min   ≤15min   per-RTO     IC-call    ≤1week  ≤2weeks    follow-up IP
+   ≤5min   ≤15min   per-RTO     IC-call    ≤1week  ≤2weeks    successor-IP IP
 ```
 
 ### 1. DETECT
@@ -143,7 +143,7 @@ Follow-up IP filed at `microservices/governance/IP-INCIDENT-<id>-<slug>.md` for 
 | Personal-data breach (GDPR Art. 33) | EU DPA + national DPAs | 72h | council-privacy |
 | Personal-data breach (KR PIPA Art. 34) | KCC + PIPC | 5d (with subject notification within 7d) | council-privacy |
 | Personal-data breach (HIPAA §164.404) | OCR | 60d (and tenant within 60d) | council-privacy + ops-compliance |
-| Cybersecurity incident (NIS2 Annex I/II thresholds) | per-MS DPA | 24h initial + 72h follow-up | ops-security |
+| Cybersecurity incident (NIS2 Annex I/II thresholds) | per-MS DPA | 24h initial + 72h successor-IP | ops-security |
 | SOC 2 Type 2 material event | external auditor | per-engagement letter | ops-compliance |
 | ISO 27001 nonconformity | certification body | per-certification process | ops-compliance |
 | SLSA L3 attestation gap | OpenSSF | per-attestation cycle | axis-foundry |
@@ -167,7 +167,7 @@ On-call schedule managed in Grafana OnCall per `microservices/observability/iac/
 | Grafana OnCall | Paging + rotation |
 | Slack `#incident-<id>` | Incident war-room |
 | Grafana dashboards | Real-time observation |
-| GitHub Issues | Postmortem + follow-up IP tracking |
+| GitHub Issues | Postmortem + successor-IP IP tracking |
 | audit-chain CLI | Forensic seal verification |
 | `oya-dev-cli governance` | Lane status + Finding query |
 

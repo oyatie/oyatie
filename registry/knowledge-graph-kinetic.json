@@ -189,28 +189,28 @@
       "lock_pattern": "source path + target path + retirement-ledger row",
       "post_action_required": "Update all inbound citations from CI check crates + ADRs + plans"
     },
-    "ClaimGrit": {
-      "purpose": "Open a grit agent-coordination claim on a set of symbols.",
+    "ClaimOyaVcs": {
+      "purpose": "Open an Oya VCS agent-coordination claim on a file/symbol identifier.",
       "input_node_type": "Hook",
       "required_fields": [
         "agent_id",
         "intent",
         "symbols"
       ],
-      "emits_audit_topic": "oya.grit.claim.opened",
+      "emits_audit_topic": "oya.vcs.claim.opened",
       "idempotency_class": "deterministic-by-(agent_id,symbols)",
-      "lock_pattern": "grit-managed (worktree + locks)",
-      "known_failure_mode": "SQLite FK error; fallback per ADR-0054 to scaffold-locks-oyatie ICM topic"
+      "lock_pattern": "Oya VCS ChangeBundle + admission-gate concurrent-safe paths",
+      "known_failure_mode": "Manual PR-entry Wave-B seam before webhook receiver deployment per ADR-0116"
     },
-    "DoneGrit": {
-      "purpose": "Close a grit claim; merges worktree, releases locks.",
+    "DoneOyaVcs": {
+      "purpose": "Close an Oya VCS claim after verify/done/promote; releases locks through Promotion/ReleaseTrain closure.",
       "input_node_type": "Hook",
       "required_fields": [
         "agent_id"
       ],
-      "emits_audit_topic": "oya.grit.done",
+      "emits_audit_topic": "oya.vcs.done",
       "idempotency_class": "deterministic-by-agent_id",
-      "lock_pattern": "grit-managed"
+      "lock_pattern": "Oya VCS ChangeBundle"
     },
     "RecordICMStore": {
       "purpose": "Persist agent context to ICM (Infinite Context Memory).",

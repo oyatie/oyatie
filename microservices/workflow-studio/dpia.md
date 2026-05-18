@@ -9,7 +9,7 @@ owner_team: council-privacy + axis-workflow
 deciders: council-privacy, ops-security, axis-workflow, council-design-system, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act 2024 conformity assessment
 related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0130, ADR-0131, ADR-0140, ADR-0164]
-related_specs: [/specs/products/workflow-studio.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/workflow-studio.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/workflow-studio/threat-model.md
   - microservices/workflow-studio/policy/data-residency.md
@@ -172,7 +172,7 @@ Cross-reference: every risk has at least one mitigation in §6 + at least one co
 | R-13 (LLM hallucinates identifiers) | LLM completion validated against canonical schema; user explicit-accept before save; audit-chain emission | M (residual; advisory feature) | axis-workflow + council-privacy |
 | R-14 (CRDT op visibility) | Collab participants visible only with explicit invite; per-(tenant, definition) lease isolates | L | axis-workflow |
 | R-15 (operator override) | 2-person rule + audit chain + read-pattern anomaly alert | L | ops-security |
-| R-16 (mid-render branding) | **FORBIDDEN by anti-pattern policy**; LEAN check enforces; post-GA marketplace iframed-sandbox only | L | council-design-system + ops-security |
+| R-16 (mid-render branding) | **FORBIDDEN by anti-pattern policy**; LEAN check enforces; subsequent-to-GA-tier-promotion marketplace iframed-sandbox only | L | council-design-system + ops-security |
 | R-17 (AI Act non-conformity) | Pre-deployment conformity assessment when LLM-assist enters regulated-domain workflow; transparency UI in editor; opt-in consent | L | council-privacy + axis-workflow + sales-legal |
 | R-18 (CDN purge gap) | CDN purge SLI; versioned bundle path; browser-side version pin | L | cloud-iac + axis-workflow |
 | R-19 (stale classification on resume) | Session resume re-evaluates classification; warning banner if descriptor changed during disconnect | L | axis-workflow |

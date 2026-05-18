@@ -8,7 +8,7 @@ owner: axis-workspace + ops-security + council-architecture
 deciders: council-architecture, axis-workspace, ops-security, ops-accessibility
 supersedes: []
 superseded_by: []
-related: [ADR-0105, ADR-0126, ADR-0131, ADR-0133]
+related: [ADR-0105, ADR-0135, ADR-0131, ADR-0133]
 related_specs: []
 related_artifacts:
   - microservices/slides/PRD.md (AC-02, AC-15)
@@ -116,8 +116,8 @@ Adopt the following pipeline:
 #### D — `typst-pdf` (Rust-native)
 
 - **Pros**: Pure Rust; modern document model.
-- **Cons**: typst is its own document format; output PDF is good but mapping CSS-styled slides to typst's model adds engineering. PDF/A-1b conformance evaluated post-M03.
-- **Rejected reason**: M03 timeline; revisit post-M03.
+- **Cons**: typst is its own document format; output PDF is good but mapping CSS-styled slides to typst's model adds engineering. PDF/A-1b conformance evaluated subsequent-to-M03-completion.
+- **Rejected reason**: M03 timeline; revisit subsequent-to-M03-completion.
 
 #### E — `pdfium` direct rendering
 

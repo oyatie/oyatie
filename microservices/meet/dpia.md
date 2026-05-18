@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-meet
 deciders: council-privacy, ops-security, axis-meet, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132]
 related_specs: []
 related_artifacts:
   - microservices/meet/threat-model.md
@@ -214,5 +214,5 @@ Per pack overlays at `regional-packs/<pack>/meet-dpia-overlay.md`.
 - `microservices/meet/policy/data-residency.md`.
 - `microservices/meet/policy/recording-consent.md`.
 - `microservices/meet/compliance.md`.
-- ADR-0126 (net-new µservice).
+- ADR-0135 (net-new µservice).
 - GDPR + KR PIPA + HIPAA + SEC 17a-4 + FINRA 4511 + MiFID II + EU AI Act + APPI + LGPD + PDPA full citations.

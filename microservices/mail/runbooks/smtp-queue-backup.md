@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/mail/failure-modes.md (FM-OB-01 outbound spool growth, FM-IB-02 inbound queue stall)
   - microservices/mail/capacity-model.md (§"Outbound queue + spool sizing")
   - microservices/mail/contracts/asyncapi.yaml §"DeliveryAttempt"
-  - /specs/products/connect/mail.json
+  - /specs/microservices/mail.json
   - ADR-0133 cross-tenant mail-server pattern
 doc_status: published
 ---
@@ -43,7 +43,7 @@ Refers to FM-OB-01 (outbound spool growth) + FM-IB-02 (inbound queue stall) in `
 | # | Check | Command |
 |---|---|---|
 | 1 | Identify scope: per-tenant or global? | `topk(10, oya_mail_outbound_queue_depth_seconds) by (tenant_id)` in Mimir |
-| 2 | Sample queued envelopes for symptom: hard-bounce, defer, or accept-pending? | `kubectl exec -n mail <postfix-pod> -- postqueue -j \| jq -s '. \| group_by(.delay_reason)'` (Postfix) or `kubectl exec <stalwart-pod> -- stalwart queue list --status deferred` (Stalwart) |
+| 2 | Sample queued envelopes for symptom: hard-bounce, defer, or accept-pending? | `kubectl exec -n mail <postfix-pod> -- postqueue -j \| jq -s '. \| group_by(.delay_reason)'` (Postfix) or `kubectl exec <stalwart-pod> -- stalwart queue list --status scheduled-for-distinct-tracked-work` (Stalwart) |
 | 3 | Recipient MX health (DNS + connectivity probe) for top 5 destination domains | `kubectl exec <pod> -- /opt/scripts/mx-probe.sh top5.txt` |
 | 4 | DKIM signer accessible (cloud-secrets OpenBao reachable)? | `kubectl exec <pod> -- /opt/scripts/dkim-key-fetch.sh --dry-run --tenant=<t>` |
 | 5 | Per-tenant reputation score + recent SPF/DMARC alignment failures | `oya_mail_deliverability_reputation_score{tenant_id=<t>}` + `oya_mail_outbound_dmarc_alignment_failure_total[10m]` |
@@ -60,7 +60,7 @@ Cause: One tenant's recipient population has high tempfail rate (recipient infra
 | 1 | Verify defer-class concentration: `kubectl exec <pod> -- postqueue -j \| jq '[.[] \| select(.delay_reason \| test("4\\."))] \| length'` | ≤ 5 min |
 | 2 | If single recipient domain dominates: throttle per-recipient-domain submission rate via `oya-mail-outbound-smtp-app` config (`per_domain_max_concurrent: 4`); rolling-update | ≤ 10 min |
 | 3 | Decision: bypass current retry schedule for the affected destination? — only if the destination explicitly requests; otherwise let Postfix/Stalwart exponential backoff run (5min → 1h → 4h → 24h envelope-by-envelope) | ≤ 5 min |
-| 4 | Notify tenant: status-page note "outbound to `<domain>` deferred due to recipient infrastructure; will auto-retry" | ≤ 30 min |
+| 4 | Notify tenant: status-page note "outbound to `<domain>` scheduled-for-distinct-tracked-work due to recipient infrastructure; will auto-retry" | ≤ 30 min |
 | 5 | Monitor: `oya_mail_outbound_queue_depth_seconds{tenant_id=<t>}` should trend down within 30 min once destination MX recovers | ≤ 1 h |
 
 ## Recovery Path B — Tenant reputation collapse (RBL hit)
@@ -86,7 +86,7 @@ Cause: Postfix spool or Stalwart queue volume approaching 100%; queue cannot acc
 |---|---|---|
 | 1 | Declare Sev-1; engage ops-sre-reliability for storage scale-out | immediate |
 | 2 | Confirm volume usage: `kubectl exec <pod> -- df -h /var/spool` | ≤ 2 min |
-| 3 | Identify large envelopes: `kubectl exec <pod> -- du -sh /var/spool/postfix/deferred/* \| sort -rh \| head` | ≤ 5 min |
+| 3 | Identify large envelopes: `kubectl exec <pod> -- du -sh /var/spool/postfix/scheduled-for-distinct-tracked-work/* \| sort -rh \| head` | ≤ 5 min |
 | 4 | Apply per-envelope size limit cap (RFC 5321 §4.5.3.1.7 max 64 MB; oyatie default 25 MB) if any envelopes ≥ limit are abusive | ≤ 5 min |
 | 5 | Scale the underlying PV (StorageClass supports online expansion via CSI): patch PVC `spec.resources.requests.storage` to next tier (e.g., 100Gi → 250Gi) | ≤ 10 min |
 | 6 | Verify pod observes new size: `kubectl exec <pod> -- df -h /var/spool` | ≤ 5 min |

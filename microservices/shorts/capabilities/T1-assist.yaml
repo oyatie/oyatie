@@ -30,7 +30,7 @@ description: |
 owner_team: axis-shorts + axis-foundry-runtime + ops-legal
 maturity: preview
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133, ADR-SHORTS-0002, ADR-SHORTS-0003]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-SHORTS-0002, ADR-SHORTS-0003]
 related_artifacts:
   - microservices/shorts/PRD.md (FR-15, FR-16, FR-20)
   - microservices/shorts/policy/dual-context-isolation.md

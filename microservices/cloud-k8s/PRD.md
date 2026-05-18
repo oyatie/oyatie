@@ -66,7 +66,7 @@ Tenants do not consume `cloud-k8s` directly. Tenant value is **indirect, structu
 
 ### Security
 
-- mTLS strict mode by default across every namespace per ADR-0044 (deferred from M02b-substrate-P22; landed on-prem via ADR-0121); permissive mode allowed only during a documented Istio rollout window.
+- mTLS strict mode by default across every namespace per ADR-0044 (scheduled-for-distinct-tracked-work from M02b-substrate-P22; landed on-prem via ADR-0121); permissive mode allowed only during a documented Istio rollout window.
 - All kube-apiserver access is mediated by the `kubernetes-api-proxy` BC (no direct port-6443 from operator workstations); Cedar policy + audit-chain on every call.
 - etcd encrypted at rest with KMS-backed envelope encryption per pack; etcd peer + client mTLS strict.
 - containerd config: no privileged-by-default; seccomp `runtime/default` baseline; AppArmor profiles per workload class.
@@ -340,7 +340,7 @@ Sharding:
 | 1 | M01 control-plane HA: single node (faster) vs 3-node (resilient)? | axis-cloud + ops-sre-reliability | Resolved: single-node M01 launch per ADR-0121 §"Migration triggers"; 3-node at M04. |
 | 2 | CNI choice: Calico vs Cilium for primary | axis-cloud | Resolved: Cilium per ADR-0117 §"CNI" (eBPF, NetworkPolicy + Hubble + multi-cluster mesh primitives). |
 | 3 | CSI driver split: per-backend crates vs single multiplexed adapter | axis-cloud | Resolved: per-backend adapter (`-adapter-block`, `-adapter-object`, `-adapter-file`) per ADR-0105 Amendment 3. |
-| 4 | Kubernetes-API proxy: HTTP-reverse-proxy vs in-process Cedar+apiserver fork | axis-cloud + ops-security | Resolved: HTTP-reverse-proxy at M01; in-process variant deferred to M04. |
+| 4 | Kubernetes-API proxy: HTTP-reverse-proxy vs in-process Cedar+apiserver fork | axis-cloud + ops-security | Resolved: HTTP-reverse-proxy at M01; in-process variant scheduled-for-distinct-tracked-work to M04. |
 | 5 | Multi-cluster mesh federation: M02 or M03? | axis-cloud + ops-sre-reliability | M03 per ADR-0117. |
 
 ## Related ADRs

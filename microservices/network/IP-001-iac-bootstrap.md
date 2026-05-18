@@ -46,7 +46,7 @@ Land the IaC substrate for the `network` µservice cluster per ADR-0131:
 | `iac/kustomize/base/openbao-secret-references.yaml` | create — OpenBao secret ExternalSecret CRs |
 | `iac/kustomize/overlays/pack-kr/kustomization.yaml` | already created |
 | `iac/kustomize/overlays/pack-eu/kustomization.yaml` | already created |
-| `iac/kustomize/overlays/pack-us/kustomization.yaml` | create (P01-deferred to follow-up IP) |
+| `iac/kustomize/overlays/pack-us/kustomization.yaml` | create (P01-scheduled-for-distinct-tracked-work to successor-IP IP) |
 | `iac/terraform/network-pack-kr.tf` | reference cloud-iac module |
 
 ## Acceptance Gates

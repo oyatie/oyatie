@@ -105,7 +105,7 @@ Cause: User reports device theft, malware, or unauthorised access.
 
 ## Path E — Escrow recovery (future opt-in mode; NOT M03 default)
 
-This path is deferred to ADR-NNNN-personal-mail-key-recovery. Documented here for completeness; not operative at M03 launch.
+This path is scheduled-for-distinct-tracked-work to ADR-NNNN-personal-mail-key-recovery. Documented here for completeness; not operative at M03 launch.
 
 | Step | Action | Notes |
 |---|---|---|

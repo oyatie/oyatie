@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: axis-anonymous + ops-security
 deciders: council-architecture, ops-security, axis-anonymous, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy; especially relevant) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0006, ADR-ANON-0007]
-related_specs: [/specs/products/connect/anonymous.json]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0006, ADR-ANON-0007]
+related_specs: [/specs/microservices/anonymous.json]
 review_cadence: quarterly + on every architecture or substrate change + every legal-process disclosure category change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC6.7, CC7.1, CC7.2, CC7.4, CC8.1"
@@ -49,7 +49,7 @@ LINDDUN methodology is given equal weight to STRIDE because the privacy-properti
 
 ### In-scope
 
-All components introduced by parallel ADR-0126 (Connect dissolution) + ADR-0132 (suite dissolution into anonymous surface) for the anonymous µservice. Deployed in the dedicated anonymous Kubernetes cluster.
+All components introduced by parallel ADR-0135 (Connect dissolution) + ADR-0132 (suite dissolution into anonymous surface) for the anonymous µservice. Deployed in the dedicated anonymous Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -248,6 +248,6 @@ Threats categorised by STRIDE + LINDDUN. T-x = STRIDE; T-L-x = LINDDUN.
 
 | # | Question | Owner | Resolution |
 |---|---|---|---|
-| 1 | What is the agreed threshold for k-anonymity floor on a "small employer"? Current ADR-ANON-0007 sets k=10 for small employers — is that aggressive enough? | council-privacy + axis-anonymous | ADR-ANON-0007 follow-up after first 90 days of production data |
-| 2 | Tor-as-default-transport for client SDK: opt-in or default? | axis-anonymous + gtm | Open; deferred to ADR-ANON follow-up |
+| 1 | What is the agreed threshold for k-anonymity floor on a "small employer"? Current ADR-ANON-0007 sets k=10 for small employers — is that aggressive enough? | council-privacy + axis-anonymous | ADR-ANON-0007 successor-IP after first 90 days of production data |
+| 2 | Tor-as-default-transport for client SDK: opt-in or default? | axis-anonymous + gtm | Open; scheduled-for-distinct-tracked-work to ADR-ANON successor-IP |
 | 3 | NCMEC CyberTipline reporting: who at oyatie holds the chain-of-custody signing key for the per-report Ed25519 seal? | ops-security + legal | runbook resolution pending |

@@ -95,3 +95,128 @@ spec:
             summary: "RSVP fanout latency burning 14x over 1h"
             runbook_url: "https://oyatie.dev/microservices/calendar/runbooks/rsvp-storm-throttle.md"
 {{- end }}
+
+    - name: calendar-hyperscaler-overlay-circuit-breaker
+      interval: 60s
+      rules:
+        # INV-CIRCUIT-BREAKER-BULKHEAD per /specs/hyperscaler-architecture-invariants.json
+        - alert: calendar-llm-capability-circuit-open
+          expr: max(oya_calendar_capability_circuit_state{state="open"}) > 0
+          for: 1m
+          labels:
+            severity: page
+            microservice: calendar
+            inv: INV-CIRCUIT-BREAKER-BULKHEAD
+          annotations:
+            summary: "calendar LLM/capability circuit-breaker tripped open"
+        - alert: calendar-llm-capability-retry-budget-exhausted
+          expr: sum(increase(oya_calendar_capability_retry_budget_exhausted_total[5m])) > 0
+          for: 1m
+          labels:
+            severity: page
+            microservice: calendar
+            inv: INV-CIRCUIT-BREAKER-BULKHEAD
+          annotations:
+            summary: "calendar capability retry-budget exhausted"
+
+    - name: calendar-hyperscaler-overlay-tenant-rate-limit
+      interval: 60s
+      rules:
+        # INV-SHUFFLE-SHARDING per /specs/hyperscaler-architecture-invariants.json
+        - alert: calendar-tenant-rate-limit-429-surge
+          expr: |
+            sum by (tenant_id) (
+              rate(oya_calendar_responses_429_total[5m])
+            ) > 50
+          for: 5m
+          labels:
+            severity: ticket
+            microservice: calendar
+            inv: INV-SHUFFLE-SHARDING
+          annotations:
+            summary: "calendar tenant {{ $labels.tenant_id }} 429 rate > 50/s sustained 5m (token bucket exhausted)"
+
+    - name: calendar-hyperscaler-overlay-golden-signals
+      interval: 60s
+      rules:
+        # INV-FOUR-GOLDEN-SIGNALS per /specs/hyperscaler-architecture-invariants.json
+        # (latency covered by per-SLO burn-rate alerts; this group covers traffic + errors + saturation)
+        - alert: calendar-saturation-cpu-over-70pct
+          expr: avg by (pod) (rate(container_cpu_usage_seconds_total{pod=~"calendar-.*"}[5m])) > 0.7
+          for: 10m
+          labels:
+            severity: ticket
+            microservice: calendar
+            golden_signal: saturation
+            inv: INV-FOUR-GOLDEN-SIGNALS
+          annotations:
+            summary: "calendar pod CPU saturation > 70% sustained 10m"
+        - alert: calendar-errors-5xx-rate-spike
+          expr: |
+            sum(rate(oya_calendar_responses_5xx_total[5m]))
+            /
+            sum(rate(oya_calendar_responses_total[5m])) > 0.01
+          for: 5m
+          labels:
+            severity: page
+            microservice: calendar
+            golden_signal: errors
+            inv: INV-FOUR-GOLDEN-SIGNALS
+          annotations:
+            summary: "calendar 5xx rate > 1% sustained 5m"
+        - alert: calendar-traffic-drop-90pct
+          expr: |
+            (
+              sum(rate(oya_calendar_responses_total[5m]))
+              /
+              sum(rate(oya_calendar_responses_total[1h] offset 1h))
+            ) < 0.1
+          for: 10m
+          labels:
+            severity: page
+            microservice: calendar
+            golden_signal: traffic
+            inv: INV-FOUR-GOLDEN-SIGNALS
+          annotations:
+            summary: "calendar inbound RPS dropped > 90% vs prior hour"
+
+    - name: calendar-hyperscaler-overlay-error-budget-burn
+      interval: 60s
+      rules:
+        # INV-SLO-ERROR-BUDGET per /specs/hyperscaler-architecture-invariants.json
+        # Multi-window burn-rate citation rule. The full per-SLO burn-rate alerts
+        # are in the per-SLO rule groups above; this rule materially binds the
+        # INV-SLO-ERROR-BUDGET label onto a representative SLI so the
+        # conformance gate can audit by label query.
+        - alert: calendar-error-budget-fast-burn-1h-14x-aggregate
+          expr: |
+            (1 - (
+              sum(rate(oya_calendar_request_success_total[1h]))
+              /
+              sum(rate(oya_calendar_request_total[1h]))
+            )) > 14.4 * (1 - 0.999)
+          for: 5m
+          labels:
+            severity: page
+            microservice: calendar
+            slo: aggregate-availability
+            burn: fast-1h-14x
+            inv: INV-SLO-ERROR-BUDGET
+          annotations:
+            summary: "calendar aggregate availability fast-burn (1h 14.4x); per-SLO burn-rate alerts above are authoritative"
+        - alert: calendar-error-budget-slow-burn-6h-6x-aggregate
+          expr: |
+            (1 - (
+              sum(rate(oya_calendar_request_success_total[6h]))
+              /
+              sum(rate(oya_calendar_request_total[6h]))
+            )) > 6 * (1 - 0.999)
+          for: 15m
+          labels:
+            severity: ticket
+            microservice: calendar
+            slo: aggregate-availability
+            burn: slow-6h-6x
+            inv: INV-SLO-ERROR-BUDGET
+          annotations:
+            summary: "calendar aggregate availability slow-burn (6h 6x); per-SLO burn-rate alerts above are authoritative"

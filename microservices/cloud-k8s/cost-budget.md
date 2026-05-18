@@ -114,7 +114,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 | Archive etcd snapshots earlier (14d → 7d hot threshold) | 5% storage | Faster cold-tier reads only |
 | Per-tenant resource quota enforcement | 5–20% | Tenant disruption if too aggressive |
 | Pre-pull common images on node-join | 1–3% cold-start latency reduction; no $ change | Bandwidth |
-| Cluster-autoscaler aggressive scale-down (M02+) | 10–20% compute | Slower scale-up when needed |
+| Cluster-autoscaler aggressive scale-down (M02-onward) | 10–20% compute | Slower scale-up when needed |
 
 ## Verification
 

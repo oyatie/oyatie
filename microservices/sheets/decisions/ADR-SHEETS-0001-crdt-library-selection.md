@@ -8,9 +8,9 @@ owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, council-design-system, ops-security
 supersedes: []
 superseded_by: []
-related: [ADR-0065, ADR-0105, ADR-0126, ADR-0131]
+related: [ADR-0065, ADR-0105, ADR-0135, ADR-0131]
 related_external_adrs: [microservices/workflow-studio/decisions/ADR-WS-0001, microservices/docs/decisions/ADR-DOCS-0001]
-related_specs: [/specs/products/sheets.json]
+related_specs: [/specs/microservices/sheets.json]
 related_artifacts:
   - microservices/sheets/PRD.md (FR-06, AC-06)
   - microservices/sheets/PHASE-01-SHEETS-FOUNDATION.md (IP-005)
@@ -55,7 +55,7 @@ Operational constraints:
 
 **Cross-µservice alignment constraint (the determining factor):**
 
-Sheets is one of three sibling µservices that ship real-time collaborative editing surfaces at M03+:
+Sheets is one of three sibling µservices that ship real-time collaborative editing surfaces at M03-onward:
 - `workflow-studio` — visual workflow canvas (per ADR-WS-0001 settled on Loro 1.x).
 - `docs` — rich-text document editor (per ADR-DOCS-0001 settled on Loro 1.x).
 - `sheets` — cell-grid workbook editor (this ADR).
@@ -214,5 +214,5 @@ Pre-CRDT industry standard (Google Docs, Etherpad historically).
 - Preguiça, N. (2018), "Conflict-free Replicated Data Types: An Overview," arXiv:1806.10254.
 - ADR-0065 — Leptos WASM substrate.
 - ADR-0105 — 13-layer enum.
-- ADR-0126 — Sheets net-new µservice.
+- ADR-0135 — Sheets net-new µservice.
 - ADR-0131 — Per-microservice flat layout.

@@ -6,9 +6,9 @@ slo: hero-product
 contracts_consumed: []
 contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-eu, oya-pack-us, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]  # pack-kr + pack-us-healthcare federation OFF by default
-lifecycle: {state: deferred, preview_since: 2026-05-17, activation_target: M02-P02}
+lifecycle: {state: scheduled-for-distinct-tracked-work, preview_since: 2026-05-17, activation_target: M02-P02}
 traceability:
-  github_issue: "<TBD>"
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
   source_adrs: [ADR-0105, ADR-SOC-0004]
 allowed_dependency_edges: [kernel, domain, usecase]
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, SECRET]

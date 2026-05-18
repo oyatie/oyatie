@@ -15,11 +15,11 @@ doc_status: published
 | Language | Target | Use | Status |
 |---|---|---|---|
 | TypeScript / JavaScript | browser + Node + Workflow Studio shell | web client + web-clipper extension + Workflow Studio plugins | M02 |
-| Swift | iOS / macOS native | mobile + macOS client | post-M02 |
-| Kotlin | Android native | mobile client | post-M02 |
+| Swift | iOS / macOS native | mobile + macOS client | subsequent-to-M02-completion |
+| Kotlin | Android native | mobile client | subsequent-to-M02-completion |
 | Rust | desktop (Tauri) + cross-platform | desktop client + Tauri-based mobile-companion | M02 |
-| Python | server-side automation + research | tenant-side automation, Notion-migration scripts | post-M02 |
-| Go | server-side automation | tenant-side automation, sysadmin tooling | post-M02 |
+| Python | server-side automation + research | tenant-side automation, Notion-migration scripts | subsequent-to-M02-completion |
+| Go | server-side automation | tenant-side automation, sysadmin tooling | subsequent-to-M02-completion |
 
 ## E2E SDK Considerations
 

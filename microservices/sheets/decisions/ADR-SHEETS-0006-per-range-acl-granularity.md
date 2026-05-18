@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, ops-security, council-design-system, council-privacy
-related: [ADR-0028, ADR-0126, ADR-0131, ADR-0140]
+related: [ADR-0028, ADR-0135, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/sheets/PRD.md (FR-11, AC-04)
   - microservices/sheets/policy/tenant-scope.cedar
@@ -167,6 +167,6 @@ forbid (
 - Airtable field permissions — `support.airtable.com`.
 - Cedar v4.2 LTS — `cedarpolicy.com`.
 - ADR-0028 — audit-chain.
-- ADR-0126 — Sheets net-new µservice.
+- ADR-0135 — Sheets net-new µservice.
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0140 — Cedar policy enforcement.

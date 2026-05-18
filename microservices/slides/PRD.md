@@ -8,9 +8,9 @@ sales_segment: workspace-product
 tier: external-facing
 milestone_first_ship: M03-workspace-preview
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
-related_specs: [/specs/per-microservice-flat-layout.json, /specs/products/workspace.json]
-related_unbundle_adr: ADR-0126
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
+related_specs: [/specs/per-microservice-flat-layout.json, /specs/microservices/workspace.json]
+related_unbundle_adr: ADR-0135
 unbundle_sibling_set:
   - microservices/docs/
   - microservices/sheets/
@@ -27,7 +27,7 @@ doc_status: published
 
 The `slides` µservice is oyatie's **collaborative presentation product** — a Google-Slides / Microsoft PowerPoint Web / Apple Keynote / Pitch / Beautiful.ai / Canva-presentations-class product surface. It owns: deck authoring (slides, layouts, master slides, themes), real-time multi-user collaboration via Loro CRDT (aligning with workflow-studio + docs + sheets per ADR-WS-0001 family), present-mode (single-presenter + audience-broadcast), live audience-engagement (reactions + Q&A + polls), import/export across PPTX / ODP / PDF / Keynote / MP4, AI-design and AI-content-generation under foundry-runtime gating, embed bridges to docs (quote blocks), sheets (live charts), and forms (in-deck polls), and broadcast-mode signaling reusing the messenger µservice's LiveKit infrastructure.
 
-Slides is **net-new** per ADR-0126 (Connect dissolution) — there is no `oya-connect-slides-*` legacy. The µservice is a hero workspace surface alongside `docs`, `sheets`, `drive`, and `forms`.
+Slides is **net-new** per ADR-0135 (Connect dissolution) — there is no `oya-connect-slides-*` legacy. The µservice is a hero workspace surface alongside `docs`, `sheets`, `drive`, and `forms`.
 
 Slides operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer.md`): it consumes ontology object-type descriptors for embed-bridge typing; emits authoring + broadcast events to the workflow event-bus; routes cross-µservice flows (sheets chart links, docs quote-embeds, forms polls, messenger broadcast-signaling, drive storage) through SDKs only; runs in the application µservice's hosting shell.
 
@@ -191,7 +191,7 @@ Naming justification — `presentation`:
 NAME: oya-slides-presentation-<layer>
 JUSTIFICATION:
 - microservice = slides: hero workspace µservice (per-microservice flat layout, ADR-0131).
-  Net-new per ADR-0126; no legacy connect-slides-* heritage.
+  Net-new per ADR-0135; no legacy connect-slides-* heritage.
 - bc-tokens = presentation: top-level container BC; one Presentation = one Deck.
   ADR-0056 v4.1 BC-optionality honoured (30 sibling BCs exist; presentation is the
   composition root).
@@ -484,7 +484,7 @@ Sharding:
 |---|---|---|---|
 | 1 | Vector rendering tier — Skia (via tiny-skia + WASM) vs canvas-2d in Leptos vs SVG vs WebGL? Bias: SVG baseline (accessibility + DOM debugging) + canvas-2d for present-mode 60fps + WebGL fallback if 60fps fails. | council-design-system | ADR-SLIDES-0002 |
 | 2 | PPTX library — pure-Rust pptx-rs (preview-grade) vs Pandoc bridge vs calamine-derived approach? Bias: Pandoc bridge for import (best-effort) + bespoke OOXML serializer for export (round-trippable subset). | axis-workspace + council-architecture | ADR-SLIDES-0003 |
-| 3 | PDF renderer — WeasyPrint (Python) vs Chromium-headless (Node-less) vs typst-pdf (Rust-native)? Bias: WeasyPrint for PDF/A-1b path + Chromium-headless fallback for complex CSS; typst-pdf evaluated post-M03. | council-architecture | ADR-SLIDES-0003 |
+| 3 | PDF renderer — WeasyPrint (Python) vs Chromium-headless (Node-less) vs typst-pdf (Rust-native)? Bias: WeasyPrint for PDF/A-1b path + Chromium-headless fallback for complex CSS; typst-pdf evaluated subsequent-to-M03-completion. | council-architecture | ADR-SLIDES-0003 |
 | 4 | Broadcast-mode AV transport — reuse messenger LiveKit verbatim vs slides-owned LiveKit cluster? Bias: reuse — see ADR-SLIDES-0005. | axis-workspace + axis-realtime | ADR-SLIDES-0005 |
 | 5 | Per-slide ACL granularity — slide-level only vs named-block within slide? Bias: named-block to differentiate from Google Slides. | council-architecture + ops-security | ADR-SLIDES-0007 |
 | 6 | AI-content-generation T2 risk-class default — refuse on Annex III high-risk context vs allow-with-watermark vs require-human-review? Bias: refuse high-risk by default; per-pack override. | ops-security + council-architecture | ADR-SLIDES-0006 |
@@ -499,7 +499,7 @@ Sharding:
 | ADR-0105 | 13-layer enum + backend-qualified adapters Amd.3 | layer authority |
 | ADR-0106 | Application → usecase rename | applied for new crates |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-SLIDES registers here |
-| ADR-0126 | Connect dissolution | slides is one of 5 net-new µservices unbundled from connect; no legacy |
+| ADR-0135 | Connect dissolution | slides is one of 5 net-new µservices unbundled from connect; no legacy |
 | ADR-0130 | Agentic SLO-gated promotion | slides SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout | this µservice authored natively under it |
 | ADR-0132 | Product-suite-and-bundle dissolution | slides is a single-concern µservice, not a suite |

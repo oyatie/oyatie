@@ -90,7 +90,7 @@ LLM-assist cost is per-tenant billed pass-through; tenant chooses provider; oyat
 
 ## Per-Seat Unit-Economics Target
 
-Per `/specs/products/workflow-studio.json` §goals.efficiency: ≤ $5 per-seat per-month at GA.
+Per `/specs/microservices/workflow-studio.json` §goals.efficiency: ≤ $5 per-seat per-month at GA.
 
 | Tier | N_seats | Studio infra cost per seat-month | LLM-assist cost per seat-month | Total per seat-month |
 |---|---|---|---|---|
@@ -99,7 +99,7 @@ Per `/specs/products/workflow-studio.json` §goals.efficiency: ≤ $5 per-seat p
 | M | 20,000 | $2.50 | $1.00 | $3.50 |
 | L | 200,000 | $2.50 | $5.00 | $7.50 |
 
-XS tier is uneconomic on per-seat basis (HA minimums dominate); GA target ≤ $5/seat met at S+ tier. Reconciles with `/specs/products/workflow-studio.json` §metrics target.
+XS tier is uneconomic on per-seat basis (HA minimums dominate); GA target ≤ $5/seat met at S+ tier. Reconciles with `/specs/microservices/workflow-studio.json` §metrics target.
 
 ## Budget + Alert Thresholds
 
@@ -145,6 +145,6 @@ XS tier is uneconomic on per-seat basis (HA minimums dominate); GA target ≤ $5
 - `microservices/workflow-studio/capacity-model.md`.
 - `microservices/workflow-studio/multi-region.md`.
 - `microservices/workflow-studio/policy/data-residency.md`.
-- `/specs/products/workflow-studio.json` §goals.efficiency.
+- `/specs/microservices/workflow-studio.json` §goals.efficiency.
 - OCI pricing — `oracle.com/cloud/pricing/`.
 - FinOps Foundation framework — `finops.org`.

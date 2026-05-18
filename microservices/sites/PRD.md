@@ -8,7 +8,7 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-sites
@@ -21,7 +21,7 @@ doc_status: published
 
 The `sites` µservice is oyatie's native published-web + intranet substrate — a Google-Sites + WordPress + Squarespace + Webflow + Notion-Sites + Carrd + Framer + Ghost + Hugo-class competitor unified under a single tenant-facing surface. It owns: site (named published space) authoring; URL-routed page rendering (static + dynamic); block-based composition (paragraph, heading, image, video, embed, form, cms-collection); theme + design-token system; navigation (header/footer/sidebar; per-page or global); custom domain binding with ACME-automated TLS (RFC 8555 + DNS-01); SEO surface (meta + Open Graph + Twitter Cards + schema.org JSON-LD + sitemap.xml + robots.txt + canonical); CMS-collection model (structured-content type + entries + relationships); site-wide search (Meilisearch); forms-integration (cross-µservice to `forms`); e-commerce-stub (T-G fintech bridge); privacy-preserving analytics (Plausible-class); WCAG 2.2 AA accessibility; social-share metadata; preview-mode (draft vs published); versioning (publish + rollback); multi-language (i18n + hreflang); comments (cross-µservice to `community`); CDN-delivery (signed cache invalidation); AI-page-build (T2 — generate page from prompt); site-collaboration (Loro CRDT per ADR-SITES-0001).
 
-Per ADR-0132 (no-suite forward-policy) and parallel-session ADR-0126 (Connect unbundle), `sites` is a standalone tenant-facing µservice — no longer part of a Connect suite. The legacy `oya-connect-sites-*` family is deprecated and migrates per ADR-0134 Strangler timeline (see `migration-from-connect.md`).
+Per ADR-0132 (no-suite forward-policy) and parallel-session ADR-0135 (Connect unbundle), `sites` is a standalone tenant-facing µservice — no longer part of a Connect suite. The legacy `oya-connect-sites-*` family is deprecated and migrates per ADR-0134 Strangler timeline (see `migration-from-connect.md`).
 
 `sites` is differentiated from sibling µservices as follows: `docs` is for PRIVATE document editing (Word/Notion-class); `community` is for moderated FORUM-style discussion; `sites` is for PUBLISHED websites (intranet + public) with theme + nav + URL routing + CDN delivery. The three share the Loro CRDT collab substrate but cover non-overlapping product surfaces.
 
@@ -301,7 +301,7 @@ Key parity gaps to close (ordered):
 3. **CMS-collection + Ontology binding** — Webflow has CMS-collections; nobody binds them to a tenant-wide Ontology that flows into other product µservices. **Differentiator.**
 4. **Privacy-preserving analytics by default** — Plausible-class without third-party cookies; WordPress / Squarespace / Wix all ship Google Analytics integrations. **Differentiator.**
 5. **ACME wildcard cert for tenant subdomains + custom-domain DNS-01** — Webflow + Squarespace cover this; we must reach parity.
-6. **Webflow / Framer CSS-grid layout** — visual designer-class control over layout; deferred to M04.
+6. **Webflow / Framer CSS-grid layout** — visual designer-class control over layout; scheduled-for-distinct-tracked-work to M04.
 7. **WordPress plugin ecosystem** — out of scope; oyatie's Workflow-engine is the plugin substrate.
 
 ## Performance Targets (canonical bench surface)
@@ -372,8 +372,8 @@ Sharding: sites partitioned by `tenant_id`; pages partitioned by `(site_id, vers
 | # | Question | Owner | Target |
 |---|---|---|---|
 | 1 | Should we ship a Webflow-class visual layout designer (CSS-grid + flexbox visual editor) at M04 or defer to M05? | council-product | M04 decision |
-| 2 | AMP-stub: should we generate AMP-HTML variants alongside canonical HTML, or skip (Google deprecating AMP signals)? | axis-sites | post-M04 |
-| 3 | WordPress import path: should we ship an importer for tenants migrating off WordPress.org/.com? | council-product | post-M04 |
+| 2 | AMP-stub: should we generate AMP-HTML variants alongside canonical HTML, or skip (Google deprecating AMP signals)? | axis-sites | subsequent-to-M04-completion |
+| 3 | WordPress import path: should we ship an importer for tenants migrating off WordPress.org/.com? | council-product | subsequent-to-M04-completion |
 | 4 | CMS-collection data model: portable-text (Sanity) vs relational (Strapi) vs custom hybrid — see ADR-SITES-0005 (hybrid chosen) | axis-sites | resolved by ADR-SITES-0005 |
 
 ## Related ADRs
@@ -384,7 +384,7 @@ Sharding: sites partitioned by `tenant_id`; pages partitioned by `(site_id, vers
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0126 | Connect unbundle (parallel session) | sites independence |
+| ADR-0135 | Connect unbundle (parallel session) | sites independence |
 | ADR-0130 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
 | ADR-0132 | Product-suite + bundle dissolution | µservice independence |

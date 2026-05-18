@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-calendar
 deciders: axis-calendar, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0126, ADR-0131, ADR-CAL-0001, ADR-CAL-0002, ADR-CAL-0004]
+related_adrs: [ADR-0028, ADR-0135, ADR-0131, ADR-CAL-0001, ADR-CAL-0002, ADR-CAL-0004]
 related_artifacts:
   - microservices/calendar/PRD.md
   - microservices/calendar/capacity-model.md

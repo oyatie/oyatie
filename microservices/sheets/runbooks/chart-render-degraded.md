@@ -51,7 +51,7 @@ ONE of:
 |---|---|
 | 1 | Verify per-sheet chart count > 100. |
 | 2 | Tenant-facing banner: "this sheet has 100+ charts; rendering may be slow. Consider splitting into multiple sheets". |
-| 3 | Lazy-render activated: charts outside viewport deferred until scrolled into view. |
+| 3 | Lazy-render activated: charts outside viewport scheduled-for-distinct-tracked-work until scrolled into view. |
 | 4 | gtm-customer-success may proactively reach out: "we noticed your sheet has X charts; would design help reduce?". |
 
 ## Recovery Path B — Custom Leptos canvas renderer regression

@@ -29,7 +29,7 @@ oyatie's artifacts for a single µservice are currently scattered across seven t
 - `docs/products/<product>/{PRD.md, PHASE-NN-*.md}` — product-shaped PRD + phase docs (parallel convention)
 - `.omc/plans/milestones/M0X-<slug>/phases/P0Y-<slug>/IP-NNN-*.md` — phase + IP files nested four levels deep
 - `registry/catalog/<crate>.yaml` — per-crate catalog records
-- `/specs/<topic>.json` and `/specs/products/<product>.json` — machine-readable specs (mixed: cross-cutting and per-product side-by-side)
+- `/specs/<topic>.json` and `/specs/microservices/<product>.json` — machine-readable specs (mixed: cross-cutting and per-product side-by-side)
 - `contracts/openapi/**/*.yaml`, `contracts/*.proto`, `contracts/asyncapi/*.yaml` — API contracts grouped by surface, not by owner
 
 A reader (human or agent) tracing one µservice's narrative must visit at least six directories. The same µservice's PRD, contract, catalog row, and IP plan never share a parent path. This violates bounded-context cohesion (per `feedback_clean_architecture_requirements.md`) and the user-mandated bar "any of our practices should be hyperscaler grade, industry leading."
@@ -133,7 +133,7 @@ Every artifact currently scattered across the type-based folders **moves** into 
 | `.omc/plans/milestones/M0X-*/phases/P0Y-*/IP-NNN-*.md` | `microservices/<ms>/IP-NNN-*.md` (denested; milestone+phase carried in IP frontmatter, not directory path) |
 | `.omc/plans/milestones/M0X-*/phases/P0Y-*/README.md` | `microservices/<ms>/PHASE-NN-*.md` |
 | `registry/catalog/<crate>.yaml` | `microservices/<ms>/catalog/<crate>.yaml` |
-| `/specs/products/<product>.json` and per-product JSON specs | `microservices/<ms>/specs/<topic>.json` |
+| `/specs/microservices/<product>.json` and per-product JSON specs | `microservices/<ms>/specs/<topic>.json` |
 | `contracts/openapi/<surface>/*.yaml` (per-service) | `microservices/<ms>/contracts/openapi/<surface>.yaml` |
 | `contracts/asyncapi/<surface>/*.yaml` (per-service) | `microservices/<ms>/contracts/asyncapi/<surface>.yaml` |
 | `contracts/<surface>.proto` (per-service) | `microservices/<ms>/contracts/proto/<surface>.proto` |
@@ -142,7 +142,7 @@ Every artifact currently scattered across the type-based folders **moves** into 
 | Service-scoped ADRs currently at `docs/decisions/` (rare) | `microservices/<ms>/decisions/ADR-NNNN-*.md`, with a redirect stub at the old path (RETIRED.md row) |
 | Per-µservice multispectrum evidence currently at `/evidence/multispectrum/<change_id>-*.json` | `microservices/<ms>/evidence/multispectrum/<change_id>-*.json` |
 
-The aggregation indices that previously lived as primary sources (`registry/catalog/`, `docs/prds/INDEX.md`, `/specs/products/`) become **generated views** sourced from the per-µservice folders. The generation lane is `oya-governance-aggregation-index-generation` (added by this ADR).
+The aggregation indices that previously lived as primary sources (`registry/catalog/`, `docs/prds/INDEX.md`, `/specs/microservices/`) become **generated views** sourced from the per-µservice folders. The generation lane is `oya-governance-aggregation-index-generation` (added by this ADR).
 
 ### Naming justification — the new top-level folder
 
@@ -169,7 +169,7 @@ Crate naming inside each `microservices/<ms>/crates/` subtree is unchanged: ever
 - **Type-based scatter (current state)** — rejected. Documented above as the inverse of every industry-leading convention.
 - **Product-vs-substrate split (`docs/products/<product>/` for products, `docs/prds/<ms>.md` for substrate)** — rejected. The user explicitly stated 2026-05-17 that observability isn't a hero product yet still requires hyperscaler-grade artifact handling; the product/substrate distinction does not earn a directory split. Sales segmentation moves entirely into PRD frontmatter (`sales_segment: <segment>`).
 - **Per-microservice repos (one repo per µservice)** — rejected. Loses the monorepo benefits oyatie has already chosen: atomic cross-µservice refactor, shared workspace Cargo, single CI surface, single doc-cross-ref resolver. Per-service folder inside a monorepo is what Stripe and Google (google3) do; that is the precedent.
-- **Migrate-on-touch (existing µservices migrate only when next touched)** — rejected. Contradicts the user mandate "nothing deferred until later." Migration is in M01 scope, scheduled as a per-µservice IP series.
+- **Migrate-on-touch (existing µservices migrate only when next touched)** — rejected. Contradicts the user mandate "nothing scheduled-for-distinct-tracked-work until later." Migration is in M01 scope, scheduled as a per-µservice IP series.
 
 ## Consequences
 
@@ -239,7 +239,7 @@ Tier 3 (end-user / tenant-facing flat µservices; product-tier, unbundled per AD
   IP-M01-MIGR-WS-9    notes
   IP-M01-MIGR-WS-10   translate
   IP-M01-MIGR-WS-11   recordings
-  IP-M01-MIGR-ENT-1   hr                 ← unbundled from /specs/products/enterprise/suite.json
+  IP-M01-MIGR-ENT-1   hr                 ← unbundled from /specs/microservices/enterprise-suite.json
   IP-M01-MIGR-ENT-2   payroll
   IP-M01-MIGR-ENT-3   accounting
 ```
@@ -253,7 +253,7 @@ Total: 36 flat µservices, 30 migration IPs (six µservices ship natively, no mi
 | IP-M01-MIGR-012 | `audit-chain` | `crates/oya-audit-chain-*` family + any PRD/catalog/runbooks into `microservices/audit-chain/`. |
 | IP-M01-MIGR-013 | `cell` | `crates/oya-cell-*` family. |
 | IP-M01-MIGR-014 | `governance` (NEW name; replaces `foundry-fitness` working name) | **Bundles all ~50 `oya-check-*` crates into one µservice.** Moves `crates/oya-check-<topic>/` → `microservices/governance/src/crates/oya-check-<topic>/`. Crate renames to BNF v4.1 conformant `oya-governance-<topic>-<layer>` are staged inside this IP (atomic move+rename). The `governance` µservice owns the CI fitness lanes (architecture cohesion, supply-chain, license, ADR citation, doc coverage, naming conformance, SLO coverage, statelessness, shardability, etc.). Author single PRD describing the governance substrate; per-check evidence stays as lane output. |
-| IP-M01-MIGR-003 | `workflow` | `docs/prds/workflow.md`, `/specs/workflow.json`, `/specs/products/workflow-studio.json`, related crates, contracts, catalog. |
+| IP-M01-MIGR-003 | `workflow` | `docs/prds/workflow.md`, `/specs/workflow.json`, `/specs/microservices/workflow-studio.json`, related crates, contracts, catalog. |
 | IP-M01-MIGR-NEW-1 | `observability` | NEW µservice; ships natively under this convention; no migration scope, only authoring. Cross-referenced from ADR-0130. |
 | IP-M01-MIGR-008 | `application` | `docs/prds/application.md`, related crates, catalog. |
 | IP-M01-MIGR-009 | `foundry` | Consolidate `docs/prds/foundry.md` + `docs/products/foundry/` into `microservices/foundry/`; related crates, catalog, contracts. |
@@ -273,7 +273,7 @@ Total: 36 flat µservices, 30 migration IPs (six µservices ship natively, no mi
 | IP-M01-MIGR-WS-9 | `notes` | as above |
 | IP-M01-MIGR-WS-10 | `translate` | as above |
 | IP-M01-MIGR-WS-11 | `recordings` | as above |
-| IP-M01-MIGR-ENT-1 | `hr` | `docs/prds/hr.md`, related crates, catalog. Suite wrapper `/specs/products/enterprise/suite.json` retires (dissolved by ADR-0132); `hr` becomes flat. |
+| IP-M01-MIGR-ENT-1 | `hr` | `docs/prds/hr.md`, related crates, catalog. Suite wrapper `/specs/microservices/enterprise-suite.json` retires (dissolved by ADR-0132); `hr` becomes flat. |
 | IP-M01-MIGR-ENT-2 | `payroll` | `docs/prds/payroll.md`, related crates, catalog. As above. |
 | IP-M01-MIGR-ENT-3 | `accounting` | `docs/prds/accounting.md`, related crates, catalog. As above. |
 
@@ -285,7 +285,7 @@ A µservice's migration is "done" only when ALL of these are true:
 
 1. `microservices/<ms>/PRD.md` exists with frontmatter conforming to the PRD template.
 2. `microservices/<ms>/README.md` exists.
-3. Every old-path artifact has been removed (no zombie in `docs/prds/<ms>.md`, `docs/products/<ms>/`, `crates/oya-<ms>-*`, `/specs/products/<ms>*`, `.omc/plans/milestones/M0X/phases/P0Y/*` for this µservice).
+3. Every old-path artifact has been removed (no zombie in `docs/prds/<ms>.md`, `docs/products/<ms>/`, `crates/oya-<ms>-*`, `/specs/microservices/<ms>*`, `.omc/plans/milestones/M0X/phases/P0Y/*` for this µservice).
 4. `Cargo.toml` `[workspace.members]` references the new `microservices/<ms>/src/crates/<crate>` paths.
 5. `cargo build --workspace` exits 0.
 6. `cargo nextest run --workspace` exits 0 (no test references the old paths).
@@ -297,9 +297,9 @@ Repo-wide migration is complete only when every µservice in the table above has
 
 ### Strangler pattern for runtime refs
 
-Per ADR-0130's per-microservice release pointers (`release/<ms>/<env>`): the existing tree-wide `staging` and `production` refs retain **read-only** status during migration. They no longer fast-forward; they are tagged at the pre-migration HEAD and frozen. Removal happens only after every µservice has live `release/<ms>/staging` and `release/<ms>/production` pointers and a follow-up cleanup ADR retires the legacy refs.
+Per ADR-0130's per-microservice release pointers (`release/<ms>/<env>`): the existing tree-wide `staging` and `production` refs retain **read-only** status during migration. They no longer fast-forward; they are tagged at the pre-migration HEAD and frozen. Removal happens only after every µservice has live `release/<ms>/staging` and `release/<ms>/production` pointers and a successor-IP cleanup ADR retires the legacy refs.
 
-Per ADR-0119 (specs flat root topology), per-product spec files at `/specs/products/<product>.json` and `/specs/products/<product>/` directories move under their owning µservice; the `/specs/` root retains only cross-cutting specs.
+Per ADR-0119 (specs flat root topology), per-product spec files at `/specs/microservices/<product>.json` and `/specs/microservices/<product>/` directories move under their owning µservice; the `/specs/` root retains only cross-cutting specs.
 
 Per ADR-0115 (registry consolidation), `registry/catalog/<crate>.yaml` becomes a *generated aggregation*; per-µservice `microservices/<ms>/catalog/<crate>.yaml` is the source of truth.
 
@@ -360,7 +360,7 @@ Port traits, kernel/domain/application/adapter layering, and Workflow + Ontology
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | Are `oya-check-<topic>` crates each their own µservice (one folder each, ~50 folders) or bundled under `microservices/foundry/checks/`? | council-architecture | resolved in IP-M01-MIGR-014 plan; default to one-folder-each pending objection. |
-| 2 | Does `.github/workflows/*.yml` migrate per-µservice (one workflow file per µservice under `microservices/<ms>/.github/`) or stay repo-root? | ops-sre-reliability | repo-root for now; GitHub Actions requires workflows at `.github/workflows/` and ignores nested locations. ADR-NNNN follow-up if per-service triggering becomes needed. |
+| 2 | Does `.github/workflows/*.yml` migrate per-µservice (one workflow file per µservice under `microservices/<ms>/.github/`) or stay repo-root? | ops-sre-reliability | repo-root for now; GitHub Actions requires workflows at `.github/workflows/` and ignores nested locations. ADR-NNNN successor-IP if per-service triggering becomes needed. |
 | 3 | How do regional packs (`regional-packs/<pack>/PACK.md` per `STANDARDS-AND-TEMPLATES.md`) interact with this layout? | regional-packs team | regional packs span multiple µservices; treat as cross-cutting and retain top-level `regional-packs/` directory. ADR-NNNN if rule changes. |
 
 ## Verification
@@ -385,7 +385,7 @@ Port traits, kernel/domain/application/adapter layering, and Workflow + Ontology
 - ADR-0130: Agentic SLO-gated promotion (consumes this ADR for the `microservices/observability/` layout).
 - `feedback_clean_architecture_requirements.md` — bounded-context cohesion principle.
 - `feedback_quality_performance_scalability_bar.md` — hyperscaler-grade bar.
-- `feedback_autonomous_decision_principles.md` — "nothing deferred" principle.
+- `feedback_autonomous_decision_principles.md` — "nothing scheduled-for-distinct-tracked-work" principle.
 - Industry sources cited inline in §Context.
 - Memory: `feedback_flat_product_catalog.md`, `feedback_glossary_shared_not_platform.md`.
-- Issues: `Refs #<TBD>`.
+- Issues: scaffold branch `oya-microservice-flat-layout-buildout-2026-05-17` (PR opened against `dev` per CLAUDE.md Wave-B bootstrap; ADR-0116 explains the temporary seam).

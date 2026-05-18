@@ -5,7 +5,7 @@ milestone: M01-foundation
 phase: P01-translate-platform
 status: Active
 entry_gate: |
-  ADR-0131 + ADR-0126 accepted; ADR-TRANSLATE-0001..0006 accepted; foundry-providers µservice deployed and reachable; foundry-runtime µservice deployed with in-house MT + QE + LangDetect endpoints; cloud-secrets (OpenBao) deployed; observability SLO ledger live; cargo workspace ready to accept new crates under microservices/translate/src/crates/.
+  ADR-0131 + ADR-0135 accepted; ADR-TRANSLATE-0001..0006 accepted; foundry-providers µservice deployed and reachable; foundry-runtime µservice deployed with in-house MT + QE + LangDetect endpoints; cloud-secrets (OpenBao) deployed; observability SLO ledger live; cargo workspace ready to accept new crates under microservices/translate/src/crates/.
 exit_gate: |
   All 15 IPs merged; `oya-translate-credential-isolation` LEAN lane present in .github/branch-protection.yaml required_status_checks on dev and staging; `oya-translate-data-residency-correctness` BLOCKER lane present on all branches; translate-router decision p99 ≤ 5 ms verified via load test; translation-request p95 (in-house pair) ≤ 250 ms verified; real-time caption stream p99 ≤ 400 ms per-chunk verified; document translate 10-page DOCX p95 ≤ 8 s verified; bulk-translate 10 k-segment XLIFF p95 ≤ 60 s verified; `cargo nextest run --workspace` exits 0; `oya gate validate per-microservice-layout --microservice translate` exits 0; `oya gate validate authority-cohesion` exits 0; HG-TRANSLATE gate in /specs/hyperscaler-gates.json registers green.
 depends_on:
@@ -28,7 +28,7 @@ depends_on:
     phase: audit-chain/P01-event-seal-substrate
     reason: Every translation seal flows to audit-chain
 owner_team: axis-translate + ops-security + council-privacy
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -38,13 +38,13 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full ADR-0126 + ADR-TRANSLATE-0001..0006 design for the `translate` microservice: a `translate-router` capability-aware engine selector, per-vendor adapters (Anthropic / OpenAI / Google Cloud Translation / DeepL via foundry-providers + in-house via foundry-runtime), a per-tenant Translation Memory + termbase + glossary stack, a Quality Estimation + Language Detection pair, a document-translation round-trip pipeline (Pandoc + LibreOffice in gVisor), a real-time caption-translation stream, and a bulk-translate worker.
+This phase ships the full ADR-0135 + ADR-TRANSLATE-0001..0006 design for the `translate` microservice: a `translate-router` capability-aware engine selector, per-vendor adapters (Anthropic / OpenAI / Google Cloud Translation / DeepL via foundry-providers + in-house via foundry-runtime), a per-tenant Translation Memory + termbase + glossary stack, a Quality Estimation + Language Detection pair, a document-translation round-trip pipeline (Pandoc + LibreOffice in gVisor), a real-time caption-translation stream, and a bulk-translate worker.
 
 It is delivered as one phase in M01-foundation because every workload µservice (mail, messenger, social, docs, sheets, slides, meet, shorts, workflow-studio) depends on stable `TranslateInvoker` ports before they can advance past `dev` per the per-µservice gate posture.
 
 This phase advances master-plan principles:
 - **Hyperscaler-grade in every practice** (in-process router p99 ≤ 5 ms; per-call Ed25519 envelope seal; gVisor sandboxed document parsers; ≥ 99.95 % MT availability).
-- **Nothing deferred within scope** (every adapter ships with full credential isolation; gVisor sandbox on all parsers; EU AI Act disclosure baked into every call).
+- **Nothing scheduled-for-distinct-tracked-work within scope** (every adapter ships with full credential isolation; gVisor sandbox on all parsers; EU AI Act disclosure baked into every call).
 - **No silent regression** (per-tenant engine pin + content-class routing + canonical-base neutrality + LEAN-A10).
 - **Per-microservice flat layout** (this phase authors under `microservices/translate/` per ADR-0131; no sibling µservice surface touched).
 - **Canonical base + pack overlays** (KR + EU + JP + CN-stub overlays in `iac/kustomize/overlays/` per ADR-0064).
@@ -125,7 +125,7 @@ Load tests (`tests/load/`) demonstrate every performance budget in PRD §"Perfor
 ## References
 
 - `microservices/translate/PRD.md`.
-- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133.
+- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133.
 - ADR-TRANSLATE-0001 .. ADR-TRANSLATE-0006.
 - `/specs/per-microservice-flat-layout.json`.
 - `docs/standards/observability-slo.md`.

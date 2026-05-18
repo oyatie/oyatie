@@ -152,10 +152,10 @@ recruiterStub:
     limits: {cpu: 500m, memory: 512Mi}
 
 servicesMarketplaceStub:
-  enabled: false  # stub; future activation per ADR-NET follow-up
+  enabled: false  # stub; future activation per ADR-NET successor-IP
 
 learningStub:
-  enabled: false  # stub; future activation per ADR-NET follow-up
+  enabled: false  # stub; future activation per ADR-NET successor-IP
 
 salaryInsightsStub:
   enabled: true  # aggregate-only; per-individual disclosure forbidden by design
@@ -266,7 +266,7 @@ clamav:
 
 federation:
   enabled: false
-  reason: "network is Professional-tier-only; federation deferred per ADR-NET follow-up"
+  reason: "network is Professional-tier-only; federation scheduled-for-distinct-tracked-work per ADR-NET successor-IP"
 
 # ============================================================================
 # Cedar policy + Authz

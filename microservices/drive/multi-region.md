@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: axis-drive + ops-sre-reliability
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0006]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0006]
 doc_status: published
 ---
 

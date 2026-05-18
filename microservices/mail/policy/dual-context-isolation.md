@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-mail + council-privacy + ops-security
 deciders: council-architecture, ops-security, axis-mail, council-privacy, ops-legal
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
 related_artifacts:
   - microservices/mail/threat-model.md (Trust Boundary 6; T-I-02, T-L-05, T-L-08)
   - microservices/mail/dpia.md (R-02, R-06)
@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing invariants of mail's dual-context model: **Personal context (B2C; person-pillar)** vs **Professional context (B2B; org-pillar)**. These contexts share one user identity but are isolated at the kernel layer per parallel ADR-0126 (which codifies the 7-sub-product Connect expansion's dual-context isolation rule) and Bominal ADR-0208 (dual-context unified channel hub) + ADR-0215 (retention/legal-hold dual-context).
+Define the load-bearing invariants of mail's dual-context model: **Personal context (B2C; person-pillar)** vs **Professional context (B2B; org-pillar)**. These contexts share one user identity but are isolated at the kernel layer per parallel ADR-0135 (which codifies the 7-sub-product Connect expansion's dual-context isolation rule) and Bominal ADR-0208 (dual-context unified channel hub) + ADR-0215 (retention/legal-hold dual-context).
 
 This document is the authoritative reference for SOC 2 examiners (CC6.1 / CC6.2 / CC6.6), ISO 27001 auditors (A.5.15 / A.8.3 / A.8.12), GDPR Art. 32 reviewers, KR PIPA Art. 23 reviewers, HIPAA §164.502(b) reviewers, and ops-legal asking *"how does mail prevent an employer from reading an employee's personal mail?"*
 
@@ -278,7 +278,7 @@ Each pack's overlay at `regional-packs/<pack>/mail-dual-context-overlay.md` maps
 
 - ADR-0028 (Bominal): audit-chain.
 - ADR-0117: residency.
-- ADR-0126: Connect dissolution; dual-context invariant.
+- ADR-0135: Connect dissolution; dual-context invariant.
 - ADR-0130: SLO gate.
 - ADR-0131: per-microservice flat layout.
 - ADR-0132: no-suite forward policy.

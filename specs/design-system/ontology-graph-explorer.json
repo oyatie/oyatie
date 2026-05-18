@@ -43,7 +43,7 @@
     "crates/oya-ontology-adapter/tests/dynamic_state.rs::test_freshness_budget"
   ],
   "consumers": [
-    "$ref:specs/products/ontology.json#frontend_components"
+    "$ref:specs/microservices/ontology.json#frontend_components"
   ],
   "verification_commands": [
     "target/debug/oya gate validate product-prd-json",

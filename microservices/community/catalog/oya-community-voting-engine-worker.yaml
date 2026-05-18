@@ -7,6 +7,6 @@ contracts_consumed: [oya-community-voting-engine-usecase, oya-community-voting-e
 contracts_exposed: []
 lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
-  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+  source_adrs: [ADR-0105, ADR-0135, ADR-0131]
 allowed_dependency_edges: [oya-community-voting-engine-usecase, oya-community-voting-engine-adapter-postgres]
 autonomy_tier_required: T1

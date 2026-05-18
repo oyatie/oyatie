@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-calendar + ops-security
 deciders: council-architecture, ops-security, axis-calendar, council-privacy
 methodology: STRIDE + LINDDUN + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
 review_cadence: quarterly + on every BC architectural change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1-CC6.8, CC7.1-CC7.5, CC8.1"
@@ -558,7 +558,7 @@ Per-pack overlays at `regional-packs/<pack>/calendar-overlay.md`.
 ## References
 
 - ADR-0028 (Bominal): Audit chain (Merkle + Ed25519).
-- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140.
+- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140.
 - `microservices/calendar/PRD.md`, `dpia.md`, `compliance.md`, `policy/*.cedar`.
 - RFC 5545 (iCalendar), RFC 5546 (iTIP), RFC 4791 (CalDAV).
 - libical conformance corpus.

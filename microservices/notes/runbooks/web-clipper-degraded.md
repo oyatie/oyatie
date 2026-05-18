@@ -60,7 +60,7 @@ Triggers:
 
 | Mode | Trigger | Behaviour |
 |---|---|---|
-| `trimmed-capture` | latency > 1s p95 for 10min | clipper sends URL + title only; full-HTML deferred to backend fetch |
+| `trimmed-capture` | latency > 1s p95 for 10min | clipper sends URL + title only; full-HTML scheduled-for-distinct-tracked-work to backend fetch |
 | `metadata-only` | server-side overload | URL + title + selected-text-snippet; no full HTML |
 | `local-queue` | server unreachable | extension queues clip in `chrome.storage.local` (max 50 clips); replays when online |
 

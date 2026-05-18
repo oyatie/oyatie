@@ -513,7 +513,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Admin API requires JIT elevation via OpenBao (2-person rule for delete operations).
   - Every admin call emits audit-chain record; mass-deletion patterns trigger anomaly alert (`oya:mimir_admin_mass_deletion:rate`).
-  - Soft-deletion: deletion marks blocks for retention-override; actual delete deferred 30 days (recovery window).
+  - Soft-deletion: deletion marks blocks for retention-override; actual delete scheduled-for-distinct-tracked-work 30 days (recovery window).
 - Owner: ops-security + axis-observability
 - Residual: L
 - Frameworks: SOC 2 CC6.6, CC8.1; ISO 27001 A.5.15, A.5.27, A.8.4, A.8.16; GDPR Art. 17 (right to erasure), Art. 32 (security)

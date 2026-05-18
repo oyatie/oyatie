@@ -83,7 +83,7 @@ equivalent JMAP Calendars gate in the M03 PRD.
 ## Decision
 
 The calendar µservice ships **CalDAV (RFC 4791) as the primary
-external wire protocol at M03**, with JMAP Calendars deferred to **M04
+external wire protocol at M03**, with JMAP Calendars scheduled-for-distinct-tracked-work to **M04
 or later, contingent on the IETF draft reaching RFC status**.
 
 Concrete bindings:
@@ -110,16 +110,16 @@ Concrete bindings:
      crates per BC; CalDAV + REST + gRPC client.
    - **TypeScript SDK** at M03 — OpenAPI-generated baseline + first-
      party CalDAV client wrapper; published to npm.
-   - **Python SDK** at M03+1 — OpenAPI-generated; published to PyPI;
+   - **Python SDK** at M03-onward1 — OpenAPI-generated; published to PyPI;
      pairs with `caldav` reference lib.
-   - **Swift SDK** at M03+1 — native EventKit-shaped wrapper over our
+   - **Swift SDK** at M03-onward1 — native EventKit-shaped wrapper over our
      CalDAV; eventual JMAP Calendars switch when M04 ships.
-   - **Go / JVM / C# SDKs** at M04+ — gRPC baseline + ergonomic
+   - **Go / JVM / C# SDKs** at M04-onward — gRPC baseline + ergonomic
      wrappers.
 
 4. **Tenant-visible surface table**:
 
-   | Client | M03 protocol | M04+ protocol |
+   | Client | M03 protocol | M04-onward protocol |
    |---|---|---|
    | Apple Calendar / iCloud | CalDAV | CalDAV (no change; JMAP Cal optional) |
    | Mozilla Thunderbird / Lightning | CalDAV | CalDAV (no change) |
@@ -159,7 +159,7 @@ Concrete bindings:
 
 - **Pros**:
   - Maximum client coverage on day one.
-  - No M04 follow-up effort.
+  - No M04 successor-IP effort.
 - **Cons**:
   - Doubles the M03 surface area; doubles the conformance test matrix
     (both protocols against the same RRULE engine).
@@ -191,7 +191,7 @@ Concrete bindings:
 - **Pros**:
   - PRD release gate (AC-04) met at M03 with the universally-supported
     CalDAV.
-  - JMAP Calendars deferred until draft becomes RFC (or settles enough
+  - JMAP Calendars scheduled-for-distinct-tracked-work until draft becomes RFC (or settles enough
     for a stable ship); avoids no-silent-regression violation.
   - Mirrors ADR-MAIL-0003 staging (JMAP first, IMAP fallback) at a
     protocol cadence appropriate to each surface's maturity.
@@ -199,7 +199,7 @@ Concrete bindings:
     surfaces bounded.
 - **Cons**:
   - M03 ships without the SDK symmetry of mail (which gets JMAP-first);
-    Swift SDK at M03+1 will explicitly note the CalDAV-only posture
+    Swift SDK at M03-onward1 will explicitly note the CalDAV-only posture
     until M04.
   - M04 effort is non-trivial (~3 engineer-months for the JMAP
     Calendars adapter + SDK wrappers).
@@ -214,12 +214,12 @@ Concrete bindings:
   CalDAV against Apple Calendar / Thunderbird / Evolution / DAVx5
   passes the public CalDAV interop matrix.
 - **No silent regression on draft revisions.** JMAP Calendars is
-  deferred until the draft stabilises, so consumers depending on a
+  scheduled-for-distinct-tracked-work until the draft stabilises, so consumers depending on a
   draft-N revision don't face breaking changes on each IETF revision.
 - **Bounded ship surface.** One protocol per milestone is the right
   cadence for SLO + conformance + interop coverage.
 - **Symmetry with ADR-MAIL-0003 preserved as a staged rollout.** The
-  calendar SDK launch order (Rust + TS at M03; Python + Swift at M03+1)
+  calendar SDK launch order (Rust + TS at M03; Python + Swift at M03-onward1)
   mirrors mail's pattern with one milestone of stagger.
 
 ### Negative
@@ -230,7 +230,7 @@ Concrete bindings:
 - **M04 JMAP Calendars effort is non-trivial.** ~3 engineer-months for
   the adapter + SDK wrappers; ~1 engineer-month for the OpenSLO
   manifests + dashboards.
-- **Swift SDK lacks EventKit-JMAP path at M03+1.** Swift SDK ships a
+- **Swift SDK lacks EventKit-JMAP path at M03-onward1.** Swift SDK ships a
   CalDAV-wrapping EventKit-shape; the JMAP Calendars Swift path comes
   with M04. Documented in `sdk-plan.md`.
 

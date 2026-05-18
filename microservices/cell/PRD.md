@@ -292,7 +292,7 @@ Sharding:
 |---|---|---|---|
 | 1 | One cell per tenant vs many tenants per cell — final policy by tenant_scope | council-architecture | resolved in IP-002 |
 | 2 | Cluster API vs OCI-native cluster lifecycle (which is canonical?) | cloud-k8s + axis-cell-substrate | resolved in IP-008 |
-| 3 | Tenant-migration cutover strategy — blue-green vs dual-write vs change-data-capture | axis-cell-substrate | ADR follow-up |
+| 3 | Tenant-migration cutover strategy — blue-green vs dual-write vs change-data-capture | axis-cell-substrate | ADR successor-IP |
 | 4 | Cell-affinity for HA: multi-AZ cell vs cell-per-AZ | ops-sre-reliability | resolved in `multi-region.md` |
 | 5 | Cross-pack rebalance — permitted at all, or strictly forbidden? | council-privacy | answered: forbidden by default; SCC-exception only |
 

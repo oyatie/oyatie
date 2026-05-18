@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-community
 deciders: council-privacy, ops-security, axis-community, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/connect-unbundle.json]
 related_artifacts:
   - microservices/community/threat-model.md

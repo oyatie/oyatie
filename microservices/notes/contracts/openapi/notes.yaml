@@ -7,7 +7,7 @@ info:
     Tenant-facing REST surface for the notes µservice. All endpoints require
     OIDC + Cedar authorisation (per `microservices/notes/policy/tenant-scope.cedar`)
     and are tenant-scoped via `X-Scope-OrgID` header + dual-context-tagged via
-    `X-Context-Kind` header per parallel ADR-0126.
+    `X-Context-Kind` header per parallel ADR-0135.
 
     Real-time path is via WebSocket at `wss://notes-{pack}.oyatie.dev/ws/v1`
     documented in `contracts/asyncapi/notes-events.yaml`.
@@ -69,7 +69,7 @@ components:
       schema:
         type: string
         enum: [Personal, Professional]
-      description: Dual-context invariant per parallel ADR-0126
+      description: Dual-context invariant per parallel ADR-0135
     NoteId:
       in: path
       name: note_id

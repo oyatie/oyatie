@@ -58,7 +58,7 @@ a single claimable-verifiable-bundleable-promotable ChangeSet.
   authority-cohesion + retention-policy-correctness +
   legal-hold-chain-of-custody-correctness).
 - HG-RECORDINGS authority-cohesion gate accepts at p99 SLOs sustained 30d
-  per ADR-0126 retirement trigger.
+  per ADR-0135 retirement trigger.
 - Phase-3 canary (10 % → 50 % → 100 % traffic) on the Strangler adapter
   reaches 100 % traffic on the new µservice sustained 7d.
 - All 10 SLOs publishing burn-rate to promotion ledger per ADR-0130.

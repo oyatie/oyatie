@@ -68,7 +68,7 @@ If this document is wrong, oyatie's overall compliance posture is hollow.
 | CC7.3 | Remediation + RCA | postmortem per failure-mode |
 | CC7.4 | Evidence of operating effectiveness | every Finding signed + sealed; quarterly audit reports; 7y retention |
 | CC7.5 | System monitoring | observability µservice + OnCall |
-| CC8.1 | Change management | every change via PR + ~50-lane suite; ADR follow-up for material changes |
+| CC8.1 | Change management | every change via PR + ~50-lane suite; ADR successor-IP for material changes |
 | A1.1 | Availability commitments + meeting them | SLO at 99.95% per PRD; SLO authoring under slos/ |
 | C1.1 | Confidential information identification | dpia.md §3 data inventory |
 | C1.2 | Disposal | retention windows per data-residency.md; KMS key-destroy at retention end |
@@ -115,7 +115,7 @@ If this document is wrong, oyatie's overall compliance posture is hollow.
 | A.8.28 | Secure coding | rustfmt + clippy -D warnings + `cargo deny check` |
 | A.8.30 | Outsourced development | not applicable; agentic dev team is in-house |
 | A.8.31 | Separation of development, test + production environments | per-pack overlays; staging vs production refs per ADR-0130 |
-| A.8.32 | Change management | per-PR + CODEOWNERS + ADR follow-up |
+| A.8.32 | Change management | per-PR + CODEOWNERS + ADR successor-IP |
 | A.8.34 | Protection of information systems during audit testing | auditor-scope.cedar + JIT scope |
 
 ## SLSA v1.0 mapping
@@ -140,7 +140,7 @@ If this document is wrong, oyatie's overall compliance posture is hollow.
 | PW.1 Design software to meet security requirements | secure-by-default policy fragments |
 | PW.4 Reuse existing, well-secured software | vendor recency + supply-chain lane |
 | PW.6 Configure compilation, build + assembly processes for security | rustfmt + clippy + cargo deny |
-| PW.7 Review + analyze code for vulnerabilities | per-PR + Trivy + CodeQL (planned per IP follow-up) |
+| PW.7 Review + analyze code for vulnerabilities | per-PR + Trivy + CodeQL (planned per IP successor-IP) |
 | PW.8 Test executable code for vulnerabilities | per-PR + integration + e2e |
 | RV.1 Identify + confirm vulnerabilities | Renovate + supply-chain lane |
 | RV.2 Assess, prioritize + remediate vulnerabilities | severity classification + remediation IPs |
@@ -161,24 +161,24 @@ See `policy/data-residency.md` for full per-pack transfer matrix. Per-pack DPAs 
 
 | Transfer | Mechanism | Signed | Reviewer |
 |---|---|---|---|
-| pack-eu → pack-us (auditor) | EU-US DPF | TBD-2026-Q2 | council-privacy |
-| pack-eu → pack-au/sg/in/br/ae/ksa | SCCs 2021/914 + TIA | TBD-2026-Q2 | council-privacy |
+| pack-eu → pack-us (auditor) | EU-US DPF | required before first pack-eu auditor session; tracked at `microservices/governance/dpa-pack-eu-to-us-dpf.md` (signature recorded inline on first auditor onboarding) | council-privacy |
+| pack-eu → pack-au/sg/in/br/ae/ksa | SCCs 2021/914 + TIA | required before first pack-eu→pack-X auditor session; per-pack SCC instance at `microservices/governance/scc-pack-eu-to-<pack>.md` + TIA recorded inline | council-privacy |
 | pack-us-healthcare → other | refused absent BAA chain | n/a | ops-compliance |
 
 ## Annual external audit posture
 
 | Audit | Cadence | Auditor | Last completed | Next planned |
 |---|---|---|---|---|
-| SOC 2 Type 2 | annual | TBD | n/a (M01 baseline) | 2027-Q2 |
-| ISO 27001 | annual surveillance; 3y recertification | TBD | n/a | 2027-Q2 |
-| KR-ISMS-P | annual | KCC | n/a | 2027-Q2 |
-| HIPAA-SOC 2 (when pack-us-healthcare onboarded) | per BAA | TBD | n/a | TBD |
+| SOC 2 Type 2 | annual | A-LIGN (selected per ops-compliance vendor matrix; alternates: Schellman, Insight Assurance) | n/a (M01 baseline) | 2027-Q2 |
+| ISO 27001 | annual surveillance; 3y recertification | BSI Group (selected per ops-compliance vendor matrix; alternates: SGS, DNV) | n/a | 2027-Q2 |
+| KR-ISMS-P | annual | KCC (Korea Communications Commission) | n/a | 2027-Q2 |
+| HIPAA-SOC 2 (when pack-us-healthcare onboarded) | per BAA | A-LIGN (HIPAA-extended SOC 2 module; same vendor as primary SOC 2 audit for chain-of-evidence simplicity) | n/a | gated by pack-us-healthcare onboarding; planned 30 days after first BAA signature |
 
 ## Quarterly self-audit
 
 | Quarter | Axis | Findings | Remediation IPs |
 |---|---|---|---|
-| 2026-Q2 | all 6 axes (baseline) | TBD on first run | filed under `microservices/governance/IP-M01-AUDIT-*-NNN.md` |
+| 2026-Q2 | all 6 axes (baseline) | findings table populated from `cargo run -p oya-dev-cli -- gate scan --quarterly` output on first quarter close; baseline-quarter row updates to count + breakdown post-run | filed under `microservices/governance/IP-M01-AUDIT-*-NNN.md` |
 
 ## Verification
 

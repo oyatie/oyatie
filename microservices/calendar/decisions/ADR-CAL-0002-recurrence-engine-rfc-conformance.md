@@ -141,7 +141,7 @@ subsetting. Concrete bindings:
 5. **Outlook UNTIL+COUNT forgiveness** is NOT shipped at M03. The PRD's
    "RFC 5545 RRULE conformance" target is strict; legacy Outlook clients
    that emit both fields receive a 400 with a remediation hint. This is
-   revisited in a follow-up ADR if the support tickets warrant.
+   revisited in a successor-IP ADR if the support tickets warrant.
 
 ## Alternatives Considered
 

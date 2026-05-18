@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   description: |
     Org-wide community surface. Announcements + Q&A + KB articles + threaded
-    discussion + voting + moderation + search. Per ADR-0126 Connect-unbundle.
+    discussion + voting + moderation + search. Per ADR-0135 Connect-unbundle.
   contact:
     name: axis-community
 servers:

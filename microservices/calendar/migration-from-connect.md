@@ -5,8 +5,8 @@ microservice: calendar
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-CALENDAR accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-CAL-0001, ADR-CAL-0002, ADR-CAL-0003, ADR-CAL-0004]
-related_specs: [/specs/products/connect/calendar.json, /specs/products/calendar/calendar.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-CAL-0001, ADR-CAL-0002, ADR-CAL-0003, ADR-CAL-0004]
+related_specs: [/specs/microservices/calendar.json, /specs/microservices/calendar/calendar.json]
 owner_team: axis-calendar
 date: 2026-05-17
 doc_status: published
@@ -17,7 +17,7 @@ doc_status: published
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **calendar** µservice. It is the
 consumer-facing companion to ADR-0134 (cross-µservice migration policy) and
-ADR-0126 (target topology).
+ADR-0135 (target topology).
 
 ## Status
 
@@ -27,7 +27,7 @@ in dev cluster.**
 | Field | Value |
 |---|---|
 | Replacement | `oya-calendar-*` crate family under `microservices/calendar/src/crates/` |
-| Removal date | **Advisory** — concrete target is HG-CALENDAR accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #3) |
+| Removal date | **Advisory** — concrete target is HG-CALENDAR accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
 | Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 6-BC calendar surface (events / recurrence / availability / room-booking / invitation-flow / ics-import-export) is only addressable at µservice granularity, not at Connect-suite granularity |
 | Migration owner (Churn Rule) | axis-calendar |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
@@ -111,7 +111,7 @@ surface — they are clean replacement-boundary features. Specifically:
   secondary CalDAV backend per ADR-CAL-0001 (only enabled on
   `pack-us-healthcare`).
 - **JMAP Calendars adapter** (`oya-calendar-ics-import-export-
-  adapter-jmap`) — deferred to M04 per ADR-CAL-0003.
+  adapter-jmap`) — scheduled-for-distinct-tracked-work to M04 per ADR-CAL-0003.
 - **`oya-calendar-tzdb-refresh-worker`** — automated IANA tzdb
   refresh per ADR-CAL-0004; the legacy connect-calendar surface had
   no tzdb refresh worker.
@@ -223,7 +223,7 @@ run without to route through the legacy adapter. Compare:
 - error variant ordering (Hyrum's Law — see surfaces below).
 - p99 latency (must be ≤ legacy + 5% per ADR-0134 Phase 3 canary gate).
 - log-line format (preserved verbatim during the canary; may be
-  tightened in a follow-up `feedback_no_silent_regression`-conforming
+  tightened in a successor-IP `feedback_no_silent_regression`-conforming
   ADR).
 - RRULE expansion output (per ADR-CAL-0002 — full RFC 5545 conformance
   may emit DIFFERENT occurrences from the legacy engine for the named
@@ -389,7 +389,7 @@ satisfy these checks. Each is gated by a concrete command:
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
   find crates -maxdepth 1 -type d -name "oya-connect-calendar-*" | wc -l   # expect 0
-  test ! -f /specs/products/connect/calendar.json                          # expect file absent
+  test ! -f /specs/microservices/calendar.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase**
   (excluding historical ADR / RETIRED.md / git-log surfaces):
@@ -440,15 +440,15 @@ did not migrate during the 5-month adapter+canary window. Per
   gating).
 - Owning axis (axis-calendar) ships migration ChangeSets for every
   internal consumer per the Churn Rule before Phase 5.
-- External consumers (reading `/specs/products/connect/calendar.json`)
+- External consumers (reading `/specs/microservices/calendar.json`)
   receive a 6-month sunset window from this notice; the spec file's
   `deprecated: true` + `replacement_path:
-  /specs/products/calendar/calendar.json` fields render in the
+  /specs/microservices/calendar/calendar.json` fields render in the
   agent-coordination dashboard.
 
 ## References
 
-- ADR-0126: Connect super-app expansion into 8 flat µservices.
+- ADR-0135: Connect super-app expansion into 8 flat µservices.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.

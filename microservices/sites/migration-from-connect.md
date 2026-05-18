@@ -5,8 +5,8 @@ microservice: sites
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-SITES accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
-related_specs: [/specs/products/connect/sites.json, /specs/products/sites/sites.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
+related_specs: [/specs/microservices/sites.json, /specs/microservices/sites/sites.json]
 owner_team: axis-sites
 date: 2026-05-17
 doc_status: published
@@ -17,7 +17,7 @@ doc_status: published
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **sites** µservice. It is the
 consumer-facing companion to ADR-0134 (cross-µservice migration policy)
-and ADR-0126 (target topology).
+and ADR-0135 (target topology).
 
 ## Status
 
@@ -27,7 +27,7 @@ soak in flight.**
 | Field | Value |
 |---|---|
 | Replacement | `oya-sites-*` crate family under `microservices/sites/src/crates/` |
-| Removal date | **Advisory** — concrete target is HG-SITES accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #3) |
+| Removal date | **Advisory** — concrete target is HG-SITES accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
 | Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-BC sites surface (site / page / block / theme / navigation / url-routing / domain-binding / seo / cms-collection / search / cdn-delivery) is only addressable at µservice granularity, not at Connect-suite granularity |
 | Migration owner (Churn Rule) | axis-sites |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
@@ -419,7 +419,7 @@ had a long-tail dependency:
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
   find crates -maxdepth 1 -type d -name "oya-connect-sites-*" | wc -l   # expect 0
-  test ! -f /specs/products/connect/sites.json                          # expect file absent
+  test ! -f /specs/microservices/sites.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase**:
   ```bash
@@ -462,12 +462,12 @@ did not migrate during the 5-month adapter+canary window. Per
   gating).
 - Owning axis (axis-sites) ships migration ChangeSets for every
   internal consumer per the Churn Rule before Phase 5.
-- External consumers (reading `/specs/products/connect/sites.json`)
+- External consumers (reading `/specs/microservices/sites.json`)
   receive a 6-month sunset window from this notice.
 
 ## References
 
-- ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
+- ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
 - ADR-SITES-0001 (Loro CRDT); ADR-SITES-0002 (rendering); ADR-SITES-0003
   (CDN); ADR-SITES-0004 (ACME); ADR-SITES-0005 (CMS-collection);
   ADR-SITES-0006 (AI-page-build); ADR-SITES-0007 (image pipeline).

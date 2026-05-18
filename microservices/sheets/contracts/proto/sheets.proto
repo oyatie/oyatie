@@ -1,6 +1,6 @@
 // oya-sheets — gRPC contract
 // Peer to contracts/openapi/sheets.yaml for clients that prefer gRPC.
-// Per ADR-0126 net-new µservice + ADR-0131 unbundle + ADR-0056 BNF v4.1 + ADR-0105 13-layer.
+// Per ADR-0135 net-new µservice + ADR-0131 unbundle + ADR-0056 BNF v4.1 + ADR-0105 13-layer.
 //
 // Authn: per-request OIDC bearer (gRPC metadata key "authorization").
 // Authz: Cedar policy evaluation server-side; same fragments as REST (policy/*.cedar);
@@ -142,7 +142,7 @@ enum ChartType {
 enum ExportFidelityTier {
   EXPORT_FIDELITY_TIER_UNSPECIFIED = 0;
   EXPORT_FIDELITY_TIER_BEST_EFFORT = 1;  // M03 target per ADR-SHEETS-0007
-  // EXPORT_FIDELITY_TIER_STRICT_OOXML = 2;  // deferred post-M03
+  // EXPORT_FIDELITY_TIER_STRICT_OOXML = 2;  // scheduled-for-distinct-tracked-work subsequent-to-M03-completion
 }
 
 enum FormulaError {

@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/workflow-studio/threat-model.md §"T-D-01" + §"T-D-02" + §"T-D-05"
   - microservices/workflow-studio/capacity-model.md
   - microservices/workflow-studio/PRD.md §"Horizontal Scalability"
-  - /specs/products/workflow-studio.json §goals.scalability
+  - /specs/microservices/workflow-studio.json §goals.scalability
 doc_status: published
 ---
 
@@ -148,7 +148,7 @@ After recovery:
 - `microservices/workflow-studio/PRD.md` §"Horizontal Scalability" + §"Performance".
 - `microservices/workflow-studio/threat-model.md` T-D-01, T-D-02, T-D-05, T-D-08.
 - `microservices/workflow-studio/capacity-model.md`.
-- `/specs/products/workflow-studio.json` §goals.scalability.
+- `/specs/microservices/workflow-studio.json` §goals.scalability.
 - Google SRE Workbook ch. 21 (Addressing cascading failures).
 - AWS Well-Architected Framework — Reliability Pillar (graceful degradation).
 - Cloudflare DDoS protection patterns — `developers.cloudflare.com/ddos-protection/`.

@@ -177,6 +177,135 @@
       "audit_finding_budget": 500,
       "strict_finding_budget": 0,
       "action": "inventory_only"
+    },
+    {
+      "id": "tmp",
+      "roots": [
+        "/tmp",
+        "/private/tmp"
+      ],
+      "missing_ok": false,
+      "max_depth": 1,
+      "match_globs": [
+        "oya*",
+        "oyatie*",
+        "*pipeline*",
+        "*m-cc*"
+      ],
+      "audit_finding_budget": 10000,
+      "strict_finding_budget": 0,
+      "cleanup_globs": [
+        "oya*",
+        "oyatie*",
+        "*pipeline*",
+        "*m-cc*"
+      ],
+      "action": "cleanable_temp_artifacts"
+    },
+    {
+      "id": "home",
+      "roots": [
+        "~"
+      ],
+      "missing_ok": false,
+      "max_depth": 1,
+      "match_globs": [
+        "oya*",
+        "oyatie*",
+        "*pipeline*",
+        "*m-cc*"
+      ],
+      "exempt_globs": [
+        "oya-kernel",
+        "oyadb",
+        "oyatie",
+        "oyatie-worktrees"
+      ],
+      "exemption_evidence_refs": [
+        "docs/AGENTS.md#project-doc",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md"
+      ],
+      "audit_finding_budget": 500,
+      "strict_finding_budget": 0,
+      "action": "inventory_only"
+    },
+    {
+      "id": "repo",
+      "roots": [
+        ".",
+        "~/oyatie"
+      ],
+      "missing_ok": false,
+      "max_depth": 1,
+      "match_globs": [
+        "target-*",
+        "*.log",
+        "*.out",
+        "*.err",
+        "*pipeline*"
+      ],
+      "audit_finding_budget": 500,
+      "strict_finding_budget": 0,
+      "action": "inventory_only"
+    },
+    {
+      "id": "build-artifacts",
+      "roots": [
+        ".",
+        "~/oyatie",
+        "~/oyatie-worktrees"
+      ],
+      "missing_ok": true,
+      "max_depth": 2,
+      "match_globs": [
+        "target",
+        "target-*",
+        "dist",
+        "build",
+        ".next",
+        ".turbo",
+        ".vite",
+        "coverage",
+        "lcov.info",
+        "*.profraw",
+        "*.profdata"
+      ],
+      "cleanup_globs": [
+        "target",
+        "target-*",
+        "dist",
+        ".next",
+        ".turbo",
+        ".vite",
+        "coverage",
+        "lcov.info",
+        "*.profraw",
+        "*.profdata"
+      ],
+      "audit_finding_budget": 1000,
+      "strict_finding_budget": 0,
+      "action": "cleanable_build_artifacts"
+    },
+    {
+      "id": "oyatie-worktrees",
+      "roots": [
+        "~/oyatie-worktrees"
+      ],
+      "missing_ok": true,
+      "max_depth": 1,
+      "match_globs": [
+        "*"
+      ],
+      "exempt_globs": [
+        "*"
+      ],
+      "exemption_evidence_refs": [
+        "docs/AGENTS.md#scaffold_protocol",
+        "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md"
+      ],
+      "audit_finding_budget": 500,
+      "strict_finding_budget": 0,
+      "action": "inventory_only"
     }
   ],
   "hygiene_classes": [

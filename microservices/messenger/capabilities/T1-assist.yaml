@@ -12,7 +12,7 @@ description: |
 owner_team: axis-messenger + axis-foundry-runtime
 maturity: preview
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133]
 related_artifacts:
   - microservices/messenger/PRD.md (Open Question 2 — voice/video signaling related)
   - microservices/messenger/policy/dual-context-isolation.md

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-sheets
 deciders: ops-sre-reliability, axis-sheets, ops-security, council-architecture
-related_adrs: [ADR-0065, ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0065, ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/sheets/threat-model.md
   - microservices/sheets/dpia.md

@@ -1,7 +1,7 @@
 // Terraform module: kubeadm-cluster
 // Per ADR-0121 §"On-prem k8s stack"; managed by cloud-iac's Terraform runner.
 // cloud-k8s µservice declares this module; the underlying compute is provisioned by cloud-iac.
-// kubeadm + containerd are Terraform-applied (not Helm) per ADR-0121 §"Required follow-up".
+// kubeadm + containerd are Terraform-applied (not Helm) per ADR-0121 §"Required successor-IP work".
 
 terraform {
   required_version = ">= 1.7.0"
@@ -30,10 +30,10 @@ variable "kubeadm_version" {
 variable "control_plane_count" {
   type        = number
   default     = 1
-  description = "Control-plane node count; M01=1 (per ADR-0121 §Migration triggers); 3 post-M04 HA"
+  description = "Control-plane node count; M01=1 (per ADR-0121 §Migration triggers); 3 (M04-onward HA topology)"
   validation {
     condition = var.control_plane_count == 1 || var.control_plane_count == 3
-    error_message = "control_plane_count must be 1 (M01) or 3 (M04+ HA)"
+    error_message = "control_plane_count must be 1 (M01) or 3 (M04-onward HA)"
   }
 }
 

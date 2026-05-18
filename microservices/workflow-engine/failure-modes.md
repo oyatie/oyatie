@@ -70,7 +70,7 @@ Each failure carries:
 | Detection | Engine worker queue depth spikes > 50k at cold-start; lease wait p99 > 2s |
 | Tenant impact | Step dispatch latency degraded; some new runs see start latency > 1s |
 | Severity | Sev-2 (operational degradation; no data loss) |
-| Immediate mitigation | Resume rate-limit enforced (100 runs/s/worker at cold-start); HPA ramps; new run-starts deferred for 30s if needed |
+| Immediate mitigation | Resume rate-limit enforced (100 runs/s/worker at cold-start); HPA ramps; new run-starts scheduled-for-distinct-tracked-work for 30s if needed |
 | RTO | ≤ 10min steady-state recovery |
 | Recovery runbook | `runbooks/durable-execution-restart.md` |
 | Postmortem owner | axis-workflow + ops-sre-reliability |

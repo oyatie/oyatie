@@ -24,7 +24,7 @@ Track competitive parity across feature, privacy posture, regulatory posture, an
 
 - **Parity (P)** = we match or exceed the competitor's capability.
 - **Refuse to replicate (R)** = we intentionally do NOT inherit; column "anti-pattern" explains why.
-- **Deferred (D)** = capability deferred to a later milestone (still on the roadmap).
+- **Deferred (D)** = capability scheduled-for-distinct-tracked-work to a later milestone (still on the roadmap).
 - **N/A** = not applicable to our positioning.
 
 ## Feature Parity
@@ -41,11 +41,11 @@ Track competitive parity across feature, privacy posture, regulatory posture, an
 | Upvote/downvote | ✓ | ✓ | – | ✓ | ✓ | ✓ | – | ✓ | – | – | **P** — PRD FR-05; Wilson ranking ADR-COMM-0002 inherited |
 | Threaded replies | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | – | **P** — PRD FR-04; depth cap 6 ADR-COMM-0005 inherited |
 | Hashtags + within-affinity trending | ✓ | – | – | ✓ | – | ✓ | – | – | – | – | **P** — PRD FR-08/FR-09; Meilisearch (anonymised corpus) |
-| Image attachments | ✓ | ✓ | ✓ | – | – | ✓ | – | – | ✓ | ✓ | **D** — deferred to M03 (T2 + ClamAV/OPSWAT scan; ADR follow-up) |
+| Image attachments | ✓ | ✓ | ✓ | – | – | ✓ | – | – | ✓ | ✓ | **D** — scheduled-for-distinct-tracked-work to M03 (T2 + ClamAV/OPSWAT scan; ADR successor-IP) |
 | Video attachments | – | – | – | – | – | – | – | – | ✓ | – | **D** — M03 |
 | Anonymous DM (E2E) | – | – | – | ✓ (server-mediated) | – | – | – | – | – | – | **P (exceeds)** — RFC 9420 MLS; server holds ciphertext only (I6) |
 | Notifications (no-real-name push) | ✓ | ✓ | – | ✓ | ✓ | ✓ | – | – | – | – | **P** — PRD FR-10; opaque-handle payloads |
-| Accessibility captions | – | – | – | – | – | – | – | partial | – | – | **P** — PRD §"NFR / Accessibility" (post-M02) |
+| Accessibility captions | – | – | – | – | – | – | – | partial | – | – | **P** — PRD §"NFR / Accessibility" (subsequent-to-M02-completion) |
 | Abuse reporting | partial | partial | partial | partial | partial | partial | – | ✓ | partial | – | **P (exceeds)** — PRD FR-12; chain-of-responsibility moderation ADR-COMM-0001 inherited |
 | Appeal process | – | – | – | – | – | – | – | partial | – | – | **P (exceeds)** — PRD FR-20 + ADR-COMM-0001 inherited appeal hop (EU DSA Art. 14) |
 | Age gate (COPPA <13) | partial | partial | partial | partial | partial | partial | – | partial | partial | **failed** | **P** — PRD FR-14; ban under-13 universal |

@@ -43,7 +43,7 @@ exhaustion.
 | 3 | If a single codec is causing failures: disable that codec's input demuxer in the sandbox config + alert ops-security | ops-sre | ≤ 15 min |
 | 4 | Scale ffmpeg pool ×2 if pool exhaustion | ops-sre | ≤ 5 min |
 | 5 | If a gVisor CVE is suspected: pin to last-known-safe gVisor; verify no sandbox escape | ops-security | ≤ 1h |
-| 6 | For quarantined recordings: source bitrate still plays directly from S3-hot via degraded playback path (no adaptive ladder); thumbnail-pack generation deferred | axis-recordings | automatic |
+| 6 | For quarantined recordings: source bitrate still plays directly from S3-hot via degraded playback path (no adaptive ladder); thumbnail-pack generation scheduled-for-distinct-tracked-work | axis-recordings | automatic |
 | 7 | Once root-cause identified: re-encode the quarantined recordings with the corrected sandbox + emit `TranscodeRestored` | server | scheduled |
 
 ## Verification

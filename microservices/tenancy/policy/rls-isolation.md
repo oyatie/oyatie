@@ -343,7 +343,7 @@ Each pack's overlay at `regional-packs/<pack>/tenancy-rls-overlay.md` maps the l
 - `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice tenancy` — exit 0.
 - Weekly synthetic cross-tenant probe: tenant-A authenticated, attempts cross-tenant read of tenant-B's rows; expected: zero rows returned across all paths.
 - Quarterly chaos drill: induce RLS drift (controlled); verify validator + auto-rollback fire within 5min.
-- Annual pen-test against RLS boundary: TBD scheduling; documented in `runbooks/rls-pentest.md`.
+- Annual pen-test against RLS boundary: scheduled Q4 of each calendar year (October 1 cycle) coinciding with ISO 27001 surveillance audit; documented in `runbooks/rls-pentest.md`.
 
 ## References
 

@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: council-privacy + axis-sheets
 deciders: council-privacy, ops-security, axis-sheets, council-design-system, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act 2024 conformity assessment
-related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0140, ADR-SHEETS-0005]
-related_specs: [/specs/products/sheets.json, /specs/per-microservice-flat-layout.json]
+related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0140, ADR-SHEETS-0005]
+related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/sheets/threat-model.md
   - microservices/sheets/policy/data-residency.md
@@ -80,7 +80,7 @@ DPIA is mandatory pre-deployment. This document is reviewed by EU DPAs (Art. 35)
 - **Data subjects:** End-users referenced in workbook cells; tenant operators (admins authoring workbooks); tenant analysts; oyatie operators.
 - **Relationship:** Joint controllership with tenant per GDPR Art. 26; tenant DPA `legal/dpa-template.md`.
 - **Reasonable expectations:** Tenants expect spreadsheet authoring per service contract; end-users referenced in cells expect operational data processing per tenant's privacy notice.
-- **Previous experience:** Net-new µservice per ADR-0126; no Bominal predecessor; DPIA reviewed pre-launch.
+- **Previous experience:** Net-new µservice per ADR-0135; no Bominal predecessor; DPIA reviewed pre-launch.
 - **Industry codes:** OpenTelemetry semantic conventions for editor-session tracing.
 
 ### 2.4 Purposes

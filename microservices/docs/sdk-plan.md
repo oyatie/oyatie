@@ -41,16 +41,16 @@ Tenants integrate with docs via four primary surfaces: the REST + WebSocket faca
 |---|---|---|---|
 | **Rust** | M03 (oyatie's own language) | First-party authored `oya-docs-<bc>-sdk` crates per BC | axis-docs |
 | **TypeScript** | M03 (Node + Browser) | OpenAPI-generated baseline + first-party CRDT client wrapper; published to npm; pairs with Loro WASM bindings | axis-docs + gtm |
-| **Python** | M03+1 (data-pipeline + scripting tenants) | OpenAPI-generated; published to PyPI; pairs with `python-docx` for DOCX inspection | axis-docs + gtm |
-| **Swift** | M03+1 (iOS / macOS partner-app integrators) | OpenAPI-generated; ergonomic wrapper; CRDT client uses TypeScript-on-WebKit fallback for now | axis-docs |
+| **Python** | M03-onward1 (data-pipeline + scripting tenants) | OpenAPI-generated; published to PyPI; pairs with `python-docx` for DOCX inspection | axis-docs + gtm |
+| **Swift** | M03-onward1 (iOS / macOS partner-app integrators) | OpenAPI-generated; ergonomic wrapper; CRDT client uses TypeScript-on-WebKit fallback for now | axis-docs |
 | **Go** | M04 (backend services + ops tools) | gRPC-generated baseline + ergonomic wrappers | axis-docs + gtm |
 | **JVM (Kotlin / Java)** | M04 (enterprise tenants) | gRPC-generated baseline; Maven Central | axis-docs + gtm |
 | **C# / .NET** | M05 (Microsoft-ecosystem tenants) | OpenAPI-generated; NuGet | axis-docs + gtm |
 
 CRDT client library availability per ADR-DOCS-0001:
 - Rust + TypeScript SDKs ship Loro bindings at M03.
-- Python + Swift SDKs ship Loro bindings at M03+1 (WASM-binding via wasmer-python / WebKit-binding).
-- Go + JVM + C# SDKs ship server-mediated CRDT (no client-side merge engine) at M04+; merge happens server-side; client receives merged snapshots.
+- Python + Swift SDKs ship Loro bindings at M03-onward1 (WASM-binding via wasmer-python / WebKit-binding).
+- Go + JVM + C# SDKs ship server-mediated CRDT (no client-side merge engine) at M04-onward; merge happens server-side; client receives merged snapshots.
 
 ## Generation strategy
 

@@ -65,7 +65,7 @@ onboarding.
 - Threats to OpenBao secret-manager — owned by `cloud-secrets`.
 - Threats to GitHub Actions runners — owned by `governance` CI substrate.
 - Threats to native client tiers (iOS / Android / desktop) — covered in
-  post-M03 follow-up threat model.
+  subsequent-to-M03-completion successor-IP threat model.
 
 ## Trust Boundaries
 

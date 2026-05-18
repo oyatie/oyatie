@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-sheets + ops-sre-reliability
 deciders: axis-sheets, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0110, ADR-0126, ADR-0131]
+related_adrs: [ADR-0028, ADR-0110, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/sheets/PRD.md
   - microservices/sheets/capacity-model.md
@@ -112,7 +112,7 @@ Costs surfaced in `cost-budget.md` — backfill / replay budgeted as part of She
 - `microservices/sheets/contracts/asyncapi/sheets-events.yaml`.
 - ADR-0028 Audit-chain.
 - ADR-0110 ChangeSet state machine.
-- ADR-0126 Sheets net-new µservice.
+- ADR-0135 Sheets net-new µservice.
 - ADR-SHEETS-0001 Loro CRDT.
 - ADR-SHEETS-0002 formula-engine conformance.
 - ADR-SHEETS-0004 recalc-engine architecture.

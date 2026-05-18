@@ -125,7 +125,7 @@ pub(crate) fn validate_authority_cohesion_gate(
 }
 
 fn read_authority_documents(docs_dir: &Path) -> Result<Vec<AuthorityDocument>, String> {
-    ["AGENTS.md", "README.md"]
+    ["AGENTS.md", "README.md", "MASTERPLAN.md"]
         .into_iter()
         .map(|file_name| {
             let path = docs_dir.join(file_name);

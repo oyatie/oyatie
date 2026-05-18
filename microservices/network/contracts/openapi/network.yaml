@@ -17,7 +17,7 @@ info:
     MUST match the claim; mismatch returns 401.
 
     Professional-context invariant: every write carries `X-Context-Kind: Professional`;
-    any value other than `Professional` is refused per ADR-0126 + `policy/professional-context-isolation.md` PCI-01.
+    any value other than `Professional` is refused per ADR-0135 + `policy/professional-context-isolation.md` PCI-01.
 
     EU AI Act Annex III §4 (employment) HIGH-RISK endpoints carry
     `X-EU-AI-Act-Decision-Label: ai_generated_assessment` per Art. 50; affected

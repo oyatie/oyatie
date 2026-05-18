@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 policy_class: data-residency
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-community
-related_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/community/policy/community-isolation.md
   - microservices/community/dpia.md

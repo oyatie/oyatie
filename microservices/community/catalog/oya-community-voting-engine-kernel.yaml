@@ -7,7 +7,7 @@ contracts_consumed: []
 contracts_exposed: []
 lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
-  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+  source_adrs: [ADR-0105, ADR-0135, ADR-0131]
 allowed_dependency_edges: []
 data_classes_owned: [AUDIT]
 autonomy_tier_required: T1

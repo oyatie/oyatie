@@ -84,7 +84,7 @@ After rollback:
 ## Post-incident updates
 
 - Postmortem.
-- If forged permit: ADR follow-up tightening Cedar fragment authoring (e.g., 2-person CODEOWNERS sign-off; mandatory ops-security review for any new `permit` clause).
+- If forged permit: ADR successor-IP tightening Cedar fragment authoring (e.g., 2-person CODEOWNERS sign-off; mandatory ops-security review for any new `permit` clause).
 - If recurrence ≥ 2: consider Cedar fragment versioning with checksum-pinned references.
 
 ## References

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-messenger + council-architecture
 deciders: axis-messenger, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0132, ADR-0133]
 related_artifacts:
   - microservices/messenger/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-MESSENGER gate)
@@ -112,16 +112,16 @@ Discord enterprise pivot, Matrix v2 federation).
 |---|---|---|---|
 | 1 | E2E DM with MLS (matrix/element only competitor) | axis-messenger + council-privacy | M03 |
 | 2 | Federation (Matrix-bridge or native ActivityPub) | axis-messenger | M04 |
-| 3 | Mobile SDK polish (iOS/Android parity with Slack native) | axis-messenger + gtm | M02+1 |
+| 3 | Mobile SDK polish (iOS/Android parity with Slack native) | axis-messenger + gtm | M02-onward1 |
 | 4 | Background blur / face-AR (LiveKit add-on) | axis-messenger | M03 |
-| 5 | Mature bot / app marketplace (Slack/Discord lead by years) | axis-messenger + gtm | M05+ |
+| 5 | Mature bot / app marketplace (Slack/Discord lead by years) | axis-messenger + gtm | M05-onward |
 | 6 | Enterprise SSO depth (SCIM provisioning all 11 packs) | ops-security + gtm | M03 |
 | 7 | Recording + transcription (call-recording compliance overlay) | axis-messenger | M03 |
 
 ## Key oyatie Differentiators (NOT in any competitor)
 
 1. **Dual-context isolation by data-model invariant** — Personal ≠ Professional
-   enforced at compile-time + LEAN-lane (per parallel ADR-0126); no competitor
+   enforced at compile-time + LEAN-lane (per parallel ADR-0135); no competitor
    does this at data-model level.
 2. **Multi-pack residency by design** — 11 region-pinned packs; no SaaS
    competitor matches the breadth (Slack/Teams region-coarse).
@@ -175,7 +175,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `microservices/messenger/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-MESSENGER gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0126 (Connect dual-context, parallel).
+- ADR-0135 (Connect dual-context, parallel).
 - ADR-0130 (agentic SLO-gated promotion).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0133 (industry best-practice conformance).

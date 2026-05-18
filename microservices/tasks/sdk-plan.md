@@ -34,8 +34,8 @@ Tenants integrate with tasks via three primary surfaces: REST facade, gRPC servi
 | Webhook subscription | Tenant wants to react to task state changes without polling | per `contracts/asyncapi/tasks-events.yaml` |
 | CSV / JSON import + export | Tenant migrates from incumbent or backs up | per importers BC |
 | Importer adapters (CSV / Jira / Asana / Trello / Linear / Todoist) | Tenant migrates from named incumbent | per ADR-TASKS-0001 |
-| JMAP-Tasks (draft; M05+) | Modern JSON-over-HTTP; portable | draft-ietf-jmap-tasks (M05) |
-| CalDAV-Tasks via VTODO (M05+) | Apple Reminders / native client integration | RFC 4791 + RFC 5545 VTODO (defers to calendar's CalDAV stack) |
+| JMAP-Tasks (draft; M05-onward) | Modern JSON-over-HTTP; portable | draft-ietf-jmap-tasks (M05) |
+| CalDAV-Tasks via VTODO (M05-onward) | Apple Reminders / native client integration | RFC 4791 + RFC 5545 VTODO (defers to calendar's CalDAV stack) |
 
 ## Launch order
 
@@ -43,7 +43,7 @@ Tenants integrate with tasks via three primary surfaces: REST facade, gRPC servi
 |---|---|---|---|
 | **Rust** | M03 (oyatie's own language) | First-party authored `oya-tasks-<bc>-sdk` crates per BC | axis-tasks |
 | **TypeScript** | M03 (Node + Browser) | OpenAPI-generated baseline; ergonomic wrappers + react-hooks helper; published to npm | axis-tasks + gtm |
-| **Python** | M03+1 (data-pipeline + scripting tenants) | OpenAPI-generated; published to PyPI; pairs with pandas DataFrame adapter | axis-tasks + gtm |
+| **Python** | M03-onward1 (data-pipeline + scripting tenants) | OpenAPI-generated; published to PyPI; pairs with pandas DataFrame adapter | axis-tasks + gtm |
 | **Go** | M04 (backend services + ops tools) | gRPC-generated baseline + ergonomic wrappers | axis-tasks + gtm |
 | **JVM (Kotlin / Java)** | M04 (enterprise tenants) | gRPC-generated baseline; Maven Central | axis-tasks + gtm |
 | **Swift** | M05 (iOS / macOS integrators) | thin wrapper over REST + JMAP-Tasks (when stable) + CalDAV-Tasks VTODO (defers to calendar's CalDAV stack) | axis-tasks |

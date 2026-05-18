@@ -48,10 +48,10 @@ SecretReferences.
 | `microservices/calendar/iac/kustomize/base/namespace.yaml` | created | calendar namespace |
 | `microservices/calendar/iac/kustomize/base/serviceaccount.yaml` | created | oya-calendar SA + OpenBao role binding |
 | `microservices/calendar/iac/kustomize/overlays/pack-kr/kustomization.yaml` | created | initial active pack |
-| `microservices/calendar/iac/kustomize/overlays/pack-eu/kustomization.yaml` | follow-up | eu pack |
-| `microservices/calendar/iac/kustomize/overlays/pack-us/kustomization.yaml` | follow-up | us pack |
-| `microservices/calendar/iac/kustomize/overlays/pack-us-healthcare/kustomization.yaml` | follow-up | HIPAA pack — enables SabreDAV backend per ADR-CAL-0001 |
-| (additional packs: jp, sg, au, in, br, ae, ksa) | follow-up | per-pack overlays |
+| `microservices/calendar/iac/kustomize/overlays/pack-eu/kustomization.yaml` | successor-IP | eu pack |
+| `microservices/calendar/iac/kustomize/overlays/pack-us/kustomization.yaml` | successor-IP | us pack |
+| `microservices/calendar/iac/kustomize/overlays/pack-us-healthcare/kustomization.yaml` | successor-IP | HIPAA pack — enables SabreDAV backend per ADR-CAL-0001 |
+| (additional packs: jp, sg, au, in, br, ae, ksa) | successor-IP | per-pack overlays |
 
 ## Crate Naming
 

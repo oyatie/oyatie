@@ -5,7 +5,7 @@ info:
   description: |
     Slides µservice REST surface — collaborative presentation product (Google-Slides /
     PowerPoint Web / Keynote / Pitch / Beautiful.ai / Canva-presentations-class).
-    Per ADR-0126 Connect dissolution + ADR-0131 per-microservice flat layout.
+    Per ADR-0135 Connect dissolution + ADR-0131 per-microservice flat layout.
     All endpoints OIDC tenant-bound. Cedar v4.2 LTS default-deny enforced per
     `policy/tenant-scope.cedar`. Per-slide ACL granularity per ADR-SLIDES-0007.
   contact:

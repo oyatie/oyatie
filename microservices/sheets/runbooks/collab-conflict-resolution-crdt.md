@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/sheets/failure-modes.md (FM-01 collab desync)
   - microservices/sheets/threat-model.md §"T-T-01" CRDT op forgery + §"T-T-02" workbook corruption
   - microservices/sheets/PRD.md §"Functional Requirements" FR-06 + AC-06
-  - /specs/products/sheets.json §anti_patterns silent_merge_on_concurrent_edit
+  - /specs/microservices/sheets.json §anti_patterns silent_merge_on_concurrent_edit
   - microservices/workflow-studio/decisions/ADR-WS-0001 (Loro alignment)
 doc_status: published
 ---
@@ -119,7 +119,7 @@ After recovery:
 - `microservices/sheets/PRD.md` FR-06 + AC-06.
 - `microservices/sheets/threat-model.md` T-T-01, T-T-02.
 - `microservices/sheets/failure-modes.md` FM-01.
-- `/specs/products/sheets.json` §anti_patterns.
+- `/specs/microservices/sheets.json` §anti_patterns.
 - ADR-SHEETS-0001 (Loro CRDT — aligned with workflow-studio ADR-WS-0001).
 - Loro CRDT docs — `loro.dev/docs`.
 - Google SRE Workbook ch. 8.

@@ -10,7 +10,7 @@ superseded_by: []
 related:
   - ADR-0056
   - ADR-0105
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
 related_artifacts:

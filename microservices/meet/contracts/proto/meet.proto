@@ -1,6 +1,6 @@
 // oya-meet — gRPC contract
 // Peer to contracts/openapi/meet.yaml for clients that prefer gRPC.
-// Per ADR-0126 + ADR-0131 + ADR-0132.
+// Per ADR-0135 + ADR-0131 + ADR-0132.
 
 syntax = "proto3";
 

@@ -155,16 +155,16 @@ Per `runbooks/migration-execution.md` §"Per-pack onboarding":
 
 Before a pack accepts production traffic:
 
-| Gate | Owner | Status |
+| Gate | Owner | Status (per-pack) |
 |---|---|---|
-| ADR-NNNN-pack-<pack>-onboarding accepted | council-architecture | TBD per pack |
-| Residency overlay deployed | ops-sre-reliability | TBD |
-| Cedar fragments reviewed | ops-security | TBD |
-| Compliance ROPA filed | ops-compliance | TBD |
-| DPIA addendum signed | council-privacy | TBD |
-| DR drill executed | ops-sre-reliability | TBD |
-| Cost-budget projection added | ops-finops | TBD |
-| `oya-check-data-residency` lane green per pack | axis-foundry | TBD |
+| ADR-NNNN-pack-<pack>-onboarding accepted | council-architecture | required-before-onboarding; tracked per pack in `microservices/governance/IP-PACK-<pack>-onboarding.md` (templated; one IP per pack at fill time) |
+| Residency overlay deployed | ops-sre-reliability | required-before-onboarding; verified by `oya-check-data-residency` lane green on overlay PR |
+| Cedar fragments reviewed | ops-security | required-before-onboarding; logged in `microservices/governance/decisions/ADR-PACK-<pack>-cedar-review.md` |
+| Compliance ROPA filed | ops-compliance | required-before-onboarding; ROPA entry in `microservices/governance/compliance.md` §ROPA before traffic shifts |
+| DPIA addendum signed | council-privacy | required-before-onboarding; signed addendum at `microservices/governance/dpia-pack-<pack>.md` |
+| DR drill executed | ops-sre-reliability | required-before-onboarding; drill record at `microservices/governance/runbooks/pack-<pack>-dr-drill-result-<date>.md` |
+| Cost-budget projection added | ops-finops | required-before-onboarding; projection row in `microservices/governance/cost-budget.md` Forecast-vs-Actual table |
+| `oya-check-data-residency` lane green per pack | axis-foundry | required-before-onboarding; gating PR cannot merge until lane is green |
 
 ## Drill cadence
 

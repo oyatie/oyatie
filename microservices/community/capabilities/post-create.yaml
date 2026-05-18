@@ -5,7 +5,7 @@ version: 0.1.0
 status: incubating
 description: |
   Create a post (announcement / question / discussion) in a space.
-  Per ADR-0126 Connect-unbundle, this is the canonical post-authorship capability.
+  Per ADR-0135 Connect-unbundle, this is the canonical post-authorship capability.
 preconditions:
   - "principal authenticated via tenancy JWT"
   - "principal is a tenant member"

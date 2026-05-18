@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-network, council-architecture, ops-compliance
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0133, ADR-0134, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0133, ADR-0134, ADR-0140]
 related_artifacts:
   - microservices/network/threat-model.md
   - microservices/network/dpia.md
@@ -297,7 +297,7 @@ Output: `microservices/network/evidence/compliance-evidence-<unix_ts>.json`.
 - `microservices/network/policy/data-residency.md`.
 - `microservices/observability/compliance.md` (shape reference).
 - `microservices/social/compliance.md` (sibling reference; dual-context posture inherited).
-- ADR-0028 (Bominal) + ADR-0008 + ADR-0126 + ADR-0130 + ADR-0131 + ADR-0140.
+- ADR-0028 (Bominal) + ADR-0008 + ADR-0135 + ADR-0130 + ADR-0131 + ADR-0140.
 - EU DSA 2065/2022; EU AI Act 2024/1689; EU Pay Transparency Directive 2023/970.
 - US Title VII + ADA + ADEA + EEOC UGESP 29 CFR §1607; NYC LL144-2021; CA AB-331; CO SB 24-205; IL HB 3773.
 - ISO 30414:2018 (Human Capital Reporting); SLSA L3; NIST SSDF; OWASP ASVS v4; CIS K8s.

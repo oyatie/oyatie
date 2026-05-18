@@ -84,7 +84,7 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 
 - 4 unit tests: parse each manifest; assert schema-valid + targets within bounds.
 - 1 integration test: hot-reload one manifest; verify slo-engine-worker picks it up within 3s.
-- E2E deferred to IP-008 (worker integration).
+- E2E scheduled-for-distinct-tracked-work to IP-008 (worker integration).
 
 ## Halt Conditions
 

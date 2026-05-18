@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0022
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-0133
@@ -75,7 +75,7 @@ Concurrent regulatory regimes:
 
 Sibling `social` ADR-SOC-0003 establishes content-moderation classifier bounds under Annex III §1(a) (recommender systems). `network`'s recommender bounds are stricter because §4 (employment) is more sensitive than §1(a) and carries additional EEOC + NYC LL144 + state-AI-law obligations.
 
-The decision must (a) classify all four sub-capabilities under EU AI Act + EEOC + NYC LL144, (b) define the gating regime for recruiter-stub activation (OFF by default), (c) define the per-release bias-audit cadence + 4/5-rule statistical threshold, (d) define the regulatory-notification + rollback path on failure (per `runbooks/recruiter-classifier-rollback.md`), (e) align with parallel ADR-0126's Professional-context invariant.
+The decision must (a) classify all four sub-capabilities under EU AI Act + EEOC + NYC LL144, (b) define the gating regime for recruiter-stub activation (OFF by default), (c) define the per-release bias-audit cadence + 4/5-rule statistical threshold, (d) define the regulatory-notification + rollback path on failure (per `runbooks/recruiter-classifier-rollback.md`), (e) align with parallel ADR-0135's Professional-context invariant.
 
 ## Decision
 
@@ -160,7 +160,7 @@ Per pack overlay in `capabilities/T2-auto.yaml`:
 - Cons: legally indefensible — EC clarifications on Annex III §4 explicitly cover recruitment-related recommenders; missing the classification creates non-compliance risk + reputational risk; enforcement guidance is hardening as of 2026.
 - Rejected.
 
-### B. Keep recruiter-stub stubbed indefinitely (never activate)
+### B. Keep recruiter-stub interface-only-pending-impl indefinitely (never activate)
 
 - Pros: lowest regulatory exposure.
 - Cons: tenant demand for recruiter-tooling is real; loss of competitive parity with LinkedIn Recruiter + Indeed; gtm-customer-success would lose enterprise accounts; defers rather than solves the AI Act compliance question.
@@ -176,13 +176,13 @@ Per pack overlay in `capabilities/T2-auto.yaml`:
 
 - Pros: external bias-audit scrutiny; community trust.
 - Cons: training data may include tenant PII (cannot release); competitive moat lost; doesn't reduce the legal classification (Annex III §4 still applies regardless of openness).
-- Rejected for P01; revisit at M04+ if open-weights becomes viable.
+- Rejected for P01; revisit at M04-onward if open-weights becomes viable.
 
 ### E. Disable algorithmic ranking entirely; ship deterministic skill-match heuristic only
 
 - Pros: lowest AI Act risk; deterministic + auditable from code.
 - Cons: uncompetitive vs LinkedIn / Xing / Wantedly recruiter tooling; loss of hero-product viability; tenant churn likely.
-- Partial accept: P01 ships heuristic-default with ML-driven ranker deferred to P03 per sibling ADR-SOC-0001 pattern.
+- Partial accept: P01 ships heuristic-default with ML-driven ranker scheduled-for-distinct-tracked-work to P03 per sibling ADR-SOC-0001 pattern.
 
 ## Consequences
 
@@ -229,7 +229,7 @@ Per pack overlay in `capabilities/T2-auto.yaml`:
 ## References
 
 - ADR-0022 — Bominal autonomy-tier classification (T0/T1/T2 inherited).
-- ADR-0126 — Connect dissolution (parallel; Professional-context invariant).
+- ADR-0135 — Connect dissolution (parallel; Professional-context invariant).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0132 — suite-and-bundle dissolution.
 - ADR-0133 — Industry best-practice conformance.

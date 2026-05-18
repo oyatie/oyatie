@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-tasks + council-architecture
 deciders: axis-tasks, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0005, ADR-TASKS-0006]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0005, ADR-TASKS-0006]
 related_artifacts:
   - microservices/tasks/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-TASKS gate)
@@ -64,7 +64,7 @@ Calendar acquisition, Height AI-first, Plane OSS rise).
 | Project / list collection | ✅ | ✅ | ✅ | ✅ | ✅ (boards) | ✅ | ✅ | ✅ | ✅ |
 | Comments + reactions + threads | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Attachments (cross-µservice to drive) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Time-tracking (start/stop + manual; M02+) | ✅ M02+ | ❌ (3rd party) | partial | ✅ | partial | ✅ | ✅ | ❌ | partial |
+| Time-tracking (start/stop + manual; M02-onward) | ✅ M02-onward | ❌ (3rd party) | partial | ✅ | partial | ✅ | ✅ | ❌ | partial |
 | Legal hold on tasks | ✅ | partial | ❌ | partial (Atlassian Vault) | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Bulk edit ≥100 tasks | ✅ AC-05 SLO | ✅ | ✅ | ✅ | partial | ✅ | ✅ | partial | partial |
 
@@ -161,14 +161,14 @@ Calendar acquisition, Height AI-first, Plane OSS rise).
 
 | Gap | Current state | Plan | Target |
 |---|---|---|---|
-| In-µservice automation rules | cross-µservice to workflow-engine only | offer simple in-µservice rules + workflow-engine for complex; bridge | M03+1 |
+| In-µservice automation rules | cross-µservice to workflow-engine only | offer simple in-µservice rules + workflow-engine for complex; bridge | M03-onward1 |
 | JMAP-Tasks (draft) | M05 once IETF stabilises | adapter-jmap crate; SDK Swift integration | M05 |
 | Apple Reminders compat (CalDAV-Tasks VTODO) | M05 | defer to calendar's CalDAV stack; thin VTODO mapper | M05 |
-| Time-tracking | M02+ | extend task-store-worker; Cedar admission for opt-in surveillance posture | M02+ |
-| Microsoft Planner / To Do compat shim | M04+1 | OpenAPI shim adapter | M04+1 |
+| Time-tracking | M02-onward | extend task-store-worker; Cedar admission for opt-in surveillance posture | M02-onward |
+| Microsoft Planner / To Do compat shim | M04-onward1 | OpenAPI shim adapter | M04-onward1 |
 | Wrike / Smartsheet importer | M05 | extend importers BC; CSV-based mapping | M05 |
 | Plane (OSS) importer | M05 | extend importers BC | M05 |
-| AI auto-assign conformity-assessment ADR (ADR-TASKS-0006) | DEFERRED | dedicated conformity-ADR + notified-body audit | M04+ |
+| AI auto-assign conformity-assessment ADR (ADR-TASKS-0006) | DEFERRED | dedicated conformity-ADR + notified-body audit | M04-onward |
 | Native dependency-graph visualiser | M04 | view-engine extension | M04 |
 | Workload balancing across assignees | M04 | view-engine + foundry-runtime T1 capability | M04 |
 
@@ -181,7 +181,7 @@ Calendar acquisition, Height AI-first, Plane OSS rise).
 ## References
 
 - ADR-0123 — Hyperscaler maturity claim gate.
-- ADR-0126; ADR-0131; ADR-0132; ADR-0133.
+- ADR-0135; ADR-0131; ADR-0132; ADR-0133.
 - ADR-TASKS-0001 — Data model + custom fields strict coercion + importers.
 - ADR-TASKS-0002 — Dependency graph + cycle prevention.
 - ADR-TASKS-0005 — Workflow-engine bridge.

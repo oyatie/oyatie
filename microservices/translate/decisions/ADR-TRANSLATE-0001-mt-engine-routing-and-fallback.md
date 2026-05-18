@@ -9,7 +9,7 @@ date: 2026-05-17
 microservice: translate
 supersedes: []
 superseded_by: []
-related_adrs: [ADR-0025, ADR-0026, ADR-0126, ADR-0131, ADR-0133, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0025, ADR-0026, ADR-0135, ADR-0131, ADR-0133, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/competitor-parity-matrix.md
@@ -42,7 +42,7 @@ Industry references:
 - Smartling / Crowdin / Phrase multi-engine router patterns (closed-source; surface observation).
 - LiteLLM open-source provider router (foundry-providers parallel; cited in foundry-providers PRD).
 
-Bominal context: there is **no Bominal antecedent** for translate per ADR-0126; this ADR is net-new.
+Bominal context: there is **no Bominal antecedent** for translate per ADR-0135; this ADR is net-new.
 
 ## Decision
 
@@ -101,7 +101,7 @@ Weights vary by **quality tier**:
 
 - **Pros**: potentially optimal; learns from feedback.
 - **Cons**: brittle to vendor capability changes; opaque; harder to audit per EU AI Act Art. 12 record-keeping (decision explainability); meta-ML adds latency budget; OPEN concern for residency invariants under ML drift.
-- **Verdict**: deferred; tracked under "ADR-TRANSLATE-#### (future)". The transparent weighted-score algorithm is preferred for M01 because every decision is explainable and auditable.
+- **Verdict**: scheduled-for-distinct-tracked-work; tracked under "ADR-TRANSLATE-#### (future)". The transparent weighted-score algorithm is preferred for M01 because every decision is explainable and auditable.
 
 ### Alternative E — Pure LLM (Anthropic / OpenAI / Gemini) for all translation
 
@@ -148,7 +148,7 @@ Weights vary by **quality tier**:
 
 - ADR-0025 — Foundry as engineering platform.
 - ADR-0026 — In-house AI substrate roadmap.
-- ADR-0126 — Connect super-app expansion (parent ADR).
+- ADR-0135 — Connect super-app expansion (parent ADR).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0133 — Industry-best-practice conformance program.
 - ADR-TRANSLATE-0003 — QE + EU AI Act bounds.

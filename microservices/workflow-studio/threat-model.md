@@ -9,7 +9,7 @@ owner_team: axis-workflow + council-design-system + ops-security
 deciders: council-architecture, ops-security, axis-workflow, council-design-system, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS L2 + NIST SP 800-154
 related_adrs: [ADR-0028, ADR-0035, ADR-0037, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140, ADR-0164]
-related_specs: [/specs/products/workflow-studio.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/workflow-studio.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Studio Layer-A substrate change OR new node-library activation OR LLM-assist provider change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC6.7, CC7.1, CC7.2, CC7.4, CC8.1"
@@ -433,7 +433,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and `oya-check-data-cla
 - Asset: Studio render surface
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - **Per-tenant branding mid-render is FORBIDDEN by anti-pattern policy** (per `/specs/products/workflow-studio.json` §anti_patterns).
+  - **Per-tenant branding mid-render is FORBIDDEN by anti-pattern policy** (per `/specs/microservices/workflow-studio.json` §anti_patterns).
   - LEAN check `oya-governance-no-tenant-branding-mid-render` forbids any tenant-uploaded asset rendered in same DOM tree as canvas.
   - Post-GA marketplace branding (if introduced) restricted to iframed sandboxes with separate CSP.
 - Owner: ops-security + council-design-system
@@ -710,7 +710,7 @@ Pack-overlay sections at `regional-packs/<pack>/workflow-studio-overlay.md`; eac
 - `microservices/workflow-studio/PRD.md`.
 - `microservices/workflow-studio/dpia.md`.
 - `microservices/workflow-studio/compliance.md`.
-- `/specs/products/workflow-studio.json`.
+- `/specs/microservices/workflow-studio.json`.
 - Microsoft Threat Modeling methodology (STRIDE).
 - LINDDUN privacy-threat methodology — Wuyts et al., KU Leuven.
 - OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS v4.0.

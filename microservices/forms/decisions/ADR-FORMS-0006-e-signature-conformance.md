@@ -9,7 +9,7 @@ deciders: council-architecture, axis-forms, ops-security, council-legal-complian
 supersedes: []
 superseded_by: []
 related: [ADR-0131, ADR-0140, ADR-FORMS-0001, ADR-FORMS-0003]
-related_specs: [/specs/products/forms.json]
+related_specs: [/specs/microservices/forms.json]
 related_artifacts:
   - microservices/forms/PRD.md FR-09 + AC-12
   - microservices/forms/policy/data-residency.md

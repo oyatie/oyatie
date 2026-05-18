@@ -1,6 +1,6 @@
 // oya-social — gRPC contract
 // Peer to contracts/openapi/social.yaml for clients that prefer gRPC.
-// Per ADR-0126 + ADR-0131 + ADR-0132.
+// Per ADR-0135 + ADR-0131 + ADR-0132.
 
 syntax = "proto3";
 

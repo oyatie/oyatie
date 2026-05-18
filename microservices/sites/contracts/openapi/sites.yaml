@@ -7,7 +7,7 @@ info:
     url-routing, domain-binding, seo, cms-collection, search, and cdn-delivery
     bounded contexts.
 
-    Per ADR-0126 (Connect unbundle) + ADR-0132 (no-suite forward policy):
+    Per ADR-0135 (Connect unbundle) + ADR-0132 (no-suite forward policy):
     sites is a standalone tenant-facing µservice. Cross-tenant flows traverse
     Workflow + Ontology.
 

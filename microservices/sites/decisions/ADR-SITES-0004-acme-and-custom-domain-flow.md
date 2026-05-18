@@ -188,7 +188,7 @@ LTS reconciliation**:
 - **HIPAA 45 CFR §164.312(e)**: transmission security via TLS satisfied.
 - **eIDAS**: ACME-issued certs are domain-validated; for tenants
   needing extended-validation, manual cert upload remains possible
-  per a follow-up ADR-SITES-XXXX.
+  per a successor-IP ADR-SITES-XXXX.
 
 ## Verification
 

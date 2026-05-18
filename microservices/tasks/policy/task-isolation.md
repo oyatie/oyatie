@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-tasks
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0140, ADR-TASKS-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-TASKS-0006]
 related_artifacts:
   - microservices/tasks/policy/tenant-scope.cedar
   - microservices/tasks/policy/ci-scope.cedar
@@ -198,7 +198,7 @@ This policy is binding for the `tasks` µservice only. Cross-µservice flows (ta
 
 - ADR-0028 (Bominal): audit chain.
 - ADR-0117: data residency.
-- ADR-0126: Connect unbundle (dual-context).
+- ADR-0135: Connect unbundle (dual-context).
 - ADR-0140: Cedar policy substrate.
 - ADR-TASKS-0001 (data model + strict coercion).
 - ADR-TASKS-0002 (dependency cycle prevention).

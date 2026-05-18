@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + council-privacy
 deciders: ops-sre-reliability, ops-security, council-privacy, axis-messenger, council-architecture
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/messenger/threat-model.md
   - microservices/messenger/dpia.md
@@ -63,7 +63,7 @@ Primary on-call paged (ops-sre-reliability primary)
 
 ## Cross-Channel Leak = Sev-1
 
-Any confirmed cross-channel data exposure — including cross-tenant, cross-context (parallel ADR-0126), cross-pack residency violation, or unauthorised channel membership — is **automatically Sev-1** regardless of scope. Triggers:
+Any confirmed cross-channel data exposure — including cross-tenant, cross-context (parallel ADR-0135), cross-pack residency violation, or unauthorised channel membership — is **automatically Sev-1** regardless of scope. Triggers:
 
 - IC immediately engages PrivacyLead + ops-security.
 - Channel is quarantined (writes blocked; reads only by ops-security under JIT elevation).

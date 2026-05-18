@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-docs
 methodology: ICO DPIA + CNIL DPIA + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
 related_artifacts:
   - microservices/docs/threat-model.md
   - microservices/docs/policy/document-isolation.md (rendered name; see policy/editor-isolation.md)
@@ -285,7 +285,7 @@ Cross-reference: every risk has at least one corresponding STRIDE / LINDDUN thre
 
 ## References
 
-- ADR-0028 (Bominal), ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140.
+- ADR-0028 (Bominal), ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140.
 - ADR-DOCS-0001 through ADR-DOCS-0006.
 - `microservices/docs/threat-model.md`, `compliance.md`, `policy/*`, `multi-region.md`, `incident-response.md`, `legal/{dpa-template,baa-template,sub-processors,transfer-register,ropa}.md`.
 - ICO DPIA template; CNIL DPIA methodology; EDPB Guidelines 4/2019 + 9/2022; PIPC Notice 2020-7.

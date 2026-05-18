@@ -47,7 +47,7 @@ components:
       schema:
         type: string
         enum: [Personal, Professional]
-      description: Dual-context invariant per parallel ADR-0126
+      description: Dual-context invariant per parallel ADR-0135
     ChannelId:
       in: path
       name: channel_id

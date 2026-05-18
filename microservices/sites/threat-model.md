@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-sites + council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0140, ADR-SITES-0001, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-SITES-0001, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0006]
 doc_status: published
 ---
 
@@ -219,7 +219,7 @@ Per-overlay sections in `compliance.md`.
 
 - ADR-0028 (Bominal audit-chain).
 - ADR-0117 (data residency).
-- ADR-0126 (Connect unbundle).
+- ADR-0135 (Connect unbundle).
 - ADR-0140 (Cedar policy).
 - ADR-SITES-0001 (Loro CRDT); ADR-SITES-0003 (CDN); ADR-SITES-0004
   (ACME); ADR-SITES-0006 (AI-page-build EU AI Act bounds).

@@ -9,8 +9,8 @@ date: 2026-05-17
 related_artifacts:
   - microservices/workflow-studio/PRD.md FR-12 (LLM-assist)
   - microservices/workflow-studio/threat-model.md §"T-D-04" LLM timeout cascade + §"T-I-05" prompt PII leak + §"T-S-05" prompt injection
-  - /specs/products/workflow-studio.json §metrics LLM-assist latency
-  - microservices/foundry-providers/runbooks/* (sibling — LLM provider runbooks)
+  - /specs/microservices/workflow-studio.json §metrics LLM-assist latency
+  - microservices/foundry/runbooks/* (sibling — LLM provider runbooks)
 doc_status: published
 ---
 
@@ -57,7 +57,7 @@ Cause: LLM provider is slow; Studio circuit breaker opens; tenants see "LLM-assi
 
 | Step | Action | Time |
 |---|---|---|
-| 1 | Verify upstream: `microservices/foundry-providers/dashboards/provider-health.json`. | ≤ 5 min |
+| 1 | Verify upstream: `microservices/foundry/dashboards/provider-health.json`. | ≤ 5 min |
 | 2 | If upstream confirmed slow: circuit breaker is doing its job; tenants see graceful banner; editor UX unaffected (per T-D-04). | – |
 | 3 | If tenant impacts > 1h: engage foundry-providers on-call; consider failover to per-tenant BYO-LLM if configured. | ≤ 1h |
 | 4 | Monitor recovery: breaker auto-closes after 30s of clean requests; verify recovery in dashboard. | – |
@@ -128,8 +128,8 @@ After recovery:
 
 - `microservices/workflow-studio/PRD.md` FR-12 + §"Security" LLM-assist.
 - `microservices/workflow-studio/threat-model.md` T-D-04, T-I-05, T-S-05.
-- `/specs/products/workflow-studio.json` §metrics + §goals.
+- `/specs/microservices/workflow-studio.json` §metrics + §goals.
 - OWASP Top 10 LLM Applications (2023) — A01 Prompt Injection + A02 Insecure Output Handling.
 - EU AI Act 2024/1689 Arts. 9-15 + 26 + 50 + 73 (high-risk AI systems).
 - NIST AI RMF 1.0 — `nist.gov/itl/ai-risk-management-framework`.
-- `microservices/foundry-providers/threat-model.md` (sibling, upstream LLM concerns).
+- `microservices/foundry/threat-model.md` (sibling, upstream LLM concerns).

@@ -186,7 +186,7 @@ Concrete bindings:
 
 ### Risk register
 
-- **Risk**: Pandoc upstream cools / abandons. **Mitigation**: Pandoc has 20-year track record + active maintainer; alternate path is custom Rust converters or LibreOffice headless (both ADR follow-ups).
+- **Risk**: Pandoc upstream cools / abandons. **Mitigation**: Pandoc has 20-year track record + active maintainer; alternate path is custom Rust converters or LibreOffice headless (both ADR successor-IPs).
 - **Risk**: gVisor regression in a Kubernetes minor version. **Mitigation**: pinned LTS; pre-deploy escape corpus replay.
 - **Risk**: Chromium CVE chain. **Mitigation**: tenant opt-in only; default to WeasyPrint; per-job pod restart bounds blast radius.
 - **Risk**: WeasyPrint cannot render a specific font / CSS feature. **Mitigation**: per-tenant Chromium opt-in; runbook fallback path.

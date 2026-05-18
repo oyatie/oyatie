@@ -88,7 +88,7 @@ The canonical control-to-framework mapping for the ontology µservice. Tells ext
 | A.5.24 | Information security incident management planning + preparation | Incident-response playbook | `incident-response.md` |
 | A.5.25 | Assessment and decision on info security events | Severity classification | `incident-response.md` |
 | A.5.26 | Response to info security incidents | Severity-driven runbook | `incident-response.md` + `runbooks/*` |
-| A.5.27 | Learning from incidents | Postmortem + ADR follow-up | `runbooks/postmortem-template.md` |
+| A.5.27 | Learning from incidents | Postmortem + ADR successor-IP | `runbooks/postmortem-template.md` |
 | A.5.28 | Collection of evidence | Audit-chain Ed25519 emission | ADR-0028 |
 | A.5.30 | ICT readiness for BCDR | Multi-region DR + RPO/RTO targets | `multi-region.md` |
 | A.5.31 | Legal, statutory, regulatory + contractual requirements | This document + per-pack overlays | `compliance.md` (this) |

@@ -1,0 +1,881 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/enterprise/payroll.schema.json",
+  "title": "ProductPrd:EnterprisePayroll",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-ENTERPRISE-PAYROLL",
+    "version": "1.0.0",
+    "audit": "industry-audit-2026-05-17:OP-11",
+    "status": "Accepted",
+    "owner_team": "enterprise-product-council",
+    "created_at": "2026-05-16T16:15:00Z",
+    "purpose": "Enterprise Payroll PRD: KR-first payroll close, payee classes, statutory taxes/4대보험, year-end settlement, payroll-to-accounting bridge, and production close evidence for group entities."
+  },
+  "identity": {
+    "product_id": "payroll",
+    "suite_id": "enterprise",
+    "owning_axis": "vertical-enterprise",
+    "product_class": "suite-app",
+    "user_facing_surface": true,
+    "context_model": [
+      "tenant-work"
+    ],
+    "crate_refs_planned": [
+      "oya-enterprise-payroll-kernel",
+      "oya-enterprise-payroll-domain",
+      "oya-enterprise-payroll-app",
+      "oya-enterprise-payroll-rest"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/docs/products/corporate/corporate.md",
+      "$ref:bominal/docs/products/corporate/hr-payroll-known-limits.md",
+      "$ref:bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+      "$ref:bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
+      "$ref:bominal/docs/products/corporate/corp-compliance-vertical-design.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/products/workflow.json",
+      "$ref:specs/products/ontology.json",
+      "$ref:specs/deployment-ops-contract.json",
+      "$ref:specs/products/connect/suite.json",
+      "$ref:specs/microservices/workflow.json",
+      "$ref:specs/microservices/ontology.json",
+      "$ref:specs/microservices/connect-suite.json"
+    ],
+    "source_docs": [
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/corporate.md",
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/hr-payroll-known-limits.md",
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md"
+    ],
+    "user_decisions": [
+      "2026-05-16:D-13 one PRD per suite plus per-app sub-PRDs",
+      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/products/<id>.json",
+      "2026-05-16:enterprise scope starts with HR, Payroll, Accounting and remains extensible for every business SaaS module",
+      "2026-05-16:deployment must be OpenTofu + Makefile + oya ops; no manual SSH troubleshooting",
+      "2026-05-16:shell-script operations must move to Rust where logic exists",
+      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/microservices/<id>.json"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/docs/products/corporate/corporate.md#target-shape + $ref:specs/agent-durable-goal.json#pipeline + $ref:specs/deployment-ops-contract.json",
+  "target_users": [
+    {
+      "persona": "employee_end_user",
+      "interface": "self-service web/mobile/desktop surfaces",
+      "billing": "workspace or enterprise seat"
+    },
+    {
+      "persona": "manager_operator",
+      "interface": "approval queue, team dashboard, exception handling",
+      "billing": "enterprise seat"
+    },
+    {
+      "persona": "hr_finance_admin",
+      "interface": "admin console, imports, policies, close workflow",
+      "billing": "tenant admin entitlement"
+    },
+    {
+      "persona": "compliance_officer",
+      "interface": "legal hold, audit evidence, statutory filing and control evidence",
+      "billing": "compliance module entitlement"
+    },
+    {
+      "persona": "developer_integrator",
+      "interface": "REST/gRPC/webhook/Workflow APIs",
+      "billing": "API and workflow execution units"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a KR payroll run is created",
+      "when": "the run enters trial close",
+      "then": "each payee has legal_entity_id, payee_class, rulepack_effective_date, wage ledger, and evidence digest",
+      "test_ref": "crates/oya-enterprise-payroll-domain/tests/kr_close.rs::test_trial_close_requires_rulepack_and_evidence"
+    },
+    {
+      "id": "AC-02",
+      "given": "a group tenant has multiple legal entities",
+      "when": "payroll closes for the group",
+      "then": "each entity closes independently before group rollup and detachment history remains immutable/redacted",
+      "test_ref": "crates/oya-enterprise-payroll-domain/tests/group.rs::test_entity_close_before_group_rollup"
+    },
+    {
+      "id": "AC-03",
+      "given": "KR statutory exports are generated",
+      "when": "HomeTax/4대보험/withholding evidence is emitted",
+      "then": "export hashes, receipts or rejection reasons, and rollback/repair plan are attached before promotion",
+      "test_ref": "crates/oya-enterprise-payroll-domain/tests/filing.rs::test_kr_exports_require_hashes_and_receipts"
+    },
+    {
+      "id": "AC-04",
+      "given": "payroll is approved for posting",
+      "when": "the accounting bridge runs",
+      "then": "balanced GL journal vouchers are produced with source payroll digest and approval evidence",
+      "test_ref": "crates/oya-enterprise-payroll-domain/tests/accounting_bridge.rs::test_payroll_posts_balanced_journals"
+    },
+    {
+      "id": "AC-05",
+      "given": "a production close canary or evidence gate fails",
+      "when": "the controller evaluates launch health",
+      "then": "close promotion stops, rollback/quarantine evidence is emitted, and repair routes through hotfix PR or OpenTofu/ops convergence",
+      "test_ref": "crates/oya-enterprise-payroll-domain/tests/rollback.rs::test_failed_close_uses_rollback_first"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "payee abstraction",
+        "KR wage ledger",
+        "trial close",
+        "basic tax/social-insurance calculations",
+        "payroll evidence envelope"
+      ],
+      "stable": [
+        "parallel-run variance review",
+        "year-end settlement inputs",
+        "statutory export hashes",
+        "payroll-to-GL journal bridge"
+      ],
+      "GA": [
+        "paid KR group client production close",
+        "rulepack certification evidence",
+        "multi-entity group rollup",
+        "restore/rollback drills"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "direct statutory agency submission without credentials/certification",
+        "why": "regulator credentials and XSD certification remain external readiness gates"
+      },
+      {
+        "item": "direct banking as baseline",
+        "why": "payments adapter is a separate product integration after evidence-safe close"
+      },
+      {
+        "item": "owner payroll for sole proprietorship",
+        "why": "KR entity-kind semantics route owner income outside payroll"
+      }
+    ]
+  },
+  "contracts": {
+    "consumes": [
+      "enterprise.hr.employee.v1",
+      "enterprise.hr.attendance.v1",
+      "enterprise.accounting.journal.v1",
+      "workflow.approval.v1",
+      "ontology.Payee"
+    ],
+    "produces": [
+      "enterprise.payroll.run.v1",
+      "enterprise.payroll.wage_ledger.v1",
+      "enterprise.payroll.kr_statutory_export.v1",
+      "enterprise.payroll.gl_bridge.v1"
+    ]
+  },
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "PayrollRun",
+        "fields": [
+          "run_id",
+          "tenant_id",
+          "legal_entity_id",
+          "period",
+          "state",
+          "rulepack_ref",
+          "variance_report_ref",
+          "evidence_digest",
+          "data_class"
+        ],
+        "invariants": [
+          "trial close before production close",
+          "rulepack effective date required"
+        ]
+      },
+      {
+        "entity": "Payee",
+        "fields": [
+          "payee_id",
+          "tenant_id",
+          "legal_entity_id",
+          "payee_class",
+          "person_or_vendor_ref",
+          "tax_profile_ref",
+          "data_class"
+        ],
+        "invariants": [
+          "employee is one payee class",
+          "sole proprietor owner is not payroll employee"
+        ]
+      },
+      {
+        "entity": "WageLedgerEntry",
+        "fields": [
+          "entry_id",
+          "run_id",
+          "payee_id",
+          "line_kind",
+          "amount",
+          "currency",
+          "source_ref",
+          "audit_topic"
+        ],
+        "invariants": [
+          "append-only",
+          "corrections are compensating entries"
+        ]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "PayrollTrialCloseCompleted",
+        "topic": "audit.enterprise.payroll.close",
+        "idempotency_key": "run_id+trial_version"
+      },
+      {
+        "event": "PayrollStatutoryExportHashed",
+        "topic": "audit.enterprise.payroll.filing",
+        "idempotency_key": "run_id+export_kind+hash"
+      },
+      {
+        "event": "PayrollGlJournalPosted",
+        "topic": "enterprise.payroll.accounting",
+        "idempotency_key": "run_id+journal_id"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "PayrollRun",
+        "store": "Postgres/RLS",
+        "sharding_key": "tenant_id+legal_entity_id+period",
+        "retention": "statutory payroll archive"
+      },
+      {
+        "aggregate": "PayrollEvidence",
+        "store": "audit-chain/WORM + object store digests",
+        "sharding_key": "tenant_id+legal_entity_id+period",
+        "retention": "jurisdiction bounded"
+      }
+    ],
+    "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003 + $ref:specs/agent-durable-goal.json#score_cards"
+  },
+  "optimization_practices": [
+    {
+      "practice": "legal-entity cell routing",
+      "implementation": "tenant_id + legal_entity_id + region route every transactional write; group rollups are projections, not shared mutable ledgers"
+    },
+    {
+      "practice": "approval backpressure",
+      "implementation": "Workflow queues expose SLA and exception budgets before operator inboxes overload"
+    },
+    {
+      "practice": "evidence-first close",
+      "implementation": "payroll, accounting, compliance, and incident workflows emit immutable evidence paths before promotion/resume"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "Korea-first HR/payroll/accounting fidelity: Labor Standards Act, 4대보험, HomeTax, K-GAAP/K-IFRS, PIPA, ISMS-P, SAPA, rules-of-employment and labor-management-council thresholds."
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "US expansion keeps payroll tax, benefits, FMLA/ADA/EEOC, GAAP, SOX-style controls, and multi-state employer obligations behind jurisdiction rulepacks."
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "EU expansion covers GDPR, works-council/local labor overlays, VAT, statutory accounting exports, and data-residency policy."
+      }
+    ],
+    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+  },
+  "deps": {
+    "external_adopted": [
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "async runtime primitive only"
+      },
+      {
+        "name": "rustls",
+        "maturity_tier": "kernel-grade",
+        "license": "Apache-2.0 OR ISC OR MIT",
+        "decision": "TLS primitive only"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "Workday/Oracle/SAP as product substrate",
+        "reason": "Enterprise suite is native; external suites are migration/coexistence adapters only"
+      },
+      {
+        "name": "manual shell/SSH operational glue",
+        "reason": "deployment and day-2 authority belongs to OpenTofu, Makefile targets, Rust oya gates, and ops-managed controllers"
+      },
+      {
+        "name": "AI-only compliance or close decisions",
+        "reason": "deterministic rulepacks and audit-chain evidence remain closure authority"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "kr_payroll_close_variance_bps",
+      "targets": {
+        "preview": 100,
+        "stable": 25,
+        "GA": 10
+      },
+      "verification_ref": "cargo nextest -p oya-enterprise-payroll-domain -- kr_close_variance",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "statutory_export_hash_coverage_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "oya gate validate enterprise-payroll-statutory-export",
+      "lane_ref": "audit-chain"
+    },
+    {
+      "name": "payroll_to_gl_balance_errors",
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
+      "verification_ref": "cargo nextest -p oya-enterprise-payroll-domain -- gl_bridge_balance",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "group_close_entity_boundary_violations",
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
+      "verification_ref": "oya gate validate enterprise-payroll-group-close",
+      "lane_ref": "compliance"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-01",
+      "severity": "critical",
+      "risk": "KR payroll statutory calculation or filing mismatch",
+      "mitigation": "effective-date rulepacks, regulator export hash evidence, parallel-run variance review",
+      "owner": "enterprise-product-council"
+    },
+    {
+      "id": "R-02",
+      "severity": "critical",
+      "risk": "payroll closes without balanced accounting bridge",
+      "mitigation": "balanced journal voucher AC and GL bridge gate",
+      "owner": "enterprise-product-council"
+    },
+    {
+      "id": "R-03",
+      "severity": "high",
+      "risk": "group rollup leaks detached entity or personal data",
+      "mitigation": "entity close boundary and redacted immutable history tests",
+      "owner": "enterprise-product-council"
+    }
+  ],
+  "competitive": [
+    {
+      "competitor": "ADP Workforce Now",
+      "observed_strengths": [
+        "continuous payroll calculation with AI anomaly detection",
+        "multi-state US employer compliance",
+        "flexible pay cycles (weekly, biweekly, semimonthly, monthly)",
+        "pay-anyone-anytime (off-cycle) capability",
+        "compensation benchmarking from 39M+ employee dataset",
+        "ADP Marketplace integration ecosystem",
+        "garnishment and deduction engine"
+      ],
+      "gaps_vs_oyatie": [
+        "US-centric tax engine; KR 4대보험 requires partner integration",
+        "no evidence-first WORM audit chain for statutory close",
+        "no legal-entity isolation for group multi-entity payroll",
+        "no ops-as-code deployment model"
+      ],
+      "we_beat_on": [
+        "native KR statutory payroll (4대보험, HomeTax, 원천징수) without partner",
+        "evidence-first close with WORM audit chain",
+        "legal-entity isolation preventing cross-entity wage leak",
+        "payroll-to-GL journal bridge with source digest"
+      ],
+      "measurable_target": "100% statutory export hash coverage",
+      "source_evidence_refs": [
+        "src_adp_workforce_now_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-centric tax engine; KR 4대보험 requires partner integration",
+        "no evidence-first WORM audit chain for statutory close",
+        "no legal-entity isolation for group multi-entity payroll",
+        "no ops-as-code deployment model"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "native KR statutory payroll (4대보험, HomeTax, 원천징수) without partner",
+        "evidence-first close with WORM audit chain",
+        "legal-entity isolation preventing cross-entity wage leak",
+        "payroll-to-GL journal bridge with source digest"
+      ]
+    },
+    {
+      "competitor": "Gusto",
+      "observed_strengths": [
+        "SME-friendly payroll UX",
+        "automatic tax filing (federal, state, local)",
+        "contractor (1099) and employee payroll in one platform",
+        "benefits (health, 401k) integrated with payroll deductions",
+        "multiple pay schedules per company",
+        "direct deposit and check options",
+        "time-off accrual integrated with pay"
+      ],
+      "gaps_vs_oyatie": [
+        "US-only (no KR/EU statutory support)",
+        "no legal-entity group model",
+        "no audit-chain close evidence",
+        "no accounting GL bridge with source digest"
+      ],
+      "we_beat_on": [
+        "KR statutory fidelity (4대보험, HomeTax, 원천징수)",
+        "group multi-entity close with entity boundary isolation",
+        "audit-chain close evidence (WORM)",
+        "payroll-to-GL bridge with balanced journal and source digest"
+      ],
+      "measurable_target": "0 entity-boundary violations at group close",
+      "source_evidence_refs": [
+        "src_gusto_payroll_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-only (no KR/EU statutory support)",
+        "no legal-entity group model",
+        "no audit-chain close evidence",
+        "no accounting GL bridge with source digest"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "KR statutory fidelity (4대보험, HomeTax, 원천징수)",
+        "group multi-entity close with entity boundary isolation",
+        "audit-chain close evidence (WORM)",
+        "payroll-to-GL bridge with balanced journal and source digest"
+      ]
+    },
+    {
+      "competitor": "Deel",
+      "observed_strengths": [
+        "global payroll compliance workflow",
+        "contractor coverage across 150+ countries",
+        "EOR (employer of record) model"
+      ],
+      "gaps_vs_oyatie": [
+        "KR native payroll accuracy dependent on local partner",
+        "no evidence-first WORM close",
+        "no native accounting GL bridge"
+      ],
+      "we_beat_on": [
+        "KR group legal-entity close evidence",
+        "native accounting bridge with balanced journal requirement",
+        "WORM audit chain for statutory exports"
+      ],
+      "measurable_target": "100% statutory export hash coverage",
+      "source_evidence_refs": [
+        "src_deel_payroll_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "KR native payroll accuracy dependent on local partner",
+        "no evidence-first WORM close",
+        "no native accounting GL bridge"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "KR group legal-entity close evidence",
+        "native accounting bridge with balanced journal requirement",
+        "WORM audit chain for statutory exports"
+      ]
+    },
+    {
+      "competitor": "Rippling Payroll",
+      "observed_strengths": [
+        "HR/payroll automation",
+        "admin UX",
+        "off-cycle payroll runs"
+      ],
+      "gaps_vs_oyatie": [
+        "US-centric, limited KR native",
+        "no legal-entity evidence isolation",
+        "no WORM audit chain"
+      ],
+      "we_beat_on": [
+        "audit-chain close and entity isolation",
+        "KR statutory depth",
+        "evidence-first close gate"
+      ],
+      "measurable_target": "0 entity-boundary violations",
+      "source_evidence_refs": [
+        "src_rippling_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-centric, limited KR native",
+        "no legal-entity evidence isolation",
+        "no WORM audit chain"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "audit-chain close and entity isolation",
+        "KR statutory depth",
+        "evidence-first close gate"
+      ]
+    },
+    {
+      "competitor": "더존/WEHAGO payroll",
+      "observed_strengths": [
+        "KR payroll/accounting familiarity",
+        "HomeTax/4대보험 native integration"
+      ],
+      "gaps_vs_oyatie": [
+        "no group legal-entity evidence isolation",
+        "no modern Workflow-native variance review",
+        "limited global expansion"
+      ],
+      "we_beat_on": [
+        "Workflow-native variance review and rollback-first launch evidence",
+        "group entity close boundary enforcement",
+        "ops-managed deployment"
+      ],
+      "measurable_target": "payroll-to-GL balance errors stay 0",
+      "source_evidence_refs": [
+        "src_douzone_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "no group legal-entity evidence isolation",
+        "no modern Workflow-native variance review",
+        "limited global expansion"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "Workflow-native variance review and rollback-first launch evidence",
+        "group entity close boundary enforcement",
+        "ops-managed deployment"
+      ]
+    },
+    {
+      "competitor": "Deel",
+      "observed_strengths": [
+        "global payroll compliance workflow",
+        "contractor coverage"
+      ],
+      "we_beat_on": [
+        "KR group legal-entity close evidence",
+        "native accounting bridge"
+      ],
+      "measurable_target": "100% statutory export hash coverage"
+    },
+    {
+      "competitor": "Rippling Payroll",
+      "observed_strengths": [
+        "HR/payroll automation",
+        "admin UX"
+      ],
+      "we_beat_on": [
+        "audit-chain close and entity isolation"
+      ],
+      "measurable_target": "0 entity-boundary violations"
+    },
+    {
+      "competitor": "더존/WEHAGO payroll",
+      "observed_strengths": [
+        "KR payroll/accounting familiarity"
+      ],
+      "we_beat_on": [
+        "Workflow-native variance review and rollback-first launch evidence"
+      ],
+      "measurable_target": "payroll-to-GL balance errors stay 0"
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "explicit pay cycle types: weekly, biweekly, semimonthly, monthly, quarterly",
+      "source": "ADP, Gusto — pay cycle type is a first-class entity driving close schedule and tax accrual",
+      "implementation": "PayrollRun includes pay_cycle_type enum (weekly/biweekly/semimonthly/monthly/quarterly); KR default is monthly; US biweekly/semimonthly supported via US rulepack"
+    },
+    {
+      "pattern": "off-cycle payroll run for bonuses, terminations, corrections",
+      "source": "ADP pay-anyone-anytime, Rippling off-cycle — off-cycle runs are routine, not exceptional",
+      "implementation": "PayrollRun includes run_type enum (regular/off_cycle/correction/bonus/termination); off-cycle run inherits same evidence gate as regular"
+    },
+    {
+      "pattern": "garnishment and deduction engine",
+      "source": "ADP Workforce Now — wage garnishments (child support, tax levy, creditor) are a statutory requirement in US/KR",
+      "implementation": "GarnishmentOrder entity per payee; deduction engine applies garnishment before net pay calculation with legal priority ordering"
+    },
+    {
+      "pattern": "contractor (프리랜서/1099) payment class",
+      "source": "Gusto, Deel — contractor payments are payroll-adjacent and require distinct tax treatment",
+      "implementation": "payee_class includes contractor; KR 기타소득 and 사업소득 tax treatment routed via KR rulepack; US 1099-NEC via US rulepack"
+    },
+    {
+      "pattern": "year-end settlement: 연말정산 (KR) / W-2 (US) / P60 (UK)",
+      "source": "ADP, WEHAGO — year-end settlement is a mandatory statutory deliverable",
+      "implementation": "YearEndSettlement entity per payee per legal_entity; KR 연말정산 export hash required before settlement close promotion"
+    },
+    {
+      "pattern": "retroactive pay adjustment with compensating wage entry",
+      "source": "ADP, Workday — retroactive adjustments are common for rate changes, reclassifications, corrections",
+      "implementation": "RetroAdjustment entity produces compensating WageLedgerEntry; audit evidence links original and correcting entries"
+    },
+    {
+      "pattern": "benefits deduction sync from HR benefits enrollment",
+      "source": "ADP, Gusto — benefits elections drive payroll deductions automatically",
+      "implementation": "BenefitsDeductionSync consumes enterprise.hr.benefits_enrollment.v1; deduction lines injected into PayrollRun before trial close"
+    },
+    {
+      "pattern": "disbursement method tracking: direct deposit, paper check, digital wallet",
+      "source": "ADP, Gusto — disbursement method is payee preference stored per pay cycle",
+      "implementation": "DisbursementMethod entity per payee; payments adapter consumes enterprise.payroll.disbursement.v1 after close approval"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "anti_pattern": "unattended production close without evidence",
+      "source_warning": "ADP legacy batch: payroll auto-finalizes without human review gate if no exceptions flag",
+      "mitigation": "trial close required before production close; evidence digest required at every promotion gate"
+    },
+    {
+      "anti_pattern": "mutable wage ledger edits",
+      "source_warning": "some SME payroll systems allow direct edit of computed pay lines, breaking audit trail",
+      "mitigation": "WageLedgerEntry is append-only; corrections use compensating entries with source reference"
+    },
+    {
+      "anti_pattern": "payroll owner-as-employee for sole proprietorship",
+      "source_warning": "KR sole proprietor (개인사업자) owner income is not payroll; confusing the two causes 원천징수 errors",
+      "mitigation": "payee_class enum explicitly excludes sole_proprietor_owner from employee class; routed via separate income treatment"
+    },
+    {
+      "anti_pattern": "group-level payroll close before all entity closes succeed",
+      "source_warning": "shared group close date creates pressure to promote incomplete entities",
+      "mitigation": "group rollup only proceeds after all constituent entity closes emit evidence digests"
+    },
+    {
+      "anti_pattern": "direct statutory agency submission without hash evidence",
+      "source_warning": "submitting HomeTax/4대보험 XML without storing hash and receipt creates unrecoverable audit gaps",
+      "mitigation": "export hash + receipt (or rejection reason) required before statutory submission close promotion"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "dimension": "pay_cycle_flexibility",
+      "target": "weekly, biweekly, semimonthly, monthly, quarterly cycles all supported; off-cycle run available at any time",
+      "planned_verification_ref": "oya gate validate enterprise-payroll-pay-cycle-types",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "statutory_accuracy",
+      "target": "KR 4대보험 and 원천징수 variance <= 10 bps at GA; US payroll tax variance <= 5 bps at GA",
+      "planned_verification_ref": "cargo nextest -p oya-enterprise-payroll-domain -- kr_close_variance",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "year_end_settlement",
+      "target": "KR 연말정산 export hash and receipt required before settlement close; 100% coverage",
+      "planned_verification_ref": "oya gate validate enterprise-payroll-year-end-settlement",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "off_cycle_evidence",
+      "target": "off-cycle and correction runs carry same evidence gate as regular runs; 0 unaudited off-cycle closes",
+      "planned_verification_ref": "oya gate validate enterprise-payroll-off-cycle-evidence",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "disbursement_traceability",
+      "target": "every disbursement method instruction carries payroll run digest; 100% traceability to wage ledger",
+      "planned_verification_ref": "oya gate validate enterprise-payroll-disbursement-traceability",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    }
+  ],
+  "best_practices": [
+    "payee abstraction before employee assumptions",
+    "effective-date statutory rulepacks",
+    "trial close before production close",
+    "append-only wage ledger",
+    "balanced GL bridge"
+  ],
+  "patterns": [
+    "entity-level close then group projection",
+    "parallel-run variance review",
+    "statutory export digest",
+    "compensating payroll entries",
+    "rollback-first close gate"
+  ],
+  "anti_patterns": [
+    "unattended production close without evidence",
+    "manual agency submission as normal flow",
+    "payroll owner-as-employee for sole proprietorship",
+    "mutable wage ledger edits",
+    "unbalanced GL bridge"
+  ],
+  "goals": {
+    "scalability": {
+      "target": "EnterprisePayroll supports SME self-serve through conglomerate legal-entity groups without forked code paths",
+      "verification": "oya gate validate enterprise-enterprisepayroll-scale-model"
+    },
+    "security": {
+      "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
+      "verification": "cargo nextest -p oya-enterprise-security-domain -- cross_tenant"
+    },
+    "performance": {
+      "target": "operator hot paths p95 <= 200ms for preview and <= 150ms for GA under representative tenant shape",
+      "verification": "cargo bench -p oya-enterprise-bench -- enterprise_hot_paths"
+    },
+    "efficiency": {
+      "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
+      "verification": "oya gate validate enterprise-finops-unit-economics"
+    },
+    "reliability": {
+      "target": "GA availability 99.95%; RPO <= 5m for professional data; rollback evidence emitted before root-cause analysis",
+      "verification": "oya gate validate enterprise-slo-coverage"
+    }
+  },
+  "user_experience": {
+    "primary_navigation": "suite shell with HR, Payroll, Accounting, approvals, evidence, and admin work queues; personal/work context boundaries inherited from the workspace shell where applicable",
+    "critical_flows": [
+      "tenant onboarding",
+      "employee lifecycle",
+      "payroll trial close",
+      "GL posting review",
+      "statutory filing evidence",
+      "incident/rollback evidence review"
+    ],
+    "accessibility": {
+      "baseline": "WCAG 2.1 AA",
+      "keyboard_required": true,
+      "screen_reader_required": true
+    },
+    "localization": {
+      "default_locale": "ko-KR",
+      "required_locales": [
+        "ko-KR",
+        "en-US"
+      ],
+      "currency_handling": [
+        "KRW",
+        "USD",
+        "EUR",
+        "JPY",
+        "GBP",
+        "CNY",
+        "AUD"
+      ]
+    }
+  },
+  "frontend_components": [
+    {
+      "component": "EnterprisePolicyDisclosureBanner",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "tested_at_breakpoints": [
+        "mobile-360",
+        "tablet-768",
+        "desktop-1440"
+      ]
+    },
+    {
+      "component": "EnterpriseWorkQueueList",
+      "design_system_ref": "$ref:specs/design-system/communication-thread-list.json",
+      "tested_at_breakpoints": [
+        "mobile-360",
+        "tablet-768",
+        "desktop-1440"
+      ]
+    }
+  ],
+  "decision_log": [
+    {
+      "id": "D-01",
+      "decision": "Machine-readable PRD JSON is canonical; no new Markdown PRD is introduced.",
+      "date": "2026-05-16"
+    },
+    {
+      "id": "D-02",
+      "decision": "OpenTofu + Makefile + oya ops are the deployment/ops path; manual SSH troubleshooting is explicitly out of scope.",
+      "date": "2026-05-16"
+    },
+    {
+      "id": "D-03",
+      "decision": "HR, Payroll, and Accounting are the first enterprise children; suite model remains extensible for procurement, compliance, assets, and corporate intelligence.",
+      "date": "2026-05-16"
+    }
+  ],
+  "sources_scanned": [
+    "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
+    "/Users/jasonlee/bominal/docs/products/corporate/corporate.md",
+    "/Users/jasonlee/bominal/docs/products/corporate/hr-payroll-known-limits.md",
+    "/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
+    "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+    "https://en.douzone.com/",
+    "https://gusto.com/product/payroll",
+    "https://www.adp.com/what-we-offer/products/adp-workforce-now.aspx",
+    "https://www.deel.com/solutions/payroll/",
+    "https://www.rippling.com/",
+    "https://www.workday.com/en-us/products/human-capital-management/overview.html",
+    "specs/deployment-ops-contract.json",
+    "specs/microservices/suite.json",
+    "specs/microservices/connect-suite.json"
+  ],
+  "industry_audit_source_fidelity": {
+    "audit_id": "enterprise-suite-industry-audit-1779012320",
+    "verification_method": "official_vendor_landing_pages_refreshed_2026_05_17_plus_local_prd_gap_review",
+    "verification_limitations": [
+      "Official vendor landing pages establish product/category presence and high-level capability areas only; this PR does not claim exhaustive feature parity verification.",
+      "New industry_patterns_adopted, anti_patterns_avoided, and hyperscaler_bar entries are product-planning commitments until dedicated Enterprise validators land.",
+      "No runtime, CI lane, or schema validator for the new Enterprise hyperscaler_bar dimensions ships in this PR."
+    ],
+    "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+    "required_followup_gate": "oya gate validate enterprise-hyperscaler-bar"
+  }
+}

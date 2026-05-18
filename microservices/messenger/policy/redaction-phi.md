@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + ops-compliance + axis-messenger
 deciders: council-architecture, council-privacy, ops-security
-related_adrs: [ADR-0008, ADR-0028, ADR-0126, ADR-0131]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/messenger/threat-model.md (T-I-08)
   - microservices/messenger/dpia.md (R-08)
@@ -124,7 +124,7 @@ If the redaction pass fails (e.g., classifier crashes):
   §164.514 (Safe Harbour de-identification).
 - HITECH Act breach-notification rules.
 - ADR-0008 Data Use Boundary.
-- ADR-0126 (Connect dual-context, parallel).
+- ADR-0135 (Connect dual-context, parallel).
 - `microservices/messenger/threat-model.md` T-I-08.
 - `microservices/messenger/dpia.md` R-08.
 - `microservices/messenger/compliance.md` HIPAA section.

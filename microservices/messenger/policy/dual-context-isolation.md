@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-messenger
 deciders: council-architecture, ops-security, axis-messenger, council-privacy
-related_adrs: [ADR-0008, ADR-0028, ADR-0126, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-0132, ADR-0140]
 related_artifacts:
   - microservices/messenger/threat-model.md (T-I-07; cross-context invariant violation)
   - microservices/messenger/dpia.md (R-07)
@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing dual-context invariants of the messenger substrate. Per parallel ADR-0126 (which inherits Bominal ADR-0208's dual-context model), every messenger entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
+Define the load-bearing dual-context invariants of the messenger substrate. Per parallel ADR-0135 (which inherits Bominal ADR-0208's dual-context model), every messenger entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
 
 - which keys encrypt the body (personal E2E vs tenant-DEK);
 - which retention floor applies (personal user-policy vs professional pack-floor);
@@ -44,7 +44,7 @@ pub enum ContextKind {
 Properties:
 - Enum is sealed at the kernel layer; only two variants ever exist.
 - Cross-variant write is rejected at the domain layer.
-- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0126.
+- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0135.
 
 ## Entity Type Invariants
 
@@ -148,7 +148,7 @@ In addition to compile-time + LEAN-lane enforcement, runtime guards:
 
 ## References
 
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - Bominal ADR-0208 (Connect dual-context unified channel hub; inherited).
 - Bominal ADR-0215 (Connect retention legal-hold dual-context; inherited).
 - ADR-0008 Data Use Boundary.

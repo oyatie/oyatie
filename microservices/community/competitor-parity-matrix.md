@@ -5,13 +5,13 @@ microservice: community
 status: Accepted
 date: 2026-05-17
 owner_team: axis-community
-related_adrs: [ADR-0056, ADR-0126, ADR-0131, ADR-0133]
+related_adrs: [ADR-0056, ADR-0135, ADR-0131, ADR-0133]
 doc_status: published
 ---
 
 # Competitor Parity Matrix: community µservice
 
-Reference benchmarks per parallel-session ADR-0126 + `feedback_quality_performance_scalability_bar.md`. Targets: Atlassian Community + Microsoft Yammer/Viva Engage + Salesforce Community Cloud + Discourse + Slack channels + Stack Overflow Teams.
+Reference benchmarks per parallel-session ADR-0135 + `feedback_quality_performance_scalability_bar.md`. Targets: Atlassian Community + Microsoft Yammer/Viva Engage + Salesforce Community Cloud + Discourse + Slack channels + Stack Overflow Teams.
 
 ## Feature Parity
 

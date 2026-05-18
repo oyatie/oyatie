@@ -9,7 +9,7 @@ owner_team: axis-workflow + ops-security
 deciders: council-architecture, ops-security, axis-workflow, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
 related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140, ADR-0148]
-related_specs: [/specs/products/workflow.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every engine substrate change OR new event-type registration
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC6.7, CC7.1, CC7.2, CC7.4, CC8.1"
@@ -621,7 +621,7 @@ Pack-overlay sections at `regional-packs/<pack>/workflow-engine-overlay.md`; eac
 - `microservices/workflow-engine/PRD.md`.
 - `microservices/workflow-engine/dpia.md`.
 - `microservices/workflow-engine/compliance.md`.
-- `/specs/products/workflow.json`.
+- `/specs/microservices/workflow.json`.
 - Microsoft Threat Modeling methodology (STRIDE).
 - LINDDUN privacy-threat methodology — Wuyts et al., KU Leuven.
 - OWASP Top 10 (2021) + OWASP API Top 10 (2023).

@@ -8,7 +8,7 @@ owner: axis-shorts + ops-legal
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-SHORTS-0001
   - ADR-SHORTS-0003
@@ -96,7 +96,7 @@ oyatie shorts adopts:
 ### E. Build proprietary ML-based copyright matcher (audio + video deep-feature embedding)
 
 - Pros: highest accuracy; resilient to adversarial transformations.
-- Cons: years of model-development; per-match cost orders-of-magnitude higher than perceptual-hash; EU AI Act high-risk classification multiplied; defer to M05+.
+- Cons: years of model-development; per-match cost orders-of-magnitude higher than perceptual-hash; EU AI Act high-risk classification multiplied; defer to M05-onward.
 - Rejected (for P01); revisit when foundry-runtime has mature media-embedding capacity.
 
 ### F. Per-pack global single corpus (no per-licensor namespace)
@@ -147,7 +147,7 @@ oyatie shorts adopts:
 
 ## References
 
-- ADR-0126 dual-context (paired); ADR-0131 per-µservice flat layout.
+- ADR-0135 dual-context (paired); ADR-0131 per-µservice flat layout.
 - ADR-SHORTS-0001 (transcode pipeline; fingerprint corpus is upstream-of-publication).
 - ADR-SHORTS-0003 (content-moderation classifier; copyright is sibling auto-action surface).
 - DMCA Title II 17 USC §512.

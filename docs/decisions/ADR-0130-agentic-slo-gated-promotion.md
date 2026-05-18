@@ -29,7 +29,7 @@ Accepted — 2026-05-17.
 
 oyatie's current branch pipeline (per `feedback_branch_pipeline_implemented.md`, 2026-05-16) fast-forwards `staging` from `dev` on push + 30-minute cron, and fast-forwards `production` from `staging` on push + hourly cron. Both promotions are **unconditional**. The canary-cohort-observability and full-rollout-observability lanes referenced in `promote-dev-to-staging.yml` and `promote-staging-to-production.yml` are FUTURE stubs; no gate exists today between a `dev` merge and a production deployment within ~1 hour.
 
-This contradicts the hyperscaler-grade bar (`feedback_quality_performance_scalability_bar.md`) and the user-mandated 2026-05-17 directive: "any of our practices should be hyperscaler grade, industry leading" plus "nothing deferred until later."
+This contradicts the hyperscaler-grade bar (`feedback_quality_performance_scalability_bar.md`) and the user-mandated 2026-05-17 directive: "any of our practices should be hyperscaler grade, industry leading" plus "nothing scheduled-for-distinct-tracked-work until later."
 
 Three reinforcing user directives narrowed the design space:
 
@@ -43,7 +43,7 @@ This ADR depends on ADR-0131 (per-microservice flat layout) for the location of 
 
 ## Decision
 
-oyatie adopts a two-layer design: **adopted OSS observability runtime (Layer A)** plus **oyatie-owned agentic-gate differentiator (Layer B)**. Both layers ship together as one M01 phase; neither is deferred. The deployment substrate is the canonical Grafana stack, self-hosted; the gate logic is a new oyatie µservice `observability` with the BNF v4.1 crate family `oya-observability-<bc>-<layer>` (see §Naming Justification).
+oyatie adopts a two-layer design: **adopted OSS observability runtime (Layer A)** plus **oyatie-owned agentic-gate differentiator (Layer B)**. Both layers ship together as one M01 phase; neither is scheduled-for-distinct-tracked-work. The deployment substrate is the canonical Grafana stack, self-hosted; the gate logic is a new oyatie µservice `observability` with the BNF v4.1 crate family `oya-observability-<bc>-<layer>` (see §Naming Justification).
 
 ### Layer A — adopted OSS runtime (commodity; deployed, not written)
 
@@ -220,7 +220,7 @@ pub trait EligibilityLedgerWriter: Send + Sync + sealed::Sealed {
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Long-lived evaluator service (preferred, hyperscaler-canonical) vs. scheduled GitHub Action against Prometheus snapshots (bootstrap-cheaper) — final landing decision before IP-008 merges. | axis-observability | ADR-NNNN follow-up or resolved in IP-008. |
+| 1 | Long-lived evaluator service (preferred, hyperscaler-canonical) vs. scheduled GitHub Action against Prometheus snapshots (bootstrap-cheaper) — final landing decision before IP-008 merges. | axis-observability | ADR-NNNN successor-IP or resolved in IP-008. |
 | 2 | Where does the Layer-A cluster run (single Kubernetes cluster alongside staging/prod workloads, or dedicated observability cluster)? | ops-sre-reliability | resolved in IP-001 IaC choice. |
 | 3 | Bootstrap order: gate lights up incrementally (each microservice brings its OpenSLO at migration time) vs. gate lands last and retroactively gates. (a) is the hyperscaler answer; (b) is the simpler integration. | council-architecture | resolved in PHASE-01 spec. |
 
@@ -257,4 +257,4 @@ pub trait EligibilityLedgerWriter: Send + Sync + sealed::Sealed {
 - `feedback_quality_performance_scalability_bar.md` — hyperscaler bar.
 - `feedback_no_silent_regression.md` — Linus-style regression discipline.
 - `feedback_branch_pipeline_implemented.md` — current pipeline baseline.
-- Issues: `Refs #<TBD>`.
+- Issues: scaffold branch `oya-microservice-flat-layout-buildout-2026-05-17` (PR opened against `dev` per CLAUDE.md Wave-B bootstrap; ADR-0116 explains the temporary seam).

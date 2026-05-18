@@ -27,7 +27,7 @@ launch sequence.
 | Go | M04 | partial — admin + publish | typed clients via OpenAPI codegen |
 | Java | M05 | partial — admin | enterprise tenants |
 | .NET | M05 | partial — admin | enterprise tenants |
-| Swift / Kotlin | post-M05 | mobile-admin-only | mobile editor companion |
+| Swift / Kotlin | subsequent-to-M05-completion | mobile-admin-only | mobile editor companion |
 
 ## Per-language surface
 

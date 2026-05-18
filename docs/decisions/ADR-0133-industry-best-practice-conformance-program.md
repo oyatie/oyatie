@@ -6,7 +6,7 @@ date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0124, ADR-0125, ADR-0126, ADR-0127, ADR-0128, ADR-0129, ADR-0130, ADR-0131, ADR-0132]
+related: [ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0124, ADR-0125, ADR-0127, ADR-0128, ADR-0129, ADR-0130, ADR-0131, ADR-0132, ADR-0135]
 related_specs: [/specs/industry-best-practice-conformance.json, /specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 session_context:
   authored: 2026-05-17
@@ -146,7 +146,7 @@ Every Cedar fragment under `microservices/<ms>/policy/*.cedar` audited against:
 | Artifact | Path | Cadence |
 |---|---|---|
 | Audit findings (machine-readable) | `/specs/industry-best-practice-conformance.json` | This ADR's session (foundation) + quarterly refresh |
-| ADR (this document) | `docs/decisions/ADR-0133-industry-best-practice-conformance-program.md` | one-time foundation + supersession via ADR-NNNN follow-up |
+| ADR (this document) | `docs/decisions/ADR-0133-industry-best-practice-conformance-program.md` | one-time foundation + supersession via ADR-NNNN successor-IP |
 | Cross-cutting standard | `docs/standards/agentic-dev-team-optimization.md` | foundation + annual refresh |
 | BLOCKER CI lane | `microservices/governance/src/crates/oya-check-industry-best-practice-conformance/` (or co-located under existing governance crate per ADR-0125 governance bundle) | new on dev |
 | Per-axis remediation IPs | `microservices/governance/IP-M01-AUDIT-<axis>-<NNN>.md` (or per-µservice when scope is µservice-local) | as findings surface |
@@ -180,7 +180,7 @@ Every Cedar fragment under `microservices/<ms>/policy/*.cedar` audited against:
 - **New CI lane**: `oya-governance-industry-best-practice-conformance` (BLOCKER on `dev`). Implemented under `microservices/governance/` (existing bundle per ADR-0132 governance umbrella). Lane reads `/specs/industry-best-practice-conformance.json` + asserts no new artifact lands without a matching audit row.
 - **First-run amnesty**: existing legacy violations are recorded as `severity: legacy-grandfathered` + remediation owner + target-close-date 1y; lane refuses NEW violations matching the same pattern.
 - **Per-axis remediation IPs**: filed under `microservices/governance/IP-M01-AUDIT-<axis>-<NNN>.md`; each IP closes one axis-finding and is bundleable per ADR-0110 ChangeSet contract.
-- **Quarterly refresh**: `oya dev industry-best-practice-refresh` CLI subcommand fetches current industry baselines + diffs against pinned baselines + opens follow-up ADR if baseline moved materially.
+- **Quarterly refresh**: `oya dev industry-best-practice-refresh` CLI subcommand fetches current industry baselines + diffs against pinned baselines + opens successor-IP ADR if baseline moved materially.
 
 ## Clean Architecture Impact
 

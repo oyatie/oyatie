@@ -102,7 +102,7 @@ oyatie notes adopts a **tier-shaped + materialised + client-rendered** storage +
 ### C. Graph-DB (Neo4j / DGraph / Memgraph) for adjacency
 - Pros: native graph queries; rich traversal.
 - Cons: operational overhead (new substrate; LTS version-pinning; replication); per-tenant isolation harder; oyatie does not currently operate a graph-DB substrate.
-- Rejected at MVP; could revisit if traversal queries become dominant.
+- Rejected at minimum-shippable-tier; could revisit if traversal queries become dominant.
 
 ### D. Tier-shaped + materialised + client-rendered (this ADR's choice)
 - Pros: respects ADR-NOTES-0001 E2E posture (Personal client-side); meets perf budget; matches incumbent patterns (Obsidian + Roam + Logseq); leverages existing Postgres substrate.
@@ -115,8 +115,8 @@ oyatie notes adopts a **tier-shaped + materialised + client-rendered** storage +
 
 ### F. Block-level references (Roam-style `((block-uuid))`)
 - Pros: finer-grained.
-- Cons: significant scope expansion; oyatie does not adopt block-model at MVP (the notes µservice is note-level not block-level); revisit when block-level becomes a user-demand signal.
-- Rejected at MVP; tracked as PRD Open Q follow-on.
+- Cons: significant scope expansion; oyatie does not adopt block-model at minimum-shippable-tier (the notes µservice is note-level not block-level); revisit when block-level becomes a user-demand signal.
+- Rejected at minimum-shippable-tier; tracked as PRD Open Q successor-IP.
 
 ## Consequences
 
@@ -144,7 +144,7 @@ oyatie notes adopts a **tier-shaped + materialised + client-rendered** storage +
 
 ## Future
 
-Block-level references (`((block-uuid))`) per PRD Open Q follow-on; would extend backlink table with `from_block_id` + `to_block_id`. Out-of-scope at MVP.
+Block-level references (`((block-uuid))`) per PRD Open Q successor-IP; would extend backlink table with `from_block_id` + `to_block_id`. Out-of-scope at minimum-shippable-tier.
 
 ## References
 

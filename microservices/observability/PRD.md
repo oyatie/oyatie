@@ -265,7 +265,7 @@ Scale-out policy:
 
 Cross-region story:
 - M01 launch: single KR region (OCI ap-seoul-1); per-tenant residency locked per ADR-0117.
-- Post-M01 expansion: federated Mimir + replicated Loki/Tempo per region; ADR follow-up.
+- Post-M01 expansion: federated Mimir + replicated Loki/Tempo per region; ADR successor-IP.
 
 Sharding:
 - Eligibility ledger partitions by `microservice`; evaluator shards by µservice or by SLO target without coordination.
@@ -292,7 +292,7 @@ Sharding:
 |---|---|---|---|
 | 1 | Evaluator long-lived service vs. scheduled GitHub Action — final landing decision | axis-observability | resolved in IP-008 |
 | 2 | Layer-A cluster co-located with workload cluster vs. dedicated observability cluster | ops-sre-reliability | resolved in IP-001 |
-| 3 | Tenant-defined SLOs: same OpenSLO file shape, or a tenant-scoped variant? | council-architecture | ADR-NNNN follow-up |
+| 3 | Tenant-defined SLOs: same OpenSLO file shape, or a tenant-scoped variant? | council-architecture | ADR-NNNN successor-IP |
 | 4 | Self-observability: does the SLO engine evaluate its own SLOs (bootstrap paradox)? Default: yes, with a synthetic-probe fallback during cold-start. | axis-observability | resolved in IP-002 |
 
 ## Related ADRs

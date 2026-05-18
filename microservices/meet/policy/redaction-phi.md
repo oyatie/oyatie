@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + ops-compliance + axis-meet
 deciders: council-architecture, council-privacy, ops-security
-related_adrs: [ADR-0008, ADR-0028, ADR-0126, ADR-0131, ADR-MEET-0002, ADR-MEET-0006]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-MEET-0002, ADR-MEET-0006]
 related_artifacts:
   - microservices/meet/threat-model.md (T-I-02)
   - microservices/meet/dpia.md (R-02)

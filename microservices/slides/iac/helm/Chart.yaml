@@ -2,7 +2,7 @@ apiVersion: v2
 name: oya-slides
 description: |
   Slides µservice — Google-Slides / PowerPoint-Web / Keynote / Pitch / Beautiful.ai /
-  Canva-presentations-class collaborative presentation product. Per ADR-0126 + ADR-0131.
+  Canva-presentations-class collaborative presentation product. Per ADR-0135 + ADR-0131.
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

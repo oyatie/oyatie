@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-meet + council-architecture
 deciders: axis-meet, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0132, ADR-0133]
 related_artifacts:
   - microservices/meet/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-MEET gate)
@@ -49,18 +49,18 @@ Quantitative + qualitative parity comparison against industry-leading video-meet
 | Lobby / waiting room | ✅ | ✅ | ✅ | ✅ | ✅ | partial |
 | Calendar binding | ✅ via calendar µservice | ✅ Google Calendar | ✅ Zoom Scheduler | ✅ Outlook | ✅ Webex Calendar | partial |
 | Guest join (no account) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Mobile (iOS + Android) | M02+1 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Mobile (iOS + Android) | M02-onward1 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Web (no-install) | ✅ | ✅ | partial | ✅ | ✅ | ✅ |
-| Desktop apps | M03+ | ✅ | ✅ | ✅ | ✅ | partial |
-| PSTN dial-in | M03+ Open Question | ✅ | ✅ | ✅ | ✅ | partial |
+| Desktop apps | M03-onward | ✅ | ✅ | ✅ | ✅ | partial |
+| PSTN dial-in | M03-onward Open Question | ✅ | ✅ | ✅ | ✅ | partial |
 
 ### Media + quality
 
 | Capability | oyatie | Google Meet | Zoom | Teams | Webex |
 |---|---|---|---|---|---|
 | HD video (1080p) | ✅ | ✅ Enterprise | ✅ | ✅ | ✅ |
-| 4K video | M03+ | ❌ | partial | ❌ | partial |
-| Background blur / virtual background | M02+1 | ✅ | ✅ | ✅ | ✅ |
+| 4K video | M03-onward | ❌ | partial | ❌ | partial |
+| Background blur / virtual background | M02-onward1 | ✅ | ✅ | ✅ | ✅ |
 | Noise suppression | ✅ LiveKit/Krisp-eq | ✅ | ✅ Zoom Audio Isolation | ✅ Microsoft AI | ✅ |
 | MOS (G.107) first-class SLO | ✅ | hidden | partial Call Quality Dashboard | ✅ CQD | partial |
 | Glass-to-glass latency p95 ≤ 150ms intra-region | ✅ | n/a published | ~ 200ms | ~ 250ms | ~ 200ms |
@@ -76,7 +76,7 @@ Quantitative + qualitative parity comparison against industry-leading video-meet
 | Reactions | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Polls | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Q&A (moderated) | ✅ webinar mode | ✅ | ✅ | ✅ | ✅ |
-| Whiteboard | M03+ | ✅ Jamboard sunset; Figma integration | ✅ | ✅ | ✅ |
+| Whiteboard | M03-onward | ✅ Jamboard sunset; Figma integration | ✅ | ✅ | ✅ |
 | Breakout rooms | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Hand raise | ✅ | ✅ | ✅ | ✅ | ✅ |
 
@@ -149,13 +149,13 @@ Quantitative + qualitative parity comparison against industry-leading video-meet
 
 | # | Gap | Owner | Target close |
 |---|---|---|---|
-| 1 | Mobile SDK polish (iOS/Android parity with Zoom native UX) | axis-meet + gtm | M02+1 |
-| 2 | PSTN dial-in adapter (Twilio Voice / Vonage) | axis-meet + gtm | M03+ (Open Question 1) |
-| 3 | Desktop apps (macOS / Windows electron-equivalent) | axis-meet + gtm | M03+ |
-| 4 | Background blur / face-AR (LiveKit add-on) | axis-meet | M02+1 |
+| 1 | Mobile SDK polish (iOS/Android parity with Zoom native UX) | axis-meet + gtm | M02-onward1 |
+| 2 | PSTN dial-in adapter (Twilio Voice / Vonage) | axis-meet + gtm | M03-onward (Open Question 1) |
+| 3 | Desktop apps (macOS / Windows electron-equivalent) | axis-meet + gtm | M03-onward |
+| 4 | Background blur / face-AR (LiveKit add-on) | axis-meet | M02-onward1 |
 | 5 | Whiteboard collaborative editing (Open Question 5 — own BC or use slides?) | council-architecture | M03 ADR |
 | 6 | Enterprise SSO depth (SCIM provisioning all 11 packs) | ops-security + gtm | M03 |
-| 7 | Mature SDK marketplace (Zoom App Marketplace lead) | axis-meet + gtm | M05+ |
+| 7 | Mature SDK marketplace (Zoom App Marketplace lead) | axis-meet + gtm | M05-onward |
 
 ## Key oyatie Differentiators (NOT in any competitor)
 
@@ -197,7 +197,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `microservices/meet/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-MEET gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0126 (net-new µservice).
+- ADR-0135 (net-new µservice).
 - ADR-0130 (agentic SLO-gated promotion).
 - ADR-0132 (single-concern + flat).
 - ADR-0133 (industry best-practice conformance).

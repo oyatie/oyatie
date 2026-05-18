@@ -7,7 +7,7 @@ phase_title: Calendar Foundation — event-store + recurrence + availability + r
 status: Accepted
 date: 2026-05-17
 owner_team: axis-calendar
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
 doc_status: published
 ---
 
@@ -30,10 +30,10 @@ In-scope:
 - Ontology writes + reads per `PRD.md`.
 - HG-CALENDAR hyperscaler-maturity claim registered per ADR-0123 + ADR-0133.
 
-Out-of-scope (deferred):
-- Native conferencing (oyatie-Connect-Conference) — ADR follow-up.
+Out-of-scope (scheduled-for-distinct-tracked-work):
+- Native conferencing (oyatie-Connect-Conference) — ADR successor-IP.
 - Federation with external Google / Outlook as source-of-truth — migration-only at GA.
-- ML-based smart scheduling — post-GA.
+- ML-based smart scheduling — subsequent-to-GA-tier-promotion.
 
 ## Phase outputs
 

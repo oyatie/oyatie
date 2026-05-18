@@ -8,8 +8,8 @@ sales_segment: shared-substrate-and-product
 tier: hero-product
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0208, ADR-0210, ADR-0215]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
-related_specs: [/specs/products/connect/mail.json, /specs/per-microservice-flat-layout.json]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_specs: [/specs/microservices/mail.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 owner_team: axis-mail + council-privacy
 doc_status: published
@@ -19,11 +19,11 @@ doc_status: published
 
 ## Purpose
 
-The `mail` µservice is oyatie's corporate-and-personal mail surface. SMTP/IMAP/JMAP standards-compatible at the edge; native dual-context (Personal B2C vs Professional B2B) isolation per ADR-0126; tenant retention + legal hold + chain-of-custody-preserving eDiscovery export; mail-to-Workflow handoff with explicit consent/policy basis; cross-organization mail-server pattern (each tenant operates its own logical mail-server inside the µservice).
+The `mail` µservice is oyatie's corporate-and-personal mail surface. SMTP/IMAP/JMAP standards-compatible at the edge; native dual-context (Personal B2C vs Professional B2B) isolation per ADR-0135; tenant retention + legal hold + chain-of-custody-preserving eDiscovery export; mail-to-Workflow handoff with explicit consent/policy basis; cross-organization mail-server pattern (each tenant operates its own logical mail-server inside the µservice).
 
-Connect dissolved per ADR-0132 + parallel ADR-0126 into mail/messenger/calendar/community/social/shorts/network/anonymous. This document is the canonical PRD for the **mail** sub-product; calendar, messenger, etc., own their own PRDs.
+Connect dissolved per ADR-0132 + parallel ADR-0135 into mail/messenger/calendar/community/social/shorts/network/anonymous. This document is the canonical PRD for the **mail** sub-product; calendar, messenger, etc., own their own PRDs.
 
-Inherits Bominal ADR-0208 (dual-context unified channel hub), ADR-0210 (M03 KR group-mail launch), ADR-0215 (retention/legal-hold dual-context). The oyatie variant treats mail as a µservice in its own right rather than a "Connect app" — this is the load-bearing structural change of ADR-0132 + ADR-0126.
+Inherits Bominal ADR-0208 (dual-context unified channel hub), ADR-0210 (M03 KR group-mail launch), ADR-0215 (retention/legal-hold dual-context). The oyatie variant treats mail as a µservice in its own right rather than a "Connect app" — this is the load-bearing structural change of ADR-0132 + ADR-0135.
 
 ## Tenant Value
 
@@ -127,7 +127,7 @@ Naming justification — `mailbox-store` (representative; same shape for all 8 B
 NAME: oya-mail-mailbox-store-<layer>
 JUSTIFICATION:
 - microservice = mail: this µservice; ADR-0056 v4.1 flat BNF + ADR-0131 per-microservice
-  folder. Connect dissolved per ADR-0126; mail stands alone.
+  folder. Connect dissolved per ADR-0135; mail stands alone.
 - bc-tokens = mailbox-store: primary BC for mailbox + thread + message storage
   + encryption + retention bookkeeping. ADR-0056 v4.1 BC-optionality rule honoured
   (7 sibling BCs exist; explicit BC token justified).
@@ -368,7 +368,7 @@ Sharding:
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0117 | Cloud-native infrastructure | residency authority |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-MAIL registers |
-| ADR-0126 | Connect full social network super-app (parallel-session) | Connect dissolution; dual-context invariants |
+| ADR-0135 | Connect full social network super-app (parallel-session) | Connect dissolution; dual-context invariants |
 | ADR-0130 | Agentic SLO-gated promotion | mail consumes the gate |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 | No-suite forward policy | mail is a µservice, not a "Connect app" |

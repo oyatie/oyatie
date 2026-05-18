@@ -1,5 +1,5 @@
 // oya-slides protobuf contract — proto3
-// Per ADR-0126 Connect dissolution + ADR-0131 per-microservice flat layout.
+// Per ADR-0135 Connect dissolution + ADR-0131 per-microservice flat layout.
 // Used by cross-µservice SDK consumers (sheets, docs, forms, drive, messenger, etc.)
 // for low-overhead structured calls. REST surface lives in contracts/openapi/slides.yaml.
 

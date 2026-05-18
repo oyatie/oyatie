@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-calendar + council-architecture
 deciders: axis-calendar, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-CAL-0001, ADR-CAL-0002, ADR-CAL-0003]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-CAL-0001, ADR-CAL-0002, ADR-CAL-0003]
 related_artifacts:
   - microservices/calendar/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-CALENDAR gate)
@@ -60,7 +60,7 @@ Calendar, Cal.com OSS rise, Notion Calendar acquisition).
 | 100% double-booking refusal at write | ✅ AC-09 SLO | ✅ | ✅ | partial | ✅ | n/a | partial | n/a |
 | Legal hold on events | ✅ | ✅ (Vault) | ✅ (eDiscovery) | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Auto-scheduling (RFC 6638) | ✅ | partial | ✅ | ✅ | ✅ | partial | partial | n/a |
-| Meeting-time polls | ✅ (M03+1) | ✅ (Find a Time) | ✅ (FindTime) | ❌ | partial | ❌ | ❌ | partial |
+| Meeting-time polls | ✅ (M03-onward1) | ✅ (Find a Time) | ✅ (FindTime) | ❌ | partial | ❌ | ❌ | partial |
 
 ### Protocols + interop
 
@@ -75,7 +75,7 @@ Calendar, Cal.com OSS rise, Notion Calendar acquisition).
 | iMIP (RFC 6047) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | partial | partial |
 | JSCalendar (RFC 8984) | ✅ M04 | partial | partial | partial | ✅ | partial | ❌ | ❌ |
 | JMAP Calendars (draft) | ✅ M04 | ❌ | ❌ | ❌ (WWDC '24 hint) | ✅ | ❌ | ❌ | ❌ |
-| Exchange ActiveSync | ❌ M05+ | partial | ✅ | partial | partial | ❌ | ❌ | ❌ |
+| Exchange ActiveSync | ❌ M05-onward | partial | ✅ | partial | partial | ❌ | ❌ | ❌ |
 | Google Calendar API compat shim | ✅ M04 (read-only) | n/a | ❌ | ❌ | ❌ | ❌ | partial | ❌ |
 | Outlook Graph API compat shim | ✅ M04 (read-only) | ❌ | n/a | ❌ | ❌ | ❌ | partial | ❌ |
 
@@ -108,8 +108,8 @@ Calendar, Cal.com OSS rise, Notion Calendar acquisition).
 |---|---|---|---|---|---|---|---|---|
 | T0 smart-time suggestion | ✅ M03 | ✅ Find a Time | ✅ FindTime | ❌ | ❌ | ❌ | partial | partial |
 | T0 title / agenda suggestion | ✅ M03 | ✅ Duet AI | ✅ Copilot | ❌ | ❌ | ❌ | ❌ | ❌ |
-| T1 smart-scheduling on behalf | ✅ M03+1 | partial (Duet) | partial (Copilot) | ❌ | ❌ | ❌ | ❌ | ❌ |
-| T1 auto-decline conflicts | ✅ M03+1 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| T1 smart-scheduling on behalf | ✅ M03-onward1 | partial (Duet) | partial (Copilot) | ❌ | ❌ | ❌ | ❌ | ❌ |
+| T1 auto-decline conflicts | ✅ M03-onward1 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | T2 auto-block focus | ✅ M04 | partial (Focus Time) | partial (Focus) | ❌ | ❌ | ❌ | ❌ | ❌ |
 | EU AI Act Annex III §3 conformity (HR overlay) | ✅ (refused at Cedar layer until ADR-CAL-XXXX) | unclear | unclear | n/a | n/a | n/a | unclear | unclear |
 
@@ -128,11 +128,11 @@ Calendar, Cal.com OSS rise, Notion Calendar acquisition).
 | Gap | Current state | Plan | Target |
 |---|---|---|---|
 | JMAP Calendars (draft) | M04 once IETF stabilises | adapter-jmap crate; OpenSLO; SDK Swift integration | M04 |
-| Exchange ActiveSync | Not planned at M03 | review at M05 based on enterprise demand | M05+ |
+| Exchange ActiveSync | Not planned at M03 | review at M05 based on enterprise demand | M05-onward |
 | Google Calendar API compat shim (read-only) | M04 | adapter behind feature flag | M04 |
 | Outlook Graph API compat shim (read-only) | M04 | adapter behind feature flag | M04 |
-| Meeting-time polls | M03+1 | extension of invitation-flow worker | M03+1 |
-| EU AI Act conformity assessment (HR overlay) | refused at Cedar layer | dedicated ADR-CAL-XXXX | M04+ |
+| Meeting-time polls | M03-onward1 | extension of invitation-flow worker | M03-onward1 |
+| EU AI Act conformity assessment (HR overlay) | refused at Cedar layer | dedicated ADR-CAL-XXXX | M04-onward |
 | Mobile-app native CalDAV optimisation | depends on Apple/Android CalDAV stack | tune Radicale for mobile poll patterns | M04 |
 
 ## Verification
@@ -148,7 +148,7 @@ Calendar, Cal.com OSS rise, Notion Calendar acquisition).
 ## References
 
 - ADR-0123 — Hyperscaler maturity claim gate.
-- ADR-0126; ADR-0131; ADR-0132; ADR-0133.
+- ADR-0135; ADR-0131; ADR-0132; ADR-0133.
 - ADR-CAL-0001 — CalDAV backend selection.
 - ADR-CAL-0002 — RRULE engine conformance.
 - ADR-CAL-0003 — CalDAV-first frontend; JMAP at M04.

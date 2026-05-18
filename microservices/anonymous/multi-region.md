@@ -5,7 +5,7 @@ microservice: anonymous
 status: Accepted
 date: 2026-05-17
 owner_team: axis-anonymous + ops-platform
-related_adrs: [ADR-0117, ADR-0126, ADR-ANON-0006]
+related_adrs: [ADR-0117, ADR-0135, ADR-ANON-0006]
 doc_status: published
 ---
 

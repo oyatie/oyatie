@@ -44,7 +44,7 @@ For source imports, the seven user-research-top incumbents (Apple Notes, Evernot
 
 ## Decision
 
-oyatie notes adopts a **dual-format export model** with **six supported import sources at MVP**:
+oyatie notes adopts a **dual-format export model** with **six supported import sources at minimum-shippable-tier**:
 
 1. **Canonical export format = Markdown + YAML frontmatter.**
    - Body is CommonMark + GFM extensions + KaTeX math.
@@ -110,7 +110,7 @@ oyatie notes adopts a **dual-format export model** with **six supported import s
    | Notion Markdown export (zip with Markdown + CSV for databases) | zip + database CSV detection | Markdown + frontmatter ingest; tags from database properties; subset-import (databases not full) |
    | Bear (`.bearbk` bundle) | `.bearbk` signature | Bear → Markdown + hashtag preservation |
 
-7. **Additional sources tracked as follow-on (post-M02)**:
+7. **Additional sources tracked as successor-IP (subsequent-to-M02-completion)**:
    - Joplin JEX format.
    - Logseq export.
    - Standard Notes JSON backup (handles E2E with user-provided key).

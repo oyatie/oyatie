@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0022
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-SHORTS-0003
@@ -23,7 +23,7 @@ related_artifacts:
 purpose: Establish the feed-ranking algorithm strategy for the shorts µservice across P01 (heuristic) and P03 (ML-driven), within EU AI Act Annex III §1(a) high-risk obligations; aligned with social ADR-SOC-0001.
 ---
 
-# ADR-SHORTS-0005: Feed-ranking algorithm — hybrid chronological-first + heuristic-algorithmic in P01; ML-driven ranking deferred to P03 with EU AI Act high-risk obligations
+# ADR-SHORTS-0005: Feed-ranking algorithm — hybrid chronological-first + heuristic-algorithmic in P01; ML-driven ranking scheduled-for-distinct-tracked-work to P03 with EU AI Act high-risk obligations
 
 ## Status
 
@@ -45,7 +45,7 @@ EU DSA Art. 27 (recommender system transparency) and EU AI Act Art. 50 (transpar
 
 KR PIPA Art. 29-2 + EU AI Act Art. 13 require an explanation API surface and an opt-out / human-review path.
 
-Per parallel ADR-0126 dual-context invariant: Personal-tier feed and Professional-tier feed are rendered by separate `FeedCache` ports (DCI invariant).
+Per parallel ADR-0135 dual-context invariant: Personal-tier feed and Professional-tier feed are rendered by separate `FeedCache` ports (DCI invariant).
 
 Per ADR-SHORTS-0006 minor-protection: minor accounts default to chronological-only per EU DSA Art. 28 + KR 청소년 보호법.
 
@@ -69,9 +69,9 @@ oyatie shorts adopts a **three-step strategy** (paired with ADR-SOC-0001):
   Heuristic is fully deterministic + auditable from code; no ML model in P01.
 - Per EU DSA Art. 27: user can switch between chronological + algorithmic via single setting; `ranking_explanation` API populates contributing signals when algorithmic mode active.
 - Per EU AI Act Art. 50: client SDK renders "AI-assessed ranking" label when algorithmic mode active (label same for P01 heuristic + P03 ML to preserve interface stability).
-- Per parallel ADR-0126: Personal-tier feed + Professional-tier feed rendered by separate `FeedCache` ports.
+- Per parallel ADR-0135: Personal-tier feed + Professional-tier feed rendered by separate `FeedCache` ports.
 
-### Step 2 (M04+): ML-driven ranking model
+### Step 2 (M04-onward): ML-driven ranking model
 
 - Owned by `foundry-runtime`; deployed as T2 capability per `capabilities/T2-auto.yaml`.
 - Inputs: same signals as P01 heuristic + content-embedding similarity to viewer-history + sound-embedding similarity + creator-similarity.
@@ -79,10 +79,10 @@ oyatie shorts adopts a **three-step strategy** (paired with ADR-SOC-0001):
 - EU AI Act Annex III §1(a) HIGH-RISK classification confirmed; Arts. 9-15 + 50 obligations operative per ADR-SHORTS-0003.
 - Per-release golden-set eval (nDCG@10 + bias-audit by protected groups); model card per release; appeal-via-revert-to-chronological path always available.
 
-### Step 3 (M05+): User-selectable algorithm marketplace
+### Step 3 (M05-onward): User-selectable algorithm marketplace
 
-- Bluesky-style; per PRD Open Question follow-up.
-- Out-of-scope for M03 / M04; ADR-SHORTS follow-up.
+- Bluesky-style; per PRD Open Question successor-IP.
+- Out-of-scope for M03 / M04; ADR-SHORTS successor-IP.
 
 ### Minor-account default (per ADR-SHORTS-0006)
 
@@ -117,14 +117,14 @@ The heuristic ranking is **not exempt from EU AI Act Art. 50 transparency**: any
 ### D. Marketplace of user-selectable algorithms (Bluesky AT Protocol style)
 
 - Pros: maximum user control; matches Bluesky differentiator; potential brand value.
-- Cons: substantially higher P01 implementation complexity; requires authoring + curating + sandboxing algorithm contributions; EU AI Act risk-management obligations multiply across N algorithms; defer to M05+.
-- Rejected (for M03 / M04); kept open for ADR-SHORTS follow-up at M05+.
+- Cons: substantially higher P01 implementation complexity; requires authoring + curating + sandboxing algorithm contributions; EU AI Act risk-management obligations multiply across N algorithms; defer to M05-onward.
+- Rejected (for M03 / M04); kept open for ADR-SHORTS successor-IP at M05-onward.
 
 ### E. Per-tenant tenant-admin-configurable ranking weights
 
 - Pros: tenants tailor ranking to their community values; explainable.
 - Cons: per-tenant configuration creates per-tenant EU AI Act risk surface (each tenant's configured weights effectively become a distinct system); regulatory complexity multiplies; defer.
-- Rejected (for P01); kept open for ADR-SHORTS follow-up.
+- Rejected (for P01); kept open for ADR-SHORTS successor-IP.
 
 ### F. Pure-engagement ranking (TikTok-style: watch-time + completion-ratio dominant)
 
@@ -137,28 +137,28 @@ The heuristic ranking is **not exempt from EU AI Act Art. 50 transparency**: any
 ### Positive
 
 - M03 ships competitive algorithmic feed without ML deployment risk; users get choice (chronological default + algorithmic opt-in).
-- EU DSA Art. 27 recommender transparency obligations met universally (heuristic exposes signals; ML in M04+ same SDK surface).
-- EU AI Act Art. 50 transparency labels operative from M03 → consistent surface across M03 heuristic + M04+ ML.
+- EU DSA Art. 27 recommender transparency obligations met universally (heuristic exposes signals; ML in M04-onward same SDK surface).
+- EU AI Act Art. 50 transparency labels operative from M03 → consistent surface across M03 heuristic + M04-onward ML.
 - Personal-tier and Professional-tier feeds remain dual-context-invariant; DCI-10 preserved.
 - Minor accounts get chronological-only default per EU DSA Art. 28 + KR 청소년 보호법 + AVMSD Art. 28b.
 - pack-us-healthcare default chronological-only (HIPAA Safe Harbor).
-- Heuristic ranking is auditable from code (deterministic; no model-card complexity until M04+).
-- M04+ ML upgrade path well-defined via `foundry-runtime` T2 capability without SDK / UX breakage.
+- Heuristic ranking is auditable from code (deterministic; no model-card complexity until M04-onward).
+- M04-onward ML upgrade path well-defined via `foundry-runtime` T2 capability without SDK / UX breakage.
 
 ### Negative
 
-- Heuristic ranking quality is bounded; engagement-vs-time tradeoff weaker than ML systems; mitigated by M04+ path.
+- Heuristic ranking quality is bounded; engagement-vs-time tradeoff weaker than ML systems; mitigated by M04-onward path.
 - Per-release golden-set eval needed even for heuristic (EU AI Act Art. 15 accuracy); some infrastructure cost.
-- EU AI Act notified-body engagement required before M04+; timeline coordination with foundry-runtime + council-privacy.
-- Tenants requesting per-tenant ranking weights deferred to M05+; gtm may field requests.
+- EU AI Act notified-body engagement required before M04-onward; timeline coordination with foundry-runtime + council-privacy.
+- Tenants requesting per-tenant ranking weights scheduled-for-distinct-tracked-work to M05-onward; gtm may field requests.
 
 ### Operational
 
-- Cargo workspace: `oya-shorts-feed-timeline-domain` carries the heuristic `rank_score` function; M03 has no `oya-shorts-feed-timeline-adapter-foundry-runtime` (added in M04+).
+- Cargo workspace: `oya-shorts-feed-timeline-domain` carries the heuristic `rank_score` function; M03 has no `oya-shorts-feed-timeline-adapter-foundry-runtime` (added in M04-onward).
 - Cedar policy: ranking_explanation API surface for Art. 27 visible from M03 (heuristic-aware).
-- Runbook `runbooks/moderation-classifier-rollback.md` (paired with this ADR's classifier counterpart) covers ML model rollback in M04+; M03 has simpler "revert to chronological for affected tenants" path.
+- Runbook `runbooks/moderation-classifier-rollback.md` (paired with this ADR's classifier counterpart) covers ML model rollback in M04-onward; M03 has simpler "revert to chronological for affected tenants" path.
 - CI lane `oya-governance-eu-ai-act-conformance` registered in IP-015; covers heuristic + ML modes.
-- Per-release golden-set eval (M03: heuristic eval; M04+: ML eval) maintained per ADR-SHORTS-0003 pipeline.
+- Per-release golden-set eval (M03: heuristic eval; M04-onward: ML eval) maintained per ADR-SHORTS-0003 pipeline.
 
 ### Regulatory
 
@@ -172,7 +172,7 @@ The heuristic ranking is **not exempt from EU AI Act Art. 50 transparency**: any
 ## References
 
 - ADR-0022 Bominal autonomy-tier classification (T0/T1/T2 inherited).
-- ADR-0126 Connect dissolution (parallel; dual-context source).
+- ADR-0135 Connect dissolution (parallel; dual-context source).
 - ADR-0131 per-microservice flat layout.
 - ADR-0132 suite-and-bundle dissolution.
 - ADR-SHORTS-0003 (content-moderation classifier bounds; paired EU AI Act ADR).

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-messenger + gtm-customer-success
 deciders: axis-messenger, council-architecture
-related_adrs: [ADR-0126, ADR-0131, ADR-0132]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132]
 related_artifacts:
   - microservices/messenger/contracts/openapi/messenger.yaml
   - microservices/messenger/contracts/asyncapi/messenger-events.yaml
@@ -33,12 +33,12 @@ deserialisation, and ergonomic patterns idiomatic to each language.
 |---|---|---|---|
 | **Rust** | M02 (primary; oyatie's own language) | First-party authored (`oya-messenger-*-sdk` crates per BC) | axis-messenger |
 | **TypeScript + Browser SDK** | M02 (web-client + ts-server) | OpenAPI + AsyncAPI generation + first-party ergonomic + WebRTC peer-conn helpers | axis-messenger + gtm |
-| **Kotlin (Android) + Swift (iOS)** | M02+1 | gRPC-generated + first-party ergonomic + native WebSocket + WebRTC bindings | axis-messenger + gtm |
+| **Kotlin (Android) + Swift (iOS)** | M02-onward1 | gRPC-generated + first-party ergonomic + native WebSocket + WebRTC bindings | axis-messenger + gtm |
 | **Python** | M03 | OpenAPI-generated + ergonomic | axis-messenger + gtm |
 | **Go** | M03 | gRPC-generated + ergonomic | axis-messenger + gtm |
-| **JVM (Java/Kotlin)** | M03+1 | gRPC-generated + ergonomic; published to Maven Central | axis-messenger + gtm |
-| **C# / .NET** | M04+ | OpenAPI-generated + ergonomic; published to NuGet | axis-messenger + gtm |
-| **C++ (embedded / desktop)** | M05+ (only if tenant demand surfaces) | gRPC-generated | axis-messenger |
+| **JVM (Java/Kotlin)** | M03-onward1 | gRPC-generated + ergonomic; published to Maven Central | axis-messenger + gtm |
+| **C# / .NET** | M04-onward | OpenAPI-generated + ergonomic; published to NuGet | axis-messenger + gtm |
+| **C++ (embedded / desktop)** | M05-onward (only if tenant demand surfaces) | gRPC-generated | axis-messenger |
 | **Dart (Flutter)** | M03 | OpenAPI-generated + WebRTC wrapper | axis-messenger + gtm |
 
 Driver: mobile clients lead because most messenger usage is mobile. Web SDK

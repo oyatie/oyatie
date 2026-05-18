@@ -16,7 +16,7 @@ info:
     MUST match the claim; mismatch returns 401.
 
     Dual-context invariant: every write carries `X-Context-Kind: Personal | Professional`;
-    cross-context writes refused per ADR-0126 (parallel) + `policy/dual-context-isolation.md`.
+    cross-context writes refused per ADR-0135 (parallel) + `policy/dual-context-isolation.md`.
 
     DRM-protected resources require valid EME license; SDK helpers handle license
     acquisition per W3C EME 2017 + Widevine/FairPlay/PlayReady per ADR-SHORTS-0004.
@@ -54,7 +54,7 @@ components:
       name: X-Context-Kind
       required: true
       schema: {type: string, enum: [Personal, Professional]}
-      description: Dual-context invariant per parallel ADR-0126
+      description: Dual-context invariant per parallel ADR-0135
     XAgePackThreshold:
       in: header
       name: X-Age-Pack-Threshold

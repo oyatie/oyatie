@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-shorts + ops-security
 deciders: council-architecture, ops-security, axis-shorts, council-privacy, ops-legal
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:
@@ -46,7 +46,7 @@ Identify, classify, and mitigate threats to shorts's confidentiality, integrity,
 
 ### In-scope
 
-All components introduced by parallel ADR-0126 (Connect dissolution → shorts µservice) and ADR-0132 (suite dissolution into shorts surface) for the shorts µservice. Deployed in the dedicated shorts Kubernetes cluster.
+All components introduced by parallel ADR-0135 (Connect dissolution → shorts µservice) and ADR-0132 (suite dissolution into shorts surface) for the shorts µservice. Deployed in the dedicated shorts Kubernetes cluster.
 
 | Layer-A (adopted OSS / SaaS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -128,7 +128,7 @@ Fifteen trust boundaries:
 1. **External → Cluster ingress** (TLS, WAF, DDoS, WebSocket upgrade).
 2. **Gateway → BC services** (mTLS + SPIFFE identity).
 3. **BC services → backing stores** (RLS + per-tenant prefix isolation + KMS-SSE).
-4. **Personal/Professional context isolation** (data-model invariant per parallel ADR-0126).
+4. **Personal/Professional context isolation** (data-model invariant per parallel ADR-0135).
 5. **BC services → audit-chain** (Ed25519 seal).
 6. **BC services → ontology** (Workflow event bus).
 7. **Upload scan path** (untrusted blob → scanner → quarantine vs production).
@@ -574,7 +574,7 @@ Per pack overlay at `regional-packs/<pack>/shorts-overlay.md`; cross-mapped via 
 
 ## References
 
-- Parallel ADR-0126 (Connect dissolution; shorts as a sibling µservice).
+- Parallel ADR-0135 (Connect dissolution; shorts as a sibling µservice).
 - Bominal ADR-0028, ADR-0111, ADR-0208, ADR-0215.
 - ADR-0008 Data Use Boundary.
 - `microservices/shorts/PRD.md`.

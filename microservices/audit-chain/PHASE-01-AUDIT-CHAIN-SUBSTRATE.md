@@ -27,7 +27,7 @@ This phase ships the full Bominal ADR-0028 + ADR-0003 design — Merkle-tree + E
 
 This phase advances master-plan principles:
 - Hyperscaler-grade non-repudiation (HSM + Ed25519 + eIDAS AdES + KR 전자문서법 compliance).
-- Nothing deferred (no "later we'll add signatures" stubs).
+- Nothing scheduled-for-distinct-tracked-work (no "later we'll add signatures" stubs).
 - Bominal-inheritance precedence (ADR-0028 + ADR-0003 inherited 1:1; oyatie overlays only where the master-plan or local jurisdiction diverges).
 - Per-microservice flat layout (this phase is authored natively under ADR-0131).
 

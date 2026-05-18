@@ -20,7 +20,7 @@ doc_status: published
 
 - `oya-check-aggregation-index-generation` lane fails (F-04 divergence detected).
 - Aggregation-indexer scoped-PAT overrun (F-15).
-- Manual hand-edit of central index detected (any of `docs/prds/INDEX.md`, `registry/catalog/`, `/specs/products/`).
+- Manual hand-edit of central index detected (any of `docs/prds/INDEX.md`, `registry/catalog/`, `/specs/microservices/`).
 - Onboarding a new pack (cleanup of stale entries).
 
 ## Pre-flight
@@ -97,7 +97,7 @@ doc_status: published
 
 1. **Identify** the hand-edit commit:
    ```bash
-   git log --diff-filter=M --pretty=format:"%H %an %s" -- docs/prds/INDEX.md registry/catalog/ /specs/products/ | head -20
+   git log --diff-filter=M --pretty=format:"%H %an %s" -- docs/prds/INDEX.md registry/catalog/ /specs/microservices/ | head -20
    ```
    Look for commits NOT authored by `axis-foundry-bot` per `policy/ci-scope.cedar` P5.
 
@@ -157,7 +157,7 @@ Verify the new PR's `oya-check-aggregation-index-generation` lane reports PASS.
 
 - File postmortem within 1 week.
 - Update this runbook if new pattern observed.
-- File follow-up IP for any structural change to indexer logic or PAT scope.
+- File successor-IP IP for any structural change to indexer logic or PAT scope.
 
 ## References
 

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-docs + council-architecture
 deciders: axis-docs, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-DOCS-0001, ADR-DOCS-0002, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-DOCS-0001, ADR-DOCS-0002, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
 related_artifacts:
   - microservices/docs/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-DOCS gate)
@@ -58,7 +58,7 @@ Quantitative + qualitative parity comparison against industry-leading collaborat
 | Code blocks (syntax highlight) | ✅ tree-sitter | partial | partial | ✅ | partial | partial | ✅ | partial | ✅ |
 | Math (KaTeX / MathJax) | ✅ KaTeX default | partial (Equation Editor) | ✅ | partial | partial | ❌ | ❌ | ✅ | ✅ (plugin) |
 | Callouts / blockquotes | ✅ | ✅ | partial | ✅ | ✅ | partial | partial | partial | ✅ |
-| Citations (BibTeX / academic) | ✅ M03+1 | partial | partial | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Citations (BibTeX / academic) | ✅ M03-onward1 | partial | partial | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ### Collaboration
 
@@ -86,7 +86,7 @@ Quantitative + qualitative parity comparison against industry-leading collaborat
 | HTML export | ✅ | ✅ | ✅ | partial | partial | partial | ✅ | partial |
 | PDF export | ✅ WeasyPrint + Chromium opt-in | ✅ | ✅ | partial | partial | partial | ✅ | partial |
 | PDF/A-1b + PDF/A-2u archival export | ✅ AC-10 (differentiator) | ❌ | ✅ | ❌ | ❌ | ❌ | partial | ❌ |
-| EPUB 3 export | ✅ M03+1 | ❌ | ❌ | ❌ | ❌ | ❌ | partial | ❌ |
+| EPUB 3 export | ✅ M03-onward1 | ❌ | ❌ | ❌ | ❌ | ❌ | partial | ❌ |
 | LaTeX export | ✅ via Pandoc | partial (3rd-party) | ❌ | ❌ | ❌ | ❌ | partial | ❌ |
 | WebSocket collab protocol | ✅ M03 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | partial |
 | CRDT op envelope (cross-µservice consistent) | ✅ shared with workflow-studio | ❌ | ❌ | ✅ (Yjs internal) | ❌ | ❌ | ❌ | ❌ |
@@ -103,7 +103,7 @@ Quantitative + qualitative parity comparison against industry-leading collaborat
 | E2E encryption at rest (Tenant-DEK) | ✅ professional context | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Per-jurisdiction retention (11 packs) | ✅ M03 | partial | partial | ❌ | ❌ | ❌ | partial |
 | Legal hold on documents | ✅ | ✅ (Vault) | ✅ (eDiscovery) | ❌ | ❌ | ❌ | partial |
-| eIDAS PAdES signed PDF export | ✅ M03+1 (pack-eu) | ❌ | partial | ❌ | ❌ | ❌ | ❌ |
+| eIDAS PAdES signed PDF export | ✅ M03-onward1 (pack-eu) | ❌ | partial | ❌ | ❌ | ❌ | ❌ |
 
 ### AI + assist (autonomy tiers)
 
@@ -111,9 +111,9 @@ Quantitative + qualitative parity comparison against industry-leading collaborat
 |---|---|---|---|---|---|---|
 | T0 grammar suggestion | ✅ M03 | ✅ Smart Compose | ✅ Editor | ✅ AI | ❌ | ❌ |
 | T0 title / TOC suggestion | ✅ M03 | partial | ✅ Copilot | ✅ AI | ❌ | ❌ |
-| T1 auto-summary | ✅ M03+1 | partial (Duet) | ✅ Copilot | ✅ AI | ❌ | ❌ |
-| T1 expand / rewrite suggestion | ✅ M03+1 | partial | ✅ Copilot | ✅ AI | ❌ | ❌ |
-| T1 citation suggestion | ✅ M03+1 | partial | partial | ❌ | ❌ | ❌ |
+| T1 auto-summary | ✅ M03-onward1 | partial (Duet) | ✅ Copilot | ✅ AI | ❌ | ❌ |
+| T1 expand / rewrite suggestion | ✅ M03-onward1 | partial | ✅ Copilot | ✅ AI | ❌ | ❌ |
+| T1 citation suggestion | ✅ M03-onward1 | partial | partial | ❌ | ❌ | ❌ |
 | T2 auto-translate | ✅ M04 | partial | ✅ Copilot | ✅ AI | ❌ | ❌ |
 | T2 auto-format | ✅ M04 | partial | ✅ Copilot | partial | ❌ | ❌ |
 | T2 auto-cite | ✅ M04 | partial | partial | ❌ | ❌ | ❌ |
@@ -135,15 +135,15 @@ Quantitative + qualitative parity comparison against industry-leading collaborat
 
 | Gap | Current state | Plan | Target |
 |---|---|---|---|
-| EPUB 3 export | M03+1 | Pandoc EPUB writer + post-process | M03+1 |
-| LaTeX export | M03+1 | Pandoc LaTeX writer | M03+1 |
-| Citations (BibTeX) | M03+1 | adapter-bibtex crate | M03+1 |
+| EPUB 3 export | M03-onward1 | Pandoc EPUB writer + post-process | M03-onward1 |
+| LaTeX export | M03-onward1 | Pandoc LaTeX writer | M03-onward1 |
+| Citations (BibTeX) | M03-onward1 | adapter-bibtex crate | M03-onward1 |
 | Google Docs API compat shim (read-only) | M04 | adapter behind feature flag | M04 |
 | Microsoft Graph compat shim (read-only) | M04 | adapter behind feature flag | M04 |
-| EU AI Act conformity assessment (HR overlay) | refused at Cedar layer | dedicated tenant-opt-in flow per ADR-DOCS-0005 | M04+ |
-| Federation with external Google Docs / Word source | M04+ (coexistence mode) | resolver adapter; long-poll changes | M04+ |
-| Public-read URL publishing (post-Notion-style) | M04+ | review at M05 | M05+ |
-| Native iOS / Android editor parity (CalDAV-like protocol independence) | M05+ | dependent on Swift / Kotlin SDK CRDT bindings | M05+ |
+| EU AI Act conformity assessment (HR overlay) | refused at Cedar layer | dedicated tenant-opt-in flow per ADR-DOCS-0005 | M04-onward |
+| Federation with external Google Docs / Word source | M04-onward (coexistence mode) | resolver adapter; long-poll changes | M04-onward |
+| Public-read URL publishing (post-Notion-style) | M04-onward | review at M05 | M05-onward |
+| Native iOS / Android editor parity (CalDAV-like protocol independence) | M05-onward | dependent on Swift / Kotlin SDK CRDT bindings | M05-onward |
 
 ## Verification
 
@@ -154,7 +154,7 @@ Quantitative + qualitative parity comparison against industry-leading collaborat
 ## References
 
 - ADR-0123 — Hyperscaler maturity claim gate.
-- ADR-0126; ADR-0131; ADR-0132; ADR-0133.
+- ADR-0135; ADR-0131; ADR-0132; ADR-0133.
 - ADR-DOCS-0001 (CRDT — Loro 1.x).
 - ADR-DOCS-0002 (block-type system).
 - ADR-DOCS-0003 (export pipeline architecture).

@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-shardability, oya-
 
 Land both BCs:
 
-- `feed-timeline`: Redis hot-cache + Postgres canonical; fanout-on-write for hot-tier accounts (>10k connections), fanout-on-read for cold-tier; heuristic ranker in P01 (ML deferred to P03 per sibling ADR-SOC-0001 pattern); chronological fallback; ranker explanation API per EU DSA Art. 27.
+- `feed-timeline`: Redis hot-cache + Postgres canonical; fanout-on-write for hot-tier accounts (>10k connections), fanout-on-read for cold-tier; heuristic ranker in P01 (ML scheduled-for-distinct-tracked-work to P03 per sibling ADR-SOC-0001 pattern); chronological fallback; ranker explanation API per EU DSA Art. 27.
 - `reactions`: extended Professional set (like, celebrate, insightful, curious, funny, support, love); conflict-free counter; Redis-buffered + Postgres flush.
 
 ## Code Shape

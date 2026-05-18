@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-network
 deciders: axis-network, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0126, ADR-0131]
+related_adrs: [ADR-0028, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/network/PRD.md
   - microservices/network/capacity-model.md
@@ -27,7 +27,7 @@ Specify how `network` handles these scenarios:
 3. **Endorsement-chain replay** — bounded re-derivation of the endorsement-chain from per-endorser Ed25519 signatures + audit-chain seals (ADR-NET-0005); used to verify integrity after corruption or to re-emit downstream after a consumer onboards.
 4. **Jobs-handoff replay** — bounded re-emission of jobs-handoff events to ATS µservice after extended ATS outage (ADR-NET-0004).
 
-Note: `network` does NOT federate in P01; there is no federation replay surface (deferred per ADR-NET follow-up).
+Note: `network` does NOT federate in P01; there is no federation replay surface (scheduled-for-distinct-tracked-work per ADR-NET successor-IP).
 
 ## Backfill (search index rebuild — multi-index)
 
@@ -224,6 +224,6 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers".
 - ADR-0028 audit-chain.
 - ADR-NET-0004 (jobs-handoff to ATS).
 - ADR-NET-0005 (endorsement-chain integrity).
-- ADR-0126 (Connect dissolution).
+- ADR-0135 (Connect dissolution).
 - ADR-0131 (per-microservice flat layout).
 - RFC 8032 (Ed25519); RFC 6962 (Certificate Transparency Merkle-tree pattern; reference).

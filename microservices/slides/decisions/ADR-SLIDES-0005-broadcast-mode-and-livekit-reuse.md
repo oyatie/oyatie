@@ -8,7 +8,7 @@ owner: axis-workspace + axis-realtime + council-architecture
 deciders: council-architecture, axis-workspace, axis-realtime, messenger-team, ops-sre-reliability
 supersedes: []
 superseded_by: []
-related: [ADR-0105, ADR-0126, ADR-0131]
+related: [ADR-0105, ADR-0135, ADR-0131]
 related_specs: []
 related_artifacts:
   - microservices/slides/PRD.md (FR-19, AC-18)

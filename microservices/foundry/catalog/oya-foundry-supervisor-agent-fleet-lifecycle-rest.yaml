@@ -1,0 +1,16 @@
+name: oya-foundry-supervisor-agent-fleet-lifecycle-rest
+role: rest
+context: foundry-supervisor
+plane: control
+slo: preview-control-plane
+contracts_consumed: [oya.foundry.supervisor.fleet.v1]
+contracts_exposed: [oya.foundry.supervisor.fleet.v1.rest]
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0131, ADR-0140]
+allowed_dependency_edges: [kernel, domain, usecase, api]
+data_classes_owned: []
+operational_classes_owned: []
+autonomy_tier_required: T2

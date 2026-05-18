@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0022
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-SOC-0001
@@ -148,7 +148,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
 
 - Pros: tenants tailor moderation to their community values; explainable.
 - Cons: per-tenant ML configuration multiplies EU AI Act risk-management surface across N tenants; Art. 9 risk-management would need N separate risk registers; defer.
-- Rejected for P01-P03; may revisit per-tenant policy customization (not per-tenant ML) at M04+.
+- Rejected for P01-P03; may revisit per-tenant policy customization (not per-tenant ML) at M04-onward.
 
 ## Consequences
 
@@ -167,7 +167,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
 - Art. 73 serious-incident reporting requires ops-compliance + council-privacy + ops-legal coordination; not all team members are aware of 15-day window.
 - pack-us-healthcare PHI default-OFF means HIPAA-Covered Entity tenants get less spam protection unless they opt-in with BAA.
 - Heuristic ranking (P01 default per ADR-SOC-0001) still triggers EU AI Act Art. 50 transparency; minor UI/UX overhead.
-- Per-tenant classifier customisation deferred (Alternative F) may field gtm requests; default response: "wait for M04+ ADR".
+- Per-tenant classifier customisation scheduled-for-distinct-tracked-work (Alternative F) may field gtm requests; default response: "wait for M04-onward ADR".
 
 ### Operational
 
@@ -205,7 +205,7 @@ oyatie social adopts **EU AI Act high-risk classification with full Arts. 9-15 +
 - NIST AI RMF.
 - ISO/IEC 23894.
 - ADR-0022 — Bominal autonomy-tier classification.
-- ADR-0126 — Connect dissolution.
+- ADR-0135 — Connect dissolution.
 - ADR-0131 — Per-microservice flat layout.
 - ADR-SOC-0001 — Feed-ranking algorithm (paired).
 - ADR-MSGR-0003 — Messenger search backend selection (sibling classifier ADR pattern reference; though this ADR pairs more directly with a future ADR-MSGR-NNNN on messenger moderation).

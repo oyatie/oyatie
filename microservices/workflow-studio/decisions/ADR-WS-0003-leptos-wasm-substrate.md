@@ -9,7 +9,7 @@ deciders: council-design-system, council-architecture, axis-workflow, ops-sre-re
 supersedes: []
 superseded_by: []
 related: [ADR-0065, ADR-0105, ADR-0131]
-related_specs: [/specs/products/workflow-studio.json]
+related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md (FR-01, FR-02, FR-03, AC-09, AC-12, §"Performance")
   - microservices/workflow-studio/IP-002-visual-canvas-kernel-domain.md
@@ -44,7 +44,7 @@ Open Question Q2 in PRD §"Open Questions" — "WASM canvas: pure Leptos-Rust-WA
 The decision warrants a workflow-studio-specific ADR (rather than a sole reliance on the repo-wide ADR-0065) because:
 1. Workflow-studio is the highest-stakes Leptos surface in oyatie; the cost of a poor substrate choice here is qualitatively larger than for other Leptos surfaces.
 2. Per ADR-WS-0001 (CRDT) and ADR-WS-0002 (canonical form), several invariants flow through the canvas (AC-02 round-trip byte-equality, AC-06 never-silent-loss, AC-12 WASM bundle SRI). The canvas substrate must be evaluated against these invariants specifically.
-3. The bundle-size, build-toolchain, and SSR-vs-CSR shape choices made here are inherited by every Leptos surface authored against workflow-studio's SDK (post-GA marketplace embeddable canvas).
+3. The bundle-size, build-toolchain, and SSR-vs-CSR shape choices made here are inherited by every Leptos surface authored against workflow-studio's SDK (subsequent-to-GA-tier-promotion marketplace embeddable canvas).
 
 ## Decision
 
@@ -53,7 +53,7 @@ Adopt **Leptos 0.7+** as the workflow-studio canvas rendering substrate, in the 
 1. **Compile target**: `wasm32-unknown-unknown` for the browser bundle; `cargo-leptos` orchestrates the build; the canvas runs entirely in the browser (CSR mode for the canvas surface). SSR is enabled for the editor-shell route (login redirect, tenant resolution, OIDC bootstrap) but the canvas itself is CSR — server-rendering a 5k-node graph offers no observable benefit and pays the SSR cost.
 2. **Reactivity model**: Leptos signals (`Signal<T>`, `ReadSignal<T>`, `WriteSignal<T>`, `Memo<T>`) for all reactive state. Fine-grained reactivity is the load-bearing performance property: only nodes whose signals changed re-render, regardless of graph size. No `RwSignal` for shared state used across threads (browser is single-threaded; WebWorker boundaries use message-passing, not shared state).
 3. **Rendering pipeline**: Leptos's compile-time `view!` macro emits direct DOM operations (no virtual DOM). Node/edge SVG elements are rendered via keyed `<For>` components keyed on `Node::id` and `Edge::id` — guaranteed per ADR-0065 SRI lane and PRD §"Functional Requirements".
-4. **Canvas substrate**: SVG-based canvas (not `<canvas>` 2d / WebGL) for accessibility (ARIA roles per node/edge), CSS theming, and DOM-inspector debugging. SVG is the choice of n8n, Camunda, Foundry Pipeline Builder, and Figma's CRDT layer. WebGL is a post-M03 optimization should the 5k-node frame budget fail measurement (kept as a contained `-adapter-webgl` exploration; non-blocking).
+4. **Canvas substrate**: SVG-based canvas (not `<canvas>` 2d / WebGL) for accessibility (ARIA roles per node/edge), CSS theming, and DOM-inspector debugging. SVG is the choice of n8n, Camunda, Foundry Pipeline Builder, and Figma's CRDT layer. WebGL is a subsequent-to-M03-completion optimization should the 5k-node frame budget fail measurement (kept as a contained `-adapter-webgl` exploration; non-blocking).
 5. **No JS canvas library fallback**: explicitly forbid React-Flow, xyflow, JointJS, mxGraph as a fallback. Mixing JS-canvas with the Rust canvas + CRDT layer multiplies the failure modes (two reactive systems, two render trees, two WASM↔JS bridges per frame). The decision is binary.
 6. **Bundle splitting**: per-route code splitting via `cargo-leptos`'s WASM bundle profile. Canvas, collab-CRDT, debugger, node-library descriptors each shipped as a separate WASM chunk; each chunk carries an SRI hash per AC-12.
 7. **WASM↔JS interop**: minimized via `wasm-bindgen`. JS interop limited to (a) browser APIs not yet bound in `web-sys` (rare; web-sys covers >95% of DOM), (b) third-party WebSocket clients (avoided — using `gloo-net`'s pure-Rust WS bindings), (c) the WASM bootstrap nonce script (single point per PRD §"Security" CSP rule).
@@ -183,7 +183,7 @@ The hybrid suggested in PRD Q2 as the M03-preview fallback.
 ### Performance budget verification (gating GA)
 
 - 5k-node golden graph: cold-load ≤ 3s; drag p99 frame time ≤ 16.7ms; CRDT merge p99 ≤ 100ms — all measured at M03/P01 exit gate per PHASE-01 §"End-to-end drill gates".
-- WebGL `-adapter-webgl` exploration: kept under `microservices/workflow-studio/src/crates/oya-workflow-studio-visual-canvas-adapter-webgl/` as a non-blocking exploration; activates only if SVG hits a measured ceiling. Decision deferred to a follow-up ADR if invoked.
+- WebGL `-adapter-webgl` exploration: kept under `microservices/workflow-studio/src/crates/oya-workflow-studio-visual-canvas-adapter-webgl/` as a non-blocking exploration; activates only if SVG hits a measured ceiling. Decision scheduled-for-distinct-tracked-work to a successor-IP ADR if invoked.
 
 ### Risk register
 

@@ -47,7 +47,7 @@ This phase ships the full tenancy substrate per Bominal ADR-0018 inherited 1:1 +
 This phase advances master-plan principles:
 
 - **Hyperscaler-grade in every practice** (Citus + Patroni HA; Cedar + RLS + JWT defence-in-depth; OpenBao-backed signing keys).
-- **Nothing deferred** (the existing `oya-tenancy-{kernel,domain,api}` crates are migrated into `microservices/tenancy/` and re-shaped per ADR-0105 + ADR-0131; no parallel-stub story).
+- **Nothing scheduled-for-distinct-tracked-work** (the existing `oya-tenancy-{kernel,domain,api}` crates are migrated into `microservices/tenancy/` and re-shaped per ADR-0105 + ADR-0131; no parallel-stub story).
 - **No silent regression** (production-tier breach auto-reverts via the SLO gate; tenant validation kept on the 99.99% availability tier; rollback policy in `runbooks/rls-drift-recovery.md`).
 - **Per-microservice flat layout** (this phase is a native author under ADR-0131).
 - **Compliance is the highest-stakes axis** (tenancy authoring at SOC 2 / ISO 27001 / GDPR DPA / KR PIPC scrutiny bar; per-pack overlays for all 11 packs).
@@ -72,7 +72,7 @@ Naming justifications for the new crate families are in `microservices/tenancy/P
 
 ### Out-of-scope
 
-- **Schema-per-tenant alternative** for very-large tenants (Open Question 1 in PRD) — deferred to a follow-up ADR; default shared-schema-RLS shape lands in this phase.
+- **Schema-per-tenant alternative** for very-large tenants (Open Question 1 in PRD) — scheduled-for-distinct-tracked-work to a successor-IP ADR; default shared-schema-RLS shape lands in this phase.
 - **Cross-pack migration tooling** — tenants pin to one pack at creation; migrating a tenant across packs is a separate IP outside this phase (requires SCC review + DPO + ops-security 2-person rule).
 - **ML-driven cell assignment** — Open Question 2; defer; consistent-hash baseline ships this phase.
 - **OAuth2/OIDC issuer functionality** — tenancy issues internal-only JWTs; OAuth2/OIDC integration for end-user-facing auth belongs to a separate `identity` µservice.

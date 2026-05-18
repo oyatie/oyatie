@@ -5,7 +5,7 @@ milestone: M02-foundation
 phase: P01-network-foundation
 status: Active
 entry_gate: |
-  ADR-0126 (parallel Connect dissolution) + ADR-0131 + ADR-0132 + ADR-0133 accepted; /specs/products/connect/network.json published;
+  ADR-0135 (parallel Connect dissolution) + ADR-0131 + ADR-0132 + ADR-0133 accepted; /specs/microservices/network.json published;
   observability µservice IP-001..IP-015 merged so network can author OpenSLO manifests and pass promotion-readiness gate; sibling
   social µservice P01 merged (network reuses dual-context-isolation pattern + Cedar shape; cross-references social ADRs as
   paired-pattern references).
@@ -27,8 +27,8 @@ depends_on:
     phase: P01-messenger-foundation
     reason: network's InMail-bridge BC depends on messenger µservice's Professional-tier surface being live (P01)
 owner_team: axis-network
-related_adrs: [ADR-0008, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
-related_specs: [/specs/products/connect/network.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related_specs: [/specs/microservices/network.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
 ---
@@ -37,14 +37,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the foundation of the network µservice per parallel ADR-0126 + ADR-0132 + ADR-0133: professional-profile + professional-graph + connection-request + post-composition + feed-timeline + reactions + mentions + hashtags + trending-topics + notifications + content-moderation + abuse-reporting + search + skill-assessments + profile-verification + pages + groups + events-bridge + jobs-handoff + inmail-bridge + endorsement-engine + accessibility-captions + recruiter-stub (OFF) + services-marketplace-stub (OFF) + learning-stub (OFF) + salary-insights-stub.
+This phase ships the foundation of the network µservice per parallel ADR-0135 + ADR-0132 + ADR-0133: professional-profile + professional-graph + connection-request + post-composition + feed-timeline + reactions + mentions + hashtags + trending-topics + notifications + content-moderation + abuse-reporting + search + skill-assessments + profile-verification + pages + groups + events-bridge + jobs-handoff + inmail-bridge + endorsement-engine + accessibility-captions + recruiter-stub (OFF) + services-marketplace-stub (OFF) + learning-stub (OFF) + salary-insights-stub.
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (LinkedIn / Xing / Wantedly / Glassdoor / Indeed parity + native Workflow + Ontology integration).
-- Nothing deferred within scope (no FUTURE stubs in scope; every NFR covered; stubs that are explicitly OFF-by-default are scoped via dedicated ADR follow-ups).
+- Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs in scope; every NFR covered; stubs that are explicitly OFF-by-default are scoped via dedicated ADR successor-IPs).
 - No silent regression (production-tier change gated by observability ADR-0130).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Professional-context isolation by data model (NOT runtime flag) per parallel ADR-0126; reuses social pattern; never federates to Personal-tier.
+- Professional-context isolation by data model (NOT runtime flag) per parallel ADR-0135; reuses social pattern; never federates to Personal-tier.
 - EU AI Act Annex III §4 (employment, workers management, access to self-employment) high-risk obligations operative from day-1 per ADR-NET-0002.
 
 ## Scope
@@ -59,18 +59,18 @@ Plus cross-cutting:
 - `.github/branch-protection.yaml` — add `release/network/*` pattern protection.
 - `/specs/hyperscaler-gates.json` — register HG-NETWORK per ADR-0133.
 - `Cargo.toml` (workspace) — register ~165 crates.
-- `docs/standards/professional-context-isolation.md` — overlay reference (cross-cutting; per parallel ADR-0126; reuses social's authoritative dual-context-isolation.md).
+- `docs/standards/professional-context-isolation.md` — overlay reference (cross-cutting; per parallel ADR-0135; reuses social's authoritative dual-context-isolation.md).
 
-### Out-of-scope (deferred to follow-up phases or follow-up ADRs)
+### Out-of-scope (scheduled-for-distinct-tracked-work to successor-IP phases or successor-IP ADRs)
 
-- **Federation (ActivityPub / AT Protocol Professional-tier)** — `network` does NOT federate in P01; Professional Network is Professional-only and Personal-tier never crosses in. Federation deferred to ADR-NET follow-up if demand emerges (PRD Open Question 6).
-- **Recruiter-tooling-stub activation** — OFF by default; activation requires per-tenant opt-in + NYC Local Law 144 bias-audit attestation + CA AB-331 transparency hook. Activation deferred to ADR-NET follow-up after M03 (PRD Open Question 1).
-- **Services-marketplace-stub activation** — stubbed (off by default); deferred to ADR-NET follow-up after M04 (PRD Open Question 2).
-- **Learning-stub activation** — stubbed (off by default); deferred to ADR-NET follow-up after M05 (PRD Open Question 3).
-- **ML-driven feed ranking + recruiter ranking** — P01 ships chronological-first + heuristic-algorithmic ranking; ML-driven ranking deferred to P03 (depends on foundry-runtime model deployment + EU AI Act notified-body engagement). Parallel to social ADR-SOC-0001 staging strategy.
-- **Voice / video post type (live-streaming + audio-rooms)** — deferred to follow-up sibling µservice if demand surfaces.
-- **AT Protocol Professional federation** — deferred (PRD Open Question 6).
-- **Salary-insights data sourcing** — stub only in P01; aggregate-only; per-individual disclosure forbidden; sourcing strategy deferred to PRD Open Question 7.
+- **Federation (ActivityPub / AT Protocol Professional-tier)** — `network` does NOT federate in P01; Professional Network is Professional-only and Personal-tier never crosses in. Federation scheduled-for-distinct-tracked-work to ADR-NET successor-IP if demand emerges (PRD Open Question 6).
+- **Recruiter-tooling-stub activation** — OFF by default; activation requires per-tenant opt-in + NYC Local Law 144 bias-audit attestation + CA AB-331 transparency hook. Activation scheduled-for-distinct-tracked-work to ADR-NET successor-IP after M03 (PRD Open Question 1).
+- **Services-marketplace-stub activation** — interface-only-pending-impl (off by default); scheduled-for-distinct-tracked-work to ADR-NET successor-IP after M04 (PRD Open Question 2).
+- **Learning-stub activation** — interface-only-pending-impl (off by default); scheduled-for-distinct-tracked-work to ADR-NET successor-IP after M05 (PRD Open Question 3).
+- **ML-driven feed ranking + recruiter ranking** — P01 ships chronological-first + heuristic-algorithmic ranking; ML-driven ranking scheduled-for-distinct-tracked-work to P03 (depends on foundry-runtime model deployment + EU AI Act notified-body engagement). Parallel to social ADR-SOC-0001 staging strategy.
+- **Voice / video post type (live-streaming + audio-rooms)** — scheduled-for-distinct-tracked-work to successor-IP sibling µservice if demand surfaces.
+- **AT Protocol Professional federation** — scheduled-for-distinct-tracked-work (PRD Open Question 6).
+- **Salary-insights data sourcing** — stub only in P01; aggregate-only; per-individual disclosure forbidden; sourcing strategy scheduled-for-distinct-tracked-work to PRD Open Question 7.
 
 ## Implementation Plans
 

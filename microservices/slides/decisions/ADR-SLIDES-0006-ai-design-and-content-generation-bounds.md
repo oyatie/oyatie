@@ -8,7 +8,7 @@ owner: axis-workspace + ops-security + dpo-office + foundry-runtime-team
 deciders: council-architecture, axis-workspace, ops-security, dpo-office, foundry-runtime-team, legal
 supersedes: []
 superseded_by: []
-related: [ADR-0105, ADR-0126, ADR-0131, ADR-WS-0005]
+related: [ADR-0105, ADR-0135, ADR-0131, ADR-WS-0005]
 related_specs: []
 related_artifacts:
   - microservices/slides/PRD.md (FR-29, AC-16)

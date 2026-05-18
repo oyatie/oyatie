@@ -8,8 +8,8 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
-related_specs: [/specs/products/connect/anonymous.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_specs: [/specs/microservices/anonymous.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-anonymous
 doc_status: published
@@ -19,11 +19,11 @@ doc_status: published
 
 ## Purpose
 
-The `anonymous` microservice is oyatie's native pseudonymous-and-affinity-bound posting platform. Per parallel ADR-0126 (Connect dissolution), it is one of the first-class µservices factored out of the legacy Connect umbrella, distinguished from `social` and `community` by a single axiom: **the platform cannot link a post to a real identity except under a Cedar-gated legal-process workflow**. It owns **pseudonymous-identity (rotating-handle-per-channel) + affinity-attestation (employer/edu/geo/workspace verification without identity disclosure) + post-thread (ephemeral text-first) + chronological feed + community-vote (upvote/downvote) + comment/reply tree + anonymous-DM (MLS E2E optional) + report-and-moderate + content-moderation (mandatory; EU AI Act low/medium-risk transparency obligations) + legal-process disclosure (court-ordered identity reveal with dual-control) + post-deletion and tombstone + geo-bound + employer-bound + university-bound communities + hashtags + within-affinity trending + notifications (no real-name push) + accessibility-captions + abuse-reporting + age-gate (per pack) + short retention (30/60/90-day tenant-selectable)** across the 11 oyatie regulatory packs.
+The `anonymous` microservice is oyatie's native pseudonymous-and-affinity-bound posting platform. Per parallel ADR-0135 (Connect dissolution), it is one of the first-class µservices factored out of the legacy Connect umbrella, distinguished from `social` and `community` by a single axiom: **the platform cannot link a post to a real identity except under a Cedar-gated legal-process workflow**. It owns **pseudonymous-identity (rotating-handle-per-channel) + affinity-attestation (employer/edu/geo/workspace verification without identity disclosure) + post-thread (ephemeral text-first) + chronological feed + community-vote (upvote/downvote) + comment/reply tree + anonymous-DM (MLS E2E optional) + report-and-moderate + content-moderation (mandatory; EU AI Act low/medium-risk transparency obligations) + legal-process disclosure (court-ordered identity reveal with dual-control) + post-deletion and tombstone + geo-bound + employer-bound + university-bound communities + hashtags + within-affinity trending + notifications (no real-name push) + accessibility-captions + abuse-reporting + age-gate (per pack) + short retention (30/60/90-day tenant-selectable)** across the 11 oyatie regulatory packs.
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone anonymous-client surfaces (web + desktop + mobile). It is consumable as a shared substrate by other oyatie products via `anonymous.post.v1` Workflow events and the `Affinity` Ontology object type **only**. **The platform never writes a `Person` Ontology entity from `anonymous`** — that would defeat invariant I1.
 
-**anonymous is NET-NEW** per parallel ADR-0126. No `oya-connect-anonymous-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md.
+**anonymous is NET-NEW** per parallel ADR-0135. No `oya-connect-anonymous-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md.
 
 ## Design Invariants (LOAD-BEARING)
 
@@ -354,13 +354,13 @@ Note: Sharding key MUST NOT use `user_id` (would defeat I1). Sharding is by `aff
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Should the abuse-classifier be foundry-runtime-only (cross-µservice) or have a dedicated in-µservice inference path for stricter privacy (no cross-µservice plaintext)? | axis-anonymous + axis-foundry-runtime + council-privacy | ADR-ANON follow-up after P02 |
-| 2 | Affinity attestation: support OIDC-with-blinding (issuer = corporate IdP via OIDC) in addition to BBS+/W3C VC 2.0? | axis-anonymous + council-architecture | ADR-ANON-0002 follow-up |
-| 3 | Anonymous-DM (MLS): default-on or default-off per tenant? Default-off conserves complexity; default-on maximizes privacy. | axis-anonymous + gtm | ADR-ANON follow-up after MLS MVP |
+| 1 | Should the abuse-classifier be foundry-runtime-only (cross-µservice) or have a dedicated in-µservice inference path for stricter privacy (no cross-µservice plaintext)? | axis-anonymous + axis-foundry-runtime + council-privacy | ADR-ANON successor-IP after P02 |
+| 2 | Affinity attestation: support OIDC-with-blinding (issuer = corporate IdP via OIDC) in addition to BBS+/W3C VC 2.0? | axis-anonymous + council-architecture | ADR-ANON-0002 successor-IP |
+| 3 | Anonymous-DM (MLS): default-on or default-off per tenant? Default-off conserves complexity; default-on maximizes privacy. | axis-anonymous + gtm | ADR-ANON successor-IP after MLS minimum-shippable-tier |
 | 4 | Geo-affinity k-anonymity floor sliding-scale (k=50 default; what about rural sparsely-populated regions where k=50 forces big merge)? Optional anonymization fallback? | axis-anonymous + council-privacy | ADR-ANON-0007 |
 | 5 | Transparency-report cadence: quarterly default; tenants want monthly? | axis-anonymous + gtm | resolution pending |
 | 6 | Retention default: 30 days globally vs per-pack overrides (pack-eu shorter? pack-us longer for legal-hold defaults)? | council-privacy + ops-security | ADR-ANON-0004 |
-| 7 | T2 attachments: keep default-off forever (text-only platform), or per-tenant opt-in image attachments? | axis-anonymous + gtm | ADR follow-up after M03 |
+| 7 | T2 attachments: keep default-off forever (text-only platform), or per-tenant opt-in image attachments? | axis-anonymous + gtm | ADR successor-IP after M03 |
 
 ## Related ADRs
 
@@ -370,7 +370,7 @@ Note: Sharding key MUST NOT use `user_id` (would defeat I1). Sharding is by `aff
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0126 | Connect dissolution (parallel) | anonymous as a sibling µservice |
+| ADR-0135 | Connect dissolution (parallel) | anonymous as a sibling µservice |
 | ADR-0130 | Agentic SLO-gated promotion | gates anonymous releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |

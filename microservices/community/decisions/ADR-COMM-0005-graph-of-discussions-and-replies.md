@@ -10,7 +10,7 @@ superseded_by: []
 related:
   - ADR-COMM-0002
   - ADR-0105
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
 related_artifacts:
@@ -69,7 +69,7 @@ The community µservice ships **two threading shapes** behind a `ThreadRenderer`
    - Data model: same materialised path, but the render is depth-flattened:
      - Depth 1 (answers to the question) — flat, ordered by ADR-COMM-0002 Wilson rank.
      - Depth 2 (comments on an answer) — flat, ordered by created_at.
-     - Depth ≥ 3 — forbidden by Cedar policy `policy/qa-shape.cedar` (NEW; added by IP-005 follow-up). The Cedar policy emits `Deny` on insert with reason `qa_shape_disallows_nested_comments`.
+     - Depth ≥ 3 — forbidden by Cedar policy `policy/qa-shape.cedar` (NEW; added by IP-005 successor-IP). The Cedar policy emits `Deny` on insert with reason `qa_shape_disallows_nested_comments`.
    - The depth-cap is enforced at the kernel layer (Cedar is the belt-and-braces double-check at the policy layer).
 
 3. **Shape selection** is per-post:
@@ -159,7 +159,7 @@ The community µservice ships **two threading shapes** behind a `ThreadRenderer`
 - Nested set model — Joe Celko, "Trees and Hierarchies in SQL for Smarties"
 - Closure table pattern — Bill Karwin, "SQL Antipatterns"
 - ADR-COMM-0002 — voting rank algorithm (sibling order at each depth)
-- ADR-0126 — Connect-unbundle
+- ADR-0135 — Connect-unbundle
 - ADR-0131 — Per-microservice flat layout
 - `microservices/community/PRD.md` FR-02, FR-04
 - `microservices/community/IP-005-thread-tree-materialised-path.md`

@@ -7,7 +7,7 @@ phase_title: Tasks Foundation — task-store + project-list + view-engine + depe
 status: Accepted
 date: 2026-05-17
 owner_team: axis-tasks
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
 doc_status: published
 ---
 
@@ -41,9 +41,9 @@ In-scope:
 - HG-TASKS hyperscaler-maturity claim registered per ADR-0123 +
   ADR-0133.
 
-Out-of-scope (deferred):
-- Time-tracking (M02+ per PRD Open Question 2).
-- AI auto-assign in employment-context outside pack-eu (M03+1 per ADR-
+Out-of-scope (scheduled-for-distinct-tracked-work):
+- Time-tracking (M02-onward per PRD Open Question 2).
+- AI auto-assign in employment-context outside pack-eu (M03-onward1 per ADR-
   TASKS-0006 conformity-assessment ADR).
 - JMAP-Tasks adapter — M05 (per PRD Open Question 4).
 - Apple Reminders CalDAV-Tasks (VTODO) adapter — M05 (per PRD Open

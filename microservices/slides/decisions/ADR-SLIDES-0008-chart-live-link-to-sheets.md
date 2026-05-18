@@ -8,7 +8,7 @@ owner: axis-workspace + sheets-team + ops-security
 deciders: council-architecture, axis-workspace, sheets-team, ops-security
 supersedes: []
 superseded_by: []
-related: [ADR-0105, ADR-0126, ADR-0131]
+related: [ADR-0105, ADR-0135, ADR-0131]
 related_specs: []
 related_artifacts:
   - microservices/slides/PRD.md (FR-09, AC-11, AC-19)
@@ -33,7 +33,7 @@ Accepted — 2026-05-17.
 
 A canonical workspace use case: tenant authors a slide with a chart whose data comes from a sheets cell range. When the underlying sheet data changes, the chart should update in the deck without manual re-author work. This is competitor parity with Google Slides ↔ Sheets and PowerPoint Web ↔ Excel.
 
-The slides + sheets co-authoring (both net-new under ADR-0126) gives oyatie an opportunity to establish a contract that is more rigorous than competitors:
+The slides + sheets co-authoring (both net-new under ADR-0135) gives oyatie an opportunity to establish a contract that is more rigorous than competitors:
 
 1. **Consistency model**: Google Slides ↔ Sheets is eventual but the refresh is on-deck-open + on-explicit-refresh; PowerPoint Web ↔ Excel is similar. Strong consistency (block deck save until refresh confirmed) is too costly for usual workflows.
 2. **Revocation cascade**: when a sheet's ACL is revoked for a viewer, the chart in a deck embedded in slides should reflect the revocation. Google Slides + Sheets has this but the cascade is delayed and inconsistent (sometimes shows stale data for hours).

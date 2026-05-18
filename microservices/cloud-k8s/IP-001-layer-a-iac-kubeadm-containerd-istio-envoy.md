@@ -15,7 +15,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, terraform-validate, oya-gov
 
 ## Intent
 
-Author Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + Terraform modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay + CSI driver Helm deployments per backend (block-volume, object, file) under `microservices/cloud-k8s/iac/`. Deploys to the on-prem KR primary cell per ADR-0121 and to OCI OKE peers post-M03.
+Author Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + Terraform modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay + CSI driver Helm deployments per backend (block-volume, object, file) under `microservices/cloud-k8s/iac/`. Deploys to the on-prem KR primary cell per ADR-0121 and to OCI OKE peers subsequent-to-M03-completion.
 
 Per ADR-0121, kubeadm + containerd are Terraform-applied (lifecycle-managed by the cloud-iac µservice's Terraform runner; cloud-k8s declares the module); Istio + Envoy + Cilium are Helm-applied. CSI drivers are Helm-applied with per-backend values.
 
@@ -101,7 +101,7 @@ cilium:
 variable "pack" { type = string }
 variable "region" { type = string }
 variable "kubeadm_version" { type = string default = "v1.35.0" }
-variable "control_plane_count" { type = number default = 1 }  # 3 post-M04
+variable "control_plane_count" { type = number default = 1 }  # 3 subsequent-to-M04-completion
 variable "worker_count" { type = number default = 17 }
 
 resource "null_resource" "kubeadm_init" {

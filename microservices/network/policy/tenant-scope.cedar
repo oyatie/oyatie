@@ -5,7 +5,7 @@
 //          µservice. All actions tenant-scoped via tenant_id binding. Cross-
 //          tenant access strictly forbidden.
 //
-//          network is Professional-tier-only (ADR-0126 + ADR-0132). No
+//          network is Professional-tier-only (ADR-0135 + ADR-0132). No
 //          Personal-tier resources ever appear in this policy.
 // Owner:   ops-security + axis-network + council-privacy
 

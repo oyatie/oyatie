@@ -5,8 +5,8 @@ microservice: docs
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-DOCS accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-DOCS-0001, ADR-DOCS-0002, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
-related_specs: [/specs/products/connect/docs.json, /specs/products/docs/docs.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-DOCS-0001, ADR-DOCS-0002, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
+related_specs: [/specs/microservices/docs.json, /specs/microservices/docs/docs.json]
 owner_team: axis-docs
 date: 2026-05-17
 doc_status: published
@@ -14,7 +14,7 @@ doc_status: published
 
 # Migration: `oya-connect-docs-*` → `oya-docs-*`
 
-This document applies the Strangler Pattern from the agent-skills `deprecation-and-migration` skill to the **docs** µservice. It is the consumer-facing companion to ADR-0134 (cross-µservice migration policy) and ADR-0126 (target topology).
+This document applies the Strangler Pattern from the agent-skills `deprecation-and-migration` skill to the **docs** µservice. It is the consumer-facing companion to ADR-0134 (cross-µservice migration policy) and ADR-0135 (target topology).
 
 ## Status
 
@@ -23,7 +23,7 @@ This document applies the Strangler Pattern from the agent-skills `deprecation-a
 | Field | Value |
 |---|---|
 | Replacement | `oya-docs-*` crate family under `microservices/docs/src/crates/` |
-| Removal date | **Advisory** — concrete target is HG-DOCS accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #3) |
+| Removal date | **Advisory** — concrete target is HG-DOCS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
 | Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 8-BC docs surface (document-store / collab-crdt / block-types / comments-and-suggestions / version-history / sharing-and-permissions / export-import / embed-resolver) is only addressable at µservice granularity, not at Connect-suite granularity |
 | Migration owner (Churn Rule) | axis-docs |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~6 months; Phase 5 removal sweep in month 7 (per ADR-0134) |
@@ -123,7 +123,7 @@ The new µservice introduces capabilities that did NOT exist in `oya-connect-doc
 - **`oya-docs-embed-resolver-*`** — cross-µservice embed resolution with policy-bounded refresh; the legacy surface had no cross-µservice embed.
 - **AI writing-assist (T1/T2) per ADR-DOCS-0005** — auto-summary, grammar-check, auto-translate, auto-cite; the legacy surface had none.
 - **Audit-chain emission per ADR-0028** — Ed25519 + Merkle on every doc lifecycle; the legacy surface had only access logs.
-- **eIDAS PAdES B-LT signed PDF export (pack-eu)** — new in M03+1; no legacy counterpart.
+- **eIDAS PAdES B-LT signed PDF export (pack-eu)** — new in M03-onward1; no legacy counterpart.
 
 ### Concrete import migration recipes
 
@@ -308,7 +308,7 @@ Per the deprecation-and-migration skill, every deprecation closeout must satisfy
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
   find crates -maxdepth 1 -type d -name "oya-connect-docs-*" | wc -l   # expect 0
-  test ! -f /specs/products/connect/docs.json                          # expect file absent
+  test ! -f /specs/microservices/docs.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase** (excluding historical ADR / RETIRED.md / git-log surfaces):
   ```bash
@@ -339,11 +339,11 @@ Phase 5 (code removal) **IS a breaking change** for any consumer that did not mi
 
 - Sunset schedule (advisory): 7 months from this document's `deprecation_date` (2026-05-17), so a target advisory removal date of **2026-12-17** (subject to the HG-DOCS retirement trigger gating).
 - Owning axis (axis-docs) ships migration ChangeSets for every internal consumer per the Churn Rule before Phase 5.
-- External consumers (reading `/specs/products/connect/docs.json`) receive a 7-month sunset window; the spec file's `deprecated: true` + `replacement_path: /specs/products/docs/docs.json` fields render in the agent-coordination dashboard.
+- External consumers (reading `/specs/microservices/docs.json`) receive a 7-month sunset window; the spec file's `deprecated: true` + `replacement_path: /specs/microservices/docs/docs.json` fields render in the agent-coordination dashboard.
 
 ## References
 
-- ADR-0126: Connect super-app expansion into 8 flat µservices.
+- ADR-0135: Connect super-app expansion into 8 flat µservices.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.

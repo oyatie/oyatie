@@ -41,7 +41,7 @@ Each carries: FM-ID; Trigger; Detection; Tenant impact; Severity; Immediate miti
 | Recovery runbook | `runbooks/control-plane-restore.md` |
 | Postmortem owner | axis-cloud + ops-sre-reliability |
 
-## FM-02: etcd quorum loss (2/3 etcd nodes down post-M04 HA)
+## FM-02: etcd quorum loss (2/3 etcd nodes down subsequent-to-M04-completion HA)
 
 | Field | Value |
 |---|---|

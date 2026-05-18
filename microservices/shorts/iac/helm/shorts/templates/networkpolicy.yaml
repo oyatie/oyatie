@@ -113,7 +113,7 @@ spec:
         - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
       ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
 ---
-# Federation egress (Professional-tier only, when activated per ADR follow-up; Personal-tier never federates per DCI-08)
+# Federation egress (Professional-tier only, when activated per ADR successor-IP; Personal-tier never federates per DCI-08)
 {{- if .Values.federationGateway.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

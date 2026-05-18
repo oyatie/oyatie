@@ -77,7 +77,7 @@ A maintained corpus of OOXML edge cases with explicit per-feature handling:
 | Field codes (legacy) | Converted to literal text; surfaced as fidelity warning | best-effort |
 | Content controls / structured-document tags | Surfaced as fidelity warning; literal text imported | unsupported |
 | Custom XML data parts | Surfaced as fidelity warning; dropped | unsupported |
-| OLE objects (embedded spreadsheets / charts) | Surfaced as fidelity warning; placeholder image inserted | unsupported (M03+1) |
+| OLE objects (embedded spreadsheets / charts) | Surfaced as fidelity warning; placeholder image inserted | unsupported (M03-onward1) |
 | Vector graphics (DrawingML) | Rasterised to PNG; surfaced as fidelity warning | best-effort |
 | VBA macros | REFUSED at parser; security-relevant; per ADR-DOCS-0003 sandbox + Hyrum #2 | refused |
 | ActiveX controls | REFUSED at parser; security-relevant | refused |

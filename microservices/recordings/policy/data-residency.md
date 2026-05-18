@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-recordings
 deciders: council-privacy, ops-security, axis-recordings, ops-compliance
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-RECORDINGS-0002, ADR-RECORDINGS-0005]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-RECORDINGS-0002, ADR-RECORDINGS-0005]
 related_artifacts:
   - microservices/recordings/threat-model.md
   - microservices/recordings/dpia.md
@@ -154,7 +154,7 @@ ePrivacy Art. 5(3):
 ## References
 
 - ADR-0117, ADR-RECORDINGS-0002, ADR-RECORDINGS-0005.
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - `multi-region.md`, `compliance.md`.
 - GDPR Arts. 44–50; KR PIPA Arts. 28, 23-2; HIPAA §164.502, §164.530; SEC
   17a-4(f); FINRA 4511; MiFID II 16(7); APPI Art. 27; LGPD Arts. 33, 46;

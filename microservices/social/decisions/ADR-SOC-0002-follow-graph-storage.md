@@ -63,13 +63,13 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
    - Mutual-follow = friend derived view via JOIN of `social_follow_edges` on (a, b) AND (b, a); refreshed lazily on read; cached short-TTL in Redis when hot.
    - Audit-chain seal per edge mutation: every `INSERT` and `DELETE` (tombstone) emits `FollowEdgeAdded` / `FollowEdgeRemoved` event via outbox pattern; periodic drift detector compares Postgres state vs audit-chain authoritative replay.
    - Cell-shard trigger: per `capacity-model.md`, when `(tenant total edges) > 5B` or per-cell `(follow_edges_added_per_sec) > envelope`, shard tenant across cells.
-2. **Future (M04+): Graph-DB adapter (future-pluggable per ADR-0105 Amendment 3 backend-qualified naming).**
+2. **Future (M04-onward): Graph-DB adapter (future-pluggable per ADR-0105 Amendment 3 backend-qualified naming).**
    - If deep-traversal use cases emerge (e.g., recommended-follow feature, friend-of-friend feature, social-graph search), introduce `oya-social-follow-graph-adapter-dgraph` (or `-janusgraph`) as a parallel adapter alongside `-adapter-postgres`.
    - The kernel port traits (`FollowGraphRepository`) are designed to be backend-agnostic; the Postgres adapter is the P01 implementation but is not the only possible one.
    - Migration path: dual-write to both backends during a transition; cut over after audit-chain replay confirms parity; `-adapter-postgres` may be deprecated (with ADR supersession) once the graph-DB adapter is stable.
 3. **No mass-traversal API in P01.**
    - "Friend of friend" queries are explicitly NOT exposed in OpenAPI / proto in P01.
-   - "Recommended follows" feature is deferred to P03 (depends on `foundry-runtime` embedding + ML recommendations); when deferred, the recommendation flow uses Postgres adjacency-list + foundry-runtime embedding, not graph-DB traversal.
+   - "Recommended follows" feature is scheduled-for-distinct-tracked-work to P03 (depends on `foundry-runtime` embedding + ML recommendations); when scheduled-for-distinct-tracked-work, the recommendation flow uses Postgres adjacency-list + foundry-runtime embedding, not graph-DB traversal.
 4. **Mass-follow rate-limit enforced at usecase + Postgres.**
    - Per-user follow-rate limit (100/hr default per PRD §"Per-Tenant Limits") enforced at the `oya-social-follow-graph-usecase` layer.
    - Postgres-level: per-tenant aggregate quota tracked via Redis-buffered counter; usecase refuses over-cap.
@@ -80,14 +80,14 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
 ### A. Postgres adjacency-list only (no future graph-DB option)
 
 - Pros: simplest; matches industry precedent (Twitter FlockDB / Facebook TAO).
-- Cons: deep-traversal queries (M04+ recommended-follow, friend-of-friend) require self-joins that don't scale beyond 2-hop; closes architectural option.
+- Cons: deep-traversal queries (M04-onward recommended-follow, friend-of-friend) require self-joins that don't scale beyond 2-hop; closes architectural option.
 - Rejected (in pure form): we adopt Postgres as primary but keep adapter-pluggability open.
 
 ### B. Graph-DB (Dgraph / JanusGraph / Neo4j) primary
 
 - Pros: native deep-traversal performance; superior query expressivity.
 - Cons: weaker audit-chain integration vs Postgres; less mature operational substrate at oyatie's other µservices; higher operational cost; P01 doesn't need deep traversals; transition risk high.
-- Rejected (for P01); kept open for M04+ via the future-pluggable adapter.
+- Rejected (for P01); kept open for M04-onward via the future-pluggable adapter.
 
 ### C. Postgres + Redis-cached graph (hybrid; Redis as full source-of-truth)
 
@@ -105,7 +105,7 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
 
 - Pros: federation-friendly; content-addressed.
 - Cons: oyatie's federation strategy is opt-in Professional-tier only (ADR-SOC-0004); Personal-tier never federates; content-addressed records add complexity without the federation-default justification.
-- Rejected; AT Protocol federation is a follow-up ADR per PRD Open Question 2, and even then would not replace the storage backend.
+- Rejected; AT Protocol federation is a successor-IP ADR per PRD Open Question 2, and even then would not replace the storage backend.
 
 ## Consequences
 
@@ -115,13 +115,13 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
 - Follow-action p99 ≤ 50ms achievable with Postgres B-tree indexes on `(tenant_id, follower_ref)` + reverse index on `(tenant_id, followee_ref)`.
 - Shardability via `HASH(tenant_id)` matches `oya-check-shardability-cli` lane expectations from ADR-0105.
 - Audit-chain seal per edge mutation enables follow-graph corruption recovery per `runbooks/follow-graph-corruption.md` FM-05.
-- Future-pluggable graph-DB adapter preserves architectural optionality; M04+ recommended-follow / friend-of-friend can land without rewriting the BC kernel.
+- Future-pluggable graph-DB adapter preserves architectural optionality; M04-onward recommended-follow / friend-of-friend can land without rewriting the BC kernel.
 - Mass-follow rate-limit + sybil-detector composition is testable per IP-004.
 - Cell-shard migration path well-defined per `capacity-model.md`.
 
 ### Negative
 
-- Friend-of-friend / deep-traversal queries are unavailable in P01; if a tenant requests recommended-follow before M04, gtm must respond "deferred to P03/M04+".
+- Friend-of-friend / deep-traversal queries are unavailable in P01; if a tenant requests recommended-follow before M04, gtm must respond "scheduled-for-distinct-tracked-work to P03/M04-onward".
 - Mutual-follow derivation requires JOIN (cheap at < 1M edges per tenant; may need materialised view at L-tier scale; tradeoff documented).
 - Postgres operational substrate cost dominates at L-scale (~$2-3M/month per cell at L-tier per `cost-budget.md`); cell-shard migration is the lever.
 
@@ -137,14 +137,14 @@ oyatie social adopts a **Postgres-primary + future-pluggable graph-DB adapter** 
 ### Future Evolution
 
 - If recommended-follow feature lands in M03 via foundry-runtime embeddings, it reads from Postgres adjacency-list (no graph-DB required).
-- If M04+ introduces deep-traversal use cases (recommended-follow at scale, friend-of-friend, social-graph search), file ADR-SOC follow-up + introduce `-adapter-dgraph` (or equivalent) per the future-pluggable strategy.
+- If M04-onward introduces deep-traversal use cases (recommended-follow at scale, friend-of-friend, social-graph search), file ADR-SOC successor-IP + introduce `-adapter-dgraph` (or equivalent) per the future-pluggable strategy.
 - If oyatie's strategic direction shifts to federation-first (PRD Open Question 2 closes toward AT Protocol primary), the follow-graph storage may evolve to content-addressed records; this ADR supersedes accordingly.
 
 ### Regulatory
 
 - KR PIPA Art. 29: technical safeguards — per-tenant RLS + audit-chain seal + drift detector all map.
 - GDPR Art. 32: appropriate technical measures — same mapping.
-- GDPR Art. 17 right-to-erasure: DSR cascade tombstones the user's outbound + inbound edges within 30 days per `policy/data-residency.md`; Postgres soft-delete + audit-chain seal supports this cleanly. Graph-DB adapters would need equivalent semantics, planned for M04+.
+- GDPR Art. 17 right-to-erasure: DSR cascade tombstones the user's outbound + inbound edges within 30 days per `policy/data-residency.md`; Postgres soft-delete + audit-chain seal supports this cleanly. Graph-DB adapters would need equivalent semantics, planned for M04-onward.
 - EU DSA Art. 24 transparency: per-tenant follow-graph mass-mutation events surfaced in quarterly transparency log.
 
 ## References

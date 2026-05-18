@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0117
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-SHORTS-0004
   - ADR-SHORTS-0006
@@ -148,7 +148,7 @@ oyatie shorts adopts the **following pipeline**:
 ## References
 
 - ADR-0117 single-cloud-substrate (OCI primary).
-- Parallel ADR-0126 dual-context.
+- Parallel ADR-0135 dual-context.
 - ADR-0131 per-microservice flat layout.
 - ADR-SHORTS-0004 (DRM substrate; HLS/DASH manifest is encrypt-substrate).
 - ADR-SHORTS-0006 (age-classification gating; mature/adult never anonymous-readable).

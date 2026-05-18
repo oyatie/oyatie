@@ -7,7 +7,7 @@ deciders: axis-drive, council-architecture, ops-security, cloud-secrets, council
 owner: ops-security + axis-drive
 supersedes: []
 superseded_by: []
-related: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0131, ADR-0133, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0003, ADR-DRIVE-0006]
+related: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131, ADR-0133, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0003, ADR-DRIVE-0006]
 related_artifacts:
   - microservices/drive/PRD.md (§Non-Functional Requirements security; §FR-19 E2E)
   - microservices/drive/threat-model.md (T-T-02 DEK substitution; T-I-06 DEK leak)

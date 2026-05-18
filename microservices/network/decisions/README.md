@@ -12,7 +12,7 @@ This directory holds ADRs that govern the `network` µservice exclusively, per t
 
 Each ADR closes one Open Question (or derived gap) surfaced in `microservices/network/PRD.md`, in `microservices/network/PHASE-01-NETWORK-FOUNDATION.md`, or in a policy / runbook / threat-model / DPIA artifact under `microservices/network/`.
 
-The `network` µservice is the Professional-tier social-graph + identity µservice per parallel ADR-0126. Several decisions are paired with sibling µservice ADRs:
+The `network` µservice is the Professional-tier social-graph + identity µservice per parallel ADR-0135. Several decisions are paired with sibling µservice ADRs:
 
 - `ADR-NET-0001` (storage) ↔ `ADR-SOC-0002` (sibling follow-graph storage; pattern aligned, consistency differs)
 - `ADR-NET-0002` (recommender bounds) ↔ `ADR-SOC-0003` (sibling content-moderation bounds; both EU AI Act high-risk; different Annex III subclause)
@@ -42,12 +42,12 @@ The `network` µservice is the Professional-tier social-graph + identity µservi
 
 | PRD Open Question | Status | Notes |
 |---|---|---|
-| #1 (Recruiter-stub activation strategy: closed-tenant-set vs open) | open | ADR-NET follow-up after M03; depends on EU AI Act notified-body engagement |
-| #2 (Services-marketplace-stub fate: keep stubbed vs activate) | open | ADR-NET follow-up after M04 |
-| #3 (Learning-stub fate: keep stubbed vs activate vs separate µservice) | open | ADR-NET follow-up after M05 |
+| #1 (Recruiter-stub activation strategy: closed-tenant-set vs open) | open | ADR-NET successor-IP after M03; depends on EU AI Act notified-body engagement |
+| #2 (Services-marketplace-stub fate: keep interface-only-pending-impl vs activate) | open | ADR-NET successor-IP after M04 |
+| #3 (Learning-stub fate: keep interface-only-pending-impl vs activate vs separate µservice) | open | ADR-NET successor-IP after M05 |
 | #4 (Self-observability emission posture) | Resolved | per-pack emission with per-tenant tags — resolved in IP-014 |
-| #5 (Verified-handle global uniqueness vs per-tenant) | open | ADR-NET follow-up |
-| #6 (Federation: ActivityPub + AT Protocol; Professional-tier-only) | open | ADR-NET follow-up; out-of-scope P01 |
-| #7 (Salary-insights data sourcing strategy) | open | ADR-NET follow-up; aggregate-only invariant locked in P01 |
+| #5 (Verified-handle global uniqueness vs per-tenant) | open | ADR-NET successor-IP |
+| #6 (Federation: ActivityPub + AT Protocol; Professional-tier-only) | open | ADR-NET successor-IP; out-of-scope P01 |
+| #7 (Salary-insights data sourcing strategy) | open | ADR-NET successor-IP; aggregate-only invariant locked in P01 |
 
 Future ADRs land here with sequential `ADR-NET-XXXX` IDs.

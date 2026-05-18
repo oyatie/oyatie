@@ -8,7 +8,7 @@ owner: axis-network
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-SOC-0002
@@ -73,7 +73,7 @@ The storage substrate is identical to sibling `social`'s pattern at the table-sh
 
 - Pros: native graph operations; multi-hop traversal performance; LinkedIn-style dgraph-of-records pattern; possibly lower latency for degree-of-separation BFS.
 - Cons: substantially higher operational complexity in P01; less mature Postgres tooling (backup, RLS-equivalent multi-tenancy, audit-chain integration); cross-pack residency more complex; less Cedar tooling; smaller LTS pin / version stability profile; no `synchronous_commit` semantic.
-- Rejected for P01; revisit at M04+ if Postgres scales become limiting.
+- Rejected for P01; revisit at M04-onward if Postgres scales become limiting.
 
 ### B. JanusGraph primary
 
@@ -97,7 +97,7 @@ The storage substrate is identical to sibling `social`'s pattern at the table-sh
 
 - Pros: best-of-both for OLAP-style queries; recruiter-stub feature pipeline benefits from graph-DB.
 - Cons: 3-store complexity in P01; Dgraph maintenance burden inappropriate for M02 launch.
-- **Partial accept**: Postgres + Redis is in-scope (this ADR's choice); Dgraph for OLAP deferred to future ADR-NET if recruiter-stub volume demands it.
+- **Partial accept**: Postgres + Redis is in-scope (this ADR's choice); Dgraph for OLAP scheduled-for-distinct-tracked-work to future ADR-NET if recruiter-stub volume demands it.
 
 ## Consequences
 
@@ -128,7 +128,7 @@ The storage substrate is identical to sibling `social`'s pattern at the table-sh
 ## References
 
 - ADR-0117 (pack-pinning).
-- ADR-0126 (Connect dissolution, parallel).
+- ADR-0135 (Connect dissolution, parallel).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0140 (Cedar v4.2 default-deny).

@@ -9,7 +9,7 @@ owner_team: council-privacy + axis-ontology
 deciders: council-privacy, ops-security, axis-ontology, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
 related_adrs: [ADR-0006, ADR-0028, ADR-0055, ADR-0056, ADR-0059, ADR-0106, ADR-0107, ADR-0117, ADR-0122, ADR-0131, ADR-0132, ADR-0140]
-related_specs: [/specs/products/ontology.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/ontology.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/ontology/threat-model.md
   - microservices/ontology/policy/type-isolation.md
@@ -203,7 +203,7 @@ Residual risks after mitigations are M (R-04 LLM, R-07 retention, R-08 DSR, R-09
 
 **Outcomes documented:**
 - Mitigations adopted: every measure in §6 is in-scope for Slice A authoring of this phase.
-- Records-of-processing entry (per GDPR Art. 30): `microservices/ontology/legal/ropa.md` (Slice D follow-up).
+- Records-of-processing entry (per GDPR Art. 30): `microservices/ontology/legal/ropa.md` (Slice D successor-IP).
 - Joint-controllership template: `microservices/ontology/legal/dpa-template.md` (Slice D).
 
 ## Per-Pack Overlay Sections

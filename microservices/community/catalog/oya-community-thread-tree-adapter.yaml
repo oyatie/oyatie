@@ -7,6 +7,6 @@ contracts_consumed: [oya-community-thread-tree-api]
 contracts_exposed: []
 lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
-  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+  source_adrs: [ADR-0105, ADR-0135, ADR-0131]
 allowed_dependency_edges: [oya-community-thread-tree-api, oya-community-thread-tree-domain, oya-community-thread-tree-kernel]
 autonomy_tier_required: T1

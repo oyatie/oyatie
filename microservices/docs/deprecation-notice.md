@@ -6,8 +6,8 @@ deprecated_artifact: oya-connect-docs-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-DOCS accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-DOCS-0001, ADR-DOCS-0002, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
-related_specs: [/specs/products/connect/docs.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-DOCS-0001, ADR-DOCS-0002, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
+related_specs: [/specs/microservices/docs.json]
 owner_team: axis-docs
 date: 2026-05-17
 doc_status: published
@@ -27,7 +27,7 @@ doc_status: published
 
 ## Removal date
 
-**Advisory — no hard deadline.** Concrete removal target is HG-DOCS accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #3). Following the 6-month Strangler window in ADR-0134 (Phase 2 adapter soak + Phase 3 canary), the indicative advisory removal date is **2026-12-17**, gated on the SLO trigger.
+**Advisory — no hard deadline.** Concrete removal target is HG-DOCS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3). Following the 6-month Strangler window in ADR-0134 (Phase 2 adapter soak + Phase 3 canary), the indicative advisory removal date is **2026-12-17**, gated on the SLO trigger.
 
 ## Reason
 
@@ -100,7 +100,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
 ## References
 
-- ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
+- ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
 - ADR-DOCS-0001 (CRDT library — Loro 1.x; cross-µservice consistent with workflow-studio ADR-WS-0001).
 - ADR-DOCS-0002 (block-type system).
 - ADR-DOCS-0003 (export pipeline architecture — Pandoc 3.x + WeasyPrint default + Chromium opt-in inside gVisor).

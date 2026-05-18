@@ -75,4 +75,4 @@ doc_status: published
 
 ## Budget review cadence
 
-Monthly; council-architecture + axis-cost-engineering + axis-anonymous joint review. Variance > 15% triggers ADR follow-up.
+Monthly; council-architecture + axis-cost-engineering + axis-anonymous joint review. Variance > 15% triggers ADR successor-IP.

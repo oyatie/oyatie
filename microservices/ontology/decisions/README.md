@@ -46,13 +46,13 @@ substrate, in chronological order, with their relevance to this µservice.
 | ADR-0130 | Agentic SLO-gated promotion | Function-read SLO authored under it |
 | ADR-0131 | Per-microservice flat layout | This pack authored natively under it |
 
-## Open ADR follow-ups
+## Open ADR successor-IPs
 
 | Question | Owner | Target |
 |---|---|---|
 | ClickHouse history-mirror M02b vs M03 (resolved: M02b per IP-009) | council-architecture | Resolved |
 | Function DSL: embedded Rust vs JSON-IR | council-architecture | M02b/P02 |
-| Plugin SDK distribution: WASM (Wasmtime) vs native dylib | council-architecture | post-M02b ADR |
+| Plugin SDK distribution: WASM (Wasmtime) vs native dylib | council-architecture | subsequent-to-M02b-completion ADR |
 | Sequential agent autonomy ceiling: per-tool-call vs per-session | council-privacy + axis-ontology | M03 |
 
 ## References

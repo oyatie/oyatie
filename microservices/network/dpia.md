@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: council-privacy + axis-network
 deciders: council-privacy, ops-security, axis-network, council-architecture, ops-compliance, ops-legal
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EDPB Guidelines 4/2019 + EU AI Act FRIA (fundamental-rights-impact-assessment)
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-NET-0001, ADR-NET-0002, ADR-NET-0003, ADR-NET-0004, ADR-NET-0005, ADR-NET-0006]
-related_specs: [/specs/products/connect/network.json]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-NET-0001, ADR-NET-0002, ADR-NET-0003, ADR-NET-0004, ADR-NET-0005, ADR-NET-0006]
+related_specs: [/specs/microservices/network.json]
 related_artifacts:
   - microservices/network/threat-model.md
   - microservices/network/policy/professional-context-isolation.md
@@ -99,7 +99,7 @@ DPIA + FRIA are mandatory pre-deployment. This document is the canonical DPIA + 
 - **Data subjects:** End-users of tenant applications (Professional end-users; never minors — Professional network is 18+); tenant operators; oyatie operators; non-users referenced in posts (e.g., subjects of recommendations).
 - **Relationship:** Joint controllership with tenant under Art. 26.
 - **Reasonable expectations:** End-users expect public-by-default Professional profiles + tenant-admin moderation under disclosed policy + recruiter access (when activated) under candidate-notice obligations.
-- **Previous experience:** Bominal `connect-network` predecessor; no DPA-triggered complaints in 24 months on the network slice; **network as a standalone µservice is NET-NEW** in oyatie per ADR-0126.
+- **Previous experience:** Bominal `connect-network` predecessor; no DPA-triggered complaints in 24 months on the network slice; **network as a standalone µservice is NET-NEW** in oyatie per ADR-0135.
 - **Industry codes:** EU DSA + EU AI Act + EEOC UGESP + NYC LL 144 + CA AB-331 + CO SB-205 for employment-context AI transparency.
 - **Children:** Professional network is 18+; minor accounts blocked at signup.
 
@@ -120,8 +120,8 @@ DPIA + FRIA are mandatory pre-deployment. This document is the canonical DPIA + 
 
 ### 4.2 Proportionality
 
-- Less-intrusive alternatives considered: chronological-only feed (rejected — destroys discovery utility); no-recruiter-search (rejected — competitive disadvantage; mitigated to OFF-by-default + activation gates); no-endorsement-aggregation in ranking (deferred to PRD Open Question 4 — under review).
-- Selected: hybrid chronological + heuristic-algorithmic feed with user choice; recruiter-stub OFF-by-default with activation pre-condition; endorsement aggregation display-only in P01 (ranking-impact deferred to ADR-NET follow-up).
+- Less-intrusive alternatives considered: chronological-only feed (rejected — destroys discovery utility); no-recruiter-search (rejected — competitive disadvantage; mitigated to OFF-by-default + activation gates); no-endorsement-aggregation in ranking (scheduled-for-distinct-tracked-work to PRD Open Question 4 — under review).
+- Selected: hybrid chronological + heuristic-algorithmic feed with user choice; recruiter-stub OFF-by-default with activation pre-condition; endorsement aggregation display-only in P01 (ranking-impact scheduled-for-distinct-tracked-work to ADR-NET successor-IP).
 
 ### 4.3 EU AI Act FRIA (fundamental-rights-impact-assessment)
 
@@ -155,7 +155,7 @@ Per EU AI Act Art. 27 (deployment of high-risk AI systems by deployers; deployer
 | R-12 | Cross-pack residency misroute | L | H | Medium |
 | R-13 | Recruiter-search ranker discrimination (EU AI Act + EEOC disparate impact) | M | H | High |
 | R-14 | Jobs ranker discrimination (EU AI Act + EEOC + Equal Treatment Directives) | M | H | High |
-| R-15 | Endorsement aggregation amplifies bias when ranking-impacting | M | H | High (deferred via PRD OQ4) |
+| R-15 | Endorsement aggregation amplifies bias when ranking-impacting | M | H | High (scheduled-for-distinct-tracked-work via PRD OQ4) |
 | R-16 | Profile-verification artifact (ID-attest) leak | L | H | Medium |
 | R-17 | Sybil amplification distorts trending → manipulates Professional discourse | M | M | Medium |
 | R-18 | Engagement-metric leak (endorsement history, view counts) | M | M | Medium |
@@ -186,7 +186,7 @@ Per EU AI Act Art. 27 (deployment of high-risk AI systems by deployers; deployer
 | R-12 | Pack-router Cedar enforces; CI lane validates Helm pack-pinning | L |
 | R-13 | EU AI Act Art. 9-15 + 27 + 50 risk-management; per-release bias-audit (4/5-rule); per-invocation transparency; Art. 22 opt-out; appeal workflow | M (residual unavoidable in any ranking system; mitigated by transparency + opt-out + appeal) |
 | R-14 | Same as R-13; jobs ranker bound to same bias-audit lane | M |
-| R-15 | P01: endorsement aggregation is display-only; ranking-impact deferred to ADR-NET follow-up per PRD OQ4 | L (P01) |
+| R-15 | P01: endorsement aggregation is display-only; ranking-impact scheduled-for-distinct-tracked-work to ADR-NET successor-IP per PRD OQ4 | L (P01) |
 | R-16 | Separate ID-attest table; Cedar-restricted access; encryption at rest; LEAN lane | L |
 | R-17 | foundry-guardrails sybil detector; per-author influence cap in trending; tenant-admin pin/unpin | M |
 | R-18 | Endorsement / view counts: per-user opt-in for public history; default private to non-followers | L |
@@ -272,7 +272,7 @@ Per pack overlays at `regional-packs/<pack>/network-dpia-overlay.md`.
 - `microservices/network/compliance.md`.
 - `microservices/network/decisions/ADR-NET-0002-recommender-ai-act-eeoc-bounds.md`.
 - Bominal ADR-0208 + ADR-0215.
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - GDPR + KR PIPA + HIPAA + APPI + LGPD + PDPA full citations.
 - EU DSA 2065/2022; EU AI Act 2024/1689 Annex III §4; EU Equal Treatment Directives 2000/43/EC + 2000/78/EC.
 - EEOC UGESP 1978; Title VII Civil Rights Act 1964; ADA 1990; ADEA 1967; OFCCP.

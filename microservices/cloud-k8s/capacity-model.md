@@ -169,7 +169,7 @@ For DR-pair packs (pack-eu / pack-us / pack-au / pack-in / pack-br / pack-ae / p
 | ingress-gateway | CPU > 70% OR connection-count | 2 | 100 | 60s |
 | kyverno-admission | CPU > 70% | 3 | 20 | 30s |
 | CSI controllers | CPU > 70% | 2 | 6 | 60s |
-| Cluster Autoscaler (M02+) | `unschedulable_pods > 0` | min nodes set per pack | max nodes per pack | 5min scale-down delay |
+| Cluster Autoscaler (M02-onward) | `unschedulable_pods > 0` | min nodes set per pack | max nodes per pack | 5min scale-down delay |
 
 ## Pre-warmed pool
 

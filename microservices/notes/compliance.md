@@ -39,7 +39,7 @@ This matrix maps notes-µservice controls to: GDPR; KR PIPA + 통신비밀보호
 | Art. 6 lawful basis | per-tier basis | `dpia.md` §2.1 |
 | Art. 9 special category | E2E-protected; server-side processing impossible for Personal | ADR-NOTES-0001 |
 | Art. 17 erasure | DSR cascade runner | `policy/data-residency.md` §DSR cascade |
-| Art. 22 automated decision | T2 auto-organize disabled at MVP; opt-in per user | `capabilities/T2-auto.yaml` |
+| Art. 22 automated decision | T2 auto-organize disabled at minimum-shippable-tier; opt-in per user | `capabilities/T2-auto.yaml` |
 | Art. 25 PbD + PbDef | Per-microservice flat layout + LEAN lanes + Cedar default-deny | ADR-0131; ADR-0064 |
 | Art. 28 processor | DPA + sub-processor list (foundry-runtime + drive + tasks) | `legal/sub-processors.md` (linked) |
 | Art. 30 records | Workflow event ledger + audit-chain seals | `threat-model.md` §Audit |

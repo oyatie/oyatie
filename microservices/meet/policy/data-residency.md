@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-meet
 deciders: council-privacy, ops-security, axis-meet, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/meet/threat-model.md (T-I-09 cross-pack misroute)
   - microservices/meet/dpia.md (R-09)
@@ -137,7 +137,7 @@ Cross-border transfer register: `microservices/meet/legal/transfer-register.md`.
 ## References
 
 - ADR-0117.
-- ADR-0126.
+- ADR-0135.
 - ADR-MEET-0004 (egress policy).
 - `microservices/meet/multi-region.md`.
 - `microservices/meet/policy/recording-consent.md`.

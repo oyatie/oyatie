@@ -6,8 +6,8 @@ deprecated_artifact: oya-connect-recordings-domain crate (single bundled crate)
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-RECORDINGS accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
-related_specs: [/specs/products/connect/recordings.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
+related_specs: [/specs/microservices/recordings.json]
 owner_team: axis-recordings
 date: 2026-05-17
 doc_status: published
@@ -33,7 +33,7 @@ runbook continuity table, and step-by-step migration guide.
 ## Removal date
 
 **Advisory — no hard deadline.** Concrete removal target is HG-RECORDINGS
-accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #2).
+accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #2).
 Following the 5-month Strangler window in ADR-0134 (Phase 2 adapter soak +
 Phase 3 canary), the indicative advisory removal date is **2026-11-17**,
 gated on the SLO trigger.
@@ -131,7 +131,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
 ## References
 
-- ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
+- ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
 - ADR-RECORDINGS-0001..0007.
 - `microservices/recordings/migration-from-connect.md` — full migration guide.
 - `microservices/recordings/PRD.md` — target-state product definition.

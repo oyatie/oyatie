@@ -88,7 +88,7 @@ Partial state left in user's vault (some notes imported, then crash)?
 
 | Pattern | Recovery |
 |---|---|
-| Locked notes (encrypted with Apple-side password) | skipped; UX requests user-supplied key (out-of-scope at MVP) |
+| Locked notes (encrypted with Apple-side password) | skipped; UX requests user-supplied key (out-of-scope at minimum-shippable-tier) |
 | Notes with hand-drawn ink | rasterised to PNG attachment; reference inserted |
 | Notes with table elements | converted to GFM table |
 

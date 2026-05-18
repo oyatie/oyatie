@@ -6,8 +6,8 @@ deprecated_artifact: oya-connect-calendar-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-CALENDAR accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-CAL-0001, ADR-CAL-0002, ADR-CAL-0003, ADR-CAL-0004]
-related_specs: [/specs/products/connect/calendar.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-CAL-0001, ADR-CAL-0002, ADR-CAL-0003, ADR-CAL-0004]
+related_specs: [/specs/microservices/calendar.json]
 owner_team: axis-calendar
 date: 2026-05-17
 doc_status: published
@@ -33,7 +33,7 @@ surface callouts, configuration delta table, runbook continuity table
 ## Removal date
 
 **Advisory — no hard deadline.** Concrete removal target is HG-CALENDAR
-accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #3).
+accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3).
 Following the 5-month Strangler window in ADR-0134 (Phase 2 adapter soak +
 Phase 3 canary), the indicative advisory removal date is **2026-11-17**,
 gated on the SLO trigger.
@@ -141,7 +141,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
 ## References
 
-- ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
+- ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
 - ADR-CAL-0001 (CalDAV backend selection — `connect.caldav.*` →
   `calendar.radicale.*` + healthcare `calendar.sabredav.*`).
 - ADR-CAL-0002 (RRULE engine `rrule-rs` 0.13.x — full RFC 5545

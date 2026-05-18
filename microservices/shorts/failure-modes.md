@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-shorts + ops-security
 deciders: ops-sre-reliability, axis-shorts, council-architecture, ops-security, council-privacy
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/shorts/threat-model.md
   - microservices/shorts/incident-response.md
@@ -53,7 +53,7 @@ Enumerate every load-bearing failure mode, its detection signal, blast-radius, a
 | FM-18 | Auto-caption ASR backlog | `oya_shorts_caption_generation_backlog` > 1000 jobs | Sev-3 | caption appears late; chronological fallback | (autoscale; foundry-runtime scaling) |
 | FM-19 | Audio-track licensing-metadata mismatch | per-track license-status sanity check fails | Sev-2 | per-track usage may be unlicensed; risk of DMCA | (cordon affected tracks; ops-legal review) |
 | FM-20 | Watch-time tampering (artificial inflation) | foundry-guardrails sybil detector trips | Sev-3 | ranking-signal pollution; affects discovery | (cap + flag; per-(viewer, video) idempotency) |
-| FM-21 | Trending sound poisoning | trending-sound sybil detector trips | Sev-3 | spurious trending sounds; affects discovery | runbooks/trending-poisoning section in trending-and-poisoning runbook (TBD) |
+| FM-21 | Trending sound poisoning | trending-sound sybil detector trips | Sev-3 | spurious trending sounds; affects discovery | runbooks/trending-poisoning.md §sound-poisoning (sibling runbook in the same `microservices/shorts/runbooks/` directory; mitigation: cap + flag the offending sound + temporary trending-list withholding pending ops-trust review) |
 | FM-22 | S3 quarantine bucket overflow | bucket capacity > 80% | Sev-3 | scan-pending blocked; uploads stall | (autoscale; purge clean-passed quarantined blobs) |
 | FM-23 | Meilisearch shard saturation | `meilisearch_shard_size_bytes` > limit | Sev-3 | indexing stalls; search degraded | (shard split; rebuild) |
 | FM-24 | OPSWAT scan SaaS outage | scan endpoint unreachable | Sev-2 | uploads stall in quarantine; fallback to ClamAV self-hosted | (failover to ClamAV; vendor escalation) |

@@ -138,7 +138,7 @@ Adopt the **block-based model** (Notion-class) for the docs µservice block-type
 
 ### Risk register
 
-- **Risk**: Block-primitive set proves insufficient post-GA (e.g., users want video blocks, audio blocks, interactive widgets). **Mitigation**: extensible registry; new block kinds added per follow-up ADR-DOCS-XXXX.
+- **Risk**: Block-primitive set proves insufficient subsequent-to-GA-tier-promotion (e.g., users want video blocks, audio blocks, interactive widgets). **Mitigation**: extensible registry; new block kinds added per successor-IP ADR-DOCS-XXXX.
 - **Risk**: Block-based model is unfamiliar to Word-trained authors. **Mitigation**: per-keystroke conversion shortcuts; sample docs; council-design-system onboarding.
 
 ## References

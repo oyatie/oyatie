@@ -111,4 +111,4 @@ cargo run -p oya-dev-cli -- gate validate professional-context-isolation --micro
 
 - `policy/professional-context-isolation.md` PCI-01..PCI-10.
 - ADR-NET-0001 (storage); ADR-NET-0006 (profile portability + export).
-- Bominal ADR-0208 (Connect dual-context); parallel ADR-0126.
+- Bominal ADR-0208 (Connect dual-context); parallel ADR-0135.

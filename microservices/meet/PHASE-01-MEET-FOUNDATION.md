@@ -5,8 +5,8 @@ milestone: M02-foundation
 phase: P01-meet-foundation
 status: Active
 entry_gate: |
-  ADR-0126 (parallel) + ADR-0131 + ADR-0132 accepted; ADR-MEET-0001..0006 accepted;
-  /specs/products/meet.json published; observability µservice IP-001..IP-015 merged
+  ADR-0135 (parallel) + ADR-0131 + ADR-0132 accepted; ADR-MEET-0001..0006 accepted;
+  /specs/microservices/meet.json published; observability µservice IP-001..IP-015 merged
   so meet can author OpenSLO manifests and pass promotion-readiness gate.
 exit_gate: |
   All 15 IPs merged; all ~80 crates compile + nextest green;
@@ -18,7 +18,7 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion
     reason: meet requires observability gate + tenancy + ontology + audit-chain + cedar + calendar
 owner_team: axis-meet
-related_adrs: [ADR-0008, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-MEET-0001, ADR-MEET-0002, ADR-MEET-0003, ADR-MEET-0004, ADR-MEET-0005, ADR-MEET-0006]
+related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-MEET-0001, ADR-MEET-0002, ADR-MEET-0003, ADR-MEET-0004, ADR-MEET-0005, ADR-MEET-0006]
 related_specs: []
 date: 2026-05-17
 doc_status: published
@@ -28,11 +28,11 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full meet µservice per ADR-0126 (net-new) + ADR-0132 (single-concern + flat layout): video-meeting platform with named rooms + lobby + recording + live transcription + webinar mode + RTMP egress + opt-in E2E encryption.
+This phase ships the full meet µservice per ADR-0135 (net-new) + ADR-0132 (single-concern + flat layout): video-meeting platform with named rooms + lobby + recording + live transcription + webinar mode + RTMP egress + opt-in E2E encryption.
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Google Meet / Zoom / Microsoft Teams Meetings-class feature parity + native Workflow + Ontology integration).
-- Nothing deferred (no FUTURE stubs; every NFR covered).
+- Nothing scheduled-for-distinct-tracked-work (no FUTURE stubs; every NFR covered).
 - No silent regression (production-tier change gated by observability ADR-0130).
 - Per-microservice flat layout (ADR-0131 native authoring).
 - Shared substrate (LiveKit + coturn) pattern with messenger huddles per ADR-MSGR-0001.
@@ -52,8 +52,8 @@ Plus cross-cutting:
 
 ### Out-of-scope
 
-- PSTN dial-in (Open Question 1; follow-up ADR; Twilio Voice / Vonage adapter).
-- SIP / Matrix federation (Open Question 2; follow-up ADR).
+- PSTN dial-in (Open Question 1; successor-IP ADR; Twilio Voice / Vonage adapter).
+- SIP / Matrix federation (Open Question 2; successor-IP ADR).
 - Whiteboard own-BC vs slides-µservice question (Open Question 5; pending ADR).
 - Workflow Studio shell integration UX (owned by `workflow-studio` µservice's PRD).
 

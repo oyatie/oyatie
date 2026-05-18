@@ -9,7 +9,7 @@ contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
 traceability:
-  github_issue: "<TBD>"
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
   source_adrs: [ADR-0105, ADR-0131]
 allowed_dependency_edges: [oya-docs-document-store-kernel, oya-docs-document-store-domain, oya-docs-document-store-usecase, oya-docs-document-store-api, oya-docs-document-store-adapter, oya-docs-document-store-adapter-postgres, oya-docs-document-store-adapter-s3, oya-docs-document-store-rest, oya-docs-document-store-worker]
 data_classes_owned: []

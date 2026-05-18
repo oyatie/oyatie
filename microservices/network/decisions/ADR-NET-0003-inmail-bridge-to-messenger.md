@@ -8,7 +8,7 @@ owner: axis-network + axis-messenger
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-MSGR-0004
@@ -78,13 +78,13 @@ oyatie network's InMail-bridge BC implements the following:
 ### A. Don't bridge; build InMail-native messaging stack inside `network`
 
 - Pros: no cross-µservice complexity; full control of DM stack inside `network`.
-- Cons: duplicates messenger µservice's investment in DM (per ADR-0126 messenger is the canonical DM µservice); two DM stacks to maintain; tenant tooling fragmentation; ADR-0131 µservice-boundary discipline argues against duplication.
+- Cons: duplicates messenger µservice's investment in DM (per ADR-0135 messenger is the canonical DM µservice); two DM stacks to maintain; tenant tooling fragmentation; ADR-0131 µservice-boundary discipline argues against duplication.
 - Rejected.
 
 ### B. Bridge to messenger but allow Personal-tier DM delivery as fallback
 
 - Pros: greater delivery surface area; user receives InMail in their primary DM inbox regardless of context.
-- Cons: violates PCI-09 + ADR-0126 Professional-context invariant; would create a Personal-tier privacy leak (recruiter sees Personal-DM inbox); regulatory + privacy violation; gross security violation.
+- Cons: violates PCI-09 + ADR-0135 Professional-context invariant; would create a Personal-tier privacy leak (recruiter sees Personal-DM inbox); regulatory + privacy violation; gross security violation.
 - Rejected: this is exactly what PCI-09 forbids.
 
 ### C. Email-bridge to user's primary email instead of DM (mail µservice bridge)
@@ -143,7 +143,7 @@ oyatie network's InMail-bridge BC implements the following:
 
 ## References
 
-- ADR-0126 (Connect dissolution, parallel).
+- ADR-0135 (Connect dissolution, parallel).
 - ADR-0131 (per-microservice flat layout; bridge crate convention).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-MSGR-0004 (sibling messenger Professional-tier surface; paired pattern; assumed to be authored in messenger µservice).

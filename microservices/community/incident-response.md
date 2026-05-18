@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-community + ops-sre + ops-security
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/community/threat-model.md
   - microservices/community/failure-modes.md

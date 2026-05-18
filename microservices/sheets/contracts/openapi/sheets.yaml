@@ -5,7 +5,7 @@ info:
   summary: REST API for the sheets µservice — workbook session CRUD, cell/range read/write, formula authoring, sharing + per-range ACL, XLSX import/export, AI-formula invocation, connected-sheets queries, version-history, comments, embed-bridge
   description: |
     Tenant-facing and operator-facing REST surface for sheets (spreadsheet + structured-data editor;
-    ADR-0126 net-new hero product). All endpoints require OIDC + Cedar policy authorization
+    ADR-0135 net-new hero product). All endpoints require OIDC + Cedar policy authorization
     (per microservices/sheets/policy/*.cedar) and are tenant-scoped via the X-Scope-OrgID header.
 
     Per-seat licensing enforced at workbook open (license-gate-cedar BC). Per-range ACL
@@ -708,7 +708,7 @@ paths:
                   type: string
                   enum: [best_effort]
                   default: best_effort
-                  description: 'strict-OOXML round-trip deferred post-M03 per ADR-SHEETS-0007'
+                  description: 'strict-OOXML round-trip scheduled-for-distinct-tracked-work subsequent-to-M03-completion per ADR-SHEETS-0007'
       responses:
         '202':
           description: Job queued

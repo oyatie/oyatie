@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-mail + ops-deliverability
 deciders: ops-sre-reliability, axis-mail, council-architecture
-related_adrs: [ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/mail/cost-budget.md
   - microservices/mail/multi-region.md

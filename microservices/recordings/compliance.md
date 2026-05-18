@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-compliance + axis-recordings + council-privacy
-related_adrs: [ADR-0117, ADR-0126, ADR-0131, ADR-0133, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0006]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131, ADR-0133, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0006]
 doc_status: published
 ---
 

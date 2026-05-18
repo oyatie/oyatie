@@ -80,7 +80,7 @@ Per-tenant cost includes per-pack overhead amortisation; unit cost falls as tena
 |---|---:|---|
 | Use OCI Cloud-HSM for non-FSS pack-kr tenants instead of Luna | $30,000/yr | KR-FSS tenants still on Luna; mixed-vendor complexity |
 | Move audit cold-storage to OCI Archive Tier | $5,000/yr | Restore SLA is hours, not seconds; acceptable for audit cold |
-| Defer pack-ae / pack-ksa activation until first paying tenant | $234,000/yr (deferred) | Sales blockers if reactive activation lag > 90 days |
+| Defer pack-ae / pack-ksa activation until first paying tenant | $234,000/yr (scheduled-for-distinct-tracked-work) | Sales blockers if reactive activation lag > 90 days |
 | Single-region (no DR-pair) for non-regulated packs | $4,200/pack/month | Violates 99.99% SLO target if region-fail |
 
 ## Cost Anti-Patterns (forbidden)

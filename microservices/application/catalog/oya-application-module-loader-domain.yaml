@@ -9,7 +9,7 @@ contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
 traceability:
-  github_issue: "<TBD>"
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
   source_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0121, ADR-0123, ADR-0131]
 allowed_dependency_edges: [oya-application-module-loader-kernel]
 data_classes_owned: [INTERNAL_ONLY]

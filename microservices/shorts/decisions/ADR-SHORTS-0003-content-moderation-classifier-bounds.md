@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0022
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0133
   - ADR-SHORTS-0005
@@ -138,7 +138,7 @@ oyatie shorts adopts the **EU AI Act HIGH-RISK obligations operative posture** f
 ### D. Defer EU AI Act compliance to a separate "EU pack activation" date
 
 - Pros: simpler M03 launch.
-- Cons: per parallel ADR-0126 + ADR-0131 + ADR-0133, oyatie's design posture is hyperscaler-grade compliance from day 1; pack-eu may activate any time; classifier carries obligations universally.
+- Cons: per parallel ADR-0135 + ADR-0131 + ADR-0133, oyatie's design posture is hyperscaler-grade compliance from day 1; pack-eu may activate any time; classifier carries obligations universally.
 - Rejected: design-time conformance > activation-time scramble.
 
 ### E. Single global moderation model (no per-pack overlay)
@@ -184,7 +184,7 @@ oyatie shorts adopts the **EU AI Act HIGH-RISK obligations operative posture** f
 ## References
 
 - ADR-0022 autonomy tiers (T0/T1/T2; inherited from Bominal).
-- Parallel ADR-0126 dual-context.
+- Parallel ADR-0135 dual-context.
 - ADR-0131 per-µservice flat layout.
 - ADR-0133 hyperscaler best-practice.
 - ADR-SOC-0003 (sibling moderation ADR; paired pattern).

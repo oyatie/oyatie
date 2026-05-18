@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-social + council-architecture
 deciders: axis-social, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0132, ADR-0133]
 related_artifacts:
   - microservices/social/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-SOCIAL gate)
@@ -131,17 +131,17 @@ Quantitative + qualitative parity comparison against industry-leading social-net
 | # | Gap | Owner | Target close |
 |---|---|---|---|
 | 1 | ML-driven algorithmic feed (vs heuristic in P01) | axis-social + axis-foundry-runtime | M03 |
-| 2 | ActivityPub federation MVP | axis-social + ops-security | M02+1 |
-| 3 | Mobile SDK polish (iOS/Android parity with X / Instagram native) | axis-social + gtm | M02+1 |
-| 4 | Video-first content type (Reels-style; out-of-scope P01) | axis-social | M04+ (separate µservice) |
-| 5 | Mature bot / app marketplace (X / Discord lead by years) | axis-social + gtm | M05+ |
-| 6 | Audio Spaces-style live audio room (out-of-scope P01) | axis-social | M04+ (live-audio µservice) |
-| 7 | AT Protocol federation (in addition to ActivityPub) | axis-social + council-architecture | follow-up ADR (PRD Open Question 2) |
-| 8 | Verified-handle global uniqueness (vs per-tenant) | axis-social + gtm | ADR-SOC follow-up (PRD Open Question 5) |
+| 2 | ActivityPub federation minimum-shippable-tier | axis-social + ops-security | M02-onward1 |
+| 3 | Mobile SDK polish (iOS/Android parity with X / Instagram native) | axis-social + gtm | M02-onward1 |
+| 4 | Video-first content type (Reels-style; out-of-scope P01) | axis-social | M04-onward (separate µservice) |
+| 5 | Mature bot / app marketplace (X / Discord lead by years) | axis-social + gtm | M05-onward |
+| 6 | Audio Spaces-style live audio room (out-of-scope P01) | axis-social | M04-onward (live-audio µservice) |
+| 7 | AT Protocol federation (in addition to ActivityPub) | axis-social + council-architecture | successor-IP ADR (PRD Open Question 2) |
+| 8 | Verified-handle global uniqueness (vs per-tenant) | axis-social + gtm | ADR-SOC successor-IP (PRD Open Question 5) |
 
 ## Key oyatie Differentiators (NOT in any competitor)
 
-1. **Dual-context isolation by data-model invariant** — Personal ≠ Professional enforced at compile-time + LEAN-lane (per parallel ADR-0126); no competitor does this at data-model level. LinkedIn is professional-only (not dual-context); X / Meta blur with account-level switch.
+1. **Dual-context isolation by data-model invariant** — Personal ≠ Professional enforced at compile-time + LEAN-lane (per parallel ADR-0135); no competitor does this at data-model level. LinkedIn is professional-only (not dual-context); X / Meta blur with account-level switch.
 2. **Multi-pack residency by design** — 11 region-pinned packs; no SaaS competitor matches breadth.
 3. **OpenSLO-gated promotion** — feature rollouts gated by burn-rate (ADR-0130); no competitor enforces SLO-based rollout halting.
 4. **Cedar v4 policy substrate** — fine-grained per-resource policy; competitors expose only admin-level RBAC.
@@ -183,7 +183,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `microservices/social/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-SOCIAL gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0126 (Connect dissolution, parallel).
+- ADR-0135 (Connect dissolution, parallel).
 - ADR-0130 (agentic SLO-gated promotion).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0133 (industry best-practice conformance).

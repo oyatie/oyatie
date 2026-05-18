@@ -89,7 +89,7 @@ context + why the non-bypass path's ETA is unacceptable>
 
 ## Retroactive remediation plan
 
-- IP-INCIDENT-<incident-id>-<slug>.md: lane-fix PR follow-up
+- IP-INCIDENT-<incident-id>-<slug>.md: lane-fix PR successor-IP
 - Target close-date: <YYYY-MM-DD>
 - Owner: <handle>
 

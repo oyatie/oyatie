@@ -33,7 +33,7 @@ It is delivered as one phase in M01-foundation because every other oyatie µserv
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (industry-cited baselines + continuous conformance per ADR-0133).
-- Nothing deferred (every FUTURE-marked stub in the prior `oya-check-*` lane wrappers is decommissioned by this phase).
+- Nothing scheduled-for-distinct-tracked-work (every FUTURE-marked stub in the prior `oya-check-*` lane wrappers is decommissioned by this phase).
 - No silent regression (per-axis BLOCKER lanes refuse drift at PR-time).
 - Per-microservice flat layout (this phase migrates the ~50 check crates into their owning µservice folder).
 
@@ -57,10 +57,10 @@ Naming justifications for the new crate families are in `microservices/governanc
 
 ### Out-of-scope
 
-- Migration of the remaining ~40 `oya-check-*` crates beyond tier-A (10 in this phase) — owned by follow-up phases P02..P04 under M01 (`phases-roadmap.md` follow-up).
-- Per-µservice lane-subset selection (run only relevant lanes per PR) — PRD Open Question 4; deferred to a follow-up ADR.
-- Finding severity escalation policy (WARN-stacking → BLOCKER) — PRD Open Question 6; deferred.
-- Cross-region replication of Finding + audit-chain storage — deferred to post-M01 per `multi-region.md` §"Roadmap".
+- Migration of the remaining ~40 `oya-check-*` crates beyond tier-A (10 in this phase) — owned by successor-IP phases P02..P04 under M01 (`phases-roadmap.md` successor-IP).
+- Per-µservice lane-subset selection (run only relevant lanes per PR) — PRD Open Question 4; scheduled-for-distinct-tracked-work to a successor-IP ADR.
+- Finding severity escalation policy (WARN-stacking → BLOCKER) — PRD Open Question 6; scheduled-for-distinct-tracked-work.
+- Cross-region replication of Finding + audit-chain storage — scheduled-for-distinct-tracked-work to subsequent-to-M01-completion per `multi-region.md` §"Roadmap".
 - External-auditor JIT scope tooling beyond the evidence-export tool — PRD Open Question 7; covered by `runbooks/evidence-replay.md`.
 
 ## Implementation Plans

@@ -22,4 +22,4 @@ data:
   object-store-primary: "garage"
   object-store-archive: "seaweedfs"
   audit-chain-algorithm: "ed25519-merkle-ades"          # eIDAS Art. 26 AdES
-  eu-ai-act-t2-hr-overlay: "refused"                   # Annex III §3 high-risk; deferred ADR
+  eu-ai-act-t2-hr-overlay: "refused"                   # Annex III §3 high-risk; scheduled-for-distinct-tracked-work ADR

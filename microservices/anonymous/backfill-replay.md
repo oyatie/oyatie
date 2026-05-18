@@ -40,7 +40,7 @@ Define the canonical procedures for **backfill** (initial data load into a new r
 | Audit-chain consumer rebuild after audit-chain µservice regression | rare; on audit-chain incident | ops-security + audit-chain team |
 | Foundry-runtime classifier replay after model upgrade (re-classify historical posts) | per model upgrade | axis-foundry-runtime + axis-anonymous |
 | Trending-aggregator window recomputation after time-source skew | rare | axis-anonymous |
-| Transparency-report aggregator replay after retention-policy change | per ADR-ANON-0004 follow-up | axis-anonymous |
+| Transparency-report aggregator replay after retention-policy change | per ADR-ANON-0004 successor-IP | axis-anonymous |
 
 ## Backfill Procedure (privacy-preserving)
 

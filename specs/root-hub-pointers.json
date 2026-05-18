@@ -207,21 +207,21 @@
     },
     "prd_workflow": {
       "kind": "prd",
-      "current_path": "/specs/products/workflow.json",
+      "current_path": "/specs/microservices/workflow.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
       "purpose": "Workflow product PRD — engine half of the ecosystem-backbone pair with prd_ontology. State-machine + DAG hybrid orchestration substrate per Bominal-ADR-0148. Canonical JSON spec via contracts/workflow_spec.v1.json."
     },
     "prd_workflow_studio": {
       "kind": "prd",
-      "current_path": "/specs/products/workflow-studio.json",
+      "current_path": "/specs/microservices/workflow-studio.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Workflow Studio product PRD — visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec."
     },
     "prd_ontology": {
       "kind": "prd",
-      "current_path": "/specs/products/ontology.json",
+      "current_path": "/specs/microservices/ontology.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Ontology + Knowledge Graph merged product PRD. Typed-entity schema layer (Bominal-ADR-0106) + 3-layer KG runtime (semantic/kinetic/dynamic). Ontology+Workflow jointly form ecosystem-as-a-product backbone."
@@ -352,56 +352,56 @@
     },
     "prd_connect_suite": {
       "kind": "prd",
-      "current_path": "/specs/products/connect/suite.json",
+      "current_path": "/specs/microservices/connect-suite.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
       "purpose": "Connect suite PRD — dual-context native communications shell binding Mail, Messenger, and Calendar under shared context, policy, audit, retention/legal-hold, and OpenTofu/oya-ops deployment constraints."
     },
     "prd_connect_mail": {
       "kind": "prd",
-      "current_path": "/specs/products/connect/mail.json",
+      "current_path": "/specs/microservices/mail.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Connect Mail sub-PRD — work/personal mail, retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries."
     },
     "prd_connect_messenger": {
       "kind": "prd",
-      "current_path": "/specs/products/connect/messenger.json",
+      "current_path": "/specs/microservices/messenger.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Connect Messenger sub-PRD — personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict dual-context boundaries."
     },
     "prd_connect_calendar": {
       "kind": "prd",
-      "current_path": "/specs/products/connect/calendar.json",
+      "current_path": "/specs/microservices/calendar.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Connect Calendar sub-PRD — personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-pillar-safe availability projections."
     },
     "prd_enterprise_suite": {
       "kind": "prd",
-      "current_path": "/specs/products/enterprise/suite.json",
+      "current_path": "/specs/microservices/enterprise-suite.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
       "purpose": "Enterprise suite PRD — business operating system shell binding HR, Payroll, Accounting, compliance evidence, approvals, and operating intelligence under shared Workflow/Object Graph/ops constraints."
     },
     "prd_enterprise_hr": {
       "kind": "prd",
-      "current_path": "/specs/products/enterprise/hr.json",
+      "current_path": "/specs/microservices/hr.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Enterprise HR sub-PRD — employee lifecycle, org hierarchy, attendance, leave, recruiting/performance shells, sensitive-data policy, and KR/US/EU labor-compliance evidence."
     },
     "prd_enterprise_payroll": {
       "kind": "prd",
-      "current_path": "/specs/products/enterprise/payroll.json",
+      "current_path": "/specs/microservices/payroll.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Enterprise Payroll sub-PRD — KR-first payroll close, payee classes, statutory taxes/4대보험, year-end settlement, payroll-to-accounting bridge, and group close evidence."
     },
     "prd_enterprise_accounting": {
       "kind": "prd",
-      "current_path": "/specs/products/enterprise/accounting.json",
+      "current_path": "/specs/microservices/accounting.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Enterprise Accounting sub-PRD — double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, financial close workflow, and audit-ready controls."

@@ -7,7 +7,7 @@ info:
     comments-and-suggestions, version-history, sharing-and-permissions,
     export-import, and embed-resolver bounded contexts.
 
-    Per ADR-0126 (Connect unbundle) + ADR-0132 (no-suite forward policy): docs is a
+    Per ADR-0135 (Connect unbundle) + ADR-0132 (no-suite forward policy): docs is a
     standalone tenant-facing µservice. Dual-context (Personal / Professional) isolation
     enforced structurally per `policy/editor-isolation.md`. Per-block ACL per ADR-DOCS-0004.
 

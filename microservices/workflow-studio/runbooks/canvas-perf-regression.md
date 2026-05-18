@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/workflow-studio/PRD.md §"Performance" + §"Acceptance Criteria" AC-09, AC-10
   - microservices/workflow-studio/failure-modes.md (FM-06 perf budget breach)
   - microservices/workflow-studio/threat-model.md §"T-D-04" LLM latency cascade
-  - /specs/products/workflow-studio.json §goals.performance
+  - /specs/microservices/workflow-studio.json §goals.performance
 doc_status: published
 ---
 
@@ -20,7 +20,7 @@ doc_status: published
 
 ONE of:
 
-1. **Editor TTI p99 > 2s for ≥ 15 min** (GA budget per `/specs/products/workflow-studio.json` §goals.performance).
+1. **Editor TTI p99 > 2s for ≥ 15 min** (GA budget per `/specs/microservices/workflow-studio.json` §goals.performance).
 2. **Canvas render p95 > 16ms (60fps) for ≥ 15 min**.
 3. **Save round-trip p99 > 200ms (stable) OR > 100ms (GA) for ≥ 15 min**.
 4. **Cold-load of 5k-node graph > 3s** for any tenant.
@@ -135,7 +135,7 @@ After recovery:
 - `microservices/workflow-studio/PRD.md` AC-09, AC-10.
 - `microservices/workflow-studio/failure-modes.md` FM-06.
 - `microservices/workflow-studio/threat-model.md` T-D-03 (CDN purge gap), T-D-04 (LLM cascade).
-- `/specs/products/workflow-studio.json` §metrics + §goals.performance.
+- `/specs/microservices/workflow-studio.json` §metrics + §goals.performance.
 - Google SRE Workbook ch. 5 (multi-window burn rate).
 - Web.dev Core Web Vitals — `web.dev/vitals/`.
 - Lighthouse perf budgets — `web.dev/performance-budgets-101/`.

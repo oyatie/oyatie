@@ -8,7 +8,7 @@ owner: axis-workspace + council-design-system
 deciders: council-design-system, council-architecture, axis-workspace, ops-sre-reliability, ops-accessibility
 supersedes: []
 superseded_by: []
-related: [ADR-0065, ADR-0105, ADR-0126, ADR-0131, ADR-WS-0003]
+related: [ADR-0065, ADR-0105, ADR-0135, ADR-0131, ADR-WS-0003]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/slides/PRD.md (FR-15, AC-09, AC-17, §"Performance")
@@ -59,7 +59,7 @@ Adopt **Leptos 0.7+ + signals + cargo-leptos** as the slides canvas + present-mo
 3. **Three-tier rendering pipeline**:
    - **Tier 1 — SVG baseline** for editor authoring (drag, click, hover, keyboard nav, ARIA roles per primitive); 95% of editor surface. SVG is accessibility-friendly + DOM-debug-friendly + CSS-theme-able.
    - **Tier 2 — canvas-2d for present-mode** when frame budget at SVG fails measurement: an `-adapter-leptos-wasm-canvas2d` crate renders the 60fps present-mode using `web-sys` Canvas 2D API. Engaged automatically when device pixel ratio × deck complexity exceeds heuristic threshold.
-   - **Tier 3 — WebGL fallback** for very-complex decks (50+ slides with rich animations + video-embed). An `-adapter-leptos-wasm-webgl` crate using `web-sys` WebGL2 API + tiny-skia-style draw primitives. Engaged only after Tier-2 fails measurement; post-M03 work.
+   - **Tier 3 — WebGL fallback** for very-complex decks (50+ slides with rich animations + video-embed). An `-adapter-leptos-wasm-webgl` crate using `web-sys` WebGL2 API + tiny-skia-style draw primitives. Engaged only after Tier-2 fails measurement; subsequent-to-M03-completion work.
 4. **No external JS canvas library** (e.g., Konva, PixiJS, Fabric). Mixing JS canvas with Rust signals doubles failure modes (T-T-02 SRI scope + CSP scope + WASM↔JS bridge cost per frame).
 5. **Bundle splitting**: per-route code splitting via cargo-leptos. Editor, present-mode, slide-sorter, master-slide-editor, audience-view shipped as separate WASM chunks; each chunk carries SHA-384 SRI hash per AC-12.
 6. **WASM↔JS interop**: minimized via `wasm-bindgen`. JS interop limited to (a) browser APIs not yet bound in `web-sys`, (b) WebSocket via `gloo-net`, (c) LiveKit client via the messenger SDK's WASM bindings, (d) WASM bootstrap nonce script.
@@ -145,7 +145,7 @@ Render everything via WebGL.
 
 - The visual-canvas-tier crates `oya-slides-slide-adapter-leptos-wasm`, `oya-slides-text-box-adapter-leptos-wasm`, `oya-slides-shape-adapter-leptos-wasm`, `oya-slides-animations-adapter-leptos-wasm`, `oya-slides-transitions-adapter-leptos-wasm`, `oya-slides-table-adapter-leptos-wasm`, `oya-slides-slide-sorter-adapter-leptos-wasm`, `oya-slides-master-slide-editor-adapter-leptos-wasm`, `oya-slides-presenter-view-adapter-leptos-wasm`, `oya-slides-audience-view-adapter-leptos-wasm` are SVG-baseline.
 - The present-mode `-adapter-leptos-wasm-canvas2d` crate kicks in on heuristic threshold; tested under headless Chrome on 50-slide golden deck.
-- The WebGL `-adapter-leptos-wasm-webgl` crate is a non-blocking exploration; engaged only post-M03 if canvas-2d hits a measured ceiling.
+- The WebGL `-adapter-leptos-wasm-webgl` crate is a non-blocking exploration; engaged only subsequent-to-M03-completion if canvas-2d hits a measured ceiling.
 - The `-domain` crates (visual-layout algebra, animation timing, equation rendering, deck composition) are pure Rust + signal-driven + WASM-target-parity tested.
 - The `-app` composition root emits SSR + WASM via cargo-leptos.
 - WASM bundle SHA-384 SRI per chunk; verified at every PR via `oya-governance-wasm-bundle-sri` lane.
@@ -179,7 +179,7 @@ Render everything via WebGL.
 ### Risk register
 
 - **Risk**: Leptos 0.7+ breaking changes between minor versions. **Mitigation**: pinning + bi-monthly upstream PR review; coordinated migrations across the Leptos-substrate µservices (workflow-studio + slides + docs + sheets).
-- **Risk**: SVG-tier frame-budget ceiling on low-end hardware. **Mitigation**: canvas-2d tier auto-engages; WebGL tier post-M03 if canvas-2d hits ceiling.
+- **Risk**: SVG-tier frame-budget ceiling on low-end hardware. **Mitigation**: canvas-2d tier auto-engages; WebGL tier subsequent-to-M03-completion if canvas-2d hits ceiling.
 - **Risk**: cargo-leptos toolchain instability. **Mitigation**: vendored fallback (raw cargo + wasm-bindgen-cli).
 - **Risk**: WebGL fallback never engaged (premature complexity). **Mitigation**: kept under `src/crates/oya-slides-slide-adapter-leptos-wasm-webgl/` as non-blocking exploration; activates only on measurement.
 

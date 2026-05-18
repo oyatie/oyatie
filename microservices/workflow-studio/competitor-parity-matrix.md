@@ -10,7 +10,7 @@ deciders: axis-workflow, council-architecture
 related_adrs: [ADR-0123, ADR-0131, ADR-0133]
 related_artifacts:
   - microservices/workflow-studio/PRD.md (§Competitive Benchmark)
-  - /specs/products/workflow-studio.json (§competitive)
+  - /specs/microservices/workflow-studio.json (§competitive)
   - /specs/hyperscaler-gates.json (HG-WORKFLOW-STUDIO)
 review_cadence: bi-annually + on every new competitor entrant
 doc_status: published
@@ -24,7 +24,7 @@ Quantitative + qualitative parity comparison vs the industry-leading visual work
 
 ## Competitor Set
 
-Per `/specs/products/workflow-studio.json` §competitive — drawn from primary sources only:
+Per `/specs/microservices/workflow-studio.json` §competitive — drawn from primary sources only:
 
 | Competitor | Product / surface | Primary differentiator | Source |
 |---|---|---|---|
@@ -81,7 +81,7 @@ Per `/specs/products/workflow-studio.json` §competitive — drawn from primary 
 
 | Capability | oyatie | n8n | Zapier | Workato | Make | Power Automate | Temporal | Foundry | Retool | Tines | Step Fn | Camunda | Argo |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Prose-to-spec drafting | ✅ FR-12 M03+ | partial | ✅ (AI generation) | ✅ (recipe copilot) | partial | ✅ Copilot | ❌ | partial | ❌ | partial | partial | ❌ | ❌ |
+| Prose-to-spec drafting | ✅ FR-12 M03-onward | partial | ✅ (AI generation) | ✅ (recipe copilot) | partial | ✅ Copilot | ❌ | partial | ❌ | partial | partial | ❌ | ❌ |
 | PII redactor before LLM | ✅ T-I-05 control | ❌ | ❌ | ❌ | ❌ | partial | n/a | partial | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Prompt-injection scrub + validation | ✅ T-S-05 | ❌ | ❌ | ❌ | ❌ | ❌ | n/a | partial | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Schema-valid completion enforced | ✅ FR-12 contract | ❌ | ❌ | ❌ | ❌ | partial | n/a | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
@@ -101,7 +101,7 @@ Per `/specs/products/workflow-studio.json` §competitive — drawn from primary 
 
 ## Quantitative Performance Parity
 
-Per ADR-0123 + `/specs/products/workflow-studio.json` §competitive_claim_policy: NO numeric latency comparison claims permitted without measured oyatie evidence. The table above shows targets vs publicly-claimed numbers for design awareness only.
+Per ADR-0123 + `/specs/microservices/workflow-studio.json` §competitive_claim_policy: NO numeric latency comparison claims permitted without measured oyatie evidence. The table above shows targets vs publicly-claimed numbers for design awareness only.
 
 Pending measurement at M03/P01 exit gate:
 - TTI p99 via synthetic Lighthouse harness (test against pack-kr CDN edge).
@@ -113,10 +113,10 @@ Pending measurement at M03/P01 exit gate:
 
 | # | Gap | Owner | Target close |
 |---|---|---|---|
-| 1 | Connector count breadth (Workato ~1200, n8n ~400 vs oyatie M03 per-pack libraries) | axis-workflow + gtm | post-M03 marketplace |
-| 2 | Mobile-app editor (none of competitors except Power Automate Mobile; oyatie deferred post-GA) | council-design-system | post-M03 |
+| 1 | Connector count breadth (Workato ~1200, n8n ~400 vs oyatie M03 per-pack libraries) | axis-workflow + gtm | subsequent-to-M03-completion marketplace |
+| 2 | Mobile-app editor (none of competitors except Power Automate Mobile; oyatie scheduled-for-distinct-tracked-work subsequent-to-GA-tier-promotion) | council-design-system | subsequent-to-M03-completion |
 | 3 | AI Copilot UX maturity (Zapier AI / Workato Copilot / Power Automate Copilot all live) | axis-workflow + foundry-providers | M03 LLM-assist preview → GA |
-| 4 | Marketplace template ecosystem (n8n + Zapier + Make all have community templates) | axis-workflow + gtm | post-M03 |
+| 4 | Marketplace template ecosystem (n8n + Zapier + Make all have community templates) | axis-workflow + gtm | subsequent-to-M03-completion |
 | 5 | Pre-built integration coverage for top 100 SaaS (Workato/Zapier lead here) | axis-workflow + partner-eng | rolling, multi-quarter |
 
 ## Key oyatie Differentiators (not in any competitor)
@@ -138,7 +138,7 @@ Permitted (citation-bounded):
 - "oyatie Studio surfaces Cedar policy preview before save, which no surveyed competitor's primary docs establish" (true).
 - "Jurisdiction-overlay visual diff is unique to oyatie among surveyed competitors" (true as of 2026-05-17; re-validate bi-annually).
 
-Forbidden (per ADR-0123 hyperscaler-maturity-claim-gate + `/specs/products/workflow-studio.json` §competitive_claim_policy):
+Forbidden (per ADR-0123 hyperscaler-maturity-claim-gate + `/specs/microservices/workflow-studio.json` §competitive_claim_policy):
 - "oyatie editor is faster than n8n" (no measured benchmark; would be unsourced superiority).
 - "oyatie has more connectors than Workato" (NOT TRUE pre-M04 marketplace).
 - "oyatie is the only collaborative workflow editor" (NOT TRUE — Foundry Pipeline Builder + Retool Workflows have collab).
@@ -161,7 +161,7 @@ Each competitor row's primary-source URL is snapshotted at registration time; SH
 ## References
 
 - `microservices/workflow-studio/PRD.md` §Competitive Benchmark.
-- `/specs/products/workflow-studio.json` §competitive + §competitive_claim_policy.
+- `/specs/microservices/workflow-studio.json` §competitive + §competitive_claim_policy.
 - `/specs/hyperscaler-gates.json` HG-WORKFLOW-STUDIO gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
 - ADR-0133 (industry-best-practice conformance axis-4 named sources).

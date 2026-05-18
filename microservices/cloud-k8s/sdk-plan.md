@@ -36,7 +36,7 @@ The base Kubernetes API (kubectl, helm, client-go, etc.) is **not** wrapped by o
 | **Python** | M02 | OpenAPI-generated; PyPI | axis-cloud + gtm |
 | **Go** | M02 | gRPC-generated + wrapper; go-module | axis-cloud + gtm |
 | **JVM (Kotlin / Java)** | M03 | gRPC-generated + wrapper; Maven Central | axis-cloud + gtm |
-| **C# / .NET** | M03+ | OpenAPI-generated; NuGet | axis-cloud + gtm |
+| **C# / .NET** | M03-onward | OpenAPI-generated; NuGet | axis-cloud + gtm |
 
 Prioritisation: oyatie's own µservice languages first (Rust); then largest tenant developer-population (TS + Python lead).
 

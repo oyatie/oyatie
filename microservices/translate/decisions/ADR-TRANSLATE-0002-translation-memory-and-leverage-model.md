@@ -9,7 +9,7 @@ date: 2026-05-17
 microservice: translate
 supersedes: []
 superseded_by: []
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/IP-005-translation-memory-stack.md
@@ -110,7 +110,7 @@ When a tenant raises a DSR (right-to-erasure per GDPR Art. 17 / PIPA Art. 36 / D
 
 - **Pros**: catches paraphrastic matches missed by token-edit-distance.
 - **Cons**: 10–100× cost; embedding-drift across model versions; harder to explain to LSPs; not industry-standard for TM leverage.
-- **Verdict**: deferred; tracked as "TM v2 semantic-leverage" future ADR. Token-edit-distance per OmegaT remains industry baseline for M01.
+- **Verdict**: scheduled-for-distinct-tracked-work; tracked as "TM v2 semantic-leverage" future ADR. Token-edit-distance per OmegaT remains industry baseline for M01.
 
 ## Consequences
 

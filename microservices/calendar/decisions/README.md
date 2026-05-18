@@ -32,8 +32,8 @@ Each ADR closes one Open Question (or derived gap) surfaced in `microservices/ca
 
 | PRD Open Question | Status | Notes |
 |---|---|---|
-| #1 (native conferencing vs Workflow-trigger to external Zoom/Meet) | Open | post-M03 ADR; will pair with messenger huddles ADR-MSGR-0001 |
-| #3 (federation with Google/Outlook coexistence mode vs migration-only) | Open | post-M03; parallels ADR-MSGR-0004 federation posture |
+| #1 (native conferencing vs Workflow-trigger to external Zoom/Meet) | Open | subsequent-to-M03-completion ADR; will pair with messenger huddles ADR-MSGR-0001 |
+| #3 (federation with Google/Outlook coexistence mode vs migration-only) | Open | subsequent-to-M03-completion; parallels ADR-MSGR-0004 federation posture |
 
 These remain in `microservices/calendar/PRD.md` §"Open Questions"; future ADRs land here with sequential IDs.
 

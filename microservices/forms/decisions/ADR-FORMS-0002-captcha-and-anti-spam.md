@@ -9,7 +9,7 @@ deciders: council-architecture, axis-forms, ops-security, council-privacy, counc
 supersedes: []
 superseded_by: []
 related: [ADR-0131, ADR-0140, ADR-FORMS-0003]
-related_specs: [/specs/products/forms.json]
+related_specs: [/specs/microservices/forms.json]
 related_artifacts:
   - microservices/forms/PRD.md FR-08 + AC-11
   - microservices/forms/policy/data-residency.md §"Pack determines captcha provider"

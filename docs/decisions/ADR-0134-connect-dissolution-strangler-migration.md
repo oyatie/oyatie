@@ -6,20 +6,23 @@ date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0135]
 related_memory: [feedback_no_silent_regression, feedback_workflow_objectgraph_adapter_layer, feedback_bominal_inheritance_precedence]
 related_specs:
   - /specs/per-microservice-flat-layout.json
-  - /specs/products/connect/mail.json
-  - /specs/products/connect/messenger.json
-  - /specs/products/connect/calendar.json
+  - /specs/microservices/mail.json
+  - /specs/microservices/messenger.json
+  - /specs/microservices/calendar.json
 session_context:
   authored: 2026-05-17
   parallel_session_caveat: |
-    Authored in oyatie 2026-05-17 as the operational companion to ADR-0126
-    (Connect super-app expansion). ADR-0126 establishes the target topology;
-    this ADR establishes how legacy `oya-connect-*` consumers migrate to the
-    new flat µservices without breaking Hyrum's-Law-bound external behaviour.
+    Authored in oyatie 2026-05-17 as the operational companion to ADR-0135
+    (Connect super-app expansion; originally drafted as ADR-0126 in the
+    oyatie 2026-05-17 session, renumbered 2026-05-18 to avoid collision with
+    dev's ADR-0126 Employment classification). ADR-0135 establishes the
+    target topology; this ADR establishes how legacy `oya-connect-*`
+    consumers migrate to the new flat µservices without breaking
+    Hyrum's-Law-bound external behaviour.
 purpose: |
   Operationalise the Connect → 8-flat-µservice dissolution via Strangler Pattern
   (per agent-skills deprecation-and-migration SKILL.md §"Migration Patterns").
@@ -39,7 +42,7 @@ Accepted — 2026-05-17.
 
 ## Context
 
-ADR-0126 dissolves Connect into 8 first-class flat µservices (mail, messenger,
+ADR-0135 dissolves Connect into 8 first-class flat µservices (mail, messenger,
 calendar, community, social, shorts, network, anonymous). The new µservices
 **already ship in parallel** under `microservices/<ms>/` per ADR-0131; the
 extant legacy crates `oya-connect-{mail,messenger,calendar}-domain` (and their
@@ -63,7 +66,7 @@ Five facts force the Strangler approach over a Big-Bang cutover:
    / 0130 / 0133 all cite), public-contract changes require deprecation
    notices + version bumps + sunset schedules. The legacy `oya-connect-*`
    crate surface IS a public contract because it appears in
-   `/specs/products/connect/{mail,messenger,calendar}.json` and is consumable
+   `/specs/microservices/{mail,messenger,calendar}.json` and is consumable
    by downstream sdks.
 4. **The Churn Rule (skill SKILL.md §"Step 3").** If we own the
    infrastructure being deprecated, we are responsible for migrating our own
@@ -83,12 +86,12 @@ sequential phases**, each gated by a concrete verification command.
 ### Phase 1 — New µservices ship in parallel  *(current state, 2026-05-17)*
 
 `microservices/{mail,messenger,calendar}/` are stood up with full pack-fill
-(mail 84 files, messenger 96 files, calendar in-progress) per ADR-0126. Legacy
+(mail 84 files, messenger 96 files, calendar in-progress) per ADR-0135. Legacy
 `oya-connect-*` crates continue to serve 100% of traffic. New `oya-<ms>-*`
 crates serve 0% of production traffic; they are exercised only by their own
 test suites + dev-cluster canary.
 
-**Entry gate:** ADR-0126 accepted; new µservice PRDs published.
+**Entry gate:** ADR-0135 accepted; new µservice PRDs published.
 **Exit gate:** All three of HG-MAIL, HG-MESSENGER, HG-CALENDAR pass at p99
 SLOs in dev cluster sustained 7d.
 
@@ -189,8 +192,8 @@ Per legacy crate family:
    root `Cargo.toml`.
 4. Remove `microservices/{mail,messenger,calendar}/deprecation-notice.md` and
    `migration-from-connect.md` (they served their purpose).
-5. Remove `/specs/products/connect/{mail,messenger,calendar}.json` legacy
-   pointer (it now redirects to `/specs/products/{mail,messenger,calendar}.json`
+5. Remove `/specs/microservices/{mail,messenger,calendar}.json` legacy
+   pointer (it now redirects to `/specs/microservices/{mail,messenger,calendar}.json`
    — promote those files in the same ChangeSet).
 6. Remove deprecation notices from CLI help text (`oya vcs --help` no longer
    prints "(connect-* family deprecated)" hints).
@@ -207,7 +210,7 @@ exits 0; no `oya_connect_*` symbol resolves anywhere in the workspace.
 
 ### Phase 6 — Connect umbrella µservice retirement
 
-When the LAST of the 8 sub-µservices (per ADR-0126's retirement trigger:
+When the LAST of the 8 sub-µservices (per ADR-0135's retirement trigger:
 HG-MAIL, HG-MESSENGER, HG-CALENDAR, HG-COMMUNITY, HG-SOCIAL, HG-SHORTS,
 HG-NETWORK, HG-ANONYMOUS — all green at p99 SLO sustained 30d) crosses its
 own Phase 5 exit, the Connect umbrella µservice retires:
@@ -215,7 +218,7 @@ own Phase 5 exit, the Connect umbrella µservice retires:
 1. Delete `microservices/connect/` folder (this RETIREMENT-PLAN.md and any
    sibling artifacts in it).
 2. Remove the `connect-umbrella-retirement-readiness` CI lane from
-   `.github/branch-protection.yaml` (per ADR-0126 §Operational).
+   `.github/branch-protection.yaml` (per ADR-0135 §Operational).
 3. Update `docs/architecture/product-graph.md` and `product-graph.html` —
    strip the "Connect" umbrella node, keep the 8 children as first-class
    nodes.
@@ -225,7 +228,7 @@ own Phase 5 exit, the Connect umbrella µservice retires:
 **Entry gate:** All 8 HG-<MS> gates green at p99 SLO sustained 30d AND all
 extant Phase 5 exits green (mail / messenger / calendar code removed).
 **Exit gate:** No `microservices/connect/` folder, no `oya-connect-*` symbol,
-no `/specs/products/connect/*.json` file.
+no `/specs/microservices/*.json` file.
 
 ## Alternatives Considered
 
@@ -273,13 +276,13 @@ no `/specs/products/connect/*.json` file.
     still resolve.
 - **Cons**:
   - The legacy crate names persist forever in the workspace member list, in
-    `cargo tree`, in onboarding docs, in `/specs/products/connect/*.json`.
+    `cargo tree`, in onboarding docs, in `/specs/microservices/*.json`.
   - Zombie-code accumulation: nobody owns the adapter once the Strangler
     canary is at 100%, but it cannot be removed.
   - Violates skill SKILL.md §"Step 4" (removal is a required step, not
     optional).
   - The `microservices/connect/` umbrella folder never retires →
-    ADR-0126 §"Connect umbrella retires when..." trigger is unreachable.
+    ADR-0135 §"Connect umbrella retires when..." trigger is unreachable.
 - **Rejected** because keeping the adapter forever is the textbook
   Zombie-Code anti-pattern (skill SKILL.md §"Zombie Code").
 
@@ -322,7 +325,7 @@ no `/specs/products/connect/*.json` file.
 
 - **6–12 month total migration window.** Each legacy crate family's
   Strangler completes in ~5–7 months; the 8-µservice umbrella retirement
-  (ADR-0126's trigger) requires the 5 net-new µservices to *also* reach
+  (ADR-0135's trigger) requires the 5 net-new µservices to *also* reach
   HG-<MS> green at p99 SLO sustained 30d, which may stretch to 12 months
   from this ADR.
 - **Adapter authoring + maintenance cost.** 3 adapter crates +
@@ -332,7 +335,7 @@ no `/specs/products/connect/*.json` file.
 - **Hyrum's-Law-bound consumers must migrate.** Per
   `feedback_no_silent_regression`, every removed `oya-connect-*` symbol
   carries a deprecation notice + sunset schedule. External consumers
-  reading `/specs/products/connect/*.json` get a 6-month sunset window.
+  reading `/specs/microservices/*.json` get a 6-month sunset window.
 
 ### Migration cost quantification
 
@@ -365,9 +368,9 @@ parallel legacy crate families over 2 years ≫ 24 engineer-weeks.)
   - CLI help text — `oya vcs --help` prints a `(connect-* family
     deprecated; see microservices/<ms>/migration-from-connect.md)` hint
     until Phase 5 removal.
-  - `/specs/products/connect/{mail,messenger,calendar}.json` `deprecated`
+  - `/specs/microservices/{mail,messenger,calendar}.json` `deprecated`
     field set to `true`; `replacement_path` field points to
-    `/specs/products/<ms>/<ms>.json` (to be promoted in Phase 5).
+    `/specs/microservices/<ms>/<ms>.json` (to be promoted in Phase 5).
 - **Per-microservice migration owners** (Churn Rule):
   - mail Strangler → axis-mail.
   - messenger Strangler → axis-messenger.
@@ -387,7 +390,7 @@ parallel legacy crate families over 2 years ≫ 24 engineer-weeks.)
 Per the skill SKILL.md §"Verification" checklist:
 
 - [ ] **Replacement is production-proven and covers all critical use cases.**
-  Each HG-<MS> gate accepting at p99 SLO sustained 30d (Phase 1 + ADR-0126).
+  Each HG-<MS> gate accepting at p99 SLO sustained 30d (Phase 1 + ADR-0135).
 - [ ] **Migration guide exists with concrete steps and examples.**
   `microservices/{mail,messenger,calendar}/migration-from-connect.md` per
   this ADR cycle.
@@ -410,7 +413,7 @@ Per the skill SKILL.md §"Verification" checklist:
 - ADR-0110: ChangeSet state machine.
 - ADR-0114: Canary observability + rollback.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0126: Connect super-app expansion into 8 flat µservices (target topology).
+- ADR-0135: Connect super-app expansion into 8 flat µservices (target topology).
 - ADR-0130: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
@@ -418,4 +421,4 @@ Per the skill SKILL.md §"Verification" checklist:
 - `feedback_no_silent_regression.md` — workspace-wide no-silent-regression principle (Linus-style; cited by ADRs 0067 / 0083 / 0091 / 0108 / 0114 / 0130 / 0133).
 - agent-skills deprecation-and-migration SKILL.md — Strangler Pattern, Adapter Pattern, Churn Rule, Verification checklist.
 - agent-skills documentation-and-adrs SKILL.md — ADR template authority.
-- `/specs/products/connect/{mail,messenger,calendar}.json` — legacy reference pointers (sunset at Phase 5).
+- `/specs/microservices/{mail,messenger,calendar}.json` — legacy reference pointers (sunset at Phase 5).

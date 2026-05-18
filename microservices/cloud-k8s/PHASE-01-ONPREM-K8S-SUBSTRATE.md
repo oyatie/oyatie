@@ -27,7 +27,7 @@ This phase ships the full ADR-0121 design — vanilla kubeadm + containerd + Ist
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (vanilla upstream Kubernetes; same code OKE worker nodes run; CNCF conformance by construction).
-- Nothing deferred (no shell-script "TODO" path; every cluster mutation is a Foundry capability with audit-chain emission).
+- Nothing scheduled-for-distinct-tracked-work (no shell-script "TODO" path; every cluster mutation is a Foundry capability with audit-chain emission).
 - No silent regression (CIS Kubernetes Benchmark v1.9 lane is BLOCKER; etcd encryption mandatory).
 - Per-microservice flat layout (this phase is itself a native author under ADR-0131).
 - Sovereignty-grade isolation (per-pack cluster boundary; no cross-pack PV; cross-cluster mTLS only).
@@ -51,11 +51,11 @@ Naming justifications for the new crate families are in `microservices/cloud-k8s
 
 ### Out-of-scope
 
-- Multi-cluster Istio federation across packs (deferred to M03 per ADR-0117 §"Cross-region story"). Each pack runs an isolated cluster at M01 launch.
-- Cluster Autoscaler integration (deferred to M02; node-add is manual via Foundry capability at M01).
-- Workload Identity Federation (SPIFFE-to-cloud-IAM-vendor automatic federation; deferred to M03 when OCI / AWS / GCP packs activate).
-- In-process Kubernetes-API proxy (HTTP-reverse-proxy at M01; in-process fork deferred to M04).
-- Tenant-facing kubectl SDK (only operator + agent access at M01; tenant kubectl exposure is a follow-up ADR).
+- Multi-cluster Istio federation across packs (scheduled-for-distinct-tracked-work to M03 per ADR-0117 §"Cross-region story"). Each pack runs an isolated cluster at M01 launch.
+- Cluster Autoscaler integration (scheduled-for-distinct-tracked-work to M02; node-add is manual via Foundry capability at M01).
+- Workload Identity Federation (SPIFFE-to-cloud-IAM-vendor automatic federation; scheduled-for-distinct-tracked-work to M03 when OCI / AWS / GCP packs activate).
+- In-process Kubernetes-API proxy (HTTP-reverse-proxy at M01; in-process fork scheduled-for-distinct-tracked-work to M04).
+- Tenant-facing kubectl SDK (only operator + agent access at M01; tenant kubectl exposure is a successor-IP ADR).
 
 ## Implementation Plans
 
@@ -79,7 +79,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-014-branch-protection-and-hyperscaler-gate.md`](IP-014-branch-protection-and-hyperscaler-gate.md) | Add `oya-cloud-k8s-iac-smoke`, `oya-check-cis-k8s-benchmark` to `.github/branch-protection.yaml`; register HG-CLOUD-K8S in `/specs/hyperscaler-gates.json` | pending | axis-foundry + axis-cloud | IP-001 .. IP-013 |
 | [`IP-015-observability-slo-and-authority-cohesion.md`](IP-015-observability-slo-and-authority-cohesion.md) | Author `microservices/cloud-k8s/slos/*.openslo.yaml` (cluster-bootstrap availability, node-join latency, NetworkPolicy propagation, api-proxy decision latency); register HG-CLOUD-K8S in authority-cohesion | pending | axis-cloud + axis-observability | IP-014 |
 
-Coverage check vs. ADR-0121 §"Required follow-up" + ADR-0117 §"Compute" + ADR-0131 §"Per-microservice flat layout":
+Coverage check vs. ADR-0121 §"Required successor-IP" + ADR-0117 §"Compute" + ADR-0131 §"Per-microservice flat layout":
 - Layer-A IaC (kubeadm + containerd + Istio + Envoy + Cilium CNI + CSI drivers) — IP-001 + IP-002.
 - Kernel + Domain + Usecase + Adapter per BC — IP-003 .. IP-012.
 - Wire-up + composition root — IP-013.

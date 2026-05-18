@@ -5,8 +5,8 @@ microservice: messenger
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-MESSENGER accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
-related_specs: [/specs/products/connect/messenger.json, /specs/products/messenger/messenger.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related_specs: [/specs/microservices/messenger.json, /specs/microservices/messenger/messenger.json]
 owner_team: axis-messenger
 date: 2026-05-17
 doc_status: published
@@ -17,7 +17,7 @@ doc_status: published
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **messenger** µservice. It is the
 consumer-facing companion to ADR-0134 (cross-µservice migration policy) and
-ADR-0126 (target topology).
+ADR-0135 (target topology).
 
 ## Status
 
@@ -27,7 +27,7 @@ in dev cluster.**
 | Field | Value |
 |---|---|
 | Replacement | `oya-messenger-*` crate family under `microservices/messenger/src/crates/` |
-| Removal date | **Advisory** — concrete target is HG-MESSENGER accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #2) |
+| Removal date | **Advisory** — concrete target is HG-MESSENGER accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #2) |
 | Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + MLS RFC 9420 E2E group messaging is a clean replacement boundary that did not exist in the legacy surface |
 | Migration owner (Churn Rule) | axis-messenger |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
@@ -299,7 +299,7 @@ had no E2E to compare against.
 
 ## References
 
-- ADR-0126: Connect super-app expansion into 8 flat µservices.
+- ADR-0135: Connect super-app expansion into 8 flat µservices.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.

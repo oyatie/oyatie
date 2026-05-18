@@ -13,7 +13,7 @@ related_adrs:
   - ADR-0056
   - ADR-0105
   - ADR-0106
-  - ADR-0126
+  - ADR-0135
   - ADR-0130
   - ADR-0131
   - ADR-0132
@@ -26,7 +26,7 @@ related_adrs:
   - ADR-RECORDINGS-0006
   - ADR-RECORDINGS-0007
 related_specs:
-  - /specs/products/connect/recordings.json
+  - /specs/microservices/recordings.json
   - /specs/per-microservice-flat-layout.json
   - /specs/agentic-slo-gated-promotion.json
 date: 2026-05-17
@@ -49,7 +49,7 @@ retention + legal-hold + eDiscovery + export); the producing µservices
 
 This µservice ships under ADR-0132 (no-suite forward-policy) as a stand-alone
 µservice at the architecture layer, factored out of the legacy Connect-suite
-by parallel ADR-0126. Bominal predecessor: `workspace-recordings` adjunct from
+by parallel ADR-0135. Bominal predecessor: `workspace-recordings` adjunct from
 Bominal ADR-0029.
 
 This µservice is **a hero product** end-user-facing through Workflow Studio
@@ -439,8 +439,8 @@ Sharding:
 | 1 | Whisper-large vs. Whisper-medium default — accuracy/latency tradeoff per pack | axis-recordings + axis-foundry-runtime | resolved in ADR-RECORDINGS-0001 |
 | 2 | CDN backend pick: CloudFront vs. self-host (Bunny + Fastly + nginx-vod) for pack-cn/pack-ksa | ops-sre-reliability | resolved in ADR-RECORDINGS-0004; backend-qualified -adapter-cdn |
 | 3 | Hot S3 + S3-Glacier-class cold tier — automatic age-down policy per pack | axis-recordings + ops-finops | resolved in ADR-RECORDINGS-0005 |
-| 4 | Steganographic watermark detector — own µservice or recordings BC? | council-architecture | follow-up ADR |
-| 5 | DRM (Widevine + Fairplay + PlayReady) — own µservice or recordings BC? | council-architecture | follow-up ADR (current: stub per shorts ADR-SHORTS-0004) |
+| 4 | Steganographic watermark detector — own µservice or recordings BC? | council-architecture | successor-IP ADR |
+| 5 | DRM (Widevine + Fairplay + PlayReady) — own µservice or recordings BC? | council-architecture | successor-IP ADR (current: stub per shorts ADR-SHORTS-0004) |
 | 6 | EU AI Act Annex III — when does auto-summary become high-risk (employment / legal context)? | council-privacy + ops-compliance | resolved in ADR-RECORDINGS-0006 |
 
 ## Related ADRs
@@ -451,7 +451,7 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0126 | Connect dual-context (parallel) | dual-context isolation source |
+| ADR-0135 | Connect dual-context (parallel) | dual-context isolation source |
 | ADR-0130 | Agentic SLO-gated promotion | gates recordings releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |

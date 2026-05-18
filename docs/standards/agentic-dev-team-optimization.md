@@ -6,7 +6,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-architecture + axis-foundry
 deciders: council-architecture, axis-foundry, ops-sre-reliability
-related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0124, ADR-0125, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0124, ADR-0125, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/industry-best-practice-conformance.json, /specs/microservice-migration-tooling.json, /specs/agent-durable-goal.json]
 applies_to: every microservice + every artifact in oyatie repo
 enforced_by: oya-governance-industry-best-practice-conformance §"axis-5-practices"

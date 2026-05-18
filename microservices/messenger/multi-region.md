@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-messenger + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-messenger, council-architecture, council-privacy
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/messenger/policy/data-residency.md
   - microservices/messenger/capacity-model.md
@@ -149,7 +149,7 @@ Any cross-pack-replication attempt triggers `messenger_pack_residency_violation_
 ## References
 
 - ADR-0117.
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - `microservices/messenger/policy/data-residency.md`.
 - `microservices/messenger/capacity-model.md`.
 - `microservices/messenger/cost-budget.md`.

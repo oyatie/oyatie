@@ -20,7 +20,7 @@ info:
   license:
     name: Proprietary — oyatie
   x-oyatie-microservice: translate
-  x-oyatie-related-adrs: [ADR-0056, ADR-0105, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
+  x-oyatie-related-adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
 
 servers:
   - url: https://translate-{pack}.oyatie.dev/v1

@@ -8,7 +8,7 @@ contracts_exposed: [contracts/openapi/cell.yaml]
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
 traceability:
-  github_issue: "<TBD>"
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
   source_adrs: [ADR-0105, ADR-0131, ADR-0140]
 allowed_dependency_edges: [oya-cell-cell-registry-kernel, oya-cell-cell-registry-domain, oya-cell-cell-registry-usecase, oya-cell-cell-registry-api]
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, AUDIT]

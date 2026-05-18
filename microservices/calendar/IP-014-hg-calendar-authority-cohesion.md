@@ -17,7 +17,7 @@ acceptance_lanes: [oya-governance-hyperscaler-maturity-claims, oya-governance-au
 
 Register the calendar µservice as a hyperscaler-maturity-claim
 participant per ADR-0123 (HG-CALENDAR gate). Wire the authority-
-cohesion check between PRD ↔ specs/products/calendar/calendar.json ↔
+cohesion check between PRD ↔ specs/microservices/calendar/calendar.json ↔
 catalog records ↔ SLO authoring.
 
 ## ChangeSet boundary
@@ -28,8 +28,8 @@ Spec promotion + authority-cohesion test wiring; no new crates.
 
 | Path | Action | Description |
 |---|---|---|
-| `/specs/products/calendar/calendar.json` | create (promote) | promote from `/specs/products/connect/calendar.json` per ADR-0134 Phase 5 |
-| `/specs/products/connect/calendar.json` | mark deprecated | set `deprecated: true`; `replacement_path: /specs/products/calendar/calendar.json` |
+| `/specs/microservices/calendar/calendar.json` | create (promote) | promote from `/specs/microservices/calendar.json` per ADR-0134 Phase 5 |
+| `/specs/microservices/calendar.json` | mark deprecated | set `deprecated: true`; `replacement_path: /specs/microservices/calendar/calendar.json` |
 | `/specs/hyperscaler-gates.json` | extend | register HG-CALENDAR with SLO references |
 | `microservices/calendar/tests/authority-cohesion.rs` | create | per ADR-0123 cohesion checks |
 

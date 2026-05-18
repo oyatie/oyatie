@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-recordings
-related_adrs: [ADR-0117, ADR-0126, ADR-0131, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005]
 doc_status: published
 ---
 

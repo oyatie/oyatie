@@ -137,7 +137,7 @@ Concrete bindings:
 ### D. WordPress posts + custom-fields
 
 - **Pros**:
-  - WordPress import compatibility (post-M04 import path).
+  - WordPress import compatibility (subsequent-to-M04-completion import path).
 - **Cons**:
   - HTML blob is weakly-typed; no portable-text alignment with Loro.
   - Custom-fields key-value is anti-typed.

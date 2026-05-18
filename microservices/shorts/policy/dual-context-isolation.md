@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-shorts
 deciders: council-architecture, ops-security, axis-shorts, council-privacy
-related_adrs: [ADR-0008, ADR-0028, ADR-0126, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-0132, ADR-0140]
 related_artifacts:
   - microservices/shorts/threat-model.md (T-I-07, T-I-08; cross-context invariant violation)
   - microservices/shorts/dpia.md (R-03, R-04)
@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing dual-context invariants of the shorts substrate. Per parallel ADR-0126 (which inherits Bominal ADR-0208's dual-context model), every shorts entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
+Define the load-bearing dual-context invariants of the shorts substrate. Per parallel ADR-0135 (which inherits Bominal ADR-0208's dual-context model), every shorts entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
 
 - which keys encrypt the body (Personal: per-user; Professional: tenant-DEK envelope encryption per Bominal ADR-0111);
 - which retention floor applies (Personal user-policy vs Professional pack-floor);
@@ -49,7 +49,7 @@ pub enum ContextKind {
 Properties:
 - Enum is sealed at the kernel layer; only two variants ever exist.
 - Cross-variant write is rejected at the domain layer.
-- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0126.
+- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0135.
 
 ## Entity Type Invariants
 
@@ -119,7 +119,7 @@ The `ContextKind` is set at entity-creation time and is **immutable**. There is 
 
 ### Invariant DCI-08: Personal-tier NEVER federates
 
-Critical for federation safety. Per (forthcoming) ADR-SHORTS follow-up + parallel social ADR-SOC-0004:
+Critical for federation safety. Per (forthcoming) ADR-SHORTS successor-IP + parallel social ADR-SOC-0004:
 
 - The `federation-gateway` outbox port trait `FederationOutbox::publish(post: ProfessionalShort)` accepts only `ProfessionalShort`; passing `PersonalShort` is a compile-time type error.
 - Federation is metadata-only (manifest reference + creator identity + sound attribution); video blob NEVER crosses pack boundary.
@@ -198,7 +198,7 @@ In addition to compile-time + LEAN-lane enforcement, runtime guards:
 
 ## References
 
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - Bominal ADR-0208 (Connect dual-context unified channel hub; inherited).
 - Bominal ADR-0215 (Connect retention legal-hold dual-context; inherited).
 - ADR-0008 Data Use Boundary.

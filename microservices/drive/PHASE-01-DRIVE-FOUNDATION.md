@@ -7,7 +7,7 @@ phase_title: Drive Foundation — file-store + folder-hierarchy + upload + downl
 status: Accepted
 date: 2026-05-17
 owner_team: axis-drive
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
 doc_status: published
 ---
 
@@ -35,11 +35,11 @@ In-scope:
 - Ontology writes + reads per `PRD.md`.
 - HG-DRIVE hyperscaler-maturity claim registered per ADR-0123 + ADR-0133.
 
-Out-of-scope (deferred):
-- Cross-pack file replication (M04+).
-- Post-quantum crypto roadmap (M05+; reflect MEGA's roadmap).
+Out-of-scope (scheduled-for-distinct-tracked-work):
+- Cross-pack file replication (M04-onward).
+- Post-quantum crypto roadmap (M05-onward; reflect MEGA's roadmap).
 - Native co-authoring real-time collaboration (handled by docs/sheets/slides; drive only owns bytes).
-- ML-based smart organisation auto-folder (T2 capability deferred to post-GA).
+- ML-based smart organisation auto-folder (T2 capability scheduled-for-distinct-tracked-work to subsequent-to-GA-tier-promotion).
 
 ## Phase outputs
 

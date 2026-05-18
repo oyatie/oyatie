@@ -109,7 +109,7 @@ oyatie recordings ships a **two-component foundry-runtime-hosted pipeline**:
 - Pros: best-in-class accuracy on English; turnkey ops.
 - Cons: per-pack residency posture forbids unless DPA on file per tenant;
   cost is 3-5× Whisper-large at scale; binds the data plane to a third party
-  that is hard to swap out post-launch.
+  that is hard to swap out subsequent-to-launch.
 - Rejected for default; remains an option as `oya-recordings-transcript-
   adapter-assemblyai` if a regulated tenant requires managed-API attestation.
 

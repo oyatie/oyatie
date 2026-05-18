@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: ops-security + axis-drive
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0126, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0135, ADR-0140]
 doc_status: published
 ---
 
@@ -15,7 +15,7 @@ doc_status: published
 
 Define the structural invariant that **Personal-context** and **Professional-context** file data are isolated at code-level and policy-level, never co-mingled or cross-referenced.
 
-This artifact carries Bominal ADR-0208 inheritance (Connect dual-context unified-channel hub) forward to the drive µservice per `feedback_bominal_inheritance_precedence.md`. Per ADR-0126 + ADR-0140 the invariant is preserved + strengthened in the new flat layout.
+This artifact carries Bominal ADR-0208 inheritance (Connect dual-context unified-channel hub) forward to the drive µservice per `feedback_bominal_inheritance_precedence.md`. Per ADR-0135 + ADR-0140 the invariant is preserved + strengthened in the new flat layout.
 
 ## Invariant (binding contract)
 
@@ -112,7 +112,7 @@ cargo nextest run --test e2e_dual_context_isolation
 - ADR-0028 (Bominal): audit chain.
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.
-- ADR-0126: Connect unbundle dual-context inheritance.
+- ADR-0135: Connect unbundle dual-context inheritance.
 - ADR-0140: Cedar policy enforcement.
 - Bominal ADR-0208: Connect dual-context unified-channel hub.
 - `policy/tenant-scope.cedar`.

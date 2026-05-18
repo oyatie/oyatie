@@ -17,7 +17,7 @@ purpose: |
   available:
 
     1. Auto-caption: generate alt-text for images attached to posts (when T2
-       attachments are enabled per tenant; deferred to M03).
+       attachments are enabled per tenant; scheduled-for-distinct-tracked-work to M03).
     2. Abuse-classifier: classify post bodies for harassment / hate-speech /
        spam / threat / CSAM-suspect to surface moderator queue priorities.
 
@@ -47,7 +47,7 @@ inputs:
 outputs:
   - classification_verdict { class, confidence, ai_assessed_label }
   - moderation_queue_priority (P0 for CSAM-suspect, P1 for hate-speech/threat, P2 for harassment, P3 for spam)
-  - auto-caption (alt-text string for images, M03+)
+  - auto-caption (alt-text string for images, M03-onward)
 
 human_oversight_required: Yes
   human_review_threshold: any classifier verdict with confidence ≥ 0.7 routes to human moderator queue

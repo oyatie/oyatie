@@ -5,7 +5,7 @@ milestone: M03-workspace-preview
 phase: P01-slides-foundation
 status: Active
 entry_gate: |
-  PRD-slides accepted; ADR-0126 (Connect dissolution) accepted; ADR-0131 per-microservice flat layout in
+  PRD-slides accepted; ADR-0135 (Connect dissolution) accepted; ADR-0131 per-microservice flat layout in
   force; sibling docs + sheets µservices co-authored under same Loro CRDT family; messenger µservice
   LiveKit infra available for broadcast-mode signaling reuse; foundry-runtime SDK available for T0/T1/T2
   AI capabilities; tenancy + audit-chain + ontology + observability SDKs available; Layer-A IaC available
@@ -30,7 +30,7 @@ depends_on:
     phase: workspace-substrate prerequisites
     reason: docs + sheets co-authored; messenger LiveKit available; foundry-runtime gating wired
 owner_team: axis-workspace + council-design-system
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -44,7 +44,7 @@ Ship the slides µservice — presentation authoring + collab + present + broadc
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (CDN-cached WASM + per-tenant CRDT collab + Cedar per-slide ACL + gVisor sandbox for import/export).
-- Nothing deferred (every legacy connect-slides-* trail is structurally absent per ADR-0126; no compat seam authored).
+- Nothing scheduled-for-distinct-tracked-work (every legacy connect-slides-* trail is structurally absent per ADR-0135; no compat seam authored).
 - No silent regression (slides-pptx-roundtrip-subset + ai-act-risk-class-stamp + reduced-motion-fallback-mandatory CI lanes are BLOCKER day 1).
 - Per-microservice flat layout (ships natively under ADR-0131).
 
@@ -63,9 +63,9 @@ Plus repo-wide:
 
 ### Out-of-scope
 
-- Audio narration recording in-deck (deferred post-M03).
-- Live-stream-to-YouTube/Twitch bridge (deferred; social µservice owns).
-- Real-time translation overlay (deferred; post-M03 capability).
+- Audio narration recording in-deck (scheduled-for-distinct-tracked-work subsequent-to-M03-completion).
+- Live-stream-to-YouTube/Twitch bridge (scheduled-for-distinct-tracked-work; social µservice owns).
+- Real-time translation overlay (scheduled-for-distinct-tracked-work; subsequent-to-M03-completion capability).
 - Per-tenant branding mid-render (anti-pattern per workspace standards).
 
 ## Implementation Plans
@@ -138,5 +138,5 @@ oya gate validate authority-cohesion
 
 - PRD `microservices/slides/PRD.md`.
 - ADR-SLIDES-0001 through ADR-SLIDES-0008.
-- ADR-0126 Connect dissolution.
+- ADR-0135 Connect dissolution.
 - ADR-0131 per-microservice flat layout.

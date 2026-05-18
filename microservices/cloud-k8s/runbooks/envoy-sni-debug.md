@@ -62,7 +62,7 @@ Sev-2 (tenant external TLS path degraded). Sev-1 if SNI spoofing suspected.
 
 ## ECH (Encrypted Client Hello) status
 
-ECH is rolling out across the ecosystem; oyatie tracks Envoy + Cloudflare ECH support. Once enabled (post-M03), SNI sniffing residual (T-I-03) drops to L.
+ECH is rolling out across the ecosystem; oyatie tracks Envoy + Cloudflare ECH support. Once enabled (subsequent-to-M03-completion), SNI sniffing residual (T-I-03) drops to L.
 
 ## Verification
 

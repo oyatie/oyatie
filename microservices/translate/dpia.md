@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-translate
 deciders: council-privacy, ops-security, axis-translate, council-architecture
-related_adrs: [ADR-0117, ADR-0126, ADR-0131, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/threat-model.md

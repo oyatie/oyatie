@@ -251,7 +251,7 @@ Additional EU considerations:
 - **EDPB Guidelines 4/2019 (Art. 25 by design)**: explicit alignment in §4 + §6.
 - **EDPB Guidelines 9/2022 (breach notification)**: 72h notification chain in `incident-response.md`.
 - **NIS2 (2022/2555)**: 24h + 72h + 1mo reporting timelines when oyatie crosses Annex I/II thresholds.
-- **eIDAS 910/2014**: Ed25519 seals + proof-of-erasure are AdES (advanced electronic signatures); QES (qualified) requires certified TSP — deferred.
+- **eIDAS 910/2014**: Ed25519 seals + proof-of-erasure are AdES (advanced electronic signatures); QES (qualified) requires certified TSP — scheduled-for-distinct-tracked-work.
 - **DORA (2022/2554)**: financial-services tenants in pack-eu trigger DORA Chapter II + III + VI requirements.
 - **Schrems II + Art. 44–46 transfers**: no cross-border transfer of EU-resident data without tenant-executed SCCs; transfer register kept.
 - **Children's data (Art. 8)**: inherited via tenant's age-gating; oyatie does not directly process children's data.

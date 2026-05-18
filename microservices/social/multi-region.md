@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-social + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-social, council-architecture, council-privacy
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/social/policy/data-residency.md
   - microservices/social/capacity-model.md
@@ -168,7 +168,7 @@ Any cross-pack-replication attempt outside the explicit exceptions triggers `soc
 ## References
 
 - ADR-0117.
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - `microservices/social/policy/data-residency.md`.
 - `microservices/social/capacity-model.md`.
 - `microservices/social/cost-budget.md`.

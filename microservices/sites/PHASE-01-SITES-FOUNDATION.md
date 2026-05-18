@@ -7,7 +7,7 @@ phase_title: Sites Foundation — site + page + block + theme + navigation + url
 status: Accepted
 date: 2026-05-17
 owner_team: axis-sites
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
 doc_status: published
 ---
 
@@ -34,12 +34,12 @@ In-scope:
 - Ontology writes + reads per `PRD.md`.
 - HG-SITES hyperscaler-maturity claim registered per ADR-0123 + ADR-0133.
 
-Out-of-scope (deferred):
-- Visual layout designer (Webflow-class CSS-grid canvas) — M04+.
-- WordPress import path — M04+.
-- AMP-HTML emission — deferred (Google deprecation signals).
+Out-of-scope (scheduled-for-distinct-tracked-work):
+- Visual layout designer (Webflow-class CSS-grid canvas) — M04-onward.
+- WordPress import path — M04-onward.
+- AMP-HTML emission — scheduled-for-distinct-tracked-work (Google deprecation signals).
 - Native conferencing embed (Zoom/Meet/oyatie-Connect-Conference) — pure embed-block at GA.
-- Per-page A/B + personalisation (Sitecore-class) — post-GA.
+- Per-page A/B + personalisation (Sitecore-class) — subsequent-to-GA-tier-promotion.
 
 ## Phase outputs
 

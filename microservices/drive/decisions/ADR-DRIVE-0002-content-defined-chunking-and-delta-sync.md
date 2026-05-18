@@ -7,7 +7,7 @@ deciders: axis-drive, council-architecture, ops-sre-reliability
 owner: axis-drive
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0126, ADR-0131, ADR-0133, ADR-DRIVE-0001]
+related: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-0133, ADR-DRIVE-0001]
 related_artifacts:
   - microservices/drive/PRD.md (§FR-06 sync; §"Performance" sync delta target; AC-04 delta-minimum bytes)
   - microservices/drive/iac/helm/values.yaml (upload.fastcdc.* parameters)
@@ -172,7 +172,7 @@ Per the deprecation-and-migration skill SKILL.md §"Hyrum's Law":
 - BLAKE3 spec — `github.com/BLAKE3-team/BLAKE3-specs`.
 - restic FastCDC implementation reference — `github.com/restic/restic`.
 - BorgBackup-NG — `github.com/borgbackup/borg`.
-- ADR-0056 (BNF v4.1); ADR-0105 (13-layer enum); ADR-0126; ADR-0131; ADR-0133.
+- ADR-0056 (BNF v4.1); ADR-0105 (13-layer enum); ADR-0135; ADR-0131; ADR-0133.
 - ADR-DRIVE-0001 — object-storage substrate (chunks land on the same S3 backend).
 - `microservices/drive/PRD.md` §FR-06 + §"Performance" sync delta + AC-04.
 - `microservices/drive/migration-from-connect.md` Hyrum #1 + #4.

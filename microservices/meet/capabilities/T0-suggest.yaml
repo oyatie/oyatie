@@ -12,7 +12,7 @@ description: |
 owner_team: axis-meet + axis-foundry-runtime
 maturity: preview
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133, ADR-MEET-0006]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-MEET-0006]
 related_artifacts:
   - microservices/meet/PRD.md (FR-01)
   - microservices/meet/contracts/openapi/meet.yaml

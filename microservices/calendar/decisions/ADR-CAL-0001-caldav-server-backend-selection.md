@@ -10,7 +10,7 @@ superseded_by: []
 related:
   - ADR-0056
   - ADR-0105
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-0133
@@ -331,7 +331,7 @@ Per the agent-skills documentation-and-adrs SKILL.md §"Verification":
 - Cyrus IMAP+CalDAV — `cyrusimap.org` (rejected reference).
 - libical CalDAV conformance corpus — `github.com/libical/libical`.
 - Apple CalDAV interop tests — `github.com/apple/ccs-calendarserver` (historical reference).
-- ADR-0056 (BNF v4.1); ADR-0105 Amendment 3 (backend-qualified adapters); ADR-0126; ADR-0131; ADR-0132; ADR-0133.
+- ADR-0056 (BNF v4.1); ADR-0105 Amendment 3 (backend-qualified adapters); ADR-0135; ADR-0131; ADR-0132; ADR-0133.
 - `microservices/calendar/PRD.md` FR-09 + AC-04 + §Bounded Contexts row 6.
 - `microservices/calendar/iac/helm/Chart.yaml`.
 - `microservices/calendar/runbooks/caldav-sync-loop.md`.

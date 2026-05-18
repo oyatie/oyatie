@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, ops-security, council-legal-compliance, axis-foundry-runtime
-related: [ADR-0110, ADR-0126, ADR-0131, ADR-0140]
+related: [ADR-0110, ADR-0135, ADR-0131, ADR-0140]
 related_external_adrs: [microservices/workflow-studio/decisions/ADR-WS-0005, microservices/docs/decisions/ADR-DOCS-0005]
 related_artifacts:
   - microservices/sheets/PRD.md (FR-14, FR-15, AC-05, AC-16)
@@ -134,7 +134,7 @@ Adopt the following capability-tier scope bounds for sheets AI:
 
 - **Pros**: parity with Google Apps Script.
 - **Cons**: enormous attack surface; programmatic execution inside Sheets contradicts editor-execution-forbidden invariant (T-E-04); AI Act high-risk classification near-universal.
-- **Rejected at M03**: full Apps-Script-equivalent deferred to post-GA T2 review.
+- **Rejected at M03**: full Apps-Script-equivalent scheduled-for-distinct-tracked-work to subsequent-to-GA-tier-promotion T2 review.
 
 ## Consequences
 
@@ -191,6 +191,6 @@ Adopt the following capability-tier scope bounds for sheets AI:
 - Regulation (EU) 2016/679 (GDPR) Art. 22.
 - OWASP Top 10 for Large Language Model Applications.
 - ADR-0110 — ChangeSet state machine.
-- ADR-0126 — Sheets net-new µservice.
+- ADR-0135 — Sheets net-new µservice.
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0140 — Cedar policy enforcement.

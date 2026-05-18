@@ -30,14 +30,14 @@ Define the multi-language SDK strategy for the Ontology µservice. Closes the in
 
 Rust is the **first-class** SDK — kernel types (`ObjectTypeSchema`, `ObjectInstance`, `LinkInstance`, `ActionInvocationReceipt`, `FunctionResult`, `MerkleSealRecord`) live in `oya-ontology-*-kernel` crates and the SDK re-exports them with type-safe builder patterns.
 
-## SDK Languages — Tier-B (post-M02b)
+## SDK Languages — Tier-B (subsequent-to-M02b-completion)
 
 | Language | Status | Source format | Publisher | Target |
 |---|---|---|---|---|
 | **TypeScript** | M03 | Auto-generated from OpenAPI 3.2 + AsyncAPI 3.0 + Proto | npm (`@oyatie/ontology-sdk`) | Workflow Studio + tenant-facing apps + Node.js workload µservices |
 | **Python** | M03 | Auto-generated from OpenAPI + Proto + Pydantic models | PyPI (`oyatie-ontology-sdk`) | Data-science + LLM agent harness + Python workload µservices |
 | **Go** | M04 | Auto-generated from Proto | private Go module path → public after GA | Go-based external consumers; Foundry-like external integration |
-| **Java/Kotlin** | M04 | Auto-generated from Proto via grpc-java + OpenAPI Generator | Maven Central post-GA | JVM-based external consumers |
+| **Java/Kotlin** | M04 | Auto-generated from Proto via grpc-java + OpenAPI Generator | Maven Central subsequent-to-GA-tier-promotion | JVM-based external consumers |
 
 ## Rust SDK (Tier-A; first-class)
 
@@ -202,7 +202,7 @@ CI lane `oya-foundry-fitness-sdk-regen-conformance` ensures generated code match
 
 | Doc | Channel |
 |---|---|
-| Rust SDK rustdoc | `docs.rs/oya-ontology-sdk` (post-GA) |
+| Rust SDK rustdoc | `docs.rs/oya-ontology-sdk` (subsequent-to-GA-tier-promotion) |
 | OpenAPI spec | `https://ontology-kr.oyatie.dev/api/v1/openapi.yaml` |
 | TypeScript declaration | `npm` registry + GitHub Packages |
 | Python type stubs | bundled in PyPI package |

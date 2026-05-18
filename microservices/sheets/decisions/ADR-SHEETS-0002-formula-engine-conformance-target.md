@@ -8,8 +8,8 @@ owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, axis-foundry-runtime, council-design-system
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0126, ADR-0131]
-related_specs: [/specs/products/sheets.json]
+related: [ADR-0056, ADR-0105, ADR-0135, ADR-0131]
+related_specs: [/specs/microservices/sheets.json]
 related_artifacts:
   - microservices/sheets/PRD.md (FR-03, AC-11)
   - microservices/sheets/PHASE-01-SHEETS-FOUNDATION.md (IP-003)
@@ -63,7 +63,7 @@ The Sheets formula-engine M03 launch includes a **core-subset of ≥ 400 functio
 - Financial (≥ 50): PMT, FV, PV, NPV, IRR, RATE, NPER, MIRR, XNPV, XIRR, IPMT, PPMT, ACCRINT, DURATION, etc.
 - Text (≥ 60): CONCAT, CONCATENATE, LEFT, RIGHT, MID, LEN, FIND, SEARCH, REPLACE, SUBSTITUTE, UPPER, LOWER, PROPER, TRIM, TEXT, VALUE, NUMBERVALUE, REGEXEXTRACT, REGEXMATCH, REGEXREPLACE, etc.
 - Date (≥ 40): TODAY, NOW, DATE, TIME, YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, WEEKDAY, WEEKNUM, DATEDIF, NETWORKDAYS, WORKDAY, EOMONTH, EDATE, etc.
-- Array (≥ 50): TRANSPOSE, FILTER, SORT, SORTBY, UNIQUE, SEQUENCE, ARRAYFORMULA, BYROW, BYCOL, MAP, REDUCE, LAMBDA (read-only at M03; full LAMBDA support deferred), etc.
+- Array (≥ 50): TRANSPOSE, FILTER, SORT, SORTBY, UNIQUE, SEQUENCE, ARRAYFORMULA, BYROW, BYCOL, MAP, REDUCE, LAMBDA (read-only at M03; full LAMBDA support scheduled-for-distinct-tracked-work), etc.
 
 Functions beyond this set are added incrementally per release; the target reaches ~500 (Excel parity) by M04 catch-up phase per `competitor-parity-matrix.md`.
 
@@ -208,5 +208,5 @@ Use the ECMA-376 OOXML standard's function definitions as the reference.
 - Google Sheets function reference — `support.google.com/docs/table/25273`.
 - ADR-0056 — BNF v4.1.
 - ADR-0105 — 13-layer enum.
-- ADR-0126 — Sheets net-new µservice.
+- ADR-0135 — Sheets net-new µservice.
 - ADR-0131 — Per-microservice flat layout.

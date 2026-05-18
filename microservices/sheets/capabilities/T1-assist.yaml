@@ -27,8 +27,8 @@ description: |
 owner_team: axis-sheets + foundry-runtime-team
 maturity: preview
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0140, ADR-SHEETS-0002, ADR-SHEETS-0005]
-related_specs: [/specs/products/sheets.json]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0140, ADR-SHEETS-0002, ADR-SHEETS-0005]
+related_specs: [/specs/microservices/sheets.json]
 related_artifacts:
   - microservices/sheets/PRD.md FR-14 + FR-15 + AC-05 + AC-16
   - microservices/sheets/threat-model.md §"T-I-05" + §"T-S-05" + §"T-D-05"

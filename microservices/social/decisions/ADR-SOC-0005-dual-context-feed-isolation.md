@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0008
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-SOC-0001
@@ -21,10 +21,10 @@ related_artifacts:
   - microservices/social/threat-model.md (T-I-07, T-I-08)
   - microservices/social/dpia.md (R-07, R-08)
   - Bominal ADR-0208 (inherited)
-purpose: Apply the dual-context isolation pattern (per parallel ADR-0126 inheriting Bominal ADR-0208) to the social µservice — Personal-tier feed vs Professional-tier feed; same data-model invariant pattern as messenger / mail.
+purpose: Apply the dual-context isolation pattern (per parallel ADR-0135 inheriting Bominal ADR-0208) to the social µservice — Personal-tier feed vs Professional-tier feed; same data-model invariant pattern as messenger / mail.
 ---
 
-# ADR-SOC-0005: Dual-context feed isolation — Personal pillar feed vs Professional pillar feed; data-model invariant per parallel ADR-0126
+# ADR-SOC-0005: Dual-context feed isolation — Personal pillar feed vs Professional pillar feed; data-model invariant per parallel ADR-0135
 
 ## Status
 
@@ -32,7 +32,7 @@ Accepted — 2026-05-17.
 
 ## Context
 
-Parallel session ADR-0126 inherits Bominal ADR-0208's dual-context unified channel hub model: every social interaction (profile, post, follow, comment, reaction) carries a `context_kind: { Personal | Professional }` discriminator that determines key material, retention floor, disclosure path, audit-chain stream, federation egress, and Cedar evaluator branch.
+Parallel session ADR-0135 inherits Bominal ADR-0208's dual-context unified channel hub model: every social interaction (profile, post, follow, comment, reaction) carries a `context_kind: { Personal | Professional }` discriminator that determines key material, retention floor, disclosure path, audit-chain stream, federation egress, and Cedar evaluator branch.
 
 Sibling µservices have applied this pattern to their domains:
 
@@ -47,11 +47,11 @@ The social µservice has the same shape: PersonalProfile vs ProfessionalProfile;
 - Cross-tier engagement signals: a user's reactions on Personal posts must NEVER fuel Professional ranking (and vice versa) — this would leak preference signals across pillars.
 - Cross-tier identity correlation: a Personal handle and a Professional handle of the same physical user must NEVER be linkable via the platform's data structures.
 
-The decision needs to (a) confirm the dual-context invariants for the social µservice match the messenger / mail / ADR-0126 pattern, (b) define the additional social-specific invariants (feed isolation, engagement-signal isolation, follow-graph isolation), (c) align with sibling µservices' DCI documents (no surprise divergence), (d) define the LEAN lane verifiable surface, (e) bound what gtm can claim about cross-tier isolation.
+The decision needs to (a) confirm the dual-context invariants for the social µservice match the messenger / mail / ADR-0135 pattern, (b) define the additional social-specific invariants (feed isolation, engagement-signal isolation, follow-graph isolation), (c) align with sibling µservices' DCI documents (no surprise divergence), (d) define the LEAN lane verifiable surface, (e) bound what gtm can claim about cross-tier isolation.
 
 ## Decision
 
-oyatie social adopts the **dual-context isolation pattern from parallel ADR-0126 + Bominal ADR-0208** with social-specific extensions:
+oyatie social adopts the **dual-context isolation pattern from parallel ADR-0135 + Bominal ADR-0208** with social-specific extensions:
 
 1. **Distinct entity types per tier** (DCI-01 inheritance):
    - `PersonalProfile`, `PersonalPost`, `PersonalFollowEdge`, `PersonalReaction`, `PersonalNotification`, `PersonalFeedEntry` — only `Personal`.
@@ -86,7 +86,7 @@ oyatie social adopts the **dual-context isolation pattern from parallel ADR-0126
    - **DCI-12: Distinct notification partitions.** A user's Personal-tier notifications are not visible to their Professional persona's UI surface, and vice versa. The `Notification` entity carries `context_kind` and per-persona inbox filters on it.
 10. **Verified-handle uniqueness** (PRD Open Question 5 future ADR):
     - In P01: handle uniqueness is per-(tenant, context_kind), not global. A Personal handle "@jane" and Professional handle "@jane" can coexist for the same physical user across tiers.
-    - PRD Open Question 5 (global vs per-tenant uniqueness for verified handles) deferred to ADR-SOC follow-up.
+    - PRD Open Question 5 (global vs per-tenant uniqueness for verified handles) scheduled-for-distinct-tracked-work to ADR-SOC successor-IP.
 
 ## Alternatives Considered
 
@@ -94,7 +94,7 @@ oyatie social adopts the **dual-context isolation pattern from parallel ADR-0126
 
 - Pros: simpler type system; fewer crates; less code.
 - Cons: violates compile-time invariant; runtime bug can route Personal post into Professional context; matches Twitter / Meta account-level switch model which we explicitly reject; misses competitive differentiator 1 in `competitor-parity-matrix.md`.
-- Rejected: incompatible with parallel ADR-0126.
+- Rejected: incompatible with parallel ADR-0135.
 
 ### B. Three or more context kinds (Personal / Professional / Federated / etc.)
 
@@ -170,7 +170,7 @@ oyatie social adopts the **dual-context isolation pattern from parallel ADR-0126
 ## References
 
 - ADR-0008 — Data Use Boundary.
-- ADR-0126 — Connect dissolution (parallel; dual-context source).
+- ADR-0135 — Connect dissolution (parallel; dual-context source).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0132 — Suite-and-bundle dissolution.
 - ADR-SOC-0001 — Feed-ranking algorithm (paired DCI ADR — ranking is per-tier).

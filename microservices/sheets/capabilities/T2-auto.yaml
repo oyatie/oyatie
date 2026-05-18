@@ -30,8 +30,8 @@ description: |
 owner_team: axis-sheets + ops-security
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0028, ADR-0110, ADR-0126, ADR-0131, ADR-0140, ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0005, ADR-SHEETS-0006]
-related_specs: [/specs/products/sheets.json]
+related_adrs: [ADR-0022, ADR-0028, ADR-0110, ADR-0135, ADR-0131, ADR-0140, ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0005, ADR-SHEETS-0006]
+related_specs: [/specs/microservices/sheets.json]
 related_artifacts:
   - microservices/sheets/PRD.md FR-04 (recalc), FR-06 (CRDT), FR-08 (pivot), FR-10 (data-validation), FR-20 (license-gate), FR-21 (offline buffer)
   - microservices/sheets/threat-model.md §"T-T-01" + §"T-T-02" + §"T-T-05" + §"T-T-07"

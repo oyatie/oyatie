@@ -122,7 +122,7 @@ watermark + DRM stub**:
 9. **DRM stub**: `oya-recordings-drm-stub-*` exposes Widevine / Fairplay /
    PlayReady stub interfaces per ADR-SHORTS-0004 future-proofing. No DRM
    service at M02; the adapter rejects DRM requests with `NotYetImplemented`
-   error. M04 follow-up ADR activates per-vendor DRM service integration.
+   error. M04 successor-IP ADR activates per-vendor DRM service integration.
 10. **HLS manifest byte stability** (Hyrum's-Law preservation per
     migration-from-connect.md): manifest emits CMAF segments in
     monotonic order; segment-byte-range deterministic within ±64 bytes.

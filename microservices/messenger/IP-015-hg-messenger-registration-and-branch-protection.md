@@ -60,7 +60,7 @@ oya gate validate branch-protection-config
 ## Next IP
 
 (end of P01 messenger slice — proceed to P02 = thread-tree + read-receipt
-landed at MVP scale; or to Slice B = huddles MVP. P02 is referenced by
+landed at minimum-shippable-tier scale; or to Slice B = huddles minimum-shippable-tier. P02 is referenced by
 PRD §"Open Questions" 2.)
 
 ## References

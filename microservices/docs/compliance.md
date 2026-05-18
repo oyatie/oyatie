@@ -5,7 +5,7 @@ microservice: docs
 status: Accepted
 date: 2026-05-17
 owner_team: council-privacy + ops-security
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
 doc_status: published
 ---
 
@@ -301,7 +301,7 @@ Verification: `oya-governance-wcag-22-aa-conformance` LEAN lane runs axe-core + 
 
 ## References
 
-- ADR-0028 (Bominal), ADR-0117, ADR-0126, ADR-0140.
+- ADR-0028 (Bominal), ADR-0117, ADR-0135, ADR-0140.
 - ADR-DOCS-0001 through ADR-DOCS-0006.
 - `threat-model.md`, `dpia.md`, `policy/*`, `multi-region.md`, `incident-response.md`, `legal/*`.
 - SOC 2 TSC 2017 + 2022 PoF.

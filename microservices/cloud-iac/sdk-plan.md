@@ -22,7 +22,7 @@ doc_status: published
 
 cloud-iac is internal substrate, but it ships SDKs for two consumer categories:
 1. **oyatie µservice authors** — read own apply state + drift report; trigger plan-preview programmatically; consume ApplyExecuted events.
-2. **Tenant operators (rare)** — read own µservice's apply state via tenant-facing dashboard SDK; future programmatic surface deferred.
+2. **Tenant operators (rare)** — read own µservice's apply state via tenant-facing dashboard SDK; future programmatic surface scheduled-for-distinct-tracked-work.
 
 This document specifies SDK strategy: which languages, how generated, what guarantees, sunset policy.
 
@@ -35,8 +35,8 @@ This document specifies SDK strategy: which languages, how generated, what guara
 | **Python** | M02 | OpenAPI-generated; published to PyPI | axis-cloud-iac + gtm |
 | **Go** | M02 | gRPC-generated baseline + ergonomic wrappers; published as go-module | axis-cloud-iac + gtm |
 | **JVM (Kotlin / Java)** | M03 | gRPC-generated baseline; published to Maven Central | axis-cloud-iac + gtm |
-| **C# / .NET** | M03+ | OpenAPI-generated; published to NuGet | axis-cloud-iac + gtm |
-| **Ruby / PHP** | deferred — no current tenant demand | n/a | n/a |
+| **C# / .NET** | M03-onward | OpenAPI-generated; published to NuGet | axis-cloud-iac + gtm |
+| **Ruby / PHP** | scheduled-for-distinct-tracked-work — no current tenant demand | n/a | n/a |
 
 Prioritisation: oyatie's own µservice languages first; then largest tenant developer-population languages (TS + Py lead).
 
@@ -59,7 +59,7 @@ Properties:
 - Streaming: `client.stream_apply_jobs(...) -> impl Stream<Item=ApplyJob>` via gRPC streaming.
 - Re-exports types from `oya-cloud-iac-iac-renderer-kernel` + `-iac-registry-kernel` so consumers see consistent shapes.
 - No `unsafe`; `#![deny(unsafe_code)]`.
-- Published to oyatie internal crate registry; open-source decision deferred per Stripe/Twilio precedent.
+- Published to oyatie internal crate registry; open-source decision scheduled-for-distinct-tracked-work per Stripe/Twilio precedent.
 
 ### Generated SDKs (TypeScript / Python / Go / JVM / C#)
 

@@ -29,7 +29,7 @@ Per ADR-0131 §"per-microservice flat layout", each µservice maintains its own 
 - ADR-0105 (13-layer enum).
 - ADR-0106 (`application` → `usecase` rename).
 - ADR-0117 (pack residency model).
-- ADR-0126 (connect super-app expansion — parent ADR for translate's existence).
+- ADR-0135 (connect super-app expansion — parent ADR for translate's existence).
 - ADR-0130 (agentic SLO-gated promotion).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0132 (product suite + bundle dissolution).
@@ -49,8 +49,8 @@ Per `docs/STANDARDS-AND-TEMPLATES.md` + ADR-0131 + the `documentation-and-adrs` 
 ## Cross-µservice References
 
 These ADRs cross-reference:
-- `microservices/foundry-providers/decisions/` (when published) for provider-router patterns.
-- `microservices/foundry-runtime/decisions/` (when published) for capability-execution patterns.
+- `microservices/foundry/decisions/` (when published) for provider-router patterns.
+- `microservices/foundry/decisions/` (when published) for capability-execution patterns.
 - `microservices/observability/decisions/` (when published) for SLO-promotion patterns.
 
 ## Lifecycle

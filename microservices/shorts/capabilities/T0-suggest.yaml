@@ -15,7 +15,7 @@ description: |
 owner_team: axis-shorts + axis-foundry-runtime
 maturity: preview
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133]
 related_artifacts:
   - microservices/shorts/PRD.md (FR-02, FR-05, FR-11)
   - microservices/shorts/contracts/openapi/shorts.yaml

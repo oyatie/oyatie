@@ -8,7 +8,7 @@ owner: axis-workspace + council-design-system + ops-accessibility
 deciders: council-design-system, council-architecture, axis-workspace, ops-accessibility
 supersedes: []
 superseded_by: []
-related: [ADR-0105, ADR-0126, ADR-0131, ADR-SLIDES-0002]
+related: [ADR-0105, ADR-0135, ADR-0131, ADR-SLIDES-0002]
 related_specs: []
 related_artifacts:
   - microservices/slides/PRD.md (FR-15, FR-16, FR-32, AC-09, AC-17)

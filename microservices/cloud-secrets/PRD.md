@@ -328,7 +328,7 @@ Sharding:
 | 2 | Cache TTL ceiling — 60s default vs per-secret-class override | axis-cloud-secrets | resolved in IP-003 |
 | 3 | Revocation push transport — OpenBao server-sent-events vs WebSocket vs pub/sub | axis-cloud-secrets | resolved in IP-004 |
 | 4 | KEK rotation cadence — 365d default vs per-pack regulatory ceiling | council-privacy + ops-security | per-pack overlay, see policy/data-residency.md |
-| 5 | BYOK material acceptance — accept tenant-supplied KEK wrapped under our KEK-of-KEKs, or only HSM-generated? | council-architecture | ADR follow-up |
+| 5 | BYOK material acceptance — accept tenant-supplied KEK wrapped under our KEK-of-KEKs, or only HSM-generated? | council-architecture | ADR successor-IP |
 
 ## Related ADRs
 

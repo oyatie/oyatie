@@ -5,7 +5,7 @@ info:
   description: |
     Workflow events emitted + consumed by the recordings µservice.
     Events are emitted to the Workflow Engine as the canonical bus per
-    parallel ADR-0126 + ADR-0131 cross-product rule (no direct
+    parallel ADR-0135 + ADR-0131 cross-product rule (no direct
     µservice-to-µservice calls).
 
 servers:

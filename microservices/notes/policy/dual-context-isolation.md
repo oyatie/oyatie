@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-security + axis-notes
 deciders: council-architecture, ops-security, axis-notes, council-privacy
-related_adrs: [ADR-0008, ADR-0028, ADR-0126, ADR-0131, ADR-0132, ADR-NOTES-0001, ADR-NOTES-0003, ADR-NOTES-0005]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-0132, ADR-NOTES-0001, ADR-NOTES-0003, ADR-NOTES-0005]
 related_artifacts:
   - microservices/notes/threat-model.md (T-S-01, T-I-01, T-E-01; cross-context invariant violation)
   - microservices/notes/dpia.md (R-07)
@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing dual-context invariants of the notes substrate. Per parallel ADR-0126 (inheriting Bominal ADR-0208's dual-context model), every notes entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
+Define the load-bearing dual-context invariants of the notes substrate. Per parallel ADR-0135 (inheriting Bominal ADR-0208's dual-context model), every notes entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
 
 - which keys encrypt the body (Personal client-derived MLS E2E vs Professional tenant-DEK envelope);
 - which retention floor applies (Personal user-policy vs Professional pack-floor);
@@ -48,7 +48,7 @@ pub enum ContextKind {
 Properties:
 - Enum is sealed at the kernel layer; only two variants ever exist.
 - Cross-variant write is rejected at the domain layer.
-- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0126.
+- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0135.
 
 ## Entity Type Invariants
 
@@ -182,7 +182,7 @@ In addition to compile-time + LEAN-lane enforcement, runtime guards:
 
 ## References
 
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - Bominal ADR-0208 (Connect dual-context unified channel hub; inherited).
 - Bominal ADR-0215 (Connect retention legal-hold dual-context; inherited).
 - ADR-NOTES-0001 (E2E-default Personal-tier).

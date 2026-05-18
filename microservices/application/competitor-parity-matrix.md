@@ -104,14 +104,14 @@ and what NOT to claim. Re-validated bi-annually.
 ## Gap Analysis (ordered by priority)
 
 1. **Offline-first** — Linear is ahead. M03 ships read-only offline (cached
-   last-render); full offline-mutation post-M03.
+   last-render); full offline-mutation subsequent-to-M03-completion.
 2. **SCIM 2.0 provisioning** — Vercel + Stripe + Linear + Notion + Foundry
    ahead. M04 target.
 3. **Edge Functions / Edge runtime** — Vercel ahead. Not in scope for
    Application Shell (would migrate to a separate edge µservice if
    pursued).
 4. **TTI <1 s** — Linear ahead. M03 target ≤ 2 s; future budget tightening
-   post-M03 as bundle size shrinks.
+   subsequent-to-M03-completion as bundle size shrinks.
 
 ## Differentiation (ordered)
 

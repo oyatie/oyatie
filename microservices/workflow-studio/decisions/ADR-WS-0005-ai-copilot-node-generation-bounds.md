@@ -9,7 +9,7 @@ deciders: council-architecture, axis-workflow, ops-security, council-legal-compl
 supersedes: []
 superseded_by: []
 related: [ADR-0110, ADR-0131, ADR-0140]
-related_specs: [/specs/products/workflow-studio.json]
+related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md (FR-12, AC-05, §"Open Questions" Q4)
   - microservices/workflow-studio/capabilities/T0-suggest.yaml
@@ -37,7 +37,7 @@ PRD §"Functional Requirements" FR-12 (Should-GA): "tenant developer drafts a wo
 
 > **Should copilot be allowed to generate DSL fragments that cross-call other µservices, or only intra-workflow-studio?**
 
-The capability tier framework is canonical for oyatie (per `feedback_quality_performance_scalability_bar.md` and the `/specs/products/*` capability tiers):
+The capability tier framework is canonical for oyatie (per `feedback_quality_performance_scalability_bar.md` and the `/specs/microservices/*` capability tiers):
 
 - **T0 — Suggest**: copilot surfaces authoring suggestions to the tenant; tenant decides. No autonomous action. Lowest-risk tier.
 - **T1 — Assist**: copilot drafts a candidate spec / fragment; tenant reviews & accepts/rejects. Reversible; tenant is the actor.

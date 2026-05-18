@@ -9,7 +9,7 @@ deciders: council-architecture, axis-workflow, council-design-system, ops-securi
 supersedes: []
 superseded_by: []
 related: [ADR-0065, ADR-0105, ADR-0131]
-related_specs: [/specs/products/workflow-studio.json]
+related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md (Open Question 1, AC-06, AC-02)
   - microservices/workflow-studio/PHASE-01-VISUAL-AUTHORING-SUBSTRATE.md (IP-005)

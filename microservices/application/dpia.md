@@ -192,9 +192,9 @@ re-enumerates risks from the data-subject-rights perspective.)
 
 | Role | Holder | Date |
 |---|---|---|
-| Council-privacy chair | TBD | M03/P01 entry |
-| Ops-security lead | TBD | M03/P01 entry |
-| Axis-application lead | TBD | M03/P01 entry |
+| Council-privacy chair | per council-privacy roster active at M03/P01 entry (lookup `microservices/governance/governance.md` §Council-privacy roster on M03/P01 entry date) | M03/P01 entry |
+| Ops-security lead | per ops-security roster active at M03/P01 entry (lookup `microservices/governance/governance.md` §Ops-security roster on M03/P01 entry date) | M03/P01 entry |
+| Axis-application lead | per axis-application roster active at M03/P01 entry (lookup `microservices/application/CODEOWNERS` on M03/P01 entry date) | M03/P01 entry |
 | DPO (tenant first-pack) | per tenant onboarding | per tenant |
 
 Review cadence: annually + on every processing-purpose / sub-processor /

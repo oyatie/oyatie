@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-translate + ops-compliance
 deciders: council-privacy, ops-compliance, axis-translate, council-architecture
-related_adrs: [ADR-0126, ADR-TRANSLATE-0003]
+related_adrs: [ADR-0135, ADR-TRANSLATE-0003]
 related_artifacts:
   - microservices/translate/dpia.md
   - microservices/translate/compliance.md

@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: council-privacy + ops-security
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0006]
 doc_status: published
 ---
 
@@ -263,7 +263,7 @@ Per-pack overlays at `regional-packs/<pack>/drive-compliance-overlay.md`. Aligne
 
 ## References
 
-- ADR-0028 (Bominal), ADR-0117, ADR-0126, ADR-0140.
+- ADR-0028 (Bominal), ADR-0117, ADR-0135, ADR-0140.
 - ADR-DRIVE-0001 through ADR-DRIVE-0006.
 - `threat-model.md`, `dpia.md`, `policy/*`, `multi-region.md`, `incident-response.md`, `legal/*`.
 - SOC 2 TSC 2017 + 2022 PoF.

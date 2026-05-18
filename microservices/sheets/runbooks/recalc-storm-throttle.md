@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/sheets/threat-model.md §"T-D-02" + §"T-D-04" + §"T-D-06"
   - microservices/sheets/capacity-model.md
   - microservices/sheets/PRD.md §"Horizontal Scalability"
-  - /specs/products/sheets.json §goals.scalability
+  - /specs/microservices/sheets.json §goals.scalability
 doc_status: published
 ---
 
@@ -132,6 +132,6 @@ After recovery:
 - `microservices/sheets/PRD.md` §"Horizontal Scalability" + §"Performance".
 - `microservices/sheets/threat-model.md` T-D-02, T-D-04, T-D-06, T-D-08.
 - `microservices/sheets/capacity-model.md`.
-- `/specs/products/sheets.json` §goals.scalability.
+- `/specs/microservices/sheets.json` §goals.scalability.
 - ADR-SHEETS-0004 (recalc-engine architecture).
 - Google SRE Workbook ch. 21 (cascading failures).

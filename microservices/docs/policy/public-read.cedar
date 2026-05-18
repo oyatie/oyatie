@@ -1,7 +1,7 @@
 // Cedar policy: public-read
 // Microservice: docs
 // Purpose: bound anonymous / unauthenticated public read access to docs that the tenant
-// has explicitly published (M04+; not GA at M03 — see PRD §"Open Questions" #6).
+// has explicitly published (M04-onward; not GA at M03 — see PRD §"Open Questions" #6).
 // At M03 this policy is effectively a default-deny stub for the public-read surface
 // to ensure no implicit public exposure during the Strangler migration.
 // Owner: ops-security
@@ -19,7 +19,7 @@ forbid (
 );
 
 // =====================================================================================
-// PERMIT: read on explicitly-public docs (M04+; not active at M03).
+// PERMIT: read on explicitly-public docs (M04-onward; not active at M03).
 // =====================================================================================
 
 permit (

@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   summary: Workbook session, cell-edit, save, collab, AI-formula, license-gate, sharing, range-ACL, XLSX import/export, connected-sheets, version-history, embed-bridge, trigger-bridge events
   description: |
-    Cross-µservice events emitted and consumed by sheets. Per ADR-0126 net-new µservice, Sheets
+    Cross-µservice events emitted and consumed by sheets. Per ADR-0135 net-new µservice, Sheets
     publishes events for: workbook session lifecycle, cell-edit (sampled), save, collab CRDT merge /
     conflict, license-gate, share + range-ACL change, jurisdiction switch, AI-formula draft, smart-fill
     inferred, connected-sheets refresh, XLSX import/export complete, formula-engine version change,

@@ -9,8 +9,8 @@ regulatory_packs_consumed: [oya-pack-eu, oya-pack-us, oya-pack-us-nyc, oya-pack-
 # Note: recruiter-stub activation gated per pack; OFF by default in all packs
 lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
 traceability:
-  github_issue: "<TBD>"
-  source_adrs: [ADR-0056, ADR-0105, ADR-0126, ADR-0131, ADR-NET-0002]
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-NET-0002]
 data_classes_owned: [RECRUITER_DECISION_AUDIT, EMPLOYMENT_RECORD, AUDIT]
 operational_classes_owned: [AUDIT]
 autonomy_tier_required: T2  # HIGH-RISK EU AI Act Annex III §4

@@ -36,7 +36,7 @@ Workload µservices on the hot path need to resolve their tenant's cell-assignme
 | **Python** | M02 | OpenAPI-generated | axis-cell-substrate + gtm |
 | **Go** | M02 | gRPC-generated baseline + ergonomic wrapper | axis-cell-substrate + gtm |
 | **JVM (Kotlin / Java)** | M03 | gRPC-generated baseline + ergonomic wrapper | axis-cell-substrate + gtm |
-| **C# / .NET** | M03+ | OpenAPI-generated | axis-cell-substrate + gtm |
+| **C# / .NET** | M03-onward | OpenAPI-generated | axis-cell-substrate + gtm |
 | **Ruby / PHP** | none — no current demand | n/a | n/a |
 
 Drivers: oyatie's own µservice languages first; workload µservices' actual language mix.

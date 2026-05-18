@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-shorts + gtm-developer-experience
 deciders: axis-shorts, gtm-developer-experience, council-architecture
-related_adrs: [ADR-0056, ADR-0105, ADR-0126, ADR-0131]
+related_adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/shorts/contracts/openapi/shorts.yaml
   - microservices/shorts/contracts/asyncapi/shorts-events.yaml
@@ -112,7 +112,7 @@ Per ADR-SHORTS-0003 + ADR-SHORTS-0005 + `capabilities/T2-auto.yaml`:
 
 - ADR-0056 (BNF v4.1).
 - ADR-0084 (Bominal SDK versioning).
-- ADR-0126 (Connect dissolution).
+- ADR-0135 (Connect dissolution).
 - ADR-0131 (per-µservice flat layout).
 - EU AI Act Arts. 27, 50.
 - EU DSA Art. 27.

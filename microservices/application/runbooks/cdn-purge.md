@@ -21,7 +21,7 @@ ONE of:
 
 1. **FM-01 CDN cache poisoning** — automated: `oya_application_bundle_sri_mismatch_total > 0` for ≥ 1 min raises Sev-1 page; worker auto-invokes global purge.
 2. **FM-04 / FM-10 bundle revert** — operational: `oya gate validate hyperscaler-maturity-claims` lane red on new bundle; purge stale edge.
-3. **FM-11 purge queue backlog** — `oya_application_cdn_purge_queue_depth > 100` for ≥ 3 min; Sev-3 follow-up.
+3. **FM-11 purge queue backlog** — `oya_application_cdn_purge_queue_depth > 100` for ≥ 3 min; Sev-3 successor-IP.
 4. **Manual** — IC declares purge after security event.
 
 ## Severity

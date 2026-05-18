@@ -218,7 +218,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 ## FM-13 — SDK version drift (consumer running stale SDK)
 
 - **Description**: Consumer µservice uses an SDK version that does not honour current revocation push protocol or cache TTL.
-- **Trigger**: deferred upgrade, deprecated SDK still imported, third-party µservice not yet updated.
+- **Trigger**: scheduled-for-distinct-tracked-work upgrade, deprecated SDK still imported, third-party µservice not yet updated.
 - **Detection**: `oya_cloud_secrets_sdk_version_count{version}` distribution; deprecation lane in CI.
 - **Blast radius**: per-consumer; can break revocation SLA for that consumer's secret reads.
 - **Mitigation**:

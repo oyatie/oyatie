@@ -158,7 +158,7 @@ The audit's residual non-compliant count drops from 18 to 9 (the remaining 9 are
 
 ## Follow-ups
 
-1. Update `oya-foundry-fitness-predictable-naming-kernel` (Phase E follow-up) to:
+1. Update `oya-foundry-fitness-predictable-naming-kernel` (Phase E successor-IP) to:
    - Recognize the 13-value enum (per ADR-0105).
    - Recognize tools/-implicit-app convention (per this ADR-0107).
    - Recognize `oya-check-<feature>` self-layering (per ADR-0105).

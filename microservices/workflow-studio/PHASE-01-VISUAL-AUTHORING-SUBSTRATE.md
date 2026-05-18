@@ -30,7 +30,7 @@ depends_on:
     reason: workspace + branch-protection + Cargo metadata authority must precede Studio crate authoring
 owner_team: axis-workflow + council-design-system
 related_adrs: [ADR-0065, ADR-0103, ADR-0130, ADR-0131, ADR-0140]
-related_specs: [/specs/products/workflow-studio.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/workflow-studio.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
 ---
@@ -43,7 +43,7 @@ This phase ships the full workflow-studio µservice — Studio half of the ADR-0
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (CDN-cached WASM bundle + per-tenant CRDT collab + Cedar per-seat).
-- Nothing deferred (every FUTURE-marked stub in any workflow-aware product's authoring UX is decommissioned by this phase's Studio SDK + emitter).
+- Nothing scheduled-for-distinct-tracked-work (every FUTURE-marked stub in any workflow-aware product's authoring UX is decommissioned by this phase's Studio SDK + emitter).
 - No silent regression (workflow-spec-roundtrip CI lane is BLOCKER day 1).
 - Per-microservice flat layout (this phase ships natively under ADR-0131; sibling = workflow-engine).
 
@@ -66,9 +66,9 @@ Naming justifications for the new crate families are in `microservices/workflow-
 ### Out-of-scope
 
 - The engine execution substrate — separate µservice (`microservices/workflow-engine/`) per ADR-0131.
-- Definition marketplace — deferred to a post-M03 phase.
-- Per-tenant branding (mid-render) — explicitly anti-pattern per `/specs/products/workflow-studio.json` §anti_patterns.
-- Multi-domain node libraries beyond the 6 declared (Agentic / Dev / Business / Healthcare / Supply-Chain / Delivery) — extensions per follow-up domain-pack phases.
+- Definition marketplace — scheduled-for-distinct-tracked-work to a subsequent-to-M03-completion phase.
+- Per-tenant branding (mid-render) — explicitly anti-pattern per `/specs/microservices/workflow-studio.json` §anti_patterns.
+- Multi-domain node libraries beyond the 6 declared (Agentic / Dev / Business / Healthcare / Supply-Chain / Delivery) — extensions per successor-IP domain-pack phases.
 
 ## Implementation Plans
 
@@ -189,7 +189,7 @@ Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + 
   "phase": "P01-visual-authoring-substrate",
   "claim_paths": ["microservices/workflow-studio/src/crates/<crate>/**", "..."],
   "intent": "<one-line>",
-  "spec_refs": ["microservices/workflow-studio/PRD.md§<section>", "/specs/products/workflow-studio.json§<section>"],
+  "spec_refs": ["microservices/workflow-studio/PRD.md§<section>", "/specs/microservices/workflow-studio.json§<section>"],
   "acceptance_lanes_green": ["cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny", "lean-a1", "lean-a2", "per-microservice-layout", "workflow-spec-roundtrip"],
   "test_count": {"unit": <int>, "integration": <int>, "e2e": <int>},
   "coverage_pct": <float>,
@@ -288,7 +288,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0130: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout + workflow unbundle.
 - ADR-0140: Cedar policy enforcement.
-- `/specs/products/workflow-studio.json`.
+- `/specs/microservices/workflow-studio.json`.
 - `/specs/per-microservice-flat-layout.json`.
 - `microservices/workflow-studio/PRD.md`.
 - Memory: `feedback_workflow_studio_scope.md`, `feedback_workflow_is_shared.md`, `feedback_workflow_objectgraph_adapter_layer.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

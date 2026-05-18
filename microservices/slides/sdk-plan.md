@@ -19,9 +19,9 @@ Per-BC SDK crates under `oya-slides-<bc>-sdk` (Rust, semver-pinned to µservice 
 | Language | Status | Source |
 |---|---|---|
 | Rust | first-class; published to internal registry | `src/crates/oya-slides-*-sdk/` |
-| TypeScript | post-GA; generated from OpenAPI 3.2.0 + protobuf | `sdk/typescript/` (post-M03) |
-| Python | post-GA; generated from OpenAPI 3.2.0 | `sdk/python/` (post-M03) |
-| Go | post-GA; generated from protobuf | `sdk/go/` (post-M03) |
+| TypeScript | subsequent-to-GA-tier-promotion; generated from OpenAPI 3.2.0 + protobuf | `sdk/typescript/` (subsequent-to-M03-completion) |
+| Python | subsequent-to-GA-tier-promotion; generated from OpenAPI 3.2.0 | `sdk/python/` (subsequent-to-M03-completion) |
+| Go | subsequent-to-GA-tier-promotion; generated from protobuf | `sdk/go/` (subsequent-to-M03-completion) |
 
 ## API surfaces exposed
 
@@ -51,7 +51,7 @@ Per-BC SDK crates under `oya-slides-<bc>-sdk` (Rust, semver-pinned to µservice 
 
 - Tenant Rust apps (workspace admin tooling).
 - Cross-µservice oyatie consumers (docs / sheets / forms / drive / messenger / mail / social / observability / foundry-runtime).
-- Future TypeScript / Python / Go SDKs for external integrators (post-GA).
+- Future TypeScript / Python / Go SDKs for external integrators (subsequent-to-GA-tier-promotion).
 
 ## Cross-µservice consumption pattern
 
@@ -99,11 +99,11 @@ Per `feedback_workflow_objectgraph_adapter_layer.md`: all cross-µservice flows 
 
 ## Migration / deprecation
 
-- Slides is net-new per ADR-0126; no legacy SDK migration.
+- Slides is net-new per ADR-0135; no legacy SDK migration.
 - Future deprecations: ADR-required per ADR-0140; tenant comms 90d before removal.
 
 ## References
 
 - ADR-0140 Cedar policy enforcement.
-- ADR-0126 Connect dissolution (no legacy migration).
+- ADR-0135 Connect dissolution (no legacy migration).
 - `feedback_workflow_objectgraph_adapter_layer.md` (cross-µservice SDK-only rule).

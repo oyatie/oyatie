@@ -89,7 +89,7 @@ Mixed: spec + SDK crate + repo-wide config.
       "oya-translate-eu-ai-act-disclosure"
     ],
     "evidence_emitted_to": "/specs/hyperscaler-gates.json#registry",
-    "related_adrs": ["ADR-0126", "ADR-0131", "ADR-TRANSLATE-0001", "ADR-TRANSLATE-0003", "ADR-TRANSLATE-0004", "ADR-TRANSLATE-0005", "ADR-TRANSLATE-0006"]
+    "related_adrs": ["ADR-0135", "ADR-0131", "ADR-TRANSLATE-0001", "ADR-TRANSLATE-0003", "ADR-TRANSLATE-0004", "ADR-TRANSLATE-0005", "ADR-TRANSLATE-0006"]
   }
 }
 ```

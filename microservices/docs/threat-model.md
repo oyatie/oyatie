@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-docs + ops-security
 deciders: council-architecture, ops-security, axis-docs, council-privacy
 methodology: STRIDE + LINDDUN + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS v4.0 + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0005, ADR-DOCS-0006]
 review_cadence: quarterly + on every BC architectural change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1-CC6.8, CC7.1-CC7.5, CC8.1"
@@ -582,7 +582,7 @@ Per-pack overlays at `regional-packs/<pack>/docs-overlay.md`.
 ## References
 
 - ADR-0028 (Bominal): Audit chain (Merkle + Ed25519).
-- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140.
+- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140.
 - ADR-WS-0001 (cross-µservice CRDT alignment).
 - ADR-DOCS-0001 through ADR-DOCS-0006.
 - `microservices/docs/PRD.md`, `dpia.md`, `compliance.md`, `policy/*.cedar`.

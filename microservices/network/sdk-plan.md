@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-network + gtm-customer-success
 deciders: axis-network, council-architecture
-related_adrs: [ADR-0126, ADR-0131, ADR-0132]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132]
 related_artifacts:
   - microservices/network/contracts/openapi/network.yaml
   - microservices/network/contracts/asyncapi/network-events.yaml
@@ -29,11 +29,11 @@ Tenants embed `network` functionality in their own surfaces (B2B portals / mobil
 |---|---|---|---|
 | **Rust** | M02 (primary; oyatie's own language) | First-party authored (`oya-network-*-sdk` crates per BC) | axis-network |
 | **TypeScript + Browser SDK** | M02 (web-client + ts-server) | OpenAPI + AsyncAPI generation + first-party ergonomic + WebSocket reconnect | axis-network + gtm |
-| **Kotlin (Android) + Swift (iOS)** | M02+1 | gRPC-generated + first-party ergonomic + native WebSocket + multipart-upload | axis-network + gtm |
+| **Kotlin (Android) + Swift (iOS)** | M02-onward1 | gRPC-generated + first-party ergonomic + native WebSocket + multipart-upload | axis-network + gtm |
 | **Python** | M03 | OpenAPI-generated + ergonomic (most-requested for HR/people-analytics tooling) | axis-network + gtm |
 | **Go** | M03 | gRPC-generated + ergonomic | axis-network + gtm |
-| **JVM (Java/Kotlin)** | M03+1 | gRPC-generated + ergonomic; published to Maven Central; ATS-integration sample | axis-network + gtm |
-| **C# / .NET** | M04+ | OpenAPI-generated + ergonomic; published to NuGet; HRIS-integration sample | axis-network + gtm |
+| **JVM (Java/Kotlin)** | M03-onward1 | gRPC-generated + ergonomic; published to Maven Central; ATS-integration sample | axis-network + gtm |
+| **C# / .NET** | M04-onward | OpenAPI-generated + ergonomic; published to NuGet; HRIS-integration sample | axis-network + gtm |
 | **Dart (Flutter)** | M03 | OpenAPI-generated + multipart-upload helpers | axis-network + gtm |
 
 Driver: enterprise HR + ATS + HRIS integrations skew Java + .NET + Python; mobile Professional network clients skew iOS + Android (per Microsoft + LinkedIn Engineering precedent). Web SDK ties to Workflow Studio shell. Server-language SDKs follow.

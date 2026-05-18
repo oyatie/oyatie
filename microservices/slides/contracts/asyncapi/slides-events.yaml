@@ -6,7 +6,7 @@ info:
     AsyncAPI for slides µservice — WS frames for real-time collaboration
     + present-mode + broadcast-mode signaling + audience-engagement,
     plus workflow event-bus events produced and consumed.
-    Per ADR-0126 + ADR-0131 + ADR-SLIDES-0001 (Loro CRDT) + ADR-SLIDES-0005 (LiveKit reuse).
+    Per ADR-0135 + ADR-0131 + ADR-SLIDES-0001 (Loro CRDT) + ADR-SLIDES-0005 (LiveKit reuse).
 defaultContentType: application/json
 servers:
   prod-ws:

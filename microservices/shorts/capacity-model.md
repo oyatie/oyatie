@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-shorts
 deciders: ops-sre-reliability, axis-shorts, council-architecture
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/shorts/cost-budget.md
   - microservices/shorts/multi-region.md

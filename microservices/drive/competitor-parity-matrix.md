@@ -13,7 +13,7 @@ doc_status: published
 
 ## Purpose
 
-Per-feature parity scorecard against 15 industry competitors. Drives PRD prioritisation + post-GA roadmap.
+Per-feature parity scorecard against 15 industry competitors. Drives PRD prioritisation + subsequent-to-GA-tier-promotion roadmap.
 
 ## Competitor set
 
@@ -35,7 +35,7 @@ Per-feature parity scorecard against 15 industry competitors. Drives PRD priorit
 | C14 | Backblaze B2 | low-cost archive |
 | C15 | Internxt | E2E + zero-knowledge |
 
-Legend: ✓ = parity at GA; ◇ = roadmap (post-GA); ✗ = no parity intended; ★ = differentiator (oyatie ahead).
+Legend: ✓ = parity at GA; ◇ = roadmap (subsequent-to-GA-tier-promotion); ✗ = no parity intended; ★ = differentiator (oyatie ahead).
 
 ## Storage + bytes
 

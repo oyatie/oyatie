@@ -27,7 +27,7 @@ This phase ships the full ADR-0130 design — Layer-A (self-hosted Grafana OSS o
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (industry-leading OSS observability stack + canonical Google SRE burn-rate model).
-- Nothing deferred (every FUTURE-marked stub in the existing promote workflows is decommissioned by this phase).
+- Nothing scheduled-for-distinct-tracked-work (every FUTURE-marked stub in the existing promote workflows is decommissioned by this phase).
 - No silent regression (production-tier breach auto-reverts via the rollback primitive).
 - Per-microservice flat layout (this phase is itself the first native author under ADR-0131).
 
@@ -53,9 +53,9 @@ Naming justifications for the new crate families are in `microservices/observabi
 ### Out-of-scope
 
 - Migration of existing µservices (tenancy, ontology, workflow, etc.) into `microservices/<ms>/` — owned by the IP-M01-MIGR-* series per ADR-0131; runs in parallel under separate phases. Until those migrations land, this phase's gate authors OpenSLO manifests only for `observability` itself (self-observability) and proves the gate end-to-end via the synthetic-probe fallback per PRD AC-02.
-- Federated cross-region Mimir/Loki/Tempo — deferred to a post-M01 ADR per PRD §"Horizontal Scalability".
-- Tenant-defined SLO authoring UX — covered by `microservices/observability/PRD.md` Open Question 3; deferred to a follow-up ADR; the underlying engine accepts OpenSLO manifests in tenant scope, so no gate-shape change is implied.
-- Rollback of pre-existing `staging`/`production` ref schema (the deprecated tree-wide refs retain read-only existence per `/specs/agentic-slo-gated-promotion.json` §"deprecated_refs"; explicit removal is a follow-up ADR).
+- Federated cross-region Mimir/Loki/Tempo — scheduled-for-distinct-tracked-work to a subsequent-to-M01-completion ADR per PRD §"Horizontal Scalability".
+- Tenant-defined SLO authoring UX — covered by `microservices/observability/PRD.md` Open Question 3; scheduled-for-distinct-tracked-work to a successor-IP ADR; the underlying engine accepts OpenSLO manifests in tenant scope, so no gate-shape change is implied.
+- Rollback of pre-existing `staging`/`production` ref schema (the deprecated tree-wide refs retain read-only existence per `/specs/agentic-slo-gated-promotion.json` §"deprecated_refs"; explicit removal is a successor-IP ADR).
 
 ## Implementation Plans
 

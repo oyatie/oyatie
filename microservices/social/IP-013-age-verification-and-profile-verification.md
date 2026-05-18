@@ -76,7 +76,7 @@ cargo run -p oya-dev-cli -- gate validate pack-aware-age-gate --microservice soc
 - pack-in highest threshold (18y) enforced.
 - Age-attestation table access bound by Cedar `age_verification_reader` entitlement (FM-15 mitigation).
 - Verification badge issued + revoked → audit-chain seal.
-- Handle uniqueness scope per ADR-SOC follow-up (PRD Open Question 5).
+- Handle uniqueness scope per ADR-SOC successor-IP (PRD Open Question 5).
 
 ## Halt Conditions
 

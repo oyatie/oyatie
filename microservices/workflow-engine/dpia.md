@@ -9,7 +9,7 @@ owner_team: council-privacy + axis-workflow
 deciders: council-privacy, ops-security, axis-workflow, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
 related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
-related_specs: [/specs/products/workflow.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/workflow-engine/threat-model.md
   - microservices/workflow-engine/policy/data-residency.md

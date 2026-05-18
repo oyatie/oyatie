@@ -88,7 +88,7 @@ Canonical control-to-framework mapping for cloud-k8s. Tells an external auditor 
 | A.5.24 | Incident planning | Playbook | `incident-response.md` |
 | A.5.25 | Event assessment | Severity classification | `incident-response.md` |
 | A.5.26 | Incident response | Runbooks | `runbooks/*` |
-| A.5.27 | Learning from incidents | Postmortem template + ADR follow-up | `runbooks/postmortem-template.md` |
+| A.5.27 | Learning from incidents | Postmortem template + ADR successor-IP | `runbooks/postmortem-template.md` |
 | A.5.28 | Evidence collection | audit-chain Ed25519 | ADR-0028 |
 | A.5.30 | ICT readiness | Multi-AZ + DR | `multi-region.md` |
 | A.5.31 | Legal + statutory | This document | this file |

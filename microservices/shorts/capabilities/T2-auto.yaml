@@ -19,7 +19,7 @@ description: |
      pre-publish; at confirmed DMCA-filed claim, auto-hide pending counter-
      notice cycle. Reversible via counter-notice (DMCA §512(g)).
   4. Monetization-substrate-stub — DISABLED BY DEFAULT. Stubbed for future
-     activation per PRD Open Question 2 (M04+). When activated by tenant-
+     activation per PRD Open Question 2 (M04-onward). When activated by tenant-
      admin opt-in: tip-jar + creator-fund placeholder; off-by-default
      protects against accidental rollout.
 
@@ -31,7 +31,7 @@ description: |
 owner_team: axis-shorts + axis-foundry-runtime + council-privacy + ops-legal
 maturity: preview
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133, ADR-SHORTS-0002, ADR-SHORTS-0003, ADR-SHORTS-0005, ADR-SHORTS-0006]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-SHORTS-0002, ADR-SHORTS-0003, ADR-SHORTS-0005, ADR-SHORTS-0006]
 related_artifacts:
   - microservices/shorts/PRD.md (FR-13, FR-16, FR-19, FR-30)
   - microservices/shorts/policy/dual-context-isolation.md
@@ -52,7 +52,7 @@ eu_ai_act_classification:
     1 (moderation) and 2 (ranking) qualify. Sub-capability 3 (copyright auto-
     actions) is high-risk-adjacent because it affects creator commercial
     interests; obligations applied conservatively. Sub-capability 4 (monetization
-    stub) is OFF by default; activation triggers re-assessment per ADR follow-up.
+    stub) is OFF by default; activation triggers re-assessment per ADR successor-IP.
   obligations_satisfied:
     art_9_risk_management_system: see microservices/shorts/dpia.md Step 6 + R-08, R-09, R-13, R-14, R-18
     art_10_data_governance: training-dataset SHA + bias-audit per release; evidence_topic record
@@ -116,7 +116,7 @@ outputs:
   - name: monetization_substrate_decision
     type: object
     properties:
-      enabled: {type: boolean, default: false}  # OFF BY DEFAULT per ADR follow-up
+      enabled: {type: boolean, default: false}  # OFF BY DEFAULT per ADR successor-IP
       reason: {type: string, description: explanation; monetization substrate not active}
 
 data_classes_touched:
@@ -216,4 +216,4 @@ rollback:
 
 sunset:
   status: none
-  note: monetization_substrate_stub may be removed (rather than activated) per future ADR-SHORTS follow-up (PRD Open Question 2)
+  note: monetization_substrate_stub may be removed (rather than activated) per future ADR-SHORTS successor-IP (PRD Open Question 2)

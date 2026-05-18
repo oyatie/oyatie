@@ -38,7 +38,7 @@ Ship the Application Shell as the tenant front door, with:
 This phase advances master-plan principles:
 
 - Hyperscaler-grade in every practice (Vercel / Linear / Stripe Dashboard / Foundry App Shell parity).
-- Nothing deferred (signed module manifest, Cedar gates, audit trail all land in P01).
+- Nothing scheduled-for-distinct-tracked-work (signed module manifest, Cedar gates, audit trail all land in P01).
 - No silent regression (production-tier breach auto-reverts via the rollback primitive inherited from observability).
 - Per-microservice flat layout (this phase ships natively under ADR-0131).
 
@@ -59,10 +59,10 @@ Plus these repo-wide artifacts:
 
 ### Out-of-scope
 
-- Native client tiers (iOS / Android / desktop / CLI / VR) — per Bominal ADR-0209 inheritance; tracked in post-M03 phase.
+- Native client tiers (iOS / Android / desktop / CLI / VR) — per Bominal ADR-0209 inheritance; tracked in subsequent-to-M03-completion phase.
 - SCIM 2.0 provisioning — covered by `tenancy` µservice; this phase consumes the SCIM provisioner via tenant-context.
 - Billing UX — covered by `billing` µservice; this phase exposes a navigation slot only.
-- Web Worker / iframe sandbox decision for module-loader — Open Question 2; tracked under follow-up ADR; this phase ships with iframe-postMessage default per ADR-0123.
+- Web Worker / iframe sandbox decision for module-loader — Open Question 2; tracked under successor-IP ADR; this phase ships with iframe-postMessage default per ADR-0123.
 
 ## Implementation Plans
 

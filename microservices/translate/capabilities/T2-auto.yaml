@@ -27,7 +27,7 @@ description: |
 owner_team: axis-translate + axis-foundry-runtime + council-privacy + legal-counsel
 maturity: preview
 created_at: 2026-05-18
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/policy/ai-act-overlay.md

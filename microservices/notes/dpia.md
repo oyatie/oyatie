@@ -7,7 +7,7 @@ classification: CONFIDENTIAL
 date: 2026-05-17
 owner_team: council-privacy + axis-notes + ops-legal
 deciders: council-privacy, ops-legal, axis-notes, gtm-customer-success
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0126, ADR-0131, ADR-NOTES-0001, ADR-NOTES-0005]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0135, ADR-0131, ADR-NOTES-0001, ADR-NOTES-0005]
 review_cadence: annually + on every BC change touching PII
 references:
   - GDPR Arts. 5, 6, 9, 17, 22, 25, 32, 35; Recital 26
@@ -104,7 +104,7 @@ The µservice MUST NOT process personal data for any purpose beyond user-facing 
 | Restriction (Art. 18) | Per-tenant suspend; per-user export hold |
 | Portability (Art. 20) | Markdown + JSON Canonical export; Obsidian-vault export sub-format |
 | Objection (Art. 21) | AI-assist tenant-admin disable; per-user opt-out flag |
-| Automated-decision (Art. 22) | T2 auto-organize tier disabled at MVP; if enabled, requires explicit per-user opt-in + audit; human review available |
+| Automated-decision (Art. 22) | T2 auto-organize tier disabled at minimum-shippable-tier; if enabled, requires explicit per-user opt-in + audit; human review available |
 
 ## Section 3 — Risks
 

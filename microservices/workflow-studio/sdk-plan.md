@@ -29,11 +29,11 @@ Note: Studio's primary user-facing surface is the browser (Leptos WASM canvas). 
 | Language | Priority | Generation strategy | Authority |
 |---|---|---|---|
 | **Rust** | M03 (oyatie's own language) | First-party authored (`oya-workflow-studio-visual-canvas-sdk` + per-BC SDK crates) | axis-workflow |
-| **TypeScript** | M03+1 (first external-tenant SDK; matches browser-tenant integration) | OpenAPI-generated baseline + first-party ergonomic wrappers; published to npm | axis-workflow + gtm |
+| **TypeScript** | M03-onward1 (first external-tenant SDK; matches browser-tenant integration) | OpenAPI-generated baseline + first-party ergonomic wrappers; published to npm | axis-workflow + gtm |
 | **Python** | M04 (LLM-orchestrator tenants) | OpenAPI-generated; published to PyPI | axis-workflow + gtm |
 | **Go** | M04 (CI/CD agent tenants) | gRPC-generated baseline + ergonomic wrappers; go-module | axis-workflow + gtm |
-| **JVM (Kotlin / Java)** | M05+ | gRPC-generated baseline; Maven Central | axis-workflow + gtm |
-| **C# / .NET** | M05+ | OpenAPI-generated; NuGet | axis-workflow + gtm |
+| **JVM (Kotlin / Java)** | M05-onward | gRPC-generated baseline; Maven Central | axis-workflow + gtm |
+| **C# / .NET** | M05-onward | OpenAPI-generated; NuGet | axis-workflow + gtm |
 | **Ruby / PHP** | (none — no demand) | n/a | n/a |
 
 Prioritisation drivers: oyatie's own µservices first; then top tenant-developer-population languages (TypeScript for browser-tenant integrations and CI plugins; Python for LLM-orchestrator tenants).

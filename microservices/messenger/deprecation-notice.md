@@ -6,8 +6,8 @@ deprecated_artifact: oya-connect-messenger-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-MESSENGER accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
-related_specs: [/specs/products/connect/messenger.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related_specs: [/specs/microservices/messenger.json]
 owner_team: axis-messenger
 date: 2026-05-17
 doc_status: published
@@ -33,7 +33,7 @@ migration guide.
 ## Removal date
 
 **Advisory — no hard deadline.** Concrete removal target is HG-MESSENGER
-accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #2).
+accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #2).
 Following the 5-month Strangler window in ADR-0134 (Phase 2 adapter soak +
 Phase 3 canary), the indicative advisory removal date is **2026-11-17**,
 gated on the SLO trigger.
@@ -115,7 +115,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
 ## References
 
-- ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
+- ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
 - `microservices/messenger/migration-from-connect.md` — full migration guide.
 - `microservices/messenger/PRD.md` — target-state product definition.
 - `microservices/messenger/runbooks/*.md` — 10 runbooks.

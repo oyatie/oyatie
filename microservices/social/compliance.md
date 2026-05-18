@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-social, council-architecture, ops-compliance
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/social/threat-model.md
   - microservices/social/dpia.md
@@ -218,5 +218,5 @@ Output: `microservices/social/evidence/compliance-evidence-<unix_ts>.json`.
 - `microservices/social/policy/data-residency.md`.
 - `microservices/observability/compliance.md` (shape reference).
 - `microservices/messenger/compliance.md` (sibling reference; dual-context posture).
-- ADR-0028 (Bominal) + ADR-0008 + ADR-0126 + ADR-0130 + ADR-0131 + ADR-0140.
+- ADR-0028 (Bominal) + ADR-0008 + ADR-0135 + ADR-0130 + ADR-0131 + ADR-0140.
 - EU DSA 2065/2022; EU AI Act 2024/1689; UK Online Safety Act 2023.

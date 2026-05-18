@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-recordings
 deciders: council-privacy, ops-compliance, axis-recordings, gtm-customer-success
 methodology: GDPR Art. 35 + ICO DPIA guidance + ISO/IEC 29134 + CNIL PIA + KR PIPC Privacy Impact Assessment
-related_adrs: [ADR-0008, ADR-0117, ADR-0126, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0006]
+related_adrs: [ADR-0008, ADR-0117, ADR-0135, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0006]
 review_cadence: annually + on every BC addition
 doc_status: published
 ---

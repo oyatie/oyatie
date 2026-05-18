@@ -81,7 +81,7 @@ Cause: attacker-controlled parent page embeds Forms iframe; submitter data exfil
 | 3 | Audit-chain: identify how many submitters affected; subject hashes. |
 | 4 | Per-pack regulatory notification (GDPR Art. 33-34; HIPAA §164.404; etc.). |
 | 5 | Affected submitters notified directly. |
-| 6 | Post-incident: review CSP defaults; tighten Trusted Types policy; pen-test follow-up. |
+| 6 | Post-incident: review CSP defaults; tighten Trusted Types policy; pen-test successor-IP. |
 
 ## Recovery Path D — CSP report-only mode flood
 
@@ -125,7 +125,7 @@ After recovery:
 - Postmortem within 5 business days.
 - CSP defaults review per `policy/public-read.cedar`.
 - Trusted Types policy review.
-- If XSS confirmed: pen-test follow-up + ADR for sanitiser gap.
+- If XSS confirmed: pen-test successor-IP + ADR for sanitiser gap.
 
 ## References
 

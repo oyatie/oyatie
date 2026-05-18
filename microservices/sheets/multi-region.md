@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-sheets + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-sheets, council-architecture, council-privacy
-related_adrs: [ADR-0065, ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0065, ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/sheets/policy/data-residency.md
   - microservices/sheets/capacity-model.md
@@ -215,7 +215,7 @@ Per-pack BCDR specifics live at `regional-packs/<pack>/sheets-multi-region-overl
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0126: Sheets net-new µservice.
+- ADR-0135: Sheets net-new µservice.
 - ADR-0131: Per-microservice flat layout.
 - `microservices/sheets/policy/data-residency.md`.
 - `microservices/sheets/capacity-model.md`.

@@ -5,8 +5,8 @@ milestone: M03-connect-dissolution
 phase: P01-mail-dissolution-from-connect
 status: Active
 entry_gate: |
-  ADR-0126 (Connect full social network super-app dissolution) + ADR-0132 (no-suite forward policy) accepted;
-  /specs/products/connect/mail.json published; existing crates oya-connect-mail-* recognised as a working
+  ADR-0135 (Connect full social network super-app dissolution) + ADR-0132 (no-suite forward policy) accepted;
+  /specs/microservices/mail.json published; existing crates oya-connect-mail-* recognised as a working
   baseline; cargo workspace ready to accept the ~62 new crates under microservices/mail/src/crates/.
 exit_gate: |
   All 15 IPs merged; oya-vcs-promotion-readiness CI lane present and green; oya-mail-* crate family compiles
@@ -22,8 +22,8 @@ depends_on:
     phase: per master-plan-sequencing
     reason: pack-kr + pack-eu + pack-us activation pre-requisite
 owner_team: axis-mail + council-privacy
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0208, ADR-0215]
-related_specs: [/specs/products/connect/mail.json, /specs/per-microservice-flat-layout.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0208, ADR-0215]
+related_specs: [/specs/microservices/mail.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
 ---
@@ -32,12 +32,12 @@ doc_status: published
 
 ## Purpose
 
-Per ADR-0132 + parallel ADR-0126, Connect dissolves into mail / messenger / calendar / community / social / shorts / network / anonymous. This phase ships `mail` as a standalone µservice under `microservices/mail/` per ADR-0131. It carries the dual-context-isolation invariant (Personal vs Professional, kernel-enforced), the four-eyes legal-hold contract, the chain-of-custody-preserving eDiscovery export, and the SMTP/IMAP/JMAP edge surface.
+Per ADR-0132 + parallel ADR-0135, Connect dissolves into mail / messenger / calendar / community / social / shorts / network / anonymous. This phase ships `mail` as a standalone µservice under `microservices/mail/` per ADR-0131. It carries the dual-context-isolation invariant (Personal vs Professional, kernel-enforced), the four-eyes legal-hold contract, the chain-of-custody-preserving eDiscovery export, and the SMTP/IMAP/JMAP edge surface.
 
 This phase advances master-plan principles:
 - Industry-leader competitive parity (Microsoft Exchange Online + Google Workspace + Naver Works Mail).
 - Hyperscaler-grade in every practice (per-tenant DEK, encrypted-token search, audit-chained handoffs).
-- Nothing deferred — the legal-hold engine ships GA-quality at M03; no "approximate" hold logic.
+- Nothing scheduled-for-distinct-tracked-work — the legal-hold engine ships GA-quality at M03; no "approximate" hold logic.
 - No silent regression — DKIM/SPF/DMARC + retention floors are kernel-enforced.
 
 ## Scope
@@ -52,13 +52,13 @@ Plus these repo-wide artifacts (cross-cutting per ADR-0131):
 - `.github/branch-protection.yaml` — extend `oya-vcs-promotion-readiness` to cover `release/mail/*` pattern.
 - `Cargo.toml` (workspace) — register the ~62 new crates.
 - `/specs/hyperscaler-gates.json` — register HG-MAIL gate per ADR-0123.
-- `/specs/products/connect/mail.json` — promote to `mail.json` reference; retain Connect-side pointer for migration window.
+- `/specs/microservices/mail.json` — promote to `mail.json` reference; retain Connect-side pointer for migration window.
 - `registry/artifact-capabilities-registry.json` — add mail-send, mailbox-search, ediscovery-export capabilities.
 
 ### Out-of-scope
 
 - Migration of existing `oya-connect-mail-*` callers — owned by IP-M03-CONNECT-MIGR-* phase running in parallel. This phase introduces `oya-mail-*` crates without removing the Connect-side stubs (deprecation cycle).
-- Personal-pillar E2E key recovery design — Open Question 4; deferred to ADR-NNNN-personal-mail-key-recovery.
+- Personal-pillar E2E key recovery design — Open Question 4; scheduled-for-distinct-tracked-work to ADR-NNNN-personal-mail-key-recovery.
 - JMAP SDK first-class clients (only the wire-level JMAP server ships in this phase).
 - Cross-channel hold coordinator — owned by `audit-chain` µservice's own phase; this phase consumes the event.
 - Calendar/Messenger/Community integration loops — owned by their respective µservices' phases; this phase exposes mail events for those consumers only.
@@ -85,7 +85,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder.
 | `IP-014-hg-mail-authority-cohesion.md` | HG-MAIL registration in `/specs/hyperscaler-gates.json`; authority-cohesion lane integration | pending | axis-mail | IP-001..IP-013 |
 | `IP-015-pack-kr-overlay.md` | pack-kr overlay activation: KR-FSS 5y retention floor; PIPA Art. 23/28/29 conformance; 전자문서법 audit-chain seal verification; KR-resident KMS | pending | axis-mail + council-privacy + pack-kr-council | IP-010, IP-011 |
 
-Coverage check vs. PRD §"Bounded Contexts": all 8 BCs covered. Coverage check vs. ADR-0126 Connect-dissolution: mail's slice of the parallel-session dissolution is fully scoped.
+Coverage check vs. PRD §"Bounded Contexts": all 8 BCs covered. Coverage check vs. ADR-0135 Connect-dissolution: mail's slice of the parallel-session dissolution is fully scoped.
 
 ## Acceptance Gates
 
@@ -186,7 +186,7 @@ Every IP emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + p
   "phase": "P01-mail-dissolution-from-connect",
   "claim_paths": ["microservices/mail/src/crates/<crate>/**", "..."],
   "intent": "<one-line>",
-  "spec_refs": ["microservices/mail/PRD.md§<section>", "/specs/products/connect/mail.json§<section>"],
+  "spec_refs": ["microservices/mail/PRD.md§<section>", "/specs/microservices/mail.json§<section>"],
   "acceptance_lanes_green": ["cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny", "lean-a1", "lean-a2", "lean-a3", "lean-a4", "per-microservice-layout", "dual-context-cross-boundary", "retention-floor-conformance"],
   "test_count": {"unit": "<int>", "integration": "<int>", "e2e": "<int>"},
   "coverage_pct": "<float>",
@@ -259,7 +259,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 
 ## References
 
-- ADR-0126: Connect full social network super-app (parallel-session dissolution authority).
+- ADR-0135: Connect full social network super-app (parallel-session dissolution authority).
 - ADR-0131: Per-microservice flat layout (location authority).
 - ADR-0132: No-suite forward policy.
 - ADR-0133: Cross-tenant mail-server pattern.
@@ -269,7 +269,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0116: Retire external agent-coordination tooling.
 - ADR-0123: Hyperscaler maturity claim gate (HG-MAIL).
 - Bominal ADR-0208 + 0210 + 0215 (inherited).
-- `/specs/products/connect/mail.json`.
+- `/specs/microservices/mail.json`.
 - `/specs/per-microservice-flat-layout.json`.
 - `microservices/mail/PRD.md`.
 - Memory: `feedback_milestone_phase_hierarchy.md`, `feedback_naming_justification.md`, `feedback_oya_vcs_canonical_2026_05_16.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0105
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
 related_artifacts:
@@ -133,7 +133,7 @@ These are pre-tally gates and do not alter the ranking formula.
 ### Negative
 
 - Three ranking modes triple the implementation + test surface compared to a single-formula design. Mitigated by the modes being ≤ 30 lines each in `oya-community-voting-engine-kernel`.
-- The `HnFallbackRanker` → `HotFeedRanker` cutover when a space crosses 100 active members is a UX cliff (posts may visibly reorder). Mitigated by a documented 24-hour blended-rank smoothing window in `IP-006` follow-up.
+- The `HnFallbackRanker` → `HotFeedRanker` cutover when a space crosses 100 active members is a UX cliff (posts may visibly reorder). Mitigated by a documented 24-hour blended-rank smoothing window in `IP-006` successor-IP.
 - Tie-break by `created_at` rewards being-first; can be perceived as zero-sum by late-joining members. Accepted as the industry-canonical tie-break; documented in tenant-facing help.
 
 ### Operational
@@ -141,7 +141,7 @@ These are pre-tally gates and do not alter the ranking formula.
 - New crate signatures: `VoteRanker` trait in `oya-community-voting-engine-kernel`; concrete `BestAnswerRanker`, `HotFeedRanker`, `HnFallbackRanker` in `-domain`.
 - Postgres view: `community.post_ranked_feed` materialised every 5 min per space; idle spaces skipped.
 - Redis hot-cache: top-N rank per space cached for 30 s.
-- Per-space configuration column `community.spaces.ranking_mode` (enum); migration in IP-006 follow-up.
+- Per-space configuration column `community.spaces.ranking_mode` (enum); migration in IP-006 successor-IP.
 - Dashboards: `dashboards/vote-rate.json` extended with rank-mode-distribution panel.
 - CI lane `community-ranking-deterministic-snapshot`: fixed input vote sequences produce identical rank order across runs.
 
@@ -157,7 +157,7 @@ These are pre-tally gates and do not alter the ranking formula.
 - Reddit ranking algorithm post-mortem — `https://medium.com/hacking-and-gonzo/how-reddit-ranking-algorithms-work-ef111e33d0d9`
 - Hacker News ranking formula — Paul Graham, Y Combinator post — `https://www.righto.com/2013/11/how-hacker-news-ranking-really-works.html`
 - Stack Overflow ranking explainer — `https://stackoverflow.blog/2009/09/01/code-and-creativity/`
-- ADR-0126 — Connect-unbundle (parent ADR establishing the community µservice)
+- ADR-0135 — Connect-unbundle (parent ADR establishing the community µservice)
 - ADR-0131 — Per-microservice flat layout
 - EU Digital Services Act Art. 27 — recommender-system transparency — `https://eur-lex.europa.eu/eli/reg/2022/2065`
 - `microservices/community/PRD.md` FR-02, FR-05

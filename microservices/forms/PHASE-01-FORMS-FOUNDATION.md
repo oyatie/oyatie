@@ -8,7 +8,7 @@ date: 2026-05-17
 owner: axis-forms + council-architecture
 related_artifacts:
   - microservices/forms/PRD.md
-  - /specs/products/forms.json
+  - /specs/microservices/forms.json
 related_adrs: [ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-FORMS-0001, ADR-FORMS-0002, ADR-FORMS-0003, ADR-FORMS-0004, ADR-FORMS-0005, ADR-FORMS-0006]
 doc_status: published
 ---
@@ -103,7 +103,7 @@ PHASE-02-FORMS-AI-AND-ANALYTICS (T2 expansion, analytics dashboards, A/B testing
 ## References
 
 - PRD.md.
-- /specs/products/forms.json.
+- /specs/microservices/forms.json.
 - ADR-0130 SLO-gated promotion.
 - ADR-0131 per-microservice flat layout.
 - ADR-0132 single-concern microservices.

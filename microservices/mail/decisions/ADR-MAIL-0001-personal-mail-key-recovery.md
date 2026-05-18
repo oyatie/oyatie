@@ -8,7 +8,7 @@ owner: axis-mail + council-privacy
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-0208 (Bominal — personal-pillar policy inherited)
@@ -29,7 +29,7 @@ Accepted — 2026-05-17.
 
 ## Context
 
-The `mail` µservice ships at M03 with native dual-context isolation per ADR-0126 + Bominal ADR-0208. Personal-pillar mailboxes are encrypted under a user-derived DEK whose wrapping key is derived from the user's passphrase + per-user salt (PBKDF2-HMAC-SHA256, 600 000 iterations; Argon2id migration tracked separately). Per Invariant DCI-03 in `policy/dual-context-isolation.md`, the org admin cannot decrypt a user's Personal mailbox under any path — neither legal-hold, eDiscovery, four-eyes disclosure, nor operator override applies. This invariant is what makes the Personal pillar a genuine Personal pillar rather than an HR-visible "personal folder."
+The `mail` µservice ships at M03 with native dual-context isolation per ADR-0135 + Bominal ADR-0208. Personal-pillar mailboxes are encrypted under a user-derived DEK whose wrapping key is derived from the user's passphrase + per-user salt (PBKDF2-HMAC-SHA256, 600 000 iterations; Argon2id migration tracked separately). Per Invariant DCI-03 in `policy/dual-context-isolation.md`, the org admin cannot decrypt a user's Personal mailbox under any path — neither legal-hold, eDiscovery, four-eyes disclosure, nor operator override applies. This invariant is what makes the Personal pillar a genuine Personal pillar rather than an HR-visible "personal folder."
 
 PRD-mail Open Question 4 surfaces the unresolved trade-off: user-held-only keys honour the Personal-pillar trust model perfectly but produce **irrecoverable loss** when the user loses both their device AND their paper backup (Path B in `runbooks/e2e-encryption-key-recovery.md`). Real-world surfaces include user death and family inheritance, prolonged user incapacitation, corporate transitions where an employee opted into a Personal account they later need to hand over, and high-stakes regulated workflows (KR-pack tenants subject to PIPA Art. 23-2 substitute-decision rules) that expect a recoverable path.
 
@@ -68,7 +68,7 @@ Both modes share three invariants:
 ### C. Cloud key (oyatie-held wrap key on the server)
 - Pros: trivial recovery; standard pattern for consumer mail (Gmail, Outlook personal).
 - Cons: defeats the E2E posture — oyatie operators become a decryption oracle; org admins via subpoena to oyatie become an effective decryption path; violates the entire premise of Personal-pillar mail.
-- Rejected: contradicts ADR-0126 + Bominal ADR-0208 dual-context isolation by construction.
+- Rejected: contradicts ADR-0135 + Bominal ADR-0208 dual-context isolation by construction.
 
 ### D. Single-party escrow (one trustee, no Shamir split)
 - Pros: simpler implementation than Shamir.
@@ -87,7 +87,7 @@ Both modes share three invariants:
 - Personal-pillar trust model preserved by default — most users get exactly what Bominal ADR-0208 promised: an inbox where org admins, oyatie operators, and even subpoena-served oyatie cannot decrypt.
 - Enterprise-tier customers get an opt-in path that satisfies their inheritance/handover/regulated-substitution requirements without compromising users who don't need it.
 - Shamir 3-of-5 + user-factor binding means even a full trustee compromise (3 out of 5 colluding) cannot decrypt without the user's separate authentication factor, raising the attack cost above subpoena-level coercion.
-- Path E in `runbooks/e2e-encryption-key-recovery.md` becomes implementable rather than placeholder text; the runbook can move from "deferred" to "operative."
+- Path E in `runbooks/e2e-encryption-key-recovery.md` becomes implementable rather than placeholder text; the runbook can move from "scheduled-for-distinct-tracked-work" to "operative."
 - KR-pack tenants get a documented PIPA Art. 23-2 substitute-decision route through escrow without weakening default-user privacy.
 
 ### Negative
@@ -125,7 +125,7 @@ Both modes share three invariants:
 - ePrivacy Directive 2002/58/EC Art. 5 — confidentiality of communications
 - ProtonMail recovery model — `https://proton.me/support/recover-encrypted-messages-files` (industry precedent — user-held + recovery file + emergency access)
 - Apple iCloud Advanced Data Protection — recovery contact + recovery key (Shamir-style precedent at consumer scale)
-- ADR-0126 — Connect full social network super-app (parallel dual-context source)
+- ADR-0135 — Connect full social network super-app (parallel dual-context source)
 - ADR-0131 — Per-microservice flat layout
 - ADR-0132 — Product-suite-and-bundle dissolution
 - Bominal ADR-0208 — Connect dual-context unified channel hub

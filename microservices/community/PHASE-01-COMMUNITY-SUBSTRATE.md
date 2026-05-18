@@ -5,7 +5,7 @@ phase_id: PHASE-01-community-substrate
 microservice: community
 status: Accepted
 milestone: M02-shared-substrate
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/connect-unbundle.json]
 date: 2026-05-17
 owner_team: axis-community

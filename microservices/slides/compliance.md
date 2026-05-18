@@ -216,8 +216,8 @@ Cross-walk: each standard / regulation / certification → control → slides ar
 
 ## Certifications + audits
 
-- **SOC 2 Type 2**: planned post-GA; quarterly internal control test cycle.
-- **ISO 27001:2022**: planned post-GA.
+- **SOC 2 Type 2**: planned subsequent-to-GA-tier-promotion; quarterly internal control test cycle.
+- **ISO 27001:2022**: planned subsequent-to-GA-tier-promotion.
 - **HIPAA**: US-healthcare pack — annual third-party assessment.
 - **PCI-DSS**: not in scope for slides directly (no cardholder data processed in slides; foundry/payment-handling out-of-scope).
 - **FedRAMP**: out-of-scope at first launch; revisit if US Federal customers materialize.

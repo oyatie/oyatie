@@ -7,7 +7,7 @@ phase_title: Docs Foundation — document-store + collab-crdt + block-types + co
 status: Accepted
 date: 2026-05-17
 owner_team: axis-docs
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-WS-0001]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-WS-0001]
 doc_status: published
 ---
 
@@ -35,11 +35,11 @@ In-scope:
 - Ontology writes + reads per `PRD.md`.
 - HG-DOCS hyperscaler-maturity claim registered per ADR-0123 + ADR-0133.
 
-Out-of-scope (deferred):
-- External Google Docs / Word source-of-truth federation — migration-only at GA (post-M04).
-- Public-read URL publishing — share-link only at GA (post-M04).
-- ML-based smart summarisation post-publish — post-M03+1.
-- Cross-document semantic search over corpus — post-M04 (ontology integration).
+Out-of-scope (scheduled-for-distinct-tracked-work):
+- External Google Docs / Word source-of-truth federation — migration-only at GA (subsequent-to-M04-completion).
+- Public-read URL publishing — share-link only at GA (subsequent-to-M04-completion).
+- ML-based smart summarisation post-publish — subsequent-to-M03-completion+1.
+- Cross-document semantic search over corpus — subsequent-to-M04-completion (ontology integration).
 
 ## Phase outputs
 

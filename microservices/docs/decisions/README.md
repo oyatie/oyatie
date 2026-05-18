@@ -34,8 +34,8 @@ Each ADR closes one Open Question (or derived gap) surfaced in `microservices/do
 
 | PRD Open Question | Status | Notes |
 |---|---|---|
-| #5 Federation with external Google Docs / Word source (coexistence vs migration-only) | Open | post-M04 ADR; will pair with workflow-engine federation posture |
-| #6 Public-read URL publishing | Open | post-M04 ADR; will pair with content-distribution µservice |
+| #5 Federation with external Google Docs / Word source (coexistence vs migration-only) | Open | subsequent-to-M04-completion ADR; will pair with workflow-engine federation posture |
+| #6 Public-read URL publishing | Open | subsequent-to-M04-completion ADR; will pair with content-distribution µservice |
 
 These remain in `microservices/docs/PRD.md` §"Open Questions"; future ADRs land here with sequential IDs.
 

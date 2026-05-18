@@ -5,7 +5,7 @@ microservice: tasks
 status: Accepted
 date: 2026-05-17
 owner_team: council-privacy + ops-security
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0140, ADR-TASKS-0006]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-TASKS-0006]
 doc_status: published
 ---
 
@@ -261,7 +261,7 @@ Highlights:
 
 ## References
 
-- ADR-0028 (Bominal), ADR-0117, ADR-0126, ADR-0140, ADR-TASKS-0006.
+- ADR-0028 (Bominal), ADR-0117, ADR-0135, ADR-0140, ADR-TASKS-0006.
 - `threat-model.md`, `dpia.md`, `policy/*`, `multi-region.md`, `incident-response.md`, `legal/*`.
 - SOC 2 TSC 2017 + 2022 PoF; ISO 27001:2022 Annex A.
 - GDPR (Regulation 2016/679); EDPB Guidelines 4/2019 + 9/2022.

@@ -66,7 +66,7 @@ acceptance_status: ga
 | Sibling artifact | Reference |
 |---|---|
 | migration-from-connect.md | Hyrum surfaces enumeration |
-| ADR | ADR-0134 (Strangler timeline), ADR-0126 (Connect unbundle) |
+| ADR | ADR-0134 (Strangler timeline), ADR-0135 (Connect unbundle) |
 
 ## Risk + Mitigation
 
@@ -79,7 +79,7 @@ acceptance_status: ga
 ## References
 
 - ADR-0134 (Strangler timeline).
-- ADR-0126 (Connect unbundle parallel session).
+- ADR-0135 (Connect unbundle parallel session).
 - "Strangler Fig Application" — Martin Fowler (`martinfowler.com/bliki/StranglerFigApplication.html`).
 - `microservices/recordings/migration-from-connect.md`.
 

@@ -433,7 +433,7 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Schema-per-tenant vs shared-schema-RLS for very-large-tenants (10⁷+ rows): decision before first such tenant onboards | council-architecture | ADR-NNNN follow-up |
+| 1 | Schema-per-tenant vs shared-schema-RLS for very-large-tenants (10⁷+ rows): decision before first such tenant onboards | council-architecture | ADR-NNNN successor-IP |
 | 2 | Cell assignment algorithm: consistent hashing (default) vs weighted-round-robin vs ML-driven (Spanner-style) | council-architecture | resolved in IP-005 |
 | 3 | DSR cascade timeout per-µservice: hard 30d cap (GDPR ceiling) or per-pack tightening (LGPD 15d)? | council-privacy | resolved in IP-009 |
 | 4 | Tenant deletion: hard-delete vs soft-delete with grace window for accidental-deletion recovery? Default: soft 30d + hard | council-privacy + ops-security | resolved in IP-009 |

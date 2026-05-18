@@ -7,7 +7,7 @@ classification: CONFIDENTIAL
 date: 2026-05-17
 owner_team: ops-security + axis-notes + council-privacy
 review_cadence: quarterly + on every BC change
-related_adrs: [ADR-0008, ADR-0028, ADR-0126, ADR-0131, ADR-NOTES-0001, ADR-NOTES-0004, ADR-NOTES-0005]
+related_adrs: [ADR-0008, ADR-0028, ADR-0135, ADR-0131, ADR-NOTES-0001, ADR-NOTES-0004, ADR-NOTES-0005]
 related_artifacts:
   - microservices/notes/PRD.md
   - microservices/notes/policy/dual-context-isolation.md

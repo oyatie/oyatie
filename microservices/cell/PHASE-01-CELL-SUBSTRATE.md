@@ -53,7 +53,7 @@ Plus repo-wide artifacts:
 ### Out-of-scope
 
 - Migration of legacy `oya-cell-domain` and `oya-cloud-cell-app` crates — folded into the new BCs by separate IP-MIGR-001 (parallel branch).
-- Federated cross-pack cell topology — deferred to post-M01 ADR per PRD §"Horizontal Scalability".
+- Federated cross-pack cell topology — scheduled-for-distinct-tracked-work to subsequent-to-M01-completion ADR per PRD §"Horizontal Scalability".
 - Cell-native autoscaling for individual workload µservices' compute — owned by `observability` + workload µservices, not by `cell`.
 
 ## Implementation Plans

@@ -67,7 +67,7 @@ Parity dimensions are derived from competitor product documentation (canonical s
 | D16 | yes (audit devices) | CloudTrail | Cloud Audit Logs | Azure Monitor | OCI Audit | yes | yes | yes | yes | **yes (audit-chain)** | yes |
 | D17 | no (linear log) | no | no | no | no | no | no | no | partial (DFC) | **Merkle + Ed25519** | Merkle + Ed25519 |
 | D18 | per-region | per-region | per-region | per-region | per-region | per-region | no | partial | global | **per-pack** | per-pack |
-| D19 | yes (multi-lang) | yes | yes | yes | yes | yes | yes | yes | yes | **Rust + TS + Python (M01)** | + Go + Java post-M01 |
+| D19 | yes (multi-lang) | yes | yes | yes | yes | yes | yes | yes | yes | **Rust + TS + Python (M01)** | + Go + Java subsequent-to-M01-completion |
 | D20 | partial | partial | partial | partial | partial | partial | partial | partial | partial | **enforced** | enforced |
 | D21 | optional | optional | optional | optional | optional | optional | optional | optional | optional | **mandatory ≤60s** | mandatory ≤60s |
 | D22 | not enforced | not enforced | not enforced | not enforced | not enforced | not enforced | not enforced | not enforced | not enforced | **LEAN-A11 + scrubbed logs** | enforced |
@@ -92,7 +92,7 @@ Parity dimensions are derived from competitor product documentation (canonical s
 ## Gaps to Close (oyatie behind)
 
 1. **D2/D5/D6 — Transit + PKI maturity**: HashiCorp Vault's Transit + PKI engines have ~10 years of features; oyatie inherits via OpenBao but operational maturity is still nascent. Mitigation: pin to OpenBao 2.x LTS; track feature parity quarterly.
-2. **D19 — Go + Java SDK**: deferred to post-M01. Mitigation: schedule for M02/M03.
+2. **D19 — Go + Java SDK**: scheduled-for-distinct-tracked-work to subsequent-to-M01-completion. Mitigation: schedule for M02/M03.
 3. **D7 — KMIP**: OpenBao inherits HashiCorp's partial KMIP support; not native. Mitigation: gateway pattern via separate KMIP proxy if needed.
 
 ## Anti-Differentiators (deliberately not pursued)
@@ -109,7 +109,7 @@ cargo run -p oya-dev-cli -- gate validate competitor-parity-coverage --microserv
 
 Quarterly review:
 - Update competitor versions / new entrants.
-- Re-assess gaps + post-M01 timeline.
+- Re-assess gaps + subsequent-to-M01-completion timeline.
 - Sign-off by gtm-customer-success + axis-cloud-secrets leads.
 
 ## References

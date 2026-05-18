@@ -84,7 +84,7 @@ oyatie notes adopts **Meilisearch 0.10.0 LTS for Professional-tier server-side s
 
 4. **Meilisearch deployment**: per-pack Meilisearch cluster; per-tenant namespace; pinned version 0.10.0 LTS; `oya gate validate version-pinning-conformance` enforces.
 
-5. **AI-search (semantic embedding search) refused on E2E content** per ADR-NOTES-0005. Professional-tier semantic search MAY be added as a follow-on capability (T1) opt-in.
+5. **AI-search (semantic embedding search) refused on E2E content** per ADR-NOTES-0005. Professional-tier semantic search MAY be added as a successor-IP capability (T1) opt-in.
 
 ## Alternatives Considered
 
@@ -148,7 +148,7 @@ oyatie notes adopts **Meilisearch 0.10.0 LTS for Professional-tier server-side s
 
 ## Future (Semantic / Vector Search)
 
-Vector search (embedding-based semantic search) is intentionally out-of-scope at MVP. If added, it ships as:
+Vector search (embedding-based semantic search) is intentionally out-of-scope at minimum-shippable-tier. If added, it ships as:
 
 - T1 capability declared in `capabilities/T1-assist.yaml`.
 - Professional-tier-only with tenant-admin opt-in.

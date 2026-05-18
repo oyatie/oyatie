@@ -98,7 +98,7 @@ forbid (
 // FORBID — per-tenant branding mid-render (anti-pattern)
 // =============================================================================
 //
-// Anti-pattern per /specs/products/workflow-studio.json §anti_patterns:
+// Anti-pattern per /specs/microservices/workflow-studio.json §anti_patterns:
 // per-tenant branding rendered in same DOM tree as canvas is forbidden.
 
 forbid (

@@ -47,7 +47,7 @@ doc_status: published
 | T1 summarize | tenant-admin-configurable; default 1k/month for Team, 10k/month for Business | rate-limit + admin notification |
 | T1 tag-suggest | 50k/month for Team, 500k/month for Business | rate-limit |
 | T1 link-suggest | 50k/month for Team, 500k/month for Business | rate-limit |
-| T2 auto-organize | disabled at MVP | flag-gated |
+| T2 auto-organize | disabled at minimum-shippable-tier | flag-gated |
 | Web-clipper captures | 10k/installation/month | per-install rate-limit |
 | Loro collab sessions | unlimited (cheap) | broker capacity HPA |
 
@@ -60,7 +60,7 @@ doc_status: published
 | ARM compute on OCI Ampere | 25 % compute cost reduction | ops-finance |
 | Loro op-log compaction at idle > 1h | reduce broker memory | axis-notes |
 | Use small-model for tag-suggest, medium-model only on summarize | 70 % AI cost reduction | axis-foundry-runtime |
-| Daily-note auto-create deferred to lazy first-access (already implemented) | reduce baseline writes | (in design) |
+| Daily-note auto-create scheduled-for-distinct-tracked-work to lazy first-access (already implemented) | reduce baseline writes | (in design) |
 
 ## Charge-Back Model
 

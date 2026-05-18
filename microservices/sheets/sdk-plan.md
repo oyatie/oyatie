@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-sheets + council-design-system + gtm-customer-success
 deciders: axis-sheets, council-architecture
-related_adrs: [ADR-0065, ADR-0105, ADR-0126, ADR-0131]
+related_adrs: [ADR-0065, ADR-0105, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/sheets/contracts/openapi/sheets.yaml
   - microservices/sheets/contracts/proto/sheets.proto
@@ -29,11 +29,11 @@ Sheets's primary user-facing surface is the browser (Leptos WASM cell-grid). SDK
 | Language | Priority | Generation strategy | Authority |
 |---|---|---|---|
 | **Rust** | M03 (oyatie's own language) | First-party authored (`oya-sheets-cell-grid-sdk` + per-BC SDK crates) | axis-sheets |
-| **TypeScript** | M03+1 (first external-tenant SDK; matches browser-tenant integration) | OpenAPI-generated baseline + first-party ergonomic wrappers; published to npm | axis-sheets + gtm |
+| **TypeScript** | M03-onward1 (first external-tenant SDK; matches browser-tenant integration) | OpenAPI-generated baseline + first-party ergonomic wrappers; published to npm | axis-sheets + gtm |
 | **Python** | M04 (data-pipeline + LLM-orchestrator tenants) | OpenAPI-generated; published to PyPI | axis-sheets + gtm |
 | **Go** | M04 (CI/CD agent tenants) | gRPC-generated baseline + ergonomic wrappers; go-module | axis-sheets + gtm |
-| **JVM (Kotlin / Java)** | M05+ | gRPC-generated baseline; Maven Central | axis-sheets + gtm |
-| **C# / .NET** | M05+ | OpenAPI-generated; NuGet | axis-sheets + gtm |
+| **JVM (Kotlin / Java)** | M05-onward | gRPC-generated baseline; Maven Central | axis-sheets + gtm |
+| **C# / .NET** | M05-onward | OpenAPI-generated; NuGet | axis-sheets + gtm |
 | **Ruby / PHP** | (none — no demand) | n/a | n/a |
 
 Prioritisation drivers: oyatie's own µservices first; then top tenant-developer-population languages (TypeScript for browser-tenant integrations; Python for data-pipeline + LLM-orchestrator tenants).
@@ -144,7 +144,7 @@ Defer per-SDK open-source decision until API has been stable in production for �
 - `microservices/sheets/contracts/proto/sheets.proto`.
 - `microservices/sheets/contracts/asyncapi/sheets-events.yaml`.
 - ADR-0105 `sdk` canonical layer.
-- ADR-0126 Sheets net-new µservice.
+- ADR-0135 Sheets net-new µservice.
 - ADR-0131 per-microservice flat layout.
 - OpenAPI Generator — `openapi-generator.tech`.
 - tonic (Rust gRPC) — `github.com/hyperium/tonic`.

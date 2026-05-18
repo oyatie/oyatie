@@ -8,8 +8,8 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
-related_specs: [/specs/products/connect/network.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related_specs: [/specs/microservices/network.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-network
 doc_status: published
@@ -19,16 +19,16 @@ doc_status: published
 
 ## Purpose
 
-The `network` microservice is oyatie's native LinkedIn-class first-party Professional social network. Per parallel-session ADR-0126 (Connect dissolution), it is one of the first-class µservices factored out of the legacy Connect umbrella; per ADR-0132 the `network` surface is single-concern and Professional-tier-only — distinct from the sibling `social` µservice which owns the Personal/General microblog surface. `network` owns **professional-profile (resume/CV, skills, endorsements, certifications, education, recommendations) + professional-graph (1st/2nd/3rd-degree directed-bidirectional-on-acceptance connection edges) + connection-request (with note) + follow (asymmetric, distinct from connect) + feed-timeline (Professional content; chronological + heuristic-algorithmic) + post-composition (article + status + document + poll + carousel) + reactions (extended set: like / celebrate / insightful / curious / funny) + comments + replies + share + repost + inmail (premium messenger surface routed through messenger µservice) + groups (private + open) + events (with calendar bridge) + pages (company / brand) + services-marketplace-stub (M04+) + recruiter-tooling-stub (M04+; off by default) + jobs-postings-stub (handoff to Tier-G ATS µservice) + learning-stub (LinkedIn-Learning equivalent; M05+) + endorsements + recommendations (long-form testimonial) + skill-assessments + profile-verification (badge + ID-attest + employer-confirm) + salary-insights-stub + hashtags + trending-topics (Professional context only) + notifications + accessibility-captions + Professional-context-isolation invariant + EU AI Act Annex III §4 (employment) high-risk obligations for ranking + recruiter + endorsement aggregation + Art. 22 right-to-human-review + EEOC + Title VII bias monitoring** across the 11 oyatie regulatory packs.
+The `network` microservice is oyatie's native LinkedIn-class first-party Professional social network. Per parallel-session ADR-0135 (Connect dissolution), it is one of the first-class µservices factored out of the legacy Connect umbrella; per ADR-0132 the `network` surface is single-concern and Professional-tier-only — distinct from the sibling `social` µservice which owns the Personal/General microblog surface. `network` owns **professional-profile (resume/CV, skills, endorsements, certifications, education, recommendations) + professional-graph (1st/2nd/3rd-degree directed-bidirectional-on-acceptance connection edges) + connection-request (with note) + follow (asymmetric, distinct from connect) + feed-timeline (Professional content; chronological + heuristic-algorithmic) + post-composition (article + status + document + poll + carousel) + reactions (extended set: like / celebrate / insightful / curious / funny) + comments + replies + share + repost + inmail (premium messenger surface routed through messenger µservice) + groups (private + open) + events (with calendar bridge) + pages (company / brand) + services-marketplace-stub (M04-onward) + recruiter-tooling-stub (M04-onward; off by default) + jobs-postings-stub (handoff to Tier-G ATS µservice) + learning-stub (LinkedIn-Learning equivalent; M05-onward) + endorsements + recommendations (long-form testimonial) + skill-assessments + profile-verification (badge + ID-attest + employer-confirm) + salary-insights-stub + hashtags + trending-topics (Professional context only) + notifications + accessibility-captions + Professional-context-isolation invariant + EU AI Act Annex III §4 (employment) high-risk obligations for ranking + recruiter + endorsement aggregation + Art. 22 right-to-human-review + EEOC + Title VII bias monitoring** across the 11 oyatie regulatory packs.
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone Professional-network clients (web + desktop + mobile). It is consumable as a shared substrate by other oyatie products via the `network.*` Workflow events and the `Person`, `Company`, `Skill`, `Certification`, `Education`, `JobPosting` Ontology object types. It is also the canonical B2B identity provider for the rest of the oyatie surfaces — every Professional-tier feature that needs a verified employment record reads through the `network` µservice's resume + verification surface.
 
-Bominal predecessor: the `connect-network` slice of Bominal's unified Connect suite. Per parallel ADR-0126, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical Professional-network landing in oyatie. **network is NET-NEW** — no `oya-connect-network-*` crates exist; there is no migration-from-connect.md and no deprecation-notice.md.
+Bominal predecessor: the `connect-network` slice of Bominal's unified Connect suite. Per parallel ADR-0135, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical Professional-network landing in oyatie. **network is NET-NEW** — no `oya-connect-network-*` crates exist; there is no migration-from-connect.md and no deprecation-notice.md.
 
 ## Tenant Value
 
 - **Tenant Outcome 1 — Native Professional identity without identity fragmentation.** Tenants and their end-users get LinkedIn-class profile + connection + recommendations + endorsement + skill-assessments + job-handoff UX inside the same shell as mail, messenger, calendar, workflow studio, social — without leaving the surface to a third-party Professional network.
-- **Tenant Outcome 2 — Professional-only, never federates to Personal.** Per parallel ADR-0126, `network` is Professional-tier-only; the `context_kind: Professional` discriminator is compile-time-only; no Personal posts, no Personal followers, no Personal-tier audit scope ever surfaces. The sibling `social` µservice owns the Personal/General microblog surface.
+- **Tenant Outcome 2 — Professional-only, never federates to Personal.** Per parallel ADR-0135, `network` is Professional-tier-only; the `context_kind: Professional` discriminator is compile-time-only; no Personal posts, no Personal followers, no Personal-tier audit scope ever surfaces. The sibling `social` µservice owns the Personal/General microblog surface.
 - **Tenant Outcome 3 — Real-time profile-view, connection-action, and feed-render.** Feed-render p95 ≤ 200ms; profile-view p95 ≤ 150ms; connection-action p95 ≤ 50ms; search-people p95 ≤ 250ms (the most-searched surface); search-content p95 ≤ 500ms; InMail-send p95 ≤ 100ms; notification-fanout p99 ≤ 2s for 30k-follower account.
 - **Tenant Outcome 4 — Auditable Professional-context decisions.** Every endorsement, recommendation, recruiter-search invocation, jobs-ranking decision, and disclosure event emits an audit-chain record (Merkle / Ed25519); EU AI Act Annex III §4 (employment, workers management, access to self-employment) high-risk classification applies to recruiter ranking + jobs ranking + endorsement aggregation; GDPR Art. 22 right-to-human-review surfaces on every materially-impacting automated decision in the employment context.
 - **Tenant Outcome 5 — Cross-product Professional integration.** Resume reads cross-link to mail (newsletter-of-record send), messenger (InMail premium-tier bridge), calendar (events bridge), workflow-engine (connection-request approval workflow), workflow-studio (B2B template marketplace), ATS µservice in Tier-G (jobs-posting handoff via contract-versioned event), foundry-runtime (article + caption + bio T1 assist; ranking + recommender T2 auto with EU AI Act guardrails).
@@ -111,7 +111,7 @@ Bominal predecessor: the `connect-network` slice of Bominal's unified Connect su
 - All WebSocket connections mTLS-terminated; per-tenant API token bound at OpenBao with rotation 30d.
 - Search index excludes redacted PII per `policy/data-residency.md` (pack-us-healthcare overlay maps health-context post-content to PHI when present; same pattern as messenger).
 - Cross-context routing forbidden: a Personal `social` post cannot become a Professional `network` post; enforced by `policy/professional-context-isolation.md`.
-- Federation egress: `network` does NOT federate to ActivityPub in P01. (No equivalent of social's federation-gateway; Professional Network is Professional-only and federation is deferred to ADR-NET follow-up if demand emerges.)
+- Federation egress: `network` does NOT federate to ActivityPub in P01. (No equivalent of social's federation-gateway; Professional Network is Professional-only and federation is scheduled-for-distinct-tracked-work to ADR-NET successor-IP if demand emerges.)
 - InMail-bridge: contract-bound at messenger µservice; cannot escalate Professional InMail to Personal-tier DM (Personal-tier DM is owned by messenger / social-DM, distinct surface).
 - Recruiter-tooling-stub: OFF BY DEFAULT; activation requires tenant-admin entitlement + EU AI Act Art. 27 fundamental-rights-impact-assessment + NYC Local Law 144 bias-audit attestation (when NYC-tenant).
 - Salary-insights-stub: aggregate-only; per-individual disclosure forbidden.
@@ -141,7 +141,7 @@ Bominal predecessor: the `connect-network` slice of Bominal's unified Connect su
 ### Data residency
 
 - Per-tenant pack pinning per ADR-0117. `network` is Professional-tier-only, so residency follows the tenant (not per-user as in `social`).
-- No federation egress in P01; if federation is added in a follow-up ADR-NET, opt-in tenant-only + Professional-tier + SCC required.
+- No federation egress in P01; if federation is added in a successor-IP ADR-NET, opt-in tenant-only + Professional-tier + SCC required.
 
 ## Bounded Contexts
 
@@ -168,8 +168,8 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | `events-bridge` | `oya-network-events-bridge-{kernel,domain,usecase,api,adapter,adapter-calendar-bridge,worker,sdk}` | Professional events surface with calendar µservice bridge; RSVP; capacity; recurring; iCal export | `NetworkEvent`, `RSVP`, `EventCapacity`, `RecurringRule`, `ICalExport` |
 | `jobs-handoff` | `oya-network-jobs-handoff-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-ats-bridge,worker,sdk}` | Jobs-posting surface bound to network; contract-versioned event handoff to Tier-G ATS µservice; jobs-search facets; applicant referral flow | `JobPosting`, `JobApplicationReferral`, `JobsFacet`, `ATSHandoffEvent` |
 | `recruiter-stub` | `oya-network-recruiter-stub-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Recruiter-tooling-stub OFF BY DEFAULT; per-tenant opt-in; bias-audit emit; NYC Local Law 144 conformance hook; CA AB-331 transparency hook | `RecruiterStubConfig`, `RecruiterSearchRequest`, `RecruiterSearchAudit`, `BiasAuditRecord` |
-| `services-marketplace-stub` | `oya-network-services-marketplace-stub-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Services-marketplace stub OFF BY DEFAULT in P01; M04+ activation under future ADR-NET | `ServiceListing`, `ServiceOffer`, `ServiceMarketplaceConfig` |
-| `learning-stub` | `oya-network-learning-stub-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | LinkedIn-Learning-equivalent stub OFF BY DEFAULT in P01; M05+ activation under future ADR-NET | `LearningPath`, `LearningCourseStub`, `LearningEnrollmentStub` |
+| `services-marketplace-stub` | `oya-network-services-marketplace-stub-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Services-marketplace stub OFF BY DEFAULT in P01; M04-onward activation under future ADR-NET | `ServiceListing`, `ServiceOffer`, `ServiceMarketplaceConfig` |
+| `learning-stub` | `oya-network-learning-stub-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | LinkedIn-Learning-equivalent stub OFF BY DEFAULT in P01; M05-onward activation under future ADR-NET | `LearningPath`, `LearningCourseStub`, `LearningEnrollmentStub` |
 | `salary-insights-stub` | `oya-network-salary-insights-stub-{kernel,domain,usecase,api,adapter,adapter-postgres,sdk}` | Aggregate salary-insights (per role + region); per-individual disclosure forbidden; tenant opt-in | `SalaryInsightSnapshot`, `RoleSalaryBand`, `RegionalSalaryAggregate` |
 | `search` | `oya-network-search-{kernel,domain,usecase,api,adapter,adapter-meilisearch,worker,sdk}` | People + content + skills + companies + jobs + events search; faceted; Cedar-filtered; PHI-redacted in pack-us-healthcare | `SearchDoc`, `SearchQuery`, `SearchResultSet`, `SearchFacet` |
 | `accessibility-captions` | `oya-network-accessibility-captions-{kernel,domain,usecase,api,adapter,worker,sdk}` | WCAG 2.2 Level AA caption + alt-text persistence; T1 auto-draft via foundry-runtime; per-media association | `Caption`, `AltText`, `WcagComplianceFlag` |
@@ -427,13 +427,13 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Recruiter-tooling-stub: keep stubbed indefinitely vs activate-with-tenant-opt-in vs delete; tied to NYC Local Law 144 + CA AB-331 readiness | council-architecture + gtm + ops-legal | ADR-NET follow-up after M03 |
-| 2 | Services-marketplace-stub fate: activate in M04 vs delete | council-architecture + gtm | ADR-NET follow-up after M04 |
-| 3 | Learning-stub fate: build native vs partner integration vs delete | council-architecture + gtm | ADR-NET follow-up after M05 |
-| 4 | Endorsement aggregation: should aggregated endorsement count feed feed-ranking + recruiter-search ranker, or stay display-only? Implications for EU AI Act high-risk classification | council-privacy + axis-network + axis-foundry-runtime | ADR-NET-0002 references; follow-up after M03 |
-| 5 | Jobs-handoff: should `network` host job-posting authoring or only the surface? Boundary with Tier-G ATS µservice | council-architecture + axis-network + axis-ats | ADR-NET-0004 references; follow-up |
-| 6 | Federation (ActivityPub or AT Protocol) for Professional-context-only: should Professional network ever federate? Currently NO; revisit if Bluesky-style Professional federation emerges | council-architecture + axis-network | ADR-NET follow-up if demand emerges |
-| 7 | Salary-insights: data source — opt-in user-self-report vs market-data-vendor (Glassdoor-style) vs delete | council-privacy + axis-network + gtm | ADR-NET follow-up |
+| 1 | Recruiter-tooling-stub: keep interface-only-pending-impl indefinitely vs activate-with-tenant-opt-in vs delete; tied to NYC Local Law 144 + CA AB-331 readiness | council-architecture + gtm + ops-legal | ADR-NET successor-IP after M03 |
+| 2 | Services-marketplace-stub fate: activate in M04 vs delete | council-architecture + gtm | ADR-NET successor-IP after M04 |
+| 3 | Learning-stub fate: build native vs partner integration vs delete | council-architecture + gtm | ADR-NET successor-IP after M05 |
+| 4 | Endorsement aggregation: should aggregated endorsement count feed feed-ranking + recruiter-search ranker, or stay display-only? Implications for EU AI Act high-risk classification | council-privacy + axis-network + axis-foundry-runtime | ADR-NET-0002 references; successor-IP after M03 |
+| 5 | Jobs-handoff: should `network` host job-posting authoring or only the surface? Boundary with Tier-G ATS µservice | council-architecture + axis-network + axis-ats | ADR-NET-0004 references; successor-IP |
+| 6 | Federation (ActivityPub or AT Protocol) for Professional-context-only: should Professional network ever federate? Currently NO; revisit if Bluesky-style Professional federation emerges | council-architecture + axis-network | ADR-NET successor-IP if demand emerges |
+| 7 | Salary-insights: data source — opt-in user-self-report vs market-data-vendor (Glassdoor-style) vs delete | council-privacy + axis-network + gtm | ADR-NET successor-IP |
 
 ## Related ADRs
 
@@ -443,7 +443,7 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0126 | Connect dissolution (parallel) | Professional-context isolation source; network as a sibling µservice; distinct from social |
+| ADR-0135 | Connect dissolution (parallel) | Professional-context isolation source; network as a sibling µservice; distinct from social |
 | ADR-0130 | Agentic SLO-gated promotion | gates network releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |

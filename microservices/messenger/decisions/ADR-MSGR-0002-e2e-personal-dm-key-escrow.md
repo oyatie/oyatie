@@ -8,7 +8,7 @@ owner: council-privacy
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-MAIL-0001
@@ -31,7 +31,7 @@ Accepted — 2026-05-17.
 
 PRD-messenger Open Question 5 asks: what is the key-escrow policy for E2E personal-DM (RFC 9420 MLS) — none, platform-recovery-only, or admin-escrow-allowed? The question parallels (but is distinct from) ADR-MAIL-0001 because mail's personal-pillar is a single-user surface, whereas messenger has both personal DMs (two users sharing a private channel) AND professional channels (tenant-owned multi-user channels where eDiscovery + legal hold MUST function).
 
-The dual-context invariant (parallel ADR-0126 + Bominal ADR-0208 + DCI-03/06 in `policy/dual-context-isolation.md`) forbids tenant-admin disclosure of personal DMs. `policy/personal-dm-scope.cedar` already encodes this as an unconditional `forbid` of `Action::disclose_dm_body`, `Action::admin_decrypt_dm`, `Action::read_dm_plaintext` actions. The runbook `runbooks/e2e-encryption-key-rotation.md` describes MLS epoch advance as a client-driven ceremony with server-no-plaintext invariant, but explicitly defers the escrow question to "council-privacy ADR pending — PRD Open Question 5."
+The dual-context invariant (parallel ADR-0135 + Bominal ADR-0208 + DCI-03/06 in `policy/dual-context-isolation.md`) forbids tenant-admin disclosure of personal DMs. `policy/personal-dm-scope.cedar` already encodes this as an unconditional `forbid` of `Action::disclose_dm_body`, `Action::admin_decrypt_dm`, `Action::read_dm_plaintext` actions. The runbook `runbooks/e2e-encryption-key-rotation.md` describes MLS epoch advance as a client-driven ceremony with server-no-plaintext invariant, but explicitly defers the escrow question to "council-privacy ADR pending — PRD Open Question 5."
 
 At the same time, Professional channels carry tenant data subject to:
 - **SEC Rule 17a-4(f)** — broker-dealer record retention (3-7 years; tamper-evident WORM).
@@ -77,7 +77,7 @@ oyatie messenger adopts a **strict tier-split** for MLS key escrow:
 ### A. Blanket admin escrow on every group (Personal-DM + Professional-channel)
 - Pros: uniform behaviour; trivial implementation; legal-hold always available.
 - Cons: violates the Personal pillar (Invariant DCI-03); makes the dual-context posture a marketing claim rather than a structural property; tenant-admin can read personal DMs on demand, eviscerating the personal/professional distinction.
-- Rejected: contradicts ADR-0126.
+- Rejected: contradicts ADR-0135.
 
 ### B. Blanket no-escrow (Personal-DM + Professional-channel both user-held-only)
 - Pros: cleanest E2E posture; matches Signal/WhatsApp purity.
@@ -151,7 +151,7 @@ oyatie messenger adopts a **strict tier-split** for MLS key escrow:
 - IETF MLS WG — `https://datatracker.ietf.org/wg/mls/`
 - Signal Double-Ratchet precedent (Personal-DM trust model)
 - Apple iCloud Advanced Data Protection (tier-split precedent at consumer scale)
-- ADR-0126 — Connect full social network super-app (dual-context source)
+- ADR-0135 — Connect full social network super-app (dual-context source)
 - ADR-0131 — Per-microservice flat layout
 - ADR-0132 — Product-suite-and-bundle dissolution
 - ADR-MAIL-0001 — Personal-pillar mail E2E key recovery (companion privacy posture)

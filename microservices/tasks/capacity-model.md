@@ -30,7 +30,7 @@ Model per-cell capacity envelope, scale-out triggers, and headroom posture for t
 | Recurring materialisation | 0.5 / s | background |
 | Webhook fire | 25 RPS (5× event rate × subscribers) | fanout |
 | Dependency-edge add | 1 RPS | edge writes per project |
-| Time-tracking tick (M02+) | 5 / s (5 concurrent timers per tenant) | append-only |
+| Time-tracking tick (M02-onward) | 5 / s (5 concurrent timers per tenant) | append-only |
 | Importer job | 1 / day per tenant | migration-tier; bursty |
 | Comment add | 10 RPS | per active project |
 
@@ -118,7 +118,7 @@ Scale-out triggers:
 | search-index-worker | 3 | 30 | queue depth > 60s (full-rebuild) |
 | importers-worker | 3 | 30 | queue depth > 5min |
 | webhook-fanout-worker | 5 | 100 | queue depth > 1000 |
-| time-tracking-tick-worker (M02+) | 3 | 30 | queue depth > 5s |
+| time-tracking-tick-worker (M02-onward) | 3 | 30 | queue depth > 5s |
 
 Pre-warmed pool: 5 standby pods; cold-start ≤ 700ms (Rust binary; minimal init).
 

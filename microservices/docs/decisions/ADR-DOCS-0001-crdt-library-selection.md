@@ -9,7 +9,7 @@ deciders: council-architecture, axis-docs, axis-workflow, ops-security
 supersedes: []
 superseded_by: []
 related: [ADR-0065, ADR-0105, ADR-0131, ADR-WS-0001]
-related_specs: [/specs/products/docs.json, /specs/products/workflow-studio.json]
+related_specs: [/specs/microservices/docs.json, /specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/docs/PRD.md (FR-03, AC-02, AC-05, AC-06)
   - microservices/docs/PHASE-01-DOCS-FOUNDATION.md (IP-006)

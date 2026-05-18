@@ -7,7 +7,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-sites
-related_adrs: [ADR-0028, ADR-0117, ADR-0126, ADR-0140, ADR-SITES-0001]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0140, ADR-SITES-0001]
 related_artifacts:
   - microservices/sites/policy/tenant-scope.cedar
   - microservices/sites/policy/ci-scope.cedar
@@ -177,7 +177,7 @@ This policy is enforced by:
 
 - ADR-0028 (Bominal audit-chain).
 - ADR-0117 (data residency).
-- ADR-0126 (Connect unbundle).
+- ADR-0135 (Connect unbundle).
 - ADR-0140 (Cedar policy).
 - ADR-SITES-0001 (Loro CRDT).
 - `policy/tenant-scope.cedar`, `policy/ci-scope.cedar`, `policy/auditor-scope.cedar`, `policy/public-read.cedar`.

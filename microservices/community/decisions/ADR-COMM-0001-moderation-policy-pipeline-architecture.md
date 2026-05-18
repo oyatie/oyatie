@@ -10,7 +10,7 @@ superseded_by: []
 related:
   - ADR-0028
   - ADR-0105
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
 related_artifacts:
@@ -134,7 +134,7 @@ The chain is composed at the `oya-community-moderation-queue-usecase` layer; the
 
 - New runbook `runbooks/moderation-queue-clear.md` (already exists) updated to document per-hop failure isolation (e.g., classifier-down does not block manual moderator action; appeal hop short-circuits cleanly).
 - Cargo workspace adds `ModerationHop` trait + per-hop concrete crates: `oya-community-moderation-queue-kernel`, `oya-community-moderation-queue-domain`, `oya-community-moderation-queue-usecase`, `oya-community-moderation-queue-adapter-moderation-bridge` (already present in catalog).
-- Cedar policy fragments: `policy/tenant-scope.cedar` + new `policy/moderation-hop-classifier.cedar` + `policy/moderation-hop-moderator.cedar` + `policy/moderation-hop-appeal.cedar` (to be authored in IP-011 follow-up).
+- Cedar policy fragments: `policy/tenant-scope.cedar` + new `policy/moderation-hop-classifier.cedar` + `policy/moderation-hop-moderator.cedar` + `policy/moderation-hop-appeal.cedar` (to be authored in IP-011 successor-IP).
 - Dashboards: `dashboards/moderation-queue-depth.json` extended with per-hop latency + seal-latency panels.
 - CI lane `community-moderation-pipeline-integrity` BLOCKS PRs that add a hop without a Cedar fragment + an audit-chain event type.
 
@@ -149,7 +149,7 @@ The chain is composed at the `oya-community-moderation-queue-usecase` layer; the
 ## References
 
 - ADR-0028 — audit-chain Merkle / Ed25519 sealing
-- ADR-0126 — Connect-unbundle (parent ADR establishing the community µservice)
+- ADR-0135 — Connect-unbundle (parent ADR establishing the community µservice)
 - ADR-0131 — Per-microservice flat layout
 - ADR-0132 — Product-suite-and-bundle dissolution
 - Reddit Automoderator + ModSupport documentation — `https://www.reddit.com/wiki/automoderator`

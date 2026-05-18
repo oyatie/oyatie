@@ -9,14 +9,14 @@ tier: external-facing
 milestone_first_ship: M03-sheets-preview
 bominal_source: []
 net_new: true
-related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
-related_specs: [/specs/products/sheets.json, /specs/per-microservice-flat-layout.json]
-related_unbundle_adr: ADR-0126
+related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
+related_unbundle_adr: ADR-0135
 sibling_products:
   - microservices/workflow-studio/ (CRDT collab pattern; Loro alignment)
   - microservices/cell/ (per-workbook cell substrate)
   - microservices/ontology/ (Workbook/Sheet/Cell/Range/Chart object types)
-  - microservices/foundry-runtime/ (AI-formula + smart-fill bridge)
+  - microservices/foundry/ (AI-formula + smart-fill bridge)
 date: 2026-05-17
 owner_team: axis-sheets + council-design-system
 doc_status: published
@@ -26,7 +26,7 @@ doc_status: published
 
 ## Purpose
 
-The `sheets` µservice is oyatie's **spreadsheet + structured-data authoring product** — a Google-Sheets / Microsoft-Excel-Web / Airtable-grid / Notion-database / Coda-table-class hero product per ADR-0126. Sheets is the **end-user surface** of the spreadsheet/grid product class; it is NET-NEW per ADR-0126 (no `oya-connect-sheets-*` legacy crates exist; no migration-from-connect). Sheets owns: the cell-grid editor canvas, the workbook/sheet/cell/range/formula data model, the formula recalculation engine (dependency-graph + parallel-safe), pivot tables, charts, conditional formatting, data validation, real-time collaborative editing (CRDT-based, aligned with workflow-studio Loro per ADR-WS-0001 + this ADR-SHEETS-0001), comments + notes, version history, sharing + per-range ACL, XLSX/ODS/CSV/TSV/JSON import/export, AI-formula and AI-fill (T1/T2 tiers; EU AI Act-bounded), and connected-sheets queries.
+The `sheets` µservice is oyatie's **spreadsheet + structured-data authoring product** — a Google-Sheets / Microsoft-Excel-Web / Airtable-grid / Notion-database / Coda-table-class hero product per ADR-0135. Sheets is the **end-user surface** of the spreadsheet/grid product class; it is NET-NEW per ADR-0135 (no `oya-connect-sheets-*` legacy crates exist; no migration-from-connect). Sheets owns: the cell-grid editor canvas, the workbook/sheet/cell/range/formula data model, the formula recalculation engine (dependency-graph + parallel-safe), pivot tables, charts, conditional formatting, data validation, real-time collaborative editing (CRDT-based, aligned with workflow-studio Loro per ADR-WS-0001 + this ADR-SHEETS-0001), comments + notes, version history, sharing + per-range ACL, XLSX/ODS/CSV/TSV/JSON import/export, AI-formula and AI-fill (T1/T2 tiers; EU AI Act-bounded), and connected-sheets queries.
 
 Sheets is **NOT a substrate**. It is a tenant-facing product surface with five distinct user personas (business power user, business analyst, financial-modelling specialist, vertical specialist, agentic developer role). The cell grid is the second-largest Leptos application in oyatie (sibling to workflow-studio's visual canvas, per ADR-0065 Rust-WASM SSR + browser-WASM hybrid). The canonical source of truth is the workbook's structured cell graph; the visual grid derives from the graph, never vice-versa.
 
@@ -169,7 +169,7 @@ Naming justification — `cell-grid`:
 NAME: oya-sheets-cell-grid-<layer>
 JUSTIFICATION:
 - microservice = sheets: hero product µservice (per-microservice flat layout, ADR-0131).
-  Net-new per ADR-0126; no legacy oya-connect-sheets-* crates.
+  Net-new per ADR-0135; no legacy oya-connect-sheets-* crates.
 - bc-tokens = cell-grid: primary BC for the cell-grid canvas, viewport, selection, headers,
   freeze panes, drag-fill. ADR-0056 v4.1 BC-optionality honoured (18 sibling BCs exist).
 - layer = <layer>: one crate per layer per ADR-0105 13-value canonical enum.
@@ -314,7 +314,7 @@ Layer mapping per BC (13-layer canonical enum from ADR-0105; `usecase` per ADR-0
 | `embed-bridge` | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — | — | — | ✓ | — |
 | `license-gate-cedar` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — | — | ✓ | — |
 
-Total crates introduced by this µservice: approximately **115** (counting one crate per BC × layer cell ticked above). The cell µservice substrate (per-workbook cell boundary, ADR-0126) is a sibling; sheets does NOT re-implement cell storage but consumes the cell SDK.
+Total crates introduced by this µservice: approximately **115** (counting one crate per BC × layer cell ticked above). The cell µservice substrate (per-workbook cell boundary, ADR-0135) is a sibling; sheets does NOT re-implement cell storage but consumes the cell SDK.
 
 Port traits declared in each kernel (zero business logic; zero I/O; `data_class` annotated per Bominal ADR-0028):
 
@@ -455,7 +455,7 @@ Sheets is a product µservice; cross-product flows route through the engine's ev
 Key parity gaps to close (ordered by priority for M03 preview milestone):
 
 1. **Function-library coverage ≥ 400 functions** — Excel ships ~500 functions; Google Sheets ~470; oyatie M03 target ≥ 400 across math/logical/lookup/statistical/financial/text/date/array categories. Per ADR-SHEETS-0002.
-2. **XLSX best-effort fidelity** — OnlyOffice and LibreOffice claim strict OOXML round-trip; oyatie ships best-effort tier per ADR-SHEETS-0007 with named limit list (no VBA, image fidelity downgrade tolerance). Strict-round-trip deferred to post-M03 phase.
+2. **XLSX best-effort fidelity** — OnlyOffice and LibreOffice claim strict OOXML round-trip; oyatie ships best-effort tier per ADR-SHEETS-0007 with named limit list (no VBA, image fidelity downgrade tolerance). Strict-round-trip scheduled-for-distinct-tracked-work to subsequent-to-M03-completion phase.
 3. **Recalc performance** — 1M-cell recalc p95 ≤ 10s (oyatie target); Google Sheets caps at 10M cells per workbook; Excel-Web caps at 1M cells. oyatie matches Excel-Web.
 4. **Real-time collab** — Google Sheets + Microsoft Excel Web + Quip have real-time collab; oyatie matches with Loro CRDT (no silent loss invariant; competitors use OT-class with last-writer-wins fallback).
 5. **Per-range ACL granularity** — Google Sheets has protected ranges; oyatie matches via named-ACL per ADR-SHEETS-0006.
@@ -581,7 +581,7 @@ Sharding:
 | ADR-0106 | Application → usecase rename | applied for new crates |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-SHEETS registers here |
-| ADR-0126 | Sheets net-new µservice (no legacy connect-sheets) | this µservice's existence rationale |
+| ADR-0135 | Sheets net-new µservice (no legacy connect-sheets) | this µservice's existence rationale |
 | ADR-0130 | Agentic SLO-gated promotion | Sheets SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout | this µservice authored natively under it |
 | ADR-0132 | Product-suite-and-bundle dissolution | Sheets is a hero product, not a suite |

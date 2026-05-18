@@ -10,7 +10,7 @@ superseded_by: []
 related:
   - ADR-MSGR-0003
   - ADR-0105
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
 related_artifacts:
@@ -92,7 +92,7 @@ The community µservice ships a **two-backend search stack** behind the `Content
 
 ### A. Adopt a different backend than messenger (e.g., Elasticsearch for community, Meilisearch for messenger)
 - Pros: per-µservice optimisation in principle.
-- Cons: two backends in production = two operator skill sets, two upgrade cadences, two chart families, two failure modes; the µservices are siblings under the same umbrella ADR-0126 and should share operator burden by default; the community workload is not so different from messenger's that a different backend would meaningfully win.
+- Cons: two backends in production = two operator skill sets, two upgrade cadences, two chart families, two failure modes; the µservices are siblings under the same umbrella ADR-0135 and should share operator burden by default; the community workload is not so different from messenger's that a different backend would meaningfully win.
 - Rejected: operator-skill-set divergence cost outweighs marginal per-workload optimisation.
 
 ### B. Tantivy embedded only (no Meilisearch)
@@ -144,7 +144,7 @@ The community µservice ships a **two-backend search stack** behind the `Content
 - Per-tenant config: `search_backend: meilisearch | tantivy` (default: meilisearch).
 - Dashboards: `dashboards/search-latency.json` (NEW, to be authored under IP-012); per-backend search-latency panels for ops triage.
 - CI: contract tests run against both backends; lane `community-search-contract-conformance` BLOCKS PRs that pass on one but fail on the other.
-- IP-009 (currently named with "-elasticsearch" suffix) phrasing inside the file is amended in a follow-up commit; the IP-009 *filename* is preserved to avoid breaking phase-sequencing references; the file's body is updated to reflect this ADR.
+- IP-009 (currently named with "-elasticsearch" suffix) phrasing inside the file is amended in a successor-IP commit; the IP-009 *filename* is preserved to avoid breaking phase-sequencing references; the file's body is updated to reflect this ADR.
 
 ### Regulatory
 
@@ -165,7 +165,7 @@ The community µservice ships a **two-backend search stack** behind the `Content
 - Typesense — `https://typesense.org/docs/`
 - BM25 ranking — Robertson & Zaragoza, "The Probabilistic Relevance Framework: BM25 and Beyond" — `https://doi.org/10.1561/1500000019`
 - ADR-MSGR-0003 — sibling µservice's identical backend selection
-- ADR-0126 — Connect-unbundle
+- ADR-0135 — Connect-unbundle
 - ADR-0131 — Per-microservice flat layout
 - ADR-0132 — Product-suite-and-bundle dissolution
 - `microservices/community/PRD.md` FR-07

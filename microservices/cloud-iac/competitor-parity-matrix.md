@@ -111,7 +111,7 @@ Quantitative + qualitative parity comparison vs the industry-leading IaC orchest
 | 2 | Pulumi-style real-language IaC support (TS/Py/Go IaC) | axis-cloud-iac | M03 (via OpenTofu plugin) |
 | 3 | Mobile-app on-call (web Grafana OnCall only at M01) | ops-sre-reliability | M03 |
 | 4 | AI-assisted apply-failure-root-cause analysis (Spacelift offers similar) | axis-cloud-iac | M04 |
-| 5 | Tenant programmatic IaC authoring (Cedar entitlement only at M01) | axis-cloud-iac + council-architecture | M04+ |
+| 5 | Tenant programmatic IaC authoring (Cedar entitlement only at M01) | axis-cloud-iac + council-architecture | M04-onward |
 
 ## Key oyatie Differentiators (NOT in any competitor)
 

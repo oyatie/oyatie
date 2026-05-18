@@ -9,7 +9,7 @@ date: 2026-05-17
 microservice: translate
 supersedes: []
 superseded_by: []
-related_adrs: [ADR-0126, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0135, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/IP-011-real-time-stream-stack.md
@@ -146,7 +146,7 @@ Every downstream chunk includes the envelope signature; audit-chain seal per `St
 
 - **Pros**: zero server cost; offline-capable.
 - **Cons**: model size + CPU on client; per-locale model bloat; harder to update; audit-chain seal not possible client-side; ADR-TRANSLATE-0003 EU AI Act disclosure complex client-side.
-- **Verdict**: rejected. Server-side authoritative; client-side path future-deferred.
+- **Verdict**: rejected. Server-side authoritative; client-side path future-scheduled-for-distinct-tracked-work.
 
 ## Consequences
 
@@ -189,7 +189,7 @@ Every downstream chunk includes the envelope signature; audit-chain seal per `St
 - Zoom Live Translation UX precedent.
 - WebRTC RTCP replay patterns.
 - `unicode-segmentation` crate (Unicode sentence segmentation).
-- ADR-0126 — parent ADR.
+- ADR-0135 — parent ADR.
 - ADR-0131 — flat layout.
 - ADR-TRANSLATE-0001 — engine routing (stream prefers in-house).
 - ADR-TRANSLATE-0004 — residency-bound (per-session pod pack-pinned).

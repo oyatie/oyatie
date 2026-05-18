@@ -10,7 +10,7 @@ description: |
 owner_team: axis-notes + axis-foundry-runtime
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133, ADR-NOTES-0001, ADR-NOTES-0005]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-NOTES-0001, ADR-NOTES-0005]
 related_artifacts:
   - microservices/notes/PRD.md (FR-18; AC-03)
   - microservices/notes/policy/tenant-scope.cedar

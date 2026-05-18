@@ -46,7 +46,7 @@ Enumerate every plausible failure of governance components, classify by severity
 | Blast radius | Every PR matching the rule-pack pattern; all `dev` merges blocked until fix |
 | Detection | PR author opens issue + PR-comment on the governance repo; `oya-pr-review` agent flags `repeated-blocker-same-rule`; Grafana alert `blocker_false_positive_rate > 5%` |
 | Mitigation | Rule-pack PR review by two CODEOWNERS (axis-foundry + ops-security); self-application test catches obvious false-positives at scaffold time |
-| Recovery | Two-PR fix: (a) hot-patch rule-pack to downgrade BLOCKER → WARN with ADR rationale; (b) follow-up PR investigating root cause + restoring BLOCKER if appropriate |
+| Recovery | Two-PR fix: (a) hot-patch rule-pack to downgrade BLOCKER → WARN with ADR rationale; (b) successor-IP PR investigating root cause + restoring BLOCKER if appropriate |
 | RTO | ≤2h (hot-patch); ≤2 weeks (full RCA + permanent fix) |
 | RPO | 0 |
 | Owner | axis-foundry |
@@ -71,10 +71,10 @@ Enumerate every plausible failure of governance components, classify by severity
 | Attribute | Value |
 |---|---|
 | Trigger | Concurrent commits to per-µservice sources during aggregation-indexer regen → race produces inconsistent central index |
-| Blast radius | Central indices (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/products/`) refer to stale sources |
+| Blast radius | Central indices (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/microservices/`) refer to stale sources |
 | Detection | `oya-check-aggregation-index-generation` lane on next PR detects divergence; emits `aggregation-divergence` BLOCKER; Grafana alert `aggregation_divergence_total > 0` |
 | Mitigation | Aggregation-indexer holds Postgres advisory lock during regen; coalescing 15-min window; idempotent regen logic |
-| Recovery | Re-run regen with lock held; commit corrected indices via scoped PAT (see T-E-03 mitigation); follow-up PR if root cause is structural |
+| Recovery | Re-run regen with lock held; commit corrected indices via scoped PAT (see T-E-03 mitigation); successor-IP PR if root cause is structural |
 | RTO | ≤30 min |
 | RPO | 0 (sources are git-tracked) |
 | Owner | axis-foundry |
@@ -185,7 +185,7 @@ Enumerate every plausible failure of governance components, classify by severity
 | Trigger | Industry source publishes a less-stringent baseline (rare but possible; e.g., a spec relaxation) |
 | Blast radius | Auto-PR proposes softer baseline pin; if merged without review, conformance posture weakens |
 | Detection | PR auto-opened with `softer-baseline-proposed` label; council-architecture reviewer notified; `oya-check-claim-ceiling` lane refuses if claimed posture decreases |
-| Mitigation | Quarterly refresh PR is opened by `axis-foundry-bot` but cannot self-merge; requires council-architecture explicit approval + ADR follow-up rationale per ADR-0133 §"Operational" |
+| Mitigation | Quarterly refresh PR is opened by `axis-foundry-bot` but cannot self-merge; requires council-architecture explicit approval + ADR successor-IP rationale per ADR-0133 §"Operational" |
 | Recovery | Reject PR if softening unjustified; close with rationale; restore prior pin |
 | RTO | bounded by review SLA; ≤1 week |
 | RPO | 0 |

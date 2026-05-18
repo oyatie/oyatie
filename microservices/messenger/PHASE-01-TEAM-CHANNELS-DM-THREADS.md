@@ -5,7 +5,7 @@ milestone: M02-foundation
 phase: P01-team-channels-dm-threads-presence
 status: Active
 entry_gate: |
-  ADR-0126 (parallel Connect dual-context) + ADR-0131 + ADR-0132 accepted; /specs/products/connect/messenger.json published;
+  ADR-0135 (parallel Connect dual-context) + ADR-0131 + ADR-0132 accepted; /specs/microservices/messenger.json published;
   observability µservice IP-001..IP-015 merged so messenger can author OpenSLO manifests and pass promotion-readiness gate.
 exit_gate: |
   All 15 IPs merged; all 52 crates compile + nextest green; oya gate validate per-microservice-layout --microservice messenger
@@ -17,8 +17,8 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion
     reason: messenger requires observability gate + tenancy + ontology + audit-chain + cedar
 owner_team: axis-messenger
-related_adrs: [ADR-0008, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
-related_specs: [/specs/products/connect/messenger.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_specs: [/specs/microservices/messenger.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
 ---
@@ -27,14 +27,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full messenger µservice per parallel ADR-0126 + ADR-0132: team channels + DMs + threads + read-receipts + file-sharing + reactions + @mentions + channel-level RBAC + message search + presence, dual-context-safe across personal (B2C) and professional (B2B).
+This phase ships the full messenger µservice per parallel ADR-0135 + ADR-0132: team channels + DMs + threads + read-receipts + file-sharing + reactions + @mentions + channel-level RBAC + message search + presence, dual-context-safe across personal (B2C) and professional (B2B).
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Slack/Teams-class feature parity + native Workflow + Ontology integration).
-- Nothing deferred (no FUTURE stubs; every NFR covered).
+- Nothing scheduled-for-distinct-tracked-work (no FUTURE stubs; every NFR covered).
 - No silent regression (production-tier change gated by observability ADR-0130).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0126.
+- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
 
 ## Scope
 
@@ -48,11 +48,11 @@ Plus cross-cutting:
 - `.github/branch-protection.yaml` — add `release/messenger/*` pattern protection.
 - `/specs/hyperscaler-gates.json` — register HG-MESSENGER per ADR-0133.
 - `Cargo.toml` (workspace) — register 52 crates.
-- `docs/standards/dual-context-isolation.md` (NEW; cross-cutting per parallel ADR-0126).
+- `docs/standards/dual-context-isolation.md` (NEW; cross-cutting per parallel ADR-0135).
 
 ### Out-of-scope
 
-- Voice / video signaling (Open Question 2; follow-up ADR + µservice).
+- Voice / video signaling (Open Question 2; successor-IP ADR + µservice).
 - External Slack / Teams federation (Open Question 3; per-tenant opt-in adapter).
 - Personal-DM E2E key escrow policy (Open Question 5; awaiting ADR).
 - Workflow Studio shell integration UX (owned by `workflow-studio` µservice's PRD).

@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner: axis-sheets + council-architecture
 deciders: council-architecture, axis-sheets, ops-sre-reliability
-related: [ADR-0056, ADR-0105, ADR-0126, ADR-0131, ADR-SHEETS-0002, ADR-SHEETS-0003]
+related: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-SHEETS-0002, ADR-SHEETS-0003]
 related_artifacts:
   - microservices/sheets/PRD.md (FR-04, AC-07, AC-08)
   - microservices/sheets/IP-004-recalc-engine-dep-graph-parallel.md
@@ -174,4 +174,4 @@ Compile the dep-graph + topological plan once at workbook open; on edits, apply 
 - "Spreadsheets and Calculation" — Joel Spolsky on Excel dep-graph.
 - ADR-SHEETS-0002 — formula-engine conformance.
 - ADR-SHEETS-0003 — large-sheet storage substrate.
-- ADR-0056, ADR-0105, ADR-0126, ADR-0131.
+- ADR-0056, ADR-0105, ADR-0135, ADR-0131.

@@ -31,8 +31,8 @@ Tenants performing programmatic tenancy administration (CI-driven onboarding, au
 | **Python** | M02 | OpenAPI-generated; published to PyPI | axis-tenancy + gtm |
 | **Go** | M02 | gRPC-generated baseline + ergonomic wrappers; published as go-module | axis-tenancy + gtm |
 | **JVM (Kotlin / Java)** | M03 | gRPC-generated + ergonomic wrappers; published to Maven Central | axis-tenancy + gtm |
-| **C# / .NET** | M03+ | OpenAPI-generated; published to NuGet | axis-tenancy + gtm |
-| **Ruby** | M04+ (only if tenant demand) | OpenAPI-generated | axis-tenancy |
+| **C# / .NET** | M03-onward | OpenAPI-generated; published to NuGet | axis-tenancy + gtm |
+| **Ruby** | M04-onward (only if tenant demand) | OpenAPI-generated | axis-tenancy |
 | **PHP** | (none) | n/a | n/a |
 
 Prioritisation: Rust first (every other µservice's kernel consumes `TenantContext` and `TenantId` value-types); TypeScript next for tenant admin dashboards.
@@ -50,7 +50,7 @@ Lives in `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-sdk/`.
 - Streaming: `client.stream_tenant_lifecycle_events(...)` via gRPC streaming.
 - Re-exports types from `oya-tenancy-tenant-lifecycle-kernel` so consumers see consistent shapes.
 - No `unsafe`; `#![deny(unsafe_code)]`.
-- Published to oyatie's internal crate registry; open-source decision deferred until API stabilises (M02+).
+- Published to oyatie's internal crate registry; open-source decision scheduled-for-distinct-tracked-work until API stabilises (M02-onward).
 
 ### Generated SDKs (TypeScript / Python / Go / JVM / C#)
 

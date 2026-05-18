@@ -64,7 +64,7 @@ oya gate validate branch-protection-config
 
 ## Next IP
 
-(end of P01 social slice — proceed to P02 = federation MVP per ADR-SOC-0004
+(end of P01 social slice — proceed to P02 = federation minimum-shippable-tier per ADR-SOC-0004
 or to P03 = ML-driven ranking model per PRD Open Question 1.)
 
 ## References

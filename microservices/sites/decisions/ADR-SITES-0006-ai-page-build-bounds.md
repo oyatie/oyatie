@@ -80,7 +80,7 @@ T2 capabilities face the same question. The decision must align.
 
 The sites µservice ships **T2 AI-page-build with LIMITED-RISK default
 classification** and **HIGH-RISK contexts REFUSED at the Cedar policy
-layer** until a follow-up ADR-SITES-XXXX completes the Annex III §3
+layer** until a successor-IP ADR-SITES-XXXX completes the Annex III §3
 conformity assessment.
 
 Concrete bindings:

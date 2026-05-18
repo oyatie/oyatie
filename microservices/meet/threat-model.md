@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-meet + ops-security
 deciders: council-architecture, ops-security, axis-meet, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154 + ITU-T G.107 (voice quality)
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132]
 related_specs: []
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:
@@ -44,7 +44,7 @@ Identify, classify, and mitigate threats to meet's confidentiality, integrity, a
 
 ### In-scope
 
-All components introduced by ADR-0126 (net-new µservice) + ADR-0132 (single-concern flat) for the meet µservice. Deployed in the dedicated meet Kubernetes cluster.
+All components introduced by ADR-0135 (net-new µservice) + ADR-0132 (single-concern flat) for the meet µservice. Deployed in the dedicated meet Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -479,7 +479,7 @@ Per pack overlay at `regional-packs/<pack>/meet-overlay.md`; cross-mapped via co
 
 - ADR-0008 Data Use Boundary.
 - ADR-0028 (Bominal) audit-chain.
-- ADR-0126 net-new µservice authorisation.
+- ADR-0135 net-new µservice authorisation.
 - ADR-MEET-0001..0006 (decisions/).
 - ADR-MSGR-0001 (substrate-sharing precedent).
 - RFC 8825, 8866, 8445, 5766, 5389 (WebRTC + SDP + ICE + TURN + STUN).

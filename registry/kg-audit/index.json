@@ -12,39 +12,248 @@
     "purpose": "Robustness audit of the 3-layer KG (semantic + kinetic + dynamic) against dev + governance use-cases. Read-only audit; remediation PRs filed separately. Per user directive 2026-05-16: 'make sure our knowledge graph is robust enough to support our development and governance.'"
   },
   "scope": {
-    "audit_target_specs": ["$ref:specs/knowledge-graph-schema.json"],
-    "audit_target_registries": ["$ref:specs/products/ontology.json#type_system", "$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json"],
+    "audit_target_specs": [
+      "$ref:specs/knowledge-graph-schema.json"
+    ],
+    "audit_target_registries": [
+      "$ref:specs/products/ontology.json#type_system",
+      "$ref:registry/knowledge-graph-kinetic.json",
+      "$ref:registry/knowledge-graph-dynamic.json",
+      "$ref:registry/knowledge-graph-semantic.json"
+    ],
     "semantic_layer_migration_note": "specs/products/ontology.json#type_system deleted 2026-05-17 per ADR-0130; semantic type_system now in specs/products/ontology.json#type_system",
-    "use_cases_audited": ["development_traceability", "governance_audit_trail", "compliance_attestation", "incident_root_cause_traversal", "blast_radius_inference", "agent_decision_provenance"]
+    "use_cases_audited": [
+      "development_traceability",
+      "governance_audit_trail",
+      "compliance_attestation",
+      "incident_root_cause_traversal",
+      "blast_radius_inference",
+      "agent_decision_provenance"
+    ]
   },
   "current_state": {
-    "semantic_layer": {"ref": "$ref:specs/products/ontology.json#type_system", "node_types_declared": 36, "edge_types_declared": 27, "invariants_declared": 19, "read_side_queries_declared": 11, "status": "PRODUCTION_READY", "migration": "content migrated from deleted specs/products/ontology.json#type_system per ADR-0130"},
-    "kinetic_layer": {"ref": "$ref:registry/knowledge-graph-kinetic.json", "action_types_declared": 15, "workflows_declared": 5, "audit_topic_per_action": true, "idempotency_pattern_declared": true, "lock_pattern_declared": true, "status": "PRODUCTION_READY"},
-    "dynamic_layer": {"ref": "$ref:registry/knowledge-graph-dynamic.json", "live_state_sources_declared": 9, "otel_telemetry_pointers": true, "status": "PRODUCTION_READY"}
+    "semantic_layer": {
+      "ref": "$ref:registry/knowledge-graph-semantic.json",
+      "node_types_declared": 36,
+      "edge_types_declared": 27,
+      "invariants_declared": 19,
+      "read_side_queries_declared": 11,
+      "status": "PRODUCTION_READY",
+      "migration": "content migrated from deleted specs/products/ontology.json#type_system per ADR-0130"
+    },
+    "kinetic_layer": {
+      "ref": "$ref:registry/knowledge-graph-kinetic.json",
+      "action_types_declared": 15,
+      "workflows_declared": 5,
+      "audit_topic_per_action": true,
+      "idempotency_pattern_declared": true,
+      "lock_pattern_declared": true,
+      "status": "PRODUCTION_READY"
+    },
+    "dynamic_layer": {
+      "ref": "$ref:registry/knowledge-graph-dynamic.json",
+      "live_state_sources_declared": 9,
+      "otel_telemetry_pointers": true,
+      "status": "PRODUCTION_READY"
+    }
   },
   "use_case_coverage": [
-    {"use_case": "development_traceability", "coverage_pct": 100, "gaps": [], "closure_refs": ["$ref:specs/products/ontology.json#type_system/read_side_query_examples/trace_acceptance_test_ci_chain", "$ref:specs/products/ontology.json#type_system/read_side_query_examples/trace_changeset_pr_audit_row"]},
-    {"use_case": "governance_audit_trail", "coverage_pct": 90, "gaps": ["action_invoked rows captured but no aggregate read-side query joins them across autonomy_tier hierarchy"]},
-    {"use_case": "compliance_attestation", "coverage_pct": 100, "gaps": [], "closure_ref": "$ref:specs/products/ontology.json#type_system/read_side_query_examples/show_compliance_evidence_freshness"},
-    {"use_case": "incident_root_cause_traversal", "coverage_pct": 100, "gaps": [], "closure_ref": "$ref:specs/products/ontology.json#type_system/read_side_query_examples/trace_incident_root_cause_prs"},
-    {"use_case": "blast_radius_inference", "coverage_pct": 100, "gaps": [], "closure_ref": "$ref:specs/products/ontology.json#type_system/read_side_query_examples/reachable_entity_types_for_diff"},
-    {"use_case": "agent_decision_provenance", "coverage_pct": 100, "gaps": [], "closure_ref": "$ref:specs/products/ontology.json#type_system/read_side_query_examples/trace_agent_decision_chain"}
+    {
+      "use_case": "development_traceability",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_refs": [
+        "$ref:specs/products/ontology.json#type_system/read_side_query_examples/trace_acceptance_test_ci_chain",
+        "$ref:specs/products/ontology.json#type_system/read_side_query_examples/trace_changeset_pr_audit_row"
+      ]
+    },
+    {
+      "use_case": "governance_audit_trail",
+      "coverage_pct": 90,
+      "gaps": [
+        "action_invoked rows captured but no aggregate read-side query joins them across autonomy_tier hierarchy"
+      ]
+    },
+    {
+      "use_case": "compliance_attestation",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_ref": "$ref:specs/products/ontology.json#type_system/read_side_query_examples/show_compliance_evidence_freshness"
+    },
+    {
+      "use_case": "incident_root_cause_traversal",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_ref": "$ref:specs/products/ontology.json#type_system/read_side_query_examples/trace_incident_root_cause_prs"
+    },
+    {
+      "use_case": "blast_radius_inference",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_ref": "$ref:specs/products/ontology.json#type_system/read_side_query_examples/reachable_entity_types_for_diff"
+    },
+    {
+      "use_case": "agent_decision_provenance",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_ref": "$ref:specs/products/ontology.json#type_system/read_side_query_examples/trace_agent_decision_chain"
+    },
+    {
+      "use_case": "development_traceability",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_refs": [
+        "$ref:registry/knowledge-graph-semantic.json#read_side_query_examples/trace_acceptance_test_ci_chain",
+        "$ref:registry/knowledge-graph-semantic.json#read_side_query_examples/trace_changeset_pr_audit_row"
+      ]
+    },
+    {
+      "use_case": "compliance_attestation",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_ref": "$ref:registry/knowledge-graph-semantic.json#read_side_query_examples/show_compliance_evidence_freshness"
+    },
+    {
+      "use_case": "incident_root_cause_traversal",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_ref": "$ref:registry/knowledge-graph-semantic.json#read_side_query_examples/trace_incident_root_cause_prs"
+    },
+    {
+      "use_case": "blast_radius_inference",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_ref": "$ref:registry/knowledge-graph-semantic.json#read_side_query_examples/reachable_entity_types_for_diff"
+    },
+    {
+      "use_case": "agent_decision_provenance",
+      "coverage_pct": 100,
+      "gaps": [],
+      "closure_ref": "$ref:registry/knowledge-graph-semantic.json#read_side_query_examples/trace_agent_decision_chain"
+    }
   ],
   "findings": [
-    {"id": "F-KG-01", "severity": "high", "status": "resolved_2026_05_16", "summary": "ComplianceControl → SatisfiedByLane → EvidencePath chain is graph-declared; compliance-attestation 100%", "remediation": "Closed by specs/products/ontology.json#type_system node_types ComplianceControl/SatisfiedByLane/EvidencePath, edge_types satisfied_by_lane/evidence_path, invariant I15, and read-side query show_compliance_evidence_freshness."},
-    {"id": "F-KG-02", "severity": "high", "status": "resolved_2026_05_16", "summary": "Incident → CausedByChange → PullRequest chain is graph-declared and emitted by CloseIncident.", "remediation": "Closed by specs/products/ontology.json#type_system node_types Incident/CausedByChange/PullRequest, edge_types caused_by_change/change_from_pr, invariant I16, read-side query trace_incident_root_cause_prs, and kinetic action CloseIncident."},
-    {"id": "F-KG-03", "severity": "high", "status": "resolved_2026_05_16", "summary": "Blast-radius inference has read-side graph traversal aligned to deterministic review_tiering signals.", "remediation": "Closed by specs/products/ontology.json#type_system read_side_query_examples/reachable_entity_types_for_diff, which maps candidate diff files to reachable entity types, downstream consumers, and blast_radius_score signal evidence."},
-    {"id": "F-KG-04", "severity": "medium", "status": "resolved_2026_05_16", "summary": "AgentDecision is graph-declared with caused_by decision-chain traversal.", "remediation": "Closed by specs/products/ontology.json#type_system node_type AgentDecision, edge_type caused_by, invariant I17, and read-side query trace_agent_decision_chain."},
-    {"id": "F-KG-05", "severity": "medium", "status": "resolved_2026_05_16", "summary": "AcceptanceCriterion → Test → CILaneRun chain is graph-declared.", "remediation": "Closed by specs/products/ontology.json#type_system node_types AcceptanceCriterion/Test/CILaneRun, edge_types covered_by_test/executed_by_ci_lane, invariant I18, and read-side query trace_acceptance_test_ci_chain."},
-    {"id": "F-KG-06", "severity": "low", "status": "resolved_2026_05_16", "summary": "ChangeSet → PullRequest → AuditChainRow provenance chain is graph-declared.", "remediation": "Closed by specs/products/ontology.json#type_system node_types ChangeSet/AuditChainRow, edge_types merged_as_pr/emitted_audit_row, invariant I19, and read-side query trace_changeset_pr_audit_row."}
+    {
+      "id": "F-KG-01",
+      "severity": "high",
+      "status": "resolved_2026_05_16",
+      "summary": "ComplianceControl → SatisfiedByLane → EvidencePath chain is graph-declared; compliance-attestation 100%",
+      "remediation": "Closed by specs/products/ontology.json#type_system node_types ComplianceControl/SatisfiedByLane/EvidencePath, edge_types satisfied_by_lane/evidence_path, invariant I15, and read-side query show_compliance_evidence_freshness."
+    },
+    {
+      "id": "F-KG-02",
+      "severity": "high",
+      "status": "resolved_2026_05_16",
+      "summary": "Incident → CausedByChange → PullRequest chain is graph-declared and emitted by CloseIncident.",
+      "remediation": "Closed by specs/products/ontology.json#type_system node_types Incident/CausedByChange/PullRequest, edge_types caused_by_change/change_from_pr, invariant I16, read-side query trace_incident_root_cause_prs, and kinetic action CloseIncident."
+    },
+    {
+      "id": "F-KG-03",
+      "severity": "high",
+      "status": "resolved_2026_05_16",
+      "summary": "Blast-radius inference has read-side graph traversal aligned to deterministic review_tiering signals.",
+      "remediation": "Closed by specs/products/ontology.json#type_system read_side_query_examples/reachable_entity_types_for_diff, which maps candidate diff files to reachable entity types, downstream consumers, and blast_radius_score signal evidence."
+    },
+    {
+      "id": "F-KG-04",
+      "severity": "medium",
+      "status": "resolved_2026_05_16",
+      "summary": "AgentDecision is graph-declared with caused_by decision-chain traversal.",
+      "remediation": "Closed by specs/products/ontology.json#type_system node_type AgentDecision, edge_type caused_by, invariant I17, and read-side query trace_agent_decision_chain."
+    },
+    {
+      "id": "F-KG-05",
+      "severity": "medium",
+      "status": "resolved_2026_05_16",
+      "summary": "AcceptanceCriterion → Test → CILaneRun chain is graph-declared.",
+      "remediation": "Closed by specs/products/ontology.json#type_system node_types AcceptanceCriterion/Test/CILaneRun, edge_types covered_by_test/executed_by_ci_lane, invariant I18, and read-side query trace_acceptance_test_ci_chain."
+    },
+    {
+      "id": "F-KG-06",
+      "severity": "low",
+      "status": "resolved_2026_05_16",
+      "summary": "ChangeSet → PullRequest → AuditChainRow provenance chain is graph-declared.",
+      "remediation": "Closed by specs/products/ontology.json#type_system node_types ChangeSet/AuditChainRow, edge_types merged_as_pr/emitted_audit_row, invariant I19, and read-side query trace_changeset_pr_audit_row."
+    },
+    {
+      "id": "F-KG-01",
+      "severity": "high",
+      "status": "resolved_2026_05_16",
+      "summary": "ComplianceControl → SatisfiedByLane → EvidencePath chain is graph-declared; compliance-attestation 100%",
+      "remediation": "Closed by registry/knowledge-graph-semantic.json node_types ComplianceControl/SatisfiedByLane/EvidencePath, edge_types satisfied_by_lane/evidence_path, invariant I15, and read-side query show_compliance_evidence_freshness."
+    },
+    {
+      "id": "F-KG-02",
+      "severity": "high",
+      "status": "resolved_2026_05_16",
+      "summary": "Incident → CausedByChange → PullRequest chain is graph-declared and emitted by CloseIncident.",
+      "remediation": "Closed by registry/knowledge-graph-semantic.json node_types Incident/CausedByChange/PullRequest, edge_types caused_by_change/change_from_pr, invariant I16, read-side query trace_incident_root_cause_prs, and kinetic action CloseIncident."
+    },
+    {
+      "id": "F-KG-03",
+      "severity": "high",
+      "status": "resolved_2026_05_16",
+      "summary": "Blast-radius inference has read-side graph traversal aligned to deterministic review_tiering signals.",
+      "remediation": "Closed by registry/knowledge-graph-semantic.json read_side_query_examples/reachable_entity_types_for_diff, which maps candidate diff files to reachable entity types, downstream consumers, and blast_radius_score signal evidence."
+    },
+    {
+      "id": "F-KG-04",
+      "severity": "medium",
+      "status": "resolved_2026_05_16",
+      "summary": "AgentDecision is graph-declared with caused_by decision-chain traversal.",
+      "remediation": "Closed by registry/knowledge-graph-semantic.json node_type AgentDecision, edge_type caused_by, invariant I17, and read-side query trace_agent_decision_chain."
+    },
+    {
+      "id": "F-KG-05",
+      "severity": "medium",
+      "status": "resolved_2026_05_16",
+      "summary": "AcceptanceCriterion → Test → CILaneRun chain is graph-declared.",
+      "remediation": "Closed by registry/knowledge-graph-semantic.json node_types AcceptanceCriterion/Test/CILaneRun, edge_types covered_by_test/executed_by_ci_lane, invariant I18, and read-side query trace_acceptance_test_ci_chain."
+    },
+    {
+      "id": "F-KG-06",
+      "severity": "low",
+      "status": "resolved_2026_05_16",
+      "summary": "ChangeSet → PullRequest → AuditChainRow provenance chain is graph-declared.",
+      "remediation": "Closed by registry/knowledge-graph-semantic.json node_types ChangeSet/AuditChainRow, edge_types merged_as_pr/emitted_audit_row, invariant I19, and read-side query trace_changeset_pr_audit_row."
+    }
   ],
   "verdict_per_use_case": [
-    {"use_case": "development_traceability", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false, "rationale": "Acceptance criteria trace to tests/CI lane runs, and promoted changesets trace to merged PRs and audit-chain rows."},
-    {"use_case": "governance_audit_trail", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false},
-    {"use_case": "compliance_attestation", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false, "rationale": "Compliance controls now traverse to lane satisfaction and evidence paths through semantic KG edge types plus read-side freshness query."},
-    {"use_case": "incident_root_cause_traversal", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false, "rationale": "Closed incidents now traverse mechanically to root-cause change nodes and PullRequest nodes, and CloseIncident declares audit-topic emission plus validator recheck of I16."},
-    {"use_case": "blast_radius_inference", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false, "rationale": "Candidate diff files can now be joined to KG nodes, downstream graph edges, deterministic blast_radius_score signals, and downstream consumers before review dispatch."},
-    {"use_case": "agent_decision_provenance", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false, "rationale": "Agent decisions are now graph nodes with recursive caused_by traversal and evidence refs."}
+    {
+      "use_case": "development_traceability",
+      "verdict": "PRODUCTION_READY",
+      "blocker_for_user_goal": false,
+      "rationale": "Acceptance criteria trace to tests/CI lane runs, and promoted changesets trace to merged PRs and audit-chain rows."
+    },
+    {
+      "use_case": "governance_audit_trail",
+      "verdict": "PRODUCTION_READY",
+      "blocker_for_user_goal": false
+    },
+    {
+      "use_case": "compliance_attestation",
+      "verdict": "PRODUCTION_READY",
+      "blocker_for_user_goal": false,
+      "rationale": "Compliance controls now traverse to lane satisfaction and evidence paths through semantic KG edge types plus read-side freshness query."
+    },
+    {
+      "use_case": "incident_root_cause_traversal",
+      "verdict": "PRODUCTION_READY",
+      "blocker_for_user_goal": false,
+      "rationale": "Closed incidents now traverse mechanically to root-cause change nodes and PullRequest nodes, and CloseIncident declares audit-topic emission plus validator recheck of I16."
+    },
+    {
+      "use_case": "blast_radius_inference",
+      "verdict": "PRODUCTION_READY",
+      "blocker_for_user_goal": false,
+      "rationale": "Candidate diff files can now be joined to KG nodes, downstream graph edges, deterministic blast_radius_score signals, and downstream consumers before review dispatch."
+    },
+    {
+      "use_case": "agent_decision_provenance",
+      "verdict": "PRODUCTION_READY",
+      "blocker_for_user_goal": false,
+      "rationale": "Agent decisions are now graph nodes with recursive caused_by traversal and evidence refs."
+    }
   ],
   "overall_verdict": {
     "robust_enough_for_development": "YES (3-layer architecture sound; F-KG-01 through F-KG-06 resolved through additive node/edge/query/invariant declarations)",
@@ -52,5 +261,17 @@
     "recommendation": "F-KG-01 through F-KG-06 are closed. Keep future KG changes additive and covered by knowledge_graph_semantic.rs registry tests.",
     "doctrine_pointer": "$ref:specs/agent-durable-goal.json#autonomous_foundry.lane_promotion_protocol — each fix follows candidate → ≥3-prevented-incidents → BLOCKER cadence"
   },
-  "sources_scanned": ["$ref:specs/knowledge-graph-schema.json", "$ref:specs/products/ontology.json#type_system", "$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json", "$ref:specs/products/ontology.json", "$ref:specs/agent-durable-goal.json", "$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0107", "$ref:bominal/decisions/ADR-0133"]
+  "sources_scanned": [
+    "$ref:specs/knowledge-graph-schema.json",
+    "$ref:specs/products/ontology.json#type_system",
+    "$ref:registry/knowledge-graph-kinetic.json",
+    "$ref:registry/knowledge-graph-dynamic.json",
+    "$ref:specs/products/ontology.json",
+    "$ref:specs/agent-durable-goal.json",
+    "$ref:bominal/decisions/ADR-0106",
+    "$ref:bominal/decisions/ADR-0107",
+    "$ref:bominal/decisions/ADR-0133",
+    "$ref:registry/knowledge-graph-semantic.json",
+    "$ref:specs/microservices/ontology.json"
+  ]
 }

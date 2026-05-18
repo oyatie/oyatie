@@ -32,7 +32,7 @@ This µservice has no Bominal equivalent and originates in oyatie. The historica
 - **Tenant Outcome 1 — Auditable quality posture.** Every PR run produces signed, replayable evidence; tenants can request their µservice's evidence trail for SOC 2 Type 2 + ISO 27001 + GDPR audits without ad-hoc engineering work.
 - **Tenant Outcome 2 — Industry-benchmarked conformance.** Tenants see the per-axis conformance score (pipeline / directory / naming / standards / practices / policies) at the public-status surface; conformance is sourced from named industry baselines (SLSA, NIST SSDF, OWASP ASVS, Google SRE, AWS Well-Architected, Azure WAF), not internal opinion.
 - **Internal Outcome 3 — Substrate uniformity.** Every oyatie µservice is gated by the same ~50 fitness lanes; no per-team divergence in what "production-ready" means at the PR level.
-- **Internal Outcome 4 — Aggregation-index source-of-truth integrity.** Per-µservice catalog/SLO/spec/PRD files are the canonical source; central indices (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/products/`) regenerate deterministically; hand-edits refused at PR-time.
+- **Internal Outcome 4 — Aggregation-index source-of-truth integrity.** Per-µservice catalog/SLO/spec/PRD files are the canonical source; central indices (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/microservices/`) regenerate deterministically; hand-edits refused at PR-time.
 
 ## Functional Requirements
 
@@ -42,10 +42,10 @@ This µservice has no Bominal equivalent and originates in oyatie. The historica
 | FR-02 | governance lane | to read the canonical industry-baseline pin in `/specs/industry-best-practice-conformance.json` | findings cite a named source per ADR-0133 | policy-engine | Must |
 | FR-03 | governance lane | to emit a signed Finding for every violation | each violation is auditable and replayable | evidence-emitter | Must |
 | FR-04 | governance lane | to read every µservice's `microservices/<ms>/{PRD.md,catalog/**,slos/**,policy/**,contracts/**,specs/**}` | per-µservice authority is honoured | lane-runtime | Must |
-| FR-05 | aggregation indexer | to regenerate `docs/prds/INDEX.md`, `registry/catalog/<crate>.yaml`, `/specs/products/<product>.json` from per-µservice sources | central indices are never hand-edited | aggregation-indexer | Must |
+| FR-05 | aggregation indexer | to regenerate `docs/prds/INDEX.md`, `registry/catalog/<crate>.yaml`, `/specs/microservices/<product>.json` from per-µservice sources | central indices are never hand-edited | aggregation-indexer | Must |
 | FR-06 | merge queue | to query "is PR #N admissible against `dev`?" against the latest verdict | admission decisions are gate-driven, not human-driven | policy-engine | Must |
 | FR-07 | auditor (external; SOC 2 / ISO 27001) | to query findings + replay evidence for a date range scoped to a µservice | audit preparation completes without ad-hoc tooling | evidence-emitter | Must |
-| FR-08 | quarterly refresh | to fetch current industry baselines (SLSA, NIST SSDF, OpenSLO, OpenTelemetry, OWASP ASVS) + diff against pinned baselines + open follow-up PRs | baselines never silently drift | policy-engine | Must |
+| FR-08 | quarterly refresh | to fetch current industry baselines (SLSA, NIST SSDF, OpenSLO, OpenTelemetry, OWASP ASVS) + diff against pinned baselines + open successor-IP PRs | baselines never silently drift | policy-engine | Must |
 | FR-09 | per-µservice CODEOWNERS lane | to refuse a PR that adds a new crate without an authoring RACI override | ownership is explicit per ADR-0123 | policy-engine | Must |
 | FR-10 | aggregation-index lane | to refuse PRs that hand-edit central indices | per-µservice source-of-truth honoured | aggregation-indexer | Must |
 | FR-11 | hyperscaler-maturity-claim-gate | to refuse marketing claims at `oya-check-hyperscaler-maturity-claims` lane unless cited against an industry baseline | sales surface cannot drift from reality | policy-engine | Must |
@@ -99,7 +99,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | `lane-runtime` | `oya-governance-lane-runtime-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Executes any fitness lane against a target ref/PR/µservice. Hosts the matrix-fanout, lane registry, and timeout/retry policy. | `LaneId`, `LaneRun`, `LaneRequest`, `LaneVerdict`, `RunnerProfile` |
 | `policy-engine` | `oya-governance-policy-engine-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Owns the ~50 check rule-sets (data-class, license, supply-chain, glossary, perf-budget, etc.) + the industry-baseline pin. Pure decision logic. | `Rule`, `RulePack`, `Severity`, `BaselineCitation`, `Verdict` |
 | `evidence-emitter` | `oya-governance-evidence-emitter-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Signs + persists Findings; writes audit-chain records; serves replay queries. | `Finding`, `EvidenceRecord`, `AuditSeal`, `ReplayCursor` |
-| `aggregation-indexer` | `oya-governance-aggregation-indexer-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Reads per-µservice sources + regenerates central indices (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/products/`). Refuses hand-edits. | `IndexEntry`, `Aggregation`, `DivergenceReport` |
+| `aggregation-indexer` | `oya-governance-aggregation-indexer-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Reads per-µservice sources + regenerates central indices (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/microservices/`). Refuses hand-edits. | `IndexEntry`, `Aggregation`, `DivergenceReport` |
 
 Plus the **~50 historical `oya-check-*` crates** (bundled per ADR-0131 IP-M01-MIGR-014); each is a single-purpose validator that registers itself with `lane-runtime` and emits `Finding`s through `evidence-emitter`. The full list (current as of 2026-05-17):
 
@@ -343,7 +343,7 @@ Key parity gaps to close (ordered by priority):
 Error budget:
 - Monthly error budget for lane-runtime gate availability: 0.05% (≈22 min/month).
 - Burn-rate alarm on the gate itself: 14.4× burn over 1 h triggers page.
-- Error budget policy: `microservices/governance/runbooks/error-budget-policy.md` (Slice-B follow-up).
+- Error budget policy: `microservices/governance/runbooks/error-budget-policy.md` (Slice-B successor-IP).
 
 ## Horizontal Scalability
 
@@ -369,7 +369,7 @@ Scale-out policy:
 
 Cross-region story:
 - M01 launch: single KR region (OCI ap-seoul-1); per-tenant residency locked per ADR-0117.
-- Post-M01 expansion: read-replica Postgres per region; S3 cross-region replication; `multi-region.md` follow-up.
+- Post-M01 expansion: read-replica Postgres per region; S3 cross-region replication; `multi-region.md` successor-IP.
 
 Sharding:
 - Finding table partitions by `microservice` + `month`; lane-run table partitions by `month`.
@@ -397,11 +397,11 @@ Sharding:
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | Migration sequencing of the ~50 oya-check-* crates: atomic single-ChangeSet vs. tier-A/tier-B/tier-C waves? | council-architecture | resolved in IP-001..IP-015 (tier-A in IP-001..IP-010; tier-B in IP-011..IP-013; tier-C in IP-014..IP-015) |
-| 2 | Should the historical `oya-check-*` crates rename to `oya-governance-check-*-{kernel,...}` during migration, or retain flat names? | council-architecture | retain flat names for M01 (per ADR-0131 §"Crate naming inside each `microservices/<ms>/crates/` subtree is unchanged"); rename ADR follow-up post-M01 |
+| 2 | Should the historical `oya-check-*` crates rename to `oya-governance-check-*-{kernel,...}` during migration, or retain flat names? | council-architecture | retain flat names for M01 (per ADR-0131 §"Crate naming inside each `microservices/<ms>/crates/` subtree is unchanged"); rename ADR successor-IP subsequent-to-M01-completion |
 | 3 | Bootstrap paradox: governance gates governance. Synthetic-probe fallback during cold-start? | axis-foundry | resolved per ADR-0133 §"Operational"; mirrors observability self-SLO fallback in microservices/observability/PRD.md Open Q4 |
-| 4 | Per-µservice lane-subset selection (run only relevant lanes per PR) vs. full ~50 every time? | axis-foundry | full ~50 for M01 (deterministic posture); subset-selection ADR follow-up post-M01 |
+| 4 | Per-µservice lane-subset selection (run only relevant lanes per PR) vs. full ~50 every time? | axis-foundry | full ~50 for M01 (deterministic posture); subset-selection ADR successor-IP subsequent-to-M01-completion |
 | 5 | Quarterly refresh: PR-bot author identity (council-architecture vs. ops-finops vs. axis-foundry)? | ops-sre-reliability | resolved as `axis-foundry-bot` per `runbooks/industry-baseline-refresh.md` |
-| 6 | Finding severity escalation policy: BLOCKER vs WARN vs INFO; does WARN-stacking promote to BLOCKER? | ops-security | M01 launch: strict severity (no escalation); ADR-NNNN follow-up if signal-overload observed |
+| 6 | Finding severity escalation policy: BLOCKER vs WARN vs INFO; does WARN-stacking promote to BLOCKER? | ops-security | M01 launch: strict severity (no escalation); ADR-NNNN successor-IP if signal-overload observed |
 | 7 | External-auditor JIT scope: read-only Postgres replica vs. evidence-export tool? | ops-security | evidence-export tool (per `runbooks/evidence-replay.md`); read-only replica is overscoped |
 
 ## Related ADRs

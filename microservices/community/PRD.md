@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: shared
 milestone_first_ship: M02-shared-substrate
 bominal_source: [ADR-0208]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/connect-unbundle.json]
 date: 2026-05-17
 owner_team: axis-community
@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `community` µservice is oyatie's org-wide community surface. Per parallel-session ADR-0126 (Connect unbundle), the legacy Bominal Connect product split into two sibling µservices: `messenger` (real-time chat + DMs) and `community` (this µservice: org-wide announcements, Q&A, knowledge-base articles, threaded discussion forums, voting, moderation, search).
+The `community` µservice is oyatie's org-wide community surface. Per parallel-session ADR-0135 (Connect unbundle), the legacy Bominal Connect product split into two sibling µservices: `messenger` (real-time chat + DMs) and `community` (this µservice: org-wide announcements, Q&A, knowledge-base articles, threaded discussion forums, voting, moderation, search).
 
 This µservice is **shared substrate** consumed by every product (Workflow Studio, Foundry, Ontology consumers, Workflow-Engine clients) and exposed directly to tenants for their internal community surface. It is the competitive parity surface for Atlassian Community, Microsoft Yammer/Viva Engage, Salesforce Community Cloud, Discourse, Slack channels (read-only mode), and Stack Overflow Teams.
 

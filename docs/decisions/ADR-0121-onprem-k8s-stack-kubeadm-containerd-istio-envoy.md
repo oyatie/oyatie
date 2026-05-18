@@ -43,7 +43,7 @@ The on-prem Kubernetes stack on the KR primary cell is:
 | Service mesh control plane | **Istio** (minimal profile initially) | Per ADR-0044 service-mesh + mTLS decision; canonical Envoy operator with strong ecosystem. |
 | Service mesh data plane | **Envoy** (Istio sidecars + ingress gateway) | Pulled forward from M03 (per ADR-0044 §timeline) so on-prem Foundry traffic immediately benefits from L7 access logs + mTLS hooks; portable to OCI OKE unchanged. |
 
-k3s and k0s are **explicitly rejected** for this cell. They remain valid options for **edge cells** (M07+ Industrial Suite KR satellite cells, retail kiosks) where RAM is constrained and full-upstream parity is not required; future ADRs may sanction k3s/k0s for those classes.
+k3s and k0s are **explicitly rejected** for this cell. They remain valid options for **edge cells** (M07-onward Industrial Suite KR satellite cells, retail kiosks) where RAM is constrained and full-upstream parity is not required; future ADRs may sanction k3s/k0s for those classes.
 
 ---
 
@@ -51,14 +51,14 @@ k3s and k0s are **explicitly rejected** for this cell. They remain valid options
 
 - **OKE parity (highest weight).** The KR primary cell handles regulated tenant data per ADR-0043. When M03 OKE clusters come up, workloads MUST be portable without re-validation. kubeadm runs the same control-plane code as OKE; k3s does not (different etcd backend by default, different CNI, different ingress).
 - **Service-mesh first.** Even with only 2-3 services on the on-prem host today, Istio's access logs + telemetry hooks + per-service mTLS posture give us cross-cutting observability that we'd otherwise hand-roll. Pulling Envoy forward into stage-0 amortizes the integration cost across the whole M03 fan-out.
-- **Vanilla = audit-friendly.** Compliance lanes (KCMVP for KR, FIPS 140-3 globally per ADR-0043) require explicit cryptographic-module provenance. Vanilla upstream Kubernetes + containerd + Istio components are individually documented in compliance crosswalks; k3s aggregates these in ways that make per-component validation harder.
+- **Vanilla = audit-friendly.** Compliance lanes (KCminimum-shippable-tier for KR, FIPS 140-3 globally per ADR-0043) require explicit cryptographic-module provenance. Vanilla upstream Kubernetes + containerd + Istio components are individually documented in compliance crosswalks; k3s aggregates these in ways that make per-component validation harder.
 - **Cost is acceptable.** ~250 MB RAM idle on a host with 32+ GB is irrelevant. Setup time (~10 min via kubeadm) is one-time.
 
 ---
 
 ## Consequences
 
-### Required follow-up
+### Required successor-IP
 
 - `infra/onprem/k3s/install.sh` is **retired** (tombstone exit 64). `infra/onprem/kubeadm/install.sh` + `infra/onprem/containerd/install.sh` are the canonical install entrypoints.
 - `infra/onprem/istio/install.sh` targets the kubeadm cluster (kubeconfig at `~/.kube/config`).
@@ -67,11 +67,11 @@ k3s and k0s are **explicitly rejected** for this cell. They remain valid options
 - Debian 13 (trixie) gotcha: `setup.sh` pins iptables-legacy and flushes nftables ruleset before kubeadm init — k8s 1.35's kube-proxy nftables mode segfaults on this kernel, and orphan nft rules from prior attempts break pod-to-pod traffic.
 - Per ADR-0044, mTLS posture moves from `permissive` to `strict` after first cross-cell traffic is observed.
 - The OCI side: OKE remains the target (per ADR-0117) for cloud cells. The on-prem cell and OKE cells form a federation; workloads should be portable.
-- M02b-substrate-P22 exit-gate spec line "mTLS Istio between services — deferred to M03 per ADR-0117 §1" is now **partially closed** for the on-prem cell (Istio installed, mTLS configurable). M03 work remains for the OKE side and cross-cluster mesh.
+- M02b-substrate-P22 exit-gate spec line "mTLS Istio between services — scheduled-for-distinct-tracked-work to M03 per ADR-0117 §1" is now **partially closed** for the on-prem cell (Istio installed, mTLS configurable). M03 work remains for the OKE side and cross-cluster mesh.
 
 ### Rejected for the primary cell, accepted for edge
 
-- k3s is **acceptable** for future edge cells (M07+ retail/industrial constrained-RAM deployments) and for ephemeral developer environments. New ADRs may sanction k3s for those classes — explicitly NOT for the primary cell.
+- k3s is **acceptable** for future edge cells (M07-onward retail/industrial constrained-RAM deployments) and for ephemeral developer environments. New ADRs may sanction k3s for those classes — explicitly NOT for the primary cell.
 - k0s, MicroK8s, Talos Linux are also rejected for the primary cell. Same OKE-parity argument.
 
 ### Migration triggers

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-shorts
 deciders: council-privacy, ops-security, axis-shorts, council-architecture, ops-legal
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/shorts/threat-model.md
@@ -97,7 +97,7 @@ DPIA is mandatory pre-deployment. This document is the canonical DPIA reviewed b
 - **Data subjects:** Creators + viewers of tenant applications (consumer users of B2C tenants; employee users of B2B tenants); minors (heightened-protection); tenant operators; oyatie operators; non-creators referenced in videos (e.g., subjects of journalism or commentary).
 - **Relationship:** Joint controllership with tenant under Art. 26.
 - **Reasonable expectations:** Creators expect public-by-default semantics + tenant-admin moderation under disclosed policy + copyright enforcement.
-- **Previous experience:** **shorts is NET-NEW** in oyatie per ADR-0126; no Bominal predecessor (Bominal had no short-video product).
+- **Previous experience:** **shorts is NET-NEW** in oyatie per ADR-0135; no Bominal predecessor (Bominal had no short-video product).
 - **Industry codes:** EU DSA + EU AVMSD + UK Online Safety Act + AU Online Safety Act + CA AB-2273 + UT SMRA for content moderation transparency + minor protection; DMCA Title II for copyright.
 - **Children:** all packs apply pack-aware child consent threshold (GDPR Art. 8 default 16y; member states may lower to 13y; COPPA US <13; KR <14; LGPD <12; AU <16); minor accounts get heightened-protection defaults via `parental-controls` BC.
 

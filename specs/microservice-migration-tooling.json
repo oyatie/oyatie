@@ -9,7 +9,7 @@
     "created_at": "2026-05-17",
     "owner_team": "axis-foundry + council-architecture",
     "adr": "ADR-0131",
-    "purpose": "Spec for the `oya dev migrate-microservice` command that mechanises per-µservice migrations from the legacy scattered layout (crates/, docs/prds/, /specs/products/, .omc/plans/milestones/, registry/catalog/) to the canonical per-microservice flat layout under microservices/<ms>/ per ADR-0131."
+    "purpose": "Spec for the `oya dev migrate-microservice` command that mechanises per-µservice migrations from the legacy scattered layout (crates/, docs/prds/, /specs/microservices/, .omc/plans/milestones/, registry/catalog/) to the canonical per-microservice flat layout under microservices/<ms>/ per ADR-0131."
   },
 
   "command": "oya dev migrate-microservice",
@@ -32,7 +32,7 @@
       "actions": [
         "Find `crates/oya-<ms>-*` directories",
         "Find `docs/prds/<ms>.md` + `docs/products/<ms>/`",
-        "Find `/specs/products/<ms>.json` + `/specs/products/<ms>/`",
+        "Find `/specs/microservices/<ms>.json` + `/specs/microservices/<ms>/`",
         "Find `registry/catalog/<crate>.yaml` rows for each owned crate",
         "Find `contracts/openapi/<surface>/`, `contracts/asyncapi/<surface>/`, `contracts/<surface>.proto` where surface matches µservice ownership",
         "Find `.omc/plans/milestones/M0X-*/phases/P0Y-*/IP-NNN-<ms>-*.md`",
@@ -101,7 +101,7 @@
         "oya gate validate per-microservice-layout --microservice <ms> exits 0",
         "oya gate validate cross-ref-validity exits 0",
         "oya gate validate aggregation-index-generation exits 0",
-        "find legacy paths returns empty (no orphans left in crates/oya-<ms>-*, docs/prds/<ms>.md, /specs/products/<ms>/, etc.)",
+        "find legacy paths returns empty (no orphans left in crates/oya-<ms>-*, docs/prds/<ms>.md, /specs/microservices/<ms>/, etc.)",
         "git log --follow shows continuity for moved files (no broken history)"
       ]
     },

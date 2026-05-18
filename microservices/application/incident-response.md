@@ -129,7 +129,7 @@ Workgroup contacts: incidents@oyatie.dev
 ### Postmortem template
 
 `docs/templates/postmortem-template.md` — covers: timeline, root cause,
-contributing factors, customer impact, recovery actions, follow-up
+contributing factors, customer impact, recovery actions, successor-IP
 action items.
 
 ## Escalation Matrix

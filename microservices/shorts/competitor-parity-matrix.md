@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-shorts + gtm-strategy + council-architecture
 deciders: axis-shorts, gtm-strategy, council-architecture
-related_adrs: [ADR-0126, ADR-0131, ADR-0133]
+related_adrs: [ADR-0135, ADR-0131, ADR-0133]
 related_artifacts:
   - microservices/shorts/PRD.md (§Competitive Benchmark)
 review_cadence: quarterly
@@ -166,12 +166,12 @@ Legend: ✓ = parity; ◐ = partial; ✗ = absent; — = inherently inapplicable
 9. **Per-pack content moderation overlay** — competitors apply a global moderation policy with regional carve-outs; oyatie applies per-pack regulatory floor (KR PIPA + EU DSA + UK OSA + CA AB-2273 + UT SMRA).
 10. **Four-eyes Professional disclosure + audit-chain Ed25519** — Bominal-inherited dual-context safety primitive.
 
-## Parity Gaps (oyatie disadvantage; needs follow-up)
+## Parity Gaps (oyatie disadvantage; needs successor-IP)
 
-- Federation (ActivityPub video) — deferred to P02; competitors don't have it either, so neutral.
-- Live-streaming — deferred to M05+; competitors offer it (TikTok Live, Reels Live, YouTube Live). Acceptable for M03 scope.
-- Monetization (tip-jar + creator-fund) — deferred to M04+; competitors offer it (TikTok Creator Fund, Reels Bonuses, YouTube Shorts Fund). Acceptable for M03 scope.
-- AT Protocol federation — out-of-scope (not in competitor set; aligned with social ADR follow-up).
+- Federation (ActivityPub video) — scheduled-for-distinct-tracked-work to P02; competitors don't have it either, so neutral.
+- Live-streaming — scheduled-for-distinct-tracked-work to M05-onward; competitors offer it (TikTok Live, Reels Live, YouTube Live). Acceptable for M03 scope.
+- Monetization (tip-jar + creator-fund) — scheduled-for-distinct-tracked-work to M04-onward; competitors offer it (TikTok Creator Fund, Reels Bonuses, YouTube Shorts Fund). Acceptable for M03 scope.
+- AT Protocol federation — out-of-scope (not in competitor set; aligned with social ADR successor-IP).
 
 ## References
 

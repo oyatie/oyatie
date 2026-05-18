@@ -5,7 +5,7 @@ milestone: M03-foundation
 phase: P01-shorts-foundation
 status: Active
 entry_gate: |
-  ADR-0126 (parallel Connect dissolution) + ADR-0131 + ADR-0132 accepted; observability µservice IP-001..IP-015 merged;
+  ADR-0135 (parallel Connect dissolution) + ADR-0131 + ADR-0132 accepted; observability µservice IP-001..IP-015 merged;
   social µservice IP-001..IP-015 merged (shorts depends on social for profile + follow-graph + mention bridge + federation);
   messenger µservice IP-001..IP-015 merged (shorts depends on messenger for share-to-DM bridge);
   audit-chain + tenancy + ontology + cedar substrate live; foundry-runtime T1/T2 deployment substrate ready.
@@ -26,7 +26,7 @@ depends_on:
     phase: P01-team-channels-dm-threads
     reason: shorts depends on messenger share-to-DM bridge
 owner_team: axis-shorts
-related_adrs: [ADR-0008, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
@@ -36,14 +36,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the foundation of the shorts µservice per parallel ADR-0126 + ADR-0132: video-upload + video-transcode + video-storage + thumbnail + audio-track-library + audio-attribution + video-composition + feed-timeline + watch-time + like-share-comment + repost-stitch-duet + hashtag + trending + notifications + content-moderation + copyright-claim + age-gate + parental-controls + accessibility-captions + creator-analytics + DRM-stub, dual-context-safe across Personal (B2C) and Professional (B2B).
+This phase ships the foundation of the shorts µservice per parallel ADR-0135 + ADR-0132: video-upload + video-transcode + video-storage + thumbnail + audio-track-library + audio-attribution + video-composition + feed-timeline + watch-time + like-share-comment + repost-stitch-duet + hashtag + trending + notifications + content-moderation + copyright-claim + age-gate + parental-controls + accessibility-captions + creator-analytics + DRM-stub, dual-context-safe across Personal (B2C) and Professional (B2B).
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (TikTok / Reels / Shorts parity + native Workflow + Ontology integration).
-- Nothing deferred within scope (no FUTURE stubs except monetization-stub and live-streaming-stub explicitly off by default per PRD §"Out-of-scope").
+- Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs except monetization-stub and live-streaming-stub explicitly off by default per PRD §"Out-of-scope").
 - No silent regression (production-tier change gated by observability ADR-0130).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0126.
+- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
 - Minor-protection at regulatory floor — EU DSA Art. 28 + KR 청소년 보호법 + COPPA + UK OSA + CA AB-2273 + UT SMRA enforced by default.
 
 ## Scope
@@ -58,15 +58,15 @@ Plus cross-cutting:
 - `.github/branch-protection.yaml` — add `release/shorts/*` pattern protection + 8 required checks per IP-015.
 - `/specs/hyperscaler-gates.json` — register HG-SHORTS per ADR-0133.
 - `Cargo.toml` (workspace) — register ~140 crates.
-- `docs/standards/dual-context-isolation.md` (already authored cross-cutting per parallel ADR-0126).
+- `docs/standards/dual-context-isolation.md` (already authored cross-cutting per parallel ADR-0135).
 
-### Out-of-scope (deferred to follow-up phases)
+### Out-of-scope (scheduled-for-distinct-tracked-work to successor-IP phases)
 
-- **Live-streaming** — stub-only at M03; M05+ activation per PRD Open Question 1.
-- **Monetization (tip-jar + creator-fund)** — stub-only at M03; M04+ activation per PRD Open Question 2.
-- **Federation (ActivityPub video)** — deferred to P02; opt-in per tenant; Personal-tier never federates. Posture inherits ADR-SOC-0004 by default.
-- **Ranking model openness (closed-weights vs published-weights)** — P01 heuristic + ML ranking with closed-weights; per PRD Open Question 4 follow-up.
-- **Per-tenant ranking weights** — deferred to M04+ per social pattern.
+- **Live-streaming** — stub-only at M03; M05-onward activation per PRD Open Question 1.
+- **Monetization (tip-jar + creator-fund)** — stub-only at M03; M04-onward activation per PRD Open Question 2.
+- **Federation (ActivityPub video)** — scheduled-for-distinct-tracked-work to P02; opt-in per tenant; Personal-tier never federates. Posture inherits ADR-SOC-0004 by default.
+- **Ranking model openness (closed-weights vs published-weights)** — P01 heuristic + ML ranking with closed-weights; per PRD Open Question 4 successor-IP.
+- **Per-tenant ranking weights** — scheduled-for-distinct-tracked-work to M04-onward per social pattern.
 - **Voice / image-only posts** — out-of-scope; shorts is video-only.
 
 ## Implementation Plans

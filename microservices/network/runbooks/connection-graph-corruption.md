@@ -114,7 +114,7 @@ All scenarios are Sev-1 except FM-21 (ontology degraded = Sev-3 graceful-degrade
 | 1 | Verify `ontology` µservice health: `kubectl -n ontology get pods` | ≤ 2 min |
 | 2 | Cache last known ontology graph for Person / Company / Skill / Hashtag lookups | ≤ 5 min |
 | 3 | Degrade mention-render to raw-text mode (no link, no notification fanout) | ≤ 5 min |
-| 4 | Reconcile when ontology returns: re-resolve mentions in last hour of posts; emit deferred notifications | ≤ 30 min |
+| 4 | Reconcile when ontology returns: re-resolve mentions in last hour of posts; emit scheduled-for-distinct-tracked-work notifications | ≤ 30 min |
 
 ## Recovery Verification
 

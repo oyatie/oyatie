@@ -5,8 +5,8 @@ microservice: connect (umbrella — retiring)
 status: Retiring
 declaration_date: 2026-05-17
 removal_target: when all 8 sub-µservices reach HG-<MS> green at p99 SLO sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
-related_specs: [/specs/products/connect/mail.json, /specs/products/connect/messenger.json, /specs/products/connect/calendar.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related_specs: [/specs/microservices/mail.json, /specs/microservices/messenger.json, /specs/microservices/calendar.json]
 owner_team: council-architecture
 date: 2026-05-17
 doc_status: published
@@ -16,7 +16,7 @@ doc_status: published
 
 > Even though `microservices/connect/` currently has no production-bound
 > contents (the 8 sub-µservices already ship under their own folders per
-> ADR-0126), this RETIREMENT-PLAN.md exists at `microservices/connect/`
+> ADR-0135), this RETIREMENT-PLAN.md exists at `microservices/connect/`
 > to declare the formal retirement criteria, sub-µservice progress
 > tracking, and verification checklist for the Connect umbrella concept.
 > When all 8 retirement triggers fire, `microservices/connect/` (including
@@ -29,19 +29,19 @@ fires for all 8 sub-µservices.**
 
 ## The 8 sub-µservices
 
-Per ADR-0126, the Connect super-app is dissolved into exactly 8 first-class
+Per ADR-0135, the Connect super-app is dissolved into exactly 8 first-class
 flat µservices:
 
 | µservice | Folder | PRD | Pack-fill status (2026-05-17) | HG-<MS> gate | Phase status |
 |---|---|---|---|---|---|
 | `mail` | `microservices/mail/` | shipped | **84 files** populated | HG-MAIL registered | Phase 1 active |
 | `messenger` | `microservices/messenger/` | shipped | **96 files** populated | HG-MESSENGER registered | Phase 1 active |
-| `calendar` | `microservices/calendar/` | shipped | **TBD** (PRD + threat-model + dpia + compliance + capacity-model + cost-budget + multi-region + failure-modes + incident-response + IP-001..IP-015 in progress) | HG-CALENDAR registered | Phase 1 active |
-| `community` | `microservices/community/` | shipped | **TBD** (PRD + IP-001..IP-015 in progress) | HG-COMMUNITY pending | Phase 1 ramp-up |
-| `social` | `microservices/social/` (folder TBD) | **TBD** (PRD not yet shipped) | **TBD** (not yet stood up) | HG-SOCIAL pending registration | not yet stood up |
-| `shorts` | `microservices/shorts/` (folder TBD) | **TBD** | **TBD** | HG-SHORTS pending registration | not yet stood up |
-| `network` | `microservices/network/` (folder TBD) | **TBD** | **TBD** | HG-NETWORK pending registration | not yet stood up |
-| `anonymous` | `microservices/anonymous/` (folder TBD) | **TBD** | **TBD** | HG-ANONYMOUS pending registration | not yet stood up |
+| `calendar` | `microservices/calendar/` | shipped | **103 files** populated (PRD + threat-model + dpia + compliance + capacity-model + cost-budget + multi-region + failure-modes + incident-response + IP-001..IP-015) | HG-CALENDAR registered | Phase 1 active |
+| `community` | `microservices/community/` | shipped | **126 files** populated (PRD + IP-001..IP-015) | HG-COMMUNITY registered | Phase 1 active |
+| `social` | `microservices/social/` | shipped | **96 files** populated | HG-SOCIAL registered | Phase 1 active |
+| `shorts` | `microservices/shorts/` | shipped | **97 files** populated | HG-SHORTS registered | Phase 1 active |
+| `network` | `microservices/network/` | shipped | **100 files** populated | HG-NETWORK registered | Phase 1 active |
+| `anonymous` | `microservices/anonymous/` | shipped | **102 files** populated | HG-ANONYMOUS registered | Phase 1 active |
 
 > **Pack-fill numbers are point-in-time as of 2026-05-17.** Authoritative
 > current count: `find microservices/<ms>/ -type f | wc -l` per µservice.
@@ -69,8 +69,8 @@ When the trigger fires, the Phase 6 ChangeSet from ADR-0134 executes:
 3. Strip the "Connect" umbrella node from `docs/architecture/product-graph.md`
    + `docs/architecture/product-graph.html`; keep the 8 children as
    first-class nodes.
-4. Delete `/specs/products/connect/*.json` legacy pointers (only after their
-   `replacement_path` targets at `/specs/products/<ms>/*.json` are promoted).
+4. Delete `/specs/microservices/*.json` legacy pointers (only after their
+   `replacement_path` targets at `/specs/microservices/<ms>/*.json` are promoted).
 5. Emit a final ADR-NNNN-connect-umbrella-retired marker ADR (separately
    numbered at retirement time; not pre-authored here).
 
@@ -105,7 +105,7 @@ fire before its HG-<MS> can be claimed at p99 sustained 30d:
 
 > **Calendar deprecation-notice + migration-from-connect.md are not authored
 > in this batch** (the prompt covers mail + messenger only). The calendar
-> axis must author the equivalent pair in a follow-up ChangeSet before
+> axis must author the equivalent pair in a successor-IP ChangeSet before
 > Phase 2 adapter soak begins for calendar; if `microservices/calendar/
 > {deprecation-notice.md,migration-from-connect.md}` are absent at the
 > moment the calendar axis tries to claim HG-CALENDAR, the
@@ -188,7 +188,7 @@ checklist applies at umbrella scope:
 - [ ] **Old code, tests, documentation, configuration are fully removed.**
   ```bash
   find crates -maxdepth 1 -type d -name "oya-connect-*"   | grep -E "(mail|messenger|calendar|community|social|shorts|network|anonymous)"   | wc -l   # expect 0
-  ls /specs/products/connect/ 2>/dev/null | wc -l   # expect 0 (folder deleted)
+  ls /specs/microservices/ 2>/dev/null | wc -l   # expect 0 (folder deleted)
   ```
 - [ ] **No references to the deprecated system remain in the codebase**
   (excluding historical ADR / RETIRED.md / git-log surfaces):
@@ -225,7 +225,7 @@ the table below is a human-readable snapshot.
 
 ## References
 
-- ADR-0126: Connect super-app expansion into 8 flat µservices (target topology).
+- ADR-0135: Connect super-app expansion into 8 flat µservices (target topology).
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.

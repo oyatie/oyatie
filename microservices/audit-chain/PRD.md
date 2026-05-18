@@ -326,7 +326,7 @@ Sharding:
 |---|---|---|---|
 | 1 | Period bucket size default (1s vs 5s vs adaptive) — final landing | axis-audit-chain | resolved in IP-005 (1s default with adaptive opt-in) |
 | 2 | Postgres index sharding (Citus vs vanilla logical) — pick at S-tier crossover | axis-audit-chain | TBA at S-tier capacity-model trigger |
-| 3 | Tenant-side bundle verifier as open-source reference implementation | council-architecture | post-M01 follow-up ADR |
+| 3 | Tenant-side bundle verifier as open-source reference implementation | council-architecture | subsequent-to-M01-completion successor-IP ADR |
 | 4 | Should sealing key rotation re-sign historical roots (re-seal) or rely on KeyResolver for time-bound public keys? | axis-audit-chain + ops-security | resolved in IP-011 (KeyResolver; do NOT re-sign — historical roots remain signed by their epoch's key) |
 | 5 | What level of audit-chain self-observability is the right balance vs recursion explosion? | axis-audit-chain + axis-observability | resolved in IP-013 (selective: only state transitions + outage SLI emit; not every internal trace) |
 

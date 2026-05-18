@@ -102,7 +102,7 @@ Algorithm:
 7. Section-completeness: parse markdown of every PRD / Phase-Spec / Impl-Plan; verify §4 sections present and non-empty.
 8. **Orphan-scan**: walk `docs/microservices/`, `docs/prds/`, `docs/bounded-contexts/`, `docs/localization-packs/<pack>/evidence/`. For every file, parse the µservice / pack reference and verify it exists in workspace metadata + pack `microservices_in_scope`. Any file referencing a retired µservice / unscoped pack pair is an orphan violation; the µservice or pack-scope was removed without removing the doc.
 9. Mode `--report-only` (default until M02-P22): print violations, exit 0.
-10. Mode `--blocker` (post-M02-P22): exit nonzero if any violation.
+10. Mode `--blocker` (subsequent-to-M02-completion-P22): exit nonzero if any violation.
 
 Coverage snapshot (auto-emitted): `docs/DOC-COVERAGE.md`.
 
@@ -155,7 +155,7 @@ Per RALPLAN-DR deliberate mode, three concrete failure scenarios with triggers, 
 ### Scenario 1: Lane never lands as BLOCKER
 
 - **Trigger**: M02-P22 exit gate slips; lane stays `--report-only` indefinitely.
-- **Blast radius**: New µservices land without docs; coverage erosion compounds; by M04+ the doc-debt is unrecoverable.
+- **Blast radius**: New µservices land without docs; coverage erosion compounds; by M04-onward the doc-debt is unrecoverable.
 - **Prevention**: M02-P22 phase-spec + impl-plan explicitly list `cargo run -p oya-check-documentation -- --workspace --blocker` in BLOCKER command list (per `.omc/plans/milestones/M02b-substrate/phases/P22-m02-exit-gate/phase-spec.md` + `impl-plan.md`). The CLI exits nonzero only when `--blocker` is set (`crates/oya-check-documentation/src/main.rs:38`); removing `--report-only` alone leaves the lane permissive, so the explicit `--blocker` flag is the load-bearing invariant. M02-P22 cannot pass its exit gate without doc-coverage going green under `--blocker` or being explicitly waived per ADR.
 - **Detection**: Weekly report comparing previous-week violation count vs current; rising count = warning, doubled count = page.
 - **Rollback**: Flip lane back to `--report-only` and open a remediation phase before re-flipping.

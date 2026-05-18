@@ -117,7 +117,7 @@ End of M03/P01 phase. Next phase: M03/P02-sheets-marketplace-substrate.
 
 - ADR-0110 ChangeSet state machine.
 - ADR-0123 Hyperscaler maturity claim gate.
-- ADR-0126 Sheets net-new µservice.
+- ADR-0135 Sheets net-new µservice.
 - ADR-0131 Per-microservice flat layout.
 - microservices/sheets/PHASE-01-SHEETS-FOUNDATION.md.
 - microservices/sheets/competitor-parity-matrix.md.

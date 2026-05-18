@@ -99,8 +99,8 @@ Cause: XLSX upload contains VBA macros; per ADR-SHEETS-0007 named-limit list, VB
 | Step | Action |
 |---|---|
 | 1 | This is expected behavior per ADR-SHEETS-0007. |
-| 2 | If tenant requires VBA round-trip: tenant DPA notes "strict OOXML round-trip deferred post-M03; oyatie cannot ship VBA fidelity at M03". |
-| 3 | Optional: tenant evaluated for early-access to strict-tier post-M03 phase. |
+| 2 | If tenant requires VBA round-trip: tenant DPA notes "strict OOXML round-trip scheduled-for-distinct-tracked-work subsequent-to-M03-completion; oyatie cannot ship VBA fidelity at M03". |
+| 3 | Optional: tenant evaluated for early-access to strict-tier subsequent-to-M03-completion phase. |
 
 ## CSV Fallback
 

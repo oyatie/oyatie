@@ -7,7 +7,7 @@ phase: PHASE-01-community-substrate
 status: Accepted
 date: 2026-05-17
 owner_team: axis-community + council-architecture
-related_adrs: [ADR-0105, ADR-0126, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0105, ADR-0135, ADR-0131, ADR-0132, ADR-0133]
 doc_status: published
 ---
 

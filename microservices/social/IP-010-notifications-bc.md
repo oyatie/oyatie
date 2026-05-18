@@ -18,7 +18,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-port-location]
 Author the `notifications` BC: real-time WebSocket delivery + digest worker;
 per-recipient idempotent processing; backpressure-coalesced under burst;
 cross-µservice messenger-bridge (notification of social mention surfaces in
-messenger inbox per ADR-SOC follow-up); per-tenant pack-aware throttle.
+messenger inbox per ADR-SOC successor-IP); per-tenant pack-aware throttle.
 
 ## ChangeSet boundary
 

@@ -97,7 +97,7 @@ Cause: isolated row toast tear OR application-bug write.
 | 4 | Identify tamper vector: insider / external / supply-chain? |
 | 5 | Per-pack regulatory notification (criminal complaint where applicable). |
 | 6 | Restore as Path C. |
-| 7 | Post-incident: ADR for control gap; pen-test follow-up. |
+| 7 | Post-incident: ADR for control gap; pen-test successor-IP. |
 
 ## Verification
 
@@ -113,7 +113,7 @@ After recovery:
 - Postmortem within 5 business days; public if Sev-1.
 - Backup cadence review (increase if RPO too high).
 - Audit-chain key rotation if compromise suspected.
-- Per-pack DPO follow-up.
+- Per-pack DPO successor-IP.
 
 ## References
 

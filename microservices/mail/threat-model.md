@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: axis-mail + ops-security + council-privacy
 deciders: council-architecture, ops-security, axis-mail, council-privacy, ops-legal
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154 + RFC 7208 (SPF) + RFC 6376 (DKIM) + RFC 7489 (DMARC) + RFC 8460 (TLS-RPT) + RFC 8461 (MTA-STS)
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
-related_specs: [/specs/products/connect/mail.json, /specs/per-microservice-flat-layout.json]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
+related_specs: [/specs/microservices/mail.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Layer-A version change or SMTP/IMAP/JMAP protocol change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC6.7, CC7.1, CC7.2, CC7.4, CC8.1"
@@ -39,7 +39,7 @@ Identify, classify, and mitigate threats to the mail µservice's confidentiality
 
 ### In-scope
 
-All components introduced by ADR-0126 (Connect dissolution) and ADR-0131 (per-microservice flat layout) for the mail µservice, deployed in a dedicated mail Kubernetes namespace (per `iac/kustomize/base`).
+All components introduced by ADR-0135 (Connect dissolution) and ADR-0131 (per-microservice flat layout) for the mail µservice, deployed in a dedicated mail Kubernetes namespace (per `iac/kustomize/base`).
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -729,7 +729,7 @@ This threat model re-reviews on:
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (data residency).
-- ADR-0126: Connect dissolution + dual-context invariant.
+- ADR-0135: Connect dissolution + dual-context invariant.
 - ADR-0130: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward policy.
@@ -738,7 +738,7 @@ This threat model re-reviews on:
 - `microservices/mail/PRD.md`.
 - `microservices/mail/dpia.md`.
 - `microservices/mail/policy/{dual-context-isolation, data-residency, tenant-scope, ci-scope, auditor-scope, public-read}.{md,cedar}`.
-- `/specs/products/connect/mail.json`.
+- `/specs/microservices/mail.json`.
 - Microsoft Threat Modeling methodology (STRIDE).
 - LINDDUN privacy-threat methodology — Wuyts et al., KU Leuven.
 - OWASP Top 10 (2021) + OWASP API Top 10 (2023).

@@ -192,7 +192,7 @@ diff /tmp/cedar.json /tmp/caldav.json   # expect empty diff
   limits; add an alert if it isn't already wired.
 - If Case B: consider refusing CalDAV `ACL` PROPPATCH at the
   adapter layer, forcing all ACL changes through the canonical
-  Cedar path. Open as a follow-up ADR if support volume warrants.
+  Cedar path. Open as a successor-IP ADR if support volume warrants.
 - If Case D: file a privacy-incident closeout report per the DPIA's
   incident-response section.
 

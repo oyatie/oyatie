@@ -19,7 +19,7 @@ verification.
 
 ## Capability matrix
 
-| Capability | Google Sites | WordPress.com | Squarespace | Wix | Webflow | Notion Sites | Carrd | Framer | Ghost | Hugo | Sanity | Strapi | Contentful | Sitecore | AEM | **oyatie sites (M03)** | **oyatie sites (M04+)** |
+| Capability | Google Sites | WordPress.com | Squarespace | Wix | Webflow | Notion Sites | Carrd | Framer | Ghost | Hugo | Sanity | Strapi | Contentful | Sitecore | AEM | **oyatie sites (M03)** | **oyatie sites (M04-onward)** |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Block editor | basic | Gutenberg | yes | yes | yes (visual) | yes | basic | yes (Figma-class) | yes | n/a | portable-text | yes | yes | yes | yes | **yes (CRDT)** | yes (visual CSS-grid) |
 | Theme system | template | theme | theme | theme | custom | template | basic | custom | theme | theme | n/a | n/a | n/a | template | template | **CSS-in-rust + tokens** | + visual designer |
@@ -31,7 +31,7 @@ verification.
 | E-commerce | basic | WooCommerce | yes | yes | yes | basic | yes | yes | yes (members) | (Snipcart self-host) | n/a | n/a | n/a | yes | yes | **stub (T-G fintech bridge)** | full storefront |
 | Privacy-preserving analytics | (GA only) | (Jetpack / GA) | (built-in tracking + GA) | (built-in + GA) | (GA / Plausible plugin) | basic | basic | (GA / Plausible) | yes (own) | (none) | n/a | n/a | n/a | yes | yes | **yes (Plausible-class native)** | — |
 | Accessibility (WCAG 2.2 AA) | partial | per-theme | per-theme | per-theme | per-template | per-template | per-template | per-template | per-theme | per-theme | n/a | n/a | n/a | yes | yes | **yes (refuse-publish at < 100%)** | — |
-| AMP | yes (older) | plugin | no | no | no | no | no | no | yes | plugin | n/a | n/a | n/a | yes | yes | **deferred (Google deprecation)** | (depends on Google AMP future) |
+| AMP | yes (older) | plugin | no | no | no | no | no | no | yes | plugin | n/a | n/a | n/a | yes | yes | **scheduled-for-distinct-tracked-work (Google deprecation)** | (depends on Google AMP future) |
 | Social-share metadata | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | n/a | n/a | n/a | yes | yes | **yes (OG + Twitter Cards)** | — |
 | Preview mode | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes (build) | yes | yes | yes | yes | yes | **yes (signed-token URL)** | — |
 | Versioning + rollback | yes | yes (plugin) | yes | yes | yes | yes | no | yes | yes | git | yes | yes | yes | yes | yes | **yes (per-page version)** | — |
@@ -40,17 +40,17 @@ verification.
 | CDN delivery | yes | yes | yes | yes | yes | yes | yes | yes | yes | (self-host) | API | API | API | yes | yes | **yes (per-pack edges)** | + visual edge functions |
 | AI page-build | (Workspace Gemini) | (Jetpack AI) | (Squarespace AI) | (Wix Studio AI) | (Webflow AI) | (Notion AI) | no | (Framer AI) | no | no | (Sanity AI) | (Strapi AI plugin) | (Contentful AI) | (Sitecore CDP) | (AEM Sensei) | **yes (T2 EU-AI-Act-bounded)** | + T1 author-suggest blocks |
 | Loro/CRDT collab | no (Google Docs-class) | no | no | no | no | (Notion proprietary) | no | (real-time cursors) | no | no | (real-time editing) | no | no | no | no | **yes (Loro 1.x cross-µservice aligned)** | + multi-cursor presence |
-| WordPress import | (Google takeout / 3rd party) | yes | yes | yes | yes | (3rd party) | no | (3rd party) | yes | yes | yes | yes | yes | yes | yes | **deferred** | yes (M04+) |
+| WordPress import | (Google takeout / 3rd party) | yes | yes | yes | yes | (3rd party) | no | (3rd party) | yes | yes | yes | yes | yes | yes | yes | **scheduled-for-distinct-tracked-work** | yes (M04-onward) |
 | Self-hostable | no | (.org yes) | no | no | no (export only) | no | no | no | yes | yes | (cloud + self-host) | (cloud + self-host) | no | (vendor) | (vendor) | **(via tenant cell)** | — |
 | eIDAS AdES (signed-Sites) | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no | **yes (audit-chain Ed25519)** | — |
 | EU DSA transparency report | (per DSA-VLOSE) | yes | yes | yes | yes | yes | (below threshold) | yes | yes | (self-host) | n/a | n/a | n/a | yes | yes | **yes (tenant-served report sitemap)** | — |
 
 ## Parity gaps to close at M03
 
-1. **Webflow-class visual layout designer** — Webflow's CSS-grid + flexbox visual canvas is unique among hosted builders; deferred to M04+. Compensating control: portable-text + design-tokens already gives most of the customisation surface; visual canvas is editor-UX, not data-model.
-2. **WordPress import path** — needed for migration tenants; deferred to M04+.
-3. **AMP-HTML emission** — Google deprecation signals; we monitor + decide post-M04.
-4. **E-commerce full storefront** — only a stub at M03; full integration through T-G fintech bridge (post-M04).
+1. **Webflow-class visual layout designer** — Webflow's CSS-grid + flexbox visual canvas is unique among hosted builders; scheduled-for-distinct-tracked-work to M04-onward. Compensating control: portable-text + design-tokens already gives most of the customisation surface; visual canvas is editor-UX, not data-model.
+2. **WordPress import path** — needed for migration tenants; scheduled-for-distinct-tracked-work to M04-onward.
+3. **AMP-HTML emission** — Google deprecation signals; we monitor + decide subsequent-to-M04-completion.
+4. **E-commerce full storefront** — only a stub at M03; full integration through T-G fintech bridge (subsequent-to-M04-completion).
 
 ## Differentiators (none of the competitors offer)
 

@@ -8,6 +8,6 @@ contracts_exposed: [oya-community-post-store-api]
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp]
 lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
-  source_adrs: [ADR-0105, ADR-0106, ADR-0126, ADR-0131]
+  source_adrs: [ADR-0105, ADR-0106, ADR-0135, ADR-0131]
 allowed_dependency_edges: [oya-community-post-store-domain, oya-community-post-store-kernel]
 autonomy_tier_required: T1

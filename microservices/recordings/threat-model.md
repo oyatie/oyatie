@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: axis-recordings + ops-security
 deciders: council-architecture, ops-security, axis-recordings, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154 + NIST SP 800-86 (forensic-integrity)
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
-related_specs: [/specs/products/connect/recordings.json]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
+related_specs: [/specs/microservices/recordings.json]
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC6.7, CC7.1, CC7.2, CC7.4, CC8.1"
@@ -56,7 +56,7 @@ PIPC, HIPAA OCR, SEC examiners, FINRA, EU AI Act notified bodies, and ISO
 
 ### In-scope
 
-All components introduced by ADR-0126 (Connect dual-context inherited) and
+All components introduced by ADR-0135 (Connect dual-context inherited) and
 ADR-0132 (suite dissolution into recordings surface). Deployed in the
 dedicated recordings Kubernetes namespace.
 

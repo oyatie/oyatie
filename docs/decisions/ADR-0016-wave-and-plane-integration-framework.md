@@ -4,7 +4,7 @@ status: proposed
 doc_status: published
 ---
 
-# ADR-0016: Wave and plane integration framework — descriptive wave names (W-Foundation through W-Region-Fan-Out), per-wave gate criteria, status labels (preview / stable / GA), no M0/M1/M2/M3/MVP vocab
+# ADR-0016: Wave and plane integration framework — descriptive wave names (W-Foundation through W-Region-Fan-Out), per-wave gate criteria, status labels (preview / stable / GA), no M0/M1/M2/M3/minimum-shippable-tier vocab
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -17,7 +17,7 @@ doc_status: published
 
 ## Context
 
-The legacy `M0..M3 / MVP` milestone vocabulary baked in a date-bound + commercial-launch-bound mental model that no longer matches the optimal-path framing under unconstrained time/resource (PRD §3.1). The 2026-05-09 reframing retired the milestone vocabulary in favor of *descriptive wave names* that name the substrate-or-axis a wave delivers and *industry-standard status labels* (`preview / stable / GA`) for surface maturity. Without an authoritative ADR in this Foundation pack that pins the wave names + gate criteria + the forbidden vocabulary, every roadmap reference becomes a re-litigation point.
+The legacy `M0..M3 / minimum-shippable-tier` milestone vocabulary baked in a date-bound + commercial-launch-bound mental model that no longer matches the optimal-path framing under unconstrained time/resource (PRD §3.1). The 2026-05-09 reframing retired the milestone vocabulary in favor of *descriptive wave names* that name the substrate-or-axis a wave delivers and *industry-standard status labels* (`preview / stable / GA`) for surface maturity. Without an authoritative ADR in this Foundation pack that pins the wave names + gate criteria + the forbidden vocabulary, every roadmap reference becomes a re-litigation point.
 
 A second pressure: each wave is a *gate*, not a date. Gate criteria need to be enumerable (so a council can answer "did W-Foundry-Preview ship?"), composable (waves run in parallel after their prerequisites), and auditable (gate evidence emits to the audit chain per ADR-0003). Without explicit gate criteria, "preview" and "stable" become marketing-shaped, not engineering-shaped.
 
@@ -25,7 +25,7 @@ A second pressure: each wave is a *gate*, not a date. Gate criteria need to be e
 
 ## Decision
 
-We adopt **descriptive wave names**, **per-wave gate criteria**, **`preview / stable / GA` status labels**, and explicitly forbid `M0..M3 / MVP` vocab (ADR-0018 enforces this in the glossary fitness lane).
+We adopt **descriptive wave names**, **per-wave gate criteria**, **`preview / stable / GA` status labels**, and explicitly forbid `M0..M3 / minimum-shippable-tier` vocab (ADR-0018 enforces this in the glossary fitness lane).
 
 ### Wave names (canonical)
 
@@ -65,9 +65,9 @@ A wave's gate is met when *all* are true:
 
 A surface MAY skip `preview` and ship directly to `stable` (e.g. supply-chain signing / Cosign was external; we adopt and ship stable). A surface that ships at `preview` cannot claim `stable`-tier guarantees on its catalog record.
 
-### No M0/M1/M2/M3/MVP vocab
+### No M0/M1/M2/M3/minimum-shippable-tier vocab
 
-The tokens `M0`, `M1`, `M2`, `M3`, `MVP`, `milestone-zero`, `milestone-one` (and case variants) are **forbidden** in any consolidated doc, ADR, PRD, runbook, README, or PR title from the date this ADR is Accepted. The glossary fitness lane (`oya-foundry-fitness-glossary`, ADR-0018) detects them and warns at PR open + fails at merge. Legacy ADRs that mention them are forensic only — superseded language stays in the historical record.
+The tokens `M0`, `M1`, `M2`, `M3`, `minimum-shippable-tier`, `milestone-zero`, `milestone-one` (and case variants) are **forbidden** in any consolidated doc, ADR, PRD, runbook, README, or PR title from the date this ADR is Accepted. The glossary fitness lane (`oya-foundry-fitness-glossary`, ADR-0018) detects them and warns at PR open + fails at merge. Legacy ADRs that mention them are forensic only — superseded language stays in the historical record.
 
 ### Wave parallelism
 
@@ -108,12 +108,12 @@ W-Ads-Preview ─→ W-Ads-Stable
 
 - Engineering-shaped wave names make gate criteria mechanical, not date-bound.
 - `preview / stable / GA` aligns with industry expectation; auditors and customers parse the labels without translation.
-- Forbidden M0..M3/MVP vocab eliminates a recurring re-litigation point.
+- Forbidden M0..M3/minimum-shippable-tier vocab eliminates a recurring re-litigation point.
 - Per-wave gate criteria + audit emission produces an auditable history of wave landings.
 
 ### Negative
 
-- Initial sweep cost — every legacy doc that uses M0..M3/MVP needs revision (ROADMAP §8 + GLOSSARY §11 retired-terms appendix already absorbs most of this).
+- Initial sweep cost — every legacy doc that uses M0..M3/minimum-shippable-tier needs revision (ROADMAP §8 + GLOSSARY §11 retired-terms appendix already absorbs most of this).
 - Wave parallelism diagram requires careful per-PR maintenance as waves land out of order.
 
 ### Operational
@@ -126,7 +126,7 @@ W-Ads-Preview ─→ W-Ads-Stable
 
 ## Alternatives considered
 
-### Alternative A — Keep M0..M3/MVP
+### Alternative A — Keep M0..M3/minimum-shippable-tier
 
 - **Pros:** familiar to legacy contributors.
 - **Cons:** date-bound; commercial-launch-bound; conflicts with optimal-path framing.
@@ -156,7 +156,7 @@ W-Ads-Preview ─→ W-Ads-Stable
 
 ## References
 
-- `docs/PRD.md` §3.1 (optimal-path waves; vocabulary update retiring M0..M3/MVP)
+- `docs/PRD.md` §3.1 (optimal-path waves; vocabulary update retiring M0..M3/minimum-shippable-tier)
 - `docs/ROADMAP.md` §1 (canonical wave sequence), §2 (per-wave gate criteria)
 - `docs/GLOSSARY.md` §11 (deprecated terms)
 - `docs/CONTRADICTION-LEDGER.md` (resolution batches sequenced by wave)

@@ -8,8 +8,8 @@ sales_segment: shared-substrate + hero-product
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
-related_specs: [/specs/products/connect/docs.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
+related_specs: [/specs/microservices/docs.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-docs
 doc_status: published
@@ -19,9 +19,9 @@ doc_status: published
 
 ## Purpose
 
-The `docs` µservice is oyatie's native collaborative document substrate — the Google Docs / Microsoft Word Web / Notion-pages / Coda parallel. Per ADR-0132 (product-suite + bundle dissolution) and ADR-0126 (Connect unbundle), docs is a standalone tenant-facing µservice owning: rich-text document authoring; real-time multi-user collaboration via CRDT (aligned with workflow-studio ADR-WS-0001); block-based document model (paragraph, heading, list, table, image, embed, code-block, math, callout); comments + suggestions (track-changes); version history; per-block ACL; cross-document embedding (workflow-studio nodes, sheets cells); document import/export (DOCX/Markdown/HTML/PDF/EPUB/LaTeX); AI writing assist (T1 grammar + summary; T2 translation); accessibility (WCAG 2.2 AA).
+The `docs` µservice is oyatie's native collaborative document substrate — the Google Docs / Microsoft Word Web / Notion-pages / Coda parallel. Per ADR-0132 (product-suite + bundle dissolution) and ADR-0135 (Connect unbundle), docs is a standalone tenant-facing µservice owning: rich-text document authoring; real-time multi-user collaboration via CRDT (aligned with workflow-studio ADR-WS-0001); block-based document model (paragraph, heading, list, table, image, embed, code-block, math, callout); comments + suggestions (track-changes); version history; per-block ACL; cross-document embedding (workflow-studio nodes, sheets cells); document import/export (DOCX/Markdown/HTML/PDF/EPUB/LaTeX); AI writing assist (T1 grammar + summary; T2 translation); accessibility (WCAG 2.2 AA).
 
-The µservice carries dual-context (Personal / Professional) per ADR-0126; document content never crosses context boundaries except via explicit sharing grant.
+The µservice carries dual-context (Personal / Professional) per ADR-0135; document content never crosses context boundaries except via explicit sharing grant.
 
 Bominal inheritance: ADR-0208 dual-context unified-channel hub + ADR-0215 retention + legal-hold overlays inherited 1:1 per `feedback_bominal_inheritance_precedence.md`; oyatie additions captured below.
 
@@ -354,12 +354,12 @@ Sharding: documents partitioned by `(tenant_id, document_id_first_byte)`; commen
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| 1 | CRDT op log compaction cadence (continuous vs nightly vs version-aligned) — defaults to version-aligned per ADR-DOCS-0001; revisit if storage cost dominates | axis-docs | post-M03 |
+| 1 | CRDT op log compaction cadence (continuous vs nightly vs version-aligned) — defaults to version-aligned per ADR-DOCS-0001; revisit if storage cost dominates | axis-docs | subsequent-to-M03-completion |
 | 2 | PDF rendering backend default — WeasyPrint vs Chromium-headless — settled in ADR-DOCS-0003 (WeasyPrint default; Chromium high-fidelity opt-in) | axis-docs | resolved |
-| 3 | Per-block ACL UX surfacing in the editor (badge / overlay / split-view) — defer to council-design-system | council-design-system | M03+1 |
+| 3 | Per-block ACL UX surfacing in the editor (badge / overlay / split-view) — defer to council-design-system | council-design-system | M03-onward1 |
 | 4 | Math-equation rendering library — KaTeX (fast) vs MathJax (accuracy) — KaTeX default; MathJax fallback for unsupported macros | axis-docs | resolved |
-| 5 | Federation with external Google Docs / Word source-of-truth — migration-only at GA; coexistence mode post-M04 | council-product | post-M04 |
-| 6 | Document publishing surface (public-read URL vs share-link only) — share-link only at GA; public-read post-M04 | council-product | post-M04 |
+| 5 | Federation with external Google Docs / Word source-of-truth — migration-only at GA; coexistence mode subsequent-to-M04-completion | council-product | subsequent-to-M04-completion |
+| 6 | Document publishing surface (public-read URL vs share-link only) — share-link only at GA; public-read subsequent-to-M04-completion | council-product | subsequent-to-M04-completion |
 
 ## Related ADRs
 
@@ -369,7 +369,7 @@ Sharding: documents partitioned by `(tenant_id, document_id_first_byte)`; commen
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0126 | Connect unbundle (parallel session) | dual-context inheritance |
+| ADR-0135 | Connect unbundle (parallel session) | dual-context inheritance |
 | ADR-0130 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
 | ADR-0132 | Product-suite + bundle dissolution | µservice independence |

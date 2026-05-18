@@ -37,7 +37,7 @@ Author Helm + Kustomize manifests for the docs µservice substrate. Postgres 16 
 | `microservices/docs/iac/kustomize/base/kustomization.yaml` | created | shared base |
 | `microservices/docs/iac/kustomize/overlays/pack-kr/kustomization.yaml` | created | initial active pack |
 | `microservices/docs/iac/kustomize/overlays/pack-eu/kustomization.yaml` | created | EU pack (eIDAS + EU AI Act overlays) |
-| (additional packs: us, us-healthcare, jp, sg, au, in, br, ae, ksa) | follow-up | per-pack overlays |
+| (additional packs: us, us-healthcare, jp, sg, au, in, br, ae, ksa) | successor-IP | per-pack overlays |
 
 ## Acceptance Gates
 

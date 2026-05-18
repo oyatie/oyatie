@@ -34,7 +34,7 @@ events emitted by Application. This document specifies the SDK strategy.
 | **Python** | M04 (for product backends in Python) | OpenAPI-generated; published to PyPI | axis-application + gtm |
 | **Go** | M04 | gRPC-generated; published as go-module | axis-application + gtm |
 | **JVM (Kotlin / Java)** | M05 | gRPC-generated; published to Maven Central | axis-application + gtm |
-| **C# / .NET** | M05+ | OpenAPI-generated; published to NuGet | axis-application + gtm |
+| **C# / .NET** | M05-onward | OpenAPI-generated; published to NuGet | axis-application + gtm |
 
 Prioritisation drivers: Rust + TypeScript (the languages oyatie's own
 product µservices use); other languages added as tenant demand surfaces.

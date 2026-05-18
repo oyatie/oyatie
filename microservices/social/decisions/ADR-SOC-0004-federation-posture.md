@@ -8,7 +8,7 @@ owner: axis-social
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-SOC-0005
@@ -36,21 +36,21 @@ PRD §"Functional Requirements" FR-29 + Open Question 2 ask: what is the federat
 
 - Twitter/X / Threads / Instagram / Facebook: NO federation (closed platforms; Threads has announced ActivityPub interop but as of 2026-05-17 it's tenant-tier opt-in for select accounts).
 - Mastodon, Lemmy, PixelFed: federation by default via ActivityPub (W3C Recommendation 2018-01-23).
-- Bluesky: federation via AT Protocol (different protocol; reaches different ecosystem; PRD Open Question 2 considers AT Protocol as a follow-up).
+- Bluesky: federation via AT Protocol (different protocol; reaches different ecosystem; PRD Open Question 2 considers AT Protocol as a successor-IP).
 - Matrix / Element (messenger): federation via Matrix Client-Server protocol (per ADR-MSGR-0004).
 
 ActivityPub is the most widely-deployed open federation protocol for social platforms (~10M+ active users on Mastodon ecosystem; W3C Recommendation status). It's well-suited to oyatie's dual-context model with one critical constraint: ActivityPub assumes public-by-default semantics with optional follower-restricted distribution; it has no built-in concept of "Professional vs Personal context."
 
 Key tensions:
 
-1. **Dual-context invariant (parallel ADR-0126 + DCI-08)**: Personal-tier user data must NEVER cross pack borders without explicit user consent; federation egress is by definition a cross-pack flow.
+1. **Dual-context invariant (parallel ADR-0135 + DCI-08)**: Personal-tier user data must NEVER cross pack borders without explicit user consent; federation egress is by definition a cross-pack flow.
 2. **Regulatory residency (pack residency per `policy/data-residency.md`)**: Cross-pack data flow requires SCC for GDPR-scope tenants + tenant-level opt-in for KR PIPA Art. 28 cross-border consent.
 3. **Federation security (T-S-03 forged @-mention; T-I-08 personal-tier leak; T-D-07 federation peer flood)**: untrusted peers can send spam, malicious content, or attempt protocol-level attacks.
 4. **HIPAA Safe Harbor (pack-us-healthcare)**: federation by default would create per-peer covered-entity relationship complications; default-OFF is the safer posture.
 5. **EU DSA Art. 14 transparency**: per-tenant terms-of-service must disclose federation peer relationships if active.
 6. **Tenant choice**: enterprise tenants (LinkedIn-class) may prefer no-federation closed platform; consumer-tenant Personal-tier users (Twitter/X-class) may prefer federation; the answer is per-tenant + per-tier configuration.
 
-The decision needs to: (a) pick a federation strategy that respects DCI-08 + pack residency, (b) define opt-in mechanism + audit-chain trail, (c) align with messenger's ADR-MSGR-0004 federation pattern for cross-µservice consistency, (d) leave AT Protocol open as a future follow-up (PRD Open Question 2), (e) define operational posture (peer allowlist, HTTP Signatures, rate-limit, runbook).
+The decision needs to: (a) pick a federation strategy that respects DCI-08 + pack residency, (b) define opt-in mechanism + audit-chain trail, (c) align with messenger's ADR-MSGR-0004 federation pattern for cross-µservice consistency, (d) leave AT Protocol open as a future successor-IP (PRD Open Question 2), (e) define operational posture (peer allowlist, HTTP Signatures, rate-limit, runbook).
 
 ## Decision
 
@@ -79,8 +79,8 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
    - Per-peer rate limit (default 1k req/min during normal; reduce to 100/min during attack-mode).
    - Mass-spam from peer → `social_federation_peer_spam_rate` metric → trigger `runbooks/federation-bridge-degraded.md` Path B (peer compromise).
 6. **No AT Protocol in P01 / P02.**
-   - PRD Open Question 2 (AT Protocol in addition to ActivityPub) is deferred to ADR-SOC follow-up after federation MVP (ActivityPub) ships.
-   - Bluesky is the principal AT Protocol implementation; if oyatie's strategic direction shifts toward AT Protocol primary, file follow-up ADR.
+   - PRD Open Question 2 (AT Protocol in addition to ActivityPub) is scheduled-for-distinct-tracked-work to ADR-SOC successor-IP after federation minimum-shippable-tier (ActivityPub) ships.
+   - Bluesky is the principal AT Protocol implementation; if oyatie's strategic direction shifts toward AT Protocol primary, file successor-IP ADR.
 7. **Alignment with sibling messenger ADR-MSGR-0004.**
    - Both ADRs share: opt-in only, Personal-tier never federates, peer allowlist, HTTP Signatures, audit-chain seal.
    - Differences: messenger federation focuses on Matrix Client-Server protocol (more team-collaboration native); social federation focuses on ActivityPub (more public-social native).
@@ -96,7 +96,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 
 - Pros: out-of-the-box federation; lowest friction for tenant adoption.
 - Cons: violates DCI-08 (Personal-tier would federate by default); violates pack residency without SCC; violates HIPAA Safe Harbor; violates KR PIPA Art. 28 cross-border consent; regulatory non-compliance.
-- Rejected: incompatible with parallel ADR-0126 + regulatory posture.
+- Rejected: incompatible with parallel ADR-0135 + regulatory posture.
 
 ### B. Federation OFF, no future opt-in capability (Twitter/X-style closed platform)
 
@@ -119,7 +119,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 
 - Pros: Bluesky AT Protocol offers richer protocol semantics; potentially more aligned with content-addressed records.
 - Cons: smaller ecosystem (~5M users vs ~10M+ Mastodon ecosystem); fewer existing tenants would federate; ActivityPub is W3C Recommendation status with broader adoption.
-- Rejected (for P01-P02); kept open as ADR-SOC follow-up per PRD Open Question 2.
+- Rejected (for P01-P02); kept open as ADR-SOC successor-IP per PRD Open Question 2.
 
 ### F. Per-user federation opt-in (user-level, not tenant-level)
 
@@ -130,7 +130,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 ### G. Federation only on a separate "federated-tier" entity (not Personal/Professional)
 
 - Pros: cleanly separates federation from dual-context tiers.
-- Cons: adds a third context kind which complicates ADR-0126 invariant; tenants have to manage 3 tiers; UX confusion.
+- Cons: adds a third context kind which complicates ADR-0135 invariant; tenants have to manage 3 tiers; UX confusion.
 - Rejected (for P01-P02); the principle of fewer-tiers is preserved.
 
 ## Consequences
@@ -151,7 +151,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 - Federation is OFF by default; tenants get no federation experience unless they actively opt in; some marketing-friction.
 - Per-tenant opt-in flow requires legal + ops attestation; not a one-click toggle; SLA on opt-in = days.
 - Peer-allowlist maintenance burden; ops-security must approve peer additions.
-- AT Protocol deferred (PRD Open Question 2 open); tenants requesting Bluesky interop have to wait for follow-up ADR.
+- AT Protocol scheduled-for-distinct-tracked-work (PRD Open Question 2 open); tenants requesting Bluesky interop have to wait for successor-IP ADR.
 
 ### Operational
 
@@ -165,7 +165,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 
 ### Regulatory
 
-- **DCI-08 + parallel ADR-0126**: Personal-tier never federates; preserved at type-system level.
+- **DCI-08 + parallel ADR-0135**: Personal-tier never federates; preserved at type-system level.
 - **GDPR Arts. 44-50**: cross-border transfer (federation = cross-border) requires SCC; per-tenant attestation enforced.
 - **KR PIPA Art. 28**: explicit user-consent for cross-border data; tenant attestation flows through this requirement.
 - **HIPAA Safe Harbor §164.514**: pack-us-healthcare federation default-OFF; activation requires BAA + per-peer attestation.
@@ -176,15 +176,15 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 
 ## Future Evolution
 
-- After federation MVP (P02 ActivityPub) ships:
-  - ADR-SOC follow-up for AT Protocol (PRD Open Question 2).
-  - ADR-SOC follow-up for federation peer-allowlist policy (current is operator-curated; future may be tenant-self-service or community-curated).
-  - ADR-SOC follow-up if federation default shifts (e.g., enterprise-tier defaults to federation-on).
-- M04+: if oyatie's strategic direction shifts toward federated-by-default, file follow-up ADR superseding this one (with the DCI-08 invariant preserved regardless).
+- After federation minimum-shippable-tier (P02 ActivityPub) ships:
+  - ADR-SOC successor-IP for AT Protocol (PRD Open Question 2).
+  - ADR-SOC successor-IP for federation peer-allowlist policy (current is operator-curated; future may be tenant-self-service or community-curated).
+  - ADR-SOC successor-IP if federation default shifts (e.g., enterprise-tier defaults to federation-on).
+- M04-onward: if oyatie's strategic direction shifts toward federated-by-default, file successor-IP ADR superseding this one (with the DCI-08 invariant preserved regardless).
 
 ## References
 
-- ADR-0126 — Connect dissolution (parallel; DCI-08 source).
+- ADR-0135 — Connect dissolution (parallel; DCI-08 source).
 - ADR-0131 — Per-microservice flat layout.
 - ADR-0132 — Suite-and-bundle dissolution.
 - ADR-SOC-0005 — Dual-context feed isolation (paired DCI ADR; federation per-tier).

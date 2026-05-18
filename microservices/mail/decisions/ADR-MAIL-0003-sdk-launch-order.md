@@ -46,10 +46,10 @@ oyatie mail SDKs launch in this sequence and protocol order:
 1. **Wave 1 (M03 launch tier)**:
    - **Swift SDK — native JMAP (RFC 8620 + 8621).** Apple ecosystem clients that adopt oyatie SDK skip IMAP entirely and speak JMAP to the `oya-mail-imap-frontend` JMAP endpoint. JMAP's batched operations + push-via-EventSource give native-feel UX on iOS that IMAP cannot match. Bundled with Apple Mail bridging guidance (oyatie ships a separate `oya-mail-imap-frontend-app` IMAP server for users who refuse to install the SDK; that IMAP path is feature-parity but not the recommended path).
    - **TypeScript SDK — JMAP wrapper (jmap-jam style).** Built on top of `jmap-jam` (or an oyatie fork pinned at `@oyatie/mail-sdk/jmap-jam@1.x`); web + Node share the JS ecosystem. JMAP-over-HTTP/JSON is the natural fit; no IMAP4 binary protocol in the TS SDK at any point.
-2. **Wave 2 (M03+1 quarter)**:
+2. **Wave 2 (M03-onward1 quarter)**:
    - **IMAP4rev2 fallback SDK + reference docs.** Only AFTER JMAP coverage reaches feature parity (Push, EmailSubmission, Sieve, Search, Identity, MailboxQuery) does oyatie publish an IMAP4rev2-only client guide for third-party clients (Thunderbird, mobile clients that refuse JMAP, legacy MUAs). The µservice always serves IMAP4rev2 on the wire (FR-03 invariant); this is about which SDK we publish.
    - **Kotlin (Android) SDK — native JMAP.** Mirrors the Swift posture; AndroidX-flavored.
-3. **Wave 3 (M03+2 quarters)**:
+3. **Wave 3 (M03-onward2 quarters)**:
    - **Python + Go SDKs — JMAP wrappers** for backend automation use cases (tenant migration, eDiscovery export tooling, bulk-mail workflows).
 4. **Protocol invariant**: every SDK speaks JMAP as its primary protocol. IMAP4rev2 stays a wire-protocol commitment (the µservice serves it), not a primary SDK target. REST endpoints exist for narrow tenant-automation use cases not for end-user clients.
 5. **Apple Mail bridging**: the µservice ships a standards-conformant IMAP4rev2 server on `:993` (implicit TLS) so users who prefer Apple Mail get full mailbox access without any oyatie SDK on the client. This is the *minimum* IMAP commitment; SDKs aim higher.

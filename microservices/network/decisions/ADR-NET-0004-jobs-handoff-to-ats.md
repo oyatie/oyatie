@@ -8,7 +8,7 @@ owner: axis-network + axis-ats
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-NET-0002
@@ -98,7 +98,7 @@ oyatie network's `jobs-handoff` BC implements:
 ### E. Federated ATS (multiple ATS providers per tenant)
 
 - Pros: tenant choice of ATS vendor.
-- Cons: out-of-scope for P01; multiple ATS adapters complicates `network` codebase; defer to M04+ via additional adapter crates that map oyatie's event schema to vendor-specific (Greenhouse, Lever, Ashby, Workday) APIs.
+- Cons: out-of-scope for P01; multiple ATS adapters complicates `network` codebase; defer to M04-onward via additional adapter crates that map oyatie's event schema to vendor-specific (Greenhouse, Lever, Ashby, Workday) APIs.
 - Partial accept: P01 ships single Tier-G ATS µservice; future ADR-NET may add adapter crates for Greenhouse / Lever / Ashby / Workday Recruiting bridge.
 
 ## Consequences
@@ -137,7 +137,7 @@ oyatie network's `jobs-handoff` BC implements:
 
 ## References
 
-- ADR-0126 (Connect dissolution, parallel).
+- ADR-0135 (Connect dissolution, parallel).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-NET-0001 (storage layer).

@@ -98,11 +98,11 @@ Per `feedback_quality_performance_scalability_bar.md`, this µservice is held to
 | OWL/RDFS reasoning | ✅ | n/a (oyatie chose typed-entity layer, not OWL) | **intentional difference** |
 | SPARQL endpoint | ✅ | planned (M04) | **gap** |
 | Pass-through security on adapters | ✅ | ✅ (Cedar policy on every adapter; data_class propagation) | parity |
-| Mapping receipt with credential_mode + named_scope_policy | ✅ | planned (M04; ADR follow-up) | **gap** |
+| Mapping receipt with credential_mode + named_scope_policy | ✅ | planned (M04; ADR successor-IP) | **gap** |
 
 ## Source Evidence Citations
 
-Every observed strength + parity claim is backed by an official source. Per `/specs/products/ontology.json#sources_scanned`:
+Every observed strength + parity claim is backed by an official source. Per `/specs/microservices/ontology.json#sources_scanned`:
 
 | Competitor | Source URL | Source-evidence ref in registry |
 |---|---|---|
@@ -135,7 +135,7 @@ LEAN lane `oya-foundry-fitness-source-backed-competitive-claims` validates that 
 - Stardog-style virtual graph adapter pattern (mapping receipts; named_scope_policy).
 - Graph analytics OLAP via ClickHouse (centrality, PageRank-equivalent over Object Types).
 
-### M04+ stretch targets
+### M04-onward stretch targets
 
 - Plugin SDK distribution (WASM via Wasmtime per Bominal ADR-0037).
 - Multi-language graph query (Gremlin / Cypher / SPARQL as projection adapters).
@@ -144,7 +144,7 @@ LEAN lane `oya-foundry-fitness-source-backed-competitive-claims` validates that 
 
 ## Anti-Pattern Catalog (refused, with detection)
 
-Per `/specs/products/ontology.json#anti_patterns`:
+Per `/specs/microservices/ontology.json#anti_patterns`:
 
 | Anti-pattern | Why forbidden | Detection lane |
 |---|---|---|
@@ -171,7 +171,7 @@ Per `/specs/products/ontology.json#anti_patterns`:
 ## References
 
 - `microservices/ontology/PRD.md` §"Competitive Benchmark".
-- `/specs/products/ontology.json` §"competitive" + "best_practices" + "anti_patterns".
+- `/specs/microservices/ontology.json` §"competitive" + "best_practices" + "anti_patterns".
 - `evidence/autoresearch/ontology-competitive-map.json`.
 - Palantir Foundry Ontology docs — `palantir.com/docs/foundry/ontology`.
 - Palantir AIP — `palantir.com/platforms/aip`.

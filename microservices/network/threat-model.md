@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: axis-network + ops-security
 deciders: council-architecture, ops-security, axis-network, council-privacy, ops-compliance, ops-legal
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154 + NIST AI RMF 1.0
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-NET-0001, ADR-NET-0002, ADR-NET-0003, ADR-NET-0004, ADR-NET-0005, ADR-NET-0006]
-related_specs: [/specs/products/connect/network.json]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-NET-0001, ADR-NET-0002, ADR-NET-0003, ADR-NET-0004, ADR-NET-0005, ADR-NET-0006]
+related_specs: [/specs/microservices/network.json]
 review_cadence: quarterly + on every architecture or substrate or classifier-version change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1, CC6.2, CC6.3, CC6.6, CC6.7, CC7.1, CC7.2, CC7.4, CC8.1"
@@ -47,7 +47,7 @@ Identify, classify, and mitigate threats to network's confidentiality, integrity
 
 ### In-scope
 
-All components introduced by parallel ADR-0126 (Connect dissolution → network µservice) and ADR-0132 (suite dissolution into network surface) for the network µservice. Deployed in the dedicated network Kubernetes cluster.
+All components introduced by parallel ADR-0135 (Connect dissolution → network µservice) and ADR-0132 (suite dissolution into network surface) for the network µservice. Deployed in the dedicated network Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -607,7 +607,7 @@ Per pack overlay at `regional-packs/<pack>/network-overlay.md`; cross-mapped via
 
 ## References
 
-- Parallel ADR-0126 (Connect dissolution; network as a sibling µservice; distinct from social).
+- Parallel ADR-0135 (Connect dissolution; network as a sibling µservice; distinct from social).
 - Bominal ADR-0028, ADR-0111, ADR-0208, ADR-0215.
 - ADR-0008 Data Use Boundary.
 - ADR-NET-0001 through ADR-NET-0006.

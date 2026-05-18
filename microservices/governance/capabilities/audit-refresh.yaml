@@ -58,7 +58,7 @@ Inputs:
 
 Behaviour:
 - Walk per-µservice sources (`microservices/<ms>/{PRD.md,catalog/**,slos/**,specs/**,contracts/**,policy/**}`).
-- Regenerate central indices: `docs/prds/INDEX.md`, `registry/catalog/<crate>.yaml`, `/specs/products/<product>.json` aggregation.
+- Regenerate central indices: `docs/prds/INDEX.md`, `registry/catalog/<crate>.yaml`, `/specs/microservices/<product>.json` aggregation.
 - Refuse if hand-edits detected (per F-04).
 - Commit via scoped PAT (per `policy/ci-scope.cedar` P5).
 

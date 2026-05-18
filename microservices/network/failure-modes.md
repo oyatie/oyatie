@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-network
 deciders: ops-sre-reliability, axis-network, ops-security, council-architecture, ops-compliance
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/network/threat-model.md
   - microservices/network/dpia.md
@@ -145,7 +145,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 | Runbook | `runbooks/feed-cache-rebuild.md` §"media-malware quarantine" section (paired pattern) |
 | Postmortem | ops-security + axis-network |
 
-## FM-10: Cross-context routing violation (parallel ADR-0126 invariant breach)
+## FM-10: Cross-context routing violation (parallel ADR-0135 invariant breach)
 
 | Field | Value |
 |---|---|

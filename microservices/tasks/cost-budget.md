@@ -29,7 +29,7 @@ Define per-tenant and per-cell unit economics for tasks. FinOps gate: per-tenant
 | .ics-style export (CSV/JSON; 10k tasks) | $0.02 / job | streaming emit |
 | CSV import (10k tasks) | $0.05 / job | streaming parse |
 | Jira / Asana / Trello / Linear / Todoist importer (10k tasks) | $0.10 / job | per importer (sandbox overhead) |
-| Time-tracking tick (M02+) | $0.000001 / tick | append-only |
+| Time-tracking tick (M02-onward) | $0.000001 / tick | append-only |
 | T0 LLM suggest invocation | $0.001 / inv | foundry-runtime tenant-DEK wrapped |
 | T1 LLM assist invocation | $0.005 / inv | larger context window |
 | T2 LLM auto-action invocation | $0.01 / inv | full decision + reversibility window |

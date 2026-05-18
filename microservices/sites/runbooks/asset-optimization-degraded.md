@@ -89,7 +89,7 @@ cargo run -p oya-dev-cli -- vcs image-optimize-debug \
 1. This is by design per ADR-SITES-0007; > 100MB / > 50MP rejected.
 2. Contact tenant with the refusal reason + recommended dimensions.
 3. If a tenant tier (enterprise) needs the cap raised, route to
-   council-product for tier-specific override (ADR follow-up).
+   council-product for tier-specific override (ADR successor-IP).
 
 ### Case C — SVG sanitization failures (potential XSS attempts)
 

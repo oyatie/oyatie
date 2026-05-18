@@ -8,8 +8,8 @@ date: 2026-05-17
 owner_team: council-privacy + axis-social
 deciders: council-privacy, ops-security, axis-social, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
-related_specs: [/specs/products/connect/social.json]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
+related_specs: [/specs/microservices/social.json]
 related_artifacts:
   - microservices/social/threat-model.md
   - microservices/social/policy/dual-context-isolation.md
@@ -94,7 +94,7 @@ DPIA is mandatory pre-deployment. This document is the canonical DPIA reviewed b
 - **Data subjects:** End-users of tenant applications (consumer users of B2C tenants; employee users of B2B tenants); tenant operators; oyatie operators; non-users referenced in posts (e.g., subjects of journalism).
 - **Relationship:** Joint controllership with tenant under Art. 26.
 - **Reasonable expectations:** End-users expect public-by-default semantics + tenant-admin moderation under disclosed policy.
-- **Previous experience:** Bominal `connect-social` predecessor; no DPA-triggered complaints in 24 months on the social slice; **social as a standalone µservice is NET-NEW** in oyatie per ADR-0126.
+- **Previous experience:** Bominal `connect-social` predecessor; no DPA-triggered complaints in 24 months on the social slice; **social as a standalone µservice is NET-NEW** in oyatie per ADR-0135.
 - **Industry codes:** EU DSA + UK Online Safety Act + AU Online Safety Act for content moderation transparency.
 - **Children:** all packs apply pack-aware child consent threshold (GDPR Art. 8 default 16y; member states may lower to 13y; COPPA US <13; KR <14; LGPD <12).
 
@@ -216,6 +216,6 @@ Per pack overlays at `regional-packs/<pack>/social-dpia-overlay.md`.
 - `microservices/social/policy/data-residency.md`.
 - `microservices/social/compliance.md`.
 - Bominal ADR-0208 + ADR-0215.
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - GDPR + KR PIPA + HIPAA + APPI + LGPD + PDPA full citations.
 - EU DSA 2065/2022; EU AI Act 2024/1689; UK Online Safety Act 2023.

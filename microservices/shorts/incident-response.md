@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + axis-shorts + ops-legal
 deciders: ops-sre-reliability, ops-security, axis-shorts, council-architecture, council-privacy, ops-legal
-related_adrs: [ADR-0008, ADR-0028, ADR-0123, ADR-0126, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/shorts/threat-model.md
   - microservices/shorts/failure-modes.md
@@ -120,7 +120,7 @@ Define classification, escalation, communication, regulatory-notification, and p
 3. If unreachable (compile error path): verify metric is from runtime guard catching what should be impossible — investigate.
 4. If reachable: HALT all federation-gateway egress; engage council-architecture + ops-security.
 5. Forensic audit of any actual egress + recall via federation peer outbox-undo if available.
-6. Postmortem with parallel ADR-0126 + ADR-SHORTS-* review.
+6. Postmortem with parallel ADR-0135 + ADR-SHORTS-* review.
 
 ### Sev-1: DRM key compromise indicator
 

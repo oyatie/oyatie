@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0063, ADR-0064, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0063, ADR-0064, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-notes
@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `notes` µservice is the **short-form personal-notes + knowledge-capture** surface that ships under parallel ADR-0126 (Connect super-app expansion) and ADR-0132 (suite-and-bundle dissolution) as a stand-alone hero µservice. It is NET-NEW; no `oya-connect-notes-*` legacy crates exist.
+The `notes` µservice is the **short-form personal-notes + knowledge-capture** surface that ships under parallel ADR-0135 (Connect super-app expansion) and ADR-0132 (suite-and-bundle dissolution) as a stand-alone hero µservice. It is NET-NEW; no `oya-connect-notes-*` legacy crates exist.
 
 The µservice owns: **note (Markdown body + YAML frontmatter), notebook/stack (loose hierarchy), tag (multi-tag per note + tag-graph), backlink (Obsidian-style `[[wikilink]]` bidirectional), daily-note (auto-created per day), template, web-clipper-bridge, share-link (read-only by default), embed (image + video + file via drive µservice), checklist, reminder (cross-µservice to tasks), folder (optional; flat-by-default), version-history (linear), search (cross-note + tag-faceted; client-side for E2E notes), graph-view (Obsidian-style force-directed; client-side render), import (Apple Notes export + Evernote ENEX + OneNote + Notion Markdown + Bear + Obsidian vault), export (Markdown + PDF + JSON portable), collab-edit (optional per note; Loro CRDT align), AI-summarize (T1), AI-suggest-tag (T1), AI-link-suggest (T1)**, across the dual-context model (Personal B2C + Professional B2B).
 
@@ -129,7 +129,7 @@ The privacy posture is sharper than docs: notes are *first-thought capture* (cf.
 ### Data residency
 
 - Per-tenant pack pinning per ADR-0117. Personal-context user data follows the personal-residency model (per-user); Professional follows tenant-residency.
-- Cross-pack note routing forbidden by default; no federation seam at MVP.
+- Cross-pack note routing forbidden by default; no federation seam at minimum-shippable-tier.
 
 ### Accessibility
 
@@ -212,7 +212,7 @@ CI lanes that must green:
 - `oya gate validate statelessness --microservice notes`
 - `oya gate validate shardability --microservice notes`
 - `oya gate validate authority-cohesion --microservice notes` (HG-NOTES)
-- `oya gate validate dual-context-isolation --microservice notes` (per parallel ADR-0126)
+- `oya gate validate dual-context-isolation --microservice notes` (per parallel ADR-0135)
 - `oya gate validate e2e-ai-refusal --microservice notes` (NEW; per ADR-NOTES-0005)
 
 ## Integration via Workflow + Ontology
@@ -254,7 +254,7 @@ CI lanes that must green:
 | `Tag{tag_id, tenant_id, name, color, parent_tag_id}` | `tag-graph` | Ed25519 (Professional only) |
 | `Backlink{from_note_id, to_note_id, kind: explicit | tag}` | `backlink-graph` | Ed25519 (Professional only) |
 
-Personal-tier writes to Ontology are MINIMAL by design (only opaque `Note{note_id, user_id, context_kind: Personal}` — no title, no body, no tags) per parallel ADR-0126 + DCI-05.
+Personal-tier writes to Ontology are MINIMAL by design (only opaque `Note{note_id, user_id, context_kind: Personal}` — no title, no body, no tags) per parallel ADR-0135 + DCI-05.
 
 ### Ontology reads
 
@@ -307,7 +307,7 @@ Key parity gaps to close (ordered by priority):
 Error budget:
 - Monthly error budget for note-open: 0.05 % (≈ 22 min/month).
 - Burn-rate alarm on `notes.note-open.availability` is 14.4× burn rate over 1h.
-- Error budget policy: `microservices/notes/runbooks/error-budget-policy.md` (deferred to follow-on IP).
+- Error budget policy: `microservices/notes/runbooks/error-budget-policy.md` (scheduled-for-distinct-tracked-work to successor-IP IP).
 
 ## Horizontal Scalability
 
@@ -353,7 +353,7 @@ Sharding:
 | AC-10 | Professional note four-eyes disclosure requires two distinct approving principals + audit-chain seal | `tests/e2e/four-eyes-disclosure.rs` |
 | AC-11 | `oya gate validate per-microservice-layout --microservice notes` exit 0 | ADR-0131 lane |
 | AC-12 | `oya gate validate authority-cohesion --microservice notes` exit 0 | ADR-0133 lane; HG-NOTES registered |
-| AC-13 | `oya gate validate dual-context-isolation --microservice notes` exit 0 | per parallel ADR-0126 |
+| AC-13 | `oya gate validate dual-context-isolation --microservice notes` exit 0 | per parallel ADR-0135 |
 | AC-14 | `oya gate validate e2e-ai-refusal --microservice notes` exit 0 | per ADR-NOTES-0005 |
 | AC-15 | Loro collab session: two clients edit same Professional note concurrently; converged state matches reference implementation | `tests/e2e/loro-collab-convergence.rs` |
 | AC-16 | Markdown export round-trips via JSON Canonical (RFC 8785) byte-identical when re-exported | `tests/e2e/export-roundtrip-canonical.rs` |
@@ -363,11 +363,11 @@ Sharding:
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | Client-side encrypted-search index design — encrypted-inverted-index in IndexedDB with per-note token-bloom-filters vs. trapdoor-permutation OPE — pick a primary | council-privacy + axis-notes | closed in ADR-NOTES-0004 |
-| 2 | AI tag-suggest semantics — multi-label classification head vs. retrieval-over-existing-tag-vocab — pick a primary | axis-foundry-runtime + axis-notes | open; follow-on capability ADR |
-| 3 | Web-clipper extension distribution — Chrome Web Store + Firefox AMO + Safari Web Extensions + Edge Add-ons all on day 1, or staged | axis-notes + ops-security | follow-on IP |
-| 4 | Daily-note timezone authority — user-local vs. tenant-default — pick a primary | axis-notes | open; UX research follow-on |
-| 5 | Public-share-link OG metadata leakage — should the OG preview render a snippet of the note body or only the title — pick a primary | council-privacy | follow-on policy decision |
-| 6 | Mobile-platform offline-edit conflict semantics — last-writer-wins vs. CRDT-merge-on-reconnect for non-collab notes | axis-notes | follow-on ADR |
+| 2 | AI tag-suggest semantics — multi-label classification head vs. retrieval-over-existing-tag-vocab — pick a primary | axis-foundry-runtime + axis-notes | open; successor-IP capability ADR |
+| 3 | Web-clipper extension distribution — Chrome Web Store + Firefox AMO + Safari Web Extensions + Edge Add-ons all on day 1, or staged | axis-notes + ops-security | successor-IP IP |
+| 4 | Daily-note timezone authority — user-local vs. tenant-default — pick a primary | axis-notes | open; UX research successor-IP |
+| 5 | Public-share-link OG metadata leakage — should the OG preview render a snippet of the note body or only the title — pick a primary | council-privacy | successor-IP policy decision |
+| 6 | Mobile-platform offline-edit conflict semantics — last-writer-wins vs. CRDT-merge-on-reconnect for non-collab notes | axis-notes | successor-IP ADR |
 
 ## Related ADRs
 
@@ -380,7 +380,7 @@ Sharding:
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0117 | Data residency packs | residency authority |
-| ADR-0126 | Connect dual-context (parallel) | dual-context isolation source |
+| ADR-0135 | Connect dual-context (parallel) | dual-context isolation source |
 | ADR-0130 | Agentic SLO-gated promotion | gates notes releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
@@ -396,5 +396,5 @@ Sharding:
 | ADR-WS-0001 | Workflow-studio Loro CRDT (sibling) | Loro alignment source |
 | Bominal ADR-0028 | Audit-chain Merkle + Ed25519 | inherited |
 | Bominal ADR-0111 | Ciphertext property type + envelope encryption | inherited |
-| Bominal ADR-0208 | Connect dual-context unified channel hub | inherited via ADR-0126 |
-| Bominal ADR-0215 | Connect retention legal-hold dual-context | inherited via ADR-0126 |
+| Bominal ADR-0208 | Connect dual-context unified channel hub | inherited via ADR-0135 |
+| Bominal ADR-0215 | Connect retention legal-hold dual-context | inherited via ADR-0135 |

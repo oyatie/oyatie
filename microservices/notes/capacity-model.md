@@ -117,7 +117,7 @@ hpa:
 
 ## Growth Assumptions
 
-- Year-1: 10× user growth quarter-over-quarter for first 4Q post-launch.
+- Year-1: 10× user growth quarter-over-quarter for first 4Q subsequent-to-launch.
 - Personal-tier ratio: 70 % Personal / 30 % Professional notes (initial).
 - Power-user vault upper-bound: 100k notes per user.
 - Loro collab penetration: 5 % of Professional notes have ≥ 1 collab session/month.

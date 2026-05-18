@@ -31,8 +31,8 @@ Tenants authoring OpenSLO manifests + querying eligibility verdicts programmatic
 | **Python** | M02 | OpenAPI-generated; published to PyPI | axis-observability + gtm |
 | **Go** | M02 | gRPC-generated baseline + ergonomic wrappers; published as go-module | axis-observability + gtm |
 | **JVM (Kotlin / Java)** | M03 | gRPC-generated baseline + ergonomic wrappers; published to Maven Central | axis-observability + gtm |
-| **C# / .NET** | M03+ | OpenAPI-generated; published to NuGet | axis-observability + gtm |
-| **Ruby** | M04+ (only if tenant demand surfaces) | OpenAPI-generated | axis-observability |
+| **C# / .NET** | M03-onward | OpenAPI-generated; published to NuGet | axis-observability + gtm |
+| **Ruby** | M04-onward (only if tenant demand surfaces) | OpenAPI-generated | axis-observability |
 | **PHP** | (none — no current tenant demand) | n/a | n/a |
 
 Prioritisation drivers: oyatie's own µservice languages first; then largest tenant developer-population languages (TypeScript + Python lead).

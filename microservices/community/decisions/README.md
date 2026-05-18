@@ -31,7 +31,7 @@ The ADRs in this directory close five **architecture-level** decisions whose ans
 - Service-scoped ADRs may reference cross-cutting ADRs (`ADR-NNNN` at repo root) and sibling µservice ADRs (e.g., `ADR-MSGR-0003` referenced from `ADR-COMM-0004` as paired backend selection). Cross-µservice citations are encouraged where the decisions are genuinely paired.
 - Lifecycle per ADR-0131 §"ADR Lifecycle": `Proposed → Accepted → (Superseded by ADR-COMM-NNNN | Deprecated)`. Never delete; supersede.
 
-## Open questions deferred (not ADR-closable at M02)
+## Open questions scheduled-for-distinct-tracked-work (not ADR-closable at M02)
 
 | PRD Deferral | Status | Notes |
 |---|---|---|

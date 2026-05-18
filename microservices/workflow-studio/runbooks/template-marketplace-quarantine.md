@@ -9,7 +9,7 @@ date: 2026-05-17
 related_artifacts:
   - microservices/workflow-studio/threat-model.md §"T-S-04" + §"T-T-03" + §"T-E-04"
   - microservices/workflow-studio/PRD.md FR-11 + §"Security" + §"Bounded Contexts" node-library-registry
-  - /specs/products/workflow-studio.json §anti_patterns non_deterministic_node_library_load
+  - /specs/microservices/workflow-studio.json §anti_patterns non_deterministic_node_library_load
   - microservices/workflow-studio/policy/auditor-scope.cedar (revocation event audit)
 doc_status: published
 ---
@@ -18,7 +18,7 @@ doc_status: published
 
 ## Purpose
 
-Studio's `node-library-registry` BC distributes per-pack signed node libraries (FR-11) and (post-GA) tenant-authored template marketplace bundles. A compromised or malicious library is a supply-chain attack surface — this runbook contains it.
+Studio's `node-library-registry` BC distributes per-pack signed node libraries (FR-11) and (subsequent-to-GA-tier-promotion) tenant-authored template marketplace bundles. A compromised or malicious library is a supply-chain attack surface — this runbook contains it.
 
 ## Trigger
 
@@ -131,7 +131,7 @@ After recovery:
 
 - `microservices/workflow-studio/threat-model.md` T-S-04, T-T-03, T-E-04.
 - `microservices/workflow-studio/PRD.md` FR-11, §"Security" — node library supply-chain.
-- `/specs/products/workflow-studio.json` §anti_patterns non_deterministic_node_library_load.
+- `/specs/microservices/workflow-studio.json` §anti_patterns non_deterministic_node_library_load.
 - OWASP Top 10 A06 (Vulnerable Components).
 - NIST SP 800-218 SSDF — software supply-chain practices.
 - SLSA Level 3 spec — `slsa.dev/spec/v1.0/levels`.

@@ -7,10 +7,10 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-sheets + council-architecture + gtm-customer-success
 deciders: axis-sheets, council-architecture
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0133]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0133]
 related_artifacts:
   - microservices/sheets/PRD.md (§Competitive Benchmark)
-  - /specs/products/sheets.json (§competitive)
+  - /specs/microservices/sheets.json (§competitive)
   - /specs/hyperscaler-gates.json (HG-SHEETS)
 review_cadence: bi-annually + on every new competitor entrant
 doc_status: published
@@ -24,7 +24,7 @@ Quantitative + qualitative parity comparison vs the industry-leading spreadsheet
 
 ## Competitor Set
 
-Per `/specs/products/sheets.json` §competitive:
+Per `/specs/microservices/sheets.json` §competitive:
 
 | Competitor | Product / surface | Primary differentiator | Source |
 |---|---|---|---|
@@ -85,7 +85,7 @@ Per `/specs/products/sheets.json` §competitive:
 |---|---|---|---|---|---|---|
 | XLSX import | ✅ AC-02 (gVisor + ClamAV/OPSWAT; best-effort tier per ADR-SHEETS-0007) | ✅ best-effort | ✅ native | ❌ | ✅ strict | ✅ strict |
 | XLSX export | ✅ AC-12 (best-effort) | ✅ best-effort | ✅ native | ❌ | ✅ strict | ✅ strict |
-| Strict OOXML round-trip | ❌ (deferred per ADR-SHEETS-0007; post-M03) | ❌ | ✅ | ❌ | ✅ | ✅ |
+| Strict OOXML round-trip | ❌ (scheduled-for-distinct-tracked-work per ADR-SHEETS-0007; subsequent-to-M03-completion) | ❌ | ✅ | ❌ | ✅ | ✅ |
 | ODS import/export | ✅ | partial | partial | ❌ | ✅ | ✅ |
 | CSV / TSV | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | JSON-Sheet | ✅ | partial | ❌ | partial | ❌ | ❌ |
@@ -120,7 +120,7 @@ Per `/specs/products/sheets.json` §competitive:
 |---|---|---|---|---|
 | External SQL-source query (connected-sheets) | ✅ FR-16 AC-17 | ✅ Connected Sheets | ✅ Power Query | partial |
 | Sheet-edit-triggers-workflow | ✅ FR-19 (via trigger-bridge → workflow-engine) | partial (Apps Script) | partial (Power Automate) | ✅ |
-| Apps-Script-equivalent (T2 deferred) | ❌ post-M03 (ADR-SHEETS-0005) | ✅ Apps Script | partial Office Scripts | ✅ Pack scripts |
+| Apps-Script-equivalent (T2 scheduled-for-distinct-tracked-work) | ❌ subsequent-to-M03-completion (ADR-SHEETS-0005) | ✅ Apps Script | partial Office Scripts | ✅ Pack scripts |
 
 ### Performance + scale
 
@@ -142,7 +142,7 @@ Per `/specs/products/sheets.json` §competitive:
 
 ## Quantitative Performance Parity
 
-Per ADR-0123 + `/specs/products/sheets.json` §competitive_claim_policy: NO numeric latency comparison claims permitted without measured oyatie evidence.
+Per ADR-0123 + `/specs/microservices/sheets.json` §competitive_claim_policy: NO numeric latency comparison claims permitted without measured oyatie evidence.
 
 Pending measurement at M03/P01 exit gate:
 - Sheet-open cold p95 via synthetic harness.
@@ -158,10 +158,10 @@ Pending measurement at M03/P01 exit gate:
 | # | Gap | Owner | Target close |
 |---|---|---|---|
 | 1 | Function-library breadth (oyatie M03 ≥ 400; Excel ~500; closing the last 100 in M04 catch-up phase) | axis-sheets | M04 |
-| 2 | Strict OOXML round-trip (oyatie M03 best-effort; strict deferred per ADR-SHEETS-0007) | axis-sheets + ops-fidelity | post-M03 |
-| 3 | Apps-Script-equivalent (T2 cross-µservice scripting; deferred per ADR-SHEETS-0005) | axis-sheets + foundry-runtime + ops-security | post-GA |
-| 4 | Mobile-app editor (none of competitors except partial Google Sheets / Excel mobile) | council-design-system | post-M03 |
-| 5 | Marketplace template ecosystem (Google + Excel + Airtable) | axis-sheets + gtm + community | post-M03 |
+| 2 | Strict OOXML round-trip (oyatie M03 best-effort; strict scheduled-for-distinct-tracked-work per ADR-SHEETS-0007) | axis-sheets + ops-fidelity | subsequent-to-M03-completion |
+| 3 | Apps-Script-equivalent (T2 cross-µservice scripting; scheduled-for-distinct-tracked-work per ADR-SHEETS-0005) | axis-sheets + foundry-runtime + ops-security | subsequent-to-GA-tier-promotion |
+| 4 | Mobile-app editor (none of competitors except partial Google Sheets / Excel mobile) | council-design-system | subsequent-to-M03-completion |
+| 5 | Marketplace template ecosystem (Google + Excel + Airtable) | axis-sheets + gtm + community | subsequent-to-M03-completion |
 
 ## Key oyatie Differentiators (not in surveyed competitors)
 
@@ -182,7 +182,7 @@ Permitted (citation-bounded):
 - "oyatie Sheets surfaces per-range named-ACL granularity in Cedar policy fragments, beyond what surveyed competitors' primary docs establish" (true).
 - "oyatie Sheets ships a gVisor + ClamAV + OPSWAT sandboxed XLSX pipeline; no surveyed competitor primary-docs claim equivalent defense-in-depth" (true as of 2026-05-17).
 
-Forbidden (per ADR-0123 hyperscaler-maturity-claim-gate + `/specs/products/sheets.json` §competitive_claim_policy):
+Forbidden (per ADR-0123 hyperscaler-maturity-claim-gate + `/specs/microservices/sheets.json` §competitive_claim_policy):
 - "oyatie Sheets is faster than Google Sheets" (no measured benchmark; would be unsourced superiority).
 - "oyatie Sheets has more functions than Excel" (NOT TRUE pre-M04 catch-up).
 - "oyatie Sheets is the only collaborative spreadsheet" (NOT TRUE — Google Sheets + Excel Web + Airtable + Coda all have collab).
@@ -205,10 +205,10 @@ Each competitor row's primary-source URL is snapshotted at registration time; SH
 ## References
 
 - `microservices/sheets/PRD.md` §Competitive Benchmark.
-- `/specs/products/sheets.json` §competitive + §competitive_claim_policy.
+- `/specs/microservices/sheets.json` §competitive + §competitive_claim_policy.
 - `/specs/hyperscaler-gates.json` HG-SHEETS gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0126 (sheets net-new µservice).
+- ADR-0135 (sheets net-new µservice).
 - ADR-0133 (industry-best-practice conformance axis-4 named sources).
 - ADR-SHEETS-0001..0007 (local).
 - Competitor docs as cited inline above.

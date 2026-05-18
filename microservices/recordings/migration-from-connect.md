@@ -5,8 +5,8 @@ microservice: recordings
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-RECORDINGS accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
-related_specs: [/specs/products/connect/recordings.json, /specs/products/recordings/recordings.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
+related_specs: [/specs/microservices/recordings.json, /specs/microservices/recordings/recordings.json]
 owner_team: axis-recordings
 date: 2026-05-17
 doc_status: published
@@ -17,7 +17,7 @@ doc_status: published
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **recordings** µservice. It is the
 consumer-facing companion to ADR-0134 (cross-µservice migration policy) and
-ADR-0126 (target topology).
+ADR-0135 (target topology).
 
 ## Status
 
@@ -27,7 +27,7 @@ in `microservices/recordings/`.**
 | Field | Value |
 |---|---|
 | Replacement | `oya-recordings-*` crate family under `microservices/recordings/src/crates/` |
-| Removal date | **Advisory** — concrete target is HG-RECORDINGS accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #2) |
+| Removal date | **Advisory** — concrete target is HG-RECORDINGS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #2) |
 | Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 22-BC recordings surface (recording / media-segment / transcript / translation / redaction / chapter-marker / summary / thumbnail-pack / search / retention-policy / legal-hold / export / share-link / playback / ediscovery / watermarking / drm-stub / audio-loudness / video-encode-ladder / accessibility-captions / recording-ingest) is only addressable at µservice granularity |
 | Migration owner (Churn Rule) | axis-recordings |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
@@ -201,7 +201,7 @@ without to route through the legacy adapter. Compare:
 - error variant ordering (Hyrum's Law — see surfaces below).
 - p99 latency (must be ≤ legacy + 5 % per ADR-0134 Phase 3 canary gate).
 - log-line format (preserved verbatim during the canary; may be tightened
-  in a follow-up `feedback_no_silent_regression`-conforming ADR).
+  in a successor-IP `feedback_no_silent_regression`-conforming ADR).
 
 ### Step 4 — Remove the legacy dependency
 
@@ -378,12 +378,12 @@ not migrate during the 5-month adapter + canary window. Per
   **2026-11-17** (subject to the HG-RECORDINGS retirement trigger gating).
 - Owning axis (axis-recordings) ships migration ChangeSets for every
   internal consumer per the Churn Rule before Phase 5.
-- External consumers (reading `/specs/products/connect/recordings.json`)
+- External consumers (reading `/specs/microservices/recordings.json`)
   receive a 6-month sunset window from this notice.
 
 ## References
 
-- ADR-0126: Connect super-app expansion into flat µservices.
+- ADR-0135: Connect super-app expansion into flat µservices.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.

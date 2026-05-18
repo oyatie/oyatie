@@ -97,7 +97,7 @@ playbooks).
 ### 6. Post-incident
 
 - Within 5 business days: blameless post-mortem.
-- Output: action items (tickets) + runbook updates + ADR follow-ups
+- Output: action items (tickets) + runbook updates + ADR successor-IPs
   if needed.
 - Long-tail tracking via `oya-dev-cli postmortem`.
 

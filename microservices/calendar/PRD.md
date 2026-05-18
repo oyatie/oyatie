@@ -8,8 +8,8 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M02-product-tier-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
-related_specs: [/specs/products/connect/calendar.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_specs: [/specs/microservices/calendar.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-calendar
 doc_status: published
@@ -19,9 +19,9 @@ doc_status: published
 
 ## Purpose
 
-The `calendar` µservice is oyatie's native calendar, meeting-scheduling, invitation, cross-tenant availability, and room-booking substrate. Per ADR-0132 (product-suite + bundle dissolution) and parallel-session ADR-0126 (Connect unbundle), calendar is a standalone tenant-facing µservice — no longer part of a Connect suite — owning: event/meeting scheduling; invitations (RFC 5545 iCalendar + CalDAV compatible); recurring events; cross-tenant availability lookups; meeting rooms / resources; time-zone handling (ICU/IANA tzdata); .ics import/export.
+The `calendar` µservice is oyatie's native calendar, meeting-scheduling, invitation, cross-tenant availability, and room-booking substrate. Per ADR-0132 (product-suite + bundle dissolution) and parallel-session ADR-0135 (Connect unbundle), calendar is a standalone tenant-facing µservice — no longer part of a Connect suite — owning: event/meeting scheduling; invitations (RFC 5545 iCalendar + CalDAV compatible); recurring events; cross-tenant availability lookups; meeting rooms / resources; time-zone handling (ICU/IANA tzdata); .ics import/export.
 
-The µservice carries dual-context (Personal / Professional) per parallel ADR-0126; details never cross context boundaries except via explicit invitation or policy-bound projection.
+The µservice carries dual-context (Personal / Professional) per parallel ADR-0135; details never cross context boundaries except via explicit invitation or policy-bound projection.
 
 Bominal inheritance: ADR-0208 dual-context unified-channel hub + ADR-0215 retention + legal-hold overlays are inherited 1:1 per `feedback_bominal_inheritance_precedence.md`; oyatie additions captured below.
 
@@ -303,9 +303,9 @@ Sharding: events partitioned by `(tenant_id, starts_at_year_month)`; resources p
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| 1 | Should we ship native conferencing (oyatie-Connect-Conference) bound to events, or rely on Workflow trigger to external Zoom/Meet? | council-product | post-M03 |
-| 2 | Time-zone source-of-truth: chrono-tz (Rust) vs ICU4X — chrono-tz chosen for now; revisit if ICU4X offers better calendar-locale coverage | axis-calendar | ADR follow-up |
-| 3 | Calendar federation (Google/Outlook source-of-truth coexistence mode vs migration-only) — current scope is migration via CalDAV only | council-product | post-M03 |
+| 1 | Should we ship native conferencing (oyatie-Connect-Conference) bound to events, or rely on Workflow trigger to external Zoom/Meet? | council-product | subsequent-to-M03-completion |
+| 2 | Time-zone source-of-truth: chrono-tz (Rust) vs ICU4X — chrono-tz chosen for now; revisit if ICU4X offers better calendar-locale coverage | axis-calendar | ADR successor-IP |
+| 3 | Calendar federation (Google/Outlook source-of-truth coexistence mode vs migration-only) — current scope is migration via CalDAV only | council-product | subsequent-to-M03-completion |
 | 4 | RRULE BYSETPOS interaction with EXDATE — defer to RFC 5545 corpus | axis-calendar | resolved by corpus pass |
 
 ## Related ADRs
@@ -316,7 +316,7 @@ Sharding: events partitioned by `(tenant_id, starts_at_year_month)`; resources p
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
-| ADR-0126 | Connect unbundle (parallel session) | dual-context inheritance |
+| ADR-0135 | Connect unbundle (parallel session) | dual-context inheritance |
 | ADR-0130 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
 | ADR-0132 | Product-suite + bundle dissolution | µservice independence |

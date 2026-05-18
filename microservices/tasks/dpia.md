@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-tasks
 methodology: ICO DPIA + CNIL DPIA + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act Annex IV
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-TASKS-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-TASKS-0006]
 related_artifacts:
   - microservices/tasks/threat-model.md
   - microservices/tasks/policy/task-isolation.md
@@ -64,7 +64,7 @@ DPIA + EU AI Act conformity-assessment mandatory pre-deployment. Reviewed by EU 
 | `PROFESSIONAL_TASK_CONTENT` | task title, description, custom-field values | Art. 6(1)(b) contract + 6(1)(f) legitimate interest | 10⁵ tasks/day per medium tenant |
 | `PERSONAL_TASK_CONTENT` | personal task entries | Art. 6(1)(a) consent + 6(1)(b) | 10⁴/day per active user |
 | `PII_IDENTIFYING` | assignee emails, watcher emails, person-typed custom-field values | Art. 6(1)(b) contract | 10× task count |
-| `PII_BEHAVIORAL` | time-tracking ticks (M02+); work-pattern inferences | Art. 6(1)(a) explicit consent | per opt-in user |
+| `PII_BEHAVIORAL` | time-tracking ticks (M02-onward); work-pattern inferences | Art. 6(1)(a) explicit consent | per opt-in user |
 | `PHI` (pack-us-healthcare only) | clinical-task assignment content under BAA | HIPAA §164.502(a) Permitted Uses | per BAA tenant |
 | `AUDIT` | task lifecycle records | Art. 6(1)(c) legal obligation | 1 per task mutation |
 | `SECRET` | tenant-DEK, API keys, Meilisearch master keys | not personal data | managed via OpenBao |
@@ -130,7 +130,7 @@ DPIA + EU AI Act conformity-assessment mandatory pre-deployment. Reviewed by EU 
 | R-01 | Personal-task content leaks into Professional-context query | M-H | H | **H** |
 | R-02 | Cross-tenant search-index leak | M | H | **H** |
 | R-03 | T2 auto-assign creates disparate-impact for protected class (employment-context) | M (without mitigation) / L (with conformity assessment + fairness audit) | H | **H pre-mitigation / L post-** |
-| R-04 | Time-tracking ticks (M02+) enable employee surveillance | M | H | **H** |
+| R-04 | Time-tracking ticks (M02-onward) enable employee surveillance | M | H | **H** |
 | R-05 | Importer source forges assignee identity | M | H | **H** |
 | R-06 | Webhook payload over-projection leaks data to public webhook URL | M | M | **M** |
 | R-07 | Long retention enables surveillance pattern across years | M | M-H | **M-H** |
@@ -252,7 +252,7 @@ Per-pack DPIA overlays at `regional-packs/<pack>/tasks-dpia-overlay.md`.
 
 ## References
 
-- ADR-0028 (Bominal), ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-TASKS-0006.
+- ADR-0028 (Bominal), ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-TASKS-0006.
 - `microservices/tasks/threat-model.md`, `compliance.md`, `policy/*.cedar`, `multi-region.md`, `incident-response.md`, `legal/{dpa-template,baa-template,sub-processors,transfer-register,ropa}.md`, `capabilities/T0-suggest.yaml`, `capabilities/T1-assist.yaml`, `capabilities/T2-auto.yaml`.
 - ICO DPIA template; CNIL DPIA methodology; EDPB Guidelines 4/2019 + 9/2022; PIPC Notice 2020-7.
 - GDPR Art. 35 + Art. 36; KR PIPA Art. 33; HIPAA 45 CFR §164.308.

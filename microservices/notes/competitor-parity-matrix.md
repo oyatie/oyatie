@@ -12,7 +12,7 @@ doc_status: published
 
 ## Scope
 
-This matrix benchmarks `oyatie notes` against the major short-form-notes + knowledge-capture incumbents enumerated in the PRD. The goal is to identify parity gaps, sharpen differentiation, and bound MVP scope.
+This matrix benchmarks `oyatie notes` against the major short-form-notes + knowledge-capture incumbents enumerated in the PRD. The goal is to identify parity gaps, sharpen differentiation, and bound minimum-shippable-tier scope.
 
 Legend: ✓ full / ◐ partial / ✗ absent / N/A not-applicable.
 
@@ -90,16 +90,16 @@ Legend: ✓ full / ◐ partial / ✗ absent / N/A not-applicable.
 | Summarize | ✓ (T1; Professional only) | ✓ | ✓ | ✓ | ◐ | ✓ | ✗ |
 | Tag-suggest | ✓ (T1; Professional only) | ✗ | ✓ | ✓ | ✓ | ✗ | ✗ |
 | Link-suggest | ✓ (T1; Professional only) | ✗ | ✓ | ✓ | ✓ | ✗ | ✗ |
-| Auto-organise (T2) | ◐ (declared; disabled MVP) | ✗ | ✓ | ◐ | ✓ | ✗ | ✗ |
+| Auto-organise (T2) | ◐ (declared; disabled minimum-shippable-tier) | ✗ | ✓ | ◐ | ✓ | ✗ | ✗ |
 | **Refuse AI on E2E content** | ✓ structural | N/A | ✗ | ✗ | N/A | N/A | N/A |
 
 ## Mobile + Desktop Native
 
 | Platform | oyatie notes |
 |---|---|
-| iOS native (Swift + WebKit) | post-M02 |
-| Android native (Kotlin + Compose) | post-M02 |
-| macOS native (Swift + Tauri) | M02 (Tauri); post-M02 (Swift) |
+| iOS native (Swift + WebKit) | subsequent-to-M02-completion |
+| Android native (Kotlin + Compose) | subsequent-to-M02-completion |
+| macOS native (Swift + Tauri) | M02 (Tauri); subsequent-to-M02-completion (Swift) |
 | Windows / Linux (Tauri) | M02 |
 | Web | M02 |
 

@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/forms/threat-model.md §"T-D-01" + §"T-D-03" + §"T-D-07"
   - microservices/forms/capacity-model.md
   - microservices/forms/PRD.md §"Horizontal Scalability"
-  - /specs/products/forms.json §goals.scalability
+  - /specs/microservices/forms.json §goals.scalability
 doc_status: published
 ---
 

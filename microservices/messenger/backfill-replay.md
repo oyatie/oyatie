@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-messenger
 deciders: axis-messenger, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0126, ADR-0131]
+related_adrs: [ADR-0028, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/messenger/PRD.md
   - microservices/messenger/capacity-model.md
@@ -146,5 +146,5 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers".
 - `microservices/messenger/cost-budget.md`.
 - `microservices/messenger/contracts/asyncapi/messenger-events.yaml`.
 - ADR-0028 audit-chain.
-- ADR-0126 (Connect dual-context, parallel).
+- ADR-0135 (Connect dual-context, parallel).
 - ADR-0131 (per-microservice flat layout).

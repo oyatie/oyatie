@@ -7,7 +7,7 @@ deciders: axis-drive, council-architecture, ops-sre-reliability, ops-security, f
 owner: axis-drive + council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0117, ADR-0126, ADR-0131, ADR-0132, ADR-0133]
+related: [ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0131, ADR-0132, ADR-0133]
 related_artifacts:
   - microservices/drive/PRD.md (§Bounded Contexts → file-store adapter-{s3,garage,seaweedfs}; §"Horizontal Scalability")
   - microservices/drive/iac/helm/Chart.yaml
@@ -203,7 +203,7 @@ Per the agent-skills documentation-and-adrs SKILL.md §"Verification":
 - SeaweedFS upstream — `github.com/seaweedfs/seaweedfs`.
 - Ceph RGW — `ceph.io` (rejected reference).
 - `s3-tests` Ceph public conformance corpus.
-- ADR-0056 (BNF v4.1); ADR-0105 Amendment 3 (backend-qualified adapters); ADR-0117; ADR-0126; ADR-0131; ADR-0132; ADR-0133.
+- ADR-0056 (BNF v4.1); ADR-0105 Amendment 3 (backend-qualified adapters); ADR-0117; ADR-0135; ADR-0131; ADR-0132; ADR-0133.
 - ADR-DRIVE-0006 (WORM immutability — object-lock compliance mode).
 - `microservices/drive/PRD.md` §Bounded Contexts row 1; §"Horizontal Scalability".
 - `microservices/drive/iac/helm/Chart.yaml`.

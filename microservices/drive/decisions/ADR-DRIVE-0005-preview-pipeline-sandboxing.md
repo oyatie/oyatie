@@ -7,7 +7,7 @@ deciders: axis-drive, ops-security, council-architecture
 owner: ops-security + axis-drive
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0126, ADR-0131, ADR-0133, ADR-DRIVE-0001, ADR-DRIVE-0004]
+related: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-0133, ADR-DRIVE-0001, ADR-DRIVE-0004]
 related_artifacts:
   - microservices/drive/PRD.md (§FR-09 preview; §"Performance" preview render targets; AC-13 sandbox isolation)
   - microservices/drive/iac/helm/values.yaml (preview.sandbox.*)
@@ -104,7 +104,7 @@ The drive µservice ships:
   - Requires KVM at the node level; some cloud node types lack.
   - More operational complexity than gVisor.
   - gVisor sufficient for the threat model.
-- **Rejected** for now; **retained as a follow-up if gVisor CVE patterns require stronger isolation**.
+- **Rejected** for now; **retained as a successor-IP if gVisor CVE patterns require stronger isolation**.
 
 ### C. Kata Containers
 
@@ -195,7 +195,7 @@ The drive µservice ships:
 - CIS Kubernetes Benchmark v1.9.0 — `cisecurity.org`.
 - OWASP ASVS v4.0.3 — §14 Configuration.
 - NIST SP 800-190 — Application Container Security Guide.
-- ADR-0056 (BNF v4.1); ADR-0105 (13-layer enum); ADR-0126; ADR-0131; ADR-0133.
+- ADR-0056 (BNF v4.1); ADR-0105 (13-layer enum); ADR-0135; ADR-0131; ADR-0133.
 - ADR-DRIVE-0001 — object-storage substrate (preview workers fetch ciphertext from Garage).
 - ADR-DRIVE-0004 — encryption-at-rest (preview workers decrypt via OpenBao Transit).
 - `microservices/drive/PRD.md` §FR-09; §"Performance" preview targets; AC-13.

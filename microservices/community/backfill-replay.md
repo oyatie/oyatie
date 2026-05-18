@@ -5,7 +5,7 @@ microservice: community
 status: Accepted
 date: 2026-05-17
 owner_team: axis-community + ops-sre
-related_adrs: [ADR-0056, ADR-0105, ADR-0126, ADR-0131]
+related_adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0131]
 doc_status: published
 ---
 

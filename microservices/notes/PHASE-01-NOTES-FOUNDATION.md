@@ -5,7 +5,7 @@ milestone: M02-foundation
 phase: P01-notes-foundation
 status: Active
 entry_gate: |
-  ADR-0126 (parallel Connect dual-context) + ADR-0131 + ADR-0132 accepted;
+  ADR-0135 (parallel Connect dual-context) + ADR-0131 + ADR-0132 accepted;
   observability µservice IP-001..IP-015 merged so notes can author OpenSLO manifests and pass promotion-readiness gate;
   drive µservice ready for attachment refs; tasks µservice ready to receive checklist-emitted events.
 exit_gate: |
@@ -26,7 +26,7 @@ depends_on:
   - microservice: tasks
     reason: checklist BC emits ChecklistItemEmitted Workflow events to tasks
 owner_team: axis-notes
-related_adrs: [ADR-0008, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
@@ -36,14 +36,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full notes µservice per parallel ADR-0126 + ADR-0132: short-form personal-notes + knowledge-capture, dual-context-safe across personal (B2C) and professional (B2B), with E2E-default on the Personal tier.
+This phase ships the full notes µservice per parallel ADR-0135 + ADR-0132: short-form personal-notes + knowledge-capture, dual-context-safe across personal (B2C) and professional (B2B), with E2E-default on the Personal tier.
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Apple Notes / Obsidian / Standard Notes-class parity + native Workflow + Ontology integration).
-- Nothing deferred (no FUTURE stubs; every NFR covered).
+- Nothing scheduled-for-distinct-tracked-work (no FUTURE stubs; every NFR covered).
 - No silent regression (production-tier change gated by observability ADR-0130).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0126.
+- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
 - AI-refusal on E2E content as a structural impossibility, not a setting (per ADR-NOTES-0005).
 
 ## Scope
@@ -64,8 +64,8 @@ Plus cross-cutting:
 
 - Native mobile-platform-extension capture (iOS Share Sheet beyond Web Share API; future IP).
 - Federated note exchange with external Obsidian / Logseq vaults via Matrix (Open Question; future ADR).
-- AI-driven auto-organisation T2 capability (capability declared but disabled at MVP; opt-in tenant-admin).
-- OCR-on-clipped-images (future capability; clipper captures raw image only at MVP).
+- AI-driven auto-organisation T2 capability (capability declared but disabled at minimum-shippable-tier; opt-in tenant-admin).
+- OCR-on-clipped-images (future capability; clipper captures raw image only at minimum-shippable-tier).
 
 ## Implementation Plans
 
@@ -104,10 +104,10 @@ E2E: ≥ 1 per AC-NN row in PRD.
 ## Open Questions Tracked
 
 - PRD #1 — closed in ADR-NOTES-0004 (encrypted-inverted-index in IndexedDB with token-bloom-filters).
-- PRD #2..#6 — open; deferred to follow-on IPs or capability ADRs.
+- PRD #2..#6 — open; scheduled-for-distinct-tracked-work to successor-IP IPs or capability ADRs.
 
 ## References
 
 - `microservices/notes/PRD.md`.
-- ADR-0126; ADR-0130; ADR-0131; ADR-0132; ADR-0133.
+- ADR-0135; ADR-0130; ADR-0131; ADR-0132; ADR-0133.
 - ADR-NOTES-0001..0006.

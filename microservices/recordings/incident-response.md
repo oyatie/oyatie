@@ -47,7 +47,7 @@ doc_status: published
 If incident → unauthorized disclosure of personal data:
 - 72h notification to relevant DPA (per pack).
 - Customer notification (Art. 34) if high-risk to data subjects.
-- KR PIPA Art. 34 — 72h notification + 5d follow-up.
+- KR PIPA Art. 34 — 72h notification + 5d successor-IP.
 - HIPAA HITECH — 60d notification + 60d for > 500 affected.
 - DPDPA 2023 — 72h notification + customer notification.
 

@@ -5,7 +5,7 @@ milestone: M03-sheets-preview
 phase: P01-sheets-foundation
 status: Active
 entry_gate: |
-  PRD-sheets accepted; ADR-0126 net-new µservice scope accepted; cargo workspace ready to accept
+  PRD-sheets accepted; ADR-0135 net-new µservice scope accepted; cargo workspace ready to accept
   the new sheets crates under microservices/sheets/src/crates/; Layer-A IaC available via cloud-iac
   µservice (CDN + WebSocket gateway + Postgres + Redis + S3 + Arrow/Parquet via OCI Object Storage);
   foundry-runtime SDK available for AI-formula + smart-fill; tenancy SDK available for per-seat
@@ -35,8 +35,8 @@ depends_on:
     phase: prior phases per master-plan-sequencing
     reason: workspace + branch-protection + Cargo metadata authority must precede Sheets crate authoring
 owner_team: axis-sheets + council-design-system
-related_adrs: [ADR-0065, ADR-0103, ADR-0126, ADR-0130, ADR-0131, ADR-0140]
-related_specs: [/specs/products/sheets.json, /specs/per-microservice-flat-layout.json]
+related_adrs: [ADR-0065, ADR-0103, ADR-0135, ADR-0130, ADR-0131, ADR-0140]
+related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
 ---
@@ -45,11 +45,11 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full sheets µservice — net-new per ADR-0126. The cell-grid editor canvas; the formula engine with ≥400-function library and Excel-reference conformance (ADR-SHEETS-0002); the recalc engine with dependency-graph + parallel-task-graph architecture (ADR-SHEETS-0004); the collaborative CRDT editing with Loro 1.x aligned with workflow-studio ADR-WS-0001 (ADR-SHEETS-0001); the hybrid postgres+Arrow/Parquet large-sheet storage (ADR-SHEETS-0003); pivot tables, charts, conditional formatting, data validation, named ranges; XLSX/ODS/CSV/TSV/JSON-Sheet import/export with best-effort fidelity per ADR-SHEETS-0007 and gVisor + ClamAV/OPSWAT sandboxing; per-range named-ACL per ADR-SHEETS-0006; AI-formula + smart-fill bounded per ADR-SHEETS-0005; connected-sheets external-source queries; comments + version-history; embed-bridge into docs + slides; trigger-bridge to workflow-engine; and per-seat license-gate Cedar enforcement. Delivered as one phase in M03-sheets-preview because Sheets is a hero product surface.
+This phase ships the full sheets µservice — net-new per ADR-0135. The cell-grid editor canvas; the formula engine with ≥400-function library and Excel-reference conformance (ADR-SHEETS-0002); the recalc engine with dependency-graph + parallel-task-graph architecture (ADR-SHEETS-0004); the collaborative CRDT editing with Loro 1.x aligned with workflow-studio ADR-WS-0001 (ADR-SHEETS-0001); the hybrid postgres+Arrow/Parquet large-sheet storage (ADR-SHEETS-0003); pivot tables, charts, conditional formatting, data validation, named ranges; XLSX/ODS/CSV/TSV/JSON-Sheet import/export with best-effort fidelity per ADR-SHEETS-0007 and gVisor + ClamAV/OPSWAT sandboxing; per-range named-ACL per ADR-SHEETS-0006; AI-formula + smart-fill bounded per ADR-SHEETS-0005; connected-sheets external-source queries; comments + version-history; embed-bridge into docs + slides; trigger-bridge to workflow-engine; and per-seat license-gate Cedar enforcement. Delivered as one phase in M03-sheets-preview because Sheets is a hero product surface.
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (CDN-cached WASM bundle + per-tenant CRDT collab + Cedar per-seat + Arrow columnar storage for analytical workloads).
-- Nothing deferred (every FUTURE-marked stub in any grid-aware product's authoring UX is decommissioned by this phase's Sheets SDK + emitter).
+- Nothing scheduled-for-distinct-tracked-work (every FUTURE-marked stub in any grid-aware product's authoring UX is decommissioned by this phase's Sheets SDK + emitter).
 - No silent regression (sheets-crdt-no-silent-loss CI lane is BLOCKER day 1).
 - Per-microservice flat layout (this phase ships natively under ADR-0131).
 
@@ -71,11 +71,11 @@ Naming justifications for the new crate families are in `microservices/sheets/PR
 
 ### Out-of-scope
 
-- The cell µservice per-workbook cell substrate — separate µservice (`microservices/cell/`) per ADR-0126.
-- Workbook template marketplace — deferred to a post-M03 phase.
-- VBA / Apps-Script equivalent — explicitly excluded per ADR-SHEETS-0007 named-limit list; deferred to post-GA T2 review.
-- Per-tenant branding (mid-render) — explicitly anti-pattern per `/specs/products/sheets.json` §anti_patterns.
-- Strict OOXML round-trip — explicitly deferred per ADR-SHEETS-0007; best-effort tier only at M03.
+- The cell µservice per-workbook cell substrate — separate µservice (`microservices/cell/`) per ADR-0135.
+- Workbook template marketplace — scheduled-for-distinct-tracked-work to a subsequent-to-M03-completion phase.
+- VBA / Apps-Script equivalent — explicitly excluded per ADR-SHEETS-0007 named-limit list; scheduled-for-distinct-tracked-work to subsequent-to-GA-tier-promotion T2 review.
+- Per-tenant branding (mid-render) — explicitly anti-pattern per `/specs/microservices/sheets.json` §anti_patterns.
+- Strict OOXML round-trip — explicitly scheduled-for-distinct-tracked-work per ADR-SHEETS-0007; best-effort tier only at M03.
 
 ## Implementation Plans
 
@@ -209,7 +209,7 @@ Every IP in this phase emits a ChangeSet per ADR-0110 (claimable + verifiable + 
   "phase": "P01-sheets-foundation",
   "claim_paths": ["microservices/sheets/src/crates/<crate>/**", "..."],
   "intent": "<one-line>",
-  "spec_refs": ["microservices/sheets/PRD.md§<section>", "/specs/products/sheets.json§<section>"],
+  "spec_refs": ["microservices/sheets/PRD.md§<section>", "/specs/microservices/sheets.json§<section>"],
   "acceptance_lanes_green": ["cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny", "lean-a1", "lean-a2", "per-microservice-layout", "sheets-crdt-no-silent-loss", "sheets-formula-engine-correctness"],
   "test_count": {"unit": <int>, "integration": <int>, "e2e": <int>},
   "coverage_pct": <float>,
@@ -294,12 +294,12 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0110: ChangeSet state machine.
 - ADR-0116: Retire external agent-coordination tooling.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0126: Sheets net-new µservice (no legacy connect-sheets).
+- ADR-0135: Sheets net-new µservice (no legacy connect-sheets).
 - ADR-0130: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - ADR-SHEETS-0001..0007 (local).
-- `/specs/products/sheets.json`.
+- `/specs/microservices/sheets.json`.
 - `/specs/per-microservice-flat-layout.json`.
 - `microservices/sheets/PRD.md`.
 - Memory: `feedback_workflow_studio_scope.md`, `feedback_workflow_is_shared.md`, `feedback_workflow_objectgraph_adapter_layer.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-social
 deciders: axis-social, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0126, ADR-0131]
+related_adrs: [ADR-0028, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/social/PRD.md
   - microservices/social/capacity-model.md
@@ -158,7 +158,7 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers".
 - `microservices/social/cost-budget.md`.
 - `microservices/social/contracts/asyncapi/social-events.yaml`.
 - ADR-0028 audit-chain.
-- ADR-0126 (Connect dissolution).
+- ADR-0135 (Connect dissolution).
 - ADR-0131 (per-microservice flat layout).
 - ActivityPub W3C Rec 2018 §5 (Outbox).
 - RFC 9421 HTTP Signatures.

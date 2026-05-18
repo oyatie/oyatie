@@ -6,8 +6,8 @@ deprecated_artifact: oya-connect-tasks-* crate family
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-TASKS accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
-related_specs: [/specs/products/connect/tasks.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
+related_specs: [/specs/microservices/tasks.json]
 owner_team: axis-tasks
 date: 2026-05-17
 doc_status: published
@@ -36,7 +36,7 @@ preserved + 6 net-new), and step-by-step migration guide.
 ## Removal date
 
 **Advisory — no hard deadline.** Concrete removal target is HG-TASKS
-accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #3).
+accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3).
 Following the 5-month Strangler window in ADR-0134 (Phase 2 adapter
 soak + Phase 3 canary), the indicative advisory removal date is
 **2026-11-17**, gated on the SLO trigger.
@@ -148,7 +148,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 
 ## References
 
-- ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
+- ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
 - ADR-TASKS-0001 (data model + custom fields strict coercion).
 - ADR-TASKS-0002 (dependency graph cycle prevention at write time).
 - ADR-TASKS-0003 (recurring tasks via rrule-rs; align calendar ADR-CAL-0002).
@@ -161,5 +161,5 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 - `feedback_no_silent_regression.md`.
 - agent-skills deprecation-and-migration SKILL.md.
 - RFC 5545 — iCalendar VTODO (aligned subset).
-- draft-ietf-jmap-tasks — JMAP Tasks (deferred to M05).
+- draft-ietf-jmap-tasks — JMAP Tasks (scheduled-for-distinct-tracked-work to M05).
 - `microservices/calendar/deprecation-notice.md` — sibling reference template.

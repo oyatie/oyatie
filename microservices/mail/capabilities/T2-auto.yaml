@@ -17,7 +17,7 @@ microservice: mail
 tier: T2
 owner_team: axis-mail + foundry-runtime + council-privacy + ops-security
 date: 2026-05-17
-review_cadence: per-capability-launch + monthly post-launch + quarterly steady-state
+review_cadence: per-capability-launch + monthly subsequent-to-launch + quarterly steady-state
 
 capabilities:
   - id: T2-mail-auto-archive
@@ -193,7 +193,7 @@ verification:
   - oya gate validate autonomy-tier --microservice mail --tier T2
   - oya gate validate ai-act-conformance --microservice mail
   - oya gate validate retention-floor-conformance --microservice mail
-  - monthly post-launch: reversibility audit; user-reversal rate; FP/FN telemetry
+  - monthly subsequent-to-launch: reversibility audit; user-reversal rate; FP/FN telemetry
   - quarterly steady-state: capability adoption + sunset review
 
 references:

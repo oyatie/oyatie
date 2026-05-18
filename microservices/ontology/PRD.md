@@ -9,7 +9,7 @@ tier: internal
 milestone_first_ship: M02b-substrate-ready
 bominal_source: [ADR-0106, ADR-0107, ADR-0108, ADR-0109, ADR-0110, ADR-0111, ADR-0112, ADR-0132, ADR-0018, ADR-0028]
 related_adrs: [ADR-0006, ADR-0028, ADR-0055, ADR-0056, ADR-0059, ADR-0105, ADR-0106, ADR-0107, ADR-0110, ADR-0114, ADR-0122, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
-related_specs: [/specs/products/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 owner_team: axis-ontology
 doc_status: published
@@ -276,7 +276,7 @@ Key parity gaps to close (ordered by priority):
 
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
-| Function read (simple filter) | 5 ms | 50 ms | 100 ms | per `/specs/products/ontology.json#metrics` |
+| Function read (simple filter) | 5 ms | 50 ms | 100 ms | per `/specs/microservices/ontology.json#metrics` |
 | Function read (3-way join) | 20 ms | 100 ms | 200 ms | OLTP Postgres |
 | Action invocation | 30 ms | 150 ms | 300 ms | end-to-end (Cedar + write + seal) |
 | Agent gateway round-trip | 20 ms | 200 ms | 500 ms | excludes LLM time |
@@ -317,7 +317,7 @@ Scale-out policy:
 
 Cross-region story:
 - M02b launch: pack-kr (OCI ap-seoul-1) single region.
-- Post-M02b: per-pack Postgres + ClickHouse clusters; cross-pack replication forbidden; ADR follow-up for cross-region DR pairs.
+- Post-M02b: per-pack Postgres + ClickHouse clusters; cross-pack replication forbidden; ADR successor-IP for cross-region DR pairs.
 
 Sharding:
 - Citus distributed Postgres shards by `tenant_id`.
@@ -349,8 +349,8 @@ Sharding:
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | ClickHouse history-mirror: ship in M02b or defer to M03 analytics phase? | council-architecture | resolved in IP-009 (ship in M02b) |
-| 2 | Function DSL: embedded Rust DSL vs JSON-serialised IR? | council-architecture | M02b/P02 follow-up |
-| 3 | Plugin SDK distribution format: WASM (Wasmtime per Bominal) or native dylib? | council-architecture | post-M02b follow-up ADR |
+| 2 | Function DSL: embedded Rust DSL vs JSON-serialised IR? | council-architecture | M02b/P02 successor-IP |
+| 3 | Plugin SDK distribution format: WASM (Wasmtime per Bominal) or native dylib? | council-architecture | subsequent-to-M02b-completion successor-IP ADR |
 | 4 | Sequential agent autonomy ceiling: per-tool-call vs per-session? | council-privacy + axis-ontology | M03 |
 
 ## Related ADRs

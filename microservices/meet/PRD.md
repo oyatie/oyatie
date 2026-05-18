@@ -9,7 +9,7 @@ tier: hero-product
 milestone_first_ship: M02-foundation
 net_new: true
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-meet
@@ -20,7 +20,7 @@ doc_status: published
 
 ## Purpose
 
-The `meet` microservice is oyatie's dedicated video-meeting product. It is net-new per ADR-0126 — there is no legacy `oya-connect-meet-*` predecessor. It owns **named meeting rooms with lobby/registration + calendar-bound meeting instances + breakout rooms + screen-share with presenter-control + cloud recording + live transcription with multi-language captions + post-meeting AI summary + interpretation channels + webinar mode + RTMP live-stream egress + large-audience broadcast (10k+)**.
+The `meet` microservice is oyatie's dedicated video-meeting product. It is net-new per ADR-0135 — there is no legacy `oya-connect-meet-*` predecessor. It owns **named meeting rooms with lobby/registration + calendar-bound meeting instances + breakout rooms + screen-share with presenter-control + cloud recording + live transcription with multi-language captions + post-meeting AI summary + interpretation channels + webinar mode + RTMP live-stream egress + large-audience broadcast (10k+)**.
 
 `meet` is **distinct from the `messenger` huddles BC** (per ADR-MSGR-0001):
 
@@ -56,7 +56,7 @@ The `meet` microservice is oyatie's dedicated video-meeting product. It is net-n
 | FR-02 | meeting host | to bind a meet room to a calendar event in `calendar` µservice | invitees use one link end-to-end | meeting-instance | Must |
 | FR-03 | meeting host | to start a recording (cloud) with transcription | absent attendees + audit-retention work | recording | Must |
 | FR-04 | meeting host | to mute / unmute / spotlight / remove participants | host can moderate | participant | Must |
-| FR-05 | attendee | to join from web + desktop + iOS + Android + dial-in (M03+) | barrier-free join | meeting-instance | Must |
+| FR-05 | attendee | to join from web + desktop + iOS + Android + dial-in (M03-onward) | barrier-free join | meeting-instance | Must |
 | FR-06 | presenter | to share screen with remote-control optional | demos work | screen-share | Must |
 | FR-07 | attendee | to see live captions in their language | accessibility + multilingual meetings work | transcription | Must |
 | FR-08 | host | to run a poll, Q&A, or whiteboard | engagement features | meeting-instance | Must |
@@ -329,11 +329,11 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | PSTN dial-in (Twilio Voice / Vonage) — phase or out-of-scope? | axis-meet + gtm | follow-up ADR |
+| 1 | PSTN dial-in (Twilio Voice / Vonage) — phase or out-of-scope? | axis-meet + gtm | successor-IP ADR |
 | 2 | Federation: accept incoming SIP / Matrix calls from external systems? | council-architecture | ADR after S-tier |
 | 3 | Interpretation channels: human-only, AI-only, or both? | axis-meet + axis-foundry-runtime | ADR-MEET-0007 (next sprint) |
 | 4 | Self-observability emission posture: one tenant or per-pack? | axis-meet + axis-observability | resolved in IP-007 |
-| 5 | Live whiteboard collaborative-editing: own BC or use `slides` µservice's draft surface? | council-architecture | follow-up ADR |
+| 5 | Live whiteboard collaborative-editing: own BC or use `slides` µservice's draft surface? | council-architecture | successor-IP ADR |
 
 ## Related ADRs
 
@@ -343,7 +343,7 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
-| ADR-0126 | Connect dual-context (parallel) | net-new µservice authorisation |
+| ADR-0135 | Connect dual-context (parallel) | net-new µservice authorisation |
 | ADR-0130 | Agentic SLO-gated promotion | gates meet releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | new µservices are single-concern + flat |

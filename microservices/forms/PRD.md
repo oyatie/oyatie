@@ -5,8 +5,8 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-forms + council-product
 deciders: council-product, council-architecture, axis-forms, ops-security, council-privacy, council-legal-compliance, council-design-system
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
-related_specs: [/specs/products/forms.json]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_specs: [/specs/microservices/forms.json]
 competitor_benchmark:
   - Google Forms (Google Workspace)
   - Microsoft Forms (Microsoft 365)
@@ -31,7 +31,7 @@ doc_status: published
 
 Forms is the canonical oyatie µservice for **typed form definitions, response capture, and survey distribution**. It is the entry point for the `Form → Response → downstream action` lifecycle across every pack, every channel, and every workload class — from one-question polls to GDPR Art. 9 special-category consent capture to HIPAA-eligible patient intake.
 
-Forms is **net-new** per ADR-0126 — no `oya-connect-forms-*` crates exist. Forms ships flat (per ADR-0131), single-concern (per ADR-0132), SLO-gated (per ADR-0130).
+Forms is **net-new** per ADR-0135 — no `oya-connect-forms-*` crates exist. Forms ships flat (per ADR-0131), single-concern (per ADR-0132), SLO-gated (per ADR-0130).
 
 Forms is the **Workspace-tier sibling** to `sheets` (responses bridge → sheets), `drive` (file uploads bridge → drive), `mail` (bulk distribution → mail), `messenger` (link share → messenger), and `workflow-engine` (form-submission triggers a workflow). Forms NEVER calls a foreign µservice directly; all inter-product flows are mediated by the Workflow + Ontology adapter pattern.
 
@@ -215,8 +215,8 @@ Forms competes head-to-head with the 14 industry leaders listed above and MUST m
 
 ## 13. References
 
-- `/specs/products/forms.json`.
-- ADR-0056 (clean architecture), ADR-0105 (layer enum), ADR-0106 (12-layer), ADR-0126 (microservice naming), ADR-0130 (SLO-gated promotion), ADR-0131 (per-microservice flat layout), ADR-0132 (single-concern microservices), ADR-0133 (compliance review cadence), ADR-0140 (Cedar policy).
+- `/specs/microservices/forms.json`.
+- ADR-0056 (clean architecture), ADR-0105 (layer enum), ADR-0106 (12-layer), ADR-0135 (microservice naming), ADR-0130 (SLO-gated promotion), ADR-0131 (per-microservice flat layout), ADR-0132 (single-concern microservices), ADR-0133 (compliance review cadence), ADR-0140 (Cedar policy).
 - ADR-FORMS-0001 through ADR-FORMS-0006.
 - Regulation (EU) 2016/679 (GDPR) — Arts. 7, 9, 17, 22, 25, 32, 35, 44-50.
 - KR PIPA — Arts. 15, 17, 22-2, 23, 24, 28, Enforcement Decree Art. 30.

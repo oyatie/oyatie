@@ -8,7 +8,7 @@ owner: ops-security
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-0132
   - ADR-MSGR-0002
@@ -39,7 +39,7 @@ Three federation surfaces in the field:
 
 Federation cuts against several oyatie invariants:
 
-- **Dual-context isolation (ADR-0126 + Bominal ADR-0208)**: federating Personal-DM tier means foreign servers see traffic patterns + metadata of personal communications; the Personal pillar's trust model assumes traffic stays local-only.
+- **Dual-context isolation (ADR-0135 + Bominal ADR-0208)**: federating Personal-DM tier means foreign servers see traffic patterns + metadata of personal communications; the Personal pillar's trust model assumes traffic stays local-only.
 - **Per-tenant residency (ADR-0117)**: federating a Professional channel to a foreign Matrix server inherently crosses tenant residency boundaries; the federation traffic exits the pack.
 - **Audit-chain integrity (Bominal ADR-0028)**: foreign-server messages don't have oyatie audit-chain seals; the receiving side cannot verify provenance with the same guarantee as local messages.
 - **Cedar policy + ACL coverage**: federated principals don't have oyatie OIDC subjects; Cedar's `principal in Tenant::?t` evaluation needs a federation-shim principal.
@@ -59,7 +59,7 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
 
 3. **Supported protocols**:
    - **Matrix Client-Server API r0.6+** (the modern API).
-   - NO Matrix Server-Server federation in the M03 launch tier — that's a follow-up ADR if needed; client-server federation alone enables 99% of "external partner on Element" interop use cases.
+   - NO Matrix Server-Server federation in the M03 launch tier — that's a successor-IP ADR if needed; client-server federation alone enables 99% of "external partner on Element" interop use cases.
    - **NO XMPP** — S2S complexity, weaker E2E ecosystem (OMEMO is less mature than MLS), aging operator pool. Refused.
    - **NO Slack Connect / Teams External Access** at the protocol level (proprietary, closed) — but a per-tenant ADAPTER from oyatie messenger to Slack Connect could be authored in the future as a substrate adapter behind a port trait; that would be its own ADR, not this one. M03 launch tier does NOT include such an adapter.
 
@@ -92,8 +92,8 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
 
 ### C. Slack Connect / Teams native federation (proprietary protocols)
 - Pros: covers the largest interop market (Slack + Teams dominate enterprise messaging).
-- Cons: requires per-protocol adapter + ongoing compatibility maintenance as Slack / Microsoft change their protocols; ToS exposure; the adapters themselves are large engineering investments; better deferred to a follow-up substrate-adapter ADR.
-- Rejected at M03: deferred to a future ADR; not in launch scope.
+- Cons: requires per-protocol adapter + ongoing compatibility maintenance as Slack / Microsoft change their protocols; ToS exposure; the adapters themselves are large engineering investments; better scheduled-for-distinct-tracked-work to a successor-IP substrate-adapter ADR.
+- Rejected at M03: scheduled-for-distinct-tracked-work to a future ADR; not in launch scope.
 
 ### D. No federation ever
 - Pros: simplest invariant; tightest posture; zero federation security surface.
@@ -107,8 +107,8 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
 
 ### F. Matrix Server-Server federation (full S2S) at M03 launch
 - Pros: native Matrix federation; full Matrix ecosystem interop.
-- Cons: S2S federation is a much larger security surface than C2S; requires homeserver-key trust establishment + Ed25519 signature verification + federation-loopback prevention; doubles the launch-tier security review burden; can be added in a follow-up ADR once the C2S federation surface is stable.
-- Rejected at M03: deferred; C2S federation covers the interop need at much lower launch-tier risk.
+- Cons: S2S federation is a much larger security surface than C2S; requires homeserver-key trust establishment + Ed25519 signature verification + federation-loopback prevention; doubles the launch-tier security review burden; can be added in a successor-IP ADR once the C2S federation surface is stable.
+- Rejected at M03: scheduled-for-distinct-tracked-work; C2S federation covers the interop need at much lower launch-tier risk.
 
 ## Consequences
 
@@ -126,7 +126,7 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
 - Federation principal ACL is intentionally narrow (no reactions, no thread-create, no mentions to local principals); some legitimate interop use cases will hit friction. Mitigated by clear documentation + future ADRs that may relax specific restrictions after operational experience.
 - XMPP-only partners are excluded; documented as a hard limitation. Future XMPP support via a substrate adapter remains possible (separate ADR).
 - Slack Connect / Teams External Access excluded at M03; users wanting that interop must use email / Workflow Studio integrations instead. Future substrate adapter possible via separate ADR.
-- Matrix S2S federation deferred; tenants whose partners run their own Matrix homeservers must use C2S bridges or a Matrix bot until S2S is added.
+- Matrix S2S federation scheduled-for-distinct-tracked-work; tenants whose partners run their own Matrix homeservers must use C2S bridges or a Matrix bot until S2S is added.
 
 ### Operational
 
@@ -155,13 +155,13 @@ oyatie messenger ships **federation OFF by default**, with a strict opt-in postu
 - RFC 9420 — Messaging Layer Security (MLS)
 - RFC 6120 / 6121 / 6122 — XMPP (referenced for rejected alternative)
 - Element / matrix.org operational deployments — public docs
-- Slack Connect documentation — `https://api.slack.com/connect` (referenced for deferred alternative)
+- Slack Connect documentation — `https://api.slack.com/connect` (referenced for scheduled-for-distinct-tracked-work alternative)
 - Microsoft Teams External Access — `https://learn.microsoft.com/en-us/microsoftteams/manage-external-access`
 - GDPR Arts. 44-49 — cross-border transfer
 - KR PIPA Art. 17 — cross-border transfer
 - HIPAA 45 CFR §164.314 — Business Associate Agreements
 - ePrivacy Directive 2002/58/EC Art. 5 — confidentiality of communications
-- ADR-0126 — Connect full social network super-app (dual-context source)
+- ADR-0135 — Connect full social network super-app (dual-context source)
 - ADR-0131 — Per-microservice flat layout
 - ADR-0132 — Product-suite-and-bundle dissolution
 - ADR-MSGR-0002 — E2E personal-DM key escrow tier-split (paired posture)

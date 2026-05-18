@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0028
-  - ADR-0126
+  - ADR-0135
   - ADR-0131
   - ADR-NET-0001
   - ADR-NET-0002
@@ -115,7 +115,7 @@ oyatie network's `endorsement-engine` BC implements:
 
 - Pros: server cannot forge endorsements; user has cryptographic ownership.
 - Cons: key management on client (browser / mobile) is hard; key loss = endorsement loss; UX friction; doesn't match user expectation of "log in and endorse"; client-side signing also creates supply-chain vulnerability via injected scripts in browser context.
-- Rejected for P01; revisit at M05+ if cryptographic UX matures (FIDO2 / Passkeys eventually enable this).
+- Rejected for P01; revisit at M05-onward if cryptographic UX matures (FIDO2 / Passkeys eventually enable this).
 
 ## Consequences
 
@@ -160,7 +160,7 @@ oyatie network's `endorsement-engine` BC implements:
 ## References
 
 - ADR-0028 (Bominal audit-chain).
-- ADR-0126 (Connect dissolution, parallel).
+- ADR-0135 (Connect dissolution, parallel).
 - ADR-0131 (per-microservice flat layout).
 - ADR-NET-0001 (Postgres adjacency-list + per-tenant advisory lock).
 - ADR-NET-0002 (recruiter-stub feature pipeline; endorsement is input).

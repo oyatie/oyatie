@@ -5,7 +5,7 @@ milestone: M02-foundation
 phase: P01-social-foundation
 status: Active
 entry_gate: |
-  ADR-0126 (parallel Connect dissolution) + ADR-0131 + ADR-0132 accepted; /specs/products/connect/social.json published;
+  ADR-0135 (parallel Connect dissolution) + ADR-0131 + ADR-0132 accepted; /specs/microservices/social.json published;
   observability µservice IP-001..IP-015 merged so social can author OpenSLO manifests and pass promotion-readiness gate.
 exit_gate: |
   All 15 IPs merged; all ~115 crates compile + nextest green; oya gate validate per-microservice-layout --microservice social
@@ -17,8 +17,8 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion
     reason: social requires observability gate + tenancy + ontology + audit-chain + cedar
 owner_team: axis-social
-related_adrs: [ADR-0008, ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
-related_specs: [/specs/products/connect/social.json, /specs/agentic-slo-gated-promotion.json]
+related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_specs: [/specs/microservices/social.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
 ---
@@ -27,14 +27,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the foundation of the social µservice per parallel ADR-0126 + ADR-0132: user-profile + follow-graph + post-composition + feed-timeline + reactions + mentions + hashtags + trending-topics + notifications + content-moderation + search + age-verification + profile-verification + lists + bookmarks + abuse-reporting + appeal-workflow, dual-context-safe across Personal (B2C) and Professional (B2B).
+This phase ships the foundation of the social µservice per parallel ADR-0135 + ADR-0132: user-profile + follow-graph + post-composition + feed-timeline + reactions + mentions + hashtags + trending-topics + notifications + content-moderation + search + age-verification + profile-verification + lists + bookmarks + abuse-reporting + appeal-workflow, dual-context-safe across Personal (B2C) and Professional (B2B).
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Twitter/X / Mastodon / Bluesky parity + native Workflow + Ontology integration).
-- Nothing deferred within scope (no FUTURE stubs; every NFR covered).
+- Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs; every NFR covered).
 - No silent regression (production-tier change gated by observability ADR-0130).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0126.
+- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
 
 ## Scope
 
@@ -48,15 +48,15 @@ Plus cross-cutting:
 - `.github/branch-protection.yaml` — add `release/social/*` pattern protection.
 - `/specs/hyperscaler-gates.json` — register HG-SOCIAL per ADR-0133.
 - `Cargo.toml` (workspace) — register ~108 crates.
-- `docs/standards/dual-context-isolation.md` (already authored cross-cutting per parallel ADR-0126).
+- `docs/standards/dual-context-isolation.md` (already authored cross-cutting per parallel ADR-0135).
 
-### Out-of-scope (deferred to follow-up phases)
+### Out-of-scope (scheduled-for-distinct-tracked-work to successor-IP phases)
 
-- **Federation (ActivityPub)** — deferred to P02; opt-in per tenant; Personal-tier never federates. ADR-SOC-0004 establishes posture; impl follows.
-- **Ranking model (ML-driven algorithmic feed)** — P01 ships chronological-first + simple recency-and-engagement heuristic ranking; ML-driven ranking deferred to P03 (depends on `foundry-runtime` model deployment).
-- **Ads-substrate-stub** — stubbed (off by default); not activated in P01. ADR follow-up after M03.
-- **Voice / video post type (stories-style)** — deferred to follow-up sibling µservice if demand surfaces.
-- **AT Protocol federation (Bluesky)** — deferred (Open Question 2 in PRD).
+- **Federation (ActivityPub)** — scheduled-for-distinct-tracked-work to P02; opt-in per tenant; Personal-tier never federates. ADR-SOC-0004 establishes posture; impl follows.
+- **Ranking model (ML-driven algorithmic feed)** — P01 ships chronological-first + simple recency-and-engagement heuristic ranking; ML-driven ranking scheduled-for-distinct-tracked-work to P03 (depends on `foundry-runtime` model deployment).
+- **Ads-substrate-stub** — interface-only-pending-impl (off by default); not activated in P01. ADR successor-IP after M03.
+- **Voice / video post type (stories-style)** — scheduled-for-distinct-tracked-work to successor-IP sibling µservice if demand surfaces.
+- **AT Protocol federation (Bluesky)** — scheduled-for-distinct-tracked-work (Open Question 2 in PRD).
 
 ## Implementation Plans
 

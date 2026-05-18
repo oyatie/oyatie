@@ -5,7 +5,7 @@ microservice: anonymous
 status: Accepted
 date: 2026-05-17
 owner_team: council-privacy + axis-anonymous + legal
-related_adrs: [ADR-0126, ADR-0131, ADR-0133, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0004, ADR-ANON-0005, ADR-ANON-0006]
+related_adrs: [ADR-0135, ADR-0131, ADR-0133, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0004, ADR-ANON-0005, ADR-ANON-0006]
 review_cadence: quarterly + on regulatory change
 doc_status: published
 ---

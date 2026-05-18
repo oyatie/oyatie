@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-tasks
 deciders: axis-tasks, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0126, ADR-0131, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003]
+related_adrs: [ADR-0028, ADR-0135, ADR-0131, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003]
 related_artifacts:
   - microservices/tasks/PRD.md
   - microservices/tasks/capacity-model.md

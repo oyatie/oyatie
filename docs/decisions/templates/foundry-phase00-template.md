@@ -26,7 +26,7 @@ clean-arch invariant).
 ## Consequences
 
 - Positive consequences (what is now possible / clearer / safer).
-- Negative consequences (added surface, follow-up work, risk).
+- Negative consequences (added surface, successor-IP work, risk).
 - Operational implications (runbooks, dashboards, alerts, on-call).
 
 ## Linus good-taste row

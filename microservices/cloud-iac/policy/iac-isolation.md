@@ -46,7 +46,7 @@ Properties:
 - The `microservice_id` is derived from the IaC source path; cannot be forged.
 - `declared_namespaces` is bounded; max 5 namespaces per µservice (enforced at PR-time via LEAN check).
 - `declared_cluster_roles` must reference roles within the µservice's declared namespaces; cross-namespace cluster role refused.
-- Scope is sealed at PR-merge time; runtime mutation of scope without a follow-up PR refused.
+- Scope is sealed at PR-merge time; runtime mutation of scope without a successor-IP PR refused.
 
 ### Reserved scopes
 

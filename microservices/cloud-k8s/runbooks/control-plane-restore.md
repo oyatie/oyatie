@@ -25,7 +25,7 @@ Any of:
 
 ## Severity
 
-**Sev-1 always** per ADR-0121: control-plane unavailability blocks every workload µservice's cluster mutation. M01 single-control-plane = full freeze; post-M04 HA = degraded but writable through surviving replica.
+**Sev-1 always** per ADR-0121: control-plane unavailability blocks every workload µservice's cluster mutation. M01 single-control-plane = full freeze; subsequent-to-M04-completion HA = degraded but writable through surviving replica.
 
 ## Pre-flight verification
 

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-shorts
 deciders: council-privacy, ops-security, axis-shorts, gtm-customer-success, ops-legal
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/shorts/threat-model.md (T-I-01, T-I-08; cross-region replication threats)
   - microservices/shorts/dpia.md (R-12)
@@ -45,7 +45,7 @@ Every tenant is assigned a primary pack at onboarding. Cross-pack movement is **
 
 ### Personal vs Professional residency
 
-Per parallel ADR-0126 dual-context model:
+Per parallel ADR-0135 dual-context model:
 
 - **Professional creator + video data** follows the tenant's pack pinning (above).
 - **Personal creator + video data** follows the user's per-user residency (set at user signup). For most users this matches the tenant's pack, but a user who travels or relocates may have personal data residency change while their tenant pack stays fixed. The system treats this as two separate residency keys.
@@ -188,7 +188,7 @@ Cross-border transfer register: `microservices/shorts/legal/transfer-register.md
 ## References
 
 - ADR-0117.
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - ADR-SHORTS-0004 (DRM substrate + tenant-tier gating).
 - `microservices/shorts/multi-region.md`.
 - `microservices/shorts/policy/dual-context-isolation.md`.

@@ -12,8 +12,8 @@ description: |
 owner_team: axis-social + axis-foundry-runtime
 maturity: preview
 created_at: 2026-05-17
-related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133]
-related_specs: [/specs/products/connect/social.json]
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133]
+related_specs: [/specs/microservices/social.json]
 related_artifacts:
   - microservices/social/PRD.md (FR-25 Workflow event integration)
   - microservices/social/contracts/openapi/social.yaml

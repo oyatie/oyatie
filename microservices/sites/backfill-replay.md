@@ -24,7 +24,7 @@ DR (`multi-region.md`) and chaos-testing (`failure-modes.md`).
 | New cell brought online (per-pack expansion) | Backfill from peer cell snapshot |
 | Cross-region failover post-promotion | Replay Loro CRDT log + audit-chain from snapshot anchor |
 | Search-index reindex (Meilisearch corruption / version bump) | Replay from Postgres source-of-truth |
-| Site-content migration from external CMS (WordPress, Squarespace etc.) | Backfill via importer (post-M04) |
+| Site-content migration from external CMS (WordPress, Squarespace etc.) | Backfill via importer (subsequent-to-M04-completion) |
 | Connect → Sites Strangler Phase 5 (legacy cutover) | One-time backfill of legacy `oya-connect-sites-*` data |
 | Schema change in cms-collection requiring re-rendering | Replay published artifacts via cdn-delivery-worker |
 

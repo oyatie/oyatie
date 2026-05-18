@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-network + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-network, council-architecture, council-privacy
-related_adrs: [ADR-0117, ADR-0126, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
 related_artifacts:
   - microservices/network/policy/data-residency.md
   - microservices/network/capacity-model.md
@@ -144,7 +144,7 @@ Per `policy/data-residency.md`. No `network` data crosses pack boundaries except
 - Public OpenAPI / AsyncAPI schemas.
 - Endorsement-chain root hashes for cross-pack replay verification (hash-only; never the underlying endorsement content).
 
-`network` does NOT federate in P01 (no ActivityPub, no AT Protocol). If federation is added in a follow-up ADR-NET, opt-in tenant-only + Professional-tier + SCC required.
+`network` does NOT federate in P01 (no ActivityPub, no AT Protocol). If federation is added in a successor-IP ADR-NET, opt-in tenant-only + Professional-tier + SCC required.
 
 Any cross-pack-replication attempt outside the explicit exceptions triggers `network_pack_residency_violation_total` (target = 0); Sev-1 alert.
 
@@ -184,7 +184,7 @@ All cross-µservice bridges are stateless on the `network` side; failures are vi
 ## References
 
 - ADR-0117.
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - `microservices/network/policy/data-residency.md`.
 - `microservices/network/capacity-model.md`.
 - `microservices/network/cost-budget.md`.

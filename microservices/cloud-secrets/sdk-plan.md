@@ -24,8 +24,8 @@ Define the SecretReference SDK that every oyatie µservice imports to consume se
 | Rust (canonical) | `oya-cloud-secrets-secret-reference-resolver-sdk` | native | M01 launch |
 | TypeScript | `@oyatie/cloud-secrets-sdk` | napi-rs (Rust core, Node binding) | M01 launch |
 | Python | `oyatie-cloud-secrets` | pyo3 (Rust core, Python binding) | M01 launch |
-| Go (future) | `github.com/oyatie/cloud-secrets-go` | cgo wrapping Rust core OR native gRPC | post-M01 |
-| Java/Kotlin (future) | `dev.oyatie:cloud-secrets-sdk` | JNI wrapping Rust core OR native gRPC | post-M01 |
+| Go (future) | `github.com/oyatie/cloud-secrets-go` | cgo wrapping Rust core OR native gRPC | subsequent-to-M01-completion |
+| Java/Kotlin (future) | `dev.oyatie:cloud-secrets-sdk` | JNI wrapping Rust core OR native gRPC | subsequent-to-M01-completion |
 
 The Rust core is the canonical implementation; bindings ensure protocol fidelity (revocation push, cache semantics, audit emission).
 

@@ -6,7 +6,7 @@ phase: P01-typed-entity-substrate
 status: Active
 entry_gate: |
   ADR-0006, ADR-0055, ADR-0059, ADR-0106, ADR-0107, ADR-0122, ADR-0131 accepted;
-  /specs/products/ontology.json + /specs/knowledge-graph-schema.json + /specs/per-microservice-flat-layout.json published;
+  /specs/microservices/ontology.json + /specs/knowledge-graph-schema.json + /specs/per-microservice-flat-layout.json published;
   cargo workspace ready to accept the ~92 new crates under microservices/ontology/src/crates/.
 exit_gate: |
   All 15 IPs merged; oya-foundry-fitness-ontology-tenancy-isolation, oya-foundry-fitness-ontology-tier-enforcement,
@@ -27,7 +27,7 @@ depends_on:
     reason: ontology depends on tenant resolver + JWT claims with tenant_id + pillar context.
 owner_team: axis-ontology
 related_adrs: [ADR-0006, ADR-0055, ADR-0059, ADR-0106, ADR-0107, ADR-0122, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
-related_specs: [/specs/products/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
+related_specs: [/specs/microservices/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
 ---
@@ -40,7 +40,7 @@ This phase ships the full Ontology design — the Palantir-Foundry-class typed-e
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (Palantir parity on Function p99, AIP parity on agent gateway, AWS-Cedar parity on policy coverage).
-- Nothing deferred (full Cedar coverage; full audit-chain emission; full DSR cascade).
+- Nothing scheduled-for-distinct-tracked-work (full Cedar coverage; full audit-chain emission; full DSR cascade).
 - No silent regression (RLS bypass / cross-tenant link / cross-pillar leak each fail the lane).
 - Per-microservice flat layout (ADR-0131 native author).
 
@@ -61,9 +61,9 @@ Cross-cutting repo artifacts:
 ### Out-of-scope
 
 - Migration of legacy `oya-ontology-kernel` crate at repo root into `microservices/ontology/src/crates/` — owned by the M01-MIGR-* series; runs in parallel under separate phase.
-- WASM plugin SDK distribution format — deferred to a post-M02b ADR per Open Question 3 in PRD.
-- Tenant-defined Function DSL (JSON-IR vs embedded-Rust) — deferred to M02b/P02 follow-up per Open Question 2.
-- Cross-region DR pairs for Postgres + ClickHouse — deferred to post-M02b ADR.
+- WASM plugin SDK distribution format — scheduled-for-distinct-tracked-work to a subsequent-to-M02b-completion ADR per Open Question 3 in PRD.
+- Tenant-defined Function DSL (JSON-IR vs embedded-Rust) — scheduled-for-distinct-tracked-work to M02b/P02 successor-IP per Open Question 2.
+- Cross-region DR pairs for Postgres + ClickHouse — scheduled-for-distinct-tracked-work to subsequent-to-M02b-completion ADR.
 
 ## Implementation Plans
 
@@ -185,7 +185,7 @@ Every IP in this phase emits a ChangeSet per ADR-0110. Minimum payload at `micro
   "phase": "P01-typed-entity-substrate",
   "claim_paths": ["microservices/ontology/src/crates/<crate>/**", "..."],
   "intent": "<one-line>",
-  "spec_refs": ["microservices/ontology/PRD.md§<section>", "/specs/products/ontology.json§<section>"],
+  "spec_refs": ["microservices/ontology/PRD.md§<section>", "/specs/microservices/ontology.json§<section>"],
   "acceptance_lanes_green": ["cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny", "lean-a1", "lean-a2", "lean-a3", "lean-a4", "per-microservice-layout", "ontology-tenancy-isolation", "ontology-tier-enforcement", "cedar-coverage", "audit-chain-emission"],
   "test_count": {"unit": <int>, "integration": <int>, "e2e": <int>},
   "coverage_pct": <float>,
@@ -283,7 +283,7 @@ cargo run -p oya-dev-cli -- vcs promote --changeset <id>
 - ADR-0123: Hyperscaler maturity claim gate (HG-ONT).
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
-- `/specs/products/ontology.json`.
+- `/specs/microservices/ontology.json`.
 - `/specs/knowledge-graph-schema.json`.
 - `/specs/per-microservice-flat-layout.json`.
 - `microservices/ontology/PRD.md`.

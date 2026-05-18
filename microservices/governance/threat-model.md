@@ -128,7 +128,7 @@ All components introduced by ADR-0131 §"governance bundle" + ADR-0133 (6-axis p
 │             │                                                              │
 │  ┌─ Git refs PATCH (signed commits, GitHub API) ─────────────────────┐    │
 │  │  - WORKFLOW_PAT scoped to: docs/prds/INDEX.md, registry/catalog/, │    │
-│  │    /specs/products/ (and only these paths)                        │    │
+│  │    /specs/microservices/ (and only these paths)                        │    │
 │  │  - Signed commit (gpg-sign + Ed25519 verify)                      │    │
 │  │  - Audit emission: every commit writes Ed25519 audit record       │    │
 │  └───────────────────────────────────────────────────────────────────┘    │
@@ -155,7 +155,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | Evidence blobs (full lane output, including stderr/stdout transcripts) | `AUDIT` + occasionally `BEHAVIORAL_TENANT_PRODUCT` (when lane runs over tenant artifacts) | High | S3 7y cold; object-locked | S3 |
 | Industry-baseline pins (`/specs/industry-best-practice-conformance.json`) | `INTERNAL_ONLY` | Low | git history; quarterly refresh | repo |
 | Rule packs (per-lane rule definitions) | `INTERNAL_ONLY` | Low | git history | `microservices/governance/src/crates/oya-check-*/rules/` |
-| Aggregation indices (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/products/`) | `INTERNAL_ONLY` | Low | git history; generated | repo |
+| Aggregation indices (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/microservices/`) | `INTERNAL_ONLY` | Low | git history; generated | repo |
 | Cedar policy fragments | `INTERNAL_ONLY` | Medium | git history | `microservices/governance/policy/*.cedar` |
 | Ed25519 signing keys (evidence seal + index-commit signing) | `SECRET` | Critical | OpenBao with 90d rotation + HSM-backed where available | OpenBao |
 | GitHub PAT (lane-runtime → GitHub Actions matrix dispatch + index-commit push) | `SECRET` | Critical | OpenBao with 30d rotation | OpenBao |
@@ -217,7 +217,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: Aggregation-index Git push path
 - Likelihood: L / Impact: H (could inject false PRDs, hide retired vocabulary, etc.) / Risk: **M**
 - Mitigations:
-  - WORKFLOW_PAT scoped to aggregation-index paths only (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/products/`); IAM-enforced at GitHub level.
+  - WORKFLOW_PAT scoped to aggregation-index paths only (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/microservices/`); IAM-enforced at GitHub level.
   - Signed commits (gpg-sign + Ed25519 verify on receive); commit signature key in OpenBao.
   - `oya-check-aggregation-index-generation` lane re-runs on every PR and refuses divergence between the index and the per-µservice sources.
 - Owner: axis-foundry
@@ -267,7 +267,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: `/specs/industry-best-practice-conformance.json`
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - File is in repo; every edit requires PR + ADR-NNNN follow-up + council-architecture review per ADR-0133 §"Operational".
+  - File is in repo; every edit requires PR + ADR-NNNN successor-IP + council-architecture review per ADR-0133 §"Operational".
   - `oya-check-industry-best-practice-conformance` lane self-applies: detects pin softening absent ADR.
   - Quarterly refresh PR is automated (`axis-foundry-bot`); manual edits flagged for human review.
 - Owner: council-architecture
@@ -398,7 +398,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: WORKFLOW_PAT path scope
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - PAT scoped at GitHub level to specific paths (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/products/`).
+  - PAT scoped at GitHub level to specific paths (`docs/prds/INDEX.md`, `registry/catalog/`, `/specs/microservices/`).
   - Pre-push hook: aggregation-indexer asserts every modified path is in its scope-allow-list before push.
   - On scope-overrun: refuse push + emit `aggregation-scope-overrun` Finding + audit-chain seal.
 - Owner: axis-foundry
@@ -422,7 +422,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 | OWASP | Risk for governance | Mitigation reference |
 |---|---|---|
 | A01 Broken Access Control | T-I-01 (cross-tenant Finding read); T-E-01 (lane bypass) | T-I-01, T-E-01 |
-| A02 Cryptographic Failures | T-I-02 (S3 misconfig); Ed25519 key rotation | T-I-02; `runbooks/key-rotation.md` follow-up |
+| A02 Cryptographic Failures | T-I-02 (S3 misconfig); Ed25519 key rotation | T-I-02; `runbooks/key-rotation.md` successor-IP |
 | A03 Injection | Rule-pack execution sandbox (T-E-02) | T-E-02 |
 | A04 Insecure Design | 6-axis program per ADR-0133; first-class threat model | this document |
 | A05 Security Misconfiguration | T-I-02 (bucket policy); branch-protection drift (`oya-check-protection-context-match`) | T-I-02; lane self-application |

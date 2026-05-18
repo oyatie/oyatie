@@ -63,7 +63,7 @@ impl<E: SpecEmitter> EmitOrchestrator<E> {
         }
         // 2. Emit.
         let emitted = self.emitter.emit(ctx, canvas)?;
-        // 3. Post-emit invariants (schema validation deferred to upstream lane).
+        // 3. Post-emit invariants (schema validation scheduled-for-distinct-tracked-work to upstream lane).
         Ok(emitted)
     }
 }

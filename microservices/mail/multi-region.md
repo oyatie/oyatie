@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-mail + council-privacy
 deciders: ops-sre-reliability, axis-mail, council-architecture, council-privacy
-related_adrs: [ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/mail/capacity-model.md
   - microservices/mail/cost-budget.md
@@ -30,7 +30,7 @@ Per-pack region structure:
 
 | Pack | Primary region | DR pair region | Topology |
 |---|---|---|---|
-| pack-kr | OCI ap-seoul-1 | (single-region; no DR pair at M03 launch) | active-standby (planned upgrade post-M03) |
+| pack-kr | OCI ap-seoul-1 | (single-region; no DR pair at M03 launch) | active-standby (planned upgrade subsequent-to-M03-completion) |
 | pack-eu | OCI eu-frankfurt-1 | OCI eu-amsterdam-1 | active-warm-standby |
 | pack-us | OCI us-ashburn-1 | OCI us-phoenix-1 | active-warm-standby |
 | pack-us-healthcare | OCI us-ashburn-1 (HIPAA-eligible) | OCI us-phoenix-1 (HIPAA-eligible) | active-warm-standby |
@@ -130,7 +130,7 @@ Cross-border BCDR (e.g., to pack-us for cost) NOT permitted per `policy/data-res
 
 ### pack-jp / pack-sg (single-region)
 
-Same as pack-kr; single-region at launch; DR pair planned for M04+.
+Same as pack-kr; single-region at launch; DR pair planned for M04-onward.
 
 ### pack-au / pack-in / pack-br / pack-ae / pack-ksa (DR pair active)
 
@@ -155,7 +155,7 @@ Annual full pack DR drill: full failover to DR region; validate ≤ 30 min RTO.
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0126: Connect dissolution.
+- ADR-0135: Connect dissolution.
 - ADR-0131: Per-microservice flat layout.
 - `microservices/mail/capacity-model.md`.
 - `microservices/mail/cost-budget.md`.

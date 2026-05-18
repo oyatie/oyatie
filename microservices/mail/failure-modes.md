@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-mail + ops-deliverability
 deciders: ops-sre-reliability, axis-mail, ops-security, ops-deliverability, council-privacy
-related_adrs: [ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/mail/threat-model.md
   - microservices/mail/dpia.md

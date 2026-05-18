@@ -89,7 +89,7 @@ oya foundry-runtime rollback \
 
 ### T2 capability rollback (auto-organize)
 
-T2 is disabled at MVP. If enabled and regressed:
+T2 is disabled at minimum-shippable-tier. If enabled and regressed:
 
 ```bash
 oya foundry-runtime disable \

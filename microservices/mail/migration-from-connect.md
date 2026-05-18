@@ -5,8 +5,8 @@ microservice: mail
 status: Deprecated
 deprecation_date: 2026-05-17
 removal_target: advisory — HG-MAIL accepts at p99 SLOs sustained 30d
-related_adrs: [ADR-0126, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
-related_specs: [/specs/products/connect/mail.json, /specs/products/mail/mail.json]
+related_adrs: [ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related_specs: [/specs/microservices/mail.json, /specs/microservices/mail/mail.json]
 owner_team: axis-mail
 date: 2026-05-17
 doc_status: published
@@ -17,7 +17,7 @@ doc_status: published
 This document applies the Strangler Pattern from the agent-skills
 `deprecation-and-migration` skill to the **mail** µservice specifically. It is
 the consumer-facing companion to ADR-0134 (which carries the cross-µservice
-migration policy) and ADR-0126 (which carries the target topology).
+migration policy) and ADR-0135 (which carries the target topology).
 
 ## Status
 
@@ -27,7 +27,7 @@ in dev cluster.**
 | Field | Value |
 |---|---|
 | Replacement | `oya-mail-*` crate family under `microservices/mail/src/crates/` |
-| Removal date | **Advisory** — concrete target is HG-MAIL accepts at p99 SLOs sustained 30d (per ADR-0126 retirement trigger #1) |
+| Removal date | **Advisory** — concrete target is HG-MAIL accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #1) |
 | Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
 | Migration owner (Churn Rule) | axis-mail |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
@@ -177,7 +177,7 @@ without to route through the legacy adapter. Compare:
   from the legacy `oya-connect-mail-*` API contract).
 - p99 latency (must be ≤ legacy + 5% per ADR-0134 Phase 3 canary gate).
 - log-line format (preserved verbatim during the canary; may be tightened in
-  a follow-up `feedback_no_silent_regression`-conforming ADR).
+  a successor-IP `feedback_no_silent_regression`-conforming ADR).
 
 ### Step 4 — Remove the legacy dependency
 
@@ -287,7 +287,7 @@ satisfy these checks. Each is gated by a concrete command:
 - [ ] **Old code, tests, documentation, configuration removed** (per Phase 5):
   ```bash
   find crates -maxdepth 1 -type d -name "oya-connect-mail-*" | wc -l   # expect 0
-  test ! -f /specs/products/connect/mail.json                          # expect file absent
+  test ! -f /specs/microservices/mail.json                          # expect file absent
   ```
 - [ ] **No references to the deprecated system remain in the codebase**
   (excluding historical ADR / RETIRED.md / git-log surfaces):
@@ -316,14 +316,14 @@ not migrate during the 5-month adapter+canary window. Per
   (subject to the HG-MAIL retirement trigger gating).
 - Owning axis (axis-mail) ships migration ChangeSets for every internal
   consumer per the Churn Rule before Phase 5.
-- External consumers (reading `/specs/products/connect/mail.json`) receive
+- External consumers (reading `/specs/microservices/mail.json`) receive
   a 6-month sunset window from this notice; the spec file's `deprecated:
-  true` + `replacement_path: /specs/products/mail/mail.json` fields render
+  true` + `replacement_path: /specs/microservices/mail/mail.json` fields render
   in the agent-coordination dashboard.
 
 ## References
 
-- ADR-0126: Connect super-app expansion into 8 flat µservices.
+- ADR-0135: Connect super-app expansion into 8 flat µservices.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.

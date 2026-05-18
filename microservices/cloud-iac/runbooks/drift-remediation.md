@@ -42,7 +42,7 @@ Cause: a workload owner / SRE applied a hotfix via kubectl directly.
 
 | Step | Action |
 |---|---|
-| 1 | Identify the actor + the rationale (often Slack thread + PR follow-up) |
+| 1 | Identify the actor + the rationale (often Slack thread + PR successor-IP) |
 | 2 | If the hotfix is correct: have the actor open a PR backporting the change into IaC; merge; ArgoCD reconciles back to git-declared state |
 | 3 | If the hotfix is wrong: ArgoCD reverts live state to git within reconcile interval (~3min); workload owner notified |
 | 4 | Postmortem-lite: document the gap in IaC that necessitated the hotfix |

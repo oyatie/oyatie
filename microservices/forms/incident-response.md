@@ -36,7 +36,7 @@ Forms on-call follows the oyatie standard (24/7; 3-tier escalation; ops-security
    - Pack-br: ANPD (LGPD Art. 48).
 5. **Remediate**: per `runbooks/pii-leak-incident-p0.md`.
 6. **Postmortem**: blameless; within 5 business days; publish in evidence ledger.
-7. **Regulatory follow-up**: per pack DPO.
+7. **Regulatory successor-IP**: per pack DPO.
 
 ### Cross-pack write attempt (FM-15)
 

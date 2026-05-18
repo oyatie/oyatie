@@ -216,7 +216,7 @@ Enumerate the failure scenarios on-call must handle. Each FM carries trigger, de
 | Detection | `audit_chain_seal_latency_seconds_p99 > 5` |
 | Tenant impact | Cell events accumulate unsealed in queue; bounded by audit-chain SLO |
 | Severity | Sev-2 (audit posture degraded) |
-| Immediate mitigation | Audit-chain recovery per its own runbook; cell writes continue with deferred seal (acceptable for short window) |
+| Immediate mitigation | Audit-chain recovery per its own runbook; cell writes continue with scheduled-for-distinct-tracked-work seal (acceptable for short window) |
 | RTO | ≤ 1h |
 | Recovery runbook | cross-references `microservices/audit-chain/runbooks/` |
 | Postmortem owner | audit-chain + axis-cell-substrate |

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-network + council-architecture
 deciders: axis-network, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0132, ADR-0133]
 related_artifacts:
   - microservices/network/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-NETWORK gate)
@@ -121,7 +121,7 @@ Quantitative + qualitative parity comparison against industry-leading Profession
 
 | Capability | oyatie | LinkedIn | Glassdoor | Levels.fyi | Hashnode |
 |---|---|---|---|---|---|
-| Aggregate salary insights (per role + region) | ✅ (stubbed in P01; aggregate-only) | ✅ | ✅ | ✅ | ❌ |
+| Aggregate salary insights (per role + region) | ✅ (interface-only-pending-impl in P01; aggregate-only) | ✅ | ✅ | ✅ | ❌ |
 | Per-individual salary disclosure | ❌ (forbidden by design) | ❌ | partial (employer reviews) | partial | ❌ |
 | EU Pay Transparency Directive 2023/970 conformance | ✅ native | partial | partial | n/a (no EU ops) | n/a |
 | Tenant-opt-in pay-band publish (Page-level) | ✅ | partial | n/a | n/a | n/a |
@@ -144,7 +144,7 @@ Quantitative + qualitative parity comparison against industry-leading Profession
 | EU DSA transparency report | ✅ native (Art. 24) | required (Art. 24); partial reports | required; partial | required; partial | n/a (not VLOP) |
 | Ed25519 audit-chain + endorsement-chain | ✅ both | ❌ (opaque logs) | ❌ | ❌ | partial (audit log only) |
 | Minor protections (chronological-only feed; no recruiter exposure) | ✅ | ✅ (limited recruiter exposure) | partial | n/a | n/a |
-| Federation (ActivityPub) | ❌ P01 (deferred; ADR-NET future) | ❌ | ❌ | ❌ | n/a |
+| Federation (ActivityPub) | ❌ P01 (scheduled-for-distinct-tracked-work; ADR-NET future) | ❌ | ❌ | ❌ | n/a |
 
 ### Substrate + integration
 
@@ -182,12 +182,12 @@ Quantitative + qualitative parity comparison against industry-leading Profession
 |---|---|---|---|
 | 1 | ML-driven feed ranking (vs heuristic in P01) | axis-network + axis-foundry-runtime | M03 |
 | 2 | ML-driven recruiter-stub ranker (with EU AI Act conformity assessment) | axis-network + axis-foundry-runtime + ops-compliance | M04 |
-| 3 | LinkedIn-Learning equivalent (out-of-scope P01; stubbed) | axis-network | M05+ (separate µservice or activated stub) |
-| 4 | Mature B2B sales-navigator equivalent | axis-network + gtm | M05+ |
-| 5 | Mobile SDK polish (iOS/Android parity with LinkedIn native) | axis-network + gtm | M02+1 |
-| 6 | ActivityPub Professional-tier federation (out-of-scope P01) | axis-network + council-architecture + ops-security | follow-up ADR-NET |
-| 7 | AT Protocol Professional federation | axis-network + council-architecture | follow-up ADR-NET |
-| 8 | Verified-handle global uniqueness (vs per-tenant) | axis-network + gtm | ADR-NET follow-up |
+| 3 | LinkedIn-Learning equivalent (out-of-scope P01; interface-only-pending-impl) | axis-network | M05-onward (separate µservice or activated stub) |
+| 4 | Mature B2B sales-navigator equivalent | axis-network + gtm | M05-onward |
+| 5 | Mobile SDK polish (iOS/Android parity with LinkedIn native) | axis-network + gtm | M02-onward1 |
+| 6 | ActivityPub Professional-tier federation (out-of-scope P01) | axis-network + council-architecture + ops-security | successor-IP ADR-NET |
+| 7 | AT Protocol Professional federation | axis-network + council-architecture | successor-IP ADR-NET |
+| 8 | Verified-handle global uniqueness (vs per-tenant) | axis-network + gtm | ADR-NET successor-IP |
 
 ## Key oyatie Differentiators (NOT in any competitor)
 
@@ -243,7 +243,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `microservices/network/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-NETWORK gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0126 (Connect dissolution, parallel).
+- ADR-0135 (Connect dissolution, parallel).
 - ADR-0130 (agentic SLO-gated promotion).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0133 (industry best-practice conformance).

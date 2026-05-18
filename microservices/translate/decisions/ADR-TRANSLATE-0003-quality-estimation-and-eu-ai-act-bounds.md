@@ -9,7 +9,7 @@ date: 2026-05-17
 microservice: translate
 supersedes: []
 superseded_by: []
-related_adrs: [ADR-0126, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0135, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/compliance.md
@@ -172,7 +172,7 @@ Per `policy/ai-act-overlay.md`, every µservice that consumes translate's QE sco
 - OpenKiwi (Unbabel 2019).
 - WMT QE shared-task results.
 - Workflow Studio ADR-WS-0005 (sibling alignment).
-- ADR-0126 — parent ADR.
+- ADR-0135 — parent ADR.
 - ADR-0131 — flat layout.
 - ADR-TRANSLATE-0001 — engine routing (QE sampling).
 - ADR-TRANSLATE-0004 — residency-bound inference (QE always in-house).

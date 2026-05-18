@@ -249,14 +249,14 @@ Per user directive 2026-05-16 — "think about the end user experience as well; 
 
 | Field | Content |
 |---|---|
-| `ux_personas_ref` | Pointer to user-journey spec at `/specs/products/<id>/ux.json` |
+| `ux_personas_ref` | Pointer to user-journey spec at `/specs/microservices/<id>/ux.json` |
 | `accessibility_coverage` | Minimum WCAG 2.2 AA; document any extension to AAA |
 | `responsive_breakpoints` | Closed enum: mobile-portrait / mobile-landscape / tablet / desktop / wide-desktop |
 | `internationalization_scope` | Closed enum: en-only / multi-language-fixed-set / locale-aware-dynamic |
 | `design_system_components_used` | Pointer to `/specs/design-system/<component>.json` rows used |
 | `journey_critical_paths` | Per-persona table of top-3 happy-path journeys + time-to-success target |
 | `error_state_coverage` | How errors surface: inline / toast / modal / page; per-error class |
-| `offline_behavior` | Behavior when network breaks; required for editor-class products per `/specs/products/workflow-studio.json#AC-03` |
+| `offline_behavior` | Behavior when network breaks; required for editor-class products per `/specs/microservices/workflow-studio.json#AC-03` |
 | `keyboard_navigation_coverage_pct` | Minimum 100% for power-user products |
 | `loading_state_coverage` | Skeleton / spinner / progressive-render policy per surface |
 

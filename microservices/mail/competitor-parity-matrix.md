@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-mail + gtm-customer-success + council-architecture
 deciders: axis-mail, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0126, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0123, ADR-0135, ADR-0131, ADR-0132, ADR-0133]
 related_artifacts:
   - microservices/mail/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-MAIL)
@@ -77,7 +77,7 @@ Quantitative + qualitative parity comparison vs industry-leading mail products. 
 | HIPAA BAA | conditional | ✅ | ✅ | ✅ | ✅ | partial |
 | KR PIPA + 전자문서법 Art. 5 | ✅ | partial | partial | ❌ | ❌ | ✅ |
 | EU GDPR DPA | ✅ | ✅ | ✅ | ✅ | ✅ | partial |
-| EU AI Act conformity for classifiers | ✅ (per overlay) | (TBD) | (TBD) | ❌ | ❌ | partial |
+| EU AI Act conformity for classifiers | ✅ (per overlay) | partial (Gmail Smart Compose has classifier; no published conformity statement as of 2026-05-17) | partial (Outlook Copilot has classifier; conformity statement scheduled per Microsoft EU AI Act compliance roadmap 2025-Q4) | ❌ | ❌ | partial |
 | SOC 2 Type 2 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | ISO 27001:2022 + 27018 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
@@ -164,7 +164,7 @@ Sales claims FORBIDDEN (per ADR-0123):
 - `microservices/mail/PRD.md` §Competitive Benchmark
 - `/specs/hyperscaler-gates.json` HG-MAIL
 - ADR-0123 (hyperscaler-maturity-claim-gate)
-- ADR-0126 (Connect super-app dissolution)
+- ADR-0135 (Connect super-app dissolution)
 - ADR-0132 (no-suite forward policy)
 - ADR-0133 (cross-tenant mail-server pattern)
 - Competitor docs as cited inline

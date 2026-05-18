@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + axis-network
 deciders: council-privacy, ops-security, axis-network, council-architecture, ops-compliance
-related_adrs: [ADR-0117, ADR-0126, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0131]
 related_artifacts:
   - microservices/network/policy/professional-context-isolation.md
   - microservices/network/threat-model.md
@@ -107,7 +107,7 @@ Any cross-pack data flow outside these exceptions triggers `network_pack_residen
 ## References
 
 - ADR-0117 (pack-pinning).
-- Parallel ADR-0126.
+- Parallel ADR-0135.
 - ADR-0131 (per-microservice flat layout).
 - ADR-NET-0001 (EMPLOYMENT_RECORD data class).
 - ADR-NET-0005 (endorsement-chain tombstone semantics).

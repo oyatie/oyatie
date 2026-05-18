@@ -155,7 +155,7 @@
       "Refuse PR when severity ∈ {critical, high} AND no legacy-grandfathered exception is on file",
       "Emit structured JSON with finding rows; attach to PR comment + audit-chain seal"
     ],
-    "implementation_path": "microservices/governance/src/crates/oya-governance-industry-best-practice-conformance-* (TBD; deferred to next-wave IP)"
+    "implementation_path": "microservices/governance/src/crates/oya-governance-industry-best-practice-conformance-{kernel,domain,usecase,api,adapter}/ — crate skeletons authored in this scaffold pass; first runtime implementation lands in microservices/governance/IP-INDUSTRY-CONFORMANCE-001 (the inaugural implementation plan tracking AC-INDUSTRY-CONFORMANCE-001 through AC-INDUSTRY-CONFORMANCE-007 against axis-1 through axis-7)"
   },
 
   "quarterly_refresh": {

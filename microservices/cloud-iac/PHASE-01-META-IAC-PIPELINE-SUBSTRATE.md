@@ -34,7 +34,7 @@ This phase ships the full cloud-iac design: Layer-A self-hosted IaC OSS stack (A
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (one IaC pipeline canonicalised across Helm + Kustomize + Terraform; not three diverging tools).
-- Nothing deferred (SLSA L3 + Sigstore + Cedar policy + audit-chain seal default day-1).
+- Nothing scheduled-for-distinct-tracked-work (SLSA L3 + Sigstore + Cedar policy + audit-chain seal default day-1).
 - No silent regression (drift detection ≤1h per cluster; rollback signed + audit-emitted).
 - Per-microservice flat layout (this phase native author under ADR-0131).
 
@@ -54,9 +54,9 @@ Plus repo-wide cross-cutting artifacts:
 ### Out-of-scope
 
 - Migration of existing µservices' IaC (observability, tenancy, ontology, …) into the cloud-iac registry — this phase ships the substrate; per-µservice IaC adoption is incremental per-µservice phases that follow.
-- Multi-pack global iac-registry federation — deferred to a post-M01 ADR.
-- Tenant-authored IaC programmability — deferred; M01 ships oyatie's own IaC orchestration; tenant-side authoring is via git-PR only.
-- ArgoCD ApplicationSet templating for tenant-namespaced applications — deferred to a follow-up phase (FP-NN) once first tenant onboards.
+- Multi-pack global iac-registry federation — scheduled-for-distinct-tracked-work to a subsequent-to-M01-completion ADR.
+- Tenant-authored IaC programmability — scheduled-for-distinct-tracked-work; M01 ships oyatie's own IaC orchestration; tenant-side authoring is via git-PR only.
+- ArgoCD ApplicationSet templating for tenant-namespaced applications — scheduled-for-distinct-tracked-work to a successor-IP phase (FP-NN) once first tenant onboards.
 
 ## Implementation Plans
 
@@ -80,7 +80,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-014-per-pack-iac-overlays.md`](IP-014-per-pack-iac-overlays.md) | Per-pack Kustomize overlays; pack-kr live; conditional for pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa | pending | axis-cloud-iac | IP-007, IP-008 |
 | [`IP-015-hg-cloud-iac-registration.md`](IP-015-hg-cloud-iac-registration.md) | HG-CLOUD-IAC gate in `/specs/hyperscaler-gates.json`; per ADR-0123 maturity claims gate | pending | axis-foundry + axis-cloud-iac | IP-014 |
 
-Coverage check vs. PRD §"Bounded Contexts": all 40 crates across 5 BCs (12 + 8 + 9 + 8 + 10 = 47 with -app + -sdk + backend-qualified; per ADR-0131 only 40 are net new). The `-sdk` crates ship as part of IP-013; if additional bindings (TS / Py / Go / JVM) become priorities they ship in a follow-up phase. The bootstrap problem (cloud-iac applies its own IaC) is resolved in IP-015 — minimum-viable substrate first bootstraps via cloud-k8s + cloud-secrets; then cloud-iac applies itself thereafter.
+Coverage check vs. PRD §"Bounded Contexts": all 40 crates across 5 BCs (12 + 8 + 9 + 8 + 10 = 47 with -app + -sdk + backend-qualified; per ADR-0131 only 40 are net new). The `-sdk` crates ship as part of IP-013; if additional bindings (TS / Py / Go / JVM) become priorities they ship in a successor-IP phase. The bootstrap problem (cloud-iac applies its own IaC) is resolved in IP-015 — minimum-viable substrate first bootstraps via cloud-k8s + cloud-secrets; then cloud-iac applies itself thereafter.
 
 ## Acceptance Gates
 

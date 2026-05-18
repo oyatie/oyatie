@@ -135,7 +135,7 @@ All Studio static assets cached at CDN edge with key:
 cache_key = (asset_path, pack, hashed_tenant_id?, version)
 ```
 
-- `hashed_tenant_id` is OPTIONAL: included only for tenant-specific content (none in M03 launch; reserved for post-GA per-tenant branding which is iframed).
+- `hashed_tenant_id` is OPTIONAL: included only for tenant-specific content (none in M03 launch; reserved for subsequent-to-GA-tier-promotion per-tenant branding which is iframed).
 - Without `hashed_tenant_id`: tenant-agnostic content (WASM bundles, spec schema, node library descriptors).
 
 ### Cache invalidation
