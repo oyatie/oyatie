@@ -240,3 +240,97 @@ Per-pack DPIA overlays at `regional-packs/<pack>/calendar-dpia-overlay.md`.
 - ICO DPIA template; CNIL DPIA methodology; EDPB Guidelines 4/2019 + 9/2022; PIPC Notice 2020-7.
 - GDPR Art. 35 + Art. 36; KR PIPA Art. 33; HIPAA 45 CFR §164.308.
 - LGPD Art. 38; DPDPA 2023 §10–§11.
+
+## Per-Pack DPIA Overlay Sections (2026-05-17 additive)
+
+These overlays append per ADR-0133 11-pack-overlay program with the
+concrete DPIA delta for each pack. Each overlay names the supervisory
+authority that governs the pack + the article-level legal basis +
+the residual-risk position.
+
+### pack-kr (PIPC oversight)
+
+- **Supervisory authority**: 개인정보보호위원회 (PIPC).
+- **Legal basis**: KR PIPA Art. 15(1)(1) consent-based for personal-pillar; Art. 15(1)(4) contract-performance for professional-pillar.
+- **Cross-border**: KR PIPA Art. 17 SCC-equivalent gating; per-pack residency at ap-seoul-1.
+- **Special-category**: KR PIPA Art. 23 SENSITIVE_PIPA_ART23 data-class for relationship graph; cross-tenant disclosure refused by default.
+- **Residual risk**: Low for default operation; Medium for tenant-opted-in cross-tenant invites; mitigated by Cedar audit-chain.
+- **DPO notification**: required for any new processing purpose.
+
+### pack-eu (EDPB + national DPA oversight)
+
+- **Supervisory authority**: lead DPA per GDPR Art. 56 one-stop-shop (e.g., CNIL for FR-based tenants).
+- **Legal basis**: GDPR Art. 6(1)(b) contract-performance for professional events; Art. 6(1)(a) explicit consent for cross-tenant invite acceptance; Art. 6(1)(f) legitimate interest for service operation.
+- **Cross-border**: GDPR Chapter V — SCC + supplementary measures for any cross-pack transfer; default = no cross-pack.
+- **EU AI Act**: Annex III §3 employment-context REFUSED at Cedar layer for T1/T2 HR-overlays pending ADR-CAL-XXXX conformity assessment.
+- **DPIA Art. 35 trigger**: cross-tenant free/busy + AI scheduling (T1) → trigger; this DPIA satisfies.
+- **Residual risk**: Low-Medium; auto-decline (T1) and auto-block focus (T2) reviewed via supervisory-authority engagement.
+
+### pack-us (FTC + state-AG oversight)
+
+- **Supervisory authority**: FTC + state attorneys-general (CA / VA / CO / CT / UT) per state privacy laws.
+- **Legal basis**: contract; sectoral laws (CCPA / CPRA / VCDPA / CPA) apply per tenant residency.
+- **Cross-border**: SCC for EU-tenant cross-pack; no special restriction for intra-US cross-region.
+- **Residual risk**: Low for default; Medium for cross-state cross-tenant invites.
+
+### pack-us-healthcare (HHS OCR oversight)
+
+- **Supervisory authority**: HHS Office for Civil Rights (HIPAA).
+- **Legal basis**: HIPAA Privacy Rule; BAA in place for every tenant (per `legal/baa-template.md`).
+- **Cross-border**: forbidden by default; ePHI must remain in the US healthcare cluster.
+- **Special-category**: PHI data-class on every appointment field; minimum-necessary per HIPAA 45 CFR §164.502(b).
+- **DPIA Art. 35 analog**: HIPAA Security Rule Risk Analysis per 45 CFR §164.308(a)(1)(ii)(A) — this DPIA satisfies the equivalent.
+- **CalDAV backend**: SabreDAV per ADR-CAL-0001 — higher session ceiling for healthcare-appointment workflows.
+- **Residual risk**: Medium; mitigated by per-BAA audit; pen-test annual scope includes healthcare-specific PHI-disclosure simulation.
+
+### pack-jp (PPC oversight)
+
+- **Supervisory authority**: 個人情報保護委員会 (PPC).
+- **Legal basis**: APPI Art. 18 consent for cross-tenant; Art. 17 specified-purpose.
+- **Cross-border**: APPI Art. 24 — restricted to "adequate" countries; cross-pack to KR / SG / AU requires per-tenant consent.
+- **Residual risk**: Low.
+
+### pack-sg (PDPC oversight)
+
+- **Supervisory authority**: Personal Data Protection Commission (PDPC).
+- **Legal basis**: PDPA Section 13 consent; deemed-consent for service operation per Section 15.
+- **Cross-border**: PDPA Section 26 with comparable protection in destination jurisdiction.
+- **Residual risk**: Low.
+
+### pack-au (OAIC oversight)
+
+- **Supervisory authority**: Office of the Australian Information Commissioner (OAIC).
+- **Legal basis**: Privacy Act 1988 APP 3 collection limitation; APP 5 notification.
+- **Cross-border**: APP 8 accountability for cross-pack transfer.
+- **Residual risk**: Low.
+
+### pack-in (DPDPA oversight)
+
+- **Supervisory authority**: Data Protection Board of India (DPBI; once constituted).
+- **Legal basis**: DPDPA §6 consent; §7 legitimate-uses.
+- **Cross-border**: DPDPA §16 cross-border restrictions; whitelist-based.
+- **Residual risk**: Low-Medium (DPBI guidance still emerging at 2026-05).
+
+### pack-br (ANPD oversight)
+
+- **Supervisory authority**: Autoridade Nacional de Proteção de Dados (ANPD).
+- **Legal basis**: LGPD Art. 7(I) consent; Art. 7(V) contract.
+- **Cross-border**: LGPD Art. 33 — ANPD-approved transfer mechanism.
+- **Residual risk**: Low.
+
+### pack-ae (UAE DPA oversight)
+
+- **Supervisory authority**: UAE Data Office (under Federal PDPL).
+- **Legal basis**: PDPL Art. 5 consent; contract.
+- **Cross-border**: PDPL Art. 22 — UAE DPA approval required.
+- **Hijri calendar**: special-purpose tz/calendar overlay; DPIA scope unchanged.
+- **Residual risk**: Low.
+
+### pack-ksa (SDAIA oversight)
+
+- **Supervisory authority**: Saudi Data and AI Authority (SDAIA).
+- **Legal basis**: PDPL Art. 6 lawful processing; Art. 7 consent.
+- **Cross-border**: PDPL Art. 29 — SDAIA-approved mechanism.
+- **Hijri calendar**: as pack-ae.
+- **Sharia retention**: per-tenant retention extension supported; refusal of premature deletion logged in audit-chain.
+- **Residual risk**: Low-Medium.

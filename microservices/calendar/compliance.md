@@ -246,3 +246,111 @@ Highlights:
 - KR PIPA + ISMS-P + 전자문서법; PIPC Notice 2020-7.
 - HIPAA 45 CFR §164; FDA 21 CFR Part 11.
 - APPI; PDPA; APP; DPDPA; LGPD; UAE PDPL; KSA PDPL.
+
+## Per-Pack Compliance Overlay Sections (2026-05-17 additive)
+
+These overlays append per ADR-0133 11-pack-overlay program with the
+concrete compliance-control delta for each pack. Each overlay maps
+to named statutory / regulatory citations.
+
+### pack-kr (KR PIPA + KR-FSS + 전자문서법 + ISMS-P)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Audit-chain integrity | 전자문서법 Art. 5 | Ed25519 + Merkle per Bominal ADR-0028; tamper detection on read |
+| Special-category data | KR PIPA Art. 23 | data-class `SENSITIVE_PIPA_ART23` on relationship-graph fields; Cedar refusal |
+| Retention floor | KR-FSS guidelines | 1825d (5y) for financial-sector tenants; enforced at event-store-domain |
+| Notification | KR PIPA Art. 34 | 72h notification per incident-response.md |
+| Cross-border | KR PIPA Art. 17 | per-pack residency; cross-pack SCC-gated |
+| ISMS-P | KISA Notice 2024-X | annual ISMS-P recertification; CalDAV backend (Radicale 3.2.3 LTS) within scope |
+
+### pack-eu (GDPR + ePrivacy + EU AI Act)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Lawful basis | GDPR Art. 6 | per-purpose admission via Cedar; per `legal/ropa.md` records of processing |
+| Right to erasure | GDPR Art. 17 | event-store-usecase erasure orchestrator + legal-hold reconciliation |
+| Right to portability | GDPR Art. 20 | .ics export per PRD FR-08 |
+| DPIA | GDPR Art. 35 | this DPIA |
+| Cross-border | Chapter V | per-pack EU residency; SCC for cross-pack |
+| AI Act high-risk | Annex III §3 | T1/T2 HR-context overlays REFUSED at Cedar layer pending ADR-CAL-XXXX conformity assessment |
+| ePrivacy | Art. 5(3) | web-UI tracking-free posture |
+
+### pack-us (CCPA / CPRA / sectoral)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Right to know | CCPA §1798.100 | per-user export per PRD FR-08 |
+| Right to delete | CCPA §1798.105 | event-store deletion orchestrator |
+| Sale of PD opt-out | CCPA §1798.120 | no sale; documented in `legal/sub-processors.md` |
+| SOC 2 | TSC 2017+2022 | annual SOC 2 Type 2 |
+
+### pack-us-healthcare (HIPAA + BAA + FDA 21 CFR Part 11)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Security Rule | 45 CFR §164.308 | Risk Analysis + audit controls + encryption |
+| Privacy Rule | 45 CFR §164.502(b) | minimum-necessary: data-class PHI on appointment fields |
+| Encryption | 45 CFR §164.312(a)(2)(iv) | Tenant-DEK envelope at rest; TLS 1.3 in transit |
+| Audit controls | 45 CFR §164.312(b) | Ed25519 + Merkle audit-chain |
+| BAA | 45 CFR §164.504(e) | per-tenant BAA per `legal/baa-template.md` |
+| FDA Part 11 | 21 CFR §11.10 | electronic records integrity for HIPAA-covered tenants |
+| CalDAV backend | (operational) | SabreDAV 4.6 per ADR-CAL-0001 for healthcare-specific scheduling workflows |
+
+### pack-jp (APPI)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Specified-purpose | APPI Art. 17 | consent-recorded purposes per tenant onboarding |
+| Leak notification | APPI Art. 22 | 3-business-day notification per incident-response.md |
+| Cross-border | APPI Art. 24 | per-pack jp-tokyo-1; cross-pack consent-gated |
+
+### pack-sg (PDPA Singapore)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Consent | PDPA §13 | Cedar admission + recorded consent |
+| Protection | PDPA §24 | encryption + audit-chain |
+| Cross-border | PDPA §26 | comparable-protection assessment for cross-pack |
+
+### pack-au (Privacy Act 1988)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Collection limitation | APP 3 | data-class enforcement on event fields |
+| Cross-border | APP 8 | per-pack au-sydney-1; cross-pack OAIC-accountable |
+| Security | APP 11 | TLS + encryption + audit-chain |
+
+### pack-in (DPDPA 2023)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Notice + consent | DPDPA §6 | tenant-onboarding consent flow |
+| Significant data fiduciary | DPDPA §10 | DPO + audit per §10(2) for healthcare tenants |
+| Cross-border | DPDPA §16 | whitelist-based |
+
+### pack-br (LGPD)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Lawful basis | LGPD Art. 7 | Cedar admission per recorded basis |
+| Cross-border | LGPD Art. 33 | ANPD-approved mechanism for cross-pack |
+| Reports of processing | LGPD Art. 37 | per `legal/ropa.md` |
+
+### pack-ae (UAE PDPL + Federal Decree 45/2021)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Consent | PDPL Art. 5 | tenant-onboarding consent flow |
+| Cross-border | PDPL Art. 22 | UAE DPA-approved mechanism for cross-pack |
+| Security | PDPL Art. 20 | encryption + audit-chain |
+| Hijri overlay | (operational) | ICU4X `icu_calendar` per ADR-CAL-0004 |
+
+### pack-ksa (KSA PDPL + Royal Decree M/19)
+
+| Control | Citation | Calendar implementation |
+|---|---|---|
+| Lawful processing | PDPL Art. 6 | Cedar admission per recorded basis |
+| Cross-border | PDPL Art. 29 | SDAIA-approved mechanism for cross-pack |
+| Sharia retention | (operational; per Sharia-court rulings) | per-tenant retention extension supported |
+| Hijri overlay | (operational) | ICU4X `icu_calendar` per ADR-CAL-0004 |

@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: social
+  namespace: social
+  labels:
+    app.kubernetes.io/name: social
+    release: prometheus  # discovered by Prometheus Operator
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: social
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+          targetLabel: bc
+      metricRelabelings:
+        # Drop high-cardinality labels before Mimir to control series count
+        - sourceLabels: [post_id]
+          action: labeldrop
+        - sourceLabels: [media_id]
+          action: labeldrop
+        - sourceLabels: [notification_id]
+          action: labeldrop

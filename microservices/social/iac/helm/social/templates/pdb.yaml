@@ -1,0 +1,14 @@
+{{- range tuple "websocketGateway" "userProfile" "postCompositionRest" "feedTimeline" "notifications" "search" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: social-{{ . | kebabcase }}-pdb
+  namespace: social
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: social
+      app.kubernetes.io/component: {{ . | kebabcase }}
+{{- end }}

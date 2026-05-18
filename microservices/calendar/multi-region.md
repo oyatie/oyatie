@@ -139,3 +139,103 @@ When Tenant-A (pack-kr) invites an external attendee in Tenant-B (pack-eu):
 - `policy/data-residency.md`, `policy/event-isolation.md`, `incident-response.md`, `failure-modes.md`, `capacity-model.md`.
 - Patroni HA documentation.
 - OCI region map (2026-05).
+
+## Per-Pack Multi-Region Overlay Sections (2026-05-17 additive)
+
+Per ADR-0133 11-pack-overlay program. Each overlay names the
+authoritative cloud region(s), data-residency boundary, and the
+HA topology specific to that pack.
+
+### pack-kr (ap-seoul-1)
+
+- **Primary region**: ap-seoul-1 (KR; on-shore per KR PIPA Art. 17).
+- **HA topology**: 3 AZs within ap-seoul-1; sync replicas ≥1; streaming replica 2.
+- **DR region**: ap-seoul-2 (warm-standby; tested quarterly).
+- **Cross-pack route**: refused by default; KR PIPA Art. 17 SCC-equivalent required.
+- **RTO**: ≤15 min; **RPO**: ≤60s (Postgres logical replication).
+
+### pack-eu (eu-frankfurt-1 + eu-paris-1)
+
+- **Primary region**: eu-frankfurt-1.
+- **HA topology**: 3 AZs within eu-frankfurt-1.
+- **DR region**: eu-paris-1 (active-passive; SCC-bound by GDPR Chapter V).
+- **Cross-pack route**: SCC + supplementary measures required per Schrems II.
+- **EU AI Act**: per `capabilities/T1-assist.yaml` Cedar refusal of HR-context T1/T2 in this pack.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-us (us-east-1 + us-west-2)
+
+- **Primary region**: us-east-1.
+- **HA topology**: 3 AZs within us-east-1.
+- **DR region**: us-west-2 (active-passive).
+- **Cross-pack route**: intra-US cross-region allowed; cross-pack to EU SCC-gated.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-us-healthcare (us-east-1-hipaa)
+
+- **Primary region**: us-east-1 HIPAA-eligible zone.
+- **HA topology**: 3 HIPAA-eligible AZs.
+- **DR region**: us-west-2 HIPAA-eligible (active-passive).
+- **Cross-pack route**: forbidden by default; ePHI must remain in HIPAA-eligible US zones.
+- **CalDAV backend**: SabreDAV (per ADR-CAL-0001); deployed within HIPAA-eligible zone only.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+- **BAA**: every cloud provider in scope has a signed BAA.
+
+### pack-jp (ap-tokyo-1)
+
+- **Primary region**: ap-tokyo-1.
+- **HA topology**: 3 AZs.
+- **DR region**: ap-osaka-1 (warm-standby).
+- **Cross-pack route**: APPI Art. 24 — adequate-country only.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-sg (ap-singapore-1)
+
+- **Primary region**: ap-singapore-1.
+- **HA topology**: 3 AZs.
+- **DR region**: ap-jakarta-1 (warm-standby).
+- **Cross-pack route**: PDPA §26 comparable-protection.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-au (ap-sydney-1)
+
+- **Primary region**: ap-sydney-1.
+- **HA topology**: 3 AZs.
+- **DR region**: ap-melbourne-1 (warm-standby).
+- **Cross-pack route**: APP 8 accountability.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-in (ap-mumbai-1)
+
+- **Primary region**: ap-mumbai-1.
+- **HA topology**: 3 AZs.
+- **DR region**: ap-hyderabad-1 (warm-standby; same-country per DPDPA).
+- **Cross-pack route**: DPDPA §16 whitelist.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-br (sa-saopaulo-1)
+
+- **Primary region**: sa-saopaulo-1.
+- **HA topology**: 3 AZs.
+- **DR region**: sa-rio-1 (warm-standby).
+- **Cross-pack route**: LGPD Art. 33 ANPD-approved.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-ae (me-dubai-1)
+
+- **Primary region**: me-dubai-1.
+- **HA topology**: 3 AZs.
+- **DR region**: me-abudhabi-1 (warm-standby).
+- **Cross-pack route**: PDPL Art. 22 UAE DPA approval.
+- **Hijri/Gregorian dual-calendar rendering**: both per ICU4X overlay.
+- **RTO**: ≤15 min; **RPO**: ≤60s.
+
+### pack-ksa (me-riyadh-1)
+
+- **Primary region**: me-riyadh-1.
+- **HA topology**: 3 AZs.
+- **DR region**: me-jeddah-1 (warm-standby; same-country).
+- **Cross-pack route**: PDPL Art. 29 SDAIA-approved.
+- **Hijri/Gregorian dual-calendar**: per ICU4X overlay.
+- **Sharia retention extension**: per-tenant.
+- **RTO**: ≤15 min; **RPO**: ≤60s.

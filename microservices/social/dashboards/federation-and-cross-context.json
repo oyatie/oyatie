@@ -1,0 +1,101 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "social",
+    "owner_team": "axis-social + ops-security",
+    "audience": "ops-security + council-privacy + axis-social SRE",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; audit-chain seal index"
+  },
+  "uid": "social-federation-and-cross-context",
+  "title": "social: federation (ActivityPub) + dual-context invariant",
+  "tags": ["social", "federation", "activitypub", "dual-context", "personal-tier-never-federates"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {"from": "now-24h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ]}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Personal-tier federation attempts (MUST be 0)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(oya_social_personal_tier_federation_attempt_total{pack=\"$pack\"}[24h]))", "refId": "A"}],
+      "description": "Compile-time invariant DCI-08. Any non-zero value triggers Sev-1 path A in `runbooks/federation-bridge-degraded.md`.",
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 1, "color": "red"}]}}}},
+
+    {"id": 2, "type": "stat", "title": "Federation peers allowlisted (active)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_social_federation_peers_allowlisted_total{pack=\"$pack\"})", "refId": "A"}]},
+
+    {"id": 3, "type": "stat", "title": "Federation outbox queue depth",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_social_federation_outbox_queue_depth{pack=\"$pack\"})", "refId": "A"},
+                  {"expr": "100", "refId": "B"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 10000, "color": "yellow"}, {"value": 100000, "color": "red"}]}}}},
+
+    {"id": 4, "type": "stat", "title": "HTTP Signature verification failures (24h)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(oya_social_federation_signature_verify_fail_total{pack=\"$pack\"}[24h]))", "refId": "A"}]},
+
+    {"id": 5, "type": "timeseries", "title": "ActivityPub egress (Professional-tier only)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (activity_type) (rate(oya_social_federation_activity_egressed_total{pack=\"$pack\",context_kind=\"Professional\"}[5m]))", "legendFormat": "{{activity_type}}", "refId": "A"}
+      ],
+      "description": "Personal-tier NEVER federates — should never appear here."},
+
+    {"id": 6, "type": "timeseries", "title": "ActivityPub ingress (per peer)",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [{"expr": "sum by (peer_ref) (rate(oya_social_federation_activity_ingested_total{pack=\"$pack\"}[5m]))", "legendFormat": "{{peer_ref}}", "refId": "A"}]},
+
+    {"id": 7, "type": "timeseries", "title": "Federation peer spam rate (per peer)",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [{"expr": "sum by (peer_ref) (rate(oya_social_federation_peer_spam_rate{pack=\"$pack\"}[5m]))", "legendFormat": "{{peer_ref}}", "refId": "A"}]},
+
+    {"id": 8, "type": "timeseries", "title": "Federation outbox p99 delivery latency",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_social_federation_outbox_delivery_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "p99", "refId": "A"}]},
+
+    {"id": 9, "type": "timeseries", "title": "Cross-context routing denied attempts",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "targets": [{"expr": "sum(rate(oya_social_dual_context_denied_total{pack=\"$pack\"}[5m]))", "legendFormat": "denied/min", "refId": "A"}],
+      "description": "Should be 0; any non-zero rate is a Sev-1 per FM-10."},
+
+    {"id": 10, "type": "table", "title": "Recent federation opt-in records",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "targets": [{"expr": "topk(20, oya_social_federation_opt_in_total{pack=\"$pack\"})", "format": "table", "refId": "A"}]},
+
+    {"id": 11, "type": "stat", "title": "Tenants with federation opt-in",
+      "gridPos": {"x": 0, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_social_tenants_with_federation_opt_in_total{pack=\"$pack\"})", "refId": "A"}]},
+
+    {"id": 12, "type": "stat", "title": "Personal-tier accounts (always non-federating)",
+      "gridPos": {"x": 6, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_social_profile_total{pack=\"$pack\",context_kind=\"Personal\"})", "refId": "A"}]},
+
+    {"id": 13, "type": "stat", "title": "Professional-tier accounts (federation-eligible per opt-in)",
+      "gridPos": {"x": 12, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_social_profile_total{pack=\"$pack\",context_kind=\"Professional\"})", "refId": "A"}]},
+
+    {"id": 14, "type": "stat", "title": "Federation activity total (24h)",
+      "gridPos": {"x": 18, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(oya_social_federation_activity_total{pack=\"$pack\"}[24h]))", "refId": "A"}]}
+  ]
+}

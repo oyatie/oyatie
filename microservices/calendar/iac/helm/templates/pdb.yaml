@@ -1,0 +1,22 @@
+{{/*
+Per-BC PodDisruptionBudget. min-available 50% per ADR-0131 baseline.
+*/}}
+{{- if $.Values.podDisruptionBudget.enabled }}
+{{- range $bc := list "event-store" "availability-resolver" "ics-import-export" "invitation-flow" "recurrence-engine" "room-booking" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: oya-calendar-{{ $bc }}-app-pdb
+  namespace: calendar
+  labels:
+    microservice: calendar
+    bc: {{ $bc }}
+spec:
+  minAvailable: {{ $.Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      microservice: calendar
+      bc: {{ $bc }}
+{{- end }}
+{{- end }}

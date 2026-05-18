@@ -564,3 +564,119 @@ Per-pack overlays at `regional-packs/<pack>/calendar-overlay.md`.
 - libical conformance corpus.
 - Microsoft Threat Modeling (STRIDE), LINDDUN privacy.
 - NIST SP 800-154.
+
+## Per-Pack Threat-Model Overlay Sections (2026-05-17 additive)
+
+These overlays are appended per ADR-0133 11-pack-overlay program. They
+augment the §"Per-Pack Overlays" stub above with concrete pack-specific
+threat-model deltas. Each overlay is rooted in the named regulatory
+citation for that pack.
+
+### pack-kr (KR PIPA + KR-FSS)
+
+Pack-specific threats — addition to the canonical STRIDE +
+LINDDUN matrix:
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-KR-01 | I — Information disclosure | KR PIPA Art. 17 cross-border transfer must be SCC-gated; calendar cross-region replication forbidden by default | per-pack data residency pinning at `iac/kustomize/overlays/pack-kr/`; cross-pack ingress refused at OIDC issuance |
+| T-KR-02 | N — Non-compliance | KR-FSS appointment-retention floor 5y for financial-sector tenants; event deletion before floor = compliance violation | retention floor enforced at `event-store-domain`; legal-hold extends past floor |
+| T-KR-03 | I — Linkability | KR PIPA Art. 23 special-category data (relationship graph from event attendees) elevated to SENSITIVE_PIPA_ART23 data-class | `#[data_class(SENSITIVE_PIPA_ART23)]` annotation enforced; Cedar refuses cross-tenant disclosure |
+| T-KR-04 | T — Tampering | 전자문서법 (Electronic Document Act) requires audit-chain integrity for tenant operations | Ed25519 + Merkle audit-chain per Bominal ADR-0028; tamper detection runs on every read |
+
+References: KR PIPA (개인정보 보호법) Art. 17 + Art. 23 + Art. 28; KR-FSS supervisory regulations; 전자문서법 (Electronic Document Act); PIPC Notice 2020-7.
+
+### pack-eu (GDPR + ePrivacy + EU AI Act)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-EU-01 | I — Information disclosure | GDPR Art. 6(1)(a) lawful-basis for cross-tenant free/busy requires explicit consent | Cedar-gated cross-tenant invite grant; consent recorded in audit-chain |
+| T-EU-02 | N — Non-compliance | GDPR Art. 17 right-to-erasure must reconcile with legal-hold | erasure refused while legal-hold active; tenant comms emitted with concrete-reason citation |
+| T-EU-03 | I — Linkability | ePrivacy Directive Art. 5(3) cookie/storage consent must apply to web-UI tracking | calendar web-UI emits zero tracking telemetry; in-product metrics anonymised at emit time |
+| T-EU-04 | N — EU AI Act Annex III §3 employment-context | T1/T2 AI scheduling overlays in HR-context (hiring / performance review) may trigger high-risk classification | T1/T2 HR-context overlays REFUSED at Cedar layer pending ADR-CAL-XXXX conformity assessment per `capabilities/T1-assist.yaml` + `T2-auto.yaml` |
+| T-EU-05 | T — Cross-border | GDPR Chapter V cross-border transfers require SCCs + adequacy decision | per-pack data residency; cross-pack transfers SCC-gated |
+
+References: GDPR Regulation (EU) 2016/679; ePrivacy Directive 2002/58/EC; EU AI Act Regulation (EU) 2024/1689; EDPB Guidelines 4/2019 + 9/2022.
+
+### pack-us (general)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-US-01 | I — Discovery | FRCP Rule 26(b)(1) discovery may compel calendar export for litigation | legal-hold + eDiscovery export per `event-store-usecase`; audit-chain preserves chain-of-custody |
+| T-US-02 | S — Spoofing | CCPA / CPRA right-to-access requires identity verification | OIDC + tenant-API-key + (optional) hardware-token verification for export requests |
+
+References: CCPA / CPRA; SOC 2 TSC 2017+2022; FRCP Rule 26(b)(1).
+
+### pack-us-healthcare (HIPAA)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-HC-01 | I — Information disclosure | HIPAA 45 CFR §164.502(b) minimum-necessary applies to appointment metadata | data-class `PHI` on every appointment field; Cedar refuses access outside care-team scope |
+| T-HC-02 | N — Non-compliance | HIPAA 45 CFR §164.312(a)(2)(iv) encryption controls | Tenant-DEK envelope at rest; TLS 1.3 in transit; SabreDAV CalDAV backend per ADR-CAL-0001 for healthcare-specific scheduling workflows |
+| T-HC-03 | I — Linkability | HIPAA 45 CFR §164.514(b) safe-harbor de-identification doesn't apply to scheduling (patient identifier is core) | encryption-at-rest + Cedar-gated access; legal-hold for ePHI per BAA |
+| T-HC-04 | T — Audit-chain | HIPAA 45 CFR §164.312(b) audit controls | Ed25519 + Merkle audit-chain per Bominal ADR-0028; tamper detection on every read |
+
+References: HIPAA 45 CFR §164.308 + §164.312 + §164.502 + §164.514; FDA 21 CFR Part 11 (electronic records); BAA template per `legal/baa-template.md`.
+
+### pack-jp (APPI)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-JP-01 | I — Information disclosure | APPI Art. 24 cross-border transfer requires consent or equivalence | per-pack residency; cross-pack transfers consent-gated |
+| T-JP-02 | N — Non-compliance | APPI Art. 22 personal-data leakage notification 3-business-day window | incident-response runbook 3-business-day fire |
+
+References: APPI (個人情報の保護に関する法律) Art. 22 + Art. 24; PPC Guidelines.
+
+### pack-sg (PDPA Singapore)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-SG-01 | N | PDPA Section 13 consent + Section 11 reasonableness | Cedar admission requires explicit grant for cross-tenant scope |
+| T-SG-02 | T | PDPA Section 24 protection obligation | encryption + audit-chain |
+
+References: PDPA (Singapore) 2012 Sections 11 + 13 + 24; PDPC Advisory Guidelines.
+
+### pack-au (Privacy Act 1988)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-AU-01 | N | Privacy Act APP 8 cross-border disclosure accountability | Cedar-gated cross-tenant + audit-chain |
+| T-AU-02 | I | APP 1.2 reasonable steps to protect | TLS 1.3 + Tenant-DEK envelope |
+
+References: Privacy Act 1988 (Cth) Schedule 1 (APPs); OAIC Guidelines.
+
+### pack-in (DPDPA 2023)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-IN-01 | N | DPDPA Section 9 notice + consent | tenant-onboarding consent flow + Cedar gate |
+| T-IN-02 | I | DPDPA Section 10 cross-border transfer to designated countries | per-pack residency; cross-pack refused |
+
+References: DPDPA 2023 §§9–11 + §16; MeitY draft Rules 2024.
+
+### pack-br (LGPD)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-BR-01 | N | LGPD Art. 7 legal basis + Art. 9 consent | Cedar admission + tenant consent record |
+| T-BR-02 | I | LGPD Art. 33 cross-border transfer | per-pack residency; ANPD-approved transfer mechanism for cross-pack |
+
+References: LGPD Lei 13.709/2018 Art. 7 + Art. 9 + Art. 33; ANPD Resolution CD/ANPD 2/2022.
+
+### pack-ae (UAE PDPL + Hijri overlay)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-AE-01 | N | UAE PDPL Federal Decree 45/2021 Art. 22 cross-border transfer | per-pack residency; UAE DPA-approved adequacy |
+| T-AE-02 | I | Hijri-calendar overlay errors could mis-schedule observances | ICU4X `icu_calendar` Hijri overlay per ADR-CAL-0004 §"calendar-system overlays"; corpus test per pack |
+
+References: UAE PDPL Federal Decree-Law 45/2021 + Cabinet Resolution 2/2023; ICU4X Hijri calendar.
+
+### pack-ksa (KSA PDPL + Hijri overlay)
+
+| Threat | STRIDE/LINDDUN | Rationale | Mitigation |
+|---|---|---|---|
+| T-KSA-01 | N | KSA PDPL Royal Decree M/19 Art. 29 cross-border transfer | per-pack residency; SDAIA-approved mechanism for cross-pack |
+| T-KSA-02 | I | KSA Sharia-court-mandated retention for certain document classes | per-tenant retention extension; Cedar gate for early-deletion attempt |
+
+References: KSA PDPL Royal Decree M/19; SDAIA Regulations; Sharia retention guidance.
