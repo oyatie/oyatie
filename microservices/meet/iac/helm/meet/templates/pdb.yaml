@@ -1,0 +1,14 @@
+{{- range tuple "meetingRoomRest" "signalingGateway" "transcriptionWorker" "recordingMuxWorker" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: meet-{{ . | kebabcase }}-pdb
+  namespace: meet
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: meet
+      app.kubernetes.io/component: {{ . | kebabcase }}
+{{- end }}

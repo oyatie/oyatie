@@ -1,0 +1,78 @@
+global:
+  pack: kr
+  cluster: notes
+  imageRegistry: ghcr.io/oyatie
+  imagePullPolicy: IfNotPresent
+
+image:
+  repository: oya-notes-app
+  tag: "1.0.0"
+
+noteStoreRest:
+  replicas: 4
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits: {cpu: 2000m, memory: 2Gi}
+  hpa:
+    minReplicas: 4
+    maxReplicas: 80
+    targetCPUUtilizationPercentage: 70
+
+tagGraphWorker:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+backlinkGraphWorker:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+collabEditGateway:
+  replicas: 3
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits: {cpu: 1500m, memory: 1.5Gi}
+  hpa:
+    minReplicas: 3
+    maxReplicas: 60
+    targetCPUUtilizationPercentage: 70
+
+searchIndexWorker:
+  replicas: 2
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+webClipperBridgeRest:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 512Mi}
+
+e2eKeyManagementApi:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 750m, memory: 512Mi}
+
+importExportWorker:
+  replicas: 1
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: 1500m, memory: 2Gi}
+  runtimeClassName: gvisor
+
+# Substrate secrets via OpenBao SecretReference
+openbao:
+  postgresUrl: "${openbao:secret/notes/postgres-url}"
+  redisUrl: "${openbao:secret/notes/redis-url}"
+  meilisearchKey: "${openbao:secret/notes/meilisearch-master-key}"
+  s3AccessKey: "${openbao:secret/notes/s3-access-key}"
+  s3SecretKey: "${openbao:secret/notes/s3-secret-key}"
+  mlsRootKey: "${openbao:secret/notes/mls-root-key}"
+
+meilisearch:
+  enabled: true

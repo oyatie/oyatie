@@ -1,0 +1,14 @@
+{{- range tuple "noteStoreRest" "collabEditGateway" "searchIndexWorker" "e2eKeyManagementApi" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notes-{{ . | kebabcase }}-pdb
+  namespace: notes
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: notes
+      app.kubernetes.io/component: {{ . | kebabcase }}
+{{- end }}

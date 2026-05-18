@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: notes
+  namespace: notes
+  labels:
+    app.kubernetes.io/name: notes
+    release: prometheus
+spec:
+  selector:
+    matchLabels: {app.kubernetes.io/name: notes}
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+          targetLabel: bc
+      metricRelabelings:
+        - sourceLabels: [note_id]
+          action: labeldrop
