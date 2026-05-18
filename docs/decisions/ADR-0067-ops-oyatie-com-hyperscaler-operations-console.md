@@ -78,9 +78,9 @@ Remaining ~19 BCs are authored in **subsequent ralplan cycles** (each gets its o
 3. **tech-stack** + **architecture** (M03-P06 IP extension)
 4. **database** + **schema** (M03-P06 IP extension)
 5. **observability** + **health** (M03-P07 IP — tied to Workflow Studio observability)
-6. **tenant-mgmt** + **user-mgmt** + **deployments** (M04+ — tied to multi-tenant operational maturity)
-7. **capacity** + **finops** + **on-call** + **incident** (M04+)
-8. **audit-view** + **icm-browser** + **grit-status** + **ci-runs** (M04+ — Foundry-internal first, then exposed to tenant ops view)
+6. **tenant-mgmt** + **user-mgmt** + **deployments** (M04-onward — tied to multi-tenant operational maturity)
+7. **capacity** + **finops** + **on-call** + **incident** (M04-onward)
+8. **audit-view** + **icm-browser** + **grit-status** + **ci-runs** (M04-onward — Foundry-internal first, then exposed to tenant ops view)
 
 Subdomain `ops.oyatie.com` resolves to whichever cell serves the requesting tenant (per Bominal ADR-0123 subdomain + ADR-0117 cell routing).
 
@@ -187,7 +187,7 @@ CI lanes (M02-P22 BLOCKER):
 
 Owner: `axis-foundry` (substrate + extractors) + `ops-sre-reliability` (dashboards / health / on-call / incident / capacity / finops) + `council-privacy` (Cedar policy fragments) + `gtm-customer-success` (tenant-facing surface design).
 
-First green window: M03-P06 (Application B2B live) ships docs BC. Remaining BCs land in subsequent M03+ / M04+ phases.
+First green window: M03-P06 (Application B2B live) ships docs BC. Remaining BCs land in subsequent M03-onward / M04-onward phases.
 
 ---
 

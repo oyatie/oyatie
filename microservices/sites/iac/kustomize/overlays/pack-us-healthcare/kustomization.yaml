@@ -1,0 +1,37 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+# Kustomize overlay — pack-us-healthcare (HIPAA + BAA + ADA Title III + Section 508 + FDA 21 CFR Part 11 + state-level CCPA/CMIA/NY SHIELD).
+# Patient-portal sites carry PHI surface; WCAG 2.2 AA refuse-publish at < 100%.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: sites
+
+resources:
+  - ../../base
+
+commonLabels:
+  oyatie.dev/pack: us-healthcare
+  oyatie.dev/data-residency: us-ashburn-1-baa-eligible
+
+configMapGenerator:
+  - name: oya-sites-pack-config
+    namespace: sites
+    literals:
+      - PACK_REGION=us-healthcare
+      - DATA_RESIDENCY=us-ashburn-1-baa-eligible
+      - DEFAULT_LOCALE=en-US
+      - DEFAULT_TIMEZONE=America/New_York
+      - HIPAA_BAA_REQUIRED=enforce
+      - HIPAA_RETENTION_DAYS=2190   # 6 years
+      - ADA_TITLE_III_WCAG_REFUSE_OVERRIDE=enforce
+      - SECTION_508_ENFORCE=enforce
+      - FDA_PART_11_ELECTRONIC_RECORDS=enabled
+      - PHI_DATA_CLASS_TRACKING=enabled
+      - LLM_PROVIDER_BAA_RESTRICTION=baa-on-file-only
+
+patches:
+  - target: {kind: Deployment, name: oya-sites-page-app}
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/env/2/value
+        value: us-healthcare

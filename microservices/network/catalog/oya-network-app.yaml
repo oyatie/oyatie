@@ -1,0 +1,19 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-network-app
+role: app
+context: network
+plane: control
+slo: hero-product
+contracts_consumed: [most BCs]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0105, ADR-0106, ADR-0135, ADR-0131]
+data_classes_owned: []
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
+composition_root: true
+purpose: composition root that wires all kernels + adapters into a single binary deployed per BC component
+context_kind_invariant: Professional

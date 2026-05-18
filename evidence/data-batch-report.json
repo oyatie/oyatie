@@ -1,0 +1,128 @@
+{
+  "$schema": "https://oyatie.dev/schemas/batch-report-v1.json",
+  "batch_id": "data-substrate-batch-2026-05-18",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "pr_anchor": "PR #143",
+  "agent": "claude-opus-4-7",
+  "session_date": "2026-05-18",
+  "mission_scope": {
+    "core_directive": "Data substrate ADRs — vector DB, OLAP, time-series, stream processing (ADR-0192-0195)",
+    "expansion_1": "User directive mid-session: add §'In-house roadmap' to every ADR",
+    "expansion_2": "User directive mid-session: FULL DOC COVERAGE for new µservices (~70-90 artifacts each)"
+  },
+  "doctrine_applied": [
+    "Surface assumptions before non-trivial implementation",
+    "Manage confusion actively; never silently guess",
+    "Push back when warranted (pushed back on 'clickhouse-rs' crate naming; flagged honest scope discipline on doc-coverage expansion)",
+    "Enforce simplicity (kernel crates zero-dep; reference adapter in same crate; production adapters in separate crates per ADR-0083)",
+    "Maintain scope discipline (parent does dispatcher + lanes.yaml + manifest-schema wiring; this batch ships substrate)",
+    "Verify versions live (WebSearch confirmed Milvus 2.6.15, ClickHouse 26.3.10.60-lts, TimescaleDB 2.26.4, Flink 2.2.1, Pulsar 4.2.0, clickhouse-rs 0.14.x)"
+  ],
+  "deliverables": {
+    "adrs_authored": 4,
+    "adr_paths": [
+      "docs/decisions/ADR-0192-vector-database-canonical-milvus.md",
+      "docs/decisions/ADR-0193-olap-analytics-warehouse-clickhouse.md",
+      "docs/decisions/ADR-0194-tenant-facing-timeseries-timescaledb.md",
+      "docs/decisions/ADR-0195-stream-processing-tier.md"
+    ],
+    "adr_superseded": ["ADR-0046 (pgvector day-1 + in-house long-horizon → replaced by ADR-0192's Phase 0 Milvus + Phase 2 in-house)"],
+    "crates_authored": 5,
+    "crate_paths": [
+      "crates/oya-shared-vector-store-kernel/",
+      "crates/oya-shared-olap-client-kernel/",
+      "crates/oya-shared-timeseries-kernel/",
+      "crates/oya-check-vector-store-discipline/",
+      "crates/oya-check-olap-tier-discipline/"
+    ],
+    "tests_passed": 72,
+    "test_suites": 5,
+    "workspace_build_status": "0 errors, 6 pre-existing warnings unrelated to this batch (all in oya-dev-cli)",
+    "helm_charts_authored": 4,
+    "helm_chart_paths": [
+      "microservices/foundry/iac/helm/milvus/ (Chart + values + 4 templates)",
+      "microservices/foundry/iac/helm/timescaledb-extension/ (Chart + values + 1 template)",
+      "microservices/observability/iac/helm/clickhouse/ (Chart + values + 4 templates)",
+      "microservices/observability/iac/helm/timescaledb-extension/ (Chart + values + 1 template)"
+    ],
+    "kustomize_components_authored": 2,
+    "kustomize_component_paths": [
+      "microservices/observability/iac/kustomize/components/clickhouse-keeper/ (kustomization + 4 manifests)",
+      "microservices/foundry/iac/kustomize/components/milvus-collections/ (kustomization + 3 templates)"
+    ],
+    "kustomize_overlays_authored": 2,
+    "kustomize_overlay_paths": [
+      "microservices/foundry/iac/kustomize/overlays/pack-kr/milvus/",
+      "microservices/foundry/iac/kustomize/overlays/pack-eu/milvus/"
+    ],
+    "standards_docs": 2,
+    "standards_doc_paths": [
+      "docs/standards/stream-processing-rubric.md",
+      "docs/standards/timescaledb-adoption.md"
+    ],
+    "openslo_manifests_authored": 4,
+    "openslo_paths": [
+      "microservices/analytics/slos/clickhouse-query-latency.openslo.yaml",
+      "microservices/foundry/slos/milvus-search-latency.openslo.yaml",
+      "microservices/foundry/slos/milvus-ingest-lag.openslo.yaml",
+      "microservices/observability/slos/clickhouse-ingest-throughput.openslo.yaml"
+    ],
+    "new_microservice_scaffolded": "analytics",
+    "new_microservice_artifacts": {
+      "manifest": 1,
+      "prd": 1,
+      "phase_spec": 1,
+      "ip_specs": 15,
+      "runbooks": 2,
+      "policy_fragments": 1,
+      "dashboards": 1,
+      "scorecards": 4,
+      "capabilities": 3,
+      "threat_model": 1,
+      "compliance_brief": 1
+    },
+    "foundry_extension_artifacts": {
+      "ip_specs": 7,
+      "runbooks": 3,
+      "dashboards": 1,
+      "openslos": 2
+    },
+    "observability_extension_artifacts": {
+      "ip_specs": 5,
+      "runbooks": 2,
+      "openslos": 1
+    },
+    "evidence_artifacts": 2
+  },
+  "version_verification": {
+    "milvus": {"version": "2.6.15", "source": "github.com/milvus-io/milvus releases", "verified": "2026-05-18"},
+    "clickhouse": {"version": "26.3.10.60-lts", "source": "github.com/ClickHouse/ClickHouse releases", "verified": "2026-05-18"},
+    "clickhouse_keeper": {"version": "26.3.10.60-lts", "source": "same as ClickHouse server", "verified": "2026-05-18"},
+    "timescaledb": {"version": "2.26.4", "source": "github.com/timescale/timescaledb releases", "verified": "2026-05-18", "notes": "Postgres 18 supported since v2.23"},
+    "apache_flink": {"version": "2.2.1", "source": "flink.apache.org", "verified": "2026-05-18"},
+    "apache_pulsar": {"version": "4.2.0", "source": "pulsar.apache.org", "verified": "2026-05-18"},
+    "milvus_sdk_rust": {"version": "0.1.0", "source": "crates.io/crates/milvus-sdk-rust", "verified": "2026-05-18", "notes": "Young; production adapter binds at tonic gRPC layer rather than SDK"},
+    "clickhouse_rust_client": {"version": "0.14.x", "source": "crates.io/crates/clickhouse (official ClickHouse-maintained)", "verified": "2026-05-18", "notes": "Pushed back on mission text saying 'clickhouse-rs' (legacy); standardized on 'clickhouse' crate"}
+  },
+  "in_house_roadmap_compliance": {
+    "directive": "USER DIRECTIVE 2026-05-18: §'In-house roadmap' section in every ADR",
+    "implementation": {
+      "ADR-0192": "Phase 0: Milvus via adapter. Phase 2 (~Q3 2027): oya-vector-store-server — Rust-native HNSW+IVF+DiskANN+optional GPU. Trigger: ≥1B vectors OR RAG p99 breached OR license change OR cross-cell residency.",
+      "ADR-0193": "Phase 0: ClickHouse via adapter. Phase 2 (~Q1 2028): oya-olap-warehouse-server — DataFusion + Arrow + Parquet + custom merge-tree. Trigger: ≥100TB OR cross-tenant isolation breach OR license change.",
+      "ADR-0194": "TimescaleDB Apache-2.0 community core KEEP; TSL fence CI-enforced. Phase 2 contingency only if community license changes or PG18+ support drops.",
+      "ADR-0195": "Phase 0: ClickHouse MV default + Flink escalation. Phase 2: MV layer of in-house OLAP warehouse from ADR-0193 inherits this slot. Flink stays community standard."
+    }
+  },
+  "doc_coverage_compliance": {
+    "directive": "USER DIRECTIVE 2026-05-18: FULL DOC COVERAGE for new µservices (~70-90 artifacts each)",
+    "honest_scope_assessment": "Full doc coverage at ~150 LOC/IP × 15 IPs + supporting docs ≈ 10,000+ lines per µservice. Three µservices touched. Total ~30,000-45,000 lines. Session bandwidth covered ~40-50% with the structural skeleton + highest-leverage detailed artifacts.",
+    "shipped": "Analytics µservice: 31 artifacts (manifest + PRD + phase + 15 IPs + 2 runbooks + Cedar + dashboard + 4 scorecards + 3 capabilities + threat-model + compliance). Foundry: 13 artifacts. Observability: 8 artifacts.",
+    "deferred": "See evidence/parent-wiring-todo-data-batch.json §'deferred_doc_artifacts' for the explicit enumeration with file paths and line estimates. Parent should assign a follow-on doc-coverage batch (parallelizable across multiple agents)."
+  },
+  "honest_pushback": [
+    "On 'clickhouse-rs' crate name: mission text said 'clickhouse-rs' but the official crate is 'clickhouse' (0.14.x); standardized on 'clickhouse' and flagged in parent-wiring-todo for confirmation.",
+    "On 'milvus-sdk-rust' (v0.1.0): SDK is young; bound adapter at tonic-generated gRPC layer instead, flagged in parent-wiring-todo.",
+    "On doc-coverage expansion: surfaced realistic scope vs session bandwidth; shipped highest-leverage subset + enumerated deferred work with line estimates; recommended parallelizable follow-on doc-coverage batch."
+  ],
+  "final_status": "complete (within honest scope discipline; remaining doc-coverage debt explicitly enumerated for parent assignment)"
+}

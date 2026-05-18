@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/workflow.schema.json",
+  "title": "ProductPrd:Workflow",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-WORKFLOW",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture + axis-foundry",
+    "created_at": "2026-05-16T13:00:00Z",
+    "purpose": "Workflow product PRD — machine-optimized canonical form. Pointers to ADRs, specs, contracts, crates, lanes. Companion to /specs/microservices/workflow-studio.json (visual-editor half) + /specs/microservices/ontology.json (typed-entity backbone)."
+  },
+  "identity": {
+    "product_id": "workflow",
+    "owning_axis": "ecosystem-infrastructure-backbone",
+    "backbone_of": "ecosystem-as-a-product (with $ref:specs/microservices/ontology.json)",
+    "crate_refs": ["$ref:registry/catalog/oya-saas-workflow-kernel.yaml", "$ref:registry/catalog/oya-saas-workflow-domain.yaml", "$ref:registry/catalog/oya-saas-workflow-app.yaml"]
+  ,
+    "user_facing_surface": true},
+  "inherits": {
+    "bominal_adrs": ["$ref:bominal/decisions/ADR-0103", "$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0148", "$ref:bominal/decisions/ADR-0149", "$ref:bominal/decisions/ADR-0164", "$ref:bominal/decisions/ADR-0192"],
+    "oyatie_specs": ["$ref:specs/agent-durable-goal.json", "$ref:specs/oyatie-doctrine.json", "$ref:specs/multispectrum-review.json"],
+    "memory_pointers": ["feedback_workflow_studio_scope", "feedback_workflow_objectgraph_adapter_layer", "feedback_bominal_inheritance_precedence"]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0148#north-star (state-machine+DAG hybrid orchestration substrate; not BPMN; multi-domain)",
+  "target_users": [
+    {"persona": "oyatie_product_team", "interface": "internal API", "billing": "internal cost-allocation per execution"},
+    {"persona": "enterprise_it_admin", "interface": "visual editor ($ref:specs/microservices/workflow-studio.json)", "billing": "enterprise per-tenant cell + SLA"},
+    {"persona": "vertical_specialist", "interface": "jurisdiction-overlay editor", "billing": "vertical-pack subscription"},
+    {"persona": "agentic_developer_role", "interface_ref": "$ref:specs/agent-durable-goal.json#autonomous_foundry.roles", "billing": "internal Foundry-scheduled"},
+    {"persona": "external_developer", "interface": "REST + gRPC + SDK (Rust/TS/Python)", "billing": "per-execution + per-active-definition", "wave_available": "GA"}
+  ],
+  "acceptance_criteria": [
+    {"id": "AC-01", "given": "valid workflow-spec.v1.json with state-machine + DAG", "when": "WorkflowEngine::deploy()", "then": "returns WorkflowDefinitionId; queryable", "test_ref": "crates/oya-saas-workflow-kernel/tests/deploy.rs::test_deploy_state_dag_hybrid"},
+    {"id": "AC-02", "given": "executing workflow instance", "when": "step transition fires", "then": "audit-chain row emitted with distinct timestamp + session_id per row", "test_ref": "crates/oya-saas-workflow-domain/tests/audit_chain.rs::test_per_step_distinct_session", "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"},
+    {"id": "AC-03", "given": "two workflow definitions same id different versions", "when": "caller resolves by definition_id@version", "then": "correct version executes; no implicit version-bump", "test_ref": "crates/oya-saas-workflow-domain/tests/versioning.rs::test_pinned_version_resolution"},
+    {"id": "AC-04", "given": "definition with jurisdiction overlay", "when": "executed in matching cell", "then": "overlay rules override base; base elsewhere", "test_ref": "crates/oya-saas-workflow-domain/tests/overlay.rs::test_jurisdiction_overlay_resolution"},
+    {"id": "AC-05", "given": "instance executing >1 hour", "when": "engine restart mid-execution", "then": "resumes from last persisted step; zero duplicate side-effects (idempotency)", "test_ref": "crates/oya-saas-workflow-app/tests/durability.rs::test_resume_after_restart_idempotent"},
+    {"id": "AC-06", "given": "instance touching tenant data", "when": "any data access", "then": "per-tenant cell routing + Cedar policy gate fires; no cross-tenant leak", "test_ref": "crates/oya-saas-workflow-domain/tests/tenancy.rs::test_no_cross_tenant_leak", "doctrine_ref": "$ref:memory/feedback_workflow_objectgraph_adapter_layer"},
+    {"id": "AC-07", "given": "agentic role calling invoke_capability()", "when": "capability registered in Foundry registry", "then": "Cedar policy enforces autonomy_tier; emits audit row", "test_ref": "crates/oya-saas-workflow-app/tests/capability.rs::test_cedar_autonomy_gate", "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-07"},
+    {"id": "AC-08", "given": "new definition deployed", "when": "schema migration policy invoked", "then": "reversible migration; dry-run gate green before commit", "test_ref": "crates/oya-saas-workflow-kernel/tests/migration.rs::test_dry_run_reversible"}
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": ["state-machine+DAG execution", "spec deploy/load/execute", "per-tenant isolation", "audit-chain emission", "jurisdiction overlay"],
+      "stable": ["visual-editor backend hooks", "workflow debugger replay", "hot-reload without instance loss", "per-step cost metering"],
+      "GA": ["external SDK (Rust/TS/Python)", "definition marketplace", "LLM tool-call binding via Foundry capability registry", "cross-region federation"]
+    },
+    "out_of_scope": [
+      {"item": "BPMN compatibility", "why": "$ref:bominal/decisions/ADR-0148 — too sequential for parallel DAGs"},
+      {"item": "general-purpose FaaS", "why": "use Foundry capabilities; this is workflows-of-capabilities"},
+      {"item": "cron-only scheduler", "why": "use oya-saas-scheduler; this is durable orchestration"},
+      {"item": "visual editor IN this product", "why": "sibling $ref:specs/microservices/workflow-studio.json"},
+      {"item": "embedded execution in client browsers", "why": "audit-chain integrity requires server-side"}
+    ]
+  },
+  "contracts": {
+    "produces": [
+      {"name": "workflow_spec.v1.json", "ref": "$ref:contracts/workflow_spec.v1.json", "consumers": ["all_products", "$ref:specs/microservices/workflow-studio.json"]},
+      {"name": "audit_chain_event.v1.json", "ref": "$ref:contracts/audit_chain_event.v1.json", "consumers": ["audit-chain kernel"]}
+    ],
+    "consumes": [
+      {"name": "capability_invocation.v1.proto", "ref": "$ref:contracts/capability_invocation.v1.proto", "producer": "Foundry capability registry"},
+      {"name": "tenant_context.v1.proto", "ref": "$ref:contracts/tenant_context.v1.proto", "producer": "tenant identity kernel"},
+      {"name": "ontology_action.v1.proto", "ref": "$ref:contracts/ontology_action.v1.proto", "producer": "$ref:specs/microservices/ontology.json", "bidirectional": true}
+    ]
+  },
+  "data_model": {
+    "entities_ref": "$ref:crates/oya-saas-workflow-kernel/src/lib.rs (WorkflowDefinition, WorkflowInstance, InstanceState enum)",
+    "persistence": {"store": "postgres", "isolation": "per-tenant RLS", "sharding": "tenant_id within region", "replication_ref": "$ref:docs/decisions/ADR-0043"},
+    "events_emitted": ["workflow_deployed", "workflow_instance_started", "workflow_step_transition", "workflow_step_failed", "workflow_instance_completed", "workflow_instance_failed"],
+    "audit_chain_emission_rule_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"
+  },
+  "optimization_practices_ref": "$ref:docs/products/_TEMPLATE.md#6 (slice-level optimization patterns; this product adopts: per-tenant cell pinning + Redis cache for definitions + 100ms step-batch window + perf-budget lane)",
+  "regional_packs": [
+    {"seam": "WorkflowJurisdictionOverlayResolver", "per_pack_impl": true, "tested_packs": ["kr@preview", "us@stable", "eu@GA"]},
+    {"seam": "WorkflowAuditChainSink", "per_pack_impl": false, "rationale": "canonical sink"},
+    {"seam": "WorkflowCapabilityInvoker", "per_pack_impl": true, "rationale": "per-pack capability-set"}
+  ],
+  "deps": {
+    "external_adopted": [
+      {"crate": "serde / serde_json", "tier": "kernel-grade", "license": "MIT/Apache-2"},
+      {"crate": "tokio", "tier": "kernel-grade", "license": "MIT"},
+      {"crate": "uuid", "tier": "kernel-grade", "license": "Apache-2"},
+      {"crate": "tokio-postgres", "tier": "kernel-grade", "license": "MIT/Apache-2"}
+    ],
+    "external_rejected": [
+      {"crate": "temporal-rs", "why": "build engine in-house per $ref:bominal/decisions/ADR-0148"},
+      {"crate": "camunda", "why": "BPMN-based; rejected"},
+      {"crate": "airflow / argo / n8n", "why": "build in-house engine; ship n8n-class editor as separate product"}
+    ]
+  },
+  "metrics": [
+    {"name": "deploy_p99_latency_ms", "targets": {"preview": 200, "stable": 100, "GA": 50}, "verification_ref": "cargo bench -p oya-saas-workflow-kernel -- deploy_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "step_transition_p99_latency_ms", "targets": {"preview": 100, "stable": 50, "GA": 20}, "verification_ref": "cargo bench -p oya-saas-workflow-kernel -- step_transition_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "engine_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "verification_ref": "oya gate validate workflow-availability --window 30d", "lane_ref": "oya-foundry-fitness-canary-observability"},
+    {"name": "concurrent_instances_per_cell", "targets": {"preview": 10000, "stable": 100000, "GA": 1000000}, "verification_ref": "canary load-test", "lane_ref": "perf-budget"},
+    {"name": "cross_tenant_leak_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "cargo nextest -p oya-saas-workflow-domain -- test_no_cross_tenant_leak", "lane_ref": "cargo-nextest"},
+    {"name": "audit_chain_emission_completeness_pct", "targets": {"preview": 100, "stable": 100, "GA": 100}, "verification_ref": "jq cross-check audit-chain vs instance count", "lane_ref": "oya-foundry-fitness-audit-chain-emission"},
+    {"name": "mttr_rollback_seconds", "targets": {"preview": 300, "stable": 120, "GA": 30}, "verification_ref": "oya gate validate canary-observability-rollback --window 7d", "lane_ref": "canary-observability-rollback ($ref:docs/decisions/ADR-0114)"}
+  ],
+  "risks": [
+    {"id": "R-01", "severity": "high", "risk": "state-machine + DAG hybrid is novel; engine bugs corrupt long-running state", "mitigation_ref": "$ref:specs/agent-durable-goal.json#tdd_contract + chaos test suite + per-step audit forensic replay"},
+    {"id": "R-02", "severity": "medium", "risk": "jurisdiction overlay resolution grows N×M complexity", "mitigation": "closed enum on overlay scope; explicit precedence per $ref:bominal/decisions/ADR-0149; lane oya-foundry-fitness-overlay-resolution-determinism"},
+    {"id": "R-03", "severity": "high", "risk": "LLM tool-call binding (GA) opens injection surface", "mitigation_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract + AC-07"},
+    {"id": "R-04", "severity": "medium", "risk": "visual editor and engine drift", "mitigation": "both bind to $ref:contracts/workflow_spec.v1.json; lane oya-foundry-fitness-workflow-spec-roundtrip"}
+  ],
+  "competitive_research_ref": "$ref:evidence/autoresearch/workflow-competitive-map.json",
+  "competitive": [
+    {"competitor": "n8n", "source_evidence_refs": ["n8n_docs_overview_1453_1489", "n8n_queue_mode_1488_1607", "n8n_benchmark_1462_1502", "n8n_memory_errors_1465_1509", "n8n_evals_1479_1510"], "observed_strengths": ["large app/API connector surface", "self-host/cloud paths", "Redis-backed queue-mode worker split", "published benchmark shape", "AI workflow evaluation guidance"], "we_beat_on": ["multi-tenant isolation", "audit-chain per step", "jurisdiction overlay", "LLM tool-call Cedar gate"], "where_oyatie_lacks_or_is_underspecified": ["connector catalog breadth target", "large-payload/artifact-offload rule", "AI workflow regression dataset gate"], "measurable_patches": ["connector_catalog_min=100 GA connectors with auth/quota/retry/data_class metadata", "workflow_spec.v1 rejects large payload classes without max_payload_bytes or artifact_ref", "AI-enabled workflow production enablement requires eval_dataset_ref + regression_run_id"], "measurable": "source-backed patch backlog must pass before GA; internal targets stay in goals.* and require bench proof"},
+    {"competitor": "Temporal", "source_evidence_refs": ["temporal_overview_67_107", "temporal_workflows_82_128", "temporal_activities_69_80", "temporal_workers_107_157", "temporal_task_queues_76_157"], "observed_strengths": ["durable execution via Event History", "deterministic replay", "idempotent Activities with checkpointing", "task queues with worker polling/routing/throttling", "worker identity tied to logs/context"], "we_beat_on": ["canonical JSON spec (no SDK code required)", "visual editor in same product family"], "where_oyatie_lacks_or_is_underspecified": ["replay_safety_class per step", "event_history as explicit source of truth", "worker identity/routing/capacity metrics"], "measurable_patches": ["schema rejects external I/O in deterministic step class", "side-effect steps require idempotency_key + retry_policy + checkpoint_policy", "worker pollers export worker_id, queue_id, registered_step_types, capacity, throttle_state, log_stream_ref"], "measurable": "durability claims require crash/restart tests proving zero lost progress and zero duplicate side effects"},
+    {"competitor": "Apache Airflow", "we_beat_on": ["state-machine + DAG hybrid", "per-tenant cell isolation"], "measurable": "1M concurrent instances per cell (Airflow ~10K)"},
+    {"competitor": "Camunda", "source_evidence_refs": ["camunda_bpmn_modeler_92_112", "camunda_job_workers_91_121", "camunda_incidents_96_165", "camunda_data_flow_94_123", "camunda_operate_90_107"], "observed_strengths": ["business-readable BPMN Modeler", "Zeebe job queue with retries/backoff/incidents", "Operate incident remediation", "variable-scope guidance for parallel paths"], "we_beat_on": ["not BPMN-canonical per $ref:bominal/decisions/ADR-0148", "workflow_spec.v1 as machine authority"], "where_oyatie_lacks_or_is_underspecified": ["incident lifecycle for stuck executions", "parallel variable write conflict policy", "business-readable projection guardrail"], "measurable_patches": ["stuck execution emits incident_id, root_error_class, remediation_policy, retry_budget, audit_chain row", "parallel steps writing overlapping variables require merge_policy", "visual projection roundtrip preserves workflow_spec.v1 semantics"], "measurable": "BPMN remains projection/competitive lesson only; canonical workflow_spec.v1 authority is unchanged"},
+    {"competitor": "Argo Workflows", "source_evidence_refs": ["argo_home_13_30", "argo_templates_gitops", "argo_cron_2_40", "argo_retries", "argo_artifacts", "argo_sync"], "observed_strengths": ["Kubernetes CRD workflow model", "container-native DAG/steps", "WorkflowTemplates and GitOps management", "CronWorkflows/backfill", "retryStrategy, artifacts, mutex/semaphore/parallelism"], "we_beat_on": ["multi-domain runtime-agnostic core", "persistent state without Kubernetes as product authority"], "where_oyatie_lacks_or_is_underspecified": ["container-job adapter boundary", "artifact_ref lifecycle", "schedule/backfill concurrency policies", "shared-resource synchronization limits"], "measurable_patches": ["Kubernetes executor is optional adapter; core spec validates without Kubernetes fields", "large payload steps require artifact_ref with repository_class, retention_policy, digest, data_class", "scheduled/backfill steps require concurrency_policy; shared-resource steps require mutex/semaphore/parallelism cap"], "measurable": "Argo/Kubernetes is an adapter projection only; infra deployment authority remains OpenTofu/ops"},
+    {"competitor": "Zapier_Make", "we_beat_on": ["production-grade durability + audit + SLA", "per-tenant isolation"], "measurable": "tenant data leak = 0; SLA target"}
+  ],
+  "best_practices": [
+    {"id": "BP-01", "rule": "canonical JSON spec is single source of truth; visual is projection", "planned_enforcement_ref": "oya-foundry-fitness-workflow-spec-roundtrip"},
+    {"id": "BP-02", "rule": "per-step audit-chain emission with distinct session_id + timestamp", "planned_enforcement_ref": "oya-foundry-fitness-audit-chain-session-distinctness", "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"},
+    {"id": "BP-03", "rule": "state-machine + DAG hybrid; spec schema requires exactly one state-machine + zero-or-more DAG blocks", "enforced_by_schema_ref": "$ref:contracts/workflow_spec.v1.json"},
+    {"id": "BP-04", "rule": "jurisdiction overlay precedence explicit; 3x re-run identity check", "planned_enforcement_ref": "oya-foundry-fitness-overlay-resolution-determinism"},
+    {"id": "BP-05", "rule": "idempotent step execution via idempotency_key; at-most-once side effect", "enforced_by_test_ref": "crates/oya-saas-workflow-domain/tests/idempotency.rs"},
+    {"id": "BP-06", "rule": "TDD per $ref:specs/agent-durable-goal.json#tdd_contract; 100% public API coverage + prove-it for every bug"},
+    {"id": "BP-07", "rule": "competitive claims require official-source evidence_refs plus concrete patch/verification; unsourced benchmark deltas are forbidden", "enforced_by_ref": "$ref:evidence/autoresearch/workflow-competitive-map.json#source_policy"},
+    {"id": "BP-08", "rule": "every side-effecting step declares replay_safety_class, side_effect_boundary, idempotency_key, retry_policy, and checkpoint_policy", "source_evidence_refs": ["temporal_workflows_82_128", "temporal_activities_69_80", "camunda_job_workers_91_121"]},
+    {"id": "BP-09", "rule": "large payload steps use max_payload_bytes plus artifact_ref with digest, repository_class, retention_policy, and data_class", "source_evidence_refs": ["n8n_memory_errors_1465_1509", "argo_artifacts"]}
+  ],
+  "patterns": [
+    {"pattern": "saga_compensation", "when": "step has irreversible external effect", "ref": "crates/oya-saas-workflow-kernel/src/saga.rs"},
+    {"pattern": "per_tenant_cell_pinning", "when": "default for all instances", "ref": "$ref:crates/oya-cloud-tenancy-kernel"},
+    {"pattern": "capability_invocation_via_foundry", "when": "workflow calls LLM/tool", "ref": "Foundry capability registry + Cedar gate"},
+    {"pattern": "spec_versioned_pinning", "when": "always pin definition_id@version on invocation", "ref": "engine refuses unversioned"},
+    {"pattern": "cross_cell_via_ontology_adapter", "when": "workflow touches entities in another cell", "ref": "$ref:memory/feedback_workflow_objectgraph_adapter_layer"},
+    {"pattern": "event_history_source_of_truth", "when": "workflow instance must resume after crash/restart", "source_evidence_refs": ["temporal_overview_67_107", "temporal_workflows_82_128"]},
+    {"pattern": "activity_side_effect_boundary", "when": "step performs API/database/LLM/file I/O", "source_evidence_refs": ["temporal_workflows_82_128", "temporal_activities_69_80"]},
+    {"pattern": "incident_resolution_state_machine", "when": "execution is stuck after retries or invalid data", "source_evidence_refs": ["camunda_incidents_96_165", "camunda_operate_90_107"]},
+    {"pattern": "artifact_backed_large_payload", "when": "payload exceeds inline max_payload_bytes or carries binary data", "source_evidence_refs": ["n8n_memory_errors_1465_1509", "argo_artifacts"]},
+    {"pattern": "schedule_backfill_with_concurrency_policy", "when": "workflow is scheduled or historically backfilled", "source_evidence_refs": ["argo_cron_2_40"]},
+    {"pattern": "mutex_semaphore_parallelism_limits", "when": "parallel steps share external resource quota", "source_evidence_refs": ["argo_sync", "n8n_concurrency_1463_1483"]},
+    {"pattern": "worker_queue_identity_capacity", "when": "workers poll queues for executable steps", "source_evidence_refs": ["temporal_workers_107_157", "temporal_task_queues_76_157", "n8n_queue_mode_1488_1607"]}
+  ],
+  "anti_patterns": [
+    {"name": "bpmn_compatibility", "why_forbidden": "$ref:bominal/decisions/ADR-0148; rigid + sequential", "detection_lane": "spec schema lacks BPMN-XML import"},
+    {"name": "cross_tenant_raw_sql_bypass", "why_forbidden": "bypasses RLS + audit", "detection_lane": "oya-foundry-fitness-no-raw-sql-cross-tenant"},
+    {"name": "step_side_effect_without_idempotency_key", "why_forbidden": "duplicate effects on retry", "detection_lane": "test_idempotency_key_required"},
+    {"name": "implicit_version_bump_on_update", "why_forbidden": "breaks pinned callers (no_silent_regression)", "detection_lane": "oya-foundry-fitness-api-semver"},
+    {"name": "bypass_cedar_policy_gate", "why_forbidden": "violates autonomy_tier ceiling", "detection_lane": "oya-foundry-fitness-cedar-coverage"},
+    {"name": "single_session_audit_chain_across_steps", "why_forbidden": "PR17 anti-pattern; $ref:specs/agent-durable-goal.json#operating_principles/OP-08", "detection_lane": "oya-foundry-fitness-audit-chain-session-distinctness"},
+    {"name": "unsourced_competitor_benchmark_claim", "why_forbidden": "competitive deltas must cite official source evidence and distinguish internal targets from measured external facts", "detection_lane": "future oya-foundry-fitness-source-backed-competitive-claims"},
+    {"name": "unbounded_in_memory_payload", "why_forbidden": "large JSON/binary payloads cause memory instability; use chunking or artifact_ref", "detection_lane": "workflow_spec max_payload_bytes/artifact_ref validator"},
+    {"name": "bpmn_xml_as_canonical_authority", "why_forbidden": "business-readable projections are allowed, but workflow_spec.v1 remains source of truth", "detection_lane": "workflow-studio roundtrip projection gate"},
+    {"name": "kubernetes_crd_as_core_workflow_authority", "why_forbidden": "Argo/Kubernetes is an executor adapter only; core workflow semantics must be runtime-agnostic", "detection_lane": "workflow executor adapter boundary validator"},
+    {"name": "manual_incident_ssh_troubleshooting", "why_forbidden": "incident remediation must be ops/API/audit-chain managed; deployment/ops directive forbids manual SSH troubleshooting", "detection_lane": "deployment_ops_contract + workflow incident remediation gate"}
+  ],
+  "goals": {
+    "scalability": {"target": "10K tenants per cluster + 1M concurrent instances per cell + 1B step transitions per day per region", "verification_ref": "bench + canary load-test pre-GA"},
+    "security": {"target": "per-tenant RLS + Cedar at every entry + signed audit-chain (post-$ref:docs/decisions/ADR-0083 cryptographic chain) + LLM input as data", "verification_lane_ref": "oya-foundry-fitness-tenancy-isolation + oya-foundry-fitness-cedar-coverage"},
+    "performance": {"target": "p99 step transition <20ms (GA) + p99 deploy <50ms + availability 99.95%", "verification_lane_ref": "oya-foundry-fitness-perf-budget + canary-observability"},
+    "efficiency": {"target": "<$0.0001 per step transition (GA) + <$0.50 per tenant per month overhead", "verification_ref": "$ref:crates/oya-cloud-finops-kernel"},
+    "reliability": {"target": "MTTR 30s (auto-rollback) + error budget 0.05%/quarter + durable state survives restart with zero duplicate side-effects", "verification_lane_ref": "canary-observability-rollback per $ref:docs/decisions/ADR-0114"}
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/microservices/workflow.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum for debugger/replay, developer console, CLI help, and generated SDK documentation; keyboard navigation 100% for replay and diff surfaces",
+    "responsive_breakpoints": [
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic for operator-visible errors and SDK docs; ko-KR and en-US launch gates",
+    "design_system_components_used": "$ref:specs/microservices/workflow.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "external_developer",
+        "journeys": [
+          "deploy workflow spec",
+          "inspect validation failure",
+          "compare definition diff"
+        ],
+        "time_to_success_target": "< 3 minutes from schema error to corrected spec"
+      },
+      {
+        "persona": "enterprise_it_admin",
+        "journeys": [
+          "find failed instance",
+          "inspect replay timeline",
+          "trigger policy-safe retry or rollback"
+        ],
+        "time_to_success_target": "< 5 minutes for failed-instance triage"
+      },
+      {
+        "persona": "vertical_specialist",
+        "journeys": [
+          "select jurisdiction overlay",
+          "verify affected steps",
+          "export audit evidence"
+        ],
+        "time_to_success_target": "< 10 minutes for overlay impact review"
+      }
+    ],
+    "error_state_coverage": {
+      "schema_validation_error": "inline hunk-level error with code, JSON pointer, remediation, and docs link",
+      "policy_denied": "policy disclosure banner plus disabled retry/deploy action until Cedar permits",
+      "execution_failure": "timeline row with failing step, idempotency state, audit row id, and rollback/retry eligibility",
+      "stale_telemetry": "blocking stale-state banner; no silent replay-derived decisions"
+    },
+    "offline_behavior": "engine APIs do not execute offline; UI surfaces cache read-only replay/spec data and Workflow Studio owns offline edit buffering",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "progressive replay rendering and skeleton diff/timeline states; spinner-only loading is forbidden"
+  },
+  "frontend_components": [
+    {
+      "component": "WorkflowReplayTimeline",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-replay-timeline.json",
+      "variants": [
+        "live-run",
+        "historical-replay",
+        "failure-debug",
+        "audit-export"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "SpecDiffViewer",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/spec-diff-viewer.json",
+      "variants": [
+        "json-patch",
+        "workflow-round-trip",
+        "read-only-pr-review"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "audit-access",
+        "consent-required",
+        "requires-second-approver"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    }
+  ],
+  "decision_log": [
+    {"date": "2026-05-16", "decision": "adopt Bominal-ADR-0148/0149/0164/0192/0103/0106 verbatim per OP-10", "ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-10"}
+  ],
+  "sources_scanned": [
+    "$ref:bominal/decisions/ADR-0148-workflow-engine-state-machine-plus-dag.md",
+    "$ref:bominal/decisions/ADR-0149-workflow-definition-versioning.md",
+    "$ref:bominal/decisions/ADR-0164-workflow-canonical-spec-format.md",
+    "$ref:bominal/decisions/ADR-0192-workflow-object-graph-operating-kernel.md",
+    "$ref:bominal/decisions/ADR-0103-workflow-hexagonal-migration.md",
+    "$ref:bominal/decisions/ADR-0106-object-graph-architecture.md",
+    "$ref:crates/oya-saas-workflow-kernel",
+    "$ref:crates/oya-saas-workflow-domain",
+    "$ref:crates/oya-saas-workflow-app",
+    "$ref:specs/agent-durable-goal.json",
+    "$ref:evidence/autoresearch/workflow-competitive-map.json",
+    "official:n8n-docs",
+    "official:temporal-docs",
+    "official:camunda-docs",
+    "official:argo-workflows-docs"
+  ,
+    "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
+    "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
+    "$ref:specs/design-system/catalog.json"]
+}

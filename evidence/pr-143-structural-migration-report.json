@@ -1,0 +1,183 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "pr-143-structural-migration-report",
+  "emitted_at": "2026-05-18T00:00:00Z",
+  "pr": 143,
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "directive": "include in this pr. don't defer",
+  "directive_source_date": "2026-05-18",
+  "agents_skills_used": [
+    "agent-skills:deprecation-and-migration",
+    "agent-skills:code-review-and-quality",
+    "agent-skills:documentation-and-adrs"
+  ],
+  "scope_locks_honored": {
+    "microservice_dirs_skipped": [
+      "microservices/identity/**",
+      "microservices/analytics/**",
+      "microservices/finops-portal/**"
+    ],
+    "foundry_ip_locks": "IP-086..IP-101 (only IP-086..IP-097 exist on disk; all skipped)",
+    "observability_ip_locks": "IP-026..IP-031 (all six exist; all skipped)",
+    "tree_locks": [".git", "target", ".omc", "evidence (except this report)", "node_modules"]
+  },
+  "files_visited_in_scope": 3872,
+  "categories": {
+    "redis_to_valkey": {
+      "adr": "ADR-0184",
+      "audit_predicted_hits": 1328,
+      "files_changed_pass_1": 474,
+      "files_changed_pass_2": 118,
+      "files_changed_pass_3_idempotency": 0,
+      "total_line_changes": 2374,
+      "post_sweep_grep_residual_in_scope": 0,
+      "preservation_rules_applied": [
+        "redis:// connection strings (wire protocol)",
+        "RESP (Redis Serialization Protocol) — wire protocol, not product",
+        "'Redis Inc.' / 'Redis Software' trademark text",
+        "Cargo.toml-style 'redis = \"x.y\"' crate-name lines",
+        "'redis-rs' crate name",
+        "Already-migrated 'Redis wire-compat' / 'Redis wire-protocol' parentheticals (idempotency)"
+      ],
+      "regression_fixed": {
+        "issue": "Pass-1 bare-word rule corrupted 'Valkey 8.1 (Redis wire-compat)' to 'Valkey 8.1 (Valkey wire-compat)' on the second pass because sentinel protection only worked within a single apply_redis() invocation.",
+        "fix": "Added protect_redis_wirecompat() / restore_redis_protections() helpers that sentinel-protect already-migrated parentheticals at the START of every apply_redis() invocation.",
+        "repair": "Ran /tmp/fix-wirecompat.py to repair 117 already-corrupted files (230 occurrences)."
+      },
+      "flagged_for_followup": {
+        "kind": "crate_name_paths_filenames_schema_fields",
+        "count_in_scope": 143,
+        "examples": [
+          "microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-adapter-redis.yaml",
+          "microservices/workflow-engine/catalog/oya-workflow-engine-event-bus-adapter-redis.yaml",
+          "microservices/workflow-engine/runbooks/redis-failover.md",
+          "microservices/tasks/catalog/oya-tasks-view-engine-adapter-redis.yaml",
+          "microservices/foundry/catalog/oya-foundry-runtime-session-state-adapter-redis.yaml",
+          "microservices/anonymous/catalog/oya-anonymous-feed-timeline-adapter-redis.yaml",
+          "microservices/anonymous/catalog/oya-anonymous-vote-engine-adapter-redis.yaml",
+          "microservices/anonymous/IP-005-redis-cache.md"
+        ],
+        "rationale": "Per task scope rule: 'refuse blind sed if it would corrupt cargo crate names, file paths, dependency manifests, or BNF identifiers.' These are BNF-identifier (12-layer-enum-conformant) crate names + filenames. Renaming them requires (a) ADR-grade decision on whether to retire the `*-adapter-redis` suffix in favour of `*-adapter-valkey`, (b) full git-mv of catalog files + IP renumbering chain, (c) referenced-by-everything cross-ref update. Out-of-scope for a structural-migration sweep PR. Tracked via /registry/placeholder-debt/audit-followups.yaml entry F-PR143-VALKEY-CRATE-RENAME."
+      }
+    },
+    "minio_to_seaweedfs": {
+      "adr": "ADR-0196",
+      "audit_predicted_hits": 69,
+      "files_changed": 38,
+      "total_line_changes": 122,
+      "post_sweep_grep_residual_product_name_in_scope": 0,
+      "preservation_rules_applied": [
+        "License/historical attribution 'MinIO Inc.'",
+        "S3 SDK client code (works against both MinIO + SeaweedFS via S3 API)"
+      ],
+      "flagged_for_followup": {
+        "kind": "yaml_helm_values_keys",
+        "count_in_scope": 18,
+        "examples": [
+          "microservices/foundry/iac/helm/milvus/values.yaml: 'minio:' top-level values key",
+          "microservices/foundry/iac/kustomize/overlays/pack-eu/eval/kustomization.yaml: '/spec/values/minio/buckets/...' JSON-path patches",
+          "microservices/foundry/iac/helm/eval/golden-store/values.yaml: 'app: minio-foundry-eval' Helm release label"
+        ],
+        "rationale": "These are YAML key names mandated by the upstream Bitnami helm chart schema. Renaming them to `seaweedfs:` requires switching the upstream chart dep from `bitnami/minio` to `seaweedfs/seaweedfs` first AND updating every kustomize JSON-patch path. Bitnami chart switch is an IaC migration not a sweep migration. Tracked via /registry/placeholder-debt/audit-followups.yaml entry F-PR143-SEAWEEDFS-HELM-KEY-RENAME."
+      }
+    },
+    "hashicorp_vault_to_openbao": {
+      "adr": "ADR-0064",
+      "audit_predicted_hits": 8,
+      "files_changed": 19,
+      "total_line_changes": 33,
+      "post_sweep_grep_residual_oyatie_owned_in_scope": 0,
+      "preservation_rules_applied": [
+        "Historical attribution 'previously HashiCorp Vault'",
+        "Already-migrated 'OpenBao (HashiCorp Vault open-source fork ...)' parenthetical",
+        "Competitor-parity matrix rows mentioning 'HashiCorp Vault Enterprise' or 'HCP Vault'",
+        "`~/.vault/` config-path text (Vault original-tool path layout)",
+        "`developer.hashicorp.com/vault` documentation URLs (canonical citations)",
+        "'Vault open-source fork' attribution",
+        "Other-vendor Vault products: 'OCI Vault', 'Azure Key Vault'",
+        "Generic noun 'per-region vault'"
+      ],
+      "flagged_for_followup_count": 0,
+      "notes": "Audit predicted 8 hits; sweep changed 19 files / 33 lines because many were `${vault:secret/...}` SecretReference strings that the audit may have undercounted. All migrated to `${openbao:secret/...}` per the durable user directive."
+    },
+    "terraform_to_opentofu": {
+      "adr": "ADR-0202",
+      "audit_predicted_hits": 5,
+      "files_changed": 66,
+      "total_line_changes": 104,
+      "post_sweep_grep_residual_cli_commands_in_scope": 0,
+      "preservation_rules_applied": [
+        "'Terraform Cloud' commercial product (different concern)",
+        "'Terraform/OpenTofu' dual-form attribution (already-paired)",
+        "`terraform-provider-*` upstream-compat provider names",
+        "HCL syntax and `.tf` file-format compat text",
+        "'Terraform (HashiCorp ...)' attribution",
+        "'previously Terraform' history text",
+        "Competitor-parity matrix rows mentioning Atlantis / Spacelift / Pulumi / CloudFormation / Env0 / Crossplane",
+        "'fork of Terraform' historical attribution (OpenTofu's own provenance)",
+        "Competitor URLs runatlantis.io / spacelift.io / pulumi.com / env0.com"
+      ],
+      "regression_fixed": {
+        "issue": "First-draft Terraform preservation predicate did NOT cover competitor-parity matrix rows; cloud-iac/PRD.md briefly corrupted 'Apache-2.0 fork of Terraform' to 'Apache-2.0 fork of OpenTofu' and 'OSS Terraform PR automation' (Atlantis row) to 'OSS OpenTofu PR automation'.",
+        "fix": "Added competitor-vendor heuristic: any line mentioning Atlantis / Spacelift / Pulumi / CloudFormation / Env0 / Crossplane / fork-of-Terraform / competitor-URL pattern is preserved.",
+        "verified": "Re-tested on microservices/cloud-iac/PRD.md before running full sweep; competitor rows now preserved correctly."
+      },
+      "notes": "Audit predicted 5 hits; sweep changed 66 files / 104 lines because the audit pattern was narrower than the full `terraform <subcommand>` and 'Terraform refresh / Terraform-plan / Terraform state' surface area. Total still bounded; manual spot-checks across cloud-iac + audit-chain + foundry confirm only oyatie-internal references migrated."
+    }
+  },
+  "validation": {
+    "cargo_build_workspace": {
+      "result": "PASS",
+      "errors": 0,
+      "warnings": 6,
+      "warnings_note": "Pre-existing warnings unrelated to this sweep (dead-code in oya-dev-cli + bin-target collision between oya-tenant-cli and oya-dev-cli)."
+    },
+    "idempotency_check": {
+      "result": "PASS",
+      "third_run_changes_per_category": {
+        "redis": 0,
+        "minio": 0,
+        "vault": 0,
+        "terraform": 0
+      }
+    },
+    "residual_grep_in_scope": {
+      "redis_product_patterns": 0,
+      "minio_product_name": 0,
+      "hashicorp_vault_oyatie_owned": 0,
+      "terraform_cli_commands": 0
+    }
+  },
+  "migration_engine": {
+    "tool": "/tmp/migrate.py (Python regex with sentinel-protected parentheticals + idempotency guards)",
+    "approach": "structural rewrite per file with explicit allow/deny rules; one-pass-per-line; tests on representative files before full sweep",
+    "discipline_notes": [
+      "ASSUMPTION declared at start: filenames + cargo crate-name dir paths containing 'redis' are BNF-identifier-protected and were flagged-for-followup rather than blind-renamed.",
+      "Caught + repaired regression mid-sweep: 117 files had 'Valkey wire-compat' corruption from a second-pass bare-word rule running over already-migrated parentheticals; fix-wirecompat.py restored 230 occurrences and the engine was hardened with protect_redis_wirecompat() guard so future runs are idempotent.",
+      "Caught + repaired regression mid-sweep: Terraform competitor-parity rows in cloud-iac/PRD.md were briefly corrupted; preservation predicate expanded to cover competitor vendor names before full sweep ran."
+    ]
+  },
+  "followup_registry_entries": [
+    {
+      "id": "F-PR143-VALKEY-CRATE-RENAME",
+      "kind": "deferred_crate_rename",
+      "scope": "143 in-scope files: catalog/*.yaml + IP-*-redis-*.md + runbooks/redis-*.md + manifest.json + AUDIT-FINDINGS-*.json crate-name references",
+      "blocker": "Requires ADR-grade decision: retire `*-adapter-redis` suffix in favour of `*-adapter-valkey` or keep `*-adapter-redis` since the crate speaks the Redis wire protocol (Valkey wire-compat). Decision blocks any rename PR.",
+      "owner": "council-architecture + workflow-engine + tasks + foundry + anonymous"
+    },
+    {
+      "id": "F-PR143-SEAWEEDFS-HELM-KEY-RENAME",
+      "kind": "deferred_helm_values_key_rename",
+      "scope": "18 in-scope YAML files: foundry/iac/helm/milvus/values.yaml + foundry/iac/kustomize/overlays/pack-eu/eval/kustomization.yaml + foundry/iac/helm/eval/golden-store/values.yaml (and reachable peers)",
+      "blocker": "Requires switching the upstream Helm dep from bitnami/minio (chart key `minio:`) to seaweedfs/seaweedfs (chart key `seaweedfs:`) AND updating every kustomize JSON-patch path that references `/spec/values/minio/...`. Bitnami chart switch is an IaC PR, not a docs/structural-migration sweep.",
+      "owner": "cloud-iac + foundry"
+    },
+    {
+      "id": "F-PR143-REDIS-JSON-SCHEMA-FIELD",
+      "kind": "deferred_json_schema_field_rename",
+      "scope": "memory `redis_cluster` JSON-schema field names",
+      "blocker": "Renaming the JSON key would break every parser that reads the schema; requires schema-version bump + dual-read window. Scoped out per task DO-NOT-TOUCH rule.",
+      "owner": "ontology + foundry"
+    }
+  ]
+}

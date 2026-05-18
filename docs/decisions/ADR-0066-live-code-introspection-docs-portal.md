@@ -122,7 +122,7 @@ Per `feedback_autonomous_implementation_artifacts.md` ("stale information is rem
 | **µservice catalog** | `/microservices` | Every µservice; cluster / status / lead phase / KR pack scope; live click-through to per-µservice page |
 | **Per-µservice** | `/microservices/<id>` | Microservice record + PRD + naming ADR + BC registrations + phase-specs + impl-plans + cross-refs + crate inventory (per-layer) + endpoint inventory + dep-graph subgraph + live ICM phase-complete log |
 | **ADRs** | `/decisions` | Table of all ADRs; status; supersession chain; cross-refs |
-| **Per-ADR** | `/decisions/ADR-XXXX` | Rendered ADR markdown + live "cited by" list (back-refs) + supersession arrow |
+| **Per-ADR** | `/decisions/ADR-####` | Rendered ADR markdown + live "cited by" list (back-refs) + supersession arrow |
 | **Milestones** | `/milestones` | Every milestone; status; entry/exit gate; live phase-complete log |
 | **Per-milestone** | `/milestones/M0X-<slug>` | Milestone README + per-phase tree + acceptance evidence (when published) |
 | **Per-phase** | `/phases/<milestone>/<phase>` | Phase-spec + impl-plans + grit symbol-lock state (live from `grit status`) + ICM phase-start/complete |

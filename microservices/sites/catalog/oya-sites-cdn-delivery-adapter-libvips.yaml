@@ -1,0 +1,21 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-sites-cdn-delivery-adapter-libvips
+role: adapter
+context: sites
+bc: cdn-delivery
+plane: data
+slo: preview-data-plane
+contracts_consumed: [oya-sites-cdn-delivery-kernel.port.ImagePipeline]
+contracts_exposed: []
+backend: libvips
+backend_lts_pin: "8.16"
+backend_residency: per-pack
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-SITES-0007]
+data_classes_owned: [PUBLIC_BY_TENANT_CHOICE]
+notes: |
+  Streaming WebP/AVIF/JPEG-XL pipeline per ADR-SITES-0007. Per-job
+  memory cap; reject > 100 MB / > 50MP. EXIF strip + SVG sanitisation
+  on upload.

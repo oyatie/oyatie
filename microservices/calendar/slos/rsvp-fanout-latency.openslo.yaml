@@ -1,0 +1,43 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: calendar-rsvp-fanout-latency
+  displayName: "calendar: RSVP fanout latency p95"
+  labels:
+    microservice: calendar
+    bc: invitation-flow
+    sli_class: latency
+    tier: hero-product
+    owner_team: axis-calendar
+    pack_scope: all
+    data_classes: PII_IDENTIFYING,BEHAVIORAL_TENANT_PRODUCT
+spec:
+  description: |
+    RSVP fanout p95 latency SLO. An RSVP (RFC 5546 REPLY / RFC 6047
+    iMIP REPLY) is "good" when, from inbound receipt, the resulting
+    workflow events (event-store update, audit-chain seal, organiser
+    notification, observability emit) all complete in ≤ 500ms p95.
+    Per problem-statement + `runbooks/rsvp-storm-throttle.md`.
+  service: calendar
+  indicator:
+    metadata: {name: calendar-rsvp-fanout-p95}
+    spec:
+      thresholdMetric:
+        metricSource:
+          type: Prometheus
+          spec:
+            query: |
+              histogram_quantile(0.95, sum(rate(oya_calendar_rsvp_fanout_seconds_bucket[5m])) by (le))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Timeslices
+  objectives:
+    - target: 0.99
+      op: lte
+      value: 0.5
+      displayName: "30d rolling p95 ≤ 500ms inbound-to-all-sinks"
+  alertPolicies:
+    - alertPolicyRef: calendar-rsvp-fast-burn-1h-14x
+    - alertPolicyRef: calendar-rsvp-slow-burn-6h-6x

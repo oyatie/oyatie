@@ -1,0 +1,2633 @@
+{
+  "ledger_id": "thin-ip-expansion-tier3-followup",
+  "ledger_date": "2026-05-18",
+  "ledger_version": "v1",
+  "parent_audit": "evidence/pr-143-existing-microservice-template-audit-report.json",
+  "parent_branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "expansion_bar": "\u2265150 substantive lines per IP \u2014 file targets table, code shape, test names+acceptance, evidence emission, rollback procedure, blocking deps, acceptance gates, halt conditions, exit criteria, refs",
+  "anti_pattern_warning": "Do NOT thin-spread boilerplate. If scope is unclear from title, STOP and consult parent PHASE-SPEC + PRD first; name the gap; propose refined scope; expand on the refined scope.",
+  "summary": {
+    "total_thin_ips_remaining": 419,
+    "microservices_touched": 31,
+    "per_microservice_counts": {
+      "foundry": 60,
+      "docs": 20,
+      "anonymous": 15,
+      "community": 15,
+      "notes": 15,
+      "drive": 15,
+      "sites": 15,
+      "messenger": 15,
+      "recordings": 15,
+      "tasks": 15,
+      "observability": 14,
+      "forms": 14,
+      "shorts": 14,
+      "ontology": 14,
+      "calendar": 14,
+      "audit-chain": 13,
+      "cloud-secrets": 12,
+      "meet": 12,
+      "application": 12,
+      "network": 12,
+      "tenancy": 11,
+      "social": 11,
+      "cloud-iac": 10,
+      "workflow-engine": 10,
+      "slides": 10,
+      "governance": 9,
+      "sheets": 9,
+      "translate": 7,
+      "cloud-k8s": 5,
+      "cell": 5,
+      "mail": 1
+    }
+  },
+  "scope_lock_exclusions": [
+    "microservices/identity/* \u2014 landed by Fix-Q",
+    "microservices/analytics/* \u2014 Doc-coverage-Analytics agent owns",
+    "microservices/finops-portal/* \u2014 Doc-coverage-FinOps-portal agent owns",
+    "microservices/foundry/IP-{086..101}* \u2014 Fix-R-deferred-IPs agent owns",
+    "microservices/observability/IP-{026..031}* \u2014 Fix-R-deferred-IPs agent owns",
+    "microservices/{employee-manager,hr-partner,payroll-accounting,operations,hiring}-experience/* \u2014 Persona agents own",
+    "microservices/{comms-email,compliance}/* \u2014 separate Doc-coverage agents"
+  ],
+  "entries_by_microservice": {
+    "anonymous": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/anonymous/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/anonymous/IP-002-cargo-workspace-kernels.md",
+        "title_hint": "cargo workspace kernels",
+        "scope_hint": "Expand using the standard structure: parse 'cargo workspace kernels' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/anonymous/IP-003-domain-crates-per-bc.md",
+        "title_hint": "domain crates per bc",
+        "scope_hint": "Expand using the standard structure: parse 'domain crates per bc' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/anonymous/IP-004-postgres-adapters-blinding-migration.md",
+        "title_hint": "postgres adapters blinding migration",
+        "scope_hint": "Expand using the standard structure: parse 'postgres adapters blinding migration' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/anonymous/IP-005-redis-cache.md",
+        "title_hint": "redis cache",
+        "scope_hint": "Expand using the standard structure: parse 'redis cache' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/anonymous/IP-006-affinity-attestation-bc.md",
+        "title_hint": "affinity attestation bc",
+        "scope_hint": "Expand using the standard structure: parse 'affinity attestation bc' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/anonymous/IP-007-blind-signatures-crypto.md",
+        "title_hint": "blind signatures crypto",
+        "scope_hint": "Expand using the standard structure: parse 'blind signatures crypto' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/anonymous/IP-008-post-store-bc.md",
+        "title_hint": "post store bc",
+        "scope_hint": "Expand using the standard structure: parse 'post store bc' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/anonymous/IP-009-vote-engine-bc.md",
+        "title_hint": "vote engine bc",
+        "scope_hint": "Expand using the standard structure: parse 'vote engine bc' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/anonymous/IP-010-abuse-classifier-wire.md",
+        "title_hint": "abuse classifier wire",
+        "scope_hint": "Expand using the standard structure: parse 'abuse classifier wire' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/anonymous/IP-011-legal-process-workflow.md",
+        "title_hint": "legal process workflow",
+        "scope_hint": "Expand using the standard structure: parse 'legal process workflow' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/anonymous/IP-012-retention-policy-worker.md",
+        "title_hint": "retention policy worker",
+        "scope_hint": "Expand using the standard structure: parse 'retention policy worker' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/anonymous/IP-013-hard-delete-propagation-chain.md",
+        "title_hint": "hard delete propagation chain",
+        "scope_hint": "Expand using the standard structure: parse 'hard delete propagation chain' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/anonymous/IP-014-rest-api-openapi-sdk.md",
+        "title_hint": "rest api openapi sdk",
+        "scope_hint": "Expand using the standard structure: parse 'rest api openapi sdk' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/anonymous/IP-015-hg-anonymous-registration-branch-protection.md",
+        "title_hint": "hg anonymous registration branch protection",
+        "scope_hint": "Expand using the standard structure: parse 'hg anonymous registration branch protection' against microservices/anonymous/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "application": [
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/application/IP-002-shell-routing-domain.md",
+        "title_hint": "shell routing domain",
+        "scope_hint": "Expand using the standard structure: parse 'shell routing domain' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/application/IP-003-shell-routing-usecase.md",
+        "title_hint": "shell routing usecase",
+        "scope_hint": "Expand using the standard structure: parse 'shell routing usecase' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/application/IP-004-shell-routing-adapter.md",
+        "title_hint": "shell routing adapter",
+        "scope_hint": "Expand using the standard structure: parse 'shell routing adapter' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/application/IP-005-shell-routing-rest.md",
+        "title_hint": "shell routing rest",
+        "scope_hint": "Expand using the standard structure: parse 'shell routing rest' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/application/IP-006-tenant-context-kernel.md",
+        "title_hint": "tenant context kernel",
+        "scope_hint": "Expand using the standard structure: parse 'tenant context kernel' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/application/IP-007-tenant-context-usecase-rest.md",
+        "title_hint": "tenant context usecase rest",
+        "scope_hint": "Expand using the standard structure: parse 'tenant context usecase rest' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/application/IP-008-auth-gateway-kernel-domain.md",
+        "title_hint": "auth gateway kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'auth gateway kernel domain' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/application/IP-009-auth-gateway-adapters-oidc-saml.md",
+        "title_hint": "auth gateway adapters oidc saml",
+        "scope_hint": "Expand using the standard structure: parse 'auth gateway adapters oidc saml' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/application/IP-010-auth-gateway-rest-worker.md",
+        "title_hint": "auth gateway rest worker",
+        "scope_hint": "Expand using the standard structure: parse 'auth gateway rest worker' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/application/IP-011-module-loader-kernel-domain.md",
+        "title_hint": "module loader kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'module loader kernel domain' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/application/IP-012-module-loader-usecase-adapter-cdn.md",
+        "title_hint": "module loader usecase adapter cdn",
+        "scope_hint": "Expand using the standard structure: parse 'module loader usecase adapter cdn' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/application/IP-013-frontend-bundle-serve.md",
+        "title_hint": "frontend bundle serve",
+        "scope_hint": "Expand using the standard structure: parse 'frontend bundle serve' against microservices/application/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "audit-chain": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/audit-chain/IP-001-storage-backend-iac.md",
+        "title_hint": "storage backend iac",
+        "scope_hint": "Expand using the standard structure: parse 'storage backend iac' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/audit-chain/IP-004-emission-domain.md",
+        "title_hint": "emission domain",
+        "scope_hint": "Expand using the standard structure: parse 'emission domain' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/audit-chain/IP-005-emission-usecase-and-adapter.md",
+        "title_hint": "emission usecase and adapter",
+        "scope_hint": "Expand using the standard structure: parse 'emission usecase and adapter' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/audit-chain/IP-006-sealing-kernel.md",
+        "title_hint": "sealing kernel",
+        "scope_hint": "Expand using the standard structure: parse 'sealing kernel' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/audit-chain/IP-007-sealing-domain-merkle.md",
+        "title_hint": "sealing domain merkle",
+        "scope_hint": "Expand using the standard structure: parse 'sealing domain merkle' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/audit-chain/IP-008-sealing-adapter-hsm.md",
+        "title_hint": "sealing adapter hsm",
+        "scope_hint": "Expand using the standard structure: parse 'sealing adapter hsm' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/audit-chain/IP-009-sealing-adapter-postgres-s3.md",
+        "title_hint": "sealing adapter postgres s3",
+        "scope_hint": "Expand using the standard structure: parse 'sealing adapter postgres s3' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/audit-chain/IP-010-sealing-worker-app.md",
+        "title_hint": "sealing worker app",
+        "scope_hint": "Expand using the standard structure: parse 'sealing worker app' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/audit-chain/IP-011-verification-stack.md",
+        "title_hint": "verification stack",
+        "scope_hint": "Expand using the standard structure: parse 'verification stack' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/audit-chain/IP-012-query-stack.md",
+        "title_hint": "query stack",
+        "scope_hint": "Expand using the standard structure: parse 'query stack' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/audit-chain/IP-013-retention-cascade.md",
+        "title_hint": "retention cascade",
+        "scope_hint": "Expand using the standard structure: parse 'retention cascade' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/audit-chain/IP-014-cross-microservice-emission-adapter.md",
+        "title_hint": "cross microservice emission adapter",
+        "scope_hint": "Expand using the standard structure: parse 'cross microservice emission adapter' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/audit-chain/IP-015-self-observability-slo-wiring.md",
+        "title_hint": "self observability slo wiring",
+        "scope_hint": "Expand using the standard structure: parse 'self observability slo wiring' against microservices/audit-chain/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "calendar": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/calendar/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/calendar/IP-003-event-store-domain-and-usecase.md",
+        "title_hint": "event store domain and usecase",
+        "scope_hint": "Expand using the standard structure: parse 'event store domain and usecase' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/calendar/IP-004-event-store-adapter-postgres.md",
+        "title_hint": "event store adapter postgres",
+        "scope_hint": "Expand using the standard structure: parse 'event store adapter postgres' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/calendar/IP-005-recurrence-engine.md",
+        "title_hint": "recurrence engine",
+        "scope_hint": "Expand using the standard structure: parse 'recurrence engine' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/calendar/IP-006-availability-resolver.md",
+        "title_hint": "availability resolver",
+        "scope_hint": "Expand using the standard structure: parse 'availability resolver' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/calendar/IP-007-room-booking.md",
+        "title_hint": "room booking",
+        "scope_hint": "Expand using the standard structure: parse 'room booking' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/calendar/IP-008-invitation-flow.md",
+        "title_hint": "invitation flow",
+        "scope_hint": "Expand using the standard structure: parse 'invitation flow' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/calendar/IP-009-ics-import-export-and-caldav.md",
+        "title_hint": "ics import export and caldav",
+        "scope_hint": "Expand using the standard structure: parse 'ics import export and caldav' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/calendar/IP-010-tzdb-refresh-worker.md",
+        "title_hint": "tzdb refresh worker",
+        "scope_hint": "Expand using the standard structure: parse 'tzdb refresh worker' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/calendar/IP-011-contracts-openapi-asyncapi-proto.md",
+        "title_hint": "contracts openapi asyncapi proto",
+        "scope_hint": "Expand using the standard structure: parse 'contracts openapi asyncapi proto' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/calendar/IP-012-cedar-policies-and-data-residency.md",
+        "title_hint": "cedar policies and data residency",
+        "scope_hint": "Expand using the standard structure: parse 'cedar policies and data residency' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/calendar/IP-013-workflow-handoff.md",
+        "title_hint": "workflow handoff",
+        "scope_hint": "Expand using the standard structure: parse 'workflow handoff' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/calendar/IP-014-hg-calendar-authority-cohesion.md",
+        "title_hint": "hg calendar authority cohesion",
+        "scope_hint": "Expand using the standard structure: parse 'hg calendar authority cohesion' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/calendar/IP-015-hg-calendar-registration-and-branch-protection.md",
+        "title_hint": "hg calendar registration and branch protection",
+        "scope_hint": "Expand using the standard structure: parse 'hg calendar registration and branch protection' against microservices/calendar/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "cell": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/cell/IP-001-host-pool-iac.md",
+        "title_hint": "host pool iac",
+        "scope_hint": "Expand using the standard structure: parse 'host pool iac' against microservices/cell/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/cell/IP-011-host-pool-drain-primitive.md",
+        "title_hint": "host pool drain primitive",
+        "scope_hint": "Expand using the standard structure: parse 'host pool drain primitive' against microservices/cell/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/cell/IP-012-cell-registry-events-emitter.md",
+        "title_hint": "cell registry events emitter",
+        "scope_hint": "Expand using the standard structure: parse 'cell registry events emitter' against microservices/cell/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/cell/IP-014-branch-protection-gate-registration.md",
+        "title_hint": "branch protection gate registration",
+        "scope_hint": "Expand using the standard structure: parse 'branch protection gate registration' against microservices/cell/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/cell/IP-015-hyperscaler-claim-gate.md",
+        "title_hint": "hyperscaler claim gate",
+        "scope_hint": "Expand using the standard structure: parse 'hyperscaler claim gate' against microservices/cell/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "cloud-iac": [
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/cloud-iac/IP-010-rest-surfaces.md",
+        "title_hint": "rest surfaces",
+        "scope_hint": "Expand using the standard structure: parse 'rest surfaces' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/cloud-iac/IP-012-app-composition-roots.md",
+        "title_hint": "app composition roots",
+        "scope_hint": "Expand using the standard structure: parse 'app composition roots' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-GITOPS",
+        "path": "microservices/cloud-iac/IP-GITOPS-001-terraform-to-opentofu-migration.md",
+        "title_hint": "001 terraform to opentofu migration",
+        "scope_hint": "Expand using the standard structure: parse '001 terraform to opentofu migration' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-GITOPS",
+        "path": "microservices/cloud-iac/IP-GITOPS-002-argocd-app-of-apps-pattern.md",
+        "title_hint": "002 argocd app of apps pattern",
+        "scope_hint": "Expand using the standard structure: parse '002 argocd app of apps pattern' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-GITOPS",
+        "path": "microservices/cloud-iac/IP-GITOPS-003-tier-discipline-rollout.md",
+        "title_hint": "003 tier discipline rollout",
+        "scope_hint": "Expand using the standard structure: parse '003 tier discipline rollout' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-GITOPS",
+        "path": "microservices/cloud-iac/IP-GITOPS-004-opentofu-module-registry-bootstrap.md",
+        "title_hint": "004 opentofu module registry bootstrap",
+        "scope_hint": "Expand using the standard structure: parse '004 opentofu module registry bootstrap' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-GITOPS",
+        "path": "microservices/cloud-iac/IP-GITOPS-005-drift-detection.md",
+        "title_hint": "005 drift detection",
+        "scope_hint": "Expand using the standard structure: parse '005 drift detection' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-GITOPS",
+        "path": "microservices/cloud-iac/IP-GITOPS-006-secret-bootstrap-tier-b.md",
+        "title_hint": "006 secret bootstrap tier b",
+        "scope_hint": "Expand using the standard structure: parse '006 secret bootstrap tier b' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-GITOPS",
+        "path": "microservices/cloud-iac/IP-GITOPS-007-namespace-bootstrap-tier-b.md",
+        "title_hint": "007 namespace bootstrap tier b",
+        "scope_hint": "Expand using the standard structure: parse '007 namespace bootstrap tier b' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-GITOPS",
+        "path": "microservices/cloud-iac/IP-GITOPS-008-argocd-project-bootstrap.md",
+        "title_hint": "008 argocd project bootstrap",
+        "scope_hint": "Expand using the standard structure: parse '008 argocd project bootstrap' against microservices/cloud-iac/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "cloud-k8s": [
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/cloud-k8s/IP-004-cluster-bootstrap-domain.md",
+        "title_hint": "cluster bootstrap domain",
+        "scope_hint": "Expand using the standard structure: parse 'cluster bootstrap domain' against microservices/cloud-k8s/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/cloud-k8s/IP-010-ingress-controller-envoy.md",
+        "title_hint": "ingress controller envoy",
+        "scope_hint": "Expand using the standard structure: parse 'ingress controller envoy' against microservices/cloud-k8s/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-CLUSTERAPI",
+        "path": "microservices/cloud-k8s/IP-CLUSTERAPI-001-clusterclass-templates.md",
+        "title_hint": "001 clusterclass templates",
+        "scope_hint": "Expand using the standard structure: parse '001 clusterclass templates' against microservices/cloud-k8s/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-CLUSTERAPI",
+        "path": "microservices/cloud-k8s/IP-CLUSTERAPI-002-cluster-lifecycle-orchestration.md",
+        "title_hint": "002 cluster lifecycle orchestration",
+        "scope_hint": "Expand using the standard structure: parse '002 cluster lifecycle orchestration' against microservices/cloud-k8s/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-CLUSTERAPI",
+        "path": "microservices/cloud-k8s/IP-CLUSTERAPI-003-cluster-promotion-pipeline.md",
+        "title_hint": "003 cluster promotion pipeline",
+        "scope_hint": "Expand using the standard structure: parse '003 cluster promotion pipeline' against microservices/cloud-k8s/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "cloud-secrets": [
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/cloud-secrets/IP-002-secretreference-uri-spec.md",
+        "title_hint": "secretreference uri spec",
+        "scope_hint": "Expand using the standard structure: parse 'secretreference uri spec' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/cloud-secrets/IP-004-resolver-domain.md",
+        "title_hint": "resolver domain",
+        "scope_hint": "Expand using the standard structure: parse 'resolver domain' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/cloud-secrets/IP-005-resolver-usecase.md",
+        "title_hint": "resolver usecase",
+        "scope_hint": "Expand using the standard structure: parse 'resolver usecase' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/cloud-secrets/IP-006-resolver-adapter-openbao.md",
+        "title_hint": "resolver adapter openbao",
+        "scope_hint": "Expand using the standard structure: parse 'resolver adapter openbao' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md",
+        "title_hint": "resolver rest and sdk rust",
+        "scope_hint": "Expand using the standard structure: parse 'resolver rest and sdk rust' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/cloud-secrets/IP-008-sdk-ts-python-bindings.md",
+        "title_hint": "sdk ts python bindings",
+        "scope_hint": "Expand using the standard structure: parse 'sdk ts python bindings' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/cloud-secrets/IP-009-openbao-operator.md",
+        "title_hint": "openbao operator",
+        "scope_hint": "Expand using the standard structure: parse 'openbao operator' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/cloud-secrets/IP-010-key-rotation-scheduler-worker.md",
+        "title_hint": "key rotation scheduler worker",
+        "scope_hint": "Expand using the standard structure: parse 'key rotation scheduler worker' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/cloud-secrets/IP-011-hsm-integration-adapter-hsm.md",
+        "title_hint": "hsm integration adapter hsm",
+        "scope_hint": "Expand using the standard structure: parse 'hsm integration adapter hsm' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/cloud-secrets/IP-012-per-tenant-namespace-controller.md",
+        "title_hint": "per tenant namespace controller",
+        "scope_hint": "Expand using the standard structure: parse 'per tenant namespace controller' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/cloud-secrets/IP-013-audit-emitter-bridge-to-audit-chain.md",
+        "title_hint": "audit emitter bridge to audit chain",
+        "scope_hint": "Expand using the standard structure: parse 'audit emitter bridge to audit chain' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/cloud-secrets/IP-014-observability-slo-branch-protection-hg-cloud-secrets.md",
+        "title_hint": "observability slo branch protection hg cloud secrets",
+        "scope_hint": "Expand using the standard structure: parse 'observability slo branch protection hg cloud secrets' against microservices/cloud-secrets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "community": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/community/IP-001-postgres-citus-post-store-iac.md",
+        "title_hint": "postgres citus post store iac",
+        "scope_hint": "Expand using the standard structure: parse 'postgres citus post store iac' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/community/IP-002-post-store-kernel-domain.md",
+        "title_hint": "post store kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'post store kernel domain' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/community/IP-003-post-store-usecase-api.md",
+        "title_hint": "post store usecase api",
+        "scope_hint": "Expand using the standard structure: parse 'post store usecase api' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/community/IP-004-post-store-adapter-postgres-rest-worker-sdk-app.md",
+        "title_hint": "post store adapter postgres rest worker sdk app",
+        "scope_hint": "Expand using the standard structure: parse 'post store adapter postgres rest worker sdk app' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/community/IP-005-thread-tree-materialised-path.md",
+        "title_hint": "thread tree materialised path",
+        "scope_hint": "Expand using the standard structure: parse 'thread tree materialised path' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/community/IP-006-voting-engine.md",
+        "title_hint": "voting engine",
+        "scope_hint": "Expand using the standard structure: parse 'voting engine' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/community/IP-007-moderation-queue.md",
+        "title_hint": "moderation queue",
+        "scope_hint": "Expand using the standard structure: parse 'moderation queue' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/community/IP-008-kb-article-store-s3.md",
+        "title_hint": "kb article store s3",
+        "scope_hint": "Expand using the standard structure: parse 'kb article store s3' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/community/IP-009-search-index-elasticsearch.md",
+        "title_hint": "search index elasticsearch",
+        "scope_hint": "Expand using the standard structure: parse 'search index elasticsearch' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/community/IP-010-foundry-guardrails-moderation-bridge.md",
+        "title_hint": "foundry guardrails moderation bridge",
+        "scope_hint": "Expand using the standard structure: parse 'foundry guardrails moderation bridge' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/community/IP-011-cedar-policy-fragments.md",
+        "title_hint": "cedar policy fragments",
+        "scope_hint": "Expand using the standard structure: parse 'cedar policy fragments' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/community/IP-012-openslo-grafana-dashboards.md",
+        "title_hint": "openslo grafana dashboards",
+        "scope_hint": "Expand using the standard structure: parse 'openslo grafana dashboards' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/community/IP-013-oya-vcs-promotion-readiness.md",
+        "title_hint": "oya vcs promotion readiness",
+        "scope_hint": "Expand using the standard structure: parse 'oya vcs promotion readiness' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/community/IP-014-hyperscaler-maturity-gate.md",
+        "title_hint": "hyperscaler maturity gate",
+        "scope_hint": "Expand using the standard structure: parse 'hyperscaler maturity gate' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/community/IP-015-capacity-cost-chaos-drill.md",
+        "title_hint": "capacity cost chaos drill",
+        "scope_hint": "Expand using the standard structure: parse 'capacity cost chaos drill' against microservices/community/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "docs": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/docs/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/docs/IP-002-document-store-kernel.md",
+        "title_hint": "document store kernel",
+        "scope_hint": "Expand using the standard structure: parse 'document store kernel' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/docs/IP-003-document-store-domain-and-usecase.md",
+        "title_hint": "document store domain and usecase",
+        "scope_hint": "Expand using the standard structure: parse 'document store domain and usecase' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/docs/IP-004-document-store-adapter-postgres-and-s3.md",
+        "title_hint": "document store adapter postgres and s3",
+        "scope_hint": "Expand using the standard structure: parse 'document store adapter postgres and s3' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/docs/IP-005-block-types-kernel-domain.md",
+        "title_hint": "block types kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'block types kernel domain' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/docs/IP-006-collab-crdt-kernel-domain.md",
+        "title_hint": "collab crdt kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'collab crdt kernel domain' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/docs/IP-007-collab-crdt-adapter-redis-worker.md",
+        "title_hint": "collab crdt adapter redis worker",
+        "scope_hint": "Expand using the standard structure: parse 'collab crdt adapter redis worker' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/docs/IP-008-comments-and-suggestions.md",
+        "title_hint": "comments and suggestions",
+        "scope_hint": "Expand using the standard structure: parse 'comments and suggestions' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/docs/IP-009-version-history.md",
+        "title_hint": "version history",
+        "scope_hint": "Expand using the standard structure: parse 'version history' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/docs/IP-010-sharing-and-permissions.md",
+        "title_hint": "sharing and permissions",
+        "scope_hint": "Expand using the standard structure: parse 'sharing and permissions' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/docs/IP-011-export-import.md",
+        "title_hint": "export import",
+        "scope_hint": "Expand using the standard structure: parse 'export import' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/docs/IP-012-embed-resolver.md",
+        "title_hint": "embed resolver",
+        "scope_hint": "Expand using the standard structure: parse 'embed resolver' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/docs/IP-013-rest-websocket-protocol.md",
+        "title_hint": "rest websocket protocol",
+        "scope_hint": "Expand using the standard structure: parse 'rest websocket protocol' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/docs/IP-014-ai-assist-wire.md",
+        "title_hint": "ai assist wire",
+        "scope_hint": "Expand using the standard structure: parse 'ai assist wire' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/docs/IP-015-hg-docs-registration-and-branch-protection.md",
+        "title_hint": "hg docs registration and branch protection",
+        "scope_hint": "Expand using the standard structure: parse 'hg docs registration and branch protection' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-DOCS",
+        "path": "microservices/docs/IP-DOCS-001-mdbook-techdocs-pipeline.md",
+        "title_hint": "001 mdbook techdocs pipeline",
+        "scope_hint": "Expand using the standard structure: parse '001 mdbook techdocs pipeline' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-DOCS",
+        "path": "microservices/docs/IP-DOCS-002-sveltekit-marketing-site.md",
+        "title_hint": "002 sveltekit marketing site",
+        "scope_hint": "Expand using the standard structure: parse '002 sveltekit marketing site' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-DOCS",
+        "path": "microservices/docs/IP-DOCS-003-redoc-asyncapi-renderer.md",
+        "title_hint": "003 redoc asyncapi renderer",
+        "scope_hint": "Expand using the standard structure: parse '003 redoc asyncapi renderer' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-DOCS",
+        "path": "microservices/docs/IP-DOCS-004-mermaid-c4-build.md",
+        "title_hint": "004 mermaid c4 build",
+        "scope_hint": "Expand using the standard structure: parse '004 mermaid c4 build' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-DOCS",
+        "path": "microservices/docs/IP-DOCS-005-backstage-techdocs-renderer.md",
+        "title_hint": "005 backstage techdocs renderer",
+        "scope_hint": "Expand using the standard structure: parse '005 backstage techdocs renderer' against microservices/docs/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "drive": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/drive/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/drive/IP-002-file-store-kernel.md",
+        "title_hint": "file store kernel",
+        "scope_hint": "Expand using the standard structure: parse 'file store kernel' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/drive/IP-003-file-store-adapters.md",
+        "title_hint": "file store adapters",
+        "scope_hint": "Expand using the standard structure: parse 'file store adapters' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/drive/IP-004-file-store-rest-worker-sdk-app.md",
+        "title_hint": "file store rest worker sdk app",
+        "scope_hint": "Expand using the standard structure: parse 'file store rest worker sdk app' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/drive/IP-005-folder-hierarchy.md",
+        "title_hint": "folder hierarchy",
+        "scope_hint": "Expand using the standard structure: parse 'folder hierarchy' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/drive/IP-006-upload.md",
+        "title_hint": "upload",
+        "scope_hint": "Expand using the standard structure: parse 'upload' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/drive/IP-007-download.md",
+        "title_hint": "download",
+        "scope_hint": "Expand using the standard structure: parse 'download' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/drive/IP-008-sync.md",
+        "title_hint": "sync",
+        "scope_hint": "Expand using the standard structure: parse 'sync' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/drive/IP-009-share-link.md",
+        "title_hint": "share link",
+        "scope_hint": "Expand using the standard structure: parse 'share link' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/drive/IP-010-permissions.md",
+        "title_hint": "permissions",
+        "scope_hint": "Expand using the standard structure: parse 'permissions' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/drive/IP-011-search-index.md",
+        "title_hint": "search index",
+        "scope_hint": "Expand using the standard structure: parse 'search index' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/drive/IP-012-preview.md",
+        "title_hint": "preview",
+        "scope_hint": "Expand using the standard structure: parse 'preview' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/drive/IP-013-dlp-virus-scan.md",
+        "title_hint": "dlp virus scan",
+        "scope_hint": "Expand using the standard structure: parse 'dlp virus scan' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/drive/IP-014-immutability-tier.md",
+        "title_hint": "immutability tier",
+        "scope_hint": "Expand using the standard structure: parse 'immutability tier' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/drive/IP-015-hg-drive-registration.md",
+        "title_hint": "hg drive registration",
+        "scope_hint": "Expand using the standard structure: parse 'hg drive registration' against microservices/drive/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "forms": [
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/forms/IP-002-form-field-section-response-domain-kernel.md",
+        "title_hint": "form field section response domain kernel",
+        "scope_hint": "Expand using the standard structure: parse 'form field section response domain kernel' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/forms/IP-003-conditional-logic-engine-cel.md",
+        "title_hint": "conditional logic engine cel",
+        "scope_hint": "Expand using the standard structure: parse 'conditional logic engine cel' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/forms/IP-004-validation-engine.md",
+        "title_hint": "validation engine",
+        "scope_hint": "Expand using the standard structure: parse 'validation engine' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/forms/IP-005-versioning-and-changeset-binding.md",
+        "title_hint": "versioning and changeset binding",
+        "scope_hint": "Expand using the standard structure: parse 'versioning and changeset binding' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/forms/IP-006-postgres-citus-adapter-with-column-encryption.md",
+        "title_hint": "postgres citus adapter with column encryption",
+        "scope_hint": "Expand using the standard structure: parse 'postgres citus adapter with column encryption' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/forms/IP-007-redis-adapter.md",
+        "title_hint": "redis adapter",
+        "scope_hint": "Expand using the standard structure: parse 'redis adapter' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/forms/IP-008-meilisearch-adapter.md",
+        "title_hint": "meilisearch adapter",
+        "scope_hint": "Expand using the standard structure: parse 'meilisearch adapter' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/forms/IP-009-captcha-adapter.md",
+        "title_hint": "captcha adapter",
+        "scope_hint": "Expand using the standard structure: parse 'captcha adapter' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/forms/IP-010-form-builder-leptos-wasm.md",
+        "title_hint": "form builder leptos wasm",
+        "scope_hint": "Expand using the standard structure: parse 'form builder leptos wasm' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/forms/IP-011-form-renderer.md",
+        "title_hint": "form renderer",
+        "scope_hint": "Expand using the standard structure: parse 'form renderer' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/forms/IP-012-response-collector-rest.md",
+        "title_hint": "response collector rest",
+        "scope_hint": "Expand using the standard structure: parse 'response collector rest' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/forms/IP-013-bulk-distribute-worker.md",
+        "title_hint": "bulk distribute worker",
+        "scope_hint": "Expand using the standard structure: parse 'bulk distribute worker' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/forms/IP-014-export-worker.md",
+        "title_hint": "export worker",
+        "scope_hint": "Expand using the standard structure: parse 'export worker' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/forms/IP-015-hg-forms-registration.md",
+        "title_hint": "hg forms registration",
+        "scope_hint": "Expand using the standard structure: parse 'hg forms registration' against microservices/forms/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "foundry": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/foundry/IP-001-runtime-runtime-cluster-iac.md",
+        "title_hint": "runtime runtime cluster iac",
+        "scope_hint": "Expand using the standard structure: parse 'runtime runtime cluster iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/foundry/IP-002-runtime-redis-and-postgres-baseline.md",
+        "title_hint": "runtime redis and postgres baseline",
+        "scope_hint": "Expand using the standard structure: parse 'runtime redis and postgres baseline' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/foundry/IP-014-runtime-runtime-self-slo-manifests.md",
+        "title_hint": "runtime runtime self slo manifests",
+        "scope_hint": "Expand using the standard structure: parse 'runtime runtime self slo manifests' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-016",
+        "path": "microservices/foundry/IP-016-supervisor-postgres-layer-a-iac.md",
+        "title_hint": "supervisor postgres layer a iac",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor postgres layer a iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-017",
+        "path": "microservices/foundry/IP-017-supervisor-redis-layer-a-iac.md",
+        "title_hint": "supervisor redis layer a iac",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor redis layer a iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-018",
+        "path": "microservices/foundry/IP-018-supervisor-k8s-operator-iac.md",
+        "title_hint": "supervisor k8s operator iac",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor k8s operator iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-020",
+        "path": "microservices/foundry/IP-020-supervisor-autonomy-policy-enforcement.md",
+        "title_hint": "supervisor autonomy policy enforcement",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor autonomy policy enforcement' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-021",
+        "path": "microservices/foundry/IP-021-supervisor-capability-deployment.md",
+        "title_hint": "supervisor capability deployment",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor capability deployment' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-022",
+        "path": "microservices/foundry/IP-022-supervisor-supervision-event-bus.md",
+        "title_hint": "supervisor supervision event bus",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor supervision event bus' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-023",
+        "path": "microservices/foundry/IP-023-supervisor-kill-switch-engage-state.md",
+        "title_hint": "supervisor kill switch engage state",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor kill switch engage state' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-024",
+        "path": "microservices/foundry/IP-024-supervisor-kill-switch-propagation.md",
+        "title_hint": "supervisor kill switch propagation",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor kill switch propagation' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-026",
+        "path": "microservices/foundry/IP-026-supervisor-rest-api.md",
+        "title_hint": "supervisor rest api",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor rest api' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-027",
+        "path": "microservices/foundry/IP-027-supervisor-supervisor-self-slos.md",
+        "title_hint": "supervisor supervisor self slos",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor supervisor self slos' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-030",
+        "path": "microservices/foundry/IP-030-supervisor-e2e-drills-and-dashboards.md",
+        "title_hint": "supervisor e2e drills and dashboards",
+        "scope_hint": "Expand using the standard structure: parse 'supervisor e2e drills and dashboards' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-031",
+        "path": "microservices/foundry/IP-031-eval-layer-a-gpu-runner-pool-iac.md",
+        "title_hint": "eval layer a gpu runner pool iac",
+        "scope_hint": "Expand using the standard structure: parse 'eval layer a gpu runner pool iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-032",
+        "path": "microservices/foundry/IP-032-eval-layer-a-postgres-clickhouse-golden-store-iac.md",
+        "title_hint": "eval layer a postgres clickhouse golden store iac",
+        "scope_hint": "Expand using the standard structure: parse 'eval layer a postgres clickhouse golden store iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-034",
+        "path": "microservices/foundry/IP-034-eval-eval-runner-domain.md",
+        "title_hint": "eval eval runner domain",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner domain' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-035",
+        "path": "microservices/foundry/IP-035-eval-eval-runner-usecase.md",
+        "title_hint": "eval eval runner usecase",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner usecase' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-036",
+        "path": "microservices/foundry/IP-036-eval-eval-runner-api.md",
+        "title_hint": "eval eval runner api",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner api' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-038",
+        "path": "microservices/foundry/IP-038-eval-eval-runner-adapter-s3.md",
+        "title_hint": "eval eval runner adapter s3",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner adapter s3' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-039",
+        "path": "microservices/foundry/IP-039-eval-eval-runner-adapter-gpu.md",
+        "title_hint": "eval eval runner adapter gpu",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner adapter gpu' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-040",
+        "path": "microservices/foundry/IP-040-eval-eval-runner-rest.md",
+        "title_hint": "eval eval runner rest",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner rest' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-041",
+        "path": "microservices/foundry/IP-041-eval-eval-runner-worker.md",
+        "title_hint": "eval eval runner worker",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner worker' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-042",
+        "path": "microservices/foundry/IP-042-eval-eval-runner-sdk.md",
+        "title_hint": "eval eval runner sdk",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner sdk' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-043",
+        "path": "microservices/foundry/IP-043-eval-eval-runner-app.md",
+        "title_hint": "eval eval runner app",
+        "scope_hint": "Expand using the standard structure: parse 'eval eval runner app' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-044",
+        "path": "microservices/foundry/IP-044-eval-parity-analyzer-bootstrap.md",
+        "title_hint": "eval parity analyzer bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'eval parity analyzer bootstrap' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-045",
+        "path": "microservices/foundry/IP-045-eval-replay-engine-bootstrap.md",
+        "title_hint": "eval replay engine bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'eval replay engine bootstrap' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-046",
+        "path": "microservices/foundry/IP-046-evidence-storage-backend-iac.md",
+        "title_hint": "evidence storage backend iac",
+        "scope_hint": "Expand using the standard structure: parse 'evidence storage backend iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-047",
+        "path": "microservices/foundry/IP-047-evidence-self-slo-manifest.md",
+        "title_hint": "evidence self slo manifest",
+        "scope_hint": "Expand using the standard structure: parse 'evidence self slo manifest' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-048",
+        "path": "microservices/foundry/IP-048-evidence-capability-invocation-recorder-kernel.md",
+        "title_hint": "evidence capability invocation recorder kernel",
+        "scope_hint": "Expand using the standard structure: parse 'evidence capability invocation recorder kernel' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-049",
+        "path": "microservices/foundry/IP-049-evidence-evidence-pack-builder-kernel.md",
+        "title_hint": "evidence evidence pack builder kernel",
+        "scope_hint": "Expand using the standard structure: parse 'evidence evidence pack builder kernel' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-050",
+        "path": "microservices/foundry/IP-050-evidence-evidence-pack-builder-domain.md",
+        "title_hint": "evidence evidence pack builder domain",
+        "scope_hint": "Expand using the standard structure: parse 'evidence evidence pack builder domain' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-051",
+        "path": "microservices/foundry/IP-051-evidence-evidence-pack-builder-usecase-and-adapters.md",
+        "title_hint": "evidence evidence pack builder usecase and adapters",
+        "scope_hint": "Expand using the standard structure: parse 'evidence evidence pack builder usecase and adapters' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-052",
+        "path": "microservices/foundry/IP-052-evidence-capability-invocation-recorder-stack.md",
+        "title_hint": "evidence capability invocation recorder stack",
+        "scope_hint": "Expand using the standard structure: parse 'evidence capability invocation recorder stack' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-053",
+        "path": "microservices/foundry/IP-053-evidence-eval-evidence-aggregator.md",
+        "title_hint": "evidence eval evidence aggregator",
+        "scope_hint": "Expand using the standard structure: parse 'evidence eval evidence aggregator' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-054",
+        "path": "microservices/foundry/IP-054-evidence-evidence-query-stack.md",
+        "title_hint": "evidence evidence query stack",
+        "scope_hint": "Expand using the standard structure: parse 'evidence evidence query stack' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-055",
+        "path": "microservices/foundry/IP-055-evidence-regulator-export-stack.md",
+        "title_hint": "evidence regulator export stack",
+        "scope_hint": "Expand using the standard structure: parse 'evidence regulator export stack' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-056",
+        "path": "microservices/foundry/IP-056-evidence-audit-chain-bridge.md",
+        "title_hint": "evidence audit chain bridge",
+        "scope_hint": "Expand using the standard structure: parse 'evidence audit chain bridge' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-057",
+        "path": "microservices/foundry/IP-057-evidence-sdk-cross-microservice.md",
+        "title_hint": "evidence sdk cross microservice",
+        "scope_hint": "Expand using the standard structure: parse 'evidence sdk cross microservice' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-058",
+        "path": "microservices/foundry/IP-058-evidence-regulator-export-framework-profiles.md",
+        "title_hint": "evidence regulator export framework profiles",
+        "scope_hint": "Expand using the standard structure: parse 'evidence regulator export framework profiles' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-059",
+        "path": "microservices/foundry/IP-059-evidence-evidence-archive-cascade.md",
+        "title_hint": "evidence evidence archive cascade",
+        "scope_hint": "Expand using the standard structure: parse 'evidence evidence archive cascade' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-060",
+        "path": "microservices/foundry/IP-060-evidence-self-observability-slo-wiring.md",
+        "title_hint": "evidence self observability slo wiring",
+        "scope_hint": "Expand using the standard structure: parse 'evidence self observability slo wiring' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-062",
+        "path": "microservices/foundry/IP-062-guardrails-classifier-model-serving-iac.md",
+        "title_hint": "guardrails classifier model serving iac",
+        "scope_hint": "Expand using the standard structure: parse 'guardrails classifier model serving iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-063",
+        "path": "microservices/foundry/IP-063-guardrails-rule-store-postgres-iac.md",
+        "title_hint": "guardrails rule store postgres iac",
+        "scope_hint": "Expand using the standard structure: parse 'guardrails rule store postgres iac' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-069",
+        "path": "microservices/foundry/IP-069-guardrails-ai-slop-detector.md",
+        "title_hint": "guardrails ai slop detector",
+        "scope_hint": "Expand using the standard structure: parse 'guardrails ai slop detector' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-070",
+        "path": "microservices/foundry/IP-070-guardrails-classifier-model-adapter-onnx.md",
+        "title_hint": "guardrails classifier model adapter onnx",
+        "scope_hint": "Expand using the standard structure: parse 'guardrails classifier model adapter onnx' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-071",
+        "path": "microservices/foundry/IP-071-guardrails-rest-and-grpc-surface.md",
+        "title_hint": "guardrails rest and grpc surface",
+        "scope_hint": "Expand using the standard structure: parse 'guardrails rest and grpc surface' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-073",
+        "path": "microservices/foundry/IP-073-guardrails-runtime-guardrails-coupling-lane.md",
+        "title_hint": "guardrails runtime guardrails coupling lane",
+        "scope_hint": "Expand using the standard structure: parse 'guardrails runtime guardrails coupling lane' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-077",
+        "path": "microservices/foundry/IP-077-providers-router-domain.md",
+        "title_hint": "providers router domain",
+        "scope_hint": "Expand using the standard structure: parse 'providers router domain' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-078",
+        "path": "microservices/foundry/IP-078-providers-router-usecase.md",
+        "title_hint": "providers router usecase",
+        "scope_hint": "Expand using the standard structure: parse 'providers router usecase' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-079",
+        "path": "microservices/foundry/IP-079-providers-router-api.md",
+        "title_hint": "providers router api",
+        "scope_hint": "Expand using the standard structure: parse 'providers router api' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-080",
+        "path": "microservices/foundry/IP-080-providers-router-adapter.md",
+        "title_hint": "providers router adapter",
+        "scope_hint": "Expand using the standard structure: parse 'providers router adapter' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-082",
+        "path": "microservices/foundry/IP-082-providers-adapter-anthropic-subscription.md",
+        "title_hint": "providers adapter anthropic subscription",
+        "scope_hint": "Expand using the standard structure: parse 'providers adapter anthropic subscription' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-083",
+        "path": "microservices/foundry/IP-083-providers-adapter-openai-api.md",
+        "title_hint": "providers adapter openai api",
+        "scope_hint": "Expand using the standard structure: parse 'providers adapter openai api' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-084",
+        "path": "microservices/foundry/IP-084-providers-adapter-openai-subscription.md",
+        "title_hint": "providers adapter openai subscription",
+        "scope_hint": "Expand using the standard structure: parse 'providers adapter openai subscription' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-085",
+        "path": "microservices/foundry/IP-085-providers-adapter-gemini-api.md",
+        "title_hint": "providers adapter gemini api",
+        "scope_hint": "Expand using the standard structure: parse 'providers adapter gemini api' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-WASMTIME",
+        "path": "microservices/foundry/IP-WASMTIME-001-tool-sandbox-runtime-integration.md",
+        "title_hint": "001 tool sandbox runtime integration",
+        "scope_hint": "Expand using the standard structure: parse '001 tool sandbox runtime integration' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-WASMTIME",
+        "path": "microservices/foundry/IP-WASMTIME-002-capability-token-binding.md",
+        "title_hint": "002 capability token binding",
+        "scope_hint": "Expand using the standard structure: parse '002 capability token binding' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-WASMTIME",
+        "path": "microservices/foundry/IP-WASMTIME-003-fuel-and-memory-accounting.md",
+        "title_hint": "003 fuel and memory accounting",
+        "scope_hint": "Expand using the standard structure: parse '003 fuel and memory accounting' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-WASMTIME",
+        "path": "microservices/foundry/IP-WASMTIME-004-component-model-onboarding.md",
+        "title_hint": "004 component model onboarding",
+        "scope_hint": "Expand using the standard structure: parse '004 component model onboarding' against microservices/foundry/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "governance": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/governance/IP-001-scaffold-umbrella-bcs.md",
+        "title_hint": "scaffold umbrella bcs",
+        "scope_hint": "Expand using the standard structure: parse 'scaffold umbrella bcs' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/governance/IP-002-migrate-tier-a-check-crates-batch-1.md",
+        "title_hint": "migrate tier a check crates batch 1",
+        "scope_hint": "Expand using the standard structure: parse 'migrate tier a check crates batch 1' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/governance/IP-003-migrate-tier-a-check-crates-batch-2.md",
+        "title_hint": "migrate tier a check crates batch 2",
+        "scope_hint": "Expand using the standard structure: parse 'migrate tier a check crates batch 2' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/governance/IP-007-policy-engine-usecase-adapter.md",
+        "title_hint": "policy engine usecase adapter",
+        "scope_hint": "Expand using the standard structure: parse 'policy engine usecase adapter' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/governance/IP-012-per-microservice-layout-lane.md",
+        "title_hint": "per microservice layout lane",
+        "scope_hint": "Expand using the standard structure: parse 'per microservice layout lane' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/governance/IP-013-aggregation-index-generation-lane.md",
+        "title_hint": "aggregation index generation lane",
+        "scope_hint": "Expand using the standard structure: parse 'aggregation index generation lane' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-WASMTIME",
+        "path": "microservices/governance/IP-WASMTIME-001-envoy-wasm-filter-substrate.md",
+        "title_hint": "001 envoy wasm filter substrate",
+        "scope_hint": "Expand using the standard structure: parse '001 envoy wasm filter substrate' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-WASMTIME",
+        "path": "microservices/governance/IP-WASMTIME-003-regulatory-response-shaper.md",
+        "title_hint": "003 regulatory response shaper",
+        "scope_hint": "Expand using the standard structure: parse '003 regulatory response shaper' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-WASMTIME",
+        "path": "microservices/governance/IP-WASMTIME-004-authz-filter.md",
+        "title_hint": "004 authz filter",
+        "scope_hint": "Expand using the standard structure: parse '004 authz filter' against microservices/governance/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "mail": [
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/mail/IP-012-ediscovery-export.md",
+        "title_hint": "ediscovery export",
+        "scope_hint": "Expand using the standard structure: parse 'ediscovery export' against microservices/mail/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "meet": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/meet/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/meet/IP-002-cargo-workspace-bootstrap.md",
+        "title_hint": "cargo workspace bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'cargo workspace bootstrap' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/meet/IP-003-meeting-room-kernel-domain.md",
+        "title_hint": "meeting room kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'meeting room kernel domain' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/meet/IP-004-meeting-room-adapter-postgres.md",
+        "title_hint": "meeting room adapter postgres",
+        "scope_hint": "Expand using the standard structure: parse 'meeting room adapter postgres' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/meet/IP-005-meeting-instance-and-livekit.md",
+        "title_hint": "meeting instance and livekit",
+        "scope_hint": "Expand using the standard structure: parse 'meeting instance and livekit' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/meet/IP-006-participant-and-lobby.md",
+        "title_hint": "participant and lobby",
+        "scope_hint": "Expand using the standard structure: parse 'participant and lobby' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/meet/IP-007-screen-share-and-tracks.md",
+        "title_hint": "screen share and tracks",
+        "scope_hint": "Expand using the standard structure: parse 'screen share and tracks' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/meet/IP-010-webinar-and-breakouts.md",
+        "title_hint": "webinar and breakouts",
+        "scope_hint": "Expand using the standard structure: parse 'webinar and breakouts' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/meet/IP-011-live-stream-egress.md",
+        "title_hint": "live stream egress",
+        "scope_hint": "Expand using the standard structure: parse 'live stream egress' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/meet/IP-013-contracts-openapi-asyncapi-proto.md",
+        "title_hint": "contracts openapi asyncapi proto",
+        "scope_hint": "Expand using the standard structure: parse 'contracts openapi asyncapi proto' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/meet/IP-014-cedar-policies-and-data-residency.md",
+        "title_hint": "cedar policies and data residency",
+        "scope_hint": "Expand using the standard structure: parse 'cedar policies and data residency' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/meet/IP-015-hg-meet-registration-and-branch-protection.md",
+        "title_hint": "hg meet registration and branch protection",
+        "scope_hint": "Expand using the standard structure: parse 'hg meet registration and branch protection' against microservices/meet/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "messenger": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/messenger/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/messenger/IP-002-cargo-workspace-bootstrap.md",
+        "title_hint": "cargo workspace bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'cargo workspace bootstrap' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/messenger/IP-003-channel-store-kernel-domain.md",
+        "title_hint": "channel store kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'channel store kernel domain' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/messenger/IP-004-channel-store-adapter-postgres.md",
+        "title_hint": "channel store adapter postgres",
+        "scope_hint": "Expand using the standard structure: parse 'channel store adapter postgres' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/messenger/IP-005-message-stream-kernel-domain.md",
+        "title_hint": "message stream kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'message stream kernel domain' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/messenger/IP-006-message-stream-adapters.md",
+        "title_hint": "message stream adapters",
+        "scope_hint": "Expand using the standard structure: parse 'message stream adapters' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/messenger/IP-007-presence-bc.md",
+        "title_hint": "presence bc",
+        "scope_hint": "Expand using the standard structure: parse 'presence bc' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/messenger/IP-008-file-attachment-bc.md",
+        "title_hint": "file attachment bc",
+        "scope_hint": "Expand using the standard structure: parse 'file attachment bc' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/messenger/IP-009-thread-tree-and-mention-router.md",
+        "title_hint": "thread tree and mention router",
+        "scope_hint": "Expand using the standard structure: parse 'thread tree and mention router' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/messenger/IP-010-read-receipt-tracker.md",
+        "title_hint": "read receipt tracker",
+        "scope_hint": "Expand using the standard structure: parse 'read receipt tracker' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/messenger/IP-011-rest-api-surface.md",
+        "title_hint": "rest api surface",
+        "scope_hint": "Expand using the standard structure: parse 'rest api surface' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/messenger/IP-012-websocket-frame-protocol.md",
+        "title_hint": "websocket frame protocol",
+        "scope_hint": "Expand using the standard structure: parse 'websocket frame protocol' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/messenger/IP-013-search-and-cedar-filter.md",
+        "title_hint": "search and cedar filter",
+        "scope_hint": "Expand using the standard structure: parse 'search and cedar filter' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/messenger/IP-014-huddles-livekit-signaling.md",
+        "title_hint": "huddles livekit signaling",
+        "scope_hint": "Expand using the standard structure: parse 'huddles livekit signaling' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/messenger/IP-015-hg-messenger-registration-and-branch-protection.md",
+        "title_hint": "hg messenger registration and branch protection",
+        "scope_hint": "Expand using the standard structure: parse 'hg messenger registration and branch protection' against microservices/messenger/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "network": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/network/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/network/IP-004-professional-graph-and-connection-request-bcs.md",
+        "title_hint": "professional graph and connection request bcs",
+        "scope_hint": "Expand using the standard structure: parse 'professional graph and connection request bcs' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/network/IP-005-post-composition-bc.md",
+        "title_hint": "post composition bc",
+        "scope_hint": "Expand using the standard structure: parse 'post composition bc' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/network/IP-006-feed-timeline-and-reactions-bcs.md",
+        "title_hint": "feed timeline and reactions bcs",
+        "scope_hint": "Expand using the standard structure: parse 'feed timeline and reactions bcs' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/network/IP-007-endorsement-engine-bc.md",
+        "title_hint": "endorsement engine bc",
+        "scope_hint": "Expand using the standard structure: parse 'endorsement engine bc' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/network/IP-008-skill-assessments-and-profile-verification-bcs.md",
+        "title_hint": "skill assessments and profile verification bcs",
+        "scope_hint": "Expand using the standard structure: parse 'skill assessments and profile verification bcs' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/network/IP-009-pages-groups-events-bcs.md",
+        "title_hint": "pages groups events bcs",
+        "scope_hint": "Expand using the standard structure: parse 'pages groups events bcs' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/network/IP-010-inmail-bridge-bc.md",
+        "title_hint": "inmail bridge bc",
+        "scope_hint": "Expand using the standard structure: parse 'inmail bridge bc' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/network/IP-012-mentions-hashtags-trending-notifications-bcs.md",
+        "title_hint": "mentions hashtags trending notifications bcs",
+        "scope_hint": "Expand using the standard structure: parse 'mentions hashtags trending notifications bcs' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/network/IP-013-search-and-cedar-filter.md",
+        "title_hint": "search and cedar filter",
+        "scope_hint": "Expand using the standard structure: parse 'search and cedar filter' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/network/IP-014-recommender-fairness-and-bias-lane.md",
+        "title_hint": "recommender fairness and bias lane",
+        "scope_hint": "Expand using the standard structure: parse 'recommender fairness and bias lane' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/network/IP-015-hg-network-registration-and-branch-protection.md",
+        "title_hint": "hg network registration and branch protection",
+        "scope_hint": "Expand using the standard structure: parse 'hg network registration and branch protection' against microservices/network/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "notes": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/notes/IP-001-iac.md",
+        "title_hint": "iac",
+        "scope_hint": "Expand using the standard structure: parse 'iac' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/notes/IP-002-cargo-workspace-bootstrap.md",
+        "title_hint": "cargo workspace bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'cargo workspace bootstrap' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/notes/IP-003-note-store-kernel-domain.md",
+        "title_hint": "note store kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'note store kernel domain' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/notes/IP-004-tag-graph-kernel-domain.md",
+        "title_hint": "tag graph kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'tag graph kernel domain' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/notes/IP-005-backlink-graph-kernel-domain.md",
+        "title_hint": "backlink graph kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'backlink graph kernel domain' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/notes/IP-006-daily-note-template-gallery.md",
+        "title_hint": "daily note template gallery",
+        "scope_hint": "Expand using the standard structure: parse 'daily note template gallery' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/notes/IP-007-web-clipper-bridge.md",
+        "title_hint": "web clipper bridge",
+        "scope_hint": "Expand using the standard structure: parse 'web clipper bridge' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/notes/IP-008-share-link-and-embed.md",
+        "title_hint": "share link and embed",
+        "scope_hint": "Expand using the standard structure: parse 'share link and embed' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/notes/IP-009-checklist-and-version-history.md",
+        "title_hint": "checklist and version history",
+        "scope_hint": "Expand using the standard structure: parse 'checklist and version history' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/notes/IP-010-search-and-graph-view.md",
+        "title_hint": "search and graph view",
+        "scope_hint": "Expand using the standard structure: parse 'search and graph view' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/notes/IP-011-collab-edit-loro.md",
+        "title_hint": "collab edit loro",
+        "scope_hint": "Expand using the standard structure: parse 'collab edit loro' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/notes/IP-012-import-export-pipelines.md",
+        "title_hint": "import export pipelines",
+        "scope_hint": "Expand using the standard structure: parse 'import export pipelines' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/notes/IP-013-ai-assist-and-e2e-refusal.md",
+        "title_hint": "ai assist and e2e refusal",
+        "scope_hint": "Expand using the standard structure: parse 'ai assist and e2e refusal' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/notes/IP-014-e2e-key-management.md",
+        "title_hint": "e2e key management",
+        "scope_hint": "Expand using the standard structure: parse 'e2e key management' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/notes/IP-015-hg-notes-conformance.md",
+        "title_hint": "hg notes conformance",
+        "scope_hint": "Expand using the standard structure: parse 'hg notes conformance' against microservices/notes/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "observability": [
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/observability/IP-007-slo-engine-rest.md",
+        "title_hint": "slo engine rest",
+        "scope_hint": "Expand using the standard structure: parse 'slo engine rest' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/observability/IP-008-slo-engine-worker.md",
+        "title_hint": "slo engine worker",
+        "scope_hint": "Expand using the standard structure: parse 'slo engine worker' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/observability/IP-009-slo-engine-app.md",
+        "title_hint": "slo engine app",
+        "scope_hint": "Expand using the standard structure: parse 'slo engine app' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/observability/IP-010-promotion-eligibility-ledger.md",
+        "title_hint": "promotion eligibility ledger",
+        "scope_hint": "Expand using the standard structure: parse 'promotion eligibility ledger' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/observability/IP-011-per-component-release-pointers.md",
+        "title_hint": "per component release pointers",
+        "scope_hint": "Expand using the standard structure: parse 'per component release pointers' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md",
+        "title_hint": "oya vcs promotion readiness lane",
+        "scope_hint": "Expand using the standard structure: parse 'oya vcs promotion readiness lane' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/observability/IP-013-event-driven-promote-workflows.md",
+        "title_hint": "event driven promote workflows",
+        "scope_hint": "Expand using the standard structure: parse 'event driven promote workflows' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/observability/IP-014-automated-rollback-primitive.md",
+        "title_hint": "automated rollback primitive",
+        "scope_hint": "Expand using the standard structure: parse 'automated rollback primitive' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/observability/IP-015-canary-cohort-weighting.md",
+        "title_hint": "canary cohort weighting",
+        "scope_hint": "Expand using the standard structure: parse 'canary cohort weighting' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-021",
+        "path": "microservices/observability/IP-021-clickhouse-cluster-iac.md",
+        "title_hint": "clickhouse cluster iac",
+        "scope_hint": "Expand using the standard structure: parse 'clickhouse cluster iac' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-022",
+        "path": "microservices/observability/IP-022-otel-to-clickhouse-bridge.md",
+        "title_hint": "otel to clickhouse bridge",
+        "scope_hint": "Expand using the standard structure: parse 'otel to clickhouse bridge' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-023",
+        "path": "microservices/observability/IP-023-ops-portal-rollup-mvs.md",
+        "title_hint": "ops portal rollup mvs",
+        "scope_hint": "Expand using the standard structure: parse 'ops portal rollup mvs' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-024",
+        "path": "microservices/observability/IP-024-cold-tier-retention-policy.md",
+        "title_hint": "cold tier retention policy",
+        "scope_hint": "Expand using the standard structure: parse 'cold tier retention policy' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-025",
+        "path": "microservices/observability/IP-025-clickhouse-backup-restore.md",
+        "title_hint": "clickhouse backup restore",
+        "scope_hint": "Expand using the standard structure: parse 'clickhouse backup restore' against microservices/observability/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "ontology": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/ontology/IP-001-ontology-iac-stack.md",
+        "title_hint": "ontology iac stack",
+        "scope_hint": "Expand using the standard structure: parse 'ontology iac stack' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/ontology/IP-002-object-type-registry-kernel-domain.md",
+        "title_hint": "object type registry kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'object type registry kernel domain' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/ontology/IP-003-link-action-function-type-registry.md",
+        "title_hint": "link action function type registry",
+        "scope_hint": "Expand using the standard structure: parse 'link action function type registry' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/ontology/IP-004-entity-store-rls-citus.md",
+        "title_hint": "entity store rls citus",
+        "scope_hint": "Expand using the standard structure: parse 'entity store rls citus' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/ontology/IP-005-link-store-traversal.md",
+        "title_hint": "link store traversal",
+        "scope_hint": "Expand using the standard structure: parse 'link store traversal' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/ontology/IP-006-cedar-fragment-coverage-engine.md",
+        "title_hint": "cedar fragment coverage engine",
+        "scope_hint": "Expand using the standard structure: parse 'cedar fragment coverage engine' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/ontology/IP-007-action-engine-cedar-gated.md",
+        "title_hint": "action engine cedar gated",
+        "scope_hint": "Expand using the standard structure: parse 'action engine cedar gated' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/ontology/IP-008-function-engine-oltp-and-olap.md",
+        "title_hint": "function engine oltp and olap",
+        "scope_hint": "Expand using the standard structure: parse 'function engine oltp and olap' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/ontology/IP-009-clickhouse-history-mirror.md",
+        "title_hint": "clickhouse history mirror",
+        "scope_hint": "Expand using the standard structure: parse 'clickhouse history mirror' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/ontology/IP-011-query-engine-3layer-kg.md",
+        "title_hint": "query engine 3layer kg",
+        "scope_hint": "Expand using the standard structure: parse 'query engine 3layer kg' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/ontology/IP-012-agent-gateway-llm-tool-call.md",
+        "title_hint": "agent gateway llm tool call",
+        "scope_hint": "Expand using the standard structure: parse 'agent gateway llm tool call' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/ontology/IP-013-pillar-cross-pillar-grant.md",
+        "title_hint": "pillar cross pillar grant",
+        "scope_hint": "Expand using the standard structure: parse 'pillar cross pillar grant' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/ontology/IP-014-rest-and-sdk-surfaces.md",
+        "title_hint": "rest and sdk surfaces",
+        "scope_hint": "Expand using the standard structure: parse 'rest and sdk surfaces' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/ontology/IP-015-app-binaries-and-branch-protection.md",
+        "title_hint": "app binaries and branch protection",
+        "scope_hint": "Expand using the standard structure: parse 'app binaries and branch protection' against microservices/ontology/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "recordings": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/recordings/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/recordings/IP-002-cargo-workspace-bootstrap.md",
+        "title_hint": "cargo workspace bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'cargo workspace bootstrap' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/recordings/IP-003-recording-ingest-bc.md",
+        "title_hint": "recording ingest bc",
+        "scope_hint": "Expand using the standard structure: parse 'recording ingest bc' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/recordings/IP-004-recording-bc.md",
+        "title_hint": "recording bc",
+        "scope_hint": "Expand using the standard structure: parse 'recording bc' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/recordings/IP-005-media-segment-bc.md",
+        "title_hint": "media segment bc",
+        "scope_hint": "Expand using the standard structure: parse 'media segment bc' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/recordings/IP-006-transcript-bc.md",
+        "title_hint": "transcript bc",
+        "scope_hint": "Expand using the standard structure: parse 'transcript bc' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/recordings/IP-007-search-bc.md",
+        "title_hint": "search bc",
+        "scope_hint": "Expand using the standard structure: parse 'search bc' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/recordings/IP-008-redaction-bc.md",
+        "title_hint": "redaction bc",
+        "scope_hint": "Expand using the standard structure: parse 'redaction bc' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/recordings/IP-009-chapter-summary-bcs.md",
+        "title_hint": "chapter summary bcs",
+        "scope_hint": "Expand using the standard structure: parse 'chapter summary bcs' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/recordings/IP-010-retention-legal-hold-bcs.md",
+        "title_hint": "retention legal hold bcs",
+        "scope_hint": "Expand using the standard structure: parse 'retention legal hold bcs' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/recordings/IP-011-playback-share-link-watermark-bcs.md",
+        "title_hint": "playback share link watermark bcs",
+        "scope_hint": "Expand using the standard structure: parse 'playback share link watermark bcs' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/recordings/IP-012-export-ediscovery-bcs.md",
+        "title_hint": "export ediscovery bcs",
+        "scope_hint": "Expand using the standard structure: parse 'export ediscovery bcs' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/recordings/IP-013-translation-bc.md",
+        "title_hint": "translation bc",
+        "scope_hint": "Expand using the standard structure: parse 'translation bc' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/recordings/IP-014-strangler-migration-adapter.md",
+        "title_hint": "strangler migration adapter",
+        "scope_hint": "Expand using the standard structure: parse 'strangler migration adapter' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/recordings/IP-015-hg-recordings.md",
+        "title_hint": "hg recordings",
+        "scope_hint": "Expand using the standard structure: parse 'hg recordings' against microservices/recordings/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "sheets": [
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/sheets/IP-003-formula-engine-kernel-domain-400-functions.md",
+        "title_hint": "formula engine kernel domain 400 functions",
+        "scope_hint": "Expand using the standard structure: parse 'formula engine kernel domain 400 functions' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/sheets/IP-004-recalc-engine-dep-graph-parallel.md",
+        "title_hint": "recalc engine dep graph parallel",
+        "scope_hint": "Expand using the standard structure: parse 'recalc engine dep graph parallel' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/sheets/IP-005-collab-crdt-loro-aligned-ws-0001.md",
+        "title_hint": "collab crdt loro aligned ws 0001",
+        "scope_hint": "Expand using the standard structure: parse 'collab crdt loro aligned ws 0001' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/sheets/IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid.md",
+        "title_hint": "large sheet storage postgres arrow parquet hybrid",
+        "scope_hint": "Expand using the standard structure: parse 'large sheet storage postgres arrow parquet hybrid' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/sheets/IP-008-formatting-pivot-charts-data-validation.md",
+        "title_hint": "formatting pivot charts data validation",
+        "scope_hint": "Expand using the standard structure: parse 'formatting pivot charts data validation' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/sheets/IP-010-sharing-acl-named-range-cedar.md",
+        "title_hint": "sharing acl named range cedar",
+        "scope_hint": "Expand using the standard structure: parse 'sharing acl named range cedar' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/sheets/IP-012-connected-sheets-comments-version-history-trigger-embed-bridge.md",
+        "title_hint": "connected sheets comments version history trigger embed bridge",
+        "scope_hint": "Expand using the standard structure: parse 'connected sheets comments version history trigger embed bridge' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/sheets/IP-013-cell-grid-rest-leptos-wasm-app-license-gate.md",
+        "title_hint": "cell grid rest leptos wasm app license gate",
+        "scope_hint": "Expand using the standard structure: parse 'cell grid rest leptos wasm app license gate' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/sheets/IP-014-observability-slo-manifests-9-openslo.md",
+        "title_hint": "observability slo manifests 9 openslo",
+        "scope_hint": "Expand using the standard structure: parse 'observability slo manifests 9 openslo' against microservices/sheets/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "shorts": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/shorts/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/shorts/IP-003-video-upload-bc.md",
+        "title_hint": "video upload bc",
+        "scope_hint": "Expand using the standard structure: parse 'video upload bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/shorts/IP-004-video-transcode-bc.md",
+        "title_hint": "video transcode bc",
+        "scope_hint": "Expand using the standard structure: parse 'video transcode bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/shorts/IP-005-video-storage-and-cdn-bc.md",
+        "title_hint": "video storage and cdn bc",
+        "scope_hint": "Expand using the standard structure: parse 'video storage and cdn bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/shorts/IP-006-thumbnail-and-composition-bc.md",
+        "title_hint": "thumbnail and composition bc",
+        "scope_hint": "Expand using the standard structure: parse 'thumbnail and composition bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/shorts/IP-007-audio-track-library-and-attribution-bc.md",
+        "title_hint": "audio track library and attribution bc",
+        "scope_hint": "Expand using the standard structure: parse 'audio track library and attribution bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/shorts/IP-008-feed-timeline-and-watch-time-bc.md",
+        "title_hint": "feed timeline and watch time bc",
+        "scope_hint": "Expand using the standard structure: parse 'feed timeline and watch time bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/shorts/IP-009-like-share-comment-and-repost-bc.md",
+        "title_hint": "like share comment and repost bc",
+        "scope_hint": "Expand using the standard structure: parse 'like share comment and repost bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/shorts/IP-010-hashtag-and-trending-bc.md",
+        "title_hint": "hashtag and trending bc",
+        "scope_hint": "Expand using the standard structure: parse 'hashtag and trending bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/shorts/IP-011-content-moderation-and-copyright-claim-bc.md",
+        "title_hint": "content moderation and copyright claim bc",
+        "scope_hint": "Expand using the standard structure: parse 'content moderation and copyright claim bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/shorts/IP-012-age-gate-and-parental-controls-bc.md",
+        "title_hint": "age gate and parental controls bc",
+        "scope_hint": "Expand using the standard structure: parse 'age gate and parental controls bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/shorts/IP-013-accessibility-captions-bc.md",
+        "title_hint": "accessibility captions bc",
+        "scope_hint": "Expand using the standard structure: parse 'accessibility captions bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/shorts/IP-014-notifications-and-creator-analytics-bc.md",
+        "title_hint": "notifications and creator analytics bc",
+        "scope_hint": "Expand using the standard structure: parse 'notifications and creator analytics bc' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/shorts/IP-015-drm-and-hg-shorts-registration.md",
+        "title_hint": "drm and hg shorts registration",
+        "scope_hint": "Expand using the standard structure: parse 'drm and hg shorts registration' against microservices/shorts/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "sites": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/sites/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/sites/IP-002-site-bc-kernel.md",
+        "title_hint": "site bc kernel",
+        "scope_hint": "Expand using the standard structure: parse 'site bc kernel' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/sites/IP-003-page-bc-kernel.md",
+        "title_hint": "page bc kernel",
+        "scope_hint": "Expand using the standard structure: parse 'page bc kernel' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/sites/IP-004-block-bc-and-loro.md",
+        "title_hint": "block bc and loro",
+        "scope_hint": "Expand using the standard structure: parse 'block bc and loro' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/sites/IP-005-theme-and-navigation.md",
+        "title_hint": "theme and navigation",
+        "scope_hint": "Expand using the standard structure: parse 'theme and navigation' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/sites/IP-006-url-routing.md",
+        "title_hint": "url routing",
+        "scope_hint": "Expand using the standard structure: parse 'url routing' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/sites/IP-007-domain-binding-acme.md",
+        "title_hint": "domain binding acme",
+        "scope_hint": "Expand using the standard structure: parse 'domain binding acme' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/sites/IP-008-seo-and-sitemap.md",
+        "title_hint": "seo and sitemap",
+        "scope_hint": "Expand using the standard structure: parse 'seo and sitemap' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/sites/IP-009-cms-collection.md",
+        "title_hint": "cms collection",
+        "scope_hint": "Expand using the standard structure: parse 'cms collection' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/sites/IP-010-search-meilisearch.md",
+        "title_hint": "search meilisearch",
+        "scope_hint": "Expand using the standard structure: parse 'search meilisearch' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/sites/IP-011-cdn-delivery-and-pipeline.md",
+        "title_hint": "cdn delivery and pipeline",
+        "scope_hint": "Expand using the standard structure: parse 'cdn delivery and pipeline' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/sites/IP-012-policy-dpia-threat-model.md",
+        "title_hint": "policy dpia threat model",
+        "scope_hint": "Expand using the standard structure: parse 'policy dpia threat model' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/sites/IP-013-contracts-and-capabilities.md",
+        "title_hint": "contracts and capabilities",
+        "scope_hint": "Expand using the standard structure: parse 'contracts and capabilities' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/sites/IP-014-dashboards-runbooks-slos.md",
+        "title_hint": "dashboards runbooks slos",
+        "scope_hint": "Expand using the standard structure: parse 'dashboards runbooks slos' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/sites/IP-015-hg-sites-maturity-claim.md",
+        "title_hint": "hg sites maturity claim",
+        "scope_hint": "Expand using the standard structure: parse 'hg sites maturity claim' against microservices/sites/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "slides": [
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/slides/IP-004-asset-bcs-image-video-audio-adapters.md",
+        "title_hint": "asset bcs image video audio adapters",
+        "scope_hint": "Expand using the standard structure: parse 'asset bcs image video audio adapters' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/slides/IP-006-real-time-collaboration-worker-sdk.md",
+        "title_hint": "real time collaboration worker sdk",
+        "scope_hint": "Expand using the standard structure: parse 'real time collaboration worker sdk' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/slides/IP-007-chart-embed-bridge-to-sheets.md",
+        "title_hint": "chart embed bridge to sheets",
+        "scope_hint": "Expand using the standard structure: parse 'chart embed bridge to sheets' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/slides/IP-008-themes-templates-master-slide-editor.md",
+        "title_hint": "themes templates master slide editor",
+        "scope_hint": "Expand using the standard structure: parse 'themes templates master slide editor' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/slides/IP-009-animations-transitions-reduced-motion.md",
+        "title_hint": "animations transitions reduced motion",
+        "scope_hint": "Expand using the standard structure: parse 'animations transitions reduced motion' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/slides/IP-010-presenter-audience-view-broadcast-mode-livekit.md",
+        "title_hint": "presenter audience view broadcast mode livekit",
+        "scope_hint": "Expand using the standard structure: parse 'presenter audience view broadcast mode livekit' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/slides/IP-011-import-export-pptx-pdf-mp4-pipeline.md",
+        "title_hint": "import export pptx pdf mp4 pipeline",
+        "scope_hint": "Expand using the standard structure: parse 'import export pptx pdf mp4 pipeline' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/slides/IP-012-accessibility-ai-design-ai-content-generation.md",
+        "title_hint": "accessibility ai design ai content generation",
+        "scope_hint": "Expand using the standard structure: parse 'accessibility ai design ai content generation' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/slides/IP-013-acl-comments-version-history-embed-bridge.md",
+        "title_hint": "acl comments version history embed bridge",
+        "scope_hint": "Expand using the standard structure: parse 'acl comments version history embed bridge' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/slides/IP-014-visual-canvas-leptos-wasm-rest-sdk-app.md",
+        "title_hint": "visual canvas leptos wasm rest sdk app",
+        "scope_hint": "Expand using the standard structure: parse 'visual canvas leptos wasm rest sdk app' against microservices/slides/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "social": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/social/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/social/IP-002-cargo-workspace-bootstrap.md",
+        "title_hint": "cargo workspace bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'cargo workspace bootstrap' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/social/IP-007-reactions-bc.md",
+        "title_hint": "reactions bc",
+        "scope_hint": "Expand using the standard structure: parse 'reactions bc' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/social/IP-008-mentions-and-hashtags-bc.md",
+        "title_hint": "mentions and hashtags bc",
+        "scope_hint": "Expand using the standard structure: parse 'mentions and hashtags bc' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/social/IP-009-trending-topics-bc.md",
+        "title_hint": "trending topics bc",
+        "scope_hint": "Expand using the standard structure: parse 'trending topics bc' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/social/IP-010-notifications-bc.md",
+        "title_hint": "notifications bc",
+        "scope_hint": "Expand using the standard structure: parse 'notifications bc' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/social/IP-011-content-moderation-bc.md",
+        "title_hint": "content moderation bc",
+        "scope_hint": "Expand using the standard structure: parse 'content moderation bc' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/social/IP-012-search-and-cedar-filter.md",
+        "title_hint": "search and cedar filter",
+        "scope_hint": "Expand using the standard structure: parse 'search and cedar filter' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/social/IP-013-age-verification-and-profile-verification.md",
+        "title_hint": "age verification and profile verification",
+        "scope_hint": "Expand using the standard structure: parse 'age verification and profile verification' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/social/IP-014-observability-slo.md",
+        "title_hint": "observability slo",
+        "scope_hint": "Expand using the standard structure: parse 'observability slo' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/social/IP-015-hg-social-registration-and-branch-protection.md",
+        "title_hint": "hg social registration and branch protection",
+        "scope_hint": "Expand using the standard structure: parse 'hg social registration and branch protection' against microservices/social/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "tasks": [
+      {
+        "ip_id": "IP-001",
+        "path": "microservices/tasks/IP-001-iac-bootstrap.md",
+        "title_hint": "iac bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'iac bootstrap' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-002",
+        "path": "microservices/tasks/IP-002-cargo-workspace-bootstrap.md",
+        "title_hint": "cargo workspace bootstrap",
+        "scope_hint": "Expand using the standard structure: parse 'cargo workspace bootstrap' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/tasks/IP-003-task-store-kernel-domain.md",
+        "title_hint": "task store kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'task store kernel domain' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/tasks/IP-004-task-store-adapter-postgres.md",
+        "title_hint": "task store adapter postgres",
+        "scope_hint": "Expand using the standard structure: parse 'task store adapter postgres' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/tasks/IP-005-project-and-board-bc.md",
+        "title_hint": "project and board bc",
+        "scope_hint": "Expand using the standard structure: parse 'project and board bc' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/tasks/IP-006-custom-field-engine.md",
+        "title_hint": "custom field engine",
+        "scope_hint": "Expand using the standard structure: parse 'custom field engine' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/tasks/IP-007-dependency-graph-and-cycle-prevention.md",
+        "title_hint": "dependency graph and cycle prevention",
+        "scope_hint": "Expand using the standard structure: parse 'dependency graph and cycle prevention' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/tasks/IP-008-recurring-task-engine.md",
+        "title_hint": "recurring task engine",
+        "scope_hint": "Expand using the standard structure: parse 'recurring task engine' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/tasks/IP-009-state-workflow-engine-cross-link.md",
+        "title_hint": "state workflow engine cross link",
+        "scope_hint": "Expand using the standard structure: parse 'state workflow engine cross link' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/tasks/IP-010-view-engine-and-board-realtime.md",
+        "title_hint": "view engine and board realtime",
+        "scope_hint": "Expand using the standard structure: parse 'view engine and board realtime' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/tasks/IP-011-search-and-filter.md",
+        "title_hint": "search and filter",
+        "scope_hint": "Expand using the standard structure: parse 'search and filter' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/tasks/IP-012-bulk-edit-pipeline.md",
+        "title_hint": "bulk edit pipeline",
+        "scope_hint": "Expand using the standard structure: parse 'bulk edit pipeline' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/tasks/IP-013-rest-and-websocket-api-surface.md",
+        "title_hint": "rest and websocket api surface",
+        "scope_hint": "Expand using the standard structure: parse 'rest and websocket api surface' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-014",
+        "path": "microservices/tasks/IP-014-ai-assist-bounds-and-eu-ai-act.md",
+        "title_hint": "ai assist bounds and eu ai act",
+        "scope_hint": "Expand using the standard structure: parse 'ai assist bounds and eu ai act' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/tasks/IP-015-hg-tasks-conformance.md",
+        "title_hint": "hg tasks conformance",
+        "scope_hint": "Expand using the standard structure: parse 'hg tasks conformance' against microservices/tasks/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "tenancy": [
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/tenancy/IP-003-tenant-lifecycle-domain.md",
+        "title_hint": "tenant lifecycle domain",
+        "scope_hint": "Expand using the standard structure: parse 'tenant lifecycle domain' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/tenancy/IP-004-tenant-lifecycle-usecase.md",
+        "title_hint": "tenant lifecycle usecase",
+        "scope_hint": "Expand using the standard structure: parse 'tenant lifecycle usecase' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-005",
+        "path": "microservices/tenancy/IP-005-tenant-lifecycle-adapter-postgres.md",
+        "title_hint": "tenant lifecycle adapter postgres",
+        "scope_hint": "Expand using the standard structure: parse 'tenant lifecycle adapter postgres' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/tenancy/IP-006-isolation-policy-rls-generator.md",
+        "title_hint": "isolation policy rls generator",
+        "scope_hint": "Expand using the standard structure: parse 'isolation policy rls generator' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/tenancy/IP-007-isolation-policy-jwt-issuer.md",
+        "title_hint": "isolation policy jwt issuer",
+        "scope_hint": "Expand using the standard structure: parse 'isolation policy jwt issuer' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/tenancy/IP-008-cell-assignment-controller.md",
+        "title_hint": "cell assignment controller",
+        "scope_hint": "Expand using the standard structure: parse 'cell assignment controller' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/tenancy/IP-010-tenancy-rest-and-sdk.md",
+        "title_hint": "tenancy rest and sdk",
+        "scope_hint": "Expand using the standard structure: parse 'tenancy rest and sdk' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/tenancy/IP-011-audit-chain-integration.md",
+        "title_hint": "audit chain integration",
+        "scope_hint": "Expand using the standard structure: parse 'audit chain integration' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/tenancy/IP-012-branch-protection-and-release-pointers.md",
+        "title_hint": "branch protection and release pointers",
+        "scope_hint": "Expand using the standard structure: parse 'branch protection and release pointers' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/tenancy/IP-013-canary-cohort-and-rollback-wiring.md",
+        "title_hint": "canary cohort and rollback wiring",
+        "scope_hint": "Expand using the standard structure: parse 'canary cohort and rollback wiring' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/tenancy/IP-015-legacy-crates-migration.md",
+        "title_hint": "legacy crates migration",
+        "scope_hint": "Expand using the standard structure: parse 'legacy crates migration' against microservices/tenancy/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "translate": [
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/translate/IP-006-termbase-and-glossary-stack.md",
+        "title_hint": "termbase and glossary stack",
+        "scope_hint": "Expand using the standard structure: parse 'termbase and glossary stack' against microservices/translate/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/translate/IP-007-quality-estimation-stack.md",
+        "title_hint": "quality estimation stack",
+        "scope_hint": "Expand using the standard structure: parse 'quality estimation stack' against microservices/translate/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/translate/IP-008-language-detection-stack.md",
+        "title_hint": "language detection stack",
+        "scope_hint": "Expand using the standard structure: parse 'language detection stack' against microservices/translate/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/translate/IP-009-document-translation-stack.md",
+        "title_hint": "document translation stack",
+        "scope_hint": "Expand using the standard structure: parse 'document translation stack' against microservices/translate/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/translate/IP-011-real-time-stream-stack.md",
+        "title_hint": "real time stream stack",
+        "scope_hint": "Expand using the standard structure: parse 'real time stream stack' against microservices/translate/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/translate/IP-012-engine-adapter-foundry-runtime.md",
+        "title_hint": "engine adapter foundry runtime",
+        "scope_hint": "Expand using the standard structure: parse 'engine adapter foundry runtime' against microservices/translate/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-013",
+        "path": "microservices/translate/IP-013-engine-adapters-external.md",
+        "title_hint": "engine adapters external",
+        "scope_hint": "Expand using the standard structure: parse 'engine adapters external' against microservices/translate/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ],
+    "workflow-engine": [
+      {
+        "ip_id": "IP-003",
+        "path": "microservices/workflow-engine/IP-003-state-machine-kernel-domain.md",
+        "title_hint": "state machine kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'state machine kernel domain' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-004",
+        "path": "microservices/workflow-engine/IP-004-execution-engine-kernel-domain.md",
+        "title_hint": "execution engine kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'execution engine kernel domain' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-006",
+        "path": "microservices/workflow-engine/IP-006-event-bus-kernel-domain-adapter.md",
+        "title_hint": "event bus kernel domain adapter",
+        "scope_hint": "Expand using the standard structure: parse 'event bus kernel domain adapter' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-007",
+        "path": "microservices/workflow-engine/IP-007-event-bus-rest-worker-sdk-app.md",
+        "title_hint": "event bus rest worker sdk app",
+        "scope_hint": "Expand using the standard structure: parse 'event bus rest worker sdk app' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-008",
+        "path": "microservices/workflow-engine/IP-008-spec-store-usecase-api-adapter-rest-sdk-app.md",
+        "title_hint": "spec store usecase api adapter rest sdk app",
+        "scope_hint": "Expand using the standard structure: parse 'spec store usecase api adapter rest sdk app' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-009",
+        "path": "microservices/workflow-engine/IP-009-execution-engine-rest-worker-sdk-app.md",
+        "title_hint": "execution engine rest worker sdk app",
+        "scope_hint": "Expand using the standard structure: parse 'execution engine rest worker sdk app' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-010",
+        "path": "microservices/workflow-engine/IP-010-replay-debugger-backend-kernel-domain.md",
+        "title_hint": "replay debugger backend kernel domain",
+        "scope_hint": "Expand using the standard structure: parse 'replay debugger backend kernel domain' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-011",
+        "path": "microservices/workflow-engine/IP-011-replay-debugger-backend-usecase-adapter.md",
+        "title_hint": "replay debugger backend usecase adapter",
+        "scope_hint": "Expand using the standard structure: parse 'replay debugger backend usecase adapter' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-012",
+        "path": "microservices/workflow-engine/IP-012-replay-debugger-backend-rest-sdk-app.md",
+        "title_hint": "replay debugger backend rest sdk app",
+        "scope_hint": "Expand using the standard structure: parse 'replay debugger backend rest sdk app' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      },
+      {
+        "ip_id": "IP-015",
+        "path": "microservices/workflow-engine/IP-015-deterministic-replay-lane.md",
+        "title_hint": "deterministic replay lane",
+        "scope_hint": "Expand using the standard structure: parse 'deterministic replay lane' against microservices/workflow-engine/PRD.md + parent PHASE-SPEC to identify file targets, test names, evidence emission, rollback procedure. If scope unclear, name the gap before expanding."
+      }
+    ]
+  }
+}

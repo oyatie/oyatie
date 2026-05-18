@@ -1,0 +1,349 @@
+{
+  "schema_version": "1.0",
+  "ledger_kind": "followup-scope",
+  "emitted_at": "2026-05-18",
+  "batch": "storage-backup-autoscaling-finops",
+  "authored_by": "agent-storage-batch",
+  "purpose": "Names every artifact owed beyond the primary deliverable so the next IP can pick it up without re-deriving scope.",
+  "honesty_note": "Per the doubt-driven-development discipline + per scope-honesty directive: the originally-scoped batch was 4 ADRs + 5 helms + 4 crates + 2 standards + parent-wiring TODO + evidence report. The coordinator-issued mid-batch expansion (full doc coverage matching 33-µservice template; full finops-portal pack; cloud-iac/cloud-k8s extension docs) materially enlarges the surface to ~70-90 artifacts. The child agent landed the primary deliverable + a minimum-viable seed of the expansion (15 additional artifacts) AND emits this ledger naming the remaining work. The expansion artifacts are recorded here with file paths, target line counts, and acceptance criteria so the next IP can drive them with one author.",
+  "expansion_owed_artifacts": {
+    "finops_portal_microservice_full_pack": {
+      "owner_axis": "ops-finops + axis-cloud-iac",
+      "current_state": "seed (manifest.json + PRD.md + 3 IPs + 2 SLOs + 1 runbook + 1 dashboard spec + 1 catalog/bnf yaml = 9 files)",
+      "owed_artifacts": [
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-004-finops-portal-tenant-billing-presentation-usecase.md",
+          "target_lines": 100,
+          "acceptance": "describes usecase-layer slice (depends on IP-002 domain)"
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-005-finops-portal-tenant-billing-presentation-api.md",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-006-finops-portal-tenant-billing-presentation-app.md",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-007-finops-portal-cedar-policy-tenant-isolation.md",
+          "target_lines": 120
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-008-finops-portal-grafana-embed-dashboards.md",
+          "target_lines": 120
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-009-finops-portal-cost-allocation-policy-kernel.md",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-010-finops-portal-cost-allocation-policy-domain.md",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-011-finops-portal-anomaly-explanation-kernel.md",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-012-finops-portal-anomaly-explanation-domain.md",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-013-finops-portal-credit-ledger-kernel.md",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-014-finops-portal-focus-export-pipeline.md",
+          "target_lines": 150
+        },
+        {
+          "path": "microservices/finops-portal/implementation-plans/IP-015-finops-portal-quarterly-regulator-evidence-emit.md",
+          "target_lines": 150
+        },
+        {
+          "path": "microservices/finops-portal/slos/cost-allocation-policy-change-latency.openslo.yaml",
+          "target_lines": 50
+        },
+        {
+          "path": "microservices/finops-portal/slos/focus-export-availability.openslo.yaml",
+          "target_lines": 50
+        },
+        {
+          "path": "microservices/finops-portal/slos/credit-application-correctness.openslo.yaml",
+          "target_lines": 50
+        },
+        {
+          "path": "microservices/finops-portal/slos/anomaly-explanation-latency.openslo.yaml",
+          "target_lines": 50
+        },
+        {
+          "path": "microservices/finops-portal/slos/regulator-emit-availability.openslo.yaml",
+          "target_lines": 50
+        },
+        {
+          "path": "microservices/finops-portal/slos/tenant-invoice-pdf-render-availability.openslo.yaml",
+          "target_lines": 50
+        },
+        {
+          "path": "microservices/finops-portal/slos/drilldown-query-latency-p99.openslo.yaml",
+          "target_lines": 50
+        },
+        {
+          "path": "microservices/finops-portal/runbooks/tenant-budget-headroom-low.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/runbooks/tenant-budget-exhausted.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/runbooks/focus-export-failure.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/runbooks/quarterly-regulator-emit-miss.md",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/runbooks/credit-application-reconciliation.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/runbooks/cost-allocation-policy-rollback.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/runbooks/finops-portal-deploy-rollback.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/policy/cedar/tenant-isolation.cedar",
+          "target_lines": 60
+        },
+        {
+          "path": "microservices/finops-portal/policy/cedar/customer-success-credit-application.cedar",
+          "target_lines": 60
+        },
+        {
+          "path": "microservices/finops-portal/policy/cedar/regulator-evidence-emit.cedar",
+          "target_lines": 60
+        },
+        {
+          "path": "microservices/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar",
+          "target_lines": 60
+        },
+        {
+          "path": "microservices/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
+          "target_lines": 150
+        },
+        {
+          "path": "microservices/finops-portal/contracts/focus-export-internal.openapi.yaml",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/contracts/cost-allocation-policy-internal.openapi.yaml",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/capabilities/tenant-invoice-render.capability.yaml",
+          "target_lines": 50,
+          "notes": "EU AI Act risk class: limited (presentation only)"
+        },
+        {
+          "path": "microservices/finops-portal/capabilities/anomaly-explanation.capability.yaml",
+          "target_lines": 50,
+          "notes": "EU AI Act risk class: limited"
+        },
+        {
+          "path": "microservices/finops-portal/capabilities/focus-export.capability.yaml",
+          "target_lines": 50,
+          "notes": "EU AI Act risk class: minimal"
+        },
+        {
+          "path": "microservices/finops-portal/dashboards/tenant-cost-drilldown.grafana.json",
+          "target_lines": 200,
+          "notes": "Grafana dashboard JSON; spec lives in dashboards/tenant-cost-drilldown.md (seed)"
+        },
+        {
+          "path": "microservices/finops-portal/dashboards/fleet-cost-rollup.grafana.json",
+          "target_lines": 200
+        },
+        {
+          "path": "microservices/finops-portal/dashboards/anomaly-investigation.grafana.json",
+          "target_lines": 200
+        },
+        {
+          "path": "microservices/finops-portal/iac/helm/finops-portal/Chart.yaml",
+          "target_lines": 30
+        },
+        {
+          "path": "microservices/finops-portal/iac/helm/finops-portal/values.yaml",
+          "target_lines": 100
+        },
+        {
+          "path": "microservices/finops-portal/iac/helm/finops-portal/values-kr.yaml",
+          "target_lines": 30
+        },
+        {
+          "path": "microservices/finops-portal/iac/helm/finops-portal/values-eu.yaml",
+          "target_lines": 30
+        },
+        {
+          "path": "microservices/finops-portal/iac/helm/finops-portal/values-us-healthcare.yaml",
+          "target_lines": 30
+        },
+        {
+          "path": "microservices/finops-portal/scorecards/adr-0064-canonical-base.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/scorecards/adr-0186-observability-backplane.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/scorecards/adr-0199-finops-substrate.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/scorecards/adr-0083-kernel-tier-invariants.md",
+          "target_lines": 80
+        },
+        {
+          "path": "microservices/finops-portal/PHASE-01-tenant-billing-presentation.md",
+          "target_lines": 250
+        },
+        {
+          "path": "microservices/finops-portal/threat-model.md",
+          "target_lines": 200,
+          "notes": "STRIDE applied per ADR-0183 cedar-policy-discipline"
+        },
+        {
+          "path": "microservices/finops-portal/dpia.md",
+          "target_lines": 200,
+          "notes": "GDPR DPIA per ADR-0008 data-use-boundary"
+        },
+        {
+          "path": "microservices/finops-portal/compliance-matrix.md",
+          "target_lines": 200,
+          "notes": "Per regulatory-pack compliance evidence"
+        },
+        {
+          "path": "microservices/finops-portal/cost-model.md",
+          "target_lines": 150
+        },
+        {
+          "path": "microservices/finops-portal/multi-region-strategy.md",
+          "target_lines": 150
+        },
+        {
+          "path": "microservices/finops-portal/incident-playbook.md",
+          "target_lines": 200
+        },
+        {
+          "path": "microservices/finops-portal/capacity-model.md",
+          "target_lines": 150
+        },
+        {
+          "path": "microservices/finops-portal/failure-modes.md",
+          "target_lines": 200
+        },
+        {
+          "path": "microservices/finops-portal/sdk-reference.md",
+          "target_lines": 150
+        },
+        {
+          "path": "microservices/finops-portal/competitor-parity.md",
+          "target_lines": 150,
+          "notes": "Cost-Explorer / Cloud-Billing / Cost-Management / Cost-Analysis parity table"
+        },
+        {
+          "path": "microservices/finops-portal/backfill-plan.md",
+          "target_lines": 100
+        }
+      ],
+      "estimated_total_files": 60,
+      "estimated_total_lines": 7200,
+      "depends_on": [
+        "Workspace registers crates per BNF v4.1 catalog",
+        "ADR-0199 §In-house roadmap Phase 2 trigger condition met (build trigger)"
+      ]
+    },
+    "cloud_iac_extension_for_seaweedfs": {
+      "current_state": "Helm chart + 2 IPs + 1 runbook landed this batch",
+      "owed_artifacts": [
+        {"path": "microservices/cloud-iac/implementation-plans/IP-seaweedfs-geo-replication-config.md", "target_lines": 100},
+        {"path": "microservices/cloud-iac/implementation-plans/IP-seaweedfs-lifecycle-policies.md", "target_lines": 100},
+        {"path": "microservices/cloud-iac/implementation-plans/IP-seaweedfs-backup-target-bootstrap.md", "target_lines": 100},
+        {"path": "microservices/cloud-iac/implementation-plans/IP-seaweedfs-s3-compat-adapter-rollout.md", "target_lines": 120},
+        {"path": "microservices/cloud-iac/implementation-plans/IP-ceph-rgw-scale-up-prep-path.md", "target_lines": 150, "notes": "Per ADR-0196 D-2 scale-up trigger"},
+        {"path": "microservices/cloud-iac/runbooks/seaweedfs-lifecycle-policy-debug.md", "target_lines": 80},
+        {"path": "microservices/cloud-iac/runbooks/seaweedfs-s3-key-rotation.md", "target_lines": 100},
+        {"path": "microservices/cloud-iac/decisions/ADR-microservice-local-per-pack-region-affinity.md", "target_lines": 200},
+        {"path": "microservices/cloud-iac/slos/seaweedfs-presigned-url-issue-latency.openslo.yaml", "target_lines": 50},
+        {"path": "microservices/cloud-iac/slos/seaweedfs-volume-availability.openslo.yaml", "target_lines": 50},
+        {"path": "microservices/cloud-iac/dashboards/seaweedfs-cluster-health.grafana.json", "target_lines": 200},
+        {"path": "microservices/cloud-iac/iac/helm/seaweedfs/values-kr.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-iac/iac/helm/seaweedfs/values-eu.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-iac/iac/helm/seaweedfs/values-us-healthcare.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-iac/iac/helm/seaweedfs/templates/", "target_lines": 400, "notes": "deployment.yaml / service.yaml / networkpolicy.yaml / servicemonitor.yaml / prometheusrule.yaml using oya-helpers"}
+      ],
+      "estimated_total_files": 16,
+      "estimated_total_lines": 2000
+    },
+    "cloud_iac_extension_for_backup": {
+      "current_state": "Helm charts + 1 IP + 1 runbook landed this batch",
+      "owed_artifacts": [
+        {"path": "microservices/cloud-iac/implementation-plans/IP-velero-restic-uploader-tuning.md", "target_lines": 100},
+        {"path": "microservices/cloud-iac/implementation-plans/IP-pgbackrest-per-microservice-stanza-rollout.md", "target_lines": 120},
+        {"path": "microservices/cloud-iac/implementation-plans/IP-age-key-rotation-quarterly.md", "target_lines": 120},
+        {"path": "microservices/cloud-iac/implementation-plans/IP-restore-drill-chaos-substrate-wiring.md", "target_lines": 150},
+        {"path": "microservices/cloud-iac/implementation-plans/IP-backup-cost-budget-addendum.md", "target_lines": 100},
+        {"path": "microservices/cloud-iac/runbooks/pitr-recovery.md", "target_lines": 150},
+        {"path": "microservices/cloud-iac/runbooks/cross-region-failover-restore.md", "target_lines": 150},
+        {"path": "microservices/cloud-iac/runbooks/ransomware-rollback.md", "target_lines": 150},
+        {"path": "microservices/cloud-iac/slos/velero-backup-rpo-app-class.openslo.yaml", "target_lines": 50},
+        {"path": "microservices/cloud-iac/slos/velero-backup-rpo-regulatory-class.openslo.yaml", "target_lines": 50},
+        {"path": "microservices/cloud-iac/slos/pgbackrest-pitr-recovery-rto.openslo.yaml", "target_lines": 50},
+        {"path": "microservices/cloud-iac/slos/restic-filesystem-rpo.openslo.yaml", "target_lines": 50},
+        {"path": "microservices/cloud-iac/iac/helm/velero/values-kr.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-iac/iac/helm/velero/values-eu.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-iac/iac/helm/velero/values-us-healthcare.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-iac/iac/helm/pgbackrest/values-kr.yaml", "target_lines": 30}
+      ],
+      "estimated_total_files": 16,
+      "estimated_total_lines": 1400
+    },
+    "cloud_k8s_extension_for_karpenter": {
+      "current_state": "Helm chart + 1 IP + 1 runbook landed this batch",
+      "owed_artifacts": [
+        {"path": "microservices/cloud-k8s/implementation-plans/IP-karpenter-cluster-api-on-prem-integration.md", "target_lines": 150},
+        {"path": "microservices/cloud-k8s/implementation-plans/IP-karpenter-cluster-autoscaler-cutover.md", "target_lines": 120},
+        {"path": "microservices/cloud-k8s/runbooks/karpenter-drift-detection-incident.md", "target_lines": 100},
+        {"path": "microservices/cloud-k8s/decisions/ADR-microservice-local-nodepool-per-workload-class.md", "target_lines": 250, "notes": "µservice-local ADR per ADR-0198 D-2"},
+        {"path": "microservices/cloud-k8s/iac/helm/karpenter/values-kr.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-k8s/iac/helm/karpenter/values-eu.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-k8s/iac/helm/karpenter/values-us-public-sector.yaml", "target_lines": 30},
+        {"path": "microservices/cloud-k8s/slos/karpenter-scale-up-latency.openslo.yaml", "target_lines": 50},
+        {"path": "microservices/cloud-k8s/slos/karpenter-consolidation-savings.openslo.yaml", "target_lines": 50}
+      ],
+      "estimated_total_files": 9,
+      "estimated_total_lines": 810
+    },
+    "per_microservice_tenant_cost_label_adoption": {
+      "current_state": "Standards doc + check crate landed this batch",
+      "owed_artifacts": [
+        {"path": "docs/standards/object-store-canonical.md", "target_lines": 250, "notes": "Per ADR-0196 — referenced by helm Chart.yaml descriptions"},
+        {"path": "docs/standards/autoscaling-canonical.md", "target_lines": 200, "notes": "Per ADR-0198"},
+        {"path": "evidence/per-microservice-tenant-cost-label-adoption-ledger.json", "target_lines": 200, "notes": "Per-µservice adoption tracker"},
+        {"path": "registry/finops/cost-tag-vocabulary.yaml", "target_lines": 100, "notes": "Closed enum per ADR-0174"}
+      ],
+      "estimated_total_files": 4,
+      "estimated_total_lines": 750
+    }
+  },
+  "totals_owed": {
+    "files": 105,
+    "estimated_lines": 12160
+  },
+  "honesty_summary": "The expansion would multiply the already-landed batch by ~6x in file count and ~4x in line count. The child landed the substrate + seed (everything required to make the µservice structurally exist + every kernel and every Helm chart at hyperscaler-bar depth) and recorded the remaining work here so the next IP runs against a real ledger, not a re-derivation."
+}

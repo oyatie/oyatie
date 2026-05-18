@@ -1,0 +1,329 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-secrets",
+  "version": "0.1.0",
+  "owner": "axis-cloud-secrets",
+  "bounded_contexts": [
+    {
+      "name": "cloud-secrets",
+      "description": "Bounded context 'cloud-secrets' within cloud-secrets (control plane)",
+      "crates": [
+        "oya-cloud-secrets-audit-emitter-adapter-audit-chain-bridge",
+        "oya-cloud-secrets-audit-emitter-api",
+        "oya-cloud-secrets-audit-emitter-app",
+        "oya-cloud-secrets-audit-emitter-kernel",
+        "oya-cloud-secrets-audit-emitter-usecase",
+        "oya-cloud-secrets-hsm-integration-adapter-hsm",
+        "oya-cloud-secrets-hsm-integration-api",
+        "oya-cloud-secrets-hsm-integration-app",
+        "oya-cloud-secrets-hsm-integration-kernel",
+        "oya-cloud-secrets-hsm-integration-usecase",
+        "oya-cloud-secrets-key-rotation-scheduler-adapter",
+        "oya-cloud-secrets-key-rotation-scheduler-api",
+        "oya-cloud-secrets-key-rotation-scheduler-app",
+        "oya-cloud-secrets-key-rotation-scheduler-domain",
+        "oya-cloud-secrets-key-rotation-scheduler-kernel",
+        "oya-cloud-secrets-key-rotation-scheduler-usecase",
+        "oya-cloud-secrets-key-rotation-scheduler-worker",
+        "oya-cloud-secrets-openbao-operator-adapter",
+        "oya-cloud-secrets-openbao-operator-api",
+        "oya-cloud-secrets-openbao-operator-app",
+        "oya-cloud-secrets-openbao-operator-domain",
+        "oya-cloud-secrets-openbao-operator-kernel",
+        "oya-cloud-secrets-openbao-operator-usecase",
+        "oya-cloud-secrets-per-tenant-namespace-controller-adapter",
+        "oya-cloud-secrets-per-tenant-namespace-controller-api",
+        "oya-cloud-secrets-per-tenant-namespace-controller-app",
+        "oya-cloud-secrets-per-tenant-namespace-controller-domain",
+        "oya-cloud-secrets-per-tenant-namespace-controller-kernel",
+        "oya-cloud-secrets-per-tenant-namespace-controller-usecase",
+        "oya-cloud-secrets-secret-reference-resolver-adapter",
+        "oya-cloud-secrets-secret-reference-resolver-adapter-openbao",
+        "oya-cloud-secrets-secret-reference-resolver-api",
+        "oya-cloud-secrets-secret-reference-resolver-app",
+        "oya-cloud-secrets-secret-reference-resolver-domain",
+        "oya-cloud-secrets-secret-reference-resolver-kernel",
+        "oya-cloud-secrets-secret-reference-resolver-rest",
+        "oya-cloud-secrets-secret-reference-resolver-sdk",
+        "oya-cloud-secrets-secret-reference-resolver-usecase"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml"
+    ],
+    "asyncapi": [
+      "microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml"
+    ],
+    "proto": [
+      "microservices/cloud-secrets/contracts/proto/cloud-secrets.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T2",
+      "name": "audit-query",
+      "file": "microservices/cloud-secrets/capabilities/audit-query.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T0",
+      "name": "secret-reference-resolve",
+      "file": "microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T2",
+      "name": "secret-rotate",
+      "file": "microservices/cloud-secrets/capabilities/secret-rotate.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-cloud-secrets-audit-log-completeness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_cloud_secrets_op_total{audit_sealed=\"true\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-hsm-availability",
+      "target": "0.9999",
+      "sli": "sum(rate(oya_cloud_secrets_hsm_op_total{outcome=\"success\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/hsm-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-key-rotation-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_cloud_secrets_key_rotation_total{outcome=\"on_cadence\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-pki-cert-issuance-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_secrets_pki_issue_duration_seconds_bucket{le=\"1\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-secret-resolve-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_cloud_secrets_resolve_duration_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-secret-write-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_secrets_write_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-layer-a-openbao-postgres-hsm-iac",
+      "title": "IP-001: Layer-A OpenBao + Postgres-HA + HSM-operator IaC",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-001-layer-a-openbao-postgres-hsm-iac.md"
+    },
+    {
+      "id": "IP-002-secretreference-uri-spec",
+      "title": "IP-002: SecretReference URI specification",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-002-secretreference-uri-spec.md"
+    },
+    {
+      "id": "IP-003-resolver-kernel",
+      "title": "IP-003: oya-cloud-secrets-secret-reference-resolver-kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-003-resolver-kernel.md"
+    },
+    {
+      "id": "IP-004-resolver-domain",
+      "title": "IP-004: oya-cloud-secrets-secret-reference-resolver-domain",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-004-resolver-domain.md"
+    },
+    {
+      "id": "IP-005-resolver-usecase",
+      "title": "IP-005: oya-cloud-secrets-secret-reference-resolver-usecase",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-005-resolver-usecase.md"
+    },
+    {
+      "id": "IP-006-resolver-adapter-openbao",
+      "title": "IP-006: oya-cloud-secrets-secret-reference-resolver-adapter-openbao",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-006-resolver-adapter-openbao.md"
+    },
+    {
+      "id": "IP-007-resolver-rest-and-sdk-rust",
+      "title": "IP-007: resolver-rest + SDK (Rust)",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md"
+    },
+    {
+      "id": "IP-008-sdk-ts-python-bindings",
+      "title": "IP-008: SDK TypeScript + Python bindings",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-008-sdk-ts-python-bindings.md"
+    },
+    {
+      "id": "IP-009-openbao-operator",
+      "title": "IP-009: openbao-operator kernel + domain + usecase + api + adapter + app",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-009-openbao-operator.md"
+    },
+    {
+      "id": "IP-010-key-rotation-scheduler-worker",
+      "title": "IP-010: key-rotation-scheduler worker",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-010-key-rotation-scheduler-worker.md"
+    },
+    {
+      "id": "IP-011-hsm-integration-adapter-hsm",
+      "title": "IP-011: hsm-integration adapter-hsm",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-011-hsm-integration-adapter-hsm.md"
+    },
+    {
+      "id": "IP-012-per-tenant-namespace-controller",
+      "title": "IP-012: per-tenant-namespace-controller",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-012-per-tenant-namespace-controller.md"
+    },
+    {
+      "id": "IP-013-audit-emitter-bridge-to-audit-chain",
+      "title": "IP-013: audit-emitter bridge to audit-chain",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-013-audit-emitter-bridge-to-audit-chain.md"
+    },
+    {
+      "id": "IP-014-observability-slo-branch-protection-hg-cloud-secrets",
+      "title": "IP-014: observability SLO + branch-protection + HG-CLOUD-SECRETS register",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-014-observability-slo-branch-protection-hg-cloud-secrets.md"
+    },
+    {
+      "id": "IP-015-lean-a11-raw-secret-emission-lane-wiring",
+      "title": "IP-015: LEAN-A11 raw-secret-emission lane wiring",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-secrets/IP-015-lean-a11-raw-secret-emission-lane-wiring.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "openbao": "2.0.0\"   # OpenBao 2.x LTS pinned per docs/standards/version-pinning.md",
+    "postgres": "16.4\"   # Postgres LTS pinned per docs/standards/version-pinning.md",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+    },
+    {
+      "id": "ADR-0120",
+      "title": "Rust First Onprem Tooling With Paired Uninstall",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.cloud-secrets.audit-query",
+      "oya.cloud-secrets.secret-reference-resolve",
+      "oya.cloud-secrets.secret-rotate"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "report_id": "workflow-template-library-batch-2026-05-18",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-18T00:00:00Z",
+  "mission": "Workflow Studio pre-built templates library (per-persona, ship-out-of-box value)",
+  "scope_lock": {
+    "touched": [
+      "microservices/workflow-studio/templates/**",
+      "microservices/workflow-studio/clients/web-sveltekit/src/templates/**"
+    ],
+    "untouched": [
+      "microservices/workflow-studio/src/**",
+      "other µservices"
+    ]
+  },
+  "summary": {
+    "templates_generated": 25,
+    "verticals_covered": ["hr-people", "payroll-finance", "operations", "hospital-operations", "hiring"],
+    "personas_covered": [
+      "hr-business-partner",
+      "people-ops-coordinator",
+      "payroll-controller",
+      "finance-controller",
+      "procurement-lead",
+      "it-asset-admin",
+      "hospital-admissions-clerk",
+      "hospital-discharge-planner",
+      "hospital-bed-manager",
+      "hospital-compliance-officer",
+      "recruiting-coordinator"
+    ],
+    "schema_file": "microservices/workflow-studio/templates/schemas/workflow-template.schema.json",
+    "schema_version": "1.0.0",
+    "catalog_index": "microservices/workflow-studio/templates/index.json"
+  },
+  "verification": {
+    "all_25_templates_schema_valid": true,
+    "validator": "Draft202012Validator (jsonschema 4.26.0)",
+    "structural_checks_passed": [
+      "entry_node and terminal_nodes reachable in node_graph.nodes",
+      "every edge.from and edge.to references a known node",
+      "audit_emission_points reference known nodes",
+      "every connector-call node has a declared connector_dependency"
+    ],
+    "catalog_smoke_test": {
+      "runner": "node /tmp/catalog_smoke.mjs",
+      "result": "OK — catalog smoke test passed (25 templates).",
+      "assertions": [
+        "index.count === 25",
+        "index.items.length === 25",
+        "verticals = {hiring, hospital-operations, hr-people, operations, payroll-finance}",
+        "all template_ids unique",
+        "every template surfaces via its vertical and persona filter",
+        "ONBOARDING query surfaces multiple templates",
+        "hipaa query surfaces hospital templates",
+        "every template declares >=1 connector and >=2 nodes",
+        "every template_id matches ^oya-workflow-studio-template-"
+      ]
+    },
+    "cargo_build_clean_in_scope": true,
+    "cargo_build_pre_existing_workspace_errors_outside_scope": [
+      "oya-connector-adp-adapter",
+      "oya-connector-epic-fhir-adapter",
+      "oya-connector-gusto-adapter",
+      "oya-connector-netsuite-adapter",
+      "oya-connector-quickbooks-adapter",
+      "oya-connector-rippling-adapter",
+      "oya-connector-salesforce-adapter",
+      "oya-connector-teams-adapter",
+      "oya-connector-workday-adapter"
+    ],
+    "cargo_proof_method": "stashing in-flight non-template crate diffs makes cargo green (5 crates compiled), proving template work introduces zero compilation regressions"
+  },
+  "template_inventory": [
+    {"id": "oya-workflow-studio-template-new-hire-onboarding", "vertical": "hr-people", "persona": "hr-business-partner", "p50_seconds": 2592000, "slo_max_seconds": 2851200, "cost_p50_usd": 2.85},
+    {"id": "oya-workflow-studio-template-lateral-transfer", "vertical": "hr-people", "persona": "hr-business-partner", "p50_seconds": 900, "slo_max_seconds": 3600, "cost_p50_usd": 0.32},
+    {"id": "oya-workflow-studio-template-promotion-comp-change", "vertical": "hr-people", "persona": "hr-business-partner", "p50_seconds": 600, "slo_max_seconds": 1800, "cost_p50_usd": 0.28},
+    {"id": "oya-workflow-studio-template-performance-improvement-plan", "vertical": "hr-people", "persona": "hr-business-partner", "p50_seconds": 5184000, "slo_max_seconds": 5443200, "cost_p50_usd": 1.20},
+    {"id": "oya-workflow-studio-template-voluntary-exit-offboarding", "vertical": "hr-people", "persona": "people-ops-coordinator", "p50_seconds": 1209600, "slo_max_seconds": 2419200, "cost_p50_usd": 1.60},
+    {"id": "oya-workflow-studio-template-involuntary-termination", "vertical": "hr-people", "persona": "hr-business-partner", "p50_seconds": 86400, "slo_max_seconds": 259200, "cost_p50_usd": 2.10},
+    {"id": "oya-workflow-studio-template-layoff-bench-severance", "vertical": "hr-people", "persona": "hr-business-partner", "p50_seconds": 604800, "slo_max_seconds": 1814400, "cost_p50_usd": 18.40},
+    {"id": "oya-workflow-studio-template-comp-band-refresh", "vertical": "hr-people", "persona": "hr-business-partner", "p50_seconds": 86400, "slo_max_seconds": 172800, "cost_p50_usd": 6.40},
+    {"id": "oya-workflow-studio-template-monthly-pay-run", "vertical": "payroll-finance", "persona": "payroll-controller", "p50_seconds": 10800, "slo_max_seconds": 21600, "cost_p50_usd": 24.50},
+    {"id": "oya-workflow-studio-template-equity-vesting-tax-event", "vertical": "payroll-finance", "persona": "payroll-controller", "p50_seconds": 300, "slo_max_seconds": 1200, "cost_p50_usd": 0.55},
+    {"id": "oya-workflow-studio-template-month-end-close", "vertical": "payroll-finance", "persona": "finance-controller", "p50_seconds": 345600, "slo_max_seconds": 518400, "cost_p50_usd": 14.20},
+    {"id": "oya-workflow-studio-template-quarterly-variance-narrative", "vertical": "payroll-finance", "persona": "finance-controller", "p50_seconds": 86400, "slo_max_seconds": 172800, "cost_p50_usd": 5.80},
+    {"id": "oya-workflow-studio-template-year-end-w2-1099", "vertical": "payroll-finance", "persona": "payroll-controller", "p50_seconds": 259200, "slo_max_seconds": 518400, "cost_p50_usd": 42.00},
+    {"id": "oya-workflow-studio-template-vendor-onboarding", "vertical": "operations", "persona": "procurement-lead", "p50_seconds": 604800, "slo_max_seconds": 1814400, "cost_p50_usd": 4.60},
+    {"id": "oya-workflow-studio-template-vendor-renewal", "vertical": "operations", "persona": "procurement-lead", "p50_seconds": 604800, "slo_max_seconds": 1814400, "cost_p50_usd": 2.10},
+    {"id": "oya-workflow-studio-template-asset-issuance", "vertical": "operations", "persona": "it-asset-admin", "p50_seconds": 86400, "slo_max_seconds": 259200, "cost_p50_usd": 38.40},
+    {"id": "oya-workflow-studio-template-asset-return-offboarding", "vertical": "operations", "persona": "it-asset-admin", "p50_seconds": 1209600, "slo_max_seconds": 2419200, "cost_p50_usd": 8.40},
+    {"id": "oya-workflow-studio-template-procure-to-pay", "vertical": "operations", "persona": "procurement-lead", "p50_seconds": 1209600, "slo_max_seconds": 3628800, "cost_p50_usd": 3.60},
+    {"id": "oya-workflow-studio-template-patient-admission", "vertical": "hospital-operations", "persona": "hospital-admissions-clerk", "p50_seconds": 900, "slo_max_seconds": 3600, "cost_p50_usd": 1.85},
+    {"id": "oya-workflow-studio-template-discharge-planning", "vertical": "hospital-operations", "persona": "hospital-discharge-planner", "p50_seconds": 7200, "slo_max_seconds": 21600, "cost_p50_usd": 2.40},
+    {"id": "oya-workflow-studio-template-bed-availability-prediction", "vertical": "hospital-operations", "persona": "hospital-bed-manager", "p50_seconds": 120, "slo_max_seconds": 300, "cost_p50_usd": 0.18},
+    {"id": "oya-workflow-studio-template-joint-commission-prep", "vertical": "hospital-operations", "persona": "hospital-compliance-officer", "p50_seconds": 259200, "slo_max_seconds": 518400, "cost_p50_usd": 7.40},
+    {"id": "oya-workflow-studio-template-req-approval-posting-sourcing", "vertical": "hiring", "persona": "recruiting-coordinator", "p50_seconds": 172800, "slo_max_seconds": 604800, "cost_p50_usd": 1.20},
+    {"id": "oya-workflow-studio-template-interview-kit-scheduling", "vertical": "hiring", "persona": "recruiting-coordinator", "p50_seconds": 604800, "slo_max_seconds": 1209600, "cost_p50_usd": 2.20},
+    {"id": "oya-workflow-studio-template-offer-esign-onboarding-handoff", "vertical": "hiring", "persona": "recruiting-coordinator", "p50_seconds": 259200, "slo_max_seconds": 1209600, "cost_p50_usd": 0.85}
+  ],
+  "ui_artifacts": [
+    "microservices/workflow-studio/clients/web-sveltekit/src/templates/CatalogBrowser.svelte",
+    "microservices/workflow-studio/clients/web-sveltekit/src/templates/TemplateCard.svelte",
+    "microservices/workflow-studio/clients/web-sveltekit/src/templates/TemplateDetail.svelte",
+    "microservices/workflow-studio/clients/web-sveltekit/src/templates/types.ts",
+    "microservices/workflow-studio/clients/web-sveltekit/src/templates/loader.ts",
+    "microservices/workflow-studio/clients/web-sveltekit/src/templates/catalog.spec.ts"
+  ],
+  "acceptance_path": "Tenant opens Workflow Studio -> Browse templates (CatalogBrowser.svelte) -> picks `oya-workflow-studio-template-new-hire-onboarding` -> fills employee_id + start_date + role_code -> Deploy in test mode (mocked connectors per fixture) -> workflow runs end-to-end against fixture -> switch to live mode flips connector criticality=required calls from mocked to real."
+}

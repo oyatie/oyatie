@@ -1,0 +1,301 @@
+asyncapi: 3.1.0
+info:
+  title: oya-cell — cell substrate events
+  version: 1.0.0
+  summary: Cell-lifecycle, tenant-assignment, migration, and boundary-violation events emitted by the cell substrate
+  description: |
+    Cross-µservice Workflow events emitted by `oya-cell-*` workers.
+    Consumers:
+    - `tenancy` (consumes CellAssigned + CellRebalanced; updates tenant→cell binding cache)
+    - every workload µservice (consumes CellAssigned + CellRebalanced; cache invalidation)
+    - `observability` (consumes all events; labels SLO metrics with cell_id)
+    - `audit-chain` (seals every event Ed25519 per Bominal ADR-0028)
+    - `grafana-oncall` (CellBoundaryViolationDetected → Sev-1 page)
+  contact:
+    name: axis-cell-substrate
+
+defaultContentType: application/json
+
+servers:
+  workflow-events-bus:
+    host: workflow-events.cell.svc.cluster.local
+    protocol: amqp
+    description: |
+      Internal AMQP event bus consumed by tenancy + workload µservices + observability + audit-chain.
+  github-actions:
+    host: api.github.com
+    protocol: https
+    description: |
+      GitHub repository_dispatch for cell-boundary-violation Sev-1 alerts (cross-µservice CI signal).
+
+channels:
+  cell-assigned:
+    address: workflow-events/cell.assigned
+    messages:
+      CellAssignedMessage:
+        $ref: '#/components/messages/CellAssigned'
+    description: A tenant was first bound to a cell.
+
+  cell-rebalanced:
+    address: workflow-events/cell.rebalanced
+    messages:
+      CellRebalancedMessage:
+        $ref: '#/components/messages/CellRebalanced'
+    description: A tenant was moved between cells (live migration completed).
+
+  cell-lifecycle-transition:
+    address: workflow-events/cell.lifecycle.transition
+    messages:
+      CellLifecycleTransitionMessage:
+        $ref: '#/components/messages/CellLifecycleTransition'
+    description: A cell transitioned state (requested → provisioning → ready → draining → decommissioned).
+
+  cell-decommissioned:
+    address: workflow-events/cell.decommissioned
+    messages:
+      CellDecommissionedMessage:
+        $ref: '#/components/messages/CellDecommissioned'
+    description: A cell reached terminal-state decommissioned.
+
+  host-drain-started:
+    address: workflow-events/host.drain.started
+    messages:
+      HostDrainStartedMessage:
+        $ref: '#/components/messages/HostDrainStarted'
+
+  host-drain-completed:
+    address: workflow-events/host.drain.completed
+    messages:
+      HostDrainCompletedMessage:
+        $ref: '#/components/messages/HostDrainCompleted'
+
+  cell-boundary-violation-detected:
+    address: workflow-events/cell.boundary.violation.detected
+    messages:
+      CellBoundaryViolationDetectedMessage:
+        $ref: '#/components/messages/CellBoundaryViolationDetected'
+    description: Postgres RLS / Cedar / lane detected a cross-cell or cross-pack attempt.
+
+  tenant-onboarded:
+    address: workflow-events/tenant.onboarded
+    messages:
+      TenantOnboardedMessage:
+        $ref: '#/components/messages/TenantOnboarded'
+    description: Consumed from tenancy µservice; triggers scheduler placement.
+
+  tenant-deprovisioned:
+    address: workflow-events/tenant.deprovisioned
+    messages:
+      TenantDeprovisionedMessage:
+        $ref: '#/components/messages/TenantDeprovisioned'
+    description: Consumed from tenancy; triggers DSR cascade through cell-substrate.
+
+operations:
+  emitCellAssigned:
+    action: send
+    channel:
+      $ref: '#/channels/cell-assigned'
+  emitCellRebalanced:
+    action: send
+    channel:
+      $ref: '#/channels/cell-rebalanced'
+  emitCellLifecycleTransition:
+    action: send
+    channel:
+      $ref: '#/channels/cell-lifecycle-transition'
+  emitCellDecommissioned:
+    action: send
+    channel:
+      $ref: '#/channels/cell-decommissioned'
+  emitHostDrainStarted:
+    action: send
+    channel:
+      $ref: '#/channels/host-drain-started'
+  emitHostDrainCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/host-drain-completed'
+  emitCellBoundaryViolationDetected:
+    action: send
+    channel:
+      $ref: '#/channels/cell-boundary-violation-detected'
+  consumeTenantOnboarded:
+    action: receive
+    channel:
+      $ref: '#/channels/tenant-onboarded'
+  consumeTenantDeprovisioned:
+    action: receive
+    channel:
+      $ref: '#/channels/tenant-deprovisioned'
+
+components:
+  messages:
+    CellAssigned:
+      name: CellAssigned
+      contentType: application/json
+      summary: tenant→cell binding established
+      payload:
+        $ref: '#/components/schemas/CellAssignedPayload'
+
+    CellRebalanced:
+      name: CellRebalanced
+      contentType: application/json
+      summary: tenant moved between cells (migration completed)
+      payload:
+        $ref: '#/components/schemas/CellRebalancedPayload'
+
+    CellLifecycleTransition:
+      name: CellLifecycleTransition
+      contentType: application/json
+      summary: cell state changed
+      payload:
+        $ref: '#/components/schemas/CellLifecycleTransitionPayload'
+
+    CellDecommissioned:
+      name: CellDecommissioned
+      contentType: application/json
+      summary: cell terminal state reached
+      payload:
+        $ref: '#/components/schemas/CellDecommissionedPayload'
+
+    HostDrainStarted:
+      name: HostDrainStarted
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/HostDrainStartedPayload'
+
+    HostDrainCompleted:
+      name: HostDrainCompleted
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/HostDrainCompletedPayload'
+
+    CellBoundaryViolationDetected:
+      name: CellBoundaryViolationDetected
+      contentType: application/json
+      summary: Sev-1 — cross-cell or cross-pack attempt detected
+      payload:
+        $ref: '#/components/schemas/CellBoundaryViolationDetectedPayload'
+
+    TenantOnboarded:
+      name: TenantOnboarded
+      contentType: application/json
+      summary: Consumed from tenancy µservice
+      payload:
+        $ref: '#/components/schemas/TenantOnboardedPayload'
+
+    TenantDeprovisioned:
+      name: TenantDeprovisioned
+      contentType: application/json
+      summary: Consumed from tenancy µservice (triggers DSR cascade)
+      payload:
+        $ref: '#/components/schemas/TenantDeprovisionedPayload'
+
+  schemas:
+    CellAssignedPayload:
+      type: object
+      required: [tenant_id, cell_id, pack, scope, assigned_at, signature]
+      properties:
+        tenant_id: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+        cell_id: {type: string, pattern: '^cell:[a-f0-9]{16}$'}
+        pack: {type: string}
+        scope: {type: string, enum: [primary, ha-secondary, migrating-target]}
+        assigned_at: {type: string, format: date-time}
+        signature: {type: string, description: Ed25519 by scheduler SPIFFE identity}
+
+    CellRebalancedPayload:
+      type: object
+      required: [tenant_id, source_cell, target_cell, pack, started_at, completed_at, reason, signature]
+      properties:
+        tenant_id: {type: string}
+        source_cell: {type: string}
+        target_cell: {type: string}
+        pack: {type: string}
+        started_at: {type: string, format: date-time}
+        completed_at: {type: string, format: date-time}
+        reason: {type: string, enum: [rebalance, scale-up, pack-rehome, dsr-cascade, decommission-source]}
+        signature: {type: string}
+
+    CellLifecycleTransitionPayload:
+      type: object
+      required: [cell_id, prev_state, new_state, transitioned_at, signature]
+      properties:
+        cell_id: {type: string}
+        prev_state: {type: string}
+        new_state:
+          type: string
+          enum: [requested, provisioning, ready, draining, decommissioning-soft-delete, decommissioned]
+        pack: {type: string}
+        transitioned_at: {type: string, format: date-time}
+        transitioned_by: {type: string, description: SPIFFE ID of lifecycle-manager}
+        reason: {type: string, nullable: true}
+        signature: {type: string}
+
+    CellDecommissionedPayload:
+      type: object
+      required: [cell_id, pack, decommissioned_at, soft_delete_initiated_at, finalized_at, operator_quorum, signature]
+      properties:
+        cell_id: {type: string}
+        pack: {type: string}
+        cell_scope: {type: string}
+        decommissioned_at: {type: string, format: date-time}
+        soft_delete_initiated_at: {type: string, format: date-time}
+        finalized_at: {type: string, format: date-time}
+        operator_quorum: {type: array, items: {type: string}, minItems: 2, maxItems: 8}
+        reason: {type: string}
+        signature: {type: string}
+
+    HostDrainStartedPayload:
+      type: object
+      required: [host_id, pack, started_at, drained_by]
+      properties:
+        host_id: {type: string}
+        pack: {type: string}
+        started_at: {type: string, format: date-time}
+        drained_by: {type: string}
+        reason: {type: string}
+
+    HostDrainCompletedPayload:
+      type: object
+      required: [host_id, pack, started_at, completed_at, evicted_pod_count]
+      properties:
+        host_id: {type: string}
+        pack: {type: string}
+        started_at: {type: string, format: date-time}
+        completed_at: {type: string, format: date-time}
+        evicted_pod_count: {type: integer}
+        signature: {type: string}
+
+    CellBoundaryViolationDetectedPayload:
+      type: object
+      required: [violation_type, source_spiffe_id, attempted_cell_id, detected_at, severity]
+      properties:
+        violation_type:
+          type: string
+          enum: [cross_cell_query, cross_pack_assignment, reserved_namespace_write, unauthorized_decommission]
+        source_spiffe_id: {type: string}
+        attempted_cell_id: {type: string, nullable: true}
+        attempted_pack: {type: string, nullable: true}
+        principal_pack: {type: string, nullable: true}
+        detected_at: {type: string, format: date-time}
+        severity: {type: string, enum: [sev-1]}
+        request_id: {type: string}
+        signature: {type: string}
+
+    TenantOnboardedPayload:
+      type: object
+      required: [tenant_id, pack, tenant_scope, jurisdiction_code, onboarded_at]
+      properties:
+        tenant_id: {type: string}
+        pack: {type: string}
+        tenant_scope: {type: string, enum: [trial, production, sandbox, internal]}
+        jurisdiction_code: {type: string}
+        onboarded_at: {type: string, format: date-time}
+
+    TenantDeprovisionedPayload:
+      type: object
+      required: [tenant_id, deprovisioned_at, dsr_requested]
+      properties:
+        tenant_id: {type: string}
+        deprovisioned_at: {type: string, format: date-time}
+        dsr_requested: {type: boolean, description: GDPR Art. 17 erasure cascade}

@@ -1,0 +1,330 @@
+{
+  "schema_version": "1.0",
+  "microservice": "network",
+  "version": "0.1.0",
+  "owner": "axis-network",
+  "bounded_contexts": [
+    {
+      "name": "network",
+      "description": "Bounded context 'network' within network (control plane)",
+      "crates": [
+        "oya-network-app",
+        "oya-network-connection-request-kernel",
+        "oya-network-endorsement-engine-adapter-postgres",
+        "oya-network-endorsement-engine-kernel",
+        "oya-network-feed-timeline-adapter-redis",
+        "oya-network-feed-timeline-kernel",
+        "oya-network-inmail-bridge-adapter-messenger-bridge",
+        "oya-network-inmail-bridge-kernel",
+        "oya-network-jobs-handoff-adapter-ats-bridge",
+        "oya-network-jobs-handoff-kernel",
+        "oya-network-post-composition-adapter-clamav",
+        "oya-network-post-composition-adapter-ffmpeg",
+        "oya-network-post-composition-adapter-imagemagick",
+        "oya-network-post-composition-adapter-opswat",
+        "oya-network-post-composition-adapter-s3",
+        "oya-network-post-composition-kernel",
+        "oya-network-professional-graph-adapter-postgres",
+        "oya-network-professional-graph-kernel",
+        "oya-network-professional-profile-adapter-postgres",
+        "oya-network-professional-profile-kernel",
+        "oya-network-recruiter-stub-kernel",
+        "oya-network-search-adapter-meilisearch"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "app",
+    "kernel"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/network/contracts/openapi/network.yaml"
+    ],
+    "asyncapi": [
+      "microservices/network/contracts/asyncapi/network-events.yaml"
+    ],
+    "proto": [
+      "microservices/network/contracts/proto/network.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "composer-suggest-and-hashtag-and-connection-suggest",
+      "file": "microservices/network/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "article-draft-assist-and-bio-suggest-and-accessibility-caption",
+      "file": "microservices/network/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "people-you-may-know-and-jobs-ranker-and-recruiter-stub-and-endorsement-aggregation",
+      "file": "microservices/network/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "network-connection-action-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_network_connection_action_duration_seconds_bucket{le=\"0.05\"}[5m]))",
+      "file": "microservices/network/slos/connection-action-latency.openslo.yaml"
+    },
+    {
+      "name": "network-feed-render-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_network_feed_render_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/network/slos/feed-render-latency.openslo.yaml"
+    },
+    {
+      "name": "network-inmail-send-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_network_inmail_send_duration_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/network/slos/inmail-send-latency.openslo.yaml"
+    },
+    {
+      "name": "network-notification-fanout-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_network_notification_fanout_duration_seconds_bucket{le=\"2.0\",follower_bucket=\"under_30k\"}[5m]))",
+      "file": "microservices/network/slos/notification-fanout-latency.openslo.yaml"
+    },
+    {
+      "name": "network-professional-context-isolation-correctness",
+      "target": "1.0",
+      "sli": "# Number of 5-minute windows with zero violations across all invariants",
+      "file": "microservices/network/slos/professional-context-isolation-correctness.openslo.yaml"
+    },
+    {
+      "name": "network-profile-view-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_network_profile_view_duration_seconds_bucket{le=\"0.15\"}[5m]))",
+      "file": "microservices/network/slos/profile-view-latency.openslo.yaml"
+    },
+    {
+      "name": "network-recommender-fairness-correctness",
+      "target": "1.0",
+      "sli": "# Count of 1h windows where MIN(disparity_ratio_by_group) ≥ 0.8",
+      "file": "microservices/network/slos/recommender-fairness-correctness.openslo.yaml"
+    },
+    {
+      "name": "network-search-content-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_network_search_content_duration_seconds_bucket{le=\"0.5\"}[5m]))",
+      "file": "microservices/network/slos/search-content-latency.openslo.yaml"
+    },
+    {
+      "name": "network-search-people-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_network_search_people_duration_seconds_bucket{le=\"0.25\"}[5m]))",
+      "file": "microservices/network/slos/search-people-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac-bootstrap",
+      "title": "IP-001: IaC bootstrap — Helm + Kustomize + OpenTofu for the network cluster",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-001-iac-bootstrap.md"
+    },
+    {
+      "id": "IP-002-cargo-workspace-bootstrap",
+      "title": "IP-002: Cargo workspace bootstrap — ~165 crate scaffolds per BNF v4.1 + ADR-0131 flat layout",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-002-cargo-workspace-bootstrap.md"
+    },
+    {
+      "id": "IP-003-professional-profile-bc",
+      "title": "IP-003: professional-profile BC end-to-end (kernel → domain → usecase → api → adapter-postgres → rest → sdk → app)",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-003-professional-profile-bc.md"
+    },
+    {
+      "id": "IP-004-professional-graph-and-connection-request-bcs",
+      "title": "IP-004: professional-graph + connection-request BCs end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-004-professional-graph-and-connection-request-bcs.md"
+    },
+    {
+      "id": "IP-005-post-composition-bc",
+      "title": "IP-005: post-composition BC end-to-end + media + document transcode adapters",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-005-post-composition-bc.md"
+    },
+    {
+      "id": "IP-006-feed-timeline-and-reactions-bcs",
+      "title": "IP-006: feed-timeline + reactions BCs end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-006-feed-timeline-and-reactions-bcs.md"
+    },
+    {
+      "id": "IP-007-endorsement-engine-bc",
+      "title": "IP-007: endorsement-engine BC end-to-end (per-endorser Ed25519 + Merkle-style chain via audit-chain)",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-007-endorsement-engine-bc.md"
+    },
+    {
+      "id": "IP-008-skill-assessments-and-profile-verification-bcs",
+      "title": "IP-008: skill-assessments + profile-verification BCs end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-008-skill-assessments-and-profile-verification-bcs.md"
+    },
+    {
+      "id": "IP-009-pages-groups-events-bcs",
+      "title": "IP-009: pages + groups + events-bridge BCs end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-009-pages-groups-events-bcs.md"
+    },
+    {
+      "id": "IP-010-inmail-bridge-bc",
+      "title": "IP-010: inmail-bridge BC end-to-end (Professional-tier bridge to messenger; ADR-NET-0003)",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-010-inmail-bridge-bc.md"
+    },
+    {
+      "id": "IP-011-jobs-handoff-bc",
+      "title": "IP-011: jobs-handoff BC end-to-end (clean boundary to Tier-G ATS µservice; ADR-NET-0004)",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-011-jobs-handoff-bc.md"
+    },
+    {
+      "id": "IP-012-mentions-hashtags-trending-notifications-bcs",
+      "title": "IP-012: mentions + hashtags + trending-topics + notifications BCs end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-012-mentions-hashtags-trending-notifications-bcs.md"
+    },
+    {
+      "id": "IP-013-search-and-cedar-filter",
+      "title": "IP-013: search BC end-to-end + multi-index Meilisearch + Cedar post-filter",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-013-search-and-cedar-filter.md"
+    },
+    {
+      "id": "IP-014-recommender-fairness-and-bias-lane",
+      "title": "IP-014: Recommender fairness + bias audit + EU AI Act employment conformance lane",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-014-recommender-fairness-and-bias-lane.md"
+    },
+    {
+      "id": "IP-015-hg-network-registration-and-branch-protection",
+      "title": "IP-015: HG-NETWORK hyperscaler-grade conformance gate registration + branch protection",
+      "acceptance_status": "ga",
+      "file": "microservices/network/IP-015-hg-network-registration-and-branch-protection.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0008",
+      "title": "Data Use Boundary",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0008-data-use-boundary.md"
+    },
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+    },
+    {
+      "id": "ADR-0134",
+      "title": "Connect Dissolution Strangler Migration",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0134-connect-dissolution-strangler-migration.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.network.article-draft-assist-and-bio-suggest-and-accessibility-caption",
+      "oya.network.composer-suggest-and-hashtag-and-connection-suggest",
+      "oya.network.people-you-may-know-and-jobs-ranker-and-recruiter-stub-and-endorsement-aggregation"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

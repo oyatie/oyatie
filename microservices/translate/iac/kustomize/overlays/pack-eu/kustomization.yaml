@@ -1,0 +1,22 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: translate
+resources: [../../base]
+commonAnnotations:
+  oyatie/pack: "eu"
+  oyatie/region: "eu-central-1"
+  oyatie/legal-citations: |
+    GDPR Arts. 5/6/9/17/22/25/32/44-50 + Recital 26 pseudonymisation.
+    EU AI Act (Reg. (EU) 2024/1689) Arts. 13 + 50 + 9-15 + Annex III §4 high-risk gates.
+    EAA Directive (EU) 2019/882 accessibility for caption-translate.
+    NIS2 Directive (EU) 2022/2555 significant-incident notification.
+  oyatie/residency-invariant: "EU-region inference only; SCC-covered cross-border for external vendors limited to EU regions"
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args
+        value: ["--component=translation-request-rest", "--pack=eu"]
+    target:
+      kind: Deployment
+      name: translate-translation-request-rest

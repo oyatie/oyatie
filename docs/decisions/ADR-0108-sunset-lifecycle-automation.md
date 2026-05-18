@@ -136,7 +136,7 @@ The dev-CLI walks three concrete surfaces:
 - Cargo manifest `[package.metadata.oya.sunset].status` = `"Deprecated"`.
 
 Rust source-level `#[deprecated]` attribute recognition is a Wave-B
-follow-up (see Follow-ups §1).
+successor-IP (see Follow-ups §1).
 
 ### Lane shape
 
@@ -217,7 +217,7 @@ plan file).
    removal_at (and vice versa). Two anchors compose; one anchor doesn't.
 4. **Walk the git history for retired clauses.** Rejected for now: the
    lane scans the working tree only. Git-history scanning is a
-   Wave-D follow-up.
+   Wave-D successor-IP.
 
 ## Drivers
 
@@ -240,13 +240,13 @@ plan file).
 2. **Schema-upgrade authoring sweep.** Drive the 6 baseline `MISSING_FIELDS`
    to zero by adding the schema fields to ADR-0037 / 0067 / 0083 and the
    3 specs. Each upgrade is its own atomic commit per ADR-0054.
-3. **Git-history walk.** Wave-D follow-up: scan `git log` for retired
+3. **Git-history walk.** Wave-D successor-IP: scan `git log` for retired
    sunset clauses to ensure deletion happened on or after `removal_at`.
 4. **Pattern-B status under ADR-0109.** Per ADR-0109 §"Sunset-lifecycle:
    dedicated kernel as canonical pattern (not exception)" (Amendment
    2026-05-15), the sunset-lifecycle stays on its dedicated kernel as
    the canonical Pattern-B shape for date-arithmetic lifecycles. The
-   earlier "MAY migrate to ADR-0109 generic framework" follow-up is
+   earlier "MAY migrate to ADR-0109 generic framework" successor-IP is
    superseded — there is no migration: sunset-lifecycle and the generic
    framework are both canonical at the kernel layer, selected by
    lifecycle-domain semantics (see ADR-0109's decision rule).

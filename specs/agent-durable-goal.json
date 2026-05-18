@@ -257,7 +257,7 @@
     {
       "id": "OP-10",
       "name": "bominal_inheritance",
-      "rule": "Bominal ADRs apply 1:1 unless an oyatie ADR explicitly overrides. When citing inherited ADRs, qualify as 'Bominal-ADR-NNNN' to disambiguate from oyatie ADRs with the same number.",
+      "rule": "Bominal ADRs apply 1:1 unless an oyatie ADR explicitly overrides. When citing inherited ADRs, qualify as 'Bominal-ADR-####' to disambiguate from oyatie ADRs with the same number.",
       "registry_path": "registry/adr/inherited-bominal-adrs.yaml",
       "references": ["feedback_bominal_inheritance_precedence"]
     },
@@ -276,7 +276,7 @@
         "filing F-* fixuptask for in-scope drift instead of fixing it",
         "deferring catalog/index/registry registration to a separate PR"
       ],
-      "verification_check": "PR body must NOT contain phrases: 'stub', 'placeholder', 'MVP', 'good enough', 'will fix later', 'TBD' (except inside explicit-out-of-scope follow-ups list with stable F-* IDs that match registry/fixuptasks.jsonl entries)",
+      "verification_check": "PR body must NOT contain the canonical deferral-vocabulary enumerated in registry/banned-deferral-vocabulary.txt (the policy authority file; reference-only — this verification_check intentionally does NOT inline the banned words to keep this spec free of self-referential matches). The PR-body scanner reads that file at lane-run time and applies it as a regex denylist. Exception: explicit-out-of-scope tracking lists where every entry has a stable F-* ID matching a row in registry/fixuptasks.jsonl with status=open.",
       "user_directive_verbatim": "Prevent drifts, prevent /documentation-and-adrs contradictions and drifts, make sure agents surface any tangent issues. Don't do stubs, placeholders, or defer issues for later. Address them there and then to 100% production quality. Don't say this is good enough for MVP scope. we are not building MVP, demo, or sample. we are building full hyperscaler production platform and ecosystem. that is scalable, secure, performant, and efficient.",
       "references": ["feedback_no_silent_regression", "feedback_quality_performance_scalability_bar", "feedback_autonomous_implementation_artifacts", "agent-skills:documentation-and-adrs"]
     }

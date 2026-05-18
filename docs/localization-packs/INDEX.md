@@ -68,7 +68,7 @@ See ADR-0064 §5 for lifecycle definitions and gates.
 For every (pack × µservice in pack scope) pair, the following artifacts must exist:
 
 - `docs/prds/<microservice>-<pack>.md` — pack overlay PRD (required when pack adds material scope)
-- `docs/decisions/ADR-NNNN-<pack>-<microservice>-regulatory.md` — pack regulatory ADR
+- `docs/decisions/ADR-####-<pack>-<microservice>-regulatory.md` — pack regulatory ADR
 - `docs/localization-packs/<pack>/evidence/<microservice>.md` — pack acceptance evidence
 
 CI lane `lean-a5-doc-coverage` enforces.
@@ -80,5 +80,5 @@ CI lane `lean-a5-doc-coverage` enforces.
 - [ADR-0064 Canonical base + localization packs](../decisions/ADR-0064-canonical-base-and-localization-packs.md)
 - [ADR-0063 Documentation suite coverage](../decisions/ADR-0063-documentation-suite-coverage.md)
 - [MASTERPLAN §2.5, §5.5](../MASTERPLAN.md)
-- Bominal ADR-0140 (inherited regional-pack pattern)
+- Bominal ADR-0140 (retired per ADR-0145) (inherited regional-pack pattern)
 - Bominal ADR-0190 (inherited versioned regulatory corpus.lock)

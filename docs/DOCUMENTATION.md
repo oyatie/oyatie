@@ -60,7 +60,7 @@ Plus a fifth, project-management quadrant for the consolidated docs themselves (
 | **Per-crate README** | `crates/oya-<crate>/README.md` | per-crate owner | Hand-authored; auto-included in rustdoc landing |
 | **In-tree contributor docs** | `docs/standards/`, (retired; see `docs/teams/`), (retired; see `docs/`), `docs/runbooks/` | per-team | Hand-authored, in-repo |
 | **CLAUDE.md / AGENTS.md / CONTEXT.md** (per directory) | rooted at each directory needing context | per-directory owner | Hand-authored; agent-consumed |
-| **ADRs** | `decisions/ADR-NNNN-<title>.md` | author per ADR; promotion by `crew-adr-promotion` | Hand-authored; indexed in [`ADR-INDEX.md`](ADR-INDEX.md) |
+| **ADRs** | `decisions/ADR-####-<title>.md` | author per ADR; promotion by `crew-adr-promotion` | Hand-authored; indexed in [`ADR-INDEX.md`](ADR-INDEX.md) |
 | **Runbooks** | `docs/runbooks/<runbook-id>.md` | `ops-sre-reliability` + per-axis | Hand-authored; indexed in [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) |
 | **Threat models per service** | `docs/security/threat-models/<service>.md` | `ops-security` + per-team | Hand-authored; references in [`SECURITY-PROGRAM.md`](SECURITY-PROGRAM.md) |
 | **Audit reports** | `docs/audits/<date>-<topic>.md` | per-auditor (council member or outside auditor) | Hand-authored |

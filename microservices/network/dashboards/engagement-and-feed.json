@@ -1,0 +1,115 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "network",
+    "owner_team": "axis-network + ops-sre-reliability",
+    "audience": "tenant operator + axis-network SRE",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; tenant-scoped via X-Scope-OrgID"
+  },
+  "uid": "network-engagement-and-feed",
+  "title": "network: engagement + feed (latency + cache + ranker + freshness)",
+  "tags": ["network", "feed", "engagement", "latency", "burn-rate"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ]},
+      {"name": "tenant", "type": "query", "label": "Tenant",
+        "query": "label_values(oya_network_post_create_total{pack=\"$pack\"}, tenant_id)"}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Feed-render p95 (s)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_network_feed_render_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.15, "color": "yellow"}, {"value": 0.2, "color": "red"}]}}}},
+
+    {"id": 2, "type": "stat", "title": "Profile-view p95 (s)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_network_profile_view_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.1, "color": "yellow"}, {"value": 0.15, "color": "red"}]}}}},
+
+    {"id": 3, "type": "stat", "title": "Connection-action p99 (s)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_network_connection_action_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.1, "color": "yellow"}, {"value": 0.15, "color": "red"}]}}}},
+
+    {"id": 4, "type": "stat", "title": "Posts/sec (5m rate)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_network_post_create_total{pack=\"$pack\",tenant_id=\"$tenant\",result=\"success\"}[5m]))", "refId": "A"}]},
+
+    {"id": 5, "type": "timeseries", "title": "Feed-render latency percentiles",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum by (le) (rate(oya_network_feed_render_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_network_feed_render_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_network_feed_render_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p99", "refId": "C"}
+      ]},
+
+    {"id": 6, "type": "timeseries", "title": "Feed-cache hit ratio + freshness",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_network_feed_cache_hit_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])) / sum(rate(oya_network_feed_cache_request_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "hit ratio", "refId": "A"},
+        {"expr": "oya_network_feed_cache_lag_seconds{pack=\"$pack\",tenant_id=\"$tenant\"}", "legendFormat": "lag (s)", "refId": "B"}
+      ]},
+
+    {"id": 7, "type": "timeseries", "title": "Feed mode split (chronological vs algorithmic)",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (feed_mode) (rate(oya_network_feed_render_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "{{feed_mode}}", "refId": "A"}
+      ]},
+
+    {"id": 8, "type": "timeseries", "title": "Post-create + comment + repost + react rate",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_network_post_create_total{pack=\"$pack\",tenant_id=\"$tenant\",kind=\"article\"}[5m]))", "legendFormat": "article", "refId": "A"},
+        {"expr": "sum(rate(oya_network_post_create_total{pack=\"$pack\",tenant_id=\"$tenant\",kind=\"status\"}[5m]))", "legendFormat": "status", "refId": "B"},
+        {"expr": "sum(rate(oya_network_post_create_total{pack=\"$pack\",tenant_id=\"$tenant\",kind=\"document\"}[5m]))", "legendFormat": "document", "refId": "C"},
+        {"expr": "sum(rate(oya_network_post_create_total{pack=\"$pack\",tenant_id=\"$tenant\",kind=\"comment\"}[5m]))", "legendFormat": "comment", "refId": "D"},
+        {"expr": "sum(rate(oya_network_post_create_total{pack=\"$pack\",tenant_id=\"$tenant\",kind=\"repost\"}[5m]))", "legendFormat": "repost", "refId": "E"},
+        {"expr": "sum(rate(oya_network_reaction_added_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "reaction", "refId": "F"}
+      ]},
+
+    {"id": 9, "type": "timeseries", "title": "Ranker inference latency p99",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le, ranker_kind) (rate(oya_network_ranker_inference_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "{{ranker_kind}} p99", "refId": "A"}]},
+
+    {"id": 10, "type": "timeseries", "title": "InMail send + receipt rate (Professional-tier bridge)",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_network_inmail_send_total{pack=\"$pack\",tenant_id=\"$tenant\",result=\"success\"}[5m]))", "legendFormat": "sent", "refId": "A"},
+        {"expr": "sum(rate(oya_network_inmail_delivered_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "delivered", "refId": "B"},
+        {"expr": "oya_network_inmail_bridge_queue_depth{pack=\"$pack\",tenant_id=\"$tenant\"}", "legendFormat": "queue depth", "refId": "C"}
+      ]},
+
+    {"id": 11, "type": "stat", "title": "Burn-rate (fast 1h, feed-render)",
+      "gridPos": {"x": 0, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "oya_promotion_burn_rate_fast_1h{microservice=\"network\",pack=\"$pack\",sli=\"feed_render_latency\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 6, "color": "yellow"}, {"value": 14.4, "color": "red"}]}}}},
+
+    {"id": 12, "type": "stat", "title": "Eligibility verdict",
+      "gridPos": {"x": 6, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "oya:current_verdict:by_microservice_env{microservice=\"network\",pack=\"$pack\",environment=\"production\"}", "refId": "A"}]},
+
+    {"id": 13, "type": "table", "title": "Top 10 active accounts (posts/sec)",
+      "gridPos": {"x": 12, "y": 28, "w": 12, "h": 8},
+      "targets": [{"expr": "topk(10, sum by (author_ref) (rate(oya_network_post_create_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "format": "table", "refId": "A"}]}
+  ]
+}

@@ -1,0 +1,14 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-slides-presentation-domain
+microservice: slides
+bounded_context: presentation
+layer: domain
+purpose: |
+  Pure deck-lifecycle algebra; deterministic; no I/O.
+  Implements port-trait logic declared in kernel.
+depends_on:
+  - oya-slides-presentation-kernel
+ci_lanes:
+  - lean-a1
+  - layer-correctness
+  - cargo-nextest

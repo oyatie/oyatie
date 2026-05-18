@@ -1,0 +1,321 @@
+{
+  "schema_version": "1.0",
+  "microservice": "shorts",
+  "version": "0.1.0",
+  "owner": "axis-shorts",
+  "bounded_contexts": [
+    {
+      "name": "shorts",
+      "description": "Bounded context 'shorts' within shorts (data plane)",
+      "crates": [
+        "oya-shorts-app",
+        "oya-shorts-audio-track-library-adapter-meilisearch",
+        "oya-shorts-content-moderation-adapter-clamav",
+        "oya-shorts-content-moderation-adapter-opswat",
+        "oya-shorts-content-moderation-kernel",
+        "oya-shorts-copyright-claim-adapter-postgres",
+        "oya-shorts-copyright-claim-kernel",
+        "oya-shorts-drm-adapter-fairplay",
+        "oya-shorts-drm-adapter-playready",
+        "oya-shorts-drm-adapter-widevine",
+        "oya-shorts-feed-timeline-adapter-redis",
+        "oya-shorts-feed-timeline-kernel",
+        "oya-shorts-video-storage-adapter-cloudfront",
+        "oya-shorts-video-storage-adapter-s3",
+        "oya-shorts-video-transcode-adapter-ffmpeg",
+        "oya-shorts-video-transcode-kernel",
+        "oya-shorts-video-upload-adapter-postgres",
+        "oya-shorts-video-upload-adapter-s3",
+        "oya-shorts-video-upload-kernel"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "app",
+    "kernel"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/shorts/contracts/openapi/shorts.yaml"
+    ],
+    "asyncapi": [
+      "microservices/shorts/contracts/asyncapi/shorts-events.yaml"
+    ],
+    "proto": [
+      "microservices/shorts/contracts/proto/shorts.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "caption-and-hashtag-and-sound-suggestion",
+      "file": "microservices/shorts/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "auto-caption-and-nsfw-classifier-and-copyright-precheck",
+      "file": "microservices/shorts/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "content-moderation-auto-actions-and-feed-ranking-and-monetization-stub",
+      "file": "microservices/shorts/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "shorts-auto-caption-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_shorts_caption_generation_video_duration_ratio_bucket{le=\"0.3\"}[5m]))",
+      "file": "microservices/shorts/slos/auto-caption-latency.openslo.yaml"
+    },
+    {
+      "name": "shorts-content-policy-enforcement-correctness",
+      "target": "1.0",
+      "sli": "# Number of 5-minute windows with zero violations across all invariants",
+      "file": "microservices/shorts/slos/content-policy-enforcement-correctness.openslo.yaml"
+    },
+    {
+      "name": "shorts-copyright-claim-match-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_shorts_fingerprint_match_duration_seconds_bucket{le=\"2\"}[5m]))",
+      "file": "microservices/shorts/slos/copyright-claim-match-latency.openslo.yaml"
+    },
+    {
+      "name": "shorts-drm-license-issuance-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_shorts_drm_license_duration_seconds_bucket{le=\"0.15\"}[5m]))",
+      "file": "microservices/shorts/slos/drm-license-issuance-latency.openslo.yaml"
+    },
+    {
+      "name": "shorts-feed-load-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_shorts_feed_render_duration_seconds_bucket{le=\"0.25\"}[5m]))",
+      "file": "microservices/shorts/slos/feed-load-latency.openslo.yaml"
+    },
+    {
+      "name": "shorts-like-action-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_shorts_like_action_duration_seconds_bucket{le=\"0.05\"}[5m]))",
+      "file": "microservices/shorts/slos/like-action-latency.openslo.yaml"
+    },
+    {
+      "name": "shorts-moderation-classifier-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_shorts_moderation_classifier_duration_seconds_bucket{le=\"2\"}[5m]))",
+      "file": "microservices/shorts/slos/moderation-classifier-latency.openslo.yaml"
+    },
+    {
+      "name": "shorts-transcode-throughput",
+      "target": "0.95",
+      "sli": "sum(rate(oya_shorts_transcode_duration_seconds_bucket{le=\"30\"}[5m]))",
+      "file": "microservices/shorts/slos/transcode-throughput.openslo.yaml"
+    },
+    {
+      "name": "shorts-video-start-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_shorts_video_start_duration_seconds_bucket{le=\"0.4\"}[5m]))",
+      "file": "microservices/shorts/slos/video-start-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac-bootstrap",
+      "title": "IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-001-iac-bootstrap.md"
+    },
+    {
+      "id": "IP-002-cargo-workspace-bootstrap",
+      "title": "IP-002: Cargo workspace bootstrap (~140 crates per ADR-0131 + ADR-0105 Amendment 3)",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-002-cargo-workspace-bootstrap.md"
+    },
+    {
+      "id": "IP-003-video-upload-bc",
+      "title": "IP-003: video-upload BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-003-video-upload-bc.md"
+    },
+    {
+      "id": "IP-004-video-transcode-bc",
+      "title": "IP-004: video-transcode BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-004-video-transcode-bc.md"
+    },
+    {
+      "id": "IP-005-video-storage-and-cdn-bc",
+      "title": "IP-005: video-storage + CDN BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-005-video-storage-and-cdn-bc.md"
+    },
+    {
+      "id": "IP-006-thumbnail-and-composition-bc",
+      "title": "IP-006: thumbnail-generation + video-composition BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-006-thumbnail-and-composition-bc.md"
+    },
+    {
+      "id": "IP-007-audio-track-library-and-attribution-bc",
+      "title": "IP-007: audio-track-library + audio-attribution BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-007-audio-track-library-and-attribution-bc.md"
+    },
+    {
+      "id": "IP-008-feed-timeline-and-watch-time-bc",
+      "title": "IP-008: feed-timeline + watch-time-tracking BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-008-feed-timeline-and-watch-time-bc.md"
+    },
+    {
+      "id": "IP-009-like-share-comment-and-repost-bc",
+      "title": "IP-009: like-share-comment + repost-stitch-duet BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-009-like-share-comment-and-repost-bc.md"
+    },
+    {
+      "id": "IP-010-hashtag-and-trending-bc",
+      "title": "IP-010: hashtag + trending BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-010-hashtag-and-trending-bc.md"
+    },
+    {
+      "id": "IP-011-content-moderation-and-copyright-claim-bc",
+      "title": "IP-011: content-moderation + copyright-claim BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-011-content-moderation-and-copyright-claim-bc.md"
+    },
+    {
+      "id": "IP-012-age-gate-and-parental-controls-bc",
+      "title": "IP-012: age-gate + parental-controls BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-012-age-gate-and-parental-controls-bc.md"
+    },
+    {
+      "id": "IP-013-accessibility-captions-bc",
+      "title": "IP-013: accessibility-captions BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-013-accessibility-captions-bc.md"
+    },
+    {
+      "id": "IP-014-notifications-and-creator-analytics-bc",
+      "title": "IP-014: notifications + creator-analytics BC end-to-end",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-014-notifications-and-creator-analytics-bc.md"
+    },
+    {
+      "id": "IP-015-drm-and-hg-shorts-registration",
+      "title": "IP-015: drm-stub BC end-to-end + HG-SHORTS hyperscaler-grade conformance gate registration + branch-protection wiring",
+      "acceptance_status": "ga",
+      "file": "microservices/shorts/IP-015-drm-and-hg-shorts-registration.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0008",
+      "title": "Data Use Boundary",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0008-data-use-boundary.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.shorts.auto-caption-and-nsfw-classifier-and-copyright-precheck",
+      "oya.shorts.caption-and-hashtag-and-sound-suggestion",
+      "oya.shorts.content-moderation-auto-actions-and-feed-ranking-and-monetization-stub"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

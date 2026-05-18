@@ -1,0 +1,11 @@
+pack_id	overlay_authored	regulator_signoff	primary_provider	secondary_provider	status	owner_team
+kr	true	pending	naver-cloud	kt-cloud	authored-awaiting-regulator-signoff	ops-compliance
+eu	true	pending	ovh	aws	authored-awaiting-regulator-signoff	ops-compliance
+ksa	true	pending	stc-cloud	mobily-cloud	authored-awaiting-regulator-signoff	ops-compliance
+us-government	true	pending	aws-gov	azure-government	authored-awaiting-regulator-signoff	ops-compliance
+us	true	N/A	aws	gcp	non-sovereign-active	axis-cloud
+global	true	N/A	aws	gcp	non-sovereign-active	axis-cloud
+jp	false	N/A	sakura	aws	not-yet-authored	ops-compliance
+in	false	N/A	aws	azure	not-yet-authored	ops-compliance
+br	false	N/A	aws	azure	not-yet-authored	ops-compliance
+ae	false	N/A	stc-cloud	aws	not-yet-authored	ops-compliance

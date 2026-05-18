@@ -1,0 +1,111 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "social",
+    "owner_team": "axis-social + ops-security + council-privacy",
+    "audience": "tenant compliance officer + axis-social SRE + ops-security + EU DSA Coordinator",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; audit-chain seal index"
+  },
+  "uid": "social-moderation-safety",
+  "title": "social: moderation + safety + appeal + dual-context invariant + EU DSA + EU AI Act",
+  "tags": ["social", "moderation", "safety", "abuse", "dual-context", "eu-dsa", "eu-ai-act"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {"from": "now-24h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ]}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Context-switch denied attempts (last 1h)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(oya_social_dual_context_denied_total{pack=\"$pack\"}[1h]))", "refId": "A"}],
+      "description": "Per policy/dual-context-isolation.md DCI-02: any non-zero value is a Sev-1.",
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 1, "color": "red"}]}}}},
+
+    {"id": 2, "type": "stat", "title": "Personal-tier federation attempts (MUST be 0)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(oya_social_personal_tier_federation_attempt_total{pack=\"$pack\"}[24h]))", "refId": "A"}],
+      "description": "Per policy/dual-context-isolation.md DCI-08: compile-time invariant means this must be 0.",
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 1, "color": "red"}]}}}},
+
+    {"id": 3, "type": "stat", "title": "Abuse reports filed (24h)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(oya_social_abuse_report_total{pack=\"$pack\"}[24h]))", "refId": "A"}]},
+
+    {"id": 4, "type": "stat", "title": "Appeals open (avg age days)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "avg(oya_social_appeal_pending_age_days{pack=\"$pack\",status=\"open\"})", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "days", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 5, "color": "yellow"}, {"value": 7, "color": "red"}]}}},
+      "description": "EU DSA Art. 20 SLA: ≤ 7 days"},
+
+    {"id": 5, "type": "timeseries", "title": "Moderation classifier verdicts (per category)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (verdict) (rate(oya_social_moderation_verdict_total{pack=\"$pack\"}[5m]))", "legendFormat": "{{verdict}}", "refId": "A"}
+      ],
+      "description": "Categories: ok, spam, abuse, harassment, csam-suspect, self-harm-suspect, hate-speech, sensitive-media-unflagged."},
+
+    {"id": 6, "type": "timeseries", "title": "Appeal volume + resolution time",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_social_appeal_opened_total{pack=\"$pack\"}[1h]))", "legendFormat": "appeals opened/hr", "refId": "A"},
+        {"expr": "histogram_quantile(0.5, sum by (le) (rate(oya_social_appeal_resolution_time_seconds_bucket{pack=\"$pack\"}[24h])))", "legendFormat": "p50 resolution time", "refId": "B"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_social_appeal_resolution_time_seconds_bucket{pack=\"$pack\"}[24h])))", "legendFormat": "p95 resolution time", "refId": "C"}
+      ]},
+
+    {"id": 7, "type": "timeseries", "title": "Cedar deny ratio (last 1h moving)",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_social_cedar_decision_total{decision=\"deny\",pack=\"$pack\"}[5m])) / sum(rate(oya_social_cedar_decision_total{pack=\"$pack\"}[5m]))", "legendFormat": "deny ratio", "refId": "A"}
+      ]},
+
+    {"id": 8, "type": "timeseries", "title": "Reported posts (per source: user-report, auto-classifier, both)",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [{"expr": "sum by (report_source) (rate(oya_social_message_reports_total{pack=\"$pack\"}[5m]))", "legendFormat": "{{report_source}}", "refId": "A"}]},
+
+    {"id": 9, "type": "timeseries", "title": "Trending-topic anomaly detector signal",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "targets": [{"expr": "sum(rate(oya_social_trending_topic_anomaly_total{pack=\"$pack\"}[5m]))", "legendFormat": "anomalies/min", "refId": "A"}],
+      "description": "Per `runbooks/trending-topic-poisoning.md`"},
+
+    {"id": 10, "type": "table", "title": "Recent four-eyes disclosure events (audit-chain seals)",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "targets": [{"expr": "topk(20, oya_social_four_eyes_disclosure_total{pack=\"$pack\"})", "format": "table", "refId": "A"}]},
+
+    {"id": 11, "type": "stat", "title": "PHI accounts (us-healthcare only)",
+      "gridPos": {"x": 0, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_social_accounts_phi_total{pack=\"$pack\"})", "refId": "A"}]},
+
+    {"id": 12, "type": "stat", "title": "Minor-account count (age-verification)",
+      "gridPos": {"x": 6, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_social_minor_accounts_total{pack=\"$pack\"})", "refId": "A"}]},
+
+    {"id": 13, "type": "stat", "title": "EU DSA transparency report ready?",
+      "gridPos": {"x": 12, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "oya_social_dsa_transparency_report_freshness_days{pack=\"$pack\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "days", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 7, "color": "yellow"}, {"value": 90, "color": "red"}]}}}},
+
+    {"id": 14, "type": "stat", "title": "EU AI Act Art. 50 transparency-label coverage",
+      "gridPos": {"x": 18, "y": 28, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_social_moderation_verdict_total{eu_ai_act_label_present=\"true\",pack=\"$pack\"}[24h])) / sum(rate(oya_social_moderation_verdict_total{pack=\"$pack\"}[24h]))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "red"}, {"value": 0.99, "color": "yellow"}, {"value": 1, "color": "green"}]}}}}
+  ]
+}

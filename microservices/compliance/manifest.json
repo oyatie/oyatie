@@ -1,0 +1,112 @@
+{
+  "$schema": "../../specs/microservices/manifest-schema.json",
+  "microservice": "compliance",
+  "owner": "axis-compliance",
+  "co_owners": ["axis-security", "council-architecture"],
+  "purpose": "Compliance evidence automation per ADR-0209. In-house pipeline covering SOC 2 Type II, GDPR (incl. DSAR automation), HIPAA, PCI-DSS — replacing Drata / Vanta / Tugboat Logic / AuditBoard / ServiceNow GRC. Substrate kernel: oya-shared-compliance-evidence-kernel.",
+  "layout": "flat",
+  "adr_authority_chain": [
+    "ADR-0131",
+    "ADR-0209",
+    "ADR-0145",
+    "ADR-0170",
+    "ADR-0181",
+    "ADR-0183"
+  ],
+  "phase": "PHASE-01-EVIDENCE-PIPELINE-BOOTSTRAP",
+  "status": "Drafting",
+  "scope": {
+    "frameworks_covered": ["soc2-type-2", "gdpr", "hipaa", "pci-dss"],
+    "evidence_collectors": [
+      "ci-artifact-hash",
+      "deploy-receipt",
+      "access-review-snapshot",
+      "backup-restore-drill-receipt",
+      "vuln-scan-report",
+      "pen-test-report",
+      "dsar-completion-record",
+      "baa-inventory-entry",
+      "minimum-necessary-access-log"
+    ],
+    "dsar_sla_days": 30,
+    "dsar_target_days": 5,
+    "cross_tenant_isolation_enforced": true
+  },
+  "i18n": {
+    "default_locale": "en-US",
+    "required_locales": ["en-US", "ko-KR", "ja-JP", "de-DE", "fr-FR", "es-MX", "ar-SA", "he-IL"],
+    "rtl_support": true,
+    "min_coverage_bps": 9500
+  },
+  "a11y": {
+    "wcag_target": "aa",
+    "test_runners": ["axe-core-playwright", "pa11y"]
+  },
+  "realtime": {
+    "transport": {
+      "tier": "sse"
+    },
+    "payload_budget_bytes": 1048576
+  },
+  "observability": {
+    "trace_sampling_recipe": {
+      "head_bps": 200,
+      "tail_policies": [
+        "status_code=ERROR",
+        "latency_p99",
+        "new_endpoint_warmup",
+        "audit_event",
+        "random_baseline=0.02"
+      ],
+      "p99_latency_threshold_ms": 800,
+      "new_endpoints": []
+    },
+    "metric_cardinality_envelope": {
+      "max_unique_attribute_combinations": 50000
+    }
+  },
+  "compliance": {
+    "evidence_collectors": [
+      "ci-artifact-hash",
+      "deploy-receipt",
+      "access-review-snapshot",
+      "backup-restore-drill-receipt",
+      "vuln-scan-report",
+      "pen-test-report",
+      "dsar-completion-record",
+      "baa-inventory-entry",
+      "minimum-necessary-access-log"
+    ],
+    "audit_chain_seal_required": true,
+    "tamper_evidence_algorithm": "sha256-cosign-keyless-oidc"
+  },
+  "data_classes": {
+    "ingested": ["AUDIT", "SECRET", "PII_IDENTIFYING", "PHI", "INTERNAL_ONLY"],
+    "emitted": ["AUDIT", "INTERNAL_ONLY"]
+  },
+  "storage": {
+    "evidence_backing": "seaweedfs-filer",
+    "audit_chain_backing": "append-only-jsonl-with-cosign-seal"
+  },
+  "team_topology": {
+    "team_type": "platform",
+    "rotation": "ops-sre-reliability+axis-security"
+  },
+  "ip_register": [
+    "IP-001-evidence-collector-bootstrap",
+    "IP-002-soc2-control-mapping",
+    "IP-003-gdpr-dsar-automation-pipeline",
+    "IP-004-hipaa-min-necessary-log-substrate",
+    "IP-005-audit-chain-seal-coverage",
+    "IP-006-evidence-storage-seaweedfs",
+    "IP-007-auditor-readonly-portal",
+    "IP-008-pii-scrubber",
+    "IP-009-retention-tier-policy",
+    "IP-010-attestation-aggregator",
+    "IP-011-cross-microservice-evidence-fan-in",
+    "IP-012-evidence-replay",
+    "IP-013-audit-anomaly-detection",
+    "IP-014-manual-evidence-upload-flow",
+    "IP-015-regulatory-pack-evidence-overlay"
+  ]
+}

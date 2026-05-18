@@ -36,7 +36,7 @@ Native iOS / Android clients land in the wave sequence as follows:
 
 ### 3. Per-product PRD owns tech selection
 
-Concrete tech (Tauri 2.x desktop / mobile, Dioxus, Compose Multiplatform, SwiftUI / Jetpack Compose native, KMM) is **deferred to the per-product PRD** that authors the native shell. The decision is a per-product trade-off (binary size, native-feature parity, team skill, store policy), not a cross-microservice architecture decision. Each per-product PRD must:
+Concrete tech (Tauri 2.x desktop / mobile, Dioxus, Compose Multiplatform, SwiftUI / Jetpack Compose native, KMM) is **scheduled-for-distinct-tracked-work to the per-product PRD** that authors the native shell. The decision is a per-product trade-off (binary size, native-feature parity, team skill, store policy), not a cross-microservice architecture decision. Each per-product PRD must:
 - declare its mobile target matrix (iOS version floor, Android API floor, tablet support);
 - declare its tech stack with rationale citing this ADR;
 - adopt the per-pack regional store-policy bindings (Apple App Store / Google Play / Korea ONE Store / Huawei AppGallery / Samsung Galaxy Store / Naver Smart Store);

@@ -28,7 +28,7 @@ doc_status: published
    - regulatory-impact → ops-compliance
    - security-class → ops-security
 8. ☐ Glossary alignment per `oya-foundry-fitness-glossary` — no new domain term without GLOSSARY entry
-9. ☐ ADR cited where applicable (only new pack ADR-0001..0051, plus future pack ADRs after their files exist; legacy ADR-NNNN forbidden in active text)
+9. ☐ ADR cited where applicable (only new pack ADR-0001..0051, plus future pack ADRs after their files exist; legacy ADR-#### forbidden in active text)
 10. ☐ Brand check — canonical `Oyatie` usage preserved; deprecated aliases and tautological rebrand statements rejected (per ADR-0017 / MFL-0011)
 11. ☐ Capability eval-set passes (if Foundry capability change)
 12. ☐ Migration ledger entry (if ADR-0015 flat-crates phase PR)
@@ -48,7 +48,7 @@ doc_status: published
 - Bypassing review for cross-axis contract change — never
 - Bundling unrelated changes — never (one PR per concern)
 - Skipping `## Verification` — fails traceability
-- Citing legacy ADR-NNNN — replace with new pack ADR-0001..0051 per [ADR-CONSOLIDATION-PLAN.md](../ADR-CONSOLIDATION-PLAN.md)
+- Citing legacy ADR-#### — replace with new pack ADR-0001..0051 per [ADR-CONSOLIDATION-PLAN.md](../ADR-CONSOLIDATION-PLAN.md)
 
 ## Sources
 CLAUDE.md PR rules; `scripts/hooks/guard-pr-merge-review.mjs`; [RELEASE-MANAGEMENT.md](../RELEASE-MANAGEMENT.md); [standards/code-review.md](../standards/code-review.md).

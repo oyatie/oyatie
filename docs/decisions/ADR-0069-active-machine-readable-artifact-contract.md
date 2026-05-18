@@ -95,7 +95,7 @@ Per architect r17 review (`/evidence/audits/consensus/2026-05-13/architect-r17-t
 - #9 (HG-RELIABILITY over-claim): inline downgrade to `documentation` evidence class.
 - #10 (evidence cites `/tmp` paths): 12 consensus outputs archived under `/evidence/audits/consensus/2026-05-13/`; attestation updated.
 
-### Linus-style findings closed in follow-up commit `b0798b0` (per user "don't defer anything" 2026-05-13)
+### Linus-style findings closed in successor-IP commit `b0798b0` (per user "don't defer anything" 2026-05-13)
 
 - #3 (graph catalog hidden under `_canonical_*` keys): CLOSED — `/specs/knowledge-graph-schema.json` reduced to pure meta-schema (199 lines); `/registry/knowledge-graph-catalog.json` NEW with 24 node types + 18 edge types + 14 invariants + 5 DRY queries as first-class catalog data.
 - #6 (DRY counts contradictory): CLOSED inline — field renamed to `consumer_count_resolved_today_auto_computed` (auto-computed by validator); old name retired; the resolved-vs-listed split is documented in `_known_data_quality_gaps_per_architect_r17`.

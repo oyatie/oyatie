@@ -1,0 +1,29 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# pack-kr overlay for the anonymous µservice.
+# Regulatory: KR 통신비밀보호법 + 정보통신망법 + KR PIPA Art. 24-2 (alternative-pseudonymous-processing).
+# Region: ap-northeast-2 (Seoul). NO cross-border replication per PIPA Art. 28.
+
+namespace: anonymous
+
+bases:
+  - ../../base
+
+patchesStrategicMerge:
+  - patch-pack-kr-region.yaml
+  - patch-pack-kr-retention.yaml
+  - patch-pack-kr-legal-process.yaml
+
+configMapGenerator:
+  - name: oya-anonymous-pack-config
+    literals:
+      - pack=kr
+      - region=ap-northeast-2
+      - data_residency_strict=true
+      - legal_process_framework=kr-telecom-secrecy-act
+      - regulatory_pack_packs=KR-통신비밀보호법,KR-정보통신망법,KR-PIPA-Art-24-2
+      - cross_border_replication=REFUSED
+      - retention_default_tier=30d
+      - retention_max_allowed_tier=90d

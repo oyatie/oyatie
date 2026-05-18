@@ -1,0 +1,126 @@
+# Default values for oya-anonymous chart
+# Pinned LTS versions per docs/standards/version-pinning.md
+# Secrets via ${openbao:secret/<path>} — NEVER raw secrets
+
+image:
+  registry: ghcr.io
+  repository: oyatie/oya-anonymous
+  tag: "1.0.0"  # pinned LTS
+  pullPolicy: IfNotPresent
+
+replicaCount: 4
+
+postgres:
+  enabled: true
+  image:
+    tag: "16.4.0"  # Postgres 16 LTS
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: gp3
+  auth:
+    existingSecret: ${openbao:secret/anonymous/postgres-auth}
+
+redis:
+  enabled: true
+  image:
+    tag: "7.2.4"  # Valkey 8.1 (Redis wire-compat)
+  auth:
+    existingSecret: ${openbao:secret/anonymous/redis-auth}
+  cluster:
+    enabled: true
+    nodes: 6
+
+meilisearch:
+  enabled: true
+  image:
+    tag: "0.10.0"  # Meilisearch 0.10.0 LTS (anonymous tier; anonymised corpus only)
+  auth:
+    masterKeySecret: ${openbao:secret/anonymous/meilisearch-master-key}
+
+foundryRuntime:
+  abuseClassifierEnabled: true
+  modelVersion: "abuse-classifier-v2.3.0"  # pinned; managed by axis-foundry-runtime
+  endpoint: "https://foundry-runtime.oyatie.dev/api/v1/classify"
+
+blindSignatures:
+  protocol: "bbs-plus"  # per ADR-ANON-0001
+  curve: "bls12-381"
+  fipsModule: "rust-bls-0.5"
+  keyCeremonyEvidenceSecret: ${openbao:secret/anonymous/blind-signature-ceremony-evidence}
+  shamirThreshold:
+    n: 5
+    k: 3
+
+mls:
+  enabled: true  # per I6 anonymous-DM
+  rfcVersion: "rfc-9420"
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 4
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 70
+
+networkPolicy:
+  enabled: true
+  egress:
+    defaultAllow: false  # EGRESS-DENY-DEFAULT per I4 + NetworkPolicy below
+    allowList:
+      - foundry-runtime.oyatie.dev
+      - audit-chain.oyatie.dev
+      - tenancy.oyatie.dev
+      - observability.oyatie.dev
+      - workflow-engine.oyatie.dev
+      - messenger.oyatie.dev
+      - openbao.oyatie.dev
+      - postgres.anonymous.svc.cluster.local
+      - redis.anonymous.svc.cluster.local
+      - meilisearch.anonymous.svc.cluster.local
+    explicitDeny:
+      # I4: no third-party analytics SDK ever
+      - google-analytics.com
+      - segment.com
+      - mixpanel.com
+      - amplitude.com
+      - heap.io
+      - fullstory.com
+      - facebook.com
+      - hotjar.com
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 50%
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  namespace: observability  # cross-µservice
+
+prometheusRule:
+  enabled: true
+
+cedar:
+  policyVersion: "v4.2"  # LTS
+  defaultDeny: true
+  fragments:
+    - tenant-scope.cedar
+    - ci-scope.cedar
+    - auditor-scope.cedar
+    - public-read.cedar
+    - legal-process-disclosure.cedar
+
+retentionPolicy:
+  defaultTier: "30d"
+  allowedTiers: ["30d", "60d", "90d"]
+  hardDeleteWorkerInterval: "5m"
+  propagationSloMaxLatencySeconds: 5

@@ -1,0 +1,302 @@
+asyncapi: 3.1.0
+info:
+  title: oya-tenancy — tenant lifecycle events
+  version: 1.0.0
+  summary: Tenant lifecycle, DSR cascade, JWT key rotation, and cell rebalance events emitted by tenancy
+  description: |
+    Cross-µservice Workflow events emitted by `oya-tenancy-*-worker` crates.
+    Per Bominal ADR-0018 + ADR-0131.
+
+    Consumers:
+    - Every workload µservice with tenant-scoped data (`TenantActivated`, `TenantSuspended`,
+      `TenantResumed`, `TenantDeletionRequested`).
+    - `audit-chain` µservice (Ed25519 seal of every event per Bominal ADR-0028).
+    - Every workload µservice's `JwtVerifier` (`JwtSigningKeyRotated` triggers pubkey-cache refresh).
+    - `tenancy-dsr-cascade-worker` (`ErasureReceipt` consumed back for aggregation).
+    - `observability` (`MicroserviceRegistered` consumed; cell-rebalance / lifecycle metrics).
+  contact:
+    name: axis-tenancy
+
+defaultContentType: application/json
+
+servers:
+  workflow-events-bus:
+    host: workflow-events.tenancy.svc.cluster.local
+    protocol: amqp
+    description: |
+      Internal AMQP event bus consumed by audit-chain + every workload µservice.
+
+channels:
+  tenant-created:
+    address: workflow-events/tenant.created
+    messages:
+      TenantCreated:
+        $ref: '#/components/messages/TenantCreated'
+    description: Tenant record persisted (pre-activation).
+
+  tenant-activated:
+    address: workflow-events/tenant.activated
+    messages:
+      TenantActivated:
+        $ref: '#/components/messages/TenantActivated'
+    description: Schema migration + RLS install + cell assignment complete; tenant ready for traffic.
+
+  tenant-suspended:
+    address: workflow-events/tenant.suspended
+    messages:
+      TenantSuspended:
+        $ref: '#/components/messages/TenantSuspended'
+    description: Tenant suspended (non-destructive); new requests should be denied.
+
+  tenant-resumed:
+    address: workflow-events/tenant.resumed
+    messages:
+      TenantResumed:
+        $ref: '#/components/messages/TenantResumed'
+    description: Tenant resumed from suspended state.
+
+  tenant-deletion-requested:
+    address: workflow-events/tenant.deletion-requested
+    messages:
+      TenantDeletionRequested:
+        $ref: '#/components/messages/TenantDeletionRequested'
+    description: DSR cascade trigger; every µservice should execute own DSR handler.
+
+  tenant-deletion-completed:
+    address: workflow-events/tenant.deletion-completed
+    messages:
+      TenantDeletionCompleted:
+        $ref: '#/components/messages/TenantDeletionCompleted'
+    description: All ErasureReceipts received; ProofOfErasure sealed; soft-delete grace begins.
+
+  erasure-receipt:
+    address: workflow-events/tenant.erasure-receipt
+    messages:
+      ErasureReceipt:
+        $ref: '#/components/messages/ErasureReceipt'
+    description: Per-µservice DSR handler completion receipt; aggregated by tenancy.
+
+  jwt-signing-key-rotated:
+    address: workflow-events/jwt.signing-key-rotated
+    messages:
+      JwtSigningKeyRotated:
+        $ref: '#/components/messages/JwtSigningKeyRotated'
+    description: JWT signing key rotated; verifier caches refresh.
+
+  cell-rebalance-started:
+    address: workflow-events/cell.rebalance-started
+    messages:
+      CellRebalanceStarted:
+        $ref: '#/components/messages/CellRebalanceStarted'
+
+  cell-rebalance-completed:
+    address: workflow-events/cell.rebalance-completed
+    messages:
+      CellRebalanceCompleted:
+        $ref: '#/components/messages/CellRebalanceCompleted'
+
+  rls-policy-installed:
+    address: workflow-events/rls.policy-installed
+    messages:
+      RlsPolicyInstalled:
+        $ref: '#/components/messages/RlsPolicyInstalled'
+
+  microservice-registered:
+    address: workflow-events/microservice.registered
+    messages:
+      MicroserviceRegistered:
+        $ref: '#/components/messages/MicroserviceRegistered'
+    description: Consumed (not produced) — informs DSR cascade of expected receipt sources.
+
+operations:
+  emitTenantCreated:
+    action: send
+    channel: {$ref: '#/channels/tenant-created'}
+  emitTenantActivated:
+    action: send
+    channel: {$ref: '#/channels/tenant-activated'}
+  emitTenantSuspended:
+    action: send
+    channel: {$ref: '#/channels/tenant-suspended'}
+  emitTenantResumed:
+    action: send
+    channel: {$ref: '#/channels/tenant-resumed'}
+  emitTenantDeletionRequested:
+    action: send
+    channel: {$ref: '#/channels/tenant-deletion-requested'}
+  emitTenantDeletionCompleted:
+    action: send
+    channel: {$ref: '#/channels/tenant-deletion-completed'}
+  emitJwtSigningKeyRotated:
+    action: send
+    channel: {$ref: '#/channels/jwt-signing-key-rotated'}
+  emitCellRebalanceStarted:
+    action: send
+    channel: {$ref: '#/channels/cell-rebalance-started'}
+  emitCellRebalanceCompleted:
+    action: send
+    channel: {$ref: '#/channels/cell-rebalance-completed'}
+  emitRlsPolicyInstalled:
+    action: send
+    channel: {$ref: '#/channels/rls-policy-installed'}
+  consumeErasureReceipt:
+    action: receive
+    channel: {$ref: '#/channels/erasure-receipt'}
+  consumeMicroserviceRegistered:
+    action: receive
+    channel: {$ref: '#/channels/microservice-registered'}
+
+components:
+  messages:
+    TenantCreated:
+      payload: {$ref: '#/components/schemas/TenantLifecyclePayload'}
+    TenantActivated:
+      payload: {$ref: '#/components/schemas/TenantLifecyclePayload'}
+    TenantSuspended:
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/TenantLifecyclePayload'
+          - type: object
+            properties:
+              reason: {type: string}
+    TenantResumed:
+      payload: {$ref: '#/components/schemas/TenantLifecyclePayload'}
+    TenantDeletionRequested:
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/TenantLifecyclePayload'
+          - type: object
+            required: [dsr_id, requester]
+            properties:
+              dsr_id: {type: string, pattern: '^dsr-[A-Z0-9]{26}$'}
+              requester:
+                type: object
+                properties:
+                  principal: {type: string}
+                  principal_type: {type: string, enum: [tenant_operator, platform_operator, dpo, regulator]}
+              legal_sla_deadline: {type: string, format: date-time}
+    TenantDeletionCompleted:
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/TenantLifecyclePayload'
+          - type: object
+            required: [dsr_id, proof_of_erasure_merkle_root]
+            properties:
+              dsr_id: {type: string}
+              proof_of_erasure_merkle_root: {type: string}
+              microservices_count: {type: integer}
+              sealed_at: {type: string, format: date-time}
+    ErasureReceipt:
+      payload:
+        type: object
+        required: [microservice, tenant_id, dsr_id, data_classes_erased, signed_at, signature]
+        properties:
+          microservice: {type: string}
+          tenant_id: {type: string}
+          dsr_id: {type: string}
+          data_classes_erased:
+            type: array
+            items: {type: string}
+          residual_data_basis:
+            type: array
+            items:
+              type: object
+              properties:
+                basis: {type: string, enum: [legal_hold, statutory_retention, technical_dependency]}
+                reference: {type: string}
+          signed_at: {type: string, format: date-time}
+          signature: {type: string, description: Ed25519 signature by emitting µservice SPIFFE identity}
+    JwtSigningKeyRotated:
+      payload:
+        type: object
+        required: [pack, environment, prev_fingerprint, new_fingerprint, rotated_at, signature]
+        properties:
+          pack: {type: string}
+          environment: {type: string, enum: [dev, staging, production]}
+          prev_fingerprint: {type: string, description: fingerprint of the previous key}
+          new_fingerprint: {type: string, description: fingerprint of the new key (to be cached by verifiers)}
+          emergency: {type: boolean, default: false}
+          revoke_previous: {type: boolean, default: false}
+          rotated_at: {type: string, format: date-time}
+          rotator_principal: {type: string, description: actor (OpenBao cron OR operator OIDC subject)}
+          signature: {type: string}
+    CellRebalanceStarted:
+      payload:
+        type: object
+        required: [pack, cell_id, started_at]
+        properties:
+          pack: {type: string}
+          cell_id: {type: string, format: uuid}
+          source_shard_ids: {type: array, items: {type: integer}}
+          target_shard_ids: {type: array, items: {type: integer}}
+          started_at: {type: string, format: date-time}
+          checksums_pre:
+            type: array
+            items:
+              type: object
+              properties:
+                shard_id: {type: integer}
+                row_count: {type: integer}
+                sha256: {type: string}
+    CellRebalanceCompleted:
+      payload:
+        type: object
+        required: [pack, cell_id, completed_at, integrity_verified]
+        properties:
+          pack: {type: string}
+          cell_id: {type: string, format: uuid}
+          completed_at: {type: string, format: date-time}
+          integrity_verified: {type: boolean}
+          checksums_post:
+            type: array
+            items:
+              type: object
+              properties:
+                shard_id: {type: integer}
+                row_count: {type: integer}
+                sha256: {type: string}
+    RlsPolicyInstalled:
+      payload:
+        type: object
+        required: [table, policy_name, predicate, force_rls, applied_at, change_id]
+        properties:
+          table: {type: string}
+          policy_name: {type: string}
+          predicate: {type: string}
+          force_rls: {type: boolean}
+          data_class: {type: string}
+          owner_microservice: {type: string}
+          applied_at: {type: string, format: date-time}
+          change_id: {type: string, pattern: '^[A-Z0-9]{26}$'}
+          signature: {type: string}
+    MicroserviceRegistered:
+      payload:
+        type: object
+        required: [microservice, registered_at, dsr_handler_registered]
+        properties:
+          microservice: {type: string}
+          registered_at: {type: string, format: date-time}
+          dsr_handler_registered: {type: boolean}
+          tenant_bound_tables: {type: array, items: {type: string}}
+
+  schemas:
+    TenantLifecyclePayload:
+      type: object
+      required: [tenant_id, status, jurisdiction_code, pack, timestamp]
+      properties:
+        tenant_id: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+        status:
+          type: string
+          enum: [Created, Activated, Suspended, DeletionRequested, Deleted]
+        jurisdiction_code: {type: string}
+        pack: {type: string}
+        plan_tier: {type: string}
+        cell_id: {type: string, format: uuid}
+        timestamp: {type: string, format: date-time}
+        actor:
+          type: object
+          properties:
+            principal: {type: string}
+            principal_type: {type: string}
+            secondary_signer: {type: string, description: 2-person-rule co-signer when required}
+        signature: {type: string, description: Ed25519 signature by tenancy SPIFFE identity}

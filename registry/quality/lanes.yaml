@@ -582,3 +582,184 @@ lanes:
     source: ADR-0111
     check_command: cargo run -p oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600
     runtime_budget_seconds: 60
+  # PR #143 Fix-D — EU AI Act Annex III refusal grounding.
+  - id: oya-governance-eu-ai-act-annex-iii-refusal
+    stage: per-pr
+    status: active
+    severity: blocker
+    owner_team: council-architecture
+    purpose: enforces that every µservice declaring an Annex III "refused at Cedar layer" claim in `capabilities/T2-auto.yaml` has a matching `forbid` rule in `policy/tenant-scope.cedar` gating on employment-context (SEC-MAJ-02).
+    source: ADR-0144
+    check_command: cargo run -p oya-dev-cli -- gate validate eu-ai-act-annex-iii-refusal
+    runtime_budget_seconds: 60
+  # PR #143 Fix-D — SLSA L3 evidence grounding.
+  - id: oya-governance-slsa-l3-evidence-grounded
+    stage: per-pr
+    status: active
+    severity: blocker
+    owner_team: ops-security
+    purpose: enforces that every scorecard claiming `slsa_l3: green` cites real `.github/workflows/<file>.yml` files that declare SLSA-relevant primitives (signed provenance, hermetic build, two-party review) (SEC-MAJ-01).
+    source: ADR-0133
+    check_command: cargo run -p oya-dev-cli -- gate validate slsa-l3-evidence-grounded
+    runtime_budget_seconds: 60
+  # PR #143 ADR-0145 enforcement lanes (advisory / deferred mode).
+  # Skeleton crates ship; strict-mode promotion tracked under
+  # registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-*.
+  - id: oya-governance-otel-trace-propagation
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-observability
+    purpose: validates that per-µservice gRPC client adapters propagate W3C traceparent per ADR-0145 Invariant 2. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-otel-propagation-validator.
+    source: ADR-0145
+    check_command: cargo run -p oya-dev-cli -- gate validate otel-trace-propagation
+    runtime_budget_seconds: 30
+  - id: oya-governance-ontology-projection-coverage
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-ontology
+    purpose: validates that µservices owning canonical entities declare `ontology_projections` in their manifest per ADR-0145 Invariant 3. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator.
+    source: ADR-0145
+    check_command: cargo run -p oya-dev-cli -- gate validate ontology-projection-coverage
+    runtime_budget_seconds: 30
+  - id: oya-governance-audit-chain-seal-coverage
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-audit-chain
+    purpose: validates that µservices with `audit_chain.enabled=true` declare seal events per ADR-0145 Invariant 1. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-audit-chain-seal-validator.
+    source: ADR-0145
+    check_command: cargo run -p oya-dev-cli -- gate validate audit-chain-seal-coverage
+    runtime_budget_seconds: 30
+  # ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 / ADR-0185 layered architecture
+  # discipline lanes (authored 2026-05-18).
+  - id: oya-governance-layered-architecture-discipline
+    stage: per-pr
+    status: active
+    severity: blocker
+    owner_team: council-architecture
+    purpose: enforces zero feature overlap across the layered hyperscaler architecture — Cilium L3/L4 vs Istio Ambient L7 (ADR-0148); gateway vs mesh (ADR-0182); Cedar vs Kyverno (ADR-0183); Valkey vs Memcached (ADR-0184). Rejects any µservice manifest declaring conflicting layer ownerships or under-claimed mesh tiers.
+    source: ADR-0148, ADR-0182, ADR-0183, ADR-0184
+    check_command: cargo run -p oya-dev-cli -- gate validate layered-architecture-discipline
+    runtime_budget_seconds: 60
+  - id: oya-governance-client-stack-discipline
+    stage: per-pr
+    status: active
+    severity: blocker
+    owner_team: axis-workflow-studio
+    purpose: enforces ADR-0185 native-per-platform client stack — SvelteKit (Phase 1) → Leptos (Phase 2) on web (sequential not parallel); Swift+SwiftUI on Apple (no KMP klib imports); Kotlin+Compose+KMP on Android (Android-scope only); WinUI 3 on Windows; gtk4-rs + libadwaita on Linux. Rejects React/Vue/Flutter/Electron/Cordova/Tauri/Avalonia/MAUI references.
+    source: ADR-0185
+    check_command: cargo run -p oya-dev-cli -- gate validate client-stack-discipline
+    runtime_budget_seconds: 60
+  # PR #143 Fix-M/N/R/S/T/U batches — 1 strict + 11 advisory lanes (close-out 2026-05-18).
+  - id: oya-governance-vendor-lockin-discipline
+    stage: per-pr
+    status: active
+    severity: blocker
+    owner_team: council-architecture
+    purpose: enforces ADR-0173 tiered vendor classification — Tier I OWNED with license+steward; Tier II VENDOR-SEAMED with replacement_path, replacement_readiness_gate, seam_adapter_trait, and ≥1 seam_adapter_impls; Tier III FORBIDDEN with refusal rationale + replacement path.
+    source: ADR-0173
+    check_command: cargo run -p oya-dev-cli -- gate validate vendor-lockin-discipline
+    runtime_budget_seconds: 60
+  - id: oya-governance-authz-tier-discipline
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: council-architecture
+    purpose: enforces ADR-0191 tier boundary — Cedar policy MUST NOT reference edge concerns (ip/asn/geo/country/rate/waf/bot/ddos); Envoy filter config MUST NOT reference origin concerns (oidc principal claims/acr/tenant identity/residency/purpose/data_class). Advisory until per-microservice Cedar/Envoy assets exist.
+    source: ADR-0191
+    check_command: cargo run -p oya-dev-cli -- gate validate authz-tier-discipline
+    runtime_budget_seconds: 30
+  - id: oya-governance-tenant-cost-labels-coverage
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-finops
+    purpose: advisory presence check for mandatory tenant cost labels per ADR-0199 D-1 (oya.io/tenant-id + oya.io/cost-center + oya.io/workload-class + oya.io/regulatory-pack) on every rendered Helm manifest under microservices/*/iac/helm/*/rendered/*.yaml.
+    source: ADR-0199
+    check_command: cargo run -p oya-dev-cli -- gate validate tenant-cost-labels-coverage
+    runtime_budget_seconds: 60
+  - id: oya-governance-backup-retention-discipline
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: ops-sre-reliability
+    purpose: advisory per-µservice backup retention validation per ADR-0197 D-5 (tier-driven RPO/RTO floor; storage.backup.tier ∈ {app, batch, gpu, regulatory}; storage.backup.retention_days set).
+    source: ADR-0197
+    check_command: cargo run -p oya-dev-cli -- gate validate backup-retention-discipline
+    runtime_budget_seconds: 60
+  - id: oya-governance-vector-store-discipline
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-foundry
+    purpose: advisory enforcement of Milvus-canonical vector store tier per ADR-0192 (collection schema, index_type, metric, data_classes). Advisory until per-µservice manifests populate data.vector_store.* namespace.
+    source: ADR-0192
+    check_command: cargo run -p oya-dev-cli -- gate validate vector-store-discipline
+    runtime_budget_seconds: 60
+  - id: oya-governance-olap-tier-discipline
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-analytics
+    purpose: advisory enforcement of ClickHouse-canonical OLAP tier per ADR-0193 (no rogue analytics queries against OLTP postgres). Advisory until per-µservice manifests populate data.olap_client.* namespace.
+    source: ADR-0193
+    check_command: cargo run -p oya-dev-cli -- gate validate olap-tier-discipline
+    runtime_budget_seconds: 60
+  - id: oya-governance-wasm-runtime-discipline
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-foundry
+    purpose: advisory enforcement of wasmtime-canonical WASM substrate per ADR-0200 (sandbox classes envoy-filter | workflow-studio-node | foundry-tool). Promotion target T+60d after ADR-0200 land; flip to blocker.
+    source: ADR-0200
+    check_command: cargo run -p oya-dev-cli -- gate validate wasm-runtime-discipline
+    runtime_budget_seconds: 30
+    promotion_target: T+60d after ADR-0200 land; flip to blocker
+  - id: oya-governance-iac-tier-discipline
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: ops-sre-reliability
+    purpose: advisory enforcement of OpenTofu-canonical IaC tier per ADR-0202; Terraform path supported only during 90-day migration window. Promotion target T+90d after ADR-0202 land; flip to blocker (forbids new .tf files).
+    source: ADR-0202
+    check_command: cargo run -p oya-dev-cli -- gate validate iac-tier-discipline
+    runtime_budget_seconds: 30
+    promotion_target: T+90d after ADR-0202 land; flip to blocker
+  - id: oya-governance-a11y-discipline
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-workflow-studio
+    purpose: advisory WCAG 2.2 AA coverage per ADR-0207 (axe + pa11y runners declared per client surface in manifest.json#a11y).
+    source: ADR-0207
+    check_command: cargo run -p oya-dev-cli -- gate validate a11y-discipline
+    runtime_budget_seconds: 60
+  - id: oya-governance-i18n-coverage
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-workflow-studio
+    purpose: advisory Fluent ICU locale coverage per ADR-0206 (default_locale + required_locales + rtl_support + min_coverage_bps).
+    source: ADR-0206
+    check_command: cargo run -p oya-dev-cli -- gate validate i18n-coverage
+    runtime_budget_seconds: 60
+  - id: oya-governance-compliance-evidence-coverage
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-compliance
+    purpose: advisory compliance evidence collector declaration per ADR-0209 (audit_chain_seal_required + tamper_evidence_algorithm + evidence_collectors[]).
+    source: ADR-0209
+    check_command: cargo run -p oya-dev-cli -- gate validate compliance-evidence-coverage
+    runtime_budget_seconds: 60
+  - id: oya-governance-realtime-transport-tier
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: axis-workflow-studio
+    purpose: advisory real-time transport tier validation per ADR-0208 (sse vs websocket vs grpc-streaming; payload_budget_bytes per tier).
+    source: ADR-0208
+    check_command: cargo run -p oya-dev-cli -- gate validate realtime-transport-tier
+    runtime_budget_seconds: 30

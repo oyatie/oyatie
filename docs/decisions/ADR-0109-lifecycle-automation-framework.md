@@ -170,7 +170,7 @@ windowing rather than discrete stages).
 
 ### Migration policy
 
-The follow-up listed under §Decision item 6 ("a follow-up refactor MAY
+The successor-IP listed under §Decision item 6 ("a successor-IP refactor MAY
 convert sunset-lifecycle into a config-driven instance") is hereby
 withdrawn. Sunset-lifecycle remains on its dedicated Pattern-B kernel
 indefinitely. Removing this entry would be a silent regression of the
@@ -243,7 +243,7 @@ pub struct LifecycledArtifact {
 - Adding a new lifecycle is a 3-file commit: config JSON, thin dev-CLI, plan file. No new kernel.
 - Schema evolution (e.g. new violation type) happens once in the framework kernel and propagates to every lane.
 - The sunset-lifecycle crate stays canonical at its layer; the framework is the canonical shape for everything else.
-- Future M-CC phase: convert sunset-lifecycle into a config-driven instance for full DRY (follow-up commit, not blocking).
+- Future M-CC phase: convert sunset-lifecycle into a config-driven instance for full DRY (successor-IP commit, not blocking).
 
 ## Initial lifecycle catalog (Wave-A scaffold)
 

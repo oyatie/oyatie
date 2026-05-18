@@ -1,0 +1,73 @@
+# Per-microservice DR tier declarations per ADR-0180.
+# Updated as each microservice's DR plan is signed off by ops-dr-capacity.
+authored: 2026-05-18
+authority: ADR-0180
+schema: /specs/dr-business-continuity.json
+
+t1:
+  - foundry          # foundry runtime; capability invocation
+  - audit-chain      # the audit chain itself
+  - observability    # observability is the substrate during DR
+  - tenancy          # identity kernel
+  - cloud-secrets    # the KMS / vault surface
+  - cell             # cell registry; cell-router on the critical path
+
+t2:
+  - workflow-engine
+  - workflow-studio
+  - ontology
+  - drive
+  - mail
+  - calendar
+  - meet
+  - messenger
+  - connect
+
+t3:
+  - sheets
+  - slides
+  - forms
+  - notes
+  - sites
+  - recordings
+  - social
+  - community
+  - shorts
+  - tasks
+  - translate
+  - application
+  - anonymous
+
+t4:
+  - governance       # internal staff governance tooling
+
+drill_calendar:
+  current_quarter: 2026-Q2
+  upcoming:
+    - microservice: foundry
+      next_drill_due_at: 2026-06-15
+      tier: T1
+    - microservice: audit-chain
+      next_drill_due_at: 2026-06-15
+      tier: T1
+    - microservice: observability
+      next_drill_due_at: 2026-06-15
+      tier: T1
+    - microservice: tenancy
+      next_drill_due_at: 2026-06-22
+      tier: T1
+    - microservice: cell
+      next_drill_due_at: 2026-06-22
+      tier: T1
+    - microservice: cloud-secrets
+      next_drill_due_at: 2026-06-22
+      tier: T1
+    - microservice: workflow-engine
+      next_drill_due_at: 2026-06-29
+      tier: T2
+    - microservice: ontology
+      next_drill_due_at: 2026-06-29
+      tier: T2
+    - microservice: drive
+      next_drill_due_at: 2026-07-06
+      tier: T2

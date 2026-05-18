@@ -1,0 +1,253 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+global:
+  pack: kr  # overridden per-pack overlay
+  cluster: shorts
+  imageRegistry: ghcr.io/oyatie
+  imagePullPolicy: IfNotPresent
+
+image:
+  repository: oya-shorts-app
+  tag: "1.0.0"  # SHA-pinned at release-pointer advance per ADR-0139
+
+# ============================================================================
+# Per-BC deployment sizing (XS-tier baseline; HPA scales up)
+# ============================================================================
+
+websocketGateway:
+  replicas: 6
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits: {cpu: 2000m, memory: 2Gi}
+  hpa:
+    minReplicas: 6
+    maxReplicas: 200
+    targetCPUUtilizationPercentage: 70
+
+videoUploadRest:
+  replicas: 4
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: 1000m, memory: 2Gi}
+  hpa:
+    minReplicas: 4
+    maxReplicas: 50
+    targetCPUUtilizationPercentage: 65
+
+videoTranscodeWorker:
+  replicas: 16
+  # KEDA-style queue-depth autoscale separately defined in hpa.yaml
+  resources:
+    requests: {cpu: 2000m, memory: 4Gi, ephemeralStorage: 100Gi}
+    limits: {cpu: 8000m, memory: 16Gi, ephemeralStorage: 200Gi}
+  sandbox: gvisor  # per ADR-SHORTS-0001; gVisor runtimeclass; alternative Kata
+  ffmpegVersion: "7.1"  # LTS pin per ADR-SHORTS-0001
+  hpa:
+    minReplicas: 16
+    maxReplicas: 1000
+    metricType: ExternalMetric  # KEDA queue-depth
+
+videoStorageRest:
+  replicas: 4
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+thumbnailGenerationWorker:
+  replicas: 4
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+  sandbox: gvisor
+
+audioTrackLibraryRest:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+audioAttributionWorker:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+videoCompositionWorker:
+  replicas: 4
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+  sandbox: gvisor
+
+feedTimeline:
+  replicas: 8
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+  hpa:
+    minReplicas: 8
+    maxReplicas: 200
+    targetCPUUtilizationPercentage: 65
+
+watchTimeTrackingWorker:
+  replicas: 4
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: 1000m, memory: 2Gi}
+
+likeShareCommentWorker:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+repostStitchDuetWorker:
+  replicas: 4
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+  sandbox: gvisor
+
+hashtagWorker:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+trendingWorker:
+  replicas: 2
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+notificationsWorker:
+  replicas: 6
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+contentModerationWorker:
+  replicas: 4
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: 1000m, memory: 2Gi}
+  sandbox: gvisor
+
+copyrightClaimWorker:
+  replicas: 4
+  resources:
+    requests: {cpu: 500m, memory: 1Gi, ephemeralStorage: 50Gi}
+    limits: {cpu: 2000m, memory: 4Gi, ephemeralStorage: 100Gi}
+  sandbox: gvisor  # Chromaprint + DCT perceptual-hash in sandbox
+
+accessibilityCaptionsWorker:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+creatorAnalyticsWorker:
+  replicas: 4
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: 1000m, memory: 2Gi}
+
+ageGateRest:
+  replicas: 2
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+parentalControlsRest:
+  replicas: 2
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+drmKeyServer:
+  enabled: true
+  replicas: 2  # active-active HA per pack
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: 1000m, memory: 2Gi}
+  keySystems: [widevine, fairplay, playready]
+  perContentKeyRotationDays: 7
+  rootKeyRotationDays: 90
+
+monetizationStub:
+  enabled: false  # OFF by default per PRD Open Question 2 + ADR-SHORTS successor-IP
+  replicas: 0
+
+liveStreamingStub:
+  enabled: false  # OFF at M03 per PRD Open Question 1; M05-onward activation
+  replicas: 0
+
+federationGateway:
+  enabled: false  # Off in P01; activated in P02 per parallel ADR-SOC-0004 pattern; Personal-tier NEVER federates per DCI-08
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+# ============================================================================
+# Layer-A LTS pins
+# ============================================================================
+
+postgres:
+  version: "16"  # Postgres 16 LTS
+  shards: 1  # XS-tier; M+ tiers shard-by-tenant
+
+redis:
+  version: "7.2"  # Valkey 8.1 (Redis wire-compat)
+  shards: 3  # XS-tier
+
+meilisearch:
+  enabled: true
+  version: "0.10.0"  # Meilisearch LTS
+  shards: 2
+
+ffmpeg:
+  version: "7.1"  # ffmpeg 7.x LTS
+
+chromaprint:
+  version: "1.5.1"  # Chromaprint pin
+
+clamav:
+  version: "1.4"  # ClamAV 1.x LTS
+
+opswat:
+  enabled: true  # SaaS; ClamAV fallback if outage
+  version: "5.0"  # OPSWAT MetaDefender 5.x
+
+cedar:
+  version: "4.2"  # Cedar v4.2 LTS
+
+cdn:
+  provider: cloudflare-r2-workers  # per ADR-SHORTS-0001
+  signedUrlTtlSeconds: 900  # 15 min
+
+# ============================================================================
+# Secret-references (resolved by OpenBao via External-Secrets-style operator)
+# ============================================================================
+
+secretRefs:
+  postgresPassword: "${openbao:secret/shorts/postgres/password}"
+  redisPassword: "${openbao:secret/shorts/redis/password}"
+  meilisearchMasterKey: "${openbao:secret/shorts/meilisearch/master-key}"
+  s3AccessKey: "${openbao:secret/shorts/s3/access-key}"
+  s3SecretKey: "${openbao:secret/shorts/s3/secret-key}"
+  cloudfrontKeyPairId: "${openbao:secret/shorts/cdn/cloudfront-key-pair-id}"
+  cloudfrontPrivateKey: "${openbao:secret/shorts/cdn/cloudfront-private-key}"
+  opswatApiKey: "${openbao:secret/shorts/opswat/api-key}"
+  widevineProvisioningKey: "${openbao:secret/shorts/drm/widevine-provisioning-key}"
+  fairplayApplicationSecretKey: "${openbao:secret/shorts/drm/fairplay-application-secret-key}"
+  playreadyServiceAccountKey: "${openbao:secret/shorts/drm/playready-service-account-key}"
+  cedarSchemaSigningKey: "${openbao:secret/shorts/cedar/schema-signing-key}"
+  tenantDekRootKey: "${openbao:secret/shorts/dek/root-key}"
+  auditChainSigningKey: "${openbao:secret/shorts/audit-chain/ed25519-signing-key}"
+  foundryRuntimeServiceToken: "${openbao:secret/shorts/foundry-runtime/service-token}"
+
+# ============================================================================
+# CapacityModel-tier toggle
+# ============================================================================
+
+capacityTier: XS  # XS, S, M, L per capacity-model.md

@@ -1,0 +1,336 @@
+{
+  "schema_version": "1.0",
+  "microservice": "workflow-engine",
+  "version": "0.1.0",
+  "owner": "axis-workflow-engine",
+  "bounded_contexts": [
+    {
+      "name": "unknown",
+      "description": "Bounded context 'unknown'",
+      "crates": [
+        "oya-workflow-engine-event-bus-adapter",
+        "oya-workflow-engine-event-bus-adapter-postgres",
+        "oya-workflow-engine-event-bus-adapter-redis",
+        "oya-workflow-engine-event-bus-api",
+        "oya-workflow-engine-event-bus-app",
+        "oya-workflow-engine-event-bus-domain",
+        "oya-workflow-engine-event-bus-kernel",
+        "oya-workflow-engine-event-bus-rest",
+        "oya-workflow-engine-event-bus-sdk",
+        "oya-workflow-engine-event-bus-usecase",
+        "oya-workflow-engine-event-bus-worker",
+        "oya-workflow-engine-execution-engine-adapter",
+        "oya-workflow-engine-execution-engine-adapter-postgres",
+        "oya-workflow-engine-execution-engine-adapter-redis",
+        "oya-workflow-engine-execution-engine-api",
+        "oya-workflow-engine-execution-engine-app",
+        "oya-workflow-engine-execution-engine-domain",
+        "oya-workflow-engine-execution-engine-kernel",
+        "oya-workflow-engine-execution-engine-rest",
+        "oya-workflow-engine-execution-engine-sdk",
+        "oya-workflow-engine-execution-engine-usecase",
+        "oya-workflow-engine-execution-engine-worker",
+        "oya-workflow-engine-replay-debugger-backend-adapter",
+        "oya-workflow-engine-replay-debugger-backend-adapter-clickhouse",
+        "oya-workflow-engine-replay-debugger-backend-adapter-postgres",
+        "oya-workflow-engine-replay-debugger-backend-api",
+        "oya-workflow-engine-replay-debugger-backend-app",
+        "oya-workflow-engine-replay-debugger-backend-domain",
+        "oya-workflow-engine-replay-debugger-backend-kernel",
+        "oya-workflow-engine-replay-debugger-backend-rest",
+        "oya-workflow-engine-replay-debugger-backend-sdk",
+        "oya-workflow-engine-replay-debugger-backend-usecase",
+        "oya-workflow-engine-spec-store-adapter",
+        "oya-workflow-engine-spec-store-adapter-postgres",
+        "oya-workflow-engine-spec-store-api",
+        "oya-workflow-engine-spec-store-app",
+        "oya-workflow-engine-spec-store-domain",
+        "oya-workflow-engine-spec-store-kernel",
+        "oya-workflow-engine-spec-store-rest",
+        "oya-workflow-engine-spec-store-sdk",
+        "oya-workflow-engine-spec-store-usecase",
+        "oya-workflow-engine-state-machine-adapter",
+        "oya-workflow-engine-state-machine-adapter-postgres",
+        "oya-workflow-engine-state-machine-api",
+        "oya-workflow-engine-state-machine-domain",
+        "oya-workflow-engine-state-machine-kernel",
+        "oya-workflow-engine-state-machine-usecase"
+      ]
+    }
+  ],
+  "layers": [
+    "kernel",
+    "domain",
+    "usecase",
+    "adapter",
+    "rest"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml"
+    ],
+    "asyncapi": [
+      "microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml"
+    ],
+    "proto": [
+      "microservices/workflow-engine/contracts/proto/workflow-engine.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T3",
+      "name": "workflow-execute",
+      "file": "microservices/workflow-engine/capabilities/workflow-execute.yaml",
+      "eu_ai_act_risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "workflow-pause",
+      "file": "microservices/workflow-engine/capabilities/workflow-pause.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "workflow-replay",
+      "file": "microservices/workflow-engine/capabilities/workflow-replay.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-workflow-engine-payload-bytes-budget-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_workflow_engine_workflow_event_total{payload_budget=\"within_limit\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/payload-bytes-budget-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-replay-determinism-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_workflow_engine_replay_total{result=\"deterministic\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-worker-poll-availability",
+      "target": "0.999",
+      "sli": "sum(rate(oya_workflow_engine_worker_poll_total{outcome=~\"task|empty_ack\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/worker-poll-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-workflow-completion-availability",
+      "target": "0.9995",
+      "sli": "sum(rate(oya_workflow_engine_workflow_terminal_total{outcome=~\"completed|user_failed|cancelled\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/workflow-completion-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-workflow-start-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_workflow_engine_workflow_start_duration_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/workflow-start-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-workflow-step-execute-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_workflow_engine_step_execute_duration_seconds_bucket{le=\"0.5\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/workflow-step-execute-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-layer-a-postgres-citus-redis-clickhouse-iac",
+      "title": "IP-001: Layer-A Postgres + Citus + Valkey + ClickHouse + workflow-runtime IaC",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md"
+    },
+    {
+      "id": "IP-002-spec-store-kernel-domain",
+      "title": "IP-002: oya-workflow-engine-spec-store-{kernel,domain}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-002-spec-store-kernel-domain.md"
+    },
+    {
+      "id": "IP-003-state-machine-kernel-domain",
+      "title": "IP-003: oya-workflow-engine-state-machine-{kernel,domain,usecase,api,adapter,adapter-postgres}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-003-state-machine-kernel-domain.md"
+    },
+    {
+      "id": "IP-004-execution-engine-kernel-domain",
+      "title": "IP-004: oya-workflow-engine-execution-engine-{kernel,domain}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-004-execution-engine-kernel-domain.md"
+    },
+    {
+      "id": "IP-005-execution-engine-usecase-durable-execution",
+      "title": "IP-005: oya-workflow-engine-execution-engine-{usecase,api,adapter,adapter-postgres,adapter-redis}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-005-execution-engine-usecase-durable-execution.md"
+    },
+    {
+      "id": "IP-006-event-bus-kernel-domain-adapter",
+      "title": "IP-006: oya-workflow-engine-event-bus-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-006-event-bus-kernel-domain-adapter.md"
+    },
+    {
+      "id": "IP-007-event-bus-rest-worker-sdk-app",
+      "title": "IP-007: oya-workflow-engine-event-bus-{rest,worker,sdk,app}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-007-event-bus-rest-worker-sdk-app.md"
+    },
+    {
+      "id": "IP-008-spec-store-usecase-api-adapter-rest-sdk-app",
+      "title": "IP-008: spec-store remaining layers (usecase + api + adapter + adapter-postgres + rest + sdk + app)",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-008-spec-store-usecase-api-adapter-rest-sdk-app.md"
+    },
+    {
+      "id": "IP-009-execution-engine-rest-worker-sdk-app",
+      "title": "IP-009: oya-workflow-engine-execution-engine-{rest,worker,sdk,app}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-009-execution-engine-rest-worker-sdk-app.md"
+    },
+    {
+      "id": "IP-010-replay-debugger-backend-kernel-domain",
+      "title": "IP-010: oya-workflow-engine-replay-debugger-backend-{kernel,domain}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-010-replay-debugger-backend-kernel-domain.md"
+    },
+    {
+      "id": "IP-011-replay-debugger-backend-usecase-adapter",
+      "title": "IP-011: oya-workflow-engine-replay-debugger-backend-{usecase,api,adapter,adapter-postgres,adapter-clickhouse}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-011-replay-debugger-backend-usecase-adapter.md"
+    },
+    {
+      "id": "IP-012-replay-debugger-backend-rest-sdk-app",
+      "title": "IP-012: oya-workflow-engine-replay-debugger-backend-{rest,sdk,app}",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-012-replay-debugger-backend-rest-sdk-app.md"
+    },
+    {
+      "id": "IP-013-observability-slo-manifests",
+      "title": "IP-013: workflow-engine OpenSLO manifests + observability self-SLOs",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-013-observability-slo-manifests.md"
+    },
+    {
+      "id": "IP-014-branch-protection-and-hyperscaler-gates",
+      "title": "IP-014: branch-protection + hyperscaler-gates registration",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-014-branch-protection-and-hyperscaler-gates.md"
+    },
+    {
+      "id": "IP-015-deterministic-replay-lane",
+      "title": "IP-015: oya-governance-deterministic-replay BLOCKER lane",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-engine/IP-015-deterministic-replay-lane.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "clickhouse": "24.3\"  # ClickHouse 24.3 LTS per docs/standards/workflow-engine-substrate.md",
+    "postgres": "16.0\"  # Postgres 16 LTS line per docs/standards/workflow-engine-substrate.md",
+    "redis": "7.2\"  # Valkey 8.1 (Redis wire-compat) per docs/standards/workflow-engine-substrate.md",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0103",
+      "title": "Grit Cutover Inventory",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0103-grit-cutover-inventory.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0110",
+      "title": "Changeset State Machine",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0110-changeset-state-machine.md"
+    },
+    {
+      "id": "ADR-0123",
+      "title": "Hyperscaler Maturity Claim Gate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.workflow-engine.workflow-execute",
+      "oya.workflow-engine.workflow-pause",
+      "oya.workflow-engine.workflow-replay"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "WorkflowDefinition",
+      "projection_target_table": "ontology_workflow_definitions",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "WorkflowRun",
+      "projection_target_table": "ontology_workflow_runs",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "WorkflowStep",
+      "projection_target_table": "ontology_workflow_steps",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

@@ -1,0 +1,53 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# pack-eu overlay: pack-specific residency + retention + replicas + signing keys.
+# Per data-residency.md + multi-region.md (pack-eu: DR pair eu-frankfurt-1 + eu-amsterdam-1).
+
+bases:
+  - ../../base
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/values/citus/worker/replicas
+        value: 4
+    target:
+      kind: HelmRelease
+      name: sheets-postgres
+  - patch: |-
+      - op: replace
+        path: /spec/values/replicaCount
+        value: 5
+    target:
+      kind: HelmRelease
+      name: collab-crdt-worker
+  - patch: |-
+      - op: replace
+        path: /spec/values/replicaCount
+        value: 3
+    target:
+      kind: HelmRelease
+      name: recalc-engine-worker
+  - patch: |-
+      - op: replace
+        path: /spec/values/replicaCount
+        value: 3
+    target:
+      kind: HelmRelease
+      name: xlsx-export-worker
+
+configMapGenerator:
+  - name: pack-residency
+    literals:
+      - PACK=pack-eu
+      - REGION=eu-frankfurt-1
+      - REGION_DR=eu-amsterdam-1
+      - JURISDICTION=eu
+      - OCI_OBJECTSTORAGE_ENDPOINT=https://objectstorage.eu-frankfurt-1.oraclecloud.com
+      - AI_FORMULA_PROVIDER_RESIDENCY=eu-resident
+      - CDN_EDGE_REGION=eu-frankfurt-1
+      - AUDIT_RETENTION_YEARS=2
+      - GDPR_SCCS_REQUIRED=true
+      - EU_AI_ACT_TRANSPARENCY_REQUIRED=true

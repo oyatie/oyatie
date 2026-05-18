@@ -234,7 +234,7 @@ findings live in
 | B — Slimmed slice (this ADR's predecessor proposal) | Type rename + body Vec<u8> + crate renames; defer quality + security | Leaves S3 / S4 / S5 / S6 / S7 / S8 security gaps; leaves Q1-Q5 quality issues |
 | C (selected) — Full quality bar | All of B + Q1-Q5 fixes + S1-S10 fixes + multispectrum enforcement | Multi-day; user authorized 2026-05-14 |
 
-## Why the original IP-002 may have been right (acknowledged-but-deferred)
+## Why the original IP-002 may have been right (acknowledged-but-scheduled-for-distinct-tracked-work)
 
 The amendment's rejection of the state machine / trigger DSL / monotonic
 transitions is NOT a claim that those primitives are wrong. It is a claim
@@ -284,7 +284,7 @@ decision is reversible when conditions change:
    judgment call is *when*. At 11 deps with zero removals, YAGNI wins. At
    50 deps with 3 in-flight removals, the machine pays.
 
-## Re-evaluation triggers (when to revisit the deferred complexity)
+## Re-evaluation triggers (when to revisit the scheduled-for-distinct-tracked-work complexity)
 
 This ADR is REVERSIBLE. Re-introduce the state machine / trigger predicates
 when ANY of the following becomes true. Each trigger is a FixupTask
@@ -322,7 +322,7 @@ Even at all-triggers-fired conditions, three findings from the amendment survive
   generated from that. Parallel `dri.json` / `role-roster.json` is F1
   duplication.
 
-## FixupTasks (deferred but named)
+## FixupTasks (scheduled-for-distinct-tracked-work but named)
 
 - **F-MULTI-Q2**: telemetry hot-lock (Mutex<BTreeMap>) → sharded AtomicU64 when load tests show contention.
 - **F-ASYNCCHAIN-1**: introduce async middleware chain; LatencyBudgetReporter (this ADR D5) becomes the SLO reporter while a real cancelling Deadline middleware appears alongside.

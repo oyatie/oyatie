@@ -1,0 +1,43 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: anonymous-hard-delete-propagation-correctness
+  displayName: Hard-delete propagation correctness — anonymous µservice
+  labels:
+    microservice: anonymous
+    bc: retention-policy
+    tier: shared-substrate
+    invariant: I3
+    owner_team: axis-anonymous + ops-data + council-privacy
+spec:
+  description: |
+    Hard-delete propagation MUST be 100% correct within p99 ≤ 5s across
+    Postgres + Valkey + Meilisearch + audit-chain. Any breach is Sev-1 per
+    `runbooks/hard-delete-tombstone-corruption.md`. Regulatory exposure
+    under GDPR Art. 17, KR PIPA Art. 21, CCPA §1798.105, COPPA §312.5.
+  service: oya-anonymous-retention-policy-worker
+  indicator:
+    metadata:
+      name: hard-delete-propagation-correctness
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: 'sum(rate(oya_anonymous_hard_delete_propagation_success_total[5m]))'
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: 'sum(rate(oya_anonymous_hard_delete_propagation_total[5m]))'
+  objectives:
+    - displayName: 100% of hard-deletes propagate within p99 ≤ 5s
+      target: 1.0
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  alertPolicies:
+    - alertPolicyRef: anonymous-hard-delete-burnrate-sev1

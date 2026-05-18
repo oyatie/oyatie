@@ -226,7 +226,7 @@ fn lint_asyncapi(contract_path: &Path) -> Result<String, String> {
     }
     let source = read_to_string(contract_path)?;
     for (needle, label) in [
-        ("asyncapi: 3.0.0", "asyncapi: 3.0.0"),
+        ("asyncapi: 3.1.0", "asyncapi: 3.1.0"),
         (
             "defaultContentType: application/cloudevents+protobuf",
             "defaultContentType: application/cloudevents+protobuf",

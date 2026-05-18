@@ -4,7 +4,7 @@ template_id: TPL-ADR
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Canonical ADR shape with autogen-friendly frontmatter (id, owners, supersedes, superseded_by) suitable for ADR-INDEX rendering and supersession-graph validation. Aligns to hyperscaler convergent ADR practice (AWS / Google / Microsoft / Oracle) and oyatie's existing pack convention (`docs/decisions/ADR-NNNN-<slug>.md`).
+  Canonical ADR shape with autogen-friendly frontmatter (id, owners, supersedes, superseded_by) suitable for ADR-INDEX rendering and supersession-graph validation. Aligns to hyperscaler convergent ADR practice (AWS / Google / Microsoft / Oracle) and oyatie's existing pack convention (`docs/decisions/ADR-####-<slug>.md`).
 supersedes: docs/templates/adr-template.md
 header_note: "Supersedes prior docs/templates/adr-template.md once reviewed."
 enforcing_fitness_lane: oya-foundry-fitness-adr-shape
@@ -26,15 +26,15 @@ doc_status: published
 ```yaml
 # Required frontmatter on every ADR (for ADR-INDEX autogen + supersession graph)
 ---
-id: ADR-NNNN
+id: ADR-####
 title: "<Decision title in imperative form>"
 status: Proposed | Accepted | Deprecated | Superseded
 date: YYYY-MM-DD
 owner_team: <team-id from docs/teams/>
 co_owners: [<team-id>, <team-id>]
-supersedes: [ADR-NNNN, ...]
-superseded_by: [ADR-NNNN, ...]
-related: [ADR-NNNN, ...]
+supersedes: [ADR-####, ...]
+superseded_by: [ADR-####, ...]
+related: [ADR-####, ...]
 tags: [architecture, security, privacy, capability, tooling, ...]
 purpose: |
   One paragraph stating what this ADR decides and why future engineers should read it. Used by ADR-INDEX renderer.
@@ -43,12 +43,12 @@ authority_chain_declaration: |
 ---
 ```
 
-# ADR-NNNN: <Decision Title in imperative form>
+# ADR-####: <Decision Title in imperative form>
 
 > **Status:** Proposed | Accepted | Deprecated | Superseded
 > **Date:** YYYY-MM-DD
 > **Owner:** `<team-id>` — see [`teams/`](../teams/)
-> **Supersedes:** ADR-NNNN (or `-`) **Superseded-by:** ADR-NNNN (or `-`)
+> **Supersedes:** ADR-#### (or `-`) **Superseded-by:** ADR-#### (or `-`)
 
 ---
 

@@ -42,7 +42,7 @@ agent_prerequisites:           # files/docs the agent MUST read before claiming
   - docs/AGENTS.md
   - docs/CONSTITUTION.md
 final_shape_compliance: true   # principle 3: no MVP placeholders
-dependency_additions: []       # [{crate: "...", lts: true|false, adr_exception: "ADR-NNNN|null"}]
+dependency_additions: []       # [{crate: "...", lts: true|false, adr_exception: "ADR-####|null"}]
 decision_log: |
   Linus good-taste row: <special cases eliminated by this IP, or "none — no candidates">
 authority_chain_declaration: |
@@ -139,5 +139,5 @@ One row stating: what special case was eliminated? what data reshape removed the
 
 - Master Plan: `.omc/plans/MASTERPLAN.md` §<section>.
 - Phase INDEX: `./INDEX.md`.
-- Related ADR(s): `ADR-NNNN`. ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim), ADR-0052 (inventory if migration-class).
+- Related ADR(s): `ADR-####`. ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim), ADR-0052 (inventory if migration-class).
 - Hyperscaler practice inherited (if any): per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §<domain>`.

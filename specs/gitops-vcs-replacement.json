@@ -454,47 +454,47 @@
   "implementation_plan": [
     {
       "id": "IP-001-symbol-lock-domain",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Language-agnostic kernel model + symbol graph schema + claim/queue/lease invariants; Rust AST remains first-class, not exclusive."
     },
     {
       "id": "IP-002-remote-lock-store-events",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Local + distributed LockStorePort adapters and watch event stream."
     },
     {
       "id": "IP-003-change-bundle-attestation",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Signed ChangeBundle format with claim coverage manifest and evidence records."
     },
     {
       "id": "IP-004-gitops-promotion-controller",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Controller-owned remote promotion path integrated with CI/CD admission, review/fix loop, rebase, merge queue, and environment reconciliation."
     },
     {
       "id": "IP-005-grit-compat-cli-and-migration-ratchet",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Grit-compatible CLI aliases, migration from local grit, CI ratchet banning local-only closeout for agent fan-out."
     },
     {
       "id": "IP-006-polyglot-indexers",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Swift/Kotlin/C#/C++/XAML/TypeScript/config/contract semantic indexers with cross-language dependency edges."
     },
     {
       "id": "IP-007-review-fix-rebase-merge-queue-loop",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Typed review/fix loop plus controller-owned rebase and merge queue orchestration, with CI/CD evidence and terminal states."
     },
     {
       "id": "IP-008-test-standard-enforcement",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Document and machine-encode unit/integration/e2e standards, registry-driven commands, and CI/CD admission enforcement."
     },
     {
       "id": "IP-009-ast-index-contract",
-      "status": "TBD-first-prerequisite",
+      "status": "first-prerequisite-not-yet-started",
       "deliverable": "Language-neutral AST symbol/range/dependency contract used by claims, review mapping, impacted tests, and semantic conflict checks."
     }
   ],
@@ -533,7 +533,7 @@
       "command_or_lane": "manual spec update + jq validation",
       "result": "pending final validation",
       "artifact_ref": "docs/MASTERPLAN.md §13",
-      "known_gap": "Phase detail files are still TBD implementation plans; this slice establishes priority and contract."
+      "known_gap": "Phase detail files are first-prerequisite-not-yet-started implementation plans; this slice establishes priority and contract."
     },
     {
       "class": "documentation",

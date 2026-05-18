@@ -1,0 +1,205 @@
+{
+  "review_skill": "performance-optimization",
+  "pr_number": 143,
+  "pr_title": "feat(microservices): flat layout substrate + 17 µservice audit-grade packs (1,515 artifacts)",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "review_date": "2026-05-18",
+  "review_agent": "REVIEW-AGENT-3 (Opus 4.7)",
+  "sample_audited": [
+    "microservices/messenger/slos/websocket-fanout-latency.openslo.yaml",
+    "microservices/messenger/iac/helm/messenger/templates/hpa.yaml",
+    "microservices/messenger/iac/helm/messenger/values.yaml",
+    "microservices/messenger/capacity-model.md",
+    "microservices/sheets/slos/collab-cursor-sync-latency.openslo.yaml",
+    "microservices/sheets/capacity-model.md",
+    "microservices/sheets/iac/helm/visual-grid-rest/templates/hpa.yaml",
+    "microservices/workflow-studio/capacity-model.md",
+    "microservices/workflow-studio/iac/helm/visual-canvas-rest/templates/hpa.yaml",
+    "microservices/foundry/slos/runtime-latency.openslo.yaml",
+    "microservices/foundry/capacity-model.md",
+    "microservices/ontology/capacity-model.md",
+    "microservices/audit-chain/capacity-model.md",
+    "microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml",
+    "microservices/observability/contracts/metric-naming-convention.md",
+    "microservices/tasks/iac/helm/tasks/templates/prometheusrule.yaml"
+  ],
+  "verdict": "approve-with-comments",
+  "verdict_rationale": "Capacity-model + cost-budget arithmetic is rigorous and internally consistent; the four-golden-signals canonical PrometheusRule is well-designed and burn-rate math (14.4x × 0.001 = 1.44%/h) is textbook Google SRE Workbook. However the SLO surface is incomplete: 8 of 33 µservices ship ZERO openslo.yaml files (including audit-chain and observability — the two highest-fanin substrates). This means ADR-0130 'agentic SLO-gated promotion' has no signal for one quarter of the catalog, including the µservice that audits all the others. Documentation/IaC quality is high but the metric-emission code that the canonical PrometheusRule queries is not yet in tree — every microservices/<ms>/src/ source directory I sampled is empty/scaffold-only, so the alerts cannot fire in production until Layer-B Rust crates are scaffolded.",
+  "slo_target_realism": "realistic",
+  "slo_target_realism_notes": [
+    "messenger websocket-fanout-latency p99 ≤ 100ms (good→excluded federation cross-pack tail; bounded by intra-cell Redis+gateway hop ≈ <60ms typical; HEADROOM acceptable)",
+    "sheets collab-cursor-sync p99 ≤ 150ms (asked target) — REALISTIC for Loro 1.x CRDT cursor delta on Postgres+Redis+axum-ws within a cell; LiveKit is NOT on the cursor-sync path (LiveKit is for messenger A/V signaling only per messenger/values.yaml; sheets path is pure Loro+WS), so the prompt's premise of 'WebSocket fanout + LiveKit signaling' was inaccurate — sheets cursor sync does NOT traverse LiveKit",
+    "foundry-runtime dispatch latency p99 ≤ 50ms (excludes LLM round-trip; pure dispatch path) — REALISTIC; capability dispatch is in-process Rust + provider-router HTTP",
+    "audit-chain sealing 200ms Merkle-build CPU @ 50k events on 4-core (verify-at-deploy) — REALISTIC per RFC 6962 complexity citation; HSM +50ms is well within typical OCI Cloud-HSM partition latency"
+  ],
+  "golden_signals_coverage": "amber",
+  "golden_signals_coverage_notes": [
+    "GREEN: canonical PrometheusRule covers all four signals (traffic, errors, saturation, latency-via-burn) with proper PromQL aggregations and {{$labels.microservice}} interpolation — well-designed seam per ADR-0064",
+    "GREEN: metric-naming-convention.md is precise and machine-checkable (CI enforcement planned via oya-check-canonical-base-cohesion)",
+    "AMBER: 0 µservice src/ directories contain Rust code that emits the canonical metric names (oya_<ms>_responses_total / oya_<ms>_responses_5xx_total / oya_<ms>_capability_circuit_state / oya_<ms>_request_success_total / oya_<ms>_request_total) — the alerts will fire on missing-series until Layer-B crates are scaffolded",
+    "RED: 8 µservices (audit-chain, observability, governance, cell, cloud-iac, cloud-k8s, cloud-secrets, workflow-engine) have ZERO openslo.yaml files in microservices/<ms>/slos/ — they will emit no per-SLO burn-rate alerts at all; aggregate canonical alerts may fire but cannot identify which SLI breached",
+    "Saturation alert hard-codes 70% sustained 10m — reasonable but should also fire on memory >80% (currently CPU-only)",
+    "Traffic-drop alert at <10% of prior hour is generous; for low-volume tenants this will produce false positives during weekend dips — consider absolute floor + relative drop AND-gate"
+  ],
+  "error_budget_policy_sanity": "green",
+  "error_budget_policy_sanity_notes": [
+    "14.4x fast-burn / 6x slow-burn / 1h+6h windows match Google SRE Workbook Ch 5 multi-window burn-rate verbatim — math is correct (14.4 × 0.001 = 1.44% of 30d budget consumed in 1h triggers page; 6 × 0.001 = 0.6% in 6h triggers ticket)",
+    "GAP: canonical rule covers fast-1h-14x and slow-6h-6x ONLY; prompt asked about 3x/1d and 1x/3d windows — those are MISSING from the canonical PrometheusRule. Google SRE Workbook prescribes a 4-window policy; only 2 windows present here",
+    "Per-SLO burn-rate alerts in tasks/prometheusrule.yaml correctly implement 14.4x and 6x — pattern is good, but it's the ONLY µservice that has a per-µservice burn-rate file (1 of 33)",
+    "Aggregate query uses oya_<ms>_request_success_total / oya_<ms>_request_total — denominator division by zero is unhandled (Prom returns NaN; absent {} should be added)"
+  ],
+  "hpa_config_sanity": "amber",
+  "hpa_config_sanity_notes": [
+    "GREEN: messenger HPA uses custom metric (oya_messenger_gateway_frame_queue_depth >1000 avg) in ADDITION to CPU=70% — this is best-practice for WebSocket workloads where CPU lags connection saturation",
+    "GREEN: messenger scaleUp=100%/60s + scaleDown=10%/60s + 300s stabilization is conservative & sane — prevents flapping",
+    "AMBER: sheets cell-grid-rest HPA uses CPU+memory only (no queue-depth or WS-connection metric) — recalc-engine should scale on queue depth per capacity-model.md line 140 but HPA template doesn't implement it",
+    "AMBER: workflow-studio visual-canvas-rest HPA same gap (CPU+memory only); collab-crdt-worker should scale on WS connection count per ADR but template doesn't",
+    "AMBER: no HPA scaleDown stabilization seen in sheets/workflow-studio templates — default 300s but explicit value preferred to make policy reviewable",
+    "GREEN: maxReplicas ceilings (200 for messenger gateway, scaled by capacity-model formulas) match the gateway_replicas = ceil(C_active_conn/15k)×1.3 envelope"
+  ],
+  "resource_sizing_realism": "amber",
+  "resource_sizing_realism_notes": [
+    "GREEN: oya.resourceRequests.tier{XS,S,M,L,XL} helpers defined in governance/_oya-helpers (Sweep-I) with sane progression (XS=100m/128Mi, S=250m/512Mi, M=500m/1Gi, L=1c/2Gi, XL=2c/4Gi)",
+    "RED: NO microservices/<ms>/iac/helm/*/values.yaml USES these tier helpers — every values.yaml declares raw {cpu: 500m, memory: 512Mi} literals. Sweep-I's stated purpose (BC-tier-driven resource sizing) is unrealized; tier helpers are dead code today",
+    "AMBER: messenger websocketGateway sized at cpu=500m req / 2000m limit / 512Mi req / 2Gi limit per pod with ws_connections_per_pod=15000 (capacity-model) — for 15k WS connections each holding ~32KB heap state that's ~500MB; 512Mi request is tight but limit gives headroom",
+    "AMBER: workflow-studio capacity-model declares ws_connections_per_pod=10000 on E4 4-core but Helm values not seen for collab-crdt-worker resources — could not verify capacity formula matches deployed resources",
+    "GREEN: capacity-model formulas are mathematically consistent across messenger/sheets/workflow-studio/foundry/ontology/audit-chain — all use the same N_tenants × per-tenant-rate × buffer pattern"
+  ],
+  "cross_microservice_latency_budget": "amber",
+  "cross_microservice_latency_budget_notes": [
+    "NO end-to-end latency budget allocation document found — the PR ships per-µservice SLOs but no document that allocates them across cross-cutting flows (e.g., social-post-creation → audit-chain-seal → ontology-bind → workflow-engine-trigger)",
+    "Per-µservice SLOs are individually realistic but their SUM along a cross-µservice path is not declared anywhere — e.g., social-post 200ms + audit-chain emit 100ms + ontology bind 100ms + workflow trigger 100ms = 500ms minimum, but no end-to-end SLO captures this",
+    "audit-chain emission-rest p99=100ms (capacity-model) is in the synchronous path of EVERY write across the catalog — should be the tightest budget but no µservice-fanin diagram exists in the PR to make this explicit",
+    "Recommendation: ship microservices/audit-chain/cross-microservice-latency-budget.md mapping fanin from social/messenger/workflow-engine/tasks/sheets etc."
+  ],
+  "capacity_model_consistency": "green",
+  "capacity_model_consistency_notes": [
+    "Reference tier matrices (XS/S/M/L/XL with N_tenants 20/100/1k/10k/100k) are CONSISTENT across messenger, sheets, workflow-studio, ontology, audit-chain — same tier nomenclature, same N_tenants breakpoints",
+    "Worked examples for XS launch tier match cost-budget.md (per references) — messenger ~$560/month substrate, ontology ~$80/month storage, sheets ~$2880/month, workflow-studio ~$2600/month",
+    "Headroom multipliers (1.2–1.5×) consistent across µservices",
+    "Pre-warmed-pool + HPA + VPA + burst-absorbing four-layer policy is uniformly declared"
+  ],
+  "bottleneck_risks": [
+    {
+      "risk": "audit-chain emission-rest is in the synchronous write path of every µservice that emits an audit event (per metric-naming-convention every µservice MUST emit oya_<ms>_request_*) — capacity-model says 10k events/sec per replica, but the cross-cat fanin at scale could be 30 µservices × 100 events/sec each = 3000/sec average baseline; 5× peak burst = 15000/sec — sized for 3 replicas at M01 (30k/sec capacity) so headroom exists, but the µservice has ZERO SLO files in microservices/audit-chain/slos/ to actually monitor the budget",
+      "severity": "HIGH",
+      "evidence": "microservices/audit-chain/capacity-model.md line 39-45; absent microservices/audit-chain/slos/*.openslo.yaml"
+    },
+    {
+      "risk": "HSM saturation at L tier (10k tenants × 1 sign/sec = 10000 ops/sec) requires 4 HSM partitions per pack — capacity-model declares fanout strategy but no actual sharding policy artifact found; HSM partition cost is substantial and the 4-partition assumption is asserted without OCI quote",
+      "severity": "MEDIUM",
+      "evidence": "microservices/audit-chain/capacity-model.md lines 95-108"
+    },
+    {
+      "risk": "ontology function-engine sized at 2500 reads/sec/replica × 800 replicas at L tier = 2M reads/sec — at this scale Postgres+Citus coordinator can become bottleneck (2 coordinator replicas only, even at L tier per line 82)",
+      "severity": "MEDIUM",
+      "evidence": "microservices/ontology/capacity-model.md line 82"
+    },
+    {
+      "risk": "foundry-providers concurrent calls capped at 5000 cross-tenant (capacity-model 'max per cell') — for 100k-tenant XL deployment this is 0.05 concurrent calls/tenant; Anthropic/OpenAI per-tenant burst behavior may exceed this if 1% of tenants synchronously fan out 10 calls each = 10000 concurrent (2× over cell ceiling). Multi-cell fanout exists in capacity-model but the rate-limit fan-in to external providers is per-account-key — single OpenAI account API key cannot be sharded across cells, this is a real bottleneck not addressed",
+      "severity": "HIGH",
+      "evidence": "microservices/foundry/capacity-model.md line 35; INV-CIRCUIT-BREAKER-BULKHEAD canonical alert covers downstream but not provider-account-key fan-in"
+    },
+    {
+      "risk": "sheets recalc-engine capacity-model declares 'recalcs_per_worker_per_sec = 50' but the 1M-cell recalc SLO in slos/recalc-1m-cells-latency.openslo.yaml is a different unit (per-workbook latency) — for 1M-cell recalc on rayon-pool of 4-8 cores the throughput is workbook-scoped, not 'recalcs/sec'; conflation may misprovision",
+      "severity": "MEDIUM",
+      "evidence": "microservices/sheets/capacity-model.md line 187"
+    },
+    {
+      "risk": "messenger Postgres primary single-cell cap at 50k msg/sec — at L tier (500k msg/sec) requires cross-cell sharding by tenant_id mod N; sharding policy IS declared (line 74) but the actual orchestration of cross-shard joins for cross-tenant features (org-wide search, threading across channels) is not specified",
+      "severity": "MEDIUM",
+      "evidence": "microservices/messenger/capacity-model.md line 74"
+    },
+    {
+      "risk": "Loro 1.x at 5k-node workflow-studio graph: ws_connections_per_pod=10000 implies 10k concurrent CRDT documents per gateway pod = ~10000 × 32KB CRDT state = 320MB heap per pod; declared limit is 4GB which is comfortable, but Loro 1.x performance at the declared 5k-node-graph scale is not benchmarked in the PR (no benchmark artifact found in slos/ or capacity-model.md). Reference is 'axum-ws benchmark on E4 4-core' but no Loro benchmark",
+      "severity": "MEDIUM",
+      "evidence": "microservices/workflow-studio/capacity-model.md line 142; no Loro-specific benchmark in PR"
+    },
+    {
+      "risk": "observability µservice (Mimir/Loki/Tempo/Pyroscope/Alloy/Grafana/Alertmanager) has ZERO openslo.yaml files — the µservice that monitors all the others has no monitoring of itself; if Mimir falls over the canonical PrometheusRule cannot fire and the whole observability substrate goes silent without alarm",
+      "severity": "HIGH",
+      "evidence": "find microservices/observability -name '*.openslo.yaml' returns 0 files"
+    }
+  ],
+  "critical_findings": [
+    {
+      "id": "PERF-143-001",
+      "severity": "BLOCKER-ALIGNMENT",
+      "title": "8 µservices ship NO openslo.yaml — ADR-0130 promotion gate has no signal for 24% of catalog",
+      "detail": "audit-chain, observability, governance, cell, cloud-iac, cloud-k8s, cloud-secrets, workflow-engine all have 0 SLO files. ADR-0130 'agentic SLO-gated promotion' cannot evaluate these µservices. Most critical: audit-chain (every µservice fans in) and observability (the µservice that monitors the others). The PR body claims 1,515 audit-grade artifacts but the SLO axis is incomplete.",
+      "remediation": "Add at minimum: audit-chain/slos/{emission-latency, sealing-latency, verify-availability}.openslo.yaml; observability/slos/{mimir-write-latency, alertmanager-fire-latency}.openslo.yaml. The other 6 µservices (cloud-*, governance, cell, workflow-engine) should also ship SLOs before ADR-0130 promotion."
+    },
+    {
+      "id": "PERF-143-002",
+      "severity": "BLOCKER-IMPL",
+      "title": "Canonical PrometheusRule queries metric series that no source code emits",
+      "detail": "microservices/<ms>/src/ directories are empty/scaffold-only — no Rust crate registers a metric named oya_<ms>_responses_total, oya_<ms>_capability_circuit_state, oya_<ms>_request_success_total, etc. The canonical PrometheusRule will fire 'absent series' alerts immediately on deploy, or fail silently with NaN results.",
+      "remediation": "Either (a) ship the metric-emission scaffolding in this PR via a shared oya-prometheus-conventions crate that every Layer-B crate must depend on, or (b) split the canonical PrometheusRule out of this PR until source-code emission lands. Right now it's IaC without a backing data plane."
+    },
+    {
+      "id": "PERF-143-003",
+      "severity": "MAJOR",
+      "title": "Burn-rate policy is 2-window not 4-window (Google SRE Workbook prescribes 4)",
+      "detail": "Canonical PrometheusRule only has 1h@14.4x (fast) and 6h@6x (slow). Google SRE Workbook Ch 5 Table 5-3 prescribes 4 windows: 1h@14.4x + 6h@6x + 3d@1x + 30d@1x — the missing 3d/30d windows are how teams catch slow drift that doesn't trip fast alerts.",
+      "remediation": "Add OyaErrorBudgetMediumBurn3d1x and OyaErrorBudgetLongBurn30d1x alerts to hyperscaler-invariants-canonical-prometheusrule.yaml."
+    },
+    {
+      "id": "PERF-143-004",
+      "severity": "MAJOR",
+      "title": "Sweep-I resource-tier helpers are dead code",
+      "detail": "oya.resourceRequests.tier{XS,S,M,L,XL} defined in _oya-helpers/templates/_helpers.tpl but ZERO values.yaml files reference them — every µservice declares raw cpu/memory literals. The whole purpose of Sweep-I (BC-tier-driven sizing) is unrealized.",
+      "remediation": "Refactor each microservices/<ms>/iac/helm/<chart>/values.yaml to invoke {{ include \"oya.resourceRequests.tierXS\" $ }} (or the appropriate tier) for resources blocks. Add a CI lane oya-check-canonical-helper-usage that fails on raw resource literals."
+    },
+    {
+      "id": "PERF-143-005",
+      "severity": "MAJOR",
+      "title": "External provider rate-limit fan-in not addressed at XL scale",
+      "detail": "foundry-providers caps concurrent calls at 5000 per cell. At 100k-tenant XL deployment, multi-cell fanout exists for runtime/router but Anthropic/OpenAI/Google account API keys cannot shard across cells — single API account is the actual rate-limit ceiling. INV-CIRCUIT-BREAKER-BULKHEAD covers downstream failure but not pre-failure backpressure from provider account quota.",
+      "remediation": "Document per-provider-account capacity in microservices/foundry/capacity-model.md; require per-tenant fair-share scheduling in providers BC to prevent one tenant from exhausting account quota for others. Consider per-tenant-tier API key allocation."
+    },
+    {
+      "id": "PERF-143-006",
+      "severity": "MAJOR",
+      "title": "No end-to-end cross-µservice latency budget allocation",
+      "detail": "Per-µservice SLOs are individually realistic but their composition along cross-µservice flows is not declared. social-post → audit-chain-seal → ontology-bind → workflow-trigger could sum to 500ms but no end-to-end SLO declares this. Without it, individual µservice teams can tighten or loosen budgets without coordination and break the composite UX.",
+      "remediation": "Ship docs/standards/cross-microservice-latency-budgets.md enumerating critical user-facing flows and allocating each hop's slice of the end-to-end budget."
+    },
+    {
+      "id": "PERF-143-007",
+      "severity": "MINOR",
+      "title": "sheets cursor-sync SLO does NOT traverse LiveKit (prompt premise was incorrect)",
+      "detail": "Prompt asked whether 'messenger declares cursor-sync p99 ≤ 150ms — realistic given WebSocket fanout + LiveKit signaling'. Verified: (a) the cursor-sync SLO is in sheets, not messenger (sheets/slos/collab-cursor-sync-latency.openslo.yaml); (b) sheets cursor sync path is pure Loro CRDT + axum-ws + Redis — LiveKit is messenger A/V signaling only per messenger/iac/helm/messenger/values.yaml line 109. So the 150ms target is realistic — the LiveKit concern doesn't apply to sheets cursor sync.",
+      "remediation": "None — informational. The premise of the prompt was inaccurate."
+    },
+    {
+      "id": "PERF-143-008",
+      "severity": "MINOR",
+      "title": "HPA templates inconsistent — some use custom metrics, most don't",
+      "detail": "messenger HPA scales on oya_messenger_gateway_frame_queue_depth (good practice). sheets/workflow-studio HPAs use only CPU+memory despite capacity-models declaring queue-depth/WS-connection scale-out triggers.",
+      "remediation": "Standardize HPA template to support custom-metric scaling; document each µservice's primary saturation signal and use it in HPA."
+    },
+    {
+      "id": "PERF-143-009",
+      "severity": "MINOR",
+      "title": "Loro 1.x performance at declared graph scale not benchmarked in PR",
+      "detail": "workflow-studio declares 5k-node graph, sheets declares 1M-cell sheet, both on Loro 1.x. No Loro-specific microbenchmark artifact present (only axum-ws gateway benchmark cited). Loro CRDT merge latency at that node count is the bottleneck of cursor-sync and edit-render SLOs.",
+      "remediation": "Add microservices/<ms>/benchmarks/loro-crdt-merge.md or wire criterion benches gated on PR. Reference loro.dev published benchmarks at minimum."
+    }
+  ],
+  "positive_findings": [
+    "Capacity-model documents are mathematically rigorous, internally consistent, and cite upstream reference architectures (Citus, ClickHouse, Postgres, Redis, OCI HSM, axum-ws, Loro, RFC 6962)",
+    "Canonical-base PrometheusRule + metric-naming-convention contract per ADR-0064 is the right architecture — single source of truth + per-µservice value variation via label",
+    "Burn-rate math is correct: 14.4 × (1-0.999) = 1.44% of error budget per hour, matches Google SRE Workbook Ch 5",
+    "messenger HPA uses custom queue-depth metric in addition to CPU — best practice for stateful WS workloads",
+    "Pre-warmed-pool + HPA + VPA + burst-absorbing four-layer policy uniformly declared across all µservices with capacity-models",
+    "Worked examples in capacity-models reconcile with cost-budgets (verified messenger, sheets, workflow-studio, ontology, audit-chain)",
+    "Reference tier matrix (XS/S/M/L/XL × 20/100/1k/10k/100k tenants) consistently applied across µservices — enables apples-to-apples capacity comparison",
+    "scaleUp/scaleDown stabilization windows and Percent policies are conservative and prevent oscillation",
+    "Per-tenant rate-limit + shuffle-sharding (INV-SHUFFLE-SHARDING) integrated into canonical alert for 429-surge detection — bounded blast radius per Werner Vogels cellular architecture pattern"
+  ],
+  "audit_methodology": {
+    "approach": "Read 16 representative artifacts spanning 6 µservices (messenger, sheets, workflow-studio, foundry, ontology, audit-chain) plus observability canonical-base + tasks per-µservice prometheusrule. Cross-referenced capacity-model formulas against helm/values resource declarations against HPA templates against SLO yaml. Counted SLO files across all 33 µservices.",
+    "sample_size": "16 files read + 33 µservice SLO directories enumerated = ~10% of 1515 declared artifacts; sample weighted toward highest-criticality µservices (messenger/sheets/audit-chain/foundry/ontology/observability)",
+    "limitations": "Did not run cargo gate validate; did not deploy helm chart to verify rendering; did not run promtool against canonical PrometheusRule; did not benchmark Loro CRDT; no live metric series available to test the canonical alert PromQL."
+  }
+}

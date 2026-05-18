@@ -32,10 +32,10 @@ doc_status: published
 
 | Wave | Additional gate items |
 |---|---|
-| W-Foundation | Data Use Boundary ADR Accepted; License Policy ADR Accepted; Build-vs-Buy ADR Accepted; Cell architecture ADR Accepted; Regional-pack architecture ADR Accepted; tenant kernel + identity + audit chain + Cedar policy + plane separation + Object Graph property tiers all live |
+| W-Foundation | Data Use Boundary ADR Accepted; License Policy ADR Accepted; Build-vs-Buy ADR Accepted; Cell architecture ADR Accepted; Regional-pack architecture ADR Accepted; tenant kernel + identity + audit chain + Cedar policy + plane separation + Ontology property tiers (legacy: Object Graph) all live |
 | W-Foundry-Preview | SecretProvider live + KMS HSM (KCMVP for KR) live; all 6 provider adapters (Anthropic / OpenAI / Gemini × api / subscription) operational; capability registry online with ≥ N capabilities; autonomy ceiling enforcement live; evidence-chain emission per capability; ≥ 1 live pilot capability end-to-end |
 | W-Cloud-Preview | ≥ 2 regional packs onboarded; cell-isolation evidence; cloud control-plane API frozen at v1; CSAP / equivalent regulator-watch active per pack |
-| W-SaaS-Preview | Workflow engine live; Object Graph properties (vector/timeseries/geo/ciphertext/struct) Accepted ADRs implemented; plugin substrate trust gates live; public REST stability tier declared |
+| W-SaaS-Preview | Workflow engine live; Ontology properties (vector/timeseries/geo/ciphertext/struct; legacy: Object Graph) Accepted ADRs implemented; plugin substrate trust gates live; public REST stability tier declared |
 | W-Workspace-Preview | Mail deliverability ≥ 99% across ≥ 2 regions; Doc edit-prop p99 < 200ms intra-region; Drive sync conflict < 0.5%; ≥ 1 migration from Google/M365/Naver Works completed end-to-end |
 | W-Search-Preview | pgroonga day-1 + KR/JP/EN morphology; per-tenant private indexes operational; RAG endpoint exposed to Foundry; per-class data boundary enforcement |
 | W-Vertical-Pilot | One vertical end-to-end on Foundation+axes preview; design-partner tenant live; ≥ 6 cross-axis contracts exercised |

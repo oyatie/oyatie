@@ -18,8 +18,8 @@ fn repo_root() -> PathBuf {
 
 fn semantic_graph() -> Value {
     // Migrated from registry/knowledge-graph-semantic.json per ADR-0130.
-    // Type system now lives in specs/products/ontology.json#type_system.
-    let path = repo_root().join("specs/products/ontology.json");
+    // Type system now lives in specs/microservices/ontology.json#type_system.
+    let path = repo_root().join("specs/microservices/ontology.json");
     let ontology: Value =
         serde_json::from_str(&fs::read_to_string(path).expect("ontology spec is readable"))
             .expect("ontology spec is JSON");

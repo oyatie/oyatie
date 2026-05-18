@@ -26,7 +26,7 @@ doc_status: published
 
 | Topic | When to store | Importance floor | Required keywords |
 |---|---|---|---|
-| `decisions-oyatie` | Any architectural / non-trivial engineering decision an agent makes autonomously. | `high` | `<area>`, `<ADR-NNNN if any>` |
+| `decisions-oyatie` | Any architectural / non-trivial engineering decision an agent makes autonomously. | `high` | `<area>`, `<ADR-#### if any>` |
 | `preferences` | User-stated preferences discovered mid-session (carry across sessions). | `critical` | `<preference-key>` |
 | `context-oyatie` | Progress checkpoints; deferrals; significant work-completed summaries; ≥20-tool-call breakpoint. | `high` for completion; `medium` for checkpoints | `<MNN-PNN>`, `<IP-NNN>` |
 | `errors-resolved` | Every resolved error (root cause + fix). | `high` | `<error-class>`, `<area>` |
@@ -44,7 +44,7 @@ doc_status: published
 
 ## Keyword discipline
 
-Always include: (a) the area/crate/module (e.g. `oya-platform-tenant-kernel`, `foundry-eval-harness`); (b) the canonical IDs (`<MNN-PNN>`, `<IP-NNN>`, `<ADR-NNNN>`, `<EVT-NNNN>`, `<MFL-NNNN>`, `<RM-NN>`) the row relates to. Lowercase, comma-separated, no spaces.
+Always include: (a) the area/crate/module (e.g. `oya-platform-tenant-kernel`, `foundry-eval-harness`); (b) the canonical IDs (`<MNN-PNN>`, `<IP-NNN>`, `<ADR-####>`, `<EVT-NNNN>`, `<MFL-NNNN>`, `<RM-NN>`) the row relates to. Lowercase, comma-separated, no spaces.
 
 ## What NOT to store
 

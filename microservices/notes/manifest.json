@@ -1,0 +1,329 @@
+{
+  "schema_version": "1.0",
+  "microservice": "notes",
+  "version": "0.1.0",
+  "owner": "axis-notes",
+  "bounded_contexts": [
+    {
+      "name": "notes",
+      "description": "Bounded context 'notes' within notes (data plane)",
+      "crates": [
+        "oya-notes-backlink-graph-kernel",
+        "oya-notes-checklist-kernel",
+        "oya-notes-collab-edit-adapter-loro",
+        "oya-notes-collab-edit-kernel",
+        "oya-notes-daily-note-kernel",
+        "oya-notes-e2e-key-management-adapter-mls",
+        "oya-notes-note-store-adapter-postgres",
+        "oya-notes-note-store-adapter-redis",
+        "oya-notes-note-store-adapter-s3",
+        "oya-notes-note-store-kernel",
+        "oya-notes-search-index-adapter-meilisearch",
+        "oya-notes-search-index-kernel",
+        "oya-notes-share-link-kernel",
+        "oya-notes-tag-graph-kernel",
+        "oya-notes-template-gallery-kernel",
+        "oya-notes-web-clipper-bridge-kernel"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "kernel"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/notes/contracts/openapi/notes.yaml"
+    ],
+    "asyncapi": [
+      "microservices/notes/contracts/asyncapi/notes-events.yaml"
+    ],
+    "proto": [
+      "microservices/notes/contracts/proto/notes.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "next-word-and-title-suggest",
+      "file": "microservices/notes/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "summarize-and-tag-suggest-and-link-suggest",
+      "file": "microservices/notes/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "auto-organize-vault",
+      "file": "microservices/notes/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "notes-e2e-privacy-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_notes_ai_assist_call_total{result=\"success\",context_kind=\"Professional\"}[5m]))",
+      "file": "microservices/notes/slos/e2e-privacy-correctness.openslo.yaml"
+    },
+    {
+      "name": "notes-full-text-search-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_notes_full_text_search_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/notes/slos/full-text-search-latency.openslo.yaml"
+    },
+    {
+      "name": "notes-graph-render-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_notes_graph_render_duration_seconds_bucket{vault_size_class=\"5k\",le=\"1.0\"}[5m]))",
+      "file": "microservices/notes/slos/graph-render-latency.openslo.yaml"
+    },
+    {
+      "name": "notes-note-create-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_notes_note_create_duration_seconds_bucket{le=\"0.03\"}[5m]))",
+      "file": "microservices/notes/slos/note-create-latency.openslo.yaml"
+    },
+    {
+      "name": "notes-note-open-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_notes_note_open_duration_seconds_bucket{le=\"0.05\"}[5m]))",
+      "file": "microservices/notes/slos/note-open-latency.openslo.yaml"
+    },
+    {
+      "name": "notes-sync-data-residency-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_notes_pack_residency_check_total{result=\"ok\"}[5m]))",
+      "file": "microservices/notes/slos/sync-data-residency-correctness.openslo.yaml"
+    },
+    {
+      "name": "notes-sync-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_notes_sync_after_edit_duration_seconds_bucket{le=\"0.5\"}[5m]))",
+      "file": "microservices/notes/slos/sync-latency.openslo.yaml"
+    },
+    {
+      "name": "notes-tag-search-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_notes_tag_search_duration_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/notes/slos/tag-search-latency.openslo.yaml"
+    },
+    {
+      "name": "notes-web-clipper-capture-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_notes_web_clipper_capture_duration_seconds_bucket{le=\"0.5\"}[5m]))",
+      "file": "microservices/notes/slos/web-clipper-capture-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac",
+      "title": "IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-001-iac.md"
+    },
+    {
+      "id": "IP-002-cargo-workspace-bootstrap",
+      "title": "IP-002: Cargo workspace bootstrap",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-002-cargo-workspace-bootstrap.md"
+    },
+    {
+      "id": "IP-003-note-store-kernel-domain",
+      "title": "IP-003: note-store kernel + domain (port traits + entities + DCI invariants)",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-003-note-store-kernel-domain.md"
+    },
+    {
+      "id": "IP-004-tag-graph-kernel-domain",
+      "title": "IP-004: tag-graph kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-004-tag-graph-kernel-domain.md"
+    },
+    {
+      "id": "IP-005-backlink-graph-kernel-domain",
+      "title": "IP-005: backlink-graph kernel + domain (wikilink + adjacency)",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-005-backlink-graph-kernel-domain.md"
+    },
+    {
+      "id": "IP-006-daily-note-template-gallery",
+      "title": "IP-006: daily-note + template-gallery",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-006-daily-note-template-gallery.md"
+    },
+    {
+      "id": "IP-007-web-clipper-bridge",
+      "title": "IP-007: web-clipper-bridge + browser extensions (Chrome MV3 + Firefox MV3 + Safari Web Extensions + Edge Add-ons)",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-007-web-clipper-bridge.md"
+    },
+    {
+      "id": "IP-008-share-link-and-embed",
+      "title": "IP-008: share-link + embed",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-008-share-link-and-embed.md"
+    },
+    {
+      "id": "IP-009-checklist-and-version-history",
+      "title": "IP-009: checklist + version-history",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-009-checklist-and-version-history.md"
+    },
+    {
+      "id": "IP-010-search-and-graph-view",
+      "title": "IP-010: search-index + graph-view-data",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-010-search-and-graph-view.md"
+    },
+    {
+      "id": "IP-011-collab-edit-loro",
+      "title": "IP-011: collab-edit via Loro 1.x LTS (Professional-tier only)",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-011-collab-edit-loro.md"
+    },
+    {
+      "id": "IP-012-import-export-pipelines",
+      "title": "IP-012: import + export pipelines",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-012-import-export-pipelines.md"
+    },
+    {
+      "id": "IP-013-ai-assist-and-e2e-refusal",
+      "title": "IP-013: ai-assist + E2E refusal CI lane",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-013-ai-assist-and-e2e-refusal.md"
+    },
+    {
+      "id": "IP-014-e2e-key-management",
+      "title": "IP-014: e2e-key-management (openmls 0.6) + recovery seed UX",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-014-e2e-key-management.md"
+    },
+    {
+      "id": "IP-015-hg-notes-conformance",
+      "title": "IP-015: HG-NOTES hyperscaler-grade conformance gate (per ADR-0133)",
+      "acceptance_status": "ga",
+      "file": "microservices/notes/IP-015-hg-notes-conformance.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0008",
+      "title": "Data Use Boundary",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0008-data-use-boundary.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0063",
+      "title": "Documentation Suite Coverage",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0063-documentation-suite-coverage.md"
+    },
+    {
+      "id": "ADR-0064",
+      "title": "Canonical Base And Localization Packs",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0064-canonical-base-and-localization-packs.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.notes.auto-organize-vault",
+      "oya.notes.next-word-and-title-suggest",
+      "oya.notes.summarize-and-tag-suggest-and-link-suggest"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

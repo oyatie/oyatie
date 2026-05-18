@@ -18,6 +18,10 @@ Lifecycle skills + agent personas + intent→skill mapping are inherited from `a
 coordination_surface: foundry_pipeline
 retirement_adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
 retired_external_agent_coordination_tooling: true
+observability_substrate: microservices/observability/ (per ADR-0130 agentic SLO-gated promotion + ADR-0131 per-microservice flat layout; SLO authoring at microservices/<ms>/slos/*.openslo.yaml mandatory before any µservice promotes past dev)
+microservice_layout_authority: ADR-0131 per-microservice flat layout; new µservices ship under microservices/<ms>/ with src/ as the canonical code root
+no_suite_policy: ADR-0132 — no new bundle/suite µservices; every new µservice is single-concern + flat
+new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP
 
 required_workflow:
   - layer_0_isolation: one isolated worktree per agent lane

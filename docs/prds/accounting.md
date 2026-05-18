@@ -222,7 +222,7 @@ Cross-region: M03 KR only.
 | # | Question | Owner | Target |
 |---|---|---|---|
 | 1 | K-IFRS vs K-GAAP SME: which standard as default for M03 tenants? | council-product | M03/P01 |
-| 2 | ClickHouse replica: M03 or deferred to M04? | council-architecture | ADR-XXXX |
+| 2 | ClickHouse replica: M03 or deferred to M04? | council-architecture | ADR-#### |
 
 ---
 

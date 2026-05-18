@@ -1,0 +1,1670 @@
+{
+  "_meta": {
+    "audit_id": "stub-audit-2026-05-17",
+    "purpose": "Cross-correlated list of fitness/check crates cited by ADRs+standards but missing from /crates/. Each entry is a load-bearing crate that the corpus claims exists but does not.",
+    "authority": "specs/agent-durable-goal.json#operating_principles/OP-11 (no-stubs, no-defer, 100-production-quality)",
+    "next_action": "Author one ADR + one IP per missing crate, then implement.",
+    "total_unique_missing": 99,
+    "refined_after_workflow_check": true,
+    "truly_missing_count": 96,
+    "workflow_only_count": 3
+  },
+  "missing_crates": [
+    {
+      "crate": "oya-foundry-fitness-banned-primitives",
+      "citation_count": 10,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md",
+        "docs/standards/agent-instructions-discipline.md",
+        "docs/standards/git-workflow.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-inventory-tracker",
+      "citation_count": 8,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0052-inventory-grit-cutover.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-supply-chain",
+      "citation_count": 8,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md",
+        "docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+        "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+        "docs/decisions/ADR-0050-automation-first-pipeline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cohesion",
+      "citation_count": 6,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0016-wave-and-plane-integration-framework.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+        "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+        "docs/decisions/ADR-0050-automation-first-pipeline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-license",
+      "citation_count": 6,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0013-product-license-policy.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-api-semver",
+      "citation_count": 5,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md",
+        "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+        "docs/decisions/ADR-0050-automation-first-pipeline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-archive-orphan",
+      "citation_count": 5,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-purpose-audit",
+      "citation_count": 5,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md",
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-data-class",
+      "citation_count": 4,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0008-data-use-boundary.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+        "docs/standards/data-class.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-flat-crates",
+      "citation_count": 4,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0008-data-use-boundary.md",
+        "docs/decisions/ADR-0015-architectural-flattening-target.md",
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-lts-dependency",
+      "citation_count": 4,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+        "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+        "docs/standards/dependency-policy.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-adr-shape",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-authoritative-tracked",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-build-vs-buy",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0014-build-vs-buy-policy.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-canary-signal-emission",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-changeset-cost-budget-monthly",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-glossary",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0016-wave-and-plane-integration-framework.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-merge-queue-ref-hygiene",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-pack",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0010-regional-pack-architecture.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-plane",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0004-plane-separation-control-data-analytics.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-portfolio-citation",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-predictable-naming",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-sunset-lifecycle-app",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0108-sunset-lifecycle-automation.md",
+        "docs/decisions/ADR-0109-lifecycle-automation-framework.md"
+      ]
+    },
+    {
+      "crate": "oya-check-cross-tenant-access-fuzz",
+      "citation_count": 2,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/data-class.md",
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-foundry-eval",
+      "citation_count": 2,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/autonomy-ceiling.md",
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-audit-emission",
+      "citation_count": 2,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md",
+        "docs/standards/error-handling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-canary-emergency-rewind-frequency",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-changeset-state-enum-closed",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0110-changeset-state-machine.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-changeset-state-monotonicity",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0110-changeset-state-machine.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-dcim-substrate",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-error-boundary",
+      "citation_count": 2,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0083-rust-error-handling-tier-decision.md",
+        "docs/standards/error-handling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-event-router-completeness",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-event-schema",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-evidence-contract",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-freeze-window-kernel",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-license-policy",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+        "docs/decisions/ADR-0050-automation-first-pipeline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-mobile-native",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0051-mobile-and-native-client-strategy.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-override-frequency-alarming",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-scaffold-claim-pattern",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-secret-rotation-lifecycle",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-webhook-stuck",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-workflow-cohesion",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-check-api-semver",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-audit-chain-replay",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-documentation",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-foundation-bypass",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-foundry-capability-schema",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-adapter-with-no-importer",
+      "citation_count": 1,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-adr-template",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-ads-gate-singleton",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-agent-authoring",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-agent-instructions-fence",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/agent-instructions-discipline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-architecture-conventions",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/clean-architecture.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-archive-orphan-app",
+      "citation_count": 1,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-archive-orphan-kernel",
+      "citation_count": 1,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-autonomy-ceiling",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/autonomy-ceiling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-branch-age",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/release-management.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-canary-thresholds-tuned",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-capability-publish",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/autonomy-ceiling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-catalog-records",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cedar-coverage",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cell-routing",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-clippy-pedantic",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/code-style-rust.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cloud-surface",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-container-base",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/image-discipline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-contract-orphan",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cross-microservice-call",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-data-use-boundary",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-direct-tool-rationale",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/git-workflow.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-doc-cadence",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-doc-catalog",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-doc-privacy-program",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-dsr-cascade",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/data-class.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-dual-audience",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/agent-instructions-discipline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-eventing-topic",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-fitness-",
+      "citation_count": 1,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-flag-debt",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/release-management.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-hook-self-test",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/claude-code-harness.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-horizontal-scale",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-iam-lockstep",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0002-tenant-and-identity-kernel.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-image-discipline",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/image-discipline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-naming-convention",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/crate-naming-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-no-unwrap-prod",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/error-handling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-otel-emit",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/observability.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-override-justification",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-product-prd",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-regulatory-binding",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-renovate-config",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/dependency-policy.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-runbook-index-resolves",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/on-call.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-silent-failure",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/error-handling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-substrate-forking",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0002-tenant-and-identity-kernel.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-tenant-isolation",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0002-tenant-and-identity-kernel.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-tenant-shape",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-test-evidence",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/testing.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-tool-map-cohesion",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/multi-agent-tool-map.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-unsafe-kani",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/code-style-rust.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-user-machine-guard",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/claude-code-harness.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-vertical-override-pack",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-webhook-delivery-log-monotonic",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md"
+      ]
+    }
+  ],
+  "truly_missing": [
+    {
+      "crate": "oya-foundry-fitness-banned-primitives",
+      "citation_count": 10,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md",
+        "docs/standards/agent-instructions-discipline.md",
+        "docs/standards/git-workflow.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-inventory-tracker",
+      "citation_count": 8,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0052-inventory-grit-cutover.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-license",
+      "citation_count": 6,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0013-product-license-policy.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-archive-orphan",
+      "citation_count": 5,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-purpose-audit",
+      "citation_count": 5,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md",
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-data-class",
+      "citation_count": 4,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0008-data-use-boundary.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+        "docs/standards/data-class.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-flat-crates",
+      "citation_count": 4,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0008-data-use-boundary.md",
+        "docs/decisions/ADR-0015-architectural-flattening-target.md",
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-lts-dependency",
+      "citation_count": 4,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+        "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+        "docs/standards/dependency-policy.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-adr-shape",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-authoritative-tracked",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-build-vs-buy",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0014-build-vs-buy-policy.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-canary-signal-emission",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-changeset-cost-budget-monthly",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-glossary",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0016-wave-and-plane-integration-framework.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-merge-queue-ref-hygiene",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-pack",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0010-regional-pack-architecture.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-plane",
+      "citation_count": 3,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0004-plane-separation-control-data-analytics.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-portfolio-citation",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-predictable-naming",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-sunset-lifecycle-app",
+      "citation_count": 3,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0108-sunset-lifecycle-automation.md",
+        "docs/decisions/ADR-0109-lifecycle-automation-framework.md"
+      ]
+    },
+    {
+      "crate": "oya-check-cross-tenant-access-fuzz",
+      "citation_count": 2,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/data-class.md",
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-foundry-eval",
+      "citation_count": 2,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/autonomy-ceiling.md",
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-audit-emission",
+      "citation_count": 2,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md",
+        "docs/standards/error-handling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-canary-emergency-rewind-frequency",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-changeset-state-enum-closed",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0110-changeset-state-machine.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-changeset-state-monotonicity",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0110-changeset-state-machine.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-dcim-substrate",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-error-boundary",
+      "citation_count": 2,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/decisions/ADR-0083-rust-error-handling-tier-decision.md",
+        "docs/standards/error-handling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-event-router-completeness",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-event-schema",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-evidence-contract",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-freeze-window-kernel",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-license-policy",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+        "docs/decisions/ADR-0050-automation-first-pipeline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-mobile-native",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0051-mobile-and-native-client-strategy.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-override-frequency-alarming",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-scaffold-claim-pattern",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-secret-rotation-lifecycle",
+      "citation_count": 2,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-webhook-stuck",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-workflow-cohesion",
+      "citation_count": 2,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-check-api-semver",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-audit-chain-replay",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-documentation",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-foundation-bypass",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-check-foundry-capability-schema",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/m02-exit-gate-validators.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-adapter-with-no-importer",
+      "citation_count": 1,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-adr-template",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-ads-gate-singleton",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-agent-authoring",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-agent-instructions-fence",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/agent-instructions-discipline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-architecture-conventions",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/clean-architecture.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-archive-orphan-app",
+      "citation_count": 1,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-archive-orphan-kernel",
+      "citation_count": 1,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-autonomy-ceiling",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/autonomy-ceiling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-branch-age",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/release-management.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-canary-thresholds-tuned",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-capability-publish",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/autonomy-ceiling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-catalog-records",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cedar-coverage",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cell-routing",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-clippy-pedantic",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/code-style-rust.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cloud-surface",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-container-base",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/image-discipline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-contract-orphan",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cross-microservice-call",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-data-use-boundary",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-direct-tool-rationale",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/git-workflow.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-doc-cadence",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-doc-catalog",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-doc-privacy-program",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-dsr-cascade",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/data-class.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-dual-audience",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/agent-instructions-discipline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-eventing-topic",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-fitness-",
+      "citation_count": 1,
+      "max_severity": "high",
+      "cited_by": [
+        "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-flag-debt",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/release-management.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-hook-self-test",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/claude-code-harness.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-horizontal-scale",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-iam-lockstep",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0002-tenant-and-identity-kernel.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-image-discipline",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/image-discipline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-naming-convention",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/crate-naming-convention.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-no-unwrap-prod",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/error-handling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-otel-emit",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/observability.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-override-justification",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-product-prd",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-regulatory-binding",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-renovate-config",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/dependency-policy.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-runbook-index-resolves",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/on-call.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-silent-failure",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/error-handling.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-substrate-forking",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0002-tenant-and-identity-kernel.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-tenant-isolation",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0002-tenant-and-identity-kernel.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-tenant-shape",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-test-evidence",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/testing.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-tool-map-cohesion",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/multi-agent-tool-map.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-unsafe-kani",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/code-style-rust.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-user-machine-guard",
+      "citation_count": 1,
+      "max_severity": "critical",
+      "cited_by": [
+        "docs/standards/claude-code-harness.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-vertical-override-pack",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-webhook-delivery-log-monotonic",
+      "citation_count": 1,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md"
+      ]
+    }
+  ],
+  "workflow_only_no_crate": [
+    {
+      "crate": "oya-foundry-fitness-supply-chain",
+      "citation_count": 8,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0025-foundry-as-engineering-platform.md",
+        "docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+        "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+        "docs/decisions/ADR-0050-automation-first-pipeline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-cohesion",
+      "citation_count": 6,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0016-wave-and-plane-integration-framework.md",
+        "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+        "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+        "docs/decisions/ADR-0050-automation-first-pipeline.md"
+      ]
+    },
+    {
+      "crate": "oya-foundry-fitness-api-semver",
+      "citation_count": 5,
+      "max_severity": "medium",
+      "cited_by": [
+        "docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md",
+        "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+        "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+        "docs/decisions/ADR-0050-automation-first-pipeline.md"
+      ]
+    }
+  ]
+}

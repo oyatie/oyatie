@@ -66,9 +66,9 @@ adr_id: ADR-0065                  # NNNN
 status: Proposed | Accepted | Rejected | Superseded | Retired
 date: 2026-05-13
 owner: <team-id>
-supersedes: [ADR-NNNN, ...]
-superseded_by: ADR-NNNN | null
-related: [ADR-NNNN, ...]
+supersedes: [ADR-####, ...]
+superseded_by: ADR-#### | null
+related: [ADR-####, ...]
 
 # PRD
 doc_class: PRD
@@ -78,7 +78,7 @@ date: 2026-05-13
 audience: internal | b2b | b2c
 owner_team: <team-id>
 canonical_base_only: true | false
-adrs_cited: [ADR-NNNN, ...]
+adrs_cited: [ADR-####, ...]
 performance_targets:
   - { dimension: "API p99 read", target: "≤50ms" }
 horizontal_scalability:
@@ -138,8 +138,8 @@ milestone_id: M02b-substrate
 status: Proposed | Active | Complete
 entry_gate: ...
 exit_gate: ...
-bominal_adrs_inherited: [ADR-NNNN, ...]
-oyatie_adrs_cited: [ADR-NNNN, ...]
+bominal_adrs_inherited: [ADR-####, ...]
+oyatie_adrs_cited: [ADR-####, ...]
 
 # Pack manifest (already YAML; canonical)
 # Pack overview, evidence bundle, etc.: similar pattern
