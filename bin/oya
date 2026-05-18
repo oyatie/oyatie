@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# bin/oya — canonical oya CLI wrapper
+#
+# Purpose: POSIX-compatible thin wrapper that invokes oya-dev-cli via cargo run.
+#          Ensures callers can write `oya vcs <subcommand>` without knowing the
+#          full cargo invocation. PATH_add bin (via .envrc) puts this on PATH.
+#
+# Non-blocking guarantee: this script is a transparent proxy; it never modifies
+# any project state itself. All behaviour comes from the oya-dev-cli binary.
+#
+# Invocation: oya <subcommand> [args...]
+#   Equivalent to: cargo run --quiet -p oya-dev-cli -- <subcommand> [args...]
+
+set -euo pipefail
+
+# Locate repo root so cargo run works regardless of cwd.
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -z "$REPO_ROOT" ]; then
+  echo "oya: error: must be run inside the oyatie git repository" >&2
+  exit 1
+fi
+
+exec cargo run --quiet -p oya-dev-cli --manifest-path "$REPO_ROOT/Cargo.toml" -- "$@"
