@@ -23,7 +23,7 @@ if [ -f "$PRIMITIVES" ]; then
     cat "$PRIMITIVES"
 else
     # Fallback inline summary when file not found (should not happen in normal use)
-    echo "VCS:       oya vcs <subcommand>  (cargo run --quiet -p oya-dev-cli -- vcs <subcommand>)"
+    echo "VCS:       oya git <git-subcommand> is the cutover target; current policy ratchet remains oya vcs <claim|work|verify|done|status|symbols|queue|watch|promote>"
     echo "RETIRED:   grit, rtk, icm, vox  (ADR-0116)"
     echo "Contracts: OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3"
     echo "AI:        microservices/intelligence/ (consumer) | microservices/foundry/ (internal)"

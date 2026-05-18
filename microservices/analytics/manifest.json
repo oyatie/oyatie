@@ -72,5 +72,10 @@
     {"id": "IP-015", "title": "App composition root + REST/gRPC adapters"}
   ],
   "phases": ["PHASE-01-ANALYTICS-OLAP-BOOTSTRAP"],
-  "deferred_doc_artifacts": "see /Users/jasonlee/oyatie/evidence/parent-wiring-todo-data-batch.json"
+  "deferred_doc_artifacts": "see /Users/jasonlee/oyatie/evidence/parent-wiring-todo-data-batch.json",
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false
+  }
 }

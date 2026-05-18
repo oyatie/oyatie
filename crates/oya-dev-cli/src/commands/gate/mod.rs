@@ -1573,7 +1573,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("otel-trace-propagation")) => {
             crate::adr_0145_gates::run_otel_trace_propagation(args.collect())
         }
-        // ADR-0145 Invariant 3 — ontology projection coverage (DEFERRED/advisory).
+        // ADR-0145 Invariant 3 — ontology projection coverage (strict).
         (Some("validate"), Some("ontology-projection-coverage")) => {
             crate::adr_0145_gates::run_ontology_projection_coverage(args.collect())
         }

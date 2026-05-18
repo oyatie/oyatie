@@ -377,6 +377,38 @@ lanes:
     source: feedback_no_silent_regression + 2026-05-15 PR #3 merge-block incident
     runtime_budget_seconds: 30
     check_command: cargo run -p oya-dev-cli -- gate validate protection-context-match
+  - id: oya-governance-vacuous-green
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: ADR-0221 fixture-backed check that vacuous-green hook detection fails on intentionally empty gate evidence
+    source: ADR-0221 M-06
+    runtime_budget_seconds: 60
+    check_command: bash tools/governance/adr-0221-governance-gates.sh vacuous-green
+  - id: oya-governance-adr-orphan-citation
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: ADR-0221 fixture-backed check that orphan ADR citation detection catches missing decision records
+    source: ADR-0221 M-13
+    runtime_budget_seconds: 60
+    check_command: bash tools/governance/adr-0221-governance-gates.sh orphan-citation
+  - id: oya-governance-version-pin-source-citation
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: ADR-0221 fixture-backed check that OpenAPI and AsyncAPI version pins reject noncanonical versions
+    source: ADR-0221 M-01
+    runtime_budget_seconds: 60
+    check_command: bash tools/governance/adr-0221-governance-gates.sh version-pin
+  - id: oya-governance-buildability-line-count
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: ADR-0221 fixture-backed check that buildability line-count guidance distinguishes short docs from substantive docs
+    source: ADR-0221 M-10
+    runtime_budget_seconds: 60
+    check_command: bash tools/governance/adr-0221-governance-gates.sh buildability-line-count
   - id: oya-foundry-fitness-changeset-state-monotonicity
     stage: per-pr
     status: active
@@ -598,7 +630,7 @@ lanes:
     status: active
     severity: blocker
     owner_team: ops-security
-    purpose: enforces that every scorecard claiming `slsa_l3: green` cites real `.github/workflows/<file>.yml` files that declare SLSA-relevant primitives (signed provenance, hermetic build, two-party review) (SEC-MAJ-01).
+    purpose: "enforces that every scorecard claiming `slsa_l3: green` cites real `.github/workflows/<file>.yml` files that declare SLSA-relevant primitives (signed provenance, hermetic build, two-party review) (SEC-MAJ-01)."
     source: ADR-0133
     check_command: cargo run -p oya-dev-cli -- gate validate slsa-l3-evidence-grounded
     runtime_budget_seconds: 60
@@ -609,7 +641,7 @@ lanes:
     stage: per-pr
     status: active
     severity: report-only
-    owner_team: axis-observability
+    owner_team: ops-sre-reliability
     purpose: validates that per-µservice gRPC client adapters propagate W3C traceparent per ADR-0145 Invariant 2. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-otel-propagation-validator.
     source: ADR-0145
     check_command: cargo run -p oya-dev-cli -- gate validate otel-trace-propagation
@@ -617,9 +649,9 @@ lanes:
   - id: oya-governance-ontology-projection-coverage
     stage: per-pr
     status: active
-    severity: report-only
-    owner_team: axis-ontology
-    purpose: validates that µservices owning canonical entities declare `ontology_projections` in their manifest per ADR-0145 Invariant 3. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator.
+    severity: blocker
+    owner_team: platform-eventing-og
+    purpose: blocks canonical-entity-owning µservices that omit concrete `ontology_projections` in their manifest per ADR-0145 Invariant 3. Registry-authority cross-checking remains tracked under registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator.
     source: ADR-0145
     check_command: cargo run -p oya-dev-cli -- gate validate ontology-projection-coverage
     runtime_budget_seconds: 30
@@ -627,7 +659,7 @@ lanes:
     stage: per-pr
     status: active
     severity: report-only
-    owner_team: axis-audit-chain
+    owner_team: platform-audit-evidence
     purpose: validates that µservices with `audit_chain.enabled=true` declare seal events per ADR-0145 Invariant 1. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-audit-chain-seal-validator.
     source: ADR-0145
     check_command: cargo run -p oya-dev-cli -- gate validate audit-chain-seal-coverage
@@ -647,7 +679,7 @@ lanes:
     stage: per-pr
     status: active
     severity: blocker
-    owner_team: axis-workflow-studio
+    owner_team: axis-workspace
     purpose: enforces ADR-0185 native-per-platform client stack — SvelteKit (Phase 1) → Leptos (Phase 2) on web (sequential not parallel); Swift+SwiftUI on Apple (no KMP klib imports); Kotlin+Compose+KMP on Android (Android-scope only); WinUI 3 on Windows; gtk4-rs + libadwaita on Linux. Rejects React/Vue/Flutter/Electron/Cordova/Tauri/Avalonia/MAUI references.
     source: ADR-0185
     check_command: cargo run -p oya-dev-cli -- gate validate client-stack-discipline
@@ -675,7 +707,7 @@ lanes:
     stage: per-pr
     status: active
     severity: report-only
-    owner_team: axis-finops
+    owner_team: ops-finops
     purpose: advisory presence check for mandatory tenant cost labels per ADR-0199 D-1 (oya.io/tenant-id + oya.io/cost-center + oya.io/workload-class + oya.io/regulatory-pack) on every rendered Helm manifest under microservices/*/iac/helm/*/rendered/*.yaml.
     source: ADR-0199
     check_command: cargo run -p oya-dev-cli -- gate validate tenant-cost-labels-coverage
@@ -702,7 +734,7 @@ lanes:
     stage: per-pr
     status: active
     severity: report-only
-    owner_team: axis-analytics
+    owner_team: axis-ads-analytics
     purpose: advisory enforcement of ClickHouse-canonical OLAP tier per ADR-0193 (no rogue analytics queries against OLTP postgres). Advisory until per-µservice manifests populate data.olap_client.* namespace.
     source: ADR-0193
     check_command: cargo run -p oya-dev-cli -- gate validate olap-tier-discipline
@@ -712,7 +744,7 @@ lanes:
     status: active
     severity: report-only
     owner_team: axis-foundry
-    purpose: advisory enforcement of wasmtime-canonical WASM substrate per ADR-0200 (sandbox classes envoy-filter | workflow-studio-node | foundry-tool). Promotion target T+60d after ADR-0200 land; flip to blocker.
+    purpose: advisory enforcement of wasmtime-canonical WASM substrate per ADR-0200 (sandbox classes envoy-filter, workflow-studio-node, or foundry-tool). Promotion target T+60d after ADR-0200 land; flip to blocker.
     source: ADR-0200
     check_command: cargo run -p oya-dev-cli -- gate validate wasm-runtime-discipline
     runtime_budget_seconds: 30
@@ -731,7 +763,7 @@ lanes:
     stage: per-pr
     status: active
     severity: report-only
-    owner_team: axis-workflow-studio
+    owner_team: axis-workspace
     purpose: advisory WCAG 2.2 AA coverage per ADR-0207 (axe + pa11y runners declared per client surface in manifest.json#a11y).
     source: ADR-0207
     check_command: cargo run -p oya-dev-cli -- gate validate a11y-discipline
@@ -740,7 +772,7 @@ lanes:
     stage: per-pr
     status: active
     severity: report-only
-    owner_team: axis-workflow-studio
+    owner_team: axis-workspace
     purpose: advisory Fluent ICU locale coverage per ADR-0206 (default_locale + required_locales + rtl_support + min_coverage_bps).
     source: ADR-0206
     check_command: cargo run -p oya-dev-cli -- gate validate i18n-coverage
@@ -749,7 +781,7 @@ lanes:
     stage: per-pr
     status: active
     severity: report-only
-    owner_team: axis-compliance
+    owner_team: ops-compliance
     purpose: advisory compliance evidence collector declaration per ADR-0209 (audit_chain_seal_required + tamper_evidence_algorithm + evidence_collectors[]).
     source: ADR-0209
     check_command: cargo run -p oya-dev-cli -- gate validate compliance-evidence-coverage
@@ -758,7 +790,7 @@ lanes:
     stage: per-pr
     status: active
     severity: report-only
-    owner_team: axis-workflow-studio
+    owner_team: axis-workspace
     purpose: advisory real-time transport tier validation per ADR-0208 (sse vs websocket vs grpc-streaming; payload_budget_bytes per tier).
     source: ADR-0208
     check_command: cargo run -p oya-dev-cli -- gate validate realtime-transport-tier

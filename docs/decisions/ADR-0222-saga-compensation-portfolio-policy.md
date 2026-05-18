@@ -1,5 +1,5 @@
 ---
-id: ADR-0173
+id: ADR-0222
 status: Accepted
 date: 2026-05-18
 owners:
@@ -24,7 +24,7 @@ enforcement_status: advisory-until-cross-flow-recatalogued
 enforced_by: oya gate validate saga-shape
 ---
 
-# ADR-0173: Saga + compensating-transaction portfolio policy
+# ADR-0222: Saga + compensating-transaction portfolio policy
 
 ## Status
 

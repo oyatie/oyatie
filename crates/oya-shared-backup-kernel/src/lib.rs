@@ -126,25 +126,25 @@ impl RegulatoryPack {
 /// Backup target — must be a SeaweedFS bucket per ADR-0197 D-2.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BackupTarget {
-    pub bucket: String,
-    pub prefix: String,
-    pub regulatory_pack: RegulatoryPack,
-    pub workload_class: WorkloadClass,
-    pub tenant_id: Option<String>,
+    pub bucket: String,                  // data_class: INTERNAL_ONLY
+    pub prefix: String,                  // data_class: INTERNAL_ONLY
+    pub regulatory_pack: RegulatoryPack, // data_class: INTERNAL_ONLY
+    pub workload_class: WorkloadClass,   // data_class: INTERNAL_ONLY
+    pub tenant_id: Option<String>,       // data_class: INTERNAL_ONLY
 }
 
 /// A backup-job request.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BackupRequest {
-    pub prong: BackupProng,
-    pub microservice: String,
-    pub namespace: String,
-    pub target: BackupTarget,
+    pub prong: BackupProng,   // data_class: INTERNAL_ONLY
+    pub microservice: String, // data_class: INTERNAL_ONLY
+    pub namespace: String,    // data_class: INTERNAL_ONLY
+    pub target: BackupTarget, // data_class: INTERNAL_ONLY
     /// How many days the resulting backup must be retained.
-    pub retention_days: u32,
+    pub retention_days: u32, // data_class: INTERNAL_ONLY
     /// age recipient public key (ADR-0197 D-3 encryption).
-    pub age_public_key: String,
-    pub labels: BTreeMap<String, String>,
+    pub age_public_key: String, // data_class: INTERNAL_ONLY
+    pub labels: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
 }
 
 impl BackupRequest {
@@ -189,27 +189,27 @@ impl BackupRequest {
 /// Outcome of a backup attempt.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BackupOutcome {
-    pub backup_id: String,
-    pub prong: BackupProng,
-    pub bytes_written: u64,
-    pub duration: Duration,
+    pub backup_id: String,  // data_class: INTERNAL_ONLY
+    pub prong: BackupProng, // data_class: INTERNAL_ONLY
+    pub bytes_written: u64, // data_class: INTERNAL_ONLY
+    pub duration: Duration, // data_class: INTERNAL_ONLY
     /// Observed RPO at completion.
-    pub observed_rpo: Duration,
-    pub sealed_audit_event_class: Option<String>,
+    pub observed_rpo: Duration, // data_class: INTERNAL_ONLY
+    pub sealed_audit_event_class: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 /// Restore-drill outcome (per ADR-0197 D-6).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RestoreDrillOutcome {
-    pub drill_id: String,
-    pub microservice: String,
-    pub workload_class: WorkloadClass,
-    pub observed_rpo: Duration,
-    pub observed_rto: Duration,
-    pub passed: bool,
-    pub failure_reason: Option<String>,
+    pub drill_id: String,               // data_class: INTERNAL_ONLY
+    pub microservice: String,           // data_class: INTERNAL_ONLY
+    pub workload_class: WorkloadClass,  // data_class: INTERNAL_ONLY
+    pub observed_rpo: Duration,         // data_class: INTERNAL_ONLY
+    pub observed_rto: Duration,         // data_class: INTERNAL_ONLY
+    pub passed: bool,                   // data_class: INTERNAL_ONLY
+    pub failure_reason: Option<String>, // data_class: INTERNAL_ONLY
     /// `class: BackupRestoreDrill` audit event id when sealed.
-    pub audit_event_id: Option<String>,
+    pub audit_event_id: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl RestoreDrillOutcome {
@@ -315,21 +315,21 @@ pub trait BackupExecutor: Send + Sync {
 
 #[derive(Debug, Default)]
 struct InMemoryLedger {
-    next_backup_id: u64,
-    next_drill_id: u64,
+    next_backup_id: u64, // data_class: INTERNAL_ONLY
+    next_drill_id: u64,  // data_class: INTERNAL_ONLY
     /// Track total bytes per (prong, microservice) for assertions.
-    bytes_per_microservice: BTreeMap<(BackupProng, String), u64>,
+    bytes_per_microservice: BTreeMap<(BackupProng, String), u64>, // data_class: INTERNAL_ONLY
 }
 
 /// Reference in-memory `BackupExecutor`. Use in tests.
 #[derive(Debug)]
 pub struct InMemoryBackupExecutor {
-    prong: BackupProng,
-    ledger: Mutex<InMemoryLedger>,
+    prong: BackupProng,            // data_class: INTERNAL_ONLY
+    ledger: Mutex<InMemoryLedger>, // data_class: INTERNAL_ONLY
     /// Simulated RPO at run-time (defaults to half the workload-class RPO).
-    simulated_rpo_secs: u64,
+    simulated_rpo_secs: u64, // data_class: INTERNAL_ONLY
     /// Simulated RTO during drills (defaults to half the workload-class RTO).
-    simulated_rto_secs: u64,
+    simulated_rto_secs: u64, // data_class: INTERNAL_ONLY
 }
 
 impl InMemoryBackupExecutor {

@@ -42,11 +42,14 @@ Adopt:
 | M-14 | 57-µservice PR scope creep from original 33 | no PR-charter locked at PR open | `evidence/pr-NNN-charter.json` lock primitive |
 | M-15 | Doctrine inflation per message (no-code, multi-context, ecosystem, intelligence, etc.) | doctrine intake not batched + locked | doctrine-intake batching window; ADR draft + 24h review before adoption |
 
-### 4 new CI gates (queued for PR-144 implementation)
+### 4 new CI gates (armed by task H shell harness)
+
+Current enforcement surface: `tools/governance/adr-0221-governance-gates.sh`, wired into `.github/workflows/pr-tests.yml` under the `oya-governance-*` lane prefix. The `crates/oya-check-*` names below are portability targets for later native Rust ports; they are not the active CI entrypoint in this PR.
 
 #### Gate 1 — `oya-check-vacuous-green-gates`
 
-- **Crate:** `crates/oya-check-vacuous-green-gates`
+- **Current command:** `bash tools/governance/adr-0221-governance-gates.sh vacuous-green`
+- **Future crate port:** `crates/oya-check-vacuous-green-gates`
 - **Purpose:** Flag advisory gates with assertions_total == 0 (vacuous-pass detection).
 - **Mode:** BLOCKER once 33+ µservices pass advisory checks.
 - **Mistakes addressed:** M-06.
@@ -54,7 +57,8 @@ Adopt:
 
 #### Gate 2 — `oya-check-adr-orphan-citation`
 
-- **Crate:** `crates/oya-check-adr-orphan-citation`
+- **Current command:** `bash tools/governance/adr-0221-governance-gates.sh orphan-citation`
+- **Future crate port:** `crates/oya-check-adr-orphan-citation`
 - **Purpose:** Find ADR-NNNN references in any doc/spec/ADR but no `docs/decisions/ADR-NNNN-*.md` file.
 - **Mode:** BLOCKER.
 - **Mistakes addressed:** M-13.
@@ -62,7 +66,8 @@ Adopt:
 
 #### Gate 3 — `oya-check-version-pin-source-cited`
 
-- **Crate:** `crates/oya-check-version-pin-source-cited`
+- **Current command:** `bash tools/governance/adr-0221-governance-gates.sh version-pin`
+- **Future crate port:** `crates/oya-check-version-pin-source-cited`
 - **Purpose:** Every version pin in ADRs / PRDs / specs must cite WebSearch / Context7 / upstream source URL.
 - **Mode:** Advisory → BLOCKER.
 - **Mistakes addressed:** M-01.
@@ -70,7 +75,8 @@ Adopt:
 
 #### Gate 4 — `oya-check-buildability-line-count-structural`
 
-- **Crate:** `crates/oya-check-buildability-line-count-structural`
+- **Current command:** `bash tools/governance/adr-0221-governance-gates.sh buildability-line-count`
+- **Future crate port:** `crates/oya-check-buildability-line-count-structural`
 - **Purpose:** Structure-aware substantive-line count for IPs (excludes blank / heading / citation-only lines).
 - **Mode:** Advisory → BLOCKER.
 - **Mistakes addressed:** M-10.

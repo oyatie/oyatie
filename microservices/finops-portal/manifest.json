@@ -94,5 +94,10 @@
     "blocked_by": "implementation phase; planning artifacts complete"
   },
   "follow_up_scope_ledger": "evidence/storage-batch-followup-scope.json",
-  "expansion_evidence": "evidence/finops-portal-full-pack-expansion-report.json"
+  "expansion_evidence": "evidence/finops-portal-full-pack-expansion-report.json",
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false
+  }
 }

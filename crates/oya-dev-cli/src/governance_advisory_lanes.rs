@@ -1,4 +1,4 @@
-// PR #143 Fix-M/R/S/T/U advisory gate wiring.
+// Governance advisory gate wiring.
 //
 // Eleven advisory lanes whose check-* crates ship structured validators that
 // expect typed input (parsed manifest namespaces, declarations, etc.). The
@@ -24,6 +24,8 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
+
+use serde_json::Value;
 
 /// Scan root for `microservices/*/manifest.json` paths.
 ///
@@ -51,6 +53,28 @@ fn discover_microservice_manifests() -> Result<Vec<PathBuf>, String> {
     }
     manifests.sort();
     Ok(manifests)
+}
+
+fn read_manifest_json(path: &Path) -> Result<Option<Value>, String> {
+    let body = match fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(_) => return Ok(None),
+    };
+    serde_json::from_str::<Value>(&body)
+        .map(Some)
+        .map_err(|error| format!("{} manifest JSON parse failed: {error}", path.display()))
+}
+
+fn object_at<'a>(value: &'a Value, pointer: &str) -> Option<&'a serde_json::Map<String, Value>> {
+    value.pointer(pointer).and_then(Value::as_object)
+}
+
+fn has_object(value: &Value, pointer: &str) -> bool {
+    object_at(value, pointer).is_some()
+}
+
+fn has_field(value: &Value, pointer: &str) -> bool {
+    value.pointer(pointer).is_some()
 }
 
 // ---------------------------------------------------------------------------
@@ -258,13 +282,14 @@ pub(crate) fn validate_backup_retention_discipline_gate(
     let mut declarations_scanned = 0usize;
     let mut findings = 0usize;
     for path in &manifests {
-        let body = match fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(_) => continue,
+        let Some(manifest) = read_manifest_json(path)? else {
+            continue;
         };
-        if body.contains("\"storage\"") && body.contains("\"backup\"") {
+        if has_object(&manifest, "/storage/backup") {
             declarations_scanned += 1;
-            if !body.contains("\"retention_days\"") || !body.contains("\"tier\"") {
+            if !has_field(&manifest, "/storage/backup/retention_days")
+                || !has_field(&manifest, "/storage/backup/tier")
+            {
                 findings += 1;
             }
         }
@@ -293,14 +318,13 @@ pub(crate) fn validate_vector_store_discipline_gate(
     let mut records_scanned = 0usize;
     let mut violations = 0usize;
     for path in &manifests {
-        let body = match fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(_) => continue,
+        let Some(manifest) = read_manifest_json(path)? else {
+            continue;
         };
-        if body.contains("\"vector_store\"") {
+        if has_object(&manifest, "/data/vector_store") {
             records_scanned += 1;
             // Advisory presence check: enabled + collections both required.
-            if !body.contains("\"collections\"") {
+            if !has_field(&manifest, "/data/vector_store/collections") {
                 violations += 1;
             }
         }
@@ -328,13 +352,12 @@ pub(crate) fn validate_olap_tier_discipline_gate(
     let mut records_scanned = 0usize;
     let mut violations = 0usize;
     for path in &manifests {
-        let body = match fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(_) => continue,
+        let Some(manifest) = read_manifest_json(path)? else {
+            continue;
         };
-        if body.contains("\"olap_client\"") {
+        if has_object(&manifest, "/data/olap_client") {
             records_scanned += 1;
-            if !body.contains("\"databases\"") {
+            if !has_field(&manifest, "/data/olap_client/databases") {
                 violations += 1;
             }
         }
@@ -362,13 +385,12 @@ pub(crate) fn validate_wasm_runtime_discipline_gate(
     let mut manifests_scanned = 0usize;
     let mut violations = 0usize;
     for path in &manifests {
-        let body = match fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(_) => continue,
+        let Some(manifest) = read_manifest_json(path)? else {
+            continue;
         };
-        if body.contains("\"wasm\"") && body.contains("\"runtime\"") {
+        if has_object(&manifest, "/runtime/wasm") {
             manifests_scanned += 1;
-            if !body.contains("\"sandbox_classes\"") {
+            if !has_field(&manifest, "/runtime/wasm/sandbox_classes") {
                 violations += 1;
             }
         }
@@ -444,13 +466,14 @@ pub(crate) fn validate_a11y_discipline_gate(_args: Vec<String>) -> Result<A11ySu
     let mut surfaces_scanned = 0usize;
     let mut gaps = 0usize;
     for path in &manifests {
-        let body = match fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(_) => continue,
+        let Some(manifest) = read_manifest_json(path)? else {
+            continue;
         };
-        if body.contains("\"a11y\"") {
+        if has_object(&manifest, "/a11y") {
             surfaces_scanned += 1;
-            if !body.contains("\"test_runners\"") || !body.contains("\"wcag_target\"") {
+            if !has_field(&manifest, "/a11y/test_runners")
+                || !has_field(&manifest, "/a11y/wcag_target")
+            {
                 gaps += 1;
             }
         }
@@ -479,13 +502,14 @@ pub(crate) fn validate_i18n_coverage_gate(
     let mut surfaces_scanned = 0usize;
     let mut gaps = 0usize;
     for path in &manifests {
-        let body = match fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(_) => continue,
+        let Some(manifest) = read_manifest_json(path)? else {
+            continue;
         };
-        if body.contains("\"i18n\"") {
+        if has_object(&manifest, "/i18n") {
             surfaces_scanned += 1;
-            if !body.contains("\"default_locale\"") || !body.contains("\"required_locales\"") {
+            if !has_field(&manifest, "/i18n/default_locale")
+                || !has_field(&manifest, "/i18n/required_locales")
+            {
                 gaps += 1;
             }
         }
@@ -514,14 +538,13 @@ pub(crate) fn validate_compliance_evidence_coverage_gate(
     let mut microservices_scanned = 0usize;
     let mut gaps = 0usize;
     for path in &manifests {
-        let body = match fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(_) => continue,
+        let Some(manifest) = read_manifest_json(path)? else {
+            continue;
         };
-        if body.contains("\"compliance\"") {
+        if has_object(&manifest, "/compliance") {
             microservices_scanned += 1;
-            if !body.contains("\"evidence_collectors\"")
-                || !body.contains("\"audit_chain_seal_required\"")
+            if !has_field(&manifest, "/compliance/evidence_collectors")
+                || !has_field(&manifest, "/compliance/audit_chain_seal_required")
             {
                 gaps += 1;
             }
@@ -551,13 +574,14 @@ pub(crate) fn validate_realtime_transport_tier_gate(
     let mut declarations_scanned = 0usize;
     let mut gaps = 0usize;
     for path in &manifests {
-        let body = match fs::read_to_string(path) {
-            Ok(text) => text,
-            Err(_) => continue,
+        let Some(manifest) = read_manifest_json(path)? else {
+            continue;
         };
-        if body.contains("\"realtime\"") {
+        if has_object(&manifest, "/realtime") {
             declarations_scanned += 1;
-            if !body.contains("\"transport\"") || !body.contains("\"tier\"") {
+            if !has_field(&manifest, "/realtime/transport")
+                || !has_field(&manifest, "/realtime/tier")
+            {
                 gaps += 1;
             }
         }

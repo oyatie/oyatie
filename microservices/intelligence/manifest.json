@@ -1,0 +1,175 @@
+{
+  "schema_version": "1.0",
+  "microservice": "intelligence",
+  "version": "0.1.0",
+  "owner": "axis-intelligence",
+  "bounded_contexts": [
+    {
+      "name": "assist-draft",
+      "description": "Consumer-facing AI draft assistance for no-code builders and product workflows per ADR-0219 and ADR-0220.",
+      "crates": [
+        "oya-intelligence-assist-draft-kernel",
+        "oya-intelligence-assist-draft-domain",
+        "oya-intelligence-assist-draft-usecase",
+        "oya-intelligence-assist-draft-api",
+        "oya-intelligence-assist-draft-rest",
+        "oya-intelligence-assist-draft-adapter"
+      ]
+    },
+    {
+      "name": "context-aware-retrieval",
+      "description": "Consent- and context-scoped retrieval for tenant and personal AI interactions.",
+      "crates": [
+        "oya-intelligence-context-aware-retrieval-kernel",
+        "oya-intelligence-context-aware-retrieval-domain",
+        "oya-intelligence-context-aware-retrieval-usecase",
+        "oya-intelligence-context-aware-retrieval-api",
+        "oya-intelligence-context-aware-retrieval-rest",
+        "oya-intelligence-context-aware-retrieval-adapter"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "domain",
+    "kernel",
+    "rest",
+    "usecase"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/intelligence/contracts/openapi/intelligence.yaml"
+    ],
+    "asyncapi": [
+      "microservices/intelligence/contracts/asyncapi/intelligence-events.yaml"
+    ],
+    "proto": [
+      "microservices/intelligence/contracts/proto/intelligence.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T2",
+      "name": "assist-draft",
+      "file": "microservices/intelligence/capabilities/assist-draft.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "context-aware-retrieval",
+      "file": "microservices/intelligence/capabilities/context-aware-retrieval.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-intelligence-assist-draft-latency",
+      "target": "0.95",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_intelligence_assist_draft_duration_seconds_bucket[5m])) by (le))",
+      "file": "microservices/intelligence/slos/assist-draft-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-intelligence-policy-refusal-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_intelligence_policy_refusal_total{expected=\"true\"}[5m])) / sum(rate(oya_intelligence_policy_refusal_total[5m]))",
+      "file": "microservices/intelligence/slos/policy-refusal-correctness.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001",
+      "title": "Consumer intelligence substrate scaffold",
+      "acceptance_status": "ga",
+      "file": "microservices/intelligence/IP-001-consumer-intelligence-substrate.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {},
+  "adrs": [
+    {
+      "id": "ADR-0136",
+      "title": "Foundry internal scope clarification",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0136-amendment-foundry-internal-scope-clarification-2026-05-18.md"
+    },
+    {
+      "id": "ADR-0215",
+      "title": "Multi-context platform architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0215-multi-context-platform-architecture.md"
+    },
+    {
+      "id": "ADR-0219",
+      "title": "No-code-first UX with optional AI assist",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md"
+    },
+    {
+      "id": "ADR-0220",
+      "title": "Consumer intelligence substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0220-consumer-intelligence-substrate.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "per-provider and per-retrieval circuit breakers; refusal falls back to no-AI deterministic builder state",
+    "tenant_rate_limit": "per-tenant and per-context budget keys enforced before model or retrieval invocation",
+    "golden_signals": "rate=oya_intelligence_request_total; errors=oya_intelligence_request_total{error=~\".+\"}; latency=oya_intelligence_assist_draft_duration_seconds; saturation=oya_intelligence_budget_remaining_ratio",
+    "error_budget_burn": "burn alert on assist-draft latency and policy-refusal-correctness SLOs routed to axis-intelligence"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.intelligence.assist-draft.requested",
+      "oya.intelligence.assist-draft.completed",
+      "oya.intelligence.policy.refused",
+      "oya.intelligence.retrieval.context-bound"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "IntelligenceSession",
+      "projection_target_table": "ontology.intelligence_session_projection",
+      "projection_kind": "append-only",
+      "lag_budget_seconds": 30
+    }
+  ],
+  "data_classes_processed": [
+    "PII_IDENTIFYING",
+    "PII_QUASI_IDENTIFYING",
+    "PII_SENSITIVE",
+    "FINANCIAL",
+    "HEALTH",
+    "AUDIT",
+    "INTERNAL_ONLY"
+  ],
+  "rpo_rto": {
+    "tier": "hot",
+    "rto_target_seconds": 300,
+    "rpo_target_seconds": 60,
+    "authority_adr": "ADR-0152"
+  },
+  "outbox_required": true,
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true
+  }
+}

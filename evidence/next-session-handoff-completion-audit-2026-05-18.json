@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-05-18T18:31:40Z",
+  "local_branch": "work-2026-05-19",
+  "source_handoff": "user-provided 2026-05-18 handoff plus evidence/NEXT-SESSION-HANDOFF.md index",
+  "objective": "Close the eight queued follow-ups from the handoff without changing unrelated user work.",
+  "result": "covered_with_documented_limitations",
+  "scope_guardrails": [
+    "No bulk migration of existing oya-foundry-fitness-* lanes; task 37 is represented as per-lane ChangeSets.",
+    "No implicit git state machine, automatic PR on push, or conflict-radar v1 in oya git.",
+    "No semantic data-class guesses for historical unannotated fields; remaining debt is explicit in the legacy registry.",
+    "Unrelated infra/oci worktree edits were left untouched."
+  ],
+  "handoff_items": [
+    {
+      "id": "A",
+      "task": "oya-git-rename / task 35",
+      "status": "covered",
+      "evidence": [
+        "AGENTS.md and docs/AGENTS.md sanctioned_primitives include oya-git while policy ratchet commands remain oya vcs.",
+        "tools/hooks/_canonical-primitives.md and bootstrap docs now point real-time/drop-in use to oya git.",
+        "tools/hooks/oya-git-cutover-inventory.sh reports remaining oya vcs policy-ratchet uses as notice-only.",
+        "memory/feedback_oya_git_canonical_2026_05_18.md records the canonical primitive."
+      ]
+    },
+    {
+      "id": "B",
+      "task": "throughput-baseline measurement / task 39",
+      "status": "covered",
+      "evidence": [
+        "evidence/task-39-throughput-baseline-2026-05-18.json"
+      ],
+      "limitation": "Baseline measures GitHub PR create-to-merge lead time, not CI-only time-to-green."
+    },
+    {
+      "id": "C",
+      "task": "oya-git-verbs / task 38",
+      "status": "covered",
+      "evidence": [
+        "crates/oya-dev-cli/src/commands/git.rs",
+        "crates/oya-dev-cli/tests/git_cli.rs",
+        "Ledger emits under .git/oya/ledger/audit-chain.jsonl and excludes raw args, absolute paths, and secret values."
+      ]
+    },
+    {
+      "id": "D",
+      "task": "oya-git-hooks / task 36",
+      "status": "covered",
+      "evidence": [
+        "tools/hooks/stale-tool-suggester.sh suggests oya git for plain git commands and stays quiet for oya git.",
+        ".claude/settings.json, .codex/hooks.json, .gemini/settings.json, and .hermes/hooks.json exist after bootstrap install.",
+        ".claude/commands, .gemini/commands, and per-agent skills symlinks were installed.",
+        "./tools/hook-bootstrap/uninstall.sh --dry-run passes without writing changes."
+      ]
+    },
+    {
+      "id": "E",
+      "task": "substrate doctrines PR",
+      "status": "covered",
+      "evidence": [
+        "docs/decisions/ADR-0215-multi-context-platform-architecture.md through ADR-0220-consumer-intelligence-substrate.md",
+        "microservices/intelligence/",
+        "microservices/identity/IP-017-multi-context-principal-resolver.md",
+        "microservices/application/IP-016-tenant-admin-console-control-surface.md",
+        "layered-architecture-discipline gate passed with 41 manifests."
+      ]
+    },
+    {
+      "id": "F",
+      "task": "fitness-to-governance lane migration / task 37",
+      "status": "queued_per_handoff",
+      "evidence": [
+        "microservices/governance/lane-prefix-migration-task-37.json",
+        "evidence/task-37-fitness-to-governance-prefix-audit-2026-05-18.json",
+        "quality-lanes gate passed with 94 registry records and 94 markdown rows."
+      ],
+      "limitation": "This is not a bulk rename; 41 old oya-foundry-fitness-* lanes remain in compatibility scope until their per-lane ChangeSets land."
+    },
+    {
+      "id": "G",
+      "task": "ADR-0173 dedup / task 40",
+      "status": "covered",
+      "evidence": [
+        "docs/decisions/ADR-0173-saga-compensation-portfolio-policy.md removed.",
+        "docs/decisions/ADR-0222-saga-compensation-portfolio-policy.md added.",
+        "Saga-compensation citations updated across standards, specs, policies, and tests."
+      ]
+    },
+    {
+      "id": "H",
+      "task": "arm four ADR-0221 CI gates under oya-governance-* prefix",
+      "status": "covered",
+      "evidence": [
+        ".github/workflows/pr-tests.yml jobs oya-governance-vacuous-green, oya-governance-adr-orphan-citation, oya-governance-version-pin-source-citation, and oya-governance-buildability-line-count",
+        "tools/governance/adr-0221-governance-gates.sh",
+        "registry/quality/lanes.yaml and docs/standards/ci-lanes.md mirror the four lanes."
+      ]
+    }
+  ],
+  "validation": {
+    "passed": [
+      "git diff --check",
+      "cargo fmt --check",
+      "cargo check -q -p oya-dev-cli",
+      "cargo test -q -p oya-dev-cli workspace_manifest",
+      "cargo test -q -p oya-dev-cli --test git_cli",
+      "cargo test -q -p oya-dev-cli commands::git",
+      "cargo test -q -p oya-check-vendor-lockin-discipline",
+      "cargo clippy --workspace --all-targets --keep-going -- -D warnings",
+      "cargo build --workspace --all-targets --keep-going",
+      "cargo run -q -p oya-dev-cli -- gate validate data-class",
+      "cargo run -q -p oya-dev-cli -- gate validate cargo-prefix",
+      "cargo run -q -p oya-dev-cli -- gate validate doc-catalog",
+      "cargo run -q -p oya-dev-cli -- gate validate readme-doc-coverage",
+      "cargo run -q -p oya-dev-cli -- gate validate quality-lanes",
+      "cargo run -q -p oya-dev-cli -- gate validate authority-cohesion",
+      "cargo run -q -p oya-dev-cli -- gate validate layered-architecture-discipline",
+      "cargo run -q -p oya-dev-cli -- gate validate ontology-projection-coverage (advisory)",
+      "cargo run -q -p oya-dev-cli -- gate validate audit-chain-seal-coverage (advisory)",
+      "cargo run -q -p oya-dev-cli -- gate validate vendor-lockin-discipline",
+      "cargo run -q -p oya-dev-cli -- gate validate realtime-transport-tier (advisory)",
+      "bash tools/governance/adr-0221-governance-gates.sh vacuous-green",
+      "bash tools/governance/adr-0221-governance-gates.sh orphan-citation",
+      "bash tools/governance/adr-0221-governance-gates.sh version-pin",
+      "bash tools/governance/adr-0221-governance-gates.sh buildability-line-count",
+      "jq empty on generated JSON evidence and hook/config files",
+      "yq eval '.' registry/quality/lanes.yaml",
+      "shellcheck -S info on changed shell hooks and governance script",
+      "bash tools/hooks/oya-git-cutover-inventory.sh",
+      "tools/hooks/stale-tool-suggester.sh smoke tests for plain git, oya git, and nested tool_input.command",
+      "./tools/hook-bootstrap/uninstall.sh --dry-run"
+    ],
+    "not_claimed": [
+      {
+        "command": "cargo run -q -p oya-dev-cli -- doc adr-index --write --format json",
+        "reason": "Blocked by pre-existing duplicate ADR IDs outside the authorized ADR-0173 dedup scope.",
+        "evidence": "evidence/adr-index-regeneration-blocker-2026-05-18.json"
+      },
+      {
+        "command": "cargo run -q -p oya-dev-cli -- gate run-all",
+        "reason": "Known hang at loop-recovery-patterns; individual changed/affected gates were run directly instead."
+      },
+      {
+        "command": "cargo test -q -p oya-dev-cli",
+        "reason": "Stopped after loop_recovery_patterns_gate_accepts_repo_inventory exceeded 60 seconds due the same cargo-nextest list hang; targeted oya-dev-cli tests and workspace build/clippy passed."
+      }
+    ]
+  },
+  "remaining_debt": [
+    "ADR index regeneration still requires a separate duplicate-ADR cleanup for ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0135, ADR-0136, ADR-0179, and ADR-0180.",
+    "Data-class gate passes with 288 explicit legacy allowances that still need semantic per-crate annotation.",
+    "Loop-recovery-patterns / cargo nextest list hang remains outside this handoff slice.",
+    "Task 37 is a queued per-lane migration map, not a completed lane-prefix migration sweep."
+  ]
+}

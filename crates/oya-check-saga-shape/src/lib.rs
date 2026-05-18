@@ -1,18 +1,18 @@
-//! Saga-shape validator (ADR-0173).
+//! Saga-shape validator (ADR-0222).
 //!
 //! Kernel-tier validator (ADR-0083 Tier 1): pure data + small validators;
 //! no filesystem, no subprocess, no network. Callers supply the list of
 //! `SagaDefinition` records read from `microservices/<axis>/specs/saga-*.json`
 //! and the canonical schema (loaded from `/specs/saga-shape.json`).
 //!
-//! The validator checks the four invariants from ADR-0173:
+//! The validator checks the four invariants from ADR-0222:
 //!
 //! - I-1. Every saga has at least one step.
 //! - I-2. Every step declares all six required fields
 //!   (forward_action, compensation_action, idempotency_key_strategy,
 //!   timeout_budget_ms, retry_policy, audit_class).
 //! - I-3. If `audit_class != ReadOnly` then `compensation_action.kind` MUST
-//!   NOT be `NoopWithEvidence` (per ADR-0173 D-1 paragraph 2).
+//!   NOT be `NoopWithEvidence` (per ADR-0222 D-1 paragraph 2).
 //! - I-4. Step ids are unique within a saga.
 //!
 //! Non-validating (advisory) checks land as warnings:
@@ -210,7 +210,7 @@ where
                 step_id: None,
                 kind: SagaShapeViolationKind::EmptyStepList,
                 message: "saga has zero steps".into(),
-                fix: "add at least one step per ADR-0173 D-1".into(),
+                fix: "add at least one step per ADR-0222 D-1".into(),
             });
             continue;
         }
@@ -244,7 +244,7 @@ where
                     step_id: Some(step.step_id.clone()),
                     kind: SagaShapeViolationKind::NoopCompensationOnWriteStep,
                     message: format!(
-                        "step {} declares audit_class={:?} but compensation_action.kind=NoopWithEvidence (ADR-0173 D-1: only ReadOnly steps may compensate with Noop)",
+                        "step {} declares audit_class={:?} but compensation_action.kind=NoopWithEvidence (ADR-0222 D-1: only ReadOnly steps may compensate with Noop)",
                         step.step_id, step.audit_class
                     ),
                     fix: "either change audit_class to ReadOnly or change compensation_action.kind to Cancel/Refund/Retry/Custom".into(),

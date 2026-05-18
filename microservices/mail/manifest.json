@@ -364,7 +364,50 @@
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
   },
-  "ontology_projections": [],
+  "ontology_projections": [
+    {
+      "entity_name": "MailMessage",
+      "projection_target_table": "ontology_mail_messages",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Mailbox",
+      "projection_target_table": "ontology_mailboxes",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "LegalHold",
+      "projection_target_table": "ontology_mail_legal_holds",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "EDiscoveryExportJob",
+      "projection_target_table": "ontology_mail_ediscovery_export_jobs",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "RetentionPolicy",
+      "projection_target_table": "ontology_mail_retention_policies",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "DeliverabilityReputation",
+      "projection_target_table": "ontology_deliverability_reputations",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "TenantMailServer",
+      "projection_target_table": "ontology_tenant_mail_servers",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,

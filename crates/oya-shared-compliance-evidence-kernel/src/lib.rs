@@ -167,8 +167,8 @@ pub trait EvidenceCollector {
 /// rollout schedule.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CoverageGap {
-    pub framework: ComplianceFramework,
-    pub missing: EvidenceArtifactKind,
+    pub framework: ComplianceFramework, // data_class: INTERNAL_ONLY
+    pub missing: EvidenceArtifactKind,  // data_class: INTERNAL_ONLY
 }
 
 /// Compute per-tenant gaps across required artifacts in the active

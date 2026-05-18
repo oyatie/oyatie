@@ -320,7 +320,68 @@
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
   },
-  "ontology_projections": [],
+  "ontology_projections": [
+    {
+      "entity_name": "Person",
+      "projection_target_table": "ontology_network_persons",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Company",
+      "projection_target_table": "ontology_network_companies",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Skill",
+      "projection_target_table": "ontology_network_skills",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Certification",
+      "projection_target_table": "ontology_network_certifications",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Education",
+      "projection_target_table": "ontology_network_education",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "JobPosting",
+      "projection_target_table": "ontology_network_job_postings",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "ProfessionalRelation",
+      "projection_target_table": "ontology_network_professional_relations",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Mention",
+      "projection_target_table": "ontology_network_mentions",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Endorsement",
+      "projection_target_table": "ontology_network_endorsements",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Recommendation",
+      "projection_target_table": "ontology_network_recommendations",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,

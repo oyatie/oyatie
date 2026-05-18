@@ -1,0 +1,1 @@
+../../tools/agent-skills/.claude/commands/code-simplify.md

@@ -5,14 +5,22 @@ than duplicating strings. Keep sections machine-parseable (no nested bullets).
 
 ---
 
-## VCS
+## VCS / Git Cutover
 
-Canonical invocation:
-  oya vcs <subcommand>
-  cargo run --quiet -p oya-dev-cli -- vcs <subcommand>
+Canonical git invocation target:
+  oya git <git-subcommand>
+  cargo run --quiet -p oya-dev-cli -- git <git-subcommand>
+
+Current coordination ratchet compatibility surface:
+  oya vcs <claim|work|verify|done|status|symbols|queue|watch|promote>
+  cargo run --quiet -p oya-dev-cli -- vcs <claim|work|verify|done|status|symbols|queue|watch|promote>
+
+Cutover note: task #38 landed true drop-in `oya git <git-subcommand>` behavior;
+task #36 owns advisory cross-agent hook suggestions toward that surface.
+Do not treat the current `oya vcs status` ratchet as `git status`.
 
 Retired (do NOT use): grit, rtk, icm, vox
-Authority: ADR-0116, feedback_oya_vcs_canonical_2026_05_16
+Authority: ADR-0223 checkpoint, feedback_oya_git_canonical_2026_05_18
 
 ---
 
@@ -67,10 +75,10 @@ ADR-0136-amendment: Foundry internal scope — Hermes pipeline only, not consume
 
 ## Retired Tooling
 
-grit — retired per ADR-0116; use: oya vcs
-rtk  — retired per ADR-0116; use: oya vcs
-icm  — retired per ADR-0116; use: oya vcs
-vox  — retired per ADR-0116; use: oya vcs
+grit — retired per ADR-0116; current policy ratchet: oya vcs; git cutover target: oya git
+rtk  — retired per ADR-0116; current policy ratchet: oya vcs; git cutover target: oya git
+icm  — retired per ADR-0116; current policy ratchet: oya vcs; git cutover target: oya git
+vox  — retired per ADR-0116; current policy ratchet: oya vcs; git cutover target: oya git
 
 ---
 
@@ -83,7 +91,7 @@ Summary: grit, rtk, icm, vox in Bash commands; OpenAPI != 3.2.0; AsyncAPI != 3.1
 
 ## Common Pitfalls
 
-1. Using `grit done` instead of `oya vcs` commands
+1. Using `grit done` instead of Oya policy commands or the `oya git` drop-in
 2. Writing `openapi: 3.3.0` (no such released version as of 2026-05-18)
 3. Writing `asyncapi: 3.0.0` (use 3.1.0)
 4. Treating microservices/foundry/ as consumer-facing (it is Hermes-internal only)
@@ -100,7 +108,7 @@ Summary: grit, rtk, icm, vox in Bash commands; OpenAPI != 3.2.0; AsyncAPI != 3.1
 
 Direct:     cargo run --quiet -p oya-dev-cli -- <subcommand> [args]
 Via wrapper: ./bin/oya <subcommand> [args]  (after PATH_add bin via .envrc)
-Top-level subcommands: vcs, gate, governance-gates, foundation-audit-gates,
+Top-level subcommands: git (drop-in pass-through), vcs (coordination ratchet compatibility), gate, governance-gates, foundation-audit-gates,
                         catalog, check, demo, doc, lint, onprem, ops, submit,
                         supply-chain, verify
 

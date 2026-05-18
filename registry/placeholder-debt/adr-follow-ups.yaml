@@ -465,7 +465,7 @@ follow_ups:
       etc.) before promotion. Promotion lands in the PR that completes
       the last owner's projection declaration.
     driver_docs:
-      - docs/decisions/ADR-0145-cross-product-invariants.md
+      - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
       - registry/quality/lanes.yaml#oya-governance-ontology-projection-coverage
       - crates/oya-check-ontology-projection-coverage/src/lib.rs
     owner: axis-ontology + axis-mail + axis-calendar + axis-messenger + axis-tasks + axis-drive + axis-meet + axis-recordings + axis-network
@@ -474,7 +474,17 @@ follow_ups:
       `ontology_projections` with at least one entry; CI gate runs
       in strict mode without findings; sample manifests reviewed for
       projection-target correctness.
-    status: pending
+    completion_evidence:
+      - microservices/tasks/manifest.json#ontology_projections
+      - microservices/calendar/manifest.json#ontology_projections
+      - microservices/recordings/manifest.json#ontology_projections
+      - microservices/meet/manifest.json#ontology_projections
+      - microservices/mail/manifest.json#ontology_projections
+      - microservices/network/manifest.json#ontology_projections
+      - microservices/messenger/manifest.json#ontology_projections
+      - microservices/drive/manifest.json#ontology_projections
+      - crates/oya-check-ontology-projection-coverage/src/lib.rs
+    status: completed
 
   # PR #143 close-out 2026-05-18 — Vendor-lockin trait-path annotation handling.
   - id: adr-0173-vendor-lockin-trait-path-annotation-handling

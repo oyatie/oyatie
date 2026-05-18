@@ -284,7 +284,38 @@
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
   },
-  "ontology_projections": [],
+  "ontology_projections": [
+    {
+      "entity_name": "Recording",
+      "projection_target_table": "ontology_recordings",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Transcript",
+      "projection_target_table": "ontology_recording_transcripts",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Speaker",
+      "projection_target_table": "ontology_recording_speakers",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Redaction",
+      "projection_target_table": "ontology_recording_redactions",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "LegalHold",
+      "projection_target_table": "ontology_recording_legal_holds",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,

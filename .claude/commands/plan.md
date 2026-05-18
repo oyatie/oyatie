@@ -1,0 +1,1 @@
+../../tools/agent-skills/.claude/commands/plan.md

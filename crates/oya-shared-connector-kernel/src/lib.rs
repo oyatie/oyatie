@@ -48,7 +48,7 @@ use std::fmt;
 /// Tenant id under which the Connector call is performed.
 /// Opaque, RLS-relevant per ADR-0056.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct TenantId(String);
+pub struct TenantId(String); // data_class: INTERNAL_ONLY
 
 impl TenantId {
     /// Construct a tenant id. Empty strings are rejected.
@@ -67,7 +67,7 @@ impl TenantId {
 
 /// Principal acting through the Connector — service-account or user.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct PrincipalId(String);
+pub struct PrincipalId(String); // data_class: INTERNAL_ONLY
 
 impl PrincipalId {
     /// Construct a principal id. Empty strings are rejected.
@@ -89,7 +89,7 @@ impl PrincipalId {
 /// `Debug` is redacted; there is no `Display`.
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct SecretReference {
-    path: String,
+    path: String, // data_class: INTERNAL_ONLY
 }
 
 impl SecretReference {
@@ -123,7 +123,7 @@ impl fmt::Debug for SecretReference {
 /// Idempotency key — at-most-once guarantee for `create` / `update` / `delete`.
 /// Per ADR-0149 idempotency-key discipline.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct IdempotencyKey(String);
+pub struct IdempotencyKey(String); // data_class: INTERNAL_ONLY
 
 impl IdempotencyKey {
     /// Construct an idempotency key. Must be 8–128 chars.
@@ -145,7 +145,7 @@ impl IdempotencyKey {
 /// Cursor — opaque pagination handle per ADR-0150 cursor-pagination.
 /// Adapters define their own representation; the kernel only sees bytes.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct Cursor(String);
+pub struct Cursor(String); // data_class: INTERNAL_ONLY
 
 impl Cursor {
     /// Construct a cursor. Empty cursors are rejected (use `None` instead).
@@ -167,7 +167,7 @@ impl Cursor {
 /// is responsible for propagating it on the wire.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TraceContext {
-    traceparent: String,
+    traceparent: String, // data_class: INTERNAL_ONLY
 }
 
 impl TraceContext {
@@ -190,7 +190,7 @@ impl TraceContext {
 /// Adapters call [`AuditSealHandle::seal`] after a Connector call.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AuditSealHandle {
-    chain_id: String,
+    chain_id: String, // data_class: INTERNAL_ONLY
 }
 
 impl AuditSealHandle {
@@ -226,11 +226,11 @@ impl AuditSealHandle {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AuditSealReceipt {
     /// Chain id the seal lives on.
-    pub chain_id: String,
+    pub chain_id: String, // data_class: INTERNAL_ONLY
     /// Event kind (`"connector.list"`, `"connector.create"`, …).
-    pub kind: String,
+    pub kind: String, // data_class: INTERNAL_ONLY
     /// Digest of the payload (sha256 hex) — adapters compute this.
-    pub payload_digest: String,
+    pub payload_digest: String, // data_class: INTERNAL_ONLY
 }
 
 // =====================================================================
@@ -243,11 +243,11 @@ pub struct AuditSealReceipt {
 /// audit + tracing event.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ConnectorCtx {
-    tenant_id: TenantId,
-    principal_id: PrincipalId,
-    secret_ref: SecretReference,
-    trace_ctx: TraceContext,
-    audit_handle: AuditSealHandle,
+    tenant_id: TenantId,           // data_class: INTERNAL_ONLY
+    principal_id: PrincipalId,     // data_class: INTERNAL_ONLY
+    secret_ref: SecretReference,   // data_class: INTERNAL_ONLY
+    trace_ctx: TraceContext,       // data_class: INTERNAL_ONLY
+    audit_handle: AuditSealHandle, // data_class: INTERNAL_ONLY
 }
 
 impl ConnectorCtx {
@@ -301,7 +301,7 @@ impl ConnectorCtx {
 /// fields according to the projection schema.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct EntityDoc {
-    fields: BTreeMap<String, EntityValue>,
+    fields: BTreeMap<String, EntityValue>, // data_class: INTERNAL_ONLY
 }
 
 impl EntityDoc {
@@ -348,9 +348,9 @@ pub enum EntityValue {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PatchOp {
     /// Field name to update.
-    pub field: String,
+    pub field: String, // data_class: INTERNAL_ONLY
     /// New value (None = remove).
-    pub value: Option<EntityValue>,
+    pub value: Option<EntityValue>, // data_class: INTERNAL_ONLY
 }
 
 impl PatchOp {
@@ -374,9 +374,9 @@ impl PatchOp {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Page {
     /// Entities in this page.
-    pub items: Vec<EntityDoc>,
+    pub items: Vec<EntityDoc>, // data_class: INTERNAL_ONLY
     /// Cursor to the next page, or `None` if this is the last page.
-    pub next_cursor: Option<Cursor>,
+    pub next_cursor: Option<Cursor>, // data_class: INTERNAL_ONLY
 }
 
 // =====================================================================
@@ -390,17 +390,17 @@ pub struct Page {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ConnectorCapabilities {
     /// Adapter supports [`Connector::list`].
-    pub list: bool,
+    pub list: bool, // data_class: INTERNAL_ONLY
     /// Adapter supports [`Connector::get`].
-    pub get: bool,
+    pub get: bool, // data_class: INTERNAL_ONLY
     /// Adapter supports [`Connector::create`].
-    pub create: bool,
+    pub create: bool, // data_class: INTERNAL_ONLY
     /// Adapter supports [`Connector::update`].
-    pub update: bool,
+    pub update: bool, // data_class: INTERNAL_ONLY
     /// Adapter supports [`Connector::delete`].
-    pub delete: bool,
+    pub delete: bool, // data_class: INTERNAL_ONLY
     /// Adapter supports [`Connector::subscribe`] (event stream).
-    pub subscribe: bool,
+    pub subscribe: bool, // data_class: INTERNAL_ONLY
 }
 
 impl ConnectorCapabilities {
@@ -433,13 +433,13 @@ impl ConnectorCapabilities {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RateLimitDescriptor {
     /// Requests per second the adapter promises not to exceed.
-    pub requests_per_second: u32,
+    pub requests_per_second: u32, // data_class: INTERNAL_ONLY
     /// Burst capacity the adapter will absorb without throttling.
-    pub burst_capacity: u32,
+    pub burst_capacity: u32, // data_class: INTERNAL_ONLY
     /// Per-day request quota, if the provider enforces one.
-    pub daily_quota: Option<u64>,
+    pub daily_quota: Option<u64>, // data_class: INTERNAL_ONLY
     /// Free-form human note (e.g. `"tier-3 Slack bot"`).
-    pub note: String,
+    pub note: String, // data_class: INTERNAL_ONLY
 }
 
 /// Auth scheme an adapter uses to authenticate to its provider.
@@ -459,11 +459,11 @@ pub enum AuthScheme {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HealthReport {
     /// Is the upstream provider currently reachable?
-    pub reachable: bool,
+    pub reachable: bool, // data_class: INTERNAL_ONLY
     /// Round-trip latency in milliseconds (last observed).
-    pub last_latency_ms: u64,
+    pub last_latency_ms: u64, // data_class: INTERNAL_ONLY
     /// Provider-side status string (`"ok"`, `"degraded"`, `"down"`).
-    pub upstream_status: String,
+    pub upstream_status: String, // data_class: INTERNAL_ONLY
 }
 
 // =====================================================================
@@ -474,11 +474,11 @@ pub struct HealthReport {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Event {
     /// Entity kind this event concerns.
-    pub entity_kind: String,
+    pub entity_kind: String, // data_class: INTERNAL_ONLY
     /// Event kind (`"created"`, `"updated"`, `"deleted"`).
-    pub kind: String,
+    pub kind: String, // data_class: INTERNAL_ONLY
     /// Entity snapshot at event time.
-    pub doc: EntityDoc,
+    pub doc: EntityDoc, // data_class: INTERNAL_ONLY
 }
 
 /// Polling event stream — `next()` returns the next event or `None`
@@ -504,11 +504,11 @@ pub trait EventStream: Send + Sync {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OntologyProjection {
     /// Object type name in the Ontology (e.g. `"Employee"`).
-    pub object_type: String,
+    pub object_type: String, // data_class: INTERNAL_ONLY
     /// Stable Ontology id (vendor id namespaced by provider).
-    pub object_id: String,
+    pub object_id: String, // data_class: INTERNAL_ONLY
     /// Field projections (ontology field → entity field name).
-    pub field_map: BTreeMap<String, String>,
+    pub field_map: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
 }
 
 impl OntologyProjection {

@@ -180,6 +180,7 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.agent_instruction_sources` | `AGENT-INSTRUCTION-SOURCES.md` | `axis-foundry` + `council-architecture` | agent-instruction source inventory changes | per change | AGENTS.md, DOC-CATALOG.md | `banned-primitives`, `doc-catalog-self-coverage` | YES — agent may re-emit inventory after source audit |
 | `doc.standards_and_templates` | `STANDARDS-AND-TEMPLATES.md` | `axis-foundry` + `council-architecture` | standard or template change | quarterly | DOC-CATALOG.md, TOOLCHAIN.md | `doc-catalog-self-coverage` | NO |
 | `doc.toolchain` | `TOOLCHAIN.md` | `axis-foundry` | toolchain or CI contract change | quarterly | RELEASE-MANAGEMENT.md, STANDARDS-AND-TEMPLATES.md | `release-lane-coverage` | NO |
+| `doc.bootstrap` | `bootstrap.md` | `axis-foundry` | contributor bootstrap or hook install contract change | per change | TOOLCHAIN.md, AGENT-INSTRUCTION-SOURCES.md | `doc-catalog-self-coverage`, `readme-doc-coverage` | YES |
 | `doc.mistakes_ledger` | `MISTAKES-LEDGER.md` | `council-architecture` | mistake discovered, remediated, or escalated | monthly | CONTRADICTION-LEDGER.md, RUNBOOKS-INDEX.md | `runbook-orphan-check` | NO |
 | `doc.readme` | `README.md` | `council-architecture` | new file added in `docs/` | per change | (all canonical docs) | `readme-doc-coverage` | YES |
 

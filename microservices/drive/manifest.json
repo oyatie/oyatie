@@ -368,7 +368,44 @@
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
   },
-  "ontology_projections": [],
+  "ontology_projections": [
+    {
+      "entity_name": "File",
+      "projection_target_table": "ontology_files",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Folder",
+      "projection_target_table": "ontology_folders",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "ShareLink",
+      "projection_target_table": "ontology_drive_share_links",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Permission",
+      "projection_target_table": "ontology_drive_permissions",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "ImmutabilityRecord",
+      "projection_target_table": "ontology_drive_immutability_records",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "LegalHold",
+      "projection_target_table": "ontology_drive_legal_holds",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,

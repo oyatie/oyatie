@@ -43,7 +43,7 @@ Oyatie introduces a SECOND CLI binary, also named `oya` from the tenant's perspe
 The two binaries are kept distinct via:
 
 - **Repo layout**: `crates/oya-tenant-cli/` (this ADR) vs `crates/oya-dev-cli/` (internal).
-- **Distribution**: `oya-tenant-cli` is published to tenant artifact channels; `oya-dev-cli` is internal-only (workspace-local `cargo run -p oya-dev-cli -- ...`).
+- **Distribution**: `oya-tenant-cli` is published to tenant artifact channels; `oya-dev-cli` is internal-only (workspace-local `cargo run -p oya-dev-cli -- ...`). The workspace bin target is `oya-tenant` to avoid colliding with the internal `oya` binary; packaging aliases it to `oya` only in tenant channels.
 - **Dependency closure**: `oya-tenant-cli` depends ONLY on the public SDK crates (`oya-shared-public-sdk-*` family) and a thin command dispatcher. It does NOT depend on any `oya-check-*`, `oya-foundry-*`, or `oya-dev-cli` crate.
 - **Semver tier**: `oya-tenant-cli` follows Tier-A (per ADR-0037) — breaking changes require an ADR + 18-month sunset window. `oya-dev-cli` follows Tier-D (internal, change at will).
 
@@ -135,7 +135,7 @@ Refresh tokens rotated per OAuth-2.1 best practice (single-use refresh tokens).
 
 ### Operational
 
-1. `crates/oya-tenant-cli/` lives in the workspace as a sibling of `crates/oya-dev-cli/`. Binary name in tenant channels is `oya`; in workspace `cargo run -p oya-tenant-cli -- ...`.
+1. `crates/oya-tenant-cli/` lives in the workspace as a sibling of `crates/oya-dev-cli/`. Binary name in tenant channels is `oya`; the workspace target is `oya-tenant`, and `cargo run -p oya-tenant-cli -- ...` uses that default target.
 2. Tenant-CLI release cadence: monthly minor (additive) + on-demand patch. Major bump requires an ADR per ADR-0037.
 3. Distribution channels (M01-foundation slice):
    - `brew tap oyatie/oya && brew install oya` (macOS, Linux Homebrew).

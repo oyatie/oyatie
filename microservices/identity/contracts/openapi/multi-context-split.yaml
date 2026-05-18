@@ -1,0 +1,49 @@
+openapi: 3.2.0
+info:
+  title: Identity Multi-Context Split API
+  version: 0.1.0
+  description: Principal context resolver required by ADR-0215.
+paths:
+  /principal-context/resolve:
+    post:
+      summary: Resolve the active context envelope for a principal
+      operationId: resolvePrincipalContext
+      tags: [multi-context]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolvePrincipalContextRequest'
+      responses:
+        '200':
+          description: Active context envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrincipalContextEnvelope'
+        '403':
+          description: Context switch refused
+components:
+  schemas:
+    ResolvePrincipalContextRequest:
+      type: object
+      required: [principal_id, purpose]
+      properties:
+        principal_id: { type: string }
+        requested_context_id: { type: string }
+        purpose: { type: string }
+    PrincipalContextEnvelope:
+      type: object
+      required: [principal_id, active_context_id, context_type, sovereignty_region, allowed_context_switches]
+      properties:
+        principal_id: { type: string }
+        active_context_id: { type: string }
+        context_type: { type: string, enum: [personal, work, healthcare, marketplace, community] }
+        tenant_id: { type: string }
+        organization_id: { type: string }
+        sovereignty_region: { type: string }
+        allowed_context_switches:
+          type: array
+          items: { type: string }
+        audit_event: { type: string }

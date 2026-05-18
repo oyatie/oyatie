@@ -10,6 +10,6 @@
 
 set -euo pipefail
 
-echo "Canonical: oya vcs (not grit). OpenAPI 3.2.0 + AsyncAPI 3.1.0. See tools/hooks/_canonical-primitives.md."
+echo "Canonical: oya git for git drop-in work; current policy ratchet compatibility is oya vcs. OpenAPI 3.2.0 + AsyncAPI 3.1.0. See tools/hooks/_canonical-primitives.md."
 
 exit 0
