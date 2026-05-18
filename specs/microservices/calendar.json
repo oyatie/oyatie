@@ -9,8 +9,6 @@
     "status": "Accepted",
     "owner_team": "connect-product-council",
     "created_at": "2026-05-16T14:30:00Z",
-    "updated_at": "2026-05-17T00:00:00Z",
-    "audit_ref": "evidence/autoresearch/connect-suite-industry-audit-1779012333.json",
     "purpose": "Connect Calendar PRD: personal and professional scheduling, resource booking, action-card handoff, Workflow integration, retention/legal-hold overlays, and cross-pillar-safe availability semantics."
   },
   "identity": {
@@ -41,12 +39,9 @@
     ],
     "oyatie_specs": [
       "$ref:specs/agent-durable-goal.json",
-      "$ref:specs/products/workflow.json",
-      "$ref:specs/products/ontology.json",
-      "$ref:specs/deployment-ops-contract.json",
-      "$ref:docs/decisions/ADR-0132-connect-core-public-contracts.md",
       "$ref:specs/microservices/workflow.json",
-      "$ref:specs/microservices/ontology.json"
+      "$ref:specs/microservices/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
     ],
     "source_docs": [
       "$ref:bominal/docs/products/connect/enterprise-readiness.md",
@@ -56,7 +51,6 @@
     ],
     "user_decisions": [
       "2026-05-16:D-13 one PRD per suite plus per-app sub-PRDs",
-      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/products/<id>.json",
       "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/microservices/<id>.json"
     ]
   },
@@ -81,16 +75,6 @@
       "persona": "compliance_officer",
       "interface": "professional event hold/eDiscovery",
       "billing": "compliance entitlement"
-    },
-    {
-      "persona": "scheduler_integrator",
-      "interface": "calendar APIs, CalDAV, and Workflow triggers",
-      "billing": "API units"
-    },
-    {
-      "persona": "external_invitee",
-      "interface": "iCal/CalDAV invite acceptance from non-Connect calendar clients",
-      "billing": "recipient-side free"
     },
     {
       "persona": "scheduler_integrator",
@@ -133,48 +117,6 @@
       "when": "calendar retention is computed",
       "then": "the selected retention window stays inside jurisdiction bounds and is visible in admin UX",
       "test_ref": "crates/oya-connect-calendar-domain/tests/retention.rs::test_jurisdiction_bounds"
-    },
-    {
-      "id": "AC-06",
-      "given": "an external attendee uses a non-Connect calendar client (Apple Calendar, Google Calendar, Outlook)",
-      "when": "they receive or accept an invite",
-      "then": "the invite is delivered as RFC 5545 iCal and CalDAV RSVP is accepted; the attendee status is reflected in the work event",
-      "test_ref": "crates/oya-connect-calendar-app/tests/protocol.rs::test_ical_rfc5545_external_rsvp_round_trip"
-    },
-    {
-      "id": "AC-07",
-      "given": "a user creates a work event with attendees in multiple time zones",
-      "when": "the event is created",
-      "then": "each attendee sees the event in their local time zone; IANA time zone IDs are stored on the event; display converts without ambiguity; DST transitions are handled correctly",
-      "test_ref": "crates/oya-connect-calendar-domain/tests/timezone.rs::test_iana_timezone_dst_round_trip"
-    },
-    {
-      "id": "AC-08",
-      "given": "a user invokes the scheduling assistant to find a meeting time",
-      "when": "the assistant queries attendee availability",
-      "then": "it uses minimum-necessary free/busy projection across pillar boundaries; personal calendar details are never exposed; suggested slots are returned within working-hours policy",
-      "test_ref": "crates/oya-connect-calendar-app/tests/scheduling_assistant.rs::test_scheduling_assistant_free_busy_only_no_personal_detail"
-    },
-    {
-      "id": "AC-09",
-      "given": "a work event is created with a video call",
-      "when": "the event is saved",
-      "then": "a native video-call link is auto-generated and embedded in the event; the link is tied to the event lifecycle (cancelled/rescheduled events invalidate the link)",
-      "test_ref": "crates/oya-connect-calendar-app/tests/video_call.rs::test_video_call_link_lifecycle"
-    },
-    {
-      "id": "AC-10",
-      "given": "a user sets up a public appointment booking page",
-      "when": "an external visitor books a slot",
-      "then": "the booking creates a work event in the host's calendar with explicit pillar tag; visitor sees only available slots based on free/busy projection; no personal details exposed",
-      "test_ref": "crates/oya-connect-calendar-app/tests/booking_page.rs::test_booking_page_no_personal_detail_exposure"
-    },
-    {
-      "id": "AC-11",
-      "given": "a user configures working hours and focus time",
-      "when": "the scheduling assistant or booking page queries availability",
-      "then": "focus time blocks appear as busy and no meetings are scheduled outside working hours unless user explicitly overrides",
-      "test_ref": "crates/oya-connect-calendar-domain/tests/working_hours.rs::test_focus_time_blocks_scheduling"
     }
   ],
   "scope": {
@@ -183,34 +125,19 @@
         "event/attendee/resource model",
         "work/personal context separation",
         "basic invites",
-        "action-card contract",
-        "IANA time zone storage and DST handling"
+        "action-card contract"
       ],
       "stable": [
         "Workflow handoff",
-        "resource calendars (rooms, equipment)",
-        "recurring events (RFC 5545 RRULE)",
-        "retention/legal-hold overlays",
-        "CalDAV/iCal (RFC 5545) protocol for external clients",
-        "scheduling assistant with free/busy-only cross-pillar projection",
-        "working hours and focus time configuration",
-        "video-call auto-link generation (native signaling)",
-        "cross-org free/busy federation (CalDAV/EWS interop)",
         "resource calendars",
-        "recurring events"
+        "recurring events",
+        "retention/legal-hold overlays"
       ],
       "GA": [
-        "availability federation across external orgs",
-        "calendar migration/coexistence adapters (Google Calendar, Outlook)",
-        "meeting room/device resource management",
-        "full mobile/desktop parity",
-        "appointment booking pages (public and policy-gated)",
-        "AI-assisted scheduling (smart slot suggestions; DEK-bounded; opt-in)",
-        "time zone disambiguation UX (warn on ambiguous times near DST transitions)",
-        "time insights / meeting analytics (work context only; no personal inference)",
         "availability federation",
         "calendar migration/coexistence adapters",
-        "meeting room/device resources"
+        "meeting room/device resources",
+        "full mobile/desktop parity"
       ]
     },
     "out_of_scope": [
@@ -220,19 +147,11 @@
       },
       {
         "item": "calendar-to-Workflow inference beyond explicit action cards",
-        "why": "advanced optimization deferred; initial contract is explicit approvals only"
+        "why": "advanced optimization out-of-scope by ADR-CAL-0003; initial contract is explicit approvals only \u2014 implicit inference is rejected to keep audit chain deterministic"
       },
       {
         "item": "third-party calendar as source of truth",
         "why": "adapters are coexistence/migration only"
-      },
-      {
-        "item": "meeting analytics using personal calendar data",
-        "why": "time insights are work-context only; personal inference is cross-pillar violation"
-      },
-      {
-        "item": "calendar-to-Workflow inference beyond explicit action cards",
-        "why": "advanced optimization out-of-scope by ADR-CAL-0003; initial contract is explicit approvals only — implicit inference is rejected to keep audit chain deterministic"
       }
     ]
   },
@@ -247,126 +166,11 @@
       "connect.calendar.event.v1",
       "connect.calendar.availability_projection.v1",
       "connect.calendar.action_card.v1",
-      "connect.calendar.workflow_handoff.v1",
-      "connect.calendar.ical_feed.v1",
-      "connect.calendar.video_call_link.v1"
-    ],
-    "public_contract_adr": "$ref:docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "connect.calendar.workflow_handoff.v1"
+    ]
   },
   "data_model": {
     "entities_ref": [
-      {
-        "entity": "CalendarEvent",
-        "fields": [
-          "event_id",
-          "tenant_or_person_scope",
-          "context_kind",
-          "ownership_pillar",
-          "title_ciphertext",
-          "description_ciphertext",
-          "attendee_refs",
-          "resource_refs",
-          "retention_policy_id",
-          "legal_hold_ids",
-          "data_class",
-          "starts_at",
-          "ends_at",
-          "timezone_iana",
-          "rrule",
-          "video_call_link_ref",
-          "booking_page_ref",
-          "status"
-        ],
-        "invariants": [
-          "context immutable",
-          "details never cross pillar",
-          "timezone_iana required; IANA tz database IDs only; no fixed-offset-only storage",
-          "video_call_link_ref invalidated when status = cancelled",
-          "rrule bounded; max expansion window enforced"
-        ]
-      },
-      {
-        "entity": "ActionCard",
-        "fields": [
-          "action_card_id",
-          "event_id",
-          "workflow_capability_ref",
-          "recipient_ref",
-          "policy_basis",
-          "state",
-          "audit_ref"
-        ],
-        "invariants": [
-          "work context only for Workflow handoff"
-        ]
-      },
-      {
-        "entity": "AvailabilityProjection",
-        "fields": [
-          "projection_id",
-          "source_event_ref",
-          "recipient_scope",
-          "granularity",
-          "expires_at",
-          "projection_kind"
-        ],
-        "invariants": [
-          "minimum necessary disclosure",
-          "projection_kind: free_busy_only | working_hours_only | custom_policy",
-          "personal context details never included regardless of projection_kind"
-        ]
-      },
-      {
-        "entity": "WorkingHoursPolicy",
-        "fields": [
-          "policy_id",
-          "identity_ref",
-          "context_kind",
-          "days_of_week",
-          "start_time",
-          "end_time",
-          "timezone_iana",
-          "focus_time_blocks"
-        ],
-        "invariants": [
-          "work context policy never reads personal calendar for inference",
-          "focus_time_blocks treated as busy in scheduling assistant and booking pages"
-        ]
-      },
-      {
-        "entity": "BookingPage",
-        "fields": [
-          "booking_page_id",
-          "host_identity_ref",
-          "context_kind",
-          "ownership_pillar",
-          "availability_source_policy",
-          "slot_duration_minutes",
-          "buffer_minutes",
-          "public_url_token",
-          "active"
-        ],
-        "invariants": [
-          "availability_source_policy uses free/busy projection only",
-          "personal calendar details never exposed to external visitors",
-          "work context only for tenant-linked booking pages"
-        ]
-      },
-      {
-        "entity": "VideoCallLink",
-        "fields": [
-          "link_id",
-          "event_id",
-          "signaling_endpoint_ref",
-          "created_at",
-          "invalidated_at",
-          "access_policy"
-        ],
-        "invariants": [
-          "invalidated when parent event status = cancelled",
-          "signaling_endpoint_ref points to native Connect video signaling; no third-party call substrate"
-        ]
-      },
       {
         "entity": "CalendarEvent",
         "fields": [
@@ -386,6 +190,21 @@
         "invariants": [
           "context immutable",
           "details never cross pillar"
+        ]
+      },
+      {
+        "entity": "ActionCard",
+        "fields": [
+          "action_card_id",
+          "event_id",
+          "workflow_capability_ref",
+          "recipient_ref",
+          "policy_basis",
+          "state",
+          "audit_ref"
+        ],
+        "invariants": [
+          "work context only for Workflow handoff"
         ]
       },
       {
@@ -417,21 +236,6 @@
         "event": "CalendarWorkflowHandoffCreated",
         "topic": "audit.connect.calendar.workflow_handoff",
         "idempotency_key": "event_id+workflow_run_id"
-      },
-      {
-        "event": "CalendarExternalRsvpReceived",
-        "topic": "connect.calendar.rsvp",
-        "idempotency_key": "event_id+attendee_ref+rsvp_state"
-      },
-      {
-        "event": "CalendarVideoCallLinkInvalidated",
-        "topic": "connect.calendar.video_call",
-        "idempotency_key": "link_id+invalidated_at"
-      },
-      {
-        "event": "CalendarBookingPageSlotTaken",
-        "topic": "connect.calendar.booking",
-        "idempotency_key": "booking_page_id+slot_start_at+visitor_token"
       }
     ],
     "persistence": [
@@ -446,43 +250,11 @@
         "store": "short-lived cache",
         "sharding_key": "recipient_scope+time_bucket",
         "retention": "minutes-hours only"
-      },
-      {
-        "aggregate": "WorkingHoursPolicy",
-        "store": "Postgres/RLS",
-        "sharding_key": "identity_ref",
-        "retention": "identity lifetime"
-      },
-      {
-        "aggregate": "BookingPage",
-        "store": "Postgres/RLS",
-        "sharding_key": "host_identity_ref",
-        "retention": "page lifetime + booking history per retention policy"
       }
     ],
     "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003 + $ref:specs/agent-durable-goal.json#score_cards"
   },
   "optimization_practices": [
-    {
-      "practice": "recurrence_expansion",
-      "implementation": "bounded window expansion with cached occurrence IDs; max expansion window enforced per tenant policy"
-    },
-    {
-      "practice": "availability_query",
-      "implementation": "minimum-necessary projection; free/busy only by default; never joins personal details to work"
-    },
-    {
-      "practice": "batch_dispatch",
-      "implementation": "invite updates and action-card notifications coalesced per event version"
-    },
-    {
-      "practice": "timezone_normalization",
-      "implementation": "all stored times in UTC with IANA tz ID; display conversion at query time; DST-aware slot computation for scheduling assistant"
-    },
-    {
-      "practice": "scheduling_assistant_cache",
-      "implementation": "free/busy availability snapshots cached per attendee+time_window; invalidated on event write; cache key includes context_kind to prevent cross-pillar reads"
-    },
     {
       "practice": "recurrence expansion",
       "implementation": "bounded window expansion with cached occurrence IDs"
@@ -499,21 +271,6 @@
   "regional_packs": {
     "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
     "packs": [
-      {
-        "pack": "KR",
-        "required": true,
-        "notes": "Korea-first UX, PIPA retention bounds, work-calendar retention floor, Korean locale calendar display (lunar calendar overlay optional), Korean holidays in resource calendars"
-      },
-      {
-        "pack": "US",
-        "required": true,
-        "notes": "employment discovery, HIPAA/GLBA overlays when vertical data enters professional context, US federal holiday awareness"
-      },
-      {
-        "pack": "EU",
-        "required": true,
-        "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls, EU public holiday awareness"
-      },
       {
         "pack": "KR",
         "required": true,
@@ -561,10 +318,6 @@
       {
         "name": "shell-script operational glue",
         "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust oya gates"
-      },
-      {
-        "name": "third-party video call substrate (Zoom, Google Meet, Teams) as core",
-        "reason": "video-call links must be native Connect signaling; third-party may be coexistence adapter only"
       }
     ]
   },
@@ -586,7 +339,6 @@
         "stable": 200,
         "GA": 120
       },
-      "notes": "Oyatie-owned target: p99 <120ms at GA. Official vendor sources support booking/free-busy feature parity but do not publish a comparable free/busy latency SLA; do not present this as a Google or Outlook claim.",
       "verification_ref": "cargo bench -p oya-connect-calendar-app -- availability",
       "lane_ref": "perf-budget"
     },
@@ -609,100 +361,9 @@
       },
       "verification_ref": "cargo nextest -p oya-connect-calendar-domain -- personal_details_not_visible",
       "lane_ref": "cargo-nextest"
-    },
-    {
-      "name": "ical_rfc5545_round_trip_pct",
-      "targets": {
-        "preview": null,
-        "stable": 100,
-        "GA": 100
-      },
-      "notes": "Every invite sent to an external calendar client must survive an iCal parse/serialize round trip without data loss",
-      "verification_ref": "cargo nextest -p oya-connect-calendar-app -- ical_rfc5545",
-      "lane_ref": "cargo-nextest"
-    },
-    {
-      "name": "scheduling_assistant_personal_detail_exposure_count",
-      "targets": {
-        "preview": 0,
-        "stable": 0,
-        "GA": 0
-      },
-      "verification_ref": "cargo nextest -p oya-connect-calendar-app -- scheduling_assistant_pillar",
-      "lane_ref": "cargo-nextest"
-    },
-    {
-      "name": "timezone_dst_correctness_pct",
-      "targets": {
-        "preview": 100,
-        "stable": 100,
-        "GA": 100
-      },
-      "notes": "All IANA tz ID round-trips including DST boundary cases must be correct",
-      "verification_ref": "cargo nextest -p oya-connect-calendar-domain -- timezone_dst",
-      "lane_ref": "cargo-nextest"
-    },
-    {
-      "name": "availability_query_p99_ms",
-      "targets": {
-        "preview": 300,
-        "stable": 200,
-        "GA": 120
-      },
-      "verification_ref": "cargo bench -p oya-connect-calendar-app -- availability",
-      "lane_ref": "perf-budget"
     }
   ],
   "risks": [
-    {
-      "id": "R-01",
-      "severity": "critical",
-      "risk": "availability projection leaks personal details",
-      "mitigation": "minimum-necessary free/busy-only projection; AC-02 and AC-08 gate every wave; personal_detail_leak_count=0 metric",
-      "owner": "connect-product-council"
-    },
-    {
-      "id": "R-02",
-      "severity": "high",
-      "risk": "calendar Workflow handoff becomes silent automation",
-      "mitigation": "explicit action-card and policy disclosure gate; AC-03",
-      "owner": "connect-product-council"
-    },
-    {
-      "id": "R-03",
-      "severity": "medium",
-      "risk": "recurrence expansion creates unbounded workload",
-      "mitigation": "bounded windows and backpressure on sync jobs; max expansion window enforced",
-      "owner": "connect-product-council"
-    },
-    {
-      "id": "R-04",
-      "severity": "high",
-      "risk": "iCal/CalDAV interop failures cause invite delivery loss to external attendees",
-      "mitigation": "RFC 5545 round-trip test suite in CI (AC-06); ical_rfc5545_round_trip_pct 100% before stable promotion",
-      "owner": "connect-product-council"
-    },
-    {
-      "id": "R-05",
-      "severity": "medium",
-      "risk": "scheduling assistant infers personal calendar details indirectly",
-      "mitigation": "availability source policy enforces free/busy-only; scheduling_assistant_personal_detail_exposure_count=0 metric; AC-08",
-      "owner": "connect-product-council"
-    },
-    {
-      "id": "R-06",
-      "severity": "medium",
-      "risk": "DST transition causes ambiguous meeting times or double-booking",
-      "mitigation": "IANA tz IDs mandatory; UTC internal storage; DST-aware slot computation; timezone_dst_correctness_pct=100%",
-      "owner": "connect-product-council"
-    },
-    {
-      "id": "R-07",
-      "severity": "medium",
-      "risk": "video call links persist after event cancellation creating unauthorized access",
-      "mitigation": "AC-09: link invalidated on event cancel; VideoCallLinkInvalidated event; access_policy checked at join time",
-      "owner": "connect-product-council"
-    },
     {
       "id": "R-01",
       "severity": "critical",
@@ -726,166 +387,6 @@
     }
   ],
   "competitive": [
-    {
-      "competitor": "Google Calendar",
-      "observed_strengths": [
-        "ubiquity and sharing model",
-        "resource/room scheduling",
-        "CalDAV/iCal standard compliance",
-        "Gemini AI scheduling assistant (email context-aware)",
-        "appointment booking pages with payment (Stripe)",
-        "time insights and schedule analytics",
-        "focus time auto-decline",
-        "working hours settings",
-        "Google Meet auto-link generation",
-        "cross-org free/busy federation",
-        "automatic event detection from Gmail",
-        "multi-calendar overlay (personal, work, holidays)",
-        "color-coding and dark/light themes",
-        "Apple Watch / Wear OS support"
-      ],
-      "we_beat_on": [
-        "pillar-safe availability (personal details never exposed to work context)",
-        "Workflow-native action cards",
-        "retention/legal-hold chain on calendar events",
-        "no passive personal calendar mining for work scheduling"
-      ],
-      "measurable_target": "personal detail leak count = 0; action handoff audited 100%",
-      "gaps_adopted": [
-        "CalDAV/iCal RFC 5545 protocol compatibility (AC-06, stable wave)",
-        "scheduling assistant with free/busy-only cross-pillar projection (AC-08, stable wave)",
-        "working hours and focus time configuration (AC-11, stable wave)",
-        "video-call auto-link generation (AC-09, stable wave)",
-        "appointment booking pages with free/busy-only exposure (AC-10, GA wave)",
-        "time insights for work context only (GA wave)",
-        "IANA time zone storage with DST handling (AC-07, preview wave)",
-        "cross-org free/busy federation (stable wave)"
-      ],
-      "url": "https://workspace.google.com/products/calendar/",
-      "source_evidence_refs": [
-        {
-          "url": "https://support.google.com/calendar/answer/11608416?hl=en",
-          "supports": [
-            "appointment schedules create booking pages, check availability across calendars, and add Meet links for video calls"
-          ]
-        },
-        {
-          "url": "https://support.google.com/calendar/answer/37083?hl=en",
-          "supports": [
-            "public calendar sharing can expose only free/busy details"
-          ]
-        },
-        {
-          "url": "https://support.google.com/calendar/answer/11190973?hl=en",
-          "supports": [
-            "focus time can automatically decline meetings"
-          ]
-        }
-      ],
-      "claim_boundary": "Source refs support competitor capability/category observations; Oyatie numeric or comparative targets remain product targets until implementation validators prove them."
-    },
-    {
-      "competitor": "Outlook Calendar",
-      "observed_strengths": [
-        "enterprise admin and Exchange integration",
-        "EWS/CalDAV/Graph API",
-        "scheduling assistant (Cortana/Copilot)",
-        "resource booking integration",
-        "meeting room finder",
-        "cross-org free/busy via Exchange federation",
-        "recurring events with RRULE compliance",
-        "Teams auto-link integration",
-        "retention and legal hold via Purview",
-        "Focused Calendar AI triage"
-      ],
-      "we_beat_on": [
-        "native Workflow/Ontology integration",
-        "four-eyes disclosure model",
-        "strict personal/work pillar; no employer can see personal calendar details"
-      ],
-      "measurable_target": "action-card completion under 30s and audit linked",
-      "gaps_adopted": [
-        "EWS/CalDAV cross-org free/busy federation (stable wave)",
-        "resource booking with room finder (stable wave)",
-        "AI scheduling assistant (GA wave; DEK-bounded; opt-in)"
-      ],
-      "url": "https://www.microsoft.com/en-us/microsoft-teams/",
-      "source_evidence_refs": [
-        {
-          "url": "https://www.microsoft.com/en-us/microsoft-teams/",
-          "supports": [
-            "Teams calendar and meeting integration"
-          ]
-        },
-        {
-          "url": "https://learn.microsoft.com/en-us/purview/ediscovery",
-          "supports": [
-            "Purview eDiscovery across Exchange Online and Teams content"
-          ]
-        }
-      ],
-      "claim_boundary": "Source refs support competitor capability/category observations; Oyatie numeric or comparative targets remain product targets until implementation validators prove them."
-    },
-    {
-      "competitor": "Apple Calendar / iCloud Calendar",
-      "observed_strengths": [
-        "CalDAV standard compliance",
-        "iCal invite interop (RFC 5545)",
-        "Focus modes blocking meeting scheduling",
-        "natural language event creation",
-        "time zone support",
-        "Siri scheduling suggestions",
-        "privacy: iCloud data residency, Hide My Email",
-        "cross-platform (iOS, macOS, Windows via iCloud.com)"
-      ],
-      "we_beat_on": [
-        "enterprise retention/legal-hold chain",
-        "Workflow-native action cards",
-        "dual-context professional/personal pillar separation beyond Focus modes"
-      ],
-      "measurable_target": "iCal RFC 5545 round trip 100% for external invites",
-      "gaps_adopted": [
-        "CalDAV/iCal RFC 5545 protocol compliance (AC-06)",
-        "IANA time zone IDs with DST handling (AC-07)",
-        "working hours / focus time blocks (AC-11)"
-      ],
-      "url": "https://support.apple.com/icloud",
-      "source_evidence_refs": [
-        {
-          "url": "https://support.apple.com/icloud",
-          "supports": [
-            "iCloud Calendar ecosystem and Apple calendar sync surface"
-          ]
-        }
-      ],
-      "claim_boundary": "Source refs support competitor capability/category observations; Oyatie numeric or comparative targets remain product targets until implementation validators prove them."
-    },
-    {
-      "competitor": "Calendly / Linear integrations",
-      "observed_strengths": [
-        "scheduling convenience",
-        "workflow-ish handoff",
-        "public booking pages"
-      ],
-      "we_beat_on": [
-        "no third-party handoff needed; consent/policy basis in core",
-        "booking pages within pillar-safe free/busy projection"
-      ],
-      "measurable_target": "all handoffs have policy_basis and audit_ref; booking pages expose free/busy only",
-      "gaps_adopted": [
-        "appointment booking pages with slot availability based on free/busy projection (AC-10, GA wave)"
-      ],
-      "url": "https://calendly.com/",
-      "source_evidence_refs": [
-        {
-          "url": "https://calendly.com/",
-          "supports": [
-            "booking-page scheduling category benchmark"
-          ]
-        }
-      ],
-      "claim_boundary": "Source refs support competitor capability/category observations; Oyatie numeric or comparative targets remain product targets until implementation validators prove them."
-    },
     {
       "competitor": "Google Calendar",
       "observed_strengths": [
@@ -923,215 +424,7 @@
       "measurable_target": "all handoffs have policy_basis and audit_ref"
     }
   ],
-  "industry_patterns_adopted": [
-    {
-      "pattern": "caldav_ical_rfc5545_protocol",
-      "source": "Google Calendar, Apple Calendar, Outlook",
-      "description": "CalDAV (RFC 4791) server for external calendar clients; iCal (RFC 5545) for invite/event interchange; RSVP via CalDAV or email iTIP",
-      "implemented_as": "AC-06 + CalendarExternalRsvpReceived event + ical_rfc5545_round_trip_pct metric; stable wave"
-    },
-    {
-      "pattern": "iana_timezone_dst_handling",
-      "source": "Google Calendar, Apple Calendar, Outlook",
-      "description": "IANA tz database IDs mandatory; all times stored as UTC + IANA ID; display conversion at query time; DST-aware slot computation; ambiguity warning near DST transitions",
-      "implemented_as": "AC-07 + CalendarEvent.timezone_iana invariant + timezone_dst_correctness_pct metric"
-    },
-    {
-      "pattern": "scheduling_assistant_free_busy_only",
-      "source": "Google Calendar Gemini scheduling, Outlook Scheduling Assistant",
-      "description": "Scheduling assistant queries free/busy projection only; personal calendar details never included; working hours and focus time respected; AI slot suggestions in GA wave with DEK-bounded opt-in",
-      "implemented_as": "AC-08 + AC-11 + AvailabilityProjection.projection_kind + WorkingHoursPolicy entity; stable wave"
-    },
-    {
-      "pattern": "working_hours_and_focus_time",
-      "source": "Google Calendar focus time/auto-decline, Outlook working hours, Apple Focus modes",
-      "description": "User configures working hours and focus time blocks; these appear as busy to scheduling assistant and booking pages; no inference from personal calendar",
-      "implemented_as": "AC-11 + WorkingHoursPolicy entity + scheduling_assistant_cache optimization"
-    },
-    {
-      "pattern": "video_call_auto_link_generation",
-      "source": "Google Meet (Google Calendar), Microsoft Teams (Outlook Calendar)",
-      "description": "Work events auto-generate a native video-call link on creation; link is tied to event lifecycle; cancelled events invalidate the link",
-      "implemented_as": "AC-09 + VideoCallLink entity + CalendarVideoCallLinkInvalidated event; stable wave"
-    },
-    {
-      "pattern": "appointment_booking_pages",
-      "source": "Google Calendar appointment booking, Calendly",
-      "description": "Public or policy-gated booking pages expose only free/busy slots; host personal details never visible; booking creates a work event with explicit pillar tag",
-      "implemented_as": "AC-10 + BookingPage entity + CalendarBookingPageSlotTaken event; GA wave"
-    },
-    {
-      "pattern": "cross_org_free_busy_federation",
-      "source": "Microsoft Exchange federation, Google Workspace directory free/busy",
-      "description": "Cross-org availability queries use free/busy-only projection via CalDAV or EWS interop; no event details cross org boundary without explicit policy",
-      "implemented_as": "AvailabilityProjection.projection_kind=free_busy_only for cross-org queries; stable wave"
-    },
-    {
-      "pattern": "time_insights_work_context_only",
-      "source": "Google Calendar Time Insights, Microsoft Viva Insights",
-      "description": "Meeting analytics and schedule analysis operate on work context only; personal calendar data is never included; org admins see aggregated insights not individual event details",
-      "implemented_as": "GA wave; personal inference explicitly out-of-scope"
-    }
-  ],
-  "anti_patterns_avoided": [
-    {
-      "anti_pattern": "silent_calendar_mining",
-      "why": "turns scheduling into surveillance; violates consent boundary and ADR-0215",
-      "mitigation": "detection_lane: oya-foundry-fitness-connect-calendar-pillar"
-    },
-    {
-      "anti_pattern": "unbounded_recurrence_materialization",
-      "why": "creates scale and cost runaway; O(N) expansion per recurring event",
-      "mitigation": "bounded window and max expansion enforced; detection_lane: oya-foundry-fitness-connect-calendar-scale"
-    },
-    {
-      "anti_pattern": "workflow_handoff_without_policy_basis",
-      "why": "breaks chain-of-custody and privacy notice",
-      "mitigation": "detection_lane: oya-foundry-fitness-connect-workflow-handoff"
-    },
-    {
-      "anti_pattern": "fixed_offset_timezone_storage",
-      "why": "fixed UTC offsets (e.g. UTC+9) without IANA IDs fail on DST transitions and historical tz changes; causes double-booking and ambiguous meeting times",
-      "mitigation": "CalendarEvent.timezone_iana invariant: IANA tz database IDs only"
-    },
-    {
-      "anti_pattern": "third_party_video_call_as_core",
-      "why": "outsources call infrastructure; creates dependency on Zoom/Teams/Meet availability; access policy cannot be enforced natively",
-      "mitigation": "VideoCallLink.signaling_endpoint_ref must point to native Connect; external as coexistence adapter only"
-    },
-    {
-      "anti_pattern": "scheduling_assistant_personal_detail_inference",
-      "why": "scheduling assistant must not read personal event titles/descriptions to improve work scheduling; free/busy-only is the only allowed cross-pillar projection",
-      "mitigation": "AvailabilityProjection invariant: personal context details never included; scheduling_assistant_personal_detail_exposure_count=0"
-    },
-    {
-      "anti_pattern": "booking_page_exposing_event_titles",
-      "why": "booking pages must expose only slot availability; event titles/attendees from the host's calendar must not be visible to external visitors",
-      "mitigation": "BookingPage.availability_source_policy: free/busy projection only; AC-10"
-    }
-  ],
-  "hyperscaler_bar": [
-    {
-      "dimension": "protocol_compatibility",
-      "bar": "CalDAV RFC 4791 + iCal RFC 5545 + iTIP RSVP; 100% round-trip at stable wave",
-      "reference_company": "Google Calendar, Apple Calendar, Microsoft Outlook",
-      "source_evidence_refs": [
-        "https://support.google.com/calendar/answer/11608416?hl=en",
-        "https://support.google.com/calendar/answer/37083?hl=en",
-        "https://support.google.com/calendar/answer/11190973?hl=en",
-        "https://support.apple.com/en-is/guide/icloud/mm15eb200ab4/icloud",
-        "https://www.microsoft.com/en-us/microsoft-teams/"
-      ],
-      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
-    },
-    {
-      "dimension": "timezone_handling",
-      "bar": "IANA tz IDs mandatory; UTC internal storage; DST-aware scheduling; 100% correctness in test suite",
-      "reference_company": "Google Calendar, Apple Calendar",
-      "source_evidence_refs": [
-        "https://support.google.com/calendar/answer/11608416?hl=en",
-        "https://support.google.com/calendar/answer/37083?hl=en",
-        "https://support.google.com/calendar/answer/11190973?hl=en",
-        "https://support.apple.com/en-is/guide/icloud/mm15eb200ab4/icloud",
-        "https://www.microsoft.com/en-us/microsoft-teams/"
-      ],
-      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
-    },
-    {
-      "dimension": "scheduling_assistant",
-      "bar": "free/busy-only cross-pillar projection; working hours + focus time respected; AI slot suggestions at GA with DEK-bounded opt-in",
-      "reference_company": "Google Calendar Gemini scheduling, Outlook Scheduling Assistant",
-      "source_evidence_refs": [
-        "https://support.google.com/calendar/answer/11608416?hl=en",
-        "https://support.google.com/calendar/answer/37083?hl=en",
-        "https://support.google.com/calendar/answer/11190973?hl=en",
-        "https://support.apple.com/en-is/guide/icloud/mm15eb200ab4/icloud",
-        "https://www.microsoft.com/en-us/microsoft-teams/"
-      ],
-      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
-    },
-    {
-      "dimension": "video_call_integration",
-      "bar": "auto-link generation on event creation; link lifecycle tied to event; native signaling endpoint",
-      "reference_company": "Google Meet integration, Microsoft Teams integration",
-      "source_evidence_refs": [
-        "https://support.google.com/calendar/answer/11608416?hl=en",
-        "https://support.google.com/calendar/answer/37083?hl=en",
-        "https://support.google.com/calendar/answer/11190973?hl=en",
-        "https://support.apple.com/en-is/guide/icloud/mm15eb200ab4/icloud",
-        "https://www.microsoft.com/en-us/microsoft-teams/"
-      ],
-      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
-    },
-    {
-      "dimension": "availability_scale",
-      "bar": "free/busy query p99 <120ms at GA; cross-org federation via CalDAV/EWS",
-      "reference_company": "Google Calendar, Microsoft Exchange",
-      "source_evidence_refs": [
-        "https://support.google.com/calendar/answer/11608416?hl=en",
-        "https://support.google.com/calendar/answer/37083?hl=en",
-        "https://support.google.com/calendar/answer/11190973?hl=en",
-        "https://support.apple.com/en-is/guide/icloud/mm15eb200ab4/icloud",
-        "https://www.microsoft.com/en-us/microsoft-teams/"
-      ],
-      "claim_boundary": "Oyatie-owned latency target; vendor sources support booking/free-busy capability benchmarks but do not publish a comparable free/busy latency SLA in the cited sources. Numeric thresholds remain product targets until implementation validators prove them."
-    },
-    {
-      "dimension": "compliance",
-      "bar": "legal hold on events, attendee history, and action cards; retention bounded by jurisdiction; eDiscovery export with audit chain",
-      "reference_company": "Microsoft Purview (Outlook Calendar), Google Vault",
-      "source_evidence_refs": [
-        "https://support.google.com/calendar/answer/11608416?hl=en",
-        "https://support.google.com/calendar/answer/37083?hl=en",
-        "https://support.google.com/calendar/answer/11190973?hl=en",
-        "https://support.apple.com/en-is/guide/icloud/mm15eb200ab4/icloud",
-        "https://www.microsoft.com/en-us/microsoft-teams/"
-      ],
-      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
-    },
-    {
-      "dimension": "availability",
-      "bar": "Inherits Connect suite target: 99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover; measured per product cell.",
-      "reference_company": "Google Workspace, Microsoft 365",
-      "source_evidence_refs": [
-        "https://workspace.google.com/products/gmail/",
-        "https://www.microsoft.com/en-us/microsoft-365/outlook/business-email"
-      ],
-      "enforcement_status": "advisory_until_connect_availability_validator",
-      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
-    }
-  ],
   "best_practices": [
-    {
-      "id": "BP-01",
-      "rule": "calendar details are never used as implicit personal-to-work inference source",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-pillar"
-    },
-    {
-      "id": "BP-02",
-      "rule": "Workflow handoff is explicit action card or documented tenant policy only",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-workflow-handoff"
-    },
-    {
-      "id": "BP-03",
-      "rule": "recurrence expansion is bounded and observable",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-scale"
-    },
-    {
-      "id": "BP-04",
-      "rule": "all event times store IANA tz database IDs; fixed-offset-only storage is forbidden",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-timezone"
-    },
-    {
-      "id": "BP-05",
-      "rule": "scheduling assistant and booking pages use free/busy-only projection; personal event details never cross pillar boundary",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-pillar"
-    },
-    {
-      "id": "BP-06",
-      "rule": "video call links are invalidated when the parent event is cancelled; access policy is checked at join time",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-video-call"
-    },
     {
       "id": "BP-01",
       "rule": "calendar details are never used as implicit personal-to-work inference source",
@@ -1163,21 +456,6 @@
       "pattern": "jurisdiction_bounded_retention",
       "when_to_use": "tenant setting is clipped by KR/EU/US retention rules",
       "reference": "$ref:bominal/decisions/ADR-0215#contract-3"
-    },
-    {
-      "pattern": "iana_timezone_first",
-      "when_to_use": "all event creation and scheduling; IANA tz ID required; UTC internal; display converts at query time",
-      "reference": "AC-07 + CalendarEvent.timezone_iana invariant"
-    },
-    {
-      "pattern": "free_busy_only_cross_boundary",
-      "when_to_use": "scheduling assistant, booking pages, and cross-org federation; free/busy granularity is the maximum allowed cross-pillar disclosure",
-      "reference": "AC-02 + AC-08 + AvailabilityProjection invariant"
-    },
-    {
-      "pattern": "video_call_link_lifecycle",
-      "when_to_use": "every work event with video; link auto-generated on create; invalidated on cancel",
-      "reference": "AC-09 + VideoCallLink entity"
     }
   ],
   "anti_patterns": [
@@ -1195,21 +473,6 @@
       "anti_pattern": "workflow_handoff_without_policy_basis",
       "why_forbidden": "breaks chain-of-custody and privacy notice",
       "detection_lane": "oya-foundry-fitness-connect-workflow-handoff"
-    },
-    {
-      "anti_pattern": "fixed_offset_timezone_storage",
-      "why_forbidden": "causes DST ambiguity, double-booking, and historical tz failures; IANA IDs mandatory",
-      "detection_lane": "oya-foundry-fitness-connect-calendar-timezone"
-    },
-    {
-      "anti_pattern": "third_party_video_call_as_core",
-      "why_forbidden": "outsources access policy and creates external dependency on call infrastructure",
-      "detection_lane": "oya-foundry-fitness-connect-calendar-video-call"
-    },
-    {
-      "anti_pattern": "scheduling_assistant_personal_detail_inference",
-      "why_forbidden": "free/busy-only is the maximum cross-pillar disclosure; personal event titles/descriptions are off-limits",
-      "detection_lane": "oya-foundry-fitness-connect-calendar-pillar"
     }
   ],
   "goals": {
@@ -1261,10 +524,9 @@
         "journeys": [
           "switch personal/work persona",
           "send message/mail/calendar invite",
-          "act on approval card",
-          "use scheduling assistant to find meeting time"
+          "act on approval card"
         ],
-        "time_to_success_target": "< 30 seconds for routine send or approve; scheduling assistant returns slots in <3s"
+        "time_to_success_target": "< 30 seconds for routine send or approve"
       },
       {
         "persona": "compliance_officer",
@@ -1274,24 +536,13 @@
           "release or extend hold"
         ],
         "time_to_success_target": "< 10 minutes for scoped investigation packet"
-      },
-      {
-        "persona": "employee_end_user",
-        "journeys": [
-          "switch personal/work persona",
-          "send message/mail/calendar invite",
-          "act on approval card"
-        ],
-        "time_to_success_target": "< 30 seconds for routine send or approve"
       }
     ],
     "error_state_coverage": {
       "policy_denied": "inline plus audit-safe explanation",
       "network_partition": "offline queue with explicit sync status",
       "legal_hold_conflict": "blocking modal requiring authorized role",
-      "delivery_failure": "per-recipient retry/error card",
-      "ical_parse_failure": "inline error with fallback to plain-text invite summary",
-      "timezone_ambiguity": "inline DST disambiguation prompt when event time falls in ambiguous window"
+      "delivery_failure": "per-recipient retry/error card"
     },
     "offline_behavior": "read cached non-sensitive state, queue user-owned drafts locally, never expose unwrapped professional plaintext offline without session-bound policy token",
     "keyboard_navigation_coverage_pct": 100,
@@ -1348,23 +599,6 @@
   "decision_log": [
     {
       "date": "2026-05-16",
-      "decision": "Canonical Connect PRDs are JSON under specs/products/connect; Markdown is projection only",
-      "drivers": [
-        "user directive: machine optimized PRDs",
-        "handoff F-PRD-CONNECT-SUITE-AUTHOR",
-        "shell-to-Rust consolidation"
-      ]
-    },
-    {
-      "date": "2026-05-17",
-      "decision": "Industry audit OP-11: added CalDAV/iCal RFC 5545, IANA tz mandatory, scheduling assistant free/busy-only, working hours/focus time, video-call auto-link, booking pages, cross-org federation, time insights work-only; expanded competitive[], added industry_patterns_adopted[], anti_patterns_avoided[], hyperscaler_bar[]",
-      "drivers": [
-        "OP-11 industry audit vs Google Calendar, Outlook Calendar, Apple Calendar, Calendly",
-        "evidence/autoresearch/connect-suite-industry-audit-1779012333.json"
-      ]
-    },
-    {
-      "date": "2026-05-16",
       "decision": "Canonical Connect PRDs are JSON under specs/microservices/connect; Markdown is projection only",
       "drivers": [
         "user directive: machine optimized PRDs",
@@ -1379,8 +613,6 @@
     "$ref:bominal/docs/roadmap/family-connect.md",
     "$ref:bominal/docs/products/connect/enterprise-readiness.md",
     "$ref:bominal/docs/products/connect/messaging.md",
-    "$ref:bominal/docs/products/connect/internal-communications.md",
-    "https://workspace.google.com/products/calendar/ (2026-05-17)",
-    "https://www.microsoft.com/en-us/microsoft-teams/ (2026-05-17)"
+    "$ref:bominal/docs/products/connect/internal-communications.md"
   ]
 }
