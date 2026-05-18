@@ -51,7 +51,7 @@ MS_NAME="${_tmp%%/*}"
 # Check current declared vertical if state file exists
 VERTICAL_FILE="$REPO_ROOT/.omc/state/current-pr-vertical.txt"
 if [ -f "$VERTICAL_FILE" ]; then
-    CURRENT_VERTICAL=$(cat "$VERTICAL_FILE" 2>/dev/null | tr -d '[:space:]' || true)
+    CURRENT_VERTICAL=$(tr -d '[:space:]' < "$VERTICAL_FILE" 2>/dev/null || true)
     if [ -n "$CURRENT_VERTICAL" ] && [ "$MS_NAME" != "$CURRENT_VERTICAL" ]; then
         echo "ℹ [vertical-slice-scope-suggester] Creating microservices/$MS_NAME/ but current PR vertical is '$CURRENT_VERTICAL'." >&2
         echo "ℹ  Per ADR-0217 (vertical-slice rollout), consider:" >&2

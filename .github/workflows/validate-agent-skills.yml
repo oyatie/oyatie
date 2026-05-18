@@ -46,11 +46,15 @@ jobs:
 
       - name: shellcheck — hook scripts
         run: |
-          shellcheck tools/hook-bootstrap/install.sh
-          shellcheck tools/hook-bootstrap/uninstall.sh
-          shellcheck bin/oya
+          # -S info enforces the strictest lint level (catches SC2002 useless-cat,
+          # SC2317 unreachable-code, etc.) so behavior is reproducible regardless
+          # of which shellcheck distro the runner ships with. Locally: match via
+          # `shellcheck -S info tools/hook-bootstrap/*.sh tools/hooks/*.sh bin/oya`.
+          shellcheck -S info tools/hook-bootstrap/install.sh
+          shellcheck -S info tools/hook-bootstrap/uninstall.sh
+          shellcheck -S info bin/oya
           for f in tools/hooks/*.sh; do
-            shellcheck "$f"
+            shellcheck -S info "$f"
           done
 
       - name: Smoke test — install.sh --dry-run
