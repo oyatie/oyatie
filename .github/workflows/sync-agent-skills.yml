@@ -167,6 +167,26 @@ jobs:
 
           rm -rf "$STASH_DIR"
           touch "$SKILLS_DIR/.vendored"
+
+          # Fail closed before opening a sync PR: validate the newly downloaded tree
+          # and the oyatie inheritance/provenance fields restored into UPSTREAM.json.
+          test -f "$SKILLS_DIR/LICENSE"
+          test -f "$SKILLS_DIR/INHERITANCE.md"
+          test -f "$SKILLS_DIR/scripts/validate-skills.js"
+          test -d "$SKILLS_DIR/skills"
+          test -d "$SKILLS_DIR/agents"
+          test -d "$SKILLS_DIR/references"
+          node "$SKILLS_DIR/scripts/validate-skills.js"
+          jq -e '
+            .license == "MIT" and
+            .license_file == "tools/agent-skills/LICENSE" and
+            .manual_edits_prohibited == true and
+            (.inheritance_pattern | type == "string" and length > 0) and
+            (.oyatie_authored_files | index("INHERITANCE.md")) and
+            (.import_targets | type == "object") and
+            (.structural_invariants_for_sync_pr | type == "array" and length > 0)
+          ' "$SKILLS_DIR/UPSTREAM.json" >/dev/null
+
           echo "upstream_sha_short=${UPSTREAM_SHA:0:12}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -13,7 +13,7 @@
 #   ./tools/hook-bootstrap/install.sh               # full install
 #   ./tools/hook-bootstrap/install.sh --dry-run     # preview without writing
 #   ./tools/hook-bootstrap/install.sh --skip-skills # skip agent-skills fetch (offline)
-#   ./tools/hook-bootstrap/install.sh --sync-skills # re-vendor agent-skills (force refresh)
+#   ./tools/hook-bootstrap/install.sh --sync-skills # check drift; scheduled workflow owns re-vendor PRs
 #
 # Reproducibility: writes only to .claude/settings.json, .codex/hooks.json (if Codex
 # detected), .gemini/settings.json (if Gemini detected), .hermes/hooks.json (if Hermes
@@ -480,6 +480,13 @@ sync_agent_skills() {
     fi
 
     log "Checking agent-skills vendor state..."
+
+    if $SYNC_SKILLS; then
+        warn "Local --sync-skills no longer rewrites tools/agent-skills/."
+        warn "The scheduled sync-agent-skills workflow owns re-vendor PRs so oyatie-authored INHERITANCE.md and UPSTREAM.json provenance fields are preserved and reviewed."
+        warn "Run the GitHub Actions workflow manually with force_sync=true if an immediate upstream sync is required."
+        return 0
+    fi
 
     # Fetch current upstream HEAD SHA (with 10s timeout)
     UPSTREAM_SHA=""

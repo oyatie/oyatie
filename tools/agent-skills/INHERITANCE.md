@@ -62,7 +62,7 @@ The daily `.github/workflows/sync-agent-skills.yml` workflow:
 2. On drift: re-vendors `tools/agent-skills/`, BUT preserves `oyatie_authored_files` (this file + future oyatie-side artifacts).
 3. Validates structural invariants (skills/, agents/, references/, hooks/, LICENSE-MIT, validate-skills.js) before opening sync PR.
 4. Opens review PR — never auto-merges. Review is the audit point.
-5. If validation fails (upstream broke structure or license changed), opens ISSUE not PR. Silent green is forbidden.
+5. If validation fails (upstream broke structure or license changed), the workflow fails before PR creation. Silent green is forbidden.
 
 ## When you change this file
 
