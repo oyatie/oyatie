@@ -10,6 +10,8 @@ owner: axis-docs + foundry-runtime + council-privacy
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-ai-act-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: AI writing-assist wire (T0/T1/T2 per ADR-DOCS-0005)
 
 ## Intent

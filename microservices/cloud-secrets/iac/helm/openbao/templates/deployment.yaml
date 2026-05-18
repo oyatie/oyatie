@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
 {{/*
 Per-cloud-secrets CIS-compliant Deployment template (Sweep-E in-pass fix).
 

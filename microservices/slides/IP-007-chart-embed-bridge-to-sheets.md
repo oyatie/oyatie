@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, chart-revocation-cascade-bounded]
 depends_on: [IP-002, sheets-IP-X]  # sheets µservice prerequisite
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: chart BC with live-link to sheets µservice
 
 ## Intent

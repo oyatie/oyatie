@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk find microservices -path \\\"*/scorecards/aws-well-architected.json\\\" -delete && rtk find microservices -path \\\"*/scorecards/google-sre-prr.json\\\" -delete && rtk find microservices -path...",
-  "error": "Exit code 1\nrtk: rtk find does not support compound predicates or actions (e.g. -not, -exec). Use `find` directly.",
-  "timestamp": "2026-05-18T05:23:22.599Z",
+  "tool_input_preview": "{\"command\":\"rtk grep -l \\\"Imports: microservices/governance/policy/cedar-canonical-imports\\\" microservices/**/*.cedar 2>&1 | head -5 && echo \\\"---\\\" && rtk grep -c \\\"SCHEMA HINTS\\\" microservices/workf...",
+  "error": "Exit code 1\n---\nmicroservices/workflow-studio/policy/auditor-scope.cedar:0\nmicroservices/workflow-studio/policy/ci-scope.cedar:0\nmicroservices/workflow-studio/policy/public-read.cedar:0\nmicroservices/workflow-studio/policy/tenant-scope.cedar:0",
+  "timestamp": "2026-05-18T05:36:56.513Z",
   "retry_count": 1
 }

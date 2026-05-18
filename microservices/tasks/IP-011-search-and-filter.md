@@ -11,6 +11,8 @@ owner: axis-tasks
 acceptance_lanes: [cargo-test, oya-governance-amendment-3-backend-qualified-adapter, search-degraded-fallback]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: search-index BC — Meilisearch 0.10.0 LTS + rebuildable fallback
 
 ## Intent

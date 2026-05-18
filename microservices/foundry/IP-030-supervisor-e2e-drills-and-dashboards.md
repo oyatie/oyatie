@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-nextest, oya-check-dashboard-coverage, oya-check-runboo
 depends_on: [IP-014]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: End-to-end drills + Grafana dashboards
 
 ## Intent

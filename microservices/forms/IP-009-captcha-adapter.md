@@ -9,6 +9,8 @@ owner: axis-forms + ops-security
 acceptance_lanes: [cargo-test, oya-forms-captcha-fail-closed-conformance, oya-forms-captcha-pack-resident-routing, oya-forms-recaptcha-forbidden-pack-eu-kr-us-hc]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: Captcha adapter (hCaptcha + Turnstile + Friendly Captcha; reCAPTCHA forbidden in eu/kr/us-hc)
 
 ## Intent

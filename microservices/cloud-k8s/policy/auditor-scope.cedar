@@ -6,6 +6,7 @@
 //          cluster-related artifacts, time-boxed via JIT token.
 // Owner:   ops-security + council-privacy
 // References: policy/cluster-isolation.md §"Audit Trail"; threat-model T-S-05, T-L-05
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

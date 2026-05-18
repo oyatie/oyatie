@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 # T1 capability: auto-caption + abuse-classifier (anonymous µservice)
 # Tier per ADR-0119: T1-assist
 # Owner: axis-anonymous + axis-foundry-runtime

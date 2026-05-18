@@ -8,6 +8,8 @@ owner: axis-shorts
 depends_on: [IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: thumbnail-generation + video-composition BC end-to-end
 
 ## Intent

@@ -6,6 +6,7 @@
 //          during audit windows.
 // Owner:   ops-security + council-privacy
 // References: threat-model.md §"T-I-07" (auditor JIT token + cross-tenant pivot)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny.

@@ -10,6 +10,8 @@ owner: axis-translate + gtm + ops-iac
 acceptance_lanes: [oya-governance-hyperscaler-gate-registration, sdk-codegen, branch-protection-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-TRANSLATE hyperscaler-gate registration + SDK scaffold
 
 ## Intent

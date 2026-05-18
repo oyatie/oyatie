@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Canonical Kustomize component (SWEEP-I Slice 3 per ADR-0064).
+# Composes a Namespace + ServiceAccount with pod-security "restricted" labels.
+# Consumer pattern: every per-µservice base/kustomization.yaml composes this
+#   component via `components: [../../../governance/iac/kustomize/components/namespace-restricted-profile]`
+# Per-µservice patches override namespace.metadata.name + serviceaccount.metadata.name
+# via `commonAnnotations` or `patches:` blocks.
+
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+
+commonLabels:
+  istio-injection: enabled
+  pod-security.kubernetes.io/enforce: restricted
+  pod-security.kubernetes.io/audit: restricted
+  pod-security.kubernetes.io/warn: restricted

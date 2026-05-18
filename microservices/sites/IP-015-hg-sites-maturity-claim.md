@@ -10,6 +10,8 @@ owner: axis-sites
 acceptance_lanes: [oya-governance-hyperscaler-maturity-claims]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-SITES hyperscaler-maturity claim entry
 
 ## Intent

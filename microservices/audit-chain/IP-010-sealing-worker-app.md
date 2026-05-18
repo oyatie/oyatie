@@ -6,6 +6,8 @@ owner: axis-audit-chain
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, layer-correctness, shardability, statelessness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: sealing-usecase + sealing-api + sealing-adapter + sealing-worker + sealing-app
 
 ## Intent

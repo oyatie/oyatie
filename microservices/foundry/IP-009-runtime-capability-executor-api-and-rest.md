@@ -11,6 +11,8 @@ owner: axis-foundry-runtime
 acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness, cedar-fragment-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: oya-foundry-runtime-capability-executor-{api,rest}
 
 ## Intent

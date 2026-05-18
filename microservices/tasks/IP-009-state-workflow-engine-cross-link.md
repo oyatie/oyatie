@@ -11,6 +11,8 @@ owner: axis-tasks
 acceptance_lanes: [cargo-test, task-state-machine-correctness, oya-governance-cross-product-isolation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: status-workflow engine + workflow-engine cross-link
 
 ## Intent

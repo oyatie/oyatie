@@ -5,6 +5,7 @@
 //          EU DSA Coordinator / EU AI Act notified body) read time-boxed,
 //          tenant-scoped subsets of profile + post + audit + classifier data.
 // Owner:   ops-security + council-privacy + ops-compliance
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

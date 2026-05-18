@@ -8,6 +8,8 @@ owner: axis-recordings + ops-sre-reliability
 acceptance_lanes: [authority-cohesion]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-RECORDINGS authority-cohesion gate registration
 
 ## Intent

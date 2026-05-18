@@ -11,6 +11,8 @@ owner: axis-foundry + axis-foundry-guardrails
 acceptance_lanes: [cargo-check, cargo-nextest, runtime-guardrails-coupling, oya-governance-multispectrum-evidence]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: oya-foundry-fitness-runtime-guardrails-coupling CI lane (BLOCKER)
 
 ## Intent

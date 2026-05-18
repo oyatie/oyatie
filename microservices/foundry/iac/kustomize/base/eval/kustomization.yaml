@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
 # foundry-eval base Kustomize manifest
 # Composes all four Helm charts via the helm-controller pattern.
 # Per ADR-0024 + ADR-0131.

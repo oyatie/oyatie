@@ -11,6 +11,8 @@ owner: ops-sre-reliability + axis-foundry
 acceptance_lanes: [foundry-eval-iac-smoke, oya-governance-per-microservice-layout, ci-helm-lint]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Layer-A GPU Runner Pool IaC
 
 ## Intent

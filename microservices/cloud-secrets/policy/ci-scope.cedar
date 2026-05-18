@@ -8,6 +8,7 @@
 //
 // Owner:   ops-security + axis-governance
 // References: secret-isolation.md §"TI-03 SecretReference is the law"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

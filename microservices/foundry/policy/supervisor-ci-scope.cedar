@@ -4,6 +4,7 @@
 // Purpose: scope the oya-ci reserved tenant's access; forbid customer-tenant data reads.
 // Owner:   axis-foundry-control-plane + axis-observability + ops-security
 // References: supervisor-isolation.md §"Reserved tenant IDs"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

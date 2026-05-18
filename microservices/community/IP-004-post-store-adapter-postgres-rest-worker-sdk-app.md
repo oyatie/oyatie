@@ -11,6 +11,8 @@ related_adrs: [ADR-0105, ADR-0106, ADR-0135, ADR-0131]
 doc_status: published
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004 — post-store adapter-postgres + rest + worker + sdk + app crates
 
 ## Intent

@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 istiod:
   image:
     tag: "1.29.2"  # LTS pin per docs/standards/cloud-k8s-stack.md

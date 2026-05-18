@@ -5,6 +5,7 @@
 // Owner:   ops-security + axis-foundry
 // Audit:   every deny emits oya_foundry_providers_tenant_unauthorized_invoke_total
 // References: threat-model.md T-10 (cross-tenant authz bypass); credential-isolation.md CI-INV-05
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every router invocation is refused unless an explicit permit matches.

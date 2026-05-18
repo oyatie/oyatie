@@ -5,6 +5,7 @@
 //          PIPC / EU DPA / EU AI Office / etc.).
 // Owner:   council-privacy + ops-security
 // Audit:   every read emits oya_translate_auditor_read_total
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

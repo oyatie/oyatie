@@ -9,6 +9,8 @@ owner: axis-cloud-secrets
 acceptance_lanes: [contract-test, sdk-smoke]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: resolver-rest + SDK (Rust)
 
 ## Intent

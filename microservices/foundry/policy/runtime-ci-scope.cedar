@@ -5,6 +5,7 @@
 //          telemetry + invocation-lifecycle reads only; forbid customer-tenant data reads.
 // Owner:   axis-foundry-runtime + ops-security + axis-foundry
 // References: runtime-isolation.md §"Reserved tenant IDs" + §"Invariant TI-07"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

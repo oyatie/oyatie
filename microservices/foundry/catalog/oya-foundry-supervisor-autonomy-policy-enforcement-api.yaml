@@ -1,3 +1,4 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
 name: oya-foundry-supervisor-autonomy-policy-enforcement-api
 role: api
 context: foundry-supervisor

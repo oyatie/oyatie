@@ -10,6 +10,8 @@ owner: axis-docs + ops-sre-reliability
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: collab-crdt -adapter-redis + worker (WebSocket gateway)
 
 ## Intent

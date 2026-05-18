@@ -9,6 +9,8 @@ owner: axis-forms + ops-security
 acceptance_lanes: [cargo-test, oya-forms-pii-column-encryption-correctness, oya-governance-citus-rls-enforced, oya-forms-dek-rotation-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: Postgres + Citus adapter with column-level envelope encryption
 
 ## Intent

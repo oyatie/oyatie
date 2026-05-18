@@ -11,6 +11,8 @@ owner: axis-foundry-evidence + axis-developer-experience
 acceptance_lanes: [cargo-doc, sdk-codegen-reproducible, sdk-no-silent-regression]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: Cross-microservice SDK + reference integration
 
 ## Intent

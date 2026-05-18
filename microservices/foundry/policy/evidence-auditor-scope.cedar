@@ -6,6 +6,7 @@
 //          + per-tenant engagement entitlement; never permit write.
 // Owner:   council-privacy
 // Audit:   every auditor read emits a foundry-evidence-of-audit-of-audits chain event
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a
 depends_on: [IP-001, IP-002, IP-003, IP-004, IP-005, IP-006, IP-007, IP-008, IP-009, IP-010, IP-011, IP-012, IP-013]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: app composition root (binaries wiring all BCs)
 
 ## Intent

@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, oya-governance-sheets-fo
 depends_on: [IP-002]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: formula-engine — kernel + domain + usecase + api + adapter + sdk (≥400 functions; LibreOffice Calc reference corpus)
 
 ## Intent

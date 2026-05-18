@@ -11,6 +11,8 @@ owner: axis-cloud-iac
 acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microservice-layout, oya-governance-pack-routing-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Per-pack Kustomize overlays for cloud-iac substrate
 
 ## Intent

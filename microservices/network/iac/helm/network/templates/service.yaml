@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
 {{- range tuple "websocketGateway" "professionalProfile" "professionalGraph" "connectionRequest" "postCompositionRest" "feedTimeline" "endorsementEngine" "skillAssessments" "profileVerification" "pages" "groups" "eventsBridge" "inmailBridge" "jobsHandoff" "search" "abuseReporting" }}
 ---
 apiVersion: v1

@@ -10,6 +10,8 @@ owner: ops-security + axis-anonymous
 acceptance_lanes: [cargo-check, cargo-test, oya-governance-fips-boundary-lint, oya-governance-cryptographic-vector-test]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: Blind-signatures crypto crate (BBS+ + ring 0.17 behind feature flag)
 
 ## Intent

@@ -12,6 +12,8 @@ acceptance_lanes: [openslo-validate, oya-vcs-promotion-readiness]
 depends_on: [IP-012]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: workflow-studio OpenSLO manifests
 
 ## Intent

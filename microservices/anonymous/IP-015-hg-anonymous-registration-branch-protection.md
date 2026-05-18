@@ -10,6 +10,8 @@ owner: axis-anonymous + governance
 acceptance_lanes: [oya-governance-authority-cohesion, oya-governance-branch-protection-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-ANONYMOUS hyperscaler-gate + branch-protection registration
 
 ## Intent

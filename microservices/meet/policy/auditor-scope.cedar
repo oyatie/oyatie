@@ -5,6 +5,7 @@
 //          SEC / FINRA / MiFID II / EU AI Act conformity) read time-boxed,
 //          tenant-scoped subsets of meeting + audit data.
 // Owner:   ops-security + council-privacy + ops-compliance
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

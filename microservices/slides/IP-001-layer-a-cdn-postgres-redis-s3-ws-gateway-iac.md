@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, iac-validate, per-microservice-layout]
 depends_on: []
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Layer-A IaC — CDN, WAF, Postgres, Redis, S3, WS gateway, gVisor export pool
 
 ## Intent

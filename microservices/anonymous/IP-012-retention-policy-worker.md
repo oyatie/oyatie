@@ -10,6 +10,8 @@ owner: axis-anonymous + ops-data
 acceptance_lanes: [cargo-check, cargo-test, oya-governance-retention-default-short]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: Retention-policy worker (30/60/90-day tiers, hard-delete propagation)
 
 ## Intent

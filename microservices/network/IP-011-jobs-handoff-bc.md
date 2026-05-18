@@ -11,6 +11,8 @@ owner: axis-network + axis-ats
 acceptance_lanes: [cargo-check, cargo-nextest, oya-gate-jobs-handoff-contract]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: jobs-handoff BC end-to-end (clean boundary to Tier-G ATS µservice; ADR-NET-0004)
 
 ## Intent

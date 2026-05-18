@@ -11,6 +11,8 @@ owner: axis-social + axis-observability
 acceptance_lanes: [openslo-schema-validate, grafana-dashboard-lint, oya-governance-promotion-readiness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: OpenSLO manifests + Grafana dashboards + per-pack runbooks wiring
 
 ## Intent

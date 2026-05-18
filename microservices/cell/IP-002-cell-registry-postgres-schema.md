@@ -9,6 +9,8 @@ owner: axis-cell-substrate
 acceptance_lanes: [helm-lint, sqlx-prepare-check, oya-cell-rls-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Postgres schema + per-pack shard topology + Helm chart
 
 ## Intent

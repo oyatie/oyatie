@@ -8,6 +8,7 @@
 //            (c) public lobby join-token validation (guest scenario)
 //            (d) public webinar registration form (when tenant publishes one)
 // Owner:   ops-security + gtm-marketing
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

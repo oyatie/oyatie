@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-sheets-xlsx-roundt
 depends_on: [IP-001, IP-006]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: import-export — kernel + domain + usecase + api + adapter + adapter-calamine + adapter-rust-xlsxwriter + adapter-clamav + adapter-opswat + worker + sdk
 
 ## Intent

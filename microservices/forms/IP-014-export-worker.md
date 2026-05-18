@@ -9,6 +9,8 @@ owner: axis-forms + council-privacy
 acceptance_lanes: [cargo-test, oya-forms-export-latency, oya-forms-export-pii-redaction]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Export worker (CSV / XLSX / JSON / Sheets-bridge; streaming)
 
 ## Intent

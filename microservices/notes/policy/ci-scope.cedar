@@ -3,6 +3,7 @@
 //
 // Purpose: bound CI lanes to read-only inspection + lane-emit; deny any
 // write-back to tenant data; deny any AI invocation; deny any disclosure.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

@@ -4,6 +4,7 @@
 // Purpose: external auditors (SOC 2 / ISO 27001 / HIPAA / KR-PIPC / GDPR DPA)
 //          read time-boxed, tenant-scoped subsets of channel + audit data.
 // Owner:   ops-security + council-privacy + ops-compliance
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

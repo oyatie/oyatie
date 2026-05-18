@@ -6,6 +6,7 @@
 // Owner:   ops-security + axis-ontology
 // Audit:   every deny emits oya_ontology_tenant_unauthorized_read_attempt_total
 // References: type-isolation.md §"Invariant TI-07"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every read is refused unless an explicit permit matches.

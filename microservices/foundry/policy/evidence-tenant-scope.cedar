@@ -7,6 +7,7 @@
 // Audit:   every deny emits oya_foundry_evidence_unauthorized_attempt_total
 // References: threat-model.md T-I-01, T-I-02, T-I-03, T-S-01, T-S-02;
 //             tenant-scope analogue from audit-chain.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

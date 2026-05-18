@@ -11,6 +11,8 @@ owner: axis-calendar
 acceptance_lanes: [cargo-nextest, oya-governance-rfc-4791-conformance, oya-governance-rfc-5545-conformance, oya-governance-caldav-backend-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: ics-import-export — kernel + domain + usecase + adapter-icalendar + adapter-caldav-radicale + adapter-caldav-sabredav
 
 ## Intent

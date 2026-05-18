@@ -8,6 +8,8 @@ owner: axis-recordings + axis-foundry-runtime
 acceptance_lanes: [port-location, lean-a1, lean-a2]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: Transcript BC — Whisper + pyannote adapter
 
 ## Intent

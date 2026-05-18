@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
 {{- range tuple "websocketGateway" "videoUploadRest" "videoStorageRest" "thumbnailGenerationWorker" "audioTrackLibraryRest" "audioAttributionWorker" "videoCompositionWorker" "feedTimeline" "watchTimeTrackingWorker" "likeShareCommentWorker" "repostStitchDuetWorker" "hashtagWorker" "trendingWorker" "notificationsWorker" "contentModerationWorker" "copyrightClaimWorker" "accessibilityCaptionsWorker" "creatorAnalyticsWorker" "ageGateRest" "parentalControlsRest" }}
 {{- $c := index $.Values . }}
 ---

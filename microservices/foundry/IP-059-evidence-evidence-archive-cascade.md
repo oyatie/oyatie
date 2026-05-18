@@ -11,6 +11,8 @@ owner: axis-foundry-evidence + axis-audit-chain + council-privacy
 acceptance_lanes: [archive-cascade-drill, retention-cascade-on-cadence]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Evidence archive cascade (hot → warm → cold)
 
 ## Intent

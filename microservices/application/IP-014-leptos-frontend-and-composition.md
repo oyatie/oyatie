@@ -10,6 +10,8 @@ owner: axis-application
 acceptance_lanes: [cargo-check, cargo-build, cargo-nextest, lean-a1, composition-root-only, wasm-build]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Leptos frontend + composition-root binaries
 
 ## Intent

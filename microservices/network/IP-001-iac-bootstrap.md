@@ -11,6 +11,8 @@ owner: axis-network + ops-sre-reliability
 acceptance_lanes: [helm-lint, kustomize-build, oya-governance-version-pinning-conformance, oya-governance-cedar-policy-spec]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: IaC bootstrap — Helm + Kustomize + Terraform for the network cluster
 
 ## Intent

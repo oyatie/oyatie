@@ -7,6 +7,7 @@
 //          Type 2 + ISO 27001 + GDPR DPA-friendly substrate.
 // Owner:   ops-security + council-privacy
 // Audit:   every auditor read emits oya_anonymous_auditor_read_total{auditor,verdict}
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

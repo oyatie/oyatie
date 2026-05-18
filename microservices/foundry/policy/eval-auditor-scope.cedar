@@ -6,6 +6,7 @@
 //          evidence are themselves audit-emitted (audit-of-audits).
 // Owner:   ops-security + council-privacy
 // Audit:   every auditor read emits oya_foundry_eval_auditor_read_total
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

@@ -11,6 +11,8 @@ owner: ops-sre-reliability
 acceptance_lanes: [helm-lint, kubectl-apply-dry-run]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: Canary cohort weighting
 
 ## Intent

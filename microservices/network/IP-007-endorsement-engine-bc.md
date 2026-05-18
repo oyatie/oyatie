@@ -11,6 +11,8 @@ owner: axis-network + axis-audit-chain
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-endorsement-chain-integrity, oya-governance-port-location]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: endorsement-engine BC end-to-end (per-endorser Ed25519 + Merkle-style chain via audit-chain)
 
 ## Intent

@@ -11,6 +11,8 @@ owner: axis-mail + axis-workflow + council-privacy
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, oya-governance-workflow-event-registry, oya-governance-data-class]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: mail-to-Workflow handoff (consent/policy-basis check; audit-chain)
 
 ## Intent

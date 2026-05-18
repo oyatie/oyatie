@@ -5,6 +5,7 @@
 //          and cell-no-cross-cell-query lane read declarative state only.
 // Owner:   axis-foundry + axis-cell-substrate + ops-security
 // References: cell-boundary.md §"Reserved cell IDs", §"Invariant CB-06"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

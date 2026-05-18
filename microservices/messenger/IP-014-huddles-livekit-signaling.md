@@ -11,6 +11,8 @@ owner: axis-messenger
 acceptance_lanes: [cargo-nextest, livekit-smoke, mos-quality-check]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: huddles BC — LiveKit signaling + WebRTC media (voice/video/screen-share)
 
 ## Intent

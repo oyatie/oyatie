@@ -11,6 +11,8 @@ owner: axis-social
 acceptance_lanes: [cargo-check, cargo-nextest, sqlx-migration-lint, oya-governance-shardability, oya-governance-port-location]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: follow-graph BC (kernel → domain → usecase → adapter-postgres + worker + sdk)
 
 ## Intent

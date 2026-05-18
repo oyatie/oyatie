@@ -6,6 +6,7 @@
 // Owner:   ops-security + axis-cell-substrate
 // Audit:   every deny emits oya_cell_unauthorized_read_attempt_total
 // References: cell-boundary.md §"Invariant CB-07"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every read is refused unless an explicit permit matches.

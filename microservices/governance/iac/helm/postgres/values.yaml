@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 # Postgres HA values for governance µservice
 # Per microservices/governance/capacity-model.md §"Worked example: oyatie XS tier"
 # Per microservices/governance/multi-region.md §"Topology per pack"

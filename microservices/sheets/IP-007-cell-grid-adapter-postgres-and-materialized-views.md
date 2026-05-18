@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-citus-rls-enforced
 depends_on: [IP-002]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: cell-grid — adapter-postgres with materialized-view caches for hot ranges
 
 ## Intent

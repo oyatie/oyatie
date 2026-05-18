@@ -11,6 +11,8 @@ owner: axis-tasks + council-privacy + council-ai-safety
 acceptance_lanes: [cargo-test, auto-assign-fairness, eu-ai-act-annex-iii-refusal, cedar-policy-syntax]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: AI assist bounds — T0 next-task / T1 categorise + priority / T2 auto-assign with EU AI Act Annex III §4 refusal
 
 ## Intent

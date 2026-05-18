@@ -10,6 +10,8 @@ owner: ops-security + council-privacy + axis-sites
 acceptance_lanes: [cedar-policy-lint, oya-governance-cedar-enforcement]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: Cedar policy + DPIA + threat-model sign-off
 
 ## Intent

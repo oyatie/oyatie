@@ -8,6 +8,8 @@ owner: axis-shorts + axis-foundry-runtime
 depends_on: [IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: accessibility-captions BC end-to-end
 
 ## Intent

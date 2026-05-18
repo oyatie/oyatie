@@ -6,6 +6,7 @@
 //          to make that explicit and to be auditable.
 // Owner:   ops-security + council-privacy + axis-workflow
 // References: threat-model.md §"T-I-04" (replay-debugger leak) + DPIA R-13
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — public access is refused.

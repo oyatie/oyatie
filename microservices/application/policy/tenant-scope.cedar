@@ -6,6 +6,7 @@
 // Owner:   ops-security + axis-application
 // Audit:   every deny emits oya_application_route_denied_total + oya_application_module_load_denied_total
 // References: route-isolation.md §"Invariants"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every route + module access is refused unless explicit permit

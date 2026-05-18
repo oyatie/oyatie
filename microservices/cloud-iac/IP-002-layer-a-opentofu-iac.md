@@ -11,6 +11,8 @@ owner: axis-cloud-iac
 acceptance_lanes: [helm-lint, terraform-validate, oya-governance-per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Layer-A OpenTofu self-hosted runner + per-pack state-bucket IaC
 
 ## Intent

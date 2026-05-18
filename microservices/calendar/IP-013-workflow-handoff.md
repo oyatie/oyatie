@@ -11,6 +11,8 @@ owner: axis-calendar + axis-workflow
 acceptance_lanes: [cargo-nextest, oya-governance-cross-product-isolation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: Workflow + Ontology handoff (cross-µservice integration)
 
 ## Intent

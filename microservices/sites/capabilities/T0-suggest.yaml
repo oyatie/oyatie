@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 # T0-suggest capabilities — sites µservice
 #
 # Autonomy Tier 0: "suggest only". The system surfaces a recommendation; the user

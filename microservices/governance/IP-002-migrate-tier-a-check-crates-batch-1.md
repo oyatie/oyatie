@@ -11,6 +11,8 @@ owner: axis-foundry
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, cross-ref-validity, per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Migrate Tier-A check crates batch 1 (5 crates)
 
 ## Intent

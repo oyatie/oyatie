@@ -9,6 +9,8 @@ owner: axis-forms + council-privacy
 acceptance_lanes: [cargo-test, oya-forms-pii-column-not-indexed]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: Meilisearch adapter (response search; PII-redacted)
 
 ## Intent

@@ -8,6 +8,8 @@ owner: axis-shorts + axis-messenger
 depends_on: [IP-008, IP-009]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: notifications + creator-analytics BC end-to-end
 
 ## Intent

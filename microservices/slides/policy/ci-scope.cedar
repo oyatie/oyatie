@@ -1,6 +1,7 @@
 // Cedar v4.2 LTS — CI scope policy for slides µservice
 // CI principals (GitHub Actions runners + foundry-pipeline reviewers + admission-gate validators)
 // have scoped read access. Default-deny baseline preserved.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (principal, action, resource);
 

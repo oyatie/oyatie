@@ -11,6 +11,8 @@ owner: axis-calendar
 acceptance_lanes: [cargo-nextest, oya-governance-layer-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: invitation-flow — kernel + domain + usecase + adapter + worker (RFC 5546 + RFC 6047 + RFC 6638)
 
 ## Intent

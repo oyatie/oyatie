@@ -7,6 +7,7 @@
 //          metric / row name patterns.
 // Owner:   axis-foundry + ops-security
 // References: threat-model.md §"T-S-02" (Studio SPIFFE impersonation)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny.

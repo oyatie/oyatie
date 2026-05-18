@@ -11,6 +11,8 @@ owner: axis-foundry-guardrails
 acceptance_lanes: [cargo-check, cargo-nextest, shadow-enforce-promotion-readiness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Shadow→enforce rollout + per-tenant false-positive escalation budget
 
 ## Intent

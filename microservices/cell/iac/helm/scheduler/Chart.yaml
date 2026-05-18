@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: oya-cell-scheduler
 description: oya-cell-scheduler-app deployment — binpack placement engine + cluster-state reader + worker. Per PRD §"scheduler BC".

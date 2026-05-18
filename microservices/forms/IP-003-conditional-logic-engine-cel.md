@@ -9,6 +9,8 @@ owner: axis-forms
 acceptance_lanes: [cargo-test, oya-forms-conditional-logic-parity, oya-forms-branching-static-analysis, oya-forms-skip-logic-pii-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: Conditional-logic engine (CEL declarative DAG)
 
 ## Intent

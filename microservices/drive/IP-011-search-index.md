@@ -10,6 +10,8 @@ owner: axis-drive + foundry-runtime
 acceptance_lanes: [cargo-build, cargo-nextest, oya-check-search-tenant-scoped]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: search-index BC — Meilisearch + Apache Tika full-text + OCR handoff
 
 ## Intent

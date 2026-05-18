@@ -11,6 +11,8 @@ owner: ops-sre-reliability + axis-foundry-runtime
 acceptance_lanes: [helm-install-smoke, kustomize-build, foundry-runtime-iac-smoke, oya-governance-per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Runtime cluster IaC (Kubernetes + Istio + SPIRE + OpenBao bindings)
 
 ## Intent

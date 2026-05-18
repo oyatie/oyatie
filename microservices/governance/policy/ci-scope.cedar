@@ -3,6 +3,7 @@
 // Purpose: bound lane runners + admission-gate clients to least-privilege actions
 // Related: microservices/governance/policy/lane-execution.md
 //          microservices/governance/threat-model.md §T-S-01, T-T-02, T-E-02
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // PERMITS

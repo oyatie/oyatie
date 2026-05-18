@@ -6,6 +6,7 @@
 //          gates, and ledger appends — but NEVER read user content.
 // Owner:   axis-anonymous + governance
 // Audit:   every CI action emits oya_anonymous_ci_action_total{action,verdict}
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

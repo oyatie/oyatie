@@ -11,6 +11,8 @@ owner: axis-foundry
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, aggregation-index-generation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: oya-check-aggregation-index-generation lane (BLOCKER on dev)
 
 ## Intent

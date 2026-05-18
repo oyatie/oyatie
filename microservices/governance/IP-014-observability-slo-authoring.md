@@ -11,6 +11,8 @@ owner: axis-foundry + axis-observability
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, slo-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Author OpenSLO manifests for governance (self-observability)
 
 ## Intent

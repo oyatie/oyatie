@@ -11,6 +11,8 @@ owner: ops-sre-reliability
 acceptance_lanes: [helm-install-smoke, postgres-rls-coverage, session-prefix-isolation, foundry-runtime-iac-smoke]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Redis 7.4 LTS + Postgres 16 LTS baseline
 
 ## Intent

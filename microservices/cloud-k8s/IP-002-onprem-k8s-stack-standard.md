@@ -11,6 +11,8 @@ owner: axis-cloud + ops-security
 acceptance_lanes: [docs-link-check, oya-governance-version-pinning-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: docs/standards/cloud-k8s-stack.md (cross-cutting standard)
 
 ## Intent

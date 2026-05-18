@@ -8,6 +8,8 @@ owner: axis-shorts
 depends_on: [IP-005, IP-007]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: feed-timeline + watch-time-tracking BC end-to-end
 
 ## Intent

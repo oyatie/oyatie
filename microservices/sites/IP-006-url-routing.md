@@ -10,6 +10,8 @@ owner: axis-sites
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-layer-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: url-routing BC
 
 ## Intent

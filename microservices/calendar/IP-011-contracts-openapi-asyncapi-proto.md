@@ -11,6 +11,8 @@ owner: axis-calendar
 acceptance_lanes: [openapi-lint, asyncapi-lint, protoc-lint, oya-governance-contract-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: contracts — OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 finalisation
 
 ## Intent

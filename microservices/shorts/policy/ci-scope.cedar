@@ -4,6 +4,7 @@
 // Purpose: scope CI lane reads to promotion-readiness + conformance data only;
 //          forbid reads of customer-tenant per-user shorts data.
 // Owner:   axis-foundry + axis-shorts + ops-security
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

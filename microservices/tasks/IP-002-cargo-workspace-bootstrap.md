@@ -11,6 +11,8 @@ owner: axis-tasks
 acceptance_lanes: [cargo-build, oya-governance-per-microservice-layout, oya-governance-naming-justification, layer-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Cargo workspace bootstrap — 57 crate stubs per BNF v4.1
 
 ## Intent

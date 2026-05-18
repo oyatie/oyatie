@@ -10,6 +10,8 @@ owner: axis-sites + ops-security
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-layer-correctness, oya-governance-rfc-8555-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: domain-binding BC + ACME + cert-manager adapters
 
 ## Intent

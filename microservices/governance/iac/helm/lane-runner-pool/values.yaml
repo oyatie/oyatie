@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 # Default values for lane-runner-pool
 # Per microservices/governance/cost-budget.md §"Per-Component Monthly Cost"
 # Per microservices/governance/capacity-model.md §"Per-Cell Capacity Envelope"

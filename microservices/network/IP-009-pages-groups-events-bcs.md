@@ -11,6 +11,8 @@ owner: axis-network + axis-mail + axis-calendar
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-port-location]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: pages + groups + events-bridge BCs end-to-end
 
 ## Intent

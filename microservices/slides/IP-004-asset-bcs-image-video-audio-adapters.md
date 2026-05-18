@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, gvisor-isolation, layer-correctne
 depends_on: [IP-002]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: image + video-embed + audio-embed BCs — adapters (S3 + ImageMagick + ffmpeg + ClamAV + OPSWAT)
 
 ## Intent

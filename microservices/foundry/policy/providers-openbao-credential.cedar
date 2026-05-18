@@ -7,6 +7,7 @@
 // Audit:   every resolve emits CredentialResolved event; every deny emits
 //          oya_foundry_providers_credential_resolve_denied_total
 // References: credential-isolation.md CI-INV-05; threat-model.md T-01
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every credential resolution is refused unless an explicit

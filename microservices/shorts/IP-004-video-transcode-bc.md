@@ -11,6 +11,8 @@ acceptance_lanes: [cargo-build, cargo-nextest, helm-lint, oya-governance-sandbox
 depends_on: [IP-003]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: video-transcode BC end-to-end
 
 ## Intent

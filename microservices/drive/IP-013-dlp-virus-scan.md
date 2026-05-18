@@ -10,6 +10,8 @@ owner: axis-drive + ops-security + foundry-runtime
 acceptance_lanes: [cargo-build, cargo-nextest, oya-check-scan-correctness-zero-tolerance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: dlp-virus-scan BC — ClamAV + OPSWAT + DLP rules + foundry-runtime ML handoff
 
 ## Intent

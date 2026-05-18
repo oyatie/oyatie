@@ -11,6 +11,8 @@ owner: axis-meet + ops-security
 acceptance_lanes: [cargo-nextest, recording-pipeline-smoke, oya-governance-gvisor-policy, oya-governance-s3-object-lock]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: recording pipeline (LiveKit egress → ffmpeg gVisor → S3)
 
 ## Intent

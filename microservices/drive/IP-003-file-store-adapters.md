@@ -10,6 +10,8 @@ owner: axis-drive
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-object-store-backend-conformance, oya-check-rls-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: file-store -adapter-postgres + -adapter-s3 + -adapter-garage + -adapter-seaweedfs
 
 ## Intent

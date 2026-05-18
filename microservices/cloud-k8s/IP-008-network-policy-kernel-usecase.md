@@ -9,6 +9,8 @@ owner: axis-cloud + ops-security
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-check-cedar-derived-policy-paired]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: oya-cloud-k8s-network-policy-{kernel,domain,usecase,adapter}
 
 ## Intent

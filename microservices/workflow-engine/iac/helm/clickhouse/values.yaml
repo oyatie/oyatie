@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 clickhouse:
   shards: 1            # XS tier per capacity-model.md; grow with scale tier
   replicaCount: 2      # 2 replicas per shard for HA

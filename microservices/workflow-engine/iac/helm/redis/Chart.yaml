@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: oya-workflow-engine-redis
 description: Redis Sentinel HA cluster for workflow-engine ephemeral lease + subscription state per ADR-0131

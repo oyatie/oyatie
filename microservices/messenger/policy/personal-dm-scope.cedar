@@ -5,6 +5,7 @@
 //          DirectConversation resources. Decoupled from channel-scope.cedar
 //          (Professional channels) per dual-context-isolation.md DCI-06.
 // Owner:   axis-messenger + council-privacy + ops-security
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

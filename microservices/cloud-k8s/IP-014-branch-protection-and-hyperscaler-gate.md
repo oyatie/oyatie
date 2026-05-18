@@ -9,6 +9,8 @@ owner: axis-foundry + axis-cloud
 acceptance_lanes: [yaml-lint, branch-protection-conformance, oya-governance-authority-cohesion, oya-governance-hyperscaler-maturity-claims]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: branch-protection + HG-CLOUD-K8S registration
 
 ## Intent

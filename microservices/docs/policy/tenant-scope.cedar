@@ -6,6 +6,7 @@
 // Status: Accepted (2026-05-17)
 // Related: ADR-0140, policy/editor-isolation.md, policy/data-residency.md,
 //          ADR-DOCS-0004 (per-block ACL)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================
 // DEFAULT POSTURE: forbid cross-tenant reads / writes by default.

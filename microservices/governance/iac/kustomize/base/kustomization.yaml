@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
 # Base Kustomization for governance µservice
 # Per ADR-0131 §"iac/kustomize/<overlay>/"
 # Composed by per-pack overlays (iac/kustomize/overlays/pack-<pack>/)

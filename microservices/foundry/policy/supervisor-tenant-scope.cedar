@@ -7,6 +7,7 @@
 // Owner:   ops-security + axis-foundry-control-plane
 // Audit:   every deny emits oya_supervisor_tenant_unauthorized_attempt_total
 // References: supervisor-isolation.md §"Cedar Per-Tenant Read Authorisation"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every action is refused unless an explicit permit matches.

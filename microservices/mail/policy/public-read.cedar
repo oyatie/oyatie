@@ -8,6 +8,7 @@
 // Audit:   public reads NOT individually audited (would generate too much noise),
 //          but aggregated counts emitted as mail_public_read_total{endpoint=...}
 // References: threat-model.md (no public-read threat above L)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

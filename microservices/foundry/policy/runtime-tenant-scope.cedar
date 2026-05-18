@@ -7,6 +7,7 @@
 // Owner:   ops-security + axis-foundry-runtime
 // Audit:   every deny emits oya_foundry_runtime_unauthorized_attempt_total
 // References: runtime-isolation.md §"Invariant TI-04 + TI-07"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every action is refused unless an explicit permit matches.

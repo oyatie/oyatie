@@ -9,6 +9,8 @@ owner: axis-cloud-secrets + ops-sre
 acceptance_lanes: [controller-conformance, kind-e2e]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: openbao-operator kernel + domain + usecase + api + adapter + app
 
 ## Intent

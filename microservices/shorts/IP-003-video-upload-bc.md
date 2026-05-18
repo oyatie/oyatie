@@ -10,6 +10,8 @@ owner: axis-shorts
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-port-location, oya-governance-postgres-rls-coverage, oya-governance-dual-context-isolation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: video-upload BC end-to-end
 
 ## Intent

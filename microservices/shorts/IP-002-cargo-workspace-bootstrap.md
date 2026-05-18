@@ -11,6 +11,8 @@ owner: axis-shorts
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-bnf-v4-1, oya-governance-layer-correctness, oya-governance-per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Cargo workspace bootstrap (~140 crates per ADR-0131 + ADR-0105 Amendment 3)
 
 ## Intent

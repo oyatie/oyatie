@@ -10,6 +10,8 @@ owner: axis-anonymous + ops-data
 acceptance_lanes: [cargo-check, sqlx-prepare, oya-governance-blinding-column-isolation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: Postgres adapters with blinding-column migration
 
 ## Intent

@@ -11,6 +11,8 @@ owner: axis-calendar + council-privacy + ops-security
 acceptance_lanes: [cedar-validate, oya-governance-dual-context-correctness, oya-governance-data-residency-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: Cedar v4.2 LTS policies + data-residency conformance
 
 ## Intent

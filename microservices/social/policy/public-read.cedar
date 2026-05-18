@@ -11,6 +11,7 @@
 //            (d) read of public-visibility posts + public profiles
 //            (e) ActivityPub federation inbox (Professional-tier only)
 // Owner:   ops-security + gtm-marketing + axis-social
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

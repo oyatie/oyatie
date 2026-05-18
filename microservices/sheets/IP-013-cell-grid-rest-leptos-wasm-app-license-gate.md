@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-cedar-preview-requ
 depends_on: [IP-008, IP-010, IP-011, IP-012]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: cell-grid — adapter-leptos-wasm + rest + sdk + app + license-gate-cedar full BC
 
 ## Intent

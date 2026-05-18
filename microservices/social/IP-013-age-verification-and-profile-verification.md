@@ -11,6 +11,8 @@ owner: axis-social + council-privacy
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-pack-aware-age-gate]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: age-verification + profile-verification BCs
 
 ## Intent

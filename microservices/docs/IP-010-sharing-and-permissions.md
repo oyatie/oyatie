@@ -10,6 +10,8 @@ owner: axis-docs + ops-security
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-per-block-acl, oya-governance-acl-enforcement-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: sharing-and-permissions BC (8 crates; per-block ACL per ADR-DOCS-0004)
 
 ## Intent

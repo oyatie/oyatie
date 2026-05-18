@@ -9,6 +9,8 @@ owner: axis-forms + council-design-system
 acceptance_lanes: [cargo-test, wasm-pack-test, oya-governance-wcag22-conformance, oya-forms-embed-csp-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: Form renderer (Leptos-WASM + plain-HTML fallback)
 
 ## Intent

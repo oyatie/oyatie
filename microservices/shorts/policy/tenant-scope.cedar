@@ -5,6 +5,7 @@
 // Owner:   ops-security + axis-shorts
 // Audit:   every deny emits oya_shorts_tenant_unauthorized_attempt_total
 // References: dual-context-isolation.md, observability + social + messenger tenant-scope patterns
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

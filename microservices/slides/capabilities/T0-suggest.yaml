@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 # Capability T0 — Suggest tier
 # Slides µservice low-risk text + design assist; deterministic + local-first when possible.
 # Per ADR-SLIDES-0006 risk-class enforcement (T0 always low-risk by definition).

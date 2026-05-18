@@ -6,6 +6,8 @@ owner: axis-audit-chain + axis-observability
 acceptance_lanes: [cargo-check, cargo-build, cargo-nextest, openslo-conformance, cross-pack-replication-forbidden, hyperscaler-maturity-claims]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: Self-observability SLO + HG-AUDIT registration
 
 ## Intent

@@ -11,6 +11,8 @@ owner: axis-docs + ops-release-management
 acceptance_lanes: [branch-protection-validate, oya-governance-hyperscaler-maturity-claims, oya-governance-per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-DOCS registration + branch-protection
 
 ## Intent

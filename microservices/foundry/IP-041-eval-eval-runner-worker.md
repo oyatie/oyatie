@@ -10,6 +10,8 @@ owner: axis-foundry
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, statelessness, shardability]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: oya-foundry-eval-eval-runner-worker
 
 ## Intent

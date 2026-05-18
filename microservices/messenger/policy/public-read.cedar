@@ -8,6 +8,7 @@
 //            (b) public OAuth callback endpoints for personal-context onboarding
 //            (c) public OpenAPI / AsyncAPI schema endpoints (no data)
 // Owner:   ops-security + gtm-marketing
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

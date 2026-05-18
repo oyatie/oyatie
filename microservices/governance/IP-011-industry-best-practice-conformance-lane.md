@@ -11,6 +11,8 @@ owner: council-architecture
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, industry-best-practice-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: oya-check-industry-best-practice-conformance lane (BLOCKER on dev)
 
 ## Intent

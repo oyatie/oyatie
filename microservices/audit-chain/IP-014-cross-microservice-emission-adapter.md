@@ -6,6 +6,8 @@ owner: axis-audit-chain + axis-tenancy + axis-observability
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a2]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Cross-µservice emission SDK adoption
 
 ## Intent

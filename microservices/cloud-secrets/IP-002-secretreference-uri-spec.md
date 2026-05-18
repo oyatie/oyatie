@@ -10,6 +10,8 @@ owner: axis-cloud-secrets + council-architecture
 acceptance_lanes: [doc-coverage, contract-test]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: SecretReference URI specification
 
 ## Intent

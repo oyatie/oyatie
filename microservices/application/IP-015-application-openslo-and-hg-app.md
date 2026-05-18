@@ -10,6 +10,8 @@ owner: axis-application + axis-observability
 acceptance_lanes: [openslo-validate, hyperscaler-maturity-claims, authority-cohesion, per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: OpenSLO authoring + HG-APP gate registration + branch-protection
 
 ## Intent

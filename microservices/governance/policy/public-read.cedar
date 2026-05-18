@@ -3,6 +3,7 @@
 // Purpose: explicit allow-list of fields readable without authentication for tenant-trust signals
 // Related: microservices/governance/PRD.md §"Tenant Outcome 2" (industry-benchmarked conformance)
 //          microservices/observability/policy/public-read.cedar (shape reference)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // PERMITS

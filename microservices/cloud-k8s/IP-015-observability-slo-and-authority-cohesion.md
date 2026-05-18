@@ -9,6 +9,8 @@ owner: axis-cloud + axis-observability
 acceptance_lanes: [openslo-schema, oya-governance-authority-cohesion, oya-vcs-promotion-readiness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: OpenSLO authoring + authority-cohesion registration
 
 ## Intent

@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 # T2-auto capabilities — drive µservice
 #
 # Autonomy Tier 2: "automate routinely with opt-out". The system takes recurring

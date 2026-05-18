@@ -5,6 +5,7 @@
 //          to their authorised operations; forbid reads of customer tenant payloads.
 // Owner:   axis-foundry + axis-audit-chain + ops-security
 // References: threat-model.md T-E-01, T-E-02, T-E-03
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

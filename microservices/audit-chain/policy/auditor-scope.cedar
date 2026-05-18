@@ -5,6 +5,7 @@
 //          read time-boxed, tenant-scoped, framework-scoped subsets of the chain.
 // Owner:   ops-security + council-privacy + ops-compliance
 // References: threat-model.md T-S-03, T-I-03; tenant-isolation analogue from observability
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

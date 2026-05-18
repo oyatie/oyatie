@@ -11,6 +11,8 @@ owner: axis-meet
 acceptance_lanes: [openapi-schema-validate, asyncapi-schema-validate, proto-lint]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: public contracts (OpenAPI 3.2 + AsyncAPI 3.1 + Protobuf v3)
 
 ## Intent

@@ -7,6 +7,7 @@
 // Audit:   every deny emits oya_forms_unauthorized_attempt_total
 // References: threat-model.md §"T-I-01" (cross-tenant response leak) + §"T-T-01" (skip-logic bypass) +
 //             §"T-E-01" (within-tenant elevation)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every action refused unless explicit permit matches.

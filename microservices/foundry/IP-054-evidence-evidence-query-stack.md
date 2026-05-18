@@ -11,6 +11,8 @@ owner: axis-foundry-evidence
 acceptance_lanes: [cargo-clippy, lean-layer-correctness, lean-cross-tenant-leak-prevention, load-drill-evidence-query]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: Evidence-query stack
 
 ## Intent

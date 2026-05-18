@@ -10,6 +10,8 @@ owner: axis-translate + ops-security (2-person rule per CI-INV-09)
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, layer-correctness, credential-isolation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: Engine adapters — external vendors (Anthropic / OpenAI / Google / DeepL)
 
 ## Intent

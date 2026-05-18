@@ -9,6 +9,8 @@ owner: axis-foundry-control-plane
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, port-location, layer-correctness, oya-check-data-class]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: agent-fleet-lifecycle-kernel
 
 ## Intent

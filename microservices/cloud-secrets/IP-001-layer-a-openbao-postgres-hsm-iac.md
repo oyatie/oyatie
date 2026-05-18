@@ -11,6 +11,8 @@ owner: axis-cloud-secrets + ops-sre
 acceptance_lanes: [helm-lint, kubectl-apply-dry-run, version-pinning-conformance, per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Layer-A OpenBao + Postgres-HA + HSM-operator IaC
 
 ## Intent

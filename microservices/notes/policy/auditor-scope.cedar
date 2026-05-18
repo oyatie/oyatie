@@ -3,6 +3,7 @@
 //
 // Purpose: grant audit-chain + policy + IaC read; refuse note body access;
 // refuse AI invocation; refuse cross-tenant access.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

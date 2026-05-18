@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 id: cap:tenancy:dsr-cascade-execute:v1
 name: dsr-cascade-execute
 namespace: tenancy

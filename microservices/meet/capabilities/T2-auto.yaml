@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 id: cap:meet:t2-auto:v1
 name: auto-mute-noise-detect-and-auto-translate
 namespace: meet

@@ -11,6 +11,8 @@ owner: axis-calendar
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-port-location, oya-governance-data-class-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: event-store kernel — CalendarEvent + Attendee + RetentionPolicyRef + LegalHoldRef + port traits
 
 ## Intent

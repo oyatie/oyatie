@@ -10,6 +10,8 @@ owner: axis-shorts + cloud-secrets
 depends_on: [IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-005: video-storage + CDN BC end-to-end
 
 ## Intent

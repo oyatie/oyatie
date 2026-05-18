@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-sheets-range-acl-c
 depends_on: [IP-007]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: sharing-acl + named-ranges — full BC crate sets per ADR-SHEETS-0006
 
 ## Intent

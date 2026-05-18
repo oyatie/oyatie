@@ -8,6 +8,7 @@
 //          network is Professional-tier-only (ADR-0135 + ADR-0132). No
 //          Personal-tier resources ever appear in this policy.
 // Owner:   ops-security + axis-network + council-privacy
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

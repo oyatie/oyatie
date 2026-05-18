@@ -11,6 +11,8 @@ owner: axis-observability
 acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, oya-governance-mimir-tenancy-enforced]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: oya-observability-slo-engine-adapter + adapter-mimir
 
 ## Intent

@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, oya-governance-sheets-cr
 depends_on: [IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-loro + adapter-redis + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)
 
 ## Intent

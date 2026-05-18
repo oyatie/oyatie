@@ -6,6 +6,7 @@
 // Owner:   ops-compliance + ops-security
 // Audit:   every auditor read emits AuditRead event; deny emits
 //          oya_foundry_providers_auditor_unauthorized_read_total
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny.

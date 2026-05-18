@@ -11,6 +11,8 @@ owner: axis-foundry-evidence + axis-observability
 acceptance_lanes: [agentic-slo-gated-promotion, hyperscaler-maturity-claims]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: Self-observability + HG-FOUNDRY-EVIDENCE registration
 
 ## Intent

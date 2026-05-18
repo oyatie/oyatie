@@ -11,6 +11,8 @@ owner: axis-meet
 acceptance_lanes: [cargo-nextest, webinar-fanout-load-test]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: webinar mode (registration + practice + Q&A) + breakout rooms
 
 ## Intent

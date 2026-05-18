@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-cedar-preview-requ
 depends_on: [IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: license-gate-cedar — full BC (7 layers)
 
 ## Intent

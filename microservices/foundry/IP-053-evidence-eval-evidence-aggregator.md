@@ -11,6 +11,8 @@ owner: axis-foundry-evidence + axis-foundry-eval
 acceptance_lanes: [cargo-clippy, property-based-tests, eval-temporal-correctness-drill]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: Eval-evidence aggregator
 
 ## Intent

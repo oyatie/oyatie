@@ -11,6 +11,8 @@ owner: axis-mail
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, port-location, layer-correctness, oya-governance-encryption-tenant-dek]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: oya-mail-mailbox-store-adapter-s3
 
 ## Intent

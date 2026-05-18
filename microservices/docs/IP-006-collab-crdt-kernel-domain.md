@@ -10,6 +10,8 @@ owner: axis-docs
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-crdt-no-silent-loss, oya-governance-crdt-cross-microservice-consistency]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: collab-crdt kernel + domain + adapter (Loro 1.x integration; cross-µservice consistent per ADR-DOCS-0001 + ADR-WS-0001)
 
 ## Intent

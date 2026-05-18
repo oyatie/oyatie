@@ -10,6 +10,8 @@ owner: ops-security + general-counsel + axis-anonymous
 acceptance_lanes: [cargo-check, cargo-test, oya-governance-dual-control-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: Legal-process workflow (workflow-engine cross-link, dual-control, audit-chain)
 
 ## Intent

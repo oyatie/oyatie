@@ -11,6 +11,8 @@ owner: axis-observability
 acceptance_lanes: [cargo-nextest]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Automated rollback primitive
 
 ## Intent

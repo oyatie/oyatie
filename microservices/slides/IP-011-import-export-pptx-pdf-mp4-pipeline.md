@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, slides-pptx-roundtrip-subset, mp4
 depends_on: [IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: import-export BC — PPTX + ODP + PDF + Keynote + MP4 + PNG pipeline (gVisor sandboxed)
 
 ## Intent

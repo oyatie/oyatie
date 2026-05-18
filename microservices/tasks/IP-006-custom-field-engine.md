@@ -11,6 +11,8 @@ owner: axis-tasks
 acceptance_lanes: [cargo-test, type-coercion-strictness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: custom-field engine — typed-schema-per-project + flexible JSON
 
 ## Intent

@@ -8,6 +8,8 @@ owner: axis-shorts + ops-legal
 depends_on: [IP-003]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: audio-track-library + audio-attribution BC end-to-end
 
 ## Intent

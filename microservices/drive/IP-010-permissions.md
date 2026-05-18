@@ -10,6 +10,8 @@ owner: axis-drive + ops-security
 acceptance_lanes: [cargo-build, cargo-nextest, oya-check-cedar-policy-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: permissions BC — per-folder + per-file ACL + inheritance + override + ownership transfer
 
 ## Intent

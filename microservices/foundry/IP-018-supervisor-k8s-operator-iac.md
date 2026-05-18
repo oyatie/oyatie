@@ -10,6 +10,8 @@ acceptance_lanes: [helm-lint, helm-install-smoke, kubectl-validate, oya-check-op
 depends_on: [IP-001, IP-002]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: Kubernetes Operator + CRDs + RBAC
 
 ## Intent

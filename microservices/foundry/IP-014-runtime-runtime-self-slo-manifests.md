@@ -11,6 +11,8 @@ owner: axis-foundry-runtime + axis-observability
 acceptance_lanes: [openslo-conformance, vcs-promotion-readiness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Runtime self-SLO manifests (availability / latency / correctness / freshness)
 
 ## Intent

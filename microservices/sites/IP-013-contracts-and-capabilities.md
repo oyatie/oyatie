@@ -10,6 +10,8 @@ owner: axis-sites + foundry-providers + council-privacy
 acceptance_lanes: [openapi-lint, asyncapi-lint, proto-lint, oya-governance-capability-tier-lint]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: OpenAPI + AsyncAPI + Proto contracts + capabilities (T0/T1/T2)
 
 ## Intent

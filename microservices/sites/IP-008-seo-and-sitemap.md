@@ -10,6 +10,8 @@ owner: axis-sites
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-schema-org-jsonld-conformance, oya-governance-sitemap-xml-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: seo BC + sitemap.xml + JSON-LD + Open Graph + Twitter Cards
 
 ## Intent

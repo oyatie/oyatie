@@ -11,6 +11,8 @@ owner: axis-network + axis-messenger
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-professional-context-isolation, oya-gate-inmail-bridge-contract]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: inmail-bridge BC end-to-end (Professional-tier bridge to messenger; ADR-NET-0003)
 
 ## Intent

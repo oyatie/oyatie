@@ -5,6 +5,7 @@
 //          (SOC 2 Type 2, ISO 27001, HIPAA, KR PIPC, EU DPA, etc.) during audit windows.
 // Owner:   ops-security + council-privacy
 // References: threat-model.md §"T-S-05" + §"T-L-05" (auditor JIT token + cross-tenant pivot)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny.

@@ -5,6 +5,7 @@
 //          Default posture: NOTHING tenant-specific publicly readable. This file makes that explicit.
 // Owner:   ops-security + council-privacy + axis-sheets + council-design-system
 // References: threat-model.md §"T-I-06" (per-tenant branding mid-render anti-pattern)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — public access refused.

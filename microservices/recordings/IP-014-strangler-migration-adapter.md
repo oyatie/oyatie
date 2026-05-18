@@ -8,6 +8,8 @@ owner: axis-recordings
 acceptance_lanes: [strangler-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Strangler migration adapter (oya-connect-recordings-* → oya-recordings-*)
 
 ## Intent

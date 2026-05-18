@@ -9,6 +9,8 @@ acceptance_lanes: [retention-policy-correctness, legal-hold-chain-of-custody-cor
 load_bearing: true
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: Retention-policy BC + Legal-hold BC (LOAD-BEARING)
 
 ## Intent

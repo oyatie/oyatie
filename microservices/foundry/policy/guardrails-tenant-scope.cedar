@@ -5,6 +5,7 @@
 //          Cedar overlay reads, decision-detail reads, FP-budget operations.
 // Owner:   ops-security + axis-foundry-guardrails
 // Audit:   every deny emits oya_tenant_unauthorized_read_attempt_total
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every action refused unless an explicit permit matches.

@@ -10,6 +10,8 @@ owner: axis-translate + axis-meet
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, layer-correctness, stream-latency-budget]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: Real-Time Stream stack (`oya-translate-stream-*`)
 
 ## Intent

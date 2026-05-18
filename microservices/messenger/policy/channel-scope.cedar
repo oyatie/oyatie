@@ -5,6 +5,7 @@
 //          retention/hold invariants at every read/write of a Channel
 //          or Message resource.
 // Owner:   axis-messenger + ops-security + council-privacy
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny (defence-in-depth FORBID)

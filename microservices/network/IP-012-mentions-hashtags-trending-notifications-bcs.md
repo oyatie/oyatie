@@ -11,6 +11,8 @@ owner: axis-network
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-shardability]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: mentions + hashtags + trending-topics + notifications BCs end-to-end
 
 ## Intent

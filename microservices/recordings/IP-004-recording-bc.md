@@ -8,6 +8,8 @@ owner: axis-recordings
 acceptance_lanes: [port-location, lean-a1]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: Recording BC — kernel + domain + usecase + REST (read-side)
 
 ## Intent

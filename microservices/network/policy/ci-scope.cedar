@@ -6,6 +6,7 @@
 //          access to network µservice resources. Distinct from tenant-scope
 //          (no tenant_id binding required; CI principals are platform-level).
 // Owner:   ops-security + axis-network + ops-sre-reliability
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

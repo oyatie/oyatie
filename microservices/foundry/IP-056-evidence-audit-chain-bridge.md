@@ -11,6 +11,8 @@ owner: axis-foundry-evidence + axis-audit-chain
 acceptance_lanes: [cargo-clippy, lean-cross-microservice-import-forbidden, audit-chain-bridge-availability-drill]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: audit-chain bridge (the only cross-µservice consumer)
 
 ## Intent

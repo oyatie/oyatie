@@ -5,6 +5,7 @@
 // Owner: ops-security
 // Status: Accepted (2026-05-17)
 // Related: ADR-0140, ADR-0117
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================
 // DEFAULT: CI principal has no access.

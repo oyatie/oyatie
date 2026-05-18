@@ -97,7 +97,7 @@
     },
     "canonical_base_refactor": {
       "status": "green",
-      "evidence": "SWEEP-H per ADR-0064: 22,000+ lines of duplicated content removed across 3 slices. Slice 1: canonical PrometheusRule + metric-naming-convention contract replace 20 per-µservice INV groups. Slice 2: docs/standards/hyperscaler-invariant-conformance.md replaces 20 per-µservice conformance overlays. Slice 3: 4 canonical scorecards + 32 overrides.json replace 128 per-µservice scorecards. scripts/resolve-scorecards.py performs canonical+overrides merge at audit-time."
+      "evidence": "SWEEP-H + SWEEP-I per ADR-0064 across 9 slices. SWEEP-H Slice 1: canonical PrometheusRule + metric-naming-convention contract replace 20 per-µservice INV groups. SWEEP-H Slice 2: docs/standards/hyperscaler-invariant-conformance.md replaces 20 per-µservice conformance overlays. SWEEP-H Slice 3: 4 canonical scorecards + 32 overrides.json replace 128 per-µservice scorecards. SWEEP-I Slice 1: specs/policy/cedar-scope-schema.md + microservices/governance/policy/cedar-canonical-imports.cedar + docs/standards/cedar-policy-discipline.md; 149 per-µservice .cedar files cite canonical envelope. SWEEP-I Slice 2: microservices/governance/iac/helm/_oya-helpers (library chart) + docs/standards/helm-chart-convention.md; 124 Chart.yaml/values.yaml + 112 helm-template files cite canonical helpers. SWEEP-I Slice 3: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/{kr,eu,us,us-healthcare,jp,sg,au,in,br,ae,ksa}}; 136 per-µservice kustomize files cite canonical components. SWEEP-I Slice 4: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml; 197 per-µservice OpenSLOs cite canonical envelope. SWEEP-I Slice 5: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json; 111 per-µservice capability YAMLs cite canonical schema. SWEEP-I Slice 6: specs/catalog/canonical-crate-record-schema.json + specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md; 889 catalog YAMLs + 555 IP markdowns cite canonical schemas."
     }
   },
   "overall_status": "merge-admissible-with-admin-prerequisites",
@@ -140,7 +140,48 @@
   "session_totals": {
     "microservices": 33,
     "microservices_dir_file_count": 3785,
-    "files_changed_total_session": 6700,
+    "files_changed_total_session": 8973,
+    "canonical_files": {
+      "sweep_h": 5,
+      "sweep_h_canonical_paths": [
+        "microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml",
+        "microservices/observability/contracts/metric-naming-convention.md",
+        "docs/standards/hyperscaler-invariant-conformance.md",
+        "specs/microservices/scorecards/canonical/*.json (4 files: aws-well-architected, cis-k8s-benchmark, google-sre-prr, slsa-l3)"
+      ],
+      "sweep_i": 24,
+      "sweep_i_canonical_paths": [
+        "specs/policy/cedar-scope-schema.md",
+        "microservices/governance/policy/cedar-canonical-imports.cedar",
+        "docs/standards/cedar-policy-discipline.md",
+        "microservices/governance/iac/helm/_oya-helpers/Chart.yaml",
+        "microservices/governance/iac/helm/_oya-helpers/templates/_helpers.tpl",
+        "docs/standards/helm-chart-convention.md",
+        "microservices/governance/iac/kustomize/components/namespace-restricted-profile/{kustomization,namespace,serviceaccount}.yaml",
+        "microservices/governance/iac/kustomize/components/pack-overlay-canonical/{pack-kr,eu,us,us-healthcare,jp,sg,au,in,br,ae,ksa}/kustomization.yaml (11 packs)",
+        "specs/openslo/canonical-envelope-schema.json",
+        "specs/openslo/canonical-burn-rate-alert-template.openslo.yaml",
+        "specs/capabilities/canonical-tier-schema.json",
+        "specs/capabilities/eu-ai-act-risk-class-registry.json",
+        "specs/catalog/canonical-crate-record-schema.json",
+        "specs/ip/canonical-frontmatter-schema.json",
+        "docs/templates/ip-boilerplate-fragments.md"
+      ],
+      "total": 29
+    },
+    "overlay_files": {
+      "sweep_h_scorecards": 32,
+      "sweep_h_inv_rule_overrides_per_microservice": 20,
+      "sweep_i_cedar_overlays": 149,
+      "sweep_i_chart_yaml_overlays": 124,
+      "sweep_i_helm_template_overlays": 112,
+      "sweep_i_kustomize_overlays": 136,
+      "sweep_i_openslo_overlays": 197,
+      "sweep_i_capability_overlays": 111,
+      "sweep_i_catalog_overlays": 889,
+      "sweep_i_ip_overlays": 555,
+      "total": 2325
+    },
     "scorecards": {
       "post_sweep_h_canonical": 4,
       "post_sweep_h_overrides": 32,
@@ -172,6 +213,90 @@
       "overrides_files_authored_lines": 1680,
       "net_lines_removed_approximate": 19000,
       "note": "SWEEP-H Slice 1+2+3 combined: ~22,000 line deletions vs ~3,300 line additions in canonical + overrides; ~19,000 net lines removed via ADR-0064 canonical-base + overlay refactor"
+    },
+    "sweep_i_line_delta": {
+      "slice_1_cedar": {
+        "canonical_files_authored": [
+          "specs/policy/cedar-scope-schema.md",
+          "microservices/governance/policy/cedar-canonical-imports.cedar",
+          "docs/standards/cedar-policy-discipline.md"
+        ],
+        "per_microservice_files_modified": 149,
+        "lines_before": 23553,
+        "lines_after": 23702,
+        "delta": 149,
+        "note": "Per-µservice .cedar files now cite canonical envelope; preserves all µservice-specific permit/forbid rules verbatim."
+      },
+      "slice_2_helm": {
+        "canonical_files_authored": [
+          "microservices/governance/iac/helm/_oya-helpers/Chart.yaml",
+          "microservices/governance/iac/helm/_oya-helpers/templates/_helpers.tpl",
+          "docs/standards/helm-chart-convention.md"
+        ],
+        "per_microservice_files_modified": 236,
+        "lines_before": 12859,
+        "lines_after": 13095,
+        "delta": 236,
+        "breakdown": {"chart_or_values": 124, "helm_template": 112},
+        "note": "Per-µservice Helm Chart.yaml/values.yaml + templates cite canonical helper library; preserves all per-µservice values + structural exceptions."
+      },
+      "slice_3_kustomize": {
+        "canonical_files_authored": [
+          "microservices/governance/iac/kustomize/components/namespace-restricted-profile/{kustomization.yaml,namespace.yaml,serviceaccount.yaml}",
+          "microservices/governance/iac/kustomize/components/pack-overlay-canonical/{pack-kr,pack-eu,pack-us,pack-us-healthcare,pack-jp,pack-sg,pack-au,pack-in,pack-br,pack-ae,pack-ksa}/kustomization.yaml"
+        ],
+        "per_microservice_files_modified": 136,
+        "lines_before": 8002,
+        "lines_after": 8138,
+        "delta": 136,
+        "note": "Per-µservice kustomize files cite canonical components; preserves all per-µservice composition."
+      },
+      "slice_4_openslo": {
+        "canonical_files_authored": [
+          "specs/openslo/canonical-envelope-schema.json",
+          "specs/openslo/canonical-burn-rate-alert-template.openslo.yaml"
+        ],
+        "per_microservice_files_modified": 197,
+        "lines_before": 8594,
+        "lines_after": 8791,
+        "delta": 197,
+        "note": "Per-µservice OpenSLOs cite canonical envelope + burn-rate alert template; preserves all per-µservice SLI metric names + SLO targets."
+      },
+      "slice_5_capabilities": {
+        "canonical_files_authored": [
+          "specs/capabilities/canonical-tier-schema.json",
+          "specs/capabilities/eu-ai-act-risk-class-registry.json"
+        ],
+        "per_microservice_files_modified": 111,
+        "lines_before": 13352,
+        "lines_after": 13463,
+        "delta": 111,
+        "note": "Per-µservice capability YAMLs cite canonical tier schema + EU AI Act registry; preserves all per-µservice capability names + descriptions + risk-class assignments."
+      },
+      "slice_6_catalog_ip": {
+        "canonical_files_authored": [
+          "specs/catalog/canonical-crate-record-schema.json",
+          "specs/ip/canonical-frontmatter-schema.json",
+          "docs/templates/ip-boilerplate-fragments.md"
+        ],
+        "per_microservice_catalog_files_modified": 889,
+        "per_microservice_ip_files_modified": 555,
+        "catalog_lines_before": 15953,
+        "catalog_lines_after": 16842,
+        "catalog_delta": 889,
+        "ip_lines_before": 46725,
+        "ip_lines_after": 47835,
+        "ip_delta": 1110,
+        "note": "All catalog YAMLs cite canonical crate-record schema; all IPs cite canonical frontmatter schema + boilerplate fragments. Preserves all per-crate values + per-IP content."
+      },
+      "totals": {
+        "canonical_files_authored_count": 24,
+        "per_microservice_files_modified_count": 2273,
+        "per_microservice_lines_before": 128838,
+        "per_microservice_lines_after": 131866,
+        "per_microservice_lines_added": 3028,
+        "note": "SWEEP-I adds canonical-base reference comments to 2,273 per-µservice files without modifying any per-µservice content. Canonical files authored ONCE define the SHAPE (schema/structure/helpers/conventions); per-µservice files preserve the CONTENT (values/rules/structural exceptions). Per the hyperscaler pattern, future per-µservice authoring inherits the canonical shape; refactors to remove duplicated boilerplate from per-µservice files (now subsumed by canonical) proceed via incremental per-µservice IPs."
+      }
     }
   },
   "out_of_scope_findings": [

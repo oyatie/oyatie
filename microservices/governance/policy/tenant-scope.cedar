@@ -4,6 +4,7 @@
 // Related: microservices/governance/policy/data-residency.md
 //          microservices/governance/threat-model.md §T-I-01
 //          ADR-0117 (data-residency); ADR-0131 (per-microservice)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 //
 // Cedar version: 3.x
 // Evaluation point: API gateway (Envoy ext_authz) on every read of

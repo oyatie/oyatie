@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 ## Ontology ClickHouse OLAP history-mirror values
 ## Cross-references microservices/ontology/policy/type-isolation.md TI-08..TI-10
 ## Cross-references microservices/ontology/capacity-model.md ClickHouse sizing

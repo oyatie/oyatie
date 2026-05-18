@@ -9,6 +9,8 @@ owner: axis-cell-substrate
 acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, asyncapi-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: AsyncAPI event surface emission (Workflow bus integration)
 
 ## Intent

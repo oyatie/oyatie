@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1]
 depends_on: [IP-007]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: connected-sheets + comments + version-history + trigger-bridge + embed-bridge — full BC crate sets
 
 ## Intent

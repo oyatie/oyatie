@@ -11,6 +11,8 @@ owner: axis-translate + ops-iac
 acceptance_lanes: [iac-helm-lint, iac-kustomize-build, iac-terraform-validate, cargo-deny, oya-governance-per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: IaC + per-pack overlays
 
 ## Intent

@@ -7,6 +7,7 @@
 // Owner:   ops-security + axis-cloud
 // Audit:   every deny emits oya_cloud_k8s_tenant_unauthorized_call_total
 // References: policy/cluster-isolation.md §"Namespace Tenancy Model" + §"Invariant CI-08"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every API call refused unless an explicit permit matches.

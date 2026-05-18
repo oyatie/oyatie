@@ -8,6 +8,8 @@ owner: axis-shorts
 depends_on: [IP-008]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: like-share-comment + repost-stitch-duet BC end-to-end
 
 ## Intent

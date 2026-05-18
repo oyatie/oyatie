@@ -11,6 +11,8 @@ owner: axis-foundry-guardrails + gtm
 acceptance_lanes: [cargo-check, cargo-nextest, npm-build, sdk-compatibility-matrix]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: SDK — Rust first-party + TypeScript via OpenAPI generator
 
 ## Intent

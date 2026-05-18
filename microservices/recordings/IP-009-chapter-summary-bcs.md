@@ -8,6 +8,8 @@ owner: axis-recordings
 acceptance_lanes: [port-location, ai-feature-bounds-attestation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: Chapter-marker BC + Summary BC + Thumbnail-pack BC
 
 ## Intent

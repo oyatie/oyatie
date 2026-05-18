@@ -1,6 +1,7 @@
 // Cedar v4.2 LTS — public-read policy for slides µservice
 // Public-read decks (link-sharing) — share-link-anyone-with-link scope.
 // Default-deny baseline preserved.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (principal, action, resource);
 

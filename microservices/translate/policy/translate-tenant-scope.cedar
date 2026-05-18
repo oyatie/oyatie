@@ -9,6 +9,7 @@
 //  - ADR-TRANSLATE-0004 (residency-bound inference)
 //  - microservices/translate/policy/data-residency.md
 //  - microservices/translate/threat-model.md (T-04, T-05, P-01, P-05)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // DEFAULT DENY — every action is refused unless an explicit PERMIT matches.

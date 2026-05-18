@@ -9,6 +9,8 @@ owner: axis-audit-chain
 acceptance_lanes: [openslo-conformance, per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Self-SLO manifests for audit-chain
 
 ## Intent

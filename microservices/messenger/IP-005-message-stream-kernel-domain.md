@@ -11,6 +11,8 @@ owner: axis-messenger
 acceptance_lanes: [cargo-nextest, oya-governance-port-location, oya-governance-statelessness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-005: message-stream kernel + domain
 
 ## Intent

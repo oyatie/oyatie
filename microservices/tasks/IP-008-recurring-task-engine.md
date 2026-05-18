@@ -11,6 +11,8 @@ owner: axis-tasks
 acceptance_lanes: [cargo-test, rrule-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: recurring-task engine — RFC 5545 RRULE subset (rrule-rs 0.13)
 
 ## Intent

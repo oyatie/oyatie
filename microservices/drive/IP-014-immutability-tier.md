@@ -10,6 +10,8 @@ owner: axis-drive + compliance + ops-security
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-worm-enforcement-multi-layer, oya-governance-worm-retention-monotonic]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: immutability-tier BC — WORM compliance-mode + legal hold + 2-person rule + periodic integrity scan
 
 ## Intent

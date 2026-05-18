@@ -11,6 +11,8 @@ owner: axis-mail + council-privacy
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, port-location, layer-correctness, oya-governance-retention-floor-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: oya-mail-retention-policy-{kernel,domain,usecase,api,adapter,worker,app}
 
 ## Intent

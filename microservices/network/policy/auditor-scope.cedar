@@ -13,6 +13,7 @@
 //            (c) audit-chain seals (hash-only)
 //            (d) bias-audit aggregates (no per-individual disclosure)
 //          Per-individual reads require four-eyes disclosure flow.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 // Owner:   ops-security + ops-compliance + council-privacy + axis-network
 
 // =============================================================================

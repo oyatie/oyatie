@@ -10,6 +10,8 @@ owner: axis-drive
 acceptance_lanes: [cargo-build, cargo-nextest, oya-check-cdc-parameters-pinned]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: sync BC — FastCDC + LBFS delta-sync + deterministic conflict tie-break
 
 ## Intent

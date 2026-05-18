@@ -11,6 +11,8 @@ owner: council-privacy + axis-foundry-evidence
 acceptance_lanes: [regulator-profile-drill, compliance-claims-citation-check]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: Regulator-export framework profiles (6 profiles)
 
 ## Intent

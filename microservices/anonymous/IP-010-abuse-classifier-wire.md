@@ -10,6 +10,8 @@ owner: axis-anonymous + axis-foundry-runtime
 acceptance_lanes: [cargo-check, cargo-test, oya-governance-ai-assessed-label-present]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: Abuse-classifier wire (foundry-runtime T1 adapter)
 
 ## Intent

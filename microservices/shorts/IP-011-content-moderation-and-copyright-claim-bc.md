@@ -9,6 +9,8 @@ depends_on: [IP-004]
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-eu-ai-act-conformance, oya-governance-eu-dsa-conformance, oya-governance-dmca-safe-harbor-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: content-moderation + copyright-claim BC end-to-end
 
 ## Intent

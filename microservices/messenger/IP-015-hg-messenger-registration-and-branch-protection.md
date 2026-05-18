@@ -11,6 +11,8 @@ owner: axis-messenger + ops-governance
 acceptance_lanes: [oya-governance-authority-cohesion, oya-governance-hyperscaler-maturity-claims, branch-protection-validate]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-MESSENGER registration + branch protection wiring
 
 ## Intent

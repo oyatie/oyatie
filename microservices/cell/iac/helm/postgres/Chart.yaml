@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: oya-cell-postgres
 description: HA Postgres for cell-registry per pack (CloudNativePG operator + RLS-enabled schema). Per Bominal ADR-0019 + cell-boundary.md TI-01.

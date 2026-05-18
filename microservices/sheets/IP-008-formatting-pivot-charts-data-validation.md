@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1]
 depends_on: [IP-003, IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: formatting + pivot-tables + charts + data-validation — kernel + domain + usecase + api + adapter (custom Leptos canvas chart renderer)
 
 ## Intent

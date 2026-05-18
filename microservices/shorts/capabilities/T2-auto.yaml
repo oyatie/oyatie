@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 id: cap:shorts:t2-auto:v1
 name: content-moderation-auto-actions-and-feed-ranking-and-monetization-stub
 namespace: shorts

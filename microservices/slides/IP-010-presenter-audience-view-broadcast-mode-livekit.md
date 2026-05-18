@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, broadcast-livekit-types-not-leake
 depends_on: [IP-006]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: presenter-view + audience-view + broadcast-mode (LiveKit reuse via messenger)
 
 ## Intent

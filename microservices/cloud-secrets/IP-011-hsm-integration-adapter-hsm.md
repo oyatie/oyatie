@@ -9,6 +9,8 @@ owner: axis-cloud-secrets + ops-security
 acceptance_lanes: [hsm-pkcs11-smoke]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: hsm-integration adapter-hsm
 
 ## Intent

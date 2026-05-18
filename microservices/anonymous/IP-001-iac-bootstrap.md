@@ -11,6 +11,8 @@ owner: axis-anonymous + ops-platform
 acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microservice-layout, oya-governance-iac-conformance, oya-governance-version-pinning-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: IaC Bootstrap (Helm + Kustomize + per-pack overlays)
 
 ## Intent

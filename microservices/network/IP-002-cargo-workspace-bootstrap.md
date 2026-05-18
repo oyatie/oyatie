@@ -11,6 +11,8 @@ owner: axis-network
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-bnf-v4-1, oya-governance-per-microservice-layout, oya-governance-port-location, oya-governance-layer-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Cargo workspace bootstrap — ~165 crate scaffolds per BNF v4.1 + ADR-0131 flat layout
 
 ## Intent

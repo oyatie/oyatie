@@ -8,6 +8,8 @@ owner: ops-compliance + axis-recordings + ops-security
 acceptance_lanes: [audit-chain-integrity, ediscovery-merkle-seal]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: Export BC + eDiscovery BC (chain-of-custody Merkle seal)
 
 ## Intent

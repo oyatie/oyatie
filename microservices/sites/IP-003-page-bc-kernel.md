@@ -10,6 +10,8 @@ owner: axis-sites
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-layer-correctness, oya-governance-port-location]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: page BC — kernel + domain + usecase + api + adapter-postgres + rest + worker + sdk + app
 
 ## Intent

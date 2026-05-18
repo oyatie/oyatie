@@ -7,6 +7,7 @@
 //          read real tenant credentials or invocation history.
 // Owner:   axis-foundry + ops-security
 // Audit:   CI principal access emits CiRead event
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny.

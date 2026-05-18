@@ -11,6 +11,8 @@ owner: ops-sre-reliability
 acceptance_lanes: [cargo-check, cargo-build, runbook-index, runbook-freshness, authority-cohesion]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: Finalize 6 runbooks + Helm charts + Kustomize overlays + HG-GOV registration
 
 ## Intent

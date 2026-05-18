@@ -11,6 +11,8 @@ owner: axis-mail
 acceptance_lanes: [oya-governance-authority-cohesion, oya-governance-hyperscaler-maturity-claims, oya-governance-per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: HG-MAIL registration + authority-cohesion + branch-protection
 
 ## Intent

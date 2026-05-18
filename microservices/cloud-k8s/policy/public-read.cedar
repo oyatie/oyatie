@@ -6,6 +6,7 @@
 //          else is denied by default (per Cedar deny-overrides semantics).
 // Owner:   axis-cloud + ops-security
 // References: policy/cluster-isolation.md §"Invariant CI-08"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

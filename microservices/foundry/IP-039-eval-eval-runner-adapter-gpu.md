@@ -10,6 +10,8 @@ owner: axis-foundry + ops-sre-reliability
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a1, layer-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: oya-foundry-eval-eval-runner-adapter-gpu
 
 ## Intent

@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a
 depends_on: [IP-002, IP-003, IP-007]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: kill-switch state model + engage/disengage primitives
 
 ## Intent

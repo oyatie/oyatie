@@ -11,6 +11,8 @@ owner: axis-tasks + ops-platform-engineering
 acceptance_lanes: [hg-registration, branch-protection, oya-governance-microservice-registration, slo-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-tasks conformance — registration + branch protection + SLO coverage gates
 
 ## Intent

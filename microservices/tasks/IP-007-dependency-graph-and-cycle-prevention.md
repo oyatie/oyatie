@@ -11,6 +11,8 @@ owner: axis-tasks
 acceptance_lanes: [cargo-test, dependency-graph-cycle-prevention]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: dependency-graph BC + cycle prevention at write time
 
 ## Intent

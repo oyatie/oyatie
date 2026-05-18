@@ -1,6 +1,7 @@
 // Cedar v4.2 LTS — tenant-scope policy for slides µservice
 // Default-deny baseline. Per ADR-0140 + ADR-SLIDES-0007 per-slide ACL granularity.
 // Effective: deck access, slide access, named-block access, share-link access, broadcast.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // ============================================================================
 // Forbid: default-deny baseline

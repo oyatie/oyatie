@@ -11,6 +11,8 @@ owner: axis-meet + axis-foundry-runtime
 acceptance_lanes: [cargo-nextest, transcription-quality, oya-governance-gpu-node-selector]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: transcription pipeline (Whisper streaming + batch + Meilisearch)
 
 ## Intent

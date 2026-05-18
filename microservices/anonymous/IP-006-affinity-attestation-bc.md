@@ -10,6 +10,8 @@ owner: axis-anonymous + ops-security
 acceptance_lanes: [cargo-check, cargo-test, oya-governance-k-anonymity-floor, oya-governance-identity-attribute-discard]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: Affinity-attestation BC end-to-end (OIDC + SAML + ZK-proof)
 
 ## Intent

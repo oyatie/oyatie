@@ -10,6 +10,8 @@ acceptance_lanes: [oya-check-openslo-conformance, oya-foundry-supervisor-canary-
 depends_on: [IP-011]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: Supervisor self-SLOs (kill-switch, deployment, supervision-bus, autonomy)
 
 ## Intent

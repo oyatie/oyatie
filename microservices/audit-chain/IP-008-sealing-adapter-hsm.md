@@ -6,6 +6,8 @@ owner: cloud-secrets + axis-audit-chain
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, layer-correctness, audit-chain-hsm-iam-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: oya-audit-chain-sealing-adapter-hsm
 
 ## Intent

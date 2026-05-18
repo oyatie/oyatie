@@ -9,6 +9,8 @@ depends_on: [IP-002]
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-pack-aware-age-gate]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: age-gate + parental-controls BC end-to-end
 
 ## Intent

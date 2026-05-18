@@ -11,6 +11,8 @@ owner: axis-foundry
 acceptance_lanes: [cargo-nextest, lean-a1]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: oya-vcs-promotion-readiness CI lane (BLOCKER)
 
 ## Intent

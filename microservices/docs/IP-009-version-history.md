@@ -10,6 +10,8 @@ owner: axis-docs
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-merkle-chain-continuity]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: version-history BC (8 crates)
 
 ## Intent

@@ -9,6 +9,8 @@ owner: axis-cloud-secrets
 acceptance_lanes: [cargo-test, lean-a1]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: oya-cloud-secrets-secret-reference-resolver-domain
 
 ## Intent

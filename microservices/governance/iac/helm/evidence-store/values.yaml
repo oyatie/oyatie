@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 # Evidence-store values (OCI Object Storage; S3-compatible)
 # Per microservices/governance/policy/data-residency.md per-pack overlay
 # Per microservices/governance/threat-model.md §T-I-02

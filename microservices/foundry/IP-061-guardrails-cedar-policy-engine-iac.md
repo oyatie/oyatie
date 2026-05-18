@@ -11,6 +11,8 @@ owner: axis-foundry-guardrails
 acceptance_lanes: [cargo-check, helm-lint, kubectl-apply-dry-run, cedar-default-deny-enforced, oya-governance-per-microservice-layout, oya-governance-version-pinning-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Cedar v4 policy engine + bundle IaC
 
 ## Intent

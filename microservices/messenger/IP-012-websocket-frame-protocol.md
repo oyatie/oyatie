@@ -11,6 +11,8 @@ owner: axis-messenger
 acceptance_lanes: [cargo-nextest, ws-fuzz, asyncapi-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: WebSocket frame protocol + AsyncAPI 3.1.0 conformance
 
 ## Intent

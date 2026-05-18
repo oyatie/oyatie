@@ -2,6 +2,7 @@
 // Cedar v4.2; covers share-link access by unauthenticated readers.
 //
 // Purpose: permit anonymous reads on valid share-link tokens; refuse all else.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

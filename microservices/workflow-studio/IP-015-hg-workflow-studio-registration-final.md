@@ -12,6 +12,8 @@ acceptance_lanes: [oya-governance-hyperscaler-maturity-claims, oya-governance-au
 depends_on: [IP-014]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-WORKFLOW-STUDIO final registration + competitor-parity evidence pinning + Studio launch verification
 
 ## Intent

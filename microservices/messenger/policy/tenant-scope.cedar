@@ -5,6 +5,7 @@
 // Owner:   ops-security + axis-messenger
 // Audit:   every deny emits oya_messenger_tenant_unauthorized_attempt_total
 // References: dual-context-isolation.md, tenant-isolation conventions in observability
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

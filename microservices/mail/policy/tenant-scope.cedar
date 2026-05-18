@@ -6,6 +6,7 @@
 // Owner:   ops-security + axis-mail + council-privacy
 // Audit:   every deny emits mail_unauthorized_read_attempt_total or mail_cross_context_routing_refused_total
 // References: dual-context-isolation.md §"Invariants" + threat-model.md T-I-01, T-I-02, T-E-05
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every read/write is refused unless an explicit permit matches.

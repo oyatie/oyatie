@@ -9,6 +9,8 @@ owner: axis-cell-substrate + axis-observability
 acceptance_lanes: [oya-check-openslo-conformance, oya-vcs-promotion-readiness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: OpenSLO manifests for cell µservice
 
 ## Intent

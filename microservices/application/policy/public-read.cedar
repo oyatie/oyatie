@@ -5,6 +5,7 @@
 //          (Leptos WASM bundle, CSS, fonts, login page, status page).
 // Owner:   ops-security + gtm-marketing
 // References: threat-model.md (Anonymous browser actor); route-isolation.md (global-public category)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

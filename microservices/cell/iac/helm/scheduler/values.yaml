@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 # oya-cell-scheduler-app + worker deployment
 # Per capacity-model.md §"Cell-Substrate Operator Pod Sizing"
 

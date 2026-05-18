@@ -10,6 +10,8 @@ owner: axis-sites + axis-observability + ops-sre-reliability
 acceptance_lanes: [grafana-dashboard-lint, openslo-lint, runbook-completeness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: dashboards + runbooks + OpenSLO manifests
 
 ## Intent

@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
 # Kustomize overlay — pack-us-healthcare (HIPAA appointment-data overlay).
 # Per ADR-0131 + ADR-0133 (11-pack-overlay program) + ADR-CAL-0001
 # (this overlay is THE pack that enables the SabreDAV CalDAV backend per

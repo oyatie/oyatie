@@ -5,6 +5,7 @@
 // Owner: ops-security + council-architecture
 // Status: Accepted (2026-05-17)
 // Related: ADR-0140, policy/tenant-scope.cedar
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================
 // DEFAULT: auditor principals are read-only.

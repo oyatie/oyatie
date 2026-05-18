@@ -11,6 +11,8 @@ owner: axis-foundry-runtime + council-architecture
 acceptance_lanes: [authority-cohesion, hyperscaler-maturity-claims]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: Register HG-FR in /specs/hyperscaler-gates.json (ADR-0123)
 
 ## Intent

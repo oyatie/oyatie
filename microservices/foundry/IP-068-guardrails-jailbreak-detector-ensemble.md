@@ -11,6 +11,8 @@ owner: axis-foundry-guardrails
 acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, port-location, data-class, classifier-model-cosign-signed]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: jailbreak-detector ensemble (heuristic + classifier + LLM-judge)
 
 ## Intent

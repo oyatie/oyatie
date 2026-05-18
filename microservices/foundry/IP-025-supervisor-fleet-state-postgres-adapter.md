@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, oya-ch
 depends_on: [IP-001, IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: fleet-state Postgres adapter (with RLS + tenant sharding)
 
 ## Intent

@@ -1,5 +1,6 @@
 // community µservice — ci-scope policy fragment
 // Scope: CI agents may read non-tenant data (schemas, types, indexes) only.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

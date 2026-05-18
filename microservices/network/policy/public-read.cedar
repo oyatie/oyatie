@@ -13,6 +13,7 @@
 //                + public Pages + public Events + public Skills taxonomy
 //          network does NOT federate in P01, so there is no federation-inbox
 //          permit (cf. social policy/public-read.cedar §PERMIT 5).
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 // Owner:   ops-security + gtm-marketing + axis-network
 
 // =============================================================================

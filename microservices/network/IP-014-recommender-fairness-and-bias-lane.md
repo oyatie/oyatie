@@ -11,6 +11,8 @@ owner: axis-network + axis-foundry-runtime + council-privacy + ops-compliance
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-eu-ai-act-employment-conformance, oya-governance-bias-audit-recency]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Recommender fairness + bias audit + EU AI Act employment conformance lane
 
 ## Intent

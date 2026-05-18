@@ -5,6 +5,7 @@
 //          governance reads; forbid customer-tenant Object Type reads.
 // Owner:   axis-foundry + axis-ontology + ops-security
 // References: type-isolation.md §"Reserved principals"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

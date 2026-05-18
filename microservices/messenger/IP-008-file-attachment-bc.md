@@ -11,6 +11,8 @@ owner: axis-messenger + ops-security
 acceptance_lanes: [cargo-nextest, malware-scan-smoke]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: file-attachment BC (S3 multipart + OPSWAT + preview)
 
 ## Intent

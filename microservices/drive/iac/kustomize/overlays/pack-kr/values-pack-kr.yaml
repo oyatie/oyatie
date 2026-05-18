@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
 # pack-kr overlay for oya-drive Helm chart.
 # Pack-specific values:
 # - Residency: ap-seoul-1

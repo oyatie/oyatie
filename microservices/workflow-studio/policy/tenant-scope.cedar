@@ -7,6 +7,7 @@
 // Owner:   ops-security + axis-workflow
 // Audit:   every deny emits oya_workflow_studio_unauthorized_attempt_total
 // References: threat-model.md §"T-I-01" (cross-tenant editor session) + §"T-I-04" (cross-definition collab)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every action refused unless explicit permit matches.

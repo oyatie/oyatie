@@ -11,6 +11,8 @@ owner: axis-tasks
 acceptance_lanes: [cargo-test, layer-correctness, port-location, task-state-machine-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: task-store kernel + domain — entities, ports, invariants
 
 ## Intent

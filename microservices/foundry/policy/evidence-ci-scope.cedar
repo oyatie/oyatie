@@ -4,6 +4,7 @@
 // Purpose: scope what CI lanes are permitted to do against foundry-evidence.
 // Owner:   ops-security + axis-governance
 // Audit:   every deny emits oya_foundry_evidence_ci_denied_total
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

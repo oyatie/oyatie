@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness]
 depends_on: [IP-003]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: dsl-emitter + dsl-loader — usecase + api + adapter + sdk
 
 ## Intent

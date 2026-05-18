@@ -10,6 +10,8 @@ owner: axis-drive + ops-security
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-preview-sandbox-conformance, cis-k8s]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: preview BC — libvips + qpdf + LibreOffice-gVisor + ffmpeg sandbox
 
 ## Intent

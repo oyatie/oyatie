@@ -10,6 +10,8 @@ owner: axis-drive
 acceptance_lanes: [cargo-build, cargo-nextest, s3-sigv4-conformance, tus-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: upload BC — multipart resumable + S3 + tus 1.0
 
 ## Intent

@@ -11,6 +11,8 @@ owner: axis-network
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-port-location, oya-governance-statelessness, oya-governance-professional-context-isolation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: professional-graph + connection-request BCs end-to-end
 
 ## Intent

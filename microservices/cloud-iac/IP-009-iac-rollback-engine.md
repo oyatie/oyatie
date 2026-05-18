@@ -11,6 +11,8 @@ owner: axis-cloud-iac
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: oya-cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter}
 
 ## Intent

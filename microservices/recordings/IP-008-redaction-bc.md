@@ -8,6 +8,8 @@ owner: council-privacy + axis-recordings
 acceptance_lanes: [port-location, recordings-redaction-overlay-immutability]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: Redaction BC — overlay model (no source mutation)
 
 ## Intent

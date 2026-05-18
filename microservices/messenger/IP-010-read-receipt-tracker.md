@@ -11,6 +11,8 @@ owner: axis-messenger
 acceptance_lanes: [cargo-nextest, read-receipt-coalesce-smoke]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: read-receipt-tracker BC (Redis + coalesced fanout)
 
 ## Intent

@@ -1,5 +1,6 @@
 // community µservice — auditor-scope policy fragment
 // Scope: per-tenant auditor (SOC 2 / ISO / GDPR DPA / KR PIPC).
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 // Read-only; bound to a single tenant_id; cannot mutate.
 
 forbid (

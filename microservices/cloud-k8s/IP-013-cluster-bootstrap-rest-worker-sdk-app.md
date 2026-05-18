@@ -9,6 +9,8 @@ owner: axis-cloud
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-governance-per-microservice-layout]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: oya-cloud-k8s-cluster-bootstrap-{rest,worker,sdk,app} + remaining per-BC -rest/-worker/-app wiring
 
 ## Intent

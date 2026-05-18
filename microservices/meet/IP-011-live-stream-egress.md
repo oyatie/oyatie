@@ -11,6 +11,8 @@ owner: axis-meet + ops-security
 acceptance_lanes: [cargo-nextest, rtmp-smoke, oya-governance-egress-allow-list]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: live-stream egress (RTMP to YouTube/Twitch/Vimeo + WHIP fallback)
 
 ## Intent

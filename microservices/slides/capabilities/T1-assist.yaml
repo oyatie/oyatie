@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 # Capability T1 — Assist tier
 # Foundry-runtime gated; per-invocation risk-class evaluation + audit.
 # Per ADR-SLIDES-0006 + EU AI Act Art. 13 transparency + Art. 14 human oversight.

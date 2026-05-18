@@ -11,6 +11,8 @@ owner: axis-foundry-evidence
 acceptance_lanes: [cargo-clippy, cargo-doc, lean-layer-correctness, integration-tests, load-drill-record-invocation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: Capability-invocation-recorder REST stack
 
 ## Intent

@@ -8,6 +8,8 @@ owner: axis-notes
 acceptance_lanes: [cargo-check, cargo-test, oya-governance-port-location, meilisearch-version-pin]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: search-index + graph-view-data
 
 ## Intent

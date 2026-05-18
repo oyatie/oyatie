@@ -9,6 +9,8 @@ owner: axis-tenancy + ops-security
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-rls-no-superuser-bypass, oya-governance-rls-force-on-tenant-tables]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: Isolation-policy RLS generator + enforcement
 
 ## Intent

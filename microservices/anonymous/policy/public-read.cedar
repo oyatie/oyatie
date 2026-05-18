@@ -12,6 +12,7 @@
 //            tagged as PUBLIC_TENANT_DISCLOSURE
 //          - The age-gate refusal page (a Section 230 / COPPA disclosure)
 // Owner:   axis-anonymous + gtm + council-privacy
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

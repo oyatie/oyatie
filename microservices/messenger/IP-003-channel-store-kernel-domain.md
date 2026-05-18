@@ -11,6 +11,8 @@ owner: axis-messenger
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-port-location, oya-governance-layer-correctness, oya-governance-dual-context-isolation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: channel-store kernel + domain
 
 ## Intent

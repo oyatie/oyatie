@@ -11,6 +11,8 @@ owner: cloud-secrets + axis-audit-chain
 acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microservice-layout, oya-governance-version-pinning-conformance, oya-governance-cross-pack-replication-forbidden]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Storage backend IaC (Postgres + S3 WORM + HSM operator)
 
 ## Intent

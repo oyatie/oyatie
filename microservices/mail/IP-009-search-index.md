@@ -11,6 +11,8 @@ owner: axis-mail
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, port-location, layer-correctness, oya-governance-search-index-context-partition, oya-governance-encrypted-token-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: oya-mail-search-index-{kernel,domain,usecase,api,adapter,adapter-search-index,worker,sdk,app}
 
 ## Intent

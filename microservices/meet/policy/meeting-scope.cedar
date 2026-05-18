@@ -5,6 +5,7 @@
 //          consent gate + E2E-mode recording-forbid + cross-tenant deny.
 // Owner:   axis-meet + ops-security + council-privacy
 // Audit:   every deny emits oya_meet_cedar_decision_total{decision="deny"}
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny (defence-in-depth FORBID)

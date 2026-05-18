@@ -9,6 +9,8 @@ owner: axis-forms
 acceptance_lanes: [cargo-test, cargo-fmt, cargo-clippy, oya-governance-canonical-form-byte-equality, oya-governance-form-schema-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Form / Field / Section / Response domain kernel
 
 ## Intent

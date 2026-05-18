@@ -8,6 +8,8 @@ owner: axis-recordings + ops-sre-reliability
 acceptance_lanes: [port-location, layer-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-005: Media-segment BC — HLS multi-bitrate + CMAF segmentation (ffmpeg gVisor)
 
 ## Intent

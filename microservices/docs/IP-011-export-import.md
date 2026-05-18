@@ -10,6 +10,8 @@ owner: axis-docs + ops-security
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-export-sandbox-conformance, oya-governance-ooxml-import-fidelity, oya-governance-pdfa-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: export-import BC (11 crates) — Pandoc + WeasyPrint + Chromium inside gVisor sandbox
 
 ## Intent

@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1]
 depends_on: [IP-001, IP-004]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: large-sheet-storage — postgres + Arrow/Parquet hybrid substrate (per ADR-SHEETS-0003)
 
 ## Intent

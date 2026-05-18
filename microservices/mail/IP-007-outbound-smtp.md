@@ -11,6 +11,8 @@ owner: axis-mail + ops-deliverability
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, oya-governance-dkim-key-rotation-conformance, oya-governance-mta-sts-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: oya-mail-outbound-smtp-{kernel,domain,usecase,api,adapter,adapter-smtp,worker,app}
 
 ## Intent

@@ -10,6 +10,8 @@ owner: axis-docs
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-embed-resolver-acl-passthrough]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: embed-resolver BC (8 crates)
 
 ## Intent

@@ -5,6 +5,7 @@
 //          read access to Application Shell audit + policy + evidence surfaces.
 // Owner:   council-privacy + ops-security
 // References: route-isolation.md; threat-model.md (external auditor actor)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

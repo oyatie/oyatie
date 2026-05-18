@@ -5,6 +5,7 @@
 //          against the Application Shell control plane during gate execution.
 // Owner:   axis-foundry + ops-security
 // References: route-isolation.md §"Lane Enforcement"; threat-model.md (CI runner actor)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

@@ -9,6 +9,8 @@ owner: ops-sre-reliability
 acceptance_lanes: [helm-lint, helm-install-smoke, oya-check-redis-acl-enforced]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: Redis Cluster Layer-A IaC
 
 ## Intent

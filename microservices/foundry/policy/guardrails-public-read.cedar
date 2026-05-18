@@ -6,6 +6,7 @@
 //          validation, public health probes, and competitive-parity-matrix
 //          aggregates (DP-noise-protected for cross-tenant aggregates).
 // Owner: axis-foundry-guardrails + ops-security
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

@@ -6,6 +6,7 @@
 //          aggregated leaderboard, the public OpenSLO schema-validation endpoint).
 // Owner:   ops-security + gtm-marketing
 // References: threat-model.md T-I-05; dpia.md §"Cross-tenant aggregations"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

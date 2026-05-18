@@ -11,6 +11,8 @@ owner: axis-mail + ops-legal
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, oya-governance-ediscovery-chain-of-custody]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: eDiscovery export bundle format + chain-of-custody verifier
 
 ## Intent

@@ -6,6 +6,7 @@
 //          an engagement is active.
 // Owner:   ops-security + council-privacy + ops-compliance
 // References: threat-model.md T-S-05, T-I-05; type-isolation.md §"Audit Trail"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

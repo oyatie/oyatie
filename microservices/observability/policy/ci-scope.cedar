@@ -5,6 +5,7 @@
 //          forbid reads of customer-tenant per-series data.
 // Owner:   axis-foundry + axis-observability + ops-security
 // References: tenant-isolation.md §"Reserved tenant IDs", §"Invariant TI-06"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

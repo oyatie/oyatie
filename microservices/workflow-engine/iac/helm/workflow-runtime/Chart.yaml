@@ -1,3 +1,4 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: oya-workflow-engine-runtime
 description: workflow-engine runtime — engine workers + REST + outbox-relay + spec-store + replay-debugger-backend deployments per ADR-0131

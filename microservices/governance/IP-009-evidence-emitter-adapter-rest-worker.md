@@ -11,6 +11,8 @@ owner: ops-security
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, openapi-rest-route-parity]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: oya-governance-evidence-emitter-{usecase,adapter,rest,worker,sdk,app}
 
 ## Intent

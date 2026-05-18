@@ -11,6 +11,8 @@ owner: axis-meet + ops-security + council-privacy
 acceptance_lanes: [cedar-policy-lint, oya-governance-cedar-coverage, oya-governance-pack-residency]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: Cedar policies + data residency
 
 ## Intent

@@ -9,6 +9,8 @@ owner: axis-tenancy
 acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness, oya-governance-tenant-context-setlocal-present]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-005: oya-tenancy-tenant-lifecycle-adapter-postgres
 
 ## Intent

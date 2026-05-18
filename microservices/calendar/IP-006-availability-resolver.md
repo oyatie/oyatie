@@ -11,6 +11,8 @@ owner: axis-calendar
 acceptance_lanes: [cargo-nextest, oya-governance-layer-correctness, oya-governance-dual-context-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: availability-resolver — kernel + domain + usecase + adapter-redis + rest
 
 ## Intent

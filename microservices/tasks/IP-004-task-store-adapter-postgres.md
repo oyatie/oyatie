@@ -11,6 +11,8 @@ owner: axis-tasks
 acceptance_lanes: [cargo-test, oya-governance-amendment-3-backend-qualified-adapter, encryption-at-rest]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: task-store adapter — Postgres 16 LTS with RLS + tenant-DEK
 
 ## Intent

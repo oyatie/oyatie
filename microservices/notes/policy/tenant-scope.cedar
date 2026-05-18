@@ -5,6 +5,7 @@
 // Owner:   ops-security + axis-notes
 // Audit:   every deny emits oya_notes_tenant_unauthorized_attempt_total
 // References: dual-context-isolation.md; ADR-NOTES-0001; ADR-NOTES-0005
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

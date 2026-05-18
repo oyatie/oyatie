@@ -11,6 +11,8 @@ owner: axis-foundry-guardrails + ops-sre-reliability
 acceptance_lanes: [helm-lint, kubectl-apply-dry-run, rule-store-migrations-up-to-date, oya-governance-version-pinning-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: Postgres rule-store IaC + migrations
 
 ## Intent

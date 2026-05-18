@@ -8,6 +8,8 @@ owner: axis-notes + council-privacy
 acceptance_lanes: [cargo-check, cargo-test, oya-governance-port-location, openmls-version-pin]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: e2e-key-management (openmls 0.6) + recovery seed UX
 
 ## Intent

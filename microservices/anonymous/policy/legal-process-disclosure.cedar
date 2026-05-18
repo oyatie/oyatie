@@ -13,6 +13,7 @@
 //   - ADR-ANON-0003 (legal-process workflow)
 //   - PRD-anonymous I7 invariant
 //   - ECPA / SCA §§2510-2523, 2701-2712 (US)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 //   - UK Investigatory Powers Act 2016 §§70-71
 //   - KR 통신비밀보호법 Art. 9 (and Art. 9-2 gag-order doctrine)
 //   - EU DSA Art. 27 (transparency-report inclusion)

@@ -6,6 +6,7 @@
 //          NEVER write verdicts directly (worker-only via SPIFFE).
 // Owner:   ops-security + axis-foundry
 // Audit:   every deny emits oya_foundry_eval_ci_unauthorized_attempt_total
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny.

@@ -6,6 +6,7 @@
 // Owner:   council-privacy
 // Audit:   every export-issuance audit-emitted
 // References: threat-model.md T-E-04, T-S-03, T-I-06; PRD.md FR-06.
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

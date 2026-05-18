@@ -8,6 +8,7 @@
 // Owner:   ops-security + axis-sheets
 // Audit:   every deny emits oya_sheets_unauthorized_attempt_total
 // References: threat-model.md §"T-I-01" + §"T-I-04" + §"T-T-07" (per-range ACL)
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny.

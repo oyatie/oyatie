@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, helm-lint, oya-governance-wasm-bu
 depends_on: [IP-007, IP-009, IP-010, IP-011]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-012: visual-canvas — usecase + api + adapter + adapter-leptos-wasm + rest + sdk + app
 
 ## Intent

@@ -10,6 +10,8 @@ owner: axis-drive + ops-security
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-share-link-signing-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-009: share-link BC — Ed25519 + Argon2id + strict-TTL + view-cap + revocation cascade
 
 ## Intent

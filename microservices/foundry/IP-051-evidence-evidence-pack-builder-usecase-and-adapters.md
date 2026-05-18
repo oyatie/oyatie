@@ -11,6 +11,8 @@ owner: axis-foundry-evidence
 acceptance_lanes: [cargo-clippy, cargo-doc, lean-layer-correctness, lean-cross-microservice-import-forbidden, integration-tests]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: Evidence-pack-builder usecase + adapters + worker + app
 
 ## Intent

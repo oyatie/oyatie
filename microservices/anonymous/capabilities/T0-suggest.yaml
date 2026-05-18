@@ -1,3 +1,4 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 # T0 capability: composer suggestions (anonymous µservice)
 # Tier per ADR-0119 capability-tier enum: T0-suggest
 # Owner: axis-anonymous + axis-foundry-runtime

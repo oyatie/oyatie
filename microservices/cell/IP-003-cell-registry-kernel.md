@@ -9,6 +9,8 @@ owner: axis-cell-substrate
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, lean-a1, port-location, layer-correctness]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-003: oya-cell-cell-registry-kernel
 
 ## Intent

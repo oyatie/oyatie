@@ -7,6 +7,7 @@
 //          proof-of-erasure certificates (the load-bearing audit artifacts).
 // Owner:   ops-security + council-privacy + ops-compliance
 // References: threat-model.md T-S-05, T-L-05, T-L-10; rls-isolation.md §"Audit Trail"
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

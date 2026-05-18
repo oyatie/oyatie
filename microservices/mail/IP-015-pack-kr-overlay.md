@@ -11,6 +11,8 @@ owner: axis-mail + council-privacy + pack-kr-council
 acceptance_lanes: [oya-governance-pack-kr-overlay, oya-governance-retention-floor-conformance, oya-governance-residency-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: pack-kr overlay activation
 
 ## Intent

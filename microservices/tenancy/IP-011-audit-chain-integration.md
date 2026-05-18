@@ -9,6 +9,8 @@ owner: axis-tenancy + audit-chain
 acceptance_lanes: [cargo-nextest, audit-chain-seal-latency-sli]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: Audit-chain Ed25519 seal integration
 
 ## Intent

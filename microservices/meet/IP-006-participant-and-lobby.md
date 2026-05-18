@@ -11,6 +11,8 @@ owner: axis-meet + ops-security
 acceptance_lanes: [cargo-nextest, lobby-gate-test, oya-governance-cedar-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: participant BC + lobby/waiting-room with Cedar gate
 
 ## Intent

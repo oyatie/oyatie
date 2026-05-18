@@ -11,6 +11,8 @@ owner: axis-mail + council-privacy + ops-legal
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, port-location, layer-correctness, oya-governance-personal-pillar-hold-forbidden, oya-governance-ediscovery-chain-of-custody]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: oya-mail-legal-hold-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}
 
 ## Intent

@@ -11,6 +11,8 @@ owner: axis-observability
 acceptance_lanes: [cargo-check, cargo-build, helm-lint, kubectl-apply-dry-run, oya-governance-per-microservice-layout, oya-governance-version-pinning-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Layer-A Grafana OSS stack IaC
 
 ## Intent

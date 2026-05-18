@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, oya-governance-sheets-re
 depends_on: [IP-003]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-004: recalc-engine — kernel + domain + usecase + api + adapter + worker + sdk (dep-graph + topological + parallel-task-graph per ADR-SHEETS-0004)
 
 ## Intent

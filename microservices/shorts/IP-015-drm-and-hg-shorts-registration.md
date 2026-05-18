@@ -9,6 +9,8 @@ depends_on: [IP-005, IP-014]
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-authority-cohesion, oya-governance-hyperscaler-maturity-claims, oya-governance-version-pinning-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: drm-stub BC end-to-end + HG-SHORTS hyperscaler-grade conformance gate registration + branch-protection wiring
 
 ## Intent

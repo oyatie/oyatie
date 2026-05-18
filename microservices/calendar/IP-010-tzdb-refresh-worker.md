@@ -11,6 +11,8 @@ owner: axis-calendar + ops-sre-reliability
 acceptance_lanes: [cargo-nextest, oya-governance-tzdb-staleness-bound, kubectl-apply-dry-run]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-010: tzdb-refresh-worker — CronJob per ADR-CAL-0004
 
 ## Intent

@@ -8,6 +8,7 @@
 // Owner:   ops-security + council-privacy + ops-legal
 // Audit:   every auditor read emits mail_auditor_read_total + audit-chain seal-of-audit
 // References: threat-model.md T-S-05 + dpia.md R-16
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 forbid (
   principal,

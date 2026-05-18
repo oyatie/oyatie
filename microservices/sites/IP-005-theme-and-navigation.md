@@ -10,6 +10,8 @@ owner: axis-sites
 acceptance_lanes: [cargo-build, cargo-nextest, oya-governance-layer-correctness, oya-governance-wcag-2-2-aa-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-005: theme + navigation BCs
 
 ## Intent

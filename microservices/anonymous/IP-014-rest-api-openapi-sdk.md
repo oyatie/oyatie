@@ -10,6 +10,8 @@ owner: axis-anonymous
 acceptance_lanes: [cargo-check, openapi-lint, sdk-build, contract-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-014: REST API surface + OpenAPI 3.2.0 contract + SDK generation
 
 ## Intent

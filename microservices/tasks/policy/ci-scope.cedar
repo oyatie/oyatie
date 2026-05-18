@@ -5,6 +5,7 @@
 // Owner: ops-security
 // Status: Accepted (2026-05-17)
 // Related: ADR-0130 (SLO-gated promotion), ADR-0140
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================
 // DEFAULT POSTURE: CI principal has NO access to live tenant data.

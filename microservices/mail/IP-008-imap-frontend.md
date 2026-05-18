@@ -11,6 +11,8 @@ owner: axis-mail
 acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, port-location, layer-correctness, statelessness, oya-governance-jmap-conformance, oya-governance-imap-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-008: oya-mail-imap-frontend-{kernel,domain,usecase,api,adapter,rest,worker,app}
 
 ## Intent

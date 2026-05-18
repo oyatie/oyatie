@@ -12,6 +12,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, ws-load-test]
 depends_on: [IP-005]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-006: real-time-collaboration worker + SDK
 
 ## Intent

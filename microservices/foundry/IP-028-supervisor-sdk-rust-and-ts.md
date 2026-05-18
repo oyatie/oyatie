@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, npm-bu
 depends_on: [IP-011]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: SDK (Rust first-party + TypeScript generated)
 
 ## Intent

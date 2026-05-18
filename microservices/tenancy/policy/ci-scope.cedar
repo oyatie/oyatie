@@ -5,6 +5,7 @@
 //          forbid reads or writes against customer-tenant data.
 // Owner:   axis-foundry + axis-tenancy + ops-security
 // References: rls-isolation.md §"Reserved tenant IDs"; threat-model.md T-S-03, T-I-03
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny

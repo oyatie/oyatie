@@ -11,6 +11,8 @@ owner: axis-foundry-guardrails
 acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, openapi-conformance, grpc-conformance]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: REST + gRPC surface (one `-rest` crate per BC; consolidated OpenAPI + proto)
 
 ## Intent

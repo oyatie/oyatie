@@ -5,6 +5,7 @@
 // Related: microservices/governance/dpia.md §3 Right of Access §"External auditor"
 //          microservices/governance/runbooks/evidence-replay.md
 //          microservices/governance/threat-model.md §P-D-02
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // PERMITS

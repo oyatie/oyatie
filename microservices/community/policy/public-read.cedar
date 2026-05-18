@@ -1,5 +1,6 @@
 // community µservice — public-read policy fragment
 // Scope: anonymous read for spaces explicitly marked publication_visibility == "public".
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 // Tenant must opt-in per-space; default is "private" (tenant members only).
 
 forbid (

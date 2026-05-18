@@ -11,6 +11,8 @@ owner: axis-foundry + axis-cloud-iac
 acceptance_lanes: [oya-governance-authority-cohesion, oya-governance-hyperscaler-maturity-claims, oya-cloud-iac-iac-smoke]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-CLOUD-IAC gate registration + bootstrap-paradox resolution
 
 ## Intent

@@ -22,6 +22,8 @@ related_artifacts:
 doc_status: published
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Ontology IaC stack
 
 ## Intent

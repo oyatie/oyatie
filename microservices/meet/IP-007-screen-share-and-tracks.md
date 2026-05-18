@@ -11,6 +11,8 @@ owner: axis-meet
 acceptance_lanes: [cargo-nextest, screen-share-smoke]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-007: audio + video + screen-share track lifecycle
 
 ## Intent

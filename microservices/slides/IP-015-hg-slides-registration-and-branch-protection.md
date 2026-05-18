@@ -12,6 +12,8 @@ acceptance_lanes: [authority-cohesion, hg-slides-green]
 depends_on: [IP-014]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: HG-SLIDES registration + branch protection + competitor-parity-matrix evidence pinning
 
 ## Intent

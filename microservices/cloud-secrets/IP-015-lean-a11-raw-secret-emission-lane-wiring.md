@@ -9,6 +9,8 @@ owner: axis-governance + ops-security
 acceptance_lanes: [gitleaks-bench, tartufo-bench, oyatie-pattern-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-015: LEAN-A11 raw-secret-emission lane wiring
 
 ## Intent

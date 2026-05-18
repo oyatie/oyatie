@@ -11,6 +11,8 @@ owner: axis-docs
 acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-port-location, oya-governance-data-class-coverage]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-002: document-store kernel — Document + BlockTree + RetentionPolicyRef + LegalHoldRef + port traits
 
 ## Intent

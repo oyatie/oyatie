@@ -6,6 +6,7 @@
 // Owner: ops-security + council-privacy
 // Status: Accepted (2026-05-17)
 // Related: ADR-0140, ADR-TASKS-0006
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================
 // DEFAULT POSTURE: auditor has NO access outside engagement window.

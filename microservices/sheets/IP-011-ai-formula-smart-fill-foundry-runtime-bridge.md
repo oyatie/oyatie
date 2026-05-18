@@ -10,6 +10,8 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-ai-formula-validat
 depends_on: [IP-005, IP-008]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-011: ai-formula — foundry-runtime bridge with T1 advisory + T2 gated per ADR-SHEETS-0005
 
 ## Intent

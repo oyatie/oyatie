@@ -6,6 +6,7 @@
 // Owner:   ops-security + axis-tenancy
 // Audit:   every deny emits oya_tenancy_cedar_deny_total
 // References: rls-isolation.md §"Cedar Policy Enforcement"; threat-model.md T-S-02, T-E-03
+// Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =============================================================================
 // Default deny — every action is refused unless an explicit permit matches.

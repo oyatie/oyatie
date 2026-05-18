@@ -8,6 +8,8 @@ owner: axis-notes + axis-foundry-runtime + council-privacy
 acceptance_lanes: [cargo-check, cargo-test, oya-governance-e2e-ai-refusal, oya-governance-dual-context-isolation]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: ai-assist + E2E refusal CI lane
 
 ## Intent

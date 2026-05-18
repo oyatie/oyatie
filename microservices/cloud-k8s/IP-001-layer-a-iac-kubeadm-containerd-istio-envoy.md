@@ -11,6 +11,8 @@ owner: axis-cloud
 acceptance_lanes: [helm-lint, kubectl-apply-dry-run, terraform-validate, oya-governance-per-microservice-layout, oya-governance-version-pinning-conformance, oya-check-cis-k8s-benchmark]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-001: Layer-A IaC — kubeadm + containerd + Istio + Envoy + Cilium + CSI
 
 ## Intent

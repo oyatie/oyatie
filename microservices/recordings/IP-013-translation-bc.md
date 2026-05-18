@@ -8,6 +8,8 @@ owner: axis-recordings + axis-translate
 acceptance_lanes: [lean-a2]
 ---
 
+<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+
 # IP-013: Translation BC — cross-µservice handoff to `translate` µservice
 
 ## Intent
