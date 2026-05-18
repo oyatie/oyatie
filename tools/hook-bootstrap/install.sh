@@ -4,8 +4,9 @@
 # Purpose: Idempotent single-command bootstrap for the oyatie contributor environment.
 #          Installs: (a) hook entries in .claude/settings.json (project-scoped),
 #          (b) optionally project-scoped .codex/hooks.json if Codex detected,
-#          (c) vendors agent-skills from addyosmani/agent-skills if reachable,
-#          (d) suggests direnv allow or prints manual PATH instructions.
+#          (c) optionally project-scoped .gemini/settings.json if Gemini detected,
+#          (d) vendors agent-skills from addyosmani/agent-skills if reachable,
+#          (e) suggests direnv allow or prints manual PATH instructions.
 #
 # Usage:
 #   ./tools/hook-bootstrap/install.sh               # full install
@@ -14,7 +15,8 @@
 #   ./tools/hook-bootstrap/install.sh --sync-skills # re-vendor agent-skills (force refresh)
 #
 # Reproducibility: writes only to .claude/settings.json, .codex/hooks.json (if Codex
-# detected), and tools/agent-skills/. Never writes to user-level (~/.claude, ~/.codex).
+# detected), .gemini/settings.json (if Gemini detected), and tools/agent-skills/.
+# Never writes to user-level (~/.claude, ~/.codex, ~/.gemini).
 # Non-blocking: exits 0 on success; exits 1 only on hard errors (malformed settings.json,
 # missing executable bits on hook scripts).
 
@@ -188,6 +190,79 @@ else
     info "Codex not detected — skipping .codex/hooks.json (re-run install.sh after installing Codex)"
 fi
 
+# ── Detect and install Gemini hooks ─────────────────────────────────────────
+
+GEMINI_DETECTED=false
+GEMINI_DIR="$REPO_ROOT/.gemini"
+if [ -d "$GEMINI_DIR" ] || command -v gemini >/dev/null 2>&1 || [ -d "$HOME/.gemini" ]; then
+    GEMINI_DETECTED=true
+fi
+
+if $GEMINI_DETECTED; then
+    log "Gemini detected — installing project-scoped .gemini/settings.json hooks..."
+    GEMINI_SETTINGS="$GEMINI_DIR/settings.json"
+
+    # Event-name mapping (Gemini → equivalent Claude event):
+    #   SessionStart   = SessionStart
+    #   BeforeAgent    = UserPromptSubmit
+    #   AfterAgent     = Stop
+    #   BeforeTool     = PreToolUse
+    #   AfterTool      = PostToolUse
+    GEMINI_CONTENT='{
+  "_managed_by": "tools/hook-bootstrap/install.sh",
+  "_marker": "'"$MARKER"'",
+  "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh.",
+  "hooks": {
+    "SessionStart": [
+      { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "oya-session-context" }
+    ],
+    "BeforeAgent": [
+      { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh", "name": "oya-canonical-primer" }
+    ],
+    "AfterAgent": [
+      { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "oya-did-you-forget" },
+      { "type": "command", "command": "tools/hooks/microservice-quality-bar.sh",      "name": "oya-quality-bar-stop" }
+    ],
+    "BeforeTool": [
+      { "matcher": "bash",  "type": "command", "command": "tools/hooks/stale-tool-suggester.sh",            "name": "oya-stale-tool" },
+      { "matcher": "agent", "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh",              "name": "oya-pre-dispatch" },
+      { "matcher": "write", "type": "command", "command": "tools/hooks/vertical-slice-scope-suggester.sh",  "name": "oya-vertical-scope" }
+    ],
+    "AfterTool": [
+      { "matcher": "edit",  "type": "command", "command": "tools/hooks/cargo-verify-on-rust-edit.sh",  "name": "oya-cargo-verify-edit" },
+      { "matcher": "write", "type": "command", "command": "tools/hooks/cargo-verify-on-rust-edit.sh",  "name": "oya-cargo-verify-write" },
+      { "matcher": "edit",  "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-edit" },
+      { "matcher": "write", "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh", "name": "oya-spec-version-write" },
+      { "matcher": "write", "type": "command", "command": "tools/hooks/buildability-line-count.sh",    "name": "oya-buildability" },
+      { "matcher": "edit",  "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-edit" },
+      { "matcher": "write", "type": "command", "command": "tools/hooks/adr-orphan-detect.sh",          "name": "oya-adr-orphan-write" },
+      { "matcher": "write", "type": "command", "command": "tools/hooks/microservice-quality-bar.sh",   "name": "oya-quality-bar-write" },
+      { "matcher": "edit",  "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh",  "name": "oya-vacuous-green-edit" },
+      { "matcher": "write", "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh",  "name": "oya-vacuous-green-write" }
+    ]
+  }
+}'
+
+    if $DRY_RUN; then
+        dry "Would write $GEMINI_SETTINGS"
+    else
+        if [ -f "$GEMINI_SETTINGS" ] && grep -q "\"$MARKER\"" "$GEMINI_SETTINGS" 2>/dev/null; then
+            ok ".gemini/settings.json already contains bootstrap hooks (idempotent)"
+        elif [ -f "$GEMINI_SETTINGS" ]; then
+            # Pre-existing user content — refuse to clobber; write example next to it.
+            warn ".gemini/settings.json exists without bootstrap marker — refusing to overwrite"
+            warn "  example written to .gemini/settings.json.oya-bootstrap-example; merge manually"
+            echo "$GEMINI_CONTENT" > "$GEMINI_SETTINGS.oya-bootstrap-example"
+        else
+            mkdir -p "$GEMINI_DIR"
+            echo "$GEMINI_CONTENT" > "$GEMINI_SETTINGS"
+            ok ".gemini/settings.json written"
+        fi
+    fi
+else
+    info "Gemini not detected — skipping .gemini/settings.json (re-run install.sh after installing Gemini CLI)"
+fi
+
 # ── Sync agent-skills ────────────────────────────────────────────────────────
 
 sync_agent_skills() {
@@ -335,6 +410,9 @@ else
     ok "Shell completions at → tools/completions/{bash,zsh,fish}"
     if $CODEX_DETECTED; then
         ok "Codex hooks installed → .codex/hooks.json"
+    fi
+    if $GEMINI_DETECTED; then
+        ok "Gemini hooks installed → .gemini/settings.json"
     fi
     SKILL_COUNT_FINAL=$(find "$REPO_ROOT/tools/agent-skills/skills" -maxdepth 1 -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ' || echo "0")
     ok "Agent skills vendored at tools/agent-skills/ ($SKILL_COUNT_FINAL skills available; see docs/bootstrap.md)"
