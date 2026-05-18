@@ -37,11 +37,11 @@ use std::fmt;
 
 /// Logical identifier of the calling µservice (e.g. "network", "tasks").
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CallingMicroservice(pub String);
+pub struct CallingMicroservice(pub String); // data_class: INTERNAL_ONLY
 
 /// Logical identifier of the called µservice for the seal.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CalledMicroservice(pub String);
+pub struct CalledMicroservice(pub String); // data_class: INTERNAL_ONLY
 
 /// Canonical seal event kind. Closed enum; expand only via ADR.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -59,12 +59,12 @@ pub enum SealEventKind {
 /// follow-up record. The skeleton accepts opaque payload bytes.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SealEmission {
-    pub from: CallingMicroservice,
-    pub to: CalledMicroservice,
-    pub capability_id: String,
-    pub event_kind: SealEventKind,
-    pub trace_id: String,
-    pub payload_digest_hex: String,
+    pub from: CallingMicroservice,  // data_class: INTERNAL_ONLY
+    pub to: CalledMicroservice,     // data_class: INTERNAL_ONLY
+    pub capability_id: String,      // data_class: INTERNAL_ONLY
+    pub event_kind: SealEventKind,  // data_class: INTERNAL_ONLY
+    pub trace_id: String,           // data_class: INTERNAL_ONLY
+    pub payload_digest_hex: String, // data_class: INTERNAL_ONLY
 }
 
 /// Failure surface for the kernel.

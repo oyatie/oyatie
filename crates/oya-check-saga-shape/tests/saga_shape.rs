@@ -1,5 +1,5 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
-//! Integration tests for the saga-shape validator (ADR-0173).
+//! Integration tests for the saga-shape validator (ADR-0222).
 
 use oya_check_saga_shape::{
     AuditClass, CompensationKind, IdempotencyKeyStrategy, RollbackStrategy, SagaDefinition,

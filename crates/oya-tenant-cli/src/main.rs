@@ -1,4 +1,4 @@
-//! Tenant-facing `oya` CLI binary per ADR-0167.
+//! Tenant-facing `oya` CLI surface per ADR-0167.
 //!
 //! # Scope
 //!
@@ -8,6 +8,8 @@
 //! - Tier-A semver-protected per ADR-0037.
 //! - Depends on the public SDK only (no `oya-check-*`, no `oya-foundry-*`).
 //! - Distributed to tenants via Homebrew tap, apt repo, winget, ghcr.
+//! - Built in the workspace as `oya-tenant` to avoid colliding with
+//!   the internal `oya-dev-cli` binary target.
 //!
 //! # Skeleton scope (v0.1)
 //!

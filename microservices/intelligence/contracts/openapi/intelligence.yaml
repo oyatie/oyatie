@@ -1,0 +1,98 @@
+openapi: 3.2.0
+info:
+  title: Intelligence API
+  version: 0.1.0
+  description: |
+    Consumer and tenant AI substrate. Foundry remains internal; this API exposes
+    only context-bound assistance and retrieval surfaces.
+servers:
+  - url: https://intelligence.{pack}.oyatie.dev
+    variables:
+      pack:
+        default: pack-kr
+        enum: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+paths:
+  /assist-drafts:
+    post:
+      summary: Create an advisory AI draft for a deterministic builder
+      operationId: createAssistDraft
+      tags: [assist-draft]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistDraftRequest'
+      responses:
+        '202':
+          description: Draft accepted or refused with an auditable reason
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistDraftResponse'
+        '403':
+          description: Cedar or consent graph refusal
+  /retrievals:
+    post:
+      summary: Run context-aware retrieval
+      operationId: createRetrieval
+      tags: [retrieval]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetrievalRequest'
+      responses:
+        '200':
+          description: Retrieval result or auditable refusal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrievalResponse'
+        '403':
+          description: Cedar or consent graph refusal
+components:
+  schemas:
+    AssistDraftRequest:
+      type: object
+      required: [principal_id, context_id, consent_grant_id, builder_surface, prompt]
+      properties:
+        principal_id: { type: string }
+        context_id: { type: string }
+        consent_grant_id: { type: string }
+        builder_surface: { type: string }
+        prompt: { type: string, minLength: 1 }
+    AssistDraftResponse:
+      type: object
+      required: [draft_id, status, audit_event]
+      properties:
+        draft_id: { type: string }
+        status: { type: string, enum: [drafted, refused] }
+        suggested_patch: { type: object }
+        refusal_reason: { type: string }
+        audit_event: { type: string }
+    RetrievalRequest:
+      type: object
+      required: [principal_id, context_id, consent_grant_id, query]
+      properties:
+        principal_id: { type: string }
+        context_id: { type: string }
+        consent_grant_id: { type: string }
+        query: { type: string, minLength: 1 }
+    RetrievalResponse:
+      type: object
+      required: [retrieval_id, status, audit_event]
+      properties:
+        retrieval_id: { type: string }
+        status: { type: string, enum: [returned, refused] }
+        citations:
+          type: array
+          items:
+            type: object
+            required: [source_id, context_id]
+            properties:
+              source_id: { type: string }
+              context_id: { type: string }
+        refusal_reason: { type: string }
+        audit_event: { type: string }

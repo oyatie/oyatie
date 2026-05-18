@@ -76,6 +76,18 @@
         "oya-application-tenant-context-rest",
         "oya-application-tenant-context-usecase"
       ]
+    },
+    {
+      "name": "tenant-admin-console",
+      "description": "No-code tenant control plane for roles, Cedar fragments, JIT access, context visibility, and AI enablement per ADR-0218.",
+      "crates": [
+        "oya-application-tenant-admin-console-kernel",
+        "oya-application-tenant-admin-console-domain",
+        "oya-application-tenant-admin-console-usecase",
+        "oya-application-tenant-admin-console-api",
+        "oya-application-tenant-admin-console-rest",
+        "oya-application-tenant-admin-console-app"
+      ]
     }
   ],
   "layers": [
@@ -91,7 +103,8 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/application/contracts/openapi/application.yaml"
+      "microservices/application/contracts/openapi/application.yaml",
+      "microservices/application/contracts/openapi/tenant-admin-console.yaml"
     ],
     "asyncapi": [
       "microservices/application/contracts/asyncapi/application-events.yaml"
@@ -118,6 +131,12 @@
       "name": "shell-render",
       "file": "microservices/application/capabilities/shell-render.yaml",
       "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "tenant-admin-console-control",
+      "file": "microservices/application/capabilities/tenant-admin-console-control.yaml",
+      "eu_ai_act_risk_class": "limited"
     }
   ],
   "slos": [
@@ -242,6 +261,12 @@
       "title": "IP-015: OpenSLO authoring + HG-APP gate registration + branch-protection",
       "acceptance_status": "ga",
       "file": "microservices/application/IP-015-application-openslo-and-hg-app.md"
+    },
+    {
+      "id": "IP-016-tenant-admin-console-control-surface",
+      "title": "IP-016: Tenant Admin Console control surface",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-016-tenant-admin-console-control-surface.md"
     }
   ],
   "regulatory_packs": [
@@ -309,6 +334,24 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0215",
+      "title": "Multi-context platform architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0215-multi-context-platform-architecture.md"
+    },
+    {
+      "id": "ADR-0218",
+      "title": "Tenant granular control surface",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0218-tenant-granular-control-surface.md"
+    },
+    {
+      "id": "ADR-0219",
+      "title": "No-code-first UX with optional AI assist",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -322,7 +365,10 @@
     "seal_events": [
       "oya.application.module-load",
       "oya.application.session-emit",
-      "oya.application.shell-render"
+      "oya.application.shell-render",
+      "oya.application.tenant-admin.policy-draft-created",
+      "oya.application.tenant-admin.policy-change-applied",
+      "oya.application.tenant-admin.jit-access-reviewed"
     ]
   },
   "secrets_substrate": {

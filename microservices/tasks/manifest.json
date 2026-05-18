@@ -352,7 +352,44 @@
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
   },
-  "ontology_projections": [],
+  "ontology_projections": [
+    {
+      "entity_name": "Task",
+      "projection_target_table": "ontology_tasks",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Project",
+      "projection_target_table": "ontology_task_projects",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "DependencyEdge",
+      "projection_target_table": "ontology_task_dependency_edges",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Sprint",
+      "projection_target_table": "ontology_task_sprints",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Milestone",
+      "projection_target_table": "ontology_task_milestones",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "LegalHold",
+      "projection_target_table": "ontology_task_legal_holds",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,

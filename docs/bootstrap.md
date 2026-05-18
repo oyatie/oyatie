@@ -161,9 +161,10 @@ enforcement infrastructure.
 
 ## References
 
-- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya vcs)
+- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)
 - ADR-0221: Agentic pipeline hardening doctrine
-- `feedback_oya_vcs_canonical_2026_05_16` — oya vcs canonical primitive rationale
+- `memory/feedback_oya_git_canonical_2026_05_18.md` — canonical oya git primitive
+- `memory/feedback_oya_vcs_canonical_2026_05_16.md` — superseded rationale retained for history
 - `evidence/pr-143-hooks-bootstrap-design-amendment-2026-05-18.json` — encouragement reframe
 - Lifecycle skills: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) (MIT)
 - `tools/agent-skills/UPSTREAM.json` — provenance (SHA, fetch timestamp, attribution)

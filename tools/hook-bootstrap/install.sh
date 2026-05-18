@@ -78,6 +78,7 @@ HOOK_SCRIPTS=(
     buildability-line-count.sh
     adr-orphan-detect.sh
     microservice-quality-bar.sh
+    oya-git-cutover-inventory.sh
     vacuous-green-gate-detect.sh
 )
 
@@ -636,8 +637,9 @@ else
     echo "Next steps:"
     echo "  1. direnv allow                    (or add bin/ to PATH manually)"
     echo "  2. oya --help                      (verify CLI wrapper)"
-    echo "  3. oya vcs status                  (canonical VCS primitive)"
-    echo "  4. See docs/bootstrap.md for full contributor guide"
+    echo "  3. oya git status --short          (git drop-in + local ledger)"
+    echo "  4. oya vcs status                  (policy ratchet compatibility)"
+    echo "  5. See docs/bootstrap.md for full contributor guide"
 fi
 echo ""
 

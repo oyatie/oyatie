@@ -10,7 +10,8 @@
 _oya() {
     local -a subcommands
     subcommands=(
-        'vcs:Version control operations (canonical primitive; replaces grit/rtk)'
+        'git:Drop-in git surface with local ledger side channel'
+        'vcs:Coordination ratchet compatibility surface'
         'gate:Run foundry quality gates'
         'governance-gates:Governance-layer gate checks'
         'foundation-audit-gates:Foundation audit gate suite'
@@ -27,21 +28,40 @@ _oya() {
         'help:Print help for a subcommand'
     )
 
+    local -a git_subcommands
+    git_subcommands=(
+        'status:Show working tree status'
+        'add:Add file contents to the index'
+        'commit:Record changes'
+        'diff:Show changes'
+        'log:Show commit log'
+        'show:Show objects'
+        'branch:List or create branches'
+        'checkout:Switch branches or restore paths'
+        'switch:Switch branches'
+        'restore:Restore working tree files'
+        'stash:Stash changes'
+        'fetch:Download objects and refs'
+        'pull:Fetch and integrate'
+        'push:Update remote refs'
+        'merge:Join histories'
+        'rebase:Reapply commits'
+        'tag:Create or list tags'
+        'remote:Manage remotes'
+        'rev-parse:Pick out and massage parameters'
+    )
+
     local -a vcs_subcommands
     vcs_subcommands=(
-        'status:Show working tree status'
-        'log:Show commit log'
-        'diff:Show changes'
-        'commit:Record changes'
-        'push:Push branch to remote'
-        'pull:Pull from remote'
-        'branch:List or create branches'
-        'checkout:Switch branches'
-        'merge:Merge branches'
-        'rebase:Rebase onto branch'
-        'pr:Pull request operations'
-        'review:Trigger review pipeline'
-        'admit:Admission gate check'
+        'claim:Claim a policy-ratchet scope'
+        'work:Start policy-ratchet work'
+        'verify:Verify policy-ratchet evidence'
+        'done:Emit a policy-ratchet ChangeBundle'
+        'status:Read policy-ratchet status'
+        'symbols:List policy-ratchet symbols'
+        'queue:Read policy-ratchet queue projection'
+        'watch:Watch policy-ratchet events'
+        'promote:Promote a policy-ratchet bundle'
     )
 
     local -a doc_subcommands
@@ -64,6 +84,9 @@ _oya() {
             ;;
         args)
             case ${words[2]} in
+                git)
+                    _describe 'git subcommand' git_subcommands
+                    ;;
                 vcs)
                     _describe 'vcs subcommand' vcs_subcommands
                     ;;

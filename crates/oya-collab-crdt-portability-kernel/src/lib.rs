@@ -21,7 +21,7 @@ use std::fmt;
 /// The adapter does NOT mint these — the host coordinates ULID minting via
 /// `oya-shared-ulid-id-kernel`. Kernel holds only the by-value handle.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
-pub struct CrdtDocId(pub String);
+pub struct CrdtDocId(pub String); // data_class: INTERNAL_ONLY
 
 impl fmt::Display for CrdtDocId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -36,8 +36,8 @@ impl fmt::Display for CrdtDocId {
 /// it for audit chain emission per ADR-0145 Invariant 1.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CrdtChange {
-    pub doc_id: CrdtDocId,
-    pub payload: Vec<u8>,
+    pub doc_id: CrdtDocId, // data_class: INTERNAL_ONLY
+    pub payload: Vec<u8>,  // data_class: INTERNAL_ONLY
 }
 
 /// Stable error surface for adapter failures.
@@ -86,7 +86,7 @@ pub trait CrdtPortabilityRuntime {
 /// production use.
 #[derive(Default)]
 pub struct InMemoryCrdtRuntime {
-    docs: std::collections::BTreeMap<CrdtDocId, Vec<u8>>,
+    docs: std::collections::BTreeMap<CrdtDocId, Vec<u8>>, // data_class: INTERNAL_ONLY
 }
 
 impl CrdtPortabilityRuntime for InMemoryCrdtRuntime {

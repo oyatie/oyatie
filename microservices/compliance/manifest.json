@@ -108,5 +108,10 @@
     "IP-013-audit-anomaly-detection",
     "IP-014-manual-evidence-upload-flow",
     "IP-015-regulatory-pack-evidence-overlay"
-  ]
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false
+  }
 }

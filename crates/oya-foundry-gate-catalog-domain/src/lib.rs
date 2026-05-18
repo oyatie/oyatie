@@ -108,6 +108,10 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "otel-trace-propagation",
     "ontology-projection-coverage",
     "audit-chain-seal-coverage",
+    // ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 / ADR-0185 layered
+    // architecture and native client-stack discipline.
+    "layered-architecture-discipline",
+    "client-stack-discipline",
     // Tier-A hyperscaler pattern remediation (Fix-Agent-I, 2026-05-18).
     // Each is strict-mode (fail-closed).
     "idempotency-key-coverage",
@@ -184,6 +188,11 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     // Release-supply-chain phased lane (separate from default supply-chain).
     "cargo run -p oya-dev-cli -- gate validate release-supply-chain --phase pre-release",
     "cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidence",
+    // ADR-0221 governance hook-efficacy CI contexts.
+    "bash tools/governance/adr-0221-governance-gates.sh vacuous-green",
+    "bash tools/governance/adr-0221-governance-gates.sh orphan-citation",
+    "bash tools/governance/adr-0221-governance-gates.sh version-pin",
+    "bash tools/governance/adr-0221-governance-gates.sh buildability-line-count",
     // Local verification + dedicated foundry tool entry points.
     "cargo run -p oya-dev-cli -- verify",
     "cargo run -q -p oya-foundry-vcs-admission-gate-app",
@@ -413,6 +422,23 @@ mod tests {
         assert!(
             rendered.contains("cargo run -p oya-dev-cli -- gate validate loop-recovery-patterns")
         );
+    }
+
+    #[test]
+    fn rendered_form_contains_adr_0221_governance_gates() {
+        let rendered = all_canonical_commands_rendered();
+        for gate in [
+            "vacuous-green",
+            "orphan-citation",
+            "version-pin",
+            "buildability-line-count",
+        ] {
+            let expected = format!("bash tools/governance/adr-0221-governance-gates.sh {gate}");
+            assert!(
+                rendered.contains(&expected),
+                "rendered catalog must wire ADR-0221 governance gate `{gate}`"
+            );
+        }
     }
 
     #[test]

@@ -31,7 +31,6 @@ use oya_foundry_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
 
 mod active_artifact_contract_gate;
 mod adr_0145_gates;
-mod advisory_lanes_pr143;
 mod api_contract_registry;
 mod architecture_map_emit_gate;
 mod architecture_plane_gates;
@@ -55,6 +54,7 @@ mod foundation_fixture;
 mod foundry_capability_schema_gates;
 mod foundry_eval_gates;
 mod glossary_cross_doc_gates;
+mod governance_advisory_lanes;
 mod governance_gates;
 mod honest_claims_gate;
 mod hyperscaler_arch_invariants_gate;
@@ -83,15 +83,7 @@ mod yaml_scan;
 pub(crate) use active_artifact_contract_gate::{
     parse_active_artifact_contract_validate_args, validate_active_artifact_contract_gate,
 };
-// PR #143 Fix-M/R/S/T/U advisory lane re-exports (1 strict ref via local fn + 11 advisory).
-pub(crate) use advisory_lanes_pr143::{
-    validate_a11y_discipline_gate, validate_authz_tier_discipline_gate,
-    validate_backup_retention_discipline_gate, validate_compliance_evidence_coverage_gate,
-    validate_i18n_coverage_gate, validate_iac_tier_discipline_gate,
-    validate_olap_tier_discipline_gate, validate_realtime_transport_tier_gate,
-    validate_tenant_cost_labels_coverage_gate, validate_vector_store_discipline_gate,
-    validate_wasm_runtime_discipline_gate,
-};
+// Governance advisory lane re-exports (1 strict ref via local fn + 11 advisory).
 pub(crate) use api_contract_registry::{is_api_contract_metadata_path, read_api_contract_records};
 pub(crate) use architecture_map_emit_gate::{
     emit_architecture_map_gate, parse_architecture_map_emit_args,
@@ -144,6 +136,14 @@ pub(crate) use foundry_capability_schema_gates::{
 pub(crate) use foundry_eval_gates::{parse_foundry_eval_validate_args, validate_foundry_eval_gate};
 pub(crate) use glossary_cross_doc_gates::{
     parse_glossary_coverage_validate_args, validate_glossary_coverage_gate,
+};
+pub(crate) use governance_advisory_lanes::{
+    validate_a11y_discipline_gate, validate_authz_tier_discipline_gate,
+    validate_backup_retention_discipline_gate, validate_compliance_evidence_coverage_gate,
+    validate_i18n_coverage_gate, validate_iac_tier_discipline_gate,
+    validate_olap_tier_discipline_gate, validate_realtime_transport_tier_gate,
+    validate_tenant_cost_labels_coverage_gate, validate_vector_store_discipline_gate,
+    validate_wasm_runtime_discipline_gate,
 };
 pub(crate) use governance_gates::{
     parse_authority_cohesion_validate_args, parse_claim_ceiling_validate_args,
@@ -230,9 +230,11 @@ pub fn run_cli_from_env() -> ExitCode {
     match args.next().as_deref() {
         Some("demo") => commands::demo::run(args.collect(), &usage()),
         Some("check") => commands::check::run(args.collect(), &usage()),
+        Some("codex-thread-sweep") => commands::codex_thread_sweep::run(args.collect(), &usage()),
         Some("doc") => commands::doc::run(args.collect(), &usage()),
         Some("catalog") => commands::catalog::run(args.collect(), &usage()),
         Some("gate") => commands::gate::run(args.collect(), &usage()),
+        Some("git") => commands::git::run(args.collect(), &usage()),
         Some("lint") => commands::lint::run(args.collect(), &usage()),
         Some("onprem") => commands::onprem::run(args.collect(), &usage()),
         Some("ops") => commands::ops::run(args.collect(), &usage()),
@@ -248,10 +250,11 @@ pub fn run_cli_from_env() -> ExitCode {
 }
 
 pub(crate) fn usage() -> String {
-    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--include-deferred] [--gate-args …]   # canonical local pre-push entry; dispatches to `oya gate run-all`\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify → push → open/extend PR\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
+    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--include-deferred] [--gate-args …]   # canonical local pre-push entry; dispatches to `oya gate run-all`\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify → push → open/extend PR\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
         + "\n       oya onprem <plan|install|uninstall|doctor> [--repo-root <.>] [--format <text|json>]"
         + "\n       oya ops <oci-a1-capacity-retry|oci-readiness-probe|onprem-bring-up> [ops-specific args]"
+        + "\n       oya git <git-subcommand> [git-specific args]   # drop-in git surface with local .oya ledger side channel"
         + "\n       oya vcs [--format <text|json>] [--policy <observe|warn|enforce>] [--evidence-command <shell-command>] <claim|work|verify|done|status|symbols|queue|watch|promote> [vcs-specific args]"
         + "\n       oya gate validate foundation-bypass [--ledger <registry/foundation-bypasses>] [--now-epoch-days <days>]"
         + "\n       oya gate validate audit-chain-replay [--shards-dir <registry/audit-chain/shards>]"
@@ -1162,6 +1165,12 @@ pub(crate) fn validate_vendor_lockin_discipline_gate(
         })
         .collect();
     for entry in entries.iter() {
+        if !matches!(
+            entry.tier,
+            oya_check_vendor_lockin_discipline::VendorTier::TierII
+        ) {
+            continue;
+        }
         let Some(trait_ref) = entry.seam_adapter_trait.as_deref() else {
             continue;
         };
@@ -1187,11 +1196,8 @@ pub(crate) fn validate_vendor_lockin_discipline_gate(
                 member_set.contains(normalized)
             });
         // Adopted Tier II MUST have at least one impl resolve. Pre-classified
-        // Tier II is exempt — it's a placeholder declaring future seam shape.
-        if matches!(
-            entry.tier,
-            oya_check_vendor_lockin_discipline::VendorTier::TierII
-        ) && !any_impl_present
+        // Tier II is exempt above — it's a placeholder declaring future seam shape.
+        if !any_impl_present
             && entry
                 .seam_adapter_impls
                 .iter()

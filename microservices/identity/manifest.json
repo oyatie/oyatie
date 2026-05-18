@@ -82,6 +82,18 @@
       ]
     },
     {
+      "name": "multi-context-principal-resolver",
+      "description": "Resolves one principal across personal, work, healthcare, marketplace, and community contexts per ADR-0215.",
+      "crates": [
+        "oya-identity-multi-context-principal-resolver-kernel",
+        "oya-identity-multi-context-principal-resolver-domain",
+        "oya-identity-multi-context-principal-resolver-usecase",
+        "oya-identity-multi-context-principal-resolver-api",
+        "oya-identity-multi-context-principal-resolver-rest",
+        "oya-identity-multi-context-principal-resolver-adapter"
+      ]
+    },
+    {
       "name": "external-idp-federation",
       "description": "Upstream IdP federation (Google Workspace, Okta, Entra) via OIDC + SAML.",
       "crates": [
@@ -118,13 +130,16 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/identity/contracts/openapi/identity.yaml"
+      "microservices/identity/contracts/openapi/identity.yaml",
+      "microservices/identity/contracts/openapi/multi-context-split.yaml"
     ],
     "asyncapi": [
-      "microservices/identity/contracts/asyncapi/identity-events.yaml"
+      "microservices/identity/contracts/asyncapi/identity-events.yaml",
+      "microservices/identity/contracts/asyncapi/multi-context-events.yaml"
     ],
     "proto": [
-      "microservices/identity/contracts/proto/identity.proto"
+      "microservices/identity/contracts/proto/identity.proto",
+      "microservices/identity/contracts/proto/multi_context_split.proto"
     ]
   },
   "capabilities": [
@@ -144,6 +159,12 @@
       "tier": "T1",
       "name": "step-up-acr-grant",
       "file": "microservices/identity/capabilities/step-up-acr-grant.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T1",
+      "name": "multi-context-principal-resolve",
+      "file": "microservices/identity/capabilities/multi-context-principal-resolve.yaml",
       "eu_ai_act_risk_class": "limited"
     },
     {
@@ -225,7 +246,8 @@
     {"id": "IP-013", "title": "Edge authz rules (Coraza + rate-limit + geo)", "acceptance_status": "ga", "file": "microservices/identity/IP-013-edge-authz-rules.md"},
     {"id": "IP-014", "title": "Continuous risk-scoring adjunct (CAEP)", "acceptance_status": "ga", "file": "microservices/identity/IP-014-continuous-risk-scoring.md"},
     {"id": "IP-015", "title": "oya-shared-* kernel crate exports + reference impls", "acceptance_status": "ga", "file": "microservices/identity/IP-015-shared-kernel-crates.md"},
-    {"id": "IP-016", "title": "Zitadel scale validation load test (gate before pack-eu bellwether)", "acceptance_status": "ga", "file": "microservices/identity/IP-016-zitadel-scale-validation-load-test.md"}
+    {"id": "IP-016", "title": "Zitadel scale validation load test (gate before pack-eu bellwether)", "acceptance_status": "ga", "file": "microservices/identity/IP-016-zitadel-scale-validation-load-test.md"},
+    {"id": "IP-017", "title": "Multi-context principal resolver", "acceptance_status": "ga", "file": "microservices/identity/IP-017-multi-context-principal-resolver.md"}
   ],
   "regulatory_packs": ["kr", "eu", "us", "us-healthcare", "jp", "sg", "au", "in", "br", "ae", "ksa"],
   "lts_pins": {
@@ -243,6 +265,7 @@
     {"id": "ADR-0189", "title": "Step-up authentication ACR classes", "scope": "microservice", "file": "docs/decisions/ADR-0189-step-up-authentication-acr-classes.md"},
     {"id": "ADR-0190", "title": "SCIM 2.0 inbound provisioning", "scope": "microservice", "file": "docs/decisions/ADR-0190-scim-2-provisioning-enterprise-tenants.md"},
     {"id": "ADR-0191", "title": "Edge authz tier vs origin Cedar PDP", "scope": "microservice", "file": "docs/decisions/ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md"},
+    {"id": "ADR-0215", "title": "Multi-context platform architecture", "scope": "repo", "file": "docs/decisions/ADR-0215-multi-context-platform-architecture.md"},
     {"id": "ADR-0117", "title": "OpenBao SecretReference substrate", "scope": "repo"},
     {"id": "ADR-0145", "title": "Inter-microservice communication reform", "scope": "repo"},
     {"id": "ADR-0148", "title": "Service-mesh Cilium Ambient layered", "scope": "repo"},
@@ -274,6 +297,8 @@
       "IdentitySignInFailed",
       "IdentityStepUpGranted",
       "IdentityStepUpDenied",
+      "IdentityContextResolved",
+      "IdentityContextSwitchRefused",
       "IdentityWebAuthnRegistered",
       "IdentityWebAuthnRevoked",
       "IdentityScimRequestReceived",

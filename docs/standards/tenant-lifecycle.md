@@ -8,7 +8,7 @@ related_adrs:
   - ADR-0002
   - ADR-0038
   - ADR-0035
-  - ADR-0173
+  - ADR-0222
   - ADR-0175
 status: canonical-base
 authorities_cited:
@@ -40,7 +40,7 @@ Pending → Active → Suspended → Active
 | DeletionConfirmed | no | YES | — |
 | Cancelled | no | YES | — |
 
-## Sagas per transition (per ADR-0173)
+## Sagas per transition (per ADR-0222)
 
 | Saga | Steps (high level) |
 | --- | --- |

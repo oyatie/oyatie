@@ -12,13 +12,13 @@ related:
   - ADR-0002-tenant-and-identity-kernel.md
   - ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md
   - ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md
-  - ADR-0173-saga-compensation-portfolio-policy.md
+  - ADR-0222-saga-compensation-portfolio-policy.md
   - ADR-0009-cell-architecture-per-tenant-per-region.md
 doc_class: Architecture-Decision-Record
 purpose: >
   Canonical six-state tenant lifecycle (Pending → Active → Suspended
   → Migrating → Offboarded → DeletionConfirmed). Every transition is
-  a saga (per ADR-0173). Deletion confirmation requires proof-of-erasure
+  a saga (per ADR-0222). Deletion confirmation requires proof-of-erasure
   fan-out from every data-class-bearing µservice (per ADR-0038).
 enforcement_status: advisory-until-tenancy-microservice-implements
 enforced_by: oya gate validate tenant-lifecycle
@@ -83,7 +83,7 @@ tenants.
 
 ### D-2. Every transition is a saga
 
-Every state transition is a saga (per ADR-0173). The saga catalogue:
+Every state transition is a saga (per ADR-0222). The saga catalogue:
 
 | Saga | Trigger | Steps (high level) |
 | --- | --- | --- |
@@ -206,7 +206,7 @@ event log, not a primary attribute. Operationally undebuggable.
   acknowledgment schema.
 - `microservices/tenancy/policy/lifecycle.md` — full policy doc.
 - `microservices/tenancy/specs/saga-onboard.json` and friends
-  (one per saga) — saga shape per ADR-0173.
+  (one per saga) — saga shape per ADR-0222.
 - Validator: lane `tenant-lifecycle` added to
   `AGGREGATED_VALIDATE_LANES` (advisory).
 
@@ -220,4 +220,4 @@ event log, not a primary attribute. Operationally undebuggable.
 - KR PIPA Art. 21 — *Data subject rights*.
 - ADR-0002 (this portfolio) — tenant + identity kernel.
 - ADR-0038 (this portfolio) — DSR cascade + proof of erasure.
-- ADR-0173 (this portfolio) — saga + compensation portfolio policy.
+- ADR-0222 (this portfolio) — saga + compensation portfolio policy.

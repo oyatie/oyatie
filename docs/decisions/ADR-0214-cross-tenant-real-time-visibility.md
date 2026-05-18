@@ -211,11 +211,11 @@ policy text, agreement-template JSON, and projection-scope manifest.
 100% in-house. No third-party data integrator, no third-party consent broker, no SaaS audit vendor in
 the trust path. The substrate is:
 
-- **Cedar** (already adopted, ADR-0090): policy engine.
-- **Pulsar** (already adopted, ADR-0078): cross-tenant projection topics; tenant-aware ACLs.
+- **Cedar** (already adopted, ADR-0183): policy engine.
+- **Pulsar projection adapter** (consent-graph-specific substrate; broker-choice ADR assignment required before GA): cross-tenant projection topics; tenant-aware ACLs.
 - **audit-chain µservice** (already shipped, ADR-0003): bilateral chain entries.
 - **ontology µservice** (already shipped, ADR-0058): entity model + projection model (extended here).
-- **OpenBao** (already adopted, ADR-0072): per-agreement secret material (HMAC keys for projection
+- **OpenBao** (already adopted, ADR-0043): per-agreement secret material (HMAC keys for projection
   topic ACL).
 - **Postgres + Citus** (already adopted, ADR-0034): agreement registry storage with RLS per tenant.
 

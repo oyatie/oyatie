@@ -1,4 +1,4 @@
-//! `oya gate validate saga-shape` runner (ADR-0173).
+//! `oya gate validate saga-shape` runner (ADR-0222).
 //!
 //! Reads every `microservices/<axis>/specs/saga-*.json` file plus the
 //! canonical schema at `specs/saga-shape.json` and delegates to the
@@ -6,7 +6,7 @@
 //!
 //! Advisory mode: when zero saga definitions are discovered the gate
 //! passes with a 0/0 report (per the deferred-gate pattern). Strict
-//! promotion follows the ADR-0173 backlog at
+//! promotion follows the ADR-0222 backlog at
 //! `registry/saga-shape/migration-backlog.tsv`.
 
 use std::fs;
@@ -86,7 +86,7 @@ pub(crate) fn validate_saga_shape_gate(
     // advisory case).
     if !args.schema_path.exists() {
         return Err(format!(
-            "saga-shape schema not found at {} (per ADR-0173)",
+            "saga-shape schema not found at {} (per ADR-0222)",
             args.schema_path.display()
         ));
     }
