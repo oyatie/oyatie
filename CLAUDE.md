@@ -8,6 +8,12 @@ Agent-executable instructions are fenced for the agent-coordination lane. Human 
 
 Manual Wave-B bootstrap note (prose only): until the webhook receiver is deployed and registered, agents enter the Foundry pipeline by creating an isolated worktree branch and opening a pull request against `dev`; ADR-0116 explains this temporary seam.
 
+## Skill discovery doctrine (inherited)
+
+Lifecycle skills + agent personas + intent→skill mapping are inherited from `addyosmani/agent-skills` (MIT), vendored at `tools/agent-skills/`. Universal skill catalog (`tools/agent-skills/skills/<name>/SKILL.md`), personas (`tools/agent-skills/agents/<role>.md`), and orchestration doctrine (`tools/agent-skills/AGENTS.md`) are the inherited base. Oyatie governance (`docs/AGENTS.md` operating contract + multispectrum review v2.4.0 + authority chain + Foundry pipeline + ADRs 0145+) OVERLAYS and WINS on conflict per `feedback_bominal_inheritance_precedence`. See `tools/agent-skills/INHERITANCE.md` for the full pattern, `tools/hooks/_canonical-primitives.md` for the Lifecycle Skill Map injected at SessionStart, and `tools/hook-bootstrap/install.sh` for the single-command bootstrap.
+
+`tools/agent-skills/CLAUDE.md` is INFORMATIONAL only — it describes the vendored upstream subtree, not this oyatie repository. This file (root `CLAUDE.md`) remains the authoritative project-rules source.
+
 <!-- agent-instructions:start -->
 coordination_surface: foundry_pipeline
 retirement_adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
