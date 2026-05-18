@@ -99,7 +99,7 @@ Per `multi-region.md` §"Pack-onboarding gate".
 
 ### Pre-flight
 
-- ADR-NNNN-pack-<pack>-onboarding accepted.
+- ADR-####-pack-<pack>-onboarding accepted.
 - OCI region provisioned (compute + network + IAM).
 - pack-specific KMS keyring + S3 bucket + Postgres replica ready.
 - Cedar policy fragment reviewed for pack-specific overrides.

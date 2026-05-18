@@ -299,16 +299,16 @@
       "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
     },
     {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
-    },
-    {
-      "id": "ADR-0131",
-      "title": "Per Microservice Flat Layout",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
     }
   ],
   "hyperscaler_inv_coverage": {

@@ -80,7 +80,7 @@ Side effects:
 ## Versioning
 
 - Capability version: v1 (initial, M01 launch).
-- Backwards-compatibility: SemVer; major bumps follow ADR-NNNN.
+- Backwards-compatibility: SemVer; major bumps follow ADR-####.
 
 ## References
 

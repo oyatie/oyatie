@@ -9,11 +9,12 @@ image:
   repository: oya-tasks-app
   tag: "1.0.0"
 
+# Per-component resourceTier (canonical-base: oya.resourceRequests dispatcher).
+# See microservices/governance/iac/helm/_oya-helpers/templates/_helpers.tpl for
+# canonical CPU/memory grids per tier letter.
 taskStoreRest:
   replicas: 4
-  resources:
-    requests: {cpu: 500m, memory: 512Mi}
-    limits: {cpu: 2000m, memory: 2Gi}
+  resourceTier: M
   hpa:
     minReplicas: 4
     maxReplicas: 100
@@ -21,21 +22,15 @@ taskStoreRest:
 
 customFieldWorker:
   replicas: 2
-  resources:
-    requests: {cpu: 250m, memory: 256Mi}
-    limits: {cpu: 1000m, memory: 1Gi}
+  resourceTier: S
 
 recurringTaskMaterializer:
   replicas: 2
-  resources:
-    requests: {cpu: 250m, memory: 256Mi}
-    limits: {cpu: 1000m, memory: 1Gi}
+  resourceTier: S
 
 dependencyGraphValidator:
   replicas: 2
-  resources:
-    requests: {cpu: 250m, memory: 256Mi}
-    limits: {cpu: 1000m, memory: 1Gi}
+  resourceTier: S
 
 searchIndexWorker:
   replicas: 2

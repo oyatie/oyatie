@@ -218,7 +218,7 @@ Cross-region: M03 KR only; post-M03 global per ADR-0117 stages.
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| 1 | Schema-per-tenant vs shared-schema-RLS: decision needed before M02 scaffolding | council-architecture | ADR-XXXX |
+| 1 | Schema-per-tenant vs shared-schema-RLS: decision needed before M02 scaffolding | council-architecture | ADR-#### |
 | 2 | Cell assignment algorithm: consistent hashing or weighted-round-robin? | council-infrastructure | M02/P01 |
 
 ---

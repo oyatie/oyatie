@@ -292,7 +292,7 @@ Sharding:
 |---|---|---|---|
 | 1 | Evaluator long-lived service vs. scheduled GitHub Action — final landing decision | axis-observability | resolved in IP-008 |
 | 2 | Layer-A cluster co-located with workload cluster vs. dedicated observability cluster | ops-sre-reliability | resolved in IP-001 |
-| 3 | Tenant-defined SLOs: same OpenSLO file shape, or a tenant-scoped variant? | council-architecture | ADR-NNNN successor-IP |
+| 3 | Tenant-defined SLOs: same OpenSLO file shape, or a tenant-scoped variant? | council-architecture | ADR-#### successor-IP |
 | 4 | Self-observability: does the SLO engine evaluate its own SLOs (bootstrap paradox)? Default: yes, with a synthetic-probe fallback during cold-start. | axis-observability | resolved in IP-002 |
 
 ## Related ADRs

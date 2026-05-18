@@ -54,12 +54,7 @@ spec:
             - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://oya-observability-alloy.observability.svc.cluster.local:4317"}
             - {name: RUST_LOG, value: info}
           resources:
-            requests:
-              cpu: {{ $cfg.resources.requests.cpu | default "500m" }}
-              memory: {{ $cfg.resources.requests.memory | default "512Mi" }}
-            limits:
-              cpu: {{ $cfg.resources.limits.cpu | default "2" }}
-              memory: {{ $cfg.resources.limits.memory | default "1Gi" }}
+            {{- include "oya.resourceRequests" (dict "tier" ($cfg.resourceTier | default "M")) | nindent 12 }}
           readinessProbe:
             {{- include "oya.probes.healthzReadiness" $ | nindent 12 }}
           livenessProbe:

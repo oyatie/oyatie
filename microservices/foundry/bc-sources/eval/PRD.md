@@ -392,7 +392,7 @@ Sharding:
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | LLM-as-judge graders: which model is the canonical judge for HumanJudged eval cases? Default: rotate quarterly across two top providers + one in-house variant; per-quarter consistency check (κ ≥ 0.7) | axis-foundry | resolved in IP-006 |
-| 2 | GPU pool sharing policy: dedicated foundry-eval pool vs shared with foundry-runtime? | ops-sre-reliability + axis-foundry | dedicated for M01 (eval cadence + reproducibility); ADR-NNNN if pressure changes |
+| 2 | GPU pool sharing policy: dedicated foundry-eval pool vs shared with foundry-runtime? | ops-sre-reliability + axis-foundry | dedicated for M01 (eval cadence + reproducibility); ADR-#### if pressure changes |
 | 3 | Replay-trace retention upper bound (currently 24 months per ADR-0024); does pack-us-healthcare extend to 6y per HIPAA? | council-privacy | pack-us-healthcare overlay extends to 6y; cost-budget reflects |
 | 4 | Multi-arm A/B testing (> 2 routes) vs strictly pairwise: which does parity-analyzer model first? | axis-foundry | strictly pairwise for M01; multi-arm in M02 |
 

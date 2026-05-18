@@ -769,7 +769,7 @@ For every µservice registered in `[workspace.metadata.oya.microservices]`:
 |---|---|---|
 | Microservice record | `docs/microservices/<microservice>.md` | `docs/templates/microservice-template.md` |
 | Product Requirements (canonical, pack-neutral) | `docs/prds/<microservice>.md` | `docs/templates/prd-template.md` |
-| Naming-scope ADR | `docs/decisions/ADR-NNNN-microservice-<microservice>.md` | `docs/templates/adr-template.md` |
+| Naming-scope ADR | `docs/decisions/ADR-####-microservice-<microservice>.md` | `docs/templates/adr-template.md` |
 | Bounded-context registrations (one per BC) | `docs/bounded-contexts/<microservice>-<bc>.md` | `docs/templates/bounded-context-registration-template.md` |
 | Phase-Specs (≥1 referencing the µservice) | `.omc/plans/milestones/M*/phases/*/phase-spec.md` | `docs/templates/phase-spec-template.md` |
 | Impl-Plans (one per IP) | `.omc/plans/milestones/M*/phases/*/impl-plan.md` | `docs/templates/impl-plan-template.md` |
@@ -779,7 +779,7 @@ For every µservice registered in `[workspace.metadata.oya.microservices]`:
 | Artifact | Path convention |
 |---|---|
 | Pack overlay PRD | `docs/prds/<microservice>-<pack>.md` (required when pack adds material scope; optional otherwise) |
-| Pack regulatory ADR | `docs/decisions/ADR-NNNN-<pack>-<microservice>-regulatory.md` |
+| Pack regulatory ADR | `docs/decisions/ADR-####-<pack>-<microservice>-regulatory.md` |
 | Pack acceptance evidence | `docs/localization-packs/<pack>/evidence/<microservice>.md` |
 
 Pack `pack.yaml` manifests at `docs/localization-packs/<pack>/pack.yaml` declare which µservices the pack covers; the CI lane derives the required (pack × µservice) cross-product from there.

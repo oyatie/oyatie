@@ -27,7 +27,7 @@ Each ADR closes one Open Question (or anchors one foundational decision) surface
 
 - ADR ID format: `ADR-MEET-XXXX` (4-digit, scope-prefixed) per ADR-0131 service-scoped-ADR convention.
 - Each ADR carries: Status, Date (ISO yyyy-mm-dd), Context, Decision, Alternatives Considered (≥3 per decision; each with Pros/Cons/Rejected reason), Consequences (≥3 downstream impacts; Positive/Negative/Operational/Regulatory), References.
-- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-NNNN` at repo root) and sibling µservice ADRs (e.g., `ADR-MSGR-0001` for substrate-sharing precedent).
+- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-####` at repo root) and sibling µservice ADRs (e.g., `ADR-MSGR-0001` for substrate-sharing precedent).
 - Lifecycle per ADR-0131 §"ADR Lifecycle": `Proposed → Accepted → (Superseded by ADR-MEET-NNNN | Deprecated)`. Never delete; supersede.
 
 ## Open questions not yet closed

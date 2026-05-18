@@ -110,7 +110,7 @@ Generation pipeline at `microservices/cloud-k8s/sdk-generation/`:
 | Any SDK whose generator lib deprecated upstream | dep-deprecated | 12mo advance notice + auto-migration |
 | Breaking API change in cloud-k8s µservice | per-release | major version bump in SDK; backwards-compat adapter for 1 prior major |
 
-Per ADR-NNNN deprecation discipline: every SDK sunset emits ADR-shaped notice + deprecation-warning + tenant comms.
+Per ADR-#### deprecation discipline: every SDK sunset emits ADR-shaped notice + deprecation-warning + tenant comms.
 
 ## Versioning
 

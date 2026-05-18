@@ -39,7 +39,7 @@ capability / runbook / threat-model / DPIA artifact under
   Alternatives Considered (≥3 per decision; each with Pros/Cons/
   Rejected reason), Consequences (≥3 downstream impacts), Verification,
   References.
-- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-NNNN` at
+- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-####` at
   repo root) and sibling µservice ADRs. Cross-µservice citations
   encouraged where decisions are genuinely paired (e.g., ADR-SITES-0001
   ↔ ADR-WS-0001 + ADR-DOCS-0001 + ADR-SHEETS-0001 + ADR-SLIDES-0001 for

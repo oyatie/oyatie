@@ -25,7 +25,7 @@ Each ADR closes one Open Question (or derived gap) surfaced in `microservices/ca
 
 - ADR ID format: `ADR-CAL-XXXX` (4-digit, scope-prefixed) per ADR-0131 service-scoped-ADR convention.
 - Each ADR carries: Status, Date (ISO yyyy-mm-dd), Context, Decision, Alternatives Considered (≥3 per decision; each with Pros/Cons/Rejected reason), Consequences (≥3 downstream impacts), References.
-- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-NNNN` at repo root) and sibling µservice ADRs. Cross-µservice citations encouraged where decisions are genuinely paired (e.g., ADR-CAL-0003 ↔ ADR-MAIL-0003).
+- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-####` at repo root) and sibling µservice ADRs. Cross-µservice citations encouraged where decisions are genuinely paired (e.g., ADR-CAL-0003 ↔ ADR-MAIL-0003).
 - Lifecycle per ADR-0131 §"ADR Lifecycle": `Proposed → Accepted → (Superseded by ADR-CAL-NNNN | Deprecated)`. Never delete; supersede.
 
 ## Open questions not yet closed

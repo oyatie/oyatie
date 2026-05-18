@@ -120,6 +120,34 @@ burn-rate alerts and per-microservice operational alerts
 (e.g. `NotesE2ELeakageDetected`, `MeetLiveStreamEgressUnauthorized`)
 that do not generalize across microservices.
 
+### Canonical Rust implementation (added 2026-05-18 per PERF-143-002)
+
+The canonical Rust surface every microservice integrates against is the
+**shared metric emission trait kernel** + **Prometheus reference adapter**:
+
+- `crates/oya-shared-hyperscaler-metrics-kernel` — declares
+  `HyperscalerMetrics` trait with one method per canonical metric family
+  (`record_capability_circuit_state`, `record_capability_retry_budget_exhausted`,
+  `record_responses_429`, `record_responses_5xx`, `record_responses_total`,
+  `record_request_success`, `record_request_total`). Pure trait (no I/O,
+  no Prometheus dep); port-in-kernel per ADR-0056.
+- `crates/oya-shared-hyperscaler-metrics-adapter-prometheus` — reference
+  impl against `prometheus 0.13.x`. Registers all seven families against
+  a `prometheus::Registry` at startup; binds the `microservice` label
+  once (foot-gun closed); enforces canonical name shape via
+  `MetricFamily::canonical_set()`.
+
+Per ADR-0064 canonical-base-and-localization-packs, the kernel is the
+**seam** (the canonical surface every µservice integrates against); the
+prometheus adapter is the canonical **impl**; per-pack adapters
+(e.g. an OpenTelemetry-only deployment in pack-eu Sovereign-Cloud
+overlays) replace the prometheus adapter without touching the kernel.
+
+The composition root of each µservice's `app` crate constructs ONE
+adapter and shares it as `Arc<dyn HyperscalerMetrics>` across the BCs;
+see `microservices/messenger/IP-NEW-hyperscaler-metric-emission.md` for
+the canonical wiring pattern (pilot µservice, M02-P14).
+
 ## CI enforcement
 
 A Rust check (planned: `oya-check-canonical-base-cohesion`) verifies:

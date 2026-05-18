@@ -58,8 +58,7 @@ spec:
             - secretRef:
                 name: openbao-bridged-{{ .Values.bc }}-{{ .Values.layer }}
           resources:
-            requests: { cpu: "200m", memory: "256Mi" }
-            limits:   { cpu: "2",    memory: "2Gi" }
+            {{- include "oya.resourceRequests" (dict "tier" (.Values.resourceTier | default "S")) | nindent 12 }}
           livenessProbe:
             httpGet: { path: /healthz, port: http }
             initialDelaySeconds: 10

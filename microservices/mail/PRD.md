@@ -352,12 +352,12 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | JMAP vs IMAP relative priority for client SDK first-launch — bias to JMAP modern protocol or honour Apple-Mail-default IMAP? | axis-mail | ADR-NNNN-jmap-imap-priority |
-| 2 | Per-tenant SMTP IP pool sizing and warmup protocol — shared warm pool or per-tenant cold-start? | ops-deliverability + axis-mail | ADR-NNNN-smtp-ip-pool |
-| 3 | Search index choice: Tantivy (Rust-native; embedded) vs Elasticsearch (mature but JVM) — performance + ops trade-off | axis-mail | ADR-NNNN-search-index-backend |
-| 4 | Personal mailbox E2E encryption key recovery: user-held-only or escrow-with-2-person-rule? | council-privacy + axis-mail | ADR-NNNN-personal-mail-key-recovery |
+| 1 | JMAP vs IMAP relative priority for client SDK first-launch — bias to JMAP modern protocol or honour Apple-Mail-default IMAP? | axis-mail | ADR-####-jmap-imap-priority |
+| 2 | Per-tenant SMTP IP pool sizing and warmup protocol — shared warm pool or per-tenant cold-start? | ops-deliverability + axis-mail | ADR-####-smtp-ip-pool |
+| 3 | Search index choice: Tantivy (Rust-native; embedded) vs Elasticsearch (mature but JVM) — performance + ops trade-off | axis-mail | ADR-####-search-index-backend |
+| 4 | Personal mailbox E2E encryption key recovery: user-held-only or escrow-with-2-person-rule? | council-privacy + axis-mail | registry/placeholder-debt/adr-follow-ups.yaml#personal-mail-key-recovery |
 | 5 | Cross-channel hold coordination authority: `audit-chain` µservice or `legal-hold` itself? | council-architecture | resolved 2026-05-17: audit-chain owns coordinator; mail owns mail-scope hold |
-| 6 | Mail-to-Workflow extraction prompt safety: agentic LLM extraction is consent-gated; what's the per-tenant default? | council-privacy + axis-workflow | ADR-NNNN-mail-workflow-extraction-default |
+| 6 | Mail-to-Workflow extraction prompt safety: agentic LLM extraction is consent-gated; what's the per-tenant default? | council-privacy + axis-workflow | registry/placeholder-debt/adr-follow-ups.yaml#mail-workflow-extraction-default |
 
 ## Related ADRs
 

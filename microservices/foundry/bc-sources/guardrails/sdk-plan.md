@@ -99,7 +99,7 @@ Generation pipeline at `microservices/foundry-guardrails/sdk-generation/`.
 | Any SDK whose generator lib deprecated upstream | dep-deprecated | 12mo + auto-migrate where possible |
 | Breaking API change in guardrails µservice | per-release | major bump; backwards-compatible adapter for 1 prior major |
 
-Per ADR-NNNN deprecation-and-migration discipline: every SDK sunset emits ADR-shaped notice + deprecation-warning in SDK + tenant comms via gtm.
+Per ADR-#### deprecation-and-migration discipline: every SDK sunset emits ADR-shaped notice + deprecation-warning in SDK + tenant comms via gtm.
 
 ## Versioning
 

@@ -1,7 +1,7 @@
 ---
 doc_status: drafted
 ---
-# ADR-XXXX — <title>
+# ADR-#### — <title>
 
 - Status: Proposed | Accepted | Superseded
 - Phase: M02-P03

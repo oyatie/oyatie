@@ -157,7 +157,7 @@ Before a pack accepts production traffic:
 
 | Gate | Owner | Status (per-pack) |
 |---|---|---|
-| ADR-NNNN-pack-<pack>-onboarding accepted | council-architecture | required-before-onboarding; tracked per pack in `microservices/governance/IP-PACK-<pack>-onboarding.md` (templated; one IP per pack at fill time) |
+| ADR-####-pack-<pack>-onboarding accepted | council-architecture | required-before-onboarding; tracked per pack in `microservices/governance/IP-PACK-<pack>-onboarding.md` (templated; one IP per pack at fill time) |
 | Residency overlay deployed | ops-sre-reliability | required-before-onboarding; verified by `oya-check-data-residency` lane green on overlay PR |
 | Cedar fragments reviewed | ops-security | required-before-onboarding; logged in `microservices/governance/decisions/ADR-PACK-<pack>-cedar-review.md` |
 | Compliance ROPA filed | ops-compliance | required-before-onboarding; ROPA entry in `microservices/governance/compliance.md` §ROPA before traffic shifts |

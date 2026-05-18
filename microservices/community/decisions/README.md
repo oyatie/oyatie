@@ -28,7 +28,7 @@ The ADRs in this directory close five **architecture-level** decisions whose ans
 
 - ADR ID format: `ADR-COMM-XXXX` (4-digit, scope-prefixed) per ADR-0131 service-scoped-ADR convention.
 - Each ADR carries: Status, Date (ISO yyyy-mm-dd), Context, Decision, Alternatives Considered (≥3 per decision; each with Pros/Cons/Rejected reason), Consequences (≥3 downstream impacts grouped Positive/Negative/Operational/Regulatory), References.
-- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-NNNN` at repo root) and sibling µservice ADRs (e.g., `ADR-MSGR-0003` referenced from `ADR-COMM-0004` as paired backend selection). Cross-µservice citations are encouraged where the decisions are genuinely paired.
+- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-####` at repo root) and sibling µservice ADRs (e.g., `ADR-MSGR-0003` referenced from `ADR-COMM-0004` as paired backend selection). Cross-µservice citations are encouraged where the decisions are genuinely paired.
 - Lifecycle per ADR-0131 §"ADR Lifecycle": `Proposed → Accepted → (Superseded by ADR-COMM-NNNN | Deprecated)`. Never delete; supersede.
 
 ## Open questions scheduled-for-distinct-tracked-work (not ADR-closable at M02)

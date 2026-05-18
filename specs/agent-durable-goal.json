@@ -257,7 +257,7 @@
     {
       "id": "OP-10",
       "name": "bominal_inheritance",
-      "rule": "Bominal ADRs apply 1:1 unless an oyatie ADR explicitly overrides. When citing inherited ADRs, qualify as 'Bominal-ADR-NNNN' to disambiguate from oyatie ADRs with the same number.",
+      "rule": "Bominal ADRs apply 1:1 unless an oyatie ADR explicitly overrides. When citing inherited ADRs, qualify as 'Bominal-ADR-####' to disambiguate from oyatie ADRs with the same number.",
       "registry_path": "registry/adr/inherited-bominal-adrs.yaml",
       "references": ["feedback_bominal_inheritance_precedence"]
     },

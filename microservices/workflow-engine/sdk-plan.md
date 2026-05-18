@@ -137,7 +137,7 @@ All SDKs expose:
 | Any SDK whose generator lib is deprecated upstream | dep-deprecated | 12mo advance notice + auto-migration to replacement generator if possible |
 | Breaking API change in workflow-engine µservice | per-release | major version bump in SDK; backwards-compatible adapter for 1 prior major version |
 
-Per ADR-NNNN deprecation-and-migration discipline: every SDK sunset emits an ADR-shaped notice + deprecation-warning in the SDK + tenant comms via gtm-customer-success.
+Per ADR-#### deprecation-and-migration discipline: every SDK sunset emits an ADR-shaped notice + deprecation-warning in the SDK + tenant comms via gtm-customer-success.
 
 ## Versioning
 

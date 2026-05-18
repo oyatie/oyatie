@@ -43,8 +43,7 @@ spec:
             - name: ws
               containerPort: 8443
           resources:
-            requests: {{- toYaml $c.resources.requests | nindent 14 }}
-            limits: {{- toYaml $c.resources.limits | nindent 14 }}
+            {{- include "oya.resourceRequests" (dict "tier" $c.resourceTier) | nindent 12 }}
           livenessProbe:
             {{- include "oya.probes.httpHealthLiveness8080" $ | nindent 12 }}
           readinessProbe:

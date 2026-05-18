@@ -13,11 +13,17 @@ image:
 # Per-BC deployment sizing (XS-tier baseline; HPA scales up)
 # ============================================================================
 
+# Per-component resourceTier (canonical-base: oya.resourceRequests dispatcher).
+# Tier letters resolve to canonical CPU/memory grids defined in
+# microservices/governance/iac/helm/_oya-helpers/templates/_helpers.tpl:
+#   XS: 100m/128Mi req, 250m/256Mi lim
+#   S : 250m/512Mi req, 1/1Gi lim
+#   M : 500m/1Gi  req, 2/4Gi lim
+#   L : 1/2Gi     req, 4/8Gi lim
+#   XL: 2/4Gi     req, 8/16Gi lim
 websocketGateway:
   replicas: 4
-  resources:
-    requests: {cpu: 500m, memory: 512Mi}
-    limits: {cpu: 2000m, memory: 2Gi}
+  resourceTier: M
   hpa:
     minReplicas: 4
     maxReplicas: 200
@@ -25,15 +31,11 @@ websocketGateway:
 
 channelStore:
   replicas: 3
-  resources:
-    requests: {cpu: 250m, memory: 256Mi}
-    limits: {cpu: 1000m, memory: 1Gi}
+  resourceTier: S
 
 messageStreamRest:
   replicas: 6
-  resources:
-    requests: {cpu: 500m, memory: 512Mi}
-    limits: {cpu: 2000m, memory: 2Gi}
+  resourceTier: M
   hpa:
     minReplicas: 6
     maxReplicas: 100
@@ -41,27 +43,19 @@ messageStreamRest:
 
 messageStreamWorker:
   replicas: 4
-  resources:
-    requests: {cpu: 500m, memory: 1Gi}
-    limits: {cpu: 2000m, memory: 4Gi}
+  resourceTier: M
 
 presence:
   replicas: 3
-  resources:
-    requests: {cpu: 250m, memory: 256Mi}
-    limits: {cpu: 1000m, memory: 1Gi}
+  resourceTier: S
 
 fileAttachmentWorker:
   replicas: 2
-  resources:
-    requests: {cpu: 500m, memory: 1Gi}
-    limits: {cpu: 2000m, memory: 4Gi}
+  resourceTier: M
 
 mentionRouter:
   replicas: 3
-  resources:
-    requests: {cpu: 250m, memory: 512Mi}
-    limits: {cpu: 1000m, memory: 2Gi}
+  resourceTier: S
 
 # ============================================================================
 # Backing stores — references; provisioning lives in cloud-k8s + cloud-db

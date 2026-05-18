@@ -267,7 +267,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: `/specs/industry-best-practice-conformance.json`
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - File is in repo; every edit requires PR + ADR-NNNN successor-IP + council-architecture review per ADR-0133 §"Operational".
+  - File is in repo; every edit requires PR + ADR-#### successor-IP + council-architecture review per ADR-0133 §"Operational".
   - `oya-check-industry-best-practice-conformance` lane self-applies: detects pin softening absent ADR.
   - Quarterly refresh PR is automated (`axis-foundry-bot`); manual edits flagged for human review.
 - Owner: council-architecture

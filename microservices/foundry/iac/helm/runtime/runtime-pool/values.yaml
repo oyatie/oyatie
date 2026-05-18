@@ -6,12 +6,14 @@ global:
   imageRegistry: oyatie-internal.registry/foundry-runtime
   imageTag: "1.0.0"  # LTS pin
 
+# Per-component resourceTier (canonical-base: oya.resourceRequests dispatcher).
+# Tier letters resolve to canonical CPU/memory grids in
+# microservices/governance/iac/helm/_oya-helpers/templates/_helpers.tpl.
+
 # capability-executor-app
 capabilityExecutor:
   replicas: 4
-  resources:
-    requests: { cpu: "1000m", memory: "1Gi" }
-    limits:   { cpu: "2000m", memory: "2Gi" }
+  resourceTier: L
   securityContext:
     runAsNonRoot: true
     runAsUser: 10001
@@ -29,19 +31,19 @@ capabilityExecutor:
 invocationOrchestrator:
   app:
     replicas: 2
-    resources: { requests: { cpu: "500m", memory: "512Mi" }, limits: { cpu: "1000m", memory: "1Gi" } }
+    resourceTier: M
   worker:
     replicas: 2
-    resources: { requests: { cpu: "500m", memory: "512Mi" }, limits: { cpu: "1000m", memory: "1Gi" } }
+    resourceTier: M
 
 # runtime-pool-app + worker + pool warm pods
 runtimePool:
   app:
     replicas: 2
-    resources: { requests: { cpu: "500m", memory: "512Mi" } }
+    resourceTier: M
   worker:
     replicas: 2
-    resources: { requests: { cpu: "500m", memory: "512Mi" } }
+    resourceTier: M
   warmPods:
     baseline: 8
     maxBurst: 100         # HPA ceiling per capacity-model.md
@@ -50,16 +52,16 @@ runtimePool:
 # session-state-app
 sessionState:
   replicas: 2
-  resources: { requests: { cpu: "1000m", memory: "1Gi" } }
+  resourceTier: L
 
 # capability-registry-cache-app + worker
 capabilityRegistryCache:
   app:
     replicas: 2
-    resources: { requests: { cpu: "500m", memory: "1Gi" } }   # in-memory cache headroom
+    resourceTier: M   # in-memory cache headroom (tier M: req 500m/1Gi, lim 2/4Gi)
   worker:
     replicas: 2
-    resources: { requests: { cpu: "500m", memory: "512Mi" } }
+    resourceTier: M
 
 # Pod-baseline security per runtime-isolation.md TI-11
 podBaseline:

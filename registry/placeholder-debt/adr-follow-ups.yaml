@@ -1,0 +1,234 @@
+# ADR follow-up tracker
+#
+# Concrete, tracked references for ADRs that will be authored in the future.
+# Replaces ad-hoc `ADR-NNNN-<slug>` and `ADR-XXXX` placeholders scattered
+# across PRDs / runbooks / standards. Each entry pins a stable id so doc
+# refs can be resolved without a real ADR file existing yet.
+#
+# Schema:
+#   id: stable kebab-case slug, e.g. "personal-mail-key-recovery"
+#   intent: one-line summary of the decision the ADR will codify
+#   driver_docs: list of doc paths that cite this follow-up
+#   owner: council or axis that drafts the ADR when the trigger fires
+#   trigger: precondition that must hold before the ADR is authored
+#   status: pending | drafting | accepted (transitions to accepted when the
+#           real ADR-NNNN lands and is back-linked here)
+#   adr_when_landed: filled in when the real ADR is authored
+#
+# Sigil convention (per docs/fitness-lanes/adr-citation.md): in active text,
+# unresolved future ADRs are cited as `registry/placeholder-debt/adr-follow-ups.yaml#<id>`
+# rather than the legacy `ADR-NNNN-<slug>` pattern. Template files use the
+# `ADR-####` sigil as the schema marker for "fill in a real ADR id here".
+version: 1
+
+follow_ups:
+  - id: personal-mail-key-recovery
+    intent: |
+      Key-recovery design for the personal-pillar mail bounded context;
+      decides between user-held-only (QR-code paper recovery) vs
+      escrow-with-2-person-rule. Default at M03 launch: user-held-only.
+    driver_docs:
+      - microservices/mail/PRD.md
+      - microservices/mail/runbooks/e2e-encryption-key-recovery.md
+      - microservices/mail/policy/dual-context-isolation.md
+    owner: council-privacy + axis-mail
+    trigger: |
+      Path B (total key loss) recurs ≥ 3× / quarter post-M03 launch,
+      OR a regulatory pack (US-Healthcare HIPAA, EU GDPR DPIA) requires
+      provider-side recoverability.
+    status: pending
+
+  - id: passphrase-derivation-upgrade
+    intent: |
+      Transition mail DEK wrapping key derivation from PBKDF2-HMAC-SHA256
+      (600 000 iterations) to Argon2id; documents memory/time cost
+      parameters and migration plan for existing wrapped DEKs.
+    driver_docs:
+      - microservices/mail/runbooks/e2e-encryption-key-recovery.md
+    owner: council-privacy + axis-mail
+    trigger: |
+      Argon2id Rust crate reaches LTS pin + benchmarks show ≤ 2× p99
+      login latency overhead vs current PBKDF2 setup.
+    status: pending
+
+  - id: mail-workflow-extraction-default
+    intent: |
+      Per-tenant default for agentic LLM extraction of action items
+      from mail bodies into workflow-engine tasks; consent-gating
+      surface (opt-in / opt-out / disabled).
+    driver_docs:
+      - microservices/mail/PRD.md
+    owner: council-privacy + axis-workflow
+    trigger: M01 mail-foundry handshake reaches GA.
+    status: pending
+
+  - id: workflow-step-determinism-standard
+    intent: |
+      Forbidden APIs inside workflow-engine step bodies for replay
+      determinism (std::time, std::random, OS calls, etc.).
+      Successor-IP authors a fitness lane that rejects steps invoking
+      the forbidden surface.
+    driver_docs:
+      - microservices/workflow-engine/PRD.md
+      - docs/standards/workflow-step-determinism.md
+    owner: council-architecture + axis-workflow-engine
+    trigger: P0 step-body sandboxing lane drafted.
+    status: pending
+
+  - id: workflow-plugin-sdk-distribution
+    intent: |
+      Plugin SDK distribution surface for workflow-engine nodes —
+      WASM-only vs WASM + native dylib for internal nodes.
+    driver_docs:
+      - microservices/workflow-engine/PRD.md
+      - microservices/workflow-engine/sdk-plan.md
+    owner: council-architecture
+    trigger: First internal node author requests native-dylib path.
+    status: pending
+
+  - id: foundry-bc-namespace-isolation
+    intent: |
+      Whether the 6 foundry bounded contexts share a single Kubernetes
+      namespace or split across 6 for blast-radius isolation.
+      Default at M01 completion: one namespace per BC.
+    driver_docs:
+      - microservices/foundry/PRD.md
+    owner: ops-sre-reliability + axis-foundry
+    trigger: M01 foundry GA.
+    status: pending
+
+  - id: foundry-contract-versioning
+    intent: |
+      Per-BC contract versioning (each of the 6 foundry BCs increments
+      independently) vs unified foundry product version (digest of 6).
+      Default: per-BC SemVer; product version = digest.
+    driver_docs:
+      - microservices/foundry/PRD.md
+    owner: council-architecture
+    trigger: First cross-BC breaking change proposed.
+    status: pending
+
+  - id: foundry-eval-gpu-pool-policy
+    intent: |
+      GPU pool sharing policy for foundry-eval — dedicated pool vs
+      shared with foundry-runtime + foundry-providers.
+    driver_docs:
+      - microservices/foundry/bc-sources/eval/PRD.md
+    owner: ops-sre-reliability + axis-foundry
+    trigger: First eval workload that requires > 1 H100 hour / day.
+    status: pending
+
+  - id: foundry-runtime-capability-registry-mirror
+    intent: |
+      Multi-tenant capability registry mirror — Postgres logical
+      replication vs CDC stream vs application-layer fanout.
+    driver_docs:
+      - microservices/foundry/bc-sources/runtime/PRD.md
+    owner: axis-foundry + axis-observability
+    trigger: Second region onboards.
+    status: pending
+
+  - id: sdk-deprecation-discipline
+    intent: |
+      Canonical deprecation-and-migration discipline for all SDK
+      sunsets: ADR-shaped notice + deprecation-warning in SDK +
+      tenant comms via gtm-customer-success.
+    driver_docs:
+      - microservices/workflow-engine/sdk-plan.md
+      - microservices/foundry/bc-sources/guardrails/sdk-plan.md
+      - microservices/cloud-k8s/sdk-plan.md
+      - microservices/observability/sdk-plan.md
+    owner: council-architecture + gtm-customer-success
+    trigger: First SDK reaches v1.0 GA (triggers v0 sunset clock).
+    status: pending
+
+  - id: foundry-supersession-cycle
+    intent: |
+      Supersession governance for ADR-0133 industry-best-practice
+      conformance program — when revisions land, this follow-up
+      tracks the supersession ADR.
+    driver_docs:
+      - docs/decisions/ADR-0133-industry-best-practice-conformance-program.md
+    owner: council-architecture
+    trigger: Next industry baseline refresh cycle (annual).
+    status: pending
+
+  - id: foundry-finding-severity-escalation
+    intent: |
+      Finding severity escalation policy — does WARN-stacking promote
+      to BLOCKER? At what cardinality / time-window?
+      Default at M01 launch: strict (no escalation).
+    driver_docs:
+      - microservices/foundry/PRD.md
+    owner: ops-security
+    trigger: Signal-overload observed in M01 launch operational data.
+    status: pending
+
+  - id: four-layer-branch-pipeline
+    intent: |
+      Authoritative ADR for the four-layer branch pipeline (draft at
+      docs/advanced-cicd/branch-pipeline/) — supersedes
+      ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.
+    driver_docs:
+      - docs/advanced-cicd/branch-pipeline/INDEX.md
+      - docs/advanced-cicd/branch-pipeline/ADR-0055-branch-pipeline.md
+    owner: council-architecture + axis-cloud-iac
+    trigger: Draft promoted to docs/decisions/ after architect-review.
+    status: drafting
+
+  - id: connect-umbrella-retirement-marker
+    intent: |
+      Marker ADR closing the connect-umbrella µservice retirement —
+      authored after the strangler migration completes per
+      ADR-0134-connect-dissolution-strangler-migration.
+    driver_docs:
+      - microservices/connect/RETIREMENT-PLAN.md
+      - docs/decisions/ADR-0134-connect-dissolution-strangler-migration.md
+    owner: axis-mail + axis-messenger + axis-tasks (joint receivers)
+    trigger: All connect strangler slices land; final connect µservice deletion.
+    status: pending
+
+  - id: slsa-build-l4-upgrade
+    intent: |
+      Upgrade SLSA Build provenance from L3 → L4 (hermetic + reproducible).
+    driver_docs:
+      - docs/decisions/ADR-0133-industry-best-practice-conformance-program.md
+    owner: council-architecture + ops-security
+    trigger: SLSA L4 toolchain reaches LTS pin parity with current L3 stack.
+    status: pending
+
+  - id: postmortem-template-codification
+    intent: |
+      Codifies the ISO 27001 A.5.27 postmortem template + review
+      cadence (replaces the inline `runbooks/postmortem-template.md`
+      with an ADR-bound canonical form).
+    driver_docs:
+      - docs/decisions/ADR-0133-industry-best-practice-conformance-program.md
+    owner: ops-sre-reliability + ops-security
+    trigger: First production incident post-M01 GA.
+    status: pending
+
+  - id: grit-scaffold-claim-pattern
+    intent: |
+      Historical record — the scaffold-claim pattern referenced from
+      the M-CC P0.5 plan. SUPERSEDED by ADR-0116 (retire-external-agent-
+      coordination-tooling); kept as a follow-up only for plan
+      back-references.
+    driver_docs:
+      - docs/plans/M01-foundation-cc-01-cutover/architect-review-iter-1.md
+    owner: council-architecture
+    trigger: Historical; will resolve as `superseded` when plan
+      back-references are rewritten.
+    status: superseded
+
+  - id: grit-cutover-inventory
+    intent: |
+      Historical inventory of pre-cutover files for the grit cutover.
+      SUPERSEDED by ADR-0116 (retire-external-agent-coordination-tooling)
+      — the cutover removed the entire grit surface; inventory is no
+      longer needed.
+    driver_docs:
+      - docs/plans/M01-foundation-cc-01-cutover/architect-review-iter-1.md
+    owner: council-architecture
+    trigger: Historical; resolves as `superseded`.
+    status: superseded

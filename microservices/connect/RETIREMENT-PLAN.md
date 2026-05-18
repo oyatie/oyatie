@@ -71,7 +71,7 @@ When the trigger fires, the Phase 6 ChangeSet from ADR-0134 executes:
    first-class nodes.
 4. Delete `/specs/microservices/*.json` legacy pointers (only after their
    `replacement_path` targets at `/specs/microservices/<ms>/*.json` are promoted).
-5. Emit a final ADR-NNNN-connect-umbrella-retired marker ADR (separately
+5. Emit a final registry/placeholder-debt/adr-follow-ups.yaml#connect-umbrella-retirement-marker marker ADR (separately
    numbered at retirement time; not pre-authored here).
 
 ## Per-sub-µservice retirement preconditions

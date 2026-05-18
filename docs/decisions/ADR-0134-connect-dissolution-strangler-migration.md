@@ -222,7 +222,7 @@ own Phase 5 exit, the Connect umbrella µservice retires:
 3. Update `docs/architecture/product-graph.md` and `product-graph.html` —
    strip the "Connect" umbrella node, keep the 8 children as first-class
    nodes.
-4. Emit a final ADR-NNNN-connect-umbrella-retired marker ADR closing the
+4. Emit a final registry/placeholder-debt/adr-follow-ups.yaml#connect-umbrella-retirement-marker marker ADR closing the
    cycle (separate ADR; this ADR-0134 does not pre-author it).
 
 **Entry gate:** All 8 HG-<MS> gates green at p99 SLO sustained 30d AND all

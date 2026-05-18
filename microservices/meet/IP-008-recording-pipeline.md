@@ -21,6 +21,33 @@ Author the recording BC: LiveKit egress streams composite (audio + video + scree
 
 Retention floors per pack (HIPAA 6y; SEC 17a-4 3-7y; MiFID II 5-7y; KR PIPA Art. 21 1-5y) applied via retention worker.
 
+### Cross-µservice handoff to the `recordings` carrier
+
+Per ADR-0140 (cross-cutting-carriers adapter exemption) AND the
+Workflow+Ontology adapter rule (feedback_workflow_objectgraph_adapter_layer),
+the meet → recordings handoff MUST flow through the workflow-engine event-bus
+for the orchestration leg, not via direct gRPC from a `meet` worker to the
+`recordings` namespace:
+
+1. When a meeting ends, the meet `recording` worker emits
+   `meet.meeting.v1.ended` (carrying meeting_id + tenant_id + retention_policy_id
+   + legal_hold_state) into workflow-engine.
+2. workflow-engine evaluates the recording-trigger workflow and, when the
+   tenant has recording enabled, emits `recordings.ingest.v1.requested` to
+   the `recordings` µservice.
+3. `recordings` consumes the workflow-engine event and pulls the muxed media
+   from meet's S3 bucket using a signed URL whose grant is bounded by
+   `recordings.ingest.v1.requested.expires_at` (typically T+24h). No direct
+   gRPC channel from meet to recordings is opened.
+4. `recordings` emits `recordings.ingest.v1.completed` (or `.failed`) back via
+   workflow-engine; meet's `recording` BC observes completion via the
+   workflow-engine subscription and updates its recording manifest accordingly.
+
+The NetworkPolicy at `iac/helm/meet/templates/networkpolicy.yaml` egresses
+ONLY to the `workflow-engine` namespace for this handoff; the `recordings`
+namespace egress was removed 2026-05-18 per the integration review INT-002
+finding.
+
 ## Concrete File Targets
 
 | Path | Action |
@@ -105,7 +132,15 @@ cargo run -p oya-dev-cli -- gate validate s3-object-lock --microservice meet
 ## References
 
 - ADR-MEET-0002 (recording + transcription pipeline).
+- ADR-0140 (cross-cutting-carriers adapter exemption — clarifies that the
+  meet → recordings handoff orchestration leg flows through workflow-engine
+  even though `recordings` is a cross-cutting carrier; the carrier-exemption
+  permits direct binary-payload pull via signed URL but the trigger remains
+  workflow-engine-mediated).
 - gVisor `gvisor.dev`.
 - ffmpeg `ffmpeg.org`.
 - SEC Rule 17a-4(f); HIPAA §164.312(c)(1); MiFID II RTS 6.
 - S3 Object Lock docs (OCI / AWS-compatible).
+- `iac/helm/meet/templates/networkpolicy.yaml` (egress to workflow-engine
+  namespace only; the `recordings` namespace egress was removed 2026-05-18
+  per the integration review INT-002 finding).

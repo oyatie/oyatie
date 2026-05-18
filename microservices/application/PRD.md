@@ -360,7 +360,7 @@ manifest tables partitioned on the same key. LEAN shardability lane verifies.
 | # | Question | Owner | Target |
 |---|---|---|---|
 | 1 | SAML IdP for M03: Azure AD / Okta / KR-specific (KISA-approved)? | council-product | M03/P01 |
-| 2 | Module-loader sandbox: iframe-with-postMessage vs. Web Workers + structured-clone? | council-architecture | ADR-XXXX |
+| 2 | Module-loader sandbox: iframe-with-postMessage vs. Web Workers + structured-clone? | council-architecture | ADR-#### |
 | 3 | CDN provider for global overlay (Cloudflare vs. Fastly) — cost vs. KR-residency latency | ops-finops | M03/P02 |
 | 4 | Native client tiers (iOS / Android / desktop) — same module-loader contract or distinct? | council-architecture | subsequent-to-M03-completion ADR |
 

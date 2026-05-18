@@ -46,7 +46,7 @@
   ],
 
   "optional_folders_per_microservice": [
-    {"path": "decisions/", "purpose": "service-scoped ADRs; cross-cutting ADRs stay at docs/decisions/", "file_pattern": "ADR-NNNN-<slug>.md"},
+    {"path": "decisions/", "purpose": "service-scoped ADRs; cross-cutting ADRs stay at docs/decisions/", "file_pattern": "ADR-####-<slug>.md"},
     {"path": "contracts/openapi/", "purpose": "REST API contracts", "file_pattern": "<surface>.yaml"},
     {"path": "contracts/asyncapi/", "purpose": "async/event contracts", "file_pattern": "<surface>.yaml"},
     {"path": "contracts/proto/", "purpose": "gRPC contracts", "file_pattern": "<surface>.proto"},
@@ -151,7 +151,7 @@
 
   "open_questions": [
     {"id": "Q-001", "question": "Each oya-check-<topic> crate as its own microservices/check-<topic>/ folder, or bundled under microservices/foundry/checks/?", "default": "one folder each; flat-catalog discipline holds", "resolution": "IP-M01-MIGR-014 ChangeSet"},
-    {"id": "Q-002", "question": "Per-microservice .github/workflows/*.yml or repo-root only?", "default": "repo-root only; GitHub Actions does not pick up nested workflows", "resolution": "deferred to ADR-NNNN follow-up if per-service triggering becomes needed"},
-    {"id": "Q-003", "question": "regional-packs/ interaction with this layout?", "default": "regional packs span multiple microservices; retain as cross-cutting at regional-packs/", "resolution": "ADR-NNNN if rule changes"}
+    {"id": "Q-002", "question": "Per-microservice .github/workflows/*.yml or repo-root only?", "default": "repo-root only; GitHub Actions does not pick up nested workflows", "resolution": "deferred to ADR-#### follow-up if per-service triggering becomes needed"},
+    {"id": "Q-003", "question": "regional-packs/ interaction with this layout?", "default": "regional packs span multiple microservices; retain as cross-cutting at regional-packs/", "resolution": "ADR-#### if rule changes"}
   ]
 }

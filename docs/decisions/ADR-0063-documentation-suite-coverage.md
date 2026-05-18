@@ -35,7 +35,7 @@ For every µservice registered in `[workspace.metadata.oya.microservices]`, the 
 |---|---|---|
 | Microservice record | `docs/microservices/<microservice>.md` | `docs/templates/microservice-template.md` |
 | Product Requirements (canonical, pack-neutral) | `docs/prds/<microservice>.md` | `docs/templates/prd-template.md` |
-| Naming-scope ADR | `docs/decisions/ADR-NNNN-microservice-<microservice>.md` | `docs/templates/adr-template.md` |
+| Naming-scope ADR | `docs/decisions/ADR-####-microservice-<microservice>.md` | `docs/templates/adr-template.md` |
 | Bounded-context registrations (one per BC) | `docs/bounded-contexts/<microservice>-<bc>.md` | `docs/templates/bounded-context-registration-template.md` |
 | Phase-Specs (≥1 referencing the µservice) | `.omc/plans/milestones/M*/phases/*/phase-spec.md` | `docs/templates/phase-spec-template.md` |
 | Impl-Plans (one per IP) | `.omc/plans/milestones/M*/phases/*/impl-plan.md` | `docs/templates/impl-plan-template.md` |
@@ -47,7 +47,7 @@ For every (pack × µservice) pair declared in `docs/localization-packs/<pack>/p
 | Artifact | Path convention | When required |
 |---|---|---|
 | Pack overlay PRD | `docs/prds/<microservice>-<pack>.md` | `material_scope: true` |
-| Pack regulatory ADR | `docs/decisions/ADR-NNNN-<pack>-<microservice>-regulatory.md` | always (every pack-scoped µservice has at least one regulatory binding) |
+| Pack regulatory ADR | `docs/decisions/ADR-####-<pack>-<microservice>-regulatory.md` | always (every pack-scoped µservice has at least one regulatory binding) |
 | Pack acceptance evidence | `docs/localization-packs/<pack>/evidence/<microservice>.md` | always |
 
 `pack.yaml` is the authoritative source for the (pack × µservice × material_scope) tuple; the CI lane reads it directly. Pack.yaml is the single source of truth — no parallel hand-maintained tables.
@@ -180,7 +180,7 @@ Per RALPLAN-DR deliberate mode, three concrete failure scenarios with triggers, 
 
 | Tier | Coverage | Fixture / harness |
 |---|---|---|
-| **Unit** (parser correctness) | `read_workspace_microservices` returns the keys of `[workspace.metadata.oya.microservices]`; `read_masterplan_catalog` extracts kebab-case tokens from §2.1; `read_pack_catalog` discovers every `pack.yaml`; `has_naming_adr` matches the `ADR-NNNN-microservice-<ms>.md` pattern. | `crates/oya-check-documentation/tests/smoke.rs` (already has 2 tests); planned per-module unit tests in M02-P20. |
+| **Unit** (parser correctness) | `read_workspace_microservices` returns the keys of `[workspace.metadata.oya.microservices]`; `read_masterplan_catalog` extracts kebab-case tokens from §2.1; `read_pack_catalog` discovers every `pack.yaml`; `has_naming_adr` matches the `ADR-####-microservice-<ms>.md` pattern. | `crates/oya-check-documentation/tests/smoke.rs` (already has 2 tests); planned per-module unit tests in M02-P20. |
 | **Integration** (end-to-end against synthetic repo) | Synthesize a tmp dir with: (a) Cargo.toml registering 3 µservices, (b) 1 PRD authored, (c) 1 pack.yaml with `material_scope: true`. Verify the report contains exactly the expected violation kinds. | `tests/integration/` fixtures (M02-P20 scope). |
 | **E2E** (lane in CI) | The `.github/workflows/ci-fitness-lanes.yml` job runs the binary against `HEAD` of the actual workspace; archives the markdown report. Pre-M02-P22: `--report-only` (exit 0). Post-M02-P22: `--blocker` (exit nonzero if violations). | `.github/workflows/ci-fitness-lanes.yml` (M02-P20 scope). |
 | **Observability** | The markdown report is the canonical observability surface; total violation count is emitted as a Prometheus gauge `oyatie_doc_coverage_violations{kind="..."}` for trend tracking. | M02-P20 scope; gauge wired into VictoriaMetrics per Bominal ADR-0020. |

@@ -27,7 +27,7 @@ Each ADR closes one Open Question (or load-bearing decision) surfaced in `micros
 
 - ADR ID format: `ADR-NOTES-XXXX` (4-digit, scope-prefixed) per ADR-0131 service-scoped-ADR convention.
 - Each ADR carries: Status, Date (ISO yyyy-mm-dd), Context, Decision, Alternatives Considered (≥3 per decision; each with Pros/Cons/Rejected reason), Consequences (≥3 downstream impacts), References.
-- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-NNNN` at repo root) and sibling µservice ADRs (e.g., `ADR-MSGR-0002` referenced from `ADR-NOTES-0001` as paired privacy posture). Cross-µservice citations are encouraged where decisions are genuinely paired.
+- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-####` at repo root) and sibling µservice ADRs (e.g., `ADR-MSGR-0002` referenced from `ADR-NOTES-0001` as paired privacy posture). Cross-µservice citations are encouraged where decisions are genuinely paired.
 - Lifecycle per ADR-0131 §"ADR Lifecycle": `Proposed → Accepted → (Superseded by ADR-NOTES-NNNN | Deprecated)`. Never delete; supersede.
 
 ## Open questions not yet closed

@@ -19,11 +19,24 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-gate-jobs-handoff-contract]
 
 Author the full `jobs-handoff` BC per ADR-NET-0004:
 
-- gRPC contract to ATS µservice with `contract_version: v1`; dual-version-window discipline.
-- Event-based handoff via Workflow event bus: `oya.network.jobposting.v1.published` + `oya.network.jobapplication.v1.filed`.
+- **No direct gRPC from `network` to the Tier-G ATS µservice.** Per the
+  Workflow+Ontology adapter rule (feedback_workflow_objectgraph_adapter_layer)
+  and ADR-0140 (cross-cutting carriers exemption), ATS is an app-tier µservice,
+  NOT a cross-cutting carrier — so the only legal cross-µservice path is the
+  workflow-engine event-bus. `network` egresses ONLY to workflow-engine; never
+  directly to the ATS namespace.
+- Event-based handoff via the workflow-engine event bus:
+  `oya.network.jobposting.v1.published` + `oya.network.jobapplication.v1.filed`.
+  workflow-engine routes these to ATS; ATS subscribes via the same bus.
+- The `-adapter-ats-bridge` adapter is renamed conceptually to `-adapter-workflow-engine-jobs-bridge`
+  in any future relayer change; for now the adapter MUST publish to
+  workflow-engine and MUST NOT open a direct gRPC channel to ATS at runtime.
 - ATS µservice owns pipeline state; `network` owns posting + referral metadata only.
-- Idempotent + replay-safe via ULID event_id; ATS ack via `oya.ats.v1.application-accepted`.
-- Backfill-replay per `backfill-replay.md` §"Jobs-Handoff Replay".
+- Idempotent + replay-safe via ULID event_id; ATS ack returns through workflow-engine
+  via `oya.ats.v1.application-accepted` (the bridge consumes the ack from
+  workflow-engine, not from ATS directly).
+- Backfill-replay per `backfill-replay.md` §"Jobs-Handoff Replay" — replays
+  flow through workflow-engine; the resume cursor is a workflow-engine offset.
 
 ## Code Shape
 
@@ -71,5 +84,10 @@ cargo run -p oya-dev-cli -- gate validate jobs-handoff-contract --microservice n
 ## References
 
 - ADR-NET-0004 (jobs-handoff to ATS).
+- ADR-0140 (cross-cutting-carriers adapter exemption — ATS is NOT a carrier;
+  direct egress refused; workflow-engine event-bus mandated).
 - `microservices/network/backfill-replay.md` §"Jobs-Handoff Replay".
 - `microservices/network/runbooks/jobs-handoff-ats-failure.md`.
+- `iac/helm/network/templates/networkpolicy.yaml` (egress to workflow-engine
+  namespace only; the `ats` namespace egress was removed 2026-05-18 per the
+  integration review INT-001 finding).

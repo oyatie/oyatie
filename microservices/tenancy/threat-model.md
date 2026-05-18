@@ -653,7 +653,7 @@ Additional considerations:
 - **GDPR Arts. 44–50 (transfers)**: pack-eu data EU-resident; cross-pack forbidden by default; tenant-executed SCCs path.
 - **NIS2 (2022/2555)**: when oyatie crosses Annex I/II thresholds, the 24h + 72h + 1mo NIS2 reporting timelines apply.
 - **DORA (2022/2554)**: financial-services tenants in pack-eu trigger DORA Chapter II + Chapter III + Chapter VI requirements; ICT-risk register + testing program + third-party-risk policy mapped.
-- **eIDAS 910/2014**: Ed25519 audit-chain seals + proof-of-erasure certificates can be presented as AdES (advanced electronic signature); QES requires certified TSP (scheduled-for-distinct-tracked-work per ADR-NNNN).
+- **eIDAS 910/2014**: Ed25519 audit-chain seals + proof-of-erasure certificates can be presented as AdES (advanced electronic signature); QES requires certified TSP (scheduled-for-distinct-tracked-work per ADR-####).
 
 ### pack-jp (APPI)
 

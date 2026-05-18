@@ -73,7 +73,7 @@ A fitness lane is producing false-positive BLOCKERs, lane registry is corrupt, o
 2. **Reproduce** locally: `cargo run -p oya-dev-cli -- gate validate <lane> --microservice <ms>` against the failing SHA.
 3. **Diagnose**: check rule-pack at `microservices/governance/src/crates/oya-check-<topic>/rules/`.
 4. **Mitigate (hot-patch)**:
-   - If rule-pack has a clear bug: open PR to downgrade BLOCKER → WARN with ADR-NNNN rationale per `failure-modes.md` F-02.
+   - If rule-pack has a clear bug: open PR to downgrade BLOCKER → WARN with ADR-#### rationale per `failure-modes.md` F-02.
    - Two CODEOWNERS (axis-foundry + ops-security) must approve.
    - Tag PR with `incident-hot-patch` label.
 5. **Notify** µservice owner team via `#incident-<id>` channel.

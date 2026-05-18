@@ -211,7 +211,7 @@ Cross-region: M03 KR only; post-M03 expansion documented in `docs/ROADMAP.md`.
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| 1 | HRIS integration protocol for bulk import: REST push or SFTP pull? | council-architecture | ADR-XXXX |
+| 1 | HRIS integration protocol for bulk import: REST push or SFTP pull? | council-architecture | ADR-#### |
 | 2 | Employment contract PDF generation: Typst template owner? | hr-team | M03/P02 |
 
 ---

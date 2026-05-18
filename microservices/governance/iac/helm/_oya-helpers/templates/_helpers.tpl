@@ -129,6 +129,63 @@ policyTypes: [Ingress, Egress]
       protocol: TCP   # Prometheus
 {{- end }}
 
+{{/* oya.networkPolicy.allowEgressToCarriers — cross-cutting-carriers exemption per ADR-0140.
+
+     Emits a NetworkPolicy egress block permitting direct gRPC (port 50051)
+     to the five charter cross-cutting carrier namespaces:
+
+       drive       — file-attachment carrier
+       mail        — share-by-email carrier
+       messenger   — channel-mention / DM-notify carrier
+       calendar    — time-slot / due-date / RSVP bind carrier
+       recordings  — long-running media / audio persistence carrier
+
+     Per ADR-0140 this is a DEFINED EXEMPTION to the Workflow+Ontology
+     adapter rule (feedback_workflow_objectgraph_adapter_layer). Direct
+     egress to any other µservice namespace from an app-tier µservice
+     remains forbidden — those flows MUST traverse workflow-engine
+     (orchestration) or Ontology (entity reads/writes).
+
+     Usage in a µservice networkpolicy.yaml:
+
+       egress:
+         {{- include "oya.networkPolicy.allowEgressToCarriers" $ | nindent 4 }}
+         # ... µservice-specific egress (postgres, redis, etc.) ...
+
+     Per-µservice carrier subset: a µservice MAY include only a subset of
+     the five carriers if its PRD declares carry concerns for only those
+     carriers. To do so, include this helper's source manually rather than
+     via this all-five-carriers default.
+*/}}
+{{- define "oya.networkPolicy.allowEgressToCarriers" -}}
+# Cross-cutting carriers (ADR-0140 exemption). Direct gRPC permitted.
+- to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: drive
+  ports: [{protocol: TCP, port: 50051}]
+- to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: mail
+  ports: [{protocol: TCP, port: 50051}]
+- to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: messenger
+  ports: [{protocol: TCP, port: 50051}]
+- to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: calendar
+  ports: [{protocol: TCP, port: 50051}]
+- to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: recordings
+  ports: [{protocol: TCP, port: 50051}]
+{{- end }}
+
 {{/* oya.prometheusRule.perSloBurnRate — canonical multi-window burn-rate alerting (Google SRE Workbook) */}}
 {{- define "oya.prometheusRule.perSloBurnRate" -}}
 {{- $slo := .slo -}}
@@ -235,6 +292,31 @@ periodSeconds: 10
 - name: {{ $name | snakecase | upper }}_REF
   value: "${openbao:{{ $path }}}"
 {{ end }}
+{{- end }}
+
+{{/* oya.resourceRequests — tier-letter dispatcher; accepts a dict with `.tier`
+     value of one of XS|S|M|L|XL. Renders the matching tierX block. Lets
+     per-µservice values.yaml declare `resourceTier: M` rather than inline
+     CPU/memory grids; per-component sizing is then a one-line override.
+     Usage:
+       resources:
+         {{- include "oya.resourceRequests" (dict "tier" $c.resourceTier) | nindent 12 }}
+
+     Tier sizes are canonical-base values per ADR-0064; per-µservice opt-in
+     (set `resourceTier` per component) lets the canonical base evolve sizes
+     centrally without touching N µservice charts. Five µservices currently
+     consume this pattern (messenger / mail / notes / tasks / foundry-guardrails);
+     remaining µservices retain inline `resources.requests/limits` and may
+     migrate opportunistically. */}}
+{{- define "oya.resourceRequests" -}}
+{{- $tier := .tier | default "M" -}}
+{{- if eq $tier "XS" -}}{{- include "oya.resourceRequests.tierXS" . -}}
+{{- else if eq $tier "S" -}}{{- include "oya.resourceRequests.tierS" . -}}
+{{- else if eq $tier "M" -}}{{- include "oya.resourceRequests.tierM" . -}}
+{{- else if eq $tier "L" -}}{{- include "oya.resourceRequests.tierL" . -}}
+{{- else if eq $tier "XL" -}}{{- include "oya.resourceRequests.tierXL" . -}}
+{{- else -}}{{- fail (printf "oya.resourceRequests: unknown tier %q (expected XS|S|M|L|XL)" $tier) -}}
+{{- end -}}
 {{- end }}
 
 {{/* oya.resourceRequests.tierXS — 100m / 128Mi */}}

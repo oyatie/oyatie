@@ -11,7 +11,7 @@ related_artifacts:
   - microservices/mail/policy/dual-context-isolation.md Invariant DCI-03
   - microservices/mail/threat-model.md (T-T-03 personal-DEK escrow, T-S-05 user passphrase loss)
   - microservices/mail/dpia.md (R-06 personal-context confidentiality)
-  - ADR-NNNN-personal-mail-key-recovery (target; placeholder until ADR lands)
+  - registry/placeholder-debt/adr-follow-ups.yaml#personal-mail-key-recovery (target; placeholder until ADR lands)
   - RFC 8551 (S/MIME 4.0), RFC 9580 + RFC 4880 (OpenPGP)
 doc_status: published
 ---
@@ -22,7 +22,7 @@ doc_status: published
 
 This runbook covers **Personal-pillar** E2E key recovery. Personal mailbox blobs are encrypted under a **user-derived DEK** per `policy/dual-context-isolation.md` Invariant DCI-03:
 
-- DEK wrapping key derived from user passphrase + per-user salt (PBKDF2-HMAC-SHA256, 600 000 iterations; transition to Argon2id documented in ADR-NNNN-passphrase-derivation-upgrade).
+- DEK wrapping key derived from user passphrase + per-user salt (PBKDF2-HMAC-SHA256, 600 000 iterations; transition to Argon2id documented in registry/placeholder-debt/adr-follow-ups.yaml#passphrase-derivation-upgrade).
 - Wrapped DEK stored in KMS with access scope = `subject == user.user_id`.
 - **Org admin cannot decrypt user's personal-pillar mailbox** (Invariant DCI-03; CI lane `personal-pillar-kms-scope` enforces).
 - Default recovery model at M03 launch (per PRD Open Question 4): **user-held-only with QR-code paper recovery**.
@@ -105,7 +105,7 @@ Cause: User reports device theft, malware, or unauthorised access.
 
 ## Path E — Escrow recovery (future opt-in mode; NOT M03 default)
 
-This path is scheduled-for-distinct-tracked-work to ADR-NNNN-personal-mail-key-recovery. Documented here for completeness; not operative at M03 launch.
+This path is scheduled-for-distinct-tracked-work to registry/placeholder-debt/adr-follow-ups.yaml#personal-mail-key-recovery. Documented here for completeness; not operative at M03 launch.
 
 | Step | Action | Notes |
 |---|---|---|
@@ -128,7 +128,7 @@ After completion (any path except Path B "destroyed"):
 
 ## Post-incident updates
 
-- If Path B (total loss) recurs ≥ 3× / quarter: revisit PRD Open Question 4; escrow opt-in default may be warranted; ADR-NNNN-personal-mail-key-recovery target.
+- If Path B (total loss) recurs ≥ 3× / quarter: revisit PRD Open Question 4; escrow opt-in default may be warranted; registry/placeholder-debt/adr-follow-ups.yaml#personal-mail-key-recovery target.
 - If Path D (compromise) shows pattern: update threat-model with new attack signature.
 - Annual external pen-test must include "can org admin decrypt a Personal mailbox?" — must fail (i.e., no decryption path); failure-to-fail blocks pen-test sign-off.
 - Update `policy/dual-context-isolation.md` if invariant DCI-03 requires refinement.

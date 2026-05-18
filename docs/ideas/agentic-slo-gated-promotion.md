@@ -87,7 +87,7 @@ deferred; everything ships as one unit.
     (1 % → 10 % → 50 % → 100 %) per component via Layer-A service-mesh
     traffic-split, so burn-rate windows accumulate real signal before
     production promotion. Without this the gate is theatre.
-18. **ADR-NNNN** — captures: chosen design; explicitly-rejected paths
+18. **ADR-####** — captures: chosen design; explicitly-rejected paths
     (custom TSDB / proprietary observability stack / LLM-reasoning gate /
     rollback-first / single-error-budget / monorepo-wide refs /
     Datadog-Honeycomb-vendored); the adopt-vs-build boundary line; the

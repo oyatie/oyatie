@@ -67,7 +67,7 @@ microservices/<ms>/
   README.md                                           # entry point; quick-start, owner, status
   CODEOWNERS                                          # OPTIONAL — service-team RACI override
   decisions/
-    ADR-NNNN-<slug>.md                                # service-scoped ADRs only; cross-cutting ADRs stay at docs/decisions/
+    ADR-####-<slug>.md                                # service-scoped ADRs only; cross-cutting ADRs stay at docs/decisions/
   contracts/
     openapi/<surface>.yaml                            # REST API contracts
     asyncapi/<surface>.yaml                           # async/event contracts
@@ -114,7 +114,7 @@ Five categories of artifact remain at repo-root locations, exclusively for items
 
 | Central location | Scope | What lives here |
 |---|---|---|
-| `docs/decisions/ADR-NNNN-*.md` | Cross-cutting ADRs | Decisions that govern multiple µservices or the repo (ADR-0056 BNF v4.1; ADR-0105 layer enum; ADR-0110 ChangeSet state machine; ADR-0139 SLO gate; this ADR). Service-scoped ADRs move to `microservices/<ms>/decisions/`. |
+| `docs/decisions/ADR-####-*.md` | Cross-cutting ADRs | Decisions that govern multiple µservices or the repo (ADR-0056 BNF v4.1; ADR-0105 layer enum; ADR-0110 ChangeSet state machine; ADR-0139 SLO gate; this ADR). Service-scoped ADRs move to `microservices/<ms>/decisions/`. |
 | `docs/standards/<topic>.md` | Cross-cutting standards | Code style, commit message, API design, schema migration, error handling, observability/SLO authoring rules, etc. |
 | `docs/templates/<artifact>.md` | Authoring templates | PRD template, ADR template, IP template, phase-spec template, runbook template, etc. |
 | `/specs/<topic>.json` | Cross-cutting machine-readable specs | masterplan.json, master-plan-sequencing.json, hyperscaler-gates.json, per-microservice-flat-layout.json, agentic-slo-gated-promotion.json. Per-product specs (workflow.json, ontology.json, workflow-studio.json) move to `microservices/<ms>/specs/`. |
@@ -139,7 +139,7 @@ Every artifact currently scattered across the type-based folders **moves** into 
 | `contracts/<surface>.proto` (per-service) | `microservices/<ms>/contracts/proto/<surface>.proto` |
 | `docs/runbooks/<service>-*.md` | `microservices/<ms>/runbooks/<scenario>.md` |
 | Threat models, DPIAs, OpenSLO manifests, IaC charts (where currently exist outside `microservices/`) | `microservices/<ms>/threat-model.md`, `microservices/<ms>/dpia.md`, `microservices/<ms>/slos/`, `microservices/<ms>/iac/` |
-| Service-scoped ADRs currently at `docs/decisions/` (rare) | `microservices/<ms>/decisions/ADR-NNNN-*.md`, with a redirect stub at the old path (RETIRED.md row) |
+| Service-scoped ADRs currently at `docs/decisions/` (rare) | `microservices/<ms>/decisions/ADR-####-*.md`, with a redirect stub at the old path (RETIRED.md row) |
 | Per-µservice multispectrum evidence currently at `/evidence/multispectrum/<change_id>-*.json` | `microservices/<ms>/evidence/multispectrum/<change_id>-*.json` |
 
 The aggregation indices that previously lived as primary sources (`registry/catalog/`, `docs/prds/INDEX.md`, `/specs/microservices/`) become **generated views** sourced from the per-µservice folders. The generation lane is `oya-governance-aggregation-index-generation` (added by this ADR).
@@ -360,8 +360,8 @@ Port traits, kernel/domain/application/adapter layering, and Workflow + Ontology
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
 | 1 | Are `oya-check-<topic>` crates each their own µservice (one folder each, ~50 folders) or bundled under `microservices/foundry/checks/`? | council-architecture | resolved in IP-M01-MIGR-014 plan; default to one-folder-each pending objection. |
-| 2 | Does `.github/workflows/*.yml` migrate per-µservice (one workflow file per µservice under `microservices/<ms>/.github/`) or stay repo-root? | ops-sre-reliability | repo-root for now; GitHub Actions requires workflows at `.github/workflows/` and ignores nested locations. ADR-NNNN successor-IP if per-service triggering becomes needed. |
-| 3 | How do regional packs (`regional-packs/<pack>/PACK.md` per `STANDARDS-AND-TEMPLATES.md`) interact with this layout? | regional-packs team | regional packs span multiple µservices; treat as cross-cutting and retain top-level `regional-packs/` directory. ADR-NNNN if rule changes. |
+| 2 | Does `.github/workflows/*.yml` migrate per-µservice (one workflow file per µservice under `microservices/<ms>/.github/`) or stay repo-root? | ops-sre-reliability | repo-root for now; GitHub Actions requires workflows at `.github/workflows/` and ignores nested locations. ADR-#### successor-IP if per-service triggering becomes needed. |
+| 3 | How do regional packs (`regional-packs/<pack>/PACK.md` per `STANDARDS-AND-TEMPLATES.md`) interact with this layout? | regional-packs team | regional packs span multiple µservices; treat as cross-cutting and retain top-level `regional-packs/` directory. ADR-#### if rule changes. |
 
 ## Verification
 

@@ -92,7 +92,14 @@
       "eu_ai_act_risk_class": "none"
     }
   ],
-  "slos": [],
+  "slos": [
+    {
+      "name": "oya-audit-chain-seal-write-availability",
+      "target": "0.9999",
+      "sli": "sum(rate(oya_audit_chain_seal_write_total{outcome=\"success\"}[5m]))",
+      "file": "microservices/audit-chain/slos/seal-write-availability.openslo.yaml"
+    }
+  ],
   "ips": [
     {
       "id": "IP-001-storage-backend-iac",
@@ -253,9 +260,9 @@
     },
     {
       "id": "ADR-0131",
-      "title": "Per Microservice Flat Layout",
+      "title": "Connect Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
     }
   ],
   "hyperscaler_inv_coverage": {

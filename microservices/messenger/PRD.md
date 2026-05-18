@@ -95,6 +95,23 @@ Bominal predecessor: the `connect-messenger` slice of Bominal's unified Connect 
 - Per-tenant pack pinning per ADR-0117. Personal-context user data follows the personal-residency model (per-user); professional follows tenant-residency.
 - Cross-pack message routing forbidden by default; explicit federation seam in `multi-region.md`.
 
+### Protocols
+
+The messenger µservice's wire formats are pinned to the following published specifications. Pin versions are mandatory for any release branch; protocol upgrades require an ADR + dual-version-window per `feedback_no_silent_regression`.
+
+| Protocol surface | Spec | Pinned version | Notes |
+|---|---|---|---|
+| Federated Client-Server | Matrix Client-Server API | **r0.6.1** (matrix.org LTS) | governs the federated client surface; r0.6.1 is the long-term stable line currently mandated; upgrades to v1.x require an ADR per the no-silent-regression rule |
+| Federated Server-Server | Matrix Server-Server API | **r0.1.4** (matrix.org LTS) | governs cross-pack federation hop; cross-pack routing remains default-deny per data-residency above, but where a tenant opts in, the Matrix r0.1.4 federation spec is the wire format |
+| E2E key agreement | Matrix Olm + Megolm | Olm 3.x line; Megolm 1.x line | personal-context DM end-to-end encryption (`feedback_workflow_objectgraph_adapter_layer` carrier exemption permits direct egress only at the transport layer; payloads remain E2E) |
+| Real-time transport | WebSocket (RFC 6455) + mTLS | RFC 6455 (final) | client connections; per-tenant API-token-bound at OpenBao per `feedback_no_silent_regression` rotation 30d |
+| Action-card carrier | AsyncAPI 2.6 | contracts/asyncapi/action-cards.yaml | mail → messenger action-card ingest contract (channel-mention carrier path) |
+| Search index protocol | Tantivy 0.21 / Elasticsearch 8.x | search backend pinned per AdR-MSG-0001 | indexed surface only; Cedar-policy-filtered |
+
+Matrix references: the Matrix Foundation publishes both APIs at `spec.matrix.org`. The r0.6.1 (Client-Server) + r0.1.4 (Server-Server) pin matches the long-term-stable line used by Element / Synapse production deployments; this pin is the canonical-base. Per ADR-0064 canonical-base + localization, per-pack overlays MAY pin a newer minor (e.g., r0.6.1 → r0.6.1+pack-eu-erasure-extension) but MUST NOT drift the major.
+
+Federation with non-Matrix targets (Slack / Teams external adapter): scoped out of P01 per Open Question 3 below; if admitted, the adapter MUST be Matrix-bridged (matrix.org Mattermost / Slack bridges as the reference shape) rather than direct.
+
 ## Bounded Contexts
 
 Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename). Layers used: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-redis`, `adapter-s3`, `adapter-websocket`, `adapter-search`, `rest`, `worker`, `sdk`, `app`.

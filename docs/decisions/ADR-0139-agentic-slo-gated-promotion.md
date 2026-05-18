@@ -220,7 +220,7 @@ pub trait EligibilityLedgerWriter: Send + Sync + sealed::Sealed {
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Long-lived evaluator service (preferred, hyperscaler-canonical) vs. scheduled GitHub Action against Prometheus snapshots (bootstrap-cheaper) — final landing decision before IP-008 merges. | axis-observability | ADR-NNNN successor-IP or resolved in IP-008. |
+| 1 | Long-lived evaluator service (preferred, hyperscaler-canonical) vs. scheduled GitHub Action against Prometheus snapshots (bootstrap-cheaper) — final landing decision before IP-008 merges. | axis-observability | ADR-#### successor-IP or resolved in IP-008. |
 | 2 | Where does the Layer-A cluster run (single Kubernetes cluster alongside staging/prod workloads, or dedicated observability cluster)? | ops-sre-reliability | resolved in IP-001 IaC choice. |
 | 3 | Bootstrap order: gate lights up incrementally (each microservice brings its OpenSLO at migration time) vs. gate lands last and retroactively gates. (a) is the hyperscaler answer; (b) is the simpler integration. | council-architecture | resolved in PHASE-01 spec. |
 

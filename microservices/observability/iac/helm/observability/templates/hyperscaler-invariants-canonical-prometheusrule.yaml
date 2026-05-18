@@ -175,10 +175,33 @@ spec:
               upstream outage, mis-routing, or full ingress failure.
 
     # =========================================================================
-    # INV-SLO-ERROR-BUDGET — Multi-window burn-rate policy
+    # INV-SLO-ERROR-BUDGET — 4-window burn-rate policy (Google SRE Workbook §
+    # "Alerting on SLOs" — multi-window, multi-burn-rate alerts).
     # (Per-SLO burn-rate alerts remain in per-µservice prometheusrules; the
     #  aggregate rules below provide the canonical INV label so the
     #  conformance gate can audit by `inv:INV-SLO-ERROR-BUDGET` label query.)
+    #
+    # The four windows + multipliers are PRESCRIPTIVE per Google SRE Workbook:
+    #   14.4x / 1h   → page  (2%  of 30d budget burned in 1h)
+    #    6x  / 6h    → page  (5%  of 30d budget burned in 6h)
+    #    3x  / 1d    → ticket (10% of 30d budget burned in 1d)
+    #    1x  / 3d    → ticket (10% of 30d budget burned in 3d)
+    #
+    # SLO-baseline rationale (uniform 99.9% floor):
+    # The aggregate alerts below are intentionally anchored at the 99.9% SLO
+    # baseline as a uniform floor across all µservices. Per-µservice SLOs vary
+    # 0.95-0.9999 (low-criticality social/shorts → high-criticality
+    # audit-chain/governance/tenancy). Uniform-floor is acceptable because:
+    #   - High-criticality µservices (99.99%+) get earlier alerts than their
+    #     nominal SLO requires (intentional false-positive bias; on-call
+    #     prefers over-alerting over silent error-budget consumption).
+    #   - Low-criticality µservices (99%) inherit a stricter aggregate floor
+    #     than their nominal SLO requires (defense-in-depth; aggregate ledger
+    #     drift detection independent of per-µservice tuning).
+    # Per-SLO precise burn-rate alerts remain in each µservice's own
+    # prometheusrule and use its actual SLO target. The aggregate alerts here
+    # are the canonical INV-SLO-ERROR-BUDGET label carriers, not the
+    # per-µservice page authorities.
     # =========================================================================
     - name: oya-hyperscaler-canonical-error-budget-burn
       interval: 60s
@@ -204,11 +227,12 @@ spec:
             description: |
               Per INV-SLO-ERROR-BUDGET, microservice {{ $labels.microservice }}
               is burning its 30d error budget at 14.4x the steady-state rate
-              over the trailing 1h window. Per-SLO burn-rate alerts in the
-              µservice's own prometheusrule are authoritative for which SLI
-              is breaching; this aggregate is the canonical INV citation.
+              over the trailing 1h window (2% of 30d budget). Per-SLO burn-rate
+              alerts in the µservice's own prometheusrule are authoritative
+              for which SLI is breaching; this aggregate is the canonical INV
+              citation.
 
-        - alert: OyaErrorBudgetSlowBurn6h6x
+        - alert: OyaErrorBudgetMediumBurn6h6x
           expr: |
             (
               1 - (
@@ -219,14 +243,66 @@ spec:
             ) > 6 * (1 - 0.999)
           for: 15m
           labels:
-            severity: ticket
+            severity: page
             slo: aggregate-availability
-            burn: slow-6h-6x
+            burn: medium-6h-6x
             inv: INV-SLO-ERROR-BUDGET
             canonical_base: "true"
           annotations:
-            summary: "{{ $labels.microservice }} aggregate availability slow-burn (6h, 6x)"
+            summary: "{{ $labels.microservice }} aggregate availability medium-burn (6h, 6x)"
             description: |
               Per INV-SLO-ERROR-BUDGET, microservice {{ $labels.microservice }}
               is burning its 30d error budget at 6x the steady-state rate over
-              the trailing 6h window. Open a ticket for the on-call axis team.
+              the trailing 6h window (5% of 30d budget). Page on-call; the
+              6h window protects against medium-rate degradation that the 1h
+              fast-burn window may miss in low-traffic µservices.
+
+        - alert: OyaErrorBudgetSlowBurn1d3x
+          expr: |
+            (
+              1 - (
+                sum by (microservice) (rate({__name__=~"oya_.+_request_success_total"}[1d]))
+                /
+                sum by (microservice) (rate({__name__=~"oya_.+_request_total"}[1d]))
+              )
+            ) > 3 * (1 - 0.999)
+          for: 1h
+          labels:
+            severity: ticket
+            slo: aggregate-availability
+            burn: slow-1d-3x
+            inv: INV-SLO-ERROR-BUDGET
+            canonical_base: "true"
+          annotations:
+            summary: "{{ $labels.microservice }} aggregate availability slow-burn (1d, 3x)"
+            description: |
+              Per INV-SLO-ERROR-BUDGET, microservice {{ $labels.microservice }}
+              is burning its 30d error budget at 3x the steady-state rate over
+              the trailing 1d window (10% of 30d budget). Open a ticket; the
+              1d window catches sustained-but-low-rate regressions that fast
+              + medium windows ignore.
+
+        - alert: OyaErrorBudgetTrickleBurn3d1x
+          expr: |
+            (
+              1 - (
+                sum by (microservice) (rate({__name__=~"oya_.+_request_success_total"}[3d]))
+                /
+                sum by (microservice) (rate({__name__=~"oya_.+_request_total"}[3d]))
+              )
+            ) > 1 * (1 - 0.999)
+          for: 3h
+          labels:
+            severity: ticket
+            slo: aggregate-availability
+            burn: trickle-3d-1x
+            inv: INV-SLO-ERROR-BUDGET
+            canonical_base: "true"
+          annotations:
+            summary: "{{ $labels.microservice }} aggregate availability trickle-burn (3d, 1x)"
+            description: |
+              Per INV-SLO-ERROR-BUDGET, microservice {{ $labels.microservice }}
+              is burning its 30d error budget at the SLO-baseline rate over
+              the trailing 3d window (10% of 30d budget at 1x for 3d). Open
+              a ticket; this catches chronic-but-low-rate budget consumption
+              that no shorter window detects until the budget is exhausted.

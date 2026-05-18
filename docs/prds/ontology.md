@@ -308,9 +308,9 @@ Object Types (Medical, Payments, Audit chain).
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| 1 | ClickHouse replica: M02 or deferred to M03 analytics phase? | council-architecture | ADR-XXXX |
+| 1 | ClickHouse replica: M02 or deferred to M03 analytics phase? | council-architecture | ADR-#### |
 | 2 | Function DSL: Rust embedded DSL or JSON-serialized IR? | council-architecture | M02/P02 |
-| 3 | Plugin SDK distribution format: WASM (Wasmtime per Bominal) or native dylib? | council-architecture | ADR-XXXX |
+| 3 | Plugin SDK distribution format: WASM (Wasmtime per Bominal) or native dylib? | council-architecture | ADR-#### |
 
 ---
 

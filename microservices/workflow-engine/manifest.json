@@ -96,7 +96,44 @@
       "eu_ai_act_risk_class": "limited"
     }
   ],
-  "slos": [],
+  "slos": [
+    {
+      "name": "oya-workflow-engine-payload-bytes-budget-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_workflow_engine_workflow_event_total{payload_budget=\"within_limit\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/payload-bytes-budget-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-replay-determinism-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_workflow_engine_replay_total{result=\"deterministic\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-worker-poll-availability",
+      "target": "0.999",
+      "sli": "sum(rate(oya_workflow_engine_worker_poll_total{outcome=~\"task|empty_ack\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/worker-poll-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-workflow-completion-availability",
+      "target": "0.9995",
+      "sli": "sum(rate(oya_workflow_engine_workflow_terminal_total{outcome=~\"completed|user_failed|cancelled\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/workflow-completion-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-workflow-start-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_workflow_engine_workflow_start_duration_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/workflow-start-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-engine-workflow-step-execute-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_workflow_engine_step_execute_duration_seconds_bucket{le=\"0.5\"}[5m]))",
+      "file": "microservices/workflow-engine/slos/workflow-step-execute-latency.openslo.yaml"
+    }
+  ],
   "ips": [
     {
       "id": "IP-001-layer-a-postgres-citus-redis-clickhouse-iac",
@@ -240,16 +277,16 @@
       "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
     },
     {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
-    },
-    {
-      "id": "ADR-0131",
-      "title": "Per Microservice Flat Layout",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
     }
   ],
   "hyperscaler_inv_coverage": {

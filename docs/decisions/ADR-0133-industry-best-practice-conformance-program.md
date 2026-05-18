@@ -146,7 +146,7 @@ Every Cedar fragment under `microservices/<ms>/policy/*.cedar` audited against:
 | Artifact | Path | Cadence |
 |---|---|---|
 | Audit findings (machine-readable) | `/specs/industry-best-practice-conformance.json` | This ADR's session (foundation) + quarterly refresh |
-| ADR (this document) | `docs/decisions/ADR-0133-industry-best-practice-conformance-program.md` | one-time foundation + supersession via ADR-NNNN successor-IP |
+| ADR (this document) | `docs/decisions/ADR-0133-industry-best-practice-conformance-program.md` | one-time foundation + supersession via ADR-#### successor-IP |
 | Cross-cutting standard | `docs/standards/agentic-dev-team-optimization.md` | foundation + annual refresh |
 | BLOCKER CI lane | `microservices/governance/src/crates/oya-check-industry-best-practice-conformance/` (or co-located under existing governance crate) | new on dev |
 | Per-axis remediation IPs | `microservices/governance/IP-M01-AUDIT-<axis>-<NNN>.md` (or per-µservice when scope is µservice-local) | as findings surface |

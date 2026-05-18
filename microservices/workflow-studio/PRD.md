@@ -498,10 +498,10 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | CRDT library: yrs (yjs Rust port) vs loro vs bespoke? Bias: loro for tree-aware CRDT (matches DAG structure). | council-architecture | ADR-XXXX (gates IP-005) |
-| 2 | WASM canvas: pure Leptos-Rust-WASM vs Leptos-shell + JS canvas library (reactflow/xyflow)? Bias: pure Leptos for stable+; JS-canvas only for M03-preview if Leptos canvas not ready. | council-design-system + axis-workflow | ADR-XXXX (gates IP-002) |
+| 1 | CRDT library: yrs (yjs Rust port) vs loro vs bespoke? Bias: loro for tree-aware CRDT (matches DAG structure). | council-architecture | ADR-#### (gates IP-005) |
+| 2 | WASM canvas: pure Leptos-Rust-WASM vs Leptos-shell + JS canvas library (reactflow/xyflow)? Bias: pure Leptos for stable+; JS-canvas only for M03-preview if Leptos canvas not ready. | council-design-system + axis-workflow | ADR-#### (gates IP-002) |
 | 3 | WebSocket gateway substrate: bespoke axum-WS vs NATS-WebSocket-bridge? Bias: bespoke axum for tight tenant-binding control. | council-architecture | resolved inline; see collab-crdt IP |
-| 4 | LLM-assist invocation: stream-back-to-browser via WS vs server-side full-draft then send? Bias: stream-back for UX. | axis-workflow + foundry-providers | ADR-XXXX (gates IP-008) |
+| 4 | LLM-assist invocation: stream-back-to-browser via WS vs server-side full-draft then send? Bias: stream-back for UX. | axis-workflow + foundry-providers | ADR-#### (gates IP-008) |
 | 5 | Per-pack node-library hot-reload: full reload vs delta? | axis-workflow | resolved inline |
 | 6 | Multi-tab editing: same definition open in 2 tabs by same user — single CRDT session or 2 sessions? Bias: single session, per-tab cursor. | council-design-system | resolved inline |
 

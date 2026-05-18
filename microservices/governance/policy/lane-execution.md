@@ -126,7 +126,7 @@ This document declares the invariants that every fitness lane under `microservic
 
 ## Lane Retirement Workflow
 
-1. **ADR**: file `microservices/governance/decisions/ADR-NNNN-retire-<lane>.md` documenting rationale + replacement (if any).
+1. **ADR**: file `microservices/governance/decisions/ADR-####-retire-<lane>.md` documenting rationale + replacement (if any).
 2. **PR**: remove the crate + the workspace member; emits `lane-retirement-announce` Finding for one cycle.
 3. **Audit**: retirement is sealed in audit-chain; previous Findings retained per retention policy.
 

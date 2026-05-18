@@ -38,7 +38,7 @@ target_wave: W-<wave-name>                # per docs/ROADMAP.md
 owner_team: <team-id>
 co_owners: [council-architecture, gtm-marketing]
 reviewers: [Founder, Council-Architecture, GTM-Marketing, GTM-Sales-SE]
-related_adrs: [ADR-NNNN]
+related_adrs: [ADR-####]
 related_design_docs: [DD-NNNN]
 authority_chain_declaration: |
   docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.

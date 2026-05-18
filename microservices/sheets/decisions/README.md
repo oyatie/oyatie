@@ -11,7 +11,7 @@ doc_status: published
 
 This directory holds **service-scoped** Architecture Decision Records owned by the `sheets` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs continue to live at `/Users/jasonlee/oyatie/docs/decisions/` (e.g., ADR-0105, ADR-0135, ADR-0131, ADR-0132, ADR-0133, ADR-0140).
 
-Service-scoped ADRs are numbered `ADR-SHEETS-NNNN` (four-digit, sequential within this directory). The `SHEETS` prefix prevents collision with the repo-wide `ADR-NNNN` series and matches the convention adopted by sibling µservices.
+Service-scoped ADRs are numbered `ADR-SHEETS-####` (four-digit, sequential within this directory). The `SHEETS` prefix prevents collision with the repo-wide `ADR-####` series and matches the convention adopted by sibling µservices.
 
 ## Index
 

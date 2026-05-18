@@ -429,12 +429,12 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Durable-execution: bespoke Postgres-backed state machine vs embed Temporal SDK (Rust)? Bias: bespoke per `feedback_autonomous_implementation_artifacts.md` (no compat seams). | council-architecture | ADR-XXXX (highest priority; gates IP-005) |
-| 2 | Event-bus substrate: Postgres outbox + LISTEN/NOTIFY, NATS JetStream, Kafka KRaft, or Redis Streams? Latency vs durability vs operational complexity trade-off. | council-architecture + ops-sre-reliability | ADR-XXXX (gates IP-007) |
+| 1 | Durable-execution: bespoke Postgres-backed state machine vs embed Temporal SDK (Rust)? Bias: bespoke per `feedback_autonomous_implementation_artifacts.md` (no compat seams). | council-architecture | ADR-#### (highest priority; gates IP-005) |
+| 2 | Event-bus substrate: Postgres outbox + LISTEN/NOTIFY, NATS JetStream, Kafka KRaft, or Redis Streams? Latency vs durability vs operational complexity trade-off. | council-architecture + ops-sre-reliability | ADR-#### (gates IP-007) |
 | 3 | Workflow DSL format the engine accepts: YAML, JSON IR, or both? Bias: JSON IR canonical (machine-emitted by Studio), YAML accepted as input but compiled to JSON IR at submit time. | council-architecture | resolved inline; see spec-store IP |
 | 4 | ClickHouse replica: full mirror of Postgres run history, or selective columns? Mirror-cost vs query-richness trade-off. | axis-workflow + ops-finops | resolved inline |
 | 5 | Sub-workflow invocation: synchronous (caller blocks) or asynchronous (caller waits for completion event)? Both semantics needed; default = async with synchronous opt-in. | council-architecture | resolved inline; see execution-engine IP |
-| 6 | Replay determinism guarantee: which standard-library / time / random APIs are forbidden inside step bodies? | council-architecture | ADR-XXXX (`docs/standards/workflow-step-determinism.md` successor-IP) |
+| 6 | Replay determinism guarantee: which standard-library / time / random APIs are forbidden inside step bodies? | council-architecture | ADR-#### (`docs/standards/workflow-step-determinism.md` successor-IP) |
 
 ## Related ADRs
 

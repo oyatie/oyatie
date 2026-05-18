@@ -132,7 +132,7 @@ Outcomes:
 
 ### Example A — `oya-check-supply-chain` tightens to SLSA Build L4
 
-Per ADR-NNNN (future): SLSA Build L3 → L4 upgrade.
+Per ADR-#### (future): SLSA Build L3 → L4 upgrade.
 
 - Plan: re-run `oya-check-supply-chain` against last 90 days of PRs.
 - Expected volume: ~10k SHAs × ~5s per re-run = ~14 hours wall-clock at concurrency 10.
@@ -162,7 +162,7 @@ Per ADR-NNNN (future): SLSA Build L3 → L4 upgrade.
 | Stricter rule | Findings retained at `legacy-grandfathered` severity; remediation tracked; not retroactively blocking |
 | Softer rule | No backfill needed (relaxation never adds findings) |
 | New lane | Findings retained at `legacy-grandfathered` severity; first-run amnesty per ADR-0133 |
-| Backwards-incompatible (e.g., new BC introduced) | ADR-NNNN required; backfill approach decided per-ADR |
+| Backwards-incompatible (e.g., new BC introduced) | ADR-#### required; backfill approach decided per-ADR |
 
 ## Verification
 

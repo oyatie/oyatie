@@ -387,7 +387,7 @@ Sharding:
 |---|---|---|---|
 | 1 | Should the runtime-pool live in the same cluster as observability or its own? Default leaning: dedicated cluster matching AWS Bedrock + GCP Vertex isolation posture. | ops-sre-reliability + axis-foundry-runtime | resolved in IP-001 |
 | 2 | Session-state hot tier — Redis OSS vs Redis Stack vs KeyDB; trade-off of streams + JSON modules vs OSS LTS posture | axis-foundry-runtime | resolved in IP-002 (Redis 7.4 OSS LTS) |
-| 3 | Multi-tenant capability registry mirror — Postgres logical replication vs CDC stream from foundry-supervisor | axis-foundry-runtime + axis-foundry | ADR-NNNN successor-IP |
+| 3 | Multi-tenant capability registry mirror — Postgres logical replication vs CDC stream from foundry-supervisor | axis-foundry-runtime + axis-foundry | ADR-#### successor-IP |
 | 4 | Capability cold-load (cache miss + supervisor pull) cost — acceptable to defer first-call by ≤500ms or must keep ≤50ms always (pre-warming required) | axis-foundry-runtime | resolved in IP-005 (pre-warmed on registration) |
 | 5 | Tenant-supplied capability code (custom logic) execution model — sandboxed WASM vs out-of-process container vs disallowed for M01 | council-architecture + axis-foundry-runtime | resolved in IP-008 (disallowed in M01; tenant capabilities are descriptor-only until ADR-0NNN sandbox decision) |
 

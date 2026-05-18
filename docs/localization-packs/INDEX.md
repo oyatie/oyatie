@@ -68,7 +68,7 @@ See ADR-0064 §5 for lifecycle definitions and gates.
 For every (pack × µservice in pack scope) pair, the following artifacts must exist:
 
 - `docs/prds/<microservice>-<pack>.md` — pack overlay PRD (required when pack adds material scope)
-- `docs/decisions/ADR-NNNN-<pack>-<microservice>-regulatory.md` — pack regulatory ADR
+- `docs/decisions/ADR-####-<pack>-<microservice>-regulatory.md` — pack regulatory ADR
 - `docs/localization-packs/<pack>/evidence/<microservice>.md` — pack acceptance evidence
 
 CI lane `lean-a5-doc-coverage` enforces.

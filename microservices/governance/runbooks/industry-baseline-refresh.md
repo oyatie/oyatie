@@ -143,7 +143,7 @@ Workflow writes `evidence/audits/industry-best-practice-conformance/<quarter>.js
    ```
 4. **If repeated failures > 72h**:
    - Manual fetch with browser; commit + sign as `axis-foundry-bot` proxy.
-   - Open ADR-NNNN if vendor source moved permanently (e.g., URL change).
+   - Open ADR-#### if vendor source moved permanently (e.g., URL change).
 5. **Update** runbook with new URL if applicable.
 
 ## §F-12 — Softer baseline proposed (review)
@@ -155,7 +155,7 @@ Workflow writes `evidence/audits/industry-best-practice-conformance/<quarter>.js
 3. **Decide**:
    - Accept: rare; requires ADR rationale ("the industry standard relaxed; we follow"); council-architecture explicit approval.
    - Reject: more common; close PR with rationale; restore previous pin; track upstream changelog for justification.
-4. **If accepted**: open ADR-NNNN documenting the softening + the rationale.
+4. **If accepted**: open ADR-#### documenting the softening + the rationale.
 5. **Run** `oya-check-claim-ceiling` against the new posture: ensure no marketing claim (per ADR-0123) implicitly relied on the softened pin.
 
 ## Stand-down criteria

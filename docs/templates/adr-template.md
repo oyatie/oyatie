@@ -19,7 +19,7 @@ adrs_cited:
 doc_status: published
 ---
 
-# ADR-XXXX: <Decision Title — imperative present tense>
+# ADR-####: <Decision Title — imperative present tense>
 
 ---
 
@@ -27,7 +27,7 @@ doc_status: published
 
 | Field | Value |
 |---|---|
-| **id** | ADR-XXXX |
+| **id** | ADR-#### |
 | **title** | <Decision Title> |
 | **status** | Proposed \| Accepted \| Superseded |
 | **date** | YYYY-MM-DD |
@@ -35,7 +35,7 @@ doc_status: published
 | **superseded_by** | ADR-ZZZZ (or `-`) |
 | **owner** | `<team-id>` from `docs/teams/` |
 | **related** | ADR-AAAA, ADR-BBBB |
-| **bominal_source** | Bominal ADR-NNNN (inherited) \| oyatie override \| no Bominal equivalent |
+| **bominal_source** | Bominal ADR-#### (inherited) \| oyatie override \| no Bominal equivalent |
 
 ---
 
@@ -43,7 +43,7 @@ doc_status: published
 
 What is the problem? What forces drove the decision? Quote relevant constraints
 (regulatory, technical, organizational). Cite Bominal ADRs that bear on this decision
-using the format: "per Bominal ADR-XXXX (inherited)" or "per oyatie
+using the format: "per Bominal ADR-#### (inherited)" or "per oyatie
 [[memory-slug]] (override)".
 
 State whether this decision **inherits** from Bominal (default) or **overrides**
@@ -172,7 +172,7 @@ For each alternative:
 
 ## References
 
-- Bominal ADR-XXXX: <title> (inherited \| translated \| overridden)
+- Bominal ADR-####: <title> (inherited \| translated \| overridden)
 - oyatie memory: `feedback_<slug>.md` (override rationale)
 - ADR-0056 BNF v4.1 (naming authority)
 - ADR-0057 LEAN checks (cross-vertical enforcement)

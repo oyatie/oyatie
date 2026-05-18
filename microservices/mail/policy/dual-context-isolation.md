@@ -93,7 +93,7 @@ Personal-context blobs are encrypted under a user-derived DEK (when user opts in
 
 LEAN check `oya-check-personal-pillar-kms-scope` validates KMS policy + asserts no role can decrypt personal-pillar DEK other than the user's subject.
 
-Open Question 4 (PRD): key-recovery design for personal-pillar — user-held-only vs escrow-with-2-person-rule. Default at M03 launch: **user-held-only** with QR-code paper recovery. ADR-NNNN-personal-mail-key-recovery to finalise.
+Open Question 4 (PRD): key-recovery design for personal-pillar — user-held-only vs escrow-with-2-person-rule. Default at M03 launch: **user-held-only** with QR-code paper recovery. registry/placeholder-debt/adr-follow-ups.yaml#personal-mail-key-recovery to finalise.
 
 ### Invariant DCI-04: Legal hold + eDiscovery forbidden on personal-pillar
 

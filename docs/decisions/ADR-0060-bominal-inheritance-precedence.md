@@ -100,7 +100,7 @@ When authoring a new oyatie ADR, plan, doc, or code:
 1. Check if the decision area has a Bominal ADR. If yes, default to Bominal.
 2. Check the override list above. If the area is in the list, follow the oyatie override.
 3. If divergence is needed in a new area, propose a new override + add it to this ADR.
-4. Cite the source: "per Bominal ADR-XXXX (inherited)" or "per oyatie ADR-XXXX / `[[memory-slug]]` (override)".
+4. Cite the source: "per Bominal ADR-#### (inherited)" or "per oyatie ADR-#### / `[[memory-slug]]` (override)".
 
 ---
 

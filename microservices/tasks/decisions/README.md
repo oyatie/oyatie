@@ -33,7 +33,7 @@ runbook / threat-model / DPIA artifact under `microservices/tasks/`.
 
 - ADR ID format: `ADR-TASKS-XXXX` (4-digit, scope-prefixed) per ADR-0131 service-scoped-ADR convention.
 - Each ADR carries: Status, Date (ISO yyyy-mm-dd), Context, Decision, Alternatives Considered (≥3 per decision; each with Pros/Cons/Rejected reason), Consequences (≥3 downstream impacts), References.
-- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-NNNN` at repo root) and sibling µservice ADRs. Cross-µservice citations encouraged where decisions are genuinely paired (e.g., ADR-TASKS-0003 ↔ ADR-CAL-0002 for rrule-rs alignment).
+- Service-scoped ADRs may reference cross-cutting ADRs (`ADR-####` at repo root) and sibling µservice ADRs. Cross-µservice citations encouraged where decisions are genuinely paired (e.g., ADR-TASKS-0003 ↔ ADR-CAL-0002 for rrule-rs alignment).
 - Lifecycle per ADR-0131 §"ADR Lifecycle": `Proposed → Accepted → (Superseded by ADR-TASKS-NNNN | Deprecated)`. Never delete; supersede.
 
 ## Open questions not yet closed

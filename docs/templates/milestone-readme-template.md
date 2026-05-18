@@ -43,9 +43,9 @@ exit_gate: |
   - an ICM milestone-complete row emitted
 owner_team: <team-id>
 bominal_adrs_inherited:
-  - ADR-NNNN  # list Bominal ADRs this milestone inherits 1:1 (translated)
+  - ADR-####  # list Bominal ADRs this milestone inherits 1:1 (translated)
 oyatie_adrs_cited:
-  - ADR-XXXX  # Oyatie-specific ADRs governing this milestone
+  - ADR-####  # Oyatie-specific ADRs governing this milestone
 ---
 ```
 
@@ -114,13 +114,13 @@ Milestone-scoped risk slice. Full register: `docs/RISK-REGISTER.md`.
 
 | Bominal ADR | Title | Translation note |
 |---|---|---|
-| ADR-NNNN | `<title>` | `platform → shared`; `Object Graph → Ontology`; `Shell → Application` |
+| ADR-#### | `<title>` | `platform → shared`; `Object Graph → Ontology`; `Shell → Application` |
 
 ### oyatie ADRs cited
 
 | oyatie ADR | Title | Scope |
 |---|---|---|
-| ADR-XXXX | `<title>` | `<which phases it governs>` |
+| ADR-#### | `<title>` | `<which phases it governs>` |
 
 ### Upstream milestone dependencies
 

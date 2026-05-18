@@ -401,7 +401,7 @@ Sharding:
 | 3 | Bootstrap paradox: governance gates governance. Synthetic-probe fallback during cold-start? | axis-foundry | resolved per ADR-0133 §"Operational"; mirrors observability self-SLO fallback in microservices/observability/PRD.md Open Q4 |
 | 4 | Per-µservice lane-subset selection (run only relevant lanes per PR) vs. full ~50 every time? | axis-foundry | full ~50 for M01 (deterministic posture); subset-selection ADR successor-IP subsequent-to-M01-completion |
 | 5 | Quarterly refresh: PR-bot author identity (council-architecture vs. ops-finops vs. axis-foundry)? | ops-sre-reliability | resolved as `axis-foundry-bot` per `runbooks/industry-baseline-refresh.md` |
-| 6 | Finding severity escalation policy: BLOCKER vs WARN vs INFO; does WARN-stacking promote to BLOCKER? | ops-security | M01 launch: strict severity (no escalation); ADR-NNNN successor-IP if signal-overload observed |
+| 6 | Finding severity escalation policy: BLOCKER vs WARN vs INFO; does WARN-stacking promote to BLOCKER? | ops-security | M01 launch: strict severity (no escalation); ADR-#### successor-IP if signal-overload observed |
 | 7 | External-auditor JIT scope: read-only Postgres replica vs. evidence-export tool? | ops-security | evidence-export tool (per `runbooks/evidence-replay.md`); read-only replica is overscoped |
 
 ## Related ADRs

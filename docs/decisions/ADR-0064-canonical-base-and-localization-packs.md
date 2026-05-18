@@ -88,7 +88,7 @@ Each pack consists of:
 | Pack overview doc | `docs/localization-packs/<pack>.md` |
 | Per-µservice overlay crates | `crates/oya-<microservice>-<pack>-*` OR `crates/oya-pack-<pack>-<microservice>-*` |
 | Per-µservice overlay PRD | `docs/prds/<microservice>-<pack>.md` (required when pack adds material scope) |
-| Per-µservice regulatory ADR | `docs/decisions/ADR-NNNN-<pack>-<microservice>-regulatory.md` |
+| Per-µservice regulatory ADR | `docs/decisions/ADR-####-<pack>-<microservice>-regulatory.md` |
 | Cedar policy fragments | `crates/oya-policy-<pack>-*` |
 | Workflow Studio templates | `crates/oya-workflow-templates-<pack>-*` |
 | Typst document templates | `crates/oya-document-templates-<pack>-*` |
@@ -211,8 +211,8 @@ Owner team: `council-architecture` (pack architecture) + per-pack `gtm-customer-
 | **Single mega-pack containing all jurisdictions** — one `oya-pack-international` covering KR + US + EU + JP | Forces every tenant to load the world; KR-only customers ship US PII-handling code; data-residency posture breaks; pack quarterly refresh cadence becomes unmanageable |
 | **Pack as runtime-only feature flag** (no separate crates) — single deployable with KR/US/EU branches gated by runtime flag | Removes compile-time guarantee that canonical-base stays jurisdiction-neutral; KR statutory bugs ripple into US tenants; observability per jurisdiction collapses |
 | **Seam ONLY (no adapter form)** — all jurisdiction overlay via DI-injected traits | Discrete I/O surfaces (EDI / government API) become enormous trait families with implausible signatures; the abstraction breaks under real protocol complexity (NPS EDI v5.0 has 11 message types, 200+ fields) |
-| **Per-µservice naming ADR** (every microservice gets ADR-NNNN-microservice-X.md) | (Chosen — ADR-0063 §1 row 3.) Per-µservice ADRs are the canonical home for naming + scope decisions; cluster-level rollups (e.g., "all healthcare µservices") would coarse-grain the decision record and bury per-µservice exceptions |
-| **Cluster-level naming ADR** (e.g., one "ADR-NNNN-healthcare-cluster.md" covering medical/pharmacy/patient/emergency/clinical) | Rejected — would force every cluster decision through a single ADR; conflicts between cluster members couldn't be resolved at the ADR level; per-µservice exceptions would create ADR drift. Cluster-level ADRs are acceptable for **cross-µservice rules** but not for individual µservice scope/naming |
+| **Per-µservice naming ADR** (every microservice gets ADR-####-microservice-X.md) | (Chosen — ADR-0063 §1 row 3.) Per-µservice ADRs are the canonical home for naming + scope decisions; cluster-level rollups (e.g., "all healthcare µservices") would coarse-grain the decision record and bury per-µservice exceptions |
+| **Cluster-level naming ADR** (e.g., one "ADR-####-healthcare-cluster.md" covering medical/pharmacy/patient/emergency/clinical) | Rejected — would force every cluster decision through a single ADR; conflicts between cluster members couldn't be resolved at the ADR level; per-µservice exceptions would create ADR drift. Cluster-level ADRs are acceptable for **cross-µservice rules** but not for individual µservice scope/naming |
 | **Pack-bc inline ONLY** (always inline the overlay as a BC inside the canonical µservice; never use discrete pack crates) | Works for small packs but breaks scale — KR pack covers ~28 µservices across 6 clusters; forcing inline forces every µservice crate to carry the KR pack baggage even in non-KR cells. Discrete pack crate form is required for multi-µservice-spanning overlays |
 | **Discrete pack crate ONLY** (always use `oya-pack-<pack>-<microservice>-*`; never inline as a BC) | Adds crate-graph overhead for trivial seam impls; bloats the workspace member list; obscures the relationship between the canonical µservice and its overlay |
 

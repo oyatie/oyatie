@@ -58,7 +58,7 @@ Plus these repo-wide artifacts (cross-cutting per ADR-0131):
 ### Out-of-scope
 
 - Migration of existing `oya-connect-mail-*` callers — owned by IP-M03-CONNECT-MIGR-* phase running in parallel. This phase introduces `oya-mail-*` crates without removing the Connect-side stubs (deprecation cycle).
-- Personal-pillar E2E key recovery design — Open Question 4; scheduled-for-distinct-tracked-work to ADR-NNNN-personal-mail-key-recovery.
+- Personal-pillar E2E key recovery design — Open Question 4; scheduled-for-distinct-tracked-work to registry/placeholder-debt/adr-follow-ups.yaml#personal-mail-key-recovery.
 - JMAP SDK first-class clients (only the wire-level JMAP server ships in this phase).
 - Cross-channel hold coordinator — owned by `audit-chain` µservice's own phase; this phase consumes the event.
 - Calendar/Messenger/Community integration loops — owned by their respective µservices' phases; this phase exposes mail events for those consumers only.

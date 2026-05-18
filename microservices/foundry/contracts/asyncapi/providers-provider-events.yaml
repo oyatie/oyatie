@@ -1,4 +1,4 @@
-asyncapi: 2.6.0
+asyncapi: 3.1.0
 info:
   title: foundry-providers — event stream
   version: 0.1.0

@@ -354,9 +354,9 @@ list. Cross-BC open questions:
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| X1 | Should the 6 BCs share a single Kubernetes namespace or split across 6? Default: 1 namespace per BC for blast-radius isolation. | ops-sre-reliability + axis-foundry | ADR-NNNN subsequent-to-M01-completion |
+| X1 | Should the 6 BCs share a single Kubernetes namespace or split across 6? Default: 1 namespace per BC for blast-radius isolation. | ops-sre-reliability + axis-foundry | ADR-#### subsequent-to-M01-completion |
 | X2 | Cross-BC tracing: OpenTelemetry trace IDs propagated through all 6 BCs; sampling policy. | axis-foundry + observability µservice | ADR-0114 successor-IP |
-| X3 | Versioning: per-BC contract versioning vs unified foundry version. Default: per-BC SemVer; foundry product version is a digest of the 6. | council-architecture | ADR-NNNN |
+| X3 | Versioning: per-BC contract versioning vs unified foundry version. Default: per-BC SemVer; foundry product version is a digest of the 6. | council-architecture | ADR-#### |
 
 ## Related ADRs
 
