@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_check_step_up_auth_coverage::{FindingKind, scan};
 
 fn fixture(body: &str) -> oya_check_step_up_auth_coverage::StepUpAuthCoverageReport {
@@ -142,7 +144,7 @@ paths:
 
 #[test]
 fn malformed_spec_returns_parse_error() {
-    let err = scan("test", ":::: not yaml ::::").err().expect("err");
+    let err = scan("test", ":::: not yaml ::::").unwrap_err();
     let msg = format!("{err}");
     assert!(msg.contains("step-up-auth-coverage parse"));
 }
@@ -153,8 +155,7 @@ fn missing_paths_section_returns_parse_error() {
         "test",
         "openapi: 3.1.0\ninfo:\n  title: x\n  version: 1.0.0\n",
     )
-    .err()
-    .expect("err");
+    .unwrap_err();
     let msg = format!("{err}");
     assert!(msg.contains("missing top-level `paths`"));
 }

@@ -235,9 +235,8 @@ ENTRYPOINT [\"/app\"]
         let content = "FROM alpine:3.20\nUSER 65532:65532\nENTRYPOINT [\"/app\"]\n";
         let files = vec![df("Dockerfile", content)];
         let err = validate(&files).expect_err("alpine must fail");
-        if let Error::ViolationsFound(v) = err {
-            assert!(matches!(v[0], Violation::NonCanonicalBase { .. }));
-        }
+        let Error::ViolationsFound(v) = err;
+        assert!(matches!(v[0], Violation::NonCanonicalBase { .. }));
     }
 
     #[test]
@@ -254,9 +253,8 @@ ENTRYPOINT [\"/app\"]
         let content = "FROM gcr.io/distroless/static-debian12:nonroot\nENTRYPOINT [\"/app\"]\n";
         let files = vec![df("Dockerfile", content)];
         let err = validate(&files).expect_err("missing USER must fail");
-        if let Error::ViolationsFound(v) = err {
-            assert!(matches!(v[0], Violation::MissingUser { .. }));
-        }
+        let Error::ViolationsFound(v) = err;
+        assert!(matches!(v[0], Violation::MissingUser { .. }));
     }
 
     #[test]
@@ -264,9 +262,8 @@ ENTRYPOINT [\"/app\"]
         let content = "FROM gcr.io/distroless/static-debian12:nonroot\nUSER 1000:1000\n";
         let files = vec![df("Dockerfile", content)];
         let err = validate(&files).expect_err("uid 1000 must fail");
-        if let Error::ViolationsFound(v) = err {
-            assert!(matches!(v[0], Violation::NonCanonicalUser { .. }));
-        }
+        let Error::ViolationsFound(v) = err;
+        assert!(matches!(v[0], Violation::NonCanonicalUser { .. }));
     }
 
     #[test]

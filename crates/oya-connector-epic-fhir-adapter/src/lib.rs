@@ -333,7 +333,7 @@ mod tests {
         ));
     }
     #[test]
-    fn create_observation_stamps_resourceType() {
+    fn create_observation_stamps_resource_type() {
         let s = EpicFhirConnector::new();
         let mut d = EntityDoc::new();
         d.insert("code", EntityValue::Str("8302-2".into())); // LOINC: body height

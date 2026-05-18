@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Integration tests for the vendor-lockin discipline validator.
 //!
 //! These tests use the real registry file shipped at

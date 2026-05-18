@@ -318,10 +318,9 @@ mod tests {
     fn validate_detects_adr_xxxx_placeholder() {
         let files = vec![fc("docs/b.md", "later: ADR-XXXX placeholder here")];
         let err = validate(&files).expect_err("XXXX placeholder must fail");
-        if let Error::PlaceholdersFound(report) = err {
-            assert_eq!(report.hits.len(), 1);
-            assert_eq!(report.hits[0].token, "ADR-XXXX");
-        }
+        let Error::PlaceholdersFound(report) = err;
+        assert_eq!(report.hits.len(), 1);
+        assert_eq!(report.hits[0].token, "ADR-XXXX");
     }
 
     #[test]

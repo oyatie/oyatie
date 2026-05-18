@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Integration tests for `oya-shared-oidc-client-kernel`.
 //!
 //! These tests use a deterministic stub `JwsVerifier` (no live signature

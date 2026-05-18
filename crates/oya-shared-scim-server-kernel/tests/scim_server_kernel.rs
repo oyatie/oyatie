@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Integration tests for `oya-shared-scim-server-kernel`.
 
 use oya_shared_scim_server_kernel::{

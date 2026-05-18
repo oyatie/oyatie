@@ -464,7 +464,7 @@ spec: {}
             "calendar",
             "kind: Deployment\nmetadata:\n  name: z\n  labels: {}\n",
         );
-        let rep = validate_advisory([m1, m2, m3].into_iter());
+        let rep = validate_advisory([m1, m2, m3]);
         assert_eq!(rep.microservices_covered.len(), 2);
     }
 

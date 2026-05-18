@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 //! Integration tests for `oya-shared-webauthn-server-kernel`.
 //!
 //! Uses a stub `WebauthnRpAdapter` that returns deterministic credentials
@@ -55,10 +56,10 @@ impl WebauthnRpAdapter for StubAdapter {
         if response.client_data_json_b64url.starts_with("deny:") {
             return Err(WebauthnError::AttestationInvalid("stub deny".into()));
         }
-        if let Some(al) = allowlist {
-            if !al.contains(&self.fixed_aaguid) {
-                return Err(WebauthnError::AaguidNotAllowlisted(self.fixed_aaguid));
-            }
+        if let Some(al) = allowlist
+            && !al.contains(&self.fixed_aaguid)
+        {
+            return Err(WebauthnError::AaguidNotAllowlisted(self.fixed_aaguid));
         }
         // Synthesise a credential ID from challenge for determinism.
         let cred_id = CredentialId(format!("cred-{}", challenge.challenge_id).into_bytes());
@@ -88,12 +89,11 @@ impl WebauthnRpAdapter for StubAdapter {
             return Err(WebauthnError::AssertionInvalid("stub deny".into()));
         }
         // Honor an explicit sign_count override via prefix.
-        if let Some(rest) = response.client_data_json_b64url.strip_prefix("count:") {
-            if let Some((n, _)) = rest.split_once(':') {
-                if let Ok(parsed) = n.parse::<u32>() {
-                    return Ok(parsed);
-                }
-            }
+        if let Some(rest) = response.client_data_json_b64url.strip_prefix("count:")
+            && let Some((n, _)) = rest.split_once(':')
+            && let Ok(parsed) = n.parse::<u32>()
+        {
+            return Ok(parsed);
         }
         Ok(self.sign_counter.fetch_add(1, Ordering::SeqCst) + 1)
     }

@@ -271,7 +271,7 @@ mod tests {
             decl("c", RegulatoryPack::UsHealthcare, 1_000, None), // blocking
             decl("d", RegulatoryPack::Eu, 100, Some("ADR-OVR-1")), // advisory
         ];
-        let r = validate_advisory(ds.into_iter());
+        let r = validate_advisory(ds);
         assert_eq!(r.declarations_scanned, 4);
         assert_eq!(r.findings_ok, 2);
         assert_eq!(r.findings_advisory, 1);
