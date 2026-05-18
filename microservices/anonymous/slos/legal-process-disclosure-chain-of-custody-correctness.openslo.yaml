@@ -1,0 +1,44 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: anonymous-legal-process-disclosure-chain-of-custody-correctness
+  displayName: Legal-process disclosure chain-of-custody correctness — anonymous µservice
+  labels:
+    microservice: anonymous
+    bc: legal-process-disclosure
+    tier: shared-substrate
+    invariant: I7
+    owner_team: ops-security + general-counsel + axis-anonymous
+spec:
+  description: |
+    Chain-of-custody integrity for every legal-process disclosure MUST be 100%.
+    Every disclosure event must seal under an unbroken Merkle chain with
+    dual-control approvals + audit-chain seal. Per ADR-ANON-0003 + ECPA / SCA
+    + UK IPA 2016 + KR 통신비밀보호법.
+
+    A single failure here is a Sev-0 cross-µservice incident.
+  service: oya-anonymous-legal-process-disclosure-rest
+  indicator:
+    metadata:
+      name: legal-process-chain-of-custody-correctness
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: 'sum(rate(oya_anonymous_legal_process_disclosure_chain_of_custody_verified_total[5m]))'
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: 'sum(rate(oya_anonymous_legal_process_disclosure_executed_total[5m]))'
+  objectives:
+    - displayName: 100% of disclosures verify under Merkle chain
+      target: 1.0
+  timeWindow:
+    - duration: 90d
+      isRolling: true
+  alertPolicies:
+    - alertPolicyRef: anonymous-legal-process-burnrate-sev0

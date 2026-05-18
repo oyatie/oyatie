@@ -1,0 +1,21 @@
+name: oya-network-jobs-handoff-adapter-ats-bridge
+role: adapter
+backend: ats-bridge
+context: network
+plane: data
+slo: hero-product
+contracts_consumed: [ATSHandoffBridge (from oya-network-jobs-handoff-kernel)]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "<TBD>"
+  source_adrs: [ADR-0105, ADR-0126, ADR-0131, ADR-NET-0004]
+data_classes_owned: [JOB_POSTING, AUDIT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
+backend_constraints:
+  ats_grpc_endpoint: "ats.<pack>.svc.cluster.local:50051"
+  contract_version: "v1"
+  dual_version_window_days: 180  # per ADR-NET-0004
+context_kind_invariant: Professional

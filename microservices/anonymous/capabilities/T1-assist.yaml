@@ -1,0 +1,80 @@
+# T1 capability: auto-caption + abuse-classifier (anonymous µservice)
+# Tier per ADR-0119: T1-assist
+# Owner: axis-anonymous + axis-foundry-runtime
+# Privacy invariants enforced: I1, I4
+# Regulatory flags: EU AI Act Art. 50 transparency (NOT Annex III high-risk because not employment-context)
+
+capability_id: oya-anonymous-assist
+tier: T1-assist
+microservice: anonymous
+status: Accepted
+date: 2026-05-17
+owner_team: axis-anonymous
+deciders: axis-foundry-runtime, council-privacy, council-architecture
+
+purpose: |
+  Provide AI-assisted services that surface to end-users with human review
+  available:
+
+    1. Auto-caption: generate alt-text for images attached to posts (when T2
+       attachments are enabled per tenant; deferred to M03).
+    2. Abuse-classifier: classify post bodies for harassment / hate-speech /
+       spam / threat / CSAM-suspect to surface moderator queue priorities.
+
+  Per EU AI Act Art. 50 transparency obligation, every classifier verdict
+  surfaced to a user carries the "AI-assessed" label. Per ADR-ANON-0005
+  detailed risk-classification analysis, the classifier is NOT Annex III
+  high-risk because users are anonymous (no individual significant-effect
+  decision possible).
+
+scope:
+  authorised:
+    - abuse-classifier inference on post body (ciphertext-at-rest decrypted per-post under enclave)
+    - auto-caption inference on attachment (when M03 T2 attachments enabled)
+    - human-moderator queue routing
+    - appeal-flow trigger
+  forbidden:
+    - any inference path that correlates blinded_commitment ↔ user_id
+    - retention of inference inputs longer than 24h (retention-policy override)
+    - cross-tenant inference (each tenant's data isolated)
+    - sending inference inputs to non-platform foundry endpoints
+
+inputs:
+  - post_body (ciphertext-at-rest; decrypted inside foundry-runtime enclave per ADR-FRT-0007)
+  - classifier_version
+  - classification_taxonomy (15-class taxonomy: harassment, hate_speech, csam_suspect, spam, impersonation, threat, doxxing, ...)
+
+outputs:
+  - classification_verdict { class, confidence, ai_assessed_label }
+  - moderation_queue_priority (P0 for CSAM-suspect, P1 for hate-speech/threat, P2 for harassment, P3 for spam)
+  - auto-caption (alt-text string for images, M03+)
+
+human_oversight_required: Yes
+  human_review_threshold: any classifier verdict with confidence ≥ 0.7 routes to human moderator queue
+  appeal_path: per PRD FR-20 + EU DSA Art. 14
+
+risk_class_eu_ai_act: "limited risk" (not Annex III high-risk; Art. 50 transparency applies)
+ai_assessed_label: "T1 — AI-assessed; human review available; classifier_version <version>"
+
+invariant_enforcement:
+  - I1: inference inputs are decrypted only inside foundry-runtime enclave; never exit enclave with linkage to user_id
+  - I4: foundry-runtime is the only AI dependency; no third-party tracker
+  - EU AI Act Art. 50: every verdict surfaced with "AI-assessed" label
+  - GDPR Art. 22: NOT triggered (users are anonymous; no individual significant-effect classification on identifiable persons; ADR-ANON-0005 documents the analysis)
+
+acceptance_criteria:
+  - classifier verdict latency p95 ≤ 200 ms; p99 ≤ 500 ms (PRD SLO)
+  - false-positive rate (sampled appeals) ≤ 5%
+  - every verdict carries `ai_assessed_label` field (LEAN lane verifies presence)
+  - CSAM-suspect verdicts trigger NCMEC CyberTipline within 48h (PRD FR-27)
+  - per `runbooks/abuse-classifier-rollback.md`, classifier rollback flow tested at M02 promotion
+
+references:
+  - ADR-0119 capability-tier enum
+  - ADR-ANON-0005 abuse-classifier-bounds
+  - EU AI Act Reg. 2024/1689 Art. 50 (transparency obligation)
+  - EU AI Act Annex III (high-risk list; not applicable to this classifier per ADR-ANON-0005)
+  - GDPR Art. 22 (automated decision-making; not applicable)
+  - 18 USC §2258A (NCMEC CyberTipline)
+  - PRD-anonymous FR-07, FR-19, FR-20, FR-27
+  - `runbooks/abuse-classifier-rollback.md`

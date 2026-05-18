@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sites
+  labels:
+    microservice: sites
+    istio-injection: enabled
+    pod-security.kubernetes.io/enforce: restricted
+    oyatie.dev/data-residency-aware: "true"

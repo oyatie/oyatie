@@ -1,0 +1,14 @@
+{{- range tuple "websocketGateway" "professionalProfile" "professionalGraph" "postCompositionRest" "feedTimeline" "endorsementEngine" "inmailBridge" "jobsHandoff" "search" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: network-{{ . | kebabcase }}
+  namespace: network
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: network
+      app.kubernetes.io/component: {{ . | kebabcase }}
+{{- end }}

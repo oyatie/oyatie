@@ -1,0 +1,607 @@
+// oya-shorts — gRPC contract
+// Peer to contracts/openapi/shorts.yaml for clients that prefer gRPC.
+// Per ADR-0126 + ADR-0131 + ADR-0132.
+
+syntax = "proto3";
+
+package oya.shorts.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// =========================================================================
+// Service: VideoUpload
+// =========================================================================
+
+service VideoUpload {
+  rpc InitiateUpload(InitiateUploadRequest) returns (UploadSession);
+  rpc FinalizeUpload(FinalizeUploadRequest) returns (Video);
+}
+
+// =========================================================================
+// Service: VideoComposition
+// =========================================================================
+
+service VideoComposition {
+  rpc CompositionPreview(CompositionPreviewRequest) returns (Video);
+}
+
+// =========================================================================
+// Service: Video
+// =========================================================================
+
+service VideoCrud {
+  rpc GetVideo(GetVideoRequest) returns (Video);
+  rpc EditVideo(EditVideoRequest) returns (Video);
+  rpc DeleteVideo(DeleteVideoRequest) returns (google.protobuf.Empty);
+  rpc RepostStitch(RepostStitchRequest) returns (Video);
+  rpc RepostDuet(RepostDuetRequest) returns (Video);
+}
+
+// =========================================================================
+// Service: FeedTimeline
+// =========================================================================
+
+service FeedTimeline {
+  rpc RenderForYouFeed(RenderForYouFeedRequest) returns (FeedResponse);
+  rpc RenderChronologicalFeed(RenderChronologicalFeedRequest) returns (FeedResponse);
+  rpc StreamFeed(StreamFeedRequest) returns (stream FeedFrame);
+}
+
+// =========================================================================
+// Service: Engagement (like + share + comment)
+// =========================================================================
+
+service Engagement {
+  rpc LikeVideo(LikeVideoRequest) returns (google.protobuf.Empty);
+  rpc UnlikeVideo(LikeVideoRequest) returns (google.protobuf.Empty);
+  rpc CommentOnVideo(CommentRequest) returns (Comment);
+  rpc ShareVideo(ShareVideoRequest) returns (google.protobuf.Empty);
+  rpc RecordWatchSession(RecordWatchSessionRequest) returns (google.protobuf.Empty);
+}
+
+// =========================================================================
+// Service: AudioTrack + Sound
+// =========================================================================
+
+service AudioTrackLibrary {
+  rpc SearchSound(SearchSoundRequest) returns (SearchSoundResponse);
+  rpc GetSound(GetSoundRequest) returns (Sound);
+  rpc AttributeSound(AttributeSoundRequest) returns (google.protobuf.Empty);
+}
+
+// =========================================================================
+// Service: Hashtag + Trending
+// =========================================================================
+
+service Discovery {
+  rpc SearchHashtag(SearchHashtagRequest) returns (SearchHashtagResponse);
+  rpc GetTrending(google.protobuf.Empty) returns (GetTrendingResponse);
+}
+
+// =========================================================================
+// Service: ContentModeration + Appeals + AbuseReports
+// =========================================================================
+
+service ContentModeration {
+  rpc GetModerationVerdict(GetModerationVerdictRequest) returns (ModerationVerdict);
+  rpc OpenAppeal(OpenAppealRequest) returns (Appeal);
+  rpc ResolveAppeal(ResolveAppealRequest) returns (Appeal);
+  rpc ReportAbuse(ReportAbuseRequest) returns (google.protobuf.Empty);
+}
+
+// =========================================================================
+// Service: CopyrightClaim (DMCA Title II)
+// =========================================================================
+
+service CopyrightClaim {
+  rpc FileCopyrightClaim(FileCopyrightClaimRequest) returns (CopyrightClaimMessage);
+  rpc FileCounterNotice(FileCounterNoticeRequest) returns (google.protobuf.Empty);
+  rpc ExecuteDmcaTakedown(ExecuteDmcaTakedownRequest) returns (google.protobuf.Empty);
+  rpc GetRepeatInfringerStatus(GetRepeatInfringerStatusRequest) returns (RepeatInfringerStatusResponse);
+}
+
+// =========================================================================
+// Service: AgeGate + ParentalControls
+// =========================================================================
+
+service AgeGate {
+  rpc AttestAge(AttestAgeRequest) returns (AgeAttestation);
+  rpc CreateParentalLink(CreateParentalLinkRequest) returns (ParentalLink);
+  rpc GetParentalControls(GetParentalControlsRequest) returns (ParentalControlPolicy);
+  rpc UpdateParentalControls(UpdateParentalControlsRequest) returns (ParentalControlPolicy);
+}
+
+// =========================================================================
+// Service: Notifications
+// =========================================================================
+
+service Notifications {
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+  rpc MarkNotificationsRead(MarkNotificationsReadRequest) returns (google.protobuf.Empty);
+  rpc SubscribeRealtime(google.protobuf.Empty) returns (stream Notification);
+}
+
+// =========================================================================
+// Service: AccessibilityCaptions
+// =========================================================================
+
+service AccessibilityCaptions {
+  rpc GetCaption(GetCaptionRequest) returns (CaptionTrack);
+  rpc OverrideCaption(OverrideCaptionRequest) returns (CaptionTrack);
+}
+
+// =========================================================================
+// Service: CreatorAnalytics
+// =========================================================================
+
+service CreatorAnalytics {
+  rpc GetMyAnalytics(google.protobuf.Empty) returns (CreatorAnalyticsResponse);
+}
+
+// =========================================================================
+// Service: Drm (Premium-tier-gated)
+// =========================================================================
+
+service Drm {
+  rpc IssueDrmLicense(IssueDrmLicenseRequest) returns (DrmLicenseResponse);
+}
+
+// =========================================================================
+// Messages
+// =========================================================================
+
+enum ContextKind {
+  CONTEXT_KIND_UNSPECIFIED = 0;
+  CONTEXT_KIND_PERSONAL = 1;
+  CONTEXT_KIND_PROFESSIONAL = 2;
+}
+
+enum Visibility {
+  VISIBILITY_UNSPECIFIED = 0;
+  VISIBILITY_PUBLIC = 1;
+  VISIBILITY_FOLLOWERS = 2;
+  VISIBILITY_PRIVATE = 3;
+}
+
+enum AgeClassification {
+  AGE_CLASSIFICATION_UNSPECIFIED = 0;
+  AGE_CLASSIFICATION_GENERAL_AUDIENCE = 1;
+  AGE_CLASSIFICATION_SENSITIVE = 2;
+  AGE_CLASSIFICATION_MATURE = 3;
+  AGE_CLASSIFICATION_ADULT = 4;
+  AGE_CLASSIFICATION_RESTRICTED = 5;
+}
+
+enum KeySystem {
+  KEY_SYSTEM_UNSPECIFIED = 0;
+  KEY_SYSTEM_WIDEVINE = 1;
+  KEY_SYSTEM_FAIRPLAY = 2;
+  KEY_SYSTEM_PLAYREADY = 3;
+}
+
+enum EuAiActLabel {
+  EU_AI_ACT_LABEL_UNSPECIFIED = 0;
+  EU_AI_ACT_LABEL_AI_GENERATED_ASSESSMENT = 1;
+  EU_AI_ACT_LABEL_AI_GENERATED = 2;
+  EU_AI_ACT_LABEL_HUMAN_ASSESSMENT = 3;
+  EU_AI_ACT_LABEL_HYBRID = 4;
+}
+
+message Video {
+  string video_id = 1;
+  string creator_ref = 2;
+  string tenant_id = 3;
+  ContextKind context_kind = 4;
+  string caption = 5;
+  Visibility visibility = 6;
+  int32 duration_seconds = 7;
+  google.protobuf.Timestamp posted_at = 8;
+  string sound_ref = 9;
+  repeated string hashtags = 10;
+  AgeClassification age_classification = 11;
+  bool drm_protected = 12;
+  string manifest_hls_url = 13;
+  string manifest_dash_url = 14;
+  string thumbnail_poster_url = 15;
+  string thumbnail_animated_url = 16;
+  string caption_track_webvtt_url = 17;
+  string caption_track_ttml_url = 18;
+  int64 view_count = 19;
+  int64 like_count = 20;
+  int64 comment_count = 21;
+  int64 share_count = 22;
+  bool federation_opt_in = 23;
+  EuAiActLabel eu_ai_act_label = 24;
+}
+
+message UploadSession {
+  string upload_id = 1;
+  string tenant_id = 2;
+  string creator_ref = 3;
+  ContextKind context_kind = 4;
+  string upload_url = 5;
+  int64 chunk_size_bytes = 6;
+  int64 max_video_size_bytes = 7;
+  int32 max_duration_seconds = 8;
+  google.protobuf.Timestamp expires_at = 9;
+}
+
+message Sound {
+  string sound_id = 1;
+  string kind = 2;
+  string title = 3;
+  string artist = 4;
+  string licensor_namespace = 5;
+  string licensing_tier = 6;
+  bool attribution_required = 7;
+  int32 duration_seconds = 8;
+  string preview_url = 9;
+}
+
+message Comment {
+  string comment_id = 1;
+  string video_id = 2;
+  string author_ref = 3;
+  string body = 4;
+  google.protobuf.Timestamp posted_at = 5;
+  int64 like_count = 6;
+  int64 reply_count = 7;
+}
+
+message ModerationVerdict {
+  string verdict = 1;
+  double confidence = 2;
+  string action_taken = 3;
+  StatementOfReasons statement_of_reasons = 4;
+  EuAiActLabel eu_ai_act_label = 5;
+  string classifier_version = 6;
+}
+
+message StatementOfReasons {
+  string grounds = 1;
+  string facts_and_circumstances = 2;
+  bool automated_means = 3;
+  string redress = 4;
+}
+
+message CopyrightClaimMessage {
+  string claim_id = 1;
+  string video_id = 2;
+  string claimant_ref = 3;
+  string status = 4;
+  google.protobuf.Timestamp filed_at = 5;
+  bool perjury_attestation = 6;
+  string claim_text = 7;
+  string matched_corpus_entry_id = 8;
+}
+
+message Appeal {
+  string appeal_id = 1;
+  string verdict_id = 2;
+  string creator_ref = 3;
+  google.protobuf.Timestamp opened_at = 4;
+  string status = 5;
+  string resolution_text = 6;
+}
+
+message AgeAttestation {
+  string attestation_id = 1;
+  string user_ref = 2;
+  int32 age_bracket = 3;
+  int32 pack_threshold = 4;
+  google.protobuf.Timestamp attested_at = 5;
+  bool is_minor = 6;
+  bool parental_consent_required = 7;
+  bool parental_consent_attested = 8;
+}
+
+message ParentalLink {
+  string link_id = 1;
+  string minor_user_ref = 2;
+  string parent_user_ref = 3;
+  google.protobuf.Timestamp established_at = 4;
+  string consent_method = 5;
+}
+
+message ParentalControlPolicy {
+  string minor_user_ref = 1;
+  int32 daily_screen_time_minutes = 2;
+  string content_filter_level = 3;
+  bool dm_restricted = 4;
+  bool algorithmic_recommendation_consented = 5;
+}
+
+message CaptionTrack {
+  string video_id = 1;
+  string webvtt_url = 2;
+  string ttml_url = 3;
+  string detected_language = 4;
+  bool manually_overridden = 5;
+  EuAiActLabel eu_ai_act_label = 6;
+}
+
+message DrmLicenseResponse {
+  bytes license_blob = 1;
+  KeySystem key_system = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message CreatorAnalyticsResponse {
+  int64 total_views = 1;
+  int64 total_likes = 2;
+  int64 total_comments = 3;
+  int64 total_shares = 4;
+  repeated AudienceSlice audience_slices = 5;
+  PostingCadence posting_cadence = 6;
+  AudienceGrowth audience_growth_trend = 7;
+}
+
+message AudienceSlice {
+  string slice_dimension = 1;
+  string slice_value = 2;
+  int64 viewer_count = 3;
+  bool suppressed_for_k_anonymity = 4;
+}
+
+message PostingCadence {
+  double posts_per_week_average = 1;
+  string most_active_day = 2;
+}
+
+message AudienceGrowth {
+  repeated int64 weekly_follower_count = 1;
+  double weekly_growth_rate_percent = 2;
+}
+
+message FeedResponse {
+  repeated Video videos = 1;
+  string next_cursor = 2;
+  repeated RankingExplanation ranking_explanation = 3;
+}
+
+message RankingExplanation {
+  string video_id = 1;
+  repeated ContributingSignal contributing_signals = 2;
+}
+
+message ContributingSignal {
+  string signal = 1;
+  double weight = 2;
+  double value = 3;
+}
+
+message FeedFrame {
+  string frame_id = 1;
+  repeated Video videos = 2;
+  repeated RankingExplanation ranking_explanation = 3;
+}
+
+message Notification {
+  string notification_id = 1;
+  string kind = 2;
+  string body = 3;
+  google.protobuf.Timestamp emitted_at = 4;
+  bool read = 5;
+}
+
+message RepeatInfringerStatusResponse {
+  int32 strike_count = 1;
+  string current_policy_action = 2;
+}
+
+// =========================================================================
+// Request messages
+// =========================================================================
+
+message InitiateUploadRequest {
+  int64 video_size_bytes = 1;
+  int32 duration_seconds = 2;
+  string content_hash_sha256 = 3;
+  ContextKind context_kind = 4;
+}
+
+message FinalizeUploadRequest {
+  string upload_id = 1;
+  ContextKind context_kind = 2;
+}
+
+message CompositionPreviewRequest {
+  string upload_id = 1;
+  ContextKind context_kind = 2;
+}
+
+message GetVideoRequest {
+  string video_id = 1;
+}
+
+message EditVideoRequest {
+  string video_id = 1;
+  string caption = 2;
+  repeated string hashtags = 3;
+  Visibility visibility = 4;
+}
+
+message DeleteVideoRequest {
+  string video_id = 1;
+}
+
+message RepostStitchRequest {
+  string source_video_id = 1;
+  int32 source_clip_start_ms = 2;
+  int32 source_clip_end_ms = 3;
+  string new_upload_id = 4;
+  ContextKind context_kind = 5;
+}
+
+message RepostDuetRequest {
+  string source_video_id = 1;
+  string new_upload_id = 2;
+  ContextKind context_kind = 3;
+}
+
+message RenderForYouFeedRequest {
+  int32 limit = 1;
+  string cursor = 2;
+}
+
+message RenderChronologicalFeedRequest {
+  int32 limit = 1;
+  string cursor = 2;
+}
+
+message StreamFeedRequest {
+  int32 limit_per_frame = 1;
+}
+
+message LikeVideoRequest {
+  string video_id = 1;
+}
+
+message CommentRequest {
+  string video_id = 1;
+  string body = 2;
+}
+
+message ShareVideoRequest {
+  string video_id = 1;
+  string share_target = 2;
+}
+
+message RecordWatchSessionRequest {
+  string video_id = 1;
+  double watch_seconds = 2;
+  double completion_ratio = 3;
+  double scroll_velocity_signal = 4;
+}
+
+message SearchSoundRequest {
+  string q = 1;
+}
+
+message SearchSoundResponse {
+  repeated Sound sounds = 1;
+}
+
+message GetSoundRequest {
+  string sound_id = 1;
+}
+
+message AttributeSoundRequest {
+  string video_id = 1;
+  string sound_id = 2;
+}
+
+message SearchHashtagRequest {
+  string hashtag = 1;
+  int32 limit = 2;
+}
+
+message SearchHashtagResponse {
+  repeated Video videos = 1;
+}
+
+message GetTrendingResponse {
+  repeated TrendingItem trending_hashtags = 1;
+  repeated Sound trending_sounds = 2;
+  Sound sound_of_the_week = 3;
+}
+
+message TrendingItem {
+  string item = 1;
+  int64 rank = 2;
+  int64 emission_count = 3;
+}
+
+message GetModerationVerdictRequest {
+  string video_id = 1;
+}
+
+message OpenAppealRequest {
+  string verdict_id = 1;
+  string reason = 2;
+}
+
+message ResolveAppealRequest {
+  string appeal_id = 1;
+  string resolution = 2;
+  string resolution_text = 3;
+}
+
+message ReportAbuseRequest {
+  string target_video_id = 1;
+  string abuse_category = 2;
+  string description = 3;
+}
+
+message FileCopyrightClaimRequest {
+  string target_video_id = 1;
+  string claim_text = 2;
+  bool perjury_attestation = 3;
+}
+
+message FileCounterNoticeRequest {
+  string claim_id = 1;
+  string counter_notice_text = 2;
+  bool jurisdiction_consent = 3;
+  bool perjury_attestation = 4;
+}
+
+message ExecuteDmcaTakedownRequest {
+  string claim_id = 1;
+}
+
+message GetRepeatInfringerStatusRequest {
+  string creator_ref = 1;
+}
+
+message AttestAgeRequest {
+  int32 self_reported_age = 1;
+  int32 pack_threshold = 2;
+}
+
+message CreateParentalLinkRequest {
+  string minor_user_ref = 1;
+  string parent_user_ref = 2;
+  string attestation_text = 3;
+  string consent_method = 4;
+}
+
+message GetParentalControlsRequest {
+  string minor_user_ref = 1;
+}
+
+message UpdateParentalControlsRequest {
+  string minor_user_ref = 1;
+  ParentalControlPolicy policy = 2;
+}
+
+message ListNotificationsRequest {
+  int32 limit = 1;
+  string cursor = 2;
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+  string next_cursor = 2;
+}
+
+message MarkNotificationsReadRequest {
+  repeated string notification_ids = 1;
+}
+
+message GetCaptionRequest {
+  string video_id = 1;
+}
+
+message OverrideCaptionRequest {
+  string video_id = 1;
+  string webvtt_blob = 2;
+}
+
+message IssueDrmLicenseRequest {
+  string video_id = 1;
+  KeySystem key_system = 2;
+  bytes license_challenge_blob = 3;
+  string device_fingerprint = 4;
+}

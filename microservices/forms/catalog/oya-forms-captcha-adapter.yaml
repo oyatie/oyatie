@@ -1,0 +1,12 @@
+id: oya-forms-captcha-adapter
+kind: rust-library
+layer: adapter
+microservice: forms
+owner: axis-forms + ops-security
+description: |
+  Multi-provider captcha verifier. hCaptcha + Cloudflare Turnstile + Friendly Captcha.
+  reCAPTCHA forbidden in pack-eu/kr/us-hc. Pack-resident routing per
+  policy/data-residency.md. Fail-closed.
+related_adrs: [ADR-FORMS-0002]
+related_ips: [IP-009]
+crate_path: microservices/forms/src/adapter/captcha

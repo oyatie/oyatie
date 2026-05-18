@@ -1,0 +1,47 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: network-connection-action-latency
+  displayName: "network: connection-action (request / accept / ignore / withdraw / block) p95 ≤ 50ms"
+  labels:
+    microservice: network
+    bc: professional-graph + connection-request
+    sli_class: latency
+    tier: hero-product
+    owner_team: axis-network
+    pack_scope: all
+spec:
+  description: |
+    Latency SLO for POST /connection-requests and POST /connection-requests/{id}.
+    A request is "good" when its end-to-end latency is ≤ 50ms (Postgres write +
+    audit-chain emit + Redis degree-cache invalidation). Connection actions are
+    interactive; latency directly affects user perception of the platform.
+  service: network
+  indicator:
+    metadata:
+      name: network-connection-action-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_network_connection_action_duration_seconds_bucket{le="0.05"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_network_connection_action_duration_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 ≤ 50ms for 95 % of 5min windows over 30d"
+  alertPolicies:
+    - alertPolicyRef: network-connection-action-fast-burn-1h-14x
+    - alertPolicyRef: network-connection-action-slow-burn-6h-6x

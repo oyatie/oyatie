@@ -1,0 +1,12 @@
+name: oya-recordings-share-link-adapter-redis
+role: adapter
+context: recordings
+plane: data
+contracts_consumed: [oya-recordings-share-link-kernel#ShareLinkCache]
+backend: redis-7.2
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-RECORDINGS-0004]
+allowed_dependency_edges: [oya-recordings-share-link-kernel, oya-recordings-playback-kernel]
+exemption: -adapter-redis canonical per ADR-0105 Amendment 3
+upstream_pin: redis-7.2

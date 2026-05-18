@@ -1,0 +1,201 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: shorts-burn-rate-rules
+  namespace: shorts
+  labels:
+    app.kubernetes.io/name: shorts
+    prometheus: mimir
+spec:
+  groups:
+    - name: shorts-recording-rules
+      interval: 60s
+      rules:
+        - record: shorts:video_start:availability_5m
+          expr: |
+            sum(rate(oya_shorts_video_start_total{result="success"}[5m]))
+            /
+            sum(rate(oya_shorts_video_start_total[5m]))
+        - record: shorts:video_start:latency_p95_5m
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(oya_shorts_video_start_duration_seconds_bucket[5m]))
+            )
+        - record: shorts:feed_load:latency_p95_5m
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(oya_shorts_feed_render_duration_seconds_bucket[5m]))
+            )
+        - record: shorts:feed_cache:hit_ratio_5m
+          expr: |
+            sum(rate(oya_shorts_feed_cache_hit_total[5m]))
+            /
+            sum(rate(oya_shorts_feed_cache_request_total[5m]))
+        - record: shorts:transcode:queue_depth
+          expr: |
+            sum(oya_shorts_transcode_queue_depth)
+        - record: shorts:moderation_classifier:drift_24h
+          expr: |
+            sum(rate(oya_shorts_moderation_verdict_total{verdict=~"nsfw|violence|harassment|csam_suspect|minor_protection_concern"}[15m]))
+            /
+            sum(rate(oya_shorts_moderation_verdict_total{verdict=~"nsfw|violence|harassment|csam_suspect|minor_protection_concern"}[24h]))
+
+    - name: shorts-burn-rate-alerts
+      rules:
+        - alert: ShortsVideoStartFastBurn1h
+          expr: |
+            (1 - shorts:video_start:availability_5m) > 14.4 * (1 - 0.9995)
+          for: 5m
+          labels:
+            severity: critical
+            burn_window: 1h
+            sli: availability
+            microservice: shorts
+          annotations:
+            summary: "shorts video-start fast-burn (14.4x) for 5m"
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/cdn-cache-invalidation-cascade"
+
+        - alert: ShortsVideoStartSlowBurn6h
+          expr: |
+            (1 - avg_over_time(shorts:video_start:availability_5m[6h])) > 6 * (1 - 0.9995)
+          for: 30m
+          labels:
+            severity: warning
+            burn_window: 6h
+            sli: availability
+            microservice: shorts
+
+        - alert: ShortsFeedLoadLatencyHigh
+          expr: |
+            shorts:feed_load:latency_p95_5m > 0.25
+          for: 10m
+          labels:
+            severity: warning
+            sli: latency
+            microservice: shorts
+            bc: feed-timeline
+          annotations:
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/feed-cache-rebuild"
+
+        - alert: ShortsDualContextDenyDetected
+          expr: |
+            increase(oya_shorts_dual_context_denied_total[1h]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: dual-context-isolation
+            microservice: shorts
+          annotations:
+            summary: "shorts context-isolation invariant violation attempt detected"
+            runbook_url: "https://oyatie.dev/microservices/shorts/policy/dual-context-isolation"
+
+        - alert: ShortsPersonalTierFederationAttempt
+          expr: |
+            increase(oya_shorts_personal_tier_federation_attempt_total[1h]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: dual-context-isolation
+            invariant: DCI-08
+            microservice: shorts
+          annotations:
+            summary: "shorts Personal-tier federation attempt detected — compile-time invariant breach"
+
+        - alert: ShortsMinorProtectionBypassAttempt
+          expr: |
+            increase(oya_shorts_minor_protection_bypass_attempt_total[1h]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: minor-protection
+            microservice: shorts
+          annotations:
+            summary: "shorts minor-protection bypass attempt — Sev-1; COPPA/GDPR Art. 8/KR 청소년 보호법 clock"
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/age-gate-bypass-incident"
+
+        - alert: ShortsDrmTierViolation
+          expr: |
+            increase(oya_shorts_drm_tier_violation_total[1h]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: drm-tier-gating
+            invariant: DCI-09
+            microservice: shorts
+          annotations:
+            summary: "shorts DRM tier violation — non-Premium tenant issued DRM license"
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/drm-key-rotation"
+
+        - alert: ShortsPackResidencyViolation
+          expr: |
+            increase(oya_shorts_pack_residency_violation_total[1h]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: pack-residency
+            microservice: shorts
+          annotations:
+            summary: "shorts pack residency violation — cross-pack replication detected"
+
+        - alert: ShortsTranscodeQueueDepthHigh
+          expr: |
+            shorts:transcode:queue_depth > 1000
+          for: 5m
+          labels:
+            severity: warning
+            sli: queue_depth
+            microservice: shorts
+            bc: video-transcode
+          annotations:
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/transcode-queue-backup"
+
+        - alert: ShortsFeedCacheHitRatioLow
+          expr: |
+            shorts:feed_cache:hit_ratio_5m < 0.7
+          for: 15m
+          labels:
+            severity: warning
+            sli: cache_hit_ratio
+            microservice: shorts
+            bc: feed-timeline
+          annotations:
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/feed-cache-rebuild"
+
+        - alert: ShortsModerationClassifierDrift
+          expr: |
+            shorts:moderation_classifier:drift_24h > 5
+          for: 10m
+          labels:
+            severity: warning
+            sli: classifier_drift
+            microservice: shorts
+            eu_ai_act: high-risk
+          annotations:
+            summary: "shorts moderation classifier drift detected (≥5x baseline rate)"
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/moderation-classifier-rollback"
+
+        - alert: ShortsCopyrightClaimStorm
+          expr: |
+            sum by (claimant_ref) (rate(oya_shorts_copyright_claim_filed_total[1h])) > 100
+          for: 5m
+          labels:
+            severity: warning
+            sli: claim_rate
+            microservice: shorts
+            bc: copyright-claim
+          annotations:
+            summary: "shorts copyright-claim storm from single claimant"
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/copyright-claim-storm-throttle"
+
+        - alert: ShortsDrmKeyRotationOverdue
+          expr: |
+            time() - oya_shorts_drm_root_key_last_rotation_timestamp_seconds > 90 * 86400
+          for: 1h
+          labels:
+            severity: critical
+            sli: drm_key_rotation
+            microservice: shorts
+            bc: drm-stub
+          annotations:
+            summary: "shorts DRM root key rotation overdue (> 90d cap)"
+            runbook_url: "https://oyatie.dev/microservices/shorts/runbooks/drm-key-rotation"

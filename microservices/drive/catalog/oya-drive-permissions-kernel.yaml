@@ -1,0 +1,15 @@
+name: oya-drive-permissions-kernel
+role: kernel
+context: drive
+bc: permissions
+plane: control
+slo: preview-control-plane
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0056, ADR-0105, ADR-0140]
+allowed_dependency_edges: []
+data_classes_owned: [AUDIT, BEHAVIORAL_TENANT_PRODUCT]
+autonomy_tier_required: T0

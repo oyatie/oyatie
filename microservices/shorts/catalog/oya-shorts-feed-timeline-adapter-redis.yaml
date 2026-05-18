@@ -1,0 +1,17 @@
+name: oya-shorts-feed-timeline-adapter-redis
+role: adapter
+backend: redis
+context: shorts
+plane: data
+slo: hero-product
+contracts_consumed: [FeedCache (kernel port)]
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-SHORTS-0005]
+allowed_dependency_edges: [oya-shorts-feed-timeline-kernel]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, INTERNAL_ONLY]
+backend_pinning:
+  redis_version: "7.2"  # Redis 7.2 LTS
+  cluster_mode: enabled
+sharding_key: "(tenant_id, viewer_ref) mod N"

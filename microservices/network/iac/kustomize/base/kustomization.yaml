@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Shared base for the network µservice.
+# Per-pack overlays adjust: residency, retention overrides, secret-ref URIs,
+# replica scaling tier, regulatory packs, capability tier toggles (T0/T1/T2),
+# recruiter-stub activation gating, bias-audit cadence, age-gate thresholds.
+
+namespace: network
+
+resources:
+  - namespace.yaml
+  - openbao-secret-references.yaml
+
+helmCharts:
+  - name: oya-network
+    valuesFile: ../../helm/network/values.yaml
+    releaseName: network
+    namespace: network
+
+commonLabels:
+  app.kubernetes.io/part-of: oya-network
+  oyatie/microservice: network

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: oya-forms-response-search-meilisearch
+description: |
+  Forms response-search Meilisearch 0.10.0. PII columns NEVER indexed (T-I-05).
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: axis-forms + council-privacy
+    email: axis-forms@oyatie.dev

@@ -1,0 +1,14 @@
+name: oya-slides-real-time-collaboration-adapter-redis
+microservice: slides
+bounded_context: real-time-collaboration
+layer: adapter-redis
+purpose: |
+  Redis (per-cell sentinel cluster) for ephemeral CRDT cache + editor-session lease.
+  Per-tenant key namespace; single-writer lease per deck.
+depends_on:
+  - oya-slides-real-time-collaboration-kernel
+backend: redis
+ci_lanes:
+  - layer-correctness
+  - port-location
+  - cargo-nextest

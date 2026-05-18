@@ -1,0 +1,11 @@
+apiVersion: v2
+name: oya-forms-form-rest
+description: |
+  Forms public REST surface (form authoring + listing + publish + submission
+  endpoints). Hosts contracts/openapi/forms.openapi.yaml.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: axis-forms
+    email: axis-forms@oyatie.dev

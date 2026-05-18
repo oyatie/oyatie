@@ -1,0 +1,108 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "notes",
+    "owner_team": "axis-notes + ops-sre-reliability",
+    "audience": "tenant operator + axis-notes SRE",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; tenant-scoped via X-Scope-OrgID"
+  },
+  "uid": "notes-sync-and-realtime",
+  "title": "notes: sync + realtime (WebSocket + Loro + sync latency)",
+  "tags": ["notes", "websocket", "loro", "sync", "burn-rate"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ]},
+      {"name": "tenant", "type": "query", "label": "Tenant",
+        "query": "label_values(oya_notes_note_create_total{pack=\"$pack\"}, tenant_id)"}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Notes created (5m rate)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_notes_note_create_total{pack=\"$pack\",tenant_id=\"$tenant\",result=\"success\"}[5m]))", "refId": "A"}]},
+
+    {"id": 2, "type": "stat", "title": "Note-open p95 (s)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_note_open_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.05, "color": "yellow"}, {"value": 0.1, "color": "red"}]}}}},
+
+    {"id": 3, "type": "stat", "title": "Sync-after-edit p99 (s)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_notes_sync_after_edit_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.25, "color": "yellow"}, {"value": 0.5, "color": "red"}]}}}},
+
+    {"id": 4, "type": "stat", "title": "Active Loro collab sessions",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_notes_loro_active_sessions{pack=\"$pack\",tenant_id=\"$tenant\"})", "refId": "A"}]},
+
+    {"id": 5, "type": "timeseries", "title": "Note-open latency percentiles",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum by (le) (rate(oya_notes_note_open_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_note_open_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_notes_note_open_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p99", "refId": "C"}
+      ]},
+
+    {"id": 6, "type": "timeseries", "title": "Note-create latency percentiles",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum by (le) (rate(oya_notes_note_create_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_note_create_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_notes_note_create_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p99", "refId": "C"}
+      ]},
+
+    {"id": 7, "type": "timeseries", "title": "Sync-after-edit p99 + 409-conflict ratio",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_notes_sync_after_edit_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p99 sync", "refId": "A"},
+        {"expr": "sum(rate(oya_notes_sync_conflict_409_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])) / sum(rate(oya_notes_sync_after_edit_duration_seconds_count{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "409 ratio", "refId": "B"}
+      ]},
+
+    {"id": 8, "type": "timeseries", "title": "Loro op-broker queue depth + ops/sec",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "oya_notes_loro_op_queue_depth{pack=\"$pack\"}", "legendFormat": "queue depth", "refId": "A"},
+        {"expr": "sum(rate(oya_notes_loro_op_processed_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "ops/sec", "refId": "B"}
+      ]},
+
+    {"id": 9, "type": "timeseries", "title": "Loro op-rejected (should be ~0)",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 6},
+      "targets": [{"expr": "sum(rate(oya_notes_loro_op_rejected_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "rejected/sec", "refId": "A"}]},
+
+    {"id": 10, "type": "timeseries", "title": "WebSocket connections per pod",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 6},
+      "targets": [{"expr": "oya_notes_gateway_active_connections_total{pack=\"$pack\"} by (pod)", "legendFormat": "{{pod}}", "refId": "A"}]},
+
+    {"id": 11, "type": "stat", "title": "Burn-rate (fast 1h)",
+      "gridPos": {"x": 0, "y": 26, "w": 6, "h": 4},
+      "targets": [{"expr": "oya_promotion_burn_rate_fast_1h{microservice=\"notes\",pack=\"$pack\",sli=\"availability\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 6, "color": "yellow"}, {"value": 14.4, "color": "red"}]}}}},
+
+    {"id": 12, "type": "stat", "title": "Eligibility verdict",
+      "gridPos": {"x": 6, "y": 26, "w": 6, "h": 4},
+      "targets": [{"expr": "oya:current_verdict:by_microservice_env{microservice=\"notes\",pack=\"$pack\",environment=\"production\"}", "refId": "A"}]},
+
+    {"id": 13, "type": "table", "title": "Top 10 noisy users (notes/sec)",
+      "gridPos": {"x": 12, "y": 26, "w": 12, "h": 8},
+      "targets": [{"expr": "topk(10, sum by (user_id) (rate(oya_notes_note_create_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "format": "table", "refId": "A"}]}
+  ]
+}

@@ -1,0 +1,20 @@
+name: oya-slides-slide-kernel
+microservice: slides
+bounded_context: slide
+layer: kernel
+purpose: |
+  Port-trait + entity declarations for individual Slide. Zero I/O.
+ports_declared:
+  - SlideRepository
+entities:
+  - Slide
+  - SlideContent
+  - SlideOrder
+data_classes:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - INTERNAL_ONLY
+ci_lanes:
+  - lean-a1
+  - port-location
+  - layer-correctness
+  - data-class

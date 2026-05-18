@@ -1,0 +1,386 @@
+global:
+  pack: kr  # overridden per-pack overlay
+  cluster: network
+  imageRegistry: ghcr.io/oyatie
+  imagePullPolicy: IfNotPresent
+
+image:
+  repository: oya-network-app
+  tag: "1.0.0"  # SHA-pinned at release-pointer advance per ADR-0130
+
+# ============================================================================
+# Per-BC deployment sizing (XS-tier baseline; HPA scales up)
+# ============================================================================
+
+websocketGateway:
+  replicas: 6
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits: {cpu: 2000m, memory: 2Gi}
+  hpa:
+    minReplicas: 6
+    maxReplicas: 200
+    targetCPUUtilizationPercentage: 70
+
+professionalProfile:
+  replicas: 4
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+professionalGraph:
+  replicas: 6
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+connectionRequest:
+  replicas: 3
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+postCompositionRest:
+  replicas: 6
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits: {cpu: 2000m, memory: 2Gi}
+  hpa:
+    minReplicas: 6
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 65
+
+postCompositionWorker:
+  replicas: 6
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+feedTimeline:
+  replicas: 8
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+  hpa:
+    minReplicas: 8
+    maxReplicas: 200
+    targetCPUUtilizationPercentage: 65
+
+reactions:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+mentions:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: 1000m, memory: 2Gi}
+
+hashtags:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+trendingTopics:
+  replicas: 2
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+notifications:
+  replicas: 6
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+endorsementEngine:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+skillAssessments:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+profileVerification:
+  replicas: 2
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+pages:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+groups:
+  replicas: 2
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+eventsBridge:
+  replicas: 2
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+inmailBridge:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+jobsHandoff:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+recruiterStub:
+  enabled: false  # OFF BY DEFAULT per ADR-NET-0002; activate per-tenant only
+  replicas: 2
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+servicesMarketplaceStub:
+  enabled: false  # stub; future activation per ADR-NET follow-up
+
+learningStub:
+  enabled: false  # stub; future activation per ADR-NET follow-up
+
+salaryInsightsStub:
+  enabled: true  # aggregate-only; per-individual disclosure forbidden by design
+  replicas: 1
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {cpu: 250m, memory: 256Mi}
+
+search:
+  replicas: 4
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+accessibilityCaptions:
+  replicas: 2
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+abuseReporting:
+  replicas: 1
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+# ============================================================================
+# Backing stores — references; provisioning lives in cloud-k8s + cloud-db
+# ============================================================================
+
+postgres:
+  host: network-pg.${global.pack}.svc.cluster.local
+  port: 5432
+  database: network
+  sslmode: require
+  username: "${openbao:secret/network/postgres/username}"
+  password: "${openbao:secret/network/postgres/password}"
+  partitionStrategy: "by_tenant_id_hash_64"
+  rls: enabled  # MANDATORY
+  syncCommitMode: "remote_write"  # stronger consistency per ADR-NET-0001 vs social
+  version: "16"  # Postgres 16 LTS per ADR
+
+redisCache:
+  host: network-redis-cache.${global.pack}.svc.cluster.local
+  port: 6379
+  authToken: "${openbao:secret/network/redis/cache-auth}"
+  version: "7.2"  # Redis 7.2 LTS
+
+redisStreams:
+  host: network-redis-streams.${global.pack}.svc.cluster.local
+  port: 6379
+  authToken: "${openbao:secret/network/redis/streams-auth}"
+  version: "7.2"
+
+s3Media:
+  endpoint: "${OCI_OBJECTSTORAGE_ENDPOINT}"
+  bucket: oya-network-media-${global.pack}
+  documentBucket: oya-network-documents-${global.pack}
+  quarantineBucket: oya-network-quarantine-${global.pack}
+  cdnBucket: oya-network-cdn-${global.pack}
+  exportBucket: oya-network-exports-${global.pack}
+  accessKeyId: "${openbao:secret/network/s3/access-key}"
+  secretAccessKey: "${openbao:secret/network/s3/secret-key}"
+  sseKms: tenant-DEK
+
+meilisearch:
+  enabled: true
+  host: network-meilisearch.${global.pack}.svc.cluster.local
+  port: 7700
+  apiKey: "${openbao:secret/network/meilisearch/master-key}"
+  version: "0.10.0"  # Meilisearch 0.10 LTS
+  indexes:
+    - people
+    - content
+    - skills
+    - jobs
+    - companies
+    - events
+
+# ============================================================================
+# Media + document transcode + scan stack
+# ============================================================================
+
+imagemagick:
+  enabled: true
+  version: "7.1"  # ImageMagick 7.1 LTS
+  sandbox: gvisor  # Sandboxed transcode workers per threat-model T-E-05
+
+ffmpeg:
+  enabled: true
+  version: "7.x"  # ffmpeg 7.x LTS
+  sandbox: gvisor
+
+opswat:
+  enabled: true
+  endpoint: "${openbao:secret/network/opswat/endpoint}"
+  apiKey: "${openbao:secret/network/opswat/api-key}"
+  fallback: clamav
+  version: "5.x"
+
+clamav:
+  enabled: true  # fallback only; primary is opswat
+  version: "1.x"
+
+# ============================================================================
+# Federation (ActivityPub) — DISABLED in P01 per parallel ADR-NET (network does NOT federate)
+# ============================================================================
+
+federation:
+  enabled: false
+  reason: "network is Professional-tier-only; federation deferred per ADR-NET follow-up"
+
+# ============================================================================
+# Cedar policy + Authz
+# ============================================================================
+
+cedar:
+  policyConfigMap: network-cedar-policies
+  defaultDeny: true
+  version: "v4.2"  # Cedar v4.2 LTS
+
+# ============================================================================
+# KMS for endorsement-chain Ed25519 keystore (ADR-NET-0005)
+# ============================================================================
+
+kms:
+  endpoint: "${openbao:secret/network/kms/endpoint}"
+  keyRingPath: "oyatie/network/endorser/"
+  exportKeyPath: "oyatie/network/exporter/"
+  rotationDays: 1080  # 36 months
+  publicKeyRetentionDays: 2555  # 7 years per ADR-NET-0005
+
+# ============================================================================
+# Cross-µservice bridges (in-pack only per multi-region.md)
+# ============================================================================
+
+messengerBridge:
+  enabled: true
+  endpoint: messenger.${global.pack}.svc.cluster.local:50051
+  contractVersion: "v1"  # per ADR-NET-0003
+  professionalTierOnly: true  # PCI-09 invariant
+
+calendarBridge:
+  enabled: true
+  endpoint: calendar.${global.pack}.svc.cluster.local:50051
+  contractVersion: "v1"
+
+mailBridge:
+  enabled: true
+  endpoint: mail.${global.pack}.svc.cluster.local:50051
+  contractVersion: "v1"
+
+atsBridge:
+  enabled: true
+  endpoint: ats.${global.pack}.svc.cluster.local:50051
+  contractVersion: "v1"  # per ADR-NET-0004
+  dualVersionWindowDays: 180
+
+# ============================================================================
+# Foundry-runtime classifier client (EU AI Act high-risk per ADR-NET-0002)
+# ============================================================================
+
+foundryRuntime:
+  enabled: true
+  endpoint: foundry-runtime.foundry.svc.cluster.local:50051
+  contentModerationVersion: "network-moderation-v1.0"
+  rankerVersion: "network-ranker-v1.0"
+  pymkVersion: "network-pymk-v1.0"
+  jobsRankerVersion: "network-jobs-v1.0"
+  recruiterRankerVersion: "network-recruiter-v1.0"  # used only when recruiterStub.enabled per tenant
+  endorsementAggregationVersion: "network-endorsement-aggregation-v1.0"
+  spamClassifierVersion: "network-inmail-spam-v1.0"
+  batchSize: 100
+  euAiActLabel: "ai_generated_assessment"  # Art. 50 transparency
+
+# ============================================================================
+# Age verification + minor protection
+# ============================================================================
+
+minorProtection:
+  enabled: true
+  packGdprMinorThreshold: 16
+  packCoppaMinorThreshold: 13
+  packKrMinorThreshold: 14
+  neverInRecruiter: true  # absolute (PCI; recruiter cannot surface minor)
+  neverInSalaryInsights: true
+  neverInJobsAbove18Roles: true
+
+# ============================================================================
+# Capabilities tier toggles (T0/T1/T2)
+# ============================================================================
+
+capabilities:
+  t0Suggest:
+    enabled: true
+  t1Assist:
+    enabled: true
+  t2Auto:
+    enabled: true
+    pymk: true
+    jobsRanker: true
+    recruiterStub: false  # OFF BY DEFAULT per ADR-NET-0002
+    endorsementAggregation: true
+
+# ============================================================================
+# Bias-audit pipeline (EU AI Act + EEOC + NYC LL144)
+# ============================================================================
+
+biasAudit:
+  enabled: true
+  cadence: per-release-and-monthly-drift-monitor
+  threshold4_5_rule: 0.8
+  ll144AuditRequiredForNycTenant: true
+  ab331AssessmentRequiredForCaTenant: true
+  coSb205PolicyRequiredForCoTenant: true
+  euAiActFriaRequiredForEuTenant: true
+
+# ============================================================================
+# Observability
+# ============================================================================
+
+observability:
+  otelEndpoint: alloy.observability.svc.cluster.local:4317
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+  prometheusRule:
+    enabled: true

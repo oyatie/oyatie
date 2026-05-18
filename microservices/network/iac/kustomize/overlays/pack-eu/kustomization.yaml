@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: network-eu
+
+resources:
+  - ../../base
+
+# Pack-EU overlay per /specs/regulatory-packs.json#pack-eu
+# Residency: EU + EEA only; DR pair eu-amsterdam-1; cross-border requires SCC.
+# Retention floor: 180d for audit-chain + bias-audit (EU AI Act Art. 12 + 72).
+# Retention ceiling: 2555d (7y) per GDPR storage-limitation Art. 5(1)(e).
+# Age-gate: GDPR Art. 8 — minor < 16y (member states may lower to 13).
+# Recruiter-stub activation: explicit tenant opt-in + FRIA attested + ICO ADM-code-§6 meaningful info.
+# EU DSA Art. 24 transparency quarterly export.
+# EU AI Act Art. 50 transparency label always emitted.
+# EU AI Act Art. 73 serious-incident reporting clock operative on bias-audit failure.
+# EU Pay Transparency Directive 2023/970: salary insights aggregate-only.
+
+patches:
+  - target: {kind: HelmRelease, name: network}
+    patch: |-
+      - op: replace
+        path: /spec/values/global/pack
+        value: eu
+      - op: replace
+        path: /spec/values/minorProtection/packGdprMinorThreshold
+        value: 16
+      - op: replace
+        path: /spec/values/biasAudit/euAiActFriaRequiredForEuTenant
+        value: true
+      - op: add
+        path: /spec/values/biasAudit/euDsaArt24TransparencyExportCadence
+        value: "quarterly"
+      - op: add
+        path: /spec/values/biasAudit/euAiActArt73SeriousIncidentClockDays
+        value: 15
+      - op: add
+        path: /spec/values/biasAudit/euPayTransparencyAggregateOnly
+        value: true
+  - target: {kind: ConfigMap, name: network-retention-policy}
+    patch: |-
+      - op: replace
+        path: /data/pack-eu-floor-days
+        value: "180"  # EU AI Act Art. 12 + 72 audit + bias-audit retention
+      - op: replace
+        path: /data/pack-eu-ceiling-days
+        value: "2555"  # 7y GDPR storage-limitation
+      - op: replace
+        path: /data/pack-eu-employment-record-retention-floor
+        value: "1825"  # 5y employment-record floor (member-state varies)

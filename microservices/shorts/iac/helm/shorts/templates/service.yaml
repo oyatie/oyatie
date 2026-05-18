@@ -1,0 +1,30 @@
+{{- range tuple "websocket-gateway" "video-upload-rest" "video-storage-rest" "feed-timeline" "age-gate-rest" "parental-controls-rest" "audio-track-library-rest" "drm-key-server" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shorts-{{ . }}
+  namespace: shorts
+  labels:
+    app.kubernetes.io/name: shorts
+    app.kubernetes.io/component: {{ . }}
+    app.kubernetes.io/part-of: oya-shorts
+    oyatie/microservice: shorts
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: shorts
+    app.kubernetes.io/component: {{ . }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+    - name: metrics
+      port: 9091
+      targetPort: 9091
+{{- if eq . "websocket-gateway" }}
+    - name: ws
+      port: 8443
+      targetPort: 8443
+{{- end }}
+{{- end }}

@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# pack-eu overlay for the anonymous µservice.
+# Regulatory: GDPR Art. 11 + Recital 26 (pseudonymisation), EU DSA Arts. 14/16/17/27/28,
+# EU AI Act Art. 50, ePrivacy Directive Art. 5(3).
+# Region: eu-central-1 (Frankfurt), eu-west-1 (Dublin). NO cross-border per Art. 44.
+
+namespace: anonymous
+
+bases:
+  - ../../base
+
+patchesStrategicMerge:
+  - patch-pack-eu-region.yaml
+  - patch-pack-eu-retention.yaml
+  - patch-pack-eu-dsa.yaml
+
+configMapGenerator:
+  - name: oya-anonymous-pack-config
+    literals:
+      - pack=eu
+      - region=eu-central-1
+      - dr_region=eu-west-1
+      - data_residency_strict=true
+      - legal_process_framework=eu-dsa-art-27,eu-mlat,uk-ipa-2016
+      - regulatory_pack_packs=GDPR-Art-11,GDPR-Recital-26,EU-DSA-Arts-14-17-27-28,EU-AI-Act-Art-50,ePrivacy-Art-5-3
+      - cross_border_replication=REFUSED
+      - retention_default_tier=30d
+      - retention_max_allowed_tier=60d
+      - dsa_complaint_mechanism_enabled=true
+      - dsa_statement_of_reasons_template=annex-i
+      - transparency_report_cadence=quarterly

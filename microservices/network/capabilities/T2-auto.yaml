@@ -1,0 +1,250 @@
+id: cap:network:t2-auto:v1
+name: people-you-may-know-and-jobs-ranker-and-recruiter-stub-and-endorsement-aggregation
+namespace: network
+display_name: People-You-May-Know Recommender + Jobs Ranker + Recruiter-Stub Ranker (off by default) + Endorsement Aggregation
+description: |
+  T2 capability: autonomous classification + side-effecting actions on the
+  feed-render, search ranking, and recruiter pipelines. Four sub-capabilities:
+
+  1. People-you-may-know (PYMK) recommender — surfaces ranked connection-
+     suggestion panel on profile views + onboarding flow. Used for "growing
+     your network" but with employment-context implications: surfacing one
+     candidate over another in the recruiter context is high-risk.
+  2. Jobs ranker — ranks job-search results by relevance + match-to-skills.
+     Drives candidate-to-job match; high-risk in employment context.
+  3. Recruiter-stub ranker (OFF BY DEFAULT) — ranks candidate-search results
+     for recruiters when activated per tenant + per pack. EXPLICITLY HIGH-RISK
+     per EU AI Act Annex III §4 (employment / workers management).
+  4. Endorsement aggregation — aggregates per-skill endorsement counts +
+     weighting; affects rank in recruiter + jobs ranker. Aggregation that
+     materially influences recruiter-rank is HIGH-RISK.
+
+  All four preserve canonical content; none delete or send-without-consent.
+  Auto-rankings are reversible via appeal (GDPR Art. 22 + EU AI Act Art. 14).
+
+  *** EU AI Act 2024/1689 Annex III §4 HIGH-RISK CLASSIFICATION applies to
+      all four sub-capabilities. Obligations per Arts. 9-15 + Art. 27 + Art. 50
+      + Art. 72 + Art. 73 are operative; see compliance.md + ADR-NET-0002.
+      Recruiter-stub additionally requires:
+        - Tenant-admin opt-in (default OFF).
+        - EU AI Act Art. 27 Fundamental-Rights Impact Assessment.
+        - NYC Local Law 144 §20-870 annual bias audit (when NYC tenant).
+        - CA AB-331 §22756 impact assessment (when CA tenant).
+        - CO SB 24-205 risk-management policy (when CO tenant).
+        - 4/5-rule statistical disparity ratio ≥ 0.8 per protected group.
+        - GDPR Art. 22 human-review surface always available.
+        - EEOC UGESP 29 CFR §1607 record-keeping 2y.
+
+owner_team: axis-network + axis-foundry-runtime + council-privacy + ops-compliance
+maturity: preview
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133, ADR-NET-0002]
+related_artifacts:
+  - microservices/network/PRD.md
+  - microservices/network/policy/professional-context-isolation.md
+  - microservices/network/runbooks/recruiter-classifier-rollback.md
+  - microservices/network/decisions/ADR-NET-0002-recommender-ai-act-eeoc-bounds.md
+  - microservices/network/dashboards/recommender-fairness-and-bias.json
+
+autonomy_tier: T2
+# T2 = autonomous classification + side-effects on user-visible ranking;
+# reversible via appeal; full audit-chain trail per Art. 12 record-keeping.
+
+eu_ai_act_classification:
+  classification: HIGH_RISK
+  basis: |
+    Annex III §4(a) (employment-related: recruitment, selection, screening) +
+    §4(b) (workers management). All four sub-capabilities qualify because they
+    influence employment-related decisions (PYMK recommender exposes candidates
+    to recruiters; jobs ranker affects candidate visibility; recruiter-stub
+    ranker IS a recruitment AI; endorsement aggregation affects ranker rank).
+  obligations_satisfied:
+    art_9_risk_management_system: see microservices/network/dpia.md + ADR-NET-0002
+    art_10_data_governance: training-dataset SHA + 4/5-rule bias-audit per release
+    art_11_technical_documentation: model card per release (foundry-runtime evidence pipeline)
+    art_12_record_keeping: per-invocation audit-chain seal; 2y minimum (EEOC UGESP)
+    art_13_transparency: ranker output carries eu_ai_act_label per asyncapi schema
+    art_14_human_oversight: appeal workflow mandatory; affected-candidate human-review path
+    art_15_accuracy_robustness: per-release golden-set eval + adversarial robustness
+    art_27_fria: FRIA executed per recruiter-stub activation
+    art_50_transparency: client SDK helpers + UI label "AI-assessed (employment context)"
+    art_52_codes_of_conduct: voluntary alignment
+    art_72_post_deployment_monitoring: continuous bias-audit + drift detector
+    art_73_serious_incident_reporting: ≤ 15d to market surveillance authority on bias-audit failure
+
+inputs:
+  - name: target_user_ref
+    type: string
+    required: true
+    description: the candidate whose ranking-position is being computed
+  - name: recruiter_ref
+    type: string
+    required: false
+    description: only for recruiter-stub sub-capability
+  - name: skills_required
+    type: array
+    items: {type: string}
+    required: false
+    description: only for jobs-ranker / recruiter-stub sub-capabilities
+
+outputs:
+  - name: pymk_score
+    type: object
+    properties:
+      score: {type: number, minimum: 0, maximum: 1}
+      contributing_signals:
+        type: array
+        items:
+          type: object
+          properties:
+            signal: {type: string, enum: [mutual-connections, shared-skill, shared-employer-history, shared-education, geographic-proximity, content-engagement-similarity]}
+            weight: {type: number}
+            value: {type: number}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment]}
+  - name: jobs_ranker_score
+    type: object
+    properties:
+      score: {type: number, minimum: 0, maximum: 1}
+      contributing_signals:
+        type: array
+        items:
+          type: object
+          properties:
+            signal: {type: string, enum: [skill-match-score, location-match, level-match, candidate-engagement-history]}
+            weight: {type: number}
+            value: {type: number}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment]}
+  - name: recruiter_ranker_score
+    type: object
+    description: ONLY emitted when recruiter-stub activated for tenant
+    properties:
+      score: {type: number, minimum: 0, maximum: 1}
+      contributing_signals:
+        type: array
+        items:
+          type: object
+          properties:
+            signal: {type: string, enum: [skill-match, education-match, endorsement-aggregate, profile-completeness, recommendation-signal]}
+            weight: {type: number}
+            value: {type: number}
+      bias_audit_summary_ref: {type: string, description: pointer to most-recent bias-audit verdict}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment]}
+  - name: endorsement_aggregation_score
+    type: object
+    properties:
+      weighted_endorsement_score_per_skill:
+        type: array
+        items:
+          type: object
+          properties:
+            skill_ref: {type: string}
+            raw_count: {type: integer}
+            weighted_score: {type: number, minimum: 0, maximum: 1}
+            endorser_quality_weight: {type: number, description: per-endorser-credibility weight}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment]}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+  - EMPLOYMENT_RECORD
+  - ENDORSEMENT_RECORD
+  - RELATIONSHIP_GRAPH
+  - RECRUITER_DECISION_AUDIT
+
+context_kind_constraint:
+  Professional: server-side; tenant-admin must opt-in per-tenant for recruiter-stub sub-capability
+  enforcement: PCI-01 + Cedar permit only when entitlement present
+
+regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+
+pack_overrides:
+  pack-us-healthcare:
+    auto_ranking_disabled_for_phi_accounts: true
+    reason: HIPAA — no automated assessment over PHI per §164.502(b) safe-harbor
+  pack-eu:
+    eu_ai_act_classification: high_risk
+    eu_dsa_transparency_obligations:
+      art_27_recommender_transparency: ranking signals explanation API mandatory
+      art_28_minor_protection: minor accounts never surface in recruiter or jobs-ranker
+    eu_pay_transparency_directive_2023_970: salary-band publishing must be aggregate; per-individual disclosure forbidden
+    transparency_obligation: tenant-admin must disclose to end-users in privacy notice + per-output UI label
+  pack-us-nyc:
+    nyc_ll144_bias_audit:
+      annual: true
+      §20_870_bias_audit: required when recruiter-stub activated
+      §20_871_candidate_notice: required 10-business-day prior notice
+      §20_872_public_summary: required; DCWP format
+  pack-us-ca:
+    ca_ab_331_impact_assessment: required when recruiter-stub activated
+    ca_ab_331_consumer_notice: required
+  pack-us-co:
+    co_sb_24_205_risk_management_policy: required
+    co_sb_24_205_algorithmic_discrimination_prevention_duty: operative
+  pack-us-il:
+    il_hb_3773_disclosure_when_used_in_employment: required
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin-opt-in + per-user end-user notice
+    kr_pipa_art29_2_automated_decision: per Art. 29-2 individual right to opt-out; UI surface enables opt-out
+    kr_jikjang_gabjil: workplace harassment vector; recruiter-decision must not chain to harassment proxies
+  pack-uk:
+    uk_equality_act_2010: §13 + §19 monitoring; ICO ADM code §6 meaningful-info-about-logic surface
+  pack-au:
+    au_human_rights_commission_ai_guidance: align with AHRC guidance; bias audit
+  pack-in:
+    dpdpa_2023: per-individual notice + opt-out
+    ida_1947: employment-record handling per IDA
+    equal_remuneration_act_1976: salary-related ranker must not produce gender-disparate output
+
+minor_protect_constraint:
+  minor_accounts_never_in_recruiter: true
+  minor_accounts_never_in_jobs_ranker_above_18_only_role: true
+  minor_accounts_never_in_salary_insights: true
+  minor_accounts_pymk_chronological_only: true
+
+evidence_topic: oya.network.capability.t2_auto.evidence
+
+cost_profile:
+  type: per-invocation
+  estimated_cost_usd_per_call_pymk: 0.0003  # batched feed-slice
+  estimated_cost_usd_per_call_jobs_ranker: 0.0004
+  estimated_cost_usd_per_call_recruiter_ranker: 0.001  # higher; richer feature set
+  estimated_cost_usd_per_call_endorsement_aggregation: 0.0001
+  cost_drivers:
+    - Ranker model inference (batched)
+    - Embedding lookup for skill-match signal
+    - Endorser-credibility weighting model
+
+cedar_policy_fragments:
+  - microservices/network/policy/tenant-scope.cedar  # tenant + recruiter-stub-activated gates
+  - microservices/network/policy/auditor-scope.cedar # auditor reads bias-audit aggregates
+
+eval_set:
+  golden_inputs_path: microservices/network/capabilities/eval/t2-auto-golden.jsonl
+  pass_threshold: 0.95  # higher than T0/T1 due to high-risk classification
+  eval_metric: |
+    pymk recommender nDCG@10 vs preference dataset;
+    jobs ranker nDCG@10 vs preference dataset;
+    recruiter ranker nDCG@10 vs held-out preference dataset;
+    bias audit: 4/5-rule disparity ratio (race, gender, age, locale, disability) per EEOC UGESP;
+    EU equal-treatment directives + UK Equality Act §19 indirect-discrimination test;
+    NYC LL144 protected-class disparity report
+  cadence: per-release + monthly drift-monitor + annual independent bias audit (NYC LL144 + ICO compatible)
+  reference: HELM benchmark; NIST AI RMF; EU AI Act Art. 15; EEOC UGESP 29 CFR §1607
+
+rollback:
+  ttl_seconds: 0  # T2 outputs are reversible via appeal + tenant-level entitlement revoke
+  audit_trail: every invocation + decision emits to evidence_topic with hash + reasoning_token
+  rollback_runbook: microservices/network/runbooks/recruiter-classifier-rollback.md
+  redeployment_gates:
+    - re_audit_passes_4_5_rule
+    - model_card_sealed
+    - fria_updated_when_material_change
+    - council_privacy_signoff
+    - ops_compliance_signoff
+    - ll144_audit_within_12mo_when_nyc
+    - ab331_impact_assessment_when_ca
+    - co_sb_205_policy_when_co
+
+sunset:
+  status: none
+  note: recruiter-stub activation is OFF BY DEFAULT in P01; future activation requires per-tenant + per-pack ADR-NET-0002 evidence; non-activation is the equilibrium for tenants without explicit recruiter-tooling demand

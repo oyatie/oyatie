@@ -1,0 +1,59 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: shorts-eu
+
+resources:
+  - ../../base
+
+# Pack-EU overlay per /specs/regulatory-packs.json#pack-eu
+# Residency: EU data centers only (OCI eu-frankfurt-1 + eu-amsterdam-1 DR pair); cross-pack federation forbidden by default.
+# Retention: GDPR storage-limitation; tenant-defined; ceiling 7y.
+# Age-gate: GDPR Art. 8 — minor < 16y (member-state-adjustable 13-16y) requires parental consent.
+# EU DSA 2065/2022 obligations:
+#   - Art. 14: ToS transparency; tenant onboarding language
+#   - Art. 16: notice-and-action workflow
+#   - Art. 17: Statement of Reasons per moderation verdict
+#   - Art. 20: 7-day appeal SLA
+#   - Art. 24: per-tenant quarterly transparency report
+#   - Art. 27: recommender system transparency; ranking signals explanation API
+#   - Art. 28: minor-protection — chronological-only default; algorithmic-opt-out; DM-restricted
+# EU AI Act 2024/1689 obligations:
+#   - Arts. 9-15: risk-management + data governance + technical documentation + transparency + human oversight + accuracy
+#   - Art. 50: AI-assessed / AI-generated UI labels
+#   - Art. 73: 15-day serious-incident notification
+# EU AVMSD 2018/1808 Art. 28b: video-sharing-platform minor-protection + commercial-communication transparency
+# UK Online Safety Act 2023 (if UK-located tenant): Ofcom illegal-content duty
+# FR Audiovisual Code (FR-located tenant): video-sharing-platform French overlay
+# DE NetzDG (DE-located tenant): 24h takedown for manifestly illegal content
+# ePrivacy Directive Art. 5(3): confidentiality of communications
+
+patches:
+  - target: {kind: HelmRelease, name: shorts}
+    patch: |-
+      - op: replace
+        path: /spec/values/global/pack
+        value: eu
+      - op: replace
+        path: /spec/values/ageGatePolicy/packEuMinorThreshold
+        value: 16  # GDPR Art. 8 default; member states may lower to 13
+      - op: replace
+        path: /spec/values/euDsaTransparencyReportCadence
+        value: "quarterly"
+      - op: replace
+        path: /spec/values/euAiActSeriousIncidentNotificationDays
+        value: "15"
+      - op: replace
+        path: /spec/values/minorAccountDefaults/algorithmicRecommendationOptOut
+        value: "true"
+      - op: replace
+        path: /spec/values/minorAccountDefaults/dmRestricted
+        value: "true"
+  - target: {kind: ConfigMap, name: shorts-retention-policy}
+    patch: |-
+      - op: replace
+        path: /data/pack-eu-floor-days
+        value: "0"  # GDPR storage-limitation; tenant-defined
+      - op: replace
+        path: /data/pack-eu-ceiling-days
+        value: "2555"  # 7 years max

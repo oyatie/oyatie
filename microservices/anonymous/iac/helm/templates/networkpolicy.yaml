@@ -1,0 +1,92 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "oya-anonymous.fullname" . }}-egress-deny-default
+  labels:
+    {{- include "oya-anonymous.labels" . | nindent 4 }}
+    oyatie.dev/invariant: "I4"  # no third-party analytics SDK
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "oya-anonymous.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Egress
+    - Ingress
+  egress:
+    # ALL egress is DENY by default; explicit allow-listed destinations only.
+    # Critical for I4 (no third-party tracker) + I5 (no federation) + I7
+    # (no cross-pack disclosure).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: foundry-runtime
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: audit-chain
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tenancy
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: workflow-engine
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: messenger
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ontology
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cell
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgres
+              app.kubernetes.io/component: primary
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: meilisearch
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cloud-secrets
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: openbao
+    # DNS
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-gateway
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: workflow-engine
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 9000
+        - protocol: TCP
+          port: 9090
+{{- end }}

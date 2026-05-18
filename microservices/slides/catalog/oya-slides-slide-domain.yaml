@@ -1,0 +1,11 @@
+name: oya-slides-slide-domain
+microservice: slides
+bounded_context: slide
+layer: domain
+purpose: |
+  Pure slide structure algebra (ordering, content composition). Zero I/O.
+depends_on:
+  - oya-slides-slide-kernel
+ci_lanes:
+  - layer-correctness
+  - cargo-nextest

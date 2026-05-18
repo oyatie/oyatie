@@ -1,0 +1,20 @@
+name: oya-sheets-collab-crdt-adapter-redis
+role: adapter-redis
+context: sheets
+plane: data
+slo: preview-data-plane
+contracts_consumed: [redis-7.2-lts-sentinel]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "<TBD>"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0126, ADR-0131]
+allowed_dependency_edges: [kernel, domain, usecase, api, adapter]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT]
+operational_classes_owned: []
+autonomy_tier_required: T1
+load_bearing_invariants:
+  - tenant_prefixed_keys
+  - per_workbook_single_writer_lease
+  - lease_ttl_5min

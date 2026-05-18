@@ -1,0 +1,26 @@
+apiVersion: v2
+name: oya-anonymous
+description: Helm chart for the anonymous µservice — privacy-pseudonymous affinity-bound posting substrate
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - anonymous
+  - pseudonymous
+  - affinity-bound
+  - privacy
+  - oyatie
+home: https://oyatie.dev/microservices/anonymous
+maintainers:
+  - name: axis-anonymous
+    email: axis-anonymous@oyatie.dev
+annotations:
+  oyatie.dev/microservice: anonymous
+  oyatie.dev/adr-stack: "ADR-0126, ADR-0130, ADR-0131, ADR-0132, ADR-0133"
+  oyatie.dev/invariants: "I1, I2, I3, I4, I5, I6, I7"
+  oyatie.dev/regulatory-packs: "kr, eu, us, us-hc, uk, jp, sg, au, in, br, ae, ksa"
+dependencies:
+  - name: postgresql
+    version: "16.x.x"
+    repository: oci://docker.io/bitnamicharts
+    condition: postgres.enabled

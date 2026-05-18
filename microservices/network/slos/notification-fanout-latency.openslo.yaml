@@ -1,0 +1,47 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: network-notification-fanout-latency
+  displayName: "network: notification-fanout p99 ≤ 2s for 30k-follower account"
+  labels:
+    microservice: network
+    bc: notifications
+    sli_class: latency
+    tier: hero-product
+    owner_team: axis-network
+    pack_scope: all
+spec:
+  description: |
+    Latency SLO for notification fanout for accounts up to 30k followers
+    (the per-tenant default ceiling). A fanout invocation is "good" when its
+    end-to-end p99 latency is ≤ 2s (per-recipient async via Redis Streams +
+    notification-worker dispatch). Larger accounts (300k+ followers) follow a
+    sharded fanout path with separately-tracked SLO.
+  service: network
+  indicator:
+    metadata:
+      name: network-notification-fanout-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_network_notification_fanout_duration_seconds_bucket{le="2.0",follower_bucket="under_30k"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_network_notification_fanout_duration_seconds_count{follower_bucket="under_30k"}[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.99
+      displayName: "p99 ≤ 2s for 99 % of 5min windows over 30d"
+  alertPolicies:
+    - alertPolicyRef: network-notification-fanout-fast-burn-1h-14x

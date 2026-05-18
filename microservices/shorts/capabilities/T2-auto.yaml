@@ -1,0 +1,219 @@
+id: cap:shorts:t2-auto:v1
+name: content-moderation-auto-actions-and-feed-ranking-and-monetization-stub
+namespace: shorts
+display_name: Content Moderation Auto-Actions + Feed Ranking Model + Monetization Substrate Stub (off by default)
+description: |
+  T2 capability: autonomous classification + side-effecting actions on the
+  feed-render and moderation + copyright pipelines. Four sub-capabilities:
+
+  1. Content-moderation auto-actions — auto-hides NSFW / violence / minor-
+     protection-concern content at high-confidence verdicts; flags + queues
+     to manual reviewer otherwise. Appeal workflow per EU DSA Art. 20. Per
+     EU AVMSD Art. 28b minor-protection content auto-hide is irreversible
+     except via human reviewer (regulatory floor).
+  2. Feed ranking model — feed-render rank when viewer selects algorithmic
+     mode. Inputs: watch-time signal + engagement + creator-affinity + sound
+     popularity + recency. Output: ranked feed slice with `contributing_signals`.
+  3. Copyright auto-actions — at very-high-confidence Chromaprint + DCT
+     matches against licensed corpus, auto-attach licensing attribution
+     pre-publish; at confirmed DMCA-filed claim, auto-hide pending counter-
+     notice cycle. Reversible via counter-notice (DMCA §512(g)).
+  4. Monetization-substrate-stub — DISABLED BY DEFAULT. Stubbed for future
+     activation per PRD Open Question 2 (M04+). When activated by tenant-
+     admin opt-in: tip-jar + creator-fund placeholder; off-by-default
+     protects against accidental rollout.
+
+  *** EU AI Act 2024/1689 HIGH-RISK CLASSIFICATION applies to sub-capabilities
+      1 (moderation auto-actions) and 2 (feed ranking). Obligations per
+      Arts. 9-15 + Art. 50 transparency are operative; see compliance.md +
+      ADR-SHORTS-0003 + ADR-SHORTS-0005. ***
+
+owner_team: axis-shorts + axis-foundry-runtime + council-privacy + ops-legal
+maturity: preview
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133, ADR-SHORTS-0002, ADR-SHORTS-0003, ADR-SHORTS-0005, ADR-SHORTS-0006]
+related_artifacts:
+  - microservices/shorts/PRD.md (FR-13, FR-16, FR-19, FR-30)
+  - microservices/shorts/policy/dual-context-isolation.md
+  - microservices/shorts/runbooks/moderation-classifier-rollback.md
+  - microservices/shorts/runbooks/copyright-claim-storm-throttle.md
+  - microservices/shorts/runbooks/age-gate-bypass-incident.md
+
+autonomy_tier: T2
+# T2 = autonomous classification + side-effects on feed view + auto-hide +
+# auto-attach attribution; reversible via appeal / counter-notice / manual
+# review; full audit-chain trail. monetization-stub off by default.
+
+eu_ai_act_classification:
+  classification: HIGH_RISK
+  basis: |
+    Annex III §1(a) (recommender systems including content-moderation systems
+    that significantly influence user-facing content). Sub-capabilities
+    1 (moderation) and 2 (ranking) qualify. Sub-capability 3 (copyright auto-
+    actions) is high-risk-adjacent because it affects creator commercial
+    interests; obligations applied conservatively. Sub-capability 4 (monetization
+    stub) is OFF by default; activation triggers re-assessment per ADR follow-up.
+  obligations_satisfied:
+    art_9_risk_management_system: see microservices/shorts/dpia.md Step 6 + R-08, R-09, R-13, R-14, R-18
+    art_10_data_governance: training-dataset SHA + bias-audit per release; evidence_topic record
+    art_11_technical_documentation: model card per release (foundry-runtime evidence pipeline)
+    art_13_transparency: classifier verdicts + ranking decisions carry eu_ai_act_label per asyncapi schema
+    art_14_human_oversight: appeal workflow + manual reviewer mandatory above confidence threshold; minor-protection always requires human review
+    art_15_accuracy_robustness: per-release golden-set eval + adversarial robustness eval + bias-audit (4/5 disparity ratio)
+    art_50_transparency: client SDK helpers + UI label "AI-assessed" + ranking_explanation API
+    art_52_codes_of_conduct: voluntary alignment
+    art_73_serious_incident_reporting: 15-day clock for mass false-positive event per `runbooks/moderation-classifier-rollback.md`
+
+inputs:
+  - name: video
+    type: object
+    required: true
+  - name: target_viewer_ref
+    type: string
+    description: only for ranking sub-capability
+    required: false
+  - name: pack
+    type: enum
+    values: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
+    required: true
+
+outputs:
+  - name: moderation_action
+    type: object
+    properties:
+      verdict: {type: string, enum: [ok, sensitive, nsfw, violence, minor_protection_concern, csam_suspect, self_harm_suspect, harassment]}
+      confidence: {type: number}
+      action_taken: {type: string, enum: [auto_hide, flag_for_review, no_action, hold_for_minor_protection_review]}
+      statement_of_reasons:
+        type: object
+        properties:
+          grounds: {type: string}
+          facts_and_circumstances: {type: string}
+          automated_means: {type: boolean, default: true}
+          redress: {type: string, description: appeal URL per EU DSA Art. 20}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment, human_assessment, hybrid]}
+      requires_human_review: {type: boolean, description: true when verdict is minor_protection_concern or csam_suspect — EU AVMSD Art. 28b floor}
+  - name: ranking_score
+    type: object
+    properties:
+      score: {type: number, minimum: 0, maximum: 1}
+      contributing_signals:
+        type: array
+        items:
+          type: object
+          properties:
+            signal: {type: string, enum: [watch_time_completion, engagement, creator_affinity, sound_popularity, recency, topic_match, language_match, locale_match]}
+            weight: {type: number}
+            value: {type: number}
+        description: EU AI Act Art. 27 + EU DSA Art. 27 — recommender transparency
+  - name: copyright_auto_action
+    type: object
+    properties:
+      action: {type: string, enum: [auto_attach_attribution, auto_hide_pending_counter_notice, no_action]}
+      matched_licensor: {type: string, nullable: true}
+      reversible_via: {type: string, enum: [counter_notice_dmca_512g, manual_review, none]}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment]}
+  - name: monetization_substrate_decision
+    type: object
+    properties:
+      enabled: {type: boolean, default: false}  # OFF BY DEFAULT per ADR follow-up
+      reason: {type: string, description: explanation; monetization substrate not active}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+  - SENSITIVE_CHILD_PROTECTION  # minor-protection classifier path
+
+context_kind_constraint:
+  Personal: server-side enabled on creator's own + visible videos; ranking is per-viewer
+  Professional: server-side; tenant-admin must opt-in per-tenant
+  enforcement: oya-check-dual-context-isolation + Cedar permit only when entitlement present
+
+regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+
+pack_overrides:
+  pack-us-healthcare:
+    auto_moderation_disabled_for_phi_accounts: true
+    auto_ranking_disabled_for_phi_accounts: true
+    reason: HIPAA 45 CFR §164.502(b) Safe Harbor — no automated assessment over PHI
+  pack-eu:
+    eu_ai_act_classification:
+      moderation: high_risk
+      ranking: high_risk
+      copyright_auto: high_risk_adjacent
+      monetization_stub: not_applicable (disabled)
+    eu_dsa_transparency_obligations:
+      art_17_statement_of_reasons: every verdict + auto-action emits SoR
+      art_20_appeal_workflow: 7-day SLA appeal handling
+      art_24_transparency_report: per-tenant quarterly export
+      art_27_recommender_transparency: ranking signals explanation API
+      art_28_minor_protection: minor accounts get chronological-only by default; algorithmic-recommendation-opt-out
+    eu_avmsd_obligations:
+      art_28b_minor_protection: minor-protection auto-hide cannot be reversed without human review
+      art_28b_commercial_communication: monetization-stub OFF; if activated, ad-disclosure label per AVMSD Art. 9
+    transparency_obligation: tenant-admin must disclose to end-users in privacy notice + per-output UI label
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin-opt-in + per-user end-user notice
+    kr_pipa_art29_2_automated_decision: per Art. 29-2 individual right to opt-out of automated decision; UI surface enables opt-out
+    kr_청소년_보호법: minor-protection auto-action mandatory; opt-out not permitted for minor accounts
+    kr_telecommunications_business_act: video-sharing-platform obligations
+  pack-uk:
+    uk_online_safety_act_2023: minor-protection + illegal-content priority detection; safety-by-design report
+  pack-us:
+    coppa: minor-protection auto-action mandatory
+    ca_ab_2273: minor protection auto-action mandatory; algorithmic opt-out default-on for minors
+    ut_smra: parental consent verification for minors
+
+minor_account_constraint:
+  moderation_auto_actions_mandatory: true
+  ranking_algorithmic_default: off
+  notes: |
+    Minor accounts cannot opt out of moderation auto-actions including
+    minor-protection classifier. Per EU DSA Art. 28, EU AVMSD Art. 28b,
+    KR 청소년 보호법, COPPA, CA AB-2273, UT SMRA — minor protection is a
+    regulatory floor; creator/tenant opt-out not permitted.
+    Ranking algorithmic mode defaults OFF for minor accounts per EU DSA
+    Art. 28; minor can opt-in only with parental consent attestation.
+
+evidence_topic: oya.shorts.capability.t2_auto.evidence
+
+cost_profile:
+  type: per-video-and-per-feed-render
+  estimated_cost_usd_per_call_moderation: 0.0003  # batched; classifier is small open-weights
+  estimated_cost_usd_per_call_ranking: 0.0001  # batched feed slice
+  estimated_cost_usd_per_call_copyright_auto: 0.0002  # batched Chromaprint + DCT lookup
+  estimated_cost_usd_per_call_monetization_stub: 0  # disabled
+  cost_drivers:
+    - Moderation classifier inference (medium model, batched per 100 keyframes)
+    - Ranking model inference (feed-slice batched per 50 videos)
+    - Chromaprint fingerprint corpus lookup
+    - Per-viewer affinity embedding lookup
+
+cedar_policy_fragments:
+  - microservices/shorts/policy/tenant-scope.cedar
+  - microservices/shorts/policy/public-read.cedar
+
+eval_set:
+  golden_inputs_path: microservices/shorts/capabilities/eval/t2-auto-golden.jsonl
+  pass_threshold: 0.95  # higher than T0/T1 due to high-risk classification
+  eval_metric: |
+    moderation classifier macro-F1 over 8 verdict labels;
+    moderation false-positive rate < 2 % at production threshold;
+    minor-protection classifier recall ≥ 0.99 (regulatory floor);
+    ranking nDCG@10 vs held-out preference dataset;
+    bias audit: disparity ratio (4/5 rule) across protected groups (race, gender, age, locale);
+    copyright precision@1 ≥ 0.98 vs licensor-verified corpus
+  cadence: per-release + monthly drift-monitor
+  reference: HELM benchmark; NIST AI RMF; EU AI Act Art. 15 accuracy requirement
+
+rollback:
+  ttl_seconds: 0  # T2 verdicts are reversible via appeal / counter-notice / manual review
+  audit_trail: every verdict + ranking decision + copyright action emits to evidence_topic with hash + reasoning_token
+  rollback_runbook:
+    moderation: microservices/shorts/runbooks/moderation-classifier-rollback.md
+    copyright: microservices/shorts/runbooks/copyright-claim-storm-throttle.md
+    age_gate: microservices/shorts/runbooks/age-gate-bypass-incident.md
+
+sunset:
+  status: none
+  note: monetization_substrate_stub may be removed (rather than activated) per future ADR-SHORTS follow-up (PRD Open Question 2)

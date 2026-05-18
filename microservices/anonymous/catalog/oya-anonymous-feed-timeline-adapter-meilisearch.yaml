@@ -1,0 +1,20 @@
+name: oya-anonymous-feed-timeline-adapter-meilisearch
+role: adapter
+context: anonymous
+plane: data
+backend: meilisearch
+lts_pin: "meilisearch-0.10.0"
+slo: feed-render-latency
+contracts_consumed: [oya-anonymous-feed-timeline-kernel]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-uk, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105]
+allowed_dependency_edges: [oya-anonymous-feed-timeline-kernel]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT]
+operational_classes_owned: []
+autonomy_tier_required: T1
+schema_notes: |
+  Meilisearch index contains hashtags + post_id + affinity_cluster_id ONLY.
+  NEVER body content. NEVER author identifier. Anonymised corpus.

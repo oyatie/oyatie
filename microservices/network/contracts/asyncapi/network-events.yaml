@@ -1,0 +1,435 @@
+asyncapi: 3.1.0
+info:
+  title: oya-network events
+  version: 1.0.0
+  description: |
+    Real-time + event-stream contract for the network µservice.
+
+    Two surfaces:
+      1. WebSocket — tenant-facing per-user notification + feed-update stream.
+      2. Internal event-bus (Workflow + audit-chain + downstream µservices) —
+         every state transition emits a typed event consumed by Workflow,
+         audit-chain, ontology, ATS µservice, messenger, mail, calendar,
+         foundry-runtime (for T1/T2 capability evidence), and bias-audit pipeline.
+
+    Professional-context invariant: every event payload carries
+    `context_kind: Professional` (single-valued; ADR-NET PCI-01). Personal-tier
+    payloads do not exist in this contract.
+  contact: {name: axis-network, url: https://oyatie.dev/teams/axis-network}
+
+servers:
+  ws-pack:
+    host: 'network-{pack}.oyatie.dev'
+    pathname: /ws/v1
+    protocol: wss
+    variables:
+      pack: {enum: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa], default: kr}
+  bus:
+    host: 'redpanda.foundry.svc.cluster.local:9092'
+    protocol: kafka
+    description: internal Workflow event bus
+
+defaultContentType: application/json
+
+channels:
+  ws/feed:
+    address: feed
+    description: real-time per-user Professional feed stream (WebSocket)
+    messages:
+      FeedFrame: {$ref: '#/components/messages/FeedFrame'}
+      NotificationFrame: {$ref: '#/components/messages/NotificationFrame'}
+      PresenceFrame: {$ref: '#/components/messages/PresenceFrame'}
+
+  ws/inmail:
+    address: inmail
+    description: real-time per-user InMail thread (WebSocket); Professional-tier-only
+    messages:
+      InMailFrame: {$ref: '#/components/messages/InMailFrame'}
+
+  bus/network.post.published:
+    address: oya.network.post.v1.published
+    description: post-create event; consumed by audit-chain, Workflow, ontology, content-moderation classifier
+    messages:
+      PostPublished: {$ref: '#/components/messages/PostPublished'}
+
+  bus/network.post.edited:
+    address: oya.network.post.v1.edited
+    messages:
+      PostEdited: {$ref: '#/components/messages/PostEdited'}
+
+  bus/network.post.deleted:
+    address: oya.network.post.v1.deleted
+    messages:
+      PostDeleted: {$ref: '#/components/messages/PostDeleted'}
+
+  bus/network.connection.requested:
+    address: oya.network.connection.v1.requested
+    messages:
+      ConnectionRequested: {$ref: '#/components/messages/ConnectionRequested'}
+
+  bus/network.connection.established:
+    address: oya.network.connection.v1.established
+    description: emitted on connection-request accept; consumed by Workflow + ontology + bias-audit
+    messages:
+      ConnectionEstablished: {$ref: '#/components/messages/ConnectionEstablished'}
+
+  bus/network.endorsement.added:
+    address: oya.network.endorsement.v1.added
+    description: per-endorser Ed25519-signed endorsement; consumed by audit-chain + Workflow + bias-audit pipeline
+    messages:
+      EndorsementAdded: {$ref: '#/components/messages/EndorsementAdded'}
+
+  bus/network.endorsement.revoked:
+    address: oya.network.endorsement.v1.revoked
+    messages:
+      EndorsementRevoked: {$ref: '#/components/messages/EndorsementRevoked'}
+
+  bus/network.recommendation.published:
+    address: oya.network.recommendation.v1.published
+    messages:
+      RecommendationPublished: {$ref: '#/components/messages/RecommendationPublished'}
+
+  bus/network.inmail.sent:
+    address: oya.network.inmail.v1.sent
+    description: bridged to messenger µservice (Professional-tier surface)
+    messages:
+      InMailSent: {$ref: '#/components/messages/InMailSent'}
+
+  bus/network.jobposting.published:
+    address: oya.network.jobposting.v1.published
+    description: handed off to Tier-G ATS µservice per ADR-NET-0004; contract-versioned
+    messages:
+      JobPostingPublished: {$ref: '#/components/messages/JobPostingPublished'}
+
+  bus/network.jobapplication.filed:
+    address: oya.network.jobapplication.v1.filed
+    description: handed off to ATS µservice
+    messages:
+      JobApplicationFiled: {$ref: '#/components/messages/JobApplicationFiled'}
+
+  bus/network.event.created:
+    address: oya.network.event.v1.created
+    description: handed off to calendar µservice bridge
+    messages:
+      NetworkEventCreated: {$ref: '#/components/messages/NetworkEventCreated'}
+
+  bus/network.page.newslettersendrequested:
+    address: oya.network.page.v1.newsletter-send-requested
+    description: handed off to mail µservice for newsletter-of-record send
+    messages:
+      NewsletterSendRequested: {$ref: '#/components/messages/NewsletterSendRequested'}
+
+  bus/network.recruiter.searchInvoked:
+    address: oya.network.recruiter.v1.search-invoked
+    description: emitted on every recruiter-search invocation; EU AI Act Art. 12 record-keeping; EEOC UGESP 2y record-keeping
+    messages:
+      RecruiterSearchInvoked: {$ref: '#/components/messages/RecruiterSearchInvoked'}
+
+  bus/network.recruiter.biasAuditCompleted:
+    address: oya.network.recruiter.v1.bias-audit-completed
+    description: per-release bias-audit verdict; EU AI Act Art. 15 + NYC LL144 §20-870
+    messages:
+      BiasAuditCompleted: {$ref: '#/components/messages/BiasAuditCompleted'}
+
+  bus/network.abuse.reportFiled:
+    address: oya.network.abuse.v1.report-filed
+    messages:
+      AbuseReportFiled: {$ref: '#/components/messages/AbuseReportFiled'}
+
+  bus/network.appeal.opened:
+    address: oya.network.appeal.v1.opened
+    messages:
+      AppealOpened: {$ref: '#/components/messages/AppealOpened'}
+
+  bus/network.profile.exportEmitted:
+    address: oya.network.profile.v1.export-emitted
+    description: GDPR Art. 20 portability emission audit event
+    messages:
+      ProfileExportEmitted: {$ref: '#/components/messages/ProfileExportEmitted'}
+
+operations:
+  receiveFeed:
+    action: receive
+    channel: {$ref: '#/channels/ws~1feed'}
+    summary: client receives feed updates
+  publishPost:
+    action: send
+    channel: {$ref: '#/channels/bus~1network.post.published'}
+    summary: emit post-published event to Workflow + audit-chain + classifier
+  publishConnection:
+    action: send
+    channel: {$ref: '#/channels/bus~1network.connection.established'}
+  publishEndorsement:
+    action: send
+    channel: {$ref: '#/channels/bus~1network.endorsement.added'}
+  publishJobPosting:
+    action: send
+    channel: {$ref: '#/channels/bus~1network.jobposting.published'}
+  publishRecruiterSearch:
+    action: send
+    channel: {$ref: '#/channels/bus~1network.recruiter.searchInvoked'}
+  publishBiasAudit:
+    action: send
+    channel: {$ref: '#/channels/bus~1network.recruiter.biasAuditCompleted'}
+
+components:
+  messages:
+    FeedFrame:
+      payload:
+        type: object
+        required: [seq, frame_kind, tenant_id, context_kind]
+        properties:
+          seq: {type: integer}
+          frame_kind: {type: string, enum: [post-published, post-edited, post-deleted, reaction-added, comment-added]}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          payload: {type: object}
+          ranker_explanation:
+            type: object
+            description: EU DSA Art. 27 + EU AI Act Art. 50 transparency surface
+    NotificationFrame:
+      payload:
+        type: object
+        required: [notification_id, kind, tenant_id, target_user_ref]
+        properties:
+          notification_id: {type: string, format: ulid}
+          kind:
+            type: string
+            enum: [connection-request, connection-accepted, post-react, post-comment, endorsement-added, recommendation-published, inmail-received, mention, page-newsletter, event-rsvp, abuse-report-verdict, automated-decision-appeal-update]
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          target_user_ref: {type: string}
+          source_user_ref: {type: string, nullable: true}
+          payload: {type: object}
+    PresenceFrame:
+      payload:
+        type: object
+        properties:
+          user_ref: {type: string}
+          status: {type: string, enum: [online, away, offline]}
+    InMailFrame:
+      payload:
+        type: object
+        properties:
+          inmail_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          inmail_target_channel: {type: string, enum: [professional]}
+          frame_kind: {type: string, enum: [inmail-received, inmail-read, inmail-replied]}
+          payload: {type: object}
+    PostPublished:
+      payload:
+        type: object
+        required: [post_id, tenant_id, context_kind, author_ref, kind, posted_at, content_hash]
+        properties:
+          post_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          author_ref: {type: string}
+          kind: {type: string, enum: [article, status, document, poll, carousel, repost, share, comment]}
+          visibility: {type: string, enum: [public, network-only, group, private]}
+          posted_at: {type: string, format: date-time}
+          content_hash: {type: string, description: sha256 over (timestamp, body, visibility, author_ref)}
+          audit_chain_seal: {type: string, description: per-event Ed25519 seal from audit-chain µservice}
+    PostEdited:
+      payload:
+        type: object
+        properties:
+          post_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          edited_at: {type: string, format: date-time}
+          content_hash_new: {type: string}
+    PostDeleted:
+      payload:
+        type: object
+        properties:
+          post_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          deleted_at: {type: string, format: date-time}
+          tombstone: {type: boolean, const: true}
+    ConnectionRequested:
+      payload:
+        type: object
+        required: [connection_request_id, tenant_id, requester_ref, target_ref, created_at]
+        properties:
+          connection_request_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          requester_ref: {type: string}
+          target_ref: {type: string}
+          created_at: {type: string, format: date-time}
+    ConnectionEstablished:
+      payload:
+        type: object
+        properties:
+          connection_request_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          accepter_ref: {type: string}
+          requester_ref: {type: string}
+          accepted_at: {type: string, format: date-time}
+    EndorsementAdded:
+      payload:
+        type: object
+        required: [endorsement_id, tenant_id, endorser_ref, endorsee_ref, skill_ref, signature, merkle_chain_position, created_at]
+        properties:
+          endorsement_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          endorser_ref: {type: string}
+          endorsee_ref: {type: string}
+          skill_ref: {type: string}
+          signature: {type: string, description: per-endorser Ed25519 signature (base64url); ADR-NET-0005}
+          merkle_chain_position: {type: integer}
+          merkle_chain_root_hash: {type: string, description: tenant's endorsement-chain Merkle root at this position}
+          created_at: {type: string, format: date-time}
+    EndorsementRevoked:
+      payload:
+        type: object
+        properties:
+          endorsement_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          revoked_at: {type: string, format: date-time}
+          revocation_reason: {type: string}
+    RecommendationPublished:
+      payload:
+        type: object
+        properties:
+          recommendation_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          recommender_ref: {type: string}
+          recommendee_ref: {type: string}
+          relationship: {type: string}
+          created_at: {type: string, format: date-time}
+    InMailSent:
+      payload:
+        type: object
+        properties:
+          inmail_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          inmail_target_channel: {type: string, enum: [professional]}
+          sender_ref: {type: string}
+          recipient_ref: {type: string}
+          spam_classifier_verdict: {type: string, enum: [ok, suspicious, spam]}
+          sent_at: {type: string, format: date-time}
+    JobPostingPublished:
+      payload:
+        type: object
+        required: [job_posting_id, tenant_id, page_ref, title, posted_at, contract_version]
+        properties:
+          job_posting_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          page_ref: {type: string}
+          title: {type: string}
+          level: {type: string}
+          location: {type: object}
+          posted_at: {type: string, format: date-time}
+          contract_version: {type: string, enum: [v1, v2], description: ADR-NET-0004 contract version}
+          ats_handoff_target: {type: string, description: ATS µservice reference}
+    JobApplicationFiled:
+      payload:
+        type: object
+        properties:
+          application_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          job_posting_id: {type: string, format: ulid}
+          applicant_ref: {type: string}
+          filed_at: {type: string, format: date-time}
+          contract_version: {type: string, enum: [v1, v2]}
+    NetworkEventCreated:
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          title: {type: string}
+          start: {type: string, format: date-time}
+          end: {type: string, format: date-time}
+          calendar_bridge_target: {type: string, description: calendar µservice reference}
+    NewsletterSendRequested:
+      payload:
+        type: object
+        properties:
+          page_ref: {type: string}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          newsletter_id: {type: string, format: ulid}
+          mail_bridge_target: {type: string, description: mail µservice reference}
+    RecruiterSearchInvoked:
+      payload:
+        type: object
+        required: [recruiter_search_id, tenant_id, recruiter_ref, invoked_at, eu_ai_act_label]
+        properties:
+          recruiter_search_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          recruiter_ref: {type: string}
+          skills_required: {type: array, items: {type: string}}
+          location: {type: string, nullable: true}
+          level: {type: string, nullable: true}
+          model_version: {type: string}
+          decision_outcome_summary:
+            type: object
+            description: aggregate outcome (count by protected group post-result; bias-audit input)
+          eu_ai_act_label: {type: string, enum: [ai_generated_assessment], description: Art. 50 transparency label}
+          invoked_at: {type: string, format: date-time}
+    BiasAuditCompleted:
+      payload:
+        type: object
+        required: [audit_id, model_version, audit_date, disparity_ratio_by_group, passes_4_5_rule]
+        properties:
+          audit_id: {type: string, format: ulid}
+          model_version: {type: string}
+          audit_date: {type: string, format: date}
+          disparity_ratio_by_group:
+            type: object
+            additionalProperties: {type: number, minimum: 0, maximum: 1}
+          passes_4_5_rule: {type: boolean}
+          notified_body_ref: {type: string, nullable: true}
+          ll144_audit_url: {type: string, format: uri, nullable: true}
+          eu_ai_act_fria_url: {type: string, format: uri, nullable: true}
+          ab331_impact_assessment_url: {type: string, format: uri, nullable: true}
+    AbuseReportFiled:
+      payload:
+        type: object
+        properties:
+          abuse_report_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          reporter_ref: {type: string}
+          target_kind: {type: string}
+          target_ref: {type: string}
+          category: {type: string, enum: [spam, harassment, discrimination, impersonation, hate-speech, csam-suspect, harassment-workplace, fake-credential, scam, other]}
+          created_at: {type: string, format: date-time}
+    AppealOpened:
+      payload:
+        type: object
+        properties:
+          appeal_id: {type: string, format: ulid}
+          decision_id: {type: string, format: ulid}
+          decision_kind: {type: string, enum: [moderation-verdict, recruiter-decision, abuse-report-verdict, page-removal, profile-suspension]}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          appellant_ref: {type: string}
+          reason: {type: string}
+          request_human_review: {type: boolean}
+          created_at: {type: string, format: date-time}
+    ProfileExportEmitted:
+      payload:
+        type: object
+        properties:
+          export_id: {type: string, format: ulid}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Professional]}
+          user_ref: {type: string}
+          format: {type: string, enum: [vcard4, jsonresume, gdpr-art20]}
+          byte_count: {type: integer}
+          emitted_at: {type: string, format: date-time}
+          audit_chain_seal: {type: string}

@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: network-service-monitor
+  namespace: network
+  labels:
+    app.kubernetes.io/name: network
+    release: mimir
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: network
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - network

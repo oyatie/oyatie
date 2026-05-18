@@ -1,0 +1,14 @@
+name: oya-slides-image-adapter-imagemagick
+microservice: slides
+bounded_context: image
+layer: adapter-imagemagick
+purpose: |
+  ImageMagick 7.1 for image processing (crop, filter, resize) — deterministic.
+  Per ADR-0105 Amd.3.
+depends_on:
+  - oya-slides-image-kernel
+  - imagemagick@^7.1
+backend: imagemagick
+ci_lanes:
+  - port-location
+  - cargo-nextest

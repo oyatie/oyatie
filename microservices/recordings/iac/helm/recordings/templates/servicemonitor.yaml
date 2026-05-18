@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: recordings-all
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- toYaml .Values.commonLabels | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      oyatie.com/microservice: recordings
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

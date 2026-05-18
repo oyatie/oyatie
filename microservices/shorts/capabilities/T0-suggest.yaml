@@ -1,0 +1,157 @@
+id: cap:shorts:t0-suggest:v1
+name: caption-and-hashtag-and-sound-suggestion
+namespace: shorts
+display_name: Caption Suggestion + Hashtag Completion + Sound Suggestion
+description: |
+  Given a creator's in-progress short-video composition (clip preview + draft
+  caption + audio-track-selection context + visible UI context), emit:
+    - ≤ 3 ranked caption-completion suggestions
+    - ≤ 5 ranked hashtag-completion candidates
+    - ≤ 5 ranked sound suggestions (licensed library + UGC sounds)
+
+  T0 = suggestion only; no autonomous publish + no autonomous attach. Always
+  presented to the creator; no action taken without explicit user confirmation.
+
+owner_team: axis-shorts + axis-foundry-runtime
+maturity: preview
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0126, ADR-0131, ADR-0133]
+related_artifacts:
+  - microservices/shorts/PRD.md (FR-02, FR-05, FR-11)
+  - microservices/shorts/contracts/openapi/shorts.yaml
+  - microservices/shorts/policy/dual-context-isolation.md
+
+autonomy_tier: T0
+# T0 = suggest-only; per ADR-0022 autonomy tiers (Bominal-inherited).
+# No state mutation; no auto-publish; no auto-attach sound.
+
+inputs:
+  - name: composing_user_ref
+    type: string
+    required: true
+  - name: draft_caption
+    type: string
+    maxLength: 2200  # TikTok-class caption length
+    required: false
+  - name: video_preview_keyframe_set
+    type: array
+    items: {ref: VideoKeyframe}
+    max_items: 8
+    description: 8 sampled keyframes for vision-based suggestion (face + scene + object detect)
+    required: true
+  - name: context_kind
+    type: enum
+    values: [Personal, Professional]
+    required: true
+  - name: locale
+    type: string
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+    required: true
+  - name: pack
+    type: enum
+    values: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
+    required: true
+
+outputs:
+  - name: caption_completions
+    type: array
+    max_items: 3
+    items:
+      type: object
+      properties:
+        text: {type: string, maxLength: 2200}
+        confidence: {type: number, minimum: 0, maximum: 1}
+        rationale_token: {type: string, description: opaque rationale id for audit replay}
+        eu_ai_act_label: {type: string, enum: [ai_generated_assessment]}  # universally labelled
+  - name: hashtag_completions
+    type: array
+    max_items: 5
+    items:
+      type: object
+      properties:
+        hashtag: {type: string, maxLength: 100}
+        post_count_signal: {type: integer}
+        confidence: {type: number}
+        trending_window_rank: {type: integer, nullable: true}
+  - name: sound_suggestions
+    type: array
+    max_items: 5
+    items:
+      type: object
+      properties:
+        sound_id: {type: string, format: ulid}
+        sound_kind: {type: string, enum: [licensed, ugc]}
+        confidence: {type: number}
+        attribution_required: {type: boolean}
+        licensing_tier: {type: string, enum: [free, royalty-free, premium-licensed, ugc]}
+        trending_window_rank: {type: integer, nullable: true}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING  # draft caption may contain names; keyframes may contain faces
+
+context_kind_constraint:
+  Personal: model-runs-server-side-on-composition-only  # never on historical personal videos
+  Professional: model-runs-server-side-on-composition-only  # under tenant-DEK if body sensitive
+  enforcement: compile-time + LEAN-check oya-check-dual-context-isolation
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare  # MUST DISABLE for patient-ed channels per HIPAA Safe Harbour
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+pack_overrides:
+  pack-us-healthcare:
+    disabled_for_phi_accounts: true
+    reason: HIPAA 45 CFR §164.514 Safe Harbour — no derived inferences over PHI
+  pack-eu:
+    eu_ai_act_classification: minimal_risk
+    transparency_obligation: must-label-as-AI-suggested per EU AI Act Art. 50
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin-opt-in required
+    kr_pipa_art29_2_automated_decision_opt_out: user-controllable
+  pack-uk:
+    uk_online_safety_act_2023: suggested-content safety-by-design alignment
+
+minor_account_constraint:
+  enabled_for_minors: limited
+  notes: |
+    Minor accounts (per age-gate BC) receive caption + hashtag suggestions but
+    no algorithmic sound suggestions (which would carry behavioural profiling
+    elements); per EU DSA Art. 28 + KR 청소년 보호법, minor accounts default to
+    sound-search-only (manual browse of audio-track library).
+
+evidence_topic: oya.shorts.capability.t0_suggest.evidence
+
+cost_profile:
+  type: per-suggestion-batch
+  estimated_cost_usd_per_call: 0.0012
+  cost_drivers:
+    - LLM inference (small open-weights model; on-prem GPU pool) for caption + hashtag
+    - Vision model inference (8-keyframe scene-detect for sound suggestion)
+    - Hashtag-corpus lookup
+    - Audio-track-library lookup + trending-window join
+
+cedar_policy_fragments:
+  - microservices/shorts/policy/tenant-scope.cedar
+  - microservices/shorts/policy/public-read.cedar  # for hashtag/sound corpus reads
+
+eval_set:
+  golden_inputs_path: microservices/shorts/capabilities/eval/t0-suggest-golden.jsonl
+  pass_threshold: 0.90
+  eval_metric: |
+    caption-suggestion relevance vs human-rater baseline (Likert);
+    hashtag-completion precision@1 against trending-corpus;
+    sound-suggestion relevance vs human-rater (Likert; respects licensing tier)
+  cadence: per-release
+
+sunset:
+  status: none

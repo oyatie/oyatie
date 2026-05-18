@@ -1,0 +1,28 @@
+name: oya-network-endorsement-engine-kernel
+role: kernel
+context: network
+plane: data
+slo: hero-product
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "<TBD>"
+  source_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0126, ADR-0131, ADR-NET-0005]
+data_classes_owned: [ENDORSEMENT_RECORD, AUDIT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
+ports_declared:
+  - EndorsementRepository
+  - EndorsementSignatureSigner   # Ed25519; KMS-bound per ADR-NET-0005
+  - MerkleChainSealer            # per-tenant Merkle root sealed to audit-chain
+  - AuditChainClient
+entities:
+  - Endorsement
+  - Recommendation
+  - EndorsementSignature
+  - EndorsementChainEntry
+  - RevocationRecord
+  - MerkleChainPosition
+context_kind_invariant: Professional

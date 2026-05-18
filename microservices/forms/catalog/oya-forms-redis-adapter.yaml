@@ -1,0 +1,11 @@
+id: oya-forms-redis-adapter
+kind: rust-library
+layer: adapter
+microservice: forms
+owner: axis-forms
+description: |
+  Redis adapter. Token-bucket rate-limit (per-IP / per-form / per-tenant). Submitter
+  session state (≤ 30min TTL). Captcha-token cache. Sentinel HA.
+related_adrs: [ADR-0131]
+related_ips: [IP-007]
+crate_path: microservices/forms/src/adapter/redis

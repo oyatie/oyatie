@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Shared base for the shorts µservice.
+# Per-pack overlays adjust: residency, retention overrides, secret-ref URIs,
+# replica scaling tier, pack federation/DRM posture, regulatory packs,
+# capability tier toggles (T0/T1/T2), age-gate thresholds, and pack-specific
+# DSA/AVMSD/DMCA disclosure addresses.
+
+namespace: shorts
+
+resources:
+  - namespace.yaml
+  - openbao-secret-references.yaml
+
+helmCharts:
+  - name: oya-shorts
+    valuesFile: ../../helm/shorts/values.yaml
+    releaseName: shorts
+    namespace: shorts
+
+commonLabels:
+  app.kubernetes.io/part-of: oya-shorts
+  oyatie/microservice: shorts

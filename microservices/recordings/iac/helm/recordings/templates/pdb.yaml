@@ -1,0 +1,16 @@
+{{- range $bc, $cfg := .Values }}
+{{- if and (kindIs "map" $cfg) (hasKey $cfg "replicas") }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: recordings-{{ $bc | replace "_" "-" }}
+  namespace: {{ $.Values.global.namespace }}
+spec:
+  minAvailable: {{ max 1 (div $cfg.replicas 2) }}
+  selector:
+    matchLabels:
+      oyatie.com/microservice: recordings
+      oyatie.com/bc: {{ $bc | replace "_" "-" }}
+{{- end }}
+{{- end }}

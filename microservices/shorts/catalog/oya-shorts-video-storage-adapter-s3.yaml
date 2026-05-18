@@ -1,0 +1,17 @@
+name: oya-shorts-video-storage-adapter-s3
+role: adapter
+backend: s3
+context: shorts
+plane: data
+slo: hero-product
+contracts_consumed: [BlobStore (kernel port)]
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0117, ADR-SHORTS-0001]
+allowed_dependency_edges: [oya-shorts-video-storage-kernel]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, INTERNAL_ONLY, PII_IDENTIFYING]
+backend_pinning:
+  storage_provider: oci-object-storage
+  kms_sse: enabled
+  per_tenant_prefix_isolation: enforced

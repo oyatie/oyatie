@@ -1,0 +1,46 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: network-search-content-latency
+  displayName: "network: search-content p95 ≤ 500ms (≤ 25 results)"
+  labels:
+    microservice: network
+    bc: search
+    sli_class: latency
+    tier: hero-product
+    owner_team: axis-network
+    pack_scope: all
+spec:
+  description: |
+    Latency SLO for GET /search/content. A request is "good" when its
+    end-to-end latency is ≤ 500ms (Meilisearch query + Cedar post-filter).
+    Content-search is lower priority than people-search; longer text + larger
+    corpus.
+  service: network
+  indicator:
+    metadata:
+      name: network-search-content-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_network_search_content_duration_seconds_bucket{le="0.5"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_network_search_content_duration_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 ≤ 500ms for 95 % of 5min windows over 30d"
+  alertPolicies:
+    - alertPolicyRef: network-search-content-fast-burn-1h-14x

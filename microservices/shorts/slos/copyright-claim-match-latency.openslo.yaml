@@ -1,0 +1,45 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: shorts-copyright-claim-match-latency
+  displayName: "shorts: copyright fingerprint match p95 ≤ 2s per ingest"
+  labels:
+    microservice: shorts
+    bc: copyright-claim
+    sli_class: latency
+    owner_team: axis-shorts + ops-legal
+    pack_scope: all
+spec:
+  description: |
+    Time from `VideoUploaded` event (scan-clean) to fingerprint-match verdict
+    (Chromaprint audio + DCT perceptual-hash video against per-pack corpus).
+    Must complete pre-publication; bounded by upload→publish gate.
+    Reference: PRD §Performance NFR row 5; ADR-SHORTS-0002.
+  service: shorts
+  indicator:
+    metadata:
+      name: shorts-copyright-claim-match-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_shorts_fingerprint_match_duration_seconds_bucket{le="2"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_shorts_fingerprint_match_duration_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 ≤ 2s per fingerprint match"
+  alertPolicies:
+    - alertPolicyRef: shorts-fingerprint-match-fast-burn-1h-14x

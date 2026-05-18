@@ -1,0 +1,40 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: anonymous-affinity-attestation-verify-latency
+  displayName: Affinity attestation verify latency — anonymous µservice
+  labels:
+    microservice: anonymous
+    bc: affinity-attestation
+    tier: shared-substrate
+    owner_team: axis-anonymous
+spec:
+  description: |
+    Affinity-attestation verification latency including BBS+ verify, k-anonymity
+    floor check, audit-chain seal. Per PRD §"Performance" affinity-attestation-verify
+    p95 ≤ 500ms.
+  service: oya-anonymous-affinity-attestation-rest
+  indicator:
+    metadata:
+      name: affinity-attestation-verify-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: 'sum(rate(oya_anonymous_affinity_attestation_verify_latency_bucket{le="0.5"}[5m]))'
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: 'sum(rate(oya_anonymous_affinity_attestation_verify_latency_count[5m]))'
+  objectives:
+    - displayName: 95% of attestation-verify requests under 500ms over 28 days
+      target: 0.95
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  alertPolicies:
+    - alertPolicyRef: anonymous-affinity-attestation-burnrate

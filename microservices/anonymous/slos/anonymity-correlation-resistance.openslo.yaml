@@ -1,0 +1,55 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: anonymous-anonymity-correlation-resistance
+  displayName: Anonymity correlation resistance — anonymous µservice
+  labels:
+    microservice: anonymous
+    bc: pseudonymous-identity
+    tier: shared-substrate
+    invariant: I1
+    owner_team: ops-security + council-privacy + axis-anonymous
+spec:
+  description: |
+    Statistical bound on platform's ability to correlate user_id ↔ post_id.
+    Target: zero correlation events outside the legal-process workflow.
+
+    Measured by:
+      1. count of `oya_anonymous_correlation_attempt_total` (target = 0)
+      2. count of `oya_anonymous_blinded_commitment_collision_total` (target = 0)
+      3. count of `oya_anonymous_identity_attribute_received_and_discarded_total`
+         (target near 0; small non-zero acceptable as long as discarded)
+
+    Per PRD I1 invariant. Per ADR-ANON-0001 cryptographic blinding. Per
+    Sweeney 2002 k-anonymity foundation.
+
+    A single non-discarded identity-attribute attempt OR a single correlation
+    attempt outside legal-process is a Sev-0 anonymity-leak incident; see
+    `runbooks/anonymity-leak-incident-response.md`.
+  service: oya-anonymous-pseudonymous-identity-rest
+  indicator:
+    metadata:
+      name: anonymity-correlation-resistance
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_anonymous_post_published_total[5m])) -
+                sum(rate(oya_anonymous_correlation_attempt_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: 'sum(rate(oya_anonymous_post_published_total[5m]))'
+  objectives:
+    - displayName: Zero correlation attempts outside legal-process
+      target: 1.0
+  timeWindow:
+    - duration: 90d
+      isRolling: true
+  alertPolicies:
+    - alertPolicyRef: anonymous-anonymity-leak-burnrate-sev0

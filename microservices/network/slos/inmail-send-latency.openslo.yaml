@@ -1,0 +1,51 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: network-inmail-send-latency
+  displayName: "network: InMail-send p95 ≤ 100ms (Professional-tier bridge to messenger)"
+  labels:
+    microservice: network
+    bc: inmail-bridge
+    sli_class: latency
+    tier: hero-product
+    owner_team: axis-network + axis-messenger
+    pack_scope: all
+spec:
+  description: |
+    Latency SLO for POST /inmail. A request is "good" when InMail is queued for
+    bridge delivery within 100ms (REST handler + spam-classifier check + Redis
+    Streams enqueue + messenger-bridge dispatch). Actual messenger-side
+    delivery is bounded by the messenger µservice's own SLO.
+
+    Professional-tier-only invariant per ADR-NET-0003: runtime guard ensures
+    the messenger response carries context_kind=Professional; if violated
+    (impossible by compile-time + runtime check), Sev-1 fires.
+  service: network
+  indicator:
+    metadata:
+      name: network-inmail-send-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_network_inmail_send_duration_seconds_bucket{le="0.1"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_network_inmail_send_duration_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 ≤ 100ms for 95 % of 5min windows over 30d"
+  alertPolicies:
+    - alertPolicyRef: network-inmail-send-fast-burn-1h-14x
+    - alertPolicyRef: network-inmail-send-slow-burn-6h-6x

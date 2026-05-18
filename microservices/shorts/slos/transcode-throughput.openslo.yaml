@@ -1,0 +1,48 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: shorts-transcode-throughput
+  displayName: "shorts: transcode 60s video p95 ≤ 30s (5 bitrate rungs)"
+  labels:
+    microservice: shorts
+    bc: video-transcode
+    sli_class: latency
+    owner_team: axis-shorts + ops-sre-reliability
+    pack_scope: all
+spec:
+  description: |
+    Time from `VideoUploaded` event (scan-clean) to `TranscodeComplete` event.
+    Measured per source-video duration; budget = duration × 0.5 wallclock at p95
+    (60s video → 30s p95 transcode). Includes ffmpeg-7.x wallclock + gVisor /
+    Kata sandbox overhead + S3 write. Excludes scan-pending queue depth
+    (covered by failure-modes FM-04 + runbooks/transcode-queue-backup.md).
+    Reference: PRD §Performance NFR row 3.
+  service: shorts
+  indicator:
+    metadata:
+      name: shorts-transcode-throughput
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_shorts_transcode_duration_seconds_bucket{le="30"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_shorts_transcode_duration_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 ≤ 30s for 60s source video"
+  alertPolicies:
+    - alertPolicyRef: shorts-transcode-fast-burn-1h-14x
+    - alertPolicyRef: shorts-transcode-slow-burn-6h-6x

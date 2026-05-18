@@ -1,0 +1,42 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: meet-transcription-correctness-bound
+  displayName: "meet: transcription correctness bound (WER ≤ Whisper-large published baseline + 5%)"
+  labels:
+    microservice: meet
+    bc: transcription
+    sli_class: correctness
+    owner_team: axis-meet
+spec:
+  description: |
+    Transcription Word Error Rate (WER) on continuous synthetic golden-set
+    evaluation against LibriSpeech-test + CommonVoice baseline. A "good"
+    sample is one whose WER is ≤ Whisper-large published baseline + 5%
+    margin (regression bound). Reference: OpenAI Whisper paper + HELM.
+  service: meet
+  indicator:
+    metadata:
+      name: meet-transcription-correctness
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_meet_transcription_quality_good_total[1h]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_meet_transcription_quality_total[1h]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "≥ 95% of golden-set samples within WER bound"

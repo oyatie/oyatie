@@ -1,0 +1,92 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: network-default-deny
+  namespace: network
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: network-allow-ingress-from-gateway
+  namespace: network
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: network
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-edge
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: network
+      ports:
+        - {protocol: TCP, port: 8080}
+        - {protocol: TCP, port: 8443}
+        - {protocol: TCP, port: 9091}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: network-allow-egress-to-substrate
+  namespace: network
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: network
+  policyTypes: [Egress]
+  egress:
+    # Postgres
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: network-postgres}}
+      ports: [{protocol: TCP, port: 5432}]
+    # Redis (cache + streams)
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: network-redis}}
+      ports: [{protocol: TCP, port: 6379}]
+    # Meilisearch
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: network-meilisearch}}
+      ports: [{protocol: TCP, port: 7700}]
+    # Cross-µservice in-pack bridges
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: observability}}
+      ports: [{protocol: TCP, port: 4317}, {protocol: TCP, port: 9090}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: audit-chain}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: ontology}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: tenancy}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: messenger}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: calendar}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: mail}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: ats}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: foundry-runtime}}
+      ports: [{protocol: TCP, port: 50051}]
+    # OPSWAT scan endpoint
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: security-scanners}}
+      ports: [{protocol: TCP, port: 8008}]
+    # DNS
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+# Note: federation egress NOT permitted; network does NOT federate in P01.

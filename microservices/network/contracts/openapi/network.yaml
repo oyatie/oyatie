@@ -1,0 +1,701 @@
+openapi: 3.2.0
+info:
+  title: oya-network
+  version: 1.0.0
+  summary: REST API for the network µservice — Professional profile + connection-graph + post + feed + reactions + comments + mentions + hashtags + search + notifications + endorsement-chain + skill-assessment + profile-verification + pages + groups + events + jobs-handoff + InMail-bridge + recruiter-stub (OFF by default) + abuse-reporting + appeal-workflow + profile-export (vCard 4.0 + JSON Resume + GDPR Art. 20)
+  description: |
+    Tenant-facing REST surface for the network µservice. All endpoints require
+    OIDC + Cedar authorisation (per `microservices/network/policy/*.cedar`)
+    and are tenant-scoped via `X-Scope-OrgID` header. The µservice is
+    Professional-tier-only — `X-Context-Kind` is always `Professional`.
+
+    Real-time path is via WebSocket at `wss://network-{pack}.oyatie.dev/ws/v1`
+    documented in `contracts/asyncapi/network-events.yaml`.
+
+    Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.
+    The JWT carries the principal's tenant_id claim. The X-Scope-OrgID header
+    MUST match the claim; mismatch returns 401.
+
+    Professional-context invariant: every write carries `X-Context-Kind: Professional`;
+    any value other than `Professional` is refused per ADR-0126 + `policy/professional-context-isolation.md` PCI-01.
+
+    EU AI Act Annex III §4 (employment) HIGH-RISK endpoints carry
+    `X-EU-AI-Act-Decision-Label: ai_generated_assessment` per Art. 50; affected
+    endpoints additionally support `?eu_human_review=true` query parameter
+    invoking Art. 22 + Art. 14 human review.
+
+    NYC LL144 §20-871 candidate-notice endpoints support `?ll144_candidate_notice=true`
+    surfacing the required notice.
+  contact:
+    name: axis-network
+    url: https://oyatie.dev/teams/axis-network
+  license:
+    name: Internal
+servers:
+  - url: https://network-{pack}.oyatie.dev/api/v1
+    description: Per-pack endpoint
+    variables:
+      pack:
+        enum: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
+        default: kr
+
+components:
+  securitySchemes:
+    OIDC:
+      type: openIdConnect
+      openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration
+  parameters:
+    XScopeOrgID:
+      in: header
+      name: X-Scope-OrgID
+      required: true
+      schema: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+    XContextKind:
+      in: header
+      name: X-Context-Kind
+      required: true
+      schema: {type: string, enum: [Professional]}
+      description: Professional-only per ADR-NET PCI-01
+    XEUAIActDecisionLabel:
+      in: header
+      name: X-EU-AI-Act-Decision-Label
+      required: false
+      schema: {type: string, enum: [ai_generated_assessment, human_assessment, hybrid]}
+      description: EU AI Act Art. 50 transparency label
+    ProfileId:
+      in: path
+      name: profile_id
+      required: true
+      schema: {type: string, format: ulid}
+    PostId:
+      in: path
+      name: post_id
+      required: true
+      schema: {type: string, format: ulid}
+    Handle:
+      in: path
+      name: handle
+      required: true
+      schema: {type: string, pattern: '^[a-zA-Z0-9_-]{1,50}$'}
+    ConnectionRequestId:
+      in: path
+      name: connection_request_id
+      required: true
+      schema: {type: string, format: ulid}
+    EndorsementId:
+      in: path
+      name: endorsement_id
+      required: true
+      schema: {type: string, format: ulid}
+    JobPostingId:
+      in: path
+      name: job_posting_id
+      required: true
+      schema: {type: string, format: ulid}
+    InMailId:
+      in: path
+      name: inmail_id
+      required: true
+      schema: {type: string, format: ulid}
+  schemas:
+    ProfessionalProfile:
+      type: object
+      required: [profile_id, tenant_id, context_kind, handle, display_name, created_at]
+      properties:
+        profile_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Professional]}
+        handle: {type: string, maxLength: 50}
+        display_name: {type: string, maxLength: 80}
+        headline: {type: string, maxLength: 220}
+        summary: {type: string, maxLength: 2600}
+        avatar_url: {type: string, format: uri, nullable: true}
+        header_url: {type: string, format: uri, nullable: true}
+        location:
+          type: object
+          properties:
+            country: {type: string, maxLength: 2}
+            region: {type: string, maxLength: 80}
+            city: {type: string, maxLength: 80}
+        locale: {type: string, pattern: '^[a-z]{2}(-[A-Z]{2})?$'}
+        experience:
+          type: array
+          items: {$ref: '#/components/schemas/ExperienceEntry'}
+        education:
+          type: array
+          items: {$ref: '#/components/schemas/EducationEntry'}
+        skills:
+          type: array
+          items: {$ref: '#/components/schemas/SkillEntry'}
+        certifications:
+          type: array
+          items: {$ref: '#/components/schemas/Certification'}
+        verification_badge: {type: string, enum: [none, blue, organisation, government, employer-confirmed], default: none}
+        connection_count: {type: integer}
+        follower_count: {type: integer}
+        following_count: {type: integer}
+        post_count: {type: integer}
+        is_open_to_work: {type: boolean, default: false}
+        automated_decision_opt_out: {type: boolean, default: false, description: GDPR Art. 22 opt-out flag}
+        minor_protect: {type: boolean, default: false, description: minor-account flag; never surfaces in recruiter / salary-insights}
+        created_at: {type: string, format: date-time}
+    ExperienceEntry:
+      type: object
+      required: [title, company_ref, start]
+      properties:
+        title: {type: string, maxLength: 200}
+        company_ref: {type: string}
+        location: {type: string, maxLength: 200}
+        start: {type: string, format: date}
+        end: {type: string, format: date, nullable: true}
+        description: {type: string, maxLength: 2000}
+        employer_attested: {type: boolean, default: false, description: per ADR-NET-0006}
+    EducationEntry:
+      type: object
+      required: [institution_ref]
+      properties:
+        institution_ref: {type: string}
+        degree: {type: string, maxLength: 100}
+        field_of_study: {type: string, maxLength: 100}
+        start: {type: string, format: date, nullable: true}
+        end: {type: string, format: date, nullable: true}
+        gpa: {type: number, nullable: true}
+    SkillEntry:
+      type: object
+      required: [skill_ref]
+      properties:
+        skill_ref: {type: string, description: Ontology Skill object reference}
+        endorsement_count: {type: integer}
+        assessment_passed: {type: boolean, default: false}
+    Certification:
+      type: object
+      required: [name, issuer]
+      properties:
+        name: {type: string, maxLength: 200}
+        issuer: {type: string, maxLength: 200}
+        issued: {type: string, format: date, nullable: true}
+        expires: {type: string, format: date, nullable: true}
+        credential_id: {type: string, maxLength: 200, nullable: true}
+        credential_url: {type: string, format: uri, nullable: true}
+    ConnectionRequest:
+      type: object
+      required: [connection_request_id, tenant_id, requester_ref, target_ref, status, created_at]
+      properties:
+        connection_request_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Professional]}
+        requester_ref: {type: string}
+        target_ref: {type: string}
+        note: {type: string, maxLength: 300, nullable: true}
+        status: {type: string, enum: [open, accepted, rejected, ignored, withdrawn]}
+        created_at: {type: string, format: date-time}
+        responded_at: {type: string, format: date-time, nullable: true}
+    ProfessionalPost:
+      type: object
+      required: [post_id, author_ref, tenant_id, context_kind, kind, posted_at, visibility]
+      properties:
+        post_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Professional]}
+        author_ref: {type: string}
+        kind: {type: string, enum: [article, status, document, poll, carousel, repost, share, comment]}
+        body: {type: string, maxLength: 4096}
+        media:
+          type: array
+          items: {$ref: '#/components/schemas/MediaRef'}
+        document:
+          $ref: '#/components/schemas/DocumentRef'
+        visibility: {type: string, enum: [public, network-only, group, private]}
+        content_warning: {type: string, nullable: true}
+        anonymous_read_allowed: {type: boolean, default: false}
+        posted_at: {type: string, format: date-time}
+        edit_window_closes_at: {type: string, format: date-time}
+        deleted_at: {type: string, format: date-time, nullable: true}
+    MediaRef:
+      type: object
+      required: [media_id, mime_type]
+      properties:
+        media_id: {type: string, format: ulid}
+        mime_type: {type: string}
+        bytes: {type: integer}
+        caption: {type: string, maxLength: 1000, nullable: true, description: WCAG 2.2 accessibility caption}
+    DocumentRef:
+      type: object
+      required: [doc_id, mime_type, filename]
+      properties:
+        doc_id: {type: string, format: ulid}
+        mime_type: {type: string}
+        filename: {type: string, maxLength: 255}
+        bytes: {type: integer}
+        page_count: {type: integer}
+    Endorsement:
+      type: object
+      required: [endorsement_id, tenant_id, endorser_ref, endorsee_ref, skill_ref, signature, created_at]
+      properties:
+        endorsement_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Professional]}
+        endorser_ref: {type: string}
+        endorsee_ref: {type: string}
+        skill_ref: {type: string}
+        signature: {type: string, description: per-endorser Ed25519 signature; base64url; ADR-NET-0005}
+        merkle_chain_position: {type: integer, description: position within tenant's endorsement-chain Merkle tree}
+        revoked: {type: boolean, default: false}
+        revocation_reason: {type: string, nullable: true}
+        created_at: {type: string, format: date-time}
+    Recommendation:
+      type: object
+      required: [recommendation_id, tenant_id, recommender_ref, recommendee_ref, body, created_at]
+      properties:
+        recommendation_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Professional]}
+        recommender_ref: {type: string}
+        recommendee_ref: {type: string}
+        body: {type: string, maxLength: 3000}
+        relationship: {type: string, enum: [worked-directly, manager, report, colleague, client, vendor]}
+        created_at: {type: string, format: date-time}
+    InMail:
+      type: object
+      required: [inmail_id, tenant_id, sender_ref, recipient_ref, subject, body, sent_at]
+      properties:
+        inmail_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Professional]}
+        inmail_target_channel: {type: string, enum: [professional]}
+        sender_ref: {type: string}
+        recipient_ref: {type: string}
+        subject: {type: string, maxLength: 200}
+        body: {type: string, maxLength: 4000}
+        spam_classifier_verdict: {type: string, enum: [ok, suspicious, spam]}
+        sent_at: {type: string, format: date-time}
+        delivered_at: {type: string, format: date-time, nullable: true}
+        read_at: {type: string, format: date-time, nullable: true}
+    JobPosting:
+      type: object
+      required: [job_posting_id, tenant_id, page_ref, title, description, posted_at]
+      properties:
+        job_posting_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Professional]}
+        page_ref: {type: string, description: company Page reference}
+        title: {type: string, maxLength: 200}
+        description: {type: string, maxLength: 8000}
+        location:
+          type: object
+          properties:
+            country: {type: string}
+            region: {type: string}
+            city: {type: string}
+            remote: {type: string, enum: [on-site, hybrid, remote, flexible]}
+        level: {type: string, enum: [intern, junior, mid, senior, lead, principal, executive]}
+        skills_required:
+          type: array
+          items: {type: string, description: Skill object refs}
+        salary_band:
+          type: object
+          nullable: true
+          properties:
+            currency: {type: string}
+            min: {type: number}
+            max: {type: number}
+            period: {type: string, enum: [hour, month, year]}
+        visibility: {type: string, enum: [public, network-only, tenant-only]}
+        ats_handoff_status: {type: string, enum: [pending, handed-off, accepted-by-ats, error]}
+        posted_at: {type: string, format: date-time}
+    AbuseReport:
+      type: object
+      required: [abuse_report_id, tenant_id, reporter_ref, target_kind, target_ref, category, created_at]
+      properties:
+        abuse_report_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        reporter_ref: {type: string}
+        target_kind: {type: string, enum: [profile, post, comment, inmail, group, page, event, job-posting, endorsement]}
+        target_ref: {type: string}
+        category: {type: string, enum: [spam, harassment, discrimination, impersonation, hate-speech, csam-suspect, harassment-workplace, fake-credential, scam, other]}
+        details: {type: string, maxLength: 2000}
+        created_at: {type: string, format: date-time}
+        verdict: {type: string, enum: [pending, upheld, dismissed, escalated], default: pending}
+    BiasAuditSummary:
+      type: object
+      required: [version, audit_date, disparity_ratio_by_group]
+      properties:
+        version: {type: string}
+        audit_date: {type: string, format: date}
+        disparity_ratio_by_group:
+          type: object
+          additionalProperties: {type: number, minimum: 0, maximum: 1}
+          description: per-protected-group 4/5-rule disparity ratio
+        passes_4_5_rule: {type: boolean}
+        notified_body_ref: {type: string, nullable: true}
+        nyc_ll144_audit_url: {type: string, format: uri, nullable: true}
+        eu_ai_act_fria_url: {type: string, format: uri, nullable: true}
+
+security:
+  - OIDC: []
+
+paths:
+  /health:
+    get:
+      summary: Liveness probe (anonymous)
+      security: []
+      responses:
+        '200': {description: alive}
+
+  /profiles/me:
+    get:
+      summary: Get my Professional profile
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      responses:
+        '200':
+          description: my profile
+          content: {application/json: {schema: {$ref: '#/components/schemas/ProfessionalProfile'}}}
+        '401': {description: unauthorised}
+    patch:
+      summary: Update my Professional profile
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ProfessionalProfile'}}}
+      responses:
+        '200':
+          description: updated
+          content: {application/json: {schema: {$ref: '#/components/schemas/ProfessionalProfile'}}}
+        '422': {description: validation failed}
+
+  /profiles/me/export:
+    get:
+      summary: Export my profile (vCard 4.0 / JSON Resume / GDPR Art. 20 portable JSON)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+        - in: query
+          name: format
+          required: true
+          schema: {type: string, enum: [vcard4, jsonresume, gdpr-art20]}
+      responses:
+        '200':
+          description: export bytes
+          content:
+            text/vcard: {schema: {type: string}}
+            application/json: {schema: {type: object}}
+
+  /profiles/{handle}:
+    parameters:
+      - {$ref: '#/components/parameters/Handle'}
+      - {$ref: '#/components/parameters/XScopeOrgID'}
+      - {$ref: '#/components/parameters/XContextKind'}
+    get:
+      summary: Read another user's Professional profile (Cedar-filtered)
+      responses:
+        '200':
+          description: profile
+          content: {application/json: {schema: {$ref: '#/components/schemas/ProfessionalProfile'}}}
+        '403': {description: not visible}
+        '404': {description: not found}
+
+  /connection-requests:
+    post:
+      summary: Send a connection request (with optional note ≤ 300 chars)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_ref]
+              properties:
+                target_ref: {type: string}
+                note: {type: string, maxLength: 300}
+      responses:
+        '201':
+          description: created
+          content: {application/json: {schema: {$ref: '#/components/schemas/ConnectionRequest'}}}
+        '429': {description: per-week rate limit hit}
+
+  /connection-requests/{connection_request_id}:
+    parameters:
+      - {$ref: '#/components/parameters/ConnectionRequestId'}
+      - {$ref: '#/components/parameters/XScopeOrgID'}
+      - {$ref: '#/components/parameters/XContextKind'}
+    post:
+      summary: Respond to a connection request (accept / reject / ignore / withdraw)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verdict]
+              properties:
+                verdict: {type: string, enum: [accept, reject, ignore, withdraw]}
+      responses:
+        '200':
+          description: updated
+          content: {application/json: {schema: {$ref: '#/components/schemas/ConnectionRequest'}}}
+
+  /posts:
+    post:
+      summary: Publish a Professional post (article / status / document / poll / carousel / repost / share / comment)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ProfessionalPost'}}}
+      responses:
+        '201':
+          description: posted
+          content: {application/json: {schema: {$ref: '#/components/schemas/ProfessionalPost'}}}
+
+  /posts/{post_id}:
+    parameters:
+      - {$ref: '#/components/parameters/PostId'}
+      - {$ref: '#/components/parameters/XScopeOrgID'}
+      - {$ref: '#/components/parameters/XContextKind'}
+    get:
+      summary: Read a post (Cedar-filtered)
+      responses:
+        '200':
+          description: post
+          content: {application/json: {schema: {$ref: '#/components/schemas/ProfessionalPost'}}}
+    patch:
+      summary: Edit a post (within edit-window)
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ProfessionalPost'}}}
+      responses:
+        '200': {description: updated}
+        '409': {description: edit window closed}
+    delete:
+      summary: Delete a post (tombstone)
+      responses:
+        '204': {description: tombstoned}
+
+  /feed:
+    get:
+      summary: Render Professional feed (chronological / algorithmic)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+        - in: query
+          name: mode
+          schema: {type: string, enum: [chronological, algorithmic], default: chronological}
+        - in: query
+          name: limit
+          schema: {type: integer, minimum: 1, maximum: 100, default: 50}
+      responses:
+        '200':
+          description: feed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/ProfessionalPost'}
+                  ranker_explanation:
+                    type: object
+                    description: EU DSA Art. 27 + EU AI Act Art. 50 transparency surface
+
+  /endorsements:
+    post:
+      summary: Endorse a connection's skill (per-endorser Ed25519 signed; ADR-NET-0005)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endorsee_ref, skill_ref]
+              properties:
+                endorsee_ref: {type: string}
+                skill_ref: {type: string}
+      responses:
+        '201':
+          description: endorsed
+          content: {application/json: {schema: {$ref: '#/components/schemas/Endorsement'}}}
+
+  /endorsements/{endorsement_id}:
+    parameters:
+      - {$ref: '#/components/parameters/EndorsementId'}
+      - {$ref: '#/components/parameters/XScopeOrgID'}
+      - {$ref: '#/components/parameters/XContextKind'}
+    delete:
+      summary: Revoke an endorsement (tombstone; cryptographic chain intact)
+      responses:
+        '204': {description: revoked}
+
+  /recommendations:
+    post:
+      summary: Publish a long-form recommendation for a connection
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/Recommendation'}}}
+      responses:
+        '201':
+          description: recommendation
+          content: {application/json: {schema: {$ref: '#/components/schemas/Recommendation'}}}
+
+  /inmail:
+    post:
+      summary: Send an InMail (Professional-tier-only bridge to messenger; never federates to Personal-tier DM per ADR-NET-0003)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/InMail'}}}
+      responses:
+        '201':
+          description: queued
+          content: {application/json: {schema: {$ref: '#/components/schemas/InMail'}}}
+        '429': {description: per-tenant InMail rate-budget exhausted}
+
+  /job-postings:
+    post:
+      summary: Publish a job posting (handed off to ATS µservice per ADR-NET-0004)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/JobPosting'}}}
+      responses:
+        '201':
+          description: posted (ATS handoff pending)
+          content: {application/json: {schema: {$ref: '#/components/schemas/JobPosting'}}}
+
+  /search/people:
+    get:
+      summary: Search people (most-searched surface; Meilisearch + Cedar filter)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+        - {in: query, name: q, required: true, schema: {type: string, maxLength: 200}}
+        - {in: query, name: limit, schema: {type: integer, maximum: 50, default: 25}}
+      responses:
+        '200':
+          description: results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hits:
+                    type: array
+                    items: {$ref: '#/components/schemas/ProfessionalProfile'}
+
+  /search/content:
+    get:
+      summary: Search content
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+        - {in: query, name: q, required: true, schema: {type: string, maxLength: 200}}
+      responses:
+        '200': {description: results}
+
+  /search/jobs:
+    get:
+      summary: Search jobs (faceted)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+        - {in: query, name: q, required: true, schema: {type: string}}
+        - {in: query, name: location, schema: {type: string}}
+        - {in: query, name: level, schema: {type: string}}
+      responses:
+        '200': {description: results}
+
+  /recruiter/search:
+    post:
+      summary: Recruiter ranker (OFF by default per ADR-NET-0002; requires tenant entitlement + EU AI Act FRIA + NYC LL144 bias-audit when NYC tenant)
+      description: |
+        EU AI Act Annex III §4 HIGH-RISK endpoint. Returns
+        X-EU-AI-Act-Decision-Label: ai_generated_assessment header.
+        Returns BiasAuditSummary alongside result hits per Art. 13 transparency.
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+        - {$ref: '#/components/parameters/XEUAIActDecisionLabel'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [skills_required]
+              properties:
+                skills_required: {type: array, items: {type: string}}
+                location: {type: string, nullable: true}
+                level: {type: string, nullable: true}
+      responses:
+        '200':
+          description: ranked results + bias audit summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hits:
+                    type: array
+                    items: {$ref: '#/components/schemas/ProfessionalProfile'}
+                  bias_audit: {$ref: '#/components/schemas/BiasAuditSummary'}
+                  ranker_explanation:
+                    type: object
+                    description: EU AI Act Art. 50 + Art. 27 transparency
+        '403':
+          description: recruiter-stub not activated for this tenant OR EU AI Act FRIA not attested OR NYC LL144 bias-audit expired
+
+  /abuse-reports:
+    post:
+      summary: Report abuse (including KR 직장 갑질 harassment-workplace category)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/AbuseReport'}}}
+      responses:
+        '201':
+          description: filed
+          content: {application/json: {schema: {$ref: '#/components/schemas/AbuseReport'}}}
+
+  /appeals/{decision_id}:
+    parameters:
+      - in: path
+        name: decision_id
+        required: true
+        schema: {type: string, format: ulid}
+    post:
+      summary: Appeal an automated decision (GDPR Art. 22 + EU DSA Art. 20 right of internal complaint + EU AI Act Art. 14 human oversight)
+      parameters:
+        - {$ref: '#/components/parameters/XScopeOrgID'}
+        - {$ref: '#/components/parameters/XContextKind'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: {type: string, maxLength: 2000}
+                request_human_review: {type: boolean, default: true}
+      responses:
+        '201': {description: appeal filed}

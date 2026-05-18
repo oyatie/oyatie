@@ -1,0 +1,185 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: network-burn-rate-rules
+  namespace: network
+  labels:
+    app.kubernetes.io/name: network
+    prometheus: mimir
+spec:
+  groups:
+    - name: network-recording-rules
+      interval: 60s
+      rules:
+        - record: network:post_create:availability_5m
+          expr: |
+            sum(rate(oya_network_post_create_total{result="success"}[5m]))
+            /
+            sum(rate(oya_network_post_create_total[5m]))
+        - record: network:feed_render:latency_p95_5m
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(oya_network_feed_render_duration_seconds_bucket[5m]))
+            )
+        - record: network:profile_view:latency_p95_5m
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(oya_network_profile_view_duration_seconds_bucket[5m]))
+            )
+        - record: network:connection_action:latency_p99_5m
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le) (rate(oya_network_connection_action_duration_seconds_bucket[5m]))
+            )
+        - record: network:feed_cache:hit_ratio_5m
+          expr: |
+            sum(rate(oya_network_feed_cache_hit_total[5m]))
+            /
+            sum(rate(oya_network_feed_cache_request_total[5m]))
+        - record: network:endorsement_chain:integrity_failure_rate_1h
+          expr: |
+            sum(rate(oya_network_endorsement_chain_integrity_failure_total[1h]))
+
+    - name: network-burn-rate-alerts
+      rules:
+        - alert: NetworkFeedRenderLatencyHigh
+          expr: |
+            network:feed_render:latency_p95_5m > 0.2
+          for: 10m
+          labels:
+            severity: warning
+            sli: latency
+            microservice: network
+            bc: feed-timeline
+          annotations:
+            runbook_url: "https://oyatie.dev/microservices/network/runbooks/feed-cache-rebuild"
+
+        - alert: NetworkProfileViewLatencyHigh
+          expr: |
+            network:profile_view:latency_p95_5m > 0.15
+          for: 10m
+          labels:
+            severity: warning
+            sli: latency
+            microservice: network
+            bc: professional-profile
+
+        - alert: NetworkConnectionActionLatencyHigh
+          expr: |
+            network:connection_action:latency_p99_5m > 0.15
+          for: 10m
+          labels:
+            severity: warning
+            sli: latency
+            microservice: network
+            bc: professional-graph
+
+        - alert: NetworkFeedCacheHitRatioLow
+          expr: |
+            network:feed_cache:hit_ratio_5m < 0.7
+          for: 15m
+          labels:
+            severity: warning
+            sli: cache_hit_ratio
+            microservice: network
+            bc: feed-timeline
+          annotations:
+            runbook_url: "https://oyatie.dev/microservices/network/runbooks/feed-cache-rebuild"
+
+        - alert: NetworkProfessionalContextViolation
+          expr: |
+            increase(oya_network_professional_context_violation_total[1h]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: professional-context-isolation
+            invariant: PCI-01..PCI-10
+            microservice: network
+          annotations:
+            summary: "network Professional-context invariant violation detected"
+            runbook_url: "https://oyatie.dev/microservices/network/runbooks/connection-graph-corruption"
+
+        - alert: NetworkEndorsementChainIntegrityFailure
+          expr: |
+            network:endorsement_chain:integrity_failure_rate_1h > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: endorsement-chain-integrity
+            adr: ADR-NET-0005
+            microservice: network
+          annotations:
+            summary: "network endorsement-chain integrity failure detected"
+            runbook_url: "https://oyatie.dev/microservices/network/runbooks/connection-graph-corruption"
+
+        - alert: NetworkPackResidencyViolation
+          expr: |
+            increase(oya_network_pack_residency_violation_total[1h]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: data-residency
+            microservice: network
+          annotations:
+            summary: "network pack residency violation detected"
+
+        - alert: NetworkCrossTenantLeakDetected
+          expr: |
+            increase(oya_network_cross_tenant_leak_detector_total[1h]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: tenant-isolation
+            microservice: network
+
+        - alert: NetworkRecruiterBiasAuditFailure
+          expr: |
+            min(oya_network_bias_audit_disparity_ratio) < 0.8
+          for: 1h
+          labels:
+            severity: critical
+            policy: recruiter-bias-audit
+            adr: ADR-NET-0002
+            microservice: network
+            eu_ai_act: high-risk
+          annotations:
+            summary: "network recruiter-stub 4/5-rule bias-audit failure (FM-15)"
+            runbook_url: "https://oyatie.dev/microservices/network/runbooks/recruiter-classifier-rollback"
+
+        - alert: NetworkRecommenderDrift
+          expr: |
+            sum(rate(oya_network_recommender_output_drift_total[15m]))
+            > 5 *
+            sum(rate(oya_network_recommender_output_drift_total[24h]))
+          for: 10m
+          labels:
+            severity: warning
+            sli: recommender_drift
+            microservice: network
+            eu_ai_act: high-risk
+          annotations:
+            summary: "network recommender drift detected (≥5x baseline)"
+            runbook_url: "https://oyatie.dev/microservices/network/runbooks/recruiter-classifier-rollback"
+
+        - alert: NetworkInMailBridgeQueueDepthHigh
+          expr: |
+            oya_network_inmail_bridge_queue_depth > 100000
+          for: 5m
+          labels:
+            severity: warning
+            sli: inmail_bridge_queue_depth
+            microservice: network
+          annotations:
+            runbook_url: "https://oyatie.dev/microservices/network/runbooks/inmail-fanout-degraded"
+
+        - alert: NetworkAtsHandoffContractMismatch
+          expr: |
+            increase(oya_network_ats_bridge_contract_mismatch_total[15m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+            policy: ats-handoff-contract
+            adr: ADR-NET-0004
+            microservice: network
+          annotations:
+            runbook_url: "https://oyatie.dev/microservices/network/runbooks/jobs-handoff-ats-failure"
