@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
 {{- range tuple "websocketGateway" "userProfile" "followGraph" "postCompositionRest" "postCompositionWorker" "feedTimeline" "reactions" "mentions" "hashtags" "trendingTopics" "notifications" "contentModeration" "search" "profileVerification" "ageVerification" "bookmarks" "lists" }}
 {{- $c := index $.Values . }}
 ---
@@ -29,9 +29,7 @@ spec:
     spec:
       serviceAccountName: social-{{ . | kebabcase }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        seccompProfile: {type: RuntimeDefault}
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: social-{{ . | kebabcase }}
           image: "{{ $.Values.global.imageRegistry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
@@ -48,20 +46,14 @@ spec:
             requests: {{- toYaml $c.resources.requests | nindent 14 }}
             limits: {{- toYaml $c.resources.limits | nindent 14 }}
           livenessProbe:
-            httpGet: {path: /health, port: 8080}
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            {{- include "oya.probes.httpHealthLiveness8080" $ | nindent 12 }}
           readinessProbe:
-            httpGet: {path: /ready, port: 8080}
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            {{- include "oya.probes.httpHealthReadiness8080" $ | nindent 12 }}
           envFrom:
             - secretRef:
                 name: social-openbao-injected
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities: {drop: ["ALL"]}
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
 {{- end }}
 
 # =============================================================================
@@ -93,9 +85,7 @@ spec:
     spec:
       serviceAccountName: social-federation-gateway
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        seccompProfile: {type: RuntimeDefault}
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: social-federation-gateway
           image: "{{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -109,9 +99,7 @@ spec:
             requests: {{- toYaml .Values.federationGateway.resources.requests | nindent 14 }}
             limits: {{- toYaml .Values.federationGateway.resources.limits | nindent 14 }}
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities: {drop: ["ALL"]}
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
 {{- end }}
 
 # =============================================================================
@@ -145,9 +133,7 @@ spec:
       runtimeClassName: gvisor
       serviceAccountName: social-media-transcode-worker
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        seccompProfile: {type: RuntimeDefault}
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: social-media-transcode-worker
           image: "{{ .Values.global.imageRegistry }}/oya-social-media-transcode:{{ .Values.image.tag }}"
@@ -156,6 +142,4 @@ spec:
             requests: {cpu: 1000m, memory: 2Gi}
             limits: {cpu: 4000m, memory: 8Gi}
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities: {drop: ["ALL"]}
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}

@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
 {{- range tuple "meetingRoomRest" "signalingGateway" "transcriptionWorker" "recordingMuxWorker" "webinarFanoutWorker" "liveStreamEgressWorker" }}
 {{- $c := index $.Values . }}
 ---
@@ -35,9 +35,7 @@ spec:
       {{- end }}
       serviceAccountName: meet-{{ . | kebabcase }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        seccompProfile: {type: RuntimeDefault}
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: meet-{{ . | kebabcase }}
           image: "{{ $.Values.global.imageRegistry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
@@ -55,13 +53,9 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
-            httpGet: {path: /ready, port: 8080}
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            {{- include "oya.probes.httpHealthReadiness8080" $ | nindent 12 }}
           envFrom:
             - secretRef: {name: meet-openbao-injected}
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities: {drop: ["ALL"]}
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
 {{- end }}

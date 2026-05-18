@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
 {{/*
 Per-cell CIS-compliant Deployment template (Sweep-E in-pass fix).
 
@@ -61,13 +61,9 @@ spec:
               cpu: {{ $cfg.resources.limits.cpu | default "2" }}
               memory: {{ $cfg.resources.limits.memory | default "1Gi" }}
           readinessProbe:
-            httpGet: {path: /healthz, port: metrics}
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            {{- include "oya.probes.healthzReadiness" $ | nindent 12 }}
           livenessProbe:
-            httpGet: {path: /livez, port: metrics}
-            initialDelaySeconds: 15
-            periodSeconds: 30
+            {{- include "oya.probes.healthzLiveness" $ | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

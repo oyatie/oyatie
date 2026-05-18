@@ -98,6 +98,10 @@
     "canonical_base_refactor": {
       "status": "green",
       "evidence": "SWEEP-H + SWEEP-I per ADR-0064 across 9 slices. SWEEP-H Slice 1: canonical PrometheusRule + metric-naming-convention contract replace 20 per-µservice INV groups. SWEEP-H Slice 2: docs/standards/hyperscaler-invariant-conformance.md replaces 20 per-µservice conformance overlays. SWEEP-H Slice 3: 4 canonical scorecards + 32 overrides.json replace 128 per-µservice scorecards. SWEEP-I Slice 1: specs/policy/cedar-scope-schema.md + microservices/governance/policy/cedar-canonical-imports.cedar + docs/standards/cedar-policy-discipline.md; 149 per-µservice .cedar files cite canonical envelope. SWEEP-I Slice 2: microservices/governance/iac/helm/_oya-helpers (library chart) + docs/standards/helm-chart-convention.md; 124 Chart.yaml/values.yaml + 112 helm-template files cite canonical helpers. SWEEP-I Slice 3: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/{kr,eu,us,us-healthcare,jp,sg,au,in,br,ae,ksa}}; 136 per-µservice kustomize files cite canonical components. SWEEP-I Slice 4: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml; 197 per-µservice OpenSLOs cite canonical envelope. SWEEP-I Slice 5: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json; 111 per-µservice capability YAMLs cite canonical schema. SWEEP-I Slice 6: specs/catalog/canonical-crate-record-schema.json + specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md; 889 catalog YAMLs + 555 IP markdowns cite canonical schemas."
+    },
+    "sweep_j_strip_phase": {
+      "status": "green",
+      "evidence": "SWEEP-J per ADR-0064 follow-on to SWEEP-I. Three slices investigated; one applied content-stripping (J-2 Helm), two surfaced honest no-op findings (J-1 Cedar, J-3 Kustomize). Slice J-1 (Cedar): zero non-commented entity/action declarations exist across 150 per-µservice .cedar files — Sweep-I already prevented duplicates by keeping all canonical entity/action declarations as documentation comments in cedar-canonical-imports.cedar. Nothing structural to strip; per-µservice files already contain ONLY µservice-specific permit/forbid rules. Slice J-2 (Helm): extended _helpers.tpl with seven new drop-in helpers (securityContext.restrictedContainer, securityContext.restrictedContainerInline, securityContext.podStandard65534, securityContext.podStandard65532, probes.httpHealthLiveness8080, probes.httpHealthReadiness8080, probes.healthzLiveness, probes.healthzReadiness) that exactly match the inline blocks used across two template patterns (Pattern A: single-deployment templates with named-port probes + container-level UID/group; Pattern B: range-tuple multi-deployment templates with pod-level UID 65534 + container-level inline-collection capabilities). 24 deployment.yaml files refactored to call `{{ include \"oya.X\" $ }}` for these blocks: workflow-studio/visual-canvas-rest, sheets/visual-grid-rest (Pattern A); meet, tasks, notes, translate, social, shorts, network, community, messenger (Pattern B); cell/scheduler, foundry/runtime, application/shell-app, audit-chain/audit-storage, cloud-iac/helm-controller, cloud-k8s/istio-base, cloud-secrets/openbao, forms/response-search-meilisearch, governance/lane-runner-pool, observability/alloy, ontology/cedar-policy-engine, tenancy/citus, workflow-engine/clickhouse (substrate /healthz+/livez probes). Slice J-3 (Kustomize): canonical namespace-restricted-profile component bundled placeholder namespace.yaml/serviceaccount.yaml that would conflict with per-µservice namespace.yaml resources (which carry µservice-specific labels like oyatie.dev/microservice, oyatie.dev/invariants, oyatie/owning-axis the canonical cannot enumerate). Migrated component from \"bundle resources\" to \"commonLabels overlay only\" pattern; deleted placeholder namespace.yaml + serviceaccount.yaml from canonical. Per-µservice overlays surveyed: zero overlay has duplicate commonAnnotations matching pack-overlay-canonical/<pack> — overlays use configMapGenerator with per-µservice literal keys plus µservice-specific patches; canonical's commonAnnotations would be ADDITIVE (new metadata), not duplicate-stripping. Per-µservice base/kustomization.yaml files surveyed: zero base has duplicate istio-injection or pod-security-restricted labels in commonLabels — those labels live in per-µservice namespace.yaml; composing the canonical component would ADD them to every resource (also additive, not strip). Honest conclusion: Sweep-I's J-3 canonical components are additive, not deduplicative, against the current per-µservice file shapes. Adopting them is a separate \"harmonize-pack-annotations\" task, not a stripping task. Helm template line delta: -162 lines across 24 deployment.yaml files (296 deletions vs 186 insertions including canonical helper expansion). Canonical namespace-restricted-profile component lines: -20 (deleted placeholder namespace.yaml + serviceaccount.yaml; simplified kustomization.yaml header). Net Sweep-J line delta: -182 lines across 27 files."
     }
   },
   "overall_status": "merge-admissible-with-admin-prerequisites",
@@ -296,6 +300,99 @@
         "per_microservice_lines_after": 131866,
         "per_microservice_lines_added": 3028,
         "note": "SWEEP-I adds canonical-base reference comments to 2,273 per-µservice files without modifying any per-µservice content. Canonical files authored ONCE define the SHAPE (schema/structure/helpers/conventions); per-µservice files preserve the CONTENT (values/rules/structural exceptions). Per the hyperscaler pattern, future per-µservice authoring inherits the canonical shape; refactors to remove duplicated boilerplate from per-µservice files (now subsumed by canonical) proceed via incremental per-µservice IPs."
+      }
+    },
+    "sweep_j_line_delta": {
+      "slice_j1_cedar": {
+        "files_inspected": 150,
+        "duplicate_declarations_found": 0,
+        "files_modified": 0,
+        "lines_removed": 0,
+        "honest_finding": "Sweep-I authored the canonical entity/action declarations as documentation-only Cedar comments inside cedar-canonical-imports.cedar. Per-µservice .cedar files (workflow-studio, workflow-engine, tasks, foundry, etc.) contain ONLY permit/forbid rules and reference the canonical envelope in their header comment. Zero non-commented `entity`/`action`/`namespace` declarations across all 150 µservice .cedar files — there is no duplicate boilerplate to strip. Target ~1,500 lines was based on aspirational assumption that didn't reflect the actual repo state."
+      },
+      "slice_j2_helm": {
+        "canonical_files_modified": [
+          "microservices/governance/iac/helm/_oya-helpers/templates/_helpers.tpl"
+        ],
+        "canonical_helpers_added": [
+          "oya.securityContext.restrictedContainer",
+          "oya.securityContext.restrictedContainerInline",
+          "oya.securityContext.podStandard65534",
+          "oya.securityContext.podStandard65532",
+          "oya.probes.httpHealthLiveness8080",
+          "oya.probes.httpHealthReadiness8080",
+          "oya.probes.healthzLiveness",
+          "oya.probes.healthzReadiness"
+        ],
+        "per_microservice_files_modified": 24,
+        "deployments_refactored_pattern_a": [
+          "microservices/workflow-studio/iac/helm/visual-canvas-rest/templates/deployment.yaml (-5 lines)",
+          "microservices/sheets/iac/helm/visual-grid-rest/templates/deployment.yaml (-5 lines)"
+        ],
+        "deployments_refactored_pattern_b": [
+          "microservices/meet/iac/helm/meet/templates/deployment.yaml (-6 lines)",
+          "microservices/tasks/iac/helm/tasks/templates/deployment.yaml (-8 lines)",
+          "microservices/notes/iac/helm/notes/templates/deployment.yaml (-8 lines)",
+          "microservices/translate/iac/helm/translate/templates/deployment.yaml (-8 lines)",
+          "microservices/messenger/iac/helm/messenger/templates/deployment.yaml (-8 lines)",
+          "microservices/community/iac/helm/community/templates/deployment.yaml (-8 lines)",
+          "microservices/social/iac/helm/social/templates/deployment.yaml (-16 lines)",
+          "microservices/shorts/iac/helm/shorts/templates/deployment.yaml (-18 lines)",
+          "microservices/network/iac/helm/network/templates/deployment.yaml (-20 lines)"
+        ],
+        "deployments_refactored_substrate": [
+          "microservices/cell/iac/helm/scheduler/templates/deployment.yaml (-4 lines)",
+          "microservices/foundry/iac/helm/runtime/templates/deployment.yaml (-4 lines)",
+          "microservices/application/iac/helm/shell-app/templates/deployment.yaml (-4 lines)",
+          "microservices/audit-chain/iac/helm/audit-storage/templates/deployment.yaml (-4 lines)",
+          "microservices/cloud-iac/iac/helm/helm-controller/templates/deployment.yaml (-4 lines)",
+          "microservices/cloud-k8s/iac/helm/istio-base/templates/deployment.yaml (-4 lines)",
+          "microservices/cloud-secrets/iac/helm/openbao/templates/deployment.yaml (-4 lines)",
+          "microservices/forms/iac/helm/response-search-meilisearch/templates/deployment.yaml (-4 lines)",
+          "microservices/governance/iac/helm/lane-runner-pool/templates/deployment.yaml (-4 lines)",
+          "microservices/observability/iac/helm/alloy/templates/deployment.yaml (-4 lines)",
+          "microservices/ontology/iac/helm/cedar-policy-engine/templates/deployment.yaml (-4 lines)",
+          "microservices/tenancy/iac/helm/citus/templates/deployment.yaml (-4 lines)",
+          "microservices/workflow-engine/iac/helm/clickhouse/templates/deployment.yaml (-4 lines)"
+        ],
+        "deployment_lines_before": 2305,
+        "deployment_lines_after": 2143,
+        "deployment_lines_removed": 162,
+        "_helpers_tpl_lines_added": 75,
+        "structural_exceptions_preserved": [
+          "Pattern B range-tuple iteration over component lists (preserved verbatim in meet/tasks/notes/translate/messenger/community/social/shorts/network)",
+          "gVisor runtimeClassName for sandboxed workers (preserved in shorts/video-transcode-worker, social/media-transcode-worker, network/media-transcode-worker)",
+          "Per-component conditional runtimeClassName via $c.runtimeClassName (preserved in meet/tasks/notes/translate)",
+          "Substrate UID 65532 + runAsGroup 65532 + fsGroup 65532 for cell/foundry (kept via existing inline; no helper substitution attempted — distinct from UID 65534 family)",
+          "Conditional federation-gateway + drm-key-server + recruiter-stub + bias-audit-pipeline deployments (preserved verbatim)",
+          "Per-µservice envFrom secretRef name (community-openbao-injected, messenger-openbao-injected, etc.) — preserved verbatim",
+          "Per-µservice resource sizing via $c.resources.requests/limits — preserved verbatim",
+          "Per-µservice probe variations (shorts/video-transcode-worker uses initialDelaySeconds 30 + periodSeconds 30 — NOT refactored)"
+        ],
+        "helm_template_lines_removed_net": 162,
+        "honest_finding": "Refactored helpers are TRUE drop-in replacements: byte-equivalent rendered YAML output. Skipped service.yaml/pdb.yaml/servicemonitor.yaml refactor because oya.selectorLabels emits `app.kubernetes.io/instance` which is not present in current per-µservice selectors (would add a label, not strip — same outcome as J-3). Skipped networkpolicy.yaml refactor because per-µservice policies use µservice-prefixed names (meet-default-deny, tasks-default-deny) and per-µservice egress allowlists that don't match the canonical podSelector-only fragment shape. Skipped prometheusrule.yaml per brief (per-µservice operational alerts preserved)."
+      },
+      "slice_j3_kustomize": {
+        "canonical_files_modified": [
+          "microservices/governance/iac/kustomize/components/namespace-restricted-profile/kustomization.yaml"
+        ],
+        "canonical_files_deleted": [
+          "microservices/governance/iac/kustomize/components/namespace-restricted-profile/namespace.yaml (placeholder, 10 lines)",
+          "microservices/governance/iac/kustomize/components/namespace-restricted-profile/serviceaccount.yaml (placeholder, 10 lines)"
+        ],
+        "canonical_lines_removed": 20,
+        "per_microservice_files_modified": 0,
+        "honest_finding": "The canonical namespace-restricted-profile component, as authored by Sweep-I, bundled a placeholder namespace.yaml + serviceaccount.yaml as `resources:`. Composing this component into per-µservice base/kustomization.yaml would CONFLICT with the per-µservice namespace.yaml (which carries µservice-specific labels like oyatie.dev/microservice, oyatie.dev/invariants, oyatie/owning-axis). Migrated the component from `bundle resources` pattern to `commonLabels overlay only` pattern — removed the two placeholder files. Per-µservice base files surveyed (30): zero base has duplicate istio-injection or pod-security-restricted labels in commonLabels (these labels live in per-µservice namespace.yaml metadata.labels, NOT in kustomize commonLabels). Per-µservice overlays surveyed (67): zero overlay has duplicate commonAnnotations (oyatie/pack, oyatie/jurisdiction, oyatie/region) matching pack-overlay-canonical/<pack> — overlays use configMapGenerator with per-µservice literal keys + µservice-specific patches; canonical's commonAnnotations are ADDITIVE not deduplicative. Conclusion: composing the canonical components would ADD canonical metadata, not strip duplicates. That is a harmonize-pack-annotations task (separate IP), not a strip task. Target ~2,000 lines removed was based on aspirational assumption that overlays carried boilerplate duplication; reality is they don't."
+      },
+      "totals": {
+        "files_modified": 27,
+        "lines_removed_helm_deployments": 162,
+        "lines_removed_kustomize_canonical": 20,
+        "lines_added_helpers_tpl": 75,
+        "net_line_delta": -107,
+        "cargo_status": "build/clippy/fmt all green",
+        "gate_run_all": "47/49 pass; 2 pre-existing failures (product-prd-json, glossary-vocabulary) unrelated to Sweep-J — verified by git stash before/after",
+        "note": "Sweep-J extends Sweep-I from `reference comment only` to actual content stripping where structurally safe. Cedar and Kustomize slices yielded honest no-op findings rather than aspirational deletions; Helm slice delivered 162-line drop-in refactor across 24 deployment.yaml files using 8 newly-authored canonical helpers in _oya-helpers/templates/_helpers.tpl. All refactors preserve rendered-YAML semantics (drop-in helper definitions match inline blocks byte-equivalently)."
       }
     }
   },

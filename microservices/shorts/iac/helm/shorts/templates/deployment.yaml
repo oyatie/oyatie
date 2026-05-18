@@ -1,4 +1,4 @@
-# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
 {{- range tuple "websocketGateway" "videoUploadRest" "videoStorageRest" "thumbnailGenerationWorker" "audioTrackLibraryRest" "audioAttributionWorker" "videoCompositionWorker" "feedTimeline" "watchTimeTrackingWorker" "likeShareCommentWorker" "repostStitchDuetWorker" "hashtagWorker" "trendingWorker" "notificationsWorker" "contentModerationWorker" "copyrightClaimWorker" "accessibilityCaptionsWorker" "creatorAnalyticsWorker" "ageGateRest" "parentalControlsRest" }}
 {{- $c := index $.Values . }}
 ---
@@ -32,9 +32,7 @@ spec:
       runtimeClassName: {{ $c.sandbox }}  # gVisor or Kata Container for transcode/composition/moderation workers
       {{- end }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        seccompProfile: {type: RuntimeDefault}
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: shorts-{{ . | kebabcase }}
           image: "{{ $.Values.global.imageRegistry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
@@ -51,20 +49,14 @@ spec:
             requests: {{- toYaml $c.resources.requests | nindent 14 }}
             limits: {{- toYaml $c.resources.limits | nindent 14 }}
           livenessProbe:
-            httpGet: {path: /health, port: 8080}
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            {{- include "oya.probes.httpHealthLiveness8080" $ | nindent 12 }}
           readinessProbe:
-            httpGet: {path: /ready, port: 8080}
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            {{- include "oya.probes.httpHealthReadiness8080" $ | nindent 12 }}
           envFrom:
             - secretRef:
                 name: shorts-openbao-injected
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities: {drop: ["ALL"]}
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
 {{- end }}
 
 # =============================================================================
@@ -100,9 +92,7 @@ spec:
       serviceAccountName: shorts-video-transcode-worker
       runtimeClassName: {{ .Values.videoTranscodeWorker.sandbox }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        seccompProfile: {type: RuntimeDefault}
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: shorts-video-transcode-worker
           image: "{{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -124,9 +114,7 @@ spec:
             - secretRef:
                 name: shorts-openbao-injected
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities: {drop: ["ALL"]}
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
       volumes:
         - name: ffmpeg-scratch
           ephemeral:
@@ -170,9 +158,7 @@ spec:
     spec:
       serviceAccountName: shorts-drm-key-server
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        seccompProfile: {type: RuntimeDefault}
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: shorts-drm-key-server
           image: "{{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -189,9 +175,7 @@ spec:
             - secretRef:
                 name: shorts-openbao-injected
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities: {drop: ["ALL"]}
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
 {{- end }}
 
 # =============================================================================
@@ -223,9 +207,7 @@ spec:
     spec:
       serviceAccountName: shorts-federation-gateway
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        seccompProfile: {type: RuntimeDefault}
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
       containers:
         - name: shorts-federation-gateway
           image: "{{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"

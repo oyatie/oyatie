@@ -39,7 +39,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end }}
 
-{{/* oya.securityContext.restricted — pod-security-standards "restricted" profile */}}
+{{/* oya.securityContext.restricted — combined pod+container pod-security-standards "restricted" profile (legacy alias; new uses split below) */}}
 {{- define "oya.securityContext.restricted" -}}
 allowPrivilegeEscalation: false
 readOnlyRootFilesystem: true
@@ -48,6 +48,47 @@ runAsUser: 65534
 runAsGroup: 65534
 capabilities:
   drop: [ALL]
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
+{{/* oya.securityContext.restrictedContainer — container-level restricted profile.
+     Drop-in for per-µservice container securityContext blocks that carry:
+       allowPrivilegeEscalation: false
+       readOnlyRootFilesystem: true
+       runAsNonRoot: true
+       runAsUser: 65534
+       capabilities.drop: [ALL]
+     Used by every "nobody UID" µservice (workflow-studio, sheets, etc.). */}}
+{{- define "oya.securityContext.restrictedContainer" -}}
+allowPrivilegeEscalation: false
+readOnlyRootFilesystem: true
+runAsNonRoot: true
+runAsUser: 65534
+capabilities:
+  drop: [ALL]
+{{- end }}
+
+{{/* oya.securityContext.restrictedContainerInline — terse container-level restricted profile (matches inline form: `capabilities: {drop: ["ALL"]}`). */}}
+{{- define "oya.securityContext.restrictedContainerInline" -}}
+readOnlyRootFilesystem: true
+allowPrivilegeEscalation: false
+capabilities: {drop: ["ALL"]}
+{{- end }}
+
+{{/* oya.securityContext.podStandard65534 — pod-level securityContext for substrate µservices that use the "nobody" UID. */}}
+{{- define "oya.securityContext.podStandard65534" -}}
+runAsNonRoot: true
+runAsUser: 65534
+seccompProfile: {type: RuntimeDefault}
+{{- end }}
+
+{{/* oya.securityContext.podStandard65532 — pod-level securityContext for cell/foundry substrate µservices. */}}
+{{- define "oya.securityContext.podStandard65532" -}}
+runAsNonRoot: true
+runAsUser: 65532
+runAsGroup: 65532
+fsGroup: 65532
 seccompProfile:
   type: RuntimeDefault
 {{- end }}
@@ -140,7 +181,7 @@ policyTypes: [Ingress, Egress]
     burn_window: 3d
 {{- end }}
 
-{{/* oya.probes.standardLiveness — /health probe */}}
+{{/* oya.probes.standardLiveness — /health probe at named http port (legacy) */}}
 {{- define "oya.probes.standardLiveness" -}}
 httpGet:
   path: /health
@@ -150,7 +191,7 @@ timeoutSeconds: 3
 failureThreshold: 3
 {{- end }}
 
-{{/* oya.probes.standardReadiness — /ready probe */}}
+{{/* oya.probes.standardReadiness — /ready probe at named http port (legacy) */}}
 {{- define "oya.probes.standardReadiness" -}}
 httpGet:
   path: /ready
@@ -158,6 +199,34 @@ httpGet:
 periodSeconds: 5
 timeoutSeconds: 2
 failureThreshold: 2
+{{- end }}
+
+{{/* oya.probes.httpHealthLiveness8080 — drop-in: httpGet /health port 8080 + periodSeconds 10 (used by meet, tasks, notes, translate, social, shorts, sheets, forms, messenger, network, community, recordings) */}}
+{{- define "oya.probes.httpHealthLiveness8080" -}}
+httpGet: {path: /health, port: 8080}
+initialDelaySeconds: 10
+periodSeconds: 10
+{{- end }}
+
+{{/* oya.probes.httpHealthReadiness8080 — drop-in: httpGet /ready port 8080 + periodSeconds 5 */}}
+{{- define "oya.probes.httpHealthReadiness8080" -}}
+httpGet: {path: /ready, port: 8080}
+initialDelaySeconds: 5
+periodSeconds: 5
+{{- end }}
+
+{{/* oya.probes.healthzLiveness — substrate µservices (cell/foundry/etc.): /livez on metrics port */}}
+{{- define "oya.probes.healthzLiveness" -}}
+httpGet: {path: /livez, port: metrics}
+initialDelaySeconds: 15
+periodSeconds: 30
+{{- end }}
+
+{{/* oya.probes.healthzReadiness — substrate µservices (cell/foundry/etc.): /healthz on metrics port */}}
+{{- define "oya.probes.healthzReadiness" -}}
+httpGet: {path: /healthz, port: metrics}
+initialDelaySeconds: 5
+periodSeconds: 10
 {{- end }}
 
 {{/* oya.envFromOpenBao — renders OpenBao secret-reference env vars */}}
