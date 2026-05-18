@@ -1,0 +1,48 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: shorts-drm-license-issuance-latency
+  displayName: "shorts: DRM license issuance p95 ≤ 150ms (Widevine + FairPlay + PlayReady)"
+  labels:
+    microservice: shorts
+    bc: drm-stub
+    sli_class: latency
+    owner_team: axis-shorts + cloud-secrets + ops-security
+    pack_scope: all
+spec:
+  description: |
+    Time from POST /drm/license received to license blob in response. Covers
+    Widevine + FairPlay + PlayReady EME license-acquisition path per W3C EME
+    2017. Premium-tier-only gating enforced per ADR-SHORTS-0004; non-Premium
+    requests return 403 + are excluded from this SLI.
+    Reference: PRD §Performance NFR row 12 (DRM license issuance).
+  service: shorts
+  indicator:
+    metadata:
+      name: shorts-drm-license-issuance-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_shorts_drm_license_duration_seconds_bucket{le="0.15"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_shorts_drm_license_duration_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 DRM license issuance ≤ 150ms"
+  alertPolicies:
+    - alertPolicyRef: shorts-drm-license-fast-burn-1h-14x
+    - alertPolicyRef: shorts-drm-key-rotation-overdue-alert

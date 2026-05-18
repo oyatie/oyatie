@@ -5,7 +5,7 @@ doc_status: published
 
 # Oyatie — ADR Consolidation Plan
 
-> **Status:** Draft v0.1 — 2026-05-09. Authored per user directive: existing ADRs may be removed; the consolidated docs should point to NEW ADRs and consolidate old ones. This doc is the cleanup plan + the policy for how existing ADR-NNNN refs in the consolidated docs should be treated.
+> **Status:** Draft v0.1 — 2026-05-09. Authored per user directive: existing ADRs may be removed; the consolidated docs should point to NEW ADRs and consolidate old ones. This doc is the cleanup plan + the policy for how existing ADR-#### refs in the consolidated docs should be treated.
 > **Owner:** `crew-adr-promotion` + `council-architecture`.
 > **Companion:** [ADR-INDEX.md](ADR-INDEX.md), [DOC-CATALOG.md](DOC-CATALOG.md).
 
@@ -27,11 +27,11 @@ The cleanup converts the 127-ADR corpus to a smaller, cleaner New ADR Set that r
 
 **Effective immediately:**
 
-1. **New consolidated docs SHOULD prefer "ADR cluster" or "new ADR (TBD)" references** over specific legacy ADR-NNNN numbers, until the cleanup completes.
+1. **New consolidated docs SHOULD prefer "ADR cluster" or "new ADR (TBD)" references** over specific legacy ADR-#### numbers, until the cleanup completes.
 2. **Where a specific legacy ADR is cited and remains authoritative**, append `(legacy; subject to consolidation)`.
 3. **Where a specific legacy ADR is cited and is superseded by the 2026-05-09 reframing**, append `(legacy; SUPERSEDED by drafted ADR-0050-<topic>)`.
 4. **Drafted new ADRs** use the placeholder number `ADR-0050` until `crew-adr-promotion` assigns a final number; the slug names them.
-5. **Doc-catalog validator** `oya-foundry-fitness-adr-citation` warns on bare ADR-NNNN refs without a status annotation.
+5. **Doc-catalog validator** `oya-foundry-fitness-adr-citation` warns on bare ADR-#### refs without a status annotation.
 
 ## 3. The new ADR set (planned consolidation)
 
@@ -111,7 +111,7 @@ For each consolidation:
 ## 6. Authority during transition
 
 - This `ADR-CONSOLIDATION-PLAN.md` is the authoritative source on **which ADR is current** for any given decision.
-- Where a legacy ADR-NNNN is cited in the consolidated docs, the citation is *current as of the doc's last edit* but may be eclipsed by a newer ADR drafted in this plan.
+- Where a legacy ADR-#### is cited in the consolidated docs, the citation is *current as of the doc's last edit* but may be eclipsed by a newer ADR drafted in this plan.
 - The `crew-adr-promotion` team produces a weekly diff: which legacy ADRs were superseded this week + what the consolidated docs need to update.
 
 ## 7. Anti-pattern

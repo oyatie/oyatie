@@ -1,0 +1,115 @@
+{
+  "$schema": "https://oyatie.dev/schemas/eu-ai-act-risk-class-registry.json",
+  "registry_version": "1.0",
+  "canonical_authority": "ADR-0064 + ADR-0140 (retired per ADR-0145) EU AI Act compliance",
+  "regulation": "EU AI Act 2024/1689",
+  "consumer_pattern": "microservices/<ms>/capabilities/{T0,T1,T2}.yaml references entries by archetype",
+  "_doc": "Per-µservice capability YAMLs reference a registry entry to derive their EU AI Act risk class + Annex III mapping. Canonical mapping by capability archetype.",
+  "archetypes": {
+    "suggest-readonly-recommendation": {
+      "tier_archetype": "T0",
+      "risk_class": "minimal-risk-ai-system",
+      "annex_iii_section": "n/a",
+      "arts_applicable": ["Art. 50 transparency to users"],
+      "regulator_obligations": [
+        "User notification that output is AI-generated"
+      ],
+      "human_oversight_required": "user-reads-and-decides",
+      "example_capabilities": ["t0-suggest"]
+    },
+    "assist-advisory-draft": {
+      "tier_archetype": "T1",
+      "risk_class": "limited-risk-ai-system",
+      "annex_iii_section": "Annex III §10 (advisory drafting)",
+      "arts_applicable": [
+        "Art. 9 risk management",
+        "Art. 13 transparency",
+        "Art. 14 human oversight",
+        "Art. 50 transparency to users"
+      ],
+      "regulator_obligations": [
+        "Risk management system",
+        "Transparency to user (AI-generated; review before accept)",
+        "Human oversight (explicit accept; never auto-save)"
+      ],
+      "human_oversight_required": "explicit-accept-by-human",
+      "example_capabilities": ["t1-assist"]
+    },
+    "auto-deterministic-action": {
+      "tier_archetype": "T2",
+      "risk_class": "limited-risk-ai-system",
+      "annex_iii_section": "Annex III §10 (work-management)",
+      "arts_applicable": [
+        "Art. 9 risk management",
+        "Art. 13 transparency",
+        "Art. 14 human oversight",
+        "Art. 50 transparency",
+        "Art. 60 post-market monitoring"
+      ],
+      "regulator_obligations": [
+        "Risk management system",
+        "Transparency to user",
+        "Human-in-the-loop supervisor with kill-switch",
+        "Post-market monitoring + adverse event log"
+      ],
+      "human_oversight_required": "human-supervises-can-pause-or-rollback",
+      "example_capabilities": ["t2-auto"]
+    },
+    "auto-employment-decisioning": {
+      "tier_archetype": "T2",
+      "risk_class": "high-risk-ai-system",
+      "annex_iii_section": "Annex III §4 (employment)",
+      "arts_applicable": [
+        "Art. 6 high-risk classification",
+        "Art. 9 risk management",
+        "Art. 10 data governance",
+        "Art. 13 transparency",
+        "Art. 14 human oversight",
+        "Art. 15 accuracy, robustness, cybersecurity",
+        "Art. 16-29 obligations of providers + deployers",
+        "Art. 43 conformity assessment",
+        "Art. 60 post-market monitoring"
+      ],
+      "regulator_obligations": [
+        "Conformity assessment",
+        "Quality management system",
+        "Risk management",
+        "Data governance + training data quality",
+        "Transparency + human oversight",
+        "Post-market monitoring",
+        "Notified body registration"
+      ],
+      "human_oversight_required": "two-person-rule-with-deterministic-override",
+      "example_capabilities": ["t2-auto-hiring-decision (NOT in scope)"]
+    },
+    "auto-critical-infrastructure": {
+      "tier_archetype": "T2",
+      "risk_class": "high-risk-ai-system",
+      "annex_iii_section": "Annex III §2 (critical infrastructure)",
+      "arts_applicable": [
+        "Art. 6 high-risk classification",
+        "Art. 14 human oversight",
+        "Art. 15 accuracy + robustness",
+        "Art. 60 post-market monitoring"
+      ],
+      "regulator_obligations": [
+        "Conformity assessment",
+        "Human oversight with deterministic override",
+        "Critical-infrastructure incident reporting"
+      ],
+      "human_oversight_required": "deterministic-fail-safe-rollback",
+      "example_capabilities": ["t2-auto-grid-scheduling (NOT in scope)"]
+    },
+    "prohibited-manipulation": {
+      "tier_archetype": "(prohibited)",
+      "risk_class": "prohibited",
+      "annex_iii_section": "Art. 5 (prohibited practices)",
+      "arts_applicable": ["Art. 5 prohibited AI practices"],
+      "regulator_obligations": [
+        "MUST NOT be deployed in EU"
+      ],
+      "human_oversight_required": "(N/A — prohibited)",
+      "example_capabilities": []
+    }
+  }
+}

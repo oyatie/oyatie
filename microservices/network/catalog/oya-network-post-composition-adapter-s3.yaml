@@ -1,0 +1,22 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-network-post-composition-adapter-s3
+role: adapter
+backend: s3
+context: network
+plane: data
+slo: hero-product
+contracts_consumed: [MediaBlobStore, DocumentBlobStore (from oya-network-post-composition-kernel)]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0105, ADR-0135, ADR-0131]
+data_classes_owned: [BEHAVIORAL_USER_CONTENT, PII_IDENTIFYING, AUDIT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
+backend_constraints:
+  s3_compatible: true
+  sse_kms: tenant-DEK
+  quarantine_bucket_pattern: "oya-network-quarantine-<pack>"
+context_kind_invariant: Professional

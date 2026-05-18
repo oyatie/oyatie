@@ -40,7 +40,7 @@ handoffs, supply-chain orchestration, and delivery logistics.
    route through Workflow. Products emit typed events; Workflow routes them via
    state machines + DAGs; consumers subscribe. Direct product-to-product calls
    are prohibited (LEAN-A2). This is the load-bearing architectural rule
-   (per `feedback_workflow_objectgraph_adapter_layer.md`).
+   (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`).
 
 2. **End-user product** (B2B SaaS): tenant teams author, test, deploy, and
    monitor their own workflows via the visual Studio editor. No engineering
@@ -448,10 +448,10 @@ Sharding:
 
 | # | Question | Owner | Target |
 |---|---|---|---|
-| 1 | Engine durable-execution model: bespoke Postgres-backed state machine vs embed Temporal SDK? | council-architecture | ADR-XXXX (highest priority) |
+| 1 | Engine durable-execution model: bespoke Postgres-backed state machine vs embed Temporal SDK? | council-architecture | ADR-#### (highest priority) |
 | 2 | Studio canvas tech: Leptos custom WebGL canvas vs SVG-based vs third-party (e.g. egui via WASM)? | council-architecture | M02/P01 |
 | 3 | Workflow DSL format: YAML (n8n-style) vs JSON IR vs Rust proc-macro DSL? | council-architecture | M02/P01 |
-| 4 | Plugin SDK distribution: WASM only, or also native dylib for internal nodes? | council-architecture | ADR-XXXX |
+| 4 | Plugin SDK distribution: WASM only, or also native dylib for internal nodes? | council-architecture | ADR-#### |
 | 5 | Kafka KRaft cluster: one per cell (recommended) or shared across cells? | council-infrastructure | M02/P02 |
 
 ---

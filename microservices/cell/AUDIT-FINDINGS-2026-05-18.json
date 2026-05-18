@@ -1,0 +1,51 @@
+{
+  "pack": "cell",
+  "scope_tier": "mature",
+  "scanned_files": 105,
+  "excluded_files": 2,
+  "violations": {
+    "redis_engine": {
+      "severity": "hard",
+      "file_hits": [
+        {
+          "file": "microservices/cell/PRD.md",
+          "hits": [
+            {
+              "line": 58,
+              "excerpt": "| Cell-assignment lookup latency (cache hit) | \u2264 5 ms | \u2264 20 ms | \u2264 50 ms | Postgres + Redis-class cache |"
+            }
+          ],
+          "hits_total": 1
+        }
+      ],
+      "match_count": 1
+    }
+  },
+  "ip_files_thin": [
+    {
+      "file": "microservices/cell/IP-012-cell-registry-events-emitter.md",
+      "lines": 82
+    },
+    {
+      "file": "microservices/cell/IP-006-cell-boundary-gate-lane.md",
+      "lines": 89
+    },
+    {
+      "file": "microservices/cell/IP-014-branch-protection-gate-registration.md",
+      "lines": 95
+    },
+    {
+      "file": "microservices/cell/IP-001-host-pool-iac.md",
+      "lines": 88
+    },
+    {
+      "file": "microservices/cell/IP-011-host-pool-drain-primitive.md",
+      "lines": 94
+    },
+    {
+      "file": "microservices/cell/IP-015-hyperscaler-claim-gate.md",
+      "lines": 92
+    }
+  ],
+  "verdict": "HARD_VIOLATIONS"
+}

@@ -17,8 +17,9 @@ name = "oya-mcp-gateway"
 transport = "Stdio"
 command_or_url = "$WORKSPACE_ROOT/target/release/oya-mcp-gateway"
 
-[[permissions]]
-rule = "Bash(grit *)"
+# Stale `Bash(grit *)` permission removed 2026-05-18 — grit pipeline retired per ADR-0116 +
+# superseded by oya vcs canonical (feedback_oya_vcs_canonical_2026_05_16; cargo run -p oya-dev-cli -- vcs ...).
+# Canonical VCS primitive is `oya vcs`; Codex-launched supervisors invoke it via cargo, no special permission rule needed.
 
 [[allowed_tools]]
 name = "Read"

@@ -45,7 +45,7 @@ pub(crate) fn parse_product_prd_json_validate_args(
             }
             other => {
                 return Err(format!(
-                    "product-prd-json: unknown flag {other:?}; usage: oya gate validate product-prd-json [--repo-root <.>] [--product <specs/products/<id>.json>]..."
+                    "product-prd-json: unknown flag {other:?}; usage: oya gate validate product-prd-json [--repo-root <.>] [--product <specs/microservices/<id>.json>]..."
                 ));
             }
         }
@@ -60,7 +60,11 @@ pub(crate) fn validate_product_prd_json_gate(
     let started = Instant::now();
     let repo_root = args.repo_root;
     let product_paths = if args.product_paths.is_empty() {
-        collect_product_json_paths(&repo_root.join("specs/products"))?
+        // Per ADR-0131 specs/products → specs/microservices flatten (2026-05-18).
+        // We retain a fallback scan of specs/products/ for the transition window
+        // (the legacy directory now holds only RETIREMENT.md and will be removed
+        // in a follow-up cleanup IP); the new canonical home is specs/microservices/.
+        collect_product_json_paths(&repo_root.join("specs/microservices"))?
     } else {
         args.product_paths
             .iter()
@@ -69,7 +73,7 @@ pub(crate) fn validate_product_prd_json_gate(
     };
 
     if product_paths.is_empty() {
-        return Err("no product PRD JSON files found under specs/products".to_string());
+        return Err("no product PRD JSON files found under specs/microservices".to_string());
     }
 
     let root_hub_paths = load_root_hub_product_paths(&repo_root)?;
@@ -77,21 +81,32 @@ pub(crate) fn validate_product_prd_json_gate(
     let mut acceptance_criteria_checked = 0usize;
     let mut metrics_checked = 0usize;
     let mut root_hub_links_checked = 0usize;
+    let mut products_checked = 0usize;
 
     for path in &product_paths {
+        // Skip non-PRD machine-readable specs that happen to live under
+        // specs/microservices/ — e.g., Microservice-Consolidation-Spec
+        // (spec_id starts with MSC-) per ADR-0136 foundry consolidation.
+        if !is_prd_spec_file(path) {
+            continue;
+        }
         match validate_one_product(path, &repo_root, &root_hub_paths) {
             Ok(report) => {
+                products_checked += 1;
                 acceptance_criteria_checked += report.acceptance_criteria_checked;
                 metrics_checked += report.metrics_checked;
                 root_hub_links_checked += 1;
             }
-            Err(mut product_errors) => errors.append(&mut product_errors),
+            Err(mut product_errors) => {
+                products_checked += 1;
+                errors.append(&mut product_errors);
+            }
         }
     }
 
     if errors.is_empty() {
         Ok(ProductPrdJsonReport {
-            products_checked: product_paths.len(),
+            products_checked,
             acceptance_criteria_checked,
             metrics_checked,
             root_hub_links_checked,
@@ -100,6 +115,20 @@ pub(crate) fn validate_product_prd_json_gate(
     } else {
         Err(errors.join("\n"))
     }
+}
+
+fn is_prd_spec_file(path: &Path) -> bool {
+    let Ok(content) = std::fs::read_to_string(path) else {
+        return false;
+    };
+    let Ok(json) = serde_json::from_str::<Value>(&content) else {
+        return false;
+    };
+    json.get("_meta")
+        .and_then(|m| m.get("spec_id"))
+        .and_then(Value::as_str)
+        .map(|sid| sid.starts_with("PRD-"))
+        .unwrap_or(false)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -458,6 +487,14 @@ fn collect_json_recursive(root: &Path, out: &mut Vec<PathBuf>) -> Result<(), Str
         if path.is_dir() {
             collect_json_recursive(&path, out)?;
         } else if path.extension().and_then(|ext| ext.to_str()) == Some("json") {
+            // Skip meta-files inside specs/microservices/ that are not PRD specs:
+            //   manifest-schema.json  — JSON Schema for per-µservice manifest.json
+            //   manifests-index.json  — Per-µservice manifest registry index
+            if let Some(file_name) = path.file_name().and_then(|n| n.to_str())
+                && matches!(file_name, "manifest-schema.json" | "manifests-index.json")
+            {
+                continue;
+            }
             out.push(path);
         }
     }
@@ -480,7 +517,8 @@ fn load_root_hub_product_paths(repo_root: &Path) -> Result<BTreeSet<String>, Str
     let mut paths = BTreeSet::new();
     for entry in entries.values() {
         if let Some(current_path) = entry.get("current_path").and_then(Value::as_str)
-            && current_path.starts_with("/specs/products/")
+            && (current_path.starts_with("/specs/products/")
+                || current_path.starts_with("/specs/microservices/"))
         {
             paths.insert(current_path.to_string());
         }
@@ -497,12 +535,21 @@ fn expected_product_id(repo_root: &Path, path: &Path) -> Option<String> {
     let file = components.pop()?;
     let stem = file.strip_suffix(".json")?;
     for index in 0..components.len().saturating_sub(1) {
-        if components[index] == "specs" && components[index + 1] == "products" {
-            return match components.get(index + 2..) {
-                Some([]) => Some(stem.to_string()),
-                Some([family]) => Some(format!("{family}-{stem}")),
-                _ => None,
-            };
+        if components[index] == "specs" {
+            match components[index + 1] {
+                // Per ADR-0131 per-µservice flat layout: under specs/microservices/
+                // every spec is a single-concern flat file; the product_id matches
+                // the filename stem (suite/bundle nesting is retired by ADR-0132).
+                "microservices" => return Some(stem.to_string()),
+                "products" => {
+                    return match components.get(index + 2..) {
+                        Some([]) => Some(stem.to_string()),
+                        Some([family]) => Some(format!("{family}-{stem}")),
+                        _ => None,
+                    };
+                }
+                _ => {}
+            }
         }
     }
     None

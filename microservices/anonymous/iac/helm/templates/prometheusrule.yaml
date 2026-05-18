@@ -1,0 +1,72 @@
+{{- if .Values.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "oya-anonymous.fullname" . }}
+  labels:
+    {{- include "oya-anonymous.labels" . | nindent 4 }}
+    release: prometheus-stack
+spec:
+  groups:
+    - name: anonymous.invariants
+      interval: 30s
+      rules:
+        - alert: AnonymityLeakDetected
+          expr: sum(rate(oya_anonymous_correlation_attempt_total[5m])) > 0
+          for: 1m
+          labels:
+            severity: sev-0
+            invariant: I1
+          annotations:
+            summary: "Anonymity leak — I1 invariant violated"
+            runbook: "https://oyatie.dev/microservices/anonymous/runbooks/anonymity-leak-incident-response.md"
+        - alert: HardDeletePropagationSLOBreach
+          expr: |
+            (sum(rate(oya_anonymous_hard_delete_propagation_success_total[5m]))
+             / sum(rate(oya_anonymous_hard_delete_propagation_total[5m]))) < 1.0
+          for: 5m
+          labels:
+            severity: sev-1
+            invariant: I3
+          annotations:
+            summary: "Hard-delete propagation correctness below 100%"
+            runbook: "https://oyatie.dev/microservices/anonymous/runbooks/hard-delete-tombstone-corruption.md"
+        - alert: LegalProcessChainOfCustodyBreach
+          expr: |
+            (sum(rate(oya_anonymous_legal_process_disclosure_chain_of_custody_verified_total[1h]))
+             / sum(rate(oya_anonymous_legal_process_disclosure_executed_total[1h]))) < 1.0
+          for: 5m
+          labels:
+            severity: sev-0
+            invariant: I7
+          annotations:
+            summary: "Legal-process chain-of-custody integrity breach"
+            runbook: "https://oyatie.dev/microservices/anonymous/runbooks/legal-process-court-order-receipt.md"
+        - alert: AiAssessedLabelMissing
+          expr: |
+            sum(rate(oya_anonymous_moderation_verdict_total{ai_assessed_label_present="false"}[5m])) > 0
+          for: 1m
+          labels:
+            severity: sev-1
+            regulatory: "EU AI Act Art. 50"
+          annotations:
+            summary: "EU AI Act Art. 50 transparency label missing on classifier verdict"
+            runbook: "https://oyatie.dev/microservices/anonymous/runbooks/abuse-classifier-rollback.md"
+        - alert: FeedRenderLatencyBurnRate
+          expr: |
+            histogram_quantile(0.95, sum by (le)(rate(oya_anonymous_feed_render_latency_bucket[5m]))) > 0.25
+          for: 10m
+          labels:
+            severity: sev-2
+          annotations:
+            summary: "Feed render p95 > 250ms"
+        - alert: ThirdPartyTrackerEgressDetected
+          expr: |
+            sum(rate(oya_anonymous_third_party_tracker_egress_attempts_total[5m])) > 0
+          for: 1m
+          labels:
+            severity: sev-1
+            invariant: I4
+          annotations:
+            summary: "Third-party tracker egress attempt detected — I4 invariant violated"
+{{- end }}

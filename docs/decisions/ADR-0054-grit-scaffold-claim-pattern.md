@@ -89,7 +89,7 @@ The `Cargo.toml::workspace_members` primary path is **reserved for future adopti
 
 **Pros:** Would not require grit to index TOML fields, only to support a file-level lock primitive.
 
-**Cons:** **Not supported.** grit v0.3.0 does not expose a file-level lock primitive. All locks are symbol-scoped (`<file>::<Identifier>`). This is a missing feature, not a configuration gap. Filed as a follow-up upstream request (Follow-ups §2).
+**Cons:** **Not supported.** grit v0.3.0 does not expose a file-level lock primitive. All locks are symbol-scoped (`<file>::<Identifier>`). This is a missing feature, not a configuration gap. Filed as a successor-IP upstream request (Follow-ups §2).
 
 **Verdict:** Rejected. Does not exist in the current grit surface.
 

@@ -1,0 +1,317 @@
+{
+  "schema_version": "1.0",
+  "microservice": "social",
+  "version": "0.1.0",
+  "owner": "axis-social",
+  "bounded_contexts": [
+    {
+      "name": "social",
+      "description": "Bounded context 'social' within social (data plane)",
+      "crates": [
+        "oya-social-app",
+        "oya-social-content-moderation-adapter-clamav",
+        "oya-social-content-moderation-adapter-opswat",
+        "oya-social-content-moderation-kernel",
+        "oya-social-federation-gateway-adapter-activitypub",
+        "oya-social-feed-timeline-adapter-redis",
+        "oya-social-feed-timeline-kernel",
+        "oya-social-follow-graph-adapter-postgres",
+        "oya-social-follow-graph-kernel",
+        "oya-social-post-composition-adapter-ffmpeg",
+        "oya-social-post-composition-adapter-imagemagick",
+        "oya-social-post-composition-adapter-postgres",
+        "oya-social-post-composition-adapter-s3",
+        "oya-social-post-composition-kernel",
+        "oya-social-search-adapter-meilisearch",
+        "oya-social-user-profile-adapter-postgres",
+        "oya-social-user-profile-domain",
+        "oya-social-user-profile-kernel",
+        "oya-social-user-profile-rest"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "app",
+    "domain",
+    "kernel",
+    "rest"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/social/contracts/openapi/social.yaml"
+    ],
+    "asyncapi": [
+      "microservices/social/contracts/asyncapi/social-events.yaml"
+    ],
+    "proto": [
+      "microservices/social/contracts/proto/social.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "composer-suggest-and-hashtag-completion",
+      "file": "microservices/social/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "caption-and-alt-text-and-summary",
+      "file": "microservices/social/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "content-moderation-classifier-and-ranking-and-ads-stub",
+      "file": "microservices/social/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "social-content-policy-enforcement-correctness",
+      "target": "1.0",
+      "sli": "# Number of 5-minute windows with zero violations across all invariants",
+      "file": "microservices/social/slos/content-policy-enforcement-correctness.openslo.yaml"
+    },
+    {
+      "name": "social-feed-render-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_social_feed_render_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/social/slos/feed-render-latency.openslo.yaml"
+    },
+    {
+      "name": "social-follow-action-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_social_follow_action_duration_seconds_bucket{le=\"0.05\"}[5m]))",
+      "file": "microservices/social/slos/follow-action-latency.openslo.yaml"
+    },
+    {
+      "name": "social-moderation-classifier-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_social_moderation_classifier_duration_seconds_bucket{le=\"2\"}[5m]))",
+      "file": "microservices/social/slos/moderation-classifier-latency.openslo.yaml"
+    },
+    {
+      "name": "social-notification-fanout-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_social_notification_fanout_duration_seconds_bucket{le=\"2\",follower_tier=\"le_10k\"}[5m]))",
+      "file": "microservices/social/slos/notification-fanout-latency.openslo.yaml"
+    },
+    {
+      "name": "social-post-create-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_social_post_create_duration_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/social/slos/post-create-latency.openslo.yaml"
+    },
+    {
+      "name": "social-profile-render-availability",
+      "target": "0.9995",
+      "sli": "sum(rate(oya_social_profile_render_total{result=\"success\"}[5m]))",
+      "file": "microservices/social/slos/profile-render-availability.openslo.yaml"
+    },
+    {
+      "name": "social-search-people-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_social_search_people_duration_seconds_bucket{le=\"0.3\"}[5m]))",
+      "file": "microservices/social/slos/search-people-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac-bootstrap",
+      "title": "IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-001-iac-bootstrap.md"
+    },
+    {
+      "id": "IP-002-cargo-workspace-bootstrap",
+      "title": "IP-002: Cargo workspace bootstrap (per-µservice flat layout)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-002-cargo-workspace-bootstrap.md"
+    },
+    {
+      "id": "IP-003-user-profile-bc",
+      "title": "IP-003: user-profile BC end-to-end (kernel → domain → usecase → api → adapter-postgres → rest → sdk → app)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-003-user-profile-bc.md"
+    },
+    {
+      "id": "IP-004-follow-graph-bc",
+      "title": "IP-004: follow-graph BC (kernel → domain → usecase → adapter-postgres + worker + sdk)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-004-follow-graph-bc.md"
+    },
+    {
+      "id": "IP-005-post-composition-bc",
+      "title": "IP-005: post-composition BC (kernel → domain → usecase → adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest + worker + sdk + app)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-005-post-composition-bc.md"
+    },
+    {
+      "id": "IP-006-feed-timeline-bc",
+      "title": "IP-006: feed-timeline BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + rest + sdk + app)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-006-feed-timeline-bc.md"
+    },
+    {
+      "id": "IP-007-reactions-bc",
+      "title": "IP-007: reactions BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + sdk)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-007-reactions-bc.md"
+    },
+    {
+      "id": "IP-008-mentions-and-hashtags-bc",
+      "title": "IP-008: mentions + hashtags BCs (kernel → domain → usecase → adapter + worker + sdk)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-008-mentions-and-hashtags-bc.md"
+    },
+    {
+      "id": "IP-009-trending-topics-bc",
+      "title": "IP-009: trending-topics BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + sdk)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-009-trending-topics-bc.md"
+    },
+    {
+      "id": "IP-010-notifications-bc",
+      "title": "IP-010: notifications BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + websocket + sdk + app)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-010-notifications-bc.md"
+    },
+    {
+      "id": "IP-011-content-moderation-bc",
+      "title": "IP-011: content-moderation BC (kernel → domain → usecase → adapter-clamav + adapter-opswat + worker + sdk)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-011-content-moderation-bc.md"
+    },
+    {
+      "id": "IP-012-search-and-cedar-filter",
+      "title": "IP-012: search BC + Cedar-scoped filter (kernel → domain → usecase → adapter-meilisearch + worker + sdk)",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-012-search-and-cedar-filter.md"
+    },
+    {
+      "id": "IP-013-age-verification-and-profile-verification",
+      "title": "IP-013: age-verification + profile-verification BCs",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-013-age-verification-and-profile-verification.md"
+    },
+    {
+      "id": "IP-014-observability-slo",
+      "title": "IP-014: OpenSLO manifests + Grafana dashboards + per-pack runbooks wiring",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-014-observability-slo.md"
+    },
+    {
+      "id": "IP-015-hg-social-registration-and-branch-protection",
+      "title": "IP-015: HG-SOCIAL registration + branch protection wiring",
+      "acceptance_status": "ga",
+      "file": "microservices/social/IP-015-hg-social-registration-and-branch-protection.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0008",
+      "title": "Data Use Boundary",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0008-data-use-boundary.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0172",
+      "title": "Cqrs Read Replicas",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0172-cqrs-read-replicas.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.social.caption-and-alt-text-and-summary",
+      "oya.social.composer-suggest-and-hashtag-completion",
+      "oya.social.content-moderation-classifier-and-ranking-and-ads-stub"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

@@ -266,6 +266,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap_complete"
+version = "4.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0a7a9bfdb35811f9e59832f0f05975114d2251b415fb534108e6f34060fd772"
+dependencies = [
+ "clap",
+]
+
+[[package]]
 name = "clap_derive"
 version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -762,6 +771,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
+name = "lock_api"
+version = "0.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965"
+dependencies = [
+ "scopeguard",
+]
+
+[[package]]
 name = "log"
 version = "0.4.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -905,6 +923,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-check-a11y-discipline"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-active-artifact-contract"
 version = "0.1.0"
 
@@ -917,12 +939,35 @@ name = "oya-check-adr-index"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-adr-placeholders"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-aspirational-enforcement"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-audit-chain-seal-coverage"
 version = "0.1.0"
 
 [[package]]
 name = "oya-check-authority-cohesion"
 version = "0.1.0"
+
+[[package]]
+name = "oya-check-authz-tier-discipline"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-check-backup-retention-discipline"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-backup-kernel",
+]
 
 [[package]]
 name = "oya-check-benchmark"
@@ -944,6 +989,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-check-client-stack-discipline"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-codeowners-mirror"
 version = "0.1.0"
 
@@ -952,11 +1001,26 @@ name = "oya-check-cohesion"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-compliance-evidence-coverage"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-compliance-evidence-kernel",
+]
+
+[[package]]
+name = "oya-check-container-base-image"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-cost-budget"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
 ]
+
+[[package]]
+name = "oya-check-cursor-pagination-coverage"
+version = "0.1.0"
 
 [[package]]
 name = "oya-check-data-class"
@@ -968,6 +1032,14 @@ version = "0.1.0"
 
 [[package]]
 name = "oya-check-documentation-system"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-eu-ai-act-annex-iii-refusal"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-event-schema-versioning"
 version = "0.1.0"
 
 [[package]]
@@ -983,7 +1055,38 @@ name = "oya-check-honest-claims"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-i18n-coverage"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-i18n-kernel",
+]
+
+[[package]]
+name = "oya-check-iac-tier-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-id-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-idempotency-key-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-image-signing-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-layered-architecture-discipline"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-license-policy"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-metric-cardinality"
 version = "0.1.0"
 
 [[package]]
@@ -991,7 +1094,19 @@ name = "oya-check-mobile-native"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-olap-tier-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-ontology-projection-coverage"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-openapi-rest-route-parity"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-otel-trace-propagation"
 version = "0.1.0"
 
 [[package]]
@@ -1027,11 +1142,22 @@ name = "oya-check-readme-coverage"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-realtime-transport-tier"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-realtime-transport-kernel",
+]
+
+[[package]]
 name = "oya-check-release-pack"
 version = "0.1.0"
 
 [[package]]
 name = "oya-check-retired-vocabulary"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-rpo-rto-coverage"
 version = "0.1.0"
 
 [[package]]
@@ -1043,6 +1169,10 @@ name = "oya-check-runbook-index"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-saga-shape"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-shardability"
 version = "0.1.0"
 
@@ -1051,11 +1181,27 @@ name = "oya-check-slo-coverage"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-slsa-l3-evidence-grounded"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-statelessness"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-step-up-auth-coverage"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_yaml",
+]
+
+[[package]]
 name = "oya-check-supply-chain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-tenant-cost-labels-coverage"
 version = "0.1.0"
 
 [[package]]
@@ -1063,7 +1209,19 @@ name = "oya-check-typescript-workspace"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-vector-store-discipline"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-vendor-lockin-discipline"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-vendor-recency"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-wasm-runtime-discipline"
 version = "0.1.0"
 
 [[package]]
@@ -1338,6 +1496,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-collab-crdt-portability-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-connect-address-book-domain"
 version = "0.1.0"
 dependencies = [
@@ -1504,6 +1666,76 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-connector-adp-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-epic-fhir-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-gusto-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-netsuite-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-quickbooks-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-rippling-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-salesforce-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-slack-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-teams-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "oya-connector-workday-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
 name = "oya-data-boundary-kernel"
 version = "0.1.0"
 
@@ -1514,26 +1746,45 @@ dependencies = [
  "oya-application-app",
  "oya-audit-chain-domain",
  "oya-audit-chain-file-adapter",
+ "oya-check-a11y-discipline",
  "oya-check-active-artifact-contract",
  "oya-check-adr-citation",
  "oya-check-adr-index",
  "oya-check-aspirational-enforcement",
+ "oya-check-audit-chain-seal-coverage",
  "oya-check-authority-cohesion",
+ "oya-check-authz-tier-discipline",
+ "oya-check-backup-retention-discipline",
  "oya-check-benchmark",
  "oya-check-brand-residue",
  "oya-check-cedar-fragment-coverage",
  "oya-check-claim-ceiling",
+ "oya-check-client-stack-discipline",
  "oya-check-codeowners-mirror",
  "oya-check-cohesion",
+ "oya-check-compliance-evidence-coverage",
+ "oya-check-cursor-pagination-coverage",
  "oya-check-data-class",
  "oya-check-doc-catalog",
  "oya-check-documentation-system",
+ "oya-check-eu-ai-act-annex-iii-refusal",
+ "oya-check-event-schema-versioning",
  "oya-check-glossary-coverage",
  "oya-check-glossary-vocabulary",
  "oya-check-honest-claims",
+ "oya-check-i18n-coverage",
+ "oya-check-iac-tier-discipline",
+ "oya-check-id-discipline",
+ "oya-check-idempotency-key-coverage",
+ "oya-check-image-signing-discipline",
+ "oya-check-layered-architecture-discipline",
  "oya-check-license-policy",
+ "oya-check-metric-cardinality",
  "oya-check-mobile-native",
+ "oya-check-olap-tier-discipline",
+ "oya-check-ontology-projection-coverage",
  "oya-check-openapi-rest-route-parity",
+ "oya-check-otel-trace-propagation",
  "oya-check-perf-budget",
  "oya-check-placeholder-debt",
  "oya-check-pr-traceability",
@@ -1542,16 +1793,23 @@ dependencies = [
  "oya-check-quality-lane",
  "oya-check-raci-coverage",
  "oya-check-readme-coverage",
+ "oya-check-realtime-transport-tier",
  "oya-check-release-pack",
  "oya-check-retired-vocabulary",
+ "oya-check-rpo-rto-coverage",
  "oya-check-runbook-freshness",
  "oya-check-runbook-index",
  "oya-check-shardability",
  "oya-check-slo-coverage",
+ "oya-check-slsa-l3-evidence-grounded",
  "oya-check-statelessness",
  "oya-check-supply-chain",
+ "oya-check-tenant-cost-labels-coverage",
  "oya-check-typescript-workspace",
+ "oya-check-vector-store-discipline",
+ "oya-check-vendor-lockin-discipline",
  "oya-check-vendor-recency",
+ "oya-check-wasm-runtime-discipline",
  "oya-data-boundary-kernel",
  "oya-eventing-domain",
  "oya-eventing-file-adapter",
@@ -2597,6 +2855,14 @@ name = "oya-foundry-write-gate-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-gen-microservice-manifests-app"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-http-latency-budget-middleware-infrastructure"
 version = "0.1.0"
 dependencies = [
@@ -2827,6 +3093,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-resolve-scorecards-app"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-saas-bench-app"
 version = "0.1.0"
 dependencies = [
@@ -2947,6 +3221,86 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-shared-audit-chain-client-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-backup-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-compliance-evidence-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-connector-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-cursor-pagination-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-email-comms-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-hyperscaler-metrics-adapter-prometheus"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-hyperscaler-metrics-kernel",
+ "prometheus",
+]
+
+[[package]]
+name = "oya-shared-hyperscaler-metrics-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-i18n-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-idempotency-key-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-object-store-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-oidc-client-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-shared-olap-client-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-outbox-pattern-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-presence-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-realtime-transport-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-scim-server-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-shared-semver-check-cli"
 version = "0.1.0"
 dependencies = [
@@ -2961,6 +3315,42 @@ dependencies = [
  "anyhow",
  "clap",
 ]
+
+[[package]]
+name = "oya-shared-tenant-quota-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-timeseries-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-tracing-client-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-ulid-id-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-vector-store-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-wasm-runtime-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-shared-webauthn-server-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-shared-webhook-delivery-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "oya-tenancy-api"
@@ -2983,6 +3373,14 @@ name = "oya-tenancy-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-tenant-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "clap_complete",
+]
+
+[[package]]
 name = "oya-tooling-agent-read"
 version = "0.1.0"
 
@@ -3003,6 +3401,29 @@ dependencies = [
  "serde_json",
  "tempfile",
  "toml_edit",
+]
+
+[[package]]
+name = "parking_lot"
+version = "0.12.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93857453250e3077bd71ff98b6a65ea6621a19bb0f559a85248955ac12c45a1a"
+dependencies = [
+ "lock_api",
+ "parking_lot_core",
+]
+
+[[package]]
+name = "parking_lot_core"
+version = "0.9.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2621685985a2ebf1c516881c026032ac7deafcda1a2c9b7850dc81e3dfcb64c1"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "redox_syscall",
+ "smallvec",
+ "windows-link",
 ]
 
 [[package]]
@@ -3047,6 +3468,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "prometheus"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d33c28a30771f7f96db69893f78b857f7450d7e0237e9c8fc6427a81bae7ed1"
+dependencies = [
+ "cfg-if",
+ "fnv",
+ "lazy_static",
+ "memchr",
+ "parking_lot",
+ "thiserror",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3068,6 +3503,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom 0.2.17",
+]
+
+[[package]]
+name = "redox_syscall"
+version = "0.5.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d"
+dependencies = [
+ "bitflags",
 ]
 
 [[package]]
@@ -3143,6 +3587,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "scopeguard"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+
+[[package]]
 name = "semver"
 version = "1.0.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3184,6 +3634,7 @@ version = "1.0.149"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
 dependencies = [
+ "indexmap",
  "itoa",
  "memchr",
  "serde",
@@ -3344,6 +3795,26 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys",
+]
+
+[[package]]
+name = "thiserror"
+version = "1.0.69"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.69"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

@@ -13,7 +13,9 @@
     "canonical_authority": [
       "/specs/hyperscaler-gates.json",
       "/specs/stop-conditions.json",
-      "docs/CONSTITUTION.md"
+      "/specs/root-hub-pointers.json",
+      "docs/AGENTS.md",
+      "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md"
     ],
     "claim_stage": "plan-stage (NOT operational-stage). Stronger claims require IP-X10/X11/X12 dispatch + §11 lifecycle promotion of V-rows to verified-by-existing-CI."
   },
@@ -123,8 +125,8 @@
       "claim_id": "OPS-COORDINATION-NATIVE",
       "claim_short": "agent-state transitions on ops use Oyatie-native VCS",
       "evidence_required": [
-        "grit interim period: every transition through grit claim/work/done (HG-GRIT)",
-        "Oyatie-native agentic VCS standardized + migration-tested per autonomous-prompt directive (future work; treat grit as interim)"
+        "Oya VCS claim/verify/done/promote transition evidence per docs/AGENTS.md and ADR-0116 (HG-VCS)",
+        "ChangeBundle -> Promotion -> ReleaseTrain closure evidence from specs/gitops-vcs-replacement.json"
       ],
       "evidence_class_required": [
         "closeout",
@@ -188,10 +190,10 @@
       "missing": "docs/microservices/ops.md + docs/bounded-contexts/ops-*.md per HG-DOCS coupling with HG-ARCH; canonical milestone/phase/IP projection of ralplan sidecars"
     },
     {
-      "gate_id": "HG-GRIT",
+      "gate_id": "HG-VCS",
       "evidence_status": "violation",
-      "have": "grit binary installed (grit 0.3.0); HG-GRIT principle declared in this matrix",
-      "missing": "the plan-suite commit at 5880ce0 used `rtk git commit` directly, violating forbidden_primitives. Remediation: every NEXT state transition uses grit claim → work → grit done (or scaffold-locks-oyatie ICM fallback for doc-only). This commit is logged as historical violation; no retroactive remediation."
+      "have": "ADR-0116 retires grit/icm/rtk/vox and docs/AGENTS.md defines Oya VCS claim/verify/done/promote plus oya-vcs-admission as the closed transition set",
+      "missing": "historical plan-suite commit at 5880ce0 used `rtk git commit` directly; future remediation is Oya VCS claim/verify/done/promote with ChangeBundle -> Promotion -> ReleaseTrain evidence. This row is historical and does not restore grit/icm/rtk/vox authority."
     }
   ],
   "purpose": "Defines plan-stage versus operational-stage claims for the ops portal so agents do not overstate implementation readiness."

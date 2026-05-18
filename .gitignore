@@ -4,6 +4,7 @@
 **/.DS_Store
 
 .grit
+/bominal/
 
 # Python bytecode (per shell-python audit 2026-05-15)
 __pycache__/
@@ -19,3 +20,12 @@ evidence/oci-readiness/a1-capacity-retry.log
 # Pattern catches *.json.tmp.<uuid> and *.tmp.<uuid> shapes.
 **/*.json.tmp.*
 .omc/**/*.tmp.*
+
+# Agent-spawned Claude Code worktrees (transient; each is a git worktree itself).
+# .claude/settings.json (project-scoped) and .claude/commands/ remain tracked.
+.claude/worktrees/
+
+# Transient session state (regenerable; not part of PR scope)
+.omc/state/sessions/
+.omc/state/last-tool-error.json
+.omc/state/hud-stdin-cache.json

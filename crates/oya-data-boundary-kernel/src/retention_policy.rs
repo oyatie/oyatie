@@ -164,10 +164,13 @@ pub enum PurgeAction {
 pub struct RetentionPolicy {
     /// Maximum wall-clock duration for which a data object at this
     /// classification level may be retained after its last legitimate use.
+    // data_class: INTERNAL_ONLY
     pub retention_window: Duration,
     /// The purge action that must be taken when `retention_window` elapses.
+    // data_class: INTERNAL_ONLY
     pub purge_action: PurgeAction,
     /// The classification level that governs this policy.
+    // data_class: INTERNAL_ONLY
     pub level: ClassificationLevel,
 }
 

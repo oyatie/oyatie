@@ -1,0 +1,20 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-sites-cdn-delivery-adapter-s3
+role: adapter
+context: sites
+bc: cdn-delivery
+plane: data
+slo: preview-data-plane
+contracts_consumed: [oya-sites-cdn-delivery-kernel.port.ArtifactStore]
+contracts_exposed: []
+backend: s3
+backend_lts_pin: "OCI Object Storage API v202401"
+backend_residency: per-pack
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0117, ADR-SITES-0003]
+data_classes_owned: [PUBLIC_BY_TENANT_CHOICE]
+notes: |
+  Per-tenant S3 prefix; IAM scoped per-tenant. WORM (object-lock) for
+  published-public artifacts.

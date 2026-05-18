@@ -1,0 +1,23 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-shorts-video-transcode-kernel
+role: kernel
+context: shorts
+plane: data
+slo: hero-product
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0056, ADR-0105, ADR-0131, ADR-SHORTS-0001]
+allowed_dependency_edges: []
+data_classes_owned: [INTERNAL_ONLY]
+ports_declared:
+  - VideoTranscoder
+  - ManifestWriter
+entities:
+  - TranscodeJob
+  - BitrateRung
+  - Manifest
+  - Segment
+  - Codec

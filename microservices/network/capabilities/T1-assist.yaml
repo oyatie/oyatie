@@ -1,0 +1,164 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:network:t1-assist:v1
+name: article-draft-assist-and-bio-suggest-and-accessibility-caption
+namespace: network
+display_name: Article-Draft Assist + Profile-Bio Suggest + Accessibility-Caption Auto-Draft (T1; user-confirmed)
+description: |
+  T1 capability: generates user-visible material on demand; user must confirm
+  before publish. Three sub-capabilities:
+
+  1. Article-draft assist — given a topic / outline, emit a draft Professional
+     article (≤ 4096 chars body, structured headings) for user to refine.
+  2. Profile-bio suggest — given the user's existing experience + skills, emit
+     a revised headline + summary for user to accept or edit.
+  3. Accessibility-caption auto-draft — given an uploaded image / video,
+     emit a WCAG 2.2 Level AA caption + alt-text candidate for user
+     review.
+
+  All three are user-confirmed before persistence; the user is the
+  authoritative editor. EU AI Act Art. 50 transparency label emitted on every
+  generated output. Tenant-level opt-out per pack.
+
+owner_team: axis-network + axis-foundry-runtime + council-privacy
+maturity: preview
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-NET-0002]
+related_artifacts:
+  - microservices/network/PRD.md
+  - microservices/network/contracts/openapi/network.yaml
+  - microservices/network/policy/professional-context-isolation.md
+
+autonomy_tier: T1
+# T1 = generates content; user must confirm before publish; no autonomous publish.
+
+inputs:
+  - name: composing_user_ref
+    type: string
+    required: true
+  - name: sub_capability
+    type: enum
+    values: [article-draft, profile-bio, accessibility-caption]
+    required: true
+  - name: topic_or_outline
+    type: string
+    maxLength: 1000
+    required: false
+  - name: existing_profile_snippet
+    type: object
+    description: experience + skills for bio-suggest sub-capability
+    required: false
+  - name: media_id
+    type: string
+    description: uploaded media for accessibility-caption sub-capability
+    required: false
+  - name: context_kind
+    type: enum
+    values: [Professional]
+    required: true
+  - name: locale
+    type: string
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+    required: true
+
+outputs:
+  - name: article_draft
+    type: object
+    description: only if sub_capability == "article-draft"
+    properties:
+      headline_candidate: {type: string, maxLength: 220}
+      body_candidate: {type: string, maxLength: 4096}
+      structured_sections:
+        type: array
+        items:
+          type: object
+          properties:
+            heading: {type: string}
+            body: {type: string}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment], description: Art. 50 transparency}
+      rationale_token: {type: string}
+  - name: profile_bio_candidate
+    type: object
+    description: only if sub_capability == "profile-bio"
+    properties:
+      headline_candidate: {type: string, maxLength: 220}
+      summary_candidate: {type: string, maxLength: 2600}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment]}
+      rationale_token: {type: string}
+  - name: caption_candidate
+    type: object
+    description: only if sub_capability == "accessibility-caption"
+    properties:
+      caption_candidate: {type: string, maxLength: 1000}
+      alt_text_candidate: {type: string, maxLength: 1000}
+      wcag_compliance_flag: {type: string, enum: [wcag-aa-candidate, wcag-aa-fail]}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment]}
+      rationale_token: {type: string}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+  - EMPLOYMENT_RECORD  # bio-suggest reads resume data
+
+context_kind_constraint:
+  Professional: model-runs-server-side
+  enforcement: compile-time PCI-01 + LEAN-check oya-check-professional-context-isolation
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare  # MUST DISABLE for PHI accounts per HIPAA Safe Harbour
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+pack_overrides:
+  pack-us-healthcare:
+    disabled_for_phi_accounts: true
+    reason: HIPAA 45 CFR §164.514 Safe Harbour
+  pack-eu:
+    eu_ai_act_classification: minimal_risk_with_art_50_transparency
+    transparency_obligation: per-output Art. 50 label; user-confirmation gate
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin-opt-in required
+    kr_pipa_art29_2_automated_decision: user always edits; no automated decision
+
+minor_protect_constraint:
+  minor_accounts_can_use: true
+  caveats: tenant-admin may disable for minor accounts; auto-caption disabled below age 13 (COPPA)
+
+evidence_topic: oya.network.capability.t1_assist.evidence
+
+cost_profile:
+  type: per-generation
+  estimated_cost_usd_per_call_article: 0.005
+  estimated_cost_usd_per_call_bio: 0.003
+  estimated_cost_usd_per_call_caption: 0.001
+  cost_drivers:
+    - LLM inference (medium open-weights model; article generation longer)
+    - Vision model for accessibility-caption sub-capability
+
+cedar_policy_fragments:
+  - microservices/network/policy/tenant-scope.cedar
+
+eval_set:
+  golden_inputs_path: microservices/network/capabilities/eval/t1-assist-golden.jsonl
+  pass_threshold: 0.92
+  eval_metric: |
+    article-draft: structure + factual-grounding + Professional-tone (human-rater);
+    profile-bio: matches resume facts (no hallucinated experience);
+    accessibility-caption: WCAG 2.2 AA conformance vs human-baseline; precision@1 for objects;
+    bias-audit: per-locale fairness (no English-favoritism)
+  cadence: per-release + monthly drift-monitor
+
+rollback:
+  ttl_seconds: 600  # T1 outputs are tagged in evidence_topic; "rollback" = pause + un-suggest
+  audit_trail: every generation emits to evidence_topic with hash + reasoning_token
+  rollback_runbook: microservices/network/runbooks/recruiter-classifier-rollback.md §"ranker fallback"
+
+sunset:
+  status: none

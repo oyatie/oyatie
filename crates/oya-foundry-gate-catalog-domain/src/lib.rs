@@ -100,6 +100,38 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "stage0-prereqs",
     "changeset-state-monotonicity",
     "changeset-state-enum-closed",
+    // PR #143 Fix-D strict gates.
+    "eu-ai-act-annex-iii-refusal",
+    "slsa-l3-evidence-grounded",
+    // ADR-0145 enforcement gates (advisory / DEFERRED mode until strict
+    // parsers land per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-*).
+    "otel-trace-propagation",
+    "ontology-projection-coverage",
+    "audit-chain-seal-coverage",
+    // Tier-A hyperscaler pattern remediation (Fix-Agent-I, 2026-05-18).
+    // Each is strict-mode (fail-closed).
+    "idempotency-key-coverage",
+    "cursor-pagination-coverage",
+    "rpo-rto-coverage",
+    "metric-cardinality",
+    "event-schema-versioning",
+    "id-discipline",
+    "image-signing-discipline",
+    // PR #143 Fix-M/N/R/S/T/U batches — advisory lanes (most report-only).
+    // Vendor-lockin is the sole BLOCKER; remainder are advisory until promotion
+    // criteria in registry/quality/lanes.yaml#promotion_target trigger.
+    "vendor-lockin-discipline",
+    "authz-tier-discipline",
+    "tenant-cost-labels-coverage",
+    "backup-retention-discipline",
+    "vector-store-discipline",
+    "olap-tier-discipline",
+    "wasm-runtime-discipline",
+    "iac-tier-discipline",
+    "a11y-discipline",
+    "i18n-coverage",
+    "compliance-evidence-coverage",
+    "realtime-transport-tier",
 ];
 
 /// Catalog of non-`gate validate` commands the legacy `scripts/check.sh`

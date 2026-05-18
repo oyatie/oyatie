@@ -150,4 +150,4 @@ A BC is considered validly registered when ALL of the following are true:
 - ADR-0056: BNF v4.1 (BC-optionality rule)
 - ADR-0057: LEAN-A2 cross-vertical refusal + LEAN-A3 BC boundary
 - Memory: `feedback_naming_justification.md`,
-  `feedback_workflow_objectgraph_adapter_layer.md`
+  `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`

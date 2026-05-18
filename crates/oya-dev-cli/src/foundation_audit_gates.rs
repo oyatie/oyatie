@@ -24,8 +24,8 @@ pub(crate) fn parse_pr_traceability_validate_args(
 ) -> Result<PrTraceabilityValidateArgs, String> {
     let mut parsed = PrTraceabilityValidateArgs {
         pr_body_path: PathBuf::from("docs/templates/pull-request-template.md"),
-        require_code_review: false,
-        forbid_code_review: true,
+        require_code_review: true,
+        forbid_code_review: false,
     };
     let mut iter = args.into_iter();
     while let Some(flag) = iter.next() {

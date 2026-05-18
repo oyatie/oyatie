@@ -73,11 +73,11 @@ Uninstall semantics:
 - **Cascades respected.** Uninstalling `kubeadm` first removes `istio`; uninstalling `containerd` first removes `kubeadm`; the binary computes the reverse-dependency order automatically from a topological sort over component dependencies.
 - **Auditable.** Every uninstall emits an audit-chain event `EVT-ONPREM-UNINSTALL-<component>` with the timestamp and any data preserved/purged.
 
-The interim `*/uninstall.sh` scripts added in this commit are placeholders. They implement Rule 2 immediately in shell; they're replaced by Rust under Rule 1 in a follow-up ADR.
+The interim `*/uninstall.sh` scripts added in this commit are placeholders. They implement Rule 2 immediately in shell; they're replaced by Rust under Rule 1 in a successor-IP ADR.
 
 ## Consequences
 
-### Required follow-up
+### Required successor-IP
 
 - **Phase A** (this commit): every `infra/onprem/*/install.sh` gets a paired `infra/onprem/*/uninstall.sh`. Top-level `uninstall-all.sh` runs them in reverse dependency order. Each is idempotent.
 - **Phase B** (next ChangeSet, M03-P01-IP-001b): scaffold `crates/oya-onprem-cli` with the `Component` trait + a no-op component to validate the wiring.

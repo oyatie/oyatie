@@ -98,7 +98,7 @@ Constraints:
 
 3. **Adopt `*-api` informally without ADR amendment.** Rejected: violates ADR-0056's own "1-ADR action" rule for enum extensions.
 
-4. **Tools/-implicit-app convention** (any crate under `tools/` is implicitly layer `app`). Considered; deferred to a separate ADR. The current 7 tools/-prefixed non-compliant crates can be renamed to `*-app` per the existing convention without needing a new pattern.
+4. **Tools/-implicit-app convention** (any crate under `tools/` is implicitly layer `app`). Considered; scheduled-for-distinct-tracked-work to a separate ADR. The current 7 tools/-prefixed non-compliant crates can be renamed to `*-app` per the existing convention without needing a new pattern.
 
 ## Follow-ups
 
@@ -162,13 +162,13 @@ The architecture-boundaries gate keeps legacy `application`, `runtime`, and `tes
 - `app` may depend inward on `kernel`, `domain`, `application` (legacy), `usecase`, `adapter`, and `rest`.
 - `app -> app` remains forbidden. Do not make one deployable composition root depend on another deployable composition root; shared orchestration belongs in `usecase`.
 
-The remaining reconciliation is staged in three follow-up changes:
+The remaining reconciliation is staged in three successor-IP changes:
 
 1. **Migrate legacy `application` catalog records → `usecase`** (paired with active workspace-crate renames from ADR-0106). Update `registry/catalog/<name>.yaml` `role:` lines in lockstep with each crate rename.
 2. **Migrate legacy `runtime` catalog records → `app`** (paired with the rename plan in ADR-0056 §"Concrete migration"). Each `*-runtime` crate renames to `*-app`; the catalog record's `role:` flips at the same time.
 3. **Remove legacy `test` catalog records** OR retain the `test` row in the dependency matrix as a cfg(test) exemption marker. The honest path is removal — test-only crates take canonical layer suffixes; the `test` role is not in the canonical enum.
 
-After those follow-ups land, `ALLOWED_DEPENDENCY_ROLES` drops `application`, `runtime`, and `test`, then adds the remaining canonical entry-point roles (`cli`, `grpc`, `graphql`, `sdk`) as real catalog records require them. The Rust source-of-truth lives at `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs::allowed_dependency_roles()` and is reviewed under the same ADR-0107 / canonical-app-layer surface.
+After those successor-IPs land, `ALLOWED_DEPENDENCY_ROLES` drops `application`, `runtime`, and `test`, then adds the remaining canonical entry-point roles (`cli`, `grpc`, `graphql`, `sdk`) as real catalog records require them. The Rust source-of-truth lives at `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs::allowed_dependency_roles()` and is reviewed under the same ADR-0107 / canonical-app-layer surface.
 
 ### Until then
 
@@ -176,11 +176,11 @@ The architecture-boundaries gate is the source of truth for inter-crate edges; t
 
 ### Traceability
 
-Tracked as a follow-up entry in `evidence/audits/shell-python-replacement-audit-2026-05-15.md` so the migration sequence sits next to the rest of the Wave 2 work.
+Tracked as a successor-IP entry in `evidence/audits/shell-python-replacement-audit-2026-05-15.md` so the migration sequence sits next to the rest of the Wave 2 work.
 
 ## References
 
 - ADR-0056 §"12-Value Layer Enum (closed)" — the enum this ADR amends
-- ADR-0104 — ecosystem-expansion principle (why some adapters stay deferred)
+- ADR-0104 — ecosystem-expansion principle (why some adapters stay scheduled-for-distinct-tracked-work)
 - specs/crate-naming-audit.json — per-crate classification table
 - 2026-05-15 user directives

@@ -36,7 +36,7 @@ sales_segment: Healthcare | Enterprise | FinTech | Social | shared-substrate
 tier: B2B | B2C | internal
 milestone_first_ship: M0X-<slug>
 bominal_source:
-  - ADR-NNNN  # Bominal ADR(s) this PRD inherits from (1:1 translation)
+  - ADR-####  # Bominal ADR(s) this PRD inherits from (1:1 translation)
 ---
 ```
 
@@ -50,7 +50,7 @@ One to two paragraphs. What this µservice does. Which tenant problem it solves.
 Where it sits in the flat µservice catalog (per `feedback_flat_product_catalog.md`).
 
 State the Bominal inheritance baseline: "This µservice inherits from Bominal
-ADR-XXXX (<title>), translated to oyatie glossary." Then note any oyatie overrides.
+ADR-#### (<title>), translated to oyatie glossary." Then note any oyatie overrides.
 
 ---
 
@@ -82,7 +82,7 @@ one Workflow event or Ontology write.
 
 ### Security
 - JWT `tenant_id` claim enforced on every request (per Bominal ADR-0018 RLS posture).
-- Cedar policy enforcement for cross-tenant data access (per ADR-0140).
+- Cedar policy enforcement for cross-tenant data access (per ADR-0140 (retired per ADR-0145)).
 - Per-tenant Postgres RLS; no cross-tenant query possible.
 
 ### Audit + Compliance
@@ -150,7 +150,7 @@ CI lanes that must green:
 
 All cross-µservice integration flows through Workflow (action/orchestration
 adapter) or Ontology (information adapter). Direct µservice-to-µservice calls
-are prohibited (LEAN-A2 enforcement). Per `feedback_workflow_objectgraph_adapter_layer.md`.
+are prohibited (LEAN-A2 enforcement). Per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`.
 
 ### Workflow events produced
 
@@ -265,7 +265,7 @@ Sharding:
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | `<question>` | `<team-id>` | `ADR-XXXX` or `YYYY-MM-DD` |
+| 1 | `<question>` | `<team-id>` | `ADR-####` or `YYYY-MM-DD` |
 
 ---
 
@@ -273,8 +273,8 @@ Sharding:
 
 | ADR | Title | Relation |
 |---|---|---|
-| Bominal ADR-NNNN | `<title>` | inherited |
-| oyatie ADR-XXXX | `<title>` | Oyatie-specific |
+| Bominal ADR-#### | `<title>` | inherited |
+| oyatie ADR-#### | `<title>` | Oyatie-specific |
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0103 | Workflow hexagonal | integration plane |
 | ADR-0106 | Ontology architecture | information plane |

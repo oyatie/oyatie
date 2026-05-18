@@ -1,0 +1,112 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:cell:cell-decommission:v1
+name: cell-decommission
+namespace: cell
+display_name: Decommission Cell
+description: |
+  Mark a cell terminal-state, migrate all tenants out, drain operators, then permanently delete
+  Postgres schema + S3 prefix + K8s namespace after 30-day soft-delete window. Requires 2-person
+  rule + audit-chain seal. Per Bominal ADR-0009 §"Cell end-of-life".
+
+owner_team: axis-cell-substrate + ops-security
+maturity: stable
+created_at: 2026-05-17
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
+related_specs: []
+related_artifacts:
+  - microservices/cell/PRD.md (FR-09)
+  - microservices/cell/runbooks/cell-decommission.md
+  - microservices/cell/policy/cell-boundary.md
+
+autonomy_tier: T3
+# T3 = destructive; requires 2-person rule.
+
+inputs:
+  - name: cell_id
+    type: string
+    pattern: '^cell:[a-f0-9]{16}$'
+    required: true
+  - name: reason
+    type: string
+    required: true
+  - name: operator_quorum
+    type: array
+    item_schema:
+      spiffe_id: string
+      jit_ack: string
+    min_items: 2
+    required: true
+    description: 2-person-rule operators; both must sign elevated principal
+  - name: dry_run
+    type: boolean
+    default: false
+    required: false
+
+outputs:
+  - name: cell_id
+    type: string
+  - name: resulting_state
+    type: enum
+    values: [decommissioning-soft-delete, decommissioned]
+  - name: soft_delete_window_ends_at
+    type: timestamp
+  - name: signature
+    type: string
+
+data_classes_touched:
+  - AUDIT
+  - BEHAVIORAL_TENANT_PRODUCT
+  # Tenant migrations during decommission touch tenant-product behavior.
+  - INTERNAL_ONLY
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+evidence_topic: oya.cell.decommissioned
+
+cost_profile:
+  type: per-decommission
+  estimated_cost_usd_per_call: variable
+  cost_drivers:
+    - Migration of N bound tenants (cost ≈ N × cell-migrate cost)
+    - Postgres schema drop
+    - S3 prefix lifecycle delete (bytes-scanned)
+    - Multiple audit-chain seals
+    - 30-day soft-delete retention storage
+
+cedar_policy_fragments:
+  - microservices/cell/policy/ci-scope.cedar
+  - microservices/cell/policy/cell-boundary.md (server-side enforces quorum_acks >= 2)
+
+eval_set:
+  golden_inputs_path: microservices/cell/capabilities/eval/cell-decommission-golden.jsonl
+  pass_threshold: 1.0
+  eval_metric: decommission-flow-correctness-against-bominal-adr-0009-spec
+  cadence: per-release
+  reference: Bominal ADR-0009 §"Cell end-of-life"
+
+sunset:
+  status: none
+  notes: ""
+
+# Soft-delete window
+soft_delete_window_days: 30
+
+# Finalisation actions executed only after window expires
+finalisation_actions:
+  - drop_postgres_schema
+  - delete_s3_prefix
+  - delete_k8s_namespace
+  - revoke_openbao_credentials
+  - mark_spiffe_svid_terminal
+  - emit_terminal_audit_chain_seal

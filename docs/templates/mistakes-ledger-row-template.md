@@ -39,7 +39,7 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
 | `System gap` | yes | ≤ 140 chars | What system, process, or contract was missing. |
 | `Mechanical prevention` | **yes** | CI-lane name, hook script path, validator name, fitness function name | Process-only fixes are **REJECTED**. If you can only think of a process fix, escalate per `docs/standards/prevention-doctrine.md §6`. |
 | `Shipped on` | conditional | `YYYY-MM-DD` if shipped; `(target with <wave-gate>)` if future-prevention | Future-prevention rows are permitted with a target wave-gate; must be reviewed quarterly. |
-| `Link` | yes | PR# / ADR-NNNN / runbook path / postmortem path | At least one link. |
+| `Link` | yes | PR# / ADR-#### / runbook path / postmortem path | At least one link. |
 
 ## YAML form (for `machine-readable/mistakes.json` mirror)
 
@@ -57,7 +57,7 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
   shipped_on: YYYY-MM-DD | "target:<wave-gate>"
   links:
     - kind: pr | adr | runbook | postmortem | issue
-      ref:  "#NNN" | ADR-NNNN | runbooks/<path>.md | incidents/<id>
+      ref:  "#NNN" | ADR-#### | runbooks/<path>.md | incidents/<id>
   related_mfl: [MFL-NNNN, ...]
   pattern_cluster: <optional cluster-id assigned at quarterly council review>
 ```

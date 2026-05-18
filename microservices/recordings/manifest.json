@@ -1,0 +1,294 @@
+{
+  "schema_version": "1.0",
+  "microservice": "recordings",
+  "version": "0.1.0",
+  "owner": "axis-recordings",
+  "bounded_contexts": [
+    {
+      "name": "recordings",
+      "description": "Bounded context 'recordings' within recordings (data plane)",
+      "crates": [
+        "oya-recordings-app",
+        "oya-recordings-export-adapter-pandoc",
+        "oya-recordings-legal-hold-kernel",
+        "oya-recordings-media-segment-adapter-cdn-cloudfront-stub-or-self",
+        "oya-recordings-media-segment-adapter-ffmpeg",
+        "oya-recordings-recording-adapter-postgres",
+        "oya-recordings-recording-adapter-s3",
+        "oya-recordings-recording-ingest-adapter-clamav",
+        "oya-recordings-recording-kernel",
+        "oya-recordings-retention-policy-kernel",
+        "oya-recordings-search-adapter-meilisearch",
+        "oya-recordings-share-link-adapter-redis",
+        "oya-recordings-transcript-adapter-postgres",
+        "oya-recordings-transcript-adapter-pyannote",
+        "oya-recordings-transcript-adapter-whisper",
+        "oya-recordings-transcript-kernel"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "app",
+    "kernel"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/recordings/contracts/openapi/recordings.yaml"
+    ],
+    "asyncapi": [
+      "microservices/recordings/contracts/asyncapi/recordings-events.yaml"
+    ],
+    "proto": [
+      "microservices/recordings/contracts/proto/recordings.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "chapter-marker-suggest",
+      "file": "microservices/recordings/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "transcription-diarization-summary-pii-redact",
+      "file": "microservices/recordings/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "auto-translate-and-auto-publish",
+      "file": "microservices/recordings/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "recordings-export-mp4-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_recordings_export_mp4_duration_ratio_bucket{le=\"0.3\"}[5m]))",
+      "file": "microservices/recordings/slos/export-mp4-latency.openslo.yaml"
+    },
+    {
+      "name": "recordings-export-transcript-pdf-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_recordings_export_pdf_duration_seconds_bucket{le=\"3.0\"}[5m]))",
+      "file": "microservices/recordings/slos/export-transcript-pdf-latency.openslo.yaml"
+    },
+    {
+      "name": "recordings-legal-hold-chain-of-custody-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_recordings_legal_hold_chain_of_custody_event_total{result=\"correct\"}[30d]))",
+      "file": "microservices/recordings/slos/legal-hold-chain-of-custody-correctness.openslo.yaml"
+    },
+    {
+      "name": "recordings-legal-hold-engagement-latency",
+      "target": "0.9999",
+      "sli": "sum(rate(oya_recordings_legal_hold_engagement_duration_seconds_bucket{le=\"1.0\"}[5m]))",
+      "file": "microservices/recordings/slos/legal-hold-engagement-latency.openslo.yaml"
+    },
+    {
+      "name": "recordings-playback-start-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_recordings_playback_start_duration_seconds_bucket{cdn_state=\"warm\",le=\"0.4\"}[5m]))",
+      "file": "microservices/recordings/slos/playback-start-latency.openslo.yaml"
+    },
+    {
+      "name": "recordings-recording-list-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_recordings_list_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/recordings/slos/recording-list-latency.openslo.yaml"
+    },
+    {
+      "name": "recordings-redaction-render-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_recordings_redaction_render_duration_seconds_bucket{le=\"1.0\"}[5m]))",
+      "file": "microservices/recordings/slos/redaction-render-latency.openslo.yaml"
+    },
+    {
+      "name": "recordings-retention-policy-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_recordings_retention_applied_total{result=\"correct\"}[30d]))",
+      "file": "microservices/recordings/slos/retention-policy-correctness.openslo.yaml"
+    },
+    {
+      "name": "recordings-transcript-render-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_recordings_transcript_render_duration_seconds_bucket{recording_duration_bucket=\"10min\",le=\"0.5\"}[5m]))",
+      "file": "microservices/recordings/slos/transcript-render-latency.openslo.yaml"
+    },
+    {
+      "name": "recordings-transcript-search-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_recordings_search_duration_seconds_bucket{le=\"0.3\"}[5m]))",
+      "file": "microservices/recordings/slos/transcript-search-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac-bootstrap",
+      "title": "IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-001-iac-bootstrap.md"
+    },
+    {
+      "id": "IP-002-cargo-workspace-bootstrap",
+      "title": "IP-002: Cargo workspace bootstrap (22 BC crate families)",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-002-cargo-workspace-bootstrap.md"
+    },
+    {
+      "id": "IP-003-recording-ingest-bc",
+      "title": "IP-003: Recording-Ingest BC — kernel + domain + usecase + ingest contract",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-003-recording-ingest-bc.md"
+    },
+    {
+      "id": "IP-004-recording-bc",
+      "title": "IP-004: Recording BC — kernel + domain + usecase + REST (read-side)",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-004-recording-bc.md"
+    },
+    {
+      "id": "IP-005-media-segment-bc",
+      "title": "IP-005: Media-segment BC — HLS multi-bitrate + CMAF segmentation (ffmpeg gVisor)",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-005-media-segment-bc.md"
+    },
+    {
+      "id": "IP-006-transcript-bc",
+      "title": "IP-006: Transcript BC — Whisper + pyannote adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-006-transcript-bc.md"
+    },
+    {
+      "id": "IP-007-search-bc",
+      "title": "IP-007: Search BC — Meilisearch adapter + transcript indexing",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-007-search-bc.md"
+    },
+    {
+      "id": "IP-008-redaction-bc",
+      "title": "IP-008: Redaction BC — overlay model (no source mutation)",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-008-redaction-bc.md"
+    },
+    {
+      "id": "IP-009-chapter-summary-bcs",
+      "title": "IP-009: Chapter-marker BC + Summary BC + Thumbnail-pack BC",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-009-chapter-summary-bcs.md"
+    },
+    {
+      "id": "IP-010-retention-legal-hold-bcs",
+      "title": "IP-010: Retention-policy BC + Legal-hold BC (LOAD-BEARING)",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-010-retention-legal-hold-bcs.md"
+    },
+    {
+      "id": "IP-011-playback-share-link-watermark-bcs",
+      "title": "IP-011: Playback BC + Share-link BC + Watermarking BC + DRM-stub BC",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-011-playback-share-link-watermark-bcs.md"
+    },
+    {
+      "id": "IP-012-export-ediscovery-bcs",
+      "title": "IP-012: Export BC + eDiscovery BC (chain-of-custody Merkle seal)",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-012-export-ediscovery-bcs.md"
+    },
+    {
+      "id": "IP-013-translation-bc",
+      "title": "IP-013: Translation BC — cross-µservice handoff to `translate` µservice",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-013-translation-bc.md"
+    },
+    {
+      "id": "IP-014-strangler-migration-adapter",
+      "title": "IP-014: Strangler migration adapter (oya-connect-recordings-* → oya-recordings-*)",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-014-strangler-migration-adapter.md"
+    },
+    {
+      "id": "IP-015-hg-recordings",
+      "title": "IP-015: HG-RECORDINGS authority-cohesion gate registration",
+      "acceptance_status": "ga",
+      "file": "microservices/recordings/IP-015-hg-recordings.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.recordings.auto-translate-and-auto-publish",
+      "oya.recordings.chapter-marker-suggest",
+      "oya.recordings.transcription-diarization-summary-pii-redact"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

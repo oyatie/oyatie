@@ -1,0 +1,104 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:cell:cell-migrate:v1
+name: cell-migrate
+namespace: cell
+display_name: Migrate Tenant Between Cells
+description: |
+  Move a tenant from one cell to another (within the same pack by default; cross-pack requires
+  SCC + 2-person-rule). Executes 5-phase migration per Bominal ADR-0009 §"Live migration":
+  plan + lock → drain → copy → cutover → cleanup. p99 ≤ 10 minutes end-to-end.
+
+owner_team: axis-cell-substrate
+maturity: stable
+created_at: 2026-05-17
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
+related_specs: []
+related_artifacts:
+  - microservices/cell/PRD.md (FR-05)
+  - microservices/cell/runbooks/tenant-migration.md
+  - microservices/cell/policy/data-residency.md
+
+autonomy_tier: T3
+# T3 = destructive-leaning operation (drops source-cell data after soft-delete);
+# warrants 2-person rule for cross-pack; standard authority for intra-pack.
+
+inputs:
+  - name: tenant_id
+    type: string
+    pattern: '^tenant:[a-f0-9]{16}$'
+    required: true
+  - name: target_cell
+    type: string
+    pattern: '^cell:[a-f0-9]{16}$'
+    required: true
+  - name: reason
+    type: enum
+    values: [rebalance, scale-up, pack-rehome, dsr-cascade, decommission-source]
+    required: true
+  - name: scc_exception_id
+    type: string
+    required: false
+    description: Required for cross-pack migration; references legal/transfer-register.md entry
+  - name: operator_quorum
+    type: array
+    item_schema:
+      spiffe_id: string
+      jit_ack: string
+    required: false
+    description: Required for cross-pack (2 entries minimum)
+
+outputs:
+  - name: migration_id
+    type: string
+  - name: state
+    type: enum
+    values: [planned, draining, copying, cutover, completed, failed, aborted]
+  - name: started_at
+    type: timestamp
+  - name: completed_at
+    type: timestamp
+  - name: signature
+    type: string
+
+data_classes_touched:
+  - SENSITIVE_PIPA_ART23
+  - BEHAVIORAL_TENANT_PRODUCT
+  - AUDIT
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+evidence_topic: oya.cell.rebalanced
+
+cost_profile:
+  type: per-migration
+  estimated_cost_usd_per_call: 0.50
+  cost_drivers:
+    - Postgres schema copy (pg_dump for small; logical-replication for larger)
+    - S3 prefix copy (OCI CopyObject; varies with tenant data size)
+    - OpenBao credential rotation
+    - Audit-chain seals (multiple per phase)
+
+cedar_policy_fragments:
+  - microservices/cell/policy/ci-scope.cedar
+
+eval_set:
+  golden_inputs_path: microservices/cell/capabilities/eval/cell-migrate-golden.jsonl
+  pass_threshold: 0.99
+  eval_metric: migration-completion-time-p99-budget-≤-10min
+  cadence: per-release
+  reference: Bominal ADR-0009 §"Live migration"
+
+sunset:
+  status: none
+  notes: ""

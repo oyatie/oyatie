@@ -637,6 +637,198 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // PR #143 Fix-M/N/R/S/T/U dispatch arms (1 strict + 11 advisory).
+        (Some("validate"), Some("vendor-lockin-discipline")) => {
+            match crate::parse_vendor_lockin_discipline_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_vendor_lockin_discipline_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "vendor-lockin discipline validation passed: {} entries (Tier I={}, II={}, III={})",
+                            report.entries_seen,
+                            report.tier_i_count + report.tier_i_asterisk_count,
+                            report.tier_ii_count + report.tier_ii_pre_count,
+                            report.tier_iii_count
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("vendor-lockin discipline validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("authz-tier-discipline")) => {
+            match crate::validate_authz_tier_discipline_gate(args.collect()) {
+                Ok(report) => {
+                    println!(
+                        "authz-tier discipline advisory: {} cedar files + {} envoy files scanned; {} findings",
+                        report.cedar_files_scanned,
+                        report.envoy_files_scanned,
+                        report.total_findings
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("authz-tier discipline validation error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("tenant-cost-labels-coverage")) => {
+            match crate::validate_tenant_cost_labels_coverage_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "tenant cost-labels coverage advisory: {} manifests scanned; {} findings",
+                        summary.manifests_scanned, summary.findings
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("tenant cost-labels coverage error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("backup-retention-discipline")) => {
+            match crate::validate_backup_retention_discipline_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "backup retention discipline advisory: {} declarations scanned; {} findings",
+                        summary.declarations_scanned, summary.findings
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("backup retention discipline error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("vector-store-discipline")) => {
+            match crate::validate_vector_store_discipline_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "vector store discipline advisory: {} records scanned; {} violations",
+                        summary.records_scanned, summary.violations
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("vector store discipline error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("olap-tier-discipline")) => {
+            match crate::validate_olap_tier_discipline_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "olap tier discipline advisory: {} records scanned; {} violations",
+                        summary.records_scanned, summary.violations
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("olap tier discipline error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("wasm-runtime-discipline")) => {
+            match crate::validate_wasm_runtime_discipline_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "wasm runtime discipline advisory: {} manifests scanned; {} violations",
+                        summary.manifests_scanned, summary.violations
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("wasm runtime discipline error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("iac-tier-discipline")) => {
+            match crate::validate_iac_tier_discipline_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "iac tier discipline advisory: {} artifacts scanned; {} violations",
+                        summary.artifacts_scanned, summary.violations
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("iac tier discipline error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("a11y-discipline")) => {
+            match crate::validate_a11y_discipline_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "a11y discipline advisory: {} surfaces scanned; {} gaps",
+                        summary.surfaces_scanned, summary.gaps
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("a11y discipline error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("i18n-coverage")) => {
+            match crate::validate_i18n_coverage_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "i18n coverage advisory: {} surfaces scanned; {} gaps",
+                        summary.surfaces_scanned, summary.gaps
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("i18n coverage error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("compliance-evidence-coverage")) => {
+            match crate::validate_compliance_evidence_coverage_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "compliance evidence coverage advisory: {} µservices scanned; {} gaps",
+                        summary.microservices_scanned, summary.gaps
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("compliance evidence coverage error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("realtime-transport-tier")) => {
+            match crate::validate_realtime_transport_tier_gate(args.collect()) {
+                Ok(summary) => {
+                    println!(
+                        "realtime transport tier advisory: {} declarations scanned; {} gaps",
+                        summary.declarations_scanned, summary.gaps
+                    );
+                    ExitCode::SUCCESS
+                }
+                Err(message) => {
+                    eprintln!("realtime transport tier error: {message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("planes")) => {
             match crate::parse_planes_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_planes_gate(args) {
@@ -1368,6 +1560,66 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     ExitCode::from(2)
                 }
             }
+        }
+        // PR #143 Fix-D — EU AI Act Annex III refusal grounding.
+        (Some("validate"), Some("eu-ai-act-annex-iii-refusal")) => {
+            crate::adr_0145_gates::run_eu_ai_act_annex_iii_refusal(args.collect())
+        }
+        // PR #143 Fix-D — SLSA L3 evidence-grounded check.
+        (Some("validate"), Some("slsa-l3-evidence-grounded")) => {
+            crate::adr_0145_gates::run_slsa_l3_evidence_grounded(args.collect())
+        }
+        // ADR-0145 Invariant 2 — OTel trace propagation (DEFERRED/advisory).
+        (Some("validate"), Some("otel-trace-propagation")) => {
+            crate::adr_0145_gates::run_otel_trace_propagation(args.collect())
+        }
+        // ADR-0145 Invariant 3 — ontology projection coverage (DEFERRED/advisory).
+        (Some("validate"), Some("ontology-projection-coverage")) => {
+            crate::adr_0145_gates::run_ontology_projection_coverage(args.collect())
+        }
+        // ADR-0145 Invariant 1 — audit-chain seal coverage (DEFERRED/advisory).
+        (Some("validate"), Some("audit-chain-seal-coverage")) => {
+            crate::adr_0145_gates::run_audit_chain_seal_coverage(args.collect())
+        }
+        // Tier-A hyperscaler pattern remediation gates (Fix-Agent-I,
+        // 2026-05-18). Each is strict-mode (fail-closed).
+        // ADR-0149 — Stripe/AWS Idempotency-Key header.
+        (Some("validate"), Some("idempotency-key-coverage")) => {
+            crate::tier_a_gates::run_idempotency_key_coverage(args.collect())
+        }
+        // ADR-0150 — AWS NextToken / Stripe cursor pagination.
+        (Some("validate"), Some("cursor-pagination-coverage")) => {
+            crate::tier_a_gates::run_cursor_pagination_coverage(args.collect())
+        }
+        // ADR-0152 — AWS Well-Architected RPO/RTO five-tier model.
+        (Some("validate"), Some("rpo-rto-coverage")) => {
+            crate::tier_a_gates::run_rpo_rto_coverage(args.collect())
+        }
+        // ADR-0151 — high-cardinality metric label discipline.
+        (Some("validate"), Some("metric-cardinality")) => {
+            crate::tier_a_gates::run_metric_cardinality(args.collect())
+        }
+        // ADR-0154 — AsyncAPI 3.1.0 event version field.
+        (Some("validate"), Some("event-schema-versioning")) => {
+            crate::tier_a_gates::run_event_schema_versioning(args.collect())
+        }
+        // ADR-0156 — canonical ULID id discipline.
+        (Some("validate"), Some("id-discipline")) => {
+            crate::tier_a_gates::run_id_discipline(args.collect())
+        }
+        // ADR-0146 + ADR-0039 — cosign + Trivy + SLSA L3 provenance.
+        (Some("validate"), Some("image-signing-discipline")) => {
+            crate::tier_a_gates::run_image_signing_discipline(args.collect())
+        }
+        // ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 — layered architecture
+        // discipline (Cilium L3/L4 + Istio Ambient L7 zero overlap; gateway
+        // vs mesh; Cedar vs Kyverno; Valkey vs Memcached).
+        (Some("validate"), Some("layered-architecture-discipline")) => {
+            crate::layered_architecture_gates::run_layered_architecture_discipline(args.collect())
+        }
+        // ADR-0185 — native-per-platform client stack discipline.
+        (Some("validate"), Some("client-stack-discipline")) => {
+            crate::layered_architecture_gates::run_client_stack_discipline(args.collect())
         }
         _ => {
             eprintln!("{usage}");

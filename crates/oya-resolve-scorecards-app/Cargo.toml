@@ -1,0 +1,24 @@
+[package]
+name = "oya-resolve-scorecards-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+default-run = "oya-resolve-scorecards"
+
+[lib]
+name = "oya_resolve_scorecards_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-resolve-scorecards"
+path = "src/main.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true, features = ["preserve_order"] }
+
+[lints]
+workspace = true

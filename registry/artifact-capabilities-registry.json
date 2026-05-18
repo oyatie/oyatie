@@ -191,7 +191,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0-retroactive",
       "owner_team": "council-architecture + ops-sre-reliability + ops-security",
-      "purpose_short": "10-gate registry (HG-ARCH, HG-CONTRACT, HG-SECURITY, HG-RELIABILITY, HG-OBS, HG-TEST, HG-SUPPLY, HG-OPS, HG-DOCS, HG-GRIT). Claim_matrix enforcement.",
+      "purpose_short": "Hyperscaler maturity claim registry covering architecture, contracts, security, safety, guardrails, reliability, observability, tests, supply chain, ops, docs, plans, pipeline, toolchain, CI/CD, development cycle, product depth, UX, ease-of-use, competitor response, and HG-VCS.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "enforcement": {

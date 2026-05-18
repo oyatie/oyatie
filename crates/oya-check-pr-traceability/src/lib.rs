@@ -1,10 +1,9 @@
 //! Foundry PR traceability fitness kernel.
 //!
-//! Oyatie's PR contract requires exactly five author-owned H2 sections before
-//! merge-time review evidence is added: Issue, Summary, Verification,
-//! Traceability, and Evidence. `## Code Review` is lead-owned at merge time, so
-//! this pure kernel can validate both author PR bodies and merge-ready bodies by
-//! policy.
+//! Oyatie's PR contract requires five traceability H2 sections: Issue, Summary,
+//! Verification, Traceability, and Evidence. `## Code Review` is supplied by
+//! the automated reviewer-agent pipeline for merge-ready bodies, so this pure
+//! kernel can validate author-only bodies and merge-ready bodies by policy.
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PrTraceabilityDocument {

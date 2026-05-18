@@ -1,0 +1,83 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
+{{- range tuple "translationRequestRest" "batchTranslateWorker" "realTimeStreamGateway" "documentLocalizationWorker" "tmLeverageWorker" "qualityEstimationWorker" "mtEngineRouter" }}
+{{- $c := index $.Values . }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: translate-{{ . | kebabcase }}
+  namespace: translate
+  labels:
+    app.kubernetes.io/name: translate
+    app.kubernetes.io/component: {{ . | kebabcase }}
+    app.kubernetes.io/part-of: oya-translate
+    oyatie/microservice: translate
+spec:
+  replicas: {{ $c.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: translate
+      app.kubernetes.io/component: {{ . | kebabcase }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: translate
+        app.kubernetes.io/component: {{ . | kebabcase }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
+    spec:
+      {{- /* Container sandboxing runtime ladder per ADR-0147; component declares
+            workloadClass which dispatches to the right canonical helper. */}}
+      {{- if eq ($c.workloadClass | default "") "ai-inference" }}
+      {{- include "oya.runtimeClassName.aiInference" $ | nindent 6 }}
+      {{- else if eq ($c.workloadClass | default "") "untrusted-content" }}
+      {{- include "oya.runtimeClassName.untrustedContent" $ | nindent 6 }}
+      {{- else if eq ($c.workloadClass | default "") "crypto" }}
+      {{- include "oya.runtimeClassName.crypto" $ | nindent 6 }}
+      {{- else if eq ($c.workloadClass | default "") "federation-gateway" }}
+      {{- include "oya.runtimeClassName.federationGateway" $ | nindent 6 }}
+      {{- end }}
+      serviceAccountName: translate-{{ . | kebabcase }}
+      securityContext:
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
+      containers:
+        - name: translate-{{ . | kebabcase }}
+          image: "{{ $.Values.global.imageRegistry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          args:
+            - "--component={{ . | kebabcase }}"
+            - "--pack={{ $.Values.global.pack }}"
+            {{- if eq . "realTimeStreamGateway" }}
+            - "--correction-replay-window-ms={{ $c.correctionReplayWindowMs }}"
+            {{- end }}
+            {{- if eq . "qualityEstimationWorker" }}
+            - "--qe-model-tag={{ $c.modelTag }}"
+            {{- end }}
+            {{- if eq . "documentLocalizationWorker" }}
+            - "--pandoc-version={{ $c.pandocVersion }}"
+            - "--libreoffice-version={{ $c.libreofficeVersion }}"
+            {{- end }}
+          ports:
+            - {name: http, containerPort: 8080}
+            - {name: metrics, containerPort: 9091}
+            {{- if eq . "realTimeStreamGateway" }}
+            - {name: wss, containerPort: 8443}
+            {{- end }}
+          resources:
+            requests: {{- toYaml $c.resources.requests | nindent 14 }}
+            limits: {{- toYaml $c.resources.limits | nindent 14 }}
+          livenessProbe:
+            {{- include "oya.probes.httpHealthLiveness8080" $ | nindent 12 }}
+          readinessProbe:
+            {{- include "oya.probes.httpHealthReadiness8080" $ | nindent 12 }}
+          envFrom:
+            - secretRef: {name: translate-openbao-injected}
+          env:
+            - name: OYATIE_PACK
+              value: {{ $.Values.global.pack | quote }}
+            - name: OYATIE_DATA_RESIDENCY_ENFORCE
+              value: {{ $.Values.dataResidency.enforce | quote }}
+          securityContext:
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
+{{- end }}

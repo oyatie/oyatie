@@ -1,0 +1,17 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: v2
+name: oya-cell-k8s-cluster-api
+description: Kubernetes Cluster API management cluster + workload-cluster Machine pools for cell substrate per Bominal ADR-0009 + multi-region.md.
+type: application
+version: 0.1.0
+appVersion: "1.7.0"  # Cluster API LTS line
+maintainers:
+  - name: cloud-k8s
+    email: cloud-k8s@oyatie.dev
+dependencies:
+  - name: cluster-api
+    version: "^1.7.0"
+    repository: https://kubernetes-sigs.github.io/cluster-api
+  - name: cluster-api-provider-oci
+    version: "^0.16.0"
+    repository: https://oracle.github.io/cluster-api-provider-oci/

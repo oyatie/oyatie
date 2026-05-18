@@ -1,0 +1,65 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+# T0 capability: composer suggestions (anonymous µservice)
+# Tier per ADR-0119 capability-tier enum: T0-suggest
+# Owner: axis-anonymous + axis-foundry-runtime
+# Privacy invariants enforced: I1, I2, I4
+
+capability_id: oya-anonymous-composer-suggest
+tier: T0-suggest
+microservice: anonymous
+status: Accepted
+date: 2026-05-17
+owner_team: axis-anonymous
+deciders: axis-foundry-runtime, council-privacy
+
+purpose: |
+  Provide composer-side suggestions to end-users as they draft a post — e.g.,
+  hashtag autocomplete, common-phrasing suggestions, accessibility nudges.
+
+  IMPORTANT: T0-suggest tier means the platform never trains a per-user model
+  and never sends per-user data to a foundry model. Suggestions are based on
+  PUBLIC-CONTENT PRIORS ONLY (the platform's already-published hashtag corpus
+  and global accessibility heuristics).
+
+scope:
+  authorised:
+    - hashtag autocomplete based on platform-wide trending corpus
+    - accessibility nudges (alt-text reminder, language toxicity warning at draft-time)
+    - character-count warning
+    - draft-saving (client-only; never server-side)
+  forbidden:
+    - per-user model training
+    - per-user style adaptation
+    - sending the user's draft body to any foundry runtime
+    - any operation that creates a path by which user_id ↔ draft body could correlate
+
+inputs:
+  - user_draft_body (client-side only; never transmitted to platform)
+  - public hashtag corpus (read from oya-anonymous-hashtags-adapter-meilisearch)
+  - global accessibility heuristics (config-driven)
+
+outputs:
+  - suggested_hashtags (array of strings)
+  - accessibility_warnings (array of strings)
+  - character_count_warning (boolean)
+
+human_oversight_required: No
+risk_class_eu_ai_act: "minimal" (per Art. 4 + Annex III non-applicability)
+ai_assessed_label: "T0 — not AI-generated; rule-based heuristics"
+
+invariant_enforcement:
+  - I1: T0-suggest never receives user_id; client-side only
+  - I2: T0-suggest never receives affinity-identity attributes
+  - I4: T0-suggest implementation contains no third-party SDK; no telemetry to any non-allowlisted domain
+
+acceptance_criteria:
+  - composer.suggest() returns hashtag suggestions within p99 ≤ 50 ms
+  - composer.suggest() never makes a network call to any non-platform endpoint
+  - composer.suggest() never reads user_id (cargo-deny + LEAN lane)
+  - accessibility warnings use WCAG 2.1 AA-aligned heuristics
+
+references:
+  - ADR-0119 capability-tier enum
+  - PRD-anonymous I1, I2, I4
+  - WCAG 2.1
+  - EU AI Act Art. 4 (literacy) + Annex III non-applicability

@@ -7,7 +7,7 @@ doc_status: archived
 
 ## What this means
 
-The 127 legacy ADRs at `decisions/ADR-NNNN-<slug>.md` are **RETIRED**. They:
+The 127 legacy ADRs at `decisions/ADR-####-<slug>.md` are **RETIRED**. They:
 
 - **Remain** in the directory for forensic / git-blame integrity (per Oyatie anti-pattern: "Don't delete legacy ADRs")
 - Are **NOT** referenced by active consolidated docs at `docs/`
@@ -28,7 +28,7 @@ The 127 legacy ADRs at `decisions/ADR-NNNN-<slug>.md` are **RETIRED**. They:
 
 **Effective 2026-05-09:**
 
-1. Active consolidated docs (`docs/`) MUST NOT cite legacy `ADR-NNNN` numbers (where NNNN ≤ 0233 and predates 2026-05-09 numbering shift). Citations are restricted to the new pack ` ADR-0001..ADR-0051` (and future additions).
+1. Active consolidated docs (`docs/`) MUST NOT cite legacy `ADR-####` numbers (where NNNN ≤ 0233 and predates 2026-05-09 numbering shift). Citations are restricted to the new pack ` ADR-0001..ADR-0051` (and future additions).
 2. Forensic mention is allowed in: ADR-CONSOLIDATION-PLAN.md, CONTRADICTION-LEDGER.md, this RETIRED.md, and any `*-LEGACY.md` snapshot file.
 3. CI lane `oya-foundry-fitness-adr-citation` enforces.
 
@@ -42,7 +42,7 @@ The 127 legacy ADRs at `decisions/ADR-NNNN-<slug>.md` are **RETIRED**. They:
 ## Migration timeline
 
 - 2026-05-09: New pack drafted; 21+ ADRs in `docs/decisions/` (50 target)
-- 2026-05-09 (same day): This RETIRED.md note added; consolidated docs sweep started to remove legacy ADR-NNNN refs
+- 2026-05-09 (same day): This RETIRED.md note added; consolidated docs sweep started to remove legacy ADR-#### refs
 - Per [`ADR-CONSOLIDATION-PLAN.md`](../ADR-CONSOLIDATION-PLAN.md): `crew-adr-promotion` produces weekly diff of legacy → new pack supersession; consolidated docs updated per cadence
 - Future: optional move of legacy files to `decisions/legacy/` subdirectory (open question per ADR-CONSOLIDATION-PLAN §8)
 

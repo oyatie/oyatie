@@ -1,0 +1,15 @@
+apiVersion: v2
+name: oya-foundry-runtime-pool
+description: Foundry Runtime pod pool + executor + orchestrator + cache + session-state app deployments per ADR-0025 + ADR-0131
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">= 1.31.0"  # Kubernetes LTS line per docs/standards
+maintainers:
+  - name: axis-foundry-runtime
+    email: axis-foundry-runtime@oyatie.dev
+keywords:
+  - foundry
+  - agent-runtime
+  - capability-execution
+  - oyatie

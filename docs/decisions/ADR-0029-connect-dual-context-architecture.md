@@ -51,7 +51,7 @@ We adopt Connect as a **suite of twelve canonical apps** plus three adjunct surf
 | **Tasks** | `oya-connect-tasks-*` | Tasks-graph kernel + Foundry agent task runtime | Per-tenant task store |
 | **Notes** | `oya-connect-notes-*` | Yrs CRDT + tag/folder graph | Per-tenant note store |
 
-Adjunct surfaces (ship post-M03): **Translate**, **Recordings**, **Address Book**.
+Adjunct surfaces (ship subsequent-to-M03-completion): **Translate**, **Recordings**, **Address Book**.
 
 ### Per-tenant cell isolation
 
@@ -94,7 +94,7 @@ Per Bominal ADR-0208 / ADR-0215 (inherited):
 
 - Per-tenant phishing defense: inbound SPF/DKIM/DMARC validation; URL-rewrite + safe-link; attachment sandboxing in WASM (ADR-0036).
 - DLP: per-tenant DLP rules; PHI/PCI/financial-credit data classifications trigger admin-review hold.
-- PIPA + KISA-MVP: per-tenant DPO can issue legal-hold per ADR-0038.
+- PIPA + KISA-minimum-shippable-tier: per-tenant DPO can issue legal-hold per ADR-0038.
 
 ### Migration tooling from incumbent suites
 

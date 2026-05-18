@@ -230,7 +230,7 @@ rejected_alternatives:
 confidence: low|medium|high
 drafted_by: agent_run_...
 approved_by: principal|null
-ad_r_ref: docs/consolidated/decisions/ADR-XXXX.md|null
+ad_r_ref: docs/consolidated/decisions/ADR-####.md|null
 ```
 
 **Bar Raiser equivalent**: an adversarial **critic-agent** is mandatory for any goal with `autonomy_ceiling >= T3` or `blast_radius >= axis_substrate`. The critic is structurally separate (different agent, different prompt, no shared context) and produces an objection list that the planner must address.

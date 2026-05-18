@@ -1688,19 +1688,19 @@ fn hyperscaler_arch_invariants_gate_rejects_omitted_applicable_product_ref() {
 #[test]
 fn hyperscaler_maturity_claims_gate_rejects_unsourced_workflow_studio_claims() {
     let temp = temp_dir("hyperscaler-maturity-claims");
-    fs::create_dir_all(temp.join("specs/products")).expect("spec dirs created");
+    fs::create_dir_all(temp.join("specs/microservices")).expect("spec dirs created");
     fs::copy(
         repo_root().join("specs/hyperscaler-gates.json"),
         temp.join("specs/hyperscaler-gates.json"),
     )
     .expect("hyperscaler gates fixture copied");
     fs::copy(
-        repo_root().join("specs/products/workflow.json"),
-        temp.join("specs/products/workflow.json"),
+        repo_root().join("specs/microservices/workflow.json"),
+        temp.join("specs/microservices/workflow.json"),
     )
     .expect("workflow spec fixture copied");
     fs::write(
-        temp.join("specs/products/workflow-studio.json"),
+        temp.join("specs/microservices/workflow-studio.json"),
         r#"{
   "identity": { "product_id": "workflow-studio" },
   "competitive_claim_policy": {
@@ -1745,11 +1745,11 @@ fn hyperscaler_maturity_claims_gate_rejects_unsourced_workflow_studio_claims() {
                 .to_str()
                 .expect("utf8 gates path"),
             "--workflow-studio",
-            temp.join("specs/products/workflow-studio.json")
+            temp.join("specs/microservices/workflow-studio.json")
                 .to_str()
                 .expect("utf8 workflow-studio path"),
             "--workflow",
-            temp.join("specs/products/workflow.json")
+            temp.join("specs/microservices/workflow.json")
                 .to_str()
                 .expect("utf8 workflow path"),
         ])

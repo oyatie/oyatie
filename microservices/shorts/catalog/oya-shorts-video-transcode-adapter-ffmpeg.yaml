@@ -1,0 +1,19 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-shorts-video-transcode-adapter-ffmpeg
+role: adapter
+backend: ffmpeg
+context: shorts
+plane: data
+slo: hero-product
+contracts_consumed: [VideoTranscoder (kernel port)]
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-SHORTS-0001]
+allowed_dependency_edges: [oya-shorts-video-transcode-kernel]
+data_classes_owned: [INTERNAL_ONLY]
+backend_pinning:
+  ffmpeg_version: "7.1"  # ffmpeg 7.x LTS
+  sandbox: gvisor  # or kata
+codecs_supported: [h264, h265, av1, aac, opus]
+container_formats: [cmaf, hls, dash, mp4]

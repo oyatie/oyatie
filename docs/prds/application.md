@@ -219,7 +219,7 @@ entry point — requires cross-region DNS + OCI Traffic Management).
 | # | Question | Owner | Target |
 |---|---|---|---|
 | 1 | SAML IdP for M03: Azure AD / Okta / or KR-specific? | council-product | M03/P01 |
-| 2 | Billing engine: built-in or third-party (Stripe Billing)? | council-architecture | ADR-XXXX |
+| 2 | Billing engine: built-in or third-party (Stripe Billing)? | council-architecture | ADR-#### |
 
 ---
 

@@ -1,0 +1,168 @@
+{
+  "doc_kind": "agentic-pipeline-hooks-bootstrap-design",
+  "purpose": "Reproducible single-command bootstrap of agentic pipeline hooks across Claude Code + Codex CLI + Gemini CLI. Per user directive 2026-05-18 (/agent-skills:ci-cd-and-automation): single bootstrap + easy uninstall + latest hook capabilities. Survives session boundary.",
+  "session_date": "2026-05-18",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "follow_up_pr_target": "PR-158-agentic-pipeline-hooks-substrate (after PR-143 close-out + Wave 3 vertical-slice PRs ship)",
+  "blocking_pr_143_close_out": false,
+
+  "latest_hook_capabilities_2026_05_18": {
+    "claude_code": {
+      "version_status": "May 2026 — 21 lifecycle events; 4 handler types (command, HTTP-released-Feb-2026, prompt, agent); async:true supported (Jan 2026)",
+      "events_used": ["PreToolUse", "PostToolUse", "SessionStart", "SessionEnd", "UserPromptSubmit", "Stop", "StopFailure", "PreCompact", "PostCompact"],
+      "config_location": ["~/.claude/settings.json (user-level)", ".claude/settings.json (project-level)", ".claude/settings.local.json (local override)"],
+      "session_start_context_injection": "stdout from SessionStart hook becomes Claude's context; CLAUDE_ENV_FILE persists env across session",
+      "doc_source_url": "https://code.claude.com/docs/en/hooks"
+    },
+    "codex_cli": {
+      "version_status": "May 2026 GA — Hooks achieved general availability alongside Codex access tokens + Enterprise admin setup",
+      "events_used": ["pre_tool_use", "post_tool_use", "session_start", "user_prompt_submit", "stop", "pre_compact", "post_compact"],
+      "config_location": ["~/.codex/hooks.json (user-level)", "~/.codex/config.toml#[hooks] (inline TOML)", "project-level .codex/hooks.json (preferred for project hooks)"],
+      "extension_capability": "/hooks CLI command inspects/trusts/disables hooks; turn_id + permission_mode included in events",
+      "doc_source_url": "https://developers.openai.com/codex/hooks"
+    },
+    "gemini_cli": {
+      "version_status": "v0.42.0 (released 2026-05-12); hooks enabled by default since v0.26.0+",
+      "events_used": ["beforeRequest", "afterTool", "etc."],
+      "config_location": [".gemini/settings.json (project-level — highest precedence)", "~/.gemini/settings.json (user-level)"],
+      "extension_bundling": "Extensions bundle hooks in hooks/hooks.json within extension dir; single-command install",
+      "json_protocol": "stdin/stdout JSON only; any plain-text before final JSON breaks parsing",
+      "doc_source_url": "https://geminicli.com/docs/hooks/"
+    }
+  },
+
+  "design_principles": [
+    "PROJECT-LEVEL ONLY — bootstrap touches only .claude/, .codex/, .gemini/ inside the repo; never user-level (~/.claude, ~/.codex, ~/.gemini)",
+    "Single bootstrap command per agentic tool: `tools/hook-bootstrap/install.sh --tool=claude` (or codex, gemini, or all)",
+    "Idempotent — re-running install does not break state",
+    "Single uninstall command: `tools/hook-bootstrap/uninstall.sh --tool=claude` (or all)",
+    "Hook scripts live under `tools/hooks/` (under VCS); settings files reference them by repo-relative path",
+    "Hook scripts are Rust binaries where complexity warrants (per Rust-primary directive); shell scripts for thin wrappers only",
+    "Each hook declares its purpose + frontmatter for auditability",
+    "Bootstrap auto-detects which agentic tools the user has installed; skips uninstalled tools gracefully",
+    "Uninstall removes ONLY what bootstrap added; never touches user-level or pre-existing project hooks"
+  ],
+
+  "directory_layout": {
+    "tools/hook-bootstrap/": "Bootstrap substrate",
+    "tools/hook-bootstrap/install.sh": "Single-command install entrypoint",
+    "tools/hook-bootstrap/uninstall.sh": "Single-command uninstall entrypoint",
+    "tools/hook-bootstrap/manifest.json": "Source-of-truth: which hooks to install per tool",
+    "tools/hook-bootstrap/templates/claude-settings.json.tmpl": "Template for .claude/settings.json",
+    "tools/hook-bootstrap/templates/codex-hooks.json.tmpl": "Template for .codex/hooks.json",
+    "tools/hook-bootstrap/templates/gemini-settings.json.tmpl": "Template for .gemini/settings.json",
+    "tools/hooks/": "Hook script directory (all hooks live here, callable by all 3 tools)",
+    "tools/hooks/pre-dispatch-validate.sh": "Pre-dispatch validation (mistake M-02)",
+    "tools/hooks/cargo-verify-on-rust-edit.sh": "Cargo build after Rust edit",
+    "tools/hooks/spec-version-pin-guard.sh": "OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 enforcement (mistake M-01)",
+    "tools/hooks/stale-tool-reference-block.sh": "Block grit/rtk/icm/vox in Bash commands",
+    "tools/hooks/buildability-line-count.sh": "≥150 substantive lines on IPs (mistake M-10)",
+    "tools/hooks/adr-orphan-detect.sh": "ADR-NNNN cited as Accepted without file (mistake M-13)",
+    "tools/hooks/session-start-context-inject.sh": "Inject CLAUDE.md + latest handoff doc",
+    "tools/hooks/stop-did-you-forget.sh": "Stop hook: dirty cargo + orphan citations + lane regressions",
+    "tools/hooks/userprompt-stale-memory-filter.sh": "Filter SUPERSEDED memory entries from auto-injection",
+    "tools/hooks/microservice-quality-bar.sh": "Enforce 100+ artifact bar per ADR-0212 Buildability Doctrine + user directive 2026-05-18",
+    "tools/hooks/vacuous-green-gate-detect.sh": "Detect advisory gates passing with 0 inputs (mistake M-06)",
+    "tools/hooks/vertical-slice-scope-check.sh": "Prevent µservice creation outside current PR's vertical slice"
+  },
+
+  "hooks_in_directions": {
+    "direction_a_prevention_pre_execution": [
+      {"hook": "pre-dispatch-validate.sh", "event": "PreToolUse(Agent)", "tools": ["claude", "codex"], "blocks": "wrong-abstraction agent dispatch"},
+      {"hook": "spec-version-pin-guard.sh", "event": "PostToolUse(Write/Edit on contracts/*)", "tools": ["claude", "codex", "gemini"], "blocks": "OpenAPI 3.3 / AsyncAPI 3.0.0 drift"},
+      {"hook": "stale-tool-reference-block.sh", "event": "PreToolUse(Bash)", "tools": ["claude", "codex"], "blocks": "grit/rtk/icm/vox CLI invocations"},
+      {"hook": "vertical-slice-scope-check.sh", "event": "PreToolUse(Agent + Write under microservices/)", "tools": ["claude", "codex"], "blocks": "out-of-scope µservice creation"}
+    ],
+    "direction_b_verification_post_execution": [
+      {"hook": "cargo-verify-on-rust-edit.sh", "event": "PostToolUse(Write/Edit on *.rs|Cargo.toml)", "tools": ["claude", "codex", "gemini"], "verifies": "cargo build clean"},
+      {"hook": "buildability-line-count.sh", "event": "PostToolUse(Write under IP-*.md)", "tools": ["claude", "codex", "gemini"], "verifies": "≥150 substantive lines (structure-aware)"},
+      {"hook": "adr-orphan-detect.sh", "event": "PostToolUse(Write/Edit on docs/decisions/* or ADR refs)", "tools": ["claude", "codex", "gemini"], "verifies": "no ADR-NNNN cited as Accepted without file"},
+      {"hook": "microservice-quality-bar.sh", "event": "PostToolUse(Write under microservices/*)", "tools": ["claude", "codex", "gemini"], "verifies": "100+ artifact bar (warn at <80; fail at <60)"},
+      {"hook": "vacuous-green-gate-detect.sh", "event": "PostToolUse(Write under registry/quality/lanes.yaml)", "tools": ["claude", "codex", "gemini"], "verifies": "no advisory gates with 0 inputs"}
+    ],
+    "direction_c_orientation_lifecycle": [
+      {"hook": "session-start-context-inject.sh", "event": "SessionStart", "tools": ["claude", "codex", "gemini"], "injects": "CLAUDE.md + latest handoff doc + current branch state"},
+      {"hook": "stop-did-you-forget.sh", "event": "Stop / SessionEnd", "tools": ["claude", "codex"], "checks": "dirty cargo + orphan citations + lane regressions introduced this session"},
+      {"hook": "userprompt-stale-memory-filter.sh", "event": "UserPromptSubmit", "tools": ["claude"], "filters": "SUPERSEDED memory entries from auto-injection"}
+    ]
+  },
+
+  "bootstrap_command_design": {
+    "install": {
+      "single_command": "bash tools/hook-bootstrap/install.sh",
+      "options": [
+        "--tool=claude|codex|gemini|all (default: all)",
+        "--mode=project|user (default: project; user requires explicit flag)",
+        "--dry-run (preview without writing)",
+        "--force (overwrite existing settings)"
+      ],
+      "behavior": [
+        "Detect which tools user has installed (which claude / which codex / which gemini)",
+        "For each detected tool: write or update settings file referencing hooks from tools/hooks/",
+        "Mark managed entries with `_managed_by: oya-hook-bootstrap` so uninstall knows what to remove",
+        "Validate JSON after write",
+        "Print a summary of what was installed + how to uninstall"
+      ]
+    },
+    "uninstall": {
+      "single_command": "bash tools/hook-bootstrap/uninstall.sh",
+      "options": ["--tool=claude|codex|gemini|all (default: all)", "--dry-run"],
+      "behavior": [
+        "Remove only entries marked `_managed_by: oya-hook-bootstrap`",
+        "Preserve any user-added entries in the same settings files",
+        "Validate JSON after edit",
+        "Print summary of what was removed"
+      ]
+    }
+  },
+
+  "user_directive_100_plus_artifact_bar": {
+    "directive": "100+ docs per microservice is the consistent quality bar; cannot regress, only improve",
+    "current_status_spot_check": {
+      "analytics": 119,
+      "plugin_app_store": 118,
+      "developer_sdk": 117,
+      "consent_graph": "~85 (close)",
+      "comms_email": "~90 (close)",
+      "compliance": "~80 (close to bar)",
+      "identity": "~90 (close)",
+      "finops_portal": 85,
+      "older_packs_workflow_studio_audit_chain_ontology_tenancy_etc": "VARIABLE — older packs may be below; need audit"
+    },
+    "enforcement_mechanism": {
+      "ci_gate": "crates/oya-check-microservice-artifact-count-bar (NEW)",
+      "thresholds": {"warn": 80, "fail_blocker": 60, "ideal": 100, "current_bar_landing_µservices": 117},
+      "structural_count_excludes": ["AUDIT-FINDINGS-*.json (audit artifacts)", "compiled output", "test fixtures auto-generated"]
+    },
+    "doctrine_promotion": "Add §'100+ artifact quality bar' to ADR-0212 Buildability Doctrine when promoting from checkpoint to disk; bar may rise as future µservices ship deeper packs (no regression doctrine)",
+    "follow_up_pr_implication": "Each follow-up PR (PR-144 through PR-156+) must bring its µservices to the 100+ bar; older µservices below the bar need expansion in their vertical-slice PR (e.g., PR-145 brings hr + accounting to 100+; PR-150 brings audit-chain + ontology + workflow-engine + cell + governance + tenancy to 100+)"
+  },
+
+  "implementation_plan": [
+    "IP-1: tools/hook-bootstrap/manifest.json + install.sh + uninstall.sh skeleton (Rust binary if complexity warrants; shell wrapper for thin entry)",
+    "IP-2: Template files for .claude/settings.json + .codex/hooks.json + .gemini/settings.json",
+    "IP-3: Direction A hooks (4 prevention hooks) authored as Rust binaries under tools/hooks/",
+    "IP-4: Direction B hooks (5 verification hooks) authored",
+    "IP-5: Direction C hooks (3 lifecycle hooks) authored",
+    "IP-6: ADR-0222 Hook Substrate Doctrine — formal codification",
+    "IP-7: CI fitness lane oya-check-hook-substrate-discipline (ensures hooks declared in manifest exist + are executable)",
+    "IP-8: README at tools/hook-bootstrap/README.md with single-command install + uninstall examples",
+    "IP-9: Update onboarding docs (docs/onboarding/*.md) to reference bootstrap"
+  ],
+
+  "non_goals_for_pr_143": [
+    "Implementing the bootstrap NOW (deferred to PR-158)",
+    "Modifying user-level settings (always project-only)",
+    "Designing hooks for tools beyond Claude/Codex/Gemini (future)",
+    "Replacing existing CI gates (hooks ARGUMENT the gates; don't replace)"
+  ],
+
+  "references": [
+    "Claude Code Hooks docs — https://code.claude.com/docs/en/hooks",
+    "Codex Hooks docs — https://developers.openai.com/codex/hooks",
+    "Gemini CLI Hooks docs — https://geminicli.com/docs/hooks/",
+    "evidence/pr-143-adr-0221-checkpoint-2026-05-18.json — ADR-0221 lessons-learned (mistakes M-01..M-15)",
+    "evidence/pr-143-NEXT-SESSION-HANDOFF.md — next session handoff (this design feeds in)",
+    "ADR-0212 Buildability Doctrine — queued; 100+ artifact bar amendment"
+  ]
+}

@@ -1,0 +1,44 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: social-notification-fanout-latency
+  displayName: "social: notification fanout p99 ≤ 2s for 10k-follower account"
+  labels:
+    microservice: social
+    bc: notifications
+    sli_class: latency
+    owner_team: axis-social
+spec:
+  description: |
+    Time from `PostPublished` durable ack to delivery on the recipient
+    WebSocket frame OR Postgres insert of digest record. SLO holds for
+    accounts with ≤ 10k followers; larger accounts get a separate tier-SLO
+    (≤ 5s p99 for ≤ 100k followers). Measured via in-band timestamps with
+    per-cell + per-pack scope.
+  service: social
+  indicator:
+    metadata:
+      name: social-notification-fanout-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_social_notification_fanout_duration_seconds_bucket{le="2",follower_tier="le_10k"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_social_notification_fanout_duration_seconds_count{follower_tier="le_10k"}[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.99
+      displayName: "p99 notification fanout ≤ 2s for 10k-follower accounts"

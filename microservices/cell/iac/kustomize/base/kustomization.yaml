@@ -1,0 +1,33 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Shared base for the cell substrate, applied identically per-pack with
+# pack-specific overlays for: residency region, OpenBao secret-reference URIs,
+# replica scaling tier.
+# Per Bominal ADR-0009 + ADR-0019 + multi-region.md DR posture.
+
+namespace: cell-control-plane
+
+resources:
+  - namespace.yaml
+  - openbao-secret-references.yaml
+  - spire-trust-bundle.yaml
+
+helmCharts:
+  - name: oya-cell-postgres
+    valuesFile: ../../helm/postgres/values.yaml
+    releaseName: cell-postgres
+    namespace: cell-control-plane
+  - name: oya-cell-k8s-cluster-api
+    valuesFile: ../../helm/k8s-cluster-api/values.yaml
+    releaseName: cell-cluster-api
+    namespace: cell-control-plane
+  - name: oya-cell-scheduler
+    valuesFile: ../../helm/scheduler/values.yaml
+    releaseName: cell-scheduler
+    namespace: cell-control-plane
+
+commonLabels:
+  app.kubernetes.io/part-of: oya-cell
+  oyatie/microservice: cell

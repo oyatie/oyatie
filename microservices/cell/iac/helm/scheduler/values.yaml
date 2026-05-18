@@ -1,0 +1,59 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+# oya-cell-scheduler-app + worker deployment
+# Per capacity-model.md §"Cell-Substrate Operator Pod Sizing"
+
+image:
+  repository: oyatie/oya-cell-scheduler-app
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+replicas: 2                          # HA via leader-election
+resources:
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+
+leaderElection:
+  enabled: true
+  leaseName: cell-scheduler-leader
+  leaseNamespace: cell-control-plane
+
+# Per-pack scoping (bound at deploy time via OpenBao)
+boundPack: "${PACK}"
+
+spiffeID: "spiffe://oyatie/cell/scheduler"
+
+openbao:
+  postgresCredentialsPath: "secret/cell/postgres/${PACK}/scheduler-credentials"
+  eventSigningKeyPath: "secret/cell/scheduler/signing-key"
+
+# Metric scraping
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  labels:
+    microservice: cell
+    bounded_context: scheduler
+
+# HPA on placement queue depth
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: oya_cell_placement_queue_depth
+        target:
+          type: AverageValue
+          averageValue: "10"
+
+# Self-observability SLI emission per IP-013
+slo:
+  emit_self_metrics: true
+  scheduler_alive_metric: oya_cell_scheduler_alive
+  placement_decision_latency_histogram: oya_cell_placement_decision_duration_seconds

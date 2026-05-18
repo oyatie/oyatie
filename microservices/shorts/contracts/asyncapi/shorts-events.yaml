@@ -1,0 +1,544 @@
+asyncapi: 3.1.0
+info:
+  title: oya-shorts — events
+  version: 1.0.0
+  summary: Real-time + Workflow events emitted by the shorts µservice
+  description: |
+    Two channel families:
+    - **Real-time WebSocket** (`wss://shorts-{pack}.oyatie.dev/ws/v1`):
+      client-facing events delivered to authenticated session connections.
+      Per-event Cedar evaluation; payloads scoped to the consumer's visibility.
+    - **Workflow event bus** (cluster-internal AMQP / NATS):
+      cross-µservice events consumed by ontology, audit-chain, observability,
+      social (cross-link), messenger (share-to-DM bridge), mail (creator
+      digest), workflow-engine, foundry-runtime.
+
+    EU AI Act Art. 50 transparency: every classifier-emitting event carries
+    `eu_ai_act_label`. EU DSA Art. 17 Statement of Reasons emitted for every
+    moderation action.
+
+defaultContentType: application/json
+
+servers:
+  websocket-gateway:
+    host: shorts-{pack}.oyatie.dev
+    protocol: wss
+    description: Per-pack WebSocket gateway
+    variables:
+      pack:
+        enum: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
+  workflow-events-bus:
+    host: workflow-events.shorts.svc.cluster.local
+    protocol: amqp
+    description: Internal AMQP bus
+
+channels:
+
+  video-uploaded:
+    address: workflow-events/shorts.video.uploaded
+    messages:
+      VideoUploadedMessage:
+        $ref: '#/components/messages/VideoUploaded'
+    description: Upload session finalized; pipeline (scan→transcode→fingerprint→moderation) triggered
+
+  video-published:
+    address: workflow-events/shorts.video.published
+    messages:
+      VideoPublishedMessage:
+        $ref: '#/components/messages/VideoPublished'
+    description: Post-pipeline; video is live
+
+  video-edited:
+    address: workflow-events/shorts.video.edited
+    messages:
+      VideoEditedMessage:
+        $ref: '#/components/messages/VideoEdited'
+
+  video-deleted:
+    address: workflow-events/shorts.video.deleted
+    messages:
+      VideoDeletedMessage:
+        $ref: '#/components/messages/VideoDeleted'
+
+  stitch-created:
+    address: workflow-events/shorts.stitch.created
+    messages:
+      StitchCreatedMessage:
+        $ref: '#/components/messages/StitchCreated'
+
+  duet-created:
+    address: workflow-events/shorts.duet.created
+    messages:
+      DuetCreatedMessage:
+        $ref: '#/components/messages/DuetCreated'
+
+  like-added:
+    address: workflow-events/shorts.like.added
+    messages:
+      LikeAddedMessage:
+        $ref: '#/components/messages/LikeAdded'
+
+  like-removed:
+    address: workflow-events/shorts.like.removed
+    messages:
+      LikeRemovedMessage:
+        $ref: '#/components/messages/LikeRemoved'
+
+  share-emitted:
+    address: workflow-events/shorts.share.emitted
+    messages:
+      ShareEmittedMessage:
+        $ref: '#/components/messages/ShareEmitted'
+
+  comment-published:
+    address: workflow-events/shorts.comment.published
+    messages:
+      CommentPublishedMessage:
+        $ref: '#/components/messages/CommentPublished'
+
+  watch-session-recorded:
+    address: workflow-events/shorts.watch_session.recorded
+    messages:
+      WatchSessionRecordedMessage:
+        $ref: '#/components/messages/WatchSessionRecorded'
+
+  hashtag-emission:
+    address: workflow-events/shorts.hashtag.emission
+    messages:
+      HashtagEmissionMessage:
+        $ref: '#/components/messages/HashtagEmission'
+
+  mention-emitted:
+    address: workflow-events/shorts.mention.emitted
+    messages:
+      MentionEmittedMessage:
+        $ref: '#/components/messages/MentionEmitted'
+
+  moderation-verdict-emitted:
+    address: workflow-events/shorts.moderation_verdict.emitted
+    messages:
+      ModerationVerdictEmittedMessage:
+        $ref: '#/components/messages/ModerationVerdictEmitted'
+    description: EU AI Act Art. 50 + EU DSA Art. 17 Statement of Reasons
+
+  appeal-opened:
+    address: workflow-events/shorts.appeal.opened
+    messages:
+      AppealOpenedMessage:
+        $ref: '#/components/messages/AppealOpened'
+
+  appeal-resolved:
+    address: workflow-events/shorts.appeal.resolved
+    messages:
+      AppealResolvedMessage:
+        $ref: '#/components/messages/AppealResolved'
+
+  abuse-report-filed:
+    address: workflow-events/shorts.abuse_report.filed
+    messages:
+      AbuseReportFiledMessage:
+        $ref: '#/components/messages/AbuseReportFiled'
+
+  copyright-claim-filed:
+    address: workflow-events/shorts.copyright_claim.filed
+    messages:
+      CopyrightClaimFiledMessage:
+        $ref: '#/components/messages/CopyrightClaimFiled'
+
+  counter-notice-filed:
+    address: workflow-events/shorts.counter_notice.filed
+    messages:
+      CounterNoticeFiledMessage:
+        $ref: '#/components/messages/CounterNoticeFiled'
+
+  dmca-takedown-executed:
+    address: workflow-events/shorts.dmca_takedown.executed
+    messages:
+      DmcaTakedownExecutedMessage:
+        $ref: '#/components/messages/DmcaTakedownExecuted'
+
+  repeat-infringer-flagged:
+    address: workflow-events/shorts.repeat_infringer.flagged
+    messages:
+      RepeatInfringerFlaggedMessage:
+        $ref: '#/components/messages/RepeatInfringerFlagged'
+
+  age-attestation-recorded:
+    address: workflow-events/shorts.age_attestation.recorded
+    messages:
+      AgeAttestationRecordedMessage:
+        $ref: '#/components/messages/AgeAttestationRecorded'
+
+  parental-link-established:
+    address: workflow-events/shorts.parental_link.established
+    messages:
+      ParentalLinkEstablishedMessage:
+        $ref: '#/components/messages/ParentalLinkEstablished'
+
+  caption-generated:
+    address: workflow-events/shorts.caption.generated
+    messages:
+      CaptionGeneratedMessage:
+        $ref: '#/components/messages/CaptionGenerated'
+
+  drm-license-issued:
+    address: workflow-events/shorts.drm_license.issued
+    messages:
+      DrmLicenseIssuedMessage:
+        $ref: '#/components/messages/DrmLicenseIssued'
+
+  ediscovery-hold-opened:
+    address: workflow-events/shorts.ediscovery_hold.opened
+    messages:
+      EDiscoveryHoldOpenedMessage:
+        $ref: '#/components/messages/EDiscoveryHoldOpened'
+
+  four-eyes-disclosure-executed:
+    address: workflow-events/shorts.four_eyes_disclosure.executed
+    messages:
+      FourEyesDisclosureExecutedMessage:
+        $ref: '#/components/messages/FourEyesDisclosureExecuted'
+
+  realtime-feed-frame:
+    address: ws://realtime/feed-frame
+    messages:
+      RealtimeFeedFrameMessage:
+        $ref: '#/components/messages/RealtimeFeedFrame'
+
+components:
+  messages:
+
+    VideoUploaded:
+      name: VideoUploaded
+      title: A video upload finalized
+      payload:
+        type: object
+        required: [event_id, occurred_at, video_id, creator_ref, tenant_id, context_kind, upload_id]
+        properties:
+          event_id: {type: string, format: ulid}
+          occurred_at: {type: string, format: date-time}
+          video_id: {type: string, format: ulid}
+          creator_ref: {type: string}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Personal, Professional]}
+          upload_id: {type: string, format: ulid}
+          duration_seconds: {type: integer}
+          content_hash_sha256: {type: string}
+
+    VideoPublished:
+      name: VideoPublished
+      title: A video is live (post-pipeline)
+      payload:
+        type: object
+        required: [event_id, occurred_at, video_id, creator_ref, tenant_id, context_kind, posted_at]
+        properties:
+          event_id: {type: string, format: ulid}
+          occurred_at: {type: string, format: date-time}
+          video_id: {type: string, format: ulid}
+          creator_ref: {type: string}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Personal, Professional]}
+          caption: {type: string}
+          hashtags: {type: array, items: {type: string}}
+          sound_ref: {type: string, nullable: true}
+          age_classification: {type: string}
+          visibility: {type: string}
+          posted_at: {type: string, format: date-time}
+
+    VideoEdited:
+      name: VideoEdited
+      title: Video metadata edited within edit window
+      payload:
+        type: object
+        required: [event_id, video_id, edited_at]
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          edited_at: {type: string, format: date-time}
+          delta: {type: object, description: per-field changes}
+
+    VideoDeleted:
+      name: VideoDeleted
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          deleted_at: {type: string, format: date-time}
+          reason: {type: string, enum: [creator_delete, admin_delete, dmca_takedown, retention_purge, dsr_cascade]}
+
+    StitchCreated:
+      name: StitchCreated
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          stitch_video_id: {type: string, format: ulid}
+          source_video_id: {type: string, format: ulid}
+          source_clip_start_ms: {type: integer}
+          source_clip_end_ms: {type: integer}
+          creator_ref: {type: string}
+          source_consent_required: {type: boolean}
+
+    DuetCreated:
+      name: DuetCreated
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          duet_video_id: {type: string, format: ulid}
+          source_video_id: {type: string, format: ulid}
+          creator_ref: {type: string}
+          source_consent_required: {type: boolean}
+
+    LikeAdded:
+      name: LikeAdded
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          viewer_ref: {type: string}
+          tenant_id: {type: string}
+          context_kind: {type: string, enum: [Personal, Professional]}
+
+    LikeRemoved:
+      name: LikeRemoved
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          viewer_ref: {type: string}
+
+    ShareEmitted:
+      name: ShareEmitted
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          viewer_ref: {type: string}
+          share_target: {type: string, enum: [in_app, dm, external_link, social_cross_link]}
+
+    CommentPublished:
+      name: CommentPublished
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          comment_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          author_ref: {type: string}
+          body: {type: string}
+
+    WatchSessionRecorded:
+      name: WatchSessionRecorded
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          viewer_ref: {type: string}
+          watch_seconds: {type: number}
+          completion_ratio: {type: number, minimum: 0, maximum: 1}
+          scroll_velocity_signal: {type: number}
+
+    HashtagEmission:
+      name: HashtagEmission
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          hashtags: {type: array, items: {type: string}}
+          pack: {type: string}
+
+    MentionEmitted:
+      name: MentionEmitted
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          mentions: {type: array, items: {type: string}}
+
+    ModerationVerdictEmitted:
+      name: ModerationVerdictEmitted
+      title: EU AI Act Art. 50 + EU DSA Art. 17 transparency-bound moderation verdict
+      payload:
+        type: object
+        required: [event_id, video_id, verdict, action_taken, statement_of_reasons, eu_ai_act_label, classifier_version]
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          verdict: {type: string, enum: [ok, sensitive, nsfw, violence, minor_protection_concern, csam_suspect, self_harm_suspect, harassment]}
+          confidence: {type: number}
+          action_taken: {type: string, enum: [auto_hide, flag_for_review, no_action, hold_for_minor_protection_review]}
+          statement_of_reasons:
+            type: object
+            properties:
+              grounds: {type: string}
+              facts_and_circumstances: {type: string}
+              automated_means: {type: boolean, default: true}
+              redress: {type: string}
+          eu_ai_act_label: {type: string, enum: [ai_generated_assessment, human_assessment, hybrid]}
+          classifier_version: {type: string}
+
+    AppealOpened:
+      name: AppealOpened
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          appeal_id: {type: string, format: ulid}
+          verdict_id: {type: string, format: ulid}
+          creator_ref: {type: string}
+          reason: {type: string}
+
+    AppealResolved:
+      name: AppealResolved
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          appeal_id: {type: string, format: ulid}
+          resolution: {type: string, enum: [upheld, reversed]}
+          resolution_text: {type: string}
+          resolved_by: {type: string, description: reviewer principal ref}
+
+    AbuseReportFiled:
+      name: AbuseReportFiled
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          report_id: {type: string, format: ulid}
+          target_video_id: {type: string, format: ulid}
+          abuse_category: {type: string}
+          reporter_ref: {type: string}
+
+    CopyrightClaimFiled:
+      name: CopyrightClaimFiled
+      payload:
+        type: object
+        required: [event_id, claim_id, target_video_id, claimant_ref, perjury_attestation]
+        properties:
+          event_id: {type: string, format: ulid}
+          claim_id: {type: string, format: ulid}
+          target_video_id: {type: string, format: ulid}
+          claimant_ref: {type: string}
+          perjury_attestation: {type: boolean, description: DMCA §512(c)(3)(A)(vi)}
+          claim_text: {type: string}
+          matched_corpus_entry_id: {type: string, nullable: true}
+
+    CounterNoticeFiled:
+      name: CounterNoticeFiled
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          counter_notice_id: {type: string, format: ulid}
+          claim_id: {type: string, format: ulid}
+          creator_ref: {type: string}
+          jurisdiction_consent: {type: boolean}
+          perjury_attestation: {type: boolean}
+
+    DmcaTakedownExecuted:
+      name: DmcaTakedownExecuted
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          claim_id: {type: string, format: ulid}
+          executed_by: {type: string, description: compliance-officer ref}
+
+    RepeatInfringerFlagged:
+      name: RepeatInfringerFlagged
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          creator_ref: {type: string}
+          strike_count: {type: integer}
+          policy_action: {type: string, enum: [warning, temp_suspension, permanent_suspension]}
+
+    AgeAttestationRecorded:
+      name: AgeAttestationRecorded
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          attestation_id: {type: string, format: ulid}
+          user_ref: {type: string}
+          age_bracket: {type: integer}
+          is_minor: {type: boolean}
+          parental_consent_required: {type: boolean}
+          pack: {type: string}
+          pack_threshold: {type: integer}
+
+    ParentalLinkEstablished:
+      name: ParentalLinkEstablished
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          link_id: {type: string, format: ulid}
+          minor_user_ref: {type: string}
+          parent_user_ref: {type: string}
+          consent_method: {type: string, enum: [credit_card_verification, signed_form_upload, drivers_license, government_id, phone_verification]}
+
+    CaptionGenerated:
+      name: CaptionGenerated
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          webvtt_url: {type: string, format: uri}
+          ttml_url: {type: string, format: uri}
+          detected_language: {type: string}
+          eu_ai_act_label: {type: string, enum: [ai_generated]}
+
+    DrmLicenseIssued:
+      name: DrmLicenseIssued
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          video_id: {type: string, format: ulid}
+          viewer_ref: {type: string}
+          key_system: {type: string, enum: [com.widevine.alpha, com.apple.fps, com.microsoft.playready]}
+          tenant_tier: {type: string, enum: [Premium, Enterprise]}
+
+    EDiscoveryHoldOpened:
+      name: EDiscoveryHoldOpened
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          hold_id: {type: string, format: ulid}
+          target_resources: {type: array, items: {type: string}}
+          opened_by: {type: string, description: compliance-officer ref}
+
+    FourEyesDisclosureExecuted:
+      name: FourEyesDisclosureExecuted
+      payload:
+        type: object
+        properties:
+          event_id: {type: string, format: ulid}
+          target_video_id: {type: string, format: ulid}
+          approver_a_ref: {type: string}
+          approver_b_ref: {type: string}
+          reason_code: {type: string}
+
+    RealtimeFeedFrame:
+      name: RealtimeFeedFrame
+      title: Real-time feed-frame delivered via WebSocket
+      payload:
+        type: object
+        properties:
+          frame_id: {type: string, format: ulid}
+          videos: {type: array, items: {type: object}}
+          ranking_explanation: {type: array, items: {type: object}, description: per EU DSA Art. 27}

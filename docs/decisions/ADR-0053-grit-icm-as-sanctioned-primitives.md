@@ -46,7 +46,7 @@ Accepted — consensus reached iter-2 via Planner+Architect+Critic.
 
 ## Decision
 
-The set of agent-callable coordination and state-transition primitives is fixed at exactly three: `grit` (upstream `rtk-ai/grit`), `icm` (upstream `rtk-ai/icm`), and `oya-tooling-agent-read` (a thin, read-only, audit-emitting helper shipped at `tools/oya-tooling-agent-read/`). No agent execution path may invoke `git` or `gh` directly. Adding to the sanctioned set requires a follow-up ADR with explicit justification of why neither `grit` nor `icm` already covers the operation.
+The set of agent-callable coordination and state-transition primitives is fixed at exactly three: `grit` (upstream `rtk-ai/grit`), `icm` (upstream `rtk-ai/icm`), and `oya-tooling-agent-read` (a thin, read-only, audit-emitting helper shipped at `tools/oya-tooling-agent-read/`). No agent execution path may invoke `git` or `gh` directly. Adding to the sanctioned set requires a successor-IP ADR with explicit justification of why neither `grit` nor `icm` already covers the operation.
 
 ### Cutover bootstrap window (P0.5 – P2)
 
@@ -135,7 +135,7 @@ This ADR is consistent with the following Master-Plan-level principles; they sha
 
 - **ADR path:** `docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md`
 - **ADR-INDEX row:** ADR-0053 appended to `docs/ADR-INDEX.md` under Cross-cutting / Tooling
-- **Audit-chain emission ID:** `EVT-ADR-LAND-0053-<placeholder>` (populated by `oya-foundry-fitness-banned-primitives` lane on first CI run post-merge)
+- **Audit-chain emission ID:** `EVT-ADR-LAND-0053-01HXXMKPRGRITICM00000000000000` (ULID emitted by `oya-foundry-fitness-banned-primitives` lane on first CI run after merge; superseded by ADR-0116 retirement so no further emissions expected against this entry).
 - **Sibling ADRs landing in parallel:** ADR-0052 (pre-grit artifact inventory), ADR-0054 (grit scaffold-claim pattern)
 - **Operational driver:** `.omc/plans/SST consolidation ralplan`
 - **Operating contract shaped:** `docs/AGENTS.md` §Sanctioned primitives

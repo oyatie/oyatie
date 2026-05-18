@@ -1,0 +1,273 @@
+{
+  "doc_kind": "session-decisions-checkpoint",
+  "purpose": "Preserve architectural doctrines decided in PR-143 session 2026-05-18 that are NOT yet on disk as full ADRs. Safety net so decisions survive session/context boundary. Each entry below MUST be promoted to a full ADR before PR-143 close-out OR in the follow-up PR-144 (Wave 3A substrate-doctrine work). NO empty promises — this checkpoint is the authoritative source until the ADRs are authored.",
+  "session_date": "2026-05-18",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "pr": "#143",
+  "status": "checkpoint-pending-promotion-to-adrs",
+  "integrity_bar": "Per user directive 'no empty promises, no false signals' — this file is the canonical source of these decisions until ADR-0211, 0212, 0215, 0216, 0217, 0218, 0219, 0220, and ADR-0136 amendment land on disk.",
+
+  "queued_adrs_to_author": {
+    "ADR-0136-amendment": {
+      "title": "Foundry scope clarification — INTERNAL only",
+      "amends": "ADR-0136 (Foundry consolidation 6→1)",
+      "decision": "Foundry µservice (microservices/foundry/) is INTERNAL ONLY — Hermes agentic dev toolchain, CI/CD orchestration, internal eval, internal evidence collection. NOT consumer-facing. Consumer AI = separate µservice microservices/intelligence/ per ADR-0220.",
+      "rationale": "User directive 2026-05-18: 'Foundry is internal tool. oyatie intelligence + ontology + workflow is consumer facing.' Past session work incorrectly framed Foundry agents as consumer-facing (e.g., 'Foundry-powered 1:1 prep AI'). Those references corrected to 'oyatie intelligence' in this amendment.",
+      "impacts": [
+        "Past references to 'Foundry agents for HR Q&A / 1:1 prep / management-cockpit insights' → corrected to 'oyatie intelligence'",
+        "Milvus (ADR-0192) serves BOTH Foundry (internal eval corpora) AND oyatie intelligence (per-tenant RAG); per-cell logical isolation",
+        "Wasmtime (ADR-0200) serves BOTH (internal tool sandboxing in Foundry; tenant context sandboxing in intelligence)"
+      ]
+    },
+
+    "ADR-0211": {
+      "title": "In-house tech stack policy",
+      "status": "ACCEPTED — already cited as accepted in v3 audit; orphan citation that must be resolved",
+      "decision_summary": "Wherever possible, oyatie supports an in-house tech stack — like AWS, Google, Microsoft, Oracle. Component classification rubric: (a) Community-standard / CNCF-graduated → KEEP, adapter for swap, no Phase-2 in-house replacement (these ARE the standards). (b) Vendor-replaceable → Phase-0 adapter wrapper + Phase-2 in-house native build with value-anchored trigger (NOT date-anchored). (c) In-house mandatory (our differentiation) → 100% in-house from day 1.",
+      "classification_examples": {
+        "community_standard_KEEP": [
+          "Cilium (CNI/L3-L4) — CNCF graduated",
+          "Istio Ambient (L7) — CNCF graduated",
+          "Envoy Gateway — CNCF graduated",
+          "Kyverno (K8s admission) — CNCF graduated",
+          "Cedar (app authz) — AWS-open-sourced; W3C-class standard",
+          "Wasmtime — CNCF; BytecodeAlliance",
+          "OpenTofu — Linux Foundation",
+          "ArgoCD — CNCF graduated",
+          "Cluster API — K8s SIG",
+          "Karpenter — CNCF",
+          "Prometheus / Mimir / Loki / Tempo / Grafana / OTel / AlertManager — all CNCF",
+          "OpenBao — Linux Foundation Vault fork",
+          "SPIFFE / SPIRE — CNCF",
+          "Cosign / Trivy — Sigstore / CNCF",
+          "PostgreSQL — community standard",
+          "OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 — open standards",
+          "ICU MessageFormat / Fluent (Mozilla) — open standards",
+          "WCAG 2.2 AA — W3C standard",
+          "OIDC / WebAuthn L3 / SCIM 2.0 — IETF/W3C standards",
+          "Loro CRDT — open-source community",
+          "FHIR R4 — HL7 international standard"
+        ],
+        "vendor_replaceable_with_phase_2_native": [
+          {"vendor": "Zitadel (OIDC IdP)", "phase_2": "oya-identity-server", "trigger": "≥50K tenants per pack OR multi-region active-active RTO ≤30s requirement Zitadel can't natively support"},
+          {"vendor": "Milvus (vector DB)", "phase_2": "oya-vector-store-server", "trigger": "≥1B vectors per cluster OR Foundry/intelligence RAG latency budget breached"},
+          {"vendor": "ClickHouse (OLAP)", "phase_2": "oya-olap-warehouse-server (DataFusion+Arrow+Parquet+custom-merge-tree)", "trigger": "≥100TB per tenant OR cross-tenant isolation breach"},
+          {"vendor": "SeaweedFS (object store)", "phase_2": "oya-object-store-server", "trigger": "≥1PB cluster OR multi-region active-active write coordination need"},
+          {"vendor": "Velero (K8s backup orchestrator)", "phase_2": "oya-backup-orchestrator", "trigger": "AWS-Backup-parity needed at multi-tenant scale"},
+          {"vendor": "OpenCost (FinOps)", "phase_2": "oya-finops-portal", "trigger": "tenant-billing-portal needs OpenCost can't cover"},
+          {"vendor": "Postal (sovereign email)", "phase_2": "oya-comms-email-server", "trigger": "≥1M sends/day/tenant × 7d sustained OR sovereign air-gap deploy"},
+          {"vendor": "Backstage (developer portal)", "phase_2": "oya-developer-portal", "trigger": "Backstage scope exceeded for service catalog + TechDocs"},
+          {"vendor": "svelte-flow (canvas)", "phase_2": "oya-canvas (Leptos-native)", "trigger": "≥10K nodes per workflow OR svelte-flow performance ceiling"},
+          {"vendor": "Meilisearch (search)", "phase_2": "oya-search-server (Tantivy-based)", "trigger": "BUSL enterprise tier requirement OR Meilisearch licensing concern escalation"}
+        ],
+        "in_house_mandatory_differentiation": [
+          "Workflow Studio (n8n-class hero product)",
+          "Ontology (Palantir-class canonical data layer)",
+          "Foundry (internal Hermes agentic substrate per ADR-0136 amendment)",
+          "Intelligence (consumer AI substrate per ADR-0220)",
+          "Audit Chain (Ed25519 + Merkle per Bominal ADR-0028)",
+          "Cell architecture (per ADR-0009)",
+          "Consent Graph (per ADR-0214 — cross-tenant visibility moat)",
+          "Plugin App Store + Developer SDK (per ADR-0213 — ecosystem moat)",
+          "Compliance evidence pipeline (Drata/Vanta-replacement; built in-house from day 1)"
+        ]
+      },
+      "ci_enforcement": "Add gate oya-check-vendor-classification — every dependency declared in workspace must be classified per rubric; CI-fail on unclassified or date-anchored Phase-2 trigger"
+    },
+
+    "ADR-0212": {
+      "title": "Buildability Doctrine",
+      "decision_summary": "Every artifact (PRDs, ADRs, IPs, runbooks, contracts, Helm charts, SLOs, standards docs) must be self-sufficient enough that a stranger (new engineer or AI agent) walks up cold and produces production-ready hyperscaler-grade output WITHOUT tribal knowledge. No false signals. No padding.",
+      "per_artifact_bar": {
+        "PRD": "5+ user stories with measurable acceptance criteria; explicit scope-in/scope-out; success metrics with numbers; trace to phases",
+        "PHASE-SPEC": "Phases list IPs; each IP has owner, blocking deps, exit criteria",
+        "IP": "≥150 SUBSTANTIVE lines; file-level paths; line ranges; test count + names; evidence to emit; idempotency; rollback steps; NOT padded filler",
+        "ADR": "Context + Decision + ≥3 alternatives with rejected-because + ≥3 consequences (positive + negative + operational) + named industry sources + §'In-house roadmap'",
+        "Contract": "Sufficient to generate working clients in TS/Rust/Swift/Kotlin/C#/Python; ≥3 worked examples per endpoint; idempotency-key + cursor pagination + X-Request-Id + ULID baked in",
+        "Helm_chart": "Deploys working substrate; per-pack overlays; OpenBao SecretReference for secrets; values fully documented",
+        "Runbook": "Step-by-step executable as-is; no 'ask SME' steps; named commands; expected outputs; rollback at every step",
+        "SLO": "Concrete numerical targets; burn-rate alerts wired (4-window per ADR-0139); dashboards linked",
+        "Threat_model": "STRIDE per surface; named specific attack vectors (not abstract)",
+        "Standards_doc": "Implementable from doc alone; no 'see X for details' hand-waves"
+      },
+      "ci_enforcement_gate": "oya-check-buildability-discipline (advisory mode initially → BLOCKER once 33+ µservices pass)"
+    },
+
+    "ADR-0215": {
+      "title": "Multi-Context Platform Architecture",
+      "decision_summary": "One human principal can carry multiple data contexts simultaneously: work-context-{employer-X, employer-Y…} + personal-context + healthcare-patient-context + healthcare-provider-context + education-student-context + government-citizen-context. Each context has independent data scope, governance, audit chain, sovereignty. Cross-context bridges only via consent-graph (ADR-0214) — explicit user grants. Same Connect family µservice (mail, messenger, calendar, social, docs, sheets, etc.) handles ALL contexts with strict data partitioning.",
+      "implementations": [
+        "identity µservice extension: multi-context principal resolver (Fix-Q's existing identity µservice extended)",
+        "Connect family µservices: data partitioning per context with shared UI",
+        "Cedar policy: context-aware authorization (work-context Cedar fragments differ from personal-context)",
+        "Audit chain: per-context sealed audit trail",
+        "Ontology: entities scoped per context"
+      ],
+      "comparable_implementations": ["WeChat super-app one-id-many-contexts model", "Apple Managed Apple ID vs personal Apple ID", "Google Workspace vs personal Google account", "Microsoft M365 work account vs personal Outlook.com", "Slack workspaces"]
+    },
+
+    "ADR-0216": {
+      "title": "Open Integration & Migration-Out Policy",
+      "decision_summary": "Lock-in is FORBIDDEN. Trust via openness is the moat. Every µservice ships: (1) first-party importer FROM top-3 competitors; (2) first-party exporter TO top-3 competitors; (3) OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3 contracts as canonical surface; (4) plugin extension points via Wasmtime sandbox + plugin-app-store; (5) open-standards (OIDC/SCIM/SAML/FHIR/ISO 20022/xBRL/OpenAPI/OpenSLO/OpenTofu/FOCUS) compliance. Customers know they CAN leave → they aren't afraid to start → they start → they adopt more → they don't leave. Paradoxical lock-in via trust.",
+      "comparable_implementations": ["AWS open APIs + 100K+ partners", "Stripe Connect (open + extensible)", "Apple ecosystem (open enough — third-party apps + iCloud + Apple Pay)", "Google Workspace (one account, but open APIs)", "Shopify open commerce platform"]
+    },
+
+    "ADR-0217": {
+      "title": "Vertical Slice Rollout Order",
+      "decision_summary": "Plan all µservices in PR-143; ROLLOUT to production-GA one vertical at a time. Each vertical must reach hyperscaler-grade depth before next vertical starts. Vertical depth + completeness > horizontal breadth.",
+      "vertical_order": [
+        {"order": 1, "vertical": "Enterprise Generic", "why": "Largest revenue surface; best cross-product integration test; medium compliance bar"},
+        {"order": 2, "vertical": "Healthcare", "why": "Highest compliance bar (HIPAA + Joint Commission + state DPH); regulatory-pack stress test; Epic/Cerner FHIR connector validation; multi-context platform stress test"},
+        {"order": 3, "vertical": "Retail / Commerce", "why": "B2C marketplace + commerce stack validation; payments at scale; consumer surfaces stress test"},
+        {"order": 4, "vertical": "SMB Generic", "why": "Mass-market; simpler onboarding; ease-of-adoption claim test"},
+        {"order": 5, "vertical": "Manufacturing", "why": "ERP integration + IoT; sector data model density"},
+        {"order": 6, "vertical": "Logistics & Delivery", "why": "Route optimization + fleet + consent-graph real-time visibility stress test"},
+        {"order": 7, "vertical": "Hospitality", "why": "PMS integration + reservation + workforce"},
+        {"order": 8, "vertical": "Financial Services", "why": "Highest combined regulatory bar (KYC/AML/SOC2/PCI-DSS); fintech market"},
+        {"order": 9, "vertical": "Education", "why": "LMS + campus recruiting + multi-context (student/teacher/parent)"},
+        {"order": 10, "vertical": "Government", "why": "FedRAMP High + state procurement; longest sales cycle; highest trust bar"}
+      ]
+    },
+
+    "ADR-0218": {
+      "title": "Tenant Granular Control Surface",
+      "decision_summary": "Tenants (organizations) get granular control over: (a) tenant-authored Cedar policy fragments (own scope; composes with platform-base-deny); (b) tenant-defined custom roles (beyond platform default enum); (c) tenant-scoped data_class extensions; (d) tenant-admin access management UI in Application B2B shell; (e) tenant-self-serve JIT access grants for contractors; (f) tenant-authored approval workflows via Workflow Studio templates; (g) per-product, per-role, per-data-class permission matrix.",
+      "tenant_admin_console_capabilities": [
+        "Employees + roles (SCIM-provisioned + tenant-extension roles)",
+        "Products enabled à-la-carte (per ADR-0061)",
+        "Access policies (Cedar fragments authored in visual builder)",
+        "Data classifications (custom labels)",
+        "Approval workflows (Workflow Studio templates)",
+        "Audit visibility (per-tenant audit-log slicing per ADR-0162)",
+        "Environment tiers test/staging/prod (per ADR-0163)",
+        "API keys per tier + per-purpose (Stripe pattern)",
+        "IdP federation (external OIDC/SAML)"
+      ],
+      "substrate_existing": "Cedar policy engine (ADR-0150/0183), SCIM 2.0 inbound (ADR-0190), identity OIDC + WebAuthn (ADR-0187/0188), per-tenant audit-log slicing (ADR-0162), per-tenant env tiers (ADR-0163), Application B2B shell (ADR-0061), tenancy RLS + JWT + cells",
+      "ux_layer_needed": "Visual builders in Application B2B shell (Tenant Admin Console) — extends Application µservice with no-code-first surfaces per ADR-0219"
+    },
+
+    "ADR-0219": {
+      "title": "No-Code-First UX with Optional AI-Assist",
+      "decision_summary": "Most professional tasks must be possible WITHOUT technical knowledge. Visual deterministic builders are PRIMARY UX (no code, no SQL, no JSON, no CLI). AI-assist via Foundry+intelligence is OPT-IN accelerator for genuinely fuzzy/semantic tasks. Programmatic Workflow + Ontology + Cedar paths handle deterministic flows without AI in the loop. Don't waste AI on deterministic tasks (cost + latency + fallibility). Don't weaken UX in either direction — both paths coexist.",
+      "deterministic_patterns_no_ai": [
+        "Build a workflow (drag-and-drop canvas — svelte-flow per ADR-0204)",
+        "Configure approval flow (visual N-approver builder)",
+        "Define data schema (Notion-style schema editor)",
+        "Build a report (drag-and-drop dimensions/measures — Looker pattern)",
+        "Configure data classification (visual tagging)",
+        "Define a role (visual selection of products × scopes × actions)",
+        "Issue API key per environment tier (form-based UI — Stripe pattern)",
+        "Audit query (faceted filter UI — Splunk pattern)",
+        "Edit a Cedar policy for simple cases (visual matrix builder)",
+        "Enable a product à-la-carte (one click — ADR-0061)"
+      ],
+      "ai_assist_valid_where": [
+        "Natural-language search across ontology",
+        "Complex policy authoring from intent",
+        "Workflow drafting from natural-language description",
+        "Anomaly explanation",
+        "Cross-product semantic reasoning",
+        "Form auto-fill from context",
+        "Document understanding (resume parsing, contract redlining)",
+        "Report narrative drafting",
+        "Onboarding wizard with conversation",
+        "1:1 prep agenda / perf review drafting"
+      ],
+      "doctrine_rules": [
+        "Visual builder is primary; AI button is opt-in",
+        "AI drafts render INTO the visual builder so user reviews + edits in same UI",
+        "AI output is always a DRAFT for human review, never auto-applied",
+        "Cost discipline: AI tokens spent only on user invocation; no shadow agent loops",
+        "Developer API/SDK/CLI access exists for those who choose it"
+      ]
+    },
+
+    "ADR-0220": {
+      "title": "Consumer Intelligence Substrate (microservices/intelligence/)",
+      "decision_summary": "microservices/intelligence/ is the CONSUMER-FACING AI substrate (B2B tenants + B2C personal users), distinct from microservices/foundry/ which is INTERNAL ONLY (Hermes agentic dev pipeline). Brand label shown to users: 'oyatie intelligence' — similar to Apple Intelligence / Microsoft Copilot / Google AI / WeChat super-app AI. Lives WITHIN every consumer product (Workflow Studio, HR, Payroll, Connect family, marketplace, etc.) as the AI surface backed by this µservice.",
+      "ownership": [
+        "Per-tenant AI context/memory/preferences",
+        "Per-user prompt history",
+        "Cross-product AI orchestration (an HR question that traverses payroll + comp data)",
+        "Model routing (which model, which provider, which tier)",
+        "Cost attribution per-tenant for AI tokens",
+        "AI usage analytics",
+        "Consent management for AI usage (opt-out support)",
+        "EU AI Act Annex III high-risk classification tracking per capability tier",
+        "DSAR compliance (AI memory deletion on user request)",
+        "Audit chain for AI decisions (GDPR Art. 22 automated decision-making transparency)"
+      ],
+      "substrate_shared_with_foundry": [
+        "Milvus vector DB (per-cell logical isolation; intelligence = per-tenant RAG; Foundry = internal eval corpora)",
+        "Wasmtime sandbox (per ADR-0200; intelligence = tenant context sandboxing; Foundry = internal tool sandboxing)",
+        "Same underlying runtime; separated by µservice + cell + tenant boundaries"
+      ],
+      "naming": "µservice path microservices/intelligence/ (no 'oyatie-' prefix per convention); crate prefix oya-intelligence-*-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}; brand label 'oyatie intelligence' shown to users"
+    }
+  },
+
+  "wave_3_plan": {
+    "status": "DEFERRED to follow-up PRs per ADR-0217 Vertical Slice Rollout doctrine",
+    "rationale": "PR-143 already at 57+ µservices; reviewability bar exceeded. Per Option A close-out 2026-05-18.",
+    "follow_up_pr_mapping": [
+      {"pr": "PR-144", "wave": "3A substrate-doctrine + 2 B2B core", "agents": "substrate-doctrine ADRs (0211/0212/0215/0216/0217/0218/0219/0220 + 0136-amendment) + accounting + hr"},
+      {"pr": "PR-145", "wave": "3B B2B core", "agents": "payroll + payments + procurement"},
+      {"pr": "PR-146", "wave": "3C B2B + Connect", "agents": "crm + inventory + mail-multi-context-retrofit"},
+      {"pr": "PR-147", "wave": "3D Connect + B2B", "agents": "messenger-multi-context + community-expansion-LinkedIn-Handshake-TeamBlind-Reddit-jobs + billing"},
+      {"pr": "PR-148", "wave": "3E Foundry + Intelligence + Exec", "agents": "foundry-agentic-toolchain-INTERNAL + microservices/intelligence/-consumer-AI + management-cockpit"},
+      {"pr": "PR-149", "wave": "3F substrate-thin-IP", "agents": "audit-chain+ontology thin-IP + workflow-engine+cell thin-IP + governance+tenancy thin-IP"},
+      {"pr": "PR-150", "wave": "3G B2B + Connect", "agents": "banking + erp-bridge + calendar-multi-context"},
+      {"pr": "PR-151", "wave": "3H Connect retrofits", "agents": "social+shorts+network + anonymous+docs+sheets + slides+drive+meet"},
+      {"pr": "PR-152", "wave": "3I Connect + B2C", "agents": "forms+sites+tasks + notes+translate+recordings + marketplace-B2C"},
+      {"pr": "PR-153", "wave": "3J B2C", "agents": "shipment-tracking + personal-finance + personal-health-records"},
+      {"pr": "PR-154", "wave": "3K sector overlays", "agents": "pack-retail + pack-healthcare-clinical + final-adversarial-audit"},
+      {"pr": "PR-155+", "wave": "deferred sector overlays", "agents": "pack-manufacturing + pack-logistics + pack-hospitality + pack-financial-services + pack-education + pack-government"}
+    ]
+  },
+
+  "pr_143_close_out_sequence_10_steps": [
+    "1. Wait for Consent-graph + ADR-0214 land (in flight; ADR-0214 already on disk at 15.3K)",
+    "2. Atomic parent-side wiring per evidence/pr-143-atomic-wiring-plan.json: 12 dispatcher arms + 11 deps + 12 lanes.yaml + 13 manifest-schema namespaces + 2 debt-ledger entries",
+    "3. Promote this checkpoint's queued ADRs (0211, 0212) to full ADR files on disk — orphan citation resolution for 0211",
+    "4. Fix-N + Fix-M dispatcher wiring (left incomplete; tasks #2 + #3)",
+    "5. Promote ontology-projection-coverage advisory → BLOCKER",
+    "6. Final adversarial audit (4 lenses: hyperscaler + clean arch + API-first + buildability + false-signal hunt)",
+    "7. Author ADR-0136 amendment (Foundry scope = internal only); defer ADR-0215/0216/0217/0218/0219/0220 to PR-144",
+    "8. False-signal remediation pass",
+    "9. Final cargo + gate run-all + workspace verification",
+    "10. Commit + push (via grit pipeline: claim → work → done) + emit final merge-admissibility report v4"
+  ],
+
+  "doctrines_codified_this_session_summary": {
+    "thin_sprawl_anti_pattern": "Width without depth is anti-product. Each µservice in production must be FIRST CLASS. No half-built µservices.",
+    "first_class_bar": "70-90 substantive artifacts per µservice. 15 IPs ≥150 substantive lines. Honest disclosure of aspirational items. No padding.",
+    "in_house_tech_policy": "Where it makes sense, in-house (AWS/Google/Microsoft/Oracle pattern). Community-standard KEEP. Vendor-replaceable Phase-2 with value-anchored trigger.",
+    "open_integration_policy": "Lock-in forbidden. Importers + exporters + open standards + plugin SDK. Trust via openness is the moat.",
+    "buildability_doctrine": "Stranger walks up cold, builds production-grade output from artifacts alone. No tribal knowledge.",
+    "no_code_first_ux": "Visual deterministic builders primary. AI opt-in accelerator. Programmatic for deterministic flows.",
+    "multi_context_platform": "One principal, many data contexts (work/personal/healthcare/etc.). Cross-context bridges via consent-graph only.",
+    "ecosystem_as_a_service": "Plugin-app-store + developer-sdk = third-party developer ecosystem. consent-graph cross-tenant visibility = supply chain moat.",
+    "vertical_slice_rollout": "Plan all in PR-143; ship one vertical at a time. Depth over breadth.",
+    "foundry_internal_intelligence_consumer": "microservices/foundry/ = internal Hermes dev pipeline. microservices/intelligence/ = consumer AI brand surface.",
+    "taxonomy_corrections": {
+      "plugin_app_store": "Third-party developer plugins/apps catalog (renamed from ecosystem-marketplace)",
+      "marketplace": "B2C commerce — Amazon/Shopify class (separate µservice)",
+      "community": "LinkedIn + Handshake + TeamBlind + Reddit crossover; hiring + job search fold INTO this (not separate µservices)"
+    }
+  },
+
+  "openapi_asyncapi_version_correction_2026_05_18": {
+    "verified_via_websearch_2026_05_18": true,
+    "canonical_versions": {
+      "openapi": "3.2.0 (released Sept 2025; 3.3 does NOT exist)",
+      "asyncapi": "3.1.0 (released 2026-01-31; minor over 3.0.0)",
+      "proto": "proto3"
+    },
+    "sweep_needed": "Any µservice docs still pinning AsyncAPI 3.0.0 (e.g., FinOps-portal contracts) need bumping to 3.1.0"
+  },
+
+  "in_flight_at_checkpoint_time": [
+    "Consent-graph + ADR-0214 (ADR file already on disk; agent finalizing batch report + parent-wiring-todo)"
+  ]
+}

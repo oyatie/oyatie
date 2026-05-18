@@ -103,7 +103,7 @@ Owned by M01 foundation teams. Consumed by every axis; runtime crate names follo
 | `workspace.meet.session.start` | control | REST | per-tenant SFU placement; per-region; OpenAPI source `contracts/openapi/workspace/workspace-meet-v1.yaml` | stable | `oya-workspace-meet-api` |
 | `workspace.meet.recording.archive` | data | event | KMS-shred per recording; trust-portal-only access | stable | `oya-workspace-meet-recording-app` |
 | `workspace.chat.message.send` | data | websocket + REST | per-tenant per-channel; threading per RFC; OpenAPI source `contracts/openapi/workspace/workspace-chat-v1.yaml` | stable | `oya-workspace-chat-api` |
-| `workspace.forms.submission.ingest` | data | REST + event | routed into Object Graph; per-form schema; OpenAPI source `contracts/openapi/workspace/workspace-forms-v1.yaml` | stable | `oya-workspace-forms-api` |
+| `workspace.forms.submission.ingest` | data | REST + event | routed into Ontology (legacy: Object Graph — renamed per MASTERPLAN.md §2.4); per-form schema; OpenAPI source `contracts/openapi/workspace/workspace-forms-v1.yaml` | stable | `oya-workspace-forms-api` |
 | `workspace.address-book.carddav` | data | CardDAV | RFC 6352; per-tenant | stable | `oya-workspace-address-book-api` |
 | `workspace.translate.invoke` | data | REST | Foundry-routed per provider; per-pack language coverage | preview | `oya-workspace-translate-api` |
 

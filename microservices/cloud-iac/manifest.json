@@ -1,0 +1,344 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-iac",
+  "version": "0.1.0",
+  "owner": "axis-cloud-iac",
+  "bounded_contexts": [
+    {
+      "name": "cloud-iac",
+      "description": "Bounded context 'cloud-iac' within cloud-iac (control plane)",
+      "crates": [
+        "oya-cloud-iac-iac-applier-adapter",
+        "oya-cloud-iac-iac-applier-adapter-argocd",
+        "oya-cloud-iac-iac-applier-api",
+        "oya-cloud-iac-iac-applier-app",
+        "oya-cloud-iac-iac-applier-domain",
+        "oya-cloud-iac-iac-applier-kernel",
+        "oya-cloud-iac-iac-applier-rest",
+        "oya-cloud-iac-iac-applier-usecase",
+        "oya-cloud-iac-iac-applier-worker",
+        "oya-cloud-iac-iac-registry-adapter",
+        "oya-cloud-iac-iac-registry-adapter-postgres",
+        "oya-cloud-iac-iac-registry-api",
+        "oya-cloud-iac-iac-registry-app",
+        "oya-cloud-iac-iac-registry-domain",
+        "oya-cloud-iac-iac-registry-kernel",
+        "oya-cloud-iac-iac-registry-rest",
+        "oya-cloud-iac-iac-registry-sdk",
+        "oya-cloud-iac-iac-registry-usecase",
+        "oya-cloud-iac-iac-registry-worker",
+        "oya-cloud-iac-iac-renderer-adapter",
+        "oya-cloud-iac-iac-renderer-adapter-helm",
+        "oya-cloud-iac-iac-renderer-adapter-kustomize",
+        "oya-cloud-iac-iac-renderer-adapter-opentofu",
+        "oya-cloud-iac-iac-renderer-api",
+        "oya-cloud-iac-iac-renderer-app",
+        "oya-cloud-iac-iac-renderer-domain",
+        "oya-cloud-iac-iac-renderer-kernel",
+        "oya-cloud-iac-iac-renderer-rest",
+        "oya-cloud-iac-iac-renderer-sdk",
+        "oya-cloud-iac-iac-renderer-usecase",
+        "oya-cloud-iac-iac-renderer-worker",
+        "oya-cloud-iac-iac-rollback-adapter",
+        "oya-cloud-iac-iac-rollback-api",
+        "oya-cloud-iac-iac-rollback-app",
+        "oya-cloud-iac-iac-rollback-domain",
+        "oya-cloud-iac-iac-rollback-kernel",
+        "oya-cloud-iac-iac-rollback-rest",
+        "oya-cloud-iac-iac-rollback-usecase",
+        "oya-cloud-iac-iac-rollback-worker",
+        "oya-cloud-iac-iac-validator-adapter",
+        "oya-cloud-iac-iac-validator-api",
+        "oya-cloud-iac-iac-validator-app",
+        "oya-cloud-iac-iac-validator-domain",
+        "oya-cloud-iac-iac-validator-kernel",
+        "oya-cloud-iac-iac-validator-rest",
+        "oya-cloud-iac-iac-validator-usecase",
+        "oya-cloud-iac-iac-validator-worker"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/cloud-iac/contracts/openapi/cloud-iac.yaml"
+    ],
+    "asyncapi": [
+      "microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml"
+    ],
+    "proto": [
+      "microservices/cloud-iac/contracts/proto/cloud-iac.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T3",
+      "name": "iac-apply",
+      "file": "microservices/cloud-iac/capabilities/iac-apply.yaml",
+      "eu_ai_act_risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "iac-render",
+      "file": "microservices/cloud-iac/capabilities/iac-render.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T3",
+      "name": "iac-rollback",
+      "file": "microservices/cloud-iac/capabilities/iac-rollback.yaml",
+      "eu_ai_act_risk_class": "high"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-cloud-iac-helm-chart-lint-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_cloud_iac_helm_lint_total{outcome=\"pass\"}[5m]))",
+      "file": "microservices/cloud-iac/slos/helm-chart-lint-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-iac-iac-apply-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_iac_apply_duration_seconds_bucket{le=\"30\"}[5m]))",
+      "file": "microservices/cloud-iac/slos/iac-apply-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-iac-iac-render-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_iac_render_duration_seconds_bucket{le=\"10\"}[5m]))",
+      "file": "microservices/cloud-iac/slos/iac-render-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-iac-iac-rollback-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_iac_rollback_duration_seconds_bucket{le=\"60\"}[5m]))",
+      "file": "microservices/cloud-iac/slos/iac-rollback-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-iac-iac-validator-availability",
+      "target": "0.999",
+      "sli": "sum(rate(oya_cloud_iac_validate_total{outcome=~\"pass|fail\"}[5m]))",
+      "file": "microservices/cloud-iac/slos/iac-validator-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-iac-slsa-provenance-completeness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_cloud_iac_apply_total{slsa_l3=\"true\"}[5m]))",
+      "file": "microservices/cloud-iac/slos/slsa-provenance-completeness.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-layer-a-argocd-flux-iac",
+      "title": "IP-001: Layer-A ArgoCD + Flux + Helm-controller + Kustomize-controller IaC",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-001-layer-a-argocd-flux-iac.md"
+    },
+    {
+      "id": "IP-002-layer-a-opentofu-iac",
+      "title": "IP-002: Layer-A OpenTofu self-hosted runner + per-pack state-bucket IaC",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-002-layer-a-opentofu-iac.md"
+    },
+    {
+      "id": "IP-003-iac-renderer-kernel",
+      "title": "IP-003: oya-cloud-iac-iac-renderer-kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-003-iac-renderer-kernel.md"
+    },
+    {
+      "id": "IP-004-iac-renderer-domain-usecase",
+      "title": "IP-004: oya-cloud-iac-iac-renderer-{domain,usecase,api}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-004-iac-renderer-domain-usecase.md"
+    },
+    {
+      "id": "IP-005-iac-renderer-adapter-trio",
+      "title": "IP-005: iac-renderer backend-qualified adapter trio (helm, kustomize, opentofu)",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-005-iac-renderer-adapter-trio.md"
+    },
+    {
+      "id": "IP-006-iac-validator-kernel-domain-usecase",
+      "title": "IP-006: oya-cloud-iac-iac-validator-{kernel,domain,usecase,api,adapter}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-006-iac-validator-kernel-domain-usecase.md"
+    },
+    {
+      "id": "IP-007-iac-applier-kernel-domain-usecase",
+      "title": "IP-007: oya-cloud-iac-iac-applier-{kernel,domain,usecase,api,adapter,adapter-argocd}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-007-iac-applier-kernel-domain-usecase.md"
+    },
+    {
+      "id": "IP-008-iac-registry-postgres",
+      "title": "IP-008: oya-cloud-iac-iac-registry-{kernel,domain,usecase,api,adapter,adapter-postgres}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-008-iac-registry-postgres.md"
+    },
+    {
+      "id": "IP-009-iac-rollback-engine",
+      "title": "IP-009: oya-cloud-iac-iac-rollback-{kernel,domain,usecase,api,adapter}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-009-iac-rollback-engine.md"
+    },
+    {
+      "id": "IP-010-rest-surfaces",
+      "title": "IP-010: oya-cloud-iac-iac-*-rest crates (all 5 BCs)",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-010-rest-surfaces.md"
+    },
+    {
+      "id": "IP-011-worker-binaries",
+      "title": "IP-011: oya-cloud-iac-iac-*-worker crates (all 5 BCs)",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-011-worker-binaries.md"
+    },
+    {
+      "id": "IP-012-app-composition-roots",
+      "title": "IP-012: oya-cloud-iac-iac-*-app crates (all 5 BCs)",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-012-app-composition-roots.md"
+    },
+    {
+      "id": "IP-013-sdk-and-observability-slo",
+      "title": "IP-013: SDK crates + OpenSLO manifests + observability self-SLOs",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-013-sdk-and-observability-slo.md"
+    },
+    {
+      "id": "IP-014-per-pack-iac-overlays",
+      "title": "IP-014: Per-pack Kustomize overlays for cloud-iac substrate",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-014-per-pack-iac-overlays.md"
+    },
+    {
+      "id": "IP-015-hg-cloud-iac-registration",
+      "title": "IP-015: HG-CLOUD-IAC gate registration + bootstrap-paradox resolution",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-iac/IP-015-hg-cloud-iac-registration.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "argocd": "v2.13.0\"  # ArgoCD LTS line per docs/standards/observability-slo.md",
+    "opentofu": "1.8.0\"  # OpenTofu LTS pin per docs/standards/observability-slo.md",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+    },
+    {
+      "id": "ADR-0120",
+      "title": "Rust First Onprem Tooling With Paired Uninstall",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md"
+    },
+    {
+      "id": "ADR-0121",
+      "title": "Onprem K8s Stack Kubeadm Containerd Istio Envoy",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md"
+    },
+    {
+      "id": "ADR-0123",
+      "title": "Hyperscaler Maturity Claim Gate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0171",
+      "title": "Multi Cluster Federation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0171-multi-cluster-federation.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.cloud-iac.iac-apply",
+      "oya.cloud-iac.iac-render",
+      "oya.cloud-iac.iac-rollback"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-05-18",
+  "manifest_count": 32,
+  "microservices": [
+    {
+      "name": "application",
+      "manifest": "microservices/application/manifest.json"
+    },
+    {
+      "name": "audit-chain",
+      "manifest": "microservices/audit-chain/manifest.json"
+    },
+    {
+      "name": "cell",
+      "manifest": "microservices/cell/manifest.json"
+    },
+    {
+      "name": "community",
+      "manifest": "microservices/community/manifest.json"
+    },
+    {
+      "name": "observability",
+      "manifest": "microservices/observability/manifest.json"
+    },
+    {
+      "name": "ontology",
+      "manifest": "microservices/ontology/manifest.json"
+    },
+    {
+      "name": "tenancy",
+      "manifest": "microservices/tenancy/manifest.json"
+    },
+    {
+      "name": "workflow-engine",
+      "manifest": "microservices/workflow-engine/manifest.json"
+    },
+    {
+      "name": "anonymous",
+      "manifest": "microservices/anonymous/manifest.json"
+    },
+    {
+      "name": "calendar",
+      "manifest": "microservices/calendar/manifest.json"
+    },
+    {
+      "name": "docs",
+      "manifest": "microservices/docs/manifest.json"
+    },
+    {
+      "name": "drive",
+      "manifest": "microservices/drive/manifest.json"
+    },
+    {
+      "name": "foundry",
+      "manifest": "microservices/foundry/manifest.json"
+    },
+    {
+      "name": "forms",
+      "manifest": "microservices/forms/manifest.json"
+    },
+    {
+      "name": "mail",
+      "manifest": "microservices/mail/manifest.json"
+    },
+    {
+      "name": "meet",
+      "manifest": "microservices/meet/manifest.json"
+    },
+    {
+      "name": "messenger",
+      "manifest": "microservices/messenger/manifest.json"
+    },
+    {
+      "name": "network",
+      "manifest": "microservices/network/manifest.json"
+    },
+    {
+      "name": "notes",
+      "manifest": "microservices/notes/manifest.json"
+    },
+    {
+      "name": "recordings",
+      "manifest": "microservices/recordings/manifest.json"
+    },
+    {
+      "name": "sheets",
+      "manifest": "microservices/sheets/manifest.json"
+    },
+    {
+      "name": "shorts",
+      "manifest": "microservices/shorts/manifest.json"
+    },
+    {
+      "name": "sites",
+      "manifest": "microservices/sites/manifest.json"
+    },
+    {
+      "name": "slides",
+      "manifest": "microservices/slides/manifest.json"
+    },
+    {
+      "name": "social",
+      "manifest": "microservices/social/manifest.json"
+    },
+    {
+      "name": "tasks",
+      "manifest": "microservices/tasks/manifest.json"
+    },
+    {
+      "name": "translate",
+      "manifest": "microservices/translate/manifest.json"
+    },
+    {
+      "name": "workflow-studio",
+      "manifest": "microservices/workflow-studio/manifest.json"
+    },
+    {
+      "name": "cloud-iac",
+      "manifest": "microservices/cloud-iac/manifest.json"
+    },
+    {
+      "name": "cloud-k8s",
+      "manifest": "microservices/cloud-k8s/manifest.json"
+    },
+    {
+      "name": "cloud-secrets",
+      "manifest": "microservices/cloud-secrets/manifest.json"
+    },
+    {
+      "name": "governance",
+      "manifest": "microservices/governance/manifest.json"
+    }
+  ]
+}

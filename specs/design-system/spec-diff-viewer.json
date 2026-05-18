@@ -43,9 +43,9 @@
     "crates/oya-saas-workflow-studio-domain/tests/spec_load.rs::test_load_emit_byte_equal"
   ],
   "consumers": [
-    "$ref:specs/products/workflow.json#frontend_components",
-    "$ref:specs/products/workflow-studio.json#frontend_components",
-    "$ref:specs/products/ontology.json#frontend_components"
+    "$ref:specs/microservices/workflow.json#frontend_components",
+    "$ref:specs/microservices/workflow-studio.json#frontend_components",
+    "$ref:specs/microservices/ontology.json#frontend_components"
   ],
   "verification_commands": [
     "target/debug/oya gate validate product-prd-json",

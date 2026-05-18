@@ -1,0 +1,339 @@
+{
+  "schema_version": "1.0",
+  "microservice": "application",
+  "version": "0.1.0",
+  "owner": "axis-application",
+  "bounded_contexts": [
+    {
+      "name": "auth-gateway",
+      "description": "Bounded context 'auth-gateway' within application (control plane)",
+      "crates": [
+        "oya-application-auth-gateway-adapter",
+        "oya-application-auth-gateway-adapter-oidc",
+        "oya-application-auth-gateway-adapter-saml",
+        "oya-application-auth-gateway-api",
+        "oya-application-auth-gateway-app",
+        "oya-application-auth-gateway-domain",
+        "oya-application-auth-gateway-kernel",
+        "oya-application-auth-gateway-rest",
+        "oya-application-auth-gateway-usecase",
+        "oya-application-auth-gateway-worker"
+      ]
+    },
+    {
+      "name": "frontend-bundle-serve",
+      "description": "Bounded context 'frontend-bundle-serve' within application (control plane)",
+      "crates": [
+        "oya-application-frontend-bundle-serve-adapter",
+        "oya-application-frontend-bundle-serve-adapter-cdn",
+        "oya-application-frontend-bundle-serve-adapter-postgres",
+        "oya-application-frontend-bundle-serve-api",
+        "oya-application-frontend-bundle-serve-app",
+        "oya-application-frontend-bundle-serve-kernel",
+        "oya-application-frontend-bundle-serve-usecase",
+        "oya-application-frontend-bundle-serve-worker"
+      ]
+    },
+    {
+      "name": "module-loader",
+      "description": "Bounded context 'module-loader' within application (control plane)",
+      "crates": [
+        "oya-application-module-loader-adapter",
+        "oya-application-module-loader-adapter-cdn",
+        "oya-application-module-loader-api",
+        "oya-application-module-loader-app",
+        "oya-application-module-loader-domain",
+        "oya-application-module-loader-kernel",
+        "oya-application-module-loader-rest",
+        "oya-application-module-loader-sdk",
+        "oya-application-module-loader-usecase"
+      ]
+    },
+    {
+      "name": "shell-routing",
+      "description": "Bounded context 'shell-routing' within application (data plane)",
+      "crates": [
+        "oya-application-shell-frontend",
+        "oya-application-shell-routing-adapter",
+        "oya-application-shell-routing-api",
+        "oya-application-shell-routing-app",
+        "oya-application-shell-routing-domain",
+        "oya-application-shell-routing-kernel",
+        "oya-application-shell-routing-rest",
+        "oya-application-shell-routing-sdk",
+        "oya-application-shell-routing-usecase"
+      ]
+    },
+    {
+      "name": "tenant-context",
+      "description": "Bounded context 'tenant-context' within application (control plane)",
+      "crates": [
+        "oya-application-tenant-context-adapter",
+        "oya-application-tenant-context-api",
+        "oya-application-tenant-context-app",
+        "oya-application-tenant-context-domain",
+        "oya-application-tenant-context-kernel",
+        "oya-application-tenant-context-rest",
+        "oya-application-tenant-context-usecase"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/application/contracts/openapi/application.yaml"
+    ],
+    "asyncapi": [
+      "microservices/application/contracts/asyncapi/application-events.yaml"
+    ],
+    "proto": [
+      "microservices/application/contracts/proto/application.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T2",
+      "name": "module-load",
+      "file": "microservices/application/capabilities/module-load.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "session-emit",
+      "file": "microservices/application/capabilities/session-emit.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T1",
+      "name": "shell-render",
+      "file": "microservices/application/capabilities/shell-render.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-application-audit-seal",
+      "target": "0.999 (1.0)",
+      "sli": "histogram_quantile(0.99,",
+      "file": "microservices/application/slos/audit-seal.openslo.yaml"
+    },
+    {
+      "name": "oya-application-module-load",
+      "target": "0.999",
+      "sli": "sum by (pack, module) (",
+      "file": "microservices/application/slos/module-load.openslo.yaml"
+    },
+    {
+      "name": "oya-application-oidc-signin",
+      "target": "0.999 (0.2)",
+      "sli": "histogram_quantile(0.99,",
+      "file": "microservices/application/slos/oidc-signin.openslo.yaml"
+    },
+    {
+      "name": "oya-application-route-resolve",
+      "target": "0.999 (0.1)",
+      "sli": "histogram_quantile(0.99,",
+      "file": "microservices/application/slos/route-resolve.openslo.yaml"
+    },
+    {
+      "name": "oya-application-tti",
+      "target": "0.999 (2.0)",
+      "sli": "histogram_quantile(0.99,",
+      "file": "microservices/application/slos/tti.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-shell-routing-kernel",
+      "title": "IP-001: oya-application-shell-routing-kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-001-shell-routing-kernel.md"
+    },
+    {
+      "id": "IP-002-shell-routing-domain",
+      "title": "IP-002: oya-application-shell-routing-domain",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-002-shell-routing-domain.md"
+    },
+    {
+      "id": "IP-003-shell-routing-usecase",
+      "title": "IP-003: oya-application-shell-routing-usecase",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-003-shell-routing-usecase.md"
+    },
+    {
+      "id": "IP-004-shell-routing-adapter",
+      "title": "IP-004: oya-application-shell-routing-adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-004-shell-routing-adapter.md"
+    },
+    {
+      "id": "IP-005-shell-routing-rest",
+      "title": "IP-005: oya-application-shell-routing-rest",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-005-shell-routing-rest.md"
+    },
+    {
+      "id": "IP-006-tenant-context-kernel",
+      "title": "IP-006: oya-application-tenant-context-kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-006-tenant-context-kernel.md"
+    },
+    {
+      "id": "IP-007-tenant-context-usecase-rest",
+      "title": "IP-007: tenant-context usecase + domain + adapter + rest",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-007-tenant-context-usecase-rest.md"
+    },
+    {
+      "id": "IP-008-auth-gateway-kernel-domain",
+      "title": "IP-008: auth-gateway kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-008-auth-gateway-kernel-domain.md"
+    },
+    {
+      "id": "IP-009-auth-gateway-adapters-oidc-saml",
+      "title": "IP-009: auth-gateway adapter-oidc + adapter-saml + adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-009-auth-gateway-adapters-oidc-saml.md"
+    },
+    {
+      "id": "IP-010-auth-gateway-rest-worker",
+      "title": "IP-010: auth-gateway usecase + rest + worker",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-010-auth-gateway-rest-worker.md"
+    },
+    {
+      "id": "IP-011-module-loader-kernel-domain",
+      "title": "IP-011: module-loader kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-011-module-loader-kernel-domain.md"
+    },
+    {
+      "id": "IP-012-module-loader-usecase-adapter-cdn",
+      "title": "IP-012: module-loader usecase + adapter + adapter-cdn + rest + sdk",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-012-module-loader-usecase-adapter-cdn.md"
+    },
+    {
+      "id": "IP-013-frontend-bundle-serve",
+      "title": "IP-013: frontend-bundle-serve crates",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-013-frontend-bundle-serve.md"
+    },
+    {
+      "id": "IP-014-leptos-frontend-and-composition",
+      "title": "IP-014: Leptos frontend + composition-root binaries",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-014-leptos-frontend-and-composition.md"
+    },
+    {
+      "id": "IP-015-application-openslo-and-hg-app",
+      "title": "IP-015: OpenSLO authoring + HG-APP gate registration + branch-protection",
+      "acceptance_status": "ga",
+      "file": "microservices/application/IP-015-application-openslo-and-hg-app.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "postgres": "16.0\"  # Postgres LTS",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0065",
+      "title": "Docs As Leptos Webapp With Machine Readable Coemit",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+    },
+    {
+      "id": "ADR-0121",
+      "title": "Onprem K8s Stack Kubeadm Containerd Istio Envoy",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md"
+    },
+    {
+      "id": "ADR-0123",
+      "title": "Hyperscaler Maturity Claim Gate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.application.module-load",
+      "oya.application.session-emit",
+      "oya.application.shell-render"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true,
+    "north_south_only": false
+  }
+}

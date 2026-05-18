@@ -153,7 +153,7 @@ of CLAUDE.md.
 
 ## Follow-up
 
-- **`specs/` flattening** is a deliberate follow-up
+- **`specs/` flattening** is a deliberate successor-IP
   (separate ADR + separate PR). The same flat-singular logic
   (`specs/`) will likely apply, but the surface is larger and is not
   included in this PR.

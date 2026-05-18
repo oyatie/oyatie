@@ -17,7 +17,7 @@ doc_status: published
 
 ## Context
 
-Korea-as-launch-locale was the prior framing; the 2026-05-09 reframing retired it in favor of **canonical-architecture + regional-pack plug-ins** so multiple markets onboard in parallel rather than retrofit Korea-specific assumptions per locale. Every market — KR, JP, US, EU, IN, BR, KSA, UAE, ANZ, SG, plus follow-ons — has a similar regulatory moat that prefers in-locale integrated providers; Oyatie's posture is to ride every window in parallel by treating each market as a *swappable pack* that plugs into well-defined seams.
+Korea-as-launch-locale was the prior framing; the 2026-05-09 reframing retired it in favor of **canonical-architecture + regional-pack plug-ins** so multiple markets onboard in parallel rather than retrofit Korea-specific assumptions per locale. Every market — KR, JP, US, EU, IN, BR, KSA, UAE, ANZ, SG, plus successor-IPs — has a similar regulatory moat that prefers in-locale integrated providers; Oyatie's posture is to ride every window in parallel by treating each market as a *swappable pack* that plugs into well-defined seams.
 
 Without explicit pack architecture, three failure modes recur: (a) Korea-only assumptions leak into the kernel ("`region` is always KR-Seoul1", "tax invoice is `전자세금계산서`"); (b) per-locale work duplicates across teams (each vertical re-implements address validation per region); (c) regulator changes in one locale require kernel patches that risk other locales. The seam contract makes a regional pack a versioned, signed, swappable bundle that supplies *all* per-locale concerns to the canonical architecture.
 

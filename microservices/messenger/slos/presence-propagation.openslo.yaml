@@ -1,0 +1,43 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: messenger-presence-propagation
+  displayName: "messenger: presence-update propagation p99 ≤ 200ms"
+  labels:
+    microservice: messenger
+    bc: presence
+    sli_class: latency
+    owner_team: axis-messenger
+spec:
+  description: |
+    Time from `PresenceChanged` event publish to delivery on subscribed
+    peer WebSocket frames. Valkey Streams (Redis wire-compat) + WebSocket gateway pipeline.
+    Excludes Offline transitions caused by socket-timeout (those are
+    detection-bound, not propagation-bound).
+  service: messenger
+  indicator:
+    metadata:
+      name: messenger-presence-propagation
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_messenger_presence_propagation_seconds_bucket{le="0.2"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_messenger_presence_propagation_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.99
+      displayName: "p99 presence-propagation ≤ 200ms"

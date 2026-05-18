@@ -1,0 +1,19 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-shorts-content-moderation-adapter-opswat
+role: adapter
+backend: opswat
+context: shorts
+plane: data
+slo: hero-product
+contracts_consumed: [MalwareScanner (kernel port; from video-upload)]
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105]
+allowed_dependency_edges: [oya-shorts-content-moderation-kernel, oya-shorts-video-upload-kernel]
+data_classes_owned: [INTERNAL_ONLY]
+backend_pinning:
+  opswat_version: "5.0"  # OPSWAT MetaDefender 5.x
+  deployment: saas-with-fallback-to-clamav
+primary_for: malware-scanning
+fallback: oya-shorts-content-moderation-adapter-clamav

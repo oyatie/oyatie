@@ -1,0 +1,114 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "anonymous",
+    "owner_team": "axis-anonymous + ops-data + council-privacy",
+    "audience": "platform operators + GDPR DPAs + KR PIPC auditors",
+    "tenant_scoped": true,
+    "datasource": "Mimir per-tenant (oya-anonymous-{tenant})"
+  },
+  "uid": "anon-retention-deletion",
+  "title": "Retention + Deletion Correctness — anonymous µservice",
+  "tags": ["anonymous", "retention", "deletion", "GDPR", "PIPA", "I3"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-7d", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "tenant", "type": "query", "query": "label_values(oya_anonymous_hard_delete_propagation_latency_bucket, tenant_id)"}
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Hard-delete propagation correctness (target = 100%)",
+      "gridPos": {"x": 0, "y": 0, "w": 8, "h": 4},
+      "targets": [
+        {"expr": "100 * sum(rate(oya_anonymous_hard_delete_propagation_success_total{tenant_id=\"$tenant\"}[5m])) / sum(rate(oya_anonymous_hard_delete_propagation_total{tenant_id=\"$tenant\"}[5m]))", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percent", "thresholds": {"steps": [{"color": "red", "value": 0}, {"color": "yellow", "value": 99.99}, {"color": "green", "value": 100}]}}}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Hard-delete propagation p99 (target ≤ 5s)",
+      "gridPos": {"x": 8, "y": 0, "w": 8, "h": 4},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le)(rate(oya_anonymous_hard_delete_propagation_latency_bucket{tenant_id=\"$tenant\"}[5m])))", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 4}, {"color": "red", "value": 5}]}}}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Orphan tombstones (last 24h; should be 0)",
+      "gridPos": {"x": 16, "y": 0, "w": 8, "h": 4},
+      "targets": [
+        {"expr": "sum(increase(oya_anonymous_tombstone_orphan_total{tenant_id=\"$tenant\"}[24h]))", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "red", "value": 1}]}}}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Hard-delete propagation latency (p50/p95/p99)",
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum by (le)(rate(oya_anonymous_hard_delete_propagation_latency_bucket{tenant_id=\"$tenant\"}[1m])))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le)(rate(oya_anonymous_hard_delete_propagation_latency_bucket{tenant_id=\"$tenant\"}[1m])))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le)(rate(oya_anonymous_hard_delete_propagation_latency_bucket{tenant_id=\"$tenant\"}[1m])))", "legendFormat": "p99", "refId": "C"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Hard-delete by reason",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (deletion_reason)(rate(oya_anonymous_hard_delete_propagation_total{tenant_id=\"$tenant\"}[5m]))", "legendFormat": "{{deletion_reason}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Per-tier retention distribution (30d/60d/90d)",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (retention_tier)(oya_anonymous_post_count{tenant_id=\"$tenant\"})", "legendFormat": "{{retention_tier}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Retention-tier breaches (records older than tier; should be 0)",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (retention_tier)(oya_anonymous_retention_breach_count{tenant_id=\"$tenant\"})", "format": "table", "refId": "A"}
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "GDPR Art. 17 right-to-erasure response time (p99)",
+      "gridPos": {"x": 12, "y": 20, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le)(rate(oya_anonymous_rtbf_response_latency_bucket{tenant_id=\"$tenant\"}[1d])))", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "KR PIPA Art. 21 deletion response time (p99)",
+      "gridPos": {"x": 18, "y": 20, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le)(rate(oya_anonymous_pipa_deletion_response_latency_bucket{tenant_id=\"$tenant\"}[1d])))", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    }
+  ]
+}

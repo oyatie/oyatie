@@ -7,7 +7,7 @@ doc_status: published
 > **When:** ONLY after `docs/decisions/` is complete (50 ADRs target) AND regression-check passes.
 > **Owner:** `crew-adr-promotion` + `council-architecture` co-sign + Founder ratification.
 > **Triggered by:** User directive 2026-05-09: "DELETE LEGACY ADR when you are done and sure that we have not regressed (in feature, function, depth, maturity) and have only expanded in positive manner."
-> **Anti-pattern note:** Per prior policy ("Don't delete legacy ADRs — forensic value + git-blame integrity matter"), legacy ADR deletion is a deliberate departure from the original anti-pattern. The user explicitly overrode 2026-05-09. Git history retains every legacy ADR (so `git log --all decisions/` and `git show <sha>:decisions/ADR-NNNN-*.md` continue to work — git itself is the forensic backstop).
+> **Anti-pattern note:** Per prior policy ("Don't delete legacy ADRs — forensic value + git-blame integrity matter"), legacy ADR deletion is a deliberate departure from the original anti-pattern. The user explicitly overrode 2026-05-09. Git history retains every legacy ADR (so `git log --all decisions/` and `git show <sha>:decisions/ADR-####-*.md` continue to work — git itself is the forensic backstop).
 
 ---
 
@@ -17,7 +17,7 @@ doc_status: published
 2. ☐ Per-new-ADR Status: Proposed → Accepted via council ratification
 3. ☐ `docs/decisions/README.md` reflects final pack
 4. ☐ `decisions/RETIRED.md` exists (already authored 2026-05-09)
-5. ☐ `docs/ADR-CONSOLIDATION-PLAN.md` supersession map complete (every legacy ADR-NNNN → new pack ADR-NNNN mapping)
+5. ☐ `docs/ADR-CONSOLIDATION-PLAN.md` supersession map complete (every legacy ADR-#### → new pack ADR-#### mapping)
 6. ☐ `docs/ADR-INDEX.md` regenerated as the new pack's index
 7. ☐ `docs/ADR-INDEX-LEGACY.md` snapshot saved (forensic; per ADR-CONSOLIDATION-PLAN §8 open-question 2)
 
@@ -56,15 +56,15 @@ Coverage verdict values: **FULL** / **PARTIAL** / **DROPPED-WITH-REASON** / **EX
 
 ## 3. Reference sweep (consolidated docs no longer cite legacy ADRs)
 
-18. ☐ `oya-foundry-fitness-adr-citation` CI lane passes — zero `ADR-NNNN` citations in active consolidated docs (where NNNN ≤ legacy max)
+18. ☐ `oya-foundry-fitness-adr-citation` CI lane passes — zero `ADR-####` citations in active consolidated docs (where NNNN ≤ legacy max)
 19. ☐ Forensic-allowed citations only in: `ADR-CONSOLIDATION-PLAN.md`, `CONTRADICTION-LEDGER.md`, `RETIRED.md`, `ADR-INDEX-LEGACY.md`
-20. ☐ All per-product PRDs sweep — zero legacy ADR-NNNN refs
-21. ☐ All team charters sweep — zero legacy ADR-NNNN refs
-22. ☐ All standards docs sweep — zero legacy ADR-NNNN refs
-23. ☐ All checklists sweep — zero legacy ADR-NNNN refs
-24. ☐ All templates sweep — zero legacy ADR-NNNN refs
-25. ☐ All machine-readable JSONs sweep — zero legacy ADR-NNNN refs (except `decisions.json` may carry the legacy `_metadata.legacy_adr_supersession_map`)
-26. ☐ All regional packs sweep — zero legacy ADR-NNNN refs
+20. ☐ All per-product PRDs sweep — zero legacy ADR-#### refs
+21. ☐ All team charters sweep — zero legacy ADR-#### refs
+22. ☐ All standards docs sweep — zero legacy ADR-#### refs
+23. ☐ All checklists sweep — zero legacy ADR-#### refs
+24. ☐ All templates sweep — zero legacy ADR-#### refs
+25. ☐ All machine-readable JSONs sweep — zero legacy ADR-#### refs (except `decisions.json` may carry the legacy `_metadata.legacy_adr_supersession_map`)
+26. ☐ All regional packs sweep — zero legacy ADR-#### refs
 27. ☐ All recon artifacts in `docs/raw/` left UNTOUCHED (raw artifacts may contain legacy refs)
 
 ## 4. Pre-deletion safety

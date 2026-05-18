@@ -1,0 +1,17 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-anonymous-pseudonymous-identity-kernel
+role: kernel
+context: anonymous
+plane: data
+slo: anonymity-correlation-resistance
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-uk, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-ANON-0001]
+allowed_dependency_edges: []  # kernel imports nothing project-internal
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, BEHAVIORAL_USER_CONTENT, AUDIT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1

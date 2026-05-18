@@ -1,0 +1,286 @@
+{
+  "schema_version": "1.0",
+  "microservice": "plugin-app-store",
+  "version": "0.0.1",
+  "status": "seed",
+  "seeded_date": "2026-05-18",
+  "owner": "axis-ecosystem",
+  "owner_council": "council-architecture",
+  "tier": "external-facing",
+  "doctrine": {
+    "canonical_authority": "ADR-0213",
+    "naming_reservation_note": "The substring 'marketplace' in oyatie µservice names is reserved for the future B2C commerce µservice (Amazon/Shopify class), per ADR-0213 §Disambiguation. This µservice (plugin/app distribution + vetting + per-plugin permissioning) is named plugin-app-store, NOT marketplace.",
+    "in_house_roadmap_phase": "phase-1-target",
+    "inheritance": [
+      "Apple App Store — vetting + per-app permissions + sandbox + signature verification",
+      "VS Code Marketplace — extension catalog + per-extension permissions + signed artifacts",
+      "Shopify App Store — per-install model + scopes + subscription management",
+      "AWS Marketplace (SaaS + AMI) — vetted catalog + per-account procurement + billing aggregation",
+      "Salesforce AppExchange — enterprise vetting (security review)",
+      "JetBrains Marketplace — paid plugins + revenue share + per-plugin signing"
+    ]
+  },
+  "bounded_contexts": [
+    {
+      "name": "plugin-catalog",
+      "description": "Public catalog of published plugins/apps; browse + search + category tree + ratings.",
+      "crates": [
+        "oya-plugin-app-store-plugin-catalog-kernel",
+        "oya-plugin-app-store-plugin-catalog-domain",
+        "oya-plugin-app-store-plugin-catalog-usecase",
+        "oya-plugin-app-store-plugin-catalog-api",
+        "oya-plugin-app-store-plugin-catalog-adapter",
+        "oya-plugin-app-store-plugin-catalog-adapter-postgres",
+        "oya-plugin-app-store-plugin-catalog-rest",
+        "oya-plugin-app-store-plugin-catalog-sdk",
+        "oya-plugin-app-store-plugin-catalog-app"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "plugin-install",
+      "description": "Tenant-scoped install + uninstall + per-plugin permission grant; produces plugin installation records.",
+      "crates": [
+        "oya-plugin-app-store-plugin-install-kernel",
+        "oya-plugin-app-store-plugin-install-domain",
+        "oya-plugin-app-store-plugin-install-usecase",
+        "oya-plugin-app-store-plugin-install-api",
+        "oya-plugin-app-store-plugin-install-adapter",
+        "oya-plugin-app-store-plugin-install-adapter-postgres",
+        "oya-plugin-app-store-plugin-install-rest",
+        "oya-plugin-app-store-plugin-install-sdk",
+        "oya-plugin-app-store-plugin-install-app"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "plugin-lifecycle",
+      "description": "Version state machine: draft → submitted → vetting → published → deprecated → retired (+ revoked kill-switch).",
+      "crates": [
+        "oya-plugin-app-store-plugin-lifecycle-kernel",
+        "oya-plugin-app-store-plugin-lifecycle-domain",
+        "oya-plugin-app-store-plugin-lifecycle-usecase",
+        "oya-plugin-app-store-plugin-lifecycle-api",
+        "oya-plugin-app-store-plugin-lifecycle-adapter-postgres",
+        "oya-plugin-app-store-plugin-lifecycle-worker"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "vetting-pipeline",
+      "description": "Cosign verification + Trivy + Wasmtime-isolation validator + capability-scope + data-use-boundary + WCAG + AI-Act class + perf budget.",
+      "crates": [
+        "oya-plugin-app-store-vetting-pipeline-kernel",
+        "oya-plugin-app-store-vetting-pipeline-domain",
+        "oya-plugin-app-store-vetting-pipeline-usecase",
+        "oya-plugin-app-store-vetting-pipeline-adapter",
+        "oya-plugin-app-store-vetting-pipeline-adapter-cosign",
+        "oya-plugin-app-store-vetting-pipeline-adapter-trivy",
+        "oya-plugin-app-store-vetting-pipeline-worker"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "per-plugin-permissions",
+      "description": "Per-plugin Cedar policy fragment generation + tenant install-time permission grant capture.",
+      "crates": [
+        "oya-plugin-app-store-per-plugin-permissions-kernel",
+        "oya-plugin-app-store-per-plugin-permissions-domain",
+        "oya-plugin-app-store-per-plugin-permissions-usecase",
+        "oya-plugin-app-store-per-plugin-permissions-adapter-cedar"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "per-plugin-rate-limit",
+      "description": "Per-installation rate-limit enforcement (default 100 req/s; per-plugin override with admin approval).",
+      "crates": [
+        "oya-plugin-app-store-per-plugin-rate-limit-kernel",
+        "oya-plugin-app-store-per-plugin-rate-limit-domain",
+        "oya-plugin-app-store-per-plugin-rate-limit-usecase",
+        "oya-plugin-app-store-per-plugin-rate-limit-adapter-redis"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "subscription-billing",
+      "description": "Per-plugin subscription state machine + tenant billing aggregation feeding finops-portal; one-time + recurring.",
+      "crates": [
+        "oya-plugin-app-store-subscription-billing-kernel",
+        "oya-plugin-app-store-subscription-billing-domain",
+        "oya-plugin-app-store-subscription-billing-usecase",
+        "oya-plugin-app-store-subscription-billing-adapter-postgres",
+        "oya-plugin-app-store-subscription-billing-worker"
+      ],
+      "status": "planned"
+    },
+    {
+      "name": "audit-stream",
+      "description": "Per-plugin action audit trail; every action seals via audit-chain µservice (ADR-0003).",
+      "crates": [
+        "oya-plugin-app-store-audit-stream-kernel",
+        "oya-plugin-app-store-audit-stream-domain",
+        "oya-plugin-app-store-audit-stream-adapter"
+      ],
+      "status": "planned"
+    }
+  ],
+  "layers": [
+    "kernel",
+    "domain",
+    "usecase",
+    "api",
+    "adapter",
+    "adapter-postgres",
+    "adapter-redis",
+    "adapter-cedar",
+    "adapter-cosign",
+    "adapter-trivy",
+    "rest",
+    "worker",
+    "sdk",
+    "app"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/plugin-app-store/contracts/openapi/plugin-app-store.yaml"
+    ],
+    "asyncapi": [
+      "microservices/plugin-app-store/contracts/asyncapi/plugin-app-store-events.yaml"
+    ],
+    "proto": [
+      "microservices/plugin-app-store/contracts/proto/plugin-app-store.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T2",
+      "name": "plugin-install",
+      "file": "microservices/plugin-app-store/capabilities/plugin-install.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T3",
+      "name": "plugin-revoke",
+      "file": "microservices/plugin-app-store/capabilities/plugin-revoke.yaml",
+      "eu_ai_act_risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "plugin-vetting-decide",
+      "file": "microservices/plugin-app-store/capabilities/plugin-vetting-decide.yaml",
+      "eu_ai_act_risk_class": "high"
+    }
+  ],
+  "slos": [
+    {"name": "oya-plugin-app-store-catalog-browse-latency", "target": "0.95", "sli": "histogram_quantile(0.95, rate(oya_plugin_app_store_catalog_request_seconds_bucket[5m]))", "file": "microservices/plugin-app-store/slos/catalog-browse-latency.openslo.yaml"},
+    {"name": "oya-plugin-app-store-catalog-browse-availability", "target": "0.999", "sli": "sum(rate(oya_plugin_app_store_catalog_request_total{status!~\"5..\"}[5m]))", "file": "microservices/plugin-app-store/slos/catalog-browse-availability.openslo.yaml"},
+    {"name": "oya-plugin-app-store-plugin-install-availability", "target": "0.9995", "sli": "sum(rate(oya_plugin_app_store_install_outcome_total{outcome=\"installed\"}[5m]))", "file": "microservices/plugin-app-store/slos/plugin-install-availability.openslo.yaml"},
+    {"name": "oya-plugin-app-store-plugin-install-latency", "target": "0.99", "sli": "histogram_quantile(0.99, rate(oya_plugin_app_store_install_duration_seconds_bucket[5m]))", "file": "microservices/plugin-app-store/slos/plugin-install-latency.openslo.yaml"},
+    {"name": "oya-plugin-app-store-plugin-revoke-latency", "target": "0.99", "sli": "histogram_quantile(0.99, rate(oya_plugin_app_store_revoke_duration_seconds_bucket[5m]))", "file": "microservices/plugin-app-store/slos/plugin-revoke-latency.openslo.yaml"},
+    {"name": "oya-plugin-app-store-vetting-pipeline-throughput", "target": "0.95", "sli": "sum(rate(oya_plugin_app_store_vetting_decision_total{outcome=~\"approved|rejected\"}[1h])) / sum(rate(oya_plugin_app_store_vetting_submitted_total[1h]))", "file": "microservices/plugin-app-store/slos/vetting-pipeline-throughput.openslo.yaml"},
+    {"name": "oya-plugin-app-store-vetting-pipeline-correctness", "target": "1.0", "sli": "1 - (sum(rate(oya_plugin_app_store_vetting_false_approve_total[24h])) / sum(rate(oya_plugin_app_store_vetting_decision_total[24h])))", "file": "microservices/plugin-app-store/slos/vetting-pipeline-correctness.openslo.yaml"},
+    {"name": "oya-plugin-app-store-per-plugin-rate-limit-correctness", "target": "1.0", "sli": "1 - (sum(rate(oya_plugin_app_store_rate_limit_bypass_total[5m])) / sum(rate(oya_plugin_app_store_plugin_request_total[5m])))", "file": "microservices/plugin-app-store/slos/per-plugin-rate-limit-correctness.openslo.yaml"},
+    {"name": "oya-plugin-app-store-subscription-billing-correctness", "target": "1.0", "sli": "1 - (sum(rate(oya_plugin_app_store_billing_aggregation_mismatch_total[24h])) / sum(rate(oya_plugin_app_store_billing_aggregation_total[24h])))", "file": "microservices/plugin-app-store/slos/subscription-billing-correctness.openslo.yaml"}
+  ],
+  "ips": [
+    {"id": "IP-001-layer-a-postgres-redis-cedar-cosign-trivy-iac", "title": "IP-001: Layer-A Postgres + Valkey + Cedar + Cosign + Trivy + Wasmtime IaC", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-001-layer-a-postgres-redis-cedar-cosign-trivy-iac.md"},
+    {"id": "IP-002-plugin-catalog-kernel-domain", "title": "IP-002: oya-plugin-app-store-plugin-catalog-{kernel,domain}", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-002-plugin-catalog-kernel-domain.md"},
+    {"id": "IP-003-plugin-catalog-usecase-api-adapter-rest-sdk-app", "title": "IP-003: plugin-catalog remaining layers (usecase + api + adapter + adapter-postgres + rest + sdk + app)", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-003-plugin-catalog-usecase-api-adapter-rest-sdk-app.md"},
+    {"id": "IP-004-plugin-lifecycle-state-machine", "title": "IP-004: plugin-lifecycle state machine (draft→submitted→vetting→published→deprecated→retired + revoked)", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-004-plugin-lifecycle-state-machine.md"},
+    {"id": "IP-005-plugin-install-kernel-domain-usecase", "title": "IP-005: oya-plugin-app-store-plugin-install-{kernel,domain,usecase}", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-005-plugin-install-kernel-domain-usecase.md"},
+    {"id": "IP-006-plugin-install-rest-sdk-app", "title": "IP-006: plugin-install rest + sdk + app + adapter-postgres", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-006-plugin-install-rest-sdk-app.md"},
+    {"id": "IP-007-vetting-pipeline-kernel-domain", "title": "IP-007: vetting-pipeline kernel + domain (deterministic stage orchestration)", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-007-vetting-pipeline-kernel-domain.md"},
+    {"id": "IP-008-vetting-pipeline-cosign-trivy-wasmtime", "title": "IP-008: vetting-pipeline cosign + trivy + Wasmtime-isolation validators", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-008-vetting-pipeline-cosign-trivy-wasmtime.md"},
+    {"id": "IP-009-per-plugin-permissions-cedar", "title": "IP-009: per-plugin Cedar policy fragment generator + install-time grant capture", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-009-per-plugin-permissions-cedar.md"},
+    {"id": "IP-010-per-plugin-rate-limit", "title": "IP-010: per-installation rate-limit (default 100 req/s; per-plugin override)", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-010-per-plugin-rate-limit.md"},
+    {"id": "IP-011-subscription-billing-aggregation", "title": "IP-011: subscription state machine + billing aggregation feeding finops-portal", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-011-subscription-billing-aggregation.md"},
+    {"id": "IP-012-audit-stream-per-plugin-action", "title": "IP-012: per-plugin action audit trail seal via audit-chain µservice", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-012-audit-stream-per-plugin-action.md"},
+    {"id": "IP-013-observability-slo-manifests", "title": "IP-013: plugin-app-store OpenSLO manifests + observability self-SLOs", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-013-observability-slo-manifests.md"},
+    {"id": "IP-014-branch-protection-and-hyperscaler-gates", "title": "IP-014: branch-protection + hyperscaler-gates HG-PAS registration", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-014-branch-protection-and-hyperscaler-gates.md"},
+    {"id": "IP-015-discovery-install-leptos-app", "title": "IP-015: discovery + install Leptos app (tenant-facing UI)", "acceptance_status": "pending", "file": "microservices/plugin-app-store/implementation-plans/IP-015-discovery-install-leptos-app.md"}
+  ],
+  "regulatory_packs": ["kr", "eu", "us", "us-healthcare", "us-financial", "us-public-sector"],
+  "lts_pins": {
+    "postgres": "16.0",
+    "valkey": "8.1",
+    "cedar": "4.x",
+    "cosign": "2.x",
+    "trivy": "0.50.x",
+    "wasmtime": "see ADR-0200",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {"id": "ADR-0001", "title": "Cohesion thesis — one product, seven axes", "scope": "repo", "file": "docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md"},
+    {"id": "ADR-0007", "title": "Cedar authorization policy + persona tier", "scope": "repo", "file": "docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md"},
+    {"id": "ADR-0056", "title": "BNF v4.1", "scope": "repo", "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"},
+    {"id": "ADR-0105", "title": "13-layer enum + check family patterns", "scope": "repo", "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"},
+    {"id": "ADR-0123", "title": "Hyperscaler maturity claim gate", "scope": "repo", "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"},
+    {"id": "ADR-0131", "title": "Per-microservice flat layout", "scope": "repo", "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"},
+    {"id": "ADR-0132", "title": "No-suite policy", "scope": "repo", "file": "docs/decisions/ADR-0132-no-suite-policy.md"},
+    {"id": "ADR-0139", "title": "Agentic SLO-gated promotion", "scope": "repo", "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"},
+    {"id": "ADR-0147", "title": "Wasmtime sandbox baseline", "scope": "repo", "file": "docs/decisions/ADR-0147-wasmtime-sandbox-baseline.md"},
+    {"id": "ADR-0181", "title": "Cosign signing", "scope": "repo", "file": "docs/decisions/ADR-0181-cosign-signing.md"},
+    {"id": "ADR-0200", "title": "Wasmtime canonical", "scope": "repo", "file": "docs/decisions/ADR-0200-wasm-runtime-canonical-wasmtime.md"},
+    {"id": "ADR-0211", "title": "In-house tech policy", "scope": "repo", "file": "docs/decisions/ADR-0211-in-house-tech-policy.md"},
+    {"id": "ADR-0212", "title": "Buildability bar", "scope": "repo", "file": "docs/decisions/ADR-0212-buildability-bar.md"},
+    {"id": "ADR-0213", "title": "Ecosystem-as-a-Service architecture — Plugin/App Store substrate", "scope": "repo", "file": "docs/decisions/ADR-0213-ecosystem-as-a-service-architecture.md"}
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaPluginCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaPluginTenantShardSaturation",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "depends_on": [
+    {"microservice": "tenancy", "via": "tenant-id-resolver"},
+    {"microservice": "identity", "via": "principal-id-resolver"},
+    {"microservice": "audit-chain", "via": "per-plugin-action-seal"},
+    {"microservice": "workflow-engine", "via": "event-bus"},
+    {"microservice": "ontology", "via": "plugin-entity-projection"},
+    {"microservice": "developer-sdk", "via": "plugin-app-store-events-and-shared-contracts"},
+    {"microservice": "finops-portal", "via": "billing-aggregation-feed"},
+    {"microservice": "observability", "via": "openslo-promotion-gate"},
+    {"microservice": "cloud-secrets", "via": "openbao-signing-key-resolution"},
+    {"microservice": "governance", "via": "cedar-policy-evaluation"}
+  ],
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.plugin-app-store.plugin-submitted",
+      "oya.plugin-app-store.plugin-vetting-passed",
+      "oya.plugin-app-store.plugin-vetting-rejected",
+      "oya.plugin-app-store.plugin-published",
+      "oya.plugin-app-store.plugin-installed",
+      "oya.plugin-app-store.plugin-uninstalled",
+      "oya.plugin-app-store.plugin-permission-granted",
+      "oya.plugin-app-store.plugin-permission-revoked",
+      "oya.plugin-app-store.plugin-rate-limit-breached",
+      "oya.plugin-app-store.plugin-revoked",
+      "oya.plugin-app-store.plugin-subscription-tier-changed",
+      "oya.plugin-app-store.plugin-action-executed"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {"entity_name": "Plugin", "projection_target_table": "ontology_plugins", "projection_kind": "idempotent-rewrite", "lag_budget_seconds": 60},
+    {"entity_name": "PluginVersion", "projection_target_table": "ontology_plugin_versions", "projection_kind": "idempotent-rewrite", "lag_budget_seconds": 60},
+    {"entity_name": "PluginInstallation", "projection_target_table": "ontology_plugin_installations", "projection_kind": "idempotent-rewrite", "lag_budget_seconds": 60},
+    {"entity_name": "PluginSubscription", "projection_target_table": "ontology_plugin_subscriptions", "projection_kind": "idempotent-rewrite", "lag_budget_seconds": 60}
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true,
+    "north_south_only": false
+  },
+  "promotion_status": {
+    "current_stage": "seed",
+    "next_gate": "IP-001 through IP-015 authored + cargo build clean + parent wiring TODO emitted",
+    "blocked_by": "evidence/parent-wiring-todo-plugin-app-store-batch.json#plugin-app-store-cargo-toml-registration"
+  },
+  "follow_up_scope_ledger": "evidence/parent-wiring-todo-plugin-app-store-batch.json"
+}

@@ -53,7 +53,7 @@ W-Foundry-Preview
 - Audit chain (ADR-0003) hash-chain implemented + emission contract published
 - Plane separation enforcement (ADR-0017) — every catalog record declares plane
 - Cell architecture ADR + cell-routing primitive
-- Object Graph property tiers ADR (ADR-0006..0112) all Accepted
+- Ontology property tiers ADR (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4) all Accepted
 - Eventing backbone (outbox) + topic registry
 - Schema-class annotation + lint (`oya-foundry-fitness-data-class`)
 - License policy ADR Accepted
@@ -112,7 +112,7 @@ W-Foundry-Preview
 
 ### 2.4 W-SaaS-Preview (parallel with W-Cloud-Preview, W-Search-Preview)
 
-**Goal:** SaaS platform preview — workflow engine, Object Graph properties, plugin substrate, public REST API stability tier.
+**Goal:** SaaS shared-substrate preview — workflow engine, Ontology properties (legacy: Object Graph), plugin substrate, public REST API stability tier.
 
 ### 2.5 W-Search-Preview (parallel with W-Cloud-Preview, W-SaaS-Preview)
 

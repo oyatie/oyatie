@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-MERGE-QUEUE-PARKED-PR",
-    "version": "1.1.0",
+    "version": "1.0.0",
     "status": "Scaffolded",
     "owner_team": "council-architecture",
     "created_at": "2026-05-15T00:00:00Z",
@@ -17,7 +17,7 @@
       "/specs/iterative-fix-loop.json",
       "/specs/ci-fix-loop-context-bundle.json"
     ],
-    "purpose": "Canonical state-machine spec for parked-PR semantics, ordered projection forecast, bounded retry, fairness, and speculative rebase. Companion to the kernel scheduler in oya-foundry-vcs-review-mergequeue-kernel."
+    "purpose": "Canonical state-machine spec for parked-PR semantics + bounded retry + fairness + speculative rebase. Companion to the kernel scheduler in oya-foundry-vcs-review-mergequeue-kernel."
   },
   "state_machine": {
     "states": [

@@ -28,7 +28,7 @@ doc_status: published
 - [ ] **R2** `## Issue` names the change class on a single line.
 - [ ] **R3** `## Summary` states *why*, not only *what*.
 - [ ] **R4** `## Verification` pastes actual command output (not hand-waves). Every required check has a `PASS` token.
-- [ ] **R5** `## Traceability` cites canonical docs read, ADRs cited (ADR-0052/ADR-0053/ADR-0054 where applicable), cross-axis contracts touched, IP ID (if applicable). Legacy ADR-NNNN forbidden in active text.
+- [ ] **R5** `## Traceability` cites canonical docs read, ADRs cited (ADR-0052/ADR-0053/ADR-0054 where applicable), cross-axis contracts touched, IP ID (if applicable). Legacy ADR-#### forbidden in active text.
 - [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign signature + SBOM + SLSA level.
 - [ ] **R7** Done-definition rows D1-D18 walked (see `docs/checklists/done-definition-checklist.md`).
 - [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* `oya-foundry-fitness-bypass` (ADR-0053).
@@ -111,6 +111,6 @@ Linus good-taste audit row: <special cases eliminated | "none — no candidates"
 
 - Bundling unrelated changes — one PR per concern.
 - Skipping `## Verification` outputs.
-- Citing legacy ADR-NNNN in active text.
+- Citing legacy ADR-#### in active text.
 - Worker agent attempting to add `## Code Review` itself (lead-only).
 - Force-pushing over reviewer-agent-resolved threads.

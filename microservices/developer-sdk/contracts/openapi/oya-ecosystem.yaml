@@ -1,0 +1,45 @@
+# Canonical-base: specs/contracts/openapi-3-2-canonical-envelope.yaml (SWEEP-I Slice 3 per ADR-0064)
+# Version: OpenAPI 3.2.0
+# Purpose: aggregate canonical OpenAPI for the oyatie ecosystem (developer-facing).
+# This is the SDK-codegen input: every endpoint in this spec gets a generated client method
+# in each of the six SDK families per ADR-0185.
+openapi: 3.2.0
+info:
+  title: Oyatie Ecosystem (developer-facing aggregate)
+  version: 1.0.0
+  description: |
+    Aggregate developer-facing surface composed of:
+    - plugin-app-store public endpoints (browse + install observability)
+    - developer-sdk endpoints (onboarding + keys + sandbox + payout + submissions)
+    Streaming endpoints use text/event-stream or application/x-ndjson per OpenAPI 3.2.
+servers:
+  - url: https://api.oyatie.dev/v1
+    description: Production aggregate
+paths:
+  # plugin-app-store (read-only mirror for codegen)
+  /plugins:
+    $ref: '../../../plugin-app-store/contracts/openapi/plugin-app-store.yaml#/paths/~1plugins'
+  /plugins/{pluginId}:
+    $ref: '../../../plugin-app-store/contracts/openapi/plugin-app-store.yaml#/paths/~1plugins~1{pluginId}'
+  /submissions:
+    $ref: './developer-sdk.yaml#/paths/~1submissions'
+  /submissions/{submissionId}/status:
+    $ref: './developer-sdk.yaml#/paths/~1submissions~1{submissionId}~1status'
+  /developers:
+    $ref: './developer-sdk.yaml#/paths/~1developers'
+  /sandbox:
+    $ref: './developer-sdk.yaml#/paths/~1sandbox'
+  /payout/balance:
+    $ref: './developer-sdk.yaml#/paths/~1payout~1balance'
+  /payout/ledger:
+    $ref: './developer-sdk.yaml#/paths/~1payout~1ledger'
+components:
+  securitySchemes:
+    EcosystemBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    DeveloperBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

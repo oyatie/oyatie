@@ -1,0 +1,10 @@
+apiVersion: v2
+name: oya-foundry-supervisor-controller
+description: Foundry-supervisor Kubernetes Operator (kube-rs); CRDs (Agent, AgentDeployment, AutonomyPolicy, KillSwitch); RBAC; admission webhook
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: axis-foundry-control-plane
+    email: axis-foundry-control-plane@oyatie.dev
+dependencies: []

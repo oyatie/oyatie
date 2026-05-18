@@ -116,7 +116,7 @@ impl fmt::Display for AxisKind {
 /// known axis id.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct UnknownAxis {
-    pub input: String,
+    pub input: String, // data_class: INTERNAL_ONLY
 }
 
 impl fmt::Display for UnknownAxis {

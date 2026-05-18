@@ -492,7 +492,7 @@ Ordered by cost-to-implement:
 1. **Re-run the validator now** and accept either the new pass or the new fail. Stop carrying a stale result.json.
 2. **Add the validator to a CI lane** that re-runs on every PRD/test-spec/script change.
 3. **Replace the regex term-list with structural validation**: parse the PRD's YAML schema blocks, verify each schema is valid YAML and conforms to a meta-schema (JSON-Schema-of-schemas), verify cross-references (every `change_id` field in PatchSet references the same type as ChangeSet's `id`, etc.).
-4. **Add referential-integrity checks**: every ADF-XXX referenced in §13 must be defined in §13 with target_paths/CLI/schema_path/acceptance_group/dependency_order; every ADR-XXXX referenced must exist on disk; every URL in `Source anchors` must return non-404.
+4. **Add referential-integrity checks**: every ADF-XXX referenced in §13 must be defined in §13 with target_paths/CLI/schema_path/acceptance_group/dependency_order; every ADR-#### referenced must exist on disk; every URL in `Source anchors` must return non-404.
 5. **Replace `>= N` count thresholds with semantic checks**: instead of "≥17 test groups," check that every PRD-defined acceptance criterion has at least one matching test group; instead of "≥10 ADF issues," check that the M0–M8 work breakdown's tasks are all covered by ADF-XXX issues.
 6. **Add a "scope sanity" lane**: assert that the v0 surface (per §0 MVP) does not exceed the agreed-budget complexity. Today's validator does the opposite — it rewards adding more vocabulary.
 7. **Track validator authorship and require an external review** of any new `required_term` or `required_heading`. Without this gate the validator can be edited to pass anything.

@@ -128,7 +128,7 @@
         "handoff priorities F-PRD-CONNECT-SUITE-AUTHOR and F-PRD-ENTERPRISE-SUITE-AUTHOR",
         "docs/MASTERPLAN.md M03 exit requires HR, Payroll, Accounting, Connect Pro Mail/Messenger"
       ],
-      "required_action": "author specs/products/connect/* and specs/products/enterprise/* JSON PRDs"
+      "required_action": "author specs/microservices/* and specs/microservices/* JSON PRDs"
     },
     {
       "id": "F-AUDIT-005",
@@ -165,7 +165,7 @@
       "id": "F-PRD-CONNECT-SUITE-AUTHOR",
       "status": "safe_parallel",
       "write_scope": [
-        "specs/products/connect/"
+        "specs/microservices/"
       ],
       "reason": "Connect suite/sub-PRDs are independent from Enterprise suite and unblock M03"
     },
@@ -173,7 +173,7 @@
       "id": "F-PRD-ENTERPRISE-SUITE-AUTHOR",
       "status": "safe_parallel_with_bounded_scope",
       "write_scope": [
-        "specs/products/enterprise/"
+        "specs/microservices/"
       ],
       "reason": "HR/Payroll/Accounting suite PRDs can proceed with explicit expansion ledger for broader business SaaS scope"
     },
@@ -3504,13 +3504,13 @@
   },
   "architectural_changes": [
     {
-      "id": "ADR-0130",
+      "id": "ADR-0139",
       "date": "2026-05-17",
       "type": "compulsory_deprecation",
-      "summary": "registry/knowledge-graph-semantic.json deleted; 36 node_types + 27 edge_types + 19 invariants + 11 read_side_query_examples migrated into specs/products/ontology.json#type_system. Single source of truth for semantic type definitions. Per ADR-0130 + OP-11 no compat seams.",
+      "summary": "registry/knowledge-graph-semantic.json deleted; 36 node_types + 27 edge_types + 19 invariants + 11 read_side_query_examples migrated into specs/products/ontology.json#type_system. Single source of truth for semantic type definitions. Per ADR-0139 + OP-11 no compat seams.",
       "deprecated_artifact": "registry/knowledge-graph-semantic.json",
       "canonical_home": "specs/products/ontology.json#type_system",
-      "adr_ref": "docs/decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md"
+      "adr_ref": "docs/decisions/ADR-0139-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md"
     }
   ]
 }

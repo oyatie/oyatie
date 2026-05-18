@@ -1,0 +1,168 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "sheets",
+    "owner_team": "axis-sheets + council-design-system + ops-sre-reliability",
+    "audience": "internal operators + axis-sheets product owners",
+    "tenant_scoped": false,
+    "datasource": "Mimir aggregate (oya-sheets tenant) + per-pack Mimir endpoints"
+  },
+  "uid": "sheets-editor-experience",
+  "title": "Sheets — Editor Experience (sheet-open / cell-edit / recalc / save)",
+  "tags": ["sheets", "editor", "perf"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "pack",
+        "type": "custom",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ],
+        "label": "Pack"
+      },
+      {
+        "name": "tenant",
+        "type": "query",
+        "datasource": "Mimir",
+        "query": "label_values(oya_sheets_workbook_session_open_total, tenant_id)",
+        "includeAll": true,
+        "label": "Tenant"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Sheet-open cold p95 (vs 400ms GA budget)",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le, pack) (rate(oya_sheets_sheet_open_cold_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "cold p95 — {{pack}}", "refId": "A"},
+        {"expr": "vector(0.4)", "legendFormat": "GA budget (400ms)", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 0.4}, {"color": "red", "value": 1.0}]}}}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Sheet-open warm p95 (vs 150ms GA budget)",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le, pack) (rate(oya_sheets_sheet_open_warm_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "warm p95 — {{pack}}", "refId": "A"},
+        {"expr": "vector(0.15)", "legendFormat": "GA budget (150ms)", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Cell-edit-render p99 (vs 50ms / 60fps budget)",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le, pack) (rate(oya_sheets_cell_edit_render_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "p99 — {{pack}}", "refId": "A"},
+        {"expr": "vector(0.05)", "legendFormat": "60fps budget (50ms)", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Save round-trip p99 (vs 100ms GA budget)",
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le, pack) (rate(oya_sheets_save_round_trip_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "save p99 — {{pack}}", "refId": "A"},
+        {"expr": "vector(0.1)", "legendFormat": "GA budget (100ms)", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Active workbook sessions by pack",
+      "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (pack) (oya_sheets_workbook_session_active{pack=\"$pack\"})", "legendFormat": "{{pack}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Per-tenant active sessions (top 10)",
+      "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "topk(10, sum by (tenant_id) (oya_sheets_workbook_session_active{pack=\"$pack\"}))", "legendFormat": "{{tenant_id}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Save round-trip breakdown (cell SDK vs Postgres vs audit-chain)",
+      "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le, leg) (rate(oya_sheets_save_leg_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "{{leg}} p99", "refId": "A"}
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "WASM bundle download p99 + CDN edge cache hit rate",
+      "gridPos": {"x": 12, "y": 24, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_sheets_wasm_bundle_download_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "download p99", "refId": "A"},
+        {"expr": "sum(rate(oya_sheets_cdn_cache_hit_total{pack=\"$pack\"}[5m])) / sum(rate(oya_sheets_cdn_request_total{pack=\"$pack\"}[5m]))", "legendFormat": "CDN hit rate", "refId": "B"}
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Perf budget breaches (events) by budget",
+      "gridPos": {"x": 0, "y": 32, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "increase(oya_sheets_perf_budget_breached_total{pack=\"$pack\"}[5m])", "legendFormat": "{{budget}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Workbook 429 rate by tenant (rate-limit hits)",
+      "gridPos": {"x": 12, "y": 32, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "topk(20, rate(oya_sheets_workbook_session_429_total{pack=\"$pack\"}[5m]))", "format": "table", "refId": "A"}
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Cell-edit / sec (cluster)",
+      "gridPos": {"x": 0, "y": 40, "w": 12, "h": 4},
+      "targets": [
+        {"expr": "sum(rate(oya_sheets_cell_edit_total{pack=\"$pack\"}[1m]))", "legendFormat": "edits/sec", "refId": "A"}
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Cold-load of 100k-cell workbook (budget ≤ 3s)",
+      "gridPos": {"x": 12, "y": 40, "w": 12, "h": 4},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_sheets_cold_load_100k_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "cold-load p99", "refId": "A"},
+        {"expr": "vector(3.0)", "legendFormat": "budget (3s)", "refId": "B"}
+      ]
+    }
+  ]
+}

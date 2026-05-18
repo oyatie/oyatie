@@ -19,7 +19,7 @@ lifecycle:
 traceability:
   github_issue: <#NNNN>
   source_adrs:
-    - ADR-NNNN
+    - ADR-####
 allowed_dependency_edges:
   # Per ADR-0015 dep direction: kernel←domain←app←api/worker/adapter←runtime
   - kernel

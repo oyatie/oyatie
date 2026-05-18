@@ -43,8 +43,8 @@
     "crates/oya-ontology-adapter/tests/llm_tool_call.rs::test_autonomy_ceiling"
   ],
   "consumers": [
-    "$ref:specs/products/ontology.json#frontend_components",
-    "$ref:specs/products/workflow-studio.json#frontend_components"
+    "$ref:specs/microservices/ontology.json#frontend_components",
+    "$ref:specs/microservices/workflow-studio.json#frontend_components"
   ],
   "verification_commands": [
     "target/debug/oya gate validate product-prd-json",

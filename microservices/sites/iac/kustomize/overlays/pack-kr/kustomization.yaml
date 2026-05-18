@@ -1,0 +1,38 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+# Kustomize overlay — pack-kr (KR PIPA + KR-FSS retention + 전자문서법 + ISMS-P).
+# Per ADR-0131 + ADR-0133 (11-pack-overlay program).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: sites
+
+resources:
+  - ../../base
+
+commonLabels:
+  oyatie.dev/pack: kr
+  oyatie.dev/data-residency: kr-ap-seoul-1
+
+configMapGenerator:
+  - name: oya-sites-pack-config
+    namespace: sites
+    literals:
+      - PACK_REGION=kr
+      - DATA_RESIDENCY=kr-ap-seoul-1
+      - DEFAULT_LOCALE=ko-KR
+      - DEFAULT_TIMEZONE=Asia/Seoul
+      - RETENTION_FLOOR_DAYS=1825   # KR-FSS 5y for financial-services tenants
+      - PIPA_ART_28_AUDIT_CHAIN=enabled
+      - LLM_PROVIDER_PACK_RESTRICTION=kr-only
+
+patches:
+  - target: {kind: Deployment, name: oya-sites-page-app}
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/env/2/value
+        value: kr
+  - target: {kind: HorizontalPodAutoscaler, name: oya-sites-page-app-hpa}
+    patch: |
+      - op: replace
+        path: /spec/maxReplicas
+        value: 60

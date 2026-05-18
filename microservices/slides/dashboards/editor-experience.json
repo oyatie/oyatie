@@ -1,0 +1,109 @@
+{
+  "title": "Slides — Editor experience",
+  "schemaVersion": 38,
+  "uid": "oya-slides-editor-experience",
+  "tags": ["slides", "editor", "collab", "ui"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "panels": [
+    {
+      "title": "Deck open p95 (cold) — 50-slide deck",
+      "type": "stat",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(oya_slides_deck_open_seconds_bucket{cache=\"cold\"}[5m])))", "legendFormat": "p95" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{"value": 0, "color": "green"}, {"value": 0.4, "color": "orange"}, {"value": 0.6, "color": "red"}] } } },
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "title": "Deck open p95 (warm)",
+      "type": "stat",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(oya_slides_deck_open_seconds_bucket{cache=\"warm\"}[5m])))" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{"value": 0, "color": "green"}, {"value": 0.15, "color": "orange"}, {"value": 0.25, "color": "red"}] } } },
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "title": "Slide render p99",
+      "type": "stat",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(oya_slides_slide_render_seconds_bucket[5m])))" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{"value": 0, "color": "green"}, {"value": 0.15, "color": "orange"}, {"value": 0.3, "color": "red"}] } } },
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "title": "Cell-edit-render p99 (text-box keystroke)",
+      "type": "stat",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(oya_slides_cell_edit_render_seconds_bucket[5m])))" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{"value": 0, "color": "green"}, {"value": 0.05, "color": "orange"}, {"value": 0.1, "color": "red"}] } } },
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "title": "Collab cursor sync p99",
+      "type": "timeseries",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(oya_slides_collab_cursor_sync_seconds_bucket[5m])))", "legendFormat": "p99" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(oya_slides_collab_cursor_sync_seconds_bucket[5m])))", "legendFormat": "p95" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 }
+    },
+    {
+      "title": "Save latency p95",
+      "type": "timeseries",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(oya_slides_save_seconds_bucket[5m])))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(oya_slides_save_seconds_bucket[5m])))", "legendFormat": "p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 }
+    },
+    {
+      "title": "Editor TTI (Lighthouse synthetic)",
+      "type": "timeseries",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "oya_slides_editor_tti_p99_ms", "legendFormat": "p99 TTI ms" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 }
+    },
+    {
+      "title": "Active editor sessions",
+      "type": "timeseries",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "sum(oya_slides_active_editor_sessions)" }
+      ],
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 }
+    },
+    {
+      "title": "WASM bundle size (bytes; per chunk)",
+      "type": "table",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "oya_slides_wasm_bundle_size_bytes by (chunk)" }
+      ],
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 6 }
+    },
+    {
+      "title": "CRDT merge p99 (AC-06 + Cursor budget)",
+      "type": "timeseries",
+      "datasource": "prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(oya_slides_collab_crdt_merge_seconds_bucket[5m])))" }
+      ],
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 6 }
+    }
+  ]
+}

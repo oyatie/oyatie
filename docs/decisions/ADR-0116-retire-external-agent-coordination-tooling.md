@@ -56,7 +56,7 @@ This ADR does **not** delete any historical content. ADR-0054 is marked `Depreca
 
 ## Naming justification
 
-Filename `ADR-0116-retire-external-agent-coordination-tooling.md` — `<artifact:ADR>-<id:0116>-<verb:retire>-<scope:external-agent-coordination-tooling>`; conforms to v4 BNF for ADRs under `docs/decisions/ADR-NNNN-<kebab-summary>.md`. The verb `retire` is the canonical lifecycle verb for prescribed-surface removal (parallels `Deprecated` status on ADR-0054). The scope token `external-agent-coordination-tooling` cleanly distinguishes the retired surface (out-of-repo coordination tools) from the retained in-repo Foundry pipeline substrate.
+Filename `ADR-0116-retire-external-agent-coordination-tooling.md` — `<artifact:ADR>-<id:0116>-<verb:retire>-<scope:external-agent-coordination-tooling>`; conforms to v4 BNF for ADRs under `docs/decisions/ADR-####-<kebab-summary>.md`. The verb `retire` is the canonical lifecycle verb for prescribed-surface removal (parallels `Deprecated` status on ADR-0054). The scope token `external-agent-coordination-tooling` cleanly distinguishes the retired surface (out-of-repo coordination tools) from the retained in-repo Foundry pipeline substrate.
 
 ---
 

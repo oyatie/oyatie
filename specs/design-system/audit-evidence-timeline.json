@@ -43,7 +43,7 @@
     "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::agent_decision_provenance_chain_is_graph_traversable"
   ],
   "consumers": [
-    "$ref:specs/products/ontology.json#frontend_components",
+    "$ref:specs/microservices/ontology.json#frontend_components",
     "$ref:docs/products/foundry/PRD.md#11g-frontend-components"
   ],
   "verification_commands": [

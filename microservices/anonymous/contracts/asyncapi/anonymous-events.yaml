@@ -1,0 +1,310 @@
+asyncapi: 3.1.0
+info:
+  title: oya-anonymous events
+  version: 1.0.0
+  description: |
+    Event streams emitted by the anonymous µservice. NONE of these events
+    contain a user_id field; every author identifier is a blinded_commitment
+    (opaque bytes). Downstream consumers MUST NOT attempt to correlate
+    blinded_commitments across events — this is enforced by LEAN lane
+    `oya-check-downstream-no-author-correlation`.
+
+    Privacy invariants:
+    - I1: no event contains a `user_id` field
+    - I2: AffinityAttestationBound carries only the affinity_cluster_id, never identity
+    - I3: HardDeleteJobCompleted is the only deletion event; tombstone seal mandatory
+    - I7: LegalProcessDisclosureExecuted is the ONLY event that records correlation
+  contact:
+    name: axis-anonymous
+    url: https://oyatie.dev/teams/axis-anonymous
+
+servers:
+  prod-pack-kr:
+    host: kafka.observability.anonymous-kr.oyatie.dev:9093
+    protocol: kafka-secure
+    description: Per-pack event bus
+
+defaultContentType: application/cloudevents+json
+
+channels:
+  AnonymousPostPublished:
+    address: anonymous.post.v1.AnonymousPostPublished
+    messages:
+      AnonymousPostPublished:
+        $ref: '#/components/messages/AnonymousPostPublished'
+  AnonymousPostDeleted:
+    address: anonymous.post.v1.AnonymousPostDeleted
+    messages:
+      AnonymousPostDeleted:
+        $ref: '#/components/messages/AnonymousPostDeleted'
+  AnonymousCommentPublished:
+    address: anonymous.comment.v1.AnonymousCommentPublished
+    messages:
+      AnonymousCommentPublished:
+        $ref: '#/components/messages/AnonymousCommentPublished'
+  AnonymousVoteApplied:
+    address: anonymous.vote.v1.AnonymousVoteApplied
+    messages:
+      AnonymousVoteApplied:
+        $ref: '#/components/messages/AnonymousVoteApplied'
+  AffinityAttestationBound:
+    address: anonymous.affinity.v1.AffinityAttestationBound
+    messages:
+      AffinityAttestationBound:
+        $ref: '#/components/messages/AffinityAttestationBound'
+  AffinityAttestationRevoked:
+    address: anonymous.affinity.v1.AffinityAttestationRevoked
+    messages:
+      AffinityAttestationRevoked:
+        $ref: '#/components/messages/AffinityAttestationRevoked'
+  HandleRotationOccurred:
+    address: anonymous.handle.v1.HandleRotationOccurred
+    messages:
+      HandleRotationOccurred:
+        $ref: '#/components/messages/HandleRotationOccurred'
+  HashtagEmission:
+    address: anonymous.hashtag.v1.HashtagEmission
+    messages:
+      HashtagEmission:
+        $ref: '#/components/messages/HashtagEmission'
+  ModerationVerdictEmitted:
+    address: anonymous.moderation.v1.ModerationVerdictEmitted
+    messages:
+      ModerationVerdictEmitted:
+        $ref: '#/components/messages/ModerationVerdictEmitted'
+  AbuseReportFiled:
+    address: anonymous.moderation.v1.AbuseReportFiled
+    messages:
+      AbuseReportFiled:
+        $ref: '#/components/messages/AbuseReportFiled'
+  AppealOpened:
+    address: anonymous.moderation.v1.AppealOpened
+    messages:
+      AppealOpened:
+        $ref: '#/components/messages/AppealOpened'
+  AppealResolved:
+    address: anonymous.moderation.v1.AppealResolved
+    messages:
+      AppealResolved:
+        $ref: '#/components/messages/AppealResolved'
+  LegalProcessDisclosureRequested:
+    address: anonymous.legal-process.v1.LegalProcessDisclosureRequested
+    messages:
+      LegalProcessDisclosureRequested:
+        $ref: '#/components/messages/LegalProcessDisclosureRequested'
+  LegalProcessDisclosureApproved:
+    address: anonymous.legal-process.v1.LegalProcessDisclosureApproved
+    messages:
+      LegalProcessDisclosureApproved:
+        $ref: '#/components/messages/LegalProcessDisclosureApproved'
+  LegalProcessDisclosureExecuted:
+    address: anonymous.legal-process.v1.LegalProcessDisclosureExecuted
+    messages:
+      LegalProcessDisclosureExecuted:
+        $ref: '#/components/messages/LegalProcessDisclosureExecuted'
+  HardDeleteJobCompleted:
+    address: anonymous.retention.v1.HardDeleteJobCompleted
+    messages:
+      HardDeleteJobCompleted:
+        $ref: '#/components/messages/HardDeleteJobCompleted'
+  NcmecReportFiled:
+    address: anonymous.moderation.v1.NcmecReportFiled
+    messages:
+      NcmecReportFiled:
+        $ref: '#/components/messages/NcmecReportFiled'
+
+components:
+  messages:
+    AnonymousPostPublished:
+      contentType: application/cloudevents+json
+      payload:
+        type: object
+        required: [event_id, post_id, blinded_commitment, affinity_cluster_id, posted_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          post_id: { type: string }
+          blinded_commitment: { type: string }
+          affinity_cluster_id: { type: string }
+          posted_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+          hashtags: { type: array, items: { type: string } }
+          retention_tier: { type: string, enum: [30d, 60d, 90d] }
+    AnonymousPostDeleted:
+      payload:
+        type: object
+        required: [event_id, post_id, tombstone_id, deleted_at, deletion_reason, tenant_id]
+        properties:
+          event_id: { type: string }
+          post_id: { type: string }
+          tombstone_id: { type: string }
+          deleted_at: { type: string, format: date-time }
+          deletion_reason: { type: string, enum: [author_request, retention_expired, moderation_action, legal_process] }
+          tenant_id: { type: string }
+    AnonymousCommentPublished:
+      payload:
+        type: object
+        required: [event_id, comment_id, post_id, blinded_commitment, posted_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          comment_id: { type: string }
+          post_id: { type: string }
+          parent_comment_id: { type: string, nullable: true }
+          blinded_commitment: { type: string }
+          posted_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+          depth: { type: integer, minimum: 0, maximum: 6 }
+    AnonymousVoteApplied:
+      payload:
+        type: object
+        required: [event_id, vote_id, target_id, target_kind, kind, voted_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          vote_id: { type: string }
+          target_id: { type: string }
+          target_kind: { type: string, enum: [post, comment] }
+          kind: { type: string, enum: [upvote, downvote, retract] }
+          voted_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+    AffinityAttestationBound:
+      payload:
+        type: object
+        required: [event_id, binding_id, blinded_commitment, affinity_cluster_id, established_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          binding_id: { type: string }
+          blinded_commitment: { type: string }
+          affinity_cluster_id: { type: string }
+          established_at: { type: string, format: date-time }
+          expires_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+    AffinityAttestationRevoked:
+      payload:
+        type: object
+        required: [event_id, binding_id, revoked_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          binding_id: { type: string }
+          revoked_at: { type: string, format: date-time }
+          revocation_reason: { type: string }
+          tenant_id: { type: string }
+    HandleRotationOccurred:
+      payload:
+        type: object
+        required: [event_id, blinded_commitment_new, rotated_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          blinded_commitment_new: { type: string }
+          rotated_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+          # NOTE: blinded_commitment_old is NEVER emitted (would enable correlation)
+    HashtagEmission:
+      payload:
+        type: object
+        required: [event_id, post_id, hashtag, emitted_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          post_id: { type: string }
+          hashtag: { type: string }
+          emitted_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+    ModerationVerdictEmitted:
+      payload:
+        type: object
+        required: [event_id, verdict_id, target_id, verdict, ai_assessed_label, issued_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          verdict_id: { type: string }
+          target_id: { type: string }
+          verdict: { type: string, enum: [hide, lock, pin, quarantine, revoke_affinity, dismiss] }
+          ai_assessed_label: { type: string, description: "EU AI Act Art. 50 transparency: AI-assessed | human-moderator" }
+          reason: { type: string }
+          issued_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+          classifier_version: { type: string, nullable: true }
+    AbuseReportFiled:
+      payload:
+        type: object
+        required: [event_id, report_id, target_id, reason, filed_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          report_id: { type: string }
+          target_id: { type: string }
+          target_kind: { type: string, enum: [post, comment, dm] }
+          reason: { type: string, enum: [harassment, hate_speech, csam_suspect, spam, impersonation, threat, doxxing, other] }
+          filed_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+          # NOTE: reporter blinded_commitment intentionally omitted to protect reporter
+    AppealOpened:
+      payload:
+        type: object
+        required: [event_id, appeal_id, verdict_id, opened_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          appeal_id: { type: string }
+          verdict_id: { type: string }
+          opened_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+    AppealResolved:
+      payload:
+        type: object
+        required: [event_id, appeal_id, resolution, resolved_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          appeal_id: { type: string }
+          resolution: { type: string, enum: [upheld_verdict, reversed_verdict, withdrawn] }
+          resolved_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+    LegalProcessDisclosureRequested:
+      payload:
+        type: object
+        required: [event_id, order_id, doctype, jurisdiction, recorded_at]
+        properties:
+          event_id: { type: string }
+          order_id: { type: string }
+          doctype: { type: string }
+          jurisdiction: { type: string }
+          recorded_at: { type: string, format: date-time }
+    LegalProcessDisclosureApproved:
+      payload:
+        type: object
+        required: [event_id, order_id, approver_ids_hashed, approved_at]
+        properties:
+          event_id: { type: string }
+          order_id: { type: string }
+          approver_ids_hashed: { type: array, items: { type: string }, minItems: 2 }
+          approved_at: { type: string, format: date-time }
+    LegalProcessDisclosureExecuted:
+      payload:
+        type: object
+        required: [event_id, order_id, chain_of_custody_hash, executed_at]
+        properties:
+          event_id: { type: string }
+          order_id: { type: string }
+          chain_of_custody_hash: { type: string }
+          executed_at: { type: string, format: date-time }
+          gag_order: { type: boolean }
+          # Note: the disclosed data is NEVER emitted on the event bus; it is
+          # delivered out-of-band to law enforcement; this event records only
+          # that disclosure was executed.
+    HardDeleteJobCompleted:
+      payload:
+        type: object
+        required: [event_id, tombstone_id, target_id, completed_at, tenant_id]
+        properties:
+          event_id: { type: string }
+          tombstone_id: { type: string }
+          target_id: { type: string }
+          target_kind: { type: string, enum: [post, comment] }
+          completed_at: { type: string, format: date-time }
+          tenant_id: { type: string }
+          propagation_latency_ms: { type: integer }
+    NcmecReportFiled:
+      payload:
+        type: object
+        required: [event_id, report_id, target_id, filed_at]
+        properties:
+          event_id: { type: string }
+          report_id: { type: string }
+          target_id: { type: string }
+          filed_at: { type: string, format: date-time }
+          chain_of_custody_hash: { type: string }

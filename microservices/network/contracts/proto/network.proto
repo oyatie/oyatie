@@ -1,0 +1,597 @@
+// network.proto — gRPC contract for the network µservice
+// proto3
+//
+// Internal-cluster service surface (mTLS + SPIFFE). External tenant-facing
+// surface is REST (contracts/openapi/network.yaml) + WebSocket (contracts/
+// asyncapi/network-events.yaml).
+//
+// Per ADR-NET PCI-01: every message carries context_kind: Professional (single-
+// valued). Personal-tier types do not exist in this contract.
+//
+// Versioning: gRPC service version v1; future v2 will dual-deploy per the
+// ADR-NET-0004 dual-version-window contract-evolution discipline.
+
+syntax = "proto3";
+
+package oyatie.network.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "oyatie.dev/network/proto/network/v1";
+
+// =========================================================================
+// Common types
+// =========================================================================
+
+enum ContextKind {
+  CONTEXT_KIND_UNSPECIFIED = 0;
+  PROFESSIONAL = 1;
+  // No Personal variant; this is enforced at compile-time
+}
+
+message TenantScopedRef {
+  string tenant_id = 1;
+  string id = 2;
+  ContextKind context_kind = 3;  // Always PROFESSIONAL
+}
+
+message ProtectedGroupDisparityRatio {
+  string group = 1;
+  double disparity_ratio = 2;  // 4/5-rule per EEOC UGESP
+}
+
+// =========================================================================
+// Professional Profile
+// =========================================================================
+
+message ProfessionalProfile {
+  string profile_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string handle = 4;
+  string display_name = 5;
+  string headline = 6;
+  string summary = 7;
+  string avatar_url = 8;
+  string header_url = 9;
+  string locale = 10;
+  repeated ExperienceEntry experience = 11;
+  repeated EducationEntry education = 12;
+  repeated SkillEntry skills = 13;
+  repeated Certification certifications = 14;
+  string verification_badge = 15;
+  int64 connection_count = 16;
+  int64 follower_count = 17;
+  int64 following_count = 18;
+  int64 post_count = 19;
+  bool is_open_to_work = 20;
+  bool automated_decision_opt_out = 21;  // GDPR Art. 22
+  bool minor_protect = 22;
+  google.protobuf.Timestamp created_at = 23;
+}
+
+message ExperienceEntry {
+  string title = 1;
+  string company_ref = 2;
+  string location = 3;
+  string start = 4;
+  string end = 5;
+  string description = 6;
+  bool employer_attested = 7;
+}
+
+message EducationEntry {
+  string institution_ref = 1;
+  string degree = 2;
+  string field_of_study = 3;
+  string start = 4;
+  string end = 5;
+}
+
+message SkillEntry {
+  string skill_ref = 1;
+  int32 endorsement_count = 2;
+  bool assessment_passed = 3;
+}
+
+message Certification {
+  string name = 1;
+  string issuer = 2;
+  string issued = 3;
+  string expires = 4;
+  string credential_id = 5;
+  string credential_url = 6;
+}
+
+service ProfileService {
+  rpc GetMyProfile(GetMyProfileRequest) returns (ProfessionalProfile);
+  rpc GetProfileByHandle(GetProfileByHandleRequest) returns (ProfessionalProfile);
+  rpc UpdateMyProfile(UpdateMyProfileRequest) returns (ProfessionalProfile);
+  rpc ExportProfile(ExportProfileRequest) returns (ExportProfileResponse);
+}
+
+message GetMyProfileRequest {
+  string tenant_id = 1;
+  string requester_ref = 2;
+}
+
+message GetProfileByHandleRequest {
+  string tenant_id = 1;
+  string handle = 2;
+}
+
+message UpdateMyProfileRequest {
+  string tenant_id = 1;
+  string user_ref = 2;
+  ProfessionalProfile profile = 3;
+}
+
+message ExportProfileRequest {
+  string tenant_id = 1;
+  string user_ref = 2;
+  enum Format {
+    FORMAT_UNSPECIFIED = 0;
+    VCARD4 = 1;
+    JSONRESUME = 2;
+    GDPR_ART20 = 3;
+  }
+  Format format = 3;
+}
+
+message ExportProfileResponse {
+  bytes body = 1;
+  string mime_type = 2;
+  string export_id = 3;
+}
+
+// =========================================================================
+// Connection Graph
+// =========================================================================
+
+message ConnectionRequest {
+  string connection_request_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string requester_ref = 4;
+  string target_ref = 5;
+  string note = 6;  // ≤ 300 chars
+  string status = 7;  // open, accepted, rejected, ignored, withdrawn
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp responded_at = 9;
+}
+
+service ConnectionGraphService {
+  rpc SendConnectionRequest(SendConnectionRequestRequest) returns (ConnectionRequest);
+  rpc RespondToConnectionRequest(RespondToConnectionRequestRequest) returns (ConnectionRequest);
+  rpc Follow(FollowRequest) returns (google.protobuf.Empty);
+  rpc Unfollow(FollowRequest) returns (google.protobuf.Empty);
+  rpc Block(FollowRequest) returns (google.protobuf.Empty);
+  rpc GetDegreeOfSeparation(GetDegreeRequest) returns (GetDegreeResponse);
+}
+
+message SendConnectionRequestRequest {
+  string tenant_id = 1;
+  string requester_ref = 2;
+  string target_ref = 3;
+  string note = 4;
+}
+
+message RespondToConnectionRequestRequest {
+  string tenant_id = 1;
+  string responder_ref = 2;
+  string connection_request_id = 3;
+  string verdict = 4;  // accept, reject, ignore, withdraw
+}
+
+message FollowRequest {
+  string tenant_id = 1;
+  string follower_ref = 2;
+  string target_ref = 3;
+}
+
+message GetDegreeRequest {
+  string tenant_id = 1;
+  string from_user_ref = 2;
+  string to_user_ref = 3;
+}
+
+message GetDegreeResponse {
+  int32 degree = 1;  // 1, 2, 3, or 0 for out-of-range
+}
+
+// =========================================================================
+// Post Composition
+// =========================================================================
+
+message ProfessionalPost {
+  string post_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string author_ref = 4;
+  string kind = 5;  // article, status, document, poll, carousel, repost, share, comment
+  string body = 6;
+  repeated string media_ids = 7;
+  string document_id = 8;
+  string visibility = 9;
+  string content_warning = 10;
+  bool anonymous_read_allowed = 11;
+  google.protobuf.Timestamp posted_at = 12;
+  google.protobuf.Timestamp edit_window_closes_at = 13;
+  google.protobuf.Timestamp deleted_at = 14;
+  string content_hash = 15;
+}
+
+service PostService {
+  rpc PublishPost(PublishPostRequest) returns (ProfessionalPost);
+  rpc EditPost(EditPostRequest) returns (ProfessionalPost);
+  rpc DeletePost(DeletePostRequest) returns (google.protobuf.Empty);
+  rpc Repost(RepostRequest) returns (ProfessionalPost);
+  rpc QuotePost(QuotePostRequest) returns (ProfessionalPost);
+  rpc Comment(CommentRequest) returns (ProfessionalPost);
+  rpc React(ReactRequest) returns (google.protobuf.Empty);
+}
+
+message PublishPostRequest {
+  string tenant_id = 1;
+  string author_ref = 2;
+  ProfessionalPost post = 3;
+}
+
+message EditPostRequest {
+  string tenant_id = 1;
+  string author_ref = 2;
+  string post_id = 3;
+  ProfessionalPost patch = 4;
+}
+
+message DeletePostRequest {
+  string tenant_id = 1;
+  string author_ref = 2;
+  string post_id = 3;
+}
+
+message RepostRequest {
+  string tenant_id = 1;
+  string author_ref = 2;
+  string original_post_id = 3;
+}
+
+message QuotePostRequest {
+  string tenant_id = 1;
+  string author_ref = 2;
+  string original_post_id = 3;
+  string body = 4;
+}
+
+message CommentRequest {
+  string tenant_id = 1;
+  string author_ref = 2;
+  string parent_post_id = 3;
+  string body = 4;
+}
+
+message ReactRequest {
+  string tenant_id = 1;
+  string user_ref = 2;
+  string post_id = 3;
+  string kind = 4;  // like, celebrate, insightful, curious, funny, support, love
+  bool remove = 5;
+}
+
+// =========================================================================
+// Endorsement Engine (per-endorser Ed25519 signed; ADR-NET-0005)
+// =========================================================================
+
+message Endorsement {
+  string endorsement_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string endorser_ref = 4;
+  string endorsee_ref = 5;
+  string skill_ref = 6;
+  bytes signature = 7;  // Ed25519 (RFC 8032)
+  int64 merkle_chain_position = 8;
+  bytes merkle_chain_root_hash = 9;
+  bool revoked = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message Recommendation {
+  string recommendation_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string recommender_ref = 4;
+  string recommendee_ref = 5;
+  string body = 6;
+  string relationship = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+service EndorsementService {
+  rpc EndorseSkill(EndorseSkillRequest) returns (Endorsement);
+  rpc RevokeEndorsement(RevokeEndorsementRequest) returns (google.protobuf.Empty);
+  rpc PublishRecommendation(PublishRecommendationRequest) returns (Recommendation);
+  rpc VerifyEndorsementChainIntegrity(VerifyEndorsementChainRequest) returns (VerifyEndorsementChainResponse);
+}
+
+message EndorseSkillRequest {
+  string tenant_id = 1;
+  string endorser_ref = 2;
+  string endorsee_ref = 3;
+  string skill_ref = 4;
+}
+
+message RevokeEndorsementRequest {
+  string tenant_id = 1;
+  string user_ref = 2;
+  string endorsement_id = 3;
+  string reason = 4;
+}
+
+message PublishRecommendationRequest {
+  string tenant_id = 1;
+  string recommender_ref = 2;
+  string recommendee_ref = 3;
+  string body = 4;
+  string relationship = 5;
+}
+
+message VerifyEndorsementChainRequest {
+  string tenant_id = 1;
+  string partition = 2;
+}
+
+message VerifyEndorsementChainResponse {
+  bytes derived_merkle_root = 1;
+  bytes sealed_merkle_root = 2;
+  bool match = 3;
+  int64 verified_count = 4;
+  int64 invalid_count = 5;
+}
+
+// =========================================================================
+// InMail Bridge (Professional-tier only; bridges to messenger µservice)
+// =========================================================================
+
+message InMail {
+  string inmail_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string inmail_target_channel = 4;  // always "professional"
+  string sender_ref = 5;
+  string recipient_ref = 6;
+  string subject = 7;
+  string body = 8;
+  string spam_classifier_verdict = 9;
+  google.protobuf.Timestamp sent_at = 10;
+}
+
+service InMailBridgeService {
+  rpc SendInMail(SendInMailRequest) returns (InMail);
+  rpc QueryInMailBridgeQueueDepth(QueueDepthRequest) returns (QueueDepthResponse);
+}
+
+message SendInMailRequest {
+  string tenant_id = 1;
+  string sender_ref = 2;
+  string recipient_ref = 3;
+  string subject = 4;
+  string body = 5;
+}
+
+message QueueDepthRequest {
+  string tenant_id = 1;
+}
+
+message QueueDepthResponse {
+  int64 depth = 1;
+}
+
+// =========================================================================
+// Jobs Handoff (to ATS µservice per ADR-NET-0004; contract-versioned)
+// =========================================================================
+
+message JobPosting {
+  string job_posting_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string page_ref = 4;
+  string title = 5;
+  string description = 6;
+  string level = 7;
+  repeated string skills_required = 8;
+  string visibility = 9;
+  string ats_handoff_status = 10;
+  google.protobuf.Timestamp posted_at = 11;
+  string contract_version = 12;  // "v1" or "v2" per ADR-NET-0004
+}
+
+service JobsHandoffService {
+  rpc PublishJobPosting(PublishJobPostingRequest) returns (JobPosting);
+  rpc ListPendingJobPostingsForAts(ListPendingForAtsRequest) returns (ListPendingForAtsResponse);
+  rpc AckAtsHandoff(AckAtsHandoffRequest) returns (google.protobuf.Empty);
+  rpc AtsResumeReady(AtsResumeReadyRequest) returns (google.protobuf.Empty);
+}
+
+message PublishJobPostingRequest {
+  string tenant_id = 1;
+  string author_ref = 2;
+  JobPosting posting = 3;
+}
+
+message ListPendingForAtsRequest {
+  string tenant_id = 1;
+  string ats_service_ref = 2;
+  string contract_version = 3;
+}
+
+message ListPendingForAtsResponse {
+  repeated JobPosting items = 1;
+}
+
+message AckAtsHandoffRequest {
+  string tenant_id = 1;
+  string job_posting_id = 2;
+  string ats_handoff_status = 3;  // accepted-by-ats, error
+}
+
+message AtsResumeReadyRequest {
+  string tenant_id = 1;
+  string from_event_id = 2;
+  string contract_version = 3;
+}
+
+// =========================================================================
+// Recruiter Stub (OFF by default; EU AI Act Annex III §4 HIGH-RISK)
+// =========================================================================
+
+message RecruiterSearchRequest {
+  string tenant_id = 1;
+  string recruiter_ref = 2;
+  repeated string skills_required = 3;
+  string location = 4;
+  string level = 5;
+}
+
+message RecruiterSearchResult {
+  string recruiter_search_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  repeated ProfessionalProfile hits = 4;
+  BiasAuditSummary bias_audit = 5;
+  string eu_ai_act_label = 6;  // "ai_generated_assessment" per Art. 50
+  string ranker_explanation = 7;  // Art. 27 + Art. 50 transparency
+  google.protobuf.Timestamp invoked_at = 8;
+}
+
+message BiasAuditSummary {
+  string model_version = 1;
+  string audit_date = 2;
+  repeated ProtectedGroupDisparityRatio disparity_ratio_by_group = 3;
+  bool passes_4_5_rule = 4;
+  string notified_body_ref = 5;
+  string ll144_audit_url = 6;
+  string eu_ai_act_fria_url = 7;
+}
+
+service RecruiterStubService {
+  // EU AI Act HIGH-RISK. Cedar entitlement-gated; FRIA + LL144-audit checks.
+  // Always returns BiasAuditSummary alongside results per Art. 13 transparency.
+  rpc InvokeRecruiterSearch(RecruiterSearchRequest) returns (RecruiterSearchResult);
+  rpc GetLatestBiasAudit(GetLatestBiasAuditRequest) returns (BiasAuditSummary);
+}
+
+message GetLatestBiasAuditRequest {
+  string tenant_id = 1;
+  string model_version = 2;
+}
+
+// =========================================================================
+// Notifications + Real-time Stream
+// =========================================================================
+
+message Notification {
+  string notification_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string kind = 4;
+  string target_user_ref = 5;
+  string source_user_ref = 6;
+  bytes payload = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+service NotificationService {
+  rpc Subscribe(SubscribeRequest) returns (stream Notification);
+  rpc Get(GetNotificationsRequest) returns (GetNotificationsResponse);
+}
+
+message SubscribeRequest {
+  string tenant_id = 1;
+  string user_ref = 2;
+  int64 last_seq = 3;
+}
+
+message GetNotificationsRequest {
+  string tenant_id = 1;
+  string user_ref = 2;
+  int32 limit = 3;
+}
+
+message GetNotificationsResponse {
+  repeated Notification items = 1;
+}
+
+// =========================================================================
+// Search Service (multi-index: people, content, skills, jobs, companies, events)
+// =========================================================================
+
+service SearchService {
+  rpc SearchPeople(SearchRequest) returns (SearchPeopleResponse);
+  rpc SearchContent(SearchRequest) returns (SearchContentResponse);
+  rpc SearchSkills(SearchRequest) returns (SearchSkillsResponse);
+  rpc SearchJobs(SearchJobsRequest) returns (SearchJobsResponse);
+  rpc SearchCompanies(SearchRequest) returns (SearchCompaniesResponse);
+  rpc SearchEvents(SearchRequest) returns (SearchEventsResponse);
+}
+
+message SearchRequest {
+  string tenant_id = 1;
+  string q = 2;
+  int32 limit = 3;
+  string locale = 4;
+}
+
+message SearchJobsRequest {
+  string tenant_id = 1;
+  string q = 2;
+  string location = 3;
+  string level = 4;
+  int32 limit = 5;
+}
+
+message SearchPeopleResponse {
+  repeated ProfessionalProfile hits = 1;
+}
+
+message SearchContentResponse {
+  repeated ProfessionalPost hits = 1;
+}
+
+message SearchSkillsResponse {
+  repeated SkillTaxonomyEntry hits = 1;
+}
+
+message SkillTaxonomyEntry {
+  string skill_ref = 1;
+  string label = 2;
+  string category = 3;
+  string locale = 4;
+}
+
+message SearchJobsResponse {
+  repeated JobPosting hits = 1;
+}
+
+message SearchCompaniesResponse {
+  repeated CompanyPageRef hits = 1;
+}
+
+message CompanyPageRef {
+  string page_id = 1;
+  string name = 2;
+  string industry = 3;
+  string location = 4;
+}
+
+message SearchEventsResponse {
+  repeated EventRef hits = 1;
+}
+
+message EventRef {
+  string event_id = 1;
+  string title = 2;
+  google.protobuf.Timestamp start = 3;
+  string location = 4;
+}

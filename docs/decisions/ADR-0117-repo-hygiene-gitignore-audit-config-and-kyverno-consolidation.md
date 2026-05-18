@@ -61,7 +61,7 @@ is path-only, no crate or capability naming changes).
 
 ## Consequences
 
-- Future agent-read logs stay ignored automatically — no follow-up scrubbing required.
+- Future agent-read logs stay ignored automatically — no successor-IP scrubbing required.
 - The CI nextest profile remains tracked, preserving `cargo-nextest` in PR tests.
 - All admission policy (Kyverno enforcement + Argo GitOps
   application) lives under one root; new admission resources have

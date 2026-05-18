@@ -71,7 +71,7 @@ Rules that follow from this ADR:
 2. **No DELETE-class artifact MAY be removed** until the corresponding ARCHIVE move has its own merged PR (per plan §P6→P7 gate).
 3. **KEEP+ANNOTATE artifacts MUST receive their annotation** no later than plan phase P4 (agent-instruction rewrite).
 4. **FLAG-FOR-USER items** are not actioned by automated agents; they require explicit human decision before any agent touches them.
-5. The `oya-foundry-fitness-inventory-tracker` lane **MUST** verify that every row with `Classification ≠ KEEP` has a corresponding follow-up issue or completed-phase marker before P7 deletion is permitted to merge.
+5. The `oya-foundry-fitness-inventory-tracker` lane **MUST** verify that every row with `Classification ≠ KEEP` has a corresponding successor-IP issue or completed-phase marker before P7 deletion is permitted to merge.
 
 ---
 
@@ -174,7 +174,7 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 | oyatie/.aider.conventions.md | file | KEEP | null | A8 | Code convention guidance |
 | oyatie/.gitignore | file | KEEP | null | A8 | Version-control housekeeping |
 | oyatie/.windsurfrules | file | KEEP | null | A8 | Windsurf IDE configuration |
-| oyatie/WINUI3_KOREAN_PAYROLL_MVP_PROMPT.md | file | KEEP | null | A8 | Product-context reference; not authoritative SoT |
+| oyatie/WINUI3_KOREAN_PAYROLL_minimum-shippable-tier_PROMPT.md | file | KEEP | null | A8 | Product-context reference; not authoritative SoT |
 
 ### oyatie/ — Root-level directories (core)
 

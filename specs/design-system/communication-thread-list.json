@@ -41,10 +41,10 @@
     "crates/oya-connect-ui/tests/thread_list.rs::test_no_spinner_only_loading"
   ],
   "consumers": [
-    "$ref:specs/products/connect/suite.json",
-    "$ref:specs/products/connect/mail.json",
-    "$ref:specs/products/connect/messenger.json",
-    "$ref:specs/products/connect/calendar.json"
+    "$ref:specs/microservices/connect-suite.json",
+    "$ref:specs/microservices/mail.json",
+    "$ref:specs/microservices/messenger.json",
+    "$ref:specs/microservices/calendar.json"
   ],
   "verification_commands": [
     "target/debug/oya gate validate product-prd-json",
@@ -53,6 +53,6 @@
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
     "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
-    "$ref:specs/products/connect/suite.json#frontend_components"
+    "$ref:specs/microservices/connect-suite.json#frontend_components"
   ]
 }

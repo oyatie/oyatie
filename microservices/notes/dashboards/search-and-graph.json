@@ -1,0 +1,99 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "notes",
+    "owner_team": "axis-notes + ops-sre-reliability",
+    "audience": "tenant operator + axis-notes SRE",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; tenant-scoped via X-Scope-OrgID"
+  },
+  "uid": "notes-search-and-graph",
+  "title": "notes: search + tag-graph + backlink + graph-view",
+  "tags": ["notes", "search", "meilisearch", "graph", "backlink"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ]},
+      {"name": "tenant", "type": "query", "label": "Tenant",
+        "query": "label_values(oya_notes_search_query_total{pack=\"$pack\"}, tenant_id)"}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Search queries (5m rate)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_notes_search_query_total{pack=\"$pack\",tenant_id=\"$tenant\",result=\"success\"}[5m]))", "refId": "A"}]},
+
+    {"id": 2, "type": "stat", "title": "Full-text-search p95 (s)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_full_text_search_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.2, "color": "yellow"}, {"value": 0.5, "color": "red"}]}}}},
+
+    {"id": 3, "type": "stat", "title": "Tag-search p95 (s)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_tag_search_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.1, "color": "yellow"}, {"value": 0.25, "color": "red"}]}}}},
+
+    {"id": 4, "type": "stat", "title": "Graph-render p95 (s)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_graph_render_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 1.0, "color": "yellow"}, {"value": 2.0, "color": "red"}]}}}},
+
+    {"id": 5, "type": "timeseries", "title": "Search latency percentiles",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum by (le) (rate(oya_notes_full_text_search_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "FT p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_full_text_search_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "FT p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_notes_full_text_search_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "FT p99", "refId": "C"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_tag_search_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "Tag p95", "refId": "D"}
+      ]},
+
+    {"id": 6, "type": "timeseries", "title": "Backlink resolution latency",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_backlink_resolved_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p95", "refId": "A"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_notes_backlink_resolved_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p99", "refId": "B"}
+      ]},
+
+    {"id": 7, "type": "timeseries", "title": "Meilisearch index size (per tenant)",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [{"expr": "oya_notes_meilisearch_index_bytes{pack=\"$pack\",tenant_id=\"$tenant\"}", "legendFormat": "{{tenant_id}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "bytes"}}},
+
+    {"id": 8, "type": "timeseries", "title": "Tag-graph adjacency cardinality",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [{"expr": "oya_notes_tag_edge_count{pack=\"$pack\",tenant_id=\"$tenant\"}", "legendFormat": "edges", "refId": "A"}]},
+
+    {"id": 9, "type": "timeseries", "title": "Tag-graph corruption detection (should be 0)",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 6},
+      "targets": [{"expr": "sum(rate(oya_notes_tag_graph_corruption_detected_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}]},
+
+    {"id": 10, "type": "timeseries", "title": "Graph-view snapshot generation latency",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 6},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_notes_graph_snapshot_build_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p95", "refId": "A"}]},
+
+    {"id": 11, "type": "table", "title": "Top 10 tenants by index size",
+      "gridPos": {"x": 0, "y": 26, "w": 12, "h": 8},
+      "targets": [{"expr": "topk(10, oya_notes_meilisearch_index_bytes{pack=\"$pack\"})", "format": "table", "refId": "A"}]},
+
+    {"id": 12, "type": "table", "title": "Top 10 over-linked notes (backlink fan-in)",
+      "gridPos": {"x": 12, "y": 26, "w": 12, "h": 8},
+      "targets": [{"expr": "topk(10, oya_notes_backlink_fan_in{pack=\"$pack\",tenant_id=\"$tenant\"})", "format": "table", "refId": "A"}]}
+  ]
+}

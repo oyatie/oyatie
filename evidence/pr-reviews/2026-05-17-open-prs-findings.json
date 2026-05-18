@@ -1,0 +1,1127 @@
+{
+  "$schema": "evidence/pr-reviews/_schema.json",
+  "review_date": "2026-05-17",
+  "reviewer": "claude-opus-4-7 + 16 parallel agent-skills:code-reviewer subagents",
+  "base_branch": "dev",
+  "prs_reviewed": 16,
+  "severity_levels": ["BLOCKER", "CRITICAL", "MAJOR", "MINOR", "NIT"],
+  "severity_definitions": {
+    "BLOCKER": "Must fix before merge; dishonest validator, broken contract, or pattern that would silently regress production.",
+    "CRITICAL": "Must fix before merge; dangling FK, missing required artifact, paper-spec, or scope-creep without ADR.",
+    "MAJOR": "Strongly recommended fix before merge; degraded honesty, template drift, or missing cross-ref.",
+    "MINOR": "Recommended fix; partial coverage, edge case missed, fragile-but-working code.",
+    "NIT": "Cosmetic; style, naming, or readability."
+  },
+  "merge_order_recommended": [
+    {"order": 1, "pr": 115, "rationale": "Pure-add REPORT-ONLY script; touches scripts/ only; no coupling."},
+    {"order": 2, "pr": 121, "rationale": "Test-only ADD on crates/oya-dev-cli/tests/gate_cli.rs; isolated lane."},
+    {"order": 3, "pr": 118, "rationale": "Test-only ADD on same test file as #121; sequential to avoid trivial conflicts."},
+    {"order": 4, "pr": 123, "rationale": "Test-only ADD on same test file; sequential after #118."},
+    {"order": 5, "pr": 131, "rationale": "Doc-only PRD expansion; mergeable=clean; minor follow-up required (6-contract ADR)."},
+    {"order": 6, "pr": 122, "rationale": "REWORK FIRST: re-land deleted PCM + benchmark tests, restore lane-15 doc row, undo audit-chain rewrite; then merge."},
+    {"order": 7, "pr": 126, "rationale": "REWORK FIRST: renumber §11a-d to avoid §11/§11f/§11g/§11 collision; then merge."},
+    {"order": 8, "pr": 128, "rationale": "REWORK FIRST: renumber §14 to align with §11h or document divergence; tighten §14.1 contradiction; then merge."},
+    {"order": 9, "pr": 129, "rationale": "REWORK FIRST: rename laundered evidence field; add schema validator; align template; then merge."},
+    {"order": 10, "pr": 135, "rationale": "REWORK FIRST: downgrade ADRs to proposed OR land referenced specs and enforcers; quantify hyperscaler bar; then merge."},
+    {"order": 11, "pr": 130, "rationale": "REWORK FIRST: add masterplan delta + ADR for super-app scope; add anonymous threat_model; add naming_justification + layer-enum binding; then merge AFTER #135 lands ADRs."},
+    {"order": 12, "pr": 136, "rationale": "Merge AFTER #135 ADRs and #130/#131 specs land; fix dangling FK in product_edges first."},
+    {"order": 13, "pr": 138, "rationale": "REWORK FIRST: wire workspace walker into honest-claims workflow; drop must_have coverage claim until 150 IPs migrated; then merge."},
+    {"order": 14, "pr": 137, "rationale": "REWORK FIRST: rebase off DIRTY state; land at least one referenced enforcer crate OR downgrade to Proposed; add layer-enum binding; then merge."},
+    {"order": 15, "pr": 140, "rationale": "REWORK FIRST: shrink baseline OR change PR honesty claim; add expected_violations floor; wire branch-protection requirement; then merge."},
+    {"order": 16, "pr": 125, "rationale": "REWORK FIRST: trigger CI (currently 0 checks); fix string-grep evidence pattern OR rename framing; remove ~/oyatie host paths from scan roots; split workspace-hygiene + PR-review into separate PRs; add ADR-0123 version/sunset; then merge LAST."}
+  ],
+  "cross_cutting_themes": [
+    {
+      "theme": "OP-11 audit template parity broken",
+      "affected_prs": [126, 128, 129, 131],
+      "details": "PR #126 uses §11a-d (doc sections); #128 uses §14 (doc section); #129 adds 3 new JSON arrays (industry_patterns_adopted/anti_patterns_avoided/hyperscaler_bar); #131 uses industry_patterns_adopted[]. Pick one canonical shape and file fixuptask before any of these merge."
+    },
+    {
+      "theme": "Coupling chain — merge-order matters",
+      "affected_prs": [130, 131, 135, 136],
+      "details": "PR #136 references ADRs introduced in PR #135. PR #136 score-cards reference Connect work in PRs #130/#131. PR #130/#131 currently lack ADRs that #135 introduces. Land #135 before #136; land #131 before #130's super-app spec consumes it."
+    },
+    {
+      "theme": "Recurring PR82 dishonest-exit-gate anti-pattern",
+      "affected_prs": [122, 125, 138, 140],
+      "memory_ref": "feedback_pr82_dishonest_exit_gate.md",
+      "details": "#122 silently deletes tests; #125 string-greps YAML/JSON as 'evidence'; #138 workflow only runs unit tests on fixtures (never scans the real corpus it claims to guard); #140 baseline of 92 entries suppresses 218 claimed violations to 0."
+    },
+    {
+      "theme": "enforced_by cargo-culting",
+      "affected_prs": [135, 137],
+      "details": "ADRs cite fitness crates / verification commands that do not exist on disk. ADR cannot ship as Accepted while enforcers are TODO; either land enforcer + ADR together or set status: Proposed."
+    }
+  ],
+  "prs": [
+    {
+      "pr": 115,
+      "title": "feat(scripts): codex-thread-sweep.py — REPORT-ONLY codex review thread inventory",
+      "head_branch": "agent/codex-thread-sweeper-1779004400",
+      "size": "+286/0, 3 files",
+      "verdict": "APPROVE",
+      "ci": "15/16 passed, 0 failed (1 pending/skipped)",
+      "findings": [
+        {
+          "id": "115-M01",
+          "severity": "MAJOR",
+          "file": "scripts/codex-thread-sweep.py",
+          "line": 147,
+          "summary": "thread_id interpolated raw into GraphQL string",
+          "rationale": "Not a shell-injection risk (subprocess list-args), but malformed/quote-bearing id produces a confusing GraphQL parse error rather than a clean validation message.",
+          "fix": "Add a regex check (e.g., ^PRRT_[A-Za-z0-9_-]+$) before query construction."
+        },
+        {
+          "id": "115-M02",
+          "severity": "MAJOR",
+          "file": "scripts/codex-thread-sweep.py",
+          "line": 177,
+          "summary": "priority parsing relies on 'P1 Badge'/'P2 Badge' substring match",
+          "rationale": "If codex changes its badge format the report silently degrades to '?'. Need warning when '?' count > 0.",
+          "fix": "Emit a warning to stderr when priority='?' is observed in the report."
+        },
+        {
+          "id": "115-S01",
+          "severity": "MINOR",
+          "file": "scripts/codex-thread-sweep.py",
+          "line": 128,
+          "summary": "No type hints",
+          "rationale": "Std-lib-only script; type hints would improve readability and editor support.",
+          "fix": "Add type hints to public helpers (e.g., def gh(args: list[str]) -> tuple[str, int]:)."
+        },
+        {
+          "id": "115-S02",
+          "severity": "MINOR",
+          "file": "scripts/codex-thread-sweep.py",
+          "line": 209,
+          "summary": "Output is human-prose only",
+          "rationale": "Downstream tooling (sweep dashboards, CI guardrails) cannot consume without scraping.",
+          "fix": "Add --json flag for structured output."
+        },
+        {
+          "id": "115-S03",
+          "severity": "MINOR",
+          "file": "scripts/codex-thread-sweep.py",
+          "line": 218,
+          "summary": "main() hand-rolls argv parsing",
+          "rationale": "argparse would auto-generate --help so REPORT-ONLY posture is discoverable.",
+          "fix": "Migrate to argparse with explicit --dry-run / --report-only flag and helptext."
+        },
+        {
+          "id": "115-N01",
+          "severity": "NIT",
+          "file": "scripts/codex-thread-sweep.py",
+          "line": 36,
+          "summary": "REPO = 'jason931225/oyatie' hardcoded",
+          "rationale": "Reduces portability across forks/checkout locations.",
+          "fix": "Honor GH_REPO env var (fall back to current literal)."
+        }
+      ]
+    },
+    {
+      "pr": 118,
+      "title": "test(gate): M02b/P22 exit-gate lane-3 — wire perf-budget validator honestly",
+      "head_branch": "agent/m02b-p22-perf-budget-mv-41241-1779009597",
+      "size": "+161/-3, 4 files",
+      "verdict": "APPROVE",
+      "ci": "15/16 passed, 0 failed",
+      "findings": [
+        {
+          "id": "118-M01",
+          "severity": "MAJOR",
+          "file": "crates/oya-check-perf-budget/src/lib.rs",
+          "line": 96,
+          "summary": "body_has_digit heuristic accepts '0 things to do'",
+          "rationale": "Per [[quality-performance-scalability-bar]], the validator should parse and enforce numeric thresholds against registry/quality/lanes.yaml, not just digit-presence.",
+          "fix": "Parse numeric thresholds + compare to budget registry; file follow-up; out of scope for this PR."
+        },
+        {
+          "id": "118-M02",
+          "severity": "MAJOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "4349,4380",
+          "summary": "Clean-path test only exercises the digit-bearing branch",
+          "rationale": "Three violation kinds exist (SectionEmpty, SectionMissingNumbers, digit-bearing); only one is end-to-end covered.",
+          "fix": "Add CLI tests for the other two violation kinds."
+        },
+        {
+          "id": "118-S01",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "4297",
+          "summary": "Title says 'wire perf-budget validator honestly' but kernel was already real",
+          "rationale": "Pre-PR state already had a real kernel + CLI dispatch. Honest title: 'add lane-3 integration tests'.",
+          "fix": "Rename PR title; do not block merge."
+        },
+        {
+          "id": "118-S02",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "4339,4393",
+          "summary": "fs::remove_dir_all(temp).ok() leaks temp dirs on assert failure",
+          "rationale": "Cosmetic but inconsistent with drop-guard discipline.",
+          "fix": "Use scopeguard or Drop-based cleanup."
+        }
+      ]
+    },
+    {
+      "pr": 121,
+      "title": "test(gate): M02b/P22 lane-5 active-artifact-contract integration test",
+      "head_branch": "agent/m02b-p22-lane5-aac-1779010566",
+      "size": "+147/-1, 4 files",
+      "verdict": "APPROVE",
+      "ci": "0/0 (must trigger before merge)",
+      "findings": [
+        {
+          "id": "121-S01",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": 4322,
+          "summary": "write_aac_registry builds JSON via format! interpolation",
+          "rationale": "Future test passing rows containing '{' could surprise. Low risk given current call sites.",
+          "fix": "Use serde_json::json! macro."
+        },
+        {
+          "id": "121-S02",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "~4395",
+          "summary": "Happy path covers only R01/R02; R03–R07 uncovered",
+          "rationale": "Out of scope for this PR but worth a follow-up so 'tested' label fully represents the validator surface.",
+          "fix": "File follow-up task; add tests in a subsequent PR."
+        },
+        {
+          "id": "121-S03",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "4348, ~4407",
+          "summary": "fs::remove_dir_all temp leaks on assert failure",
+          "rationale": "Cosmetic.",
+          "fix": "Drop-guard helper."
+        },
+        {
+          "id": "121-N01",
+          "severity": "NIT",
+          "file": "evidence/audit-chain.jsonl",
+          "line": null,
+          "summary": "Evidence row does not list clippy invocation",
+          "rationale": "PR body claims rustfmt clean but no cargo clippy evidence.",
+          "fix": "Run cargo clippy and append to evidence row before merge."
+        }
+      ]
+    },
+    {
+      "pr": 123,
+      "title": "test(lane-9): audit-chain-replay gate synthetic-violation integration tests",
+      "head_branch": "agent/m02b-p22-lane9-acr-1779010652",
+      "size": "+167/-1, 5 files",
+      "verdict": "APPROVE",
+      "ci": "0/0 (must trigger before merge)",
+      "findings": [
+        {
+          "id": "123-M01",
+          "severity": "MAJOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "~4310, ~4370",
+          "summary": "Only one failure class exercised (surface-field hash mismatch)",
+          "rationale": "Validator typically detects ≥3 violation classes (hash-chain break, prev-hash link break, monotonicity). Single-class coverage = partial honesty.",
+          "fix": "Add ≥1 more synthetic-violation fixture (truncate tail / swap two records to break prev_hash linkage)."
+        },
+        {
+          "id": "123-M02",
+          "severity": "MAJOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "~4360, ~4420",
+          "summary": "remove_dir_all leaks temp on assert failure",
+          "rationale": "Repeats existing pattern in file but suite would be robust under failure with drop-guard.",
+          "fix": "scopeguard or Drop-based cleanup; follow-up FixupTask."
+        },
+        {
+          "id": "123-S01",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "~4310",
+          "summary": "String::from_utf8_lossy called 3× in accept assert",
+          "rationale": "Readability.",
+          "fix": "Bind once to a local."
+        },
+        {
+          "id": "123-S02",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": "~4302",
+          "summary": "Test name does not name violation class",
+          "rationale": "Leaves no naming room for siblings testing other violation classes.",
+          "fix": "Rename to audit_chain_replay_gate_rejects_surface_field_tamper."
+        },
+        {
+          "id": "123-N01",
+          "severity": "NIT",
+          "file": "evidence/multispectrum/claude-m02b-p22-lane9-audit-chain-replay-1779010652.json",
+          "line": null,
+          "summary": "council_consensus lists only architect+critic",
+          "rationale": "v2.3.0 doctrine prefers ≥3 spectrum lenses.",
+          "fix": "Add F9_compliance lens verdict."
+        }
+      ]
+    },
+    {
+      "pr": 122,
+      "title": "test(gate): lane-7 openapi-rest-route-parity integration tests",
+      "head_branch": "agent/m02b-p22-lane7-orp-1779010535",
+      "size": "+265/-255, 4 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "15/16 passed, 0 failed (vacuously — deleted tests cannot fail)",
+      "findings": [
+        {
+          "id": "122-C01",
+          "severity": "CRITICAL",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": null,
+          "summary": "Silently DELETES 4 already-merged integration tests",
+          "rationale": "Deletes protection_context_match_gate_catches_data_class_label_mismatch + protection_context_match_gate_passes_clean_crate (PR #117) and benchmark_gate_catches_missing_competitive_benchmark_section + benchmark_gate_passes_clean_crate (PR #120). Base SHA 0e92042 post-dates both. Per [[no-silent-regression]] and [[pr82-dishonest-exit-gate]] this is a silent coverage regression masquerading as 'add tests'.",
+          "fix": "Restore the 4 deleted tests; rebase onto current dev."
+        },
+        {
+          "id": "122-C02",
+          "severity": "CRITICAL",
+          "file": "docs/standards/m02-exit-gate-validators.md",
+          "line": null,
+          "summary": "Deletes lane-15 row + PCM exception note; rewords status banner",
+          "rationale": "Net effect: lane-15 disappears from catalog. Falsely substitutes PCM with lane-7 in 'three lanes' banner.",
+          "fix": "Restore lane-15 row and PCM exception paragraph; update banner correctly."
+        },
+        {
+          "id": "122-C03",
+          "severity": "CRITICAL",
+          "file": "evidence/audit-chain.jsonl",
+          "line": null,
+          "summary": "197-line churn in append-only ledger",
+          "rationale": "Rewrites historical entries (escapes em-dash, reorders rows). Append-only invariant violated.",
+          "fix": "Revert all historical-row changes; append only one new row for this PR's evidence."
+        },
+        {
+          "id": "122-M01",
+          "severity": "MAJOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": 132,
+          "summary": "Reverse parity direction not tested",
+          "rationale": "Only 'route in REST missing from OpenAPI' rejection covered; 'route in OpenAPI missing from REST' direction untested.",
+          "fix": "Add openapi_rest_route_parity_gate_rejects_route_missing_from_rest test."
+        },
+        {
+          "id": "122-M02",
+          "severity": "MAJOR",
+          "file": "crates/oya-dev-cli/tests/gate_cli.rs",
+          "line": null,
+          "summary": "Synthetic fixtures use ad-hoc pub const ROUTE strings",
+          "rationale": "If validator parses real handler macros (#[get(...)], axum routers), fixtures may falsely pass without exercising real route extraction.",
+          "fix": "Verify validator's route-detection matches pub const *_ROUTE pattern; otherwise use realistic handler-macro fixtures."
+        },
+        {
+          "id": "122-S01",
+          "severity": "MINOR",
+          "file": "evidence/multispectrum/m02b-p22-lane7-orp-1779010641.json",
+          "line": null,
+          "summary": "Does not cite the test deletion explicitly",
+          "rationale": "Multispectrum evidence should record what was removed and why.",
+          "fix": "Add explicit deletion rationale or remove deletions entirely (preferred)."
+        }
+      ]
+    },
+    {
+      "pr": 125,
+      "title": "Gate hyperscaler maturity claims on automated evidence",
+      "head_branch": "agent/hyperscaler-maturity-closure-1779010984",
+      "size": "+2897/-163, 39 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "0 checks reported — must trigger before merge",
+      "findings": [
+        {
+          "id": "125-C01",
+          "severity": "CRITICAL",
+          "file": "(PR branch)",
+          "line": null,
+          "summary": "No CI signal at all",
+          "rationale": "gh pr checks 125 returns 'no checks reported'. Per [[self-merge-via-contract-path]], admission requires oya-pr-review APPROVE + CI green. Gate-introducing PR with zero CI evidence cannot be admitted.",
+          "fix": "Push or rebase to trigger workflows; ensure all CI lanes green."
+        },
+        {
+          "id": "125-M01",
+          "severity": "MAJOR",
+          "file": "crates/oya-dev-cli/src/hyperscaler_maturity_claims_gate.rs",
+          "line": "311-469",
+          "summary": "String-grep masquerading as evidence validation",
+          "rationale": "validate_pr_review_pipeline / validate_ci_fix_loop / validate_merge_safety_specs use require_contains(text, 'literal string', ...) against raw YAML/JSON. PR title claims 'automated evidence' but evidence_path_template in specs/workspace-hygiene.json:22 is declared and never consumed.",
+          "fix": "Parse YAML/JSON structurally OR rename framing to 'contract-string presence check'."
+        },
+        {
+          "id": "125-M02",
+          "severity": "MAJOR",
+          "file": "specs/workspace-hygiene.json",
+          "line": "86-87,107",
+          "summary": "Scan roots include ~/oyatie and ~/oyatie-worktrees",
+          "rationale": "Absolute paths from machine $HOME make CI runs non-reproducible across hosts/agents. Strict mode (strict_finding_budget: 0) will flap.",
+          "fix": "Use repo-relative paths only; remove host-specific roots."
+        },
+        {
+          "id": "125-M03",
+          "severity": "MAJOR",
+          "file": "(PR scope)",
+          "line": null,
+          "summary": "39-file PR scope sprawl across 4 ADR surfaces",
+          "rationale": "Touches hyperscaler-maturity gate + workspace-hygiene gate + PR-review fail-closed + masterplan. Violates incremental-implementation; revert blast-radius large.",
+          "fix": "Split workspace-hygiene + PR-review changes into separate PRs."
+        },
+        {
+          "id": "125-M04",
+          "severity": "MAJOR",
+          "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md",
+          "line": null,
+          "summary": "Missing version-bump / sunset note",
+          "rationale": "Per [[no-silent-regression]], introducing a new BLOCKER lane (oya-foundry-fitness-hyperscaler-maturity-claims) is a public-contract change requiring version + rollout/sunset.",
+          "fix": "Add `version` and `rollout`/`sunset` fields to ADR-0123 frontmatter."
+        },
+        {
+          "id": "125-S01",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/src/hyperscaler_maturity_claims_gate.rs",
+          "line": 144,
+          "summary": "Hardcoded 'we are hyperscaler mature' literal",
+          "rationale": "Magic-string buried in source.",
+          "fix": "Extract to const alongside REQUIRED_GATE_IDS."
+        },
+        {
+          "id": "125-S02",
+          "severity": "MINOR",
+          "file": "crates/oya-dev-cli/src/workspace_hygiene_gate.rs",
+          "line": null,
+          "summary": "Missing negative test for clean_* flags being silently dropped when --no-scan also passed",
+          "rationale": "Current code returns an error but no test asserts it.",
+          "fix": "Add test exercising the mutually-exclusive flag combination."
+        }
+      ]
+    },
+    {
+      "pr": 126,
+      "title": "docs(foundry): industry competitive audit — add §11a-d to PRD (OP-11)",
+      "head_branch": "agent/audit-foundry-1779012354",
+      "size": "+186/0, 2 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "15/16 passed, 0 failed",
+      "findings": [
+        {
+          "id": "126-C01",
+          "severity": "CRITICAL",
+          "file": "docs/products/foundry/PRD.md",
+          "line": "815, 830, 840",
+          "summary": "Section-number collision (§11a→§11b→§11c→§11d→§11f→§11g→§11)",
+          "rationale": "Existing §11f (L815), §11g (L830), §11 'Open questions' (L840) already exist. New §11a-d inserted at L849. Result: §11a→§11d → existing §11f → existing §11g → §11 (Open questions!) → §12. PR's own test plan asks to confirm consistency — unchecked and false.",
+          "fix": "Renumber: promote 'Open questions' out of §11 namespace (e.g., §11h or new §12), place §11a-d before §11f, OR restructure §11 with an umbrella heading."
+        },
+        {
+          "id": "126-M01",
+          "severity": "MAJOR",
+          "file": "docs/products/foundry/PRD.md",
+          "line": "§11a (all rows)",
+          "summary": "Foundry-pipeline canonical ADRs (0110/0111/0112/0113/0116) omitted",
+          "rationale": "Memory [[foundry-pipeline-canonical]] flags these as the canonical agentic-workflow substrate. Multi-agent orchestration / observability / replay / provenance rows should cite ADR-0110/0111/0112/0113/0116.",
+          "fix": "Add inline ADR refs to the named rows."
+        },
+        {
+          "id": "126-M02",
+          "severity": "MAJOR",
+          "file": "docs/products/foundry/PRD.md",
+          "line": "§11d",
+          "summary": "Two conflicting SLOs co-exist ('99.95% (Preview)' vs 'p99 ≤ 200ms at GA')",
+          "rationale": "Bar stage relationship not stated.",
+          "fix": "State which bar applies at which Proof Ladder stage."
+        },
+        {
+          "id": "126-M03",
+          "severity": "MAJOR",
+          "file": "evidence/autoresearch/foundry-industry-audit-1779012354.json",
+          "line": 5,
+          "summary": "verdict 'gaps_found_and_closed' is self-attested",
+          "rationale": "G001–G004 are 'resolved' by the same PR adding the sections; no independent gate.",
+          "fix": "Add `verification_method: self_attested` field; or land a CI lane that verifies §11a-d presence."
+        },
+        {
+          "id": "126-S01",
+          "severity": "MINOR",
+          "file": "docs/products/foundry/PRD.md",
+          "line": "§11b 'Outbox pattern' row",
+          "summary": "Cites 'All hyperscalers' generically",
+          "rationale": "Name one (e.g., AWS DynamoDB Streams, GCP Spanner change streams) for parity.",
+          "fix": "Name a concrete reference implementation."
+        },
+        {
+          "id": "126-S02",
+          "severity": "MINOR",
+          "file": "docs/products/foundry/PRD.md",
+          "line": "§11d 'Audit retention: 7 years'",
+          "summary": "Missing retention ADR cite",
+          "rationale": "Likely ADR-0003.",
+          "fix": "Inline cite ADR-0003 (or correct ADR)."
+        },
+        {
+          "id": "126-S03",
+          "severity": "MINOR",
+          "file": "docs/products/foundry/PRD.md",
+          "line": "§11c",
+          "summary": "Tool-output exfiltration not covered",
+          "rationale": "Prompt-injection guard is strong; tool-output exfiltration is a distinct class worth a row.",
+          "fix": "Add a row for tool-output exfiltration."
+        }
+      ]
+    },
+    {
+      "pr": 128,
+      "title": "audit: hyperscaler pattern audit — Cloud PRD §14 + portfolio meta-audit",
+      "head_branch": "agent/audit-cloud-hyperscaler-1779012370",
+      "size": "+516/0, 2 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "15/16 passed, 0 failed",
+      "findings": [
+        {
+          "id": "128-M01",
+          "severity": "MAJOR",
+          "file": "docs/products/cloud/PRD.md",
+          "line": 673,
+          "summary": "§14 diverges from sibling OP-11 audit numbering scheme",
+          "rationale": "PR #126 used §11a-d for Foundry. File already interleaves §11/§11f/§11g/§12/§13. §14 jump unexplained.",
+          "fix": "Renumber to §11h (align with OP-11) OR add ADR note explaining the §14 jump."
+        },
+        {
+          "id": "128-M02",
+          "severity": "MAJOR",
+          "file": "docs/products/cloud/PRD.md",
+          "line": "709-712",
+          "summary": "§14.1 '4 golden signals' marked Strong contradicts §14.3/§14.4",
+          "rationale": "§14.3 admits saturation SLO missing; §14.4 downgrades same dimension to Adequate.",
+          "fix": "Reconcile or drop 'Strong' from §14.1."
+        },
+        {
+          "id": "128-M03",
+          "severity": "MAJOR",
+          "file": "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json",
+          "line": null,
+          "summary": "Meta-audit prose summaries lack file:line refs",
+          "rationale": "Per [[no-silent-regression]] a 'cross-PRD audit' must cite anchor points.",
+          "fix": "Add source_path + line anchors per finding."
+        },
+        {
+          "id": "128-S01",
+          "severity": "MINOR",
+          "file": "docs/products/cloud/PRD.md",
+          "line": "§14.1",
+          "summary": "Multi-region active/active row lacks RTO/RPO",
+          "rationale": "Cross-region replication-lag SLO is in §14.3 gap row but not the headline scorecard.",
+          "fix": "Inline RTO/RPO in §14.1."
+        },
+        {
+          "id": "128-S02",
+          "severity": "MINOR",
+          "file": "docs/products/cloud/PRD.md",
+          "line": "§14",
+          "summary": "Zero quantified p99 / node-count / availability-9s in 'confirmed present' tables",
+          "rationale": "Pulls from §4.3/§6 by reference only.",
+          "fix": "Inline the numbers so §14 is self-contained per [[quality-performance-scalability-bar]]."
+        },
+        {
+          "id": "128-S03",
+          "severity": "MINOR",
+          "file": "docs/products/cloud/PRD.md",
+          "line": "§14.2",
+          "summary": "Workflow+Ontology adapter rule not asserted",
+          "rationale": "Cloud is a product — explicit 'no direct cross-product calls; via Workflow + Ontology' line belongs in anti-patterns.",
+          "fix": "Add the adapter-rule line."
+        }
+      ]
+    },
+    {
+      "pr": 129,
+      "title": "feat(enterprise-prd): OP-11 industry audit — competitive gaps + industry_patterns/anti_patterns/hyperscaler_bar",
+      "head_branch": "agent/audit-enterprise-1779012320",
+      "size": "+888/-32, 5 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "15/16 passed, 0 failed",
+      "findings": [
+        {
+          "id": "129-C01",
+          "severity": "CRITICAL",
+          "file": "evidence/autoresearch/enterprise-suite-industry-audit-1779012320.json",
+          "line": "30,46,62,77,84,93",
+          "summary": "6/9 vendor fetches blocked-403/blocked-503/timeout — substitutes key_signals_from_training",
+          "rationale": "Per [[no-silent-regression]] and multispectrum doctrine, model-prior data laundered as 'fetched evidence'. Audit cannot claim industry evidence when 67% of sources failed.",
+          "fix": "Re-fetch with a working scraper OR rename field to key_signals_from_priors AND add audit_evidence_grade: 'partial-fetch' to each PRD _meta."
+        },
+        {
+          "id": "129-M01",
+          "severity": "MAJOR",
+          "file": "specs/products/enterprise/{suite,hr,payroll,accounting}.json",
+          "line": "_meta",
+          "summary": "Schema bump 1.0.0 → 1.1.0 adds 3 top-level arrays with no $schema / validator update",
+          "rationale": "CI cannot enforce new shape — [[pr82-dishonest-exit-gate]] pattern.",
+          "fix": "Add JSON-schema delta OR a check-prd-shape lane gate."
+        },
+        {
+          "id": "129-M02",
+          "severity": "MAJOR",
+          "file": "(this PR + sibling PRs)",
+          "line": null,
+          "summary": "Sibling PRs #126 (§11a-d) / #128 (§14) / #131 (industry_patterns_adopted[]) / #129 (3 new arrays) — 4 different templates",
+          "rationale": "Downstream consumers fork; cross-product comparison impossible.",
+          "fix": "Pick one canonical shape (industry_patterns_adopted is cleanest) and file fixup-task before any of these merge."
+        },
+        {
+          "id": "129-M03",
+          "severity": "MAJOR",
+          "file": "specs/products/enterprise/{suite,hr,payroll,accounting}.json",
+          "line": null,
+          "summary": "Missing Workflow + Ontology adapter cross-refs",
+          "rationale": "Patterns describe HR↔Payroll↔Accounting flow (e.g., 'benefits deduction sync from HR benefits enrollment') but never cite adapter rule.",
+          "fix": "Add adapter_path: 'via Workflow + Ontology' to each inter-product pattern."
+        },
+        {
+          "id": "129-M04",
+          "severity": "MAJOR",
+          "file": "specs/products/enterprise/*.json",
+          "line": null,
+          "summary": "hyperscaler_bar[] content not visible past line 1400 — verify numeric thresholds",
+          "rationale": "Per [[quality-performance-scalability-bar]] each dimension must carry p95/p99/RPO/RTO/availability not prose.",
+          "fix": "Confirm each dimension has numeric thresholds; add where missing."
+        },
+        {
+          "id": "129-S01",
+          "severity": "MINOR",
+          "file": "specs/products/enterprise/accounting.json",
+          "line": 399,
+          "summary": "QuickBooks Online / Xero combined as single competitor row",
+          "rationale": "Split for parity with other rows.",
+          "fix": "Separate into two rows."
+        },
+        {
+          "id": "129-S02",
+          "severity": "MINOR",
+          "file": "evidence/autoresearch/enterprise-suite-industry-audit-1779012320.json",
+          "line": null,
+          "summary": "File timestamp 1779012320 is unix epoch only",
+          "rationale": "Human readability.",
+          "fix": "Add ISO-8601 alongside."
+        }
+      ]
+    },
+    {
+      "pr": 130,
+      "title": "spec(connect): expand to full social-network super-app — social/shorts/network/anonymous PRDs",
+      "head_branch": "agent/connect-social-expansion-1779012930",
+      "size": "+3910/-61, 24 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "15/16 passed, 0 failed",
+      "findings": [
+        {
+          "id": "130-C01",
+          "severity": "CRITICAL",
+          "file": "specs/masterplan.json",
+          "line": null,
+          "summary": "Scope creep — masterplan has zero refs to connect/social/shorts/network/anonymous/super-app",
+          "rationale": "Per [[mcc-folds-into-m01]], end-state plan is M01..MNN. 3.9k LOC + implied ~16 new crates (kernel/domain/app/rest × 4) without masterplan delta or ADR is undeclared scope.",
+          "fix": "Land masterplan entry + ADR justifying the social-network pivot BEFORE merging."
+        },
+        {
+          "id": "130-C02",
+          "severity": "CRITICAL",
+          "file": "specs/products/connect/anonymous.json",
+          "line": null,
+          "summary": "No threat_model section",
+          "rationale": "Blind-clone with court-order reveal path needs STRIDE/LINDDUN, attacker model for HSM operator, key-rotation/epoch-bucket failure mode, side-channel reasoning (timing/length leaks of BLAKE3(user_id + salt + epoch_bucket) when epoch bucket is small).",
+          "fix": "Add full threat_model section with STRIDE/LINDDUN and named attacker models."
+        },
+        {
+          "id": "130-M01",
+          "severity": "MAJOR",
+          "file": "specs/products/connect/{social,shorts,network,anonymous}.json",
+          "line": null,
+          "summary": "All 4 PRDs missing naming_justification",
+          "rationale": "specs/hyperscaler-gates.json:114 and specs/agent-durable-goal.json:226-228 make naming_justification a required artifact per [[naming-justification]]. None of the four files carry the BNF + 12-layer-enum one-liner for the 16 planned crate_refs_planned entries.",
+          "fix": "Add naming_justification for each planned crate."
+        },
+        {
+          "id": "130-M02",
+          "severity": "MAJOR",
+          "file": "specs/products/connect/{social,shorts,network,anonymous}.json",
+          "line": null,
+          "summary": "All 4 PRDs omit layer-enum binding",
+          "rationale": "No `layer` field, no ADR-0105 13-layer reference (memory [[layer-enum-adr-0105-13-canonical]]). crate_refs_planned lists kernel/domain/app/rest strings but never asserts which layer-enum value each maps to.",
+          "fix": "Add layer-enum binding per crate_refs_planned entry."
+        },
+        {
+          "id": "130-M03",
+          "severity": "MAJOR",
+          "file": "specs/products/connect/anonymous.json",
+          "line": null,
+          "summary": "identity.context_model:['work'] inconsistent with social/shorts ['personal','work']",
+          "rationale": "Doctrine [[workflow-objectgraph-adapter-layer]] demands cross-context flows go through Workflow/Ontology.",
+          "fix": "Explicitly cite which adapter mediates personal↔work bleed per row of isolation matrix."
+        },
+        {
+          "id": "130-M04",
+          "severity": "MAJOR",
+          "file": "specs/products/connect/{social,shorts,network,anonymous}.json",
+          "line": null,
+          "summary": "Hyperscaler bar weak — only 5 dimensions each, all p95 latency",
+          "rationale": "Per [[quality-performance-scalability-bar]]: no availability SLO, no scale envelope (QPS/users/storage), no cost target.",
+          "fix": "Add availability SLO, scale envelope, cost target to each PRD's hyperscaler_bar."
+        },
+        {
+          "id": "130-S01",
+          "severity": "MINOR",
+          "file": "specs/products/connect/social.json",
+          "line": null,
+          "summary": "One 'cross_product' token present",
+          "rationale": "Worth grepping to ensure not a direct-call pattern violating the Workflow+Ontology rule.",
+          "fix": "Verify and document or refactor."
+        },
+        {
+          "id": "130-S02",
+          "severity": "MINOR",
+          "file": "specs/design-system/",
+          "line": null,
+          "summary": "17 new design-system/*.json components without index update or cross-product reuse audit",
+          "rationale": "Risk of duplicating existing mail/messenger primitives.",
+          "fix": "Update design-system index and cross-product reuse audit."
+        }
+      ]
+    },
+    {
+      "pr": 131,
+      "title": "feat(connect-prds): OP-11 industry audit — expand all 4 Connect PRDs to hyperscaler bar",
+      "head_branch": "agent/audit-connect-1779012333",
+      "size": "+1943/-128, 5 files",
+      "verdict": "APPROVE",
+      "ci": "15/15 passed, 0 failed, mergeable clean",
+      "findings": [
+        {
+          "id": "131-M01",
+          "severity": "MAJOR",
+          "file": "specs/products/connect/{mail,calendar,messenger}.json",
+          "line": null,
+          "summary": "availability dimension missing on 3 of 4 PRDs",
+          "rationale": "Only suite.json:2794-2820 names numeric SLA (99.95% / RPO ≤5m). Mail/calendar/messenger leave the suite-level 99.95% claim unbacked at sub-product layer.",
+          "fix": "Add availability dimension to each sibling PRD OR explicitly inherit from suite."
+        },
+        {
+          "id": "131-M02",
+          "severity": "MAJOR",
+          "file": "specs/products/connect/{calendar,mail,messenger}.json",
+          "line": "631, 1370-1372, 2064",
+          "summary": "Competitive benchmarks prose-asserted without source URL",
+          "rationale": "OP-11 audit memory expects every quantified claim to carry a citation. Google '<200ms', Gmail 99.9%, Slack '~300–500ms' lack URLs in competitive[].url.",
+          "fix": "Add reference URLs OR downgrade to 'industry knowledge' tag."
+        },
+        {
+          "id": "131-M03",
+          "severity": "MAJOR",
+          "file": "specs/products/connect/{mail,calendar,messenger}.json",
+          "line": null,
+          "summary": "6 new public contracts lack an ADR",
+          "rationale": "Per [[no-silent-regression]] adding public contracts (connect.mail.alias.v1, connect.perimeter-auth-result.v1, connect.calendar.ical_feed.v1, connect.calendar.video_call_link.v1, connect.messenger.presence.v1, connect.messenger.reaction.v1) requires an ADR, not a Decision Log line.",
+          "fix": "Open follow-up ADR or cite ADR-0125/0126/0127 if applicable."
+        },
+        {
+          "id": "131-S01",
+          "severity": "MINOR",
+          "file": "specs/products/connect/messenger.json",
+          "line": "2338-2344",
+          "summary": "'Enterprise Grid equivalent' not quantified",
+          "rationale": "Define numerically (members per channel, channels per workspace) for consistency.",
+          "fix": "Add numeric envelope."
+        },
+        {
+          "id": "131-S02",
+          "severity": "MINOR",
+          "file": "evidence/autoresearch/connect-suite-industry-audit-1779012333.json",
+          "line": null,
+          "summary": "Single evidence file bundles all 4 product audits",
+          "rationale": "Per-PRD split improves audit traceability.",
+          "fix": "Split into 4 files per-PRD."
+        }
+      ]
+    },
+    {
+      "pr": 135,
+      "title": "docs(adrs): ADR-0125/0126/0127 — OP-11 audit + Connect expansion + portfolio hyperscaler bar",
+      "head_branch": "agent/consolidation-adrs-1779013746",
+      "size": "+596/0, 4 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "0/0 — no checks reported",
+      "findings": [
+        {
+          "id": "135-C01",
+          "severity": "CRITICAL",
+          "file": "docs/decisions/ADR-0126-connect-full-social-network-super-app.md",
+          "line": "5-17",
+          "summary": "related: lists 4 sub-product specs that do not exist on tree",
+          "rationale": "Cites specs/products/connect/{social,shorts,network,anonymous}.json but only suite/mail/messenger/calendar.json exist. The 7-sub-product decision rests on 4 specs that do not yet exist.",
+          "fix": "Either land specs first (PR #130) OR downgrade ADR to status: proposed AND add F-CONNECT-SOCIAL-SPECS-MISSING fixuptask."
+        },
+        {
+          "id": "135-C02",
+          "severity": "CRITICAL",
+          "file": "docs/decisions/ADR-0125-*.md, ADR-0126-*.md, ADR-0127-*.md",
+          "line": "enforced_by",
+          "summary": "All 3 ADRs cite enforced_by crates/workflows that do not exist",
+          "rationale": "References oya-foundry-fitness-aspirational-enforcement-detection, …connect-dual-context-isolation, …circuit-breaker-presence, …per-tenant-rate-limit, …provider-degraded-shed, …error-budget-policy. None exist as crates or workflows. ADR-0125 explicitly defines this as the dominant critical anti-pattern (~340/847 findings). Self-violating.",
+          "fix": "Land at least the aspirational-enforcement-detection lane in this PR (it is named as the structural fix in ADR-0125 §Decision) OR mark status: proposed."
+        },
+        {
+          "id": "135-M01",
+          "severity": "MAJOR",
+          "file": "docs/decisions/ADR-0127-portfolio-hyperscaler-pattern-enforcement.md",
+          "line": null,
+          "summary": "Hyperscaler bar names patterns + fields but omits concrete numbers",
+          "rationale": "Per [[quality-performance-scalability-bar]] requires quantified industry-leader benchmarks. No p99 latency budget, no burn-rate alert thresholds (e.g. 14.4×/1h fast-burn, 6×/6h slow-burn per Google SRE Workbook), no token-bucket refill rate, no availability SLO target.",
+          "fix": "Add concrete numeric targets for each pattern."
+        },
+        {
+          "id": "135-M02",
+          "severity": "MAJOR",
+          "file": "docs/decisions/ADR-0126-connect-full-social-network-super-app.md",
+          "line": "§Decision",
+          "summary": "Bominal-ADR-0208 inheritance not explicitly declared",
+          "rationale": "Bominal-inheritance is 1:1 per [[bominal-inheritance-precedence]]. ADR states isolation 'extended beyond' Bominal's model without inherits:/overrides: block.",
+          "fix": "Add explicit inherits/overrides block listing kept vs. extended items."
+        },
+        {
+          "id": "135-M03",
+          "severity": "MAJOR",
+          "file": "(reverse cross-refs)",
+          "line": null,
+          "summary": "specs/agent-durable-goal.json and specs/products/connect/suite.json have zero references to ADR-0125/0126/0127",
+          "rationale": "Authority chain is one-way; anchors not yet bidirectional.",
+          "fix": "Add ADR cross-refs from suite spec and agent-durable-goal spec."
+        },
+        {
+          "id": "135-S01",
+          "severity": "MINOR",
+          "file": "docs/decisions/ADR-0127-*.md",
+          "line": "Gap 1",
+          "summary": "Names new crate 'oya-foundry-circuit-breaker-kernel' with 'or inlined per-crate if shared crate is not yet scaffolded' OR-clause",
+          "rationale": "OR-clause is a deferral.",
+          "fix": "Pick one approach and add fixuptask."
+        }
+      ]
+    },
+    {
+      "pr": 136,
+      "title": "registry: consolidate 2026-05-17 audit + Connect expansion + hyperscaler patterns",
+      "head_branch": "agent/consolidation-registry-1779013777",
+      "size": "+425/-3, 14 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "0/0 — no checks reported",
+      "findings": [
+        {
+          "id": "136-C01",
+          "severity": "CRITICAL",
+          "file": "registry/knowledge-graph-semantic.json",
+          "line": "1037-1147",
+          "summary": "product_edges reference targets workflow/ontology/foundry not defined in product_nodes",
+          "rationale": "Only 5 connect-* ids are defined. Dangling FK on freshly-introduced 'ecosystem_integration' edge type violates registry-FK invariant.",
+          "fix": "Add parent product nodes in this file OR cite canonical node-ID source (registry/graph/architecture-map.json) and reuse those IDs."
+        },
+        {
+          "id": "136-C02",
+          "severity": "CRITICAL",
+          "file": "registry/milestone-audit/index.json + specs/score-cards.json",
+          "line": "23-37",
+          "summary": "10 new score-card rows reference ADR-0125/0126/0127 which don't exist on disk",
+          "rationale": "ADRs land in PR #135 (unmerged). File frames this as adr_references_in_progress, but score-card rows live in a production spec and will fail missing-ref validation immediately. 'ADR before ratification' — the chained-enforcement gap the PR itself flags.",
+          "fix": "Land ADRs first (or stub them as status: draft) before referencing."
+        },
+        {
+          "id": "136-M01",
+          "severity": "MAJOR",
+          "file": "(PR title/description)",
+          "line": null,
+          "summary": "'Consolidate' is misleading — purely additive (+425/-3, 3 deletions cosmetic)",
+          "rationale": "Per [[no-silent-regression]] title misleads reviewers.",
+          "fix": "Rename to 'registry: extend ...' or 'add ...'."
+        },
+        {
+          "id": "136-M02",
+          "severity": "MAJOR",
+          "file": "(coupling)",
+          "line": null,
+          "summary": "Couples to unmerged PRs #130, #131",
+          "rationale": "score-card:industry-pattern:connect-pr130-131 points source_pr:131. If #130/#131 close without merging (or shape changes), these rows become orphaned.",
+          "fix": "Set status: pending OR block merge order behind #130/#131."
+        },
+        {
+          "id": "136-M03",
+          "severity": "MAJOR",
+          "file": "crates/oya-dev-cli/src/loop_recovery_patterns_gate.rs",
+          "line": "365-374",
+          "summary": "Blanket carve-out returns Ok(false) for any score-card:industry-pattern:* / score-card:hyperscaler:* ID",
+          "rationale": "Bypasses executable-query guard for entire ID prefix. Nothing prevents a future row in those namespaces from shipping unverifiable query.",
+          "fix": "Add unit test in tests/loop_recovery_patterns.rs asserting carve-out + that the row still must have empirical_evidence_path."
+        },
+        {
+          "id": "136-M04",
+          "severity": "MAJOR",
+          "file": "registry/check-empirical-evidence/score-card-hyperscaler-*.json",
+          "line": null,
+          "summary": "All 5 use identical boilerplate promotion_basis + identical caught_regression_refs (self-pointing)",
+          "rationale": "'Caught regression' claim is unsubstantiated — these are NEW checks, they haven't caught anything yet.",
+          "fix": "Remove the field OR set to []."
+        },
+        {
+          "id": "136-S01",
+          "severity": "MINOR",
+          "file": "registry/knowledge-graph-semantic.json",
+          "line": null,
+          "summary": "No schema_version field + 3 new edge types + 2 new top-level keys without version bump",
+          "rationale": "Violates lean-a10.",
+          "fix": "Bump schema_version and note additions in _meta."
+        },
+        {
+          "id": "136-S02",
+          "severity": "MINOR",
+          "file": "specs/score-cards.json",
+          "line": "1-10",
+          "summary": "Per-file version stays at 1.0.0 while checks grows 4→14 with 2 new facets",
+          "rationale": "Schema growth without version bump.",
+          "fix": "Bump to 1.1.0."
+        }
+      ]
+    },
+    {
+      "pr": 137,
+      "title": "spec(hyperscaler-architecture-invariants): canonical 35-invariant spec + ADR-0128 binding",
+      "head_branch": "agent/consolidation-hyperscaler-arch-1779013869",
+      "size": "+718/-1, 5 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "0/0 — DIRTY/CONFLICTING merge state",
+      "findings": [
+        {
+          "id": "137-C01",
+          "severity": "CRITICAL",
+          "file": "specs/hyperscaler-architecture-invariants.json + docs/decisions/ADR-0128-hyperscaler-architecture-invariants.md",
+          "line": "all 35 enforced_by entries + ADR enforced_by frontmatter",
+          "summary": "35/35 referenced oya-foundry-fitness-* crates do not exist on disk; ADR's own enforcer is an open fixuptask",
+          "rationale": "registry/fixuptasks.jsonl F-FITNESS-ASPIRATIONAL-ENFORCEMENT-DETECTION is open. Per [[autonomous-implementation-artifacts]] ('no stubs/placeholders/deferrals within scope'), accepting ADR whose binding-enforcement lane is a TODO adds 35 new aspirational refs to a corpus already cited as having 130+ violations.",
+          "fix": "(a) Downgrade status from Accepted → Proposed until at least one validator lands, OR (b) chunk spec by enforced-now vs. planned-Q3 and only mark enforced subset binding."
+        },
+        {
+          "id": "137-C02",
+          "severity": "CRITICAL",
+          "file": "(PR branch)",
+          "line": null,
+          "summary": "mergeStateStatus = DIRTY/CONFLICTING, statusCheckRollup = []",
+          "rationale": "Cannot be merged as-is; no CI evidence of even the JSON-tool validation claimed in test plan.",
+          "fix": "Rebase on dev, trigger spec-validation lane."
+        },
+        {
+          "id": "137-M01",
+          "severity": "MAJOR",
+          "file": "specs/hyperscaler-architecture-invariants.json",
+          "line": "verification_command ×35",
+          "summary": "Every entry points to 'cargo run -p oya-dev-cli -- gate validate <name>' but gate subcommand has no matching subgates",
+          "rationale": "Will fail closed with 'unknown gate' — readers will assume enforcement exists.",
+          "fix": "Add status: planned|implemented field per invariant; CI should warn on planned count."
+        },
+        {
+          "id": "137-M02",
+          "severity": "MAJOR",
+          "file": "docs/decisions/ADR-0128-*.md",
+          "line": null,
+          "summary": "supersedes: [] despite demoting docs/standards/hyperscaler-best-practices.md",
+          "rationale": "Demotion + canonical-source replacement is soft supersession. Per [[no-silent-regression]] list explicitly so chain is queryable.",
+          "fix": "Add docs/standards/hyperscaler-best-practices.md under supersedes or partially_supersedes."
+        },
+        {
+          "id": "137-M03",
+          "severity": "MAJOR",
+          "file": "specs/hyperscaler-architecture-invariants.json",
+          "line": null,
+          "summary": "No ADR-0105 13-layer-enum linkage",
+          "rationale": "Invariants like INV-CELL-ISOLATION, INV-OUTBOX-PATTERN, INV-SAGA-COMPENSATION are layer-bearing rules but spec never names which of the 13 layers they apply to.",
+          "fix": "Add applies_to_layers: [...] per invariant."
+        },
+        {
+          "id": "137-S01",
+          "severity": "MINOR",
+          "file": "specs/hyperscaler-architecture-invariants.json",
+          "line": null,
+          "summary": "applies_to_products rubric undocumented",
+          "rationale": "INV-IDEMPOTENCY lists 11 products; INV-MULTI-REGION-FAILOVER lists 5; ad-hoc reads.",
+          "fix": "Document the rubric somewhere."
+        },
+        {
+          "id": "137-S02",
+          "severity": "MINOR",
+          "file": "evidence/audit-chain.jsonl",
+          "line": 138,
+          "summary": "Claims 'auto-merge enabled' but autoMergeRequest: null",
+          "rationale": "Audit row is incorrect.",
+          "fix": "Correct the audit row."
+        }
+      ]
+    },
+    {
+      "pr": 138,
+      "title": "spec(plan-schema) + ADR-0129 + oya-check-honest-claims: ChangeSet as canonical parallel unit",
+      "head_branch": "agent/consolidation-plan-dag-1779013957",
+      "size": "+690/-28, 7 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "16/17 SUCCESS, 1 SKIPPED, 0 FAILED (green-by-construction)",
+      "findings": [
+        {
+          "id": "138-B01",
+          "severity": "BLOCKER",
+          "file": ".github/workflows/oya-foundry-fitness-honest-claims.yml",
+          "line": 46,
+          "summary": "Workflow only runs cargo test against in-source fixtures; never invokes validate_honest_claims against live docs/specs/decisions tree",
+          "rationale": "Lane is green-by-construction; cannot fail on a real deferral phrase in production artifacts. Recurrence of [[pr82-dishonest-exit-gate]]. ADR (line 88) and PR summary already claim this is wired via 'oya-dev-cli gate validate honest-claims' but workflow does not call it.",
+          "fix": "Add CLI/integration binary (oya-dev-cli gate validate honest-claims) that walks repo; add CI step that runs it."
+        },
+        {
+          "id": "138-B02",
+          "severity": "BLOCKER",
+          "file": "specs/masterplan.json",
+          "line": 503,
+          "summary": "implementation_plan_contract.must_have[] adds 6 new fields while explicit_frontmatter_coverage still reads 150/150",
+          "rationale": "Fields: changeset_id, symbols, depends_on_changesets, parallel_safe_with_changesets, serialize_with_changesets, acceptance_status. None of 150 IPs ship the new fields in this PR — contract claim is dishonest the moment it merges.",
+          "fix": "Drop coverage claim to current real number, OR migrate IPs in same ChangeSet, OR mark fields should_have until follow-up CS converts them."
+        },
+        {
+          "id": "138-M01",
+          "severity": "MAJOR",
+          "file": "crates/oya-check-honest-claims/src/lib.rs",
+          "line": 180,
+          "summary": "scan_version_bumps would flag ADR-0129 itself (lines 79, 17 contain v2, v3)",
+          "rationale": "With workflow gap above this is dormant; once validator is wired to scan real files, PR becomes self-rejecting.",
+          "fix": "Add allow-list for code-fenced examples OR <!-- honest-claims:allow --> marker; add integration test that runs validator against this repo's own ADR-0129."
+        },
+        {
+          "id": "138-M02",
+          "severity": "MAJOR",
+          "file": "docs/decisions/ADR-0129-*.md + specs/plan-schema.json",
+          "line": 180,
+          "summary": "'ChangeSet as canonical parallel unit' is documentation + schema only",
+          "rationale": "No code in this PR reads depends_on_changesets[] / parallel_safe_with_changesets[] / serialize_with_changesets[]. No topological-sort/slice-selector implementation. ADR-0124 phase 2 (named consumer) not landed. Title overclaims.",
+          "fix": "Retitle to 'spec + schema groundwork' OR land slice-selector consumer in same ChangeSet."
+        },
+        {
+          "id": "138-S01",
+          "severity": "MINOR",
+          "file": "crates/oya-check-honest-claims/src/lib.rs",
+          "line": "141-148",
+          "summary": "Markers ' tbd', ' tba' rely on leading space",
+          "rationale": "Won't catch line-leading or punctuation-prefixed occurrences (TBD:, (TBD) handled, but \\nTBD or >TBD missed).",
+          "fix": "Use word-boundary scan."
+        },
+        {
+          "id": "138-S02",
+          "severity": "MINOR",
+          "file": "crates/oya-check-honest-claims/src/lib.rs",
+          "line": "103-115",
+          "summary": "Phase numbers hardcoded to 2–5 + ii–iv",
+          "rationale": "phase 6, phase vi etc. silently pass.",
+          "fix": "Generate algorithmically (phase {n} for n>=2)."
+        },
+        {
+          "id": "138-N01",
+          "severity": "NIT",
+          "file": "docs/decisions/ADR-0129-*.md",
+          "line": 37,
+          "summary": "Text says 'the following four fields' but five fields follow",
+          "rationale": "changeset_id + 4 edge fields = 5 total.",
+          "fix": "Correct count to five."
+        }
+      ]
+    },
+    {
+      "pr": 140,
+      "title": "feat(oya-check-aspirational-enforcement): chained-enforcement meta-lane per ADR-0125",
+      "head_branch": "agent/aspirational-enforcement-lane-1779014798",
+      "size": "+1796/0, 10 files",
+      "verdict": "REQUEST_CHANGES",
+      "ci": "16/17 SUCCESS, 1 SKIPPED, 0 FAILED (green-by-baseline)",
+      "findings": [
+        {
+          "id": "140-B01",
+          "severity": "BLOCKER",
+          "file": "registry/aspirational-enforcement/known-missing-adr-lanes.json + crates/oya-check-aspirational-enforcement/src/lib.rs",
+          "line": "scan_adr_cites_missing_crate",
+          "summary": "92-entry baseline suppresses every Scanner A finding → CI reports Scanner A: 0 violations",
+          "rationale": "CI run 25989502739 confirms 0 violations, directly contradicting PR description headline 'Scanner A catches 218 real violations on current tree.' Baseline-rubberstamp pattern indistinguishable from [[pr82-dishonest-exit-gate]].",
+          "fix": "(a) Shrink baseline to a documented, dated subset and let real violations fail, OR (b) rewrite PR claim to '0 violations after baseline-absorbing 218-entry legacy backlog' and add expected_violations: floor so baseline cannot silently grow."
+        },
+        {
+          "id": "140-B02",
+          "severity": "BLOCKER",
+          "file": ".github/branch-protection.yaml",
+          "line": null,
+          "summary": "New workflow not added to required_status_checks",
+          "rationale": "ADR-0125 calls it 'a required CI gate' and standards doc claims 'wired + tested'. A non-required gate cannot block merges; documentation overstates enforcement.",
+          "fix": "Add lane name to required_status_checks.contexts list, OR downgrade standards-doc row from 'wired + tested' to 'wired (not yet required)'."
+        },
+        {
+          "id": "140-M01",
+          "severity": "MAJOR",
+          "file": "crates/oya-check-aspirational-enforcement/src/lib.rs",
+          "line": "475-485",
+          "summary": "crate_name_refs_in_line trailing-punctuation trim corrupts identifiers with underscore",
+          "rationale": "tail.trim_end_matches(|c| !c.is_alphanumeric()) strips trailing _; identifier like oya-check-foo_v2 truncates to oya-check-foo. Combined with search_from = abs_start + prefix.len() + tail.len().max(1), next iteration can re-scan inside previous match and produce duplicate/shifted reports.",
+          "fix": "Use word-boundary regex; add test for identifier-with-underscore parsing and two-refs-on-one-line."
+        },
+        {
+          "id": "140-M02",
+          "severity": "MAJOR",
+          "file": "crates/oya-check-aspirational-enforcement/src/lib.rs",
+          "line": "scan_adr_cites_missing_crate",
+          "summary": "Walks docs/decisions/ only (non-recursive read_dir)",
+          "rationale": "ADR-0125 says 'scans every ADR' without scoping to one directory. ADRs in docs/decisions/archive/ or superseded/ silently skipped.",
+          "fix": "Add recursive walk OR document one-line rationale for scope."
+        },
+        {
+          "id": "140-M03",
+          "severity": "MAJOR",
+          "file": "crates/oya-check-aspirational-enforcement/src/lib.rs",
+          "line": "scan_ip_ac_missing_test_id",
+          "summary": "Walks .omc/plans/milestones/ only",
+          "rationale": "F-IP-AC-BACKFILL-CORPUS says '202 IPs missing' across corpus. If IPs live anywhere else (.omc/plans/foundry/**, specs/**/IP-*.md) silently ignored — lane green while corpus broken.",
+          "fix": "Document path scope in ADR-0125 §Implementation OR widen the walk."
+        },
+        {
+          "id": "140-S01",
+          "severity": "MINOR",
+          "file": "crates/oya-check-aspirational-enforcement/src/lib.rs",
+          "line": "~1010",
+          "summary": "Scanner D unwrap_or(&format!(...)) constructs String temporary",
+          "rationale": "Compiles via temporary lifetime extension but fragile.",
+          "fix": "Use unwrap_or_else(|| format!(...).as_str()) with owned binding OR compute primitive_name as String directly."
+        },
+        {
+          "id": "140-S02",
+          "severity": "MINOR",
+          "file": "crates/oya-check-aspirational-enforcement/src/lib.rs",
+          "line": null,
+          "summary": "Tests `indoc` helper only strips leading newline (no dedent)",
+          "rationale": "Comment claims 'minimal indoc-like helper'; misleading name.",
+          "fix": "Rename to lstrip_nl OR implement dedent."
+        },
+        {
+          "id": "140-N01",
+          "severity": "NIT",
+          "file": "crates/oya-check-aspirational-enforcement/src/lib.rs",
+          "line": null,
+          "summary": "read_file_string duplicates read_file",
+          "rationale": "Dead-code duplication.",
+          "fix": "Inline-delete one."
+        }
+      ]
+    }
+  ]
+}

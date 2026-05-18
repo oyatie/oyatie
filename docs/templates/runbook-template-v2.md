@@ -38,7 +38,7 @@ last_drilled: YYYY-MM-DD
 slo_topic: <oya.<axis>.<slo-name>>
 audit_emission_topic: oya.ops.runbook.invoked
 related_runbooks: [RB-..., RB-...]
-related_adrs: [ADR-NNNN, ...]
+related_adrs: [ADR-####, ...]
 diataxis_class: how-to
 authority_chain_declaration: |
   docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.

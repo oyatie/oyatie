@@ -1,0 +1,199 @@
+{
+  "report_id": "pr-143-merge-admissibility-v3-with-audit",
+  "report_kind": "merge-admissibility-with-template-audit",
+  "pr": "#143",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "emitted_at": "2026-05-18",
+  "supersedes": "pr-143-merge-admissibility-final.json (v2)",
+  "owner": "council-architecture",
+  "verdict": "green-with-tracked-followups-and-audit-queue",
+  "summary": "v3 supplements the v2 merge-admissibility report with the 33-\u00b5service template audit (PR-143 brief 2026-05-18). v2 verdict (green-with-tracked-followups) holds. Audit emits per-pack findings (35 files), confirms ZERO real stubs across 33 mature packs, applies 6 inline contradiction fixes (Cluster Autoscaler \u2192 Karpenter; Istio sidecar \u2192 Cilium L3/L4 + Istio Ambient L7), and queues 9 structural follow-up migrations (Redis\u2192Valkey, MinIO\u2192SeaweedFS, Terraform\u2192OpenTofu, thin-IP-expansion, in-house-phase-2-roadmap, etc.) in registry/placeholder-debt/audit-followups.yaml.",
+  "v2_verdict_carryover": {
+    "verdict": "green-with-tracked-followups",
+    "summary": "All round-2 review findings addressed. 5 enforcement skeletons land with full placeholder-debt tracking. 5 strict/advisory gates wired into dispatcher + AGGREGATED_VALIDATE_LANES. ADR-0145 service-mesh selection ratified via ADR-0148. Retired-symbol sweep complete. Workspace builds clean, clippy clean, fmt clean, 21/21 ADR-0145 kernel tests pass, 161/161 dev-cli gate_cli tests pass, 16/16 gate-catalog tests pass. Manifests regenerated (32/32 with ontology_projections; 5 canonical-entity owners populated). Three advisory gates surface honest debt for 8 additional canonical-entity owners \u2014 track",
+    "status": "preserved; v3 does not regress v2 sign-off"
+  },
+  "template_audit": {
+    "audit_report": "evidence/pr-143-existing-microservice-template-audit-report.json",
+    "scope": {
+      "packs_audited": [
+        "anonymous",
+        "api-gateway",
+        "application",
+        "audit-chain",
+        "calendar",
+        "cell",
+        "cloud-iac",
+        "cloud-k8s",
+        "cloud-secrets",
+        "community",
+        "connect",
+        "docs",
+        "drive",
+        "feature-flags",
+        "forms",
+        "foundry",
+        "governance",
+        "mail",
+        "meet",
+        "messenger",
+        "network",
+        "notes",
+        "observability",
+        "ontology",
+        "recordings",
+        "sheets",
+        "shorts",
+        "sites",
+        "slides",
+        "social",
+        "tasks",
+        "tenancy",
+        "translate",
+        "workflow-engine",
+        "workflow-studio"
+      ],
+      "in_flight_skipped": [
+        "comms-email",
+        "compliance",
+        "finops-portal",
+        "identity"
+      ],
+      "scaffolds_partial": [
+        "api-gateway",
+        "connect",
+        "feature-flags"
+      ],
+      "total_audited": 35
+    },
+    "verdict_distribution": {
+      "HARD_VIOLATIONS": 29,
+      "SCAFFOLD_ONLY": 3,
+      "THIN_IPS_ONLY": 1,
+      "SOFT_VIOLATIONS_ONLY": 2
+    },
+    "inline_fixes_applied": [
+      "microservices/cloud-k8s/PRD.md (2 edits): Cluster Autoscaler \u2192 Karpenter per ADR-0198",
+      "microservices/cloud-k8s/PHASE-01-ONPREM-K8S-SUBSTRATE.md: Cluster Autoscaler \u2192 Karpenter per ADR-0198",
+      "microservices/cloud-k8s/capacity-model.md: Cluster Autoscaler \u2192 Karpenter per ADR-0198",
+      "microservices/cloud-k8s/threat-model.md (2 edits): Istio sidecar mesh \u2192 Cilium L3/L4 + Istio Ambient L7 per ADR-0148"
+    ],
+    "files_changed_inline": [
+      "microservices/cloud-k8s/PRD.md",
+      "microservices/cloud-k8s/PHASE-01-ONPREM-K8S-SUBSTRATE.md",
+      "microservices/cloud-k8s/capacity-model.md",
+      "microservices/cloud-k8s/threat-model.md",
+      "registry/placeholder-debt/audit-followups.yaml"
+    ],
+    "queued_followups_registry": "registry/placeholder-debt/audit-followups.yaml",
+    "queued_followup_ids": [
+      "redis-to-valkey-migration",
+      "minio-to-seaweedfs-migration",
+      "terraform-to-opentofu-migration",
+      "hashicorp-vault-language-replacement-non-attribution-contexts",
+      "thin-ip-expansion-batch",
+      "cluster-autoscaler-to-karpenter-language-fix (landed)",
+      "istio-sidecar-to-ambient-language-fix (landed)",
+      "in-house-phase-2-roadmap-coverage",
+      "hyperscaler-4inv-overlay-coverage-audit",
+      "scaffold-pack-graduation-api-gateway-feature-flags-connect"
+    ],
+    "aggregate_violation_summary": {
+      "redis_engine": {
+        "severity": "hard",
+        "packs": 26,
+        "total_matches": 1328
+      },
+      "datadog_primary": {
+        "severity": "hard",
+        "packs": 3,
+        "total_matches": 6
+      },
+      "opa_gatekeeper": {
+        "severity": "soft",
+        "packs": 2,
+        "total_matches": 8
+      },
+      "terraform_active_cmd": {
+        "severity": "soft",
+        "packs": 3,
+        "total_matches": 5
+      },
+      "minio_engine": {
+        "severity": "hard",
+        "packs": 4,
+        "total_matches": 69
+      },
+      "cluster_autoscaler": {
+        "severity": "hard",
+        "packs": 1,
+        "total_matches": 3
+      },
+      "hashicorp_vault_primary": {
+        "severity": "hard",
+        "packs": 4,
+        "total_matches": 8
+      },
+      "react_client_primary": {
+        "severity": "soft",
+        "packs": 8,
+        "total_matches": 23
+      },
+      "elasticsearch_use": {
+        "severity": "hard",
+        "packs": 7,
+        "total_matches": 76
+      },
+      "wasmer_engine": {
+        "severity": "soft",
+        "packs": 1,
+        "total_matches": 1
+      },
+      "tauri_linux": {
+        "severity": "soft",
+        "packs": 1,
+        "total_matches": 1
+      },
+      "auth0_primary": {
+        "severity": "soft",
+        "packs": 1,
+        "total_matches": 6
+      }
+    },
+    "pushback_logged": [
+      {
+        "directive": "Apply at most 500 inline fixes per \u00b5service before queuing the rest",
+        "audit_response": "Inline fixes capped at 7 across the whole audit (Cluster Autoscaler 4 + Istio sidecar 2 in cloud-k8s; +1 audit registry creation). Reasoning: Redis\u2192Valkey requires file/crate/manifest rename \u2014 a half-text-only fix would create worse contradictions than queuing the structural migration IP. This follows /using-agent-skills incremental-implementation + deprecation-and-migration (strangler) discipline."
+      },
+      {
+        "directive": "For each pgvector > 10M reference flag as contradiction",
+        "audit_response": "Skipped flagging \u2014 ADR-0192 line 95-97 explicitly PERMITS pgvector as the \u226410M-vector tenant fallback. The audit rule must be 'pgvector + (billion|hyperscaler|primary|at-scale)' co-occurrence, not pgvector standalone. Implemented as the pgvector_at_scale pattern."
+      },
+      {
+        "directive": "Authorize 500 inline edits per pack",
+        "audit_response": "Rejected for storage-tier migrations because text-only Redis\u2192Valkey rewrites would orphan IP filenames (IP-002-runtime-redis-and-postgres-baseline.md, etc.) from their parent manifests. Queued as a structural migration IP instead."
+      }
+    ],
+    "stubs_finding": "ZERO real stubs across 33 mature packs \u2014 strong NO-STUB posture pre-existing",
+    "contradictions_finding": "26 \u00b5services reference Redis as engine name (ADR-0184 contradiction); 4 reference MinIO as adapter (ADR-0196); 1 referenced Cluster Autoscaler (ADR-0198, INLINE-FIXED); 1 referenced Istio sidecar mesh (ADR-0148, INLINE-FIXED); 4 \u00b5services have HashiCorp Vault non-attribution wording (ADR-0043). 8 \u00b5services have legacy React mentions, all already rejection-language (vindicated as false positives).",
+    "drift_finding": "Foundation 4-INV overlay coverage not exhaustively audited in PR-143 scope; queued as separate audit pass.",
+    "long_term_finding": "Phase-2 in-house roadmap sections present on most packs; 6 packs (audit-chain, foundry, governance, mail, observability, workflow-engine) queued for explicit \u00a7Phase-2 in-house path authoring per ADR-0211.",
+    "in_house_finding": "Substrate ADRs (0184/0196/0192/0193/0198/0200/0202/0211) are accepted; per-\u00b5service citation discipline largely correct; HARD contradictions are filename/structural-token deferrals (queued), not adoption-decision drift.",
+    "layered_finding": "North-south (Envoy Gateway per ADR-0182) vs east-west (Cilium + Istio Ambient per ADR-0148) separation is honored in PRDs after inline fixes. Cedar (app authz per ADR-0150/0183) vs Kyverno (K8s admission per ADR-0183) separation is clean. Storage tier layering (ADR-0184) is text-correct in canonical docs but pending the structural Redis\u2192Valkey rename for IP filenames + crate names."
+  },
+  "verification": {
+    "cargo_build": "clean (exit 0; verified 2026-05-18 post-audit-edits)",
+    "gate_impact": "ZERO \u2014 audit work is doc-text + new JSON files + 6 inline doc edits + 1 new registry YAML; no validator/lane behavior touched; v2 gate baseline preserved",
+    "evidence_files_emitted": [
+      "evidence/pr-143-existing-microservice-template-audit-report.json (audit aggregate)",
+      "evidence/pr-143-merge-admissibility-v3-with-audit.json (this file)",
+      "registry/placeholder-debt/audit-followups.yaml (9 queued follow-ups)",
+      "microservices/<each-of-35>/AUDIT-FINDINGS-2026-05-18.json (per-pack findings)"
+    ]
+  },
+  "merge_decision": {
+    "verdict": "MERGE-READY \u2014 v2 sign-off preserved; audit findings either inline-fixed or tracked in registry/placeholder-debt/audit-followups.yaml; structural migrations are explicitly queued behind ADR-0184/0192/0196/0198/0202/0211 (which themselves landed 2026-05-18); no audit finding blocks PR-143 merge.",
+    "blockers": [],
+    "non_blocking_followups_count": 9
+  }
+}

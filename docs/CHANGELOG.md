@@ -24,7 +24,7 @@ Consolidated fix-PR addresses systemic findings:
   (PII surface — one leaked a local absolute path); added
   `**/*.json.tmp.*` and `.omc/**/*.tmp.*` to `.gitignore`.
 - **ADR template normalization:** 8 ADR H1s (0110/0111/0112/0113/0114/0115/0117/0119)
-  normalized from `# ADR-NNNN — title` to `# ADR-NNNN: title` for
+  normalized from `# ADR-#### — title` to `# ADR-####: title` for
   generator compliance; ADR-0054 supersession blockquote moved AFTER
   the H1.
 

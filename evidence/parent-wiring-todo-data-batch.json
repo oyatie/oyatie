@@ -1,0 +1,291 @@
+{
+  "$schema": "https://oyatie.dev/schemas/parent-wiring-todo-v1.json",
+  "batch_id": "data-substrate-batch-2026-05-18",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "pr_anchor": "PR #143",
+  "owner_council": "council-architecture",
+  "wiring_owner": "parent (NOT this batch)",
+  "delivered_artifacts": {
+    "adrs": [
+      "docs/decisions/ADR-0192-vector-database-canonical-milvus.md",
+      "docs/decisions/ADR-0193-olap-analytics-warehouse-clickhouse.md",
+      "docs/decisions/ADR-0194-tenant-facing-timeseries-timescaledb.md",
+      "docs/decisions/ADR-0195-stream-processing-tier.md"
+    ],
+    "crates": [
+      "crates/oya-shared-vector-store-kernel/",
+      "crates/oya-shared-olap-client-kernel/",
+      "crates/oya-shared-timeseries-kernel/",
+      "crates/oya-check-vector-store-discipline/",
+      "crates/oya-check-olap-tier-discipline/"
+    ],
+    "test_results": {
+      "tests_passed": 72,
+      "test_suites": 5,
+      "build_status": "0 errors workspace-wide"
+    },
+    "helm_charts": [
+      "microservices/foundry/iac/helm/milvus/",
+      "microservices/foundry/iac/helm/timescaledb-extension/",
+      "microservices/observability/iac/helm/clickhouse/",
+      "microservices/observability/iac/helm/timescaledb-extension/"
+    ],
+    "kustomize_components": [
+      "microservices/observability/iac/kustomize/components/clickhouse-keeper/",
+      "microservices/foundry/iac/kustomize/components/milvus-collections/"
+    ],
+    "kustomize_overlays": [
+      "microservices/foundry/iac/kustomize/overlays/pack-kr/milvus/",
+      "microservices/foundry/iac/kustomize/overlays/pack-eu/milvus/"
+    ],
+    "standards_docs": [
+      "docs/standards/stream-processing-rubric.md",
+      "docs/standards/timescaledb-adoption.md"
+    ],
+    "openslo_manifests": [
+      "microservices/analytics/slos/clickhouse-query-latency.openslo.yaml",
+      "microservices/foundry/slos/milvus-search-latency.openslo.yaml",
+      "microservices/foundry/slos/milvus-ingest-lag.openslo.yaml",
+      "microservices/observability/slos/clickhouse-ingest-throughput.openslo.yaml"
+    ],
+    "new_microservice": {
+      "name": "analytics",
+      "path": "microservices/analytics/",
+      "manifest": "microservices/analytics/manifest.json",
+      "prd": "microservices/analytics/PRD.md",
+      "phase_spec": "microservices/analytics/PHASE-01-ANALYTICS-OLAP-BOOTSTRAP.md",
+      "ips": [
+        "microservices/analytics/specs/IP-001-clickhouse-cluster-iac.md",
+        "microservices/analytics/specs/IP-002-per-tenant-database-bootstrap.md",
+        "microservices/analytics/specs/IP-003-olap-client-adapter-scaffold.md",
+        "microservices/analytics/specs/IP-004-outbox-cdc-ingest-pipeline.md",
+        "microservices/analytics/specs/IP-005-materialized-view-canon.md",
+        "microservices/analytics/specs/IP-006-cold-tier-s3-ttl.md",
+        "microservices/analytics/specs/IP-007-tenant-dashboard-api.md",
+        "microservices/analytics/specs/IP-008-audit-log-query-api.md",
+        "microservices/analytics/specs/IP-009-billing-rollup-pipeline.md",
+        "microservices/analytics/specs/IP-010-cross-cell-federation.md",
+        "microservices/analytics/specs/IP-011-per-tenant-quota-enforcement.md",
+        "microservices/analytics/specs/IP-012-backup-restore-drill.md",
+        "microservices/analytics/specs/IP-013-regulator-export-evidence-pack.md",
+        "microservices/analytics/specs/IP-014-self-slo-burn-rate-alerts.md",
+        "microservices/analytics/specs/IP-015-app-composition-root.md"
+      ],
+      "runbooks": [
+        "microservices/analytics/runbooks/clickhouse.md",
+        "microservices/analytics/runbooks/restore-drill.md"
+      ],
+      "policy": ["microservices/analytics/policy/dashboard.cedar"],
+      "dashboards": ["microservices/analytics/dashboards/clickhouse-overview.json"],
+      "scorecards": [
+        "microservices/analytics/scorecards/aws-well-architected.json",
+        "microservices/analytics/scorecards/google-sre-prr.json",
+        "microservices/analytics/scorecards/cis-k8s-1-10.json",
+        "microservices/analytics/scorecards/slsa-l3.json"
+      ],
+      "capabilities": [
+        "microservices/analytics/capabilities/dashboard-query.json",
+        "microservices/analytics/capabilities/audit-log-query.json",
+        "microservices/analytics/capabilities/regulator-export.json"
+      ],
+      "threat_model": "microservices/analytics/threat-model.md",
+      "compliance_brief": "microservices/analytics/compliance.md"
+    },
+    "foundry_milvus_extension_ips": [
+      "microservices/foundry/IP-091-milvus-cluster-iac.md",
+      "microservices/foundry/IP-092-vector-collection-bootstrap.md",
+      "microservices/foundry/IP-093-embedding-ingest-pipeline.md",
+      "microservices/foundry/IP-094-hnsw-tuning-and-adapter.md",
+      "microservices/foundry/IP-095-gpu-acceleration-optional.md",
+      "microservices/foundry/IP-096-milvus-backup-restore.md",
+      "microservices/foundry/IP-097-milvus-cross-region-replication.md"
+    ],
+    "foundry_runbooks": [
+      "microservices/foundry/runbooks/milvus.md",
+      "microservices/foundry/runbooks/milvus-restore.md",
+      "microservices/foundry/runbooks/milvus-tenant-quota.md"
+    ],
+    "foundry_dashboards": [
+      "microservices/foundry/dashboards/milvus-overview.json"
+    ],
+    "observability_clickhouse_extension_ips": [
+      "microservices/observability/IP-021-clickhouse-cluster-iac.md",
+      "microservices/observability/IP-022-otel-to-clickhouse-bridge.md",
+      "microservices/observability/IP-023-ops-portal-rollup-mvs.md",
+      "microservices/observability/IP-024-cold-tier-retention-policy.md",
+      "microservices/observability/IP-025-clickhouse-backup-restore.md"
+    ],
+    "observability_runbooks": [
+      "microservices/observability/runbooks/clickhouse.md",
+      "microservices/observability/runbooks/clickhouse-restore.md"
+    ]
+  },
+  "to_wire_at_parent": {
+    "manifest_schema_additions": [
+      {
+        "field": "data.vector_store.enabled",
+        "type": "boolean",
+        "default": false,
+        "adr": "ADR-0192"
+      },
+      {
+        "field": "data.vector_store.collections",
+        "type": "array<object>",
+        "object_shape": {
+          "domain": "string (validated by oya-shared-vector-store-kernel::CollectionDomain)",
+          "dimension": "enum (D384|D768|D1024|D1536|Custom(u32))",
+          "index_type": "enum (hnsw|ivf_flat|ivf_sq8|diskann|gpu_cagra)",
+          "metric": "enum (cosine|l2|ip)",
+          "data_classes": "array<enum (Public|TenantPublic|TenantPrivate|Regulated)>"
+        }
+      },
+      {
+        "field": "data.olap_client.enabled",
+        "type": "boolean",
+        "default": false,
+        "adr": "ADR-0193"
+      },
+      {
+        "field": "data.olap_client.databases",
+        "type": "array<object>",
+        "object_shape": {
+          "name": "string (validated by oya-shared-olap-client-kernel::TableName per tenant)",
+          "tables": "array<table_schema>",
+          "materialized_views": "array<mv_schema>"
+        }
+      },
+      {
+        "field": "data.timeseries.enabled",
+        "type": "boolean",
+        "default": false,
+        "adr": "ADR-0194"
+      },
+      {
+        "field": "data.timeseries.hypertables",
+        "type": "array<object>",
+        "object_shape": {
+          "name": "string (validated by oya-shared-timeseries-kernel::HypertableName)",
+          "time_column": "string",
+          "space_column": "string?",
+          "cardinality_class": "enum (low|medium|high|very_high)",
+          "retention_days": "u32"
+        }
+      },
+      {
+        "field": "data.timeseries.continuous_aggregates",
+        "type": "array<object>",
+        "object_shape": {
+          "view_name": "string",
+          "source": "string (hypertable name)",
+          "select_expr": "string (must use time_bucket(); TSL-fence enforced)",
+          "refresh_interval_seconds": "u64"
+        }
+      },
+      {
+        "field": "data.stream_processing.tier",
+        "type": "enum (clickhouse_mv|flink)",
+        "default": "clickhouse_mv",
+        "adr": "ADR-0195",
+        "notes": "Flink requires ADR amendment per ADR-0195 §'Escalation'."
+      }
+    ],
+    "lanes_yaml_additions": [
+      {
+        "lane": "oya-check-vector-store-discipline",
+        "mode": "ReportOnly initially; flip to Blocker after migration wave",
+        "scope": "per-µservice; runner emits CollectionUsage records from Milvus stat API + pgvector pg_stat_user_tables",
+        "crate": "oya-check-vector-store-discipline"
+      },
+      {
+        "lane": "oya-check-olap-tier-discipline",
+        "mode": "ReportOnly initially",
+        "scope": "scans microservices/**/*.sql + Rust sqlx invocations + Postgres pg_stat_statements sample",
+        "crate": "oya-check-olap-tier-discipline"
+      }
+    ],
+    "dispatcher_wiring": [
+      "Register oya-check-vector-store-discipline + oya-check-olap-tier-discipline in the canonical gate dispatcher at crates/oya-dev-cli/src/foundation_audit_gates.rs and crates/oya-dev-cli/src/governance_gates.rs.",
+      "Per ADR-0135, both lanes start as advisory; promotion to BLOCKER follows the aspirational-enforcement gate sequencing."
+    ],
+    "naming_decisions_to_confirm": [
+      "ClickHouse Rust client crate name: the official ClickHouse-maintained crate is `clickhouse` v0.14.x; the legacy `clickhouse-rs` crate is suharev7-maintained. This batch's ADR-0193 + IP-003 standardize on the OFFICIAL `clickhouse` crate. The mission text said 'clickhouse-rs'; parent please confirm.",
+      "`milvus-sdk-rust` (v0.1.0) is young; the production adapter (IP-094) binds at the tonic-generated gRPC layer rather than the high-level SDK. Parent please confirm this adapter strategy."
+    ]
+  },
+  "deferred_doc_artifacts": {
+    "rationale": "The doc-coverage directive (USER DIRECTIVE 2026-05-18 §'FULL DOC COVERAGE') calls for ~70-90 artifacts per new µservice including PRD, threat-model, dpia, compliance, cost-budget, multi-region, incident-response, capacity-model, failure-modes, sdk-plan, competitor-parity-matrix, backfill-replay, 8 runbooks, 3 contracts, dashboards (3), catalog records (~16), OpenSLO (~9), 15 IPs ≥150 lines each, helm charts with 7 templates, 4 scorecards. At ≥150 lines per IP × 15 IPs = ~2,250 lines per µservice for IPs alone; plus the supporting docs = ~10,000+ lines per µservice. Three µservices touched (analytics new, foundry extension, observability extension). Realistic session bandwidth is <40% of the full scope. This batch shipped the highest-leverage subset:",
+    "shipped": [
+      "Analytics: manifest + PRD + PHASE-01 + 15 IPs (each ~50-150 LOC) + 2 runbooks + 1 Cedar fragment + 1 dashboard + 4 scorecards + 3 capabilities + threat-model + compliance brief",
+      "Foundry: 7 Milvus extension IPs + 3 runbooks + 1 dashboard + 2 OpenSLOs",
+      "Observability: 5 ClickHouse extension IPs + 2 runbooks + 1 OpenSLO",
+      "Standards: 2 standards docs (stream-processing rubric + TimescaleDB adoption)"
+    ],
+    "remaining_for_parent_to_assign": {
+      "analytics_microservice": {
+        "missing": [
+          "microservices/analytics/dpia.md (GDPR Data Protection Impact Assessment) — ~5KB",
+          "microservices/analytics/cost-budget.md — ~3KB",
+          "microservices/analytics/capacity-model.md — ~5KB",
+          "microservices/analytics/multi-region.md — ~6KB",
+          "microservices/analytics/incident-response.md — ~4KB",
+          "microservices/analytics/failure-modes.md — ~4KB",
+          "microservices/analytics/sdk-plan.md — ~3KB",
+          "microservices/analytics/competitor-parity-matrix.md — ~5KB",
+          "microservices/analytics/backfill-replay.md — ~3KB",
+          "microservices/analytics/contracts/openapi-v1.yaml — IP-007's deliverable",
+          "microservices/analytics/contracts/graphql-v1.sdl — IP-007's deliverable",
+          "microservices/analytics/contracts/analytics.proto — gRPC contract",
+          "6 more runbooks (current: clickhouse.md + restore-drill.md; need: incident-response, on-call, deploy, capacity-rebalance, schema-migration, regulator-export)",
+          "remaining capabilities (~13 more for the full set per the 33-µservice template's ~16 average)",
+          "catalog records (~16 BNF v4.1 backend-qualified per ADR-0105 Amendment 3) at microservices/analytics/catalog/",
+          "9 OpenSLO manifests (current: 1; need 8 more — ingest-lag, MV-freshness, backup-completion, replication-lag, keeper-quorum, cold-tier-read-latency, etc.)",
+          "2 more Grafana dashboards (current: 1; need ops-portal-rollups + tenant-quota-dashboard)",
+          "5-8 service-scoped ADRs (current: 0; need ADRs for per-cluster sharding strategy, per-tenant database catalog scaling, MV-vs-Distributed-engine choice, etc.)",
+          "Helm chart for the app deployment (current: only the ClickHouse cluster chart; need microservices/analytics/iac/helm/analytics/ for the µservice's own Rust binary)",
+          "Each existing IP needs to grow to ≥150 lines per directive — current IPs range from ~50-200 lines; estimated +30-100 lines per IP to fully realize"
+        ],
+        "estimated_remaining_lines": "~25,000-30,000 lines"
+      },
+      "foundry_milvus_extension": {
+        "missing": [
+          "ADR for vector-substrate-specific decisions (e.g., per-cell GPU pool sizing rationale)",
+          "1-2 more Grafana dashboards (per-tenant collection breakdown, GPU utilization)",
+          "Full OpenAPI/gRPC contracts for the vector-store API surface (currently kernel-only)",
+          "Capacity-model extension for Milvus per-cell sizing — estimated 5KB",
+          "Cost-budget extension — estimated 2KB"
+        ],
+        "estimated_remaining_lines": "~5,000-8,000 lines"
+      },
+      "observability_clickhouse_extension": {
+        "missing": [
+          "1 more Grafana dashboard for telemetry rollup health",
+          "Capacity-model extension for ClickHouse-in-observability sizing",
+          "Cost-budget extension"
+        ],
+        "estimated_remaining_lines": "~3,000-5,000 lines"
+      }
+    },
+    "recommendation": "Parent: assign a follow-on doc-coverage batch (or batches) to fill the remaining ~33,000-43,000 lines of doc-pack content. The data-substrate batch has shipped the durable structural layer (ADRs, crates with tests, helm charts, kernel kustomize, standards docs, new µservice scaffold + key IPs + key runbooks). Doc completion is mechanical follow-on work that can be parallelized across multiple doc-batch agents."
+  },
+  "trigger_followup_batches": [
+    {
+      "name": "adapter-crates-batch",
+      "scope": "Author oya-shared-vector-store-milvus-adapter + oya-shared-olap-clickhouse-adapter + oya-shared-timeseries-timescaledb-adapter; each ships against the kernel trait surface in this batch. Each adapter pulls real network deps (tonic, clickhouse, tokio-postgres) so kernel stays zero-dep per ADR-0083."
+    },
+    {
+      "name": "doc-coverage-completion-batch",
+      "scope": "Fill the remaining doc-pack artifacts enumerated under deferred_doc_artifacts above. Multi-agent parallelizable."
+    },
+    {
+      "name": "tenant-bootstrap-controller-batch",
+      "scope": "Author the per-tenant database / collection bootstrap controllers referenced by IP-002 + foundry IP-092; depends on adapter-crates-batch."
+    }
+  ],
+  "notes_for_reviewer": [
+    "ADR-0046 (pgvector day-1 + in-house long-horizon) is explicitly SUPERSEDED by ADR-0192. The new posture: Milvus is the canonical primary; pgvector remains an embedded-tier path only for ≤10M-vector tenants. The in-house long-horizon roadmap from ADR-0046 is replaced by ADR-0192's Phase 2 (oya-vector-store-server, Q3 2027 target).",
+    "Workspace builds clean (0 errors). 6 pre-existing warnings unrelated to this batch (all in oya-dev-cli; not introduced by this work).",
+    "All 72 new tests pass across 5 new crates.",
+    "All versions footnoted as 'current as of 2026-05-18' and verified live via WebSearch.",
+    "The §'In-house roadmap' section added to each of the 4 ADRs per the user directive 2026-05-18 mid-session."
+  ]
+}

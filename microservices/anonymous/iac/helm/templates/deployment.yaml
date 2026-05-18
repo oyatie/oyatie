@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "oya-anonymous.fullname" . }}
+  labels:
+    {{- include "oya-anonymous.labels" . | nindent 4 }}
+    oyatie.dev/microservice: anonymous
+    oyatie.dev/invariants: "I1-I7"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "oya-anonymous.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "oya-anonymous.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      {{- /* Blind-signature ceremony nodes carry cryptographic blast-radius
+            sensitivity; ADR-0147 elects Kata Containers (full-VM isolation)
+            over gVisor (user-space-kernel). */}}
+      {{- include "oya.runtimeClassName.crypto" $ | nindent 6 }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: {{ include "oya-anonymous.serviceAccountName" . }}
+      containers:
+        - name: oya-anonymous
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 9000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: OYA_MICROSERVICE
+              value: "anonymous"
+            - name: OYA_INVARIANT_ENFORCEMENT
+              value: "I1,I2,I3,I4,I5,I6,I7"
+            - name: OYA_CEDAR_POLICY_VERSION
+              value: {{ .Values.cedar.policyVersion | quote }}
+            - name: OYA_BLIND_SIGNATURE_PROTOCOL
+              value: {{ .Values.blindSignatures.protocol | quote }}
+            - name: OYA_BLIND_SIGNATURE_CURVE
+              value: {{ .Values.blindSignatures.curve | quote }}
+            - name: OYA_RETENTION_DEFAULT_TIER
+              value: {{ .Values.retentionPolicy.defaultTier | quote }}
+            - name: OYA_FOUNDRY_RUNTIME_ENDPOINT
+              value: {{ .Values.foundryRuntime.endpoint | quote }}
+            - name: OYA_FOUNDRY_RUNTIME_MODEL_VERSION
+              value: {{ .Values.foundryRuntime.modelVersion | quote }}
+          envFrom:
+            - secretRef:
+                name: oya-anonymous-secrets
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: cedar-policies
+              mountPath: /etc/oya-anonymous/policy
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: cedar-policies
+          configMap:
+            name: oya-anonymous-cedar-policies
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi

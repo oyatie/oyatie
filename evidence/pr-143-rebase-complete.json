@@ -1,0 +1,79 @@
+{
+  "$schema": "https://oyatie.dev/schemas/pr-rebase-complete.json",
+  "schema_version": "1.0",
+  "pr_number": 143,
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "target": "dev",
+  "completed_at": "2026-05-18",
+  "rebase_complete": true,
+  "rebase_worktree": "/tmp/pr-143-rebase-trial",
+  "rebase_position": {
+    "commits_ahead_of_origin_dev": 14,
+    "commits_behind_origin_dev": 0,
+    "commits_replayed_from_dev": 60,
+    "our_commits_preserved": 13,
+    "fix_pass_commit": 1,
+    "rebased_head_sha": "e84437d5e0014b9c1107cf9f42a3b814e7e3949d"
+  },
+  "conflict_resolutions": {
+    "total_conflicts_resolved": 100,
+    "by_category": {
+      "category_1_github_workflows_fitness_naming": "preserve dev's CI infrastructure; fitness→governance rename folded into fix-pass commit",
+      "category_2_omc_plans_milestones": "took dev's version for non-touched files",
+      "category_3_claude_md": "union merge",
+      "category_4_registry_files": "additive union merge",
+      "category_5_check_crates": "took dev's canonical versions",
+      "category_6_specs_microservices_vs_products": "took ours (flatten correct per ADR-0132)",
+      "category_7_foundry_consolidation": "took ours (6→1 correct per ADR-0136/0137/0138)",
+      "category_8_adr_0126_collision": "took dev's; our ADR-0135-connect-super-app-expansion.md lands alongside"
+    },
+    "non_playbook_conflicts": {
+      "sweep_g_lib_rs_validate_help": "kept HEAD's full 4-lane help + flattened paths to specs/microservices/",
+      "sweep_g_adr_index_and_decisions_json": "took ours (post-renumber + ADR-0135/0136/0137/0138)",
+      "fix_gates_product_id_files": "took ours (product_id flatten is correct per Sweep-A)"
+    }
+  },
+  "validators_post_rebase": {
+    "cargo_build_workspace": "green",
+    "cargo_clippy_workspace_deny_warnings": "green",
+    "cargo_fmt_check": "green",
+    "oya_gate_run_all": "52/52 green"
+  },
+  "fix_pass_changes": {
+    "files_modified": 17,
+    "files_created": 2,
+    "categories": [
+      "data-class: 8 line-end annotations across 2 kernels",
+      "placeholder-debt: 2 normalized rows for MASTERPLAN.md TBD M02-P09",
+      "aspirational-enforcement: bulk fitness→governance rename across 5 spec files",
+      "workspace-hygiene: deduped scan_surfaces + external_inventory_targets",
+      "quality-lanes: aligned oyatie-worktrees canonical naming",
+      "glossary-vocabulary: 17 new acronyms + 1 backtick-wrap technical identifier",
+      "product-prd-json: 7 missing root-hub-pointer entries (anonymous/foundry/manifest-schema/manifests-index/network/shorts/social)",
+      "architecture-boundaries: 2 new catalog records (oya-check-aspirational-enforcement + oya-check-honest-claims) with context: tooling"
+    ]
+  },
+  "ready_for_force_push": true,
+  "force_push_sequence": [
+    "cd /Users/jasonlee/oyatie",
+    "git fetch /tmp/pr-143-rebase-trial e84437d5e0014b9c1107cf9f42a3b814e7e3949d",
+    "git checkout oya-microservice-flat-layout-buildout-2026-05-17",
+    "git reset --hard FETCH_HEAD",
+    "git push --force-with-lease origin oya-microservice-flat-layout-buildout-2026-05-17"
+  ],
+  "admin_prerequisite_blocker_still_open": {
+    "blocker": "branch_protection_check_names",
+    "owner": "repo_admin",
+    "action": "Rename 9 required status checks on dev from oya-foundry-fitness-* to oya-governance-*",
+    "playbook": "evidence/pr-143-branch-protection-admin-action.md"
+  },
+  "next_steps_in_order": [
+    "1. User reviews this rebase-complete report",
+    "2. User authorizes force-push (this destroys current PR #143 branch state)",
+    "3. Parent session executes force-push sequence above",
+    "4. Admin runs branch protection rename per evidence/pr-143-branch-protection-admin-action.md",
+    "5. Branch protection CI runs on rebased PR; should pass since all 52 lanes green",
+    "6. Review-agent fan-out dispatches per plan: using-agent-skills + code-review-and-quality + security-and-hardening + performance-optimization + idea-refine + doubt-driven-development + integration-verification",
+    "7. Merge when CI green + reviews approve"
+  ]
+}

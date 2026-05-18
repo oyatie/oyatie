@@ -22,7 +22,7 @@ The seven axes are *(the former separate engineering-platform axis is now part o
 
 | Axis | Reads as | Owning bounded context (flat-crates target) |
 |---|---|---|
-| 1. SaaS multi-tenant platform | "The platform layer — tenancy, workflows, plugins, Object Graph, marketplace" | `crates/oya-platform-tenant-*`, `crates/oya-saas-workflow-*`, `crates/oya-saas-plugin-*` |
+| 1. SaaS multi-tenant shared substrate | "The shared substrate — tenancy, workflows, plugins, Ontology, marketplace" (per MASTERPLAN.md §2.4: `platform` retired → `shared`; Object Graph renamed → Ontology) | `crates/oya-platform-tenant-*`, `crates/oya-saas-workflow-*`, `crates/oya-saas-plugin-*` (BNF paths retained pending ADR-grade rename per ADR-0015 migration ledger) |
 | 2. **Workspace / Productivity Suite (NEW 2026-05-09)** — Mail / Docs / Sheets / Slides / Drive / Calendar / Meet / Chat / Forms / Sites / Tasks / Notes / Translate / Recordings | "The canonical end-user apps everyone uses every day" — Google Workspace / Naver Works / Microsoft 365 / AWS Productivity (WorkMail / WorkDocs / Chime) class | `crates/oya-workspace-{mail,calendar,docs,sheets,slides,drive,meet,chat,forms,sites,tasks,notes,translate,recordings}-*` |
 | 3. Vertical industry cloud | "How that work is shaped per industry" | `crates/oya-vertical-{healthcare,industrial,logistics,fintech,legal,corporate,retail,education,public,hospitality,construction,realestate,agriculture,food}-*` |
 | 4. **Foundry: AI agent runtime + control plane + engineering platform** | "Who or what *executes* the work AND how engineers + customers build all of the above" | `crates/oya-foundry-*` covering: agent runtime (`-runtime-*`, `-capability-*`, `-policy-*`, `-evidence-*`), provider adapters (`-adapter-{anthropic,openai,gemini}-{api,subscription}-*`), and engineering-platform surfaces (`-catalog-*`, `-repoctl-*`, `-gates-*`, `-scorecard-*`, `-fitness-*`, `-marketplace-*`) |
@@ -541,7 +541,7 @@ This is the table that is auditable. Every entry is an inter-axis contract; any 
 | `Cloud resource type` | Cloud | Cloud customers, tenant resource lifecycle, billing | `oya-cloud-resource-kernel` | Cloud + billing review |
 | `Region / AZ / Cell` | Cloud | All others (tenant residency, search shard placement, ad cell) | `oya-cloud-region-kernel` | Multi-axis review (residency-impact) |
 | `IAM / SSO / SAML / OIDC IdP` | Cloud (also SaaS) | All others | `oya-cloud-iam-kernel` (cloud-customer-facing) and `oya-platform-identity-kernel` (SaaS) | Two ADRs in lockstep |
-| `Object Graph property tier` (ADR-0006..0112) | SaaS | Search (indexable), Vertical (regulatory), Ads (targetable) | `oya-platform-object-graph-kernel` | Object-graph review + Data Use Boundary check |
+| `Ontology property tier` (ADR-0006..0112; legacy name "Object Graph property tier" — renamed per MASTERPLAN.md §2.4) | SaaS | Search (indexable), Vertical (regulatory), Ads (targetable) | `oya-platform-object-graph-kernel` (BNF path retained pending ADR-grade rename per ADR-0015 migration ledger) | Ontology review + Data Use Boundary check |
 | `Search index lifecycle` | Search | Foundry (RAG), SaaS (tenant search), Ads (sponsored slot) | `oya-search-index-kernel` | Search + downstream review |
 | `Ad slot inventory` | Ads | Search (SERP), SaaS (in-app), Vertical (in-vertical-app) | `oya-ads-slot-kernel` | Ads + surface-owner review |
 | `Billing event` | Cloud + SaaS metering | Billing + Tax + Marketplace | `oya-platform-metering-kernel` + `oya-cloud-billing-kernel` | Billing + tax review |
@@ -683,7 +683,7 @@ This section will expand to ~3-5 pages per axis in v0.2 once the recon agents la
 
 ### 13.1 SaaS multi-tenant platform
 
-> **TODO v0.2** — fill in workflow engine (ADR-0035), Object Graph (ADR-0006..0112), plugin substrate (#29), Connect surface, marketplace, public API surface, tenancy isolation enforcement (#1570), cross-product auth (ADR-0006), metering/quotas substrate (#1576).
+> **TODO v0.2** — fill in workflow engine (ADR-0035), Ontology (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4), plugin substrate (#29), Connect surface, marketplace, public API surface, tenancy isolation enforcement (#1570), cross-product auth (ADR-0006), metering/quotas substrate (#1576).
 
 ### 13.2 Vertical industry cloud
 

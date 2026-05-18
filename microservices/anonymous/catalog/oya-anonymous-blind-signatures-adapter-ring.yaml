@@ -1,0 +1,19 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-anonymous-blind-signatures-adapter-ring
+role: adapter
+context: anonymous
+plane: data
+backend: ring
+lts_pin: "ring 0.17"
+fips_boundary: "FIPS 140-3 Level 1 — for Ed25519 issuer-key registration only"
+slo: anonymity-correlation-resistance
+contracts_consumed: [oya-anonymous-blind-signatures-kernel]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-uk, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-ANON-0001]
+allowed_dependency_edges: [oya-anonymous-blind-signatures-kernel]
+data_classes_owned: [SECRET]
+operational_classes_owned: []
+autonomy_tier_required: T0

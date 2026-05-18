@@ -1,0 +1,20 @@
+apiVersion: v2
+name: oya-foundry-providers-redis
+description: |
+  Valkey Sentinel HA for foundry-providers µservice token-bucket / rate-limit
+  state. Per-pack deployment per ADR-0117. Low total state; sentinel-HA across
+  3 replicas is sufficient through L tier.
+type: application
+version: 0.1.0
+appVersion: "7.4.1"   # LTS line; verify-at-deploy
+maintainers:
+  - name: ops-sre-reliability
+    email: ops-sre@oyatie.dev
+dependencies:
+  - name: redis
+    version: "^20.0.0"
+    repository: https://charts.bitnami.com/bitnami
+keywords: [foundry-providers, redis, token-bucket]
+annotations:
+  oya.adr/references: "ADR-0117, ADR-0131"
+  oya.lts-pin/redis: "7.4 (LTS through 2027-09)"

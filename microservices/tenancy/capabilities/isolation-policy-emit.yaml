@@ -1,0 +1,93 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:tenancy:isolation-policy-emit:v1
+name: isolation-policy-emit
+namespace: tenancy
+display_name: Generate + Install Postgres RLS Policy
+description: |
+  Renders declarative YAML RLS-policy manifest at `microservices/tenancy/policy/rls/<table>.yaml`
+  into executable Postgres DDL (ENABLE ROW LEVEL SECURITY + FORCE ROW LEVEL SECURITY +
+  CREATE POLICY) and applies via the schema-migration runner.
+
+  Invariants enforced:
+  - Every tenant-bound table has FORCE ROW LEVEL SECURITY = true.
+  - Predicate references current_setting('app.current_tenant_id').
+  - No superuser-bypass code path exists in any consuming µservice.
+
+  Audit-chain seals every RLS DDL execution.
+
+owner_team: axis-tenancy + ops-security
+maturity: stable
+created_at: 2026-05-17
+related_adrs: [ADR-0018, ADR-0028, ADR-0105, ADR-0131, ADR-0140 (retired per ADR-0145)]
+related_artifacts:
+  - microservices/tenancy/PRD.md (FR-12)
+  - microservices/tenancy/policy/rls-isolation.md (Invariants RLS-01..RLS-08)
+  - microservices/tenancy/contracts/asyncapi/tenant-events.yaml (RlsPolicyInstalled)
+
+autonomy_tier: T3
+# T3 = mutation against authoritative-state (Postgres) requiring elevated authorization +
+# audit-chain seal + CI-lane preflight. 2-person rule for emergency DBA path.
+
+inputs:
+  - name: tenant_bound_table_manifest
+    type: yaml
+    schema_ref: microservices/tenancy/policy/rls/<table>.yaml
+    required: true
+  - name: change_id
+    type: string
+    pattern: '^[A-Z0-9]{26}$'
+    required: true
+    description: ULID changeset id for audit-chain attribution
+
+outputs:
+  - name: policy_applied
+    type: boolean
+  - name: applied_at
+    type: timestamp
+  - name: pg_policies_row
+    type: object
+    schema: postgres_pg_policies_row
+  - name: audit_chain_seal_id
+    type: string
+
+data_classes_touched:
+  - INTERNAL_ONLY  # policy text
+  - AUDIT          # emission event
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+evidence_topic: oya.tenancy.rls.policy.installed
+
+cost_profile:
+  type: per-tenant-bound-table
+  estimated_cost_usd_per_call: 0.01
+  cost_drivers:
+    - Postgres DDL execution (single connection; sub-second per table)
+    - Audit-chain Ed25519 seal
+    - Post-migration validator probe (pg_policies + pg_class.relforcerowsecurity)
+
+cedar_policy_fragments:
+  - microservices/tenancy/policy/tenant-scope.cedar (forbid non-platform-operator)
+  - microservices/tenancy/policy/auditor-scope.cedar (audit reads only)
+
+eval_set:
+  golden_inputs_path: microservices/tenancy/capabilities/eval/isolation-policy-emit-golden.jsonl
+  pass_threshold: 1.0
+  eval_metric: rls-policy-correctness + force-rls-flag-validation + cross-tenant-probe-zero-rows
+  cadence: per-release + weekly synthetic cross-tenant probe
+  reference: Postgres RLS docs (postgresql.org/docs/16/ddl-rowsecurity.html) + Citus multi-tenant docs
+
+sunset:
+  status: none
+  notes: ""

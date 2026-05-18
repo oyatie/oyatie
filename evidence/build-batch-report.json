@@ -1,0 +1,175 @@
+{
+  "batch": "wasm-runtime + email-comms + gitops-iac + docs-engine",
+  "authored_at": "2026-05-18",
+  "branch": "oya-microservice-flat-layout-buildout-2026-05-17",
+  "pr": "143",
+  "scope": [
+    "ADR-0200 Wasmtime canonical WASM runtime",
+    "ADR-0201 Email + transactional comms adapter substrate (4 adapters)",
+    "ADR-0202 GitOps + IaC + Cluster API three-tier separation",
+    "ADR-0203 Documentation engine three-tier"
+  ],
+  "deliverables": {
+    "adrs_authored": [
+      "docs/decisions/ADR-0200-wasm-runtime-canonical-wasmtime.md",
+      "docs/decisions/ADR-0201-email-transactional-comms-adapter-substrate.md",
+      "docs/decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md",
+      "docs/decisions/ADR-0203-documentation-engine-three-tier.md"
+    ],
+    "standards_docs_authored": [
+      "docs/standards/wasm-runtime-canonical.md",
+      "docs/standards/gitops-iac-cluster-tier-boundaries.md"
+    ],
+    "crates_authored": [
+      {
+        "crate": "crates/oya-shared-wasm-runtime-kernel",
+        "kind": "kernel (trait + ReferenceWasmRuntime)",
+        "tests_inline": 10,
+        "deps": "none (workspace pattern preserved)"
+      },
+      {
+        "crate": "crates/oya-shared-email-comms-kernel",
+        "kind": "kernel (trait + 4 real adapter shells: SES/Postal/Mailgun/SMTP, no Noop)",
+        "tests_inline": 9,
+        "deps": "none"
+      },
+      {
+        "crate": "crates/oya-check-wasm-runtime-discipline",
+        "kind": "advisory gate (ADR-0200 discipline)",
+        "tests_inline": 7,
+        "deps": "none"
+      },
+      {
+        "crate": "crates/oya-check-iac-tier-discipline",
+        "kind": "advisory gate (ADR-0202 tier-boundary discipline)",
+        "tests_inline": 7,
+        "deps": "none"
+      }
+    ],
+    "helm_charts_authored": [
+      "microservices/foundry/iac/helm/wasmtime-sandbox/ (Chart, values, templates/deployment)",
+      "microservices/comms-email/iac/helm/postal/ (Chart, values, templates/deployment)",
+      "microservices/comms-email/iac/helm/ses-adapter/ (config-only values)",
+      "microservices/cloud-iac/iac/helm/argocd/ (Chart, values, templates/.gitkeep)"
+    ],
+    "opentofu_modules_authored": [
+      "microservices/cloud-iac/tofu/modules/cloud-account",
+      "microservices/cloud-iac/tofu/modules/vpc",
+      "microservices/cloud-iac/tofu/modules/dns",
+      "microservices/cloud-iac/tofu/modules/kms",
+      "microservices/cloud-iac/tofu/modules/secrets-bootstrap",
+      "microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap"
+    ],
+    "comms_email_pack_full_audit_grade": {
+      "PRD": "microservices/comms-email/PRD.md",
+      "phase_spec": "microservices/comms-email/PHASE-01-COMMS-EMAIL-SUBSTRATE.md",
+      "manifest": "microservices/comms-email/manifest.json",
+      "ips": 15,
+      "ip_files": [
+        "IP-001-ses-adapter-impl.md",
+        "IP-002-postal-adapter-impl.md",
+        "IP-003-smtp-fallback-adapter-impl.md",
+        "IP-004-mailgun-adapter-impl.md",
+        "IP-005-dkim-key-rotation-pipeline.md",
+        "IP-006-mjml-template-renderer.md",
+        "IP-007-liquid-substitution-engine.md",
+        "IP-008-webhook-delivery-pipeline.md",
+        "IP-009-bounce-complaint-handler.md",
+        "IP-010-suppression-list.md",
+        "IP-011-per-tenant-from-domain-onboarding.md",
+        "IP-012-audit-chain-emission.md",
+        "IP-013-multi-region-routing.md",
+        "IP-014-sovereign-pack-postal-only-enforcement.md",
+        "IP-015-in-house-relay-roadmap-phase-2.md"
+      ],
+      "threat_model": "threat-model.md",
+      "compliance": "compliance.md",
+      "dpia": "dpia.md",
+      "capacity_model": "capacity-model.md",
+      "failure_modes": "failure-modes.md",
+      "incident_response": "incident-response.md",
+      "multi_region": "multi-region.md",
+      "cost_budget": "cost-budget.md",
+      "sdk_plan": "sdk-plan.md",
+      "competitor_parity_matrix": "competitor-parity-matrix.md",
+      "backfill_replay": "backfill-replay.md",
+      "capabilities": 3,
+      "policy_cedar_fragments": 4,
+      "policy_dual_context": "dual-context.md",
+      "policy_residency": "residency.md",
+      "runbooks": 8,
+      "service_scoped_adrs": 5,
+      "scorecards": 4,
+      "openapi": "contracts/openapi.yaml",
+      "asyncapi": "contracts/asyncapi.yaml",
+      "proto3": "contracts/comms_email.proto",
+      "dashboards": 3,
+      "catalog_bounded_contexts": 16,
+      "slos_openslo": 9,
+      "iac_packs": ["eu", "kr", "ksa", "uae", "us-healthcare"]
+    },
+    "substrate_extensions": {
+      "foundry_wasm_ips": 4,
+      "foundry_wasm_runbooks": 2,
+      "foundry_wasm_svc_adr": 1,
+      "governance_wasm_ips": 4,
+      "governance_wasm_runbooks": 2,
+      "governance_wasm_slo": 1,
+      "governance_wasm_svc_adr": 1,
+      "cloud_iac_gitops_ips": 8,
+      "cloud_k8s_clusterapi_ips": 3,
+      "docs_engine_ips": 5
+    }
+  },
+  "hyperscaler_4_inv_overlay_applied": {
+    "idempotency_key_header": true,
+    "cursor_pagination": "applied to /v1/bounces + /v1/suppressions",
+    "x_request_id_propagation": true,
+    "ulid_message_id": true
+  },
+  "scalability_invariants_concrete": {
+    "comms_email": {
+      "p50_sends_per_sec": 100,
+      "p99_sends_per_sec": 1000,
+      "peak_sends_per_sec": 10000,
+      "p99_send_latency_ms": 500,
+      "suppression_lookup_p99_ms": 5,
+      "audit_chain_emit_lag_p99_ms": 5000,
+      "per_tenant_rate_ceiling_per_min": 1000,
+      "postgres_at_maturity_rows": 50000000
+    },
+    "wasmtime_sandbox": {
+      "envoy_filter": {"memory_mib": 16, "fuel": 1000000, "wall_clock_ms": 50, "spawn_p99_ms": 2, "throughput_req_s_per_pod": 50000},
+      "workflow_studio_node": {"memory_mib": 128, "fuel": 50000000, "wall_clock_ms": 5000, "spawn_p99_ms": 10, "throughput_req_s_per_pod": 5000},
+      "foundry_tool": {"memory_mib": 512, "fuel": 500000000, "wall_clock_ms": 60000, "spawn_p99_ms": 50, "throughput_req_s_per_pod": 200}
+    }
+  },
+  "in_house_roadmap_added_to_each_adr": {
+    "ADR-0200": "no Phase-2 (Wasmtime IS the standard)",
+    "ADR-0201": "Phase-2 oya-comms-email-server with concrete numeric triggers (≥1M sends/day per tenant for ≥7d OR sovereign air-gap)",
+    "ADR-0202": "no Phase-2 (ArgoCD + OpenTofu + Cluster API are the standards)",
+    "ADR-0203": "Phase-2 oya-developer-portal conditional on Backstage scope-creep (>500 µservices OR >10k doc pages OR licensing change OR IDP-universal creep)"
+  },
+  "verification": {
+    "cargo_build": {
+      "command": "cargo build -p oya-shared-wasm-runtime-kernel -p oya-shared-email-comms-kernel -p oya-check-wasm-runtime-discipline -p oya-check-iac-tier-discipline",
+      "exit_code": 0,
+      "duration_s": 1.29,
+      "result": "GREEN"
+    },
+    "cargo_test": {
+      "command": "cargo test -p oya-shared-wasm-runtime-kernel -p oya-shared-email-comms-kernel -p oya-check-wasm-runtime-discipline -p oya-check-iac-tier-discipline",
+      "tests_passed": 35,
+      "tests_failed": 0,
+      "test_suites": 4,
+      "result": "GREEN"
+    }
+  },
+  "deferred_to_parent": "see evidence/parent-wiring-todo-build-batch.json",
+  "doctrine_compliance": {
+    "no_stubs": "kernel + check crates ship real trait surfaces + real adapter shells (no Noop). Real provider SDK integration is parent-wired behind feature flags per the established pattern.",
+    "hyperscaler_quality": "see scalability_invariants_concrete above; 4-INV overlay applied; concrete numbers, no aspirational.",
+    "no_silent_wire": "this batch does NOT touch dispatcher / lanes.yaml / manifest schema — parent owns wiring per the ask.",
+    "live_source_version_verification": "OWED to parent; WebFetch crates.io blocked in this sandbox; documented in evidence/parent-wiring-todo-build-batch.json with explicit owner = parent."
+  }
+}

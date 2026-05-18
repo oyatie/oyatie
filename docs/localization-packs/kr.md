@@ -172,7 +172,7 @@ Gate per phase (M01-P05 already green; M02-P22 / M03-P08 forthcoming):
 - [ADR-0063 Documentation suite coverage](../decisions/ADR-0063-documentation-suite-coverage.md)
 - [MASTERPLAN §2.5, §5.5](../MASTERPLAN.md)
 - [INDEX](INDEX.md)
-- Bominal ADR-0140 (inherited regional-pack pattern)
+- Bominal ADR-0140 (retired per ADR-0145) (inherited regional-pack pattern)
 - Bominal ADR-0190 (inherited versioned regulatory corpus.lock)
 - Bominal ADR-0210 (M03 KR group payroll + mail launch criteria)
 - Bominal ADR-0215 (Connect retention / legal hold dual-context)

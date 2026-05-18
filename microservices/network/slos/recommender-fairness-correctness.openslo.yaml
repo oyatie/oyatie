@@ -1,0 +1,65 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: network-recommender-fairness-correctness
+  displayName: "network: recommender + recruiter-stub + jobs-ranker + endorsement-aggregation 4/5-rule fairness ≥ 0.8 per protected group"
+  labels:
+    microservice: network
+    bc: recommender + recruiter-stub + jobs-handoff + endorsement-engine
+    sli_class: correctness
+    tier: hero-product
+    owner_team: axis-network + axis-foundry-runtime + ops-compliance + council-privacy
+    pack_scope: eu + us + us-nyc + us-ca + us-co + uk + au + in
+    regulatory_basis: "EU AI Act 2024/1689 Annex III §4 + Arts. 15, 27, 72; EEOC UGESP 29 CFR §1607; NYC LL144; CA AB-331; CO SB 24-205; UK Equality Act 2010 §19"
+spec:
+  description: |
+    Statistical fairness SLO for all four T2 ranker sub-capabilities. A
+    measurement is "good" when the 4/5-rule statistical disparity ratio is
+    ≥ 0.8 for EVERY tracked protected group (race, gender, age, disability,
+    locale) over the rolling 30d window. The disparity ratio is computed as:
+
+      DR_group = selection_rate_for_minority_group / selection_rate_for_majority_group
+
+    where "selected" means appears in the top-N output of the ranker for a
+    representative golden-set query. The 4/5-rule (EEOC UGESP 29 CFR §1607.4)
+    establishes 0.8 as the threshold below which "adverse impact" is presumed.
+
+    Any group falling below 0.8 triggers FM-15 Sev-1 with auto-rollback
+    + EU AI Act Art. 73 serious-incident notification + NYC LL144 + EEOC
+    + CA AB-331 + CO SB 24-205 obligations per `incident-response.md`.
+
+    Burn-rate: zero-budget — any 4/5-rule failure burns the entire window.
+  service: network
+  indicator:
+    metadata:
+      name: network-recommender-fairness-correctness
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                # Count of 1h windows where MIN(disparity_ratio_by_group) ≥ 0.8
+                count_over_time(
+                  (
+                    min(oya_network_bias_audit_disparity_ratio) >= bool 0.8
+                  )[1h:1h]
+                )
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                count_over_time(vector(1)[1h:1h])
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 1.0
+      displayName: "4/5-rule disparity ratio ≥ 0.8 for every protected group at every measurement (30d window)"
+  alertPolicies:
+    - alertPolicyRef: network-recommender-fairness-immediate-page

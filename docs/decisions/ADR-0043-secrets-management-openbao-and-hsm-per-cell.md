@@ -4,7 +4,7 @@ status: proposed
 doc_status: published
 ---
 
-# ADR-0043: Secrets management — OpenBao (MPL-2; supersedes Vault BUSL), per-tenant per-cell HSM partition (KCMVP + FIPS 140-3), per-capability SecretProvider
+# ADR-0043: Secrets management — OpenBao (MPL-2; supersedes Vault BUSL), per-tenant per-cell HSM partition (KCminimum-shippable-tier + FIPS 140-3), per-capability SecretProvider
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -19,13 +19,13 @@ doc_status: published
 
 Secrets management touches every axis: per-tenant API keys for Foundry adapters, per-cell HSM partitions for KMS, per-capability rotating tokens for subscription-mode AI providers, signing keys for the Trust framework's proof-of-erasure (per ADR-0038), TLS certs for the service mesh (per ADR-0044). The pack-of-19 foundation ADRs named secrets management as a need but did not pin (a) the secrets-store, (b) the HSM topology, (c) the per-capability provider model, (d) the rotation cadence, (e) the emergency rotation runbook.
 
-The license dimension is sharp: HashiCorp Vault flipped to BUSL in 2023; OpenBao is the MPL-2 fork (LF Edge) and is license-clean for our product. The HSM dimension is regional: KR-launch requires KCMVP (KR Cryptographic Module Validation Program) for any cell handling regulated data; global cells require FIPS 140-3. This ADR pins both.
+The license dimension is sharp: HashiCorp Vault flipped to BUSL in 2023; OpenBao is the MPL-2 fork (LF Edge) and is license-clean for our product. The HSM dimension is regional: KR-launch requires KCminimum-shippable-tier (KR Cryptographic Module Validation Program) for any cell handling regulated data; global cells require FIPS 140-3. This ADR pins both.
 
 ---
 
 ## Decision
 
-We adopt **OpenBao** (MPL-2) as the canonical secrets store; **per-tenant per-cell HSM partition** with **KCMVP for KR cells + FIPS 140-3 globally**; a **rotating session-token vault** for Foundry subscription-mode adapters; a **per-capability `SecretProvider` trait** so axes never read raw secrets; **quarterly key-rotation drill** per cell; an **emergency rotation runbook** for compromise scenarios.
+We adopt **OpenBao** (MPL-2) as the canonical secrets store; **per-tenant per-cell HSM partition** with **KCminimum-shippable-tier for KR cells + FIPS 140-3 globally**; a **rotating session-token vault** for Foundry subscription-mode adapters; a **per-capability `SecretProvider` trait** so axes never read raw secrets; **quarterly key-rotation drill** per cell; an **emergency rotation runbook** for compromise scenarios.
 
 ### OpenBao (MPL-2) supersedes Vault (BUSL)
 
@@ -49,11 +49,11 @@ Each cell owns one or more HSM partitions; per-tenant key material lives in a te
 
 | Cell type | HSM | Validation |
 |---|---|---|
-| KR primary cell (KR-Seoul1) | Thales Luna 7 (Phase 1 OCI managed); LG U+ network HSM (Phase 2 colo) | KCMVP-validated module + FIPS 140-3 Level 3 |
-| KR secondary cell (KR-Chuncheon) | Thales Luna 7 | KCMVP + FIPS 140-3 Level 3 |
+| KR primary cell (KR-Seoul1) | Thales Luna 7 (Phase 1 OCI managed); LG U+ network HSM (Phase 2 colo) | KCminimum-shippable-tier-validated module + FIPS 140-3 Level 3 |
+| KR secondary cell (KR-Chuncheon) | Thales Luna 7 | KCminimum-shippable-tier + FIPS 140-3 Level 3 |
 | Global cell | AWS CloudHSM (Phase 1); per-region commercial HSM (Phase 2) | FIPS 140-3 Level 3 |
-| Healthcare cell | dedicated partition with K8 KEK rotation | KCMVP + FIPS 140-3 Level 3 + ISO 27018 |
-| Fintech cell | dedicated partition with K8 KEK rotation | KCMVP + FIPS 140-3 Level 3 + PCI HSM |
+| Healthcare cell | dedicated partition with K8 KEK rotation | KCminimum-shippable-tier + FIPS 140-3 Level 3 + ISO 27018 |
+| Fintech cell | dedicated partition with K8 KEK rotation | KCminimum-shippable-tier + FIPS 140-3 Level 3 + PCI HSM |
 
 Per-tenant KEK (Key Encryption Key) wraps:
 
@@ -147,7 +147,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 ### Positive
 
 - OpenBao adoption resolves the BUSL license issue with Vault.
-- Per-tenant per-cell HSM partition + KCMVP / FIPS 140-3 satisfies KR + global regulatory bars in one architecture.
+- Per-tenant per-cell HSM partition + KCminimum-shippable-tier / FIPS 140-3 satisfies KR + global regulatory bars in one architecture.
 - Per-capability `SecretProvider` trait means axes never see raw secrets; secret hygiene is enforced by interface, not by review.
 - Session-token vault gives subscription-mode adapters per-invocation rotation without per-call provider re-authentication latency.
 - Quarterly drill validates rotation works before we need it in anger.
@@ -155,7 +155,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 ### Negative
 
 - HSM cost is real (per-partition per-cell licensing + hardware lease).
-- KCMVP validation is a one-time-per-module-version expensive process; HSM upgrades carry validation cost.
+- KCminimum-shippable-tier validation is a one-time-per-module-version expensive process; HSM upgrades carry validation cost.
 - Per-cell HSM topology multiplies operational surface.
 - Emergency rotation requires out-of-band operator authentication infrastructure (which itself must be HSM-backed).
 
@@ -165,7 +165,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 - Per-tenant key rotation completion tracked.
 - Per-quarter drill outcome audit-chained.
 - Per-cell secret-leak detection (Trivy + per-microservice scanners) wired to alarms.
-- Annual KCMVP / FIPS audit per cell.
+- Annual KCminimum-shippable-tier / FIPS audit per cell.
 - Per-region HSM vendor relationship review.
 
 ---
@@ -181,7 +181,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 ### Alternative B — Cloud-provider KMS (OCI Vault / AWS KMS) only, no in-cell HSM
 
 - **Pros:** managed; less ops.
-- **Cons:** per-tenant residency commitments require us to control the HSM partition; cloud-provider KMS does not satisfy KCMVP module validation requirements without specific configurations.
+- **Cons:** per-tenant residency commitments require us to control the HSM partition; cloud-provider KMS does not satisfy KCminimum-shippable-tier module validation requirements without specific configurations.
 - **Rejected because:** per-tenant per-cell HSM partition is the regulator-defensible posture.
 
 ### Alternative C — Per-axis secret store (each axis runs its own)
@@ -212,7 +212,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 
 - `docs/PRD.md` §10 (security program), §11 (per-tenant residency)
 - `docs/DESIGN.md` §11 (secrets management), §10 (cross-microservice contracts)
-- KR KCMVP (Korean Cryptographic Module Validation Program) — KISA guidance
+- KR KCminimum-shippable-tier (Korean Cryptographic Module Validation Program) — KISA guidance
 - FIPS 140-3 (NIST); ISO 27018 (cloud privacy); PCI HSM standards
 - OpenBao docs (LF Edge); OpenBao migration guide from Vault
 - ADR-0001 (cohesion), ADR-0003 (audit), ADR-0007 (Cedar + persona tier), ADR-0011 (capability registry), ADR-0028 (cloud), ADR-0029 (workspace KMS-shred), ADR-0036 (plugin), ADR-0038 (trust portal), ADR-0039 (supply chain), ADR-0044 (service mesh mTLS)

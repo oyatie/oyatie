@@ -1,0 +1,15 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-slides-ai-content-generation-domain
+microservice: slides
+bounded_context: ai-content-generation
+layer: domain
+purpose: |
+  Pure risk-class enforcement + provenance-watermark embedding for T2 full-deck generation.
+  Per ADR-SLIDES-0006 EU AI Act Annex III default-refusal + per-pack override.
+depends_on:
+  - oya-slides-ai-content-generation-kernel
+ci_lanes:
+  - ai-act-risk-class-stamp
+  - ai-provenance-watermark-preserved
+  - layer-correctness
+  - cargo-nextest

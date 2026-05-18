@@ -60,7 +60,7 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 
 - Catalog records touched: `<list under registry/catalog/>`
 - Cross-axis contracts touched: `<list under contracts/>` (per `docs/DESIGN.md §10`)
-- ADRs cited: `<ADR-NNNN list>` (legacy ADR-NNNN forbidden in active text per `docs/ADR-CONSOLIDATION-PLAN.md`)
+- ADRs cited: `<ADR-#### list>` (legacy ADR-#### forbidden in active text per `docs/ADR-CONSOLIDATION-PLAN.md`)
 - `MISTAKES-LEDGER` row referenced (if regression-class): `MFL-NNNN`
 - Cross-axis review label applied (if cross-axis contract change): `<label>` (see `docs/checklists/cross-axis-contract-change-checklist.md`)
 - Implementation Plan ID (if executing an IP): `IP-NNN-<slug>` from `.omc/plans/milestones/M*/phases/P*/`

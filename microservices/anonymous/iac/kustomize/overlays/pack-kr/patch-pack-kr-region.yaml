@@ -1,0 +1,23 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anonymous-oya-anonymous
+spec:
+  template:
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/region: ap-northeast-2
+      containers:
+        - name: oya-anonymous
+          env:
+            - name: OYA_REGULATORY_PACK
+              value: "kr"
+            - name: OYA_REGION
+              value: "ap-northeast-2"
+            - name: OYA_DATA_RESIDENCY_STRICT
+              value: "true"
+            - name: OYA_LEGAL_PROCESS_FRAMEWORK
+              value: "kr-telecom-secrecy-act"
+            - name: OYA_KR_PIPA_ALTERNATIVE_PSEUDONYMOUS_PROCESSING_ENABLED
+              value: "true"

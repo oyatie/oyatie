@@ -94,7 +94,7 @@
       "block_kind": "json-schema-defs",
       "canonical_path": "/specs/hyperscaler-gates.json",
       "version": "v1.0.0",
-      "purpose_short": "10-gate (HG-ARCH..HG-GRIT) + claim_matrix_required (claims_we_can_make / cannot_yet / evidence_required).",
+      "purpose_short": "21-gate hyperscaler maturity claim registry, including plan, pipeline, toolchain, CI/CD, development cycle, guardrails, safety, UX, ease-of-use, competitor response, and HG-VCS.",
       "consumer_count_estimated": 20,
       "consumer_count_resolved_today_auto_computed": 1,
       "deprecation": null,
@@ -228,20 +228,20 @@
       "consumer_count_listed": 3
     },
     {
-      "block_id": "grit-claim-work-done-protocol",
-      "block_kind": "grit-symbol-pattern",
+      "block_id": "oya-vcs-claim-verify-done-promote-protocol",
+      "block_kind": "vcs-state-transition-pattern",
       "canonical_path": "/specs/master-plan-sequencing.json#repo_state_protocol",
-      "version": "v1.0.0",
-      "purpose_short": "Every agent\u2192repo state transition: grit claim --agent <id> --intent <slice> \u2192 work in claim \u2192 grit done --agent <id>. Fallback: scaffold-locks-oyatie ICM topic for symbol-less doc-only.",
+      "version": "v2.0.0",
+      "purpose_short": "Every agent\u2192repo state transition: oya vcs claim --agent <id> --intent <slice> <file::Identifier> \u2192 oya vcs verify --changeset <id> \u2192 oya vcs done --changeset <id> \u2192 oya vcs promote --changeset <id>.",
       "consumer_count_estimated": 1000,
       "consumer_count_resolved_today_auto_computed": 0,
-      "deprecation": "Interim \u2014 to be replaced by Oyatie-native agentic VCS per autonomous-prompt directive",
-      "replacement_block_id": "oyatie-native-agentic-vcs (NOT YET AUTHORED)",
+      "deprecation": null,
+      "replacement_block_id": null,
       "owner_team": "axis-foundry + council-architecture",
-      "drift_finding": "Commit 5880ce0 used rtk-git directly violating this protocol. Logged in /registry/claim-matrix/ops-portal.json HG-GRIT row.",
+      "drift_finding": "Commit 5880ce0 used rtk-git directly before ADR-0116 retired grit/icm/rtk/vox. Logged in /registry/claim-matrix/ops-portal.json HG-VCS row as historical drift.",
       "consumer_refs": [],
       "consumer_selectors": [
-        "every future agent commit (HG-GRIT operational requirement)",
+        "every future agent changeset (HG-VCS operational requirement)",
         "every IP-X10/X11/X12 dispatch"
       ],
       "consumer_count_listed": 2

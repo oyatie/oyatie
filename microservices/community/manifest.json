@@ -1,0 +1,342 @@
+{
+  "schema_version": "1.0",
+  "microservice": "community",
+  "version": "0.1.0",
+  "owner": "axis-community",
+  "bounded_contexts": [
+    {
+      "name": "community",
+      "description": "Bounded context 'community' within community (data plane)",
+      "crates": [
+        "oya-community-kb-article-store-adapter",
+        "oya-community-kb-article-store-adapter-postgres",
+        "oya-community-kb-article-store-adapter-s3",
+        "oya-community-kb-article-store-api",
+        "oya-community-kb-article-store-app",
+        "oya-community-kb-article-store-domain",
+        "oya-community-kb-article-store-kernel",
+        "oya-community-kb-article-store-rest",
+        "oya-community-kb-article-store-sdk",
+        "oya-community-kb-article-store-usecase",
+        "oya-community-moderation-queue-adapter",
+        "oya-community-moderation-queue-adapter-moderation-bridge",
+        "oya-community-moderation-queue-adapter-postgres",
+        "oya-community-moderation-queue-api",
+        "oya-community-moderation-queue-domain",
+        "oya-community-moderation-queue-kernel",
+        "oya-community-moderation-queue-sdk",
+        "oya-community-moderation-queue-usecase",
+        "oya-community-moderation-queue-worker",
+        "oya-community-post-store-adapter",
+        "oya-community-post-store-adapter-postgres",
+        "oya-community-post-store-api",
+        "oya-community-post-store-app",
+        "oya-community-post-store-domain",
+        "oya-community-post-store-kernel",
+        "oya-community-post-store-rest",
+        "oya-community-post-store-sdk",
+        "oya-community-post-store-usecase",
+        "oya-community-post-store-worker",
+        "oya-community-search-index-adapter",
+        "oya-community-search-index-adapter-search",
+        "oya-community-search-index-api",
+        "oya-community-search-index-domain",
+        "oya-community-search-index-kernel",
+        "oya-community-search-index-sdk",
+        "oya-community-search-index-usecase",
+        "oya-community-search-index-worker",
+        "oya-community-thread-tree-adapter",
+        "oya-community-thread-tree-adapter-postgres",
+        "oya-community-thread-tree-api",
+        "oya-community-thread-tree-domain",
+        "oya-community-thread-tree-kernel",
+        "oya-community-thread-tree-sdk",
+        "oya-community-thread-tree-usecase",
+        "oya-community-voting-engine-adapter",
+        "oya-community-voting-engine-adapter-postgres",
+        "oya-community-voting-engine-api",
+        "oya-community-voting-engine-domain",
+        "oya-community-voting-engine-kernel",
+        "oya-community-voting-engine-sdk",
+        "oya-community-voting-engine-usecase",
+        "oya-community-voting-engine-worker"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/community/contracts/openapi/community.yaml"
+    ],
+    "asyncapi": [
+      "microservices/community/contracts/asyncapi/community-events.yaml"
+    ],
+    "proto": [
+      "microservices/community/contracts/proto/community.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "moderate-action",
+      "file": "microservices/community/capabilities/moderate-action.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "post-create",
+      "file": "microservices/community/capabilities/post-create.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "vote-cast",
+      "file": "microservices/community/capabilities/vote-cast.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    }
+  ],
+  "slos": [
+    {
+      "name": "community-audit-chain-seal-latency",
+      "target": "0.999",
+      "sli": "sum(rate(oya_community_audit_seal_duration_seconds_bucket{le=\"1.0\"}[5m]))",
+      "file": "microservices/community/slos/audit-chain-seal-latency.openslo.yaml"
+    },
+    {
+      "name": "community-feed-render-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_community_feed_render_duration_seconds_bucket{le=\"0.3\"}[5m]))",
+      "file": "microservices/community/slos/feed-render-latency.openslo.yaml"
+    },
+    {
+      "name": "community-kb-article-publish-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_community_kb_article_publish_duration_seconds_bucket{le=\"0.5\"}[5m]))",
+      "file": "microservices/community/slos/kb-article-publish-latency.openslo.yaml"
+    },
+    {
+      "name": "community-moderation-action-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_community_moderation_action_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/community/slos/moderation-action-latency.openslo.yaml"
+    },
+    {
+      "name": "community-post-create-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_community_post_create_duration_seconds_bucket{le=\"0.25\"}[5m]))",
+      "file": "microservices/community/slos/post-create-latency.openslo.yaml"
+    },
+    {
+      "name": "community-search-query-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_community_search_query_duration_seconds_bucket{le=\"0.5\"}[5m]))",
+      "file": "microservices/community/slos/search-query-latency.openslo.yaml"
+    },
+    {
+      "name": "community-vote-cast-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_community_vote_cast_duration_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/community/slos/vote-cast-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-postgres-citus-post-store-iac",
+      "title": "IP-001 — Postgres + Citus post-store IaC",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-001-postgres-citus-post-store-iac.md"
+    },
+    {
+      "id": "IP-002-post-store-kernel-domain",
+      "title": "IP-002 — post-store kernel + domain crates",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-002-post-store-kernel-domain.md"
+    },
+    {
+      "id": "IP-003-post-store-usecase-api",
+      "title": "IP-003 — post-store usecase + api crates",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-003-post-store-usecase-api.md"
+    },
+    {
+      "id": "IP-004-post-store-adapter-postgres-rest-worker-sdk-app",
+      "title": "IP-004 — post-store adapter-postgres + rest + worker + sdk + app crates",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-004-post-store-adapter-postgres-rest-worker-sdk-app.md"
+    },
+    {
+      "id": "IP-005-thread-tree-materialised-path",
+      "title": "IP-005 — thread-tree (materialised path)",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-005-thread-tree-materialised-path.md"
+    },
+    {
+      "id": "IP-006-voting-engine",
+      "title": "IP-006 — voting-engine",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-006-voting-engine.md"
+    },
+    {
+      "id": "IP-007-moderation-queue",
+      "title": "IP-007 — moderation-queue",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-007-moderation-queue.md"
+    },
+    {
+      "id": "IP-008-kb-article-store-s3",
+      "title": "IP-008 — kb-article-store + adapter-s3",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-008-kb-article-store-s3.md"
+    },
+    {
+      "id": "IP-009-search-index-elasticsearch",
+      "title": "IP-009 — search-index (Elasticsearch)",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-009-search-index-elasticsearch.md"
+    },
+    {
+      "id": "IP-010-foundry-guardrails-moderation-bridge",
+      "title": "IP-010 — foundry-guardrails moderation bridge adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-010-foundry-guardrails-moderation-bridge.md"
+    },
+    {
+      "id": "IP-011-cedar-policy-fragments",
+      "title": "IP-011 — Cedar policy fragments",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-011-cedar-policy-fragments.md"
+    },
+    {
+      "id": "IP-012-openslo-grafana-dashboards",
+      "title": "IP-012 — OpenSLO manifests + Grafana dashboards",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-012-openslo-grafana-dashboards.md"
+    },
+    {
+      "id": "IP-013-oya-vcs-promotion-readiness",
+      "title": "IP-013 — oya-vcs promotion-readiness wiring",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-013-oya-vcs-promotion-readiness.md"
+    },
+    {
+      "id": "IP-014-hyperscaler-maturity-gate",
+      "title": "IP-014 — Hyperscaler maturity gate HG-COMMUNITY",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-014-hyperscaler-maturity-gate.md"
+    },
+    {
+      "id": "IP-015-capacity-cost-chaos-drill",
+      "title": "IP-015 — Capacity + cost + chaos drill",
+      "acceptance_status": "ga",
+      "file": "microservices/community/IP-015-capacity-cost-chaos-drill.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Connect Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.community.moderate-action",
+      "oya.community.post-create",
+      "oya.community.vote-cast"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  }
+}

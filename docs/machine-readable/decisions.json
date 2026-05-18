@@ -762,7 +762,7 @@
       "path": "decisions/ADR-0064-canonical-base-and-localization-packs.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0056", "ADR-0058", "ADR-0059", "ADR-0060", "ADR-0062", "ADR-0063", "Bominal ADR-0140 (inherited)"]
+      "related": ["ADR-0056", "ADR-0058", "ADR-0059", "ADR-0060", "ADR-0062", "ADR-0063", "Bominal ADR-0140 (retired per ADR-0145) (inherited)"]
     },
     {
       "adr": "ADR-0065",
@@ -1269,13 +1269,13 @@
       "related": ["ADR-0116", "ADR-0124", "ADR-0128"]
     },
     {
-      "adr": "ADR-0130",
+      "adr": "ADR-0139",
       "number": 130,
       "title": "Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System",
       "status": "Accepted",
       "owner": "council-architecture + ontology-team",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
+      "path": "decisions/ADR-0139-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
       "supersedes": ["N/A"],
       "superseded_by": [],
       "related": []

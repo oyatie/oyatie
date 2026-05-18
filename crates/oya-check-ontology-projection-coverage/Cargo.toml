@@ -1,0 +1,23 @@
+[package]
+name = "oya-check-ontology-projection-coverage"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Skeleton kernel authored 2026-05-18 per ADR-0145 Invariant 3 enforcement.
+# Verifies that µservices owning canonical entities declare an
+# `ontology_projections` block in their manifest.json. Currently runs in
+# DEFERRED (advisory) mode in the dispatcher; impl tracked under
+# registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator.
+
+[dependencies]
+
+[lib]
+name = "oya_check_ontology_projection_coverage"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

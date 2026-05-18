@@ -60,7 +60,7 @@ Rewrite agent-facing memory FIRST, ship `oya-agent-read` SECOND. Argument: the c
 
 ## Specific revision requests
 
-1. **Add P0.5 (or fold into P1)**: land `ADR-NNNN-grit-scaffold-claim-pattern.md` (lift from `pre-cutover-drafts §Draft 2`) before P2. Without this, P2's claim-list is impossible. Satisfies A2; unblocks A4.
+1. **Add P0.5 (or fold into P1)**: land `registry/placeholder-debt/adr-follow-ups.yaml#grit-scaffold-claim-pattern (superseded by ADR-0116)` (lift from `pre-cutover-drafts §Draft 2`) before P2. Without this, P2's claim-list is impossible. Satisfies A2; unblocks A4.
 2. **Amend ADR §Decision**: add "cutover bootstrap window" clause naming P1-P2 as the bootstrap interval during which the sanctioned set is `{grit, icm}` + audited carve-out; banned-primitives lane activates at P5 merge. Without this, ADR is literally false during cutover. Satisfies A5/A6 with clear activation timing.
 3. **Replace P7's gate** with: "P7 merges only after (a) banned-primitives lane green on main HEAD post-P6-merge, (b) `oya-foundry-fitness-archive-orphan` lane confirms no living code/docs/configs reference archived paths (lane scaffolded at P6), (c) inventory ledger's per-row `archived_at` timestamp non-null for every ARCHIVE-class row." Without this, gate is unfalsifiable. Satisfies A3; tightens A2.
 4. **Add ADR §Consequences §Neutral**: "The cutover itself runs under a one-time human-orchestrator carve-out for `git mv`/`git rm`/`gh issue create` (P6/P7/P9). Post-cutover, lifecycle is `grit claim → work → grit done`; cutover commits are not retroactively flowed through `grit done`." Documentation hygiene. Supports A10.

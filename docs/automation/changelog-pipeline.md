@@ -43,7 +43,7 @@ doc_status: published
 
 - **doc.<id>** (Tier <N>): <one-line summary from PR body's `## Changelog` block>.
   - Authors: <author handles>
-  - ADRs cited: <ADR-NNNN list, comma-separated, or "none">
+  - ADRs cited: <ADR-#### list, comma-separated, or "none">
   - Related lanes: <fitness-lane ids touched>
   - Commit: <SHA>
 ```
@@ -77,7 +77,7 @@ For PRs that touch a canonical doc, the bot opens a draft `## Changelog` block i
 
 - `**doc.<id>** (Tier <N>): <placeholder summary derived from PR title>`
 - `Authors: <auto from git commit author>`
-- `ADRs cited: <auto-detected from PR body ADR-NNNN references>`
+- `ADRs cited: <auto-detected from PR body ADR-#### references>`
 
 The author edits the placeholder summary before merge.
 

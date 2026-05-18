@@ -17,6 +17,7 @@ pub enum AuthorityCohesionError {
     EmptyDocumentPath,
     MissingDeclaration,
     DeclarationDrift,
+    RetiredPrescribedAuthority,
 }
 
 pub fn validate_authority_cohesion(
@@ -26,6 +27,9 @@ pub fn validate_authority_cohesion(
     for document in documents {
         if document.path.trim().is_empty() {
             return Err(AuthorityCohesionError::EmptyDocumentPath);
+        }
+        if contains_retired_prescribed_authority(&document.contents) {
+            return Err(AuthorityCohesionError::RetiredPrescribedAuthority);
         }
         let declaration = extract_authority_chain_declaration(&document.contents)?;
         match &baseline {
@@ -70,3 +74,17 @@ fn extract_authority_chain_declaration(contents: &str) -> Result<String, Authori
         Ok(declaration.join("\n"))
     }
 }
+
+fn contains_retired_prescribed_authority(contents: &str) -> bool {
+    RETIRED_PRESCRIBED_AUTHORITY_FRAGMENTS
+        .iter()
+        .any(|fragment| contents.contains(fragment))
+}
+
+const RETIRED_PRESCRIBED_AUTHORITY_FRAGMENTS: &[&str] = &[
+    "canonical_authority: docs/CONSTITUTION.md",
+    "Foundation ADRs: ADR-0052, ADR-0053, ADR-0054",
+    "grit-compatible `claim/work/done/promote`",
+    "grit claim/work/done (HG-GRIT)",
+    "HG-GRIT operational requirement",
+];
