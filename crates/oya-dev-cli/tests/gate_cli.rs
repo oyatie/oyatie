@@ -5455,6 +5455,7 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
             workflows_dir.to_str().expect("utf8 workflows dir"),
             "--branch",
             "dev",
+            "--skip-applied-branch-protection",
         ])
         .output()
         .expect("gate command runs");
@@ -5511,6 +5512,7 @@ fn protection_context_match_gate_passes_clean_crate() {
             workflows_dir.to_str().expect("utf8 workflows dir"),
             "--branch",
             "dev",
+            "--skip-applied-branch-protection",
         ])
         .output()
         .expect("gate command runs");
@@ -5568,6 +5570,7 @@ fn protection_context_match_gate_catches_live_branch_protection_drift() {
             workflows_dir.to_str().expect("utf8 workflows dir"),
             "--branch",
             "dev",
+            "--skip-applied-branch-protection",
             "--live-required-contexts",
             live_required_contexts
                 .to_str()
@@ -5590,6 +5593,81 @@ fn protection_context_match_gate_catches_live_branch_protection_drift() {
     assert!(
         stderr.contains("missing from live branch protection: oya-pr-review"),
         "stderr must name the unenforced context; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the protection-context-match validator catches the local
+/// false-green class where the canonical YAML and workflow job names agree,
+/// but the JSON config used by branch-protection apply still carries a stale
+/// required context.
+#[test]
+fn protection_context_match_gate_catches_applied_branch_protection_drift() {
+    let temp = temp_dir("pcm-applied-drift");
+    let workflows_dir = temp.join("workflows");
+    fs::create_dir_all(&workflows_dir).expect("workflows dir created");
+
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      - cargo-fmt\n      \
+                             - oya-governance-protection-context-match\n    \
+                             require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
+                         name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: cargo fmt --check\n  pcm:\n    \
+                         name: oya-governance-protection-context-match\n    \
+                         runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n";
+    fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
+
+    let applied_config = temp.join("dev.json");
+    fs::write(
+        &applied_config,
+        r#"{"required_status_checks":{"contexts":["cargo-fmt","oya-foundry-fitness-protection-context-match"]}}"#,
+    )
+    .expect("applied config written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            "--workflows-dir",
+            workflows_dir.to_str().expect("utf8 workflows dir"),
+            "--branch",
+            "dev",
+            "--applied-branch-protection",
+            applied_config.to_str().expect("utf8 applied config path"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected exit 1 for applied branch-protection drift\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("applied branch-protection config required_status_checks"),
+        "stderr must name applied drift; got: {stderr}"
+    );
+    assert!(
+        stderr.contains(
+            "missing from applied branch-protection config: oya-governance-protection-context-match"
+        ),
+        "stderr must name the missing new context; got: {stderr}"
+    );
+    assert!(
+        stderr.contains(
+            "extra in applied branch-protection config: oya-foundry-fitness-protection-context-match"
+        ),
+        "stderr must name the stale old context; got: {stderr}"
     );
 
     fs::remove_dir_all(temp).ok();
