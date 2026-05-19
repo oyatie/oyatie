@@ -552,7 +552,7 @@ impl FoundryCapabilityPublishApiError {
                 "Capability eval set must include all mandatory adversarial cohorts"
             }
             Self::MissingLinguisticCoverage => {
-                "Capability eval set must include ko-KR, ja-JP, and en-US linguistic cohorts"
+                "Capability eval set must include all mandatory linguistic cohorts"
             }
             Self::EvalSetNotFound => "Capability eval set was not registered",
             Self::UnsignedEvalRun => "Capability eval run must be signed before publish",
@@ -628,7 +628,7 @@ impl FoundryCapabilityPublishApiError {
             )],
             Self::MissingLinguisticCoverage => vec![detail(
                 "body.eval_cases",
-                "missing ko-KR, ja-JP, or en-US locale cohort",
+                "missing one or more mandatory locale cohorts",
             )],
             Self::DuplicateCapability { capability_id } => vec![detail(
                 "body.capability_id",

@@ -52,5 +52,11 @@
       "oya.connect.retirement.status_changed",
       "oya.connect.retirement.readiness_checked"
     ]
+  },
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }

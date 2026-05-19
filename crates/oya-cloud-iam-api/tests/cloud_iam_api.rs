@@ -18,21 +18,21 @@ use oya_data_boundary_kernel::DataClass;
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryContext {
     CloudIamApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudIamApiPrincipal {
     CloudIamApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudIamApiAuthorization {
     CloudIamApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -45,12 +45,12 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudIamApiAuthor
 fn service_principal_create() -> IamPrincipalCreate {
     IamPrincipalCreate {
         id: "sp_cloud_provisioner".to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         kind: IamPrincipalKind::ServiceAccount,
         display_name: "cloud provisioner".to_string(),
         external_subject: None,
         identity_provider_id: None,
-        region_pack: "oya-pack-kr".to_string(),
+        region_pack: "oya-pack-alpha".to_string(),
         mfa_state: MfaState::NotRequired,
         last_authenticated_at_epoch_seconds: None,
         created_at_epoch_seconds: 1_700_000_001,
@@ -60,12 +60,12 @@ fn service_principal_create() -> IamPrincipalCreate {
 fn user_principal_create() -> IamPrincipalCreate {
     IamPrincipalCreate {
         id: "usr_alice".to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         kind: IamPrincipalKind::User,
         display_name: "Alice".to_string(),
         external_subject: None,
         identity_provider_id: None,
-        region_pack: "oya-pack-kr".to_string(),
+        region_pack: "oya-pack-alpha".to_string(),
         mfa_state: MfaState::Verified,
         last_authenticated_at_epoch_seconds: Some(1_700_000_002),
         created_at_epoch_seconds: 1_700_000_001,
@@ -84,8 +84,8 @@ fn unverified_user_principal_create() -> IamPrincipalCreate {
 fn role_create() -> IamRoleCreate {
     IamRoleCreate {
         id: "role_compute_admin".to_string(),
-        tenant_id: "ten_kr".to_string(),
-        region: "kr-seoul".to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        region: "home-region".to_string(),
         name: "compute-admin".to_string(),
         cedar_policy_id: "pol_cloud_compute_admin".to_string(),
         cedar_policy_version: "1.0.0".to_string(),
@@ -122,9 +122,9 @@ fn role_api_request(request_id: &str, idempotency_key: &str) -> CloudIamRoleCrea
         principal: principal_for("sp_cloud_provisioner"),
         authorization: authorization_for("sp_cloud_provisioner", &[CLOUD_IAM_ROLE_CREATE_SURFACE]),
         body: CloudIamRoleCreateRequest {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             role_id: "role_compute_admin".to_string(),
-            region: "kr-seoul".to_string(),
+            region: "home-region".to_string(),
             name: "compute-admin".to_string(),
             cedar_policy_id: "pol_cloud_compute_admin".to_string(),
             cedar_policy_version: "1.0.0".to_string(),
@@ -149,7 +149,7 @@ fn sts_api_request(request_id: &str, idempotency_key: &str) -> CloudIamStsTokenA
         principal: principal_for("sp_cloud_provisioner"),
         authorization: authorization_for("sp_cloud_provisioner", &[CLOUD_IAM_STS_TOKEN_SURFACE]),
         body: CloudIamStsTokenRequest {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             session_id: "sts_compute_admin_001".to_string(),
             role_id: "role_compute_admin".to_string(),
             assumed_by: "sp_cloud_provisioner".to_string(),
@@ -235,8 +235,8 @@ fn role_create_api_rejects_required_header_and_tenant_drift_before_ledger() {
         create_cloud_iam_role_from_api(&mut directory, &mut ledger, empty_request),
         Err(CloudIamApiError::TenantMismatch {
             header_tenant_id: "ten_other".to_string(),
-            principal_tenant_id: "ten_kr".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
         })
     );
     assert!(ledger.is_empty());
@@ -256,7 +256,7 @@ fn role_create_api_creates_role_once_and_replays_same_idempotent_result() {
     assert_eq!(first, second);
     assert_eq!(ledger.len(), 1);
     assert_eq!(first.data.role_id, "role_compute_admin");
-    assert_eq!(first.data.region, "kr-seoul");
+    assert_eq!(first.data.region, "home-region");
     assert_eq!(first.metadata.request_id, "req-role-create");
     assert_eq!(CLOUD_IAM_ROLE_CREATE_SURFACE, "cloud.iam.role.create");
     assert_eq!(CloudIamRoleCreateApiStatus::Created.code(), 201);
@@ -345,9 +345,9 @@ fn sts_token_api_rejects_principal_body_drift_before_directory_mutation() {
     assert_eq!(
         result,
         Err(CloudIamApiError::PrincipalMismatch {
-            principal_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
             principal_id: "sp_cloud_provisioner".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
             assumed_by: "usr_alice".to_string(),
         })
     );

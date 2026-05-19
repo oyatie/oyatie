@@ -13,7 +13,7 @@ use oya_regional_pack_api::{
 const REQUEST_ID: &str = "req_regulatory_pack_001";
 const IDEMPOTENCY_KEY: &str = "idem_regulatory_pack_001";
 const TENANT_ID: &str = "ten_regulatory_pack";
-const PRIMARY_PACK_ID: &str = "oya-pack-kr";
+const PRIMARY_PACK_ID: &str = "oya-pack-alpha";
 
 #[test]
 fn regulatory_pack_bind_contract_runtime_constants_are_covered() {
@@ -46,8 +46,8 @@ fn regulatory_pack_bind_binds_once_and_replays_same_idempotent_result() {
     assert_eq!(idempotency.len(), 1);
     assert_eq!(first.data.tenant_id, TENANT_ID);
     assert_eq!(first.data.primary_pack_id, PRIMARY_PACK_ID);
-    assert_eq!(first.data.home_region, "kr-seoul");
-    assert_eq!(first.data.residency_class, "strict_kr");
+    assert_eq!(first.data.home_region, "home-region");
+    assert_eq!(first.data.residency_class, "strict_home");
     assert_eq!(first.data.pack_refs.len(), 1);
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(first.metadata.request_id, REQUEST_ID);
@@ -64,8 +64,8 @@ fn regulatory_pack_bind_supports_multi_pack_initial_binding() {
         TENANT_ID,
     );
     request.body.pack_refs.push(RegulatoryPackBindingPackRef {
-        pack_id: "oya-pack-us".to_string(),
-        region: "us-virginia".to_string(),
+        pack_id: "oya-pack-gamma".to_string(),
+        region: "failover-region".to_string(),
         residency_class: "global".to_string(),
         controls: vec![
             RegulatoryPackControlRef {
@@ -81,7 +81,7 @@ fn regulatory_pack_bind_supports_multi_pack_initial_binding() {
         .expect("multi-pack tenant binding succeeds when the primary pack is included");
 
     assert_eq!(response.data.pack_refs.len(), 2);
-    assert_eq!(response.data.pack_refs[1].pack_id, "oya-pack-us");
+    assert_eq!(response.data.pack_refs[1].pack_id, "oya-pack-gamma");
     assert_eq!(response.data.primary_pack_id, PRIMARY_PACK_ID);
     assert_eq!(directory.len(), 1);
 }
@@ -110,7 +110,7 @@ fn regulatory_pack_bind_rejects_path_body_and_primary_pack_drift() {
         "idem_regulatory_pack_primary_drift",
         TENANT_ID,
     );
-    primary_drift.body.primary_pack_id = "oya-pack-eu".to_string();
+    primary_drift.body.primary_pack_id = "oya-pack-secondary".to_string();
     let primary_error =
         bind_regulatory_pack_from_api(&mut directory, &mut idempotency, primary_drift)
             .expect_err("primary pack must be present in pack_refs");
@@ -211,8 +211,8 @@ fn regulatory_pack_bind_maps_invalid_pack_residency_duplicate_and_idempotency_er
         "idem_regulatory_pack_bad_pack",
         "ten_bad_pack",
     );
-    invalid_pack.body.primary_pack_id = "kr".to_string();
-    invalid_pack.body.pack_refs[0].pack_id = "kr".to_string();
+    invalid_pack.body.primary_pack_id = "bad".to_string();
+    invalid_pack.body.pack_refs[0].pack_id = "bad".to_string();
     assert!(matches!(
         bind_regulatory_pack_from_api(&mut directory, &mut idempotency, invalid_pack),
         Err(RegulatoryPackBindApiError::RegionalPack(_))
@@ -265,18 +265,18 @@ fn bind_request(
         body: RegulatoryPackBindRequest {
             tenant_id: tenant_id.to_string(),
             primary_pack_id: PRIMARY_PACK_ID.to_string(),
-            home_region: "kr-seoul".to_string(),
-            cell_group_ref: "cellgrp_kr_seoul_001".to_string(),
-            residency_class: "strict_kr".to_string(),
+            home_region: "home-region".to_string(),
+            cell_group_ref: "cellgrp_home_region_001".to_string(),
+            residency_class: "strict_home".to_string(),
             evidence_ref: "evidence/regulatory-pack/ten_regulatory_pack".to_string(),
             bound_at_epoch_seconds: 1_800_000_000,
             pack_refs: vec![RegulatoryPackBindingPackRef {
                 pack_id: PRIMARY_PACK_ID.to_string(),
-                region: "kr-seoul".to_string(),
-                residency_class: "strict_kr".to_string(),
+                region: "home-region".to_string(),
+                residency_class: "strict_home".to_string(),
                 controls: vec![
                     RegulatoryPackControlRef {
-                        value: "PIPA".to_string(),
+                        value: "CONTROL-ALPHA".to_string(),
                     },
                     RegulatoryPackControlRef {
                         value: "KISA".to_string(),

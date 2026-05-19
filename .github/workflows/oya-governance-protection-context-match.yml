@@ -1,0 +1,70 @@
+name: oya-governance-protection-context-match
+
+# Asserts that every `required_status_checks` context in
+# `.github/branch-protection.yaml` is the `name:` field of some
+# job in some `.github/workflows/*.yml`. Catches the silent-bypass
+# class where branch-protection lists a context no workflow posts;
+# GitHub then waits forever for a check_run that never arrives,
+# and the protected branch becomes silently un-merge-able.
+#
+# Lane: oya-governance-protection-context-match (per-pr).
+# Compatibility: GOV-PREFIX-036 completed the branch-protection
+# required-context cutover from `oya-foundry-fitness-protection-context-match`
+# to this governance-named job. Do not require the retired mirror context.
+# Kernel: crates/oya-check-protection-context-match.
+# Runner: crates/oya-dev-cli/src/protection_context_match_gate.rs.
+#
+# History: this lane exists because of the 2026-05-15 PR #3
+# merge-block — `branch-protection.yaml` listed `cargo-fmt`
+# (the YAML job-key) while pr-tests.yml posted check_runs as
+# `cargo fmt --check` (the workflow `name:` field). 5 of 9
+# required gates were silently non-enforcing for the duration of
+# the drift. This lane prevents the recurrence and now also fails
+# closed when live GitHub branch protection requires fewer checks
+# than the canonical repo policy.
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oya-governance-protection-context-match-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  oya-governance-protection-context-match:
+    name: oya-governance-protection-context-match
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: pr-tests
+      - name: oya gate validate protection-context-match
+        env:
+          GH_TOKEN: ${{ secrets.OYA_BRANCH_PROTECTION_READ_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::OYA_BRANCH_PROTECTION_READ_TOKEN is required; GitHub branch-protection status-check APIs require Administration read permission, which GITHUB_TOKEN cannot request."
+            exit 1
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/branches/dev/protection/required_status_checks" \
+            --jq '.contexts' > live-required-status-checks.json
+      - name: oya gate validate protection-context-match
+        env:
+          GH_TOKEN: ${{ secrets.OYA_BRANCH_PROTECTION_READ_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: scripts/branch-protection-apply.sh --check --repo "${GITHUB_REPOSITORY}" --branch dev

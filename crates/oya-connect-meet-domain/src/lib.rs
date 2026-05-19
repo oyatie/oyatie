@@ -477,7 +477,7 @@ mod tests {
         MeetSessionCreate {
             id: "session-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             cell_id: "cell-a".into(),
             sfu_pool_id: "sfu-pool-1".into(),
             data_class: None,

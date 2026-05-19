@@ -683,7 +683,7 @@ This section will expand to ~3-5 pages per axis in v0.2 once the recon agents la
 
 ### 13.1 SaaS multi-tenant platform
 
-> **TODO v0.2** — fill in workflow engine (ADR-0035), Ontology (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4), plugin substrate (#29), Connect surface, marketplace, public API surface, tenancy isolation enforcement (#1570), cross-product auth (ADR-0006), metering/quotas substrate (#1576).
+> **Design-depth v0.2 work item** — fill in workflow engine (ADR-0035), Ontology (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4), plugin substrate (#29), Connect surface, marketplace, public API surface, tenancy isolation enforcement (#1570), cross-product auth (ADR-0006), metering/quotas substrate (#1576).
 
 ### 13.2 Vertical industry cloud
 

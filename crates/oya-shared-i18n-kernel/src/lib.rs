@@ -263,16 +263,20 @@ impl I18nError {
 mod tests {
     use super::*;
 
+    const SOURCE_LOCALE: &str = "aa-XA";
+    const TARGET_RTL_LOCALE: &str = "ar-XA";
+    const SCRIPTED_LOCALE: &str = "cc-Cccc-XA";
+
     fn msg(pattern: &str) -> Message {
         Message::new(pattern.to_owned(), Vec::new()).unwrap()
     }
 
     #[test]
     fn locale_tag_accepts_bcp47_shaped_inputs() {
-        assert!(LocaleTag::new("en-US").is_ok());
-        assert!(LocaleTag::new("ar-SA").is_ok());
-        assert!(LocaleTag::new("zh-Hans-CN").is_ok());
-        assert!(LocaleTag::new("pt-BR").is_ok());
+        assert!(LocaleTag::new(SOURCE_LOCALE).is_ok());
+        assert!(LocaleTag::new(TARGET_RTL_LOCALE).is_ok());
+        assert!(LocaleTag::new(SCRIPTED_LOCALE).is_ok());
+        assert!(LocaleTag::new("dd-XA").is_ok());
     }
 
     #[test]
@@ -287,24 +291,24 @@ mod tests {
             Err(I18nError::MalformedLocale { .. })
         ));
         assert!(matches!(
-            LocaleTag::new("en--US"),
+            LocaleTag::new("aa--XA"),
             Err(I18nError::MalformedLocale { .. })
         ));
         assert!(matches!(
-            LocaleTag::new("en US"),
+            LocaleTag::new("aa XA"),
             Err(I18nError::MalformedLocale { .. })
         ));
     }
 
     #[test]
     fn locale_tag_rtl_set_matches_cldr_closed_allowlist() {
-        for rtl in ["ar-SA", "he-IL", "fa-IR", "ur-PK", "ps-AF", "ckb-IQ"] {
+        for rtl in ["ar-XA", "he-XA", "fa-XA", "ur-XA", "ps-XA", "ckb-XA"] {
             assert!(
                 LocaleTag::new(rtl).unwrap().is_rtl(),
                 "expected RTL for {rtl}"
             );
         }
-        for ltr in ["en-US", "es-MX", "ja-JP", "zh-Hans-CN", "ko-KR"] {
+        for ltr in [SOURCE_LOCALE, "bb-XA", SCRIPTED_LOCALE, "dd-XA", "ee-XA"] {
             assert!(
                 !LocaleTag::new(ltr).unwrap().is_rtl(),
                 "expected LTR for {ltr}"
@@ -333,8 +337,8 @@ mod tests {
 
     #[test]
     fn fluent_catalog_falls_back_to_source_locale() {
-        let en = LocaleTag::new("en-US").unwrap();
-        let ar = LocaleTag::new("ar-SA").unwrap();
+        let en = LocaleTag::new(SOURCE_LOCALE).unwrap();
+        let ar = LocaleTag::new(TARGET_RTL_LOCALE).unwrap();
         let mut catalog = FluentI18nCatalog::new(en.clone());
         let id = MessageId::new("hello").unwrap();
         catalog.insert(en.clone(), id.clone(), msg("Hello"));
@@ -347,8 +351,8 @@ mod tests {
 
     #[test]
     fn fluent_catalog_reports_missing_messages_for_coverage_gate() {
-        let en = LocaleTag::new("en-US").unwrap();
-        let ar = LocaleTag::new("ar-SA").unwrap();
+        let en = LocaleTag::new(SOURCE_LOCALE).unwrap();
+        let ar = LocaleTag::new(TARGET_RTL_LOCALE).unwrap();
         let id_hello = MessageId::new("hello").unwrap();
         let id_bye = MessageId::new("bye").unwrap();
         let mut catalog = FluentI18nCatalog::new(en.clone());
@@ -382,8 +386,8 @@ mod tests {
 
     #[test]
     fn empty_catalog_reports_full_coverage() {
-        let en = LocaleTag::new("en-US").unwrap();
-        let ar = LocaleTag::new("ar-SA").unwrap();
+        let en = LocaleTag::new(SOURCE_LOCALE).unwrap();
+        let ar = LocaleTag::new(TARGET_RTL_LOCALE).unwrap();
         let catalog = FluentI18nCatalog::new(en);
         // No source messages → vacuously full coverage.
         assert_eq!(catalog.coverage_bps(&ar), 10_000);

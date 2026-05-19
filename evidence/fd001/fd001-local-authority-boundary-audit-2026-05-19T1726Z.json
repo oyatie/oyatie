@@ -1,0 +1,319 @@
+{
+  "agent_id": "codex-leader",
+  "branch": "codex/fd001-planning-closure-20260519",
+  "completion_goal_satisfied": false,
+  "created_at": "2026-05-19T17:26:00Z",
+  "external_admin_unblock_runbook": [
+    "Set GitHub Actions repository secret OYA_BRANCH_PROTECTION_READ_TOKEN with a token that can read branch protection required_status_checks.",
+    "Run scripts/github-actions-required-secrets-check.sh --repo jason931225/oyatie --branch dev --config infra/branch-protection/dev.json and require exit 0.",
+    "Apply branch protection only after admin authority is explicit: scripts/branch-protection-apply.sh --apply --repo jason931225/oyatie --branch dev --config infra/branch-protection/dev.json.",
+    "Rerun bin/oya verify --ci-required and require 89/89 green.",
+    "Submit/push codex/fd001-planning-closure-20260519 to PR #148 and wait for hosted checks including oya-governance-protection-context-match and oya-pr-review."
+  ],
+  "fitness_to_governance_naming_audit": {
+    "audit_counts": {
+      "active_new_prefix_lanes": 25,
+      "active_old_prefix_lanes": 42,
+      "bulk_sweep_status": "forbidden",
+      "new_prefix_audit_result": "pass",
+      "registry_path": "registry/quality/lanes.yaml"
+    },
+    "compatibility_window": {
+      "existing_old_prefix_lanes_remain_valid_until_their_per_lane_changeset_lands": true,
+      "new_lanes_must_use_new_prefix": true,
+      "new_prefix": "oya-governance-",
+      "old_prefix": "oya-foundry-fitness-"
+    },
+    "completed_prefix_changesets": [
+      {
+        "ip_id": "GOV-PREFIX-023",
+        "new_lane_id": "oya-governance-catalog-records",
+        "old_lane_id": "oya-foundry-fitness-catalog-records",
+        "status": "completed"
+      },
+      {
+        "ip_id": "GOV-PREFIX-036",
+        "new_lane_id": "oya-governance-protection-context-match",
+        "old_lane_id": "oya-foundry-fitness-protection-context-match",
+        "status": "completed"
+      },
+      {
+        "ip_id": "GOV-PREFIX-042",
+        "new_lane_id": "oya-governance-dependency-seam",
+        "old_lane_id": "oya-foundry-fitness-dependency-seam",
+        "status": "completed"
+      }
+    ],
+    "focused_grep_log": "/tmp/fd001-fitness-grep-focused-20260519T172304Z.txt",
+    "focused_occurrence_count": 695,
+    "implication": "Do not bulk rename all remaining foundry-fitness strings inside FD-001; the repo already declares per-lane ChangeSets and forbids a bulk sweep. The live branch-protection blocker is specifically that GOV-PREFIX-036 is not applied to GitHub dev rules, not that all old-prefix lanes must be renamed now.",
+    "migration_authority": "microservices/governance/lane-prefix-migration-task-37.json",
+    "migration_rule": "Do not bulk-rename active compatibility lanes. Each old oya-foundry-fitness-* lane migrates through its own ChangeSet with registry, docs mirror, workflow context, branch-protection, catalog, and historical-reference evidence.",
+    "per_lane_status_counts": {
+      "completed": 3,
+      "queued": 41
+    },
+    "queued_prefix_changeset_count": 41,
+    "sample_queued_prefix_changesets": [
+      {
+        "ip_id": "GOV-PREFIX-001",
+        "new_lane_id": "oya-governance-authority-cohesion",
+        "old_lane_id": "oya-foundry-fitness-authority-cohesion",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-002",
+        "new_lane_id": "oya-governance-claim-ceiling",
+        "old_lane_id": "oya-foundry-fitness-claim-ceiling",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-003",
+        "new_lane_id": "oya-governance-codeowners-mirror",
+        "old_lane_id": "oya-foundry-fitness-codeowners-mirror",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-004",
+        "new_lane_id": "oya-governance-cohesion",
+        "old_lane_id": "oya-foundry-fitness-cohesion",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-005",
+        "new_lane_id": "oya-governance-data-class",
+        "old_lane_id": "oya-foundry-fitness-data-class",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-006",
+        "new_lane_id": "oya-governance-doc-catalog",
+        "old_lane_id": "oya-foundry-fitness-doc-catalog",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-007",
+        "new_lane_id": "oya-governance-docs",
+        "old_lane_id": "oya-foundry-fitness-docs",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-008",
+        "new_lane_id": "oya-governance-quality-lanes",
+        "old_lane_id": "oya-foundry-fitness-quality-lanes",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-009",
+        "new_lane_id": "oya-governance-honest-claims",
+        "old_lane_id": "oya-foundry-fitness-honest-claims",
+        "status": "queued"
+      },
+      {
+        "ip_id": "GOV-PREFIX-010",
+        "new_lane_id": "oya-governance-aspirational-enforcement",
+        "old_lane_id": "oya-foundry-fitness-aspirational-enforcement",
+        "status": "queued"
+      }
+    ],
+    "scan_log": "/tmp/fd001-fitness-governance-scan-20260519T172304Z.log",
+    "top_focused_paths": [
+      {
+        "occurrences": 45,
+        "path": "Cargo.toml"
+      },
+      {
+        "occurrences": 37,
+        "path": "specs/hyperscaler-architecture-invariants.json"
+      },
+      {
+        "occurrences": 27,
+        "path": "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      },
+      {
+        "occurrences": 27,
+        "path": "specs/masterplan.json"
+      },
+      {
+        "occurrences": 24,
+        "path": "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      },
+      {
+        "occurrences": 21,
+        "path": "specs/microservices/ontology.json"
+      },
+      {
+        "occurrences": 20,
+        "path": "specs/microservices/workflow-studio.json"
+      },
+      {
+        "occurrences": 17,
+        "path": "docs/decisions/ADR-0052-inventory-grit-cutover.md"
+      },
+      {
+        "occurrences": 17,
+        "path": "specs/agent-durable-goal.json"
+      },
+      {
+        "occurrences": 16,
+        "path": "specs/microservices/workflow.json"
+      },
+      {
+        "occurrences": 15,
+        "path": ".github/workflows/oya-foundry-fitness-supply-chain.yml"
+      },
+      {
+        "occurrences": 14,
+        "path": "specs/microservices/network.json"
+      },
+      {
+        "occurrences": 13,
+        "path": "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md"
+      },
+      {
+        "occurrences": 13,
+        "path": "docs/decisions/ADR-0109-lifecycle-automation-framework.md"
+      },
+      {
+        "occurrences": 13,
+        "path": "specs/microservices/anonymous.json"
+      },
+      {
+        "occurrences": 13,
+        "path": "specs/microservices/shorts.json"
+      },
+      {
+        "occurrences": 13,
+        "path": "specs/microservices/social.json"
+      },
+      {
+        "occurrences": 12,
+        "path": "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md"
+      },
+      {
+        "occurrences": 11,
+        "path": "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md"
+      },
+      {
+        "occurrences": 11,
+        "path": "specs/crate-naming-audit.json"
+      },
+      {
+        "occurrences": 10,
+        "path": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      },
+      {
+        "occurrences": 10,
+        "path": "docs/decisions/ADR-0108-sunset-lifecycle-automation.md"
+      },
+      {
+        "occurrences": 9,
+        "path": "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md"
+      },
+      {
+        "occurrences": 8,
+        "path": "specs/master-plan-sequencing.json"
+      },
+      {
+        "occurrences": 7,
+        "path": ".github/workflows/oya-foundry-fitness-changeset-state.yml"
+      }
+    ],
+    "verdict": "remaining_foundry_fitness_names_are_governed_migration_backlog_not_fd001_local_blocker"
+  },
+  "head_sha_at_audit": "73becb9cb708ca7dbbf11deba822970a655fa852",
+  "local_recovery_analysis": [
+    {
+      "blocker_id": "github-actions-secret-missing",
+      "evidence": [
+        "/tmp/fd001-post-commit-blockers-20260519T171939Z.log",
+        "/tmp/fd001-oya-verify-ci-required-post-nextest-20260519T171051Z.log"
+      ],
+      "safe_local_recovery": false,
+      "unsafe_or_external_action_needed": "Creating/updating GitHub Actions repository secrets requires secret value plus repository secret administration; no OYA_BRANCH_PROTECTION_READ_TOKEN is present in this environment."
+    },
+    {
+      "blocker_id": "live-branch-protection-drift",
+      "evidence": [
+        "/tmp/fd001-post-commit-blockers-20260519T171939Z.log",
+        "/tmp/fd001-default-canonical-and-remaining-gates-20260519T171509Z.log"
+      ],
+      "safe_local_recovery": false,
+      "unsafe_or_external_action_needed": "scripts/branch-protection-apply.sh --apply mutates GitHub branch protection; that is external admin state and should happen only in the admin unblock lane after the secret is available."
+    },
+    {
+      "blocker_id": "pr-148-stale-head",
+      "evidence": [
+        "/tmp/fd001-pr148-live-post-commit-20260519T172025Z.json",
+        "/tmp/fd001-pr148-checks-post-commit-20260519T172025Z.log"
+      ],
+      "safe_local_recovery": false,
+      "unsafe_or_external_action_needed": "Pushing local HEAD while ci-required is known-red would refresh PR #148 into a predictable hosted red; submit/push should wait for secret and branch protection green preflight."
+    }
+  ],
+  "non_recoverable_by_current_agent_without_external_admin_or_secret_authority": true,
+  "non_recoverable_globally": false,
+  "objective_verdict": "NOT_DELIVERED_BLOCKED_BY_EXTERNAL_GITHUB_GOVERNANCE",
+  "post_commit_blocker_excerpt": [
+    "::error::required GitHub Actions secret OYA_BRANCH_PROTECTION_READ_TOKEN is not visible for jason931225/oyatie; oya-governance-protection-context-match will fail before evaluating branch-protection drift",
+    "SECRET_PREFLIGHT_RC=1",
+    "  \"missing_from_live\": [",
+    "  \"extra_in_live\": [",
+    "BRANCH_PROTECTION_CHECK_RC=1"
+  ],
+  "pr_148_current_state": {
+    "baseRefName": "dev",
+    "headRefName": "codex/fd001-planning-closure-20260519",
+    "headRefOid": "9b212c5673dda9379e5c81808b75636834f8875e",
+    "local_head_sha": "73becb9cb708ca7dbbf11deba822970a655fa852",
+    "mergeStateStatus": "BLOCKED",
+    "mergeable": "MERGEABLE",
+    "pr_head_fresh": false,
+    "reviewDecision": "",
+    "state": "OPEN",
+    "statusCheckRollup_count": 26,
+    "url": "https://github.com/jason931225/oyatie/pull/148"
+  },
+  "prompt_to_artifact_delta_since_previous_audit": [
+    {
+      "evidence": [
+        "/tmp/fd001-fitness-governance-scan-20260519T172304Z.log",
+        "microservices/governance/lane-prefix-migration-task-37.json"
+      ],
+      "prompt_requirement": "prove whether remaining fitness naming is a local FD-001 rename gap",
+      "result": "covered: migration is per-lane; bulk sweep forbidden; 42 active old-prefix lanes, 25 active new-prefix lanes, completed GOV-PREFIX-023/036/042"
+    },
+    {
+      "evidence": [
+        "/tmp/fd001-post-commit-blockers-20260519T171939Z.log",
+        "/tmp/fd001-pr148-live-post-commit-20260519T172025Z.json",
+        "/tmp/fd001-pr148-checks-post-commit-20260519T172025Z.log"
+      ],
+      "prompt_requirement": "prove no safe local recovery remains before external admin unblock",
+      "result": "covered: secret missing, branch-protection drift still live, PR #148 stale; all fixes require external admin/secret or known-red push"
+    }
+  ],
+  "repo": "jason931225/oyatie",
+  "safe_local_recovery_remaining": false,
+  "safe_parallel_lanes_after_unblock": [
+    "admin-gitops: secret + branch protection + PR #148 head refresh",
+    "review: hosted oya-pr-review and human-readable blocker audit review after green CI",
+    "migration-backlog: per-lane GOV-PREFIX ChangeSets for queued foundry-fitness lanes, not a bulk rename",
+    "release-readiness: rerun default canonical/KR/deployment/hyperscaler gates after PR head is fresh"
+  ],
+  "schema_version": "fd001-local-authority-boundary-audit/v1",
+  "source_evidence_paths": {
+    "ci_required_post_nextest": "/tmp/fd001-oya-verify-ci-required-post-nextest-20260519T171051Z.log",
+    "default_completion_gates": "/tmp/fd001-default-canonical-and-remaining-gates-20260519T171509Z.log",
+    "fitness_governance_focused_grep": "/tmp/fd001-fitness-grep-focused-20260519T172304Z.txt",
+    "fitness_governance_scan": "/tmp/fd001-fitness-governance-scan-20260519T172304Z.log",
+    "post_commit_blockers": "/tmp/fd001-post-commit-blockers-20260519T171939Z.log",
+    "pr148_checks_post_commit": "/tmp/fd001-pr148-checks-post-commit-20260519T172025Z.log",
+    "pr148_live_post_commit": "/tmp/fd001-pr148-live-post-commit-20260519T172025Z.json",
+    "previous_blocker_audit": "evidence/fd001/fd001-completion-blocker-audit-2026-05-19T1717Z.json",
+    "workspace_nextest": "/tmp/fd001-trust-portal-workspace-nextest-20260519T170735Z.log"
+  },
+  "status_branch_short": "## codex/fd001-planning-closure-20260519...origin/codex/fd001-planning-closure-20260519 [ahead 55]",
+  "why_not_global_non_recoverable": "A repository administrator can still set OYA_BRANCH_PROTECTION_READ_TOKEN, apply canonical branch protection, rerun hosted checks, and refresh PR #148.",
+  "workspace": "/Users/jasonlee/oyatie-fd001-planning-closure"
+}

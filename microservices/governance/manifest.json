@@ -251,7 +251,7 @@
     },
     {
       "id": "IP-NEW-eu-ai-act-annex-iii-refusal-lane",
-      "title": "IP-NEW: wire `oya-check-eu-ai-act-annex-iii-refusal` into oya-dev-cli gate validate",
+      "title": "IP-NEW: wire `oya-check-eu-ai-act-annex-iii-refusal` behind `regulated-ai-refusal-grounding`",
       "acceptance_status": "ga",
       "file": "microservices/governance/IP-NEW-eu-ai-act-annex-iii-refusal-lane.md"
     },

@@ -93,11 +93,11 @@ impl WorkloadClass {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum RegulatoryPack {
     Generic,
-    Kr,
-    Eu,
-    UsHealthcare,
-    UsFinancial,
-    UsPublicSector,
+    PackPrimary,
+    PackSecondary,
+    PackHealth,
+    PackFinancial,
+    PackPublicSector,
 }
 
 impl RegulatoryPack {
@@ -105,20 +105,22 @@ impl RegulatoryPack {
     #[must_use]
     pub const fn retention_floor_days(self) -> u32 {
         match self {
-            Self::Generic | Self::Eu | Self::UsFinancial | Self::UsPublicSector => 2_555, // 7y
-            Self::Kr => 1_825,                                                            // 5y
-            Self::UsHealthcare => 2_190,                                                  // 6y
+            Self::Generic | Self::PackSecondary | Self::PackFinancial | Self::PackPublicSector => {
+                2_555
+            } // 7y
+            Self::PackPrimary => 1_825, // 5y
+            Self::PackHealth => 2_190,  // 6y
         }
     }
     #[must_use]
     pub const fn wire_name(self) -> &'static str {
         match self {
             Self::Generic => "generic",
-            Self::Kr => "kr",
-            Self::Eu => "eu",
-            Self::UsHealthcare => "us-healthcare",
-            Self::UsFinancial => "us-financial",
-            Self::UsPublicSector => "us-public-sector",
+            Self::PackPrimary => "pack-primary",
+            Self::PackSecondary => "pack-secondary",
+            Self::PackHealth => "pack-health",
+            Self::PackFinancial => "pack-financial",
+            Self::PackPublicSector => "pack-public-sector",
         }
     }
 }
@@ -469,15 +471,19 @@ mod tests {
     }
 
     #[test]
-    fn retention_kr_floor_is_5y() {
-        assert_eq!(RegulatoryPack::Kr.retention_floor_days(), 1_825);
-        let req = request(BackupProng::KubernetesState, RegulatoryPack::Kr, 1_825);
+    fn retention_pack_primary_floor_is_5y() {
+        assert_eq!(RegulatoryPack::PackPrimary.retention_floor_days(), 1_825);
+        let req = request(
+            BackupProng::KubernetesState,
+            RegulatoryPack::PackPrimary,
+            1_825,
+        );
         assert!(req.validate().is_ok());
     }
 
     #[test]
-    fn retention_us_healthcare_floor_is_6y() {
-        assert_eq!(RegulatoryPack::UsHealthcare.retention_floor_days(), 2_190);
+    fn retention_pack_health_floor_is_6y() {
+        assert_eq!(RegulatoryPack::PackHealth.retention_floor_days(), 2_190);
     }
 
     // ---- age-key enforcement (ADR-0197 D-3) ----

@@ -327,9 +327,7 @@ fn ordered_caps(
 fn has_healthcare_pack(regulatory_packs: &[String]) -> bool {
     regulatory_packs.iter().any(|pack| {
         let normalized = normalize_policy_marker(pack);
-        normalized.contains("hipaa")
-            || normalized.contains("kr-pipa-health")
-            || normalized.contains("pipa-health")
+        normalized.contains("health-regulated")
             || normalized.contains("healthcare")
             || normalized.contains("health")
     })
@@ -338,9 +336,8 @@ fn has_healthcare_pack(regulatory_packs: &[String]) -> bool {
 fn has_fintech_pack(regulatory_packs: &[String]) -> bool {
     regulatory_packs.iter().any(|pack| {
         let normalized = normalize_policy_marker(pack);
-        normalized.contains("pci")
-            || normalized.contains("kr-fsc")
-            || normalized.contains("jp-fsa")
+        normalized.contains("payment-card")
+            || normalized.contains("financial-regulated")
             || normalized.contains("fintech")
             || normalized.contains("financial")
     })
@@ -376,7 +373,7 @@ fn is_health_regulated_privacy_class(data_class: PrivacyDataClass) -> bool {
 fn is_financial_regulated_privacy_class(data_class: PrivacyDataClass) -> bool {
     matches!(
         data_class.data_class(),
-        DataClass::Pci | DataClass::FinancialKrCredit | DataClass::Financial
+        DataClass::Pci | DataClass::FinancialCredit | DataClass::Financial
     )
 }
 

@@ -1049,15 +1049,15 @@ mod tests {
     use super::*;
 
     const TENANT: &str = "ten_acme";
-    const REGION: &str = "kr-seoul1";
-    const CELL: &str = "cell-kr-seoul1-a-primary";
-    const KMS_KEY: &str = "kms/kr-seoul1/ten_acme/db-key";
+    const REGION: &str = "alpha-region1";
+    const CELL: &str = "cell-alpha-region1-a-primary";
+    const KMS_KEY: &str = "kms/alpha-region1/ten_acme/db-key";
 
     fn azs() -> Vec<String> {
         vec![
-            "kr-seoul1-a".to_string(),
-            "kr-seoul1-b".to_string(),
-            "kr-seoul1-c".to_string(),
+            "alpha-region1-a".to_string(),
+            "alpha-region1-b".to_string(),
+            "alpha-region1-c".to_string(),
         ]
     }
 
@@ -1075,7 +1075,7 @@ mod tests {
             weekly_tenant_dump: true,
             retention_days: 90,
             kms_key_id: KMS_KEY.to_string(),
-            object_store_ref: "object/kr-seoul1/db-backup".to_string(),
+            object_store_ref: "object/alpha-region1/db-backup".to_string(),
             quarterly_dr_drill: true,
         }
     }
@@ -1114,7 +1114,7 @@ mod tests {
             ),
             engine,
             state: ManagedDataState::Provisioning,
-            residency: ResidencyClass::StrictKr,
+            residency: ResidencyClass::Global,
             allowed_data_classes: vec![DataClass::InternalOnly, DataClass::PiiIdentifying],
             replication: replication(),
             backup: backup(),
@@ -1152,7 +1152,7 @@ mod tests {
         );
         assert_eq!(
             ManagedDataService::new(ManagedDataServiceCreate {
-                azs: vec!["kr-seoul1-a".to_string(), "kr-seoul1-b".to_string()],
+                azs: vec!["alpha-region1-a".to_string(), "alpha-region1-b".to_string()],
                 ..service_create(ManagedDataEngine::Postgres, postgres_shape(vec![]))
             })
             .expect_err("three AZs are required"),
@@ -1293,7 +1293,7 @@ mod tests {
             ManagedDataService::new(ManagedDataServiceCreate {
                 replication: DataReplicationPolicy {
                     mode: ReplicationMode::ThreeAzWithCrossRegionReadMirror,
-                    cross_region: Some("us-virginia1".to_string()),
+                    cross_region: Some("beta-region1".to_string()),
                     residency_policy_ref: None,
                 },
                 ..service_create(ManagedDataEngine::Postgres, postgres_shape(vec![]))
@@ -1304,8 +1304,8 @@ mod tests {
         let service = ManagedDataService::new(ManagedDataServiceCreate {
             replication: DataReplicationPolicy {
                 mode: ReplicationMode::ThreeAzWithCrossRegionReadMirror,
-                cross_region: Some("us-virginia1".to_string()),
-                residency_policy_ref: Some("residency/kr-us/read-mirror".to_string()),
+                cross_region: Some("beta-region1".to_string()),
+                residency_policy_ref: Some("residency/alpha-beta/read-mirror".to_string()),
             },
             ..service_create(ManagedDataEngine::Postgres, postgres_shape(vec![]))
         })
@@ -1341,7 +1341,7 @@ mod tests {
             BackupEvidence::new(
                 &service,
                 BackupEvidenceCreate {
-                    kms_key_id: "kms/jp-tokyo1/ten_acme/db-key".to_string(),
+                    kms_key_id: "kms/gamma-region1/ten_acme/db-key".to_string(),
                     ..backup_evidence(&service)
                 },
             )

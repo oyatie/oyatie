@@ -1,0 +1,12 @@
+schema_version: "1.0"
+name: incident-remediation-approve
+tier: T3
+eu_ai_act_risk_class: high
+description: Approve or reject an incident remediation action with rationale.
+authz:
+  cedar_policy: microservices/ops-dashboard-control-center/policy/cedar/operator-actions.cedar
+  requires_mfa: true
+  requires_idempotency_key: true
+audit_chain:
+  required: true
+  seal_event: OpsIncidentRemediationApprove

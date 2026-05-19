@@ -1605,10 +1605,10 @@ mod tests {
     use super::*;
 
     const TENANT: &str = "ten_alpha";
-    const REGION: &str = "kr-seoul";
-    const CELL: &str = "cell-kr-seoul-a-001";
-    const SIGNED_EXPORT: &str = "s3+signed://kr-seoul/ten_alpha/audit?sig=abc123";
-    const RESOURCE_ID: &str = "oya:cloud:kr-seoul:ten_alpha:instance:vm-a";
+    const REGION: &str = "alpha-region";
+    const CELL: &str = "cell-alpha-region-a-001";
+    const SIGNED_EXPORT: &str = "s3+signed://alpha-region/ten_alpha/audit?sig=abc123";
+    const RESOURCE_ID: &str = "oya:cloud:alpha-region:ten_alpha:instance:vm-a";
     const HASH_A: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const HASH_B: &str = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
@@ -1616,8 +1616,8 @@ mod tests {
         ObservabilityResidency::new(ObservabilityResidencyCreate {
             tenant_id: TENANT.to_string(),
             region: REGION.to_string(),
-            regional_pack: "oya-pack-kr".to_string(),
-            residency: ResidencyClass::StrictKr,
+            regional_pack: "oya-pack-core".to_string(),
+            residency: ResidencyClass::Global,
             metric_storage_region: REGION.to_string(),
             log_storage_region: REGION.to_string(),
             trace_storage_region: REGION.to_string(),
@@ -1733,12 +1733,12 @@ mod tests {
         assert_eq!(valid.storage_region_for(TelemetryKind::Audit).value, REGION);
 
         let err = ObservabilityResidency::new(ObservabilityResidencyCreate {
-            trace_storage_region: "jp-tokyo".to_string(),
+            trace_storage_region: "beta-region".to_string(),
             ..ObservabilityResidencyCreate {
                 tenant_id: TENANT.to_string(),
                 region: REGION.to_string(),
-                regional_pack: "oya-pack-kr".to_string(),
-                residency: ResidencyClass::StrictKr,
+                regional_pack: "oya-pack-core".to_string(),
+                residency: ResidencyClass::Global,
                 metric_storage_region: REGION.to_string(),
                 log_storage_region: REGION.to_string(),
                 trace_storage_region: REGION.to_string(),
@@ -1897,7 +1897,7 @@ mod tests {
 
         let mut wrong_resource = envelopes();
         wrong_resource[0].resource_id =
-            Some("oya:cloud:kr-seoul:ten_other:instance:vm-a".to_string());
+            Some("oya:cloud:alpha-region:ten_other:instance:vm-a".to_string());
         assert_eq!(
             CloudObservabilityCatalog::default()
                 .ingest_verified_chain(&chain(), wrong_resource, &residency)
@@ -1907,7 +1907,7 @@ mod tests {
 
         let mut wrong_export = envelopes();
         wrong_export[0].signed_export_uri =
-            "s3+signed://kr-seoul/ten_alpha/audit?sig=other".to_string();
+            "s3+signed://alpha-region/ten_alpha/audit?sig=other".to_string();
         assert_eq!(
             CloudObservabilityCatalog::default()
                 .ingest_verified_chain(&chain(), wrong_export, &residency)
@@ -2015,7 +2015,7 @@ mod tests {
                     id: "dash_ops".to_string(),
                     tenant_id: TENANT.to_string(),
                     region: REGION.to_string(),
-                    title: "KR Seoul Operations".to_string(),
+                    title: "Alpha Operations".to_string(),
                     visibility: DashboardVisibility::TenantPrivate,
                     metric_ids: vec![metric.id.value.value.clone()],
                     log_stream_ids: vec![log_stream.id.value.value.clone()],

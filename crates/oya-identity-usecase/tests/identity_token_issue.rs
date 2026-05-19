@@ -39,7 +39,7 @@ fn identity_token_issue_returns_purpose_bound_sts_fingerprint_and_replays_idempo
 
     assert_eq!(first, second);
     assert_eq!(idempotency.len(), 1);
-    assert_eq!(first.data.tenant_id, "ten_kr");
+    assert_eq!(first.data.tenant_id, "ten_alpha");
     assert_eq!(first.data.subject_id, "usr_admin");
     assert_eq!(first.data.subject_kind, "human");
     assert_eq!(first.data.credential_kind, "sts");
@@ -312,23 +312,23 @@ fn token_request(request_id: &str, idempotency_key: &str) -> IdentityTokenIssueA
     IdentityTokenIssueApiRequest {
         boundary: IdentityApiBoundaryContext {
             request_id: request_id.to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             idempotency_key: idempotency_key.to_string(),
         },
         principal: IdentityApiPrincipal {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             principal_id: "usr_admin".to_string(),
             principal_kind: "human".to_string(),
             owning_capability_id: None,
         },
         authorization: IdentityApiAuthorization {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             principal_id: "usr_admin".to_string(),
             decision_id: "authz_identity_token_issue".to_string(),
             allowed_surfaces: vec![IDENTITY_TOKEN_ISSUE_SURFACE.to_string()],
         },
         body: IdentityTokenIssueRequest {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             subject_id: "usr_admin".to_string(),
             subject_kind: "human".to_string(),
             owning_capability_id: None,

@@ -54,7 +54,7 @@ The same node-graph model is shared across stacks via the OpenAPI contract from 
 
 - **Viewport virtualization mandatory** — only nodes intersecting the visible rect render (`onlyRenderVisibleElements`).
 - **LOD rendering** — three tiers: full (zoom > 75%), simplified (25-75%), rect-only (< 25%).
-- **Frame budget** — p99 frame time ≤ **16.67ms at 1000 nodes** on **2024-baseline hardware (M2 MacBook Pro / Ryzen 7 7700X + integrated GPU)**; perf-budget lane enforces via the `tests/canvas-1000-node.bench.ts` in IP-024.
+- **Frame budget** — p99 frame time ≤ **16.67ms at 1000 nodes** on **2024-baseline hardware (Apple Silicon MacBook Pro / Ryzen 7 7700X + integrated GPU)**; perf-budget lane enforces via the `tests/canvas-1000-node.bench.ts` in IP-024.
 - **Benchmark evidence (honest reporting):** svelte-flow + `onlyRenderVisibleElements` reaches 60fps at 1000 nodes on commodity hardware; **at 2000+ nodes without WebGL acceleration it drops to 30-45fps** (n8n's own canvas perf reports cite the same wall). We treat 1000 nodes as the supported Phase 1 baseline; 2000-5000 nodes "works but slow"; >5000 requires the WebGL escape hatch.
 - **WebGL escape hatch (Phase 1.5)** — at >5000 nodes, the rendering layer swaps to a WebGL-backed quad batcher. Documented + tested but not on the Phase 1 critical path.
 - **Phase 2 trigger (concrete):** **≥10,000 nodes per workflow median OR sustained p99 frame time > 16.67ms at 1000 nodes on 2024-baseline hardware** — either trigger fires Phase 2 `oya-canvas` work.

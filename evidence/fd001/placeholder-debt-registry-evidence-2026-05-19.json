@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "evidence_id": "fd001-placeholder-debt-registry-2026-05-19",
+  "generated_at": "2026-05-19T16:02:05Z",
+  "lane": "fd001-placeholder-debt-registry",
+  "scope": "FD-001 planning/governance gate closure",
+  "claim": "Unregistered placeholder markers introduced by current docs were replaced with accountable owner/signal wording, and stale placeholder registry rows were pruned to the live docs corpus.",
+  "activation_claim": "not-production-exit",
+  "changed_files": [
+    "docs/DESIGN.md",
+    "docs/decisions/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md",
+    "docs/decisions/ADR-0199-per-tenant-cost-attribution-finops-substrate.md",
+    "docs/decisions/ADR-0213-ecosystem-as-a-service-architecture.md",
+    "registry/placeholder-debt/registry.tsv"
+  ],
+  "placeholder_debt_result": {
+    "documents_checked": 889,
+    "open_placeholders": 986,
+    "registry_records": 564,
+    "new_unregistered_records": 0,
+    "stale_records": 0,
+    "registered_debt_remaining": 564,
+    "production_exit_implication": "Gate is green for registry accountability, but registered placeholder debt remains and still blocks any no-placeholders production-exit claim."
+  },
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "passed"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli placeholder_debt",
+      "result": "passed",
+      "tests": "3 placeholder_debt integration tests passed"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate placeholder-debt",
+      "result": "passed",
+      "summary": "889 documents, 986 open placeholders, 564 registry records"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "result": "passed",
+      "summary": "2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate korea-localization-evidence",
+      "result": "passed",
+      "summary": "12 evidence files, 12 fd001 surfaces, 12 kr-pack surfaces, activation_claim=not-active"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "result": "passed",
+      "summary": "196 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate documentation-system",
+      "result": "passed",
+      "summary": "6 pipeline records, 6 active"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate design-spec-maturity-claims",
+      "result": "passed",
+      "summary": "design claim allowed; operational claim blocked until operational evidence is green"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "result": "passed"
+    }
+  ],
+  "verification_log": "/tmp/fd001-placeholder-gate-verify-20260519T160205Z.log",
+  "known_remaining_blockers": [
+    "Registered placeholder debt remains open and blocks no-placeholders exit until burned down or archived with concrete closure.",
+    "Operational maturity claim remains blocked by design-spec-maturity-claims until operational evidence is green.",
+    "FD-001 production exit still requires runtime/tenant, CI, branch protection, deployment, rollback, SLO, security, audit, and KR activation evidence beyond this planning/governance slice."
+  ]
+}

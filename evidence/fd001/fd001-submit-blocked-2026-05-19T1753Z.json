@@ -1,0 +1,154 @@
+{
+  "schema_version": "fd001-submit-blocked-evidence/v1",
+  "evidence_id": "fd001-submit-blocked-2026-05-19T1753Z",
+  "created_at": "2026-05-19T17:54:00Z",
+  "agent_id": "codex-leader-fd001",
+  "repo": "jason931225/oyatie",
+  "workspace": "/Users/jasonlee/oyatie-fd001-planning-closure",
+  "branch": "codex/fd001-planning-closure-20260519",
+  "head_sha": "eed31445bee481b40eca566db973e52932783836",
+  "upstream": "origin/codex/fd001-planning-closure-20260519",
+  "upstream_head_sha": "9b212c5673dda9379e5c81808b75636834f8875e",
+  "branch_status": "## codex/fd001-planning-closure-20260519...origin/codex/fd001-planning-closure-20260519 [ahead 57]",
+  "ahead_behind_upstream_vs_head": {
+    "behind": 0,
+    "ahead": 57
+  },
+  "objective_restatement": {
+    "goal": "Execute FD-001 Enterprise Generic + SMB Generic through production-grade/hyperscaler-grade exit, or prove a non-recoverable/external blocker with evidence.",
+    "this_artifact_claim": "FD-001 is not delivered; this artifact records the current submit blocker after branch-protection drift was closed.",
+    "delivery_stop_condition": "All ci-required lanes, hosted PR checks, branch-protection requirements, review gates, and promotion evidence must be green before claiming delivered."
+  },
+  "fresh_checks": {
+    "environment_has_OYA_BRANCH_PROTECTION_READ_TOKEN": false,
+    "github_actions_secret_preflight": {
+      "exit_code": 1,
+      "status": "fail",
+      "log": "/tmp/fd001-secret-preflight-refresh-20260519T175242Z.log",
+      "error_excerpt": "::error::required GitHub Actions secret OYA_BRANCH_PROTECTION_READ_TOKEN is not visible for jason931225/oyatie; oya-governance-protection-context-match will fail before evaluating branch-protection drift"
+    },
+    "protection_context_match": {
+      "exit_code": 0,
+      "status": "pass",
+      "log": "/tmp/fd001-protection-context-refresh-20260519T175248Z.log",
+      "excerpt": "protection-context-match validation passed: 15 required contexts, 45 workflow jobs indexed across 28 workflows"
+    }
+  },
+  "canonical_submit_attempt": {
+    "command": "./bin/oya submit",
+    "exit_code": 1,
+    "log": "/tmp/fd001-oya-submit-blocked-20260519T1735Z.log",
+    "ci_required_summary": "88/89 lanes passed",
+    "lanes_passed": 88,
+    "lanes_total": 89,
+    "failed_lanes": [
+      "bash scripts/github-actions-required-secrets-check.sh"
+    ],
+    "submit_aborted_before_push": true,
+    "status_after_attempt": "## codex/fd001-planning-closure-20260519...origin/codex/fd001-planning-closure-20260519 [ahead 57]",
+    "nextest_workspace_pass_observed": true,
+    "protection_context_match_pass_observed": true,
+    "pr_review_workflow_head_semantics_pass_observed": true,
+    "provider_execution_gate_pass_observed": true,
+    "admission_gate_pass_observed": true
+  },
+  "pr_148_refresh_status": {
+    "url": "https://github.com/jason931225/oyatie/pull/148",
+    "live_pr_snapshot_source": "/tmp/fd001-pr148-live-after-branch-protection-20260519T1730Z.json",
+    "live_pr_checks_source": "/tmp/fd001-pr148-checks-after-branch-protection-20260519T1730Z.log",
+    "snapshot_head_sha": "9b212c5673dda9379e5c81808b75636834f8875e",
+    "local_head_sha": "eed31445bee481b40eca566db973e52932783836",
+    "upstream_branch_head_sha": "9b212c5673dda9379e5c81808b75636834f8875e",
+    "local_head_pushed_to_upstream": false,
+    "pr_snapshot_head_matches_current_local_head": false,
+    "staleness_reason": "oya submit aborted before push because ci-required is red; refreshing PR #148 now would manufacture a known-red hosted governance signal."
+  },
+  "blockers": [
+    {
+      "id": "github-actions-secret-missing",
+      "type": "external_secret_authority",
+      "blocking": true,
+      "status": "open",
+      "evidence": [
+        "/tmp/fd001-secret-preflight-refresh-20260519T175242Z.log",
+        "/tmp/fd001-oya-submit-blocked-20260519T1735Z.log"
+      ],
+      "summary": "OYA_BRANCH_PROTECTION_READ_TOKEN is not present in the environment and is not visible as a GitHub Actions Actions secret; ci-required fails 88/89 on scripts/github-actions-required-secrets-check.sh.",
+      "authority_needed": "Set a least-privilege branch-protection-read token as GitHub Actions secret OYA_BRANCH_PROTECTION_READ_TOKEN; do not substitute the local gh auth token without explicit credential authority."
+    },
+    {
+      "id": "pr-148-stale-head",
+      "type": "gitops_pr_refresh_blocked_by_secret_preflight",
+      "blocking": true,
+      "status": "open",
+      "evidence": [
+        "/tmp/fd001-pr148-live-after-branch-protection-20260519T1730Z.json",
+        "/tmp/fd001-pr148-checks-after-branch-protection-20260519T1730Z.log",
+        "/tmp/fd001-oya-submit-blocked-20260519T1735Z.log"
+      ],
+      "summary": "The local FD-001 branch remains ahead of origin and PR #148 because the canonical submit path aborted before push.",
+      "safe_resolution_order": [
+        "Set/verify OYA_BRANCH_PROTECTION_READ_TOKEN secret",
+        "rerun ./bin/oya submit",
+        "allow hosted PR checks to evaluate latest head",
+        "fix hosted-only failures if any"
+      ]
+    }
+  ],
+  "closed_blockers": [
+    {
+      "id": "live-branch-protection-drift",
+      "status": "closed",
+      "evidence": [
+        "evidence/fd001/fd001-branch-protection-apply-2026-05-19T1729Z.json",
+        "/tmp/fd001-protection-context-refresh-20260519T175248Z.log"
+      ],
+      "summary": "Current protection-context-match validation passes against canonical applied dev branch-protection contexts."
+    }
+  ],
+  "non_actions": [
+    "Did not push or run oya submit --no-verify while ci-required is red.",
+    "Did not set OYA_BRANCH_PROTECTION_READ_TOKEN from a personal gh auth token.",
+    "Did not claim FD-001 delivered."
+  ],
+  "next_safe_sequence": [
+    "Receive explicit least-privilege OYA_BRANCH_PROTECTION_READ_TOKEN secret authority or have repository secret set externally.",
+    "Run bash scripts/github-actions-required-secrets-check.sh and require exit 0.",
+    "Run ./bin/oya submit and require full ci-required pass plus successful push/PR refresh.",
+    "Inspect hosted PR #148 checks and fix any hosted-only regressions before merge/promotion."
+  ],
+  "source_evidence_files": {
+    "submit_log": {
+      "path": "/tmp/fd001-oya-submit-blocked-20260519T1735Z.log",
+      "exists": true,
+      "sha256": "22bf3dcc96b7d085619312633064c608bd6eb8ee7aee437c53b92e58e1b802c3",
+      "size_bytes": 941612
+    },
+    "secret_preflight_refresh": {
+      "path": "/tmp/fd001-secret-preflight-refresh-20260519T175242Z.log",
+      "exists": true,
+      "sha256": "9602577806a9de930002d0ea5694919f1ec4e54660a8aff0e423430be21d5417",
+      "size_bytes": 204
+    },
+    "protection_context_refresh": {
+      "path": "/tmp/fd001-protection-context-refresh-20260519T175248Z.log",
+      "exists": true,
+      "sha256": "5780a650f7c4ac818851d65afbc9e4ce54245556a3671c49bf9f2660d4435e3b",
+      "size_bytes": 111
+    },
+    "pr148_live_snapshot": {
+      "path": "/tmp/fd001-pr148-live-after-branch-protection-20260519T1730Z.json",
+      "exists": true,
+      "sha256": "51ce045ec5e2b501783393e44b26ab511c9441b8dca2d6212da27f04e2402a80",
+      "size_bytes": 8666
+    },
+    "pr148_checks_snapshot": {
+      "path": "/tmp/fd001-pr148-checks-after-branch-protection-20260519T1730Z.log",
+      "exists": true,
+      "sha256": "7bf38e86f52d54bf855dd823e4ad21f01011f4ddb27c343bb0dd95aafef432f6",
+      "size_bytes": 3183
+    }
+  },
+  "completion_verdict": "NOT_ACHIEVED",
+  "completion_verdict_reason": "The canonical submit path still fails 88/89 on a required secret preflight and aborts before push; PR #148 has not evaluated the current local head."
+}

@@ -160,7 +160,7 @@ pub const fn log_exposure_for_classification(
             | DataClass::PiiSensitive
             | DataClass::PiiQuasiIdentifier
             | DataClass::Financial
-            | DataClass::FinancialKrCredit
+            | DataClass::FinancialCredit
             | DataClass::BehavioralTenantProduct
             | DataClass::BehavioralAds
             | DataClass::DeclaredPreference
@@ -351,7 +351,7 @@ mod tests {
         let span = observer.start_capability_invocation(&CapabilityInvocationTraceContext {
             service_name: "oya-foundation-app".to_string(),
             tenant_id: "ten_noop".to_string(),
-            tenant_region: "kr-seoul".to_string(),
+            tenant_region: "region-alpha".to_string(),
             cell_id: Some("cell-noop".to_string()),
             capability_id: "cap.noop".to_string(),
             data_classes_touched: "INTERNAL_ONLY".to_string(),
@@ -375,10 +375,10 @@ mod tests {
         assert_eq!(
             legacy_data_classes_label(&[
                 DataClass::PiiQuasiIdentifier,
-                DataClass::FinancialKrCredit,
+                DataClass::FinancialCredit,
                 DataClass::SensitivePipaArticle23,
             ]),
-            "PII_QUASI_IDENTIFIER,FINANCIAL_KR,SENSITIVE_PIPA_ART23"
+            "PII_QUASI_IDENTIFIER,FINANCIAL_CREDIT,SENSITIVE_PIPA_ART23"
         );
         #[allow(deprecated)]
         {

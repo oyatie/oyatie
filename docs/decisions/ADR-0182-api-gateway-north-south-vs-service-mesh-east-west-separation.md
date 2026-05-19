@@ -144,9 +144,9 @@ Per user directive 2026-05-18 (in-house-stack policy), this ADR's components cla
 | **OIDC** | KEEP (open standard via OpenID Foundation) | Industry-standard public auth protocol. | None planned. |
 | **WebAuthn / FIDO2** | KEEP (W3C + FIDO Alliance) | Industry-standard passkey protocol. | None planned. |
 
-Why no in-house gateway: Envoy is what AWS App Mesh, GCP Anthos, Solo.io, and Cloudflare's edge use under the hood. Building an oyatie-native gateway proxy would reimplement Envoy with a smaller adoption surface; the engineering cost would not produce a better outcome. The Envoy Gateway control plane delivers Gateway-API-conformant config evolution; building an oyatie-native control plane would fork from the standard.
+Why no in-house gateway: Envoy is what AWS App Mesh, GCP Anthos, Solo.io, and Cloudflare's edge use under the hood. Building an Oya-native gateway proxy would reimplement Envoy with a smaller adoption surface; the engineering cost would not produce a better outcome. The Envoy Gateway control plane delivers Gateway-API-conformant config evolution; building an Oya-native control plane would fork from the standard.
 
-The cell-µservice's per-tenant rate-limit counters (Tier-3 Valkey per ADR-0184) are oyatie-native logic running on a KEEP-classified backend; the rate-limit policy compiler is part of the governance µservice's Cedar compiler emit path (per ADR-0183), which is itself in-house code on a KEEP-classified policy engine. This is the AWS/Google/Microsoft/Oracle pattern: standard engines, in-house policy + product assets.
+The cell-µservice's per-tenant rate-limit counters (Tier-3 Valkey per ADR-0184) are Oya-native logic running on a KEEP-classified backend; the rate-limit policy compiler is part of the governance µservice's Cedar compiler emit path (per ADR-0183), which is itself in-house code on a KEEP-classified policy engine. This is the AWS/Google/Microsoft/Oracle pattern: standard engines, in-house policy + product assets.
 
 ## Rollback
 

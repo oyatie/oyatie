@@ -43,6 +43,7 @@ struct ScanSurface {
 struct ScanOutcome {
     findings: usize,
     cleaned: usize,
+    examples: Vec<String>,
 }
 
 pub(crate) fn parse_workspace_hygiene_validate_args(
@@ -126,8 +127,13 @@ pub(crate) fn validate_workspace_hygiene_gate(
                 surface.audit_finding_budget
             };
             if surface_outcome.findings > budget {
+                let examples = if surface_outcome.examples.is_empty() {
+                    String::new()
+                } else {
+                    format!("; examples: {}", surface_outcome.examples.join(", "))
+                };
                 return Err(format!(
-                    "workspace hygiene surface {} has {} findings above {} budget {budget}",
+                    "workspace hygiene surface {} has {} findings above {} budget {budget}{examples}",
                     surface.id,
                     surface_outcome.findings,
                     if args.strict { "strict" } else { "audit" }
@@ -343,6 +349,9 @@ fn scan_directory_entries(
         }
         if matched {
             outcome.findings += 1;
+            if outcome.examples.len() < MAX_FINDING_EXAMPLES {
+                outcome.examples.push(entry.path().display().to_string());
+            }
         }
         if depth + 1 < surface.max_depth
             && entry
@@ -562,10 +571,17 @@ impl std::ops::AddAssign for ScanOutcome {
     fn add_assign(&mut self, rhs: Self) {
         self.findings += rhs.findings;
         self.cleaned += rhs.cleaned;
+        for example in rhs.examples {
+            if self.examples.len() >= MAX_FINDING_EXAMPLES {
+                break;
+            }
+            self.examples.push(example);
+        }
     }
 }
 
 const REQUIRED_SURFACES: &[&str] = &["tmp", "home", "repo", "build-artifacts", "oyatie-worktrees"];
+const MAX_FINDING_EXAMPLES: usize = 5;
 
 const REQUIRED_PIPELINE_PHASES: &[&str] =
     &["session-start", "pre-pr", "post-merge", "session-close"];

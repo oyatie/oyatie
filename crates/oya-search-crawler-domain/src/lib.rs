@@ -92,9 +92,9 @@ mod tests {
     fn base_input() -> CrawlTargetCreate {
         CrawlTargetCreate {
             target_id: "tgt_001".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             scheme: CrawlScheme::Https,
-            canonical_url: "https://kr.example.com/post/1".to_string(),
+            canonical_url: "https://alpha.example.test/post/1".to_string(),
             priority: CrawlPriority::Normal,
             depth_budget: 3,
             headers: BTreeMap::new(),

@@ -442,6 +442,54 @@ license = "GPL-3.0"
 }
 
 #[test]
+fn dependency_seam_gate_accepts_report_only_fixture_and_emits_report() {
+    let temp = temp_dir("dependency-seam-valid");
+    write_dependency_seam_gate_fixture(&temp, false);
+    let report = temp.join("dependency-seam-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(dependency_seam_gate_args(&temp, &report, "report-only"))
+        .output()
+        .expect("dependency seam gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("dependency-seam validation passed"));
+    assert!(report.exists(), "dependency seam report should be emitted");
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn dependency_seam_gate_rejects_strict_import_violation() {
+    let temp = temp_dir("dependency-seam-strict-violation");
+    write_dependency_seam_gate_fixture(&temp, true);
+    let report = temp.join("dependency-seam-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(dependency_seam_gate_args(&temp, &report, "error"))
+        .output()
+        .expect("dependency seam gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("blocking diagnostics"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        report.exists(),
+        "strict failure still emits diagnostic report"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn vendor_contract_recency_gate_accepts_explicit_no_signed_contracts_declaration() {
     let temp = temp_dir("vendor-contract-recency-empty");
     let ledger = write_vendor_contract_ledger(
@@ -1645,6 +1693,76 @@ fn design_spec_maturity_claims_gate_accepts_fixture_and_emits_evidence() {
 }
 
 #[test]
+fn korea_localization_evidence_gate_accepts_fixture_and_emits_bundle() {
+    let temp = temp_dir("korea-localization-evidence");
+    write_korea_localization_evidence_fixture(&temp);
+    let evidence_path = temp.join("evidence/fd001/kr-localization.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "korea-localization-evidence",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo root"),
+            "--emit-evidence",
+            evidence_path.to_str().expect("utf8 evidence path"),
+        ])
+        .output()
+        .expect("korea localization evidence gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("korea-localization-evidence validation passed"));
+    assert!(stdout.contains("pack_status=planning-closed-foundational"));
+    assert!(stdout.contains("activation_claim=not-active"));
+    let evidence = fs::read_to_string(&evidence_path).expect("evidence bundle written");
+    assert!(evidence.contains("\"schema_version\": \"oyatie.kr-localization-evidence.v1\""));
+    assert!(evidence.contains("\"covered_kr_pack_surface_count\": 12"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn korea_localization_evidence_gate_rejects_missing_surface_evidence() {
+    let temp = temp_dir("korea-localization-evidence-missing");
+    write_korea_localization_evidence_fixture(&temp);
+    fs::remove_file(temp.join("docs/localization-packs/kr/evidence/mail.md"))
+        .expect("fixture file removed");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "korea-localization-evidence",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo root"),
+        ])
+        .output()
+        .expect("korea localization evidence gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("korea-localization-evidence validation failed"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("mail.md"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn design_spec_maturity_claims_gate_rejects_unblocked_operational_claims() {
     let temp = temp_dir("design-spec-maturity-operational-claim");
     let microservices_root = temp.join("microservices");
@@ -1977,6 +2095,11 @@ fn workspace_hygiene_gate_strict_mode_rejects_build_artifact_residue() {
     assert!(!output.status.success());
     assert!(
         String::from_utf8_lossy(&output.stderr).contains("build-artifacts"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("target"),
         "stderr={}",
         String::from_utf8_lossy(&output.stderr)
     );
@@ -2954,8 +3077,8 @@ fn placeholder_debt_gate_accepts_registry_and_writes_report() {
 }
 
 #[test]
-fn placeholder_debt_gate_writes_bootstrap_registry() {
-    let temp = temp_dir("placeholder-debt-bootstrap");
+fn placeholder_debt_gate_writes_accountable_registry() {
+    let temp = temp_dir("placeholder-debt-accountable");
     write_placeholder_debt_docs(&temp, "TODO: decide the owner.");
     let registry_path = temp.join("generated-registry.tsv");
     let mut args = placeholder_debt_args(&temp);
@@ -2980,7 +3103,7 @@ fn placeholder_debt_gate_writes_bootstrap_registry() {
     );
     let registry = fs::read_to_string(&registry_path).expect("placeholder registry written");
     assert!(registry.contains("TODO\tdocs/README.md\t1\tTODO: decide the owner."));
-    assert!(registry.contains("BOOTSTRAP_ONLY owner=TBD; issue=TBD; captured_at=2026-05-10"));
+    assert!(registry.contains("owner=council-architecture; issue=PLACEHOLDER-DEBT-AUTO-CAPTURE; captured_at=2026-05-19; action=close-or-archive-before-production-claim"));
 
     let enforcement_output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -2994,8 +3117,12 @@ fn placeholder_debt_gate_writes_bootstrap_registry() {
         ])
         .output()
         .expect("placeholder debt enforcement command runs");
-    assert!(!enforcement_output.status.success());
-    assert!(String::from_utf8_lossy(&enforcement_output.stderr).contains("bootstrap-only"));
+    assert!(
+        enforcement_output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&enforcement_output.stdout),
+        String::from_utf8_lossy(&enforcement_output.stderr)
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -4251,6 +4378,115 @@ fn cargo_prefix_args(root: &Path) -> Vec<String> {
     ]
 }
 
+fn write_dependency_seam_gate_fixture(root: &Path, include_offender: bool) {
+    fs::create_dir_all(root.join("crates/adapter/src")).expect("adapter dir created");
+    let mut members = vec!["\"crates/adapter\"".to_string()];
+    if include_offender {
+        fs::create_dir_all(root.join("crates/offender/src")).expect("offender dir created");
+        fs::write(
+            root.join("crates/offender/Cargo.toml"),
+            r#"[package]
+name = "offender"
+edition = "2024"
+version = "0.1.0"
+license = "Apache-2.0"
+[dependencies]
+hyper.workspace = true
+"#,
+        )
+        .expect("offender manifest written");
+        fs::write(
+            root.join("crates/offender/src/lib.rs"),
+            "pub fn offender() { let _ = hyper::Version::HTTP_11; }\n",
+        )
+        .expect("offender source written");
+        members.push("\"crates/offender\"".to_string());
+    }
+    fs::write(
+        root.join("Cargo.toml"),
+        format!(
+            "[workspace]\nmembers = [{}]\n[workspace.dependencies]\nhyper = \"1\"\n",
+            members.join(", ")
+        ),
+    )
+    .expect("workspace manifest written");
+    fs::write(
+        root.join("crates/adapter/Cargo.toml"),
+        r#"[package]
+name = "adapter"
+edition = "2024"
+version = "0.1.0"
+license = "Apache-2.0"
+[dependencies]
+hyper.workspace = true
+"#,
+    )
+    .expect("adapter manifest written");
+    fs::write(
+        root.join("crates/adapter/src/lib.rs"),
+        "pub fn adapter() { let _ = hyper::Version::HTTP_11; }\n",
+    )
+    .expect("adapter source written");
+    fs::create_dir_all(root.join("registry")).expect("registry dir created");
+    fs::write(
+        root.join("registry/dependency-rationales.json"),
+        r#"{"entries":{"hyper":{"isolated_in_crate":"adapter"}}}
+"#,
+    )
+    .expect("dependency registry written");
+    fs::create_dir_all(root.join("evidence/multispectrum")).expect("evidence dir created");
+    fs::write(
+        root.join("evidence/multispectrum/dependency-seam-test.json"),
+        dependency_seam_valid_evidence(),
+    )
+    .expect("dependency evidence written");
+}
+
+fn dependency_seam_gate_args(root: &Path, report: &Path, severity: &str) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "dependency-seam".into(),
+        "--repo-root".into(),
+        root.to_str().expect("utf8 root").into(),
+        "--fixture-root".into(),
+        repo_root()
+            .join("crates/oya-check-dependency-seam/tests/fixtures")
+            .to_str()
+            .expect("utf8 fixture root")
+            .into(),
+        "--evidence".into(),
+        root.join("evidence/multispectrum/dependency-seam-test.json")
+            .to_str()
+            .expect("utf8 evidence")
+            .into(),
+        "--severity".into(),
+        severity.into(),
+        "--emit-report".into(),
+        report.to_str().expect("utf8 report").into(),
+    ]
+}
+
+fn dependency_seam_valid_evidence() -> &'static str {
+    r#"{
+  "change_id": "dependency-seam-test",
+  "change_class_id": "CC-7",
+  "git_sha": "abcdef1",
+  "freshness_unix": 1700000000,
+  "facets": {
+    "F1_linus": {"considered": true, "rigor": "scan"},
+    "F2_hyperscaler": {"considered": true, "rigor": "scan"},
+    "F3_adversarial": {"considered": true, "rigor": "deep"},
+    "F4_ergonomic": {"considered": true, "rigor": "scan"},
+    "F5_quality": {"considered": true, "rigor": "scan"},
+    "F6_alternatives": {"considered": true, "rigor": "scan"},
+    "F7_security": {"considered": true, "rigor": "scan"},
+    "F8_performance": {"considered": true},
+    "F9_compliance": {"considered": true}
+  }
+}"#
+}
+
 fn write_quality_lanes_fixture(root: &Path, check_command: &str, markdown_purpose: &str) {
     fs::create_dir_all(root.join("registry/quality")).expect("quality registry dir created");
     fs::create_dir_all(root.join("docs/standards")).expect("standards dir created");
@@ -4638,6 +4874,411 @@ fn master_plan_completion_gate_is_dispatched() {
 }
 
 #[test]
+fn planning_closure_gate_accepts_closed_minimal_masterplan_surface() {
+    let temp = TempDirGuard::new("planning-closure-pass");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "planning-closure",
+            "--contract",
+            root.join("specs/planning-closure-contract.json")
+                .to_str()
+                .expect("utf8 contract"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--sequencing",
+            root.join("specs/master-plan-sequencing.json")
+                .to_str()
+                .expect("utf8 sequencing"),
+            "--root-hub",
+            root.join("specs/root-hub-pointers.json")
+                .to_str()
+                .expect("utf8 root hub"),
+            "--vertical-adr",
+            root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md")
+                .to_str()
+                .expect("utf8 adr"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("planning-closure validation passed"));
+}
+
+#[test]
+fn planning_closure_gate_rejects_missing_korea_pack_surface() {
+    let temp = TempDirGuard::new("planning-closure-missing-kr");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), true);
+    let root = repo_root();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "planning-closure",
+            "--contract",
+            root.join("specs/planning-closure-contract.json")
+                .to_str()
+                .expect("utf8 contract"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--sequencing",
+            root.join("specs/master-plan-sequencing.json")
+                .to_str()
+                .expect("utf8 sequencing"),
+            "--root-hub",
+            root.join("specs/root-hub-pointers.json")
+                .to_str()
+                .expect("utf8 root hub"),
+            "--vertical-adr",
+            root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md")
+                .to_str()
+                .expect("utf8 adr"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("korea-localization-pack") || stderr.contains("set mismatch"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_missing_one_click_bootstrap_evidence() {
+    let temp = TempDirGuard::new("planning-closure-missing-one-click");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let mut contract: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(root.join("specs/planning-closure-contract.json"))
+            .expect("contract readable"),
+    )
+    .expect("contract parses");
+    contract
+        .pointer_mut("/deployment_portability_policy/required_artifacts")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("deployment artifacts present")
+        .retain(|artifact| artifact.as_str() != Some("one_click_setup_entrypoint"));
+    let contract_path = temp.path().join("planning-closure-contract.json");
+    fs::write(
+        &contract_path,
+        serde_json::to_string_pretty(&contract).expect("contract serializes"),
+    )
+    .expect("contract fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "planning-closure",
+            "--contract",
+            contract_path.to_str().expect("utf8 contract"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--sequencing",
+            root.join("specs/master-plan-sequencing.json")
+                .to_str()
+                .expect("utf8 sequencing"),
+            "--root-hub",
+            root.join("specs/root-hub-pointers.json")
+                .to_str()
+                .expect("utf8 root hub"),
+            "--vertical-adr",
+            root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md")
+                .to_str()
+                .expect("utf8 adr"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("one_click_setup_entrypoint") || stderr.contains("set mismatch"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_stale_discovery_documents() {
+    let temp = TempDirGuard::new("planning-closure-stale-doc");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let mut sequencing: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(root.join("specs/master-plan-sequencing.json"))
+            .expect("sequencing readable"),
+    )
+    .expect("sequencing parses");
+    sequencing
+        .pointer_mut("/master_plan_discovery_order")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("discovery order present")
+        .push(serde_json::json!("/evidence/goals/implement-masterplan.md"));
+    let sequencing_path = temp.path().join("master-plan-sequencing.json");
+    fs::write(
+        &sequencing_path,
+        serde_json::to_string_pretty(&sequencing).expect("sequencing serializes"),
+    )
+    .expect("sequencing fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "planning-closure",
+            "--contract",
+            root.join("specs/planning-closure-contract.json")
+                .to_str()
+                .expect("utf8 contract"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--sequencing",
+            sequencing_path.to_str().expect("utf8 sequencing"),
+            "--root-hub",
+            root.join("specs/root-hub-pointers.json")
+                .to_str()
+                .expect("utf8 root hub"),
+            "--vertical-adr",
+            root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md")
+                .to_str()
+                .expect("utf8 adr"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("stale archived document"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn planning_closure_gate_accepts_repo_default_paths() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .current_dir(repo_root())
+        .args(["gate", "validate", "planning-closure"])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("planning-closure validation passed"));
+}
+
+#[test]
+fn planning_closure_gate_rejects_blocking_masterplan_status() {
+    let temp = TempDirGuard::new("planning-closure-blocking-status");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let mut master_plan_json = read_planning_closure_json(&master_plan);
+    master_plan_json["planning_closure"]["false_green_probe"] = serde_json::json!({
+        "status": "stub"
+    });
+    write_planning_closure_json(&master_plan, &master_plan_json);
+    let root = repo_root();
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root.join("specs/root-hub-pointers.json"),
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("planning closure remains blocked")
+            && stderr.contains("false_green_probe.status"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_missing_root_hub_status_ledger_pointer() {
+    let temp = TempDirGuard::new("planning-closure-missing-root-hub-ledger-pointer");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let (root_hub, _status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut root_hub_json = read_planning_closure_json(&root_hub);
+    root_hub_json
+        .pointer_mut("/entry_points")
+        .and_then(serde_json::Value::as_object_mut)
+        .expect("root hub entry points present")
+        .remove("planning_closure_status_ledger");
+    write_planning_closure_json(&root_hub, &root_hub_json);
+    let root = repo_root();
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("entry_points.planning_closure_status_ledger is missing"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_missing_root_hub_direct_authority_pointer() {
+    let temp = TempDirGuard::new("planning-closure-missing-root-hub-direct-authority");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let (root_hub, _status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut root_hub_json = read_planning_closure_json(&root_hub);
+    root_hub_json
+        .pointer_mut("/entry_points")
+        .and_then(serde_json::Value::as_object_mut)
+        .expect("root hub entry points present")
+        .remove("korea_localization_pack_manifest");
+    write_planning_closure_json(&root_hub, &root_hub_json);
+    let root = repo_root();
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(
+            "root hub missing direct authority pointer entry_points.korea_localization_pack_manifest"
+        ) && stderr.contains("docs/localization-packs/kr/pack.yaml"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_status_ledger_missing_required_exit_evidence() {
+    let temp = TempDirGuard::new("planning-closure-missing-ledger-exit-evidence");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let (root_hub, status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut status_ledger_json = read_planning_closure_json(&status_ledger);
+    status_ledger_json
+        .pointer_mut("/required_exit_evidence")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("required exit evidence present")
+        .retain(|evidence| evidence.as_str() != Some("korea_localization_pack_exit_evidence"));
+    write_planning_closure_json(&status_ledger, &status_ledger_json);
+    let root = repo_root();
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("planning closure status ledger root.required_exit_evidence")
+            && stderr.contains("korea_localization_pack_exit_evidence"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_vertical_adr_missing_false_green_phrase() {
+    let temp = TempDirGuard::new("planning-closure-missing-adr-false-green");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let adr =
+        fs::read_to_string(root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"))
+            .expect("vertical ADR readable");
+    assert!(adr.to_ascii_lowercase().contains("false green signals"));
+    let adr_path = temp.path().join("ADR-0217-vertical-slice-rollout-order.md");
+    fs::write(
+        &adr_path,
+        adr.replace("false green signals", "regression truth signals"),
+    )
+    .expect("vertical ADR fixture written");
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root.join("specs/root-hub-pointers.json"),
+        &adr_path,
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("planning-closure phrase \"false green signals\""),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_no_placeholder_policy_without_false_signal_controls() {
+    let temp = TempDirGuard::new("planning-closure-missing-false-signal-controls");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let mut contract =
+        read_planning_closure_json(&root.join("specs/planning-closure-contract.json"));
+    contract["no_placeholder_policy"]["no_false_signals"] = serde_json::json!(false);
+    let contract_path = temp.path().join("planning-closure-contract.json");
+    write_planning_closure_json(&contract_path, &contract);
+
+    let output = run_planning_closure_gate(
+        &contract_path,
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root.join("specs/root-hub-pointers.json"),
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("no_placeholder_policy.no_false_signals must be true"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
 fn stage0_prereqs_gate_is_dispatched() {
     let temp = temp_dir("stage0-prereqs-dispatch");
     fs::create_dir_all(temp.join("crates/oya-application-app/src")).expect("app dir created");
@@ -4864,11 +5505,11 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
     let workflows_dir = temp.join("workflows");
     fs::create_dir_all(&workflows_dir).expect("workflows dir created");
 
-    // branch-protection lists `oya-foundry-fitness-protection-context-match`
+    // branch-protection lists `oya-governance-protection-context-match`
     // but the workflow posts `pcm-check` (different label) — silent bypass.
     let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
                              required_status_checks:\n      \
-                             - oya-foundry-fitness-protection-context-match\n    \
+                             - oya-governance-protection-context-match\n    \
                              require_signed_commits: true\n";
     let protection_file = temp.join("branch-protection.yaml");
     fs::write(&protection_file, branch_protection).expect("branch-protection written");
@@ -4889,6 +5530,7 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
             workflows_dir.to_str().expect("utf8 workflows dir"),
             "--branch",
             "dev",
+            "--skip-applied-branch-protection",
         ])
         .output()
         .expect("gate command runs");
@@ -4905,7 +5547,7 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
         "stderr must contain failure message; got: {stderr}"
     );
     assert!(
-        stderr.contains("oya-foundry-fitness-protection-context-match"),
+        stderr.contains("oya-governance-protection-context-match"),
         "stderr must name the missing context; got: {stderr}"
     );
 
@@ -4922,7 +5564,7 @@ fn protection_context_match_gate_passes_clean_crate() {
 
     let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
                              required_status_checks:\n      - cargo-fmt\n      \
-                             - oya-foundry-fitness-protection-context-match\n    \
+                             - oya-governance-protection-context-match\n    \
                              require_signed_commits: true\n";
     let protection_file = temp.join("branch-protection.yaml");
     fs::write(&protection_file, branch_protection).expect("branch-protection written");
@@ -4930,7 +5572,7 @@ fn protection_context_match_gate_passes_clean_crate() {
     let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
                          name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
                          - run: cargo fmt --check\n  pcm:\n    \
-                         name: oya-foundry-fitness-protection-context-match\n    \
+                         name: oya-governance-protection-context-match\n    \
                          runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n";
     fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
 
@@ -4945,6 +5587,7 @@ fn protection_context_match_gate_passes_clean_crate() {
             workflows_dir.to_str().expect("utf8 workflows dir"),
             "--branch",
             "dev",
+            "--skip-applied-branch-protection",
         ])
         .output()
         .expect("gate command runs");
@@ -4960,6 +5603,238 @@ fn protection_context_match_gate_passes_clean_crate() {
             .contains("protection-context-match validation passed"),
         "stdout must confirm pass; got: {}",
         String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the protection-context-match validator also catches the
+/// hosted false-green class: local branch-protection + workflow job
+/// names agree, but live GitHub branch protection requires fewer
+/// contexts than the repo policy.
+#[test]
+fn protection_context_match_gate_catches_live_branch_protection_drift() {
+    let temp = temp_dir("pcm-live-drift");
+    let workflows_dir = temp.join("workflows");
+    fs::create_dir_all(&workflows_dir).expect("workflows dir created");
+
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      - cargo-fmt\n      \
+                             - oya-pr-review\n    require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
+                         name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: cargo fmt --check\n  review:\n    \
+                         name: oya-pr-review\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: echo ok\n";
+    fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
+    let live_required_contexts = temp.join("live-required-contexts.json");
+    fs::write(&live_required_contexts, r#"{"contexts":["cargo-fmt"]}"#)
+        .expect("live contexts written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            "--workflows-dir",
+            workflows_dir.to_str().expect("utf8 workflows dir"),
+            "--branch",
+            "dev",
+            "--skip-applied-branch-protection",
+            "--live-required-contexts",
+            live_required_contexts
+                .to_str()
+                .expect("utf8 live contexts path"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected exit 1 for live branch-protection drift\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("live branch protection required_status_checks"),
+        "stderr must name live drift; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("missing from live branch protection: oya-pr-review"),
+        "stderr must name the unenforced context; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the protection-context-match validator catches the local
+/// false-green class where the canonical YAML and workflow job names agree,
+/// but the JSON config used by branch-protection apply still carries a stale
+/// required context.
+#[test]
+fn protection_context_match_gate_catches_applied_branch_protection_drift() {
+    let temp = temp_dir("pcm-applied-drift");
+    let workflows_dir = temp.join("workflows");
+    fs::create_dir_all(&workflows_dir).expect("workflows dir created");
+
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      - cargo-fmt\n      \
+                             - oya-governance-protection-context-match\n    \
+                             require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
+                         name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: cargo fmt --check\n  pcm:\n    \
+                         name: oya-governance-protection-context-match\n    \
+                         runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n";
+    fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
+
+    let applied_config = temp.join("dev.json");
+    fs::write(
+        &applied_config,
+        r#"{"required_status_checks":{"contexts":["cargo-fmt","oya-foundry-fitness-protection-context-match"]}}"#,
+    )
+    .expect("applied config written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            "--workflows-dir",
+            workflows_dir.to_str().expect("utf8 workflows dir"),
+            "--branch",
+            "dev",
+            "--applied-branch-protection",
+            applied_config.to_str().expect("utf8 applied config path"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected exit 1 for applied branch-protection drift\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("applied branch-protection config required_status_checks"),
+        "stderr must name applied drift; got: {stderr}"
+    );
+    assert!(
+        stderr.contains(
+            "missing from applied branch-protection config: oya-governance-protection-context-match"
+        ),
+        "stderr must name the missing new context; got: {stderr}"
+    );
+    assert!(
+        stderr.contains(
+            "extra in applied branch-protection config: oya-foundry-fitness-protection-context-match"
+        ),
+        "stderr must name the stale old context; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn canonical_base_neutrality_self_test_passes() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "canonical-base-neutrality",
+            "--self-test",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected self-test to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("canonical-base-neutrality validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+}
+
+#[test]
+fn canonical_base_neutrality_catches_identifier_and_string_leaks() {
+    let temp = temp_dir("canonical-base-neutrality-dirty");
+    let src_dir = temp.join("crates/oya-cloud-data-kernel/src");
+    fs::create_dir_all(&src_dir).expect("fixture src dir created");
+    fs::write(
+        src_dir.join("lib.rs"),
+        r#"
+pub struct FinancialKrCredit;
+pub enum ResidencyClass { StrictKr }
+pub enum HsmValidation { KcmvpFips1403Level3 }
+pub struct LeastUsed;
+pub struct KmsUseReceipt;
+pub struct InvalidUserDataUri;
+pub const LOCALE: &str = "ko-KR";
+pub const CERT: &str = "KCMVP validated module";
+"#,
+    )
+    .expect("fixture source written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "canonical-base-neutrality",
+            "--repo-root",
+            temp.to_str().expect("utf8 temp path"),
+            "--root",
+            "crates/oya-cloud-data-kernel/src",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected jurisdiction leaks to fail\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("FinancialKrCredit"),
+        "stderr must name identifier leak; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("StrictKr"),
+        "stderr must name second identifier leak; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("ko-KR"),
+        "stderr must name string leak; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("KcmvpFips1403Level3") && stderr.contains("KCMVP validated module"),
+        "stderr must name KCMVP identifier and string leaks; got: {stderr}"
+    );
+    assert!(
+        !stderr.contains("LeastUsed")
+            && !stderr.contains("KmsUseReceipt")
+            && !stderr.contains("InvalidUserDataUri"),
+        "stderr must avoid common Us false positives; got: {stderr}"
     );
 
     fs::remove_dir_all(temp).ok();
@@ -5638,6 +6513,417 @@ fn aspirational_enforcement_gate_accepts_real_required_surfaces() {
     assert!(
         String::from_utf8_lossy(&output.stdout)
             .contains("aspirational-enforcement validation passed")
+    );
+}
+
+#[test]
+fn banned_primitives_gate_accepts_sanctioned_oya_git_surface() {
+    let temp = TempDirGuard::new("banned-primitives-clean");
+    write_banned_primitives_fixture(
+        temp.path(),
+        "  - oya-git\nretirement_note: `oya git <git-subcommand>` is the git drop-in surface\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected sanctioned oya git surface to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("banned-primitives validation passed")
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_manual_push_inside_agent_fence() {
+    let temp = TempDirGuard::new("banned-primitives-manual-push");
+    write_banned_primitives_fixture(temp.path(), "run git push origin dev\n");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("manual-push"),
+        "stderr must include manual-push violation; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_accepts_sanitized_command_log_corpus() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-clean");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "command-log.v1.jsonl",
+        r#"{"record_id":"clean-001","origin":"session_tool_call_fixture","tool":"bin/oya","args":["git","status","--short"],"redacted":true,"expected":"allow"}
+{"record_id":"clean-002","origin":"session_tool_call_fixture","tool":"oya","args":["vcs","verify","--agent","fd001"],"redacted":true,"expected":"allow"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected sanitized command-log corpus to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("2 command-log records"),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_requires_command_log_records_when_requested() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-required");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("command-log corpus required"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_direct_git_in_command_log_corpus() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-direct-git");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-direct-git-status.jsonl",
+        r#"{"record_id":"reject-001","origin":"session_tool_call_fixture","tool":"git","args":["status","--short"],"redacted":true,"expected":"direct-vcs"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("forbidden command-log primitive direct-vcs"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_nested_shell_command_log_corpus() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-shell");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-nested-shell.jsonl",
+        r#"{"record_id":"reject-002","origin":"session_tool_call_fixture","tool":"Bash","tool_input":{"command":"git push origin dev"},"redacted":true,"expected":"manual-push"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("forbidden command-log primitive manual-push"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_cmd_command_log_field() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-cmd-field");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-cmd-field.jsonl",
+        r#"{"record_id":"reject-004","origin":"session_tool_call_fixture","tool":"Bash","cmd":"git push origin dev","redacted":true,"expected":"manual-push"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("forbidden command-log primitive manual-push"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_json_encoded_tool_arguments() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-json-arguments");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-json-arguments.jsonl",
+        r#"{"record_id":"reject-005","origin":"session_tool_call_fixture","tool":"Bash","arguments":"{\"cmd\":\"gh pr merge 123\"}","redacted":true,"expected":"forge-merge"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("forbidden command-log primitive forge-merge"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_tool_only_command_log_records() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-tool-only");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-tool-only.jsonl",
+        r#"{"record_id":"reject-006","origin":"session_tool_call_fixture","tool":"Bash","redacted":true,"expected":"reject-missing-command-surface"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("has no command or tool/args surface"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_unredacted_command_log_records() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-unredacted");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-unredacted.jsonl",
+        r#"{"record_id":"reject-003","origin":"session_tool_call_fixture","tool":"oya","args":["git","status"],"redacted":false,"expected":"reject-unredacted"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("redacted=true"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
     );
 }
 
@@ -6441,6 +7727,32 @@ fn write_aspirational_fixture(root: &Path) -> AspirationalFixture {
     }
 }
 
+fn write_banned_primitives_fixture(root: &Path, root_agent_fence_body: &str) {
+    fs::create_dir_all(root.join("docs")).expect("docs dir created");
+    fs::write(
+        root.join("AGENTS.md"),
+        format!(
+            "# Agent contract\n\n<!-- agent-instructions:start -->\n{root_agent_fence_body}<!-- agent-instructions:end -->\n"
+        ),
+    )
+    .expect("AGENTS fixture written");
+    fs::write(
+        root.join("CLAUDE.md"),
+        "# Claude contract\n\n<!-- agent-instructions:start -->\ncoordination_surface: foundry_pipeline\n<!-- agent-instructions:end -->\n",
+    )
+    .expect("CLAUDE fixture written");
+    fs::write(
+        root.join("docs/AGENTS.md"),
+        "# Docs agent contract\n\n<!-- agent-instructions:start -->\nsanctioned_primitives:\n  - oya-vcs\n<!-- agent-instructions:end -->\n",
+    )
+    .expect("docs AGENTS fixture written");
+}
+
+fn write_command_log_fixture(root: &Path, file_name: &str, contents: &str) {
+    fs::create_dir_all(root).expect("command-log corpus dir created");
+    fs::write(root.join(file_name), contents).expect("command-log fixture written");
+}
+
 fn write_honest_claims_plan(plans_dir: &Path, file_name: &str, id: &str, extra: &str) {
     fs::write(
         plans_dir.join(file_name),
@@ -6553,6 +7865,182 @@ fn write_design_spec_maturity_service_fixture(microservices_root: &Path) {
         "# Operational Boundaries\n\nIncident and capacity ownership remain design-only here.\n",
     )
     .expect("operational boundaries written");
+}
+
+fn write_korea_localization_evidence_fixture(repo_root: &Path) {
+    let pack_dir = repo_root.join("docs/localization-packs/kr");
+    let evidence_dir = pack_dir.join("evidence");
+    fs::create_dir_all(&evidence_dir).expect("KR evidence dir created");
+    fs::write(
+        repo_root.join("docs/localization-packs/kr.md"),
+        "pack_code: kr\nstatus: planning-closed-foundational\nmanifest: docs/localization-packs/kr/pack.yaml\nSubstrate stays pack-neutral.\ndocs/localization-packs/kr/evidence/<microservice>.md\n",
+    )
+    .expect("KR overview written");
+    fs::write(
+        pack_dir.join("pack.yaml"),
+        "pack:\n  code: kr\n  status: planning-closed-foundational\ncorpus_lock: \"kr/corpus.lock\"\nevidence_dir: \"kr/evidence/\"\nmicroservices_in_scope:\nregulatory_bindings:\n  - { id: connect-retention-kr }\n  - { id: pipa-b2b }\n",
+    )
+    .expect("KR manifest written");
+    fs::write(
+        pack_dir.join("corpus.lock"),
+        r#"{
+  "pack_code": "kr",
+  "status": "planning-closed",
+  "active_promotion_requires_signed_attestation": true,
+  "disallowed_claim": "production-current without signed attestation"
+}
+"#,
+    )
+    .expect("KR corpus lock written");
+
+    let kr_surfaces = [
+        "pack_manifest",
+        "regulatory_bindings",
+        "cedar_policy_fragments",
+        "workflow_templates",
+        "typst_document_templates",
+        "connect_mail_messenger_community_localization",
+        "enterprise_smb_operating_flows",
+        "audit_chain_evidence",
+        "data_residency_and_privacy_controls",
+        "import_export_migration_paths",
+        "operational_runbooks_and_slos",
+        "ops_control_center_localization_runbooks_and_escalation_flows",
+    ];
+    let fd001_surfaces = [
+        ("application", "application"),
+        ("messenger", "messenger"),
+        ("mail", "mail"),
+        ("community", "community"),
+        ("cloud-iac", "cloud-iac"),
+        ("cloud-k8s", "cloud-k8s"),
+        ("cloud-secrets", "cloud-secrets"),
+        (
+            "ops-dashboard-control-center",
+            "ops-dashboard-control-center",
+        ),
+        ("foundry", "foundry"),
+        ("workflow-engine", "workflow-engine"),
+        ("workflow-studio", "workflow-studio"),
+        ("ontology", "ontology"),
+    ];
+    for (surface, microservice) in fd001_surfaces {
+        let service_dir = repo_root.join("microservices").join(microservice);
+        fs::create_dir_all(&service_dir).expect("microservice dir created");
+        fs::write(service_dir.join("manifest.json"), "{}\n").expect("manifest written");
+        fs::write(service_dir.join("PRD.md"), "# PRD\n").expect("prd written");
+        let kr_surface_lines = kr_surfaces
+            .iter()
+            .map(|surface| format!("- kr_pack_surface: {surface}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        fs::write(
+            evidence_dir.join(format!("{surface}.md")),
+            format!(
+                "---\npack_code: kr\nfd001_surface: {surface}\nsource_microservice: {microservice}\nstatus: planning-closed-foundational\nactivation_claim: not-active\n---\n# KR Evidence\n\n## Evidence\n- docs/localization-packs/kr.md\n- docs/localization-packs/kr/pack.yaml\n- docs/localization-packs/kr/corpus.lock\n- microservices/{microservice}/manifest.json\n- microservices/{microservice}/PRD.md\n\n## KR Pack Responsibilities\n{kr_surface_lines}\n\n## Non-Claims\nThis evidence is not active and proves no live tenant readiness.\n\n## Exit Blockers\nSigned activation evidence remains outside this fixture.\n\n## Acceptance Commands\ncargo run -q -p oya-dev-cli -- gate validate korea-localization-evidence\n"
+            ),
+        )
+        .expect("KR evidence written");
+    }
+}
+
+fn run_planning_closure_gate(
+    contract: &Path,
+    master_plan: &Path,
+    sequencing: &Path,
+    root_hub: &Path,
+    vertical_adr: &Path,
+) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(["gate", "validate", "planning-closure"])
+        .arg("--contract")
+        .arg(contract)
+        .arg("--master-plan")
+        .arg(master_plan)
+        .arg("--sequencing")
+        .arg(sequencing)
+        .arg("--root-hub")
+        .arg(root_hub)
+        .arg("--vertical-adr")
+        .arg(vertical_adr)
+        .output()
+        .expect("gate command runs")
+}
+
+fn read_planning_closure_json(path: &Path) -> serde_json::Value {
+    serde_json::from_str(&fs::read_to_string(path).expect("json fixture readable"))
+        .expect("json fixture parses")
+}
+
+fn write_planning_closure_json(path: &Path, value: &serde_json::Value) {
+    fs::write(
+        path,
+        serde_json::to_string_pretty(value).expect("json fixture serializes"),
+    )
+    .expect("json fixture written");
+}
+
+fn write_planning_closure_repo_sidecars(dir: &Path) -> (PathBuf, PathBuf) {
+    let root = repo_root();
+    let specs_dir = dir.join("specs");
+    fs::create_dir_all(&specs_dir).expect("specs fixture dir created");
+    let archive_dir = dir.join(".omc/archive/stale-documents/2026-05-19-planning-closure");
+    fs::create_dir_all(&archive_dir).expect("archive fixture dir created");
+
+    let root_hub = specs_dir.join("root-hub-pointers.json");
+    fs::copy(root.join("specs/root-hub-pointers.json"), &root_hub)
+        .expect("root hub fixture copied");
+    let status_ledger = specs_dir.join("planning-closure-status-closure-ledger.json");
+    fs::copy(
+        root.join("specs/planning-closure-status-closure-ledger.json"),
+        &status_ledger,
+    )
+    .expect("status ledger fixture copied");
+    fs::copy(
+        root.join(".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json"),
+        archive_dir.join("manifest.json"),
+    )
+    .expect("archive manifest fixture copied");
+
+    (root_hub, status_ledger)
+}
+
+fn write_planning_closure_masterplan_fixture(
+    dir: &Path,
+    remove_korea_pack_surface: bool,
+) -> PathBuf {
+    let root = repo_root();
+    let mut master_plan: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(root.join("specs/masterplan.json")).expect("masterplan readable"),
+    )
+    .expect("masterplan parses");
+
+    let mut fixture = serde_json::json!({
+        "_meta": master_plan
+            .get_mut("_meta")
+            .expect("meta present")
+            .take(),
+        "planning_closure": master_plan
+            .get_mut("planning_closure")
+            .expect("planning closure present")
+            .take()
+    });
+
+    if remove_korea_pack_surface {
+        let surfaces = fixture
+            .pointer_mut("/planning_closure/first_deliverable/required_surfaces")
+            .and_then(serde_json::Value::as_array_mut)
+            .expect("required surfaces present");
+        surfaces.retain(|surface| surface.as_str() != Some("korea-localization-pack"));
+    }
+
+    let path = dir.join("masterplan.json");
+    fs::write(
+        &path,
+        serde_json::to_string_pretty(&fixture).expect("fixture serializes"),
+    )
+    .expect("planning closure masterplan fixture written");
+    path
 }
 
 struct TempDirGuard {

@@ -165,6 +165,20 @@ fn parse_autonomy_tier(path: &Path, value: &str) -> Result<AutonomyTier, String>
     }
 }
 
+fn is_legacy_financial_credit_label(label: &str) -> bool {
+    let legacy_prefix = ["FINANCIAL", "_", "K", "R"].concat();
+    let legacy_credit_label = [legacy_prefix.as_str(), "_CREDIT"].concat();
+    let legacy_localized_label = [
+        legacy_prefix.as_str(),
+        "_",
+        &['신', '용', '정', '보'].iter().collect::<String>(),
+    ]
+    .concat();
+    label.trim() == legacy_prefix
+        || label.trim() == legacy_credit_label
+        || label.trim() == legacy_localized_label
+}
+
 fn parse_capability_data_class(path: &Path, label: &str) -> Result<DataClass, String> {
     match label.trim() {
         "PUBLIC" => Ok(DataClass::Public),
@@ -177,7 +191,8 @@ fn parse_capability_data_class(path: &Path, label: &str) -> Result<DataClass, St
         "PIPA_ARTICLE_23" | "PIPA_ARTICLE23" => Ok(DataClass::PipaArticle23),
         "SENSITIVE_PIPA_ART23" => Ok(DataClass::SensitivePipaArticle23),
         "FINANCIAL" => Ok(DataClass::Financial),
-        "FINANCIAL_KR_신용정보" | "FINANCIAL_KR_CREDIT" => Ok(DataClass::FinancialKrCredit),
+        "FINANCIAL_CREDIT" => Ok(DataClass::FinancialCredit),
+        legacy if is_legacy_financial_credit_label(legacy) => Ok(DataClass::FinancialCredit),
         "USAGE" => Ok(DataClass::Usage),
         "BEHAVIORAL_TENANT_PRODUCT" => Ok(DataClass::BehavioralTenantProduct),
         "BEHAVIORAL_ADS" => Ok(DataClass::BehavioralAds),

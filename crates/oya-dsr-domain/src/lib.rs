@@ -854,7 +854,7 @@ mod tests {
         DsrRequest::new(DsrRequestCreate {
             dsr_id: "dsr-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             subject_ref: "subject-1".into(),
             action,
             sla_tier: DsrSlaTier::Ga,
@@ -871,7 +871,7 @@ mod tests {
             kind,
             store_id: "workspace-mail".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             cell_id: "cell-a".into(),
             record_ref: record_ref.into(),
             data_class: privacy(DataClass::PiiIdentifying),
@@ -959,7 +959,7 @@ mod tests {
             DsrRequest::new(DsrRequestCreate {
                 dsr_id: "dsr-preview-max".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 subject_ref: "subject-1".into(),
                 action: DsrAction::Erase,
                 sla_tier: DsrSlaTier::Preview,
@@ -976,7 +976,7 @@ mod tests {
             DsrRequest::new(DsrRequestCreate {
                 dsr_id: "dsr-preview-late".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 subject_ref: "subject-1".into(),
                 action: DsrAction::Erase,
                 sla_tier: DsrSlaTier::Preview,
@@ -991,7 +991,7 @@ mod tests {
             DsrRequest::new(DsrRequestCreate {
                 dsr_id: "dsr-late".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 subject_ref: "subject-1".into(),
                 action: DsrAction::Erase,
                 sla_tier: DsrSlaTier::Ga,
@@ -1006,7 +1006,7 @@ mod tests {
             DsrRequest::new(DsrRequestCreate {
                 dsr_id: "dsr-dup".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 subject_ref: "subject-1".into(),
                 action: DsrAction::Export,
                 sla_tier: DsrSlaTier::Preview,
@@ -1048,7 +1048,7 @@ mod tests {
             kind: DsrStoreKind::WorkspaceObject,
             store_id: "workspace-mail".into(),
             tenant_id: "tenant-1".into(),
-            region: "eu-west-1".into(),
+            region: "region-beta-1".into(),
             cell_id: "cell-a".into(),
             record_ref: "record-1".into(),
             data_class: privacy(DataClass::PiiIdentifying),

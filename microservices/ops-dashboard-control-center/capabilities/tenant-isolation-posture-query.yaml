@@ -1,0 +1,12 @@
+schema_version: "1.0"
+name: tenant-isolation-posture-query
+tier: T1
+eu_ai_act_risk_class: limited
+description: Read tenant isolation and quota posture with evidence refs only.
+authz:
+  cedar_policy: microservices/ops-dashboard-control-center/policy/cedar/operator-actions.cedar
+  requires_mfa: true
+  requires_idempotency_key: true
+audit_chain:
+  required: true
+  seal_event: OpsTenantIsolationPostureQuery

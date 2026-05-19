@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: council-privacy + council-architecture
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, eu-ai-act-annex-iii-refusal]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, regulated-ai-refusal-grounding]
 related_adrs:
   - ADR-0064
   - ADR-0133
@@ -20,14 +20,14 @@ related_crates:
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md -->
 
-# IP-NEW: wire `oya-check-eu-ai-act-annex-iii-refusal` into oya-dev-cli gate validate
+# IP-NEW: wire `oya-check-eu-ai-act-annex-iii-refusal` behind `regulated-ai-refusal-grounding`
 
 ## Intent
 
 Activate the `oya-check-eu-ai-act-annex-iii-refusal` kernel
 (authored 2026-05-18 at
-`crates/oya-check-eu-ai-act-annex-iii-refusal/`) as a fitness lane
-`oya gate validate eu-ai-act-annex-iii-refusal`. The lane reads every
+`crates/oya-check-eu-ai-act-annex-iii-refusal/`) as the governance lane
+`oya gate validate regulated-ai-refusal-grounding`. The lane reads every
 `microservices/<ms>/capabilities/T2-auto.yaml` and every
 `microservices/<ms>/policy/*.cedar` and refuses the build when a
 declared Annex III refusal claim has no matching `forbid` rule.
@@ -51,8 +51,8 @@ declared Annex III refusal claim has no matching `forbid` rule.
 | `crates/oya-dev-cli/Cargo.toml` | edit — add dep on `oya-check-eu-ai-act-annex-iii-refusal` |
 | `crates/oya-dev-cli/src/eu_ai_act_annex_iii_refusal_gate.rs` | create — file-reading runner |
 | `crates/oya-dev-cli/src/lib.rs` | edit — declare module |
-| `crates/oya-dev-cli/src/commands/gate/mod.rs` | edit — add `(Some("validate"), Some("eu-ai-act-annex-iii-refusal"))` arm |
-| `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | edit — append `"eu-ai-act-annex-iii-refusal"` to `AGGREGATED_VALIDATE_LANES` |
+| `crates/oya-dev-cli/src/commands/gate/mod.rs` | edit — add `(Some("validate"), Some("regulated-ai-refusal-grounding"))` arm |
+| `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | edit — append `"regulated-ai-refusal-grounding"` to `AGGREGATED_VALIDATE_LANES` |
 | `.github/branch-protection.yaml` | edit — add to dev's `required_status_checks` |
 | `microservices/governance/catalog/oya-check-eu-ai-act-annex-iii-refusal.yaml` | create — catalog entry |
 
@@ -120,7 +120,7 @@ pub(crate) fn validate_annex_iii_refusal_gate(
 ```bash
 cargo check -p oya-dev-cli
 cargo nextest run -p oya-check-eu-ai-act-annex-iii-refusal
-cargo run -p oya-dev-cli -- gate validate eu-ai-act-annex-iii-refusal
+cargo run -p oya-dev-cli -- gate validate regulated-ai-refusal-grounding
 cargo run -p oya-dev-cli -- gate run-all   # aggregated lane includes new gate
 ```
 

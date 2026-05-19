@@ -1,0 +1,177 @@
+{
+  "schema_version": "1.0",
+  "captured_at": "2026-05-19T04:20:16Z",
+  "agent_id": "fd001-command-log",
+  "change_id": "cs-fitness-001-command-log-corpus",
+  "commands": {
+    "verify": {
+      "command": "bin/oya vcs --format json verify --agent fd001-command-log --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json",
+      "exit_code": 0,
+      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"verify\",\"action\":\"verify-evidence\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "stderr": "",
+      "stdout_json": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "fd001-command-log",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/fd001/cs-fitness-001-command-log-corpus.json",
+            "evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    "done": {
+      "command": "bin/oya vcs --format json done --agent fd001-command-log --controller-promote --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
+      "exit_code": 0,
+      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"done\",\"action\":\"emit-change-bundle\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[\"M01-P-FITNESS-IP-001\",\"oya-foundry-fitness-banned-primitives\",\"F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log\"],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":\"controller-promote\",\"compatibility_alias\":null}}",
+      "stderr": "",
+      "stdout_json": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "done",
+          "action": "emit-change-bundle",
+          "agent_id": "fd001-command-log",
+          "intent": null,
+          "scopes": [
+            "M01-P-FITNESS-IP-001",
+            "oya-foundry-fitness-banned-primitives",
+            "F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log"
+          ],
+          "evidence_refs": [
+            "evidence/fd001/cs-fitness-001-command-log-corpus.json",
+            "evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    },
+    "promote": {
+      "command": "bin/oya vcs --format json promote --agent fd001-command-log --bundle cb-cs-fitness-001-command-log-corpus-2026-05-19 --environment ci-preview --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json M01-P-FITNESS-IP-001 oya-foundry-fitness-banned-primitives F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log",
+      "exit_code": 0,
+      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"promote\",\"action\":\"promote-bundle\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[\"M01-P-FITNESS-IP-001\",\"oya-foundry-fitness-banned-primitives\",\"F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log\"],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":\"cb-cs-fitness-001-command-log-corpus-2026-05-19\",\"environment\":\"ci-preview\",\"closeout_mode\":\"controller-promote\",\"compatibility_alias\":null}}",
+      "stderr": "",
+      "stdout_json": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "promote",
+          "action": "promote-bundle",
+          "agent_id": "fd001-command-log",
+          "intent": null,
+          "scopes": [
+            "M01-P-FITNESS-IP-001",
+            "oya-foundry-fitness-banned-primitives",
+            "F-FORBIDDEN-PRIMITIVES-CI-GUARD-command-log"
+          ],
+          "evidence_refs": [
+            "evidence/fd001/cs-fitness-001-command-log-corpus.json",
+            "evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
+          ],
+          "bundle_id": "cb-cs-fitness-001-command-log-corpus-2026-05-19",
+          "environment": "ci-preview",
+          "closeout_mode": "controller-promote",
+          "compatibility_alias": null
+        }
+      }
+    },
+    "final_verify_after_closeout_artifact": {
+      "command": "bin/oya vcs --format json verify --agent fd001-command-log --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json",
+      "exit_code": 0,
+      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"verify\",\"action\":\"verify-evidence\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "stderr": "",
+      "stdout_json": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "fd001-command-log",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/fd001/cs-fitness-001-command-log-corpus.json",
+            "evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    },
+    "final_verify_after_m1_m2_facets": {
+      "command": "bin/oya vcs --format json verify --agent fd001-command-log --evidence evidence/fd001/cs-fitness-001-command-log-corpus.json --evidence evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json",
+      "exit_code": 0,
+      "stdout": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"verify\",\"action\":\"verify-evidence\",\"agent_id\":\"fd001-command-log\",\"intent\":null,\"scopes\":[],\"evidence_refs\":[\"evidence/fd001/cs-fitness-001-command-log-corpus.json\",\"evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json\"],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "stderr": "",
+      "stdout_json": {
+        "command": "oya vcs",
+        "status": "accepted",
+        "schema_version": 1,
+        "ratchet": {
+          "accepted": true,
+          "warnings": [],
+          "blocking_errors": [],
+          "forbidden_uses": []
+        },
+        "plan": {
+          "kind": "verify",
+          "action": "verify-evidence",
+          "agent_id": "fd001-command-log",
+          "intent": null,
+          "scopes": [],
+          "evidence_refs": [
+            "evidence/fd001/cs-fitness-001-command-log-corpus.json",
+            "evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
+          ],
+          "bundle_id": null,
+          "environment": null,
+          "closeout_mode": null,
+          "compatibility_alias": null
+        }
+      }
+    }
+  },
+  "updated_at": "2026-05-19T04:24:30Z"
+}

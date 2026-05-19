@@ -131,23 +131,23 @@ mod tests {
     }
 
     #[test]
-    fn ingests_kr_document_terms() {
+    fn ingests_pack_primary_document_terms() {
         let mut shard = InvertedIndexShard::new(
-            "shard_kr_001".to_string(),
-            "ten_kr".to_string(),
-            MorphologyLocale::Kr,
+            "shard_alpha_001".to_string(),
+            "ten_alpha".to_string(),
+            MorphologyLocale::PackPrimary,
         )
         .expect("shard");
         shard
             .ingest(&doc(
-                "ten_kr",
-                MorphologyLocale::Kr,
-                &["안녕", "세상", "안녕"],
+                "ten_alpha",
+                MorphologyLocale::PackPrimary,
+                &["term-a", "term-b", "term-a"],
             ))
             .expect("ingest ok");
         assert_eq!(shard.document_count, 1);
         assert_eq!(shard.term_count(), 2);
-        let postings = shard.postings.get("안녕").unwrap();
+        let postings = shard.postings.get("term-a").unwrap();
         assert_eq!(postings[0].term_frequency, 2);
     }
 
@@ -155,12 +155,12 @@ mod tests {
     fn rejects_cross_tenant_ingest() {
         let mut shard = InvertedIndexShard::new(
             "shard_a".to_string(),
-            "ten_kr".to_string(),
-            MorphologyLocale::Kr,
+            "ten_alpha".to_string(),
+            MorphologyLocale::PackPrimary,
         )
         .expect("shard");
         let err = shard
-            .ingest(&doc("ten_jp", MorphologyLocale::Kr, &["x"]))
+            .ingest(&doc("ten_beta", MorphologyLocale::PackPrimary, &["x"]))
             .expect_err("cross tenant rejected");
         assert_eq!(err, InvertedIndexError::TenantMismatch);
     }
@@ -168,22 +168,25 @@ mod tests {
     #[test]
     fn rejects_locale_mismatch() {
         let mut shard = InvertedIndexShard::new(
-            "shard_en".to_string(),
-            "ten_us".to_string(),
-            MorphologyLocale::En,
+            "shard_generic".to_string(),
+            "ten_gamma".to_string(),
+            MorphologyLocale::Generic,
         )
         .expect("shard");
         let err = shard
-            .ingest(&doc("ten_us", MorphologyLocale::Kr, &["a"]))
+            .ingest(&doc("ten_gamma", MorphologyLocale::PackPrimary, &["a"]))
             .expect_err("locale enforced");
         assert_eq!(err, InvertedIndexError::LocaleMismatch);
     }
 
     #[test]
     fn rejects_empty_shard_id() {
-        let err =
-            InvertedIndexShard::new("".to_string(), "ten_kr".to_string(), MorphologyLocale::Kr)
-                .expect_err("shard id required");
+        let err = InvertedIndexShard::new(
+            "".to_string(),
+            "ten_alpha".to_string(),
+            MorphologyLocale::PackPrimary,
+        )
+        .expect_err("shard id required");
         assert_eq!(err, InvertedIndexError::EmptyShardId);
     }
 }

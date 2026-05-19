@@ -58,5 +58,11 @@
       "oya.api_gateway.request.denied",
       "oya.api_gateway.waf.triggered"
     ]
+  },
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": true
   }
 }

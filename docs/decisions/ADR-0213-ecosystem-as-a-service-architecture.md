@@ -112,7 +112,7 @@ Oyatie ships an **Ecosystem-as-a-Service** product surface, composed of **two si
 
 | µservice | Concern | Persona served | Inheritance |
 |---|---|---|---|
-| `microservices/plugin-app-store/` | Consumer-facing plugin/app discovery + install + per-plugin permission grant + subscription mgmt + audit; admin-facing vetting queue + revocation | tenant-operator, tenant-admin, oyatie-platform-admin | Apple App Store + VS Code Marketplace + AWS Marketplace + Shopify App Store |
+| `microservices/plugin-app-store/` | Consumer-facing plugin/app discovery + install + per-plugin permission grant + subscription mgmt + audit; admin-facing vetting queue + revocation | tenant-operator, tenant-admin, platform-admin | Apple App Store + VS Code Marketplace + AWS Marketplace + Shopify App Store |
 | `microservices/developer-sdk/` | Developer-facing SDK distribution + API contracts (OpenAPI 3.2 + AsyncAPI 3.1 + proto3) + sandbox env + dev portal + signing-key issuance + Stripe-Connect-style onboarding + revenue payout | 3rd-party developer | Stripe Connect (developer onboarding + payout) + Apple Developer Program (signing keys + sandbox) + Backstage (developer portal) |
 
 Both µservices share **no code** with each other beyond canonical contracts (event schemas, Cedar policy fragments). They communicate exclusively via the Workflow + Ontology adapter layer per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`. No `ecosystem` super-bundle; ADR-0132 forbids it.
@@ -171,7 +171,7 @@ Revenue substrate is **100% in-house** per ADR-0211 §revenue-share:
 - KYC + AML on developer onboarding implemented under `microservices/developer-sdk/src/onboarding/` (citing FATF + EU AML5 + US BSA — no third-party KYC SaaS).
 - Payout ledger implemented under `microservices/developer-sdk/src/payout/`; daily settlement to developer-declared bank account via ACH (US) + SEPA (EU) + KFTC (KR) + FedWire (US) per pack.
 - Tax-form generation (1099-MISC for US, EU VAT MOSS, KR VAT) emitted under `microservices/developer-sdk/src/tax/`.
-- Forex / settlement currency conversion via oyatie-internal rate-lock per ADR-0199.
+- Forex / settlement currency conversion via Oya-internal rate-lock per ADR-0199.
 
 ### 6. SDK families (codegen from OpenAPI 3.2)
 
@@ -183,7 +183,7 @@ Per ADR-0185 OpenAPI 3.2 codegen, developer-sdk emits client SDKs for six stacks
 - C# — NuGet package; .NET 8 LTS.
 - Python — PyPI package; 3.12+.
 
-Each SDK is generated from the canonical OpenAPI 3.2 spec under `microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml` plus AsyncAPI 3.1 spec for event subscriptions. Codegen pipeline lives under `microservices/developer-sdk/src/codegen/`; nightly CI publishes new versions to oyatie-internal package registry under `microservices/developer-sdk/iac/registry/`.
+Each SDK is generated from the canonical OpenAPI 3.2 spec under `microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml` plus AsyncAPI 3.1 spec for event subscriptions. Codegen pipeline lives under `microservices/developer-sdk/src/codegen/`; nightly CI publishes new versions to Oya-internal package registry under `microservices/developer-sdk/iac/registry/`.
 
 ### 7. Sandbox environment (developer-facing)
 
@@ -311,9 +311,9 @@ This is the WeChat / Apple posture: the platform owner runs the platform; third-
 
 ## Out-of-scope (explicit non-decisions for this ADR)
 
-- **Specific developer revenue-share percentages.** TBD by founder + axis-finops council in a follow-up CR; ADR-0213 fixes only the architecture, not the commercial terms.
-- **Specific vetting SLA targets.** TBD by council-security in a follow-up runbook; current ADR commits only to a ≤ 5-business-day Phase-1 target.
-- **AI plugin subcategory taxonomy.** TBD by axis-ai-features after the AI capability registry hardens.
+- **Specific developer revenue-share percentages.** Deferred to the founder + axis-finops council commercial-terms CR; ADR-0213 fixes only the architecture, not the commercial terms.
+- **Specific vetting SLA targets.** Owned by council-security in the vetting runbook; current ADR commits only to a ≤ 5-business-day Phase-1 target.
+- **AI plugin subcategory taxonomy.** Owned by axis-ai-features after the AI capability registry hardens.
 - **Tenant-developer accounts (tenant operator who also publishes plugins).** Both µservices anticipate this persona but the dual-role onboarding flow is scoped to a follow-up CR after Phase 3 GA.
 - **The `marketplace` µservice (B2C commerce, concern #2 in §Disambiguation).** Out of scope; future ADR.
 - **`community` µservice major expansion (LinkedIn + Handshake + TeamBlind + Reddit, concern #3 in §Disambiguation).** Out of scope; future ADR.

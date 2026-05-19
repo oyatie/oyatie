@@ -128,7 +128,7 @@ The two engines are decoupled at runtime but composed at the Cedar source-of-tru
    - `pod-security-restricted.yaml` — enforce PSS restricted profile across all namespaces.
    - `image-signature-verification.yaml` — every image must carry a valid Cosign v3 keyless signature with SLSA L3+ provenance.
    - `image-registry-allowlist.yaml` — only oyatie's internal registry + gcr.io/distroless are allowed.
-   - `oyatie-labels-required.yaml` — every workload carries `oyatie/microservice`, `oyatie/bounded_context`, `oyatie/tier`, `oyatie/plane` per ADR-0131.
+   - `workload-labels-required.yaml` — every workload carries `oyatie/microservice`, `oyatie/bounded_context`, `oyatie/tier`, `oyatie/plane` per ADR-0131.
    - `cedar-policy-fragment-annotation.yaml` — every Deployment carries `oyatie/cedar-policy-fragment` pointing at the µservice's tenant-scope.cedar.
    - `istio-ambient-label-mutation.yaml` — mutating webhook to inject `istio.io/dataplane-mode=ambient` on namespace create.
    - `serviceaccount-spiffe-binding.yaml` — every ServiceAccount must have a corresponding cell-µservice SPIFFE-ID binding.
@@ -140,14 +140,14 @@ Per user directive 2026-05-18 (in-house-stack policy — "wherever possible, we 
 
 | Component | Classification | Rationale | In-house Phase 2 plan |
 |---|---|---|---|
-| **Cedar 4.9.1** | KEEP (open standard; Linux Foundation; provably analyzable) | Cedar's formal-logic backing + provably-consistent set-difference proofs are unmatched. Used by Amazon Verified Permissions, Confluent, Pinterest. Industry-standard authz language. | None planned. The governance µservice's **policy compiler** (oyatie-native) emits CNP + AuthorizationPolicy from Cedar fragments — this IS oyatie's in-house value layered on the standard engine. |
-| **Kyverno 1.18.0** | KEEP (CNCF Incubating; widest Kubernetes-admission deployment) | Kyverno's YAML-native rules are THE K8s admission standard. Backed by Nirmata + community. | None planned. The 8 canonical oyatie ClusterPolicies (PSS-restricted, Cosign verification, oyatie-labels-required, etc.) ARE oyatie's in-house value layered on the standard engine. |
+| **Cedar 4.9.1** | KEEP (open standard; Linux Foundation; provably analyzable) | Cedar's formal-logic backing + provably-consistent set-difference proofs are unmatched. Used by Amazon Verified Permissions, Confluent, Pinterest. Industry-standard authz language. | None planned. The governance µservice's **policy compiler** (Oya-native) emits CNP + AuthorizationPolicy from Cedar fragments — this IS oyatie's in-house value layered on the standard engine. |
+| **Kyverno 1.18.0** | KEEP (CNCF Incubating; widest Kubernetes-admission deployment) | Kyverno's YAML-native rules are THE K8s admission standard. Backed by Nirmata + community. | None planned. The 8 canonical oyatie ClusterPolicies (PSS-restricted, Cosign verification, workload-labels-required, etc.) ARE oyatie's in-house value layered on the standard engine. |
 | **OPA Gatekeeper** (rejected) | KEEP-but-rejected | Open standard; same rationale; not chosen here per the alternatives analysis. Would also be KEEP if chosen. | n/a |
 | **Sigstore Cosign v3** (referenced by Kyverno image-signature verification) | KEEP (Linux Foundation; OpenSSF) | THE standard for keyless signature verification. | None planned. |
 
-The IS-the-standard pattern repeats: oyatie's in-house engineering effort goes into the **policy compiler + ClusterPolicy catalog** (both oyatie-native), running on KEEP-classified standard engines. This is exactly how AWS, Google, Microsoft, Oracle build their stack: standard engines, in-house policy assets.
+The IS-the-standard pattern repeats: oyatie's in-house engineering effort goes into the **policy compiler + ClusterPolicy catalog** (both Oya-native), running on KEEP-classified standard engines. This is exactly how AWS, Google, Microsoft, Oracle build their stack: standard engines, in-house policy assets.
 
-Why no in-house authz engine: Cedar's formal analyzability is a deep research investment (years of AWS + academic collaboration). Building an oyatie-native authz engine would reimplement Cedar's analyzability properties with less rigor. The engineering cost would not produce a better outcome.
+Why no in-house authz engine: Cedar's formal analyzability is a deep research investment (years of AWS + academic collaboration). Building an Oya-native authz engine would reimplement Cedar's analyzability properties with less rigor. The engineering cost would not produce a better outcome.
 
 ## Rollback
 

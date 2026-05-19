@@ -274,11 +274,11 @@ build for the tenant-billing UX layer.
 - **The tenant label block** (`oya.io/tenant-id`, etc.) is oyatie-
   authored, CI-enforced, mandatory. No upstream tool dictates this
   shape.
-- **The chargeback formula** (ADR-0174) is oyatie-authored.
+- **The chargeback formula** (ADR-0174) is Oya-authored.
 - **The anomaly thresholds** (1.5× rolling 7d, < 10 % headroom) are
-  oyatie-authored and tuned per workload class.
+  Oya-authored and tuned per workload class.
 - **The regulatory-pack-aware retention discipline** for backups is
-  oyatie-authored (this batch).
+  Oya-authored (this batch).
 
 The Phase 2 portal builds on top of these in-house surfaces.
 
@@ -316,7 +316,7 @@ substrate (labels + traits + standards) is already in-house today.
 
 - Helm chart at `microservices/observability/iac/helm/opencost/` renders.
 - The `oya.tenantCostLabels` helper will be added by parent wiring (this
-  batch declares it in the ADR + emits the parent-wiring TODO).
+  batch declares it in the ADR + emits the parent-wiring follow-up work item).
 - `crates/oya-check-tenant-cost-labels-coverage/` scans rendered Helm
   output and reports per-µservice coverage; advisory mode this batch.
 - `crates/oya-check-backup-retention-discipline/` validates declared
