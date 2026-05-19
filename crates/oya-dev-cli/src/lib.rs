@@ -64,6 +64,7 @@ mod honest_claims_gate;
 mod hyperscaler_arch_invariants_gate;
 mod hyperscaler_maturity_claims_gate;
 mod json_scan;
+mod korea_localization_evidence_gate;
 mod layered_architecture_gates;
 mod loop_recovery_patterns_gate;
 mod openapi_rest_route_parity_gate;
@@ -181,6 +182,9 @@ pub(crate) use json_scan::{
     extract_json_objects, find_matching_json_delimiter, json_field_has_non_empty_value,
     parse_json_string_array_field, parse_json_string_field, parse_json_string_value,
     quoted_json_len,
+};
+pub(crate) use korea_localization_evidence_gate::{
+    parse_korea_localization_evidence_validate_args, validate_korea_localization_evidence_gate,
 };
 pub(crate) use loop_recovery_patterns_gate::{
     parse_loop_recovery_patterns_validate_args, validate_loop_recovery_patterns_gate,
@@ -314,6 +318,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate aspirational-enforcement [--clear-default-corpus] [--corpus-root <path>]... [--crates-dir <crates>] [--workflows-dir <.github/workflows>] [--quality-lanes <registry/quality/lanes.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--branch <dev>]"
         + "\n       oya gate validate banned-primitives [--repo-root <.>] [--clear-default-roots] [--root <path>]... [--command-log-root <path>]... [--require-command-log-corpus] [--known-rationale <id>]..."
         + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
+        + "\n       oya gate validate korea-localization-evidence [--repo-root <.>] [--pack-overview <docs/localization-packs/kr.md>] [--pack-manifest <docs/localization-packs/kr/pack.yaml>] [--corpus-lock <docs/localization-packs/kr/corpus.lock>] [--evidence-dir <docs/localization-packs/kr/evidence>] [--emit-evidence <evidence/fd001/korea-localization-pack-evidence-2026-05-19.json>]"
         + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
         + "\n       oya gate validate canonical-base-neutrality [--repo-root <.>] [--root <path>]... [--exclude-root <path>]... [--self-test]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"

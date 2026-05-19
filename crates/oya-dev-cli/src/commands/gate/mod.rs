@@ -1429,6 +1429,37 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("korea-localization-evidence")) => {
+            match crate::parse_korea_localization_evidence_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_korea_localization_evidence_gate(args) {
+                    Ok(report) => {
+                        let evidence = report
+                            .emitted_evidence_path
+                            .as_ref()
+                            .map(|path| format!(", evidence={}", path.display()))
+                            .unwrap_or_default();
+                        println!(
+                            "korea-localization-evidence validation passed: {} evidence files, {} fd001 surfaces, {} kr-pack surfaces, pack_status={}, activation_claim={}{}",
+                            report.evidence_file_count,
+                            report.fd001_surface_count,
+                            report.kr_pack_surface_count,
+                            report.pack_status,
+                            report.activation_claim,
+                            evidence
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("korea-localization-evidence validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("canonical-base-neutrality")) => {
             match crate::parse_canonical_base_neutrality_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_canonical_base_neutrality_gate(args) {
