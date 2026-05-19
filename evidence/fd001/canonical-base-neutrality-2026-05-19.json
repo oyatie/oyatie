@@ -1,0 +1,87 @@
+{
+  "evidence_id": "fd001-canonical-base-neutrality-gate-2026-05-19",
+  "created_at": "2026-05-19T07:32:09Z",
+  "scope": "FD-001 canonical-base/KR localization boundary truth surface",
+  "claim": "Added executable oya gate validate canonical-base-neutrality lane; full default repo scan is intentionally red and exposes current jurisdiction leakage instead of treating planning closure as source-level proof.",
+  "artifacts": {
+    "runner": "crates/oya-dev-cli/src/canonical_base_neutrality_gate.rs",
+    "dispatch": "crates/oya-dev-cli/src/commands/gate/mod.rs",
+    "usage": "crates/oya-dev-cli/src/lib.rs",
+    "tests": "crates/oya-dev-cli/tests/gate_cli.rs"
+  },
+  "validation": [
+    {
+      "command": "cargo fmt -p oya-dev-cli",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli canonical_base_neutrality -- --nocapture",
+      "status": "pass",
+      "summary": "7 unit tests and 2 CLI integration tests passed"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --self-test",
+      "status": "pass",
+      "summary": "2 self-test fixtures checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 937 jurisdiction leaks",
+      "sample_findings": [
+        "crates/oya-cell-domain/src/lib.rs:158:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
+        "crates/oya-cell-domain/src/lib.rs:159:28: jurisdiction-string `kr-seoul` — region: region(\"kr-seoul\", RegionJurisdiction::Kr),",
+        "crates/oya-cell-domain/src/lib.rs:159:60: jurisdiction-identifier `Kr` — region: region(\"kr-seoul\", RegionJurisdiction::Kr),",
+        "crates/oya-cell-domain/src/lib.rs:160:46: jurisdiction-identifier `StrictKr` — residency_class: ResidencyClass::StrictKr,",
+        "crates/oya-cell-domain/src/lib.rs:161:17: jurisdiction-string `kr-seoul-a` — az: \"kr-seoul-a\".to_string(),",
+        "crates/oya-cell-domain/src/lib.rs:162:22: jurisdiction-string `cell-kr-seoul-a-001` — cell_id: \"cell-kr-seoul-a-001\".to_string(),",
+        "crates/oya-cell-domain/src/lib.rs:164:32: jurisdiction-string `hsm/kr-seoul/cell-001` — hsm_partition_ref: \"hsm/kr-seoul/cell-001\".to_string(),",
+        "crates/oya-cell-domain/src/lib.rs:172:36: jurisdiction-string `kr-seoul` — assert_eq!(binding.region, \"kr-seoul\");",
+        "crates/oya-cell-domain/src/lib.rs:173:67: jurisdiction-identifier `StrictKr` — assert_eq!(binding.residency_class.value, ResidencyClass::StrictKr);",
+        "crates/oya-cell-domain/src/lib.rs:187:21: jurisdiction-string `kr-seoul-b` — az: \"kr-seoul-b\".to_string(),",
+        "crates/oya-cell-domain/src/lib.rs:188:26: jurisdiction-string `cell-kr-seoul-b-001` — cell_id: \"cell-kr-seoul-b-001\".to_string(),",
+        "crates/oya-cell-domain/src/lib.rs:199:17: jurisdiction-string `us-east-a` — az: \"us-east-a\".to_string(),"
+      ]
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass"
+    }
+  ],
+  "known_blockers": [
+    "Default canonical-base-neutrality scan currently fails with source-level jurisdiction leaks; this is now an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
+    "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
+  ],
+  "next_dispatches": [
+    {
+      "lane": "canonical leak remediation batch 1",
+      "write_scope": "one or two high-signal canonical crates from gate output, e.g. tenancy/cloud data kernels",
+      "risk": "medium"
+    },
+    {
+      "lane": "ops-dashboard-control-center manifest bootstrap",
+      "write_scope": "microservices/ops-dashboard-control-center/manifest.json plus manifests-index after manifest exists",
+      "risk": "medium"
+    },
+    {
+      "lane": "KR evidence directory bootstrap",
+      "write_scope": "docs/localization-packs/kr/evidence/",
+      "risk": "low-medium"
+    },
+    {
+      "lane": "governance naming migration next non-gating lane",
+      "write_scope": "one workflow/config lane only; avoid oya-pr-review until check-run publisher is live",
+      "risk": "medium"
+    }
+  ]
+}

@@ -1429,6 +1429,28 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("canonical-base-neutrality")) => {
+            match crate::parse_canonical_base_neutrality_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_canonical_base_neutrality_gate(args) {
+                    Ok(report) => {
+                        let suffix = if report.self_test { " (self-test)" } else { "" };
+                        println!(
+                            "canonical-base-neutrality validation passed: {} files checked, 0 jurisdiction leaks{}",
+                            report.files_checked, suffix
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("canonical-base-neutrality validation failed:\n{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("workspace-hygiene")) => {
             match crate::parse_workspace_hygiene_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_workspace_hygiene_gate(args) {
