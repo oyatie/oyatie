@@ -1,25 +1,27 @@
 {
   "schema_version": 1,
   "changeset": "M01-P17-IP-009",
-  "recorded_at": "2026-05-19T06:34:47Z",
+  "recorded_at": "2026-05-19T06:43:44Z",
   "pr": 148,
   "head_sha_before_change": "5cd6fb2cf516fcd797441089c1205a9dcbc394fe",
-  "finding": "Hosted pr-review run 26080302072 returned REJECT because deterministic-mock generated facet recommendations from facet-id byte sums, not PR content; this is arbitrary gate noise and not an intended reviewer signal.",
-  "fix": "MockSubagentPort now defaults to APPROVE for deterministic CI smoke, documents that the mock makes no content-quality claim, and supports explicit fixture directives/overrides for negative tests.",
+  "finding": "Hosted pr-review first failed because deterministic-mock generated facet recommendations from facet-id byte sums; after default-APPROVE fix, hosted run 26080734547 still returned 21/21 REJECT because the mock accepted fixture directive substrings leaked through the PR diff. Both are arbitrary gate noise, not intended reviewer signals.",
+  "fix": "MockSubagentPort defaults to APPROVE for deterministic CI smoke, documents that the mock makes no content-quality claim, and only accepts explicit first-line `oya_mock_recommendation: <approve|changes_requested|reject>` fixture directives or in-memory overrides for negative tests.",
   "hosted_evidence": {
-    "pr_review_run": 26080302072,
+    "initial_pr_review_run": 26080302072,
+    "directive_leak_pr_review_run": 26080734547,
     "artifact": "oya-pr-review-rollup-148",
-    "observed_rollup": "REJECT with subagent_runtime_pending=false and mixed deterministic-mock facet recommendations before this fix"
+    "observed_rollup_before_fix": "REJECT with subagent_runtime_pending=false from deterministic-mock recommendations, not real reviewer output",
+    "observed_directive_leak": "21/21 deterministic-mock facet files said explicit fixture directive selected REJECT because directive words appeared in the PR diff"
   },
   "local_verification": [
-    "cargo test -p oya-foundry-subagent-runtime-kernel --lib -> PASS (14 tests)",
+    "cargo test -p oya-foundry-subagent-runtime-kernel --lib -> PASS (15 tests, including embedded diff directive ignored)",
+    "cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out against hosted run 26080734547 PR #148 review-input.md -> 21/21 APPROVE, subagent_runtime_pending=false",
     "cargo test -p oya-foundry-subagent-runtime-app -> PASS (10 tests across lib/main)",
     "cargo test -p oya-foundry-pr-review-dispatcher-app -> PASS (23 tests across lib/main)",
-    "cargo fmt --all -- --check -> PASS",
-    "bin/oya git diff --check -> PASS",
-    "cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out against downloaded PR #148 review-input.md -> 21/21 APPROVE, subagent_runtime_pending=false",
+    "cargo test -p oya-dev-cli hyperscaler_maturity_claims_gate_accepts_repo_control_surfaces --test gate_cli -- --nocapture -> PASS",
     "ruby YAML.load_file .github/workflows/pr-review.yml -> yaml ok",
-    "cargo test -p oya-dev-cli hyperscaler_maturity_claims_gate_accepts_repo_control_surfaces --test gate_cli -- --nocapture -> PASS"
+    "cargo fmt --all -- --check -> PASS",
+    "bin/oya git diff --check -> PASS"
   ],
   "remaining_truth_boundary": "deterministic-mock is a smoke/fixture surface only; production-quality review still requires live anthropic-api/OpenBao HTTPS wiring before calling oya-pr-review a real autonomous review.",
   "check_run_truth_label": "pr-review.yml Check Run summary/title now includes runtime_mode=deterministic-mock and deterministic_mock_smoke_only=true so a passing mock check is not presented as a live autonomous review."
