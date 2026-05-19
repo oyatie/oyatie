@@ -324,7 +324,7 @@ mod tests {
         CalendarCreate {
             id: "cal-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             name: "Team calendar".into(),
             data_class: None,
             created_at_epoch_seconds: 1_700_000_000,
