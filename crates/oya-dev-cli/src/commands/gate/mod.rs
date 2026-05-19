@@ -1429,6 +1429,28 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("canonical-base-neutrality")) => {
+            match crate::parse_canonical_base_neutrality_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_canonical_base_neutrality_gate(args) {
+                    Ok(report) => {
+                        let suffix = if report.self_test { " (self-test)" } else { "" };
+                        println!(
+                            "canonical-base-neutrality validation passed: {} files checked, 0 jurisdiction leaks{}",
+                            report.files_checked, suffix
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("canonical-base-neutrality validation failed:\n{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("workspace-hygiene")) => {
             match crate::parse_workspace_hygiene_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_workspace_hygiene_gate(args) {
@@ -1568,10 +1590,12 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // protection-context-match: enforces that every required
         // status-check context in `.github/branch-protection.yaml`
         // is the `name:` field of some workflow job in
-        // `.github/workflows/*.yml`. Catches the silent-bypass class
-        // where the protection lists a context name that no
-        // workflow posts; GitHub then waits forever for a check_run
-        // that never arrives. Lane id:
+        // `.github/workflows/*.yml`; when the optional live-contexts
+        // JSON is supplied, also verifies live branch protection
+        // requires exactly the same contexts. Catches both
+        // silent-bypass classes: local config points at a workflow
+        // job that does not exist, or GitHub live enforcement drifts
+        // behind the canonical repo policy. Lane id:
         // `oya-foundry-fitness-protection-context-match`. Kernel:
         // `oya-check-protection-context-match` (port-in-kernel,
         // ADR-0056).

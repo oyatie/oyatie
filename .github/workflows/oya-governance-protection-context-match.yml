@@ -20,7 +20,9 @@ name: oya-governance-protection-context-match
 # (the YAML job-key) while pr-tests.yml posted check_runs as
 # `cargo fmt --check` (the workflow `name:` field). 5 of 9
 # required gates were silently non-enforcing for the duration of
-# the drift. This lane prevents the recurrence.
+# the drift. This lane prevents the recurrence and now also fails
+# closed when live GitHub branch protection requires fewer checks
+# than the canonical repo policy.
 
 on:
   pull_request:
@@ -51,6 +53,8 @@ jobs:
           shared-key: pr-tests
       - name: oya gate validate protection-context-match
         env:
+          GH_TOKEN: ${{ secrets.OYA_BRANCH_PROTECTION_READ_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           CARGO_TERM_COLOR: always
           CARGO_INCREMENTAL: "0"
         run: cargo run -q -p oya-dev-cli -- gate validate protection-context-match

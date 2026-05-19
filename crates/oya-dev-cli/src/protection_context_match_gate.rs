@@ -4,7 +4,11 @@
 //! list under the protected branch) and walks `.github/workflows/*.yml`
 //! collecting every job `name:` field, then invokes the
 //! [`oya_check_protection_context_match`] kernel to assert every
-//! required context is the `name:` of some workflow job.
+//! required context is the `name:` of some workflow job. It also compares
+//! the canonical YAML against the apply-source branch-protection JSON so
+//! local preflight catches stale required-check config before GitHub mutation.
+//! When given a live GitHub required-status-checks JSON snapshot, it also
+//! asserts live branch protection requires exactly the canonical contexts.
 //!
 //! Lane id: `oya-foundry-fitness-protection-context-match`. The lane
 //! is the machine-checkable encoding of the
@@ -19,6 +23,7 @@
 //! `parse_<lane>_validate_args` / `validate_<lane>_gate` naming
 //! used by every other gate in this crate.
 
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
@@ -29,13 +34,18 @@ use oya_check_protection_context_match::{
 const USAGE: &str = "oya gate validate protection-context-match \
                      [--branch-protection <.github/branch-protection.yaml>] \
                      [--workflows-dir <.github/workflows>] \
-                     [--branch <dev>]";
+                     [--branch <dev>] \
+                     [--applied-branch-protection <infra/branch-protection/dev.json>] \
+                     [--skip-applied-branch-protection] \
+                     [--live-required-contexts <required_status_checks.json>]";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ProtectionContextMatchValidateArgs {
     pub branch_protection_path: PathBuf,
     pub workflows_dir: PathBuf,
     pub branch_name: String,
+    pub applied_branch_protection_path: Option<PathBuf>,
+    pub live_required_contexts_path: Option<PathBuf>,
 }
 
 impl Default for ProtectionContextMatchValidateArgs {
@@ -49,6 +59,8 @@ impl Default for ProtectionContextMatchValidateArgs {
             // Override with `--branch <name>` when the lane needs to
             // validate a non-default branch's protection.
             branch_name: "dev".to_string(),
+            applied_branch_protection_path: Some(PathBuf::from("infra/branch-protection/dev.json")),
+            live_required_contexts_path: None,
         }
     }
 }
@@ -78,6 +90,21 @@ pub(crate) fn parse_protection_context_match_validate_args(
                 };
                 parsed.branch_name = value;
             }
+            "--applied-branch-protection" => {
+                let Some(value) = iter.next() else {
+                    return Err(USAGE.to_owned());
+                };
+                parsed.applied_branch_protection_path = Some(PathBuf::from(value));
+            }
+            "--skip-applied-branch-protection" => {
+                parsed.applied_branch_protection_path = None;
+            }
+            "--live-required-contexts" => {
+                let Some(value) = iter.next() else {
+                    return Err(USAGE.to_owned());
+                };
+                parsed.live_required_contexts_path = Some(PathBuf::from(value));
+            }
             _ => return Err(USAGE.to_owned()),
         }
     }
@@ -94,6 +121,36 @@ pub(crate) fn validate_protection_context_match_gate(
         )
     })?;
     let contexts = parse_required_status_checks(&protection_text, &args.branch_name)?;
+    if let Some(applied_branch_protection_path) = &args.applied_branch_protection_path {
+        let applied_text = fs::read_to_string(applied_branch_protection_path).map_err(|error| {
+            format!(
+                "could not read applied branch-protection config at {}: {error}",
+                applied_branch_protection_path.display()
+            )
+        })?;
+        let applied_contexts = parse_required_status_checks_json(&applied_text, "applied")?;
+        validate_required_status_checks_match(
+            &contexts,
+            &applied_contexts,
+            &args.branch_name,
+            "applied branch-protection config",
+        )?;
+    }
+    if let Some(live_required_contexts_path) = &args.live_required_contexts_path {
+        let live_text = fs::read_to_string(live_required_contexts_path).map_err(|error| {
+            format!(
+                "could not read live required-status contexts at {}: {error}",
+                live_required_contexts_path.display()
+            )
+        })?;
+        let live_contexts = parse_live_required_status_checks(&live_text)?;
+        validate_required_status_checks_match(
+            &contexts,
+            &live_contexts,
+            &args.branch_name,
+            "live branch protection",
+        )?;
+    }
 
     let mut workflows: Vec<WorkflowJobNames> = Vec::new();
     let entries = fs::read_dir(&args.workflows_dir).map_err(|error| {
@@ -184,6 +241,98 @@ fn parse_required_status_checks(yaml_text: &str, branch: &str) -> Result<Vec<Str
     Ok(contexts)
 }
 
+/// Extract live `required_status_checks.contexts` as emitted by
+/// `gh api repos/<repo>/branches/<branch>/protection/required_status_checks`.
+/// The workflow writes either the full endpoint object or the `.contexts`
+/// array. The latter keeps the local test fixture small while preserving
+/// exact live-API semantics.
+fn parse_live_required_status_checks(json_text: &str) -> Result<Vec<String>, String> {
+    parse_required_status_checks_json(json_text, "live")
+}
+
+fn parse_required_status_checks_json(
+    json_text: &str,
+    source_label: &str,
+) -> Result<Vec<String>, String> {
+    let value: serde_json::Value = serde_json::from_str(json_text).map_err(|error| {
+        format!("could not parse {source_label} required-status contexts JSON: {error}")
+    })?;
+    let contexts_value = if value.is_array() {
+        &value
+    } else if let Some(contexts) = value.get("contexts") {
+        contexts
+    } else if let Some(contexts) = value.pointer("/required_status_checks/contexts") {
+        contexts
+    } else {
+        return Err(format!(
+            "{source_label} required-status contexts JSON must be an array, an object with \
+             `contexts`, or an object with `required_status_checks.contexts`"
+        ));
+    };
+    let contexts = contexts_value.as_array().ok_or_else(|| {
+        format!("{source_label} required-status contexts JSON has a non-array contexts field")
+    })?;
+    let mut parsed = Vec::new();
+    for context in contexts {
+        let context = context.as_str().ok_or_else(|| {
+            format!("{source_label} required-status contexts JSON contains a non-string context")
+        })?;
+        let context = context.trim();
+        if context.is_empty() {
+            return Err(format!(
+                "{source_label} required-status contexts JSON contains an empty context"
+            ));
+        }
+        parsed.push(context.to_string());
+    }
+    if parsed.is_empty() {
+        return Err(format!(
+            "{source_label} branch protection has zero required_status_checks contexts — gate \
+             cannot validate an empty {source_label} list"
+        ));
+    }
+    Ok(parsed)
+}
+
+fn validate_required_status_checks_match(
+    canonical_contexts: &[String],
+    compared_contexts: &[String],
+    branch: &str,
+    compared_label: &str,
+) -> Result<(), String> {
+    let canonical: BTreeSet<String> = canonical_contexts.iter().cloned().collect();
+    let compared: BTreeSet<String> = compared_contexts.iter().cloned().collect();
+    let missing_from_compared = canonical
+        .difference(&compared)
+        .cloned()
+        .collect::<Vec<String>>();
+    let extra_in_compared = compared
+        .difference(&canonical)
+        .cloned()
+        .collect::<Vec<String>>();
+    if missing_from_compared.is_empty() && extra_in_compared.is_empty() {
+        return Ok(());
+    }
+
+    let mut message = vec![format!(
+        "{compared_label} required_status_checks for branch `{branch}` diverge \
+         from .github/branch-protection.yaml"
+    )];
+    if !missing_from_compared.is_empty() {
+        message.push(format!(
+            "missing from {compared_label}: {}",
+            missing_from_compared.join(", ")
+        ));
+    }
+    if !extra_in_compared.is_empty() {
+        message.push(format!(
+            "extra in {compared_label}: {}",
+            extra_in_compared.join(", ")
+        ));
+    }
+    Err(message.join("\n"))
+}
+
 /// Extract every job's `name:` field from a workflow file. Falls back
 /// to the job-key when `name:` is omitted (matches GitHub's own
 /// behavior: a missing display name defaults to the job-key).
@@ -253,6 +402,46 @@ mod tests {
         );
         assert_eq!(args.workflows_dir, PathBuf::from(".github/workflows"));
         assert_eq!(args.branch_name, "dev");
+        assert_eq!(
+            args.applied_branch_protection_path,
+            Some(PathBuf::from("infra/branch-protection/dev.json"))
+        );
+        assert_eq!(args.live_required_contexts_path, None);
+    }
+
+    #[test]
+    fn parse_can_skip_applied_branch_protection_check() {
+        let args = parse_protection_context_match_validate_args(vec![
+            "--skip-applied-branch-protection".into(),
+        ])
+        .expect("skip applied config flag is valid");
+        assert_eq!(args.applied_branch_protection_path, None);
+    }
+
+    #[test]
+    fn parse_accepts_applied_branch_protection_path() {
+        let args = parse_protection_context_match_validate_args(vec![
+            "--applied-branch-protection".into(),
+            "infra/dev.json".into(),
+        ])
+        .expect("applied config flag is valid");
+        assert_eq!(
+            args.applied_branch_protection_path,
+            Some(PathBuf::from("infra/dev.json"))
+        );
+    }
+
+    #[test]
+    fn parse_accepts_live_required_contexts_path() {
+        let args = parse_protection_context_match_validate_args(vec![
+            "--live-required-contexts".into(),
+            "live.json".into(),
+        ])
+        .expect("live contexts flag is valid");
+        assert_eq!(
+            args.live_required_contexts_path,
+            Some(PathBuf::from("live.json"))
+        );
     }
 
     #[test]
@@ -277,6 +466,71 @@ mod tests {
         let yaml = "branches:\n  main:\n    require_pull_request: true\n";
         let error = parse_required_status_checks(yaml, "main").unwrap_err();
         assert!(error.contains("zero required_status_checks"));
+    }
+
+    #[test]
+    fn parse_live_required_status_checks_accepts_api_object() {
+        let json = r#"{"strict":false,"contexts":["cargo-fmt","oya-pr-review"]}"#;
+        let contexts = parse_live_required_status_checks(json).expect("parses live object");
+        assert_eq!(
+            contexts,
+            vec!["cargo-fmt".to_string(), "oya-pr-review".to_string()]
+        );
+    }
+
+    #[test]
+    fn parse_live_required_status_checks_accepts_full_protection_object() {
+        let json = r#"{"required_status_checks":{"contexts":["cargo-fmt"]}}"#;
+        let contexts = parse_live_required_status_checks(json).expect("parses full object");
+        assert_eq!(contexts, vec!["cargo-fmt".to_string()]);
+    }
+
+    #[test]
+    fn live_required_status_checks_match_reports_drift() {
+        let canonical = vec!["cargo-fmt".to_string(), "oya-pr-review".to_string()];
+        let live = vec!["cargo-fmt".to_string(), "stale-required-check".to_string()];
+        let error = validate_required_status_checks_match(
+            &canonical,
+            &live,
+            "dev",
+            "live branch protection",
+        )
+        .unwrap_err();
+        assert!(error.contains("branch `dev` diverge"));
+        assert!(error.contains("missing from live branch protection: oya-pr-review"));
+        assert!(error.contains("extra in live branch protection: stale-required-check"));
+    }
+
+    #[test]
+    fn applied_required_status_checks_match_reports_drift() {
+        let canonical = vec![
+            "oya-governance-protection-context-match".to_string(),
+            "oya-pr-review".to_string(),
+        ];
+        let applied = vec![
+            "oya-foundry-fitness-protection-context-match".to_string(),
+            "oya-pr-review".to_string(),
+        ];
+        let error = validate_required_status_checks_match(
+            &canonical,
+            &applied,
+            "dev",
+            "applied branch-protection config",
+        )
+        .unwrap_err();
+        assert!(error.contains("branch `dev` diverge"));
+        assert!(
+            error.contains(
+                "missing from applied branch-protection config: oya-governance-protection-context-match"
+            ),
+            "{error}"
+        );
+        assert!(
+            error.contains(
+                "extra in applied branch-protection config: oya-foundry-fitness-protection-context-match"
+            ),
+            "{error}"
+        );
     }
 
     #[test]

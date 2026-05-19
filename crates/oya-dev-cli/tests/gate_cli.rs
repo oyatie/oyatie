@@ -5455,6 +5455,7 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
             workflows_dir.to_str().expect("utf8 workflows dir"),
             "--branch",
             "dev",
+            "--skip-applied-branch-protection",
         ])
         .output()
         .expect("gate command runs");
@@ -5511,6 +5512,7 @@ fn protection_context_match_gate_passes_clean_crate() {
             workflows_dir.to_str().expect("utf8 workflows dir"),
             "--branch",
             "dev",
+            "--skip-applied-branch-protection",
         ])
         .output()
         .expect("gate command runs");
@@ -5526,6 +5528,232 @@ fn protection_context_match_gate_passes_clean_crate() {
             .contains("protection-context-match validation passed"),
         "stdout must confirm pass; got: {}",
         String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the protection-context-match validator also catches the
+/// hosted false-green class: local branch-protection + workflow job
+/// names agree, but live GitHub branch protection requires fewer
+/// contexts than the repo policy.
+#[test]
+fn protection_context_match_gate_catches_live_branch_protection_drift() {
+    let temp = temp_dir("pcm-live-drift");
+    let workflows_dir = temp.join("workflows");
+    fs::create_dir_all(&workflows_dir).expect("workflows dir created");
+
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      - cargo-fmt\n      \
+                             - oya-pr-review\n    require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
+                         name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: cargo fmt --check\n  review:\n    \
+                         name: oya-pr-review\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: echo ok\n";
+    fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
+    let live_required_contexts = temp.join("live-required-contexts.json");
+    fs::write(&live_required_contexts, r#"{"contexts":["cargo-fmt"]}"#)
+        .expect("live contexts written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            "--workflows-dir",
+            workflows_dir.to_str().expect("utf8 workflows dir"),
+            "--branch",
+            "dev",
+            "--skip-applied-branch-protection",
+            "--live-required-contexts",
+            live_required_contexts
+                .to_str()
+                .expect("utf8 live contexts path"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected exit 1 for live branch-protection drift\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("live branch protection required_status_checks"),
+        "stderr must name live drift; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("missing from live branch protection: oya-pr-review"),
+        "stderr must name the unenforced context; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the protection-context-match validator catches the local
+/// false-green class where the canonical YAML and workflow job names agree,
+/// but the JSON config used by branch-protection apply still carries a stale
+/// required context.
+#[test]
+fn protection_context_match_gate_catches_applied_branch_protection_drift() {
+    let temp = temp_dir("pcm-applied-drift");
+    let workflows_dir = temp.join("workflows");
+    fs::create_dir_all(&workflows_dir).expect("workflows dir created");
+
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      - cargo-fmt\n      \
+                             - oya-governance-protection-context-match\n    \
+                             require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
+                         name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: cargo fmt --check\n  pcm:\n    \
+                         name: oya-governance-protection-context-match\n    \
+                         runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n";
+    fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
+
+    let applied_config = temp.join("dev.json");
+    fs::write(
+        &applied_config,
+        r#"{"required_status_checks":{"contexts":["cargo-fmt","oya-foundry-fitness-protection-context-match"]}}"#,
+    )
+    .expect("applied config written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            "--workflows-dir",
+            workflows_dir.to_str().expect("utf8 workflows dir"),
+            "--branch",
+            "dev",
+            "--applied-branch-protection",
+            applied_config.to_str().expect("utf8 applied config path"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected exit 1 for applied branch-protection drift\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("applied branch-protection config required_status_checks"),
+        "stderr must name applied drift; got: {stderr}"
+    );
+    assert!(
+        stderr.contains(
+            "missing from applied branch-protection config: oya-governance-protection-context-match"
+        ),
+        "stderr must name the missing new context; got: {stderr}"
+    );
+    assert!(
+        stderr.contains(
+            "extra in applied branch-protection config: oya-foundry-fitness-protection-context-match"
+        ),
+        "stderr must name the stale old context; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn canonical_base_neutrality_self_test_passes() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "canonical-base-neutrality",
+            "--self-test",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected self-test to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("canonical-base-neutrality validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+}
+
+#[test]
+fn canonical_base_neutrality_catches_identifier_and_string_leaks() {
+    let temp = temp_dir("canonical-base-neutrality-dirty");
+    let src_dir = temp.join("crates/oya-cloud-data-kernel/src");
+    fs::create_dir_all(&src_dir).expect("fixture src dir created");
+    fs::write(
+        src_dir.join("lib.rs"),
+        r#"
+pub struct FinancialKrCredit;
+pub enum ResidencyClass { StrictKr }
+pub struct LeastUsed;
+pub struct KmsUseReceipt;
+pub struct InvalidUserDataUri;
+pub const LOCALE: &str = "ko-KR";
+"#,
+    )
+    .expect("fixture source written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "canonical-base-neutrality",
+            "--repo-root",
+            temp.to_str().expect("utf8 temp path"),
+            "--root",
+            "crates/oya-cloud-data-kernel/src",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected jurisdiction leaks to fail\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("FinancialKrCredit"),
+        "stderr must name identifier leak; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("StrictKr"),
+        "stderr must name second identifier leak; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("ko-KR"),
+        "stderr must name string leak; got: {stderr}"
+    );
+    assert!(
+        !stderr.contains("LeastUsed")
+            && !stderr.contains("KmsUseReceipt")
+            && !stderr.contains("InvalidUserDataUri"),
+        "stderr must avoid common Us false positives; got: {stderr}"
     );
 
     fs::remove_dir_all(temp).ok();

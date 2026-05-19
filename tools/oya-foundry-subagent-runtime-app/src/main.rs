@@ -526,7 +526,9 @@ mod tests {
             let path = pr_dir.join(format!("{slug}.json"));
             let json = fs::read_to_string(&path).unwrap();
             assert!(json.contains(&format!("\"facet_id\": \"{slug}\"")));
-            assert!(json.contains("\"final_recommendation\""));
+            assert!(json.contains("\"final_recommendation\": \"APPROVE\""));
+            assert!(json.contains("deterministic-mock CI smoke"));
+            assert!(json.contains("no content-quality claim"));
         }
     }
 
