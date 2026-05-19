@@ -76,18 +76,18 @@
       "status": "expected_fail",
       "summary": "canonical base neutrality violations: 196 files checked, 657 jurisdiction leaks",
       "sample_findings": [
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1079:43: jurisdiction-identifier `FinancialKrCredit` \u2014 DataClass::Financial | DataClass::FinancialKrCredit",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1108:39: jurisdiction-identifier `FinancialKrCredit` \u2014 Classified::new(value, DataClass::FinancialKrCredit)",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1120:26: jurisdiction-string `kr-seoul` \u2014 home_region: \"kr-seoul\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1121:31: jurisdiction-string `kyb/kr-seoul/observability-plus` \u2014 kyb_evidence_ref: \"kyb/kr-seoul/observability-plus\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1145:37: jurisdiction-string `kr-seoul` \u2014 supported_regions: vec![\"kr-seoul\".to_string(), \"jp-tokyo\".to_string()],",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1145:61: jurisdiction-string `jp-tokyo` \u2014 supported_regions: vec![\"kr-seoul\".to_string(), \"jp-tokyo\".to_string()],",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1171:17: jurisdiction-string `cpo_observability_agent_tenant_kr` \u2014 id: \"cpo_observability_agent_tenant_kr\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1173:24: jurisdiction-string `ten_kr` \u2014 tenant_id: \"ten_kr\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1174:33: jurisdiction-string `ba_kr_cloud` \u2014 billing_account_id: \"ba_kr_cloud\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1175:30: jurisdiction-string `legal/private-offer/observability-agent/ten-kr` \u2014 legal_terms_ref: \"legal/private-offer/observability-agent/ten-kr\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1180:36: jurisdiction-identifier `FinancialKrCredit` \u2014 data_class: DataClass::FinancialKrCredit,",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1186:17: jurisdiction-string `cme_observability_agent_tenant_kr` \u2014 id: \"cme_observability_agent_tenant_kr\".to_string(),"
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1079:43: jurisdiction-identifier `FinancialKrCredit` — DataClass::Financial | DataClass::FinancialKrCredit",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1108:39: jurisdiction-identifier `FinancialKrCredit` — Classified::new(value, DataClass::FinancialKrCredit)",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1120:26: jurisdiction-string `kr-seoul` — home_region: \"kr-seoul\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1121:31: jurisdiction-string `kyb/kr-seoul/observability-plus` — kyb_evidence_ref: \"kyb/kr-seoul/observability-plus\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1145:37: jurisdiction-string `kr-seoul` — supported_regions: vec![\"kr-seoul\".to_string(), \"jp-tokyo\".to_string()],",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1145:61: jurisdiction-string `jp-tokyo` — supported_regions: vec![\"kr-seoul\".to_string(), \"jp-tokyo\".to_string()],",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1171:17: jurisdiction-string `cpo_observability_agent_tenant_kr` — id: \"cpo_observability_agent_tenant_kr\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1173:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1174:33: jurisdiction-string `ba_kr_cloud` — billing_account_id: \"ba_kr_cloud\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1175:30: jurisdiction-string `legal/private-offer/observability-agent/ten-kr` — legal_terms_ref: \"legal/private-offer/observability-agent/ten-kr\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1180:36: jurisdiction-identifier `FinancialKrCredit` — data_class: DataClass::FinancialKrCredit,",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1186:17: jurisdiction-string `cme_observability_agent_tenant_kr` — id: \"cme_observability_agent_tenant_kr\".to_string(),"
       ],
       "note": "Updated after KCMVP lexicon hardening; KMS remains absent and marketplace remains the next source-level blocker."
     },
@@ -1243,10 +1243,50 @@
       "status": "pass",
       "summary": "workspace diff check clean for SaaS marketplace/workflow neutral fixture slice",
       "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "passed during search crawler/vector/rank fixture-neutrality slice"
+    },
+    {
+      "command": "cargo test -p oya-search-crawler-domain",
+      "status": "pass",
+      "summary": "4 unit tests passed after neutral crawler fixtures"
+    },
+    {
+      "command": "cargo test -p oya-search-index-vector-domain",
+      "status": "pass",
+      "summary": "18 unit tests passed after neutral vector tenant fixtures"
+    },
+    {
+      "command": "cargo test -p oya-search-rank-domain",
+      "status": "pass",
+      "summary": "4 unit tests passed after neutral rank tenant fixture"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-search-crawler-domain --root crates/oya-search-index-vector-domain --root crates/oya-search-rank-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 4 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 200 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "no whitespace errors after search fixture-neutrality slice"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 210 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blockers remain residency/tenancy canonical-vs-pack separation, search locale/morphology seams, and shared backup regulatory-pack naming.",
+    "Default canonical-base-neutrality scan currently fails with 200 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blockers remain residency/tenancy canonical-vs-pack separation, search locale/morphology enum/API seams, and shared backup regulatory-pack naming.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
@@ -1262,8 +1302,8 @@
       "risk": "high"
     },
     {
-      "lane": "search locale and tenant fixture neutralization",
-      "write_scope": "crates/oya-search-*-domain",
+      "lane": "search locale and morphology enum/API migration",
+      "write_scope": "crates/oya-search-parser-domain, crates/oya-search-query-domain, crates/oya-search-index-inverted-domain, crates/oya-search-rag-domain, and crates/oya-search-serp-domain",
       "risk": "high"
     },
     {
@@ -1277,21 +1317,21 @@
       "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T14:31:28Z",
+  "updated_at": "2026-05-19T14:37:42Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T14:31:28Z",
-    "change_scope": "SaaS marketplace/workflow neutral tenant and pack fixture slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 253 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 210 jurisdiction leaks",
+    "observed_at": "2026-05-19T14:37:42Z",
+    "change_scope": "search crawler/vector/rank neutral tenant and URL fixture slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 210 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 200 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 43,
+      "jurisdiction_leaks_removed": 10,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "crates/oya-saas-plugin-marketplace-kernel, crates/oya-saas-workflow-domain, crates/oya-saas-workflow-kernel test fixtures",
-    "targeted_clean_summary": "cargo fmt --all --check passed; saas plugin marketplace, workflow-domain, and workflow-kernel tests passed; scoped canonical-base-neutrality passed with 8 files checked and 0 jurisdiction leaks. Tenant, listing, regional pack, and invalid-pack fixtures now use neutral alpha/beta labels while preserving tenant mismatch, listing filter, pack-prefix validation, workflow definition, and run lifecycle behavior.",
-    "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 210 leaks. The first remaining leak is gate-catalog regulated-AI command identity; major semantic buckets remain residency/tenancy, search locale/morphology, and shared backup regulatory-pack naming.",
-    "workspace_verification_note": "This slice changed SaaS test fixtures only. Production marketplace listing validation, auction tenant isolation, workflow regional-pack prefix checks, and lifecycle behavior stayed intact."
+    "targeted_clean_scope": "crates/oya-search-crawler-domain, crates/oya-search-index-vector-domain, and crates/oya-search-rank-domain test fixtures",
+    "targeted_clean_summary": "cargo fmt --all --check passed; crawler, vector-index, and rank tests passed; scoped canonical-base-neutrality passed with 4 files checked and 0 jurisdiction leaks. Tenant and URL fixtures now use neutral alpha/beta labels while preserving crawl target validation, vector tenant-boundary rejection, dimension validation, and ranking behavior.",
+    "evidence_log": "/tmp/fd001-search-fixture-neutrality-verify-20260519T143742Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 200 leaks. The first remaining leak is gate-catalog regulated-AI command identity; remaining high-risk semantic buckets are residency/tenancy production seams, search locale/morphology enum/API seams, and shared backup regulatory-pack naming.",
+    "workspace_verification_note": "This slice changed test fixture literals only. QueryLocale and MorphologyLocale production enum/API semantics were intentionally not changed in this fixture-only commit."
   },
   "remediation_history": [
     {
@@ -1787,6 +1827,21 @@
       "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 210 leaks. The first remaining leak is gate-catalog regulated-AI command identity; major semantic buckets remain residency/tenancy, search locale/morphology, and shared backup regulatory-pack naming.",
       "workspace_verification_note": "This slice changed SaaS test fixtures only. Production marketplace listing validation, auction tenant isolation, workflow regional-pack prefix checks, and lifecycle behavior stayed intact."
+    },
+    {
+      "observed_at": "2026-05-19T14:37:42Z",
+      "change_scope": "search crawler/vector/rank neutral tenant and URL fixture slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 210 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 200 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 10,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "crates/oya-search-crawler-domain, crates/oya-search-index-vector-domain, and crates/oya-search-rank-domain test fixtures",
+      "targeted_clean_summary": "cargo fmt --all --check passed; crawler, vector-index, and rank tests passed; scoped canonical-base-neutrality passed with 4 files checked and 0 jurisdiction leaks. Tenant and URL fixtures now use neutral alpha/beta labels while preserving crawl target validation, vector tenant-boundary rejection, dimension validation, and ranking behavior.",
+      "evidence_log": "/tmp/fd001-search-fixture-neutrality-verify-20260519T143742Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 200 leaks. The first remaining leak is gate-catalog regulated-AI command identity; remaining high-risk semantic buckets are residency/tenancy production seams, search locale/morphology enum/API seams, and shared backup regulatory-pack naming.",
+      "workspace_verification_note": "This slice changed test fixture literals only. QueryLocale and MorphologyLocale production enum/API semantics were intentionally not changed in this fixture-only commit."
     }
   ]
 }

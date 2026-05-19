@@ -82,7 +82,7 @@ mod tests {
     fn plan(mode: QueryMode, min_score: f32) -> QueryPlan {
         QueryPlan::new(QueryPlanCreate {
             query_id: "q".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             raw_query: "hi".to_string(),
             mode,
             locale: QueryLocale::En,
