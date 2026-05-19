@@ -2098,6 +2098,11 @@ fn workspace_hygiene_gate_strict_mode_rejects_build_artifact_residue() {
         "stderr={}",
         String::from_utf8_lossy(&output.stderr)
     );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("target"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 
     fs::remove_dir_all(temp).ok();
 }
