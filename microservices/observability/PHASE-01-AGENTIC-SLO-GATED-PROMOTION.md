@@ -218,7 +218,7 @@ branches:
       - oya-foundry-fitness-supply-chain
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver
-      - oya-foundry-fitness-protection-context-match
+      - oya-governance-protection-context-match
       - oya-pr-review
       # ADDED by this phase (IP-012 + IP-013):
       - oya-vcs-promotion-readiness            # NEW; reads Mimir eligibility verdicts

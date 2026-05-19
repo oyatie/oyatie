@@ -423,7 +423,7 @@
         "criticality": "WARN — PR may merge with reviewer override",
         "fail_policy": "report-only",
         "parallelism": "all in parallel",
-        "lanes": ["oya-foundry-fitness-doc-catalog", "oya-foundry-fitness-protection-context-match", "oya-foundry-fitness-changeset-state-monotonicity"]
+        "lanes": ["oya-foundry-fitness-doc-catalog", "oya-governance-protection-context-match", "oya-foundry-fitness-changeset-state-monotonicity"]
       },
       "post_merge_promotion_gate": {
         "criticality": "BLOCKER for promotion to next stage",

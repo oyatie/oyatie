@@ -1596,7 +1596,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // silent-bypass classes: local config points at a workflow
         // job that does not exist, or GitHub live enforcement drifts
         // behind the canonical repo policy. Lane id:
-        // `oya-foundry-fitness-protection-context-match`. Kernel:
+        // `oya-governance-protection-context-match`. Kernel:
         // `oya-check-protection-context-match` (port-in-kernel,
         // ADR-0056).
         (Some("validate"), Some("protection-context-match")) => {

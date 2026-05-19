@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: ops-sre-reliability
-acceptance_lanes: [oya-foundry-fitness-protection-context-match]
+acceptance_lanes: [oya-governance-protection-context-match]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->

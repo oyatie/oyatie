@@ -5430,11 +5430,11 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
     let workflows_dir = temp.join("workflows");
     fs::create_dir_all(&workflows_dir).expect("workflows dir created");
 
-    // branch-protection lists `oya-foundry-fitness-protection-context-match`
+    // branch-protection lists `oya-governance-protection-context-match`
     // but the workflow posts `pcm-check` (different label) — silent bypass.
     let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
                              required_status_checks:\n      \
-                             - oya-foundry-fitness-protection-context-match\n    \
+                             - oya-governance-protection-context-match\n    \
                              require_signed_commits: true\n";
     let protection_file = temp.join("branch-protection.yaml");
     fs::write(&protection_file, branch_protection).expect("branch-protection written");
@@ -5472,7 +5472,7 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
         "stderr must contain failure message; got: {stderr}"
     );
     assert!(
-        stderr.contains("oya-foundry-fitness-protection-context-match"),
+        stderr.contains("oya-governance-protection-context-match"),
         "stderr must name the missing context; got: {stderr}"
     );
 
@@ -5489,7 +5489,7 @@ fn protection_context_match_gate_passes_clean_crate() {
 
     let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
                              required_status_checks:\n      - cargo-fmt\n      \
-                             - oya-foundry-fitness-protection-context-match\n    \
+                             - oya-governance-protection-context-match\n    \
                              require_signed_commits: true\n";
     let protection_file = temp.join("branch-protection.yaml");
     fs::write(&protection_file, branch_protection).expect("branch-protection written");
@@ -5497,7 +5497,7 @@ fn protection_context_match_gate_passes_clean_crate() {
     let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
                          name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
                          - run: cargo fmt --check\n  pcm:\n    \
-                         name: oya-foundry-fitness-protection-context-match\n    \
+                         name: oya-governance-protection-context-match\n    \
                          runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n";
     fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
 
