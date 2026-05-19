@@ -342,6 +342,38 @@
     "store_vcs_completion_summary",
     "emit_final_report"
   ],
+  "select_next_ready_item": {
+    "id": "select_next_ready_item",
+    "change_id": "fd001-control-state-refresh-2026-05-19",
+    "authority_order": [
+      "/specs/root-hub-pointers.json",
+      "/specs/masterplan.json",
+      "/specs/planning-closure-contract.json",
+      "/specs/planning-closure-status-closure-ledger.json",
+      "Oya VCS claim/admission state",
+      "runtime plan-tree scan",
+      "gate output evidence"
+    ],
+    "historical_snapshot_handling": {
+      "live_implementation_index_snapshot_status": "historical-snapshot-not-current",
+      "selection_rule": "Use live_implementation_index rows as provenance only; a current next-ready item requires current source inspection plus Oya VCS claim acceptance.",
+      "blocked_reclaim_rule": "Do not select completed compatibility rows or stale snapshot-only rows as FD-001 product implementation work."
+    },
+    "serialized_before_product_fanout": [
+      "control-state refresh and claim-alignment metadata",
+      "shared API contract ownership",
+      "shared data model ownership",
+      "branch/promotion policy",
+      "chained-enforcement gate-hardening lanes"
+    ],
+    "parallel_read_only_lookahead_lanes": [
+      "gate acceptance",
+      "claim-scope mapping",
+      "GitOps/DevOps promotion-path review",
+      "doubt/security review"
+    ],
+    "product_fanout_entry_rule": "Product write lanes may fan out only after shared API/data/policy/evidence/path claims are locked and required gates report green evidence."
+  },
   "ledger_required_fields": [
     "item_id",
     "source_path",

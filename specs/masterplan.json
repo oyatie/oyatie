@@ -7,7 +7,7 @@
     "version": "1.1.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-05-19T00:00:00Z",
+    "updated_at": "2026-05-19T02:36:00Z",
     "owner_team": "council-architecture",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
@@ -80,6 +80,16 @@
           }
         ]
       }
+    },
+    "control_state_refresh_2026_05_19": {
+      "change_id": "fd001-control-state-refresh-2026-05-19",
+      "purpose": "Disambiguate current ChangeSet selection from historical implementation-index snapshots before FD-001 implementation fanout.",
+      "authority_rule": "Current claim selection resolves through /specs/master-plan-sequencing.json, Oya VCS claim/admission state, and runtime plan-tree scans; live_implementation_index is provenance only when snapshot_status is historical-snapshot-not-current.",
+      "non_claims": [
+        "Does not claim FD-001 product implementation is complete.",
+        "Does not claim API/data/policy/evidence contracts are locked.",
+        "Does not authorize product surface fanout before shared contract and chained-enforcement gates are green."
+      ]
     }
   },
   "planning_closure": {
@@ -292,7 +302,24 @@
         "cross-surface API contract changes",
         "shared data model ownership changes",
         "branch protection and promotion policy changes"
-      ]
+      ],
+      "claim_alignment_lock": {
+        "serialized_first_slice": "fd001-control-state-refresh-2026-05-19",
+        "current_selection_authorities": [
+          "/specs/master-plan-sequencing.json#select_next_ready_item",
+          "Oya VCS claim/admission state",
+          "implementation_plan_contract.current_tree_count runtime scan",
+          "oya gate validate honest-claims runtime scan"
+        ],
+        "historical_snapshot_rule": "live_implementation_index rows with snapshot_status=historical-snapshot-not-current are compatibility/provenance evidence only; they cannot reopen completed compatibility lanes or select a next ChangeSet by themselves.",
+        "fanout_guard": "Product/API/data/policy/evidence/path write fanout remains serialized until shared contract claims are locked and chained-enforcement gates are green.",
+        "safe_parallel_read_only_lanes": [
+          "gate acceptance lookahead",
+          "claim-scope expansion mapping",
+          "GitOps/DevOps promotion-path review",
+          "review/doubt/security lane"
+        ]
+      }
     },
     "no_placeholder_policy": {
       "blocking_status_values": [
@@ -877,6 +904,34 @@
   "live_implementation_index": {
     "generated_at": "2026-05-14T09:12:00Z",
     "snapshot_status": "historical-snapshot-not-current",
+    "claim_selection_authority": {
+      "is_current_claim_queue": false,
+      "current_selection_authorities": [
+        "/specs/master-plan-sequencing.json#select_next_ready_item",
+        "Oya VCS claim/admission state",
+        "implementation_plan_contract.current_tree_count runtime scan",
+        "oya gate validate honest-claims runtime scan"
+      ],
+      "snapshot_usage": "compatibility-provenance-only",
+      "must_not_select_next_ready_from_snapshot_alone": true,
+      "known_alignment_notes": [
+        {
+          "id": "M01-P08-agentic-pipeline-cutover",
+          "note": "Historical P08/P01 compatibility rows preserve cutover evidence; forward agentic authority is Oya VCS plus current runtime scans.",
+          "claim_rule": "Do not reclaim P08 snapshot rows as FD-001 product work without a fresh Oya VCS ChangeSet boundary and current source inspection."
+        },
+        {
+          "id": "M01-P13-IP-002",
+          "note": "Dependency-seam/LTS lane needs current source reconciliation before it can unlock product fanout.",
+          "claim_rule": "Treat as a serialized reconciliation candidate unless current gates prove a narrower disjoint claim boundary."
+        },
+        {
+          "id": "M01-P-FITNESS-IP-001",
+          "note": "Banned-primitives/chained-enforcement lane is a gate-hardening candidate before product fanout.",
+          "claim_rule": "Claim detector/workflow/source-corpus evidence as a serialized governance gate before relying on broad parallel write lanes."
+        }
+      ]
+    },
     "current_runtime_index_source": "implementation_plan_contract.current_tree_count plus oya gate validate honest-claims runtime scan",
     "current_runtime_implementation_plan_count": 172,
     "source_root": ".omc/plans/milestones",
