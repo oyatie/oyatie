@@ -1,0 +1,95 @@
+{
+  "subchecks": [
+    {
+      "id": "seam-imports",
+      "status": "pass",
+      "diagnostics": [],
+      "notes": [
+        "anyhow: allowed_crates=oya-codeview-cli,oya-foundry-fitness-purpose-audit-app,oya-shared-architecture-check-cli,oya-shared-semver-check-cli,oya-shared-supply-chain-check-cli,oya-xtask-metadata-augment-app",
+        "bytes: allowed_crates=oya-http-runtime-hyper-adapter",
+        "clap: allowed_crates=oya-codeview-cli,oya-foundry-webhook-receiver-app,oya-shared-architecture-check-cli,oya-shared-semver-check-cli,oya-shared-supply-chain-check-cli,oya-tenant-cli,oya-xtask-metadata-augment-app",
+        "http-body-util: allowed_crates=oya-http-runtime-hyper-adapter",
+        "hyper: allowed_crates=oya-http-runtime-hyper-adapter",
+        "hyper-util: allowed_crates=oya-http-runtime-hyper-adapter",
+        "regex: allowed_crates=oya-codeview-cli",
+        "serde: allowed_crates=oya-check-authz-tier-discipline,oya-check-dependency-seam,oya-check-ontology-projection-coverage,oya-check-step-up-auth-coverage,oya-codeview-cli,oya-foundry-webhook-receiver-app,oya-gen-microservice-manifests-app,oya-policy-cedar-domain,oya-resolve-scorecards-app,oya-shared-oidc-client-kernel,oya-shared-scim-server-kernel,oya-shared-webauthn-server-kernel",
+        "serde_json: allowed_crates=oya-check-authz-tier-discipline,oya-check-dependency-seam,oya-check-ontology-projection-coverage,oya-codeview-cli,oya-dev-cli,oya-foundry-fitness-purpose-audit-app,oya-foundry-vcs-admission-gate-app,oya-foundry-vcs-admission-gate-kernel,oya-foundry-vcs-changeset-state-app,oya-foundry-vcs-provider-execution-gate-app,oya-foundry-vcs-provider-execution-gate-kernel,oya-foundry-webhook-receiver-app,oya-gen-microservice-manifests-app,oya-policy-cedar-domain,oya-resolve-scorecards-app,oya-search-index-vector-domain,oya-shared-oidc-client-kernel,oya-shared-scim-server-kernel,oya-shared-webauthn-server-kernel,oya-xtask-metadata-augment-app",
+        "serde_yaml: allowed_crates=oya-check-step-up-auth-coverage,oya-foundry-fitness-purpose-audit-app,oya-foundry-webhook-receiver-app",
+        "tempfile: allowed_crates=oya-foundry-fitness-adapter-with-no-importer-kernel,oya-foundry-fitness-mistakes-ledger-kernel,oya-foundry-fitness-sunset-lifecycle-app,oya-foundry-jsonl-supervisor-adapter,oya-foundry-pr-review-dispatcher-app,oya-foundry-subagent-runtime-app,oya-xtask-metadata-augment-app",
+        "tokio: allowed_crates=oya-foundry-claude-account-adapter,oya-foundry-codex-account-adapter,oya-foundry-gemini-account-adapter,oya-foundry-supervisor-app,oya-foundry-webhook-receiver-app,oya-http-runtime-hyper-adapter,oya-ops-workspace-shell-app",
+        "toml: allowed_crates=oya-check-dependency-seam",
+        "tracing: allowed_crates=oya-application-app,oya-foundry-supervisor-app",
+        "tracing-subscriber: allowed_crates=oya-application-app,oya-foundry-supervisor-app",
+        "walkdir: allowed_crates=oya-codeview-cli"
+      ]
+    },
+    {
+      "id": "registry-coverage",
+      "status": "pass",
+      "diagnostics": [],
+      "notes": []
+    },
+    {
+      "id": "cargo-audit-shell",
+      "status": "pass",
+      "diagnostics": [],
+      "notes": [
+        "cargo audit exited 0"
+      ]
+    },
+    {
+      "id": "multispectrum-evidence-attached",
+      "status": "pass",
+      "diagnostics": [],
+      "notes": []
+    },
+    {
+      "id": "fixture-pair-coverage",
+      "status": "pass",
+      "diagnostics": [],
+      "notes": []
+    },
+    {
+      "id": "change-class-declared",
+      "status": "pass",
+      "diagnostics": [],
+      "notes": []
+    }
+  ],
+  "workspace_dependencies": [
+    "anyhow",
+    "bytes",
+    "clap",
+    "http-body-util",
+    "hyper",
+    "hyper-util",
+    "regex",
+    "serde",
+    "serde_json",
+    "serde_yaml",
+    "tempfile",
+    "tokio",
+    "toml",
+    "tracing",
+    "tracing-subscriber",
+    "walkdir"
+  ],
+  "registry_entries": [
+    "anyhow",
+    "bytes",
+    "clap",
+    "http-body-util",
+    "hyper",
+    "hyper-util",
+    "regex",
+    "serde",
+    "serde_json",
+    "serde_yaml",
+    "tempfile",
+    "tokio",
+    "toml",
+    "tracing",
+    "tracing-subscriber",
+    "walkdir"
+  ]
+}

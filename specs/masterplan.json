@@ -7,7 +7,7 @@
     "version": "1.1.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-05-19T02:36:00Z",
+    "updated_at": "2026-05-19T04:47:32Z",
     "owner_team": "council-architecture",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
@@ -363,12 +363,12 @@
       "source_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
       "canonical_home": {
         "milestone": "M01-foundation",
-        "phase": "P06-distroless-lts-image",
-        "implementation_plan": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md"
+        "phase": "P13-distroless-lts-image",
+        "implementation_plan": ".omc/plans/milestones/M01-foundation/phases/P13-distroless-lts-image/IP-002-lts-dependency-lane.md"
       },
       "rules": [
         "Public APIs expose Oyatie wrapper/newtype surfaces only; hyper/tokio/bytes/http-body types stay out of kernel/runtime public signatures except adapter-owned boundaries.",
-        "Every tracked dependency has an owner, allowed layer/crate regex, replacement target, trigger, CVE acceleration trigger, status, and ADR citation in /registry/tech-debt-ledger.json.",
+        "Every tracked dependency has an owner, layer seam, replacement strategy, ADR citation, and current workspace-dependency coverage in /registry/dependency-rationales.json.",
         "Phase-out is trigger-based: ontology stability, p99 budget history, replacement parity, CVE state, and dependent-wave status drive transitions.",
         "Do not remove hyper/tokio/serde/etc. from workspace dependencies in this phase; ship products first, phase out after Ontology v1 stable or CVE acceleration."
       ],
@@ -414,18 +414,33 @@
         "oya-check-distroless-deployment-bar"
       ],
       "seed_dependencies": [
+        "anyhow",
+        "bytes",
+        "clap",
+        "http-body-util",
         "hyper",
         "hyper-util",
-        "http-body-util",
-        "tokio",
-        "bytes",
-        "tracing",
-        "tracing-subscriber",
+        "regex",
         "serde",
         "serde_json",
+        "serde_yaml",
+        "tempfile",
+        "tokio",
         "toml",
-        "toml_edit"
-      ]
+        "tracing",
+        "tracing-subscriber",
+        "walkdir"
+      ],
+      "current_gate_evidence": {
+        "status": "local-green-online-audit-strict-evidence-pass",
+        "gate": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
+        "result": "6 pass, 0 skipped, 0 diagnostics, 0 blocking",
+        "evidence_refs": [
+          "/evidence/fd001/cs-p13-dependency-seam-report.json",
+          "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",
+          "/evidence/fd001/cs-p13-dependency-seam-cargo-audit.json"
+        ]
+      }
     }
   ],
   "milestones": [
@@ -518,16 +533,23 @@
           "source_plan": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md"
         },
         {
-          "id": "P06-distroless-lts-image",
+          "id": "P13-distroless-lts-image",
           "title": "Distroless + Image-Discipline + Dependency-Seam/LTS Phaseout",
           "status": "planning-closed-contract-authored",
           "implementation_plans": [
             {
               "id": "M01-P13-IP-002",
-              "path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P13-distroless-lts-image/IP-002-lts-dependency-lane.md",
               "title": "Dependency-seam discipline + tech-debt ledger + LTS roster",
               "source_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
-              "status": "expanded-from-round-5-findings"
+              "status": "dependency-seam-gate-local-green",
+              "implementation_state": "local-gate-green-hosted-promotion-pending",
+              "evidence_refs": [
+                "/evidence/fd001/cs-p13-dependency-seam-report.json",
+                "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",
+                "/evidence/fd001/cs-p13-dependency-seam-cargo-audit.json"
+              ],
+              "gate_evidence": "oya gate validate dependency-seam strict run passed locally with 6 pass, 0 skipped, 0 diagnostics, 0 blocking."
             }
           ],
           "previous_planning_status": "was-seed",
@@ -929,8 +951,16 @@
         },
         {
           "id": "M01-P13-IP-002",
-          "note": "Dependency-seam/LTS lane needs current source reconciliation before it can unlock product fanout.",
-          "claim_rule": "Treat as a serialized reconciliation candidate unless current gates prove a narrower disjoint claim boundary."
+          "note": "Dependency-seam/LTS lane has current local gate reconciliation; product fanout still waits on broader shared-policy/promotion blockers.",
+          "claim_rule": "Treat as a serialized reconciliation candidate unless current gates prove a narrower disjoint claim boundary.",
+          "status": "dependency-seam-gate-local-green",
+          "implementation_state": "local-gate-green-hosted-promotion-pending",
+          "evidence_refs": [
+            "/evidence/fd001/cs-p13-dependency-seam-report.json",
+            "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",
+            "/evidence/fd001/cs-p13-dependency-seam-cargo-audit.json"
+          ],
+          "gate_evidence": "Restored oya-check-dependency-seam, wired oya gate validate dependency-seam, refreshed dependency-rationales coverage, and passed strict local validation with current multispectrum evidence."
         },
         {
           "id": "M01-P-FITNESS-IP-001",
@@ -1690,9 +1720,9 @@
               },
               {
                 "id": "M01-P13-IP-002",
-                "file": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P13-distroless-lts-image/IP-002-lts-dependency-lane.md",
                 "title": "Dependency-seam discipline + tech-debt ledger + LTS roster",
-                "status": "expanded-from-round-5-findings",
+                "status": "dependency-seam-gate-local-green",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
                 "changeset_contract": "claimable-verifiable-bundleable-promotable",
@@ -1700,7 +1730,13 @@
                 "final_shape_compliance": "true",
                 "dependency_additions": [],
                 "source_plan": "../../../../ralplan-dep-seam-phaseout-round-5.md",
-                "source_spec": null
+                "source_spec": null,
+                "implementation_state": "local-gate-green-hosted-promotion-pending",
+                "evidence_refs": [
+                  "/evidence/fd001/cs-p13-dependency-seam-report.json",
+                  "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",
+                  "/evidence/fd001/cs-p13-dependency-seam-cargo-audit.json"
+                ]
               },
               {
                 "id": "M01-P13-IP-003",

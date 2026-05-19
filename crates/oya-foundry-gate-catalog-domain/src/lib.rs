@@ -87,6 +87,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "placeholder-debt",
     "retired-vocabulary",
     "protection-context-match",
+    "dependency-seam",
     "license-policy",
     "plane-class",
     "raci-team-coverage",

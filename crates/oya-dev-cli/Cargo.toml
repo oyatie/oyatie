@@ -13,6 +13,7 @@ oya-check-active-artifact-contract = { path = "../oya-check-active-artifact-cont
 oya-check-adr-citation = { path = "../oya-check-adr-citation" }
 oya-check-adr-index = { path = "../oya-check-adr-index" }
 oya-check-cedar-fragment-coverage = { path = "../oya-check-cedar-fragment-coverage" }
+oya-check-dependency-seam = { path = "../oya-check-dependency-seam" }
 oya-check-openapi-rest-route-parity = { path = "../oya-check-openapi-rest-route-parity" }
 oya-foundry-architecture-map-app = { path = "../oya-foundry-architecture-map-app" }
 oya-foundry-api-semver-domain = { path = "../oya-foundry-api-semver-domain" }

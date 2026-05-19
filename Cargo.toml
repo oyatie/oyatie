@@ -59,6 +59,7 @@ members = [
   "crates/oya-check-perf-budget",
   "crates/oya-check-benchmark",
   "crates/oya-check-license-policy",
+  "crates/oya-check-dependency-seam",
   "crates/oya-check-vendor-lockin-discipline",
   "crates/oya-collab-crdt-portability-kernel",
   "crates/oya-foundry-evidence-domain",

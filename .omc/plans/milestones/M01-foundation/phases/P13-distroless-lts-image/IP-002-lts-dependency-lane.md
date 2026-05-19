@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P13-IP-002
 title: Dependency-seam discipline + tech-debt ledger + LTS roster
-status: in-progress
+status: dependency-seam-gate-local-green
 amended_at: 2026-05-14
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -64,6 +64,12 @@ This IP owns the dependency-seam and phase-out control surface. It does **not** 
 | `docs/decisions/ADR-0093-*` | create/update | CI-only read-side gh carve-out; Proposed at Step 4, Accepted only at Step 6 with CODEOWNERS + same-PR guard. |
 | `docs/decisions/ADR-0094-*` | create | SSE kernel/runtime split rationale and future runtime creation criteria. |
 | `docs/standards/lts-versions.md` | create/update | LTS roster and ADR exception link surface. |
+
+## 2026-05-19 current-checkout reconciliation
+
+`oya-check-dependency-seam` is restored as a runnable workspace crate and wired through `oya gate validate dependency-seam`. The current ADR-0092 D13 scope is six subchecks: `seam-imports`, `registry-coverage`, `cargo-audit-shell`, `multispectrum-evidence-attached`, `fixture-pair-coverage`, and `change-class-declared`.
+
+Fresh local strict evidence: `cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json` passed with 6 pass, 0 skipped, 0 diagnostics, and 0 blocking; `cargo audit` exited 0 and emitted evidence/fd001/cs-p13-dependency-seam-cargo-audit.json. Hosted promotion/branch-protection wiring remains outside this local closeout.
 
 ## Dependency seam contract
 
