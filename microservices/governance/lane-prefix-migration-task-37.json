@@ -17,8 +17,8 @@
   },
   "audit": {
     "registry_path": "registry/quality/lanes.yaml",
-    "active_old_prefix_lanes": 41,
-    "active_new_prefix_lanes": 23,
+    "active_old_prefix_lanes": 40,
+    "active_new_prefix_lanes": 24,
     "new_prefix_audit_result": "pass",
     "bulk_sweep_status": "forbidden"
   },
@@ -63,7 +63,8 @@
     {"ip_id": "GOV-PREFIX-038", "old_lane_id": "oya-foundry-fitness-changeset-state-enum-closed", "new_lane_id": "oya-governance-changeset-state-enum-closed", "status": "queued"},
     {"ip_id": "GOV-PREFIX-039", "old_lane_id": "oya-foundry-fitness-vendor-contract-recency", "new_lane_id": "oya-governance-vendor-contract-recency", "status": "queued"},
     {"ip_id": "GOV-PREFIX-040", "old_lane_id": "oya-foundry-fitness-mobile-native", "new_lane_id": "oya-governance-mobile-native", "status": "queued"},
-    {"ip_id": "GOV-PREFIX-041", "old_lane_id": "oya-foundry-fitness-merge-queue-ref-hygiene", "new_lane_id": "oya-governance-merge-queue-ref-hygiene", "status": "queued"}
+    {"ip_id": "GOV-PREFIX-041", "old_lane_id": "oya-foundry-fitness-merge-queue-ref-hygiene", "new_lane_id": "oya-governance-merge-queue-ref-hygiene", "status": "queued"},
+    {"ip_id": "GOV-PREFIX-042", "old_lane_id": "oya-foundry-fitness-dependency-seam", "new_lane_id": "oya-governance-dependency-seam", "status": "in_progress"}
   ],
   "per_lane_changeset_acceptance": [
     "registry/quality/lanes.yaml has exactly one active row for the new lane id",

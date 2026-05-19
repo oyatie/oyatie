@@ -35,7 +35,7 @@ name: oya-foundry-fitness-master-plan-completion
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [dev]
 
 permissions:
   contents: read

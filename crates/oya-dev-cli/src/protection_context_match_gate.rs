@@ -29,7 +29,7 @@ use oya_check_protection_context_match::{
 const USAGE: &str = "oya gate validate protection-context-match \
                      [--branch-protection <.github/branch-protection.yaml>] \
                      [--workflows-dir <.github/workflows>] \
-                     [--branch <main>]";
+                     [--branch <dev>]";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ProtectionContextMatchValidateArgs {

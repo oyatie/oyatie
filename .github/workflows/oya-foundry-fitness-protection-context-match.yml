@@ -21,7 +21,7 @@ name: oya-foundry-fitness-protection-context-match
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [dev]
 
 permissions:
   contents: read

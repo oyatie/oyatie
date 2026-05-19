@@ -56,6 +56,7 @@ branches:
       - oya-foundry-fitness-aspirational-enforcement
       - oya-foundry-fitness-banned-primitives
       - oya-foundry-fitness-protection-context-match
+      - oya-governance-dependency-seam
       - oya-pr-review
 
   staging:

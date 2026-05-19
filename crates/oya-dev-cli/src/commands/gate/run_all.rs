@@ -24,10 +24,11 @@
 //! `oya gate validate <name>` until follow-up ADRs port them into the
 //! native dispatcher.
 
-use std::process::ExitCode;
+use std::process::{Command, ExitCode, Stdio};
 
 use oya_foundry_gate_catalog_domain::{
     AGGREGATED_VALIDATE_LANES, BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT,
+    CI_REQUIRED_PREFLIGHT_COMMANDS, DEPENDENCY_SEAM_EVIDENCE,
 };
 
 use super::run as gate_dispatch;
@@ -56,18 +57,21 @@ const DEFERRED_GATES: &[(&str, &str)] = &[
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct RunAllArgs {
     pub(crate) include_deferred: bool,
+    pub(crate) ci_required: bool,
 }
 
 pub(crate) fn parse_run_all_args(args: Vec<String>) -> Result<RunAllArgs, String> {
     let mut parsed = RunAllArgs {
         include_deferred: false,
+        ci_required: false,
     };
     for flag in args {
         match flag.as_str() {
             "--include-deferred" => parsed.include_deferred = true,
+            "--ci-required" => parsed.ci_required = true,
             other => {
                 return Err(format!(
-                    "gate run-all: unknown flag {other:?}; allowed: --include-deferred"
+                    "gate run-all: unknown flag {other:?}; allowed: --include-deferred, --ci-required"
                 ));
             }
         }
@@ -82,7 +86,14 @@ pub(crate) struct LaneOutcome {
 }
 
 pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
-    let mut outcomes: Vec<LaneOutcome> = Vec::with_capacity(AGGREGATED_VALIDATE_LANES.len());
+    let mut outcomes: Vec<LaneOutcome> = Vec::with_capacity(
+        AGGREGATED_VALIDATE_LANES.len()
+            + if args.ci_required {
+                CI_REQUIRED_PREFLIGHT_COMMANDS.len()
+            } else {
+                0
+            },
+    );
     for lane in AGGREGATED_VALIDATE_LANES {
         println!("[gate run-all] starting: {lane}");
         let dispatch_args = dispatch_args_for_lane(lane);
@@ -97,6 +108,23 @@ pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
             if passed { "PASS" } else { "FAIL" },
             lane
         );
+    }
+
+    if args.ci_required {
+        println!("[gate run-all] ci-required preflight: starting hosted required-check mirrors");
+        for command in CI_REQUIRED_PREFLIGHT_COMMANDS {
+            println!("[gate run-all] starting: {command}");
+            let passed = run_ci_required_preflight_command(command);
+            outcomes.push(LaneOutcome {
+                lane: (*command).to_string(),
+                passed,
+            });
+            println!(
+                "[gate run-all] {} {}",
+                if passed { "PASS" } else { "FAIL" },
+                command
+            );
+        }
     }
 
     let failures: Vec<&LaneOutcome> = outcomes.iter().filter(|o| !o.passed).collect();
@@ -131,8 +159,93 @@ fn dispatch_args_for_lane(lane: &str) -> Vec<String> {
         args.push("--require-command-log-corpus".to_string());
         args.push("--command-log-root".to_string());
         args.push(BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT.to_string());
+    } else if lane == "dependency-seam" {
+        args.push("--repo-root".to_string());
+        args.push(".".to_string());
+        args.push("--evidence".to_string());
+        args.push(DEPENDENCY_SEAM_EVIDENCE.to_string());
+        args.push("--online-audit".to_string());
+        args.push("--severity".to_string());
+        args.push("error".to_string());
     }
     args
+}
+
+fn run_ci_required_preflight_command(command: &str) -> bool {
+    let mut child = match command {
+        "cargo fmt --all -- --check" => {
+            let mut child = Command::new("cargo");
+            child.args(["fmt", "--all", "--", "--check"]);
+            child
+        }
+        "cargo check --workspace --all-targets --keep-going" => {
+            let mut child = cargo_with_ci_env();
+            child.args(["check", "--workspace", "--all-targets", "--keep-going"]);
+            child
+        }
+        "cargo clippy --workspace --all-targets --keep-going -- -D warnings" => {
+            let mut child = cargo_with_ci_env();
+            child.args([
+                "clippy",
+                "--workspace",
+                "--all-targets",
+                "--keep-going",
+                "--",
+                "-D",
+                "warnings",
+            ]);
+            child
+        }
+        "cargo nextest run --workspace --no-fail-fast" => {
+            let mut child = cargo_with_ci_env();
+            child.env("NEXTEST_PROFILE", "ci");
+            child.args(["nextest", "run", "--workspace", "--no-fail-fast"]);
+            child
+        }
+        "cargo run -q -p oya-foundry-vcs-admission-gate-app" => {
+            let mut child = cargo_with_ci_env();
+            child.args(["run", "-q", "-p", "oya-foundry-vcs-admission-gate-app"]);
+            child
+        }
+        "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json" =>
+        {
+            let mut child = cargo_with_ci_env();
+            child.args([
+                "run",
+                "-q",
+                "-p",
+                "oya-foundry-vcs-provider-execution-gate-app",
+                "--",
+                "--mode",
+                "ci",
+                "--emit-evidence",
+                "target/oya-vcs-provider-execution/provider-execution-proof.json",
+            ]);
+            child
+        }
+        other => {
+            eprintln!("[gate run-all] unsupported ci-required command in catalog: {other}");
+            return false;
+        }
+    };
+    match child
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()
+    {
+        Ok(status) => status.success(),
+        Err(error) => {
+            eprintln!("[gate run-all] could not start `{command}`: {error}");
+            false
+        }
+    }
+}
+
+fn cargo_with_ci_env() -> Command {
+    let mut command = Command::new("cargo");
+    command.env("CARGO_TERM_COLOR", "always");
+    command.env("CARGO_INCREMENTAL", "0");
+    command
 }
 
 /// `ExitCode` is opaque (no `==` on Linux/macOS). Compare via a thin
@@ -176,6 +289,7 @@ mod tests {
     fn parse_args_defaults() {
         let parsed = parse_run_all_args(vec![]).expect("defaults");
         assert!(!parsed.include_deferred);
+        assert!(!parsed.ci_required);
     }
 
     #[test]
@@ -183,6 +297,14 @@ mod tests {
         let parsed =
             parse_run_all_args(vec!["--include-deferred".into()]).expect("include-deferred");
         assert!(parsed.include_deferred);
+        assert!(!parsed.ci_required);
+    }
+
+    #[test]
+    fn parse_args_ci_required_flag() {
+        let parsed = parse_run_all_args(vec!["--ci-required".into()]).expect("ci-required");
+        assert!(parsed.ci_required);
+        assert!(!parsed.include_deferred);
     }
 
     #[test]
@@ -194,6 +316,15 @@ mod tests {
     #[test]
     fn aggregated_lane_catalog_contains_architecture_boundaries() {
         assert!(AGGREGATED_VALIDATE_LANES.contains(&"architecture-boundaries"));
+    }
+
+    #[test]
+    fn dependency_seam_dispatch_uses_required_ci_args() {
+        let args = dispatch_args_for_lane("dependency-seam");
+        assert!(args.contains(&"--online-audit".to_string()));
+        assert!(args.contains(&"--severity".to_string()));
+        assert!(args.contains(&"error".to_string()));
+        assert!(args.contains(&DEPENDENCY_SEAM_EVIDENCE.to_string()));
     }
 
     #[test]

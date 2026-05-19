@@ -145,14 +145,14 @@ lanes:
     source: AGENTS.md Done-Definition / MISTAKES doctrine
     runtime_budget_seconds: 300
     check_command: cargo run -p oya-dev-cli -- gate validate placeholder-debt
-  - id: oya-foundry-fitness-dependency-seam
+  - id: oya-governance-dependency-seam
     stage: foundation
     status: active
     owner_team: council-architecture
-    purpose: enforce ADR-0092 dependency rationale coverage, exact adapter-only imports, multispectrum evidence, fixture-pair coverage, and change_class declarations
+    purpose: fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, multispectrum evidence, change_class declarations, and online cargo-audit vulnerability checks
     source: ADR-0092 / registry/dependency-rationales.json
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate dependency-seam
+    check_command: cargo run -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error
   - id: oya-foundry-fitness-license
     stage: foundation
     status: active
@@ -253,26 +253,26 @@ lanes:
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: "`cargo check --workspace --all-targets --all-features`"
+    purpose: "`cargo check --workspace --all-targets --keep-going`"
     source: TOOLCHAIN.md
     runtime_budget_seconds: 600
-    check_command: cargo check --workspace --all-targets --all-features
+    check_command: cargo check --workspace --all-targets --keep-going
   - id: cargo-clippy
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: "`cargo clippy --workspace --all-features --all-targets -D warnings`"
+    purpose: "`cargo clippy --workspace --all-targets --keep-going -D warnings`"
     source: standards/testing.md
     runtime_budget_seconds: 900
-    check_command: cargo clippy --workspace --all-targets --all-features -- -D warnings
+    check_command: cargo clippy --workspace --all-targets --keep-going -- -D warnings
   - id: cargo-nextest
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: "`cargo nextest run --workspace --all-features --no-fail-fast`"
+    purpose: "`cargo nextest run --workspace --no-fail-fast`"
     source: standards/testing.md
     runtime_budget_seconds: 1200
-    check_command: cargo nextest run --workspace --all-features --no-fail-fast
+    check_command: cargo nextest run --workspace --no-fail-fast
   - id: cargo-deny
     stage: per-pr
     status: active
