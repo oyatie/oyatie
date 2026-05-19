@@ -144,6 +144,24 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
 pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
     "registry/fitness-corpora/banned-primitives";
 
+/// Multispectrum evidence bundle that promotes the dependency-seam lane from
+/// advisory/default-offline to CI-required, fail-closed governance.
+pub const DEPENDENCY_SEAM_EVIDENCE: &str =
+    "evidence/multispectrum/cs-p13-dependency-seam-1779166052.json";
+
+/// Required hosted status-check commands that are not pure
+/// `oya gate validate <name>` lanes. `oya verify --ci-required` runs these in
+/// addition to `gate run-all` so the local pre-PR pipeline mirrors required CI
+/// instead of giving a stale/partial green signal.
+pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] = &[
+    "cargo fmt --all -- --check",
+    "cargo check --workspace --all-targets --keep-going",
+    "cargo clippy --workspace --all-targets --keep-going -- -D warnings",
+    "cargo nextest run --workspace --no-fail-fast",
+    "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+    "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
+];
+
 /// Catalog of non-`gate validate` commands the legacy `scripts/check.sh`
 /// wired into the pre-merge gate sequence. These cover:
 /// 1. Cargo toolchain commands (fmt/check/clippy/audit/deny/machete/nextest).
@@ -170,11 +188,11 @@ pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
 pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     // Toolchain primitives.
     "cargo fmt --all -- --check",
-    "cargo check --workspace --all-targets --all-features",
-    "cargo clippy --workspace --all-targets --all-features -- -D warnings",
+    "cargo check --workspace --all-targets --keep-going",
+    "cargo clippy --workspace --all-targets --keep-going -- -D warnings",
     "cargo machete",
     "cargo audit",
-    "cargo nextest run --workspace --all-features --no-fail-fast",
+    "cargo nextest run --workspace --no-fail-fast",
     "cargo deny check",
     // Demo and catalog.
     "cargo run -p oya-dev-cli -- demo",
@@ -200,8 +218,9 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "bash tools/governance/adr-0221-governance-gates.sh version-pin",
     "bash tools/governance/adr-0221-governance-gates.sh buildability-line-count",
     // Local verification + dedicated foundry tool entry points.
-    "cargo run -p oya-dev-cli -- verify",
+    "cargo run -p oya-dev-cli -- verify --ci-required",
     "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+    "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
     "cargo run -q -p oya-foundry-fitness-purpose-audit-app",
     "cargo run -p oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600",
     "scripts/check-sequential-pr-merge-conflicts.sh --base-branch dev --start-pr 111",
@@ -260,6 +279,10 @@ pub fn canonical_gate_validate_command(lane: &str) -> String {
     if lane == "banned-primitives" {
         command.push_str(" --require-command-log-corpus --command-log-root ");
         command.push_str(BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT);
+    } else if lane == "dependency-seam" {
+        command.push_str(" --repo-root . --evidence ");
+        command.push_str(DEPENDENCY_SEAM_EVIDENCE);
+        command.push_str(" --online-audit --severity error");
     }
     command
 }
@@ -428,7 +451,31 @@ mod tests {
         // oya-check-pre-push kernel asserts that `oya verify` is the
         // canonical local verification surface.
         let rendered = all_canonical_commands_rendered();
-        assert!(rendered.contains("cargo run -p oya-dev-cli -- verify"));
+        assert!(rendered.contains("cargo run -p oya-dev-cli -- verify --ci-required"));
+    }
+
+    #[test]
+    fn rendered_dependency_seam_lane_is_ci_strict() {
+        let rendered = all_canonical_commands_rendered();
+        assert!(rendered.contains(
+            "cargo run -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error"
+        ));
+    }
+
+    #[test]
+    fn ci_required_preflight_commands_include_hosted_required_checks() {
+        assert!(
+            CI_REQUIRED_PREFLIGHT_COMMANDS
+                .contains(&"cargo nextest run --workspace --no-fail-fast")
+        );
+        assert!(
+            CI_REQUIRED_PREFLIGHT_COMMANDS
+                .contains(&"cargo run -q -p oya-foundry-vcs-admission-gate-app")
+        );
+        assert!(CI_REQUIRED_PREFLIGHT_COMMANDS.iter().any(|command| {
+            command.contains("oya-foundry-vcs-provider-execution-gate-app")
+                && command.contains("--mode ci")
+        }));
     }
 
     #[test]

@@ -1,6 +1,6 @@
 name: pr-tests
 
-# Required-check workflow for every PR + push to main per the 2026-05-15
+# Required-check workflow for every PR + push to dev per the 2026-05-15
 # audit finding "0 workflows run cargo test/cargo nextest on pull_request."
 #
 # Posture: surface-all-failures (M01-P09-IP-007).
@@ -18,14 +18,14 @@ name: pr-tests
 #     failure. That dependency has been removed.
 #
 # Branch-protection ruleset (`.github/branch-protection.yaml`) lists these
-# job IDs as required checks. The ruleset is deployed on `main` (gh api
-# PUT, M01-P09-IP-001), so every PR to `main` blocks until these jobs
+# job IDs as required checks. The ruleset is deployed on `dev` (gh api
+# PUT, M01-P09-IP-001), so every PR to `dev` blocks until these jobs
 # pass.
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [dev]
 
 permissions:
   contents: read

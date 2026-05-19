@@ -3,7 +3,7 @@ name: oya-foundry-fitness-api-semver
 # Required-check workflow for the foundry public-API semver lane.
 #
 # Branch-protection (`.github/branch-protection.yaml`) requires the status
-# check `oya-foundry-fitness-api-semver` on every PR + push to `main`. This
+# check `oya-foundry-fitness-api-semver` on every PR + push to `dev`. This
 # workflow produces that status by running the api-semver-kernel validator
 # via `oya-dev-cli gate validate api-semver`, which discovers contract
 # artifacts under `contracts/` (asyncapi/, openapi/, proto/) plus their
@@ -17,7 +17,7 @@ name: oya-foundry-fitness-api-semver
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [dev]
 
 permissions:
   contents: read

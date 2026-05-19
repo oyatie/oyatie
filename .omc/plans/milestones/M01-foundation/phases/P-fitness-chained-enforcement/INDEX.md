@@ -14,4 +14,4 @@ This phase holds foundation gate-hardening ChangeSets that must land before broa
 
 ## Implementation plans
 
-- [M01-P-FITNESS-IP-001 — Banned-primitives lane](IP-001-banned-primitives-lane.md)
+- [M01-P17-IP-008.1 — Banned-primitives lane](IP-001-banned-primitives-lane.md)

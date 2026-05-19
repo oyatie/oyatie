@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P17-IP-008
 title: Banned-primitives fitness check
-status: reconciled-to-M01-P-FITNESS-IP-001
+status: reconciled-to-M01-P17-IP-008.1
 tier: S
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -12,14 +12,14 @@ dependency_additions: []
 source_audit: ../../../../../../evidence/audits/pipeline-maturity-audit-2026-05-15.md
 blocker_ref: F-FORBIDDEN-PRIMITIVES-CI-GUARD
 successor_plan: ../P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md
-purpose: Preserve the P17 audit lineage while the active implementation contract lives in M01-P-FITNESS-IP-001.
+purpose: Preserve the P17 audit lineage while the active implementation contract lives in M01-P17-IP-008.1.
 ---
 
 # M01-P17-IP-008 — Banned-primitives fitness check
 
 ## Current contract
 
-The active lane is `M01-P-FITNESS-IP-001`. This P17 record is the historical audit entry for the same blocker and must not keep stale API or registry names alive.
+The active lane is `M01-P17-IP-008.1`. This P17 record is the historical audit entry for the same blocker and must not keep stale API or registry names alive.
 
 Current implementation shape:
 

@@ -1,7 +1,7 @@
 ---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
-id: M01-P-FITNESS-IP-001
+id: M01-P17-IP-008.1
 title: Banned-primitives lane
 status: active-implementation
 tier: S
@@ -13,7 +13,7 @@ blocker_ref: F-FORBIDDEN-PRIMITIVES-CI-GUARD
 purpose: Ship the real `oya-foundry-fitness-banned-primitives` detector, gate dispatch, quality-lane registration, workflow context, branch-protection row, source-corpus contract, sanitized command-log corpus contract, and evidence before product fanout relies on forbidden-primitive claims.
 ---
 
-# M01-P-FITNESS-IP-001 — Banned-primitives lane
+# M01-P17-IP-008.1 — Banned-primitives lane
 
 ## Scope
 

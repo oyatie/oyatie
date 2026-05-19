@@ -567,7 +567,7 @@
           "description": "Fitness lanes must chain: detection of a banned primitive or aspirational-enforcement gap triggers a fixuptask and blocks promotion only after the detector, workflow, branch-protection row, and source-corpus artifact exist on branch; until then this lane is advisory and review-enforced.",
           "implementation_plans": [
             {
-              "id": "M01-P-FITNESS-IP-001",
+              "id": "M01-P17-IP-008.1",
               "title": "oya-foundry-fitness-banned-primitives lane (F-FORBIDDEN-PRIMITIVES-CI-GUARD)",
               "status": "source-and-command-corpus-local-green",
               "execution_unit": "ChangeSet",
@@ -963,7 +963,7 @@
           "gate_evidence": "Restored oya-check-dependency-seam, wired oya gate validate dependency-seam, refreshed dependency-rationales coverage, and passed strict local validation with current multispectrum evidence."
         },
         {
-          "id": "M01-P-FITNESS-IP-001",
+          "id": "M01-P17-IP-008.1",
           "note": "Banned-primitives/chained-enforcement lane is a gate-hardening candidate before product fanout.",
           "claim_rule": "Claim detector/workflow/source-corpus evidence as a serialized governance gate before relying on broad parallel write lanes.",
           "status": "source-and-command-corpus-local-green",
@@ -2521,7 +2521,7 @@
                 "id": "M01-P17-IP-008",
                 "title": "IP 008 banned primitives fitness check",
                 "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
-                "status": "reconciled-to-M01-P-FITNESS-IP-001",
+                "status": "reconciled-to-M01-P17-IP-008.1",
                 "previous_planning_status": "was-structured",
                 "implementation_state": "successor-plan-source-and-command-corpus-local-green-hosted-verification-pending",
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
