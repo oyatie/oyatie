@@ -155,12 +155,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REVIEW_RUNTIME_MODE: deterministic-mock
         run: |
           rollup="evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json"
           verdict="ROLLUP_MISSING"
           pending="unknown"
           conclusion="failure"
-          summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; rollup file missing at ${rollup}"
+          summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; rollup file missing at ${rollup}"
 
           if [ ! -f "$rollup" ]; then
             echo "::error::rollup file missing at $rollup" >&2
@@ -176,17 +177,17 @@ jobs:
             if [ "$verdict" = "APPROVE" ] && [ "$pending" = "false" ]; then
               conclusion="success"
             fi
-            summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; verdict=${verdict}; subagent_runtime_pending=${pending}"
+            summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; verdict=${verdict}; subagent_runtime_pending=${pending}"
           fi
 
-          echo "rollup verdict=${verdict} pending=${pending} conclusion=${conclusion}"
+          echo "rollup verdict=${verdict} pending=${pending} conclusion=${conclusion} runtime_mode=${REVIEW_RUNTIME_MODE}"
           gh api -X POST "repos/${GITHUB_REPOSITORY}/check-runs" \
             -f name="oya-pr-review" \
             -f head_sha="${HEAD_SHA}" \
             -f status="completed" \
             -f conclusion="${conclusion}" \
             -f details_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
-            -f output[title]="pr-review ${verdict}" \
+            -f output[title]="pr-review ${verdict} (${REVIEW_RUNTIME_MODE})" \
             -f output[summary]="${summary}"
 
           # Required-check semantics: branch protection binds to the
