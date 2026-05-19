@@ -304,23 +304,67 @@
     {
       "command": "bin/oya git diff --check",
       "status": "pass"
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-network-domain -- --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-cloud-network-domain",
+      "status": "pass",
+      "summary": "18 unit tests passed after neutral network fixture/residency update and workspace membership addition"
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-network-domain --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-network-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 555 jurisdiction leaks",
+      "sample_findings": [
+        "crates/oya-cloud-observability-domain/src/lib.rs:1608:26: jurisdiction-string `kr-seoul`",
+        "crates/oya-cloud-observability-domain/src/lib.rs:1619:28: jurisdiction-string `oya-pack-kr`",
+        "crates/oya-cloud-observability-domain/src/lib.rs:1620:40: jurisdiction-identifier `StrictKr`",
+        "crates/oya-cloud-region-domain/src/lib.rs:690:19: jurisdiction-string `kr-seoul`"
+      ],
+      "note": "Updated after network neutralization; network is absent from gate output and observability domain is the next source-level blocker."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 634 source-level jurisdiction leaks, starting in crates/oya-cloud-network-domain/src/lib.rs; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "Default canonical-base-neutrality scan currently fails with 555 source-level jurisdiction leaks, starting in crates/oya-cloud-observability-domain/src/lib.rs; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
     {
       "lane": "canonical leak remediation batch 1 next",
-      "write_scope": "crates/oya-cloud-network-domain/src/lib.rs plus workspace membership/lockfile if needed",
+      "write_scope": "crates/oya-cloud-observability-domain/src/lib.rs plus workspace membership/lockfile if needed",
+      "risk": "medium-high"
+    },
+    {
+      "lane": "canonical leak remediation batch 2",
+      "write_scope": "crates/oya-cloud-region-domain/src/lib.rs and crates/oya-cloud-resource-domain/src/lib.rs after observability",
       "risk": "high"
     },
     {
-      "lane": "canonical leak remediation batch 2 mapping",
-      "write_scope": "read-only map after network: likely observability/region/resource domain leakage from default gate output",
-      "risk": "medium"
+      "lane": "canonical leak remediation batch 3",
+      "write_scope": "crates/oya-cloud-storage-domain/src/lib.rs and cloud-surface canonical provider fixtures",
+      "risk": "high"
     },
     {
       "lane": "ops-dashboard-control-center manifest bootstrap",
@@ -331,28 +375,23 @@
       "lane": "KR evidence directory bootstrap",
       "write_scope": "docs/localization-packs/kr/evidence/",
       "risk": "low-medium"
-    },
-    {
-      "lane": "governance naming migration next non-gating lane",
-      "write_scope": "one workflow/config lane only; avoid oya-pr-review until check-run publisher is live",
-      "risk": "medium"
     }
   ],
-  "updated_at": "2026-05-19T12:34:47Z",
+  "updated_at": "2026-05-19T12:40:39Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T12:33:52Z",
-    "change_scope": "crates/oya-cloud-marketplace-domain canonical marketplace financial/region fixture neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 657 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 634 jurisdiction leaks",
+    "observed_at": "2026-05-19T12:40:05Z",
+    "change_scope": "crates/oya-cloud-network-domain canonical network fixture/residency neutrality slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 634 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 555 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 23,
+      "jurisdiction_leaks_removed": 79,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo fmt -p oya-cloud-marketplace-domain -- --check; cargo test -p oya-cloud-marketplace-domain; cargo clippy -p oya-cloud-marketplace-domain --all-targets -- -D warnings; cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-marketplace-domain",
-    "targeted_clean_summary": "marketplace scoped scan passes with 1 file checked and 0 jurisdiction leaks; 6 unit tests, fmt, and clippy pass",
-    "evidence_log": "/tmp/fd001-cloud-marketplace-neutrality-verify-20260519T123352Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-network-domain/src/lib.rs.",
-    "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-marketplace-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical marketplace financial data-class, currency, tenant, billing account, legal reference, and region fixtures now use pack-neutral terms."
+    "targeted_clean_scope": "cargo fmt -p oya-cloud-network-domain -- --check; cargo test -p oya-cloud-network-domain; cargo clippy -p oya-cloud-network-domain --all-targets -- -D warnings; cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-network-domain",
+    "targeted_clean_summary": "network scoped scan passes with 1 file checked and 0 jurisdiction leaks; 18 unit tests, fmt, and clippy pass",
+    "evidence_log": "/tmp/fd001-cloud-network-neutrality-verify-20260519T124005Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-observability-domain/src/lib.rs.",
+    "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-network-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical network VPC/subnet/LB/DNS/CDN/interconnect/DDoS/mesh fixtures now use neutral tenant, region, AZ, cell, resource, certificate, DNSSEC, residency, scrubbing, and peering labels."
   },
   "remediation_history": [
     {
@@ -532,6 +571,21 @@
       "evidence_log": "/tmp/fd001-kcmvp-neutrality-hardening-verify-20260519T122754Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-marketplace-domain/src/lib.rs.",
       "workspace_verification_note": "Code review REQUEST CHANGES on commit 6676d3ac was resolved by replacing canonical HsmValidation::KcmvpFips1403Level3 with a neutral pack-enhanced profile name, neutralizing KMS API message/fixtures, and expanding the gate lexicon/tests so future KCMVP/Kcmvp canonical leaks fail mechanically."
+    },
+    {
+      "observed_at": "2026-05-19T12:33:52Z",
+      "change_scope": "crates/oya-cloud-marketplace-domain canonical marketplace financial/region fixture neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 657 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 634 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 23,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo fmt -p oya-cloud-marketplace-domain -- --check; cargo test -p oya-cloud-marketplace-domain; cargo clippy -p oya-cloud-marketplace-domain --all-targets -- -D warnings; cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-marketplace-domain",
+      "targeted_clean_summary": "marketplace scoped scan passes with 1 file checked and 0 jurisdiction leaks; 6 unit tests, fmt, and clippy pass",
+      "evidence_log": "/tmp/fd001-cloud-marketplace-neutrality-verify-20260519T123352Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-network-domain/src/lib.rs.",
+      "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-marketplace-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical marketplace financial data-class, currency, tenant, billing account, legal reference, and region fixtures now use pack-neutral terms."
     }
   ]
 }
