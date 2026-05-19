@@ -58,7 +58,7 @@
     {"ip_id": "GOV-PREFIX-033", "old_lane_id": "oya-foundry-fitness-loop-recovery-patterns", "new_lane_id": "oya-governance-loop-recovery-patterns", "status": "queued"},
     {"ip_id": "GOV-PREFIX-034", "old_lane_id": "oya-foundry-fitness-master-plan-completion", "new_lane_id": "oya-governance-master-plan-completion", "status": "queued"},
     {"ip_id": "GOV-PREFIX-035", "old_lane_id": "oya-foundry-fitness-retired-vocabulary", "new_lane_id": "oya-governance-retired-vocabulary", "status": "queued"},
-    {"ip_id": "GOV-PREFIX-036", "old_lane_id": "oya-foundry-fitness-protection-context-match", "new_lane_id": "oya-governance-protection-context-match", "status": "queued"},
+    {"ip_id": "GOV-PREFIX-036", "old_lane_id": "oya-foundry-fitness-protection-context-match", "new_lane_id": "oya-governance-protection-context-match", "status": "in_progress"},
     {"ip_id": "GOV-PREFIX-037", "old_lane_id": "oya-foundry-fitness-changeset-state-monotonicity", "new_lane_id": "oya-governance-changeset-state-monotonicity", "status": "queued"},
     {"ip_id": "GOV-PREFIX-038", "old_lane_id": "oya-foundry-fitness-changeset-state-enum-closed", "new_lane_id": "oya-governance-changeset-state-enum-closed", "status": "queued"},
     {"ip_id": "GOV-PREFIX-039", "old_lane_id": "oya-foundry-fitness-vendor-contract-recency", "new_lane_id": "oya-governance-vendor-contract-recency", "status": "queued"},

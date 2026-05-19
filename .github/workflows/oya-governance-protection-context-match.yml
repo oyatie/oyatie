@@ -1,4 +1,4 @@
-name: oya-foundry-fitness-protection-context-match
+name: oya-governance-protection-context-match
 
 # Asserts that every `required_status_checks` context in
 # `.github/branch-protection.yaml` is the `name:` field of some
@@ -7,7 +7,11 @@ name: oya-foundry-fitness-protection-context-match
 # GitHub then waits forever for a check_run that never arrives,
 # and the protected branch becomes silently un-merge-able.
 #
-# Lane: oya-foundry-fitness-protection-context-match (per-pr).
+# Lane: oya-governance-protection-context-match (per-pr).
+# Compatibility: this workflow still posts
+# `oya-foundry-fitness-protection-context-match` as a mirror job during
+# the staged branch-protection rollout. The governance-named job is the
+# canonical required context for new config.
 # Kernel: crates/oya-check-protection-context-match.
 # Runner: crates/oya-dev-cli/src/protection_context_match_gate.rs.
 #
@@ -29,12 +33,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: protection-context-match-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: oya-governance-protection-context-match-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  oya-foundry-fitness-protection-context-match:
-    name: oya-foundry-fitness-protection-context-match
+  oya-governance-protection-context-match:
+    name: oya-governance-protection-context-match
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -47,6 +51,17 @@ jobs:
         uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
         with:
           shared-key: pr-tests
+      - name: oya gate validate protection-context-match
+        env:
+          GH_TOKEN: ${{ secrets.OYA_BRANCH_PROTECTION_READ_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::OYA_BRANCH_PROTECTION_READ_TOKEN is required; GitHub branch-protection status-check APIs require Administration read permission, which GITHUB_TOKEN cannot request."
+            exit 1
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/branches/dev/protection/required_status_checks" \
+            --jq '.contexts' > live-required-status-checks.json
       - name: oya gate validate protection-context-match
         env:
           GH_TOKEN: ${{ secrets.OYA_BRANCH_PROTECTION_READ_TOKEN }}
