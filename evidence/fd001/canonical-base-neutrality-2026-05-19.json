@@ -26,23 +26,34 @@
       "summary": "2 self-test fixtures checked, 0 jurisdiction leaks"
     },
     {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cell-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo test -p oya-cell-domain",
+      "status": "pass",
+      "summary": "5 integration tests passed; source module now has 0 in-file tests"
+    },
+    {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
       "status": "expected_fail",
-      "summary": "canonical base neutrality violations: 196 files checked, 937 jurisdiction leaks",
+      "summary": "canonical base neutrality violations: 196 files checked, 920 jurisdiction leaks",
       "sample_findings": [
-        "crates/oya-cell-domain/src/lib.rs:158:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
-        "crates/oya-cell-domain/src/lib.rs:159:28: jurisdiction-string `kr-seoul` — region: region(\"kr-seoul\", RegionJurisdiction::Kr),",
-        "crates/oya-cell-domain/src/lib.rs:159:60: jurisdiction-identifier `Kr` — region: region(\"kr-seoul\", RegionJurisdiction::Kr),",
-        "crates/oya-cell-domain/src/lib.rs:160:46: jurisdiction-identifier `StrictKr` — residency_class: ResidencyClass::StrictKr,",
-        "crates/oya-cell-domain/src/lib.rs:161:17: jurisdiction-string `kr-seoul-a` — az: \"kr-seoul-a\".to_string(),",
-        "crates/oya-cell-domain/src/lib.rs:162:22: jurisdiction-string `cell-kr-seoul-a-001` — cell_id: \"cell-kr-seoul-a-001\".to_string(),",
-        "crates/oya-cell-domain/src/lib.rs:164:32: jurisdiction-string `hsm/kr-seoul/cell-001` — hsm_partition_ref: \"hsm/kr-seoul/cell-001\".to_string(),",
-        "crates/oya-cell-domain/src/lib.rs:172:36: jurisdiction-string `kr-seoul` — assert_eq!(binding.region, \"kr-seoul\");",
-        "crates/oya-cell-domain/src/lib.rs:173:67: jurisdiction-identifier `StrictKr` — assert_eq!(binding.residency_class.value, ResidencyClass::StrictKr);",
-        "crates/oya-cell-domain/src/lib.rs:187:21: jurisdiction-string `kr-seoul-b` — az: \"kr-seoul-b\".to_string(),",
-        "crates/oya-cell-domain/src/lib.rs:188:26: jurisdiction-string `cell-kr-seoul-b-001` — cell_id: \"cell-kr-seoul-b-001\".to_string(),",
-        "crates/oya-cell-domain/src/lib.rs:199:17: jurisdiction-string `us-east-a` — az: \"us-east-a\".to_string(),"
-      ]
+        "crates/oya-cloud-billing-domain/src/lib.rs:96:5: jurisdiction-identifier `KrElectronicTaxInvoice` \u2014 KrElectronicTaxInvoice,",
+        "crates/oya-cloud-billing-domain/src/lib.rs:97:5: jurisdiction-identifier `JpQualifiedInvoice` \u2014 JpQualifiedInvoice,",
+        "crates/oya-cloud-billing-domain/src/lib.rs:98:5: jurisdiction-identifier `EuCountryEInvoice` \u2014 EuCountryEInvoice,",
+        "crates/oya-cloud-billing-domain/src/lib.rs:321:31: jurisdiction-identifier `KrElectronicTaxInvoice` \u2014 TaxInvoiceFormat::KrElectronicTaxInvoice => value",
+        "crates/oya-cloud-billing-domain/src/lib.rs:322:31: jurisdiction-string `kr-bizreg/` \u2014 .strip_prefix(\"kr-bizreg/\")",
+        "crates/oya-cloud-billing-domain/src/lib.rs:324:31: jurisdiction-identifier `JpQualifiedInvoice` \u2014 TaxInvoiceFormat::JpQualifiedInvoice => value",
+        "crates/oya-cloud-billing-domain/src/lib.rs:325:31: jurisdiction-string `jp-qualified/T` \u2014 .strip_prefix(\"jp-qualified/T\")",
+        "crates/oya-cloud-billing-domain/src/lib.rs:327:31: jurisdiction-identifier `EuCountryEInvoice` \u2014 TaxInvoiceFormat::EuCountryEInvoice => value",
+        "crates/oya-cloud-billing-domain/src/lib.rs:328:31: jurisdiction-string `eu-vat/` \u2014 .strip_prefix(\"eu-vat/\")",
+        "crates/oya-cloud-billing-domain/src/lib.rs:409:13: jurisdiction-string `oya-pack-kr` \u2014 \"oya-pack-kr\" => Ok(Self::KrElectronicTaxInvoice),",
+        "crates/oya-cloud-billing-domain/src/lib.rs:409:39: jurisdiction-identifier `KrElectronicTaxInvoice` \u2014 \"oya-pack-kr\" => Ok(Self::KrElectronicTaxInvoice),",
+        "crates/oya-cloud-billing-domain/src/lib.rs:410:13: jurisdiction-string `oya-pack-jp` \u2014 \"oya-pack-jp\" => Ok(Self::JpQualifiedInvoice),"
+      ],
+      "note": "Updated after cell-domain neutrality slice; previous 937-leak observation is retained in latest_observation.before_summary."
     },
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
@@ -89,5 +100,20 @@
       "write_scope": "one workflow/config lane only; avoid oya-pr-review until check-run publisher is live",
       "risk": "medium"
     }
-  ]
+  ],
+  "updated_at": "2026-05-19T11:39:16Z",
+  "latest_observation": {
+    "observed_at": "2026-05-19T11:39:16Z",
+    "change_scope": "crates/oya-cell-domain source/test fixture neutrality slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 937 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 920 jurisdiction leaks",
+    "delta": {
+      "jurisdiction_leaks_removed": 17,
+      "files_checked_delta": 0
+    },
+    "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cell-domain",
+    "targeted_clean_summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks",
+    "evidence_log": "/tmp/fd001-cell-domain-neutrality-verify-20260519T113916Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-billing-domain/src/lib.rs."
+  }
 }
