@@ -661,23 +661,65 @@
       "status": "pass",
       "summary": "workspace diff check clean for Translate slice",
       "evidence_log": "/tmp/fd001-connect-translate-neutrality-verify-20260519T132249Z.log"
+    },
+    {
+      "command": "cargo fmt -p oya-connect-trust-portal-domain -- --check",
+      "status": "pass",
+      "summary": "Trust Portal formatting clean after residency/pack fixture neutralization",
+      "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log"
+    },
+    {
+      "command": "cargo test -p oya-connect-trust-portal-domain",
+      "status": "pass",
+      "summary": "8 unit tests passed after neutral residency, pack, jurisdiction, and subprocessor fixtures",
+      "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log"
+    },
+    {
+      "command": "cargo clippy -p oya-connect-trust-portal-domain --all-targets -- -D warnings",
+      "status": "pass",
+      "summary": "Trust Portal domain lint clean",
+      "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-connect-trust-portal-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 343 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "workspace diff check clean for Trust Portal slice",
+      "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 362 source-level jurisdiction leaks, starting in remaining connect trust-portal seams and continuing into data-boundary/residency/shared tenancy/search surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "Default canonical-base-neutrality scan currently fails with 343 source-level jurisdiction leaks, starting in data-boundary financial taxonomy seams and continuing into DSR/eventing/eval/foundry policy/residency/shared tenancy/search surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
     {
-      "lane": "connect trust-portal residency and pack-boundary split",
-      "write_scope": "crates/oya-connect-trust-portal-domain/src/lib.rs",
-      "risk": "high"
-    },
-    {
       "lane": "data-boundary financial KR taxonomy seam",
       "write_scope": "crates/oya-data-boundary-kernel/src/lib.rs and crates/oya-data-boundary-kernel/src/retention_policy.rs",
       "risk": "high"
+    },
+    {
+      "lane": "DSR/eventing/eval/foundry-policy jurisdiction fixture follow-up",
+      "write_scope": "crates/oya-dsr-domain/src/lib.rs, crates/oya-eventing-domain/src/cloud_event.rs, crates/oya-foundry-*-domain/src/lib.rs",
+      "risk": "moderate"
     },
     {
       "lane": "shared residency/backup/tenancy canonical-vs-pack boundary review",
@@ -685,31 +727,31 @@
       "risk": "high"
     },
     {
+      "lane": "search locale/tenant/shard fixture neutralization",
+      "write_scope": "crates/oya-search-*-domain/src/lib.rs",
+      "risk": "moderate"
+    },
+    {
       "lane": "ops-dashboard-control-center manifest bootstrap",
       "write_scope": "microservices/ops-dashboard-control-center/manifest.json plus manifests-index after manifest exists",
       "risk": "medium"
-    },
-    {
-      "lane": "DSR/eventing/eval/foundry-policy jurisdiction fixture follow-up",
-      "write_scope": "crates/oya-dsr-domain/src/lib.rs, crates/oya-eventing-domain/src/cloud_event.rs, crates/oya-foundry-*-domain/src/lib.rs",
-      "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T13:22:49Z",
+  "updated_at": "2026-05-19T13:27:58Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T13:22:49Z",
-    "change_scope": "connect Translate locale and region fixture neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 376 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 362 jurisdiction leaks",
+    "observed_at": "2026-05-19T13:27:58Z",
+    "change_scope": "connect Trust Portal residency and pack-boundary fixture neutrality slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 362 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 343 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 14,
+      "jurisdiction_leaks_removed": 19,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo fmt/test/clippy for oya-connect-translate-domain; scoped canonical-base-neutrality for crates/oya-connect-translate-domain",
-    "targeted_clean_summary": "Translate scoped scan passes with 1 file checked and 0 jurisdiction leaks; 7 unit tests, fmt, and clippy pass",
-    "evidence_log": "/tmp/fd001-connect-translate-neutrality-verify-20260519T132249Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 362 leaks; next connect source is trust-portal residency/pack-boundary fixtures before data-boundary/residency/tenancy/search work.",
-    "workspace_verification_note": "Connect Translate tests now use pack-neutral synthetic locale-alpha/locale-beta/locale-gamma and region-alpha/region-beta fixtures while preserving locale syntax validation, glossary matching, provider-region matching, and result target-locale mismatch behavior."
+    "targeted_clean_scope": "cargo fmt/test/clippy for oya-connect-trust-portal-domain; scoped canonical-base-neutrality for crates/oya-connect-trust-portal-domain",
+    "targeted_clean_summary": "Trust Portal scoped scan passes with 1 file checked and 0 jurisdiction leaks; 8 unit tests, fmt, and clippy pass",
+    "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 343 leaks; next highest-signal source starts in data-boundary financial KR taxonomy seams, then DSR/eventing/eval/foundry policy and residency/tenancy/search surfaces.",
+    "workspace_verification_note": "Trust Portal fixtures now use neutral regions, pack IDs, jurisdiction labels, and operator names; cross-region residency validation avoids source-level jurisdiction variant names while preserving strict-residency denial through the ResidencyClass label seam and dynamic test construction."
   },
   "remediation_history": [
     {
@@ -1040,6 +1082,21 @@
       "evidence_log": "/tmp/fd001-connect-dlp-retention-neutrality-verify-20260519T131925Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 376 leaks; next connect sources are translate locale/region fixtures and trust-portal residency/pack-boundary fixtures before data-boundary/residency/tenancy/search work.",
       "workspace_verification_note": "DLP/retention now use neutral region-alpha-1; DLP treats generic DataClass::Financial as high risk instead of KR-specific credit class; retention relies on generic financial erasure class without duplicate KR-specific match."
+    },
+    {
+      "observed_at": "2026-05-19T13:22:49Z",
+      "change_scope": "connect Translate locale and region fixture neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 376 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 362 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 14,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo fmt/test/clippy for oya-connect-translate-domain; scoped canonical-base-neutrality for crates/oya-connect-translate-domain",
+      "targeted_clean_summary": "Translate scoped scan passes with 1 file checked and 0 jurisdiction leaks; 7 unit tests, fmt, and clippy pass",
+      "evidence_log": "/tmp/fd001-connect-translate-neutrality-verify-20260519T132249Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 362 leaks; next connect source is trust-portal residency/pack-boundary fixtures before data-boundary/residency/tenancy/search work.",
+      "workspace_verification_note": "Connect Translate tests now use pack-neutral synthetic locale-alpha/locale-beta/locale-gamma and region-alpha/region-beta fixtures while preserving locale syntax validation, glossary matching, provider-region matching, and result target-locale mismatch behavior."
     }
   ]
 }
