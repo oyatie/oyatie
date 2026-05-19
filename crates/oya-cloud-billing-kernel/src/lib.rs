@@ -122,13 +122,13 @@ mod tests {
 
     #[test]
     fn subtotal_multiplies_quantity_and_price() {
-        let l = line("L1", UsageUnit::Cpu, 5, 100, Some("kr"));
+        let l = line("L1", UsageUnit::Cpu, 5, 100, Some("neutral"));
         assert_eq!(l.subtotal_micros(), 500);
     }
 
     #[test]
     fn finalize_valid_line_returns_subtotal() {
-        let l = line("L1", UsageUnit::Cpu, 5, 100, Some("kr"));
+        let l = line("L1", UsageUnit::Cpu, 5, 100, Some("neutral"));
         assert_eq!(finalize_line(&l).unwrap(), 500);
     }
 
@@ -143,13 +143,13 @@ mod tests {
 
     #[test]
     fn zero_quantity_errors() {
-        let l = line("L1", UsageUnit::Cpu, 0, 100, Some("kr"));
+        let l = line("L1", UsageUnit::Cpu, 0, 100, Some("neutral"));
         assert!(matches!(finalize_line(&l), Err(BillingError::ZeroQuantity)));
     }
 
     #[test]
     fn empty_record_id_errors() {
-        let l = line("", UsageUnit::Cpu, 5, 100, Some("kr"));
+        let l = line("", UsageUnit::Cpu, 5, 100, Some("neutral"));
         assert!(matches!(
             finalize_line(&l),
             Err(BillingError::EmptyRecordId)
@@ -158,7 +158,7 @@ mod tests {
 
     #[test]
     fn empty_tenant_id_errors() {
-        let mut l = line("L1", UsageUnit::Cpu, 5, 100, Some("kr"));
+        let mut l = line("L1", UsageUnit::Cpu, 5, 100, Some("neutral"));
         l.usage.tenant_id = String::new();
         assert!(matches!(
             finalize_line(&l),
