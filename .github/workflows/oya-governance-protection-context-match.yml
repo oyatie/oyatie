@@ -8,10 +8,9 @@ name: oya-governance-protection-context-match
 # and the protected branch becomes silently un-merge-able.
 #
 # Lane: oya-governance-protection-context-match (per-pr).
-# Compatibility: this workflow still posts
-# `oya-foundry-fitness-protection-context-match` as a mirror job during
-# the staged branch-protection rollout. The governance-named job is the
-# canonical required context for new config.
+# Compatibility: GOV-PREFIX-036 completed the branch-protection
+# required-context cutover from `oya-foundry-fitness-protection-context-match`
+# to this governance-named job. Do not require the retired mirror context.
 # Kernel: crates/oya-check-protection-context-match.
 # Runner: crates/oya-dev-cli/src/protection_context_match_gate.rs.
 #

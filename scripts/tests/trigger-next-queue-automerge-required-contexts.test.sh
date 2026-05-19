@@ -25,7 +25,7 @@ cat > "$tmp_dir/live-missing.json" <<'JSON'
     "oya-foundry-fitness-supply-chain",
     "oya-foundry-fitness-cohesion",
     "oya-foundry-fitness-api-semver",
-    "oya-foundry-fitness-protection-context-match"
+    "oya-governance-protection-context-match"
   ]
 }
 JSON
