@@ -39,9 +39,9 @@ impl DataServiceKind {
 pub enum ResidencyClass {
     Global,
     RegionBound,
-    SovereignKr,
-    SovereignEu,
-    SovereignUs,
+    SovereignPrimary,
+    SovereignSecondary,
+    SovereignTertiary,
 }
 
 impl ResidencyClass {
@@ -49,9 +49,9 @@ impl ResidencyClass {
         match self {
             Self::Global => "global",
             Self::RegionBound => "region-bound",
-            Self::SovereignKr => "sovereign-kr",
-            Self::SovereignEu => "sovereign-eu",
-            Self::SovereignUs => "sovereign-us",
+            Self::SovereignPrimary => "sovereign-primary",
+            Self::SovereignSecondary => "sovereign-secondary",
+            Self::SovereignTertiary => "sovereign-tertiary",
         }
     }
 }
@@ -198,12 +198,12 @@ mod tests {
             admit_plan(
                 &plan(
                     DataServiceKind::OltpRelational,
-                    ResidencyClass::SovereignKr,
+                    ResidencyClass::SovereignPrimary,
                     EncryptionRequirement::AtRest
                 ),
                 &adapter(
                     DataServiceKind::OltpRelational,
-                    vec![ResidencyClass::SovereignKr],
+                    vec![ResidencyClass::SovereignPrimary],
                     EncryptionRequirement::AtRestAndInTransit
                 ),
             )
@@ -236,12 +236,12 @@ mod tests {
             admit_plan(
                 &plan(
                     DataServiceKind::OltpRelational,
-                    ResidencyClass::SovereignKr,
+                    ResidencyClass::SovereignPrimary,
                     EncryptionRequirement::AtRest
                 ),
                 &adapter(
                     DataServiceKind::OltpRelational,
-                    vec![ResidencyClass::SovereignUs],
+                    vec![ResidencyClass::SovereignTertiary],
                     EncryptionRequirement::AtRest
                 ),
             ),
@@ -332,9 +332,9 @@ mod tests {
         let names: HashSet<_> = [
             ResidencyClass::Global,
             ResidencyClass::RegionBound,
-            ResidencyClass::SovereignKr,
-            ResidencyClass::SovereignEu,
-            ResidencyClass::SovereignUs,
+            ResidencyClass::SovereignPrimary,
+            ResidencyClass::SovereignSecondary,
+            ResidencyClass::SovereignTertiary,
         ]
         .iter()
         .map(|r| r.name())
