@@ -677,7 +677,6 @@ fn is_regulated_erasure_class(data_class: PrivacyDataClass) -> bool {
         DataClass::Phi
             | DataClass::Pci
             | DataClass::Financial
-            | DataClass::FinancialKrCredit
             | DataClass::PipaArticle23
             | DataClass::SensitivePipaArticle23
     )
@@ -703,7 +702,7 @@ mod tests {
         RetentionPolicy::new(RetentionPolicyCreate {
             policy_id: "retention-7d".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             surface: WorkspaceRetentionSurface::Mail,
             horizon: RetentionHorizon::Seconds(604_800),
             lawful_basis,
@@ -719,7 +718,7 @@ mod tests {
         RetentionRecordRef::new(RetentionRecordRefCreate {
             record_id: "message-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             surface: WorkspaceRetentionSurface::Mail,
             subject_ref: Some("subject-1".into()),
             data_class,
@@ -746,7 +745,7 @@ mod tests {
         LegalHold::new(LegalHoldCreate {
             hold_id: "legal-hold-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             scope: LegalHoldScope::Record {
                 surface: WorkspaceRetentionSurface::Mail,
                 record_id: "message-1".into(),
@@ -862,7 +861,7 @@ mod tests {
         let missing_evidence = LegalHold::new(LegalHoldCreate {
             hold_id: "legal-hold-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             scope: LegalHoldScope::TenantWide,
             authority_ref: "matter-2026-001".into(),
             reason_ref: "litigation-preservation".into(),
@@ -880,7 +879,7 @@ mod tests {
         let bad_time = LegalHold::new(LegalHoldCreate {
             hold_id: "legal-hold-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             scope: LegalHoldScope::TenantWide,
             authority_ref: "matter-2026-001".into(),
             reason_ref: "litigation-preservation".into(),
@@ -895,7 +894,7 @@ mod tests {
         let released = LegalHold::new(LegalHoldCreate {
             hold_id: "legal-hold-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             scope: LegalHoldScope::TenantWide,
             authority_ref: "matter-2026-001".into(),
             reason_ref: "litigation-preservation".into(),
@@ -915,7 +914,7 @@ mod tests {
         let mut wrong_tenant = RetentionRecordRefCreate {
             record_id: "message-1".into(),
             tenant_id: "tenant-2".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             surface: WorkspaceRetentionSurface::Mail,
             subject_ref: Some("subject-1".into()),
             data_class: privacy(DataClass::PiiIdentifying),
@@ -941,7 +940,7 @@ mod tests {
         let unrelated_hold = LegalHold::new(LegalHoldCreate {
             hold_id: "legal-hold-2".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             scope: LegalHoldScope::Record {
                 surface: WorkspaceRetentionSurface::Mail,
                 record_id: "other-message".into(),

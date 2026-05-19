@@ -366,10 +366,7 @@ fn validate_high_risk_action(
 ) -> Result<(), DlpError> {
     let high_risk = matches!(
         matched_data_class.data_class(),
-        DataClass::Phi
-            | DataClass::Pci
-            | DataClass::FinancialKrCredit
-            | DataClass::SensitivePipaArticle23
+        DataClass::Phi | DataClass::Pci | DataClass::Financial | DataClass::SensitivePipaArticle23
     );
     if high_risk && action != DlpAction::AdminReviewHold {
         Err(DlpError::HighRiskRuleMustHold)
@@ -508,7 +505,7 @@ mod tests {
         DlpPolicy::new(DlpPolicyCreate {
             policy_id: "dlp-policy-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             admin_review_queue_id: "admin-review-queue".into(),
             rules: vec![
                 rule("phi", DataClass::Phi, DlpAction::AdminReviewHold, 10),
@@ -525,7 +522,7 @@ mod tests {
             DlpScanRequestCreate {
                 scan_id: "scan-1".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 surface: DlpSurface::MailOutbound,
                 actor_ref: "user:sender@example.com".into(),
                 content_ref: "mail:message-1".into(),
@@ -562,7 +559,7 @@ mod tests {
             DlpPolicy::new(DlpPolicyCreate {
                 policy_id: "dlp-policy-2".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 admin_review_queue_id: "admin-review-queue".into(),
                 rules: vec![
                     rule("pii-a", DataClass::PiiIdentifying, DlpAction::Redact, 20),
@@ -639,7 +636,7 @@ mod tests {
                 DlpScanRequestCreate {
                     scan_id: "scan-2".into(),
                     tenant_id: "tenant-2".into(),
-                    region: "us-east-1".into(),
+                    region: "region-alpha-1".into(),
                     surface: DlpSurface::MailOutbound,
                     actor_ref: "user:sender@example.com".into(),
                     content_ref: "mail:message-1".into(),
