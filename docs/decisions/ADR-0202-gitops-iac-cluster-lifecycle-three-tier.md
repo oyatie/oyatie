@@ -204,7 +204,7 @@ oyatie's contribution is the discipline that keeps them separated.
 
 Building an in-house GitOps engine, IaC engine, or cluster-lifecycle
 engine would (a) fragment from upstream, (b) violate ADR-0173 by
-introducing oyatie-only lock-in, and (c) re-invent already-mature
+introducing Oya-exclusive lock-in, and (c) re-invent already-mature
 substrates. Rejected.
 
 ### In-house contribution path

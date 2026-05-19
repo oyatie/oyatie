@@ -8,13 +8,10 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use oya_foundry_fitness_banned_primitives_kernel::{
-    AgentInstructionSource, BannedPrimitivesFitnessReport, PrimitiveKind, PrimitiveUsage,
-    check_documented_genuine_need,
+    BannedPrimitivesFitnessReport, check_documented_genuine_need, scan_agent_instruction_file,
 };
 
 const DEFAULT_ROOTS: [&str; 4] = ["AGENTS.md", "CLAUDE.md", "docs", ".omc"];
-const START_MARKER: &str = "<!-- agent-instructions:start -->";
-const END_MARKER: &str = "<!-- agent-instructions:end -->";
 
 fn main() -> ExitCode {
     match run(env::args().skip(1)) {
@@ -46,7 +43,7 @@ where
         let contents = fs::read_to_string(&path)
             .map_err(|error| format!("could not read {}: {error}", path.display()))?;
         let path_display = normalize_path(&path);
-        let audit = audit_file(&path_display, &contents)?;
+        let audit = scan_agent_instruction_file(&path_display, &contents)?;
         if audit.source.fence_count > 0 {
             sources.push(audit.source);
             usages.extend(audit.usages);
@@ -109,204 +106,6 @@ fn usage() -> String {
         .into()
 }
 
-#[derive(Debug)]
-struct FileAudit {
-    source: AgentInstructionSource,
-    usages: Vec<PrimitiveUsage>,
-}
-
-fn audit_file(path: &str, contents: &str) -> Result<FileAudit, String> {
-    let mut in_fence = false;
-    let mut fence_count = 0usize;
-    let mut usages = Vec::new();
-
-    for (index, line) in contents.lines().enumerate() {
-        let line_number = (index + 1) as u32;
-        let trimmed = line.trim();
-        if trimmed == START_MARKER {
-            if in_fence {
-                return Err(format!(
-                    "{path}:{line_number}: nested agent-instructions fence"
-                ));
-            }
-            in_fence = true;
-            fence_count += 1;
-            continue;
-        }
-        if trimmed == END_MARKER {
-            if !in_fence {
-                return Err(format!(
-                    "{path}:{line_number}: agent-instructions end without start"
-                ));
-            }
-            in_fence = false;
-            continue;
-        }
-        if in_fence {
-            detect_usages(path, line_number, line, &mut usages);
-        }
-    }
-
-    if in_fence {
-        return Err(format!("{path}: unterminated agent-instructions fence"));
-    }
-
-    Ok(FileAudit {
-        source: AgentInstructionSource {
-            path: path.to_string(),
-            fence_count,
-            rewrite_verified: fence_count > 0,
-        },
-        usages,
-    })
-}
-
-fn detect_usages(path: &str, line: u32, contents: &str, usages: &mut Vec<PrimitiveUsage>) {
-    let lower = contents.to_ascii_lowercase();
-    let rationale = extract_rationale(contents);
-
-    for (needle, primitive) in [
-        ("--no-verify", PrimitiveKind::HookBypass),
-        ("force-with-lease", PrimitiveKind::ForcePush),
-        ("push --force", PrimitiveKind::ForcePush),
-        ("~/.claude/", PrimitiveKind::UserHomeMutation),
-        ("~/.codex/", PrimitiveKind::UserHomeMutation),
-    ] {
-        if lower.contains(needle) {
-            usages.push(primitive_usage(
-                path,
-                line,
-                primitive,
-                rationale.clone(),
-                contents,
-            ));
-        }
-    }
-
-    if lower.contains("kill -9") && lower.contains("pgrep claude") || lower.contains("pkill claude")
-    {
-        usages.push(primitive_usage(
-            path,
-            line,
-            PrimitiveKind::ProcessKill,
-            rationale.clone(),
-            contents,
-        ));
-    }
-
-    if lower.contains("gh pr merge") {
-        usages.push(primitive_usage(
-            path,
-            line,
-            PrimitiveKind::ForgeMerge,
-            rationale.clone(),
-            contents,
-        ));
-    }
-    if contains_word(&lower, "curl") || contains_word(&lower, "wget") {
-        usages.push(primitive_usage(
-            path,
-            line,
-            PrimitiveKind::ExternalFetch,
-            rationale.clone(),
-            contents,
-        ));
-    }
-    if lower.contains("rtk git") {
-        usages.push(primitive_usage(
-            path,
-            line,
-            PrimitiveKind::TokenFilteredVcs,
-            rationale.clone(),
-            contents,
-        ));
-    } else if contains_word(&lower, "git") {
-        usages.push(primitive_usage(
-            path,
-            line,
-            PrimitiveKind::DirectVcs,
-            rationale.clone(),
-            contents,
-        ));
-    }
-    if lower.contains("rtk gh") {
-        usages.push(primitive_usage(
-            path,
-            line,
-            PrimitiveKind::TokenFilteredForge,
-            rationale.clone(),
-            contents,
-        ));
-    } else if contains_word(&lower, "gh") {
-        usages.push(primitive_usage(
-            path,
-            line,
-            PrimitiveKind::DirectForge,
-            rationale,
-            contents,
-        ));
-    }
-}
-
-fn primitive_usage(
-    path: &str,
-    line: u32,
-    primitive: PrimitiveKind,
-    icm_rationale: Option<String>,
-    context: &str,
-) -> PrimitiveUsage {
-    PrimitiveUsage {
-        path: path.to_string(),
-        line,
-        primitive,
-        icm_rationale,
-        context: context.trim().to_string(),
-    }
-}
-
-fn extract_rationale(line: &str) -> Option<String> {
-    for marker in ["icm_rationale:", "rationale_id:", "rationale:", "icm:"] {
-        if let Some((_, tail)) = line.split_once(marker) {
-            let value = tail
-                .trim()
-                .trim_matches('`')
-                .trim_matches('"')
-                .trim_matches('\'')
-                .split(|ch: char| ch.is_whitespace() || ch == ',' || ch == ';')
-                .next()
-                .unwrap_or("")
-                .trim_matches('`')
-                .trim_matches('"')
-                .trim_matches('\'')
-                .to_string();
-            if !value.is_empty() {
-                return Some(value);
-            }
-        }
-    }
-    None
-}
-
-fn contains_word(haystack: &str, needle: &str) -> bool {
-    let mut search_start = 0usize;
-    while let Some(offset) = haystack[search_start..].find(needle) {
-        let start = search_start + offset;
-        let end = start + needle.len();
-        let before = haystack[..start].chars().next_back();
-        let after = haystack[end..].chars().next();
-        if !is_word_char(before) && !is_word_char(after) {
-            return true;
-        }
-        search_start = end;
-    }
-    false
-}
-
-fn is_word_char(ch: Option<char>) -> bool {
-    ch.map(|value| value.is_ascii_alphanumeric() || value == '_')
-        .unwrap_or(false)
-}
-
 fn collect_files(roots: &[PathBuf]) -> Result<Vec<PathBuf>, String> {
     let mut files = Vec::new();
     for root in roots {
@@ -356,10 +155,11 @@ fn normalize_path(path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_foundry_fitness_banned_primitives_kernel::PrimitiveKind;
 
     #[test]
     fn detects_exact_fence_only() {
-        let audit = audit_file(
+        let audit = scan_agent_instruction_file(
             "docs/example.md",
             "mentions `<!-- agent-instructions:start -->` inline\n<!-- agent-instructions:start -->\ngrit\n<!-- agent-instructions:end -->",
         )
@@ -370,9 +170,9 @@ mod tests {
 
     #[test]
     fn detects_direct_vcs_inside_fence() {
-        let audit = audit_file(
+        let audit = scan_agent_instruction_file(
             "AGENTS.md",
-            "<!-- agent-instructions:start -->\nrun git-sha collection\n<!-- agent-instructions:end -->",
+            "<!-- agent-instructions:start -->\nrun git status collection\n<!-- agent-instructions:end -->",
         )
         .expect("audit succeeds");
 
@@ -382,7 +182,7 @@ mod tests {
 
     #[test]
     fn ignores_sanctioned_grit_word() {
-        let audit = audit_file(
+        let audit = scan_agent_instruction_file(
             "AGENTS.md",
             "<!-- agent-instructions:start -->\ngrit claim and oya-tooling-agent-read log\n<!-- agent-instructions:end -->",
         )
@@ -393,7 +193,7 @@ mod tests {
 
     #[test]
     fn detects_process_kill_inside_fence() {
-        let audit = audit_file(
+        let audit = scan_agent_instruction_file(
             "AGENTS.md",
             "<!-- agent-instructions:start -->\nkill -9 $(pgrep claude)\n<!-- agent-instructions:end -->",
         )
@@ -406,7 +206,11 @@ mod tests {
     #[test]
     fn rejects_unterminated_fence() {
         assert_eq!(
-            audit_file("AGENTS.md", "<!-- agent-instructions:start -->\nicm recall").unwrap_err(),
+            scan_agent_instruction_file(
+                "AGENTS.md",
+                "<!-- agent-instructions:start -->\nicm recall"
+            )
+            .unwrap_err(),
             "AGENTS.md: unterminated agent-instructions fence"
         );
     }

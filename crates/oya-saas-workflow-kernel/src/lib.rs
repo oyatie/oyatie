@@ -368,7 +368,7 @@ mod tests {
         let def = WorkflowDefinition::new(
             WorkflowDefinitionId::new("wfd_summarize_v1").expect("definition id"),
             "ten_acme",
-            "oya-pack-kr",
+            "oya-pack-alpha",
             vec![step("wfs_extract", 1), step("wfs_summarize", 2)],
             1_700_000_000,
         )
@@ -387,7 +387,7 @@ mod tests {
         let empty = WorkflowDefinition::new(
             WorkflowDefinitionId::new("wfd_empty").unwrap(),
             "ten_acme",
-            "oya-pack-kr",
+            "oya-pack-alpha",
             vec![],
             1_700_000_000,
         )
@@ -397,7 +397,7 @@ mod tests {
         let dup = WorkflowDefinition::new(
             WorkflowDefinitionId::new("wfd_dup").unwrap(),
             "ten_acme",
-            "oya-pack-kr",
+            "oya-pack-alpha",
             vec![step("wfs_a", 1), step("wfs_a", 2)],
             1_700_000_000,
         )
@@ -407,7 +407,7 @@ mod tests {
         let unordered = WorkflowDefinition::new(
             WorkflowDefinitionId::new("wfd_unord").unwrap(),
             "ten_acme",
-            "oya-pack-kr",
+            "oya-pack-alpha",
             vec![step("wfs_b", 2), step("wfs_a", 1)],
             1_700_000_000,
         )
@@ -420,7 +420,7 @@ mod tests {
         let def = WorkflowDefinition::new(
             WorkflowDefinitionId::new("wfd_run").unwrap(),
             "ten_acme",
-            "oya-pack-kr",
+            "oya-pack-alpha",
             vec![step("wfs_a", 1)],
             1_700_000_000,
         )

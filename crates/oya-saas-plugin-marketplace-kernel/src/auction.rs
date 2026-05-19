@@ -293,7 +293,7 @@ mod tests {
     fn zero_bid_rejected() {
         let err = Bid::new(BidCreate {
             bid_id: "bid_z".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             advertiser_id: "adv_1".to_string(),
             bid_micros: 0,
         })
@@ -303,8 +303,8 @@ mod tests {
 
     #[test]
     fn cross_tenant_bid_rejected() {
-        let mut a = auction("auc_s1", "ten_kr", "slot_home");
-        let b = bid("bid_adv1", "ten_us", "adv_1", 1_000_000);
+        let mut a = auction("auc_s1", "ten_alpha", "slot_home");
+        let b = bid("bid_adv1", "ten_beta", "adv_1", 1_000_000);
         assert_eq!(
             a.submit_bid(b).expect_err("tenant mismatch"),
             AuctionError::TenantMismatch
@@ -313,12 +313,12 @@ mod tests {
 
     #[test]
     fn winner_is_highest_bid() {
-        let mut a = auction("auc_s2", "ten_kr", "slot_feed");
-        a.submit_bid(bid("bid_low", "ten_kr", "adv_1", 500_000))
+        let mut a = auction("auc_s2", "ten_alpha", "slot_feed");
+        a.submit_bid(bid("bid_low", "ten_alpha", "adv_1", 500_000))
             .unwrap();
-        a.submit_bid(bid("bid_high", "ten_kr", "adv_2", 2_000_000))
+        a.submit_bid(bid("bid_high", "ten_alpha", "adv_2", 2_000_000))
             .unwrap();
-        a.submit_bid(bid("bid_mid", "ten_kr", "adv_3", 1_000_000))
+        a.submit_bid(bid("bid_mid", "ten_alpha", "adv_3", 1_000_000))
             .unwrap();
         a.close();
         let w = a.winner().expect("closed ok").expect("winner exists");
@@ -328,8 +328,8 @@ mod tests {
 
     #[test]
     fn winner_on_open_auction_returns_error() {
-        let mut a = auction("auc_s2b", "ten_kr", "slot_feed");
-        a.submit_bid(bid("bid_early", "ten_kr", "adv_1", 500_000))
+        let mut a = auction("auc_s2b", "ten_alpha", "slot_feed");
+        a.submit_bid(bid("bid_early", "ten_alpha", "adv_1", 500_000))
             .unwrap();
         assert_eq!(
             a.winner().expect_err("open auction rejects winner call"),
@@ -339,52 +339,52 @@ mod tests {
 
     #[test]
     fn closed_auction_rejects_further_bids() {
-        let mut a = auction("auc_s3", "ten_kr", "slot_sidebar");
+        let mut a = auction("auc_s3", "ten_alpha", "slot_sidebar");
         a.close();
         let err = a
-            .submit_bid(bid("bid_late", "ten_kr", "adv_1", 1_000_000))
+            .submit_bid(bid("bid_late", "ten_alpha", "adv_1", 1_000_000))
             .expect_err("closed auction");
         assert_eq!(err, AuctionError::AuctionClosed);
     }
 
     #[test]
     fn empty_auction_has_no_winner() {
-        let mut a = auction("auc_s4", "ten_kr", "slot_empty");
+        let mut a = auction("auc_s4", "ten_alpha", "slot_empty");
         a.close();
         assert!(a.winner().expect("closed ok").is_none());
     }
 
     #[test]
     fn bid_count_tracks_submissions() {
-        let mut a = auction("auc_s5", "ten_kr", "slot_count");
+        let mut a = auction("auc_s5", "ten_alpha", "slot_count");
         assert_eq!(a.bid_count(), 0);
-        a.submit_bid(bid("bid_a", "ten_kr", "adv_1", 100_000))
+        a.submit_bid(bid("bid_a", "ten_alpha", "adv_1", 100_000))
             .unwrap();
-        a.submit_bid(bid("bid_b", "ten_kr", "adv_2", 200_000))
+        a.submit_bid(bid("bid_b", "ten_alpha", "adv_2", 200_000))
             .unwrap();
         assert_eq!(a.bid_count(), 2);
     }
 
     #[test]
     fn duplicate_bid_id_rejected() {
-        let mut a = auction("auc_s6", "ten_kr", "slot_dup");
-        a.submit_bid(bid("bid_dup", "ten_kr", "adv_1", 500_000))
+        let mut a = auction("auc_s6", "ten_alpha", "slot_dup");
+        a.submit_bid(bid("bid_dup", "ten_alpha", "adv_1", 500_000))
             .unwrap();
         let err = a
-            .submit_bid(bid("bid_dup", "ten_kr", "adv_1", 600_000))
+            .submit_bid(bid("bid_dup", "ten_alpha", "adv_1", 600_000))
             .expect_err("duplicate bid id");
         assert_eq!(err, AuctionError::DuplicateBidId);
     }
 
     #[test]
     fn direct_struct_zero_bid_rejected_at_submit() {
-        let mut a = auction("auc_s7", "ten_kr", "slot_inv");
+        let mut a = auction("auc_s7", "ten_alpha", "slot_inv");
         // Bypass Bid::new by constructing directly — submit_bid must still catch it.
         let bad_bid = Bid {
             id: BidId {
                 value: "bid_bad1".to_string(),
             },
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             advertiser_id: "adv_1".to_string(),
             bid_micros: 0,
         };
@@ -396,12 +396,12 @@ mod tests {
 
     #[test]
     fn direct_struct_empty_advertiser_rejected_at_submit() {
-        let mut a = auction("auc_s8", "ten_kr", "slot_inv2");
+        let mut a = auction("auc_s8", "ten_alpha", "slot_inv2");
         let bad_bid = Bid {
             id: BidId {
                 value: "bid_bad2".to_string(),
             },
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             advertiser_id: "  ".to_string(),
             bid_micros: 1_000_000,
         };
@@ -414,7 +414,7 @@ mod tests {
 
     #[test]
     fn state_accessor_reflects_lifecycle() {
-        let mut a = auction("auc_s9", "ten_kr", "slot_state");
+        let mut a = auction("auc_s9", "ten_alpha", "slot_state");
         assert_eq!(a.state(), &AuctionState::Open);
         a.close();
         assert_eq!(a.state(), &AuctionState::Closed);
@@ -422,9 +422,9 @@ mod tests {
 
     #[test]
     fn bids_accessor_returns_slice() {
-        let mut a = auction("auc_s10", "ten_kr", "slot_slice");
+        let mut a = auction("auc_s10", "ten_alpha", "slot_slice");
         assert!(a.bids().is_empty());
-        a.submit_bid(bid("bid_x", "ten_kr", "adv_1", 100_000))
+        a.submit_bid(bid("bid_x", "ten_alpha", "adv_1", 100_000))
             .unwrap();
         assert_eq!(a.bids().len(), 1);
     }
@@ -444,7 +444,7 @@ mod tests {
     fn empty_ad_slot_id_rejected() {
         let err = Auction::new(AuctionCreate {
             auction_id: "auc_t2".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             ad_slot_id: "  ".to_string(),
         })
         .expect_err("empty slot");
@@ -455,7 +455,7 @@ mod tests {
     fn empty_advertiser_id_rejected_on_bid() {
         let err = Bid::new(BidCreate {
             bid_id: "bid_e1".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             advertiser_id: "".to_string(),
             bid_micros: 1_000_000,
         })

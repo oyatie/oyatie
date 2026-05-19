@@ -139,9 +139,9 @@ fn onboard_tenant(foundation: &mut Foundation) {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_autonomy".into(),
             legal_name: "Autonomy Tenant".into(),
-            home_region: "kr-seoul".into(),
-            residency_class: "strict_kr".into(),
-            regulatory_packs: vec!["oya-pack-kr".into()],
+            home_region: "home-region".into(),
+            residency_class: "strict_home".into(),
+            regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .unwrap();

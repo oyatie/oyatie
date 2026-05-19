@@ -21,15 +21,16 @@ impl RetentionDays {
 
 /// Regulatory schedule that governs how evidence is retained.
 ///
-/// Each variant maps to a jurisdiction-specific rule set.  The `Custom`
-/// variant is provided for extension without breaking the enum; callers
-/// should prefer a named variant wherever one exists.
+/// Canonical schedules are jurisdiction-neutral minima. Localization and
+/// regulatory packs map concrete legal obligations onto these stable
+/// schedule classes outside the canonical base. The `Custom` variant is
+/// provided for extension without breaking the enum.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum RegulatorySchedule {
-    /// Korea PIPA — 3-year minimum (1 095 days).
-    KoreaPipa,
-    /// EU GDPR article-30 — 3-year minimum (1 095 days).
-    EuGdprArticle30,
+    /// Pack-mapped privacy evidence baseline — 3-year minimum (1 095 days).
+    PrivacyEvidenceBaseline,
+    /// Pack-mapped processing record baseline — 3-year minimum (1 095 days).
+    ProcessingRecordBaseline,
     /// Custom schedule; duration is caller-supplied.
     Custom,
 }
@@ -40,8 +41,8 @@ impl RegulatorySchedule {
     /// Returns `None` for `Custom` because the duration is caller-defined.
     pub fn default_retention_days(self) -> Option<RetentionDays> {
         match self {
-            RegulatorySchedule::KoreaPipa => Some(RetentionDays(1_095)),
-            RegulatorySchedule::EuGdprArticle30 => Some(RetentionDays(1_095)),
+            RegulatorySchedule::PrivacyEvidenceBaseline => Some(RetentionDays(1_095)),
+            RegulatorySchedule::ProcessingRecordBaseline => Some(RetentionDays(1_095)),
             RegulatorySchedule::Custom => None,
         }
     }
@@ -127,16 +128,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn korea_pipa_default_is_1095_days() {
-        let policy = RetentionPolicy::from_schedule_default(RegulatorySchedule::KoreaPipa).unwrap();
+    fn privacy_evidence_baseline_default_is_1095_days() {
+        let policy =
+            RetentionPolicy::from_schedule_default(RegulatorySchedule::PrivacyEvidenceBaseline)
+                .unwrap();
         assert_eq!(policy.retention_days().as_u32(), 1_095);
-        assert_eq!(policy.schedule(), RegulatorySchedule::KoreaPipa);
+        assert_eq!(
+            policy.schedule(),
+            RegulatorySchedule::PrivacyEvidenceBaseline
+        );
     }
 
     #[test]
-    fn eu_gdpr_default_is_1095_days() {
+    fn processing_record_baseline_default_is_1095_days() {
         let policy =
-            RetentionPolicy::from_schedule_default(RegulatorySchedule::EuGdprArticle30).unwrap();
+            RetentionPolicy::from_schedule_default(RegulatorySchedule::ProcessingRecordBaseline)
+                .unwrap();
         assert_eq!(policy.retention_days().as_u32(), 1_095);
     }
 
@@ -154,15 +161,21 @@ mod tests {
 
     #[test]
     fn zero_retention_days_is_rejected() {
-        let err =
-            RetentionPolicy::new(RegulatorySchedule::KoreaPipa, RetentionDays(0)).unwrap_err();
+        let err = RetentionPolicy::new(
+            RegulatorySchedule::PrivacyEvidenceBaseline,
+            RetentionDays(0),
+        )
+        .unwrap_err();
         assert_eq!(err, RetentionPolicyError::ZeroRetentionDays);
     }
 
     #[test]
     fn below_minimum_is_rejected() {
-        let err =
-            RetentionPolicy::new(RegulatorySchedule::KoreaPipa, RetentionDays(364)).unwrap_err();
+        let err = RetentionPolicy::new(
+            RegulatorySchedule::PrivacyEvidenceBaseline,
+            RetentionDays(364),
+        )
+        .unwrap_err();
         assert_eq!(
             err,
             RetentionPolicyError::BelowScheduleMinimum {
@@ -174,8 +187,11 @@ mod tests {
 
     #[test]
     fn above_minimum_is_accepted() {
-        let policy =
-            RetentionPolicy::new(RegulatorySchedule::KoreaPipa, RetentionDays(2_000)).unwrap();
+        let policy = RetentionPolicy::new(
+            RegulatorySchedule::PrivacyEvidenceBaseline,
+            RetentionDays(2_000),
+        )
+        .unwrap();
         assert_eq!(policy.retention_days().as_u32(), 2_000);
     }
 

@@ -9,8 +9,9 @@
 //!   mirror (ADR-0105 v4 BNF §2.2).
 //!
 //! Replaces `scripts/gen-microservice-manifests.py`. Reads each
-//! `microservices/<ms>/` tree and emits `microservices/<ms>/manifest.json`
-//! conforming to `specs/microservices/manifest-schema.json`. The aggregate
+//! `microservices/<ms>/` tree and emits/validates the source-derived manifest
+//! fields in `microservices/<ms>/manifest.json` without requiring enriched
+//! hand-authored manifests to be byte-identical to the seed output. The aggregate
 //! index is at `specs/microservices/manifests-index.json`.
 //!
 //! Tier 1 (kernel-tier) per ADR-0083: pure logic over already-loaded
@@ -23,10 +24,11 @@ use std::collections::BTreeSet;
 
 use serde_json::{Map, Value, json};
 
-/// Spec-mandated 33-µservice scope (matches the legacy Python list verbatim
+/// Spec-mandated 34-µservice scope (matches the legacy Python list verbatim
 /// and the order is preserved so the aggregate index byte-matches). Expanded
 /// from 32 → 33 on 2026-05-18 to add `identity` (OIDC + Passkey + SCIM
-/// substrate per ADR-0187 / ADR-0188 / ADR-0189 / ADR-0190 / ADR-0191).
+/// substrate per ADR-0187 / ADR-0188 / ADR-0189 / ADR-0190 / ADR-0191), then
+/// to 34 on 2026-05-19 to add FD-001 Ops Dashboard / Control Center.
 pub const MICROSERVICES: &[&str] = &[
     "application",
     "audit-chain",
@@ -61,6 +63,7 @@ pub const MICROSERVICES: &[&str] = &[
     "cloud-secrets",
     "governance",
     "identity",
+    "ops-dashboard-control-center",
 ];
 
 pub const ALLOWED_LAYERS: &[&str] = &[
@@ -619,24 +622,30 @@ fn extract_capabilities(inputs: &ManifestInputs) -> Vec<CapabilityRow> {
         let data = parse_yaml_flat(&file.content);
         let stem = stem_of(&file.repo_relative_path);
         let name = data.scalar("name").unwrap_or(stem);
-        let raw_tier = data.scalar("autonomy_tier").unwrap_or_default();
+        let raw_tier = data
+            .scalar("tier")
+            .or_else(|| data.scalar("autonomy_tier"))
+            .unwrap_or_default();
         let tier = if matches!(raw_tier.as_str(), "T0" | "T1" | "T2" | "T3") {
             raw_tier
         } else {
             "T1".to_string()
         };
-        let mut risk = default_risk_for_tier(&tier).to_string();
+        let mut risk = data
+            .scalar("eu_ai_act_risk_class")
+            .unwrap_or_else(|| default_risk_for_tier(&tier).to_string());
         let nm_low = name.to_lowercase();
-        if [
-            "biometric",
-            "credit",
-            "scoring",
-            "employment",
-            "law-enforcement",
-            "border",
-        ]
-        .iter()
-        .any(|t| nm_low.contains(t))
+        if !data.scalars.contains_key("eu_ai_act_risk_class")
+            && [
+                "biometric",
+                "credit",
+                "scoring",
+                "employment",
+                "law-enforcement",
+                "border",
+            ]
+            .iter()
+            .any(|t| nm_low.contains(t))
         {
             risk = "high".to_string();
         }
@@ -711,7 +720,7 @@ fn first_capture_after(text: &str, prefix: &str) -> Option<String> {
                 .take_while(|c| !c.is_whitespace())
                 .collect();
             if !token.is_empty() {
-                return Some(token);
+                return Some(strip_quotes(&token).to_string());
             }
         }
     }
@@ -721,7 +730,13 @@ fn first_capture_after(text: &str, prefix: &str) -> Option<String> {
 fn first_query_line(text: &str) -> Option<String> {
     let mut lines = text.lines().peekable();
     while let Some(line) = lines.next() {
-        if line.trim_start().starts_with("query:") {
+        let trimmed_line = line.trim_start();
+        if let Some(rest) = trimmed_line.strip_prefix("query:") {
+            let inline = strip_quotes(rest.trim());
+            if !inline.is_empty() {
+                let truncated: String = inline.chars().take(200).collect();
+                return Some(truncated);
+            }
             for next in lines.by_ref() {
                 let trimmed = next.trim();
                 if trimmed.is_empty() {
@@ -730,7 +745,7 @@ fn first_query_line(text: &str) -> Option<String> {
                 if trimmed.starts_with("objectives:") || trimmed.starts_with("timeWindow:") {
                     return None;
                 }
-                let truncated: String = trimmed.chars().take(200).collect();
+                let truncated: String = strip_quotes(trimmed).chars().take(200).collect();
                 return Some(truncated);
             }
         }
@@ -1357,6 +1372,67 @@ role: kernel
         let files = vec![sf("microservices/foo/capabilities/a.yaml", cap)];
         let m = build_manifest(&inputs("foo", files));
         assert_eq!(m["capabilities"][0]["tier"], "T1");
+    }
+
+    #[test]
+    fn capabilities_yaml_prefers_canonical_tier_and_explicit_risk() {
+        let cap = "name: rollback-execute\ntier: T3\neu_ai_act_risk_class: high\n";
+        let files = vec![sf(
+            "microservices/foo/capabilities/rollback-execute.yaml",
+            cap,
+        )];
+        let m = build_manifest(&inputs("foo", files));
+        assert_eq!(m["capabilities"][0]["tier"], "T3");
+        assert_eq!(m["capabilities"][0]["eu_ai_act_risk_class"], "high");
+    }
+
+    #[test]
+    fn slos_extract_inline_prometheus_query() {
+        let slo = r#"apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-foo-availability
+spec:
+  objective:
+    target: "0.999"
+  indicator:
+    ratioMetric:
+      good:
+        metricSource:
+          spec:
+            query: 'sum(rate(foo_good_total[5m])) / sum(rate(foo_total[5m]))'
+      total:
+        metricSource:
+          spec:
+            query: 'sum(rate(foo_total[5m]))'
+"#;
+        let files = vec![sf("microservices/foo/slos/availability.openslo.yaml", slo)];
+        let m = build_manifest(&inputs("foo", files));
+        assert_eq!(
+            m["slos"][0]["sli"],
+            "sum(rate(foo_good_total[5m])) / sum(rate(foo_total[5m]))"
+        );
+    }
+
+    #[test]
+    fn slos_strip_quoted_target_values() {
+        let slo = r#"apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-foo-latency
+spec:
+  objective:
+    target: "0.95"
+  indicator:
+    ratioMetric:
+      good:
+        metricSource:
+          spec:
+            query: 'histogram_quantile(0.95, sum(rate(foo_bucket[5m])) by (le))'
+"#;
+        let files = vec![sf("microservices/foo/slos/latency.openslo.yaml", slo)];
+        let m = build_manifest(&inputs("foo", files));
+        assert_eq!(m["slos"][0]["target"], "0.95");
     }
 
     #[test]

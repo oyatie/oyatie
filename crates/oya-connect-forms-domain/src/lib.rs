@@ -380,7 +380,7 @@ mod tests {
         Form::new(FormCreate {
             id: "form-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             cell_id: "cell-a".into(),
             object_graph_route_id: "og-route-forms".into(),
             title: "Intake".into(),
@@ -447,7 +447,7 @@ mod tests {
             Form::new(FormCreate {
                 id: "form-2".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 cell_id: "cell-a".into(),
                 object_graph_route_id: "og-route-forms".into(),
                 title: "Duplicate".into(),

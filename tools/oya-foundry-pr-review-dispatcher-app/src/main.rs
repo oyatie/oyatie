@@ -792,15 +792,13 @@ mod tests {
             "test-change".to_string(),
         ])
         .unwrap();
-        // The deterministic mock generates a mix of APPROVE / CHANGES_REQUESTED
-        // / REJECT across the 21 facets, so the rollup verdict is one of
-        // those three. The important assertion is that the runtime
-        // produced findings + the pending flag flipped to false.
-        assert!(matches!(
-            verdict,
-            Verdict::Approve | Verdict::ChangesRequested | Verdict::Reject
-        ));
+        // The deterministic mock is a smoke/fixture surface, not a
+        // pseudo-reviewer. Without explicit fixture directives it
+        // defaults to APPROVE so CI is not blocked by arbitrary facet-id
+        // hash noise.
+        assert_eq!(verdict, Verdict::Approve);
         let rollup = fs::read_to_string(repo.join(ROLLUP_PATH)).unwrap();
+        assert!(rollup.contains("\"verdict\": \"APPROVE\""));
         assert!(rollup.contains("\"subagent_runtime_pending\": false"));
         assert!(rollup.contains("\"panel_complete\": true"));
         let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();

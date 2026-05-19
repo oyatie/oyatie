@@ -846,7 +846,7 @@ mod tests {
             capability_id: "cap.cloud.capacity.rebalance".to_string(),
             kind: CloudMutationKind::CapacityRebalance,
             target_surface: "cloud.capacity.rebalance".to_string(),
-            target_region: "kr-seoul".to_string(),
+            target_region: "region-alpha-1".to_string(),
             dry_run: dry_run(),
             approval_quorum: quorum,
             rollback_plan: rollback_plan(),

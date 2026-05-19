@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "change_id": "fd001-control-state-refresh-2026-05-19",
+  "created_at": "2026-05-19T02:39:50Z",
+  "agent_id": "leader-fd001",
+  "branch": "codex/fd001-planning-closure-20260519",
+  "workspace": "/Users/jasonlee/oyatie-fd001-planning-closure",
+  "claim_scope": [
+    "specs/masterplan.json::M01-P08",
+    "specs/planning-closure-status-closure-ledger.json::closure_scope",
+    "specs/master-plan-sequencing.json::select_next_ready_item",
+    ".omx/context/fd001-implementation-intake-20260519T021733Z.md::pipeline-intake"
+  ],
+  "changed_files": [
+    "specs/masterplan.json",
+    "specs/planning-closure-status-closure-ledger.json",
+    "specs/master-plan-sequencing.json"
+  ],
+  "intent": "Disambiguate current ChangeSet selection authority from historical live_implementation_index snapshots before FD-001 implementation fanout.",
+  "implemented": [
+    "Added masterplan claim_alignment_lock under planning_closure.parallelization_policy.",
+    "Added live_implementation_index.claim_selection_authority marking snapshot rows as provenance only and not a current claim queue.",
+    "Added closure ledger current_claim_alignment and guardrails for Oya VCS/runtime-scan selection.",
+    "Added master-plan sequencing select_next_ready_item policy for authority order, historical snapshot handling, serialized pre-fanout work, and read-only lookahead lanes."
+  ],
+  "non_claims": [
+    "Does not implement FD-001 product/API/data surfaces.",
+    "Does not claim production-grade or hyperscaler-grade exit evidence.",
+    "Does not authorize product write fanout.",
+    "Does not change branch protection, promotion policy, root manifests, or shared data/API ownership."
+  ],
+  "current_next_dispatches": [
+    "Review worker outputs for gate acceptance, claim-scope expansion, GitOps/DevOps promotion path, and gate-hardening feasibility.",
+    "If control-state review remains green, run Oya VCS verify/done/promote for this metadata ChangeSet.",
+    "Next serialized implementation candidate: gate-hardening M01-P-FITNESS-IP-001 or dependency-seam reconciliation M01-P13-IP-002, pending worker reviews.",
+    "Then API evidence/control-gates (openapi-contract-binding + API-before-handler + data contract ownership) before product surface fanout.",
+    "Assign dedicated review/GitOps lanes before any merge/promotion action."
+  ],
+  "validation": [
+    {
+      "command": "python3 -m json.tool specs/masterplan.json >/dev/null",
+      "status": "passed",
+      "evidence": "masterplan JSON parsed"
+    },
+    {
+      "command": "python3 -m json.tool specs/planning-closure-status-closure-ledger.json >/dev/null",
+      "status": "passed",
+      "evidence": "closure ledger JSON parsed"
+    },
+    {
+      "command": "python3 -m json.tool specs/master-plan-sequencing.json >/dev/null",
+      "status": "passed",
+      "evidence": "sequencing JSON parsed"
+    },
+    {
+      "command": "bin/oya git diff --check -- specs/masterplan.json specs/planning-closure-status-closure-ledger.json specs/master-plan-sequencing.json",
+      "status": "passed",
+      "evidence": "no whitespace/diff hygiene errors"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli --locked -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 302 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli --locked planning_closure --test gate_cli -- --nocapture",
+      "status": "passed",
+      "evidence": "11 planning_closure tests passed; 0 failed"
+    },
+    {
+      "command": "rg -n \"production-grade|hyperscaler-grade|fanout ready|implementation-ready|exit evidence\" <control-state scope>",
+      "status": "reviewed",
+      "evidence": "matches are existing guardrail/intake statements; this ChangeSet adds only non-claim/fanout-guard metadata and no product/exit-ready claim"
+    }
+  ],
+  "remaining_blockers": [
+    "Product/API/data implementation fanout remains blocked until shared API/data/policy/evidence/path claims are locked and chained-enforcement gates are green.",
+    "Known pre-existing placeholder-debt gate blocker remains outside this control-state slice."
+  ],
+  "oya_vcs_closeout": [
+    {
+      "command": "bin/oya vcs --format json verify --agent leader-fd001 --evidence <control> --evidence <multispectrum>",
+      "status": "accepted",
+      "summary": "verify-evidence accepted; no warnings/blocking_errors/forbidden_uses"
+    },
+    {
+      "command": "bin/oya vcs --format json done --agent leader-fd001 --controller-promote --evidence <control> --evidence <multispectrum> <claimed scopes>",
+      "status": "accepted",
+      "summary": "emit-change-bundle accepted; closeout_mode=controller-promote; no warnings/blocking_errors/forbidden_uses"
+    },
+    {
+      "command": "bin/oya vcs --format json promote --agent leader-fd001 --bundle cb-fd001-control-state-refresh-2026-05-19 --environment ci-preview --evidence <control> --evidence <multispectrum>",
+      "status": "accepted",
+      "summary": "promote-bundle accepted for ci-preview; no warnings/blocking_errors/forbidden_uses"
+    }
+  ]
+}

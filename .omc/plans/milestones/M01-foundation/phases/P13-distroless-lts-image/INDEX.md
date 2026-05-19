@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M01-P13
 title: Distroless + Image-Discipline + Dependency-Seam/LTS Phaseout
-status: complete
+status: planning-closed-contract-authored
 amended_at: 2026-05-14
 purpose: Every production binary ships in distroless + smallest-form; direct deps are LTS/ADR-governed; release-critical runtime deps are seam-contained, ledgered, and trigger-phaseout governed.
 ---
@@ -25,7 +25,7 @@ Per MASTERPLAN §6/§8 and `/specs/masterplan.json` dependency-seam invariant. V
 | IP | Title | Status | File |
 |---|---|---|---|
 | IP-001 | Distroless base + image-discipline lane | complete | [`IP-001-distroless-image-lane.md`](IP-001-distroless-image-lane.md) |
-| IP-002 | Dependency-seam discipline + dep-rationales overlay + LTS roster | **complete** (amended per ADR-0092 2026-05-14) | [`IP-002-lts-dependency-lane.md`](IP-002-lts-dependency-lane.md) |
+| IP-002 | Dependency-seam discipline + dep-rationales overlay + LTS roster | **dependency-seam-gate-local-green** (2026-05-19; hosted promotion pending) | [`IP-002-lts-dependency-lane.md`](IP-002-lts-dependency-lane.md) |
 | IP-003 | Static / musl-linked binary build pipeline | complete | [`IP-003-static-musl-build.md`](IP-003-static-musl-build.md) |
 
 ## IP-002 closure note (2026-05-14)
@@ -35,7 +35,7 @@ Original acceptance items not delivered, with bounded FixupTask citations:
 
 - `oya-check-dependency-seam-discipline` (8 sub-checks) → shipped as
   `oya-check-dependency-seam` with 6 sub-checks (3 mechanical + 3 multispectrum).
-  2 working, 4 stubbed per FixupTask F-LANE-SEAM-IMPL.
+  2026-05-19 current-checkout reconciliation: all 6 ADR-0092 D13 subchecks are implemented in `oya-check-dependency-seam`; strict local gate evidence passed with 6 pass, 0 skipped, 0 diagnostics, 0 blocking with cargo audit evidence attached. `F-LANE-SEAM-IMPL` is closed for the current checkout; hosted promotion remains separate.
 - `tech-debt-ledger.json` with state machine → simplified to
   `dependency-rationales.json` (flat 11-row overlay). State machine deferred
   with re-evaluation triggers T1-T6 in ADR-0092.

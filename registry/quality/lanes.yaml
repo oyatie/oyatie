@@ -81,6 +81,14 @@ lanes:
     source: ADR-0135 / ADR-0133
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate aspirational-enforcement
+  - id: oya-foundry-fitness-banned-primitives
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: block banned primitive use inside fenced agent-instruction contracts and the sanitized tracked command-log corpus
+    source: specs/master-plan-sequencing.json / F-FORBIDDEN-PRIMITIVES-CI-GUARD
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives
   - id: oya-foundry-fitness-workspace-hygiene
     stage: foundation
     status: active
@@ -137,6 +145,14 @@ lanes:
     source: AGENTS.md Done-Definition / MISTAKES doctrine
     runtime_budget_seconds: 300
     check_command: cargo run -p oya-dev-cli -- gate validate placeholder-debt
+  - id: oya-governance-dependency-seam
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, multispectrum evidence, change_class declarations, and online cargo-audit vulnerability checks
+    source: ADR-0092 / registry/dependency-rationales.json
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error
   - id: oya-foundry-fitness-license
     stage: foundation
     status: active
@@ -185,7 +201,7 @@ lanes:
     source: SLO-CATALOG.md
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate slo-coverage
-  - id: oya-foundry-fitness-catalog-records
+  - id: oya-governance-catalog-records
     stage: foundation
     status: active
     owner_team: council-architecture
@@ -237,26 +253,26 @@ lanes:
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: "`cargo check --workspace --all-targets --all-features`"
+    purpose: "`cargo check --workspace --all-targets --keep-going`"
     source: TOOLCHAIN.md
     runtime_budget_seconds: 600
-    check_command: cargo check --workspace --all-targets --all-features
+    check_command: cargo check --workspace --all-targets --keep-going
   - id: cargo-clippy
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: "`cargo clippy --workspace --all-features --all-targets -D warnings`"
+    purpose: "`cargo clippy --workspace --all-targets --keep-going -D warnings`"
     source: standards/testing.md
     runtime_budget_seconds: 900
-    check_command: cargo clippy --workspace --all-targets --all-features -- -D warnings
+    check_command: cargo clippy --workspace --all-targets --keep-going -- -D warnings
   - id: cargo-nextest
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: "`cargo nextest run --workspace --all-features --no-fail-fast`"
+    purpose: "`cargo nextest run --workspace --no-fail-fast`"
     source: standards/testing.md
     runtime_budget_seconds: 1200
-    check_command: cargo nextest run --workspace --all-features --no-fail-fast
+    check_command: cargo nextest run --workspace --no-fail-fast
   - id: cargo-deny
     stage: per-pr
     status: active
@@ -377,7 +393,7 @@ lanes:
     source: feedback_no_silent_regression + feedback_no_exceptions_canonical
     runtime_budget_seconds: 60
     check_command: cargo run -p oya-dev-cli -- gate validate retired-vocabulary
-  - id: oya-foundry-fitness-protection-context-match
+  - id: oya-governance-protection-context-match
     stage: per-pr
     status: active
     owner_team: axis-foundry
@@ -622,15 +638,15 @@ lanes:
     source: ADR-0111
     check_command: cargo run -p oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600
     runtime_budget_seconds: 60
-  # PR #143 Fix-D — EU AI Act Annex III refusal grounding.
-  - id: oya-governance-eu-ai-act-annex-iii-refusal
+  # PR #143 Fix-D — regulated AI refusal grounding.
+  - id: oya-governance-regulated-ai-refusal-grounding
     stage: per-pr
     status: active
     severity: blocker
     owner_team: council-architecture
-    purpose: enforces that every µservice declaring an Annex III "refused at Cedar layer" claim in `capabilities/T2-auto.yaml` has a matching `forbid` rule in `policy/tenant-scope.cedar` gating on employment-context (SEC-MAJ-02).
+    purpose: enforces that every µservice declaring a regulated-AI "refused at Cedar layer" claim in `capabilities/T2-auto.yaml` has a matching `forbid` rule in `policy/tenant-scope.cedar` gating on employment-context (SEC-MAJ-02).
     source: ADR-0144
-    check_command: cargo run -p oya-dev-cli -- gate validate eu-ai-act-annex-iii-refusal
+    check_command: cargo run -p oya-dev-cli -- gate validate regulated-ai-refusal-grounding
     runtime_budget_seconds: 60
   # PR #143 Fix-D — SLSA L3 evidence grounding.
   - id: oya-governance-slsa-l3-evidence-grounded

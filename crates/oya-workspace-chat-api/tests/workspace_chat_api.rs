@@ -14,7 +14,7 @@ use oya_workspace_chat_api::{
 
 const CHANNEL_ID: &str = "chat_channel_001";
 const MESSAGE_ID: &str = "chat_message_001";
-const TENANT_ID: &str = "ten_workspace_kr";
+const TENANT_ID: &str = "ten_workspace_alpha";
 const SENDER: &str = "user:owner@example.com";
 
 fn boundary(request_id: &str, idempotency_key: &str) -> WorkspaceChatSendBoundaryContext {
@@ -50,8 +50,8 @@ fn seeded_directory() -> WorkspaceChatMessageDirectory {
         .insert_channel_seed(WorkspaceChatChannelSeed {
             channel_id: CHANNEL_ID.to_string(),
             tenant_id: TENANT_ID.to_string(),
-            region: "kr-seoul".to_string(),
-            cell_id: "cell-workspace-kr-001".to_string(),
+            region: "home-region".to_string(),
+            cell_id: "cell-workspace-alpha-001".to_string(),
             kind: "channel".to_string(),
             name: Some("incident-room".to_string()),
             data_class: "PII_IDENTIFYING".to_string(),

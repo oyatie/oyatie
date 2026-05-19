@@ -27,6 +27,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-quality-lanes` | registry/quality/lanes.yaml and this CI-lanes doc mirror stay in sync | standards/ci-lanes.md |
 | `oya-foundry-fitness-honest-claims` | scan authoritative docs/specs/ADRs for deferred active claims and validate ImplementationPlan ChangeSet graph integrity | ADR-0129 / specs/plan-schema.json / specs/masterplan.json |
 | `oya-foundry-fitness-aspirational-enforcement` | block active required enforcement claims that reference missing check crates, workflows, or branch-protection contexts | ADR-0135 / ADR-0133 |
+| `oya-foundry-fitness-banned-primitives` | block banned primitive use inside fenced agent-instruction contracts and the sanitized tracked command-log corpus | specs/master-plan-sequencing.json / F-FORBIDDEN-PRIMITIVES-CI-GUARD |
 | `oya-foundry-fitness-workspace-hygiene` | inventory temp, home, repo-root, build-artifact, and `oyatie-worktrees` residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions | specs/workspace-hygiene.json / ADR-0123 |
 | `oya-foundry-fitness-hyperscaler-maturity-claims` | block unsupported hyperscaler maturity claims unless product depth, pipeline, hygiene, UX, safety, guardrail, and competitor evidence are green | specs/hyperscaler-gates.json / ADR-0123 |
 | `oya-foundry-fitness-design-spec-maturity-claims` | allow only the bounded design/spec maturity claim when every microservice has the required implementation-ready design surfaces, while keeping operational maturity blocked | specs/design-spec-maturity-claims.json / ADR-0123 |
@@ -34,13 +35,14 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-glossary-cross-doc-coverage` | every glossary term appears outside GLOSSARY when active | GLOSSARY.md §11 / ADR-0018 |
 | `oya-foundry-fitness-glossary-vocabulary` | retired-vocab hard-fail plus casing/acronym warning baseline ratchet | GLOSSARY.md §11 / ADR-0018 |
 | `oya-foundry-fitness-placeholder-debt` | fail-closed `TODO` / `TBD` registry so placeholder cleanup is tracked outside glossary acronym warnings | AGENTS.md Done-Definition / MISTAKES doctrine |
+| `oya-governance-dependency-seam` | fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, multispectrum evidence, change_class declarations, and online cargo-audit vulnerability checks | ADR-0092 / registry/dependency-rationales.json / evidence/multispectrum/cs-p13-dependency-seam-1779166052.json |
 | `oya-foundry-fitness-license` | enforce ADR-0013 license posture | ADR-0013 |
 | `oya-foundry-fitness-plane-class` | catalog plane-class changes require explicit review | ADR-0004 |
 | `oya-foundry-fitness-raci-team-coverage` | every team charter has RACI and CODEOWNERS coverage | RACI-OWNERSHIP.md |
 | `oya-foundry-fitness-readme-doc-coverage` | every root doc has catalog and README discoverability | README.md / DOC-CATALOG.md |
 | `oya-foundry-fitness-runbook-index-resolves` | every RUNBOOKS-INDEX entry is a real file | RUNBOOKS-INDEX.md |
 | `oya-foundry-fitness-slo-coverage` | every catalog record carries SLO coverage | SLO-CATALOG.md |
-| `oya-foundry-fitness-catalog-records` | every Cargo workspace member has a catalog record | ADR-0015 / registry/catalog |
+| `oya-governance-catalog-records` | every Cargo workspace member has a catalog record | ADR-0015 / registry/catalog |
 | `oya-foundry-fitness-flat-crates` | per-PR flat-crates path, legacy-tree, and role-boundary check | ADR-0015 |
 | `oya-foundry-fitness-product-index` | product README index and machine-readable product catalog stay in sync | products/README.md |
 | `oya-foundry-fitness-adr-citation` | only-new-pack-citations check | ADR-LEGACY-REGRESSION-MAPPING |
@@ -51,9 +53,9 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | Lane | Purpose |
 |---|---|
 | `cargo-fmt` | `cargo fmt --all -- --check` |
-| `cargo-check` | `cargo check --workspace --all-targets --all-features` |
-| `cargo-clippy` | `cargo clippy --workspace --all-features --all-targets -D warnings` |
-| `cargo-nextest` | `cargo nextest run --workspace --all-features --no-fail-fast` |
+| `cargo-check` | `cargo check --workspace --all-targets --keep-going` |
+| `cargo-clippy` | `cargo clippy --workspace --all-targets --keep-going -D warnings` |
+| `cargo-nextest` | `cargo nextest run --workspace --no-fail-fast` |
 | `cargo-deny` | per ADR-0013 license + advisory check |
 | `oya-foundation-demo-smoke` | `oya demo` foundation smoke path exercises tenant, MCP, audit, run, step, outbox, and secret flows |
 | `machine-readable-json-parse` | every docs/machine-readable JSON file parses before merge |
@@ -69,12 +71,12 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-loop-recovery-patterns` | pre-push repeat-mistake blocker joins deterministic score cards, loop-recovery patterns, and mistakes-ledger rows without shell hook expansion |
 | `oya-foundry-fitness-master-plan-completion` | status-honesty audit — no phase in specs/masterplan.json#live_implementation_index may be Complete while any child IP is stub/planned/pending/blocked/in-flight/probe-green; every complete IP must be referenced by at least one evidence JSON file |
 | `oya-foundry-fitness-retired-vocabulary` | no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record) |
-| `oya-foundry-fitness-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
+| `oya-governance-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
 | `oya-governance-vacuous-green` | ADR-0221 fixture-backed check that vacuous-green hook detection fails on intentionally empty gate evidence |
 | `oya-governance-adr-orphan-citation` | ADR-0221 fixture-backed check that orphan ADR citation detection catches missing decision records |
 | `oya-governance-version-pin-source-citation` | ADR-0221 fixture-backed check that OpenAPI and AsyncAPI version pins reject noncanonical versions |
 | `oya-governance-buildability-line-count` | ADR-0221 fixture-backed check that buildability line-count guidance distinguishes short docs from substantive docs |
-| `oya-governance-eu-ai-act-annex-iii-refusal` | enforces that every µservice declaring an Annex III "refused at Cedar layer" claim in `capabilities/T2-auto.yaml` has a matching `forbid` rule in `policy/tenant-scope.cedar` gating on employment-context (SEC-MAJ-02). |
+| `oya-governance-regulated-ai-refusal-grounding` | enforces that every µservice declaring a regulated-AI "refused at Cedar layer" claim in `capabilities/T2-auto.yaml` has a matching `forbid` rule in `policy/tenant-scope.cedar` gating on employment-context (SEC-MAJ-02). |
 | `oya-governance-slsa-l3-evidence-grounded` | enforces that every scorecard claiming `slsa_l3: green` cites real `.github/workflows/<file>.yml` files that declare SLSA-relevant primitives (signed provenance, hermetic build, two-party review) (SEC-MAJ-01). |
 | `oya-governance-otel-trace-propagation` | validates that per-µservice gRPC client adapters propagate W3C traceparent per ADR-0145 Invariant 2. Runs in DEFERRED (advisory) mode until the strict-mode parser lands per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-otel-propagation-validator. |
 | `oya-governance-ontology-projection-coverage` | blocks canonical-entity-owning µservices that omit concrete `ontology_projections` in their manifest per ADR-0145 Invariant 3. Registry-authority cross-checking remains tracked under registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-ontology-projection-validator. |

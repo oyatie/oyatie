@@ -10,6 +10,7 @@ merge_method="squash"
 required_review_check="oya-pr-review"
 dry_run="0"
 require_verified_head="1"
+required_contexts_config=""
 
 usage() {
   cat <<'USAGE'
@@ -26,12 +27,16 @@ Options:
   --limit <number>             Maximum open PRs to query from GitHub (default: 200)
   --merge-method <method>      squash, merge, or rebase (default: squash)
   --required-review-check <id> Required review check name (default: oya-pr-review)
+  --required-contexts-config <path>
+                              Canonical branch-protection contexts JSON
+                              (default: infra/branch-protection/<base-branch>.json)
   --allow-unverified-head      Do not require GitHub-verified signed head commit
   --dry-run                    Print the selected PR and checks without enabling auto-merge
 
 This script advances only the bottom-most open PR in the active queue. It never
 force-pushes, never writes to the base branch, never skips a lower open queue PR,
-and only enables GitHub auto-merge after the review check has passed, the head
+and only enables GitHub auto-merge after live branch-protection required
+contexts match the canonical repo policy, the review check has passed, the head
 commit is verified, and the selected PR is conflict-clean against the current
 base.
 USAGE
@@ -65,6 +70,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --required-review-check)
       required_review_check="${2:?missing --required-review-check value}"
+      shift 2
+      ;;
+    --required-contexts-config)
+      required_contexts_config="${2:?missing --required-contexts-config value}"
       shift 2
       ;;
     --allow-unverified-head)
@@ -132,6 +141,68 @@ check_verified_head() {
   echo "PR head ${head_oid:0:8} signature verified by GitHub"
 }
 
+check_live_required_contexts() {
+  local scratch_dir="$1"
+  local repo live_file live_err canonical_file
+  local missing extra live_count canonical_count
+
+  if [ -z "$required_contexts_config" ]; then
+    required_contexts_config="infra/branch-protection/${base_branch}.json"
+  fi
+
+  canonical_file="$required_contexts_config"
+  if [ ! -f "$canonical_file" ]; then
+    echo "::error::canonical required-context config not found: ${canonical_file}; refusing auto-merge" >&2
+    exit 1
+  fi
+
+  if ! jq -e '.required_status_checks.contexts | type == "array" and length > 0' "$canonical_file" >/dev/null; then
+    echo "::error::canonical required-context config has no required_status_checks.contexts: ${canonical_file}; refusing auto-merge" >&2
+    exit 1
+  fi
+
+  repo="$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"
+  live_file="$scratch_dir/live-required-status-checks.json"
+  live_err="$scratch_dir/live-required-status-checks.err"
+
+  set +e
+  gh api "repos/${repo}/branches/${base_branch}/protection/required_status_checks" > "$live_file" 2> "$live_err"
+  live_status=$?
+  set -e
+
+  if [ "$live_status" -ne 0 ]; then
+    echo "::error::cannot read live branch-protection required contexts for ${repo}:${base_branch}; refusing auto-merge. Provide GH_TOKEN/gh auth with Administration read permission for branch protection, then rerun. gh api exit=${live_status}" >&2
+    if [ -s "$live_err" ]; then
+      sed 's/^/gh api: /' "$live_err" >&2
+    fi
+    exit 1
+  fi
+
+  if ! jq -e '.contexts | type == "array" and length > 0' "$live_file" >/dev/null; then
+    echo "::error::live branch-protection response for ${repo}:${base_branch} has no contexts array; refusing auto-merge" >&2
+    exit 1
+  fi
+
+  missing="$(jq -n --slurpfile canonical "$canonical_file" --slurpfile live "$live_file" '
+    (($canonical[0].required_status_checks.contexts - $live[0].contexts) | sort)
+  ')"
+  extra="$(jq -n --slurpfile canonical "$canonical_file" --slurpfile live "$live_file" '
+    (($live[0].contexts - $canonical[0].required_status_checks.contexts) | sort)
+  ')"
+  canonical_count="$(jq -r '.required_status_checks.contexts | length' "$canonical_file")"
+  live_count="$(jq -r '.contexts | length' "$live_file")"
+
+  if [ "$missing" != "[]" ] || [ "$extra" != "[]" ]; then
+    echo "::error::live branch-protection required contexts drift from ${canonical_file}; refusing auto-merge so next-queue cannot inherit weakened or stale protection" >&2
+    echo "canonical_context_count=${canonical_count} live_context_count=${live_count}" >&2
+    echo "missing_from_live=$(printf '%s' "$missing" | jq -cr '.')" >&2
+    echo "extra_in_live=$(printf '%s' "$extra" | jq -cr '.')" >&2
+    exit 1
+  fi
+
+  echo "live branch-protection required contexts match ${canonical_file} (${live_count} contexts)"
+}
+
 if [ -z "$base_ref" ]; then
   base_ref="origin/${base_branch}"
 fi
@@ -153,6 +224,8 @@ fi
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
+
+check_live_required_contexts "$tmp_dir"
 
 prs_file="$tmp_dir/prs.json"
 gh pr list \

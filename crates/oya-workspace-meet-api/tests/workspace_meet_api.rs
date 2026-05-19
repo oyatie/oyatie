@@ -3,16 +3,17 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_workspace_meet_api::{
-    start_workspace_meet_session_from_api, WorkspaceMeetApiAuthorization, WorkspaceMeetApiError,
-    WorkspaceMeetApiPrincipal, WorkspaceMeetParticipantRequest, WorkspaceMeetSessionDirectory,
-    WorkspaceMeetSessionMetadata, WorkspaceMeetSessionRecord, WorkspaceMeetSessionStartApiRequest,
+    WORKSPACE_MEET_OPENAPI_CONTRACT, WORKSPACE_MEET_SESSION_START_SURFACE,
+    WorkspaceMeetApiAuthorization, WorkspaceMeetApiError, WorkspaceMeetApiPrincipal,
+    WorkspaceMeetParticipantRequest, WorkspaceMeetSessionDirectory, WorkspaceMeetSessionMetadata,
+    WorkspaceMeetSessionRecord, WorkspaceMeetSessionStartApiRequest,
     WorkspaceMeetSessionStartApiStatus, WorkspaceMeetSessionStartIdempotencyLedger,
     WorkspaceMeetSessionStartRequest, WorkspaceMeetStartBoundaryContext,
-    WORKSPACE_MEET_OPENAPI_CONTRACT, WORKSPACE_MEET_SESSION_START_SURFACE,
+    start_workspace_meet_session_from_api,
 };
 
 const SESSION_ID: &str = "meet_session_001";
-const TENANT_ID: &str = "ten_workspace_kr";
+const TENANT_ID: &str = "ten_workspace_alpha";
 const HOST: &str = "user:host@example.com";
 
 fn boundary(request_id: &str, idempotency_key: &str) -> WorkspaceMeetStartBoundaryContext {
@@ -67,9 +68,9 @@ fn start_body(session_id: &str) -> WorkspaceMeetSessionStartRequest {
     WorkspaceMeetSessionStartRequest {
         session_id: session_id.to_string(),
         tenant_id: TENANT_ID.to_string(),
-        region: "kr-seoul".to_string(),
-        cell_id: "cell-workspace-kr-001".to_string(),
-        sfu_pool_id: "sfu-pool-kr-001".to_string(),
+        region: "home-region".to_string(),
+        cell_id: "cell-workspace-alpha-001".to_string(),
+        sfu_pool_id: "sfu-pool-alpha-001".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),
         started_at_epoch_seconds: 1_700_000_000,
         participants: participants(),
@@ -126,7 +127,7 @@ fn start_meet_session_creates_once_and_replays_same_idempotent_result() {
     assert_eq!(first.metadata.request_id, "req-workspace-meet-start");
     assert_eq!(first.metadata.surface, WORKSPACE_MEET_SESSION_START_SURFACE);
     assert_eq!(first.data.session_id, SESSION_ID);
-    assert_eq!(first.data.cell_id, "cell-workspace-kr-001");
+    assert_eq!(first.data.cell_id, "cell-workspace-alpha-001");
     assert_eq!(first.data.participants[0].role, "host");
     assert_eq!(first.data.recording_consent, "not_requested");
     assert_eq!(first.data.schema_version, 1);
@@ -202,7 +203,7 @@ fn start_meet_session_rejects_authorization_and_reused_idempotency_key() {
     start_workspace_meet_session_from_api(&mut directory, &mut ledger, request.clone())
         .expect("initial Meet session start succeeds");
     let mut drifted = request;
-    drifted.body.sfu_pool_id = "sfu-pool-kr-002".to_string();
+    drifted.body.sfu_pool_id = "sfu-pool-alpha-002".to_string();
     assert_eq!(
         start_workspace_meet_session_from_api(&mut directory, &mut ledger, drifted),
         Err(WorkspaceMeetApiError::IdempotencyKeyReused {
@@ -280,7 +281,7 @@ fn public_response_structs_keep_contract_names_stable() {
     let _record = WorkspaceMeetSessionRecord {
         session_id: "session".to_string(),
         tenant_id: TENANT_ID.to_string(),
-        region: "kr-seoul".to_string(),
+        region: "home-region".to_string(),
         cell_id: "cell".to_string(),
         sfu_pool_id: "sfu".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),

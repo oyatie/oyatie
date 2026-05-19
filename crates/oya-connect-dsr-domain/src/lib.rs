@@ -768,7 +768,7 @@ mod tests {
         DsrRequest::new(DsrRequestCreate {
             dsr_id: "dsr-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             subject_ref: "subject-1".into(),
             action,
             sla_tier: DsrSlaTier::Ga,
@@ -783,7 +783,7 @@ mod tests {
         WorkspaceStoreRef::new(WorkspaceStoreRefCreate {
             store_id: "mailbox-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             cell_id: "cell-a".into(),
             surface,
             record_id: record_id.into(),
@@ -826,7 +826,7 @@ mod tests {
         RetentionRecordRef::new(RetentionRecordRefCreate {
             record_id: record_id.into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             surface: WorkspaceRetentionSurface::Mail,
             subject_ref: Some("subject-1".into()),
             data_class: privacy(DataClass::PiiIdentifying),
@@ -844,7 +844,7 @@ mod tests {
         let policy = retention_policy_for_dsr(
             "retention-dsr".into(),
             "tenant-1".into(),
-            "us-east-1".into(),
+            "region-alpha-1".into(),
             WorkspaceRetentionSurface::Mail,
             1_699_000_000,
         )
@@ -905,7 +905,7 @@ mod tests {
             DsrRequest::new(DsrRequestCreate {
                 dsr_id: "dsr-2".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 subject_ref: "subject-1".into(),
                 action: DsrAction::Erase,
                 sla_tier: DsrSlaTier::Ga,
@@ -920,7 +920,7 @@ mod tests {
             DsrRequest::new(DsrRequestCreate {
                 dsr_id: "dsr-3".into(),
                 tenant_id: "tenant-1".into(),
-                region: "us-east-1".into(),
+                region: "region-alpha-1".into(),
                 subject_ref: "subject-1".into(),
                 action: DsrAction::Erase,
                 sla_tier: DsrSlaTier::Preview,

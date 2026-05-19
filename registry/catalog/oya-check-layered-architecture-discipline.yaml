@@ -1,6 +1,7 @@
 context: foundry
 role: worker
 capability: check-layered-architecture-discipline
+slo: preview-control-plane
 plane: control
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []

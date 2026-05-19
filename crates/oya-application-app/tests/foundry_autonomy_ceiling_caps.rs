@@ -16,7 +16,7 @@ fn principal_ceiling_cannot_exceed_tenant_and_records_source() {
     let mut foundation = foundation_with_tenant(
         "ten_cap_principal",
         AutonomyTier::T4AutoExecute,
-        vec!["oya-pack-us".into()],
+        vec!["generic-pack".into()],
     );
     register_capability(
         &mut foundation,
@@ -49,7 +49,7 @@ fn healthcare_phi_cap_limits_t4_tenant_to_t2() {
     let mut foundation = foundation_with_tenant(
         "ten_cap_health",
         AutonomyTier::T4AutoExecute,
-        vec!["hipaa".into()],
+        vec!["health-regulated-pack".into()],
     );
     register_capability(
         &mut foundation,
@@ -81,14 +81,14 @@ fn fintech_financial_cap_limits_t4_tenant_to_t2() {
     let mut foundation = foundation_with_tenant(
         "ten_cap_fintech",
         AutonomyTier::T4AutoExecute,
-        vec!["kr-fsc".into()],
+        vec!["financial-regulated-pack".into()],
     );
     register_capability(
         &mut foundation,
         "ten_cap_fintech",
         "cap.autonomy.fintech",
         AutonomyTier::T3ExecuteWithApproval,
-        vec![DataClass::FinancialKrCredit],
+        vec![DataClass::FinancialCredit],
     );
 
     let denied = foundation
@@ -112,7 +112,7 @@ fn minor_subject_class_cap_limits_internal_capability_to_t1() {
     let mut foundation = foundation_with_tenant(
         "ten_cap_minor",
         AutonomyTier::T4AutoExecute,
-        vec!["oya-pack-us".into()],
+        vec!["generic-pack".into()],
     );
     register_capability(
         &mut foundation,
@@ -147,7 +147,7 @@ fn typed_agentic_ads_bid_defaults_to_t1() {
     let mut foundation = foundation_with_tenant(
         "ten_cap_ads",
         AutonomyTier::T4AutoExecute,
-        vec!["oya-pack-us".into()],
+        vec!["generic-pack".into()],
     );
     register_capability_with_action(
         &mut foundation,
@@ -177,7 +177,7 @@ fn low_tier_capability_does_not_run_at_t4_under_t4_tenant() {
     let mut foundation = foundation_with_tenant(
         "ten_cap_low_tier",
         AutonomyTier::T4AutoExecute,
-        vec!["oya-pack-us".into()],
+        vec!["generic-pack".into()],
     );
     register_capability(
         &mut foundation,
@@ -250,7 +250,7 @@ fn foundation_with_tenant(
         .onboard_tenant(TenantRegistration {
             tenant_id: tenant_id.into(),
             legal_name: format!("{tenant_id} Legal"),
-            home_region: "us-east".into(),
+            home_region: "region-alpha".into(),
             residency_class: "global".into(),
             regulatory_packs,
             autonomy_ceiling,

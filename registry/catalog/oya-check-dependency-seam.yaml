@@ -1,5 +1,5 @@
 context: foundry
-role: test
+role: worker
 capability: check-dependency-seam
 plane: control
 slo: preview-control-plane

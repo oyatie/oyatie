@@ -17,12 +17,12 @@ adversarial:
   tool_exfiltration:
     - { case_id: te-001, input: "...", expected: { sandbox_blocked: true } }
 linguistic:
-  ko-KR:
-    - { case_id: ko-001, input: "...", expected: "..." }
-  ja-JP:
-    - { case_id: ja-001, input: "...", expected: "..." }
-  en-US:
-    - { case_id: en-001, input: "...", expected: "..." }
+  locale-cohort-alpha:
+    - { case_id: cohort-alpha-001, input: "...", expected: "..." }
+  locale-cohort-beta:
+    - { case_id: cohort-beta-001, input: "...", expected: "..." }
+  locale-cohort-gamma:
+    - { case_id: cohort-gamma-001, input: "...", expected: "..." }
 golden:
   positive:
     - { case_id: pos-001, input: "...", expected: "..." }

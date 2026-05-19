@@ -4,14 +4,14 @@
 //!
 //! ADR-0197 D-5 establishes per-regulatory-pack retention floors:
 //!
-//! | Pack             | Floor                                  |
-//! |------------------|----------------------------------------|
-//! | generic          | 7 y annual                             |
-//! | kr               | 5 y annual                             |
-//! | eu               | 7 y annual                             |
-//! | us-healthcare    | 6 y annual                             |
-//! | us-financial     | 7 y annual                             |
-//! | us-public-sector | 7 y annual + 2 cross-region replicas   |
+//! | Pack               | Floor                                |
+//! |--------------------|--------------------------------------|
+//! | generic            | 7 y annual                           |
+//! | pack-primary       | 5 y annual                           |
+//! | pack-secondary     | 7 y annual                           |
+//! | pack-health        | 6 y annual                           |
+//! | pack-financial     | 7 y annual                           |
+//! | pack-public-sector | 7 y annual + replica policy evidence |
 //!
 //! This crate scans per-µservice backup declarations and reports
 //! retention that fails to meet the pack's floor. Advisory mode this
@@ -210,17 +210,17 @@ mod tests {
     }
 
     #[test]
-    fn kr_floor_is_5y() {
+    fn pack_primary_floor_is_5y() {
         let r = validate_advisory(std::iter::once(decl(
             "drive",
-            RegulatoryPack::Kr,
+            RegulatoryPack::PackPrimary,
             1_825,
             None,
         )));
         assert_eq!(r.findings_ok, 1);
         let r2 = validate_advisory(std::iter::once(decl(
             "drive",
-            RegulatoryPack::Kr,
+            RegulatoryPack::PackPrimary,
             1_824,
             None,
         )));
@@ -228,17 +228,17 @@ mod tests {
     }
 
     #[test]
-    fn us_healthcare_floor_is_6y() {
+    fn pack_health_floor_is_6y() {
         let r = validate_advisory(std::iter::once(decl(
             "drive",
-            RegulatoryPack::UsHealthcare,
+            RegulatoryPack::PackHealth,
             2_190,
             None,
         )));
         assert_eq!(r.findings_ok, 1);
         let r2 = validate_advisory(std::iter::once(decl(
             "drive",
-            RegulatoryPack::UsHealthcare,
+            RegulatoryPack::PackHealth,
             1_825,
             None,
         )));
@@ -246,17 +246,17 @@ mod tests {
     }
 
     #[test]
-    fn eu_floor_is_7y() {
+    fn pack_secondary_floor_is_7y() {
         let r = validate_advisory(std::iter::once(decl(
             "drive",
-            RegulatoryPack::Eu,
+            RegulatoryPack::PackSecondary,
             2_555,
             None,
         )));
         assert_eq!(r.findings_ok, 1);
         let r2 = validate_advisory(std::iter::once(decl(
             "drive",
-            RegulatoryPack::Eu,
+            RegulatoryPack::PackSecondary,
             2_190,
             None,
         )));
@@ -267,9 +267,9 @@ mod tests {
     fn mixed_declarations_aggregate_correctly() {
         let ds = vec![
             decl("a", RegulatoryPack::Generic, 2_555, None), // ok
-            decl("b", RegulatoryPack::Kr, 1_825, None),      // ok
-            decl("c", RegulatoryPack::UsHealthcare, 1_000, None), // blocking
-            decl("d", RegulatoryPack::Eu, 100, Some("ADR-OVR-1")), // advisory
+            decl("b", RegulatoryPack::PackPrimary, 1_825, None), // ok
+            decl("c", RegulatoryPack::PackHealth, 1_000, None), // blocking
+            decl("d", RegulatoryPack::PackSecondary, 100, Some("ADR-OVR-1")), // advisory
         ];
         let r = validate_advisory(ds);
         assert_eq!(r.declarations_scanned, 4);
@@ -290,12 +290,12 @@ mod tests {
     fn finding_display_carries_pack_and_floor() {
         let r = validate_advisory(std::iter::once(decl(
             "drive",
-            RegulatoryPack::Kr,
+            RegulatoryPack::PackPrimary,
             1_000,
             None,
         )));
         let s = format!("{}", r.findings[0]);
-        assert!(s.contains("kr"));
+        assert!(s.contains("pack-primary"));
         assert!(s.contains("1825"));
         assert!(s.contains("drive"));
     }

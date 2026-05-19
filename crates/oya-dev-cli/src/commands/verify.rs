@@ -18,9 +18,11 @@
 //!
 //! Behaviour: dispatches to `gate run-all`, the canonical pre-merge
 //! gate aggregator that replaced the legacy `scripts/check.sh`
-//! orchestrator. Optional `--fast` short-circuits the deferred gates
-//! list; default is the same lane set the aggregator runs in
-//! non-deferred mode. Positional/flag args are forwarded verbatim.
+//! orchestrator. Default mode runs the native gate catalog. Optional
+//! `--ci-required` additionally executes the hosted required-check
+//! mirrors (fmt/check/clippy/nextest/admission/provider-execution) so
+//! `oya submit` fails before a PR can expose required CI failures.
+//! Positional/flag args are forwarded verbatim.
 //!
 //! Pre-push hook: this subcommand is the target of
 //! `scripts/hooks/pre-push.sh` (the source-of-truth file that the

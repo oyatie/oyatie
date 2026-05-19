@@ -171,13 +171,13 @@ mod tests {
     #[test]
     fn kr_regulatory_binding_accepts_valid_inputs() {
         let binding = KrRegulatoryBinding::new(
-            "oya-pack-kr".to_string(),
+            "oya-pack-alpha".to_string(),
             PipaDataClassification::HealthOrMedical,
             "csap-ctrl-kr-2026-001".to_string(),
         )
         .expect("valid binding should be accepted");
 
-        assert_eq!(binding.pack_id(), "oya-pack-kr");
+        assert_eq!(binding.pack_id(), "oya-pack-alpha");
         assert!(binding.pipa_classification().is_sensitive());
         assert_eq!(binding.csap_evidence_ref(), "csap-ctrl-kr-2026-001");
     }
@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn kr_regulatory_binding_rejects_empty_csap_ref() {
         let err = KrRegulatoryBinding::new(
-            "oya-pack-kr".to_string(),
+            "oya-pack-alpha".to_string(),
             PipaDataClassification::General,
             "   ".to_string(),
         )

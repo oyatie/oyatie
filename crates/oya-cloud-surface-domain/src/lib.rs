@@ -15,7 +15,7 @@ const CLOUD_SURFACE_SCHEMA_VERSION: u32 = 1;
 const SURFACE_ID_PREFIX: &str = "csurf_";
 const SKU_ID_PREFIX: &str = "csku_";
 const PROVIDER_REF_PREFIX: &str = "provider/";
-const REGION_CODE_PREFIX: &str = "kr-";
+const REGION_CODE_PREFIX: &str = "region-";
 const MIN_DAY_ONE_AZ_COUNT: u8 = 3;
 const MIN_AZ_SEPARATION_KM: u16 = 30;
 const MAX_STS_TTL_SECONDS: u32 = 3_600;
@@ -856,15 +856,15 @@ mod tests {
         vec![
             fulfillment(
                 FulfillmentPhase::PublicCloudConsumption,
-                "provider/oci-aws/kr-seoul",
+                "provider/public-cloud/region-alpha",
             ),
             fulfillment(
                 FulfillmentPhase::HybridColo,
-                "provider/oyatie-colo/kr-seoul",
+                "provider/hybrid-colo/region-alpha",
             ),
             fulfillment(
                 FulfillmentPhase::OwnedMegaDc,
-                "provider/oyatie-owned-dc/kr-east",
+                "provider/owned-dc/region-alpha-east",
             ),
         ]
     }
@@ -980,7 +980,7 @@ mod tests {
 
     fn regions_surface() -> RegionsSurfaceCreate {
         RegionsSurfaceCreate {
-            day_one_region: "kr-seoul".to_string(),
+            day_one_region: "region-alpha".to_string(),
             az_count: 3,
             min_az_separation_km: 30,
             cell_isolation_unit: true,

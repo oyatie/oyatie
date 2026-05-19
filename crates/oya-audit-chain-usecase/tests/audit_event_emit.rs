@@ -56,7 +56,7 @@ fn audit_event_emit_appends_chain_and_outbox_once_and_replays_idempotently() {
     assert_eq!(outbox.records().len(), 1);
     assert!(chain.verify());
     assert_eq!(first.data.sequence, 0);
-    assert_eq!(first.data.tenant_id, "ten_kr");
+    assert_eq!(first.data.tenant_id, "ten_alpha");
     assert_eq!(first.data.surface, "cloud.compute.vm.create");
     assert_eq!(first.data.plane, "control");
     assert_eq!(first.data.purpose, "CoreService");
@@ -216,23 +216,23 @@ fn emit_request(event_id: &str, idempotency_key: &str) -> AuditEventEmitAppReque
         envelope: AuditEventEmitEnvelopeContext {
             event_id: event_id.to_string(),
             source: AUDIT_EVENT_EMIT_SOURCE.to_string(),
-            subject: "tenant/ten_kr/surface/cloud.compute.vm.create".to_string(),
+            subject: "tenant/ten_alpha/surface/cloud.compute.vm.create".to_string(),
             topic: AUDIT_EVENT_TOPIC.to_string(),
             schema: AUDIT_EVENT_EMIT_SCHEMA.to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             producer_id: "producer_cloud_compute".to_string(),
             idempotency_key: idempotency_key.to_string(),
             produced_at_epoch_seconds: 1_700_000_000,
         },
         authorization: AuditEventEmitAuthorization {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             producer_id: "producer_cloud_compute".to_string(),
             decision_id: "authz_audit_event_emit".to_string(),
             allowed_surfaces: vec![AUDIT_EVENT_EMIT_SURFACE.to_string()],
         },
         payload: AuditEventEmitPayload {
             id: event_id.to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             surface: "cloud.compute.vm.create".to_string(),
             plane: "control".to_string(),
             purpose: "CoreService".to_string(),

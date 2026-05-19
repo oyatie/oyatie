@@ -32,7 +32,7 @@
 //! # Layer
 //!
 //! `domain` (port-in-kernel, ADR-0056). The kernel performs no I/O;
-//! callers (e.g. `oya gate validate eu-ai-act-annex-iii-refusal`) read
+//! callers (e.g. `oya gate validate regulated-ai-refusal-grounding`) read
 //! the files and hand strings in.
 //!
 //! # Naming justification

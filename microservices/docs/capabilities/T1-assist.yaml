@@ -46,6 +46,9 @@ capabilities:
     fallback_on_model_failure: fall back to T0 grammar-check suggestion mode (suggest only)
     eu_ai_act_classification: limited-risk (Annex III §3 may apply for HR-context — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005 conformity assessment)
     user_label: "AI is summarising this document — cancel within 30s" (Art. 50 + Art. 14)
+    cedar_admission_path: |
+      ai-act-hr-scope.cedar :: action::DocsT1AutoSummary refuses when
+      context.hr_document_workflow == true AND context.context_kind == "employment" AND no conformity-assessment evidence is on file.
 
   - id: T1-docs-expand-rewrite
     name: "Expand / rewrite selected text"
@@ -75,6 +78,9 @@ capabilities:
     fallback_on_model_failure: silent abort — original passage preserved
     eu_ai_act_classification: limited-risk (Annex III §3 may apply for HR-context — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005)
     user_label: "AI is rewriting your selection — cancel within 30s"
+    cedar_admission_path: |
+      ai-act-hr-scope.cedar :: action::DocsT1ExpandRewrite refuses when
+      context.hr_document_workflow == true AND context.context_kind == "employment" AND no conformity-assessment evidence is on file.
 
   - id: T1-docs-citation-suggest
     name: "Citation + reference suggestion (academic)"

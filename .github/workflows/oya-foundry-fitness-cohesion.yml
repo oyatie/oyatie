@@ -3,7 +3,7 @@ name: oya-foundry-fitness-cohesion
 # Required-check workflow for the foundry cohesion-fitness lane.
 #
 # Branch-protection (`.github/branch-protection.yaml`) requires the status
-# check `oya-foundry-fitness-cohesion` on every PR + push to `main`. This
+# check `oya-foundry-fitness-cohesion` on every PR + push to `dev`. This
 # workflow produces that status by running the cohesion-kernel validator
 # via `oya-dev-cli gate validate cohesion`, which:
 #   - reads workspace member crate ids from `Cargo.toml`,
@@ -18,7 +18,7 @@ name: oya-foundry-fitness-cohesion
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [dev]
 
 permissions:
   contents: read

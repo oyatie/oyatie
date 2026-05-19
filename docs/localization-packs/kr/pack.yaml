@@ -6,13 +6,13 @@
 pack:
   code: kr
   name: "Korea"
-  status: planned                       # planned | active | maintained | retired (ADR-0064 §5)
+  status: planning-closed-foundational   # planning-closed-foundational | active | maintained | retired (ADR-0064 §5)
   foundational: true                    # pack #1 — the canonical reference pack
-  promotion_blockers:                   # what must ship before status flips to `active`
-    - kr/corpus.lock signed
-    - ≥1 µservice has overlay crate + overlay PRD + regulatory ADR shipped
-    - acceptance evidence for at least one µservice signed
-    - 1 paying KR tenant lives on at least one pack-covered µservice
+  activation_acceptance_criteria:        # required before status flips to `active`
+    - kr/corpus.lock present with governed source entries
+    - each FD-001 material µservice has overlay crate + overlay PRD + regulatory ADR shipped
+    - acceptance evidence for each FD-001 material µservice signed
+    - first KR tenant can run the FD-001 enterprise/SMB workflow set on pack-covered µservices
   languages: [ko, en]
   region_codes: [KR]
   date: 2026-05-13
@@ -116,7 +116,7 @@ connectors:
 acceptance_milestones: [M03, M04, M05, M06, M07]
 
 # Signed regulatory corpus (per Bominal ADR-0190 inheritance)
-corpus_lock: "kr/corpus.lock"           # docs/localization-packs/kr/corpus.lock (TBD; signed quarterly)
+corpus_lock: "kr/corpus.lock"           # docs/localization-packs/kr/corpus.lock; governed source lock, refreshed quarterly
 
 # Maintenance cadence
 maintenance:

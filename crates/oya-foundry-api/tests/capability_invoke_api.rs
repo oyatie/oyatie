@@ -9,13 +9,13 @@ use oya_application_app::{
     PolicyVersion, Purpose, SubjectClass, TenantCapabilityGrant, TenantRegistration,
 };
 use oya_foundry_api::{
-    invoke_capability_from_api, ApiBoundaryContext, CapabilityInvocationPrincipal,
+    ApiBoundaryContext, CAPABILITY_INVOKE_SURFACE, CapabilityInvocationPrincipal,
     CapabilityInvocationReceipt, CapabilityInvocationRequest, CapabilityInvokeApiError,
     CapabilityInvokeApiErrorBody, CapabilityInvokeApiErrorCode, CapabilityInvokeApiErrorDetail,
     CapabilityInvokeApiErrorResponse, CapabilityInvokeApiRequest,
     CapabilityInvokeApiResponseMetadata, CapabilityInvokeApiStatus,
     CapabilityInvokeApiSuccessResponse, CapabilityInvokeIdempotencyLedger, Foundation,
-    CAPABILITY_INVOKE_SURFACE,
+    invoke_capability_from_api,
 };
 
 fn request_for(capability_id: &str) -> CapabilityInvocationRequest {
@@ -264,9 +264,9 @@ fn capability_invoke_api_success_path_preserves_request_id_metadata() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_api".to_string(),
             legal_name: "API Tenant".to_string(),
-            home_region: "us-east".to_string(),
+            home_region: "failover-region".to_string(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".to_string()],
+            regulatory_packs: vec!["oya-pack-gamma".to_string()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -498,9 +498,9 @@ fn capability_invoke_api_surfaces_foundation_data_use_denial_for_underdeclared_a
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_api".to_string(),
             legal_name: "API Ads Tenant".to_string(),
-            home_region: "us-east".to_string(),
+            home_region: "failover-region".to_string(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".to_string()],
+            regulatory_packs: vec!["oya-pack-gamma".to_string()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -569,15 +569,17 @@ fn capability_invoke_api_surfaces_foundation_data_use_denial_for_underdeclared_a
             && event.purpose == Purpose::AdsTargeting
             && event.decision == "DENY"
     }));
-    assert!(foundation
-        .foundry_evidence_chain()
-        .records()
-        .last()
-        .expect("data-use denial records evidence")
-        .fields
-        .value
-        .get("data_use_denial_reason")
-        .is_some_and(|reason| reason == "underdeclared_ads_purpose"));
+    assert!(
+        foundation
+            .foundry_evidence_chain()
+            .records()
+            .last()
+            .expect("data-use denial records evidence")
+            .fields
+            .value
+            .get("data_use_denial_reason")
+            .is_some_and(|reason| reason == "underdeclared_ads_purpose")
+    );
     let counts_after_denial = side_effect_counts(&foundation);
 
     let replay_result = invoke_capability_from_api(
@@ -751,9 +753,9 @@ fn configured_foundation_for_api_capability(capability_id: &str) -> (Foundation,
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_api".to_string(),
             legal_name: "API Tenant".to_string(),
-            home_region: "us-east".to_string(),
+            home_region: "failover-region".to_string(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".to_string()],
+            regulatory_packs: vec!["oya-pack-gamma".to_string()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -829,9 +831,9 @@ fn publish_invoke_policy(foundation: &mut Foundation, tenant_id: &str, role: &st
 
 fn passing_eval_set(capability_id: &str) -> EvalSetInput {
     let mut cases = vec![
-        eval_case("case-en", "en-US", None),
-        eval_case("case-ko", "ko-KR", None),
-        eval_case("case-ja", "ja-JP", None),
+        eval_case("case-generic", "generic", None),
+        eval_case("case-pack-primary", "pack-primary", None),
+        eval_case("case-pack-secondary", "pack-secondary", None),
     ];
     for (case_id, kind) in [
         ("adv-prompt", AdversarialKind::PromptInjection),
@@ -839,7 +841,7 @@ fn passing_eval_set(capability_id: &str) -> EvalSetInput {
         ("adv-autonomy", AdversarialKind::AutonomyBypass),
         ("adv-tool", AdversarialKind::ToolExfiltration),
     ] {
-        cases.push(eval_case(case_id, "en-US", Some(kind)));
+        cases.push(eval_case(case_id, "generic", Some(kind)));
     }
     EvalSetInput {
         capability_id: capability_id.to_string(),

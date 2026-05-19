@@ -599,6 +599,43 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("dependency-seam")) => {
+            match crate::parse_dependency_seam_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_dependency_seam_gate(args) {
+                    Ok(report) => {
+                        let blocking = report.blocking_diagnostics().len();
+                        println!(
+                            "dependency-seam validation passed: {} subchecks, {} pass, {} report-only, {} skipped, {} fail, {} diagnostics, {} blocking",
+                            report.subchecks.len(),
+                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Pass),
+                            report.status_count(
+                                oya_check_dependency_seam::SubcheckStatus::ReportOnly
+                            ),
+                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Skipped),
+                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Fail),
+                            report.diagnostic_count(),
+                            blocking
+                        );
+                        if blocking == 0 {
+                            ExitCode::SUCCESS
+                        } else {
+                            eprintln!(
+                                "dependency-seam validation failed: {blocking} blocking diagnostics"
+                            );
+                            ExitCode::FAILURE
+                        }
+                    }
+                    Err(message) => {
+                        eprintln!("dependency-seam validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("license-policy")) => {
             match crate::parse_license_policy_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_license_policy_gate(args) {
@@ -1262,6 +1299,32 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("banned-primitives")) => {
+            match crate::parse_banned_primitives_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_banned_primitives_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "banned-primitives validation passed: {} files, {} sources, {} fences, {} command-log records, {} usages, {} documented exceptions",
+                            report.files_scanned,
+                            report.sources_checked,
+                            report.fences_checked,
+                            report.command_log_records_checked,
+                            report.usages_checked,
+                            report.documented_exceptions
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("banned-primitives validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("hyperscaler-arch-invariants")) => {
             match crate::parse_hyperscaler_arch_invariants_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_hyperscaler_arch_invariants_gate(args) {
@@ -1331,6 +1394,85 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     }
                     Err(message) => {
                         eprintln!("design/spec maturity claim validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("planning-closure")) => {
+            match crate::parse_planning_closure_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_planning_closure_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "planning-closure validation passed: {} verticals, {} surfaces, {} kr-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
+                            report.vertical_count,
+                            report.surface_count,
+                            report.kr_pack_surface_count,
+                            report.architecture_rule_count,
+                            report.status_fields_checked,
+                            report.blocker_count
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("planning-closure validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("korea-localization-evidence")) => {
+            match crate::parse_korea_localization_evidence_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_korea_localization_evidence_gate(args) {
+                    Ok(report) => {
+                        let evidence = report
+                            .emitted_evidence_path
+                            .as_ref()
+                            .map(|path| format!(", evidence={}", path.display()))
+                            .unwrap_or_default();
+                        println!(
+                            "korea-localization-evidence validation passed: {} evidence files, {} fd001 surfaces, {} kr-pack surfaces, pack_status={}, activation_claim={}{}",
+                            report.evidence_file_count,
+                            report.fd001_surface_count,
+                            report.kr_pack_surface_count,
+                            report.pack_status,
+                            report.activation_claim,
+                            evidence
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("korea-localization-evidence validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("canonical-base-neutrality")) => {
+            match crate::parse_canonical_base_neutrality_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_canonical_base_neutrality_gate(args) {
+                    Ok(report) => {
+                        let suffix = if report.self_test { " (self-test)" } else { "" };
+                        println!(
+                            "canonical-base-neutrality validation passed: {} files checked, 0 jurisdiction leaks{}",
+                            report.files_checked, suffix
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("canonical-base-neutrality validation failed:\n{message}");
                         ExitCode::FAILURE
                     }
                 },
@@ -1479,11 +1621,13 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // protection-context-match: enforces that every required
         // status-check context in `.github/branch-protection.yaml`
         // is the `name:` field of some workflow job in
-        // `.github/workflows/*.yml`. Catches the silent-bypass class
-        // where the protection lists a context name that no
-        // workflow posts; GitHub then waits forever for a check_run
-        // that never arrives. Lane id:
-        // `oya-foundry-fitness-protection-context-match`. Kernel:
+        // `.github/workflows/*.yml`; when the optional live-contexts
+        // JSON is supplied, also verifies live branch protection
+        // requires exactly the same contexts. Catches both
+        // silent-bypass classes: local config points at a workflow
+        // job that does not exist, or GitHub live enforcement drifts
+        // behind the canonical repo policy. Lane id:
+        // `oya-governance-protection-context-match`. Kernel:
         // `oya-check-protection-context-match` (port-in-kernel,
         // ADR-0056).
         (Some("validate"), Some("protection-context-match")) => {
@@ -1593,9 +1737,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        // PR #143 Fix-D — EU AI Act Annex III refusal grounding.
-        (Some("validate"), Some("eu-ai-act-annex-iii-refusal")) => {
-            crate::adr_0145_gates::run_eu_ai_act_annex_iii_refusal(args.collect())
+        // PR #143 Fix-D — regulated AI refusal grounding.
+        (Some("validate"), Some("regulated-ai-refusal-grounding")) => {
+            crate::adr_0145_gates::run_regulated_ai_refusal_grounding(args.collect())
         }
         // PR #143 Fix-D — SLSA L3 evidence-grounded check.
         (Some("validate"), Some("slsa-l3-evidence-grounded")) => {

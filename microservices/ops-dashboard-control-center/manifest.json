@@ -1,0 +1,477 @@
+{
+  "schema_version": "1.0",
+  "microservice": "ops-dashboard-control-center",
+  "version": "0.1.0",
+  "owner": "ops-sre-reliability",
+  "bounded_contexts": [
+    {
+      "name": "incident-command",
+      "description": "Operator-safe incident lifecycle, severity, communications, remediation handoff, and post-incident evidence command surface for FD-001.",
+      "crates": [
+        "oya-ops-dashboard-control-center-incident-command-kernel",
+        "oya-ops-dashboard-control-center-incident-command-domain",
+        "oya-ops-dashboard-control-center-incident-command-usecase",
+        "oya-ops-dashboard-control-center-incident-command-app",
+        "oya-ops-dashboard-control-center-incident-command-api",
+        "oya-ops-dashboard-control-center-incident-command-rest",
+        "oya-ops-dashboard-control-center-incident-command-worker",
+        "oya-ops-dashboard-control-center-incident-command-adapter"
+      ]
+    },
+    {
+      "name": "deployment-command",
+      "description": "Deployment approval, progressive rollout, rollback decision, freeze window, and GitOps handoff command surface with explicit approval records.",
+      "crates": [
+        "oya-ops-dashboard-control-center-deployment-command-kernel",
+        "oya-ops-dashboard-control-center-deployment-command-domain",
+        "oya-ops-dashboard-control-center-deployment-command-usecase",
+        "oya-ops-dashboard-control-center-deployment-command-app",
+        "oya-ops-dashboard-control-center-deployment-command-api",
+        "oya-ops-dashboard-control-center-deployment-command-rest",
+        "oya-ops-dashboard-control-center-deployment-command-worker",
+        "oya-ops-dashboard-control-center-deployment-command-adapter"
+      ]
+    },
+    {
+      "name": "cluster-health",
+      "description": "Cluster, node, cell, service mesh, bootstrap, recovery, and conformance health signals that feed operational decisions without direct mutable host access.",
+      "crates": [
+        "oya-ops-dashboard-control-center-cluster-health-kernel",
+        "oya-ops-dashboard-control-center-cluster-health-domain",
+        "oya-ops-dashboard-control-center-cluster-health-usecase",
+        "oya-ops-dashboard-control-center-cluster-health-app",
+        "oya-ops-dashboard-control-center-cluster-health-api",
+        "oya-ops-dashboard-control-center-cluster-health-rest",
+        "oya-ops-dashboard-control-center-cluster-health-worker",
+        "oya-ops-dashboard-control-center-cluster-health-adapter"
+      ]
+    },
+    {
+      "name": "tenant-isolation-posture",
+      "description": "Tenant lifecycle, quota, isolation, policy posture, residency, and per-tenant evidence views for support and SRE operations.",
+      "crates": [
+        "oya-ops-dashboard-control-center-tenant-isolation-posture-kernel",
+        "oya-ops-dashboard-control-center-tenant-isolation-posture-domain",
+        "oya-ops-dashboard-control-center-tenant-isolation-posture-usecase",
+        "oya-ops-dashboard-control-center-tenant-isolation-posture-app",
+        "oya-ops-dashboard-control-center-tenant-isolation-posture-api",
+        "oya-ops-dashboard-control-center-tenant-isolation-posture-rest",
+        "oya-ops-dashboard-control-center-tenant-isolation-posture-adapter"
+      ]
+    },
+    {
+      "name": "policy-audit-evidence",
+      "description": "Policy/compliance decisions, audit trails, SLO and error-budget state, evidence-pack export, and localization escalation runbook linkage.",
+      "crates": [
+        "oya-ops-dashboard-control-center-policy-audit-evidence-kernel",
+        "oya-ops-dashboard-control-center-policy-audit-evidence-domain",
+        "oya-ops-dashboard-control-center-policy-audit-evidence-usecase",
+        "oya-ops-dashboard-control-center-policy-audit-evidence-app",
+        "oya-ops-dashboard-control-center-policy-audit-evidence-api",
+        "oya-ops-dashboard-control-center-policy-audit-evidence-rest",
+        "oya-ops-dashboard-control-center-policy-audit-evidence-worker",
+        "oya-ops-dashboard-control-center-policy-audit-evidence-adapter"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/ops-dashboard-control-center/contracts/openapi/ops-dashboard-control-center.yaml"
+    ],
+    "asyncapi": [
+      "microservices/ops-dashboard-control-center/contracts/asyncapi/ops-dashboard-control-center-events.yaml"
+    ],
+    "proto": [
+      "microservices/ops-dashboard-control-center/contracts/proto/ops_dashboard_control_center.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T2",
+      "name": "incident-declare",
+      "file": "microservices/ops-dashboard-control-center/capabilities/incident-declare.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T3",
+      "name": "incident-remediation-approve",
+      "file": "microservices/ops-dashboard-control-center/capabilities/incident-remediation-approve.yaml",
+      "eu_ai_act_risk_class": "high"
+    },
+    {
+      "tier": "T3",
+      "name": "deployment-approve",
+      "file": "microservices/ops-dashboard-control-center/capabilities/deployment-approve.yaml",
+      "eu_ai_act_risk_class": "high"
+    },
+    {
+      "tier": "T3",
+      "name": "rollback-execute",
+      "file": "microservices/ops-dashboard-control-center/capabilities/rollback-execute.yaml",
+      "eu_ai_act_risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cluster-health-query",
+      "file": "microservices/ops-dashboard-control-center/capabilities/cluster-health-query.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "tenant-isolation-posture-query",
+      "file": "microservices/ops-dashboard-control-center/capabilities/tenant-isolation-posture-query.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "evidence-pack-export",
+      "file": "microservices/ops-dashboard-control-center/capabilities/evidence-pack-export.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-ops-control-center-command-availability",
+      "target": "0.999",
+      "sli": "sum(rate(oya_ops_control_center_requests_total{status!~\"5..\"}[5m])) / sum(rate(oya_ops_control_center_requests_total[5m]))",
+      "file": "microservices/ops-dashboard-control-center/slos/command-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-ops-control-center-incident-ack-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.99, sum(rate(oya_ops_control_center_incident_ack_seconds_bucket[5m])) by (le))",
+      "file": "microservices/ops-dashboard-control-center/slos/incident-ack-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-ops-control-center-rollback-decision-latency",
+      "target": "0.95",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_ops_control_center_rollback_decision_seconds_bucket[5m])) by (le))",
+      "file": "microservices/ops-dashboard-control-center/slos/rollback-decision-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-ops-control-center-evidence-pack-freshness",
+      "target": "0.99",
+      "sli": "sum(rate(oya_ops_control_center_evidence_pack_age_seconds_bucket{le=\"86400\"}[5m]))",
+      "file": "microservices/ops-dashboard-control-center/slos/evidence-pack-freshness.openslo.yaml"
+    },
+    {
+      "name": "oya-ops-control-center-cluster-health-freshness",
+      "target": "0.999",
+      "sli": "sum(rate(oya_ops_control_center_cluster_health_age_seconds_bucket{le=\"60\"}[5m]))",
+      "file": "microservices/ops-dashboard-control-center/slos/cluster-health-freshness.openslo.yaml"
+    },
+    {
+      "name": "oya-ops-control-center-tenant-isolation-visibility",
+      "target": "1.0",
+      "sli": "sum(rate(oya_ops_control_center_isolation_posture_total{visible=\"true\"}[5m])) / sum(rate(oya_ops_control_center_isolation_posture_total[5m]))",
+      "file": "microservices/ops-dashboard-control-center/slos/tenant-isolation-visibility.openslo.yaml"
+    },
+    {
+      "name": "oya-ops-control-center-operator-action-audit-completeness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_ops_control_center_operator_action_total{sealed=\"true\"}[5m])) / sum(rate(oya_ops_control_center_operator_action_total[5m]))",
+      "file": "microservices/ops-dashboard-control-center/slos/operator-action-audit-completeness.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-control-plane-manifest-and-contracts",
+      "title": "IP-001: accepted Ops Dashboard / Control Center manifest and contract anchors",
+      "acceptance_status": "ga",
+      "file": "microservices/ops-dashboard-control-center/IP-001-control-plane-manifest-and-contracts.md"
+    },
+    {
+      "id": "IP-002-incident-command-workflows",
+      "title": "IP-002: incident command, communications, and remediation approval workflows",
+      "acceptance_status": "ga",
+      "file": "microservices/ops-dashboard-control-center/IP-002-incident-command-workflows.md"
+    },
+    {
+      "id": "IP-003-deployment-approval-and-rollback",
+      "title": "IP-003: deployment approval, freeze, progressive rollout, and rollback command workflows",
+      "acceptance_status": "ga",
+      "file": "microservices/ops-dashboard-control-center/IP-003-deployment-approval-and-rollback.md"
+    },
+    {
+      "id": "IP-004-cluster-health-and-recovery",
+      "title": "IP-004: cluster health, secure bootstrap, recovery, and restore visibility",
+      "acceptance_status": "ga",
+      "file": "microservices/ops-dashboard-control-center/IP-004-cluster-health-and-recovery.md"
+    },
+    {
+      "id": "IP-005-tenant-isolation-policy-audit",
+      "title": "IP-005: tenant lifecycle, isolation, quota, policy, compliance, and audit posture",
+      "acceptance_status": "ga",
+      "file": "microservices/ops-dashboard-control-center/IP-005-tenant-isolation-policy-audit.md"
+    },
+    {
+      "id": "IP-006-evidence-pack-export",
+      "title": "IP-006: signed evidence-pack export and audit-chain replay views",
+      "acceptance_status": "ga",
+      "file": "microservices/ops-dashboard-control-center/IP-006-evidence-pack-export.md"
+    },
+    {
+      "id": "IP-007-localization-escalation-runbooks",
+      "title": "IP-007: localization-aware escalation and operational runbook hooks",
+      "acceptance_status": "ga",
+      "file": "microservices/ops-dashboard-control-center/IP-007-localization-escalation-runbooks.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "argocd": "2.12",
+    "cilium": "1.16",
+    "grafana": "12.0.0",
+    "istio": "1.24.1",
+    "k8s": "1.30",
+    "openbao": "2.0",
+    "opentelemetry": "1.34",
+    "opentofu": "1.8",
+    "postgres": "16.4",
+    "prometheus": "3.2.0",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust clean architecture BNF",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13-layer enum and check family patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename application to usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0110",
+      "title": "Changeset state machine",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0110-changeset-state-machine.md"
+    },
+    {
+      "id": "ADR-0123",
+      "title": "Hyperscaler maturity claim gate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+    },
+    {
+      "id": "ADR-0145",
+      "title": "Inter-microservice communication reform",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0145-inter-microservice-communication-reform.md"
+    },
+    {
+      "id": "ADR-0148",
+      "title": "Service mesh Cilium Ambient layered",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md"
+    },
+    {
+      "id": "ADR-0180",
+      "title": "SLO composition inheritance arithmetic",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0180-slo-composition-inheritance-arithmetic.md"
+    },
+    {
+      "id": "ADR-0182",
+      "title": "API gateway north-south vs service mesh east-west separation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md"
+    },
+    {
+      "id": "ADR-0217",
+      "title": "Vertical slice rollout order",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0217-vertical-slice-rollout-order.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "envoy-circuit-breaker-on-ops-control-center-command-upstream; max_connections=100, max_pending_requests=50, outlier_detection consecutive_5xx=3 base_ejection_time=30s",
+    "tenant_rate_limit": "per-tenant and per-operator token bucket: oya_ops_control_center_rate_limit_total{scope=tenant|operator}; emergency break-glass path has separate audited budget",
+    "golden_signals": "rate=oya_ops_control_center_requests_total; errors=oya_ops_control_center_requests_total{status=~\"5..\"}; latency=oya_ops_control_center_request_duration_seconds_bucket; saturation=oya_ops_control_center_command_queue_depth",
+    "error_budget_burn": "multi-window burn on command availability, incident ack latency, rollback decision latency, cluster health freshness, evidence pack freshness, and audit completeness SLOs"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "OpsIncidentDeclared",
+      "OpsIncidentSeverityChanged",
+      "OpsIncidentRemediationApproved",
+      "OpsDeploymentApprovalRecorded",
+      "OpsRollbackDecisionRecorded",
+      "OpsClusterHealthSignalObserved",
+      "OpsTenantIsolationPostureViewed",
+      "OpsPolicyDecisionReviewed",
+      "OpsEvidencePackExportRequested",
+      "OpsRecoveryWorkflowStarted",
+      "OpsRecoveryWorkflowCompleted"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "Incident",
+      "projection_target_table": "ontology.ops_incident_projection",
+      "projection_kind": "append-only",
+      "lag_budget_seconds": 5
+    },
+    {
+      "entity_name": "DeploymentApproval",
+      "projection_target_table": "ontology.ops_deployment_approval_projection",
+      "projection_kind": "append-only",
+      "lag_budget_seconds": 5
+    },
+    {
+      "entity_name": "RollbackDecision",
+      "projection_target_table": "ontology.ops_rollback_decision_projection",
+      "projection_kind": "append-only",
+      "lag_budget_seconds": 5
+    },
+    {
+      "entity_name": "ClusterHealthSignal",
+      "projection_target_table": "ontology.ops_cluster_health_signal_projection",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 30
+    },
+    {
+      "entity_name": "TenantIsolationPosture",
+      "projection_target_table": "ontology.ops_tenant_isolation_posture_projection",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 30
+    },
+    {
+      "entity_name": "EvidencePack",
+      "projection_target_table": "ontology.ops_evidence_pack_projection",
+      "projection_kind": "append-only",
+      "lag_budget_seconds": 60
+    }
+  ],
+  "data_classes_processed": [
+    "PII_IDENTIFYING",
+    "AUTHENTICATION",
+    "AUDIT",
+    "INTERNAL_ONLY"
+  ],
+  "rpo_rto": {
+    "tier": "hot",
+    "rto_target_seconds": 300,
+    "rpo_target_seconds": 60,
+    "authority_adr": "ADR-0180"
+  },
+  "outbox_required": true,
+  "compute": {
+    "autoscaler": {
+      "node_pool": "app"
+    }
+  },
+  "finops": {
+    "cost_center": "cc-ops-internal",
+    "workload_class": "app",
+    "regulatory_pack": "generic"
+  },
+  "runtime": {
+    "wasm": {
+      "enabled": false,
+      "sandbox_classes": []
+    }
+  },
+  "iac": {
+    "engine": "opentofu"
+  },
+  "docs": {
+    "tier": "all"
+  },
+  "i18n": {
+    "default_locale": "en-US",
+    "required_locales": [
+      "en-US",
+      "ko-KR"
+    ],
+    "rtl_support": false,
+    "min_coverage_bps": 9500
+  },
+  "a11y": {
+    "wcag_target": "aa",
+    "test_runners": [
+      "axe",
+      "pa11y"
+    ]
+  },
+  "realtime": {
+    "transport": {
+      "tier": "sse"
+    },
+    "payload_budget_bytes": 32768
+  },
+  "compliance": {
+    "evidence_collectors": [
+      "audit-chain-replay",
+      "slo-window",
+      "operator-action",
+      "deployment-approval",
+      "rollback-decision"
+    ],
+    "audit_chain_seal_required": true,
+    "tamper_evidence_algorithm": "sha256-cosign-keyless-oidc"
+  },
+  "observability_trace_sampling_recipe": {
+    "head_bps": 100,
+    "tail_policies": [
+      "errors",
+      "operator-actions",
+      "incident-severity-high",
+      "rollback-decisions"
+    ],
+    "p99_latency_threshold_ms": 500,
+    "new_endpoints": [
+      {
+        "route": "/ops/v1/incidents",
+        "added_at": "2026-05-19"
+      },
+      {
+        "route": "/ops/v1/deployments/{deployment_id}/approvals",
+        "added_at": "2026-05-19"
+      }
+    ]
+  },
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true,
+    "north_south_only": false
+  }
+}

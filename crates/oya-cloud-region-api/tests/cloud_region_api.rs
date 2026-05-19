@@ -27,46 +27,46 @@ fn catalog() -> CloudRegionCatalog {
     let mut catalog = CloudRegionCatalog::default();
     catalog
         .register_region(CloudRegionCreate {
-            code: "kr-seoul".to_string(),
-            display_name: "Korea Seoul".to_string(),
-            regulatory_packs: vec!["oya-pack-kr".to_string()],
+            code: "home-region".to_string(),
+            display_name: "Home Region".to_string(),
+            regulatory_packs: vec!["oya-pack-alpha".to_string()],
             state: RegionState::Preview,
             provider_facing: true,
-            residency_strictness: ResidencyClass::StrictKr,
+            residency_strictness: ResidencyClass::StrictHome,
             created_at_epoch_seconds: 1_700_000_000,
         })
-        .expect("KR region fixture registers");
+        .expect("home region fixture registers");
     catalog
         .register_az(CloudAzCreate {
-            code: "kr-seoul-a".to_string(),
-            region_code: "kr-seoul".to_string(),
-            physical_ref: "dc/kr-seoul/a".to_string(),
+            code: "home-region-a".to_string(),
+            region_code: "home-region".to_string(),
+            physical_ref: "dc/home-region/a".to_string(),
             power_zones: vec!["pz-a1".to_string(), "pz-a2".to_string()],
             state: AzState::Active,
             created_at_epoch_seconds: 1_700_000_010,
         })
-        .expect("KR AZ fixture registers");
+        .expect("home AZ fixture registers");
     catalog
         .register_region(CloudRegionCreate {
-            code: "us-virginia".to_string(),
-            display_name: "US Virginia".to_string(),
+            code: "failover-region".to_string(),
+            display_name: "Failover Region".to_string(),
             regulatory_packs: vec!["oya-pack-global".to_string()],
             state: RegionState::Ga,
             provider_facing: true,
             residency_strictness: ResidencyClass::Global,
             created_at_epoch_seconds: 1_700_000_020,
         })
-        .expect("US region fixture registers");
+        .expect("failover region fixture registers");
     catalog
         .register_az(CloudAzCreate {
-            code: "us-virginia-a".to_string(),
-            region_code: "us-virginia".to_string(),
-            physical_ref: "dc/us-virginia/a".to_string(),
+            code: "failover-region-a".to_string(),
+            region_code: "failover-region".to_string(),
+            physical_ref: "dc/failover-region/a".to_string(),
             power_zones: vec!["pz-u1".to_string()],
             state: AzState::Planned,
             created_at_epoch_seconds: 1_700_000_030,
         })
-        .expect("US AZ fixture registers");
+        .expect("failover AZ fixture registers");
     catalog
         .register_region(CloudRegionCreate {
             code: "internal-ops".to_string(),
@@ -189,11 +189,11 @@ fn region_list_projects_public_region_catalog() {
 
     assert_eq!(response.metadata.request_id, "req-region-1");
     assert_eq!(response.data.len(), 2);
-    assert_eq!(response.data[0].code, "kr-seoul");
-    assert_eq!(response.data[0].azs[0].value, "kr-seoul-a");
-    assert_eq!(response.data[0].residency_strictness, "strict_kr");
-    assert_eq!(response.data[1].code, "us-virginia");
-    assert_eq!(response.data[1].state, "ga");
+    assert_eq!(response.data[0].code, "failover-region");
+    assert_eq!(response.data[0].state, "ga");
+    assert_eq!(response.data[1].code, "home-region");
+    assert_eq!(response.data[1].azs[0].value, "home-region-a");
+    assert_eq!(response.data[1].residency_strictness, "strict_home");
 }
 
 #[test]
@@ -209,7 +209,7 @@ fn az_list_rejects_invalid_region_code() {
 
 #[test]
 fn az_list_rejects_unknown_region_after_authorization() {
-    let error = list_cloud_azs_from_api(&catalog(), az_request("eu-paris"))
+    let error = list_cloud_azs_from_api(&catalog(), az_request("secondary-region"))
         .expect_err("unknown region must be explicit");
 
     assert_eq!(error.list_status_code(), 404);
@@ -220,7 +220,7 @@ fn az_list_rejects_unknown_region_after_authorization() {
 
 #[test]
 fn az_list_rejects_unauthorized_unknown_region_without_existence_leak() {
-    let mut request = az_request("eu-paris");
+    let mut request = az_request("secondary-region");
     request.authorization.allowed_surfaces = vec![CLOUD_REGION_LIST_SURFACE.to_string()];
 
     let error = list_cloud_azs_from_api(&catalog(), request)
@@ -245,13 +245,13 @@ fn az_list_does_not_expose_non_provider_facing_region() {
 
 #[test]
 fn az_list_projects_only_requested_region_azs() {
-    let response = list_cloud_azs_from_api(&catalog(), az_request("kr-seoul"))
+    let response = list_cloud_azs_from_api(&catalog(), az_request("home-region"))
         .expect("authorized AZ list succeeds");
 
     assert_eq!(response.metadata.request_id, "req-region-1");
     assert_eq!(response.data.len(), 1);
-    assert_eq!(response.data[0].code, "kr-seoul-a");
-    assert_eq!(response.data[0].region_code, "kr-seoul");
+    assert_eq!(response.data[0].code, "home-region-a");
+    assert_eq!(response.data[0].region_code, "home-region");
     assert_eq!(response.data[0].power_zones[0].value, "pz-a1");
     assert_eq!(response.data[0].power_zones[1].value, "pz-a2");
     assert_eq!(response.data[0].state, "active");

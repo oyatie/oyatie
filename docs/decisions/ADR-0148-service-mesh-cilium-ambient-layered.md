@@ -167,7 +167,7 @@ This keeps single-source-of-truth for authorization while honoring the layer bou
   - Istio Ambient delivers SPIFFE mTLS via ztunnel + rich L7 via waypoint + Cedar `ext_authz` binding + response envelope mutation for regulatory packs.
   - Per-µservice waypoint opt-in: µservices that don't carry L7-policed traffic stay sidecarless at L7 (Tier 3 bypass) and pay zero L7 hop cost.
   - Both projects are CNCF Graduated (Cilium 2023; Istio 2024). Production references at GKE, EKS, Anthos, Solo.io, Bell Canada, Capital One.
-  - ztunnel is Rust (oyatie-aligned per ADR-0120).
+  - ztunnel is Rust (Oya-aligned per ADR-0120).
   - Independent rollback: each layer disables independently without taking down the other.
 - **Cons:**
   - Two control planes (Cilium operator + istiod). Mitigation: both managed via Flux + Helm releases; both produce CNCF-conformant CRDs; both ship operator runbooks.
@@ -216,7 +216,7 @@ Per user directive 2026-05-18 ("Wherever possible, we should support in-house te
 
 The IS-the-standard test: a component is KEEP when (1) it is CNCF-graduated or comparable Linux-Foundation-hosted, AND (2) the in-house engineering effort to replace it would not produce a materially better outcome — it would produce a parallel copy of the same standard with smaller adoption and weaker security review.
 
-The 2 control planes named in §Consequences (Cilium operator + istiod) are both managed via Flux Helm releases; the operator-skill cost is the cost of running the standard, not an avoidable in-house dependency. Oyatie's in-house value is the **Cedar policy compiler** (per ADR-0183) emitting CNP + AuthorizationPolicy CRs, the **per-µservice CiliumNetworkPolicy** templates, and the **waypoint-enrollment manifest schema** — all oyatie-native code running on KEEP-classified standard engines, matching how AWS, Google, Microsoft, Oracle build on upstream.
+The 2 control planes named in §Consequences (Cilium operator + istiod) are both managed via Flux Helm releases; the operator-skill cost is the cost of running the standard, not an avoidable in-house dependency. Oyatie's in-house value is the **Cedar policy compiler** (per ADR-0183) emitting CNP + AuthorizationPolicy CRs, the **per-µservice CiliumNetworkPolicy** templates, and the **waypoint-enrollment manifest schema** — all Oya-native code running on KEEP-classified standard engines, matching how AWS, Google, Microsoft, Oracle build on upstream.
 
 ## Rollback
 

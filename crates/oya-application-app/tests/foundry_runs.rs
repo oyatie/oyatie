@@ -18,9 +18,9 @@ fn successful_capability_invocation_records_foundry_run_lifecycle() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_runs".into(),
             legal_name: "Runs Tenant".into(),
-            home_region: "eu-central".into(),
+            home_region: "secondary-region".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-eu".into()],
+            regulatory_packs: vec!["oya-pack-secondary".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .unwrap();
@@ -175,7 +175,7 @@ fn successful_capability_invocation_records_foundry_run_lifecycle() {
             .value
             .get("provider_region")
             .map(String::as_str),
-        Some("eu-central")
+        Some("secondary-region")
     );
     assert_eq!(
         evidence

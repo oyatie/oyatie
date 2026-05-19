@@ -38,14 +38,14 @@ fn sts_credentials_are_short_lived_scope_bound_and_redacted() {
 #[test]
 fn identity_user_requires_tenant_user_and_idp_binding_shapes() {
     let binding = IdpBinding::new(
-        "oya-pack-kr".into(),
+        "oya-pack-alpha".into(),
         "idp_kr_oidc".into(),
         "oidc://kr.example/admin".into(),
         1_700_000_000,
     )
     .expect("idp binding is valid");
     let user = User::new(
-        "ten_kr".into(),
+        "ten_alpha".into(),
         "usr_admin".into(),
         "admin@kr.example".into(),
         "KR Admin".into(),
@@ -54,7 +54,7 @@ fn identity_user_requires_tenant_user_and_idp_binding_shapes() {
     )
     .expect("tenant-bound user is valid");
 
-    assert_eq!(user.tenant_id(), "ten_kr");
+    assert_eq!(user.tenant_id(), "ten_alpha");
     assert_eq!(user.user_id().as_str(), "usr_admin");
     assert_eq!(user.id.value, UserId::new("usr_admin").unwrap());
     assert_eq!(user.primary_identifier.value, "admin@kr.example");
@@ -67,7 +67,7 @@ fn identity_user_requires_tenant_user_and_idp_binding_shapes() {
         DataClassification::from(DataClass::InternalOnly)
     );
     assert_eq!(user.idp_binding(), &binding);
-    assert_eq!(user.idp_binding().region_pack.value, "oya-pack-kr");
+    assert_eq!(user.idp_binding().region_pack.value, "oya-pack-alpha");
     assert_eq!(
         user.idp_binding().external_subject.data_class,
         DataClassification::from(DataClass::PiiIdentifying)
@@ -79,7 +79,7 @@ fn identity_user_requires_tenant_user_and_idp_binding_shapes() {
 #[test]
 fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     let valid_binding = IdpBinding::new(
-        "oya-pack-kr".into(),
+        "oya-pack-alpha".into(),
         "idp_kr_oidc".into(),
         "oidc://kr.example/admin".into(),
         1_700_000_000,
@@ -99,7 +99,7 @@ fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     );
     assert_eq!(
         User::new(
-            "ten_kr".into(),
+            "ten_alpha".into(),
             "user".into(),
             "admin@kr.example".into(),
             "KR Admin".into(),
@@ -110,7 +110,7 @@ fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     );
     assert_eq!(
         User::new(
-            "ten_kr".into(),
+            "ten_alpha".into(),
             "usr_admin".into(),
             " ".into(),
             "KR Admin".into(),
@@ -130,7 +130,7 @@ fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     );
     assert_eq!(
         IdpBinding::new(
-            "oya-pack-kr".into(),
+            "oya-pack-alpha".into(),
             "provider".into(),
             "oidc://kr.example/admin".into(),
             1_700_000_000,
@@ -139,7 +139,7 @@ fn identity_user_rejects_invalid_user_and_idp_binding_shapes() {
     );
     assert_eq!(
         IdpBinding::new(
-            "oya-pack-kr".into(),
+            "oya-pack-alpha".into(),
             "idp_kr_oidc".into(),
             " ".into(),
             1_700_000_000,

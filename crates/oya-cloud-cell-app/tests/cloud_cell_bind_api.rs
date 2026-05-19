@@ -6,8 +6,8 @@ use oya_cloud_cell_app::{
 fn valid_request() -> CloudCellBindRequest {
     CloudCellBindRequest {
         tenant_id: "ten_001".to_owned(),
-        home_region_code: "kr-seoul-1".to_owned(),
-        residency_class: "strict_kr".to_owned(),
+        home_region_code: "home-region-1".to_owned(),
+        residency_class: "strict_home".to_owned(),
         required_density: Some("shared".to_owned()),
     }
 }

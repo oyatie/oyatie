@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-012-branch-protection-and-release-pointers
 status: pending
 owner: ops-sre-reliability
-acceptance_lanes: [oya-foundry-fitness-protection-context-match]
+acceptance_lanes: [oya-governance-protection-context-match]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->

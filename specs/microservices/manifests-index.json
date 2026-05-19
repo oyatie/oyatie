@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-18",
-  "manifest_count": 32,
+  "generated_at": "2026-05-19",
+  "manifest_count": 34,
   "microservices": [
     {
       "name": "application",
@@ -130,6 +130,14 @@
     {
       "name": "governance",
       "manifest": "microservices/governance/manifest.json"
+    },
+    {
+      "name": "identity",
+      "manifest": "microservices/identity/manifest.json"
+    },
+    {
+      "name": "ops-dashboard-control-center",
+      "manifest": "microservices/ops-dashboard-control-center/manifest.json"
     }
   ]
 }

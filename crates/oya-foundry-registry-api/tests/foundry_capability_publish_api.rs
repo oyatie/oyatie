@@ -3,18 +3,18 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_foundry_registry_api::{
-    publish_foundry_capability_from_api, FoundryCapabilityApiAuthorization,
-    FoundryCapabilityApiBoundaryContext, FoundryCapabilityApiPrincipal,
-    FoundryCapabilityCostProfileRequest, FoundryCapabilityDescriptionRequest,
-    FoundryCapabilityEvalCaseRequest, FoundryCapabilityProviderRequest,
-    FoundryCapabilityPublishApiError, FoundryCapabilityPublishApiErrorBody,
-    FoundryCapabilityPublishApiErrorCode, FoundryCapabilityPublishApiErrorDetail,
-    FoundryCapabilityPublishApiErrorResponse, FoundryCapabilityPublishApiRequest,
-    FoundryCapabilityPublishApiStatus, FoundryCapabilityPublishDirectory,
-    FoundryCapabilityPublishIdempotencyLedger, FoundryCapabilityPublishMetadata,
-    FoundryCapabilityPublishRecord, FoundryCapabilityPublishRequest,
-    FoundryCapabilityPublishSuccessResponse, FOUNDRY_CAPABILITY_PUBLISH_SURFACE,
-    FOUNDRY_REGISTRY_OPENAPI_CONTRACT,
+    FOUNDRY_CAPABILITY_PUBLISH_SURFACE, FOUNDRY_REGISTRY_OPENAPI_CONTRACT,
+    FoundryCapabilityApiAuthorization, FoundryCapabilityApiBoundaryContext,
+    FoundryCapabilityApiPrincipal, FoundryCapabilityCostProfileRequest,
+    FoundryCapabilityDescriptionRequest, FoundryCapabilityEvalCaseRequest,
+    FoundryCapabilityProviderRequest, FoundryCapabilityPublishApiError,
+    FoundryCapabilityPublishApiErrorBody, FoundryCapabilityPublishApiErrorCode,
+    FoundryCapabilityPublishApiErrorDetail, FoundryCapabilityPublishApiErrorResponse,
+    FoundryCapabilityPublishApiRequest, FoundryCapabilityPublishApiStatus,
+    FoundryCapabilityPublishDirectory, FoundryCapabilityPublishIdempotencyLedger,
+    FoundryCapabilityPublishMetadata, FoundryCapabilityPublishRecord,
+    FoundryCapabilityPublishRequest, FoundryCapabilityPublishSuccessResponse,
+    publish_foundry_capability_from_api,
 };
 
 fn eval_case(
@@ -61,10 +61,26 @@ fn publish_body(capability_id: &str) -> FoundryCapabilityPublishRequest {
         min_p95_score_percent: 85,
         signed_eval_set: true,
         eval_cases: vec![
-            eval_case("ko-prompt-injection", "ko-KR", Some("PromptInjection")),
-            eval_case("ja-data-class", "ja-JP", Some("DataClassViolation")),
-            eval_case("en-autonomy", "en-US", Some("AutonomyBypass")),
-            eval_case("en-tool-exfiltration", "en-US", Some("ToolExfiltration")),
+            eval_case(
+                "cohort-alpha-prompt-injection",
+                "locale-cohort-alpha",
+                Some("PromptInjection"),
+            ),
+            eval_case(
+                "cohort-beta-data-class",
+                "locale-cohort-beta",
+                Some("DataClassViolation"),
+            ),
+            eval_case(
+                "cohort-gamma-autonomy",
+                "locale-cohort-gamma",
+                Some("AutonomyBypass"),
+            ),
+            eval_case(
+                "cohort-alpha-tool-exfiltration",
+                "locale-cohort-alpha",
+                Some("ToolExfiltration"),
+            ),
         ],
         eval_pass_rate_percent: 96,
         eval_p95_score_percent: 91,
@@ -201,9 +217,11 @@ fn foundry_capability_publish_records_capability_and_replays_idempotently() {
         first.metadata.openapi_contract,
         FOUNDRY_REGISTRY_OPENAPI_CONTRACT
     );
-    assert!(directory
-        .get("ten_foundry", "cap.workflow.approve-payroll")
-        .is_some());
+    assert!(
+        directory
+            .get("ten_foundry", "cap.workflow.approve-payroll")
+            .is_some()
+    );
 }
 
 #[test]

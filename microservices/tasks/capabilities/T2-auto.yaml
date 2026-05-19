@@ -72,7 +72,7 @@ capabilities:
     eu_ai_act_classification: **high-risk (Annex III §4)** in employment-context — REFUSED at Cedar layer pending ADR-TASKS-XXXX conformity-assessment ADR per pack
     user_label: "AI assigned this task — review by [date]" (Art. 50 + per-decision banner)
     cedar_admission_path: |
-      tenant-scope.cedar :: action::TaskT2AutoAssign admits when:
+      auto-assign-employment-context.cedar :: action::TaskT2AutoAssign refuses employment-context until conformity evidence; tenant-scope.cedar admits when:
         - tenant.tier >= enterprise AND
         - tenant_admin.has_opted_in_to_t2_auto_assign AND
         - context.user_ai_opt_in (per-employee) AND

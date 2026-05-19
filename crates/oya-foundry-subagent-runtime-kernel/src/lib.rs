@@ -382,9 +382,13 @@ pub trait SubagentPort {
 /// Deterministic mock port. Per the IP brief hard-stop ("network egress
 /// denied in test/CI environment → emit a runtime contract that lets
 /// the API call be mocked deterministically in tests; NOT a stub —
-/// the test path is canonical mock infrastructure"). The mock derives
-/// a deterministic [`FacetRecommendation`] from the facet id so panel
-/// completeness tests are reproducible without hitting Anthropic.
+/// the test path is canonical mock infrastructure").
+///
+/// Important: the mock is a CI smoke/fixture surface, not a quality
+/// reviewer. Its default is [`FacetRecommendation::Approve`] so the
+/// required check is not driven by meaningless facet-id hash noise. Tests
+/// that need negative rollups use explicit first-line fixture directives
+/// or in-memory overrides.
 #[derive(Debug, Clone, Default)]
 pub struct MockSubagentPort {
     /// Optional override per facet id; useful for end-to-end tests
@@ -410,22 +414,10 @@ impl SubagentPort for MockSubagentPort {
         let recommendation = if let Some(over) = self.overrides.get(&request.facet_id) {
             *over
         } else {
-            // Deterministic projection: use the facet id's byte sum
-            // modulo 3 to pick APPROVE / CHANGES_REQUESTED / REJECT.
-            // This guarantees reproducible test output without
-            // pretending the mock is "smart" — it is just a fixture.
-            let byte_sum: u32 = request.facet_id.bytes().map(u32::from).sum();
-            match byte_sum % 3 {
-                0 => FacetRecommendation::Approve,
-                1 => FacetRecommendation::ChangesRequested,
-                _ => FacetRecommendation::Reject,
-            }
+            mock_directive_recommendation(&request.user_message)
+                .unwrap_or(FacetRecommendation::Approve)
         };
-        let body = format!(
-            "deterministic-mock finding for facet {facet} (change {change})",
-            facet = request.facet_id,
-            change = request.change_id,
-        );
+        let body = mock_findings_body(request, recommendation);
         Ok(SubagentResponse {
             facet_id: request.facet_id.clone(),
             reviewer_id: request.reviewer_id.clone(),
@@ -433,6 +425,42 @@ impl SubagentPort for MockSubagentPort {
             findings_body: body,
         })
     }
+}
+
+fn mock_directive_recommendation(user_message: &str) -> Option<FacetRecommendation> {
+    user_message
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .and_then(mock_first_line_directive_recommendation)
+}
+
+fn mock_first_line_directive_recommendation(line: &str) -> Option<FacetRecommendation> {
+    let lower = line.to_ascii_lowercase();
+    let value = lower
+        .strip_prefix("oya_mock_recommendation:")
+        .map(str::trim)?;
+    match value {
+        "reject" => Some(FacetRecommendation::Reject),
+        "changes_requested" | "changes-requested" => Some(FacetRecommendation::ChangesRequested),
+        "approve" => Some(FacetRecommendation::Approve),
+        _ => None,
+    }
+}
+
+fn mock_findings_body(request: &SubagentRequest, recommendation: FacetRecommendation) -> String {
+    let mode_note = match mock_directive_recommendation(&request.user_message) {
+        Some(_) => "explicit first-line fixture directive selected this recommendation",
+        None => {
+            "no explicit fixture directive was present; defaulted APPROVE as deterministic CI smoke"
+        }
+    };
+    format!(
+        "deterministic-mock CI smoke for facet {facet} (change {change}); recommendation={recommendation}; {mode_note}; no content-quality claim is made by this mock path",
+        facet = request.facet_id,
+        change = request.change_id,
+        recommendation = recommendation.wire_value(),
+    )
 }
 
 /// Serializer for the per-facet `<facet>.json` evidence file consumed
@@ -607,6 +635,83 @@ mod tests {
         let r1 = port.complete(&request).unwrap();
         let r2 = port.complete(&request).unwrap();
         assert_eq!(r1, r2);
+    }
+
+    #[test]
+    fn mock_port_defaults_to_approve_without_fixture_directive() {
+        let port = MockSubagentPort::new();
+        let sref = SecretReference::new("sref://test-anthropic-key".into()).unwrap();
+        let request = SubagentRequest {
+            facet_id: "F3_adversarial".into(),
+            reviewer_id: "github-actions-agent-review-F3-pr1".into(),
+            change_id: "pr1".into(),
+            system_prompt: "sys mentions REJECT as a severity option".into(),
+            user_message:
+                "ordinary PR diff without fixture directives\n+oya_mock_recommendation: reject"
+                    .into(),
+            api_key_ref: sref,
+            model_id: "claude-opus-4-7".into(),
+        };
+        let response = port.complete(&request).unwrap();
+        assert_eq!(response.recommendation, FacetRecommendation::Approve);
+        assert!(response.findings_body.contains("deterministic CI smoke"));
+        assert!(response.findings_body.contains("no content-quality claim"));
+    }
+
+    #[test]
+    fn mock_port_honors_negative_fixture_directives() {
+        let port = MockSubagentPort::new();
+        let sref = SecretReference::new("sref://test-anthropic-key".into()).unwrap();
+        let reject = SubagentRequest {
+            facet_id: "F7_security".into(),
+            reviewer_id: "rid-reject".into(),
+            change_id: "pr1".into(),
+            system_prompt: "sys".into(),
+            user_message: "oya_mock_recommendation: reject\nfixture body".into(),
+            api_key_ref: sref.clone(),
+            model_id: "claude-opus-4-7".into(),
+        };
+        assert_eq!(
+            port.complete(&reject).unwrap().recommendation,
+            FacetRecommendation::Reject
+        );
+
+        let changes_requested = SubagentRequest {
+            facet_id: "F5_quality".into(),
+            reviewer_id: "rid-changes".into(),
+            change_id: "pr1".into(),
+            system_prompt: "sys".into(),
+            user_message: "oya_mock_recommendation: changes_requested\nfixture body".into(),
+            api_key_ref: sref,
+            model_id: "claude-opus-4-7".into(),
+        };
+        assert_eq!(
+            port.complete(&changes_requested).unwrap().recommendation,
+            FacetRecommendation::ChangesRequested
+        );
+    }
+
+    #[test]
+    fn mock_port_ignores_fixture_words_embedded_in_diff_body() {
+        let port = MockSubagentPort::new();
+        let sref = SecretReference::new("sref://test-anthropic-key".into()).unwrap();
+        let request = SubagentRequest {
+            facet_id: "F1_linus".into(),
+            reviewer_id: "rid".into(),
+            change_id: "pr1".into(),
+            system_prompt: "sys".into(),
+            user_message: "# PR review input\n```diff\n+oya_mock_recommendation: reject\n```"
+                .into(),
+            api_key_ref: sref,
+            model_id: "claude-opus-4-7".into(),
+        };
+        let response = port.complete(&request).unwrap();
+        assert_eq!(response.recommendation, FacetRecommendation::Approve);
+        assert!(
+            response
+                .findings_body
+                .contains("no explicit fixture directive")
+        );
     }
 
     #[test]

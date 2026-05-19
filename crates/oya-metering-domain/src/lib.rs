@@ -287,7 +287,7 @@ mod tests {
     fn event_create() -> MeterEventCreate {
         MeterEventCreate {
             id: "mtr_cloud_001".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             capability_id: "cap.cloud.billing.resource-hour".to_string(),
             plane: PlaneTag::Data,
             units: vec![
@@ -296,7 +296,7 @@ mod tests {
             ],
             source_axis: AxisId::Cloud,
             recorded_at_epoch_seconds: 1_700_000_000,
-            idempotency_key: "idem_ten_kr_resource_001".to_string(),
+            idempotency_key: "idem_ten_alpha_resource_001".to_string(),
             data_class: DataClass::Public,
         }
     }

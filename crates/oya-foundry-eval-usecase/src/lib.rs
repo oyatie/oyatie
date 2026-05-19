@@ -409,7 +409,7 @@ impl FoundryEvalRunApiError {
                 "Eval set must include all mandatory adversarial cohorts"
             }
             Self::MissingLinguisticCoverage => {
-                "Eval set must include ko-KR, ja-JP, and en-US linguistic cohorts"
+                "Eval set must include all mandatory linguistic cohorts"
             }
             Self::EvalSetNotFound => "Eval set was not registered for this capability",
             Self::UnsignedEvalRun => "Eval run must be signed before recording",
@@ -466,7 +466,7 @@ impl FoundryEvalRunApiError {
             )],
             Self::MissingLinguisticCoverage => vec![detail(
                 "body.cases",
-                "missing ko-KR, ja-JP, or en-US locale cohort",
+                "missing one or more mandatory locale cohorts",
             )],
             Self::IdempotencyKeyReused { idempotency_key } => vec![detail(
                 "Idempotency-Key",

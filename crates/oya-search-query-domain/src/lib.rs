@@ -24,9 +24,9 @@ pub enum QueryMode {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum QueryLocale {
-    Kr,
-    Jp,
-    En,
+    Generic,
+    PackPrimary,
+    PackSecondary,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -111,13 +111,13 @@ mod tests {
     fn base() -> QueryPlanCreate {
         QueryPlanCreate {
             query_id: "q_001".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            raw_query: "안녕".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            raw_query: "term-a".to_string(),
             mode: QueryMode::Hybrid,
-            locale: QueryLocale::Kr,
+            locale: QueryLocale::PackPrimary,
             limit: 10,
             min_score: 0.0,
-            shard_keys: vec!["shard_kr_001".to_string()],
+            shard_keys: vec!["shard_alpha_001".to_string()],
         }
     }
 

@@ -1,8 +1,8 @@
 ---
 doc_class: LocalizationPack
 pack_code: kr
-status: planned                          # `active` requires shipped overlay + paying tenant — see promotion_blockers in pack.yaml
-lifecycle: planned-foundational
+status: planning-closed-foundational      # `active` requires the activation acceptance criteria in pack.yaml
+lifecycle: planning-closed-foundational
 foundational: true
 lead_milestones: [M01, M02, M03, M04, M05, M06, M07]
 languages: [ko, en]
@@ -13,15 +13,15 @@ manifest: docs/localization-packs/kr/pack.yaml
 doc_status: published
 ---
 
-# Korea Localization Pack (`kr`) — Pack #1 (planned, foundational)
+# Korea Localization Pack (`kr`) — Pack #1 (planning-closed, foundational)
 
 The foundational localization pack. M01–M07 ship the canonical base **plus** the KR pack in lock-step because oyatie's first paying tenant is a KR group.
 
-**Status:** `planned/foundational`. Status flips to `active` when **all** promotion blockers in `pack.yaml` are green:
-- `kr/corpus.lock` signed
-- ≥1 µservice has overlay crate + overlay PRD + regulatory ADR shipped
-- Acceptance evidence for at least one µservice signed
-- 1 paying KR tenant lives on at least one pack-covered µservice
+**Status:** `planning-closed/foundational`. Status flips to `active` when the activation acceptance criteria in `pack.yaml` are green:
+- `kr/corpus.lock` exists with governed source entries
+- Each FD-001 material µservice has overlay crate + overlay PRD + regulatory ADR shipped
+- Acceptance evidence for each FD-001 material µservice is signed
+- The first KR tenant can run the FD-001 enterprise/SMB workflow set on pack-covered µservices
 
 **Source of truth:** [`pack.yaml`](kr/pack.yaml) is authoritative for scope (`microservices_in_scope`), regulatory bindings, connectors, and lifecycle status. This overview doc and `docs/localization-packs/INDEX.md` MUST stay consistent with the manifest; `lean-a5-doc-coverage` enforces parity.
 
@@ -130,7 +130,7 @@ Both forms valid. Use BC-inside when overlay is small (≤2 BCs); use discrete p
 
 ### 3.7 Corpus lock
 
-`docs/localization-packs/kr/corpus.lock` — signed snapshot of all KR statute citations (per Bominal ADR-0190 inherited). Refreshed quarterly with signed bumps; CI lane verifies signatures.
+`docs/localization-packs/kr/corpus.lock` — governed source-family lock for KR statute, connector, and regulator inputs (per Bominal ADR-0190 inherited). Refreshed quarterly; active promotion requires signed source snapshots and CI signature verification.
 
 ---
 
@@ -140,7 +140,7 @@ Per ADR-0064 §2, the KR pack is mandatory for M03 first-paying-tenant GA. The c
 
 Gate per phase (M01-P05 already green; M02-P22 / M03-P08 forthcoming):
 
-- KR pack manifest signed (`pack.yaml` + `corpus.lock`)
+- KR pack manifest governed (`pack.yaml` + `corpus.lock`) and signed at active promotion
 - ≥1 µservice in pack scope has overlay crate + overlay PRD + regulatory ADR shipped
 - `lean-a5-doc-coverage` green for `kr × <microservice>` for every active µservice
 - Acceptance evidence bundle for at least one µservice signed

@@ -1,0 +1,242 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-fitness-001-command-log-corpus-1779163756",
+  "session_id": "omx-1779153096653-zu31dn",
+  "agent_id": "fd001-command-log",
+  "timestamp_unix": 1779164670,
+  "timestamp_iso": "2026-05-19T04:24:30Z",
+  "freshness_unix": 1779164670,
+  "git_sha": "1c424ece",
+  "change_class_id": "CC-2",
+  "meta_review_triggered": true,
+  "policy_adherence_triggered": true,
+  "scope": [
+    ".github/workflows/oya-foundry-fitness-banned-primitives.yml",
+    ".omc/fitness-lanes/INDEX.md",
+    ".omc/fitness-lanes/banned-primitives.md",
+    ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md",
+    ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
+    "crates/oya-dev-cli/src/banned_primitives_gate.rs",
+    "crates/oya-dev-cli/src/commands/gate/mod.rs",
+    "crates/oya-dev-cli/src/commands/gate/run_all.rs",
+    "crates/oya-dev-cli/src/lib.rs",
+    "crates/oya-dev-cli/tests/gate_cli.rs",
+    "crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs",
+    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "docs/standards/ci-lanes.md",
+    "evidence/fd001/cs-fitness-001-command-log-corpus-vcs-closeout.json",
+    "evidence/fd001/cs-fitness-001-command-log-corpus.json",
+    "evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json",
+    "registry/fitness-corpora/banned-primitives/command-log.v1.jsonl",
+    "registry/fixuptasks.jsonl",
+    "registry/quality/lanes.yaml",
+    "specs/master-plan-sequencing.json",
+    "specs/masterplan.json"
+  ],
+  "summary": "CS-FITNESS-001 extends banned-primitives enforcement from fenced source corpus to a sanitized tracked command-log corpus without claiming raw historical log ingestion or hosted branch-protection deployment.",
+  "verification": [
+    {
+      "command": "cargo fmt --all",
+      "status": "passed",
+      "evidence": "Rust sources formatted successfully after command-log corpus bypass fix."
+    },
+    {
+      "command": "cargo test -q -p oya-foundry-fitness-banned-primitives-kernel -p oya-foundry-fitness-banned-primitives-app -p oya-foundry-gate-catalog-domain -- --nocapture",
+      "status": "passed",
+      "evidence": "app 5 passed, kernel 16 passed, gate-catalog 17 passed; 0 failed."
+    },
+    {
+      "command": "cargo test -q -p oya-dev-cli --locked banned_primitives_gate --test gate_cli -- --nocapture",
+      "status": "passed",
+      "evidence": "10 banned_primitives_gate integration tests passed, including clean corpus, required-corpus failure, direct git rejection, nested shell-command rejection, cmd field rejection, JSON-encoded arguments rejection, tool-only rejection, and redaction failure."
+    },
+    {
+      "command": "cargo test -q -p oya-dev-cli --locked run_all --lib -- --nocapture",
+      "status": "passed",
+      "evidence": "run_all tests passed: 8 passed, 0 failed."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli --locked -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives",
+      "status": "passed",
+      "evidence": "banned-primitives validation passed: 1573 files, 18 sources, 18 fences, 3 command-log records, 0 usages, 0 documented exceptions"
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-fitness-banned-primitives-app --",
+      "status": "passed",
+      "evidence": "source-only direct runner remains green: sources_checked=18 fences_checked=18 usages_checked=0 documented_exceptions=0."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli --locked -- gate validate quality-lanes",
+      "status": "passed",
+      "evidence": "quality lane validation passed: 96 registry records, 96 markdown rows, 91 active commands, 39 owner teams"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli --locked -- gate validate protection-context-match",
+      "status": "passed",
+      "evidence": "protection-context-match validation passed: 14 required contexts, 44 workflow jobs indexed across 27 workflows"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli --locked -- gate validate aspirational-enforcement",
+      "status": "passed",
+      "evidence": "aspirational-enforcement validation passed: 1587 documents, 185560 lines, 16 binding mentions, 69 check crates, 30 workflow contexts, 43 quality lane contexts, 14 required contexts"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli --locked -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 303 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-foundry-fitness-banned-primitives-kernel -p oya-foundry-fitness-banned-primitives-app -p oya-foundry-gate-catalog-domain -p oya-dev-cli --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "targeted clippy completed with no warnings."
+    },
+    {
+      "command": "python3 -m json.tool specs/masterplan.json >/dev/null && python3 -m json.tool specs/master-plan-sequencing.json >/dev/null && python3 -m json.tool evidence/fd001/cs-fitness-001-command-log-corpus.json >/dev/null && python3 -m json.tool evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json >/dev/null && line-delimited JSON parse registry/fixuptasks.jsonl and registry/fitness-corpora/banned-primitives/command-log.v1.jsonl",
+      "status": "passed",
+      "evidence": "masterplan, sequencing, evidence JSON, fixuptask registry JSONL, and command-log corpus JSONL parse successfully."
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "passed",
+      "evidence": "no whitespace/diff hygiene errors."
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The command-log extension reuses the existing token-aware primitive scanner instead of adding a second detector."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "CI scans a deterministic repo-tracked redacted corpus and remains independent of raw local agent logs."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Regression tests cover direct git, nested shell command, cmd field, JSON-encoded arguments, tool-only missing surface, and unredacted records."
+      ],
+      "failing_fixture_added": true
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Operators use one gate command with --require-command-log-corpus and receive record counts in output."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted tests, clippy, command corpus gate, quality/protection/aspirational/planning gates, JSON parsing, and diff hygiene passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Scan raw session logs in CI",
+        "Remove git/gh from forbidden primitives",
+        "Use curated redacted repo-tracked command corpus"
+      ],
+      "selected_rationale": "Curated redacted corpus is CI-safe and enforceable now without leaking local session data."
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "Records without redacted=true are rejected and raw local logs are out of default scan scope."
+      ],
+      "secrets_touched": false,
+      "tenant_data_touched": false
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Corpus parsing is linear over JSONL records; current corpus checks 3 records."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "data_class_touched": [
+        "INTERNAL_ONLY"
+      ],
+      "audit_chain_emission_required": false,
+      "findings": [
+        "Evidence explicitly limits claims to sanitized tracked corpus and hosted verification gap."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "Reversible by removing the corpus flag/wiring and registry corpus file; no data migration."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Gate output includes command-log record counts plus source/fence/usage counts."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "not_applicable_reason": "No active F12 requirement in current spec."
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "P17 historical lane now points to the active command-log aware successor command."
+      ]
+    },
+    "A1_naming_adherence": {
+      "considered": true,
+      "findings": [
+        "New paths use existing evidence and registry naming conventions."
+      ]
+    },
+    "A2_documentation_adherence": {
+      "considered": true,
+      "findings": [
+        "Fitness lane docs, CI-lane docs, and plan surfaces now name the command corpus requirement."
+      ]
+    },
+    "A3_structure_adherence": {
+      "considered": true,
+      "findings": [
+        "Kernel remains pure; dev-cli owns JSONL/file loading."
+      ]
+    },
+    "A4_architecture_adherence": {
+      "considered": true,
+      "findings": [
+        "No filesystem/env access added to the kernel."
+      ]
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "findings": [
+        "The original assumption that the blocker required raw session-log ingestion was narrowed: CI-safe enforcement can start with curated redacted command-log corpus, while raw historical completeness remains a non-claim."
+      ],
+      "judgment": "ok"
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "findings": [
+        "The change fits the FD-001 pipeline as a serialized governance gate that enables safer later fanout without reading private local logs or bypassing Oya VCS policy."
+      ],
+      "judgment": "ok"
+    }
+  },
+  "vcs_closeout_artifact": "evidence/fd001/cs-fitness-001-command-log-corpus-vcs-closeout.json",
+  "non_claims": [
+    "Does not read raw .audit, .omx, home-directory transcripts, shell histories, or unstaged local session logs in CI.",
+    "Does not prove the hosted GitHub branch-protection ruleset was deployed or that a remote Actions run has completed on this branch.",
+    "Does not claim historical tool-call completeness beyond the curated sanitized corpus checked into the repository.",
+    "Does not close dependency-seam, OpenAPI binding, API-before-handler, data-ownership, or other FD-001 product fanout blockers."
+  ],
+  "remaining_blockers": [
+    "Hosted GitHub Actions run and branch-protection deployment still require a GitOps/admin verification lane before hosted enforcement can be claimed.",
+    "Raw local/session transcript ingestion remains intentionally out of CI scope; future evidence would need a redaction/export adapter before expanding beyond curated tracked corpus.",
+    "FD-001 product/API/data fanout remains blocked until the next serialized shared-gate lanes are reconciled."
+  ]
+}

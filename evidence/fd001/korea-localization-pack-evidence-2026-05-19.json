@@ -1,0 +1,305 @@
+{
+  "acceptance_commands": [
+    "cargo run -q -p oya-dev-cli -- gate validate korea-localization-evidence",
+    "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality"
+  ],
+  "activation_claim": "not-active",
+  "coverage": {
+    "by_kr_pack_surface": {
+      "audit_chain_evidence": [
+        "docs/localization-packs/kr/evidence/messenger.md",
+        "docs/localization-packs/kr/evidence/mail.md",
+        "docs/localization-packs/kr/evidence/cloud-secrets.md",
+        "docs/localization-packs/kr/evidence/ops-dashboard-control-center.md",
+        "docs/localization-packs/kr/evidence/foundry.md",
+        "docs/localization-packs/kr/evidence/workflow-engine.md",
+        "docs/localization-packs/kr/evidence/ontology.md"
+      ],
+      "cedar_policy_fragments": [
+        "docs/localization-packs/kr/evidence/cloud-secrets.md",
+        "docs/localization-packs/kr/evidence/ontology.md"
+      ],
+      "connect_mail_messenger_community_localization": [
+        "docs/localization-packs/kr/evidence/messenger.md",
+        "docs/localization-packs/kr/evidence/mail.md",
+        "docs/localization-packs/kr/evidence/community.md"
+      ],
+      "data_residency_and_privacy_controls": [
+        "docs/localization-packs/kr/evidence/community.md",
+        "docs/localization-packs/kr/evidence/cloud-iac.md",
+        "docs/localization-packs/kr/evidence/cloud-k8s.md",
+        "docs/localization-packs/kr/evidence/cloud-secrets.md",
+        "docs/localization-packs/kr/evidence/ops-dashboard-control-center.md"
+      ],
+      "enterprise_smb_operating_flows": [
+        "docs/localization-packs/kr/evidence/application.md",
+        "docs/localization-packs/kr/evidence/community.md",
+        "docs/localization-packs/kr/evidence/cloud-k8s.md",
+        "docs/localization-packs/kr/evidence/workflow-engine.md",
+        "docs/localization-packs/kr/evidence/workflow-studio.md"
+      ],
+      "import_export_migration_paths": [
+        "docs/localization-packs/kr/evidence/application.md",
+        "docs/localization-packs/kr/evidence/foundry.md",
+        "docs/localization-packs/kr/evidence/ontology.md"
+      ],
+      "operational_runbooks_and_slos": [
+        "docs/localization-packs/kr/evidence/cloud-iac.md",
+        "docs/localization-packs/kr/evidence/cloud-k8s.md",
+        "docs/localization-packs/kr/evidence/ops-dashboard-control-center.md"
+      ],
+      "ops_control_center_localization_runbooks_and_escalation_flows": [
+        "docs/localization-packs/kr/evidence/ops-dashboard-control-center.md"
+      ],
+      "pack_manifest": [
+        "docs/localization-packs/kr/evidence/application.md",
+        "docs/localization-packs/kr/evidence/cloud-iac.md",
+        "docs/localization-packs/kr/evidence/foundry.md"
+      ],
+      "regulatory_bindings": [
+        "docs/localization-packs/kr/evidence/application.md",
+        "docs/localization-packs/kr/evidence/messenger.md",
+        "docs/localization-packs/kr/evidence/foundry.md",
+        "docs/localization-packs/kr/evidence/ontology.md"
+      ],
+      "typst_document_templates": [
+        "docs/localization-packs/kr/evidence/mail.md",
+        "docs/localization-packs/kr/evidence/workflow-studio.md"
+      ],
+      "workflow_templates": [
+        "docs/localization-packs/kr/evidence/workflow-engine.md",
+        "docs/localization-packs/kr/evidence/workflow-studio.md"
+      ]
+    },
+    "covered_kr_pack_surface_count": 12,
+    "evidence_file_count": 12,
+    "fd001_surface_count": 12,
+    "required_kr_pack_surface_count": 12
+  },
+  "fd001_evidence": [
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/application.md",
+      "kr_pack_surfaces": [
+        "enterprise_smb_operating_flows",
+        "import_export_migration_paths",
+        "pack_manifest",
+        "regulatory_bindings"
+      ],
+      "microservice": "application",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/application/manifest.json",
+        "microservices/application/PRD.md"
+      ],
+      "surface": "application"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/messenger.md",
+      "kr_pack_surfaces": [
+        "audit_chain_evidence",
+        "connect_mail_messenger_community_localization",
+        "regulatory_bindings"
+      ],
+      "microservice": "messenger",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/messenger/manifest.json",
+        "microservices/messenger/PRD.md"
+      ],
+      "surface": "messenger"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/mail.md",
+      "kr_pack_surfaces": [
+        "audit_chain_evidence",
+        "connect_mail_messenger_community_localization",
+        "typst_document_templates"
+      ],
+      "microservice": "mail",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/mail/manifest.json",
+        "microservices/mail/PRD.md"
+      ],
+      "surface": "mail"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/community.md",
+      "kr_pack_surfaces": [
+        "connect_mail_messenger_community_localization",
+        "data_residency_and_privacy_controls",
+        "enterprise_smb_operating_flows"
+      ],
+      "microservice": "community",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/community/manifest.json",
+        "microservices/community/PRD.md"
+      ],
+      "surface": "community"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/cloud-iac.md",
+      "kr_pack_surfaces": [
+        "data_residency_and_privacy_controls",
+        "operational_runbooks_and_slos",
+        "pack_manifest"
+      ],
+      "microservice": "cloud-iac",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/cloud-iac/manifest.json",
+        "microservices/cloud-iac/PRD.md"
+      ],
+      "surface": "cloud-iac"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/cloud-k8s.md",
+      "kr_pack_surfaces": [
+        "data_residency_and_privacy_controls",
+        "enterprise_smb_operating_flows",
+        "operational_runbooks_and_slos"
+      ],
+      "microservice": "cloud-k8s",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/cloud-k8s/manifest.json",
+        "microservices/cloud-k8s/PRD.md"
+      ],
+      "surface": "cloud-k8s"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/cloud-secrets.md",
+      "kr_pack_surfaces": [
+        "audit_chain_evidence",
+        "cedar_policy_fragments",
+        "data_residency_and_privacy_controls"
+      ],
+      "microservice": "cloud-secrets",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/cloud-secrets/manifest.json",
+        "microservices/cloud-secrets/PRD.md"
+      ],
+      "surface": "cloud-secrets"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/ops-dashboard-control-center.md",
+      "kr_pack_surfaces": [
+        "audit_chain_evidence",
+        "data_residency_and_privacy_controls",
+        "operational_runbooks_and_slos",
+        "ops_control_center_localization_runbooks_and_escalation_flows"
+      ],
+      "microservice": "ops-dashboard-control-center",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/ops-dashboard-control-center/manifest.json",
+        "microservices/ops-dashboard-control-center/PRD.md"
+      ],
+      "surface": "ops-dashboard-control-center"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/foundry.md",
+      "kr_pack_surfaces": [
+        "audit_chain_evidence",
+        "import_export_migration_paths",
+        "pack_manifest",
+        "regulatory_bindings"
+      ],
+      "microservice": "foundry",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/foundry/manifest.json",
+        "microservices/foundry/PRD.md"
+      ],
+      "surface": "foundry"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/workflow-engine.md",
+      "kr_pack_surfaces": [
+        "audit_chain_evidence",
+        "enterprise_smb_operating_flows",
+        "workflow_templates"
+      ],
+      "microservice": "workflow-engine",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/workflow-engine/manifest.json",
+        "microservices/workflow-engine/PRD.md"
+      ],
+      "surface": "workflow-engine"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/workflow-studio.md",
+      "kr_pack_surfaces": [
+        "enterprise_smb_operating_flows",
+        "typst_document_templates",
+        "workflow_templates"
+      ],
+      "microservice": "workflow-studio",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/workflow-studio/manifest.json",
+        "microservices/workflow-studio/PRD.md"
+      ],
+      "surface": "workflow-studio"
+    },
+    {
+      "evidence_path": "docs/localization-packs/kr/evidence/ontology.md",
+      "kr_pack_surfaces": [
+        "audit_chain_evidence",
+        "cedar_policy_fragments",
+        "import_export_migration_paths",
+        "regulatory_bindings"
+      ],
+      "microservice": "ontology",
+      "source_paths": [
+        "docs/localization-packs/kr.md",
+        "docs/localization-packs/kr/pack.yaml",
+        "docs/localization-packs/kr/corpus.lock",
+        "microservices/ontology/manifest.json",
+        "microservices/ontology/PRD.md"
+      ],
+      "surface": "ontology"
+    }
+  ],
+  "generated_by": "oya gate validate korea-localization-evidence",
+  "inputs": {
+    "corpus_lock": "docs/localization-packs/kr/corpus.lock",
+    "evidence_dir": "docs/localization-packs/kr/evidence",
+    "pack_manifest": "docs/localization-packs/kr/pack.yaml",
+    "pack_overview": "docs/localization-packs/kr.md",
+    "repo_root": "."
+  },
+  "non_claims": [
+    "KR pack evidence is planning-closed-foundational, not active.",
+    "This evidence does not prove live tenant readiness, signed regulatory attestation, or production-current legal interpretation."
+  ],
+  "pack_code": "kr",
+  "pack_status": "planning-closed-foundational",
+  "schema_version": "oyatie.kr-localization-evidence.v1"
+}

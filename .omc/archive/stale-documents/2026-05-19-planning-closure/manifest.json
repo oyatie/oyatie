@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.oyatie.dev/schemas/stale-document-archive.schema.json",
+  "$id": "https://docs.oyatie.dev/.omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
+  "archive_id": "stale-documents-2026-05-19-planning-closure",
+  "status": "archived_stale_do_not_use_as_authority",
+  "archived_at": "2026-05-19T00:00:00Z",
+  "reason": "Top-level legacy planning prompts, open-question ledgers, ralplan drafts, and M01-M03 dispatch manifests encode stale authority or retired grit-era execution flows. Live planning authority moved to machine-readable specs and the FD-001 planning-closure goal prompt.",
+  "current_authority": [
+    ".omc/plans/milestones/",
+    "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+    "/specs/master-plan-sequencing.json",
+    "/specs/masterplan.json",
+    "/specs/planning-closure-contract.json",
+    "/specs/planning-closure-status-closure-ledger.json",
+    "/specs/root-hub-pointers.json"
+  ],
+  "archival_rule": "Files under this archive are historical evidence only. Agents must not use them as execution authority, sequencing authority, open-question authority, or implementation-start permission.",
+  "archive_scope": {
+    "moved_from": [
+      ".omc/plans/*",
+      "docs/audits/existing-docs-staleness-drift-2026-05-12.md",
+      "evidence/goals/implement-masterplan-goal-prompt.json",
+      "evidence/goals/implement-masterplan.md"
+    ],
+    "left_live": [
+      ".omc/plans/milestones/",
+      "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+      "/specs/planning-closure-status-closure-ledger.json"
+    ]
+  },
+  "archived_files": [
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/docs-audits/existing-docs-staleness-drift-2026-05-12.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/evidence-goals/implement-masterplan-goal-prompt.json",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/evidence-goals/implement-masterplan.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/M01-M03-parallelization-manifest.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/M02-substrate-schema-foundation.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/architect-review-iter-1.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/architect-review-iter-2-output.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/consensus-masterplan-2026-05-13.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/critic-review-iter-1.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/critic-review-iter-2.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/cutover-cross-cutting-amendments-2026-05-12.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/iter-2-architect-and-critic-templates.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/iter-2-planner-revision-prompt.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/open-questions-resolutions-2026-05-12.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/open-questions.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/orchestrator-existence-findings-2026-05-12.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/oyatie-mega-plan-execution.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-dep-seam-phaseout-round-4.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-dep-seam-phaseout-round-5.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-docs-portal-2026-05-13.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-foundry-subscription-autonomy-supervisor-2026-05-14.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-foundry-supervisor-simple-2026-05-14.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-foundry-supervisor-simple-v2-2026-05-14.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-foundry-supervisor-simple-v3-2026-05-14.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-foundry-supervisor-simple-v4-2026-05-14.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-foundry-supervisor-simple-v5-delta-settings-template-2026-05-15.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-foundry-supervisor-simple-v6-amendments-2026-05-15.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-freelance-prevention-controls-2026-05-14.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-ops-freelance-realignment-2026-05-14.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-ops-portal-2026-05-13.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-ops-wave-2-2026-05-13.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-ops-wave-3-2026-05-13.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-ops-wave-4-2026-05-13.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-ops-wave-5-2026-05-13.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-ops-wave-6-2026-05-13.json",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/ralplan-oyatie-sst-consolidation.md",
+    ".omc/archive/stale-documents/2026-05-19-planning-closure/omc-plans/user-execution-approval-question-skeleton.md"
+  ]
+}

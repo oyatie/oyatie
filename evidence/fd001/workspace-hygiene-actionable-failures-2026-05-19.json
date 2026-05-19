@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "evidence_id": "fd001-workspace-hygiene-actionable-failures-2026-05-19",
+  "generated_at": "2026-05-19T16:08:36Z",
+  "lane": "fd001-ci-cd-and-automation-workspace-hygiene-signal-quality",
+  "scope": "workspace-hygiene gate failure signal quality",
+  "claim": "Strict workspace-hygiene failures now include concrete example paths so CI/operator failures identify the residue instead of emitting only a count.",
+  "changed_files": [
+    "crates/oya-dev-cli/src/workspace_hygiene_gate.rs",
+    "crates/oya-dev-cli/tests/gate_cli.rs"
+  ],
+  "verification": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "result": "passed"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli workspace_hygiene_gate",
+      "result": "passed",
+      "tests": "5 workspace_hygiene_gate integration tests passed"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --all-targets -- -D warnings",
+      "result": "passed"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate workspace-hygiene --strict",
+      "result": "expected failure",
+      "summary": "failure included examples: /Users/jasonlee/oyatie-fd001-planning-closure/target"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "result": "passed"
+    }
+  ],
+  "verification_log": "/tmp/fd001-workspace-hygiene-examples-final-verify-20260519T160836Z.log",
+  "fd001_relevance": [
+    "Improves CI/CD gate actionability and reduces false/weak signals for workspace hygiene blockers.",
+    "Does not claim FD-001 production exit; strict workspace cleanup remains a final closeout action after cargo-based verification."
+  ],
+  "known_remaining_blockers": [
+    "target build artifact is recreated by cargo-based verification and must be cleaned at closeout with workspace-hygiene --strict --clean-build-artifacts.",
+    "Hyperscaler maturity claim remains blocked until all required operational/product/runtime evidence is green."
+  ]
+}

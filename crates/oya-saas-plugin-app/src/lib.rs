@@ -236,7 +236,7 @@ mod tests {
     fn context() -> PluginContext {
         PluginContext::new(
             "ten_acme",
-            "oya-pack-kr",
+            "oya-pack-alpha",
             Some("wfr_001".to_string()),
             1_700_000_999,
             TrustTier::Reviewed,
@@ -296,7 +296,7 @@ mod tests {
 
         let bad_tenant = PluginContext::new(
             "acme",
-            "oya-pack-kr",
+            "oya-pack-alpha",
             None,
             1_700_000_999,
             TrustTier::Reviewed,

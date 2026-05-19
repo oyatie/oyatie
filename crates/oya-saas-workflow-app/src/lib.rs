@@ -182,7 +182,7 @@ mod tests {
         PublishDefinitionInput {
             definition_id: definition_id.to_string(),
             tenant_id: "ten_acme".to_string(),
-            regional_pack: "oya-pack-kr".to_string(),
+            regional_pack: "oya-pack-alpha".to_string(),
             steps: vec![
                 PublishStepInput {
                     step_id: "wfs_extract".to_string(),

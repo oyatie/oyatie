@@ -246,7 +246,7 @@ substrate from vendor to in-house in three phases:
   - Single cluster hits ≥ 1 PB OR ≥ 10⁹ objects (SeaweedFS ceiling).
   - Multi-region active-active write coordination required (SeaweedFS
     does not natively coordinate active-active writes across regions).
-  - Sovereign packs require a 100 % oyatie-owned binary in supply chain
+  - Sovereign packs require a 100 % Oya-controlled binary in supply chain
     (current SeaweedFS supply chain has dependencies oyatie does not
     fully control).
 - **Migration shape:** the kernel trait is unchanged; the new server

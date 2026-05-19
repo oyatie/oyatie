@@ -3,11 +3,11 @@
 //! Bundles the three steps every developer (human or agent) does
 //! every time they want their work to land:
 //!
-//! 1. `oya verify` (delegates to `gate run-all`, the canonical
-//!    pre-merge aggregator).
-//! 2. `git push` (with `-u origin HEAD` when no upstream is set).
+//! 1. `oya verify --ci-required` (delegates to `gate run-all`, the
+//!    canonical pre-merge aggregator plus required hosted-check mirrors).
+//! 2. `oya git push` (with `-u origin HEAD` when no upstream is set).
 //! 3. `gh pr create --fill` (only when no PR exists for the branch
-//!    yet; if a PR is already open, the prior `git push` simply
+//!    yet; if a PR is already open, the prior `oya git push` simply
 //!    extends it — no second PR is opened).
 //!
 //! Per [[feedback_no_exceptions_canonical]], `oya submit` is the
@@ -23,13 +23,14 @@
 //! 13-value layer enum at
 //! `crates/oya-foundry-fitness-predictable-naming-kernel::ALLOWED_ROLES`.
 //!
-//! Tooling dependencies: this subcommand shells out to `git` and `gh`
-//! because both are the canonical external interfaces and replacing
-//! them with native Rust clients is an orthogonal milestone
-//! (octocrab + gitoxide migrations are tracked separately). The
-//! shell-out surface is minimal: 3 subprocesses (`git status`,
-//! `git push`, `gh pr view` / `gh pr create`) with explicit arg
-//! arrays and no `bash -c` interpolation — see
+//! Tooling dependencies: this subcommand shells out to the repo-local
+//! `oya git` transport wrapper for git history operations, and `gh`
+//! for GitHub PR operations. Replacing those external CLIs with native
+//! Rust clients is an orthogonal milestone (octocrab + gitoxide
+//! migrations are tracked separately). The shell-out surface is
+//! minimal: 3 subprocesses (`oya git status`, `oya git push`,
+//! `gh pr view` / `gh pr create`) with explicit arg arrays and no
+//! `bash -c` interpolation — see
 //! [`feedback_no_silent_regression`] for the no-shell-injection
 //! invariant.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
@@ -39,6 +40,8 @@
 use std::process::{Command, ExitCode, Stdio};
 
 use super::verify;
+
+const SUBMIT_VERIFY_ARGS: &[&str] = &["--ci-required"];
 
 const USAGE: &str = "oya submit \
                      [--no-verify] \
@@ -66,11 +69,17 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
     };
 
     if !parsed.skip_verify {
-        let verify_exit = verify::run(Vec::new(), usage);
+        let verify_exit = verify::run(
+            SUBMIT_VERIFY_ARGS
+                .iter()
+                .map(|arg| (*arg).to_string())
+                .collect(),
+            usage,
+        );
         if !is_success(&verify_exit) {
             eprintln!(
-                "oya submit: aborting — `oya verify` did not pass. \
-                 Fix the failing gates and re-run `oya submit`."
+                "oya submit: aborting — `oya verify --ci-required` did not pass. \
+                 Fix the failing local/hosted-required mirrors and re-run `oya submit`."
             );
             return verify_exit;
         }
@@ -85,7 +94,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
     }
 
     if let Err(message) = git_push_current_branch() {
-        eprintln!("oya submit: `git push` failed: {message}");
+        eprintln!("oya submit: `oya git push` failed: {message}");
         return ExitCode::FAILURE;
     }
 
@@ -165,8 +174,7 @@ fn is_success(exit: &ExitCode) -> bool {
 const HARNESS_SIDECAR_PREFIXES: &[&str] = &[".omc/", ".omx/", ".grit/", "target/"];
 
 fn git_working_tree_is_clean() -> bool {
-    let output = Command::new("git").args(["status", "--porcelain"]).output();
-    let output = match output {
+    let output = match oya_git_output(&["status", "--porcelain"]) {
         Ok(output) => output,
         Err(_) => return false,
     };
@@ -243,33 +251,51 @@ mod working_tree_tests {
 }
 
 fn git_push_current_branch() -> Result<(), String> {
-    // First attempt: plain `git push`. Succeeds when an upstream is
+    // First attempt: plain `oya git push`. Succeeds when an upstream is
     // already set for the current branch.
-    let plain = Command::new("git")
-        .args(["push"])
+    let mut plain_cmd = oya_git_command()?;
+    let plain = plain_cmd
+        .arg("push")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .status()
-        .map_err(|error| format!("could not invoke `git push`: {error}"))?;
+        .map_err(|error| format!("could not invoke `oya git push`: {error}"))?;
     if plain.success() {
         return Ok(());
     }
     // Fallback: set the upstream to `origin/HEAD`. This handles a
     // freshly-created local branch that has never been pushed.
-    let with_upstream = Command::new("git")
+    let mut upstream_cmd = oya_git_command()?;
+    let with_upstream = upstream_cmd
         .args(["push", "-u", "origin", "HEAD"])
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .status()
-        .map_err(|error| format!("could not invoke `git push -u`: {error}"))?;
+        .map_err(|error| format!("could not invoke `oya git push -u`: {error}"))?;
     if with_upstream.success() {
         Ok(())
     } else {
         Err(format!(
-            "git push exited with {}",
+            "oya git push exited with {}",
             with_upstream.code().unwrap_or(-1)
         ))
     }
+}
+
+fn oya_git_command() -> Result<Command, String> {
+    let executable = std::env::current_exe()
+        .map_err(|error| format!("could not resolve current oya executable: {error}"))?;
+    let mut command = Command::new(executable);
+    command.arg("git");
+    Ok(command)
+}
+
+fn oya_git_output(args: &[&str]) -> Result<std::process::Output, String> {
+    let mut command = oya_git_command()?;
+    command
+        .args(args)
+        .output()
+        .map_err(|error| format!("could not invoke `oya git {}`: {error}", args.join(" ")))
 }
 
 fn existing_pr_url() -> Result<Option<String>, String> {
@@ -391,5 +417,10 @@ mod tests {
         assert!(is_success(&ExitCode::SUCCESS));
         assert!(!is_success(&ExitCode::FAILURE));
         assert!(!is_success(&ExitCode::from(2)));
+    }
+
+    #[test]
+    fn submit_default_verify_profile_is_ci_required() {
+        assert_eq!(SUBMIT_VERIFY_ARGS, &["--ci-required"]);
     }
 }

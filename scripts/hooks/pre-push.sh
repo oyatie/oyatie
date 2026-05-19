@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Canonical local pre-push hook: dispatches into the Rust
-# `oya verify` subcommand (which in turn invokes `gate run-all`,
-# the canonical aggregator).
+# `oya verify --ci-required` subcommand path (which in turn invokes
+# `gate run-all --ci-required`, the canonical aggregator plus hosted
+# required-check mirrors).
 #
 # Two forms are accepted:
-#   1. Installed binary form: `oya verify` (when `oya` is on PATH).
-#   2. Workspace-clone form: `cargo run -q -p oya-dev-cli -- verify`
+#   1. Installed binary form: `oya verify --ci-required` (when `oya` is on PATH).
+#   2. Workspace-clone form: `cargo run -q -p oya-dev-cli -- verify --ci-required`
 #      (for contributors who haven't yet installed the `oya` binary).
 #
 # This file is the source-of-truth that the
 # `oya-foundry-fitness-pre-push` lane reads as evidence; the lane
-# rejects any hook that does not invoke `oya verify`.
+# rejects any hook that stops at plain `oya verify` because plain
+# verify does not prove hosted required-check coverage.
 #
 # Sunset trigger: the long-term goal is to replace this two-line
 # shim with a Rust-binary git hook installed via `oya hook install`
@@ -21,6 +23,6 @@
 set -euo pipefail
 
 if command -v oya >/dev/null 2>&1; then
-  exec oya verify "$@"
+  exec oya verify --ci-required "$@"
 fi
-exec cargo run -q -p oya-dev-cli -- verify "$@"
+exec cargo run -q -p oya-dev-cli -- verify --ci-required "$@"

@@ -40,7 +40,7 @@
     { "source": "oya-http-tenant-middleware-infrastructure-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-http-latency-budget-middleware-infrastructure-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-http-telemetry-middleware-infrastructure-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "implement-masterplan-goal-prompt", "target": "template", "edge_type": "declares" },
+    { "source": "fd001-planning-closure-implementation-goal", "target": "template", "edge_type": "declares" },
     { "source": "masterplan", "target": "schema", "edge_type": "declares" },
     { "source": "gitops-vcs-replacement", "target": "schema", "edge_type": "declares" },
     { "source": "test-standard", "target": "schema", "edge_type": "declares" },

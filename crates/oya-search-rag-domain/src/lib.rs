@@ -127,7 +127,7 @@ mod tests {
             tenant_id: tenant.to_string(),
             raw_query: "hi".to_string(),
             mode: QueryMode::Hybrid,
-            locale: QueryLocale::Kr,
+            locale: QueryLocale::PackPrimary,
             limit: 5,
             min_score: 0.0,
             shard_keys: vec!["s1".to_string()],
@@ -159,7 +159,7 @@ mod tests {
             "rq_1".to_string(),
             tenant.to_string(),
             "what is X?".to_string(),
-            QueryLocale::Kr,
+            QueryLocale::PackPrimary,
             RagCapability::FoundryReadOnly,
             max,
         )
@@ -168,19 +168,19 @@ mod tests {
 
     #[test]
     fn returns_answer_with_citations() {
-        let p = plan("ten_kr");
+        let p = plan("ten_alpha");
         let s = serp(&p, &["d1", "d2"]);
-        let q = query("ten_kr", 5);
+        let q = query("ten_alpha", 5);
         let ans = enforce_data_boundary(&q, &p, &s, "answer".to_string()).expect("answer");
         assert_eq!(ans.citations.len(), 2);
-        assert_eq!(ans.tenant_id, "ten_kr");
+        assert_eq!(ans.tenant_id, "ten_alpha");
     }
 
     #[test]
     fn rejects_cross_tenant_serp() {
-        let p = plan("ten_jp");
+        let p = plan("ten_beta");
         let s = serp(&p, &["d1"]);
-        let q = query("ten_kr", 5);
+        let q = query("ten_alpha", 5);
         let err = enforce_data_boundary(&q, &p, &s, "answer".to_string())
             .expect_err("cross-tenant rejected");
         assert_eq!(err, RagError::TenantBoundaryViolation);
@@ -188,9 +188,9 @@ mod tests {
 
     #[test]
     fn rejects_too_many_citations() {
-        let p = plan("ten_kr");
+        let p = plan("ten_alpha");
         let s = serp(&p, &["d1", "d2", "d3"]);
-        let q = query("ten_kr", 2);
+        let q = query("ten_alpha", 2);
         let err = enforce_data_boundary(&q, &p, &s, "answer".to_string())
             .expect_err("citation cap enforced");
         assert_eq!(err, RagError::CitationCountExceeded);
@@ -200,9 +200,9 @@ mod tests {
     fn rejects_empty_prompt() {
         let err = RagQuery::new(
             "rq".to_string(),
-            "ten_kr".to_string(),
+            "ten_alpha".to_string(),
             "   ".to_string(),
-            QueryLocale::Kr,
+            QueryLocale::PackPrimary,
             RagCapability::FoundryReadOnly,
             5,
         )

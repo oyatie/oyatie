@@ -224,9 +224,9 @@ fn foundation_with_capability() -> Foundation {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_invoke_authz".into(),
             legal_name: "Invoke AuthZ Tenant".into(),
-            home_region: "us-east".into(),
+            home_region: "failover-region".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .unwrap();

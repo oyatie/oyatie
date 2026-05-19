@@ -27,6 +27,8 @@ const TENANT_ID_PREFIX: &str = "ten_";
 const PAYMENT_METHOD_PREFIX: &str = "pm_";
 const RATE_CARD_PREFIX: &str = "rate/";
 const REGIONAL_PACK_PREFIX: &str = "oya-pack-";
+const TAX_INVOICE_FORMAT_PREFIX: &str = "tax-format/";
+const TAX_REGISTRATION_ID_PREFIX: &str = "tax-registration/";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct BillingAccountId {
@@ -50,7 +52,7 @@ pub struct InvoiceLineItemId {
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct TaxRegistrationId {
-    pub value: String, // data_class: FINANCIAL_KR_신용정보
+    pub value: String, // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -91,15 +93,9 @@ pub struct Money {
     pub minor_units: u64,       // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum TaxInvoiceFormat {
-    KrElectronicTaxInvoice,
-    JpQualifiedInvoice,
-    EuCountryEInvoice,
-    InGst,
-    BrNfe,
-    KsaFatoora,
-    UaeVat,
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct TaxInvoiceFormat {
+    pub value: String, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -148,7 +144,7 @@ pub struct InvoiceGenerate {
     pub tax: Money,                             // data_class: INTERNAL_ONLY
     pub total: Money,                           // data_class: INTERNAL_ONLY
     pub tax_invoice_format: TaxInvoiceFormat,   // data_class: INTERNAL_ONLY
-    pub tax_registration_id: String,            // data_class: FINANCIAL_KR_신용정보
+    pub tax_registration_id: String,            // data_class: FINANCIAL
     pub issued_at_epoch_seconds: u64,           // data_class: INTERNAL_ONLY
     pub due_at_epoch_seconds: u64,              // data_class: INTERNAL_ONLY
     pub data_class: DataClass,                  // data_class: INTERNAL_ONLY
@@ -166,7 +162,7 @@ pub struct Invoice {
     pub tax: Classified<Money>,    // data_class: INTERNAL_ONLY
     pub total: Classified<Money>,  // data_class: INTERNAL_ONLY
     pub tax_invoice_format: Classified<TaxInvoiceFormat>, // data_class: INTERNAL_ONLY
-    pub tax_registration_id: Classified<TaxRegistrationId>, // data_class: FINANCIAL_KR_신용정보
+    pub tax_registration_id: Classified<TaxRegistrationId>, // data_class: FINANCIAL
     pub state: Classified<InvoiceState>, // data_class: INTERNAL_ONLY
     pub issued_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub due_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
@@ -312,39 +308,19 @@ impl InvoiceLineItemId {
 }
 
 impl TaxRegistrationId {
-    pub fn new(
-        value: impl Into<String>,
-        format: TaxInvoiceFormat,
-    ) -> Result<Self, CloudBillingError> {
-        let value = value.into();
-        let valid = match format {
-            TaxInvoiceFormat::KrElectronicTaxInvoice => value
-                .strip_prefix("kr-bizreg/")
-                .is_some_and(|id| id.len() == 10 && id.bytes().all(|byte| byte.is_ascii_digit())),
-            TaxInvoiceFormat::JpQualifiedInvoice => value
-                .strip_prefix("jp-qualified/T")
-                .is_some_and(|id| id.len() == 13 && id.bytes().all(|byte| byte.is_ascii_digit())),
-            TaxInvoiceFormat::EuCountryEInvoice => value
-                .strip_prefix("eu-vat/")
-                .is_some_and(|id| id.len() >= 8 && is_ascii_token(id)),
-            TaxInvoiceFormat::InGst => value.strip_prefix("in-gst/").is_some_and(|id| {
-                id.len() == 15 && id.bytes().all(|byte| byte.is_ascii_alphanumeric())
-            }),
-            TaxInvoiceFormat::BrNfe => value
-                .strip_prefix("br-cnpj/")
-                .is_some_and(|id| id.len() == 14 && id.bytes().all(|byte| byte.is_ascii_digit())),
-            TaxInvoiceFormat::KsaFatoora => value
-                .strip_prefix("ksa-vat/")
-                .is_some_and(|id| id.len() == 15 && id.bytes().all(|byte| byte.is_ascii_digit())),
-            TaxInvoiceFormat::UaeVat => value
-                .strip_prefix("uae-trn/")
-                .is_some_and(|id| id.len() == 15 && id.bytes().all(|byte| byte.is_ascii_digit())),
-        };
-        if valid {
-            Ok(Self { value })
-        } else {
-            Err(CloudBillingError::InvalidTaxRegistrationId)
-        }
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudBillingError> {
+        prefixed_id(
+            value.into(),
+            TAX_REGISTRATION_ID_PREFIX,
+            CloudBillingError::InvalidTaxRegistrationId,
+        )
+        .and_then(|value| {
+            if is_ascii_token(value.trim_start_matches(TAX_REGISTRATION_ID_PREFIX)) {
+                Ok(Self { value })
+            } else {
+                Err(CloudBillingError::InvalidTaxRegistrationId)
+            }
+        })
     }
 }
 
@@ -404,19 +380,28 @@ impl Money {
 }
 
 impl TaxInvoiceFormat {
-    pub fn for_regional_pack(value: &str) -> Result<Self, CloudBillingError> {
-        match value {
-            "oya-pack-kr" => Ok(Self::KrElectronicTaxInvoice),
-            "oya-pack-jp" => Ok(Self::JpQualifiedInvoice),
-            "oya-pack-eu" | "oya-pack-de" | "oya-pack-fr" | "oya-pack-se" => {
-                Ok(Self::EuCountryEInvoice)
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudBillingError> {
+        prefixed_id(
+            value.into(),
+            TAX_INVOICE_FORMAT_PREFIX,
+            CloudBillingError::InvalidTaxInvoiceFormat,
+        )
+        .and_then(|value| {
+            if is_ascii_token(value.trim_start_matches(TAX_INVOICE_FORMAT_PREFIX)) {
+                Ok(Self { value })
+            } else {
+                Err(CloudBillingError::InvalidTaxInvoiceFormat)
             }
-            "oya-pack-in" => Ok(Self::InGst),
-            "oya-pack-br" => Ok(Self::BrNfe),
-            "oya-pack-ksa" => Ok(Self::KsaFatoora),
-            "oya-pack-uae" => Ok(Self::UaeVat),
-            _ => Err(CloudBillingError::InvalidRegionalPack),
+        })
+    }
+
+    pub fn for_regional_pack(value: &str) -> Result<Self, CloudBillingError> {
+        validate_regional_pack(value)?;
+        let pack_suffix = value.trim_start_matches(REGIONAL_PACK_PREFIX).trim();
+        if !is_ascii_token(pack_suffix) {
+            return Err(CloudBillingError::InvalidRegionalPack);
         }
+        Self::new(format!("{TAX_INVOICE_FORMAT_PREFIX}{pack_suffix}"))
     }
 }
 
@@ -495,8 +480,7 @@ impl Invoice {
         if input.tax_invoice_format != expected_format {
             return Err(CloudBillingError::InvalidTaxInvoiceFormat);
         }
-        let tax_registration_id =
-            TaxRegistrationId::new(input.tax_registration_id, input.tax_invoice_format)?;
+        let tax_registration_id = TaxRegistrationId::new(input.tax_registration_id)?;
         let line_items = invoice_line_items(&input.tenant_id, input.line_items)?;
         let computed_subtotal = sum_line_items(&line_items)?;
         if computed_subtotal != input.subtotal
@@ -515,7 +499,7 @@ impl Invoice {
             tax: internal(input.tax),
             total: internal(input.total),
             tax_invoice_format: internal(input.tax_invoice_format),
-            tax_registration_id: Classified::new(tax_registration_id, DataClass::FinancialKrCredit),
+            tax_registration_id: Classified::new(tax_registration_id, DataClass::Financial),
             state: internal(InvoiceState::Issued),
             issued_at_epoch_seconds: internal(input.issued_at_epoch_seconds),
             due_at_epoch_seconds: internal(input.due_at_epoch_seconds),
@@ -751,10 +735,7 @@ fn public_data_class(data_class: DataClass) -> Result<PrivacyDataClass, CloudBil
 fn financial_data_class(data_class: DataClass) -> Result<PrivacyDataClass, CloudBillingError> {
     let data_class =
         PrivacyDataClass::new(data_class).map_err(|_| CloudBillingError::InvalidDataClass)?;
-    if matches!(
-        data_class.data_class(),
-        DataClass::Financial | DataClass::FinancialKrCredit
-    ) {
+    if matches!(data_class.data_class(), DataClass::Financial) {
         Ok(data_class)
     } else {
         Err(CloudBillingError::InvalidDataClass)
@@ -802,14 +783,14 @@ mod tests {
 
     fn account_create() -> BillingAccountCreate {
         BillingAccountCreate {
-            id: "ba_ten_kr".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
-            regional_pack: "oya-pack-kr".to_string(),
+            id: "ba_ten_alpha".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "alpha-region".to_string(),
+            regional_pack: "oya-pack-alpha".to_string(),
             payment_method: "pm_card_001".to_string(),
-            credit_balance: Money::new("KRW", 10_000).expect("money fixture valid"),
+            credit_balance: Money::new("TOK", 10_000).expect("money fixture valid"),
             state: BillingAccountState::Active,
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
             created_at_epoch_seconds: 1_700_000_000,
         }
     }
@@ -817,15 +798,15 @@ mod tests {
     fn event_create() -> CloudBillingEventCreate {
         CloudBillingEventCreate {
             id: "cbill_resource_created_001".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            resource_id: "oya:cloud:kr-seoul:ten_kr:instance:api-001".to_string(),
-            region: "kr-seoul".to_string(),
-            metering_tag: "oya:metering:ten_kr:instance".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            resource_id: "oya:cloud:alpha-region:ten_alpha:instance:api-001".to_string(),
+            region: "alpha-region".to_string(),
+            metering_tag: "oya:metering:ten_alpha:instance".to_string(),
             kind: CloudBillingEventKind::ResourceCreated,
             units: units(),
-            rate_card_ref: "rate/kr-seoul/compute/v1".to_string(),
+            rate_card_ref: "rate/alpha-region/compute/v1".to_string(),
             occurred_at_epoch_seconds: 1_700_000_100,
-            idempotency_key: "idem_ten_kr_resource_created_api_001".to_string(),
+            idempotency_key: "idem_ten_alpha_resource_created_api_001".to_string(),
             data_class: DataClass::Public,
         }
     }
@@ -833,30 +814,31 @@ mod tests {
     fn invoice_line_item() -> InvoiceLineItemCreate {
         InvoiceLineItemCreate {
             id: "ili_compute_001".to_string(),
-            resource_id: "oya:cloud:kr-seoul:ten_kr:instance:api-001".to_string(),
+            resource_id: "oya:cloud:alpha-region:ten_alpha:instance:api-001".to_string(),
             description: "instance api-001 resource seconds".to_string(),
             units: units(),
-            subtotal: Money::new("KRW", 100_000).expect("money fixture valid"),
-            data_class: DataClass::FinancialKrCredit,
+            subtotal: Money::new("TOK", 100_000).expect("money fixture valid"),
+            data_class: DataClass::Financial,
         }
     }
 
     fn invoice_generate() -> InvoiceGenerate {
         InvoiceGenerate {
-            id: "inv_kr_202605_001".to_string(),
-            billing_account_id: "ba_ten_kr".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            regional_pack: "oya-pack-kr".to_string(),
+            id: "inv_alpha_202605_001".to_string(),
+            billing_account_id: "ba_ten_alpha".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            regional_pack: "oya-pack-alpha".to_string(),
             period: BillingPeriod::new(1_700_000_000, 1_700_086_400).expect("period fixture valid"),
             line_items: vec![invoice_line_item()],
-            subtotal: Money::new("KRW", 100_000).expect("money fixture valid"),
-            tax: Money::new("KRW", 10_000).expect("money fixture valid"),
-            total: Money::new("KRW", 110_000).expect("money fixture valid"),
-            tax_invoice_format: TaxInvoiceFormat::KrElectronicTaxInvoice,
-            tax_registration_id: "kr-bizreg/1234567890".to_string(),
+            subtotal: Money::new("TOK", 100_000).expect("money fixture valid"),
+            tax: Money::new("TOK", 10_000).expect("money fixture valid"),
+            total: Money::new("TOK", 110_000).expect("money fixture valid"),
+            tax_invoice_format: TaxInvoiceFormat::for_regional_pack("oya-pack-alpha")
+                .expect("format fixture valid"),
+            tax_registration_id: "tax-registration/alpha-1234567890".to_string(),
             issued_at_epoch_seconds: 1_700_086_500,
             due_at_epoch_seconds: 1_700_604_900,
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
         }
     }
 
@@ -864,9 +846,9 @@ mod tests {
     fn validates_billing_account_financial_class_and_regional_pack() {
         let account = BillingAccount::new(account_create()).expect("account fixture valid");
 
-        assert_eq!(account.region.value.value, "kr-seoul");
-        assert_eq!(account.regional_pack.value, "oya-pack-kr");
-        assert_eq!(account.credit_balance.value.currency.value, "KRW");
+        assert_eq!(account.region.value.value, "alpha-region");
+        assert_eq!(account.regional_pack.value, "oya-pack-alpha");
+        assert_eq!(account.credit_balance.value.currency.value, "TOK");
     }
 
     #[test]
@@ -910,14 +892,14 @@ mod tests {
     }
 
     #[test]
-    fn generates_kr_tax_invoice_with_regional_format_and_exact_totals() {
+    fn generates_tax_invoice_with_regional_format_and_exact_totals() {
         let account = BillingAccount::new(account_create()).expect("account fixture valid");
         let invoice = Invoice::generate(&account, invoice_generate()).expect("invoice is valid");
 
-        assert_eq!(invoice.id.value.value, "inv_kr_202605_001");
+        assert_eq!(invoice.id.value.value, "inv_alpha_202605_001");
         assert_eq!(
             invoice.tax_invoice_format.value,
-            TaxInvoiceFormat::KrElectronicTaxInvoice
+            TaxInvoiceFormat::for_regional_pack("oya-pack-alpha").expect("format fixture valid")
         );
         assert_eq!(invoice.line_items.value.len(), 1);
         assert_eq!(invoice.total.value.minor_units, 110_000);
@@ -947,8 +929,9 @@ mod tests {
         let format_error = Invoice::generate(
             &account,
             InvoiceGenerate {
-                tax_invoice_format: TaxInvoiceFormat::JpQualifiedInvoice,
-                tax_registration_id: "jp-qualified/T1234567890123".to_string(),
+                tax_invoice_format: TaxInvoiceFormat::new("tax-format/beta")
+                    .expect("format fixture valid"),
+                tax_registration_id: "tax-registration/beta-1234567890123".to_string(),
                 ..invoice_generate()
             },
         )
@@ -958,11 +941,11 @@ mod tests {
         let registration_error = Invoice::generate(
             &account,
             InvoiceGenerate {
-                tax_registration_id: "kr-bizreg/notdigits".to_string(),
+                tax_registration_id: "bad-registration/notdigits".to_string(),
                 ..invoice_generate()
             },
         )
-        .expect_err("KR e-tax invoices require 사업자등록 shape");
+        .expect_err("tax registration must use canonical reference shape");
         assert_eq!(
             registration_error,
             CloudBillingError::InvalidTaxRegistrationId
@@ -971,7 +954,7 @@ mod tests {
         let total_error = Invoice::generate(
             &account,
             InvoiceGenerate {
-                total: Money::new("KRW", 109_999).expect("money fixture valid"),
+                total: Money::new("TOK", 109_999).expect("money fixture valid"),
                 ..invoice_generate()
             },
         )
@@ -999,14 +982,14 @@ mod tests {
         assert_eq!(tenant_error, CloudBillingError::TenantMismatch);
 
         let region_error = CloudBillingEvent::new(CloudBillingEventCreate {
-            region: "us-east".to_string(),
+            region: "beta-region".to_string(),
             ..event_create()
         })
         .expect_err("resource region must match billing event region");
         assert_eq!(region_error, CloudBillingError::RegionMismatch);
 
         let metering_error = CloudBillingEvent::new(CloudBillingEventCreate {
-            metering_tag: "oya:metering:ten_kr:bucket".to_string(),
+            metering_tag: "oya:metering:ten_alpha:bucket".to_string(),
             ..event_create()
         })
         .expect_err("metering tag must match resource tenant and type");

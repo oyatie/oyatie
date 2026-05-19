@@ -1,0 +1,196 @@
+{
+  "report_id": "MPR-01KS0TM3286WC0FRFD5V2TD2AG",
+  "generated_at": "2026-05-19T19:14:30Z",
+  "master_plan_source": "/specs/masterplan.json (authority); docs/MASTERPLAN.md projection only",
+  "completion_summary": {
+    "status": "blocked",
+    "total_items": 7,
+    "complete_items": 5,
+    "blocked_items": 2,
+    "objective": "Finish FD-001 Enterprise Generic + SMB Generic to production/hyperscaler-grade exit, or keep a fresh blocked report if an external authority blocker remains.",
+    "verdict": "FD-001 production delivery is not achieved; PR #148 auto-merge is armed but still blocked by missing repository Actions secret authority.",
+    "workspace": "/Users/jasonlee/oyatie-fd001-planning-closure",
+    "branch": "codex/fd001-planning-closure-20260519",
+    "head_sha_at_report": "3e996c75716d5fd51d4638684b4d37d2a0c6bda5",
+    "remote_pr_head_sha": "9b212c5673dda9379e5c81808b75636834f8875e",
+    "branch_status": "## codex/fd001-planning-closure-20260519...origin/codex/fd001-planning-closure-20260519 [ahead 59]",
+    "dirty_status": "clean; git status --porcelain -uall returned empty before evidence refresh",
+    "pr_148_url": "https://github.com/jason931225/oyatie/pull/148",
+    "pr_148_mergeable": "MERGEABLE",
+    "pr_148_merge_state_status": "BLOCKED",
+    "pr_148_auto_merge": {
+      "authorEmail": null,
+      "commitBody": null,
+      "commitHeadline": null,
+      "mergeMethod": "SQUASH",
+      "enabledAt": "2026-05-19T19:12:22Z",
+      "enabledBy": {
+        "id": "MDQ6VXNlcjU2NDg5NDkz",
+        "is_bot": false,
+        "login": "jason931225",
+        "name": "Jason Lee"
+      }
+    },
+    "pr_148_non_success_checks": [
+      {
+        "name": "oya-governance-protection-context-match",
+        "status": "COMPLETED",
+        "conclusion": "FAILURE",
+        "details_url": "https://github.com/jason931225/oyatie/actions/runs/26090644508/job/76715117729"
+      }
+    ]
+  },
+  "ledger": [
+    {
+      "item_id": "FD001-PLANNING-CLOSURE-GATE",
+      "status": "complete",
+      "evidence_refs": [
+        "/tmp/fd001-planning-closure-audit-20260519T175711Z.log"
+      ],
+      "summary": "Planning-closure validation was already green for the closed masterplan scope."
+    },
+    {
+      "item_id": "FD001-BRANCH-PROTECTION-DRIFT",
+      "status": "complete",
+      "evidence_refs": [
+        "evidence/fd001/fd001-branch-protection-apply-2026-05-19T1729Z.json",
+        "/tmp/fd001-protection-context-audit-20260519T1912Z.log"
+      ],
+      "summary": "protection-context-match validation passed: 15 required contexts, 45 workflow jobs indexed across 28 workflows"
+    },
+    {
+      "item_id": "FD001-DIRTY-WORKTREE-RECHECK",
+      "status": "complete",
+      "evidence_refs": [
+        "/tmp/fd001-status-20260519T1912Z.log"
+      ],
+      "summary": "Unexpected local deletions were inspected, identified as non-FD-001 accidental dirt, restored from HEAD, and no stash was needed because status is clean."
+    },
+    {
+      "item_id": "FD001-PR148-AUTOMERGE-REQUEST",
+      "status": "complete",
+      "evidence_refs": [
+        "/tmp/fd001-pr148-live-automerge-20260519T1912Z.json"
+      ],
+      "summary": "PR #148 auto-merge is enabled with mergeMethod=SQUASH; no branch-protection bypass/admin merge was used."
+    },
+    {
+      "item_id": "FD001-CANONICAL-SUBMIT-PREFLIGHT",
+      "status": "blocked",
+      "evidence_refs": [
+        "evidence/fd001/fd001-submit-blocked-2026-05-19T1753Z.json",
+        "/tmp/fd001-secret-preflight-audit-20260519T1912Z.log"
+      ],
+      "summary": "::error::required GitHub Actions secret OYA_BRANCH_PROTECTION_READ_TOKEN is not visible for jason931225/oyatie; oya-governance-protection-context-match will fail before evaluating branch-protection drift"
+    },
+    {
+      "item_id": "FD001-PR148-MERGE",
+      "status": "blocked",
+      "evidence_refs": [
+        "/tmp/fd001-pr148-live-automerge-20260519T1912Z.json",
+        "https://github.com/jason931225/oyatie/actions/runs/26090644508/job/76715117729"
+      ],
+      "summary": "PR #148 is Git-mergeable but mergeStateStatus=BLOCKED because required check oya-governance-protection-context-match is FAILURE; job log shows GH_TOKEN empty because OYA_BRANCH_PROTECTION_READ_TOKEN is unavailable in Actions."
+    },
+    {
+      "item_id": "FD001-BLOCKED-EXIT-REPORT-REFRESH",
+      "status": "complete",
+      "evidence_refs": [
+        "evidence/fd001/fd001-blocked-final-report-2026-05-19T1912Z.json"
+      ],
+      "summary": "Fresh blocked report records PR #148 auto-merge status, unchanged external secret blocker, and accepted Oya VCS controller-promote closeout."
+    }
+  ],
+  "verification_results": [
+    {
+      "command_or_lane": "./bin/oya git status --short --branch && ./bin/oya git rev-parse HEAD",
+      "status": "pass",
+      "summary": "Worktree clean at 3e996c75716d5fd51d4638684b4d37d2a0c6bda5; branch is ahead of origin by 59 commits.",
+      "artifact_ref": "/tmp/fd001-status-20260519T1912Z.log"
+    },
+    {
+      "command_or_lane": "gh pr merge 148 --auto --squash",
+      "status": "pass",
+      "summary": "Auto-merge request accepted using squash; merge did not occur because required status checks remain blocked.",
+      "artifact_ref": "/tmp/fd001-pr148-live-automerge-20260519T1912Z.json"
+    },
+    {
+      "command_or_lane": "bash scripts/github-actions-required-secrets-check.sh",
+      "status": "blocked",
+      "summary": "OYA_BRANCH_PROTECTION_READ_TOKEN is not visible for jason931225/oyatie; hosted protection-context-match will fail before drift evaluation.",
+      "artifact_ref": "/tmp/fd001-secret-preflight-audit-20260519T1912Z.log"
+    },
+    {
+      "command_or_lane": "./bin/oya gate validate protection-context-match --branch dev --applied-branch-protection infra/branch-protection/dev.json",
+      "status": "pass",
+      "summary": "15 required contexts, 45 workflow jobs indexed across 28 workflows.",
+      "artifact_ref": "/tmp/fd001-protection-context-audit-20260519T1912Z.log"
+    },
+    {
+      "command_or_lane": "gh pr view 148 --json ...statusCheckRollup...",
+      "status": "blocked",
+      "summary": "Only non-success hosted required context observed is oya-governance-protection-context-match=FAILURE; PR mergeStateStatus remains BLOCKED.",
+      "artifact_ref": "/tmp/fd001-pr148-live-automerge-20260519T1912Z.json"
+    }
+  ],
+  "documentation_updates": [
+    {
+      "path": "evidence/fd001/fd001-blocked-final-report-2026-05-19T1912Z.json",
+      "summary": "Fresh blocked report after PR #148 squash auto-merge was armed."
+    },
+    {
+      "path": "evidence/fd001/fd001-blocked-final-report-2026-05-19T1758Z.json",
+      "summary": "Prior blocked report remains valid for the original submit blocker; superseded only for PR #148 auto-merge state."
+    }
+  ],
+  "hyperscaler_claim_matrix": {
+    "claims_we_can_make": [
+      "FD-001 planning closure is locally green for the closed masterplan scope.",
+      "Local protection-context-match validation passes against the applied dev branch-protection config.",
+      "PR #148 auto-merge is armed with squash and will not merge until branch-protection requirements are satisfied.",
+      "The current blocker is isolated to missing repository Actions secret authority for OYA_BRANCH_PROTECTION_READ_TOKEN."
+    ],
+    "claims_we_cannot_make_yet": [
+      "FD-001 is production delivered.",
+      "FD-001 is hyperscaler-grade live/operationally complete.",
+      "PR #148 is merged.",
+      "The current local head has been pushed to PR #148.",
+      "All required hosted branch-protected PR checks are green."
+    ],
+    "evidence_required_to_make_remaining_claims": [
+      "Repository Actions secret OYA_BRANCH_PROTECTION_READ_TOKEN is configured with least-privilege branch-protection-read authority.",
+      "bash scripts/github-actions-required-secrets-check.sh exits 0 locally without substituting a personal token.",
+      "PR #148 hosted oya-governance-protection-context-match is rerun and completes green.",
+      "PR #148 auto-merge completes, or an authorized non-bypass merge path is used after all required checks pass.",
+      "./bin/oya submit succeeds without --no-verify and pushes the current local head for the remaining FD-001 closeout commits."
+    ]
+  },
+  "critic_summary": {
+    "findings": [
+      "Do not use admin/bypass merge or --no-verify push while the required secret preflight is red.",
+      "Do not set OYA_BRANCH_PROTECTION_READ_TOKEN from local gh auth or any personal token without explicit credential authority.",
+      "Auto-merge on PR #148 is not FD-001 delivery evidence; it only arms the safe merge path for the stale PR head."
+    ],
+    "fixes_made": [
+      "Restored accidental local deletions and verified the worktree was clean before evidence refresh.",
+      "Enabled PR #148 squash auto-merge without bypassing branch protection.",
+      "Re-ran the required secret preflight and local protection-context validation."
+    ],
+    "rejected_findings": [
+      "Rejected committing/stashing accidental deleted infra files because they were not real FD-001 work.",
+      "Rejected merge-commit auto-merge because repository settings disallow merge commits; squash auto-merge is the accepted repository method.",
+      "Rejected treating local protection-context success as hosted merge readiness because the hosted job still lacks GH_TOKEN from the required secret."
+    ]
+  },
+  "remaining_risks": [
+    "External repository secret authority remains unavailable; PR #148 cannot merge until the hosted required context can read branch protection.",
+    "Local branch remains ahead of origin by 59 commits plus this refreshed evidence commit after commit; canonical submit still blocks push until the secret preflight is green.",
+    "PR #148 remote head remains 9b212c5673dda9379e5c81808b75636834f8875e; it has not evaluated local head 3e996c75716d5fd51d4638684b4d37d2a0c6bda5."
+  ],
+  "closeout": {
+    "oya_vcs_promotion_status": "accepted: claim/work/verify/done(controller-promote)/promote completed for fd001-blocked-final-report-2026-05-19T1912Z in local-evidence environment; local-only done was rejected by ratchet and not used",
+    "vcs_completion_payload_id": "fd001-blocked-final-report-2026-05-19T1912Z",
+    "legacy_grit_or_scaffold_status": "No legacy grit/scaffold path used; Oya VCS is the active compatibility policy-ratchet surface.",
+    "vcs_evidence_refs": "/tmp/fd001-vcs-work-20260519T1912Z.json; /tmp/fd001-vcs-verify-20260519T1912Z.json; /tmp/fd001-vcs-done-controller-20260519T1912Z.json; /tmp/fd001-vcs-promote-20260519T1912Z.json"
+  }
+}

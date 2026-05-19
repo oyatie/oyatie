@@ -58,7 +58,7 @@ fn target(
         axis: "workspace".to_string(),
         store_kind: "workspace_object".to_string(),
         store_id: "workspace-drive".to_string(),
-        region: "kr-seoul".to_string(),
+        region: "home-region".to_string(),
         cell_id: "cell-kr-001".to_string(),
         record_ref: record_ref.to_string(),
         data_class: "PII_IDENTIFYING".to_string(),
@@ -77,7 +77,7 @@ fn body(dsr_id: &str) -> PlatformDsrCascadeExecuteRequest {
     PlatformDsrCascadeExecuteRequest {
         dsr_id: dsr_id.to_string(),
         tenant_id: TENANT_ID.to_string(),
-        region: "kr-seoul".to_string(),
+        region: "home-region".to_string(),
         subject_ref: SUBJECT_REF.to_string(),
         action: "erase".to_string(),
         sla_tier: "preview".to_string(),
@@ -286,7 +286,7 @@ fn dsr_cascade_execute_maps_invalid_labels_scope_and_duplicate_targets() {
     ));
 
     let mut out_of_scope = request("req-dsr-scope", "idem-dsr-scope");
-    out_of_scope.body.targets[0].region = "us-east".to_string();
+    out_of_scope.body.targets[0].region = "failover-region".to_string();
     let error = execute_dsr_cascade_from_api(&mut directory, &mut ledger, out_of_scope)
         .expect_err("out-of-scope store is rejected by kernel");
     assert_eq!(error.status_code(), 400);

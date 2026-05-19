@@ -822,13 +822,13 @@ mod tests {
 
     fn provider_create() -> IdentityProviderCreate {
         IdentityProviderCreate {
-            id: "idp_kr_saml".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region_pack: "oya-pack-kr".to_string(),
+            id: "idp_alpha_saml".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region_pack: "oya-pack-alpha".to_string(),
             kind: IdentityProviderKind::Saml,
-            issuer_uri: "https://idp.kr.example/saml".to_string(),
+            issuer_uri: "https://idp.alpha.example/saml".to_string(),
             audience: "urn:oyatie:cloud".to_string(),
-            verification_material_ref: "cert/kr-saml-signing".to_string(),
+            verification_material_ref: "cert/alpha-saml-signing".to_string(),
             created_at_epoch_seconds: 1_700_000_000,
         }
     }
@@ -836,12 +836,12 @@ mod tests {
     fn service_principal_create() -> IamPrincipalCreate {
         IamPrincipalCreate {
             id: "sp_cloud_provisioner".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             kind: IamPrincipalKind::ServiceAccount,
             display_name: "cloud provisioner".to_string(),
             external_subject: None,
             identity_provider_id: None,
-            region_pack: "oya-pack-kr".to_string(),
+            region_pack: "oya-pack-alpha".to_string(),
             mfa_state: MfaState::NotRequired,
             last_authenticated_at_epoch_seconds: None,
             created_at_epoch_seconds: 1_700_000_001,
@@ -851,12 +851,12 @@ mod tests {
     fn user_principal_create() -> IamPrincipalCreate {
         IamPrincipalCreate {
             id: "usr_alice".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             kind: IamPrincipalKind::User,
             display_name: "Alice".to_string(),
             external_subject: None,
             identity_provider_id: None,
-            region_pack: "oya-pack-kr".to_string(),
+            region_pack: "oya-pack-alpha".to_string(),
             mfa_state: MfaState::Verified,
             last_authenticated_at_epoch_seconds: Some(1_700_000_002),
             created_at_epoch_seconds: 1_700_000_001,
@@ -866,8 +866,8 @@ mod tests {
     fn role_create() -> IamRoleCreate {
         IamRoleCreate {
             id: "role_compute_admin".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "alpha-region".to_string(),
             name: "compute-admin".to_string(),
             cedar_policy_id: "pol_cloud_compute_admin".to_string(),
             cedar_policy_version: "1.0.0".to_string(),
@@ -902,12 +902,12 @@ mod tests {
         let principal = directory
             .create_principal(IamPrincipalCreate {
                 id: "sp_federated_alice".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 kind: IamPrincipalKind::Federated,
                 display_name: "Federated Alice".to_string(),
-                external_subject: Some("saml://idp.kr.example/alice".to_string()),
-                identity_provider_id: Some("idp_kr_saml".to_string()),
-                region_pack: "oya-pack-kr".to_string(),
+                external_subject: Some("saml://idp.alpha.example/alice".to_string()),
+                identity_provider_id: Some("idp_alpha_saml".to_string()),
+                region_pack: "oya-pack-alpha".to_string(),
                 mfa_state: MfaState::Verified,
                 last_authenticated_at_epoch_seconds: Some(1_700_000_010),
                 created_at_epoch_seconds: 1_700_000_005,
@@ -921,7 +921,7 @@ mod tests {
                 .value
                 .expect("subject captured")
                 .value,
-            "saml://idp.kr.example/alice"
+            "saml://idp.alpha.example/alice"
         );
     }
 
@@ -932,7 +932,7 @@ mod tests {
         let session = directory
             .assume_role(AssumeRoleRequest {
                 session_id: "sts_compute_admin_001".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 role_id: "role_compute_admin".to_string(),
                 assumed_by: "sp_cloud_provisioner".to_string(),
                 external_id: None,
@@ -979,7 +979,7 @@ mod tests {
         let role_limit_error = directory
             .assume_role(AssumeRoleRequest {
                 session_id: "sts_too_long".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 role_id: "role_compute_admin".to_string(),
                 assumed_by: "sp_cloud_provisioner".to_string(),
                 external_id: None,
@@ -1011,7 +1011,7 @@ mod tests {
         let trust_error = directory
             .assume_role(AssumeRoleRequest {
                 session_id: "sts_untrusted".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 role_id: "role_compute_admin".to_string(),
                 assumed_by: "sp_untrusted".to_string(),
                 external_id: None,
@@ -1024,7 +1024,7 @@ mod tests {
 
         let request = AssumeRoleRequest {
             session_id: "sts_duplicate".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             role_id: "role_compute_admin".to_string(),
             assumed_by: "sp_cloud_provisioner".to_string(),
             external_id: None,
@@ -1060,7 +1060,7 @@ mod tests {
         let error = directory
             .assume_role(AssumeRoleRequest {
                 session_id: "sts_mfa".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 role_id: "role_compute_admin".to_string(),
                 assumed_by: "usr_alice".to_string(),
                 external_id: None,
@@ -1088,12 +1088,12 @@ mod tests {
         directory
             .create_principal(IamPrincipalCreate {
                 id: "sp_external_partner".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 kind: IamPrincipalKind::External,
                 display_name: "Partner".to_string(),
                 external_subject: Some("oidc://partner.example/sub-1".to_string()),
                 identity_provider_id: Some("idp_partner_oidc".to_string()),
-                region_pack: "oya-pack-kr".to_string(),
+                region_pack: "oya-pack-alpha".to_string(),
                 mfa_state: MfaState::Verified,
                 last_authenticated_at_epoch_seconds: Some(1_700_000_050),
                 created_at_epoch_seconds: 1_700_000_040,
@@ -1109,7 +1109,7 @@ mod tests {
         let error = directory
             .assume_role(AssumeRoleRequest {
                 session_id: "sts_external".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 role_id: "role_compute_admin".to_string(),
                 assumed_by: "sp_external_partner".to_string(),
                 external_id: None,

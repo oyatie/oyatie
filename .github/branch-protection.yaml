@@ -1,6 +1,6 @@
 # Branch-protection canonical record — the deployed ruleset on
 # github.com/jason931225/oyatie reflects this file exactly. Drift is
-# caught by the `oya-foundry-fitness-protection-context-match` lane
+# caught by the `oya-governance-protection-context-match` lane
 # (per-pr CI).
 #
 # Pipeline topology (per feedback_branch_pipeline_final_final,
@@ -40,7 +40,7 @@ branches:
     required_approving_reviews: 0
     # Canonical contract: each entry below is BOTH the workflow YAML
     # job-key AND the workflow's `name:` field. The
-    # `oya-foundry-fitness-protection-context-match` lane enforces
+    # `oya-governance-protection-context-match` lane enforces
     # this invariant.
     required_status_checks:
       - cargo-fmt
@@ -54,7 +54,9 @@ branches:
       - oya-foundry-fitness-api-semver
       - oya-foundry-fitness-honest-claims
       - oya-foundry-fitness-aspirational-enforcement
-      - oya-foundry-fitness-protection-context-match
+      - oya-foundry-fitness-banned-primitives
+      - oya-governance-protection-context-match
+      - oya-governance-dependency-seam
       - oya-pr-review
 
   staging:

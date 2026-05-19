@@ -135,11 +135,11 @@ mod tests {
         ParsedDocument::new(ParsedDocumentCreate {
             document_id: id.to_string(),
             source: target(tenant),
-            locale: MorphologyLocale::En,
+            locale: MorphologyLocale::Generic,
             tokens: vec![MorphologyToken {
                 surface: "hi".to_string(),
                 lemma: "hi".to_string(),
-                locale: MorphologyLocale::En,
+                locale: MorphologyLocale::Generic,
                 part_of_speech: PartOfSpeech::Noun,
                 byte_offset: 0,
             }],
@@ -152,14 +152,14 @@ mod tests {
     fn upserts_record_within_tenant() {
         let mut index = VectorIndex::new(
             "idx_a".to_string(),
-            "ten_kr".to_string(),
+            "ten_alpha".to_string(),
             "Post".to_string(),
             3,
             VectorDistance::Cosine,
         )
         .expect("index");
         index
-            .upsert(&doc("doc_1", "ten_kr"), vec![0.1, 0.2, 0.3])
+            .upsert(&doc("doc_1", "ten_alpha"), vec![0.1, 0.2, 0.3])
             .expect("upsert ok");
         assert_eq!(index.len(), 1);
         assert!(index.tenant_private);
@@ -169,14 +169,14 @@ mod tests {
     fn rejects_cross_tenant_upsert() {
         let mut index = VectorIndex::new(
             "idx_b".to_string(),
-            "ten_kr".to_string(),
+            "ten_alpha".to_string(),
             "Post".to_string(),
             3,
             VectorDistance::Cosine,
         )
         .expect("index");
         let err = index
-            .upsert(&doc("doc_1", "ten_us"), vec![0.0, 0.0, 0.0])
+            .upsert(&doc("doc_1", "ten_beta"), vec![0.0, 0.0, 0.0])
             .expect_err("cross-tenant rejected");
         assert_eq!(err, VectorIndexError::TenantBoundaryViolation);
         assert!(index.is_empty());
@@ -186,14 +186,14 @@ mod tests {
     fn rejects_dimension_mismatch() {
         let mut index = VectorIndex::new(
             "idx_c".to_string(),
-            "ten_kr".to_string(),
+            "ten_alpha".to_string(),
             "Post".to_string(),
             4,
             VectorDistance::L2,
         )
         .expect("index");
         let err = index
-            .upsert(&doc("doc_1", "ten_kr"), vec![1.0, 2.0])
+            .upsert(&doc("doc_1", "ten_alpha"), vec![1.0, 2.0])
             .expect_err("dim enforced");
         assert_eq!(err, VectorIndexError::DimensionMismatch);
     }
@@ -202,7 +202,7 @@ mod tests {
     fn rejects_zero_dimension() {
         let err = VectorIndex::new(
             "idx_d".to_string(),
-            "ten_kr".to_string(),
+            "ten_alpha".to_string(),
             "Post".to_string(),
             0,
             VectorDistance::Cosine,
