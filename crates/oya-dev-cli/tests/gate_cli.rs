@@ -2954,8 +2954,8 @@ fn placeholder_debt_gate_accepts_registry_and_writes_report() {
 }
 
 #[test]
-fn placeholder_debt_gate_writes_bootstrap_registry() {
-    let temp = temp_dir("placeholder-debt-bootstrap");
+fn placeholder_debt_gate_writes_accountable_registry() {
+    let temp = temp_dir("placeholder-debt-accountable");
     write_placeholder_debt_docs(&temp, "TODO: decide the owner.");
     let registry_path = temp.join("generated-registry.tsv");
     let mut args = placeholder_debt_args(&temp);
@@ -2980,7 +2980,7 @@ fn placeholder_debt_gate_writes_bootstrap_registry() {
     );
     let registry = fs::read_to_string(&registry_path).expect("placeholder registry written");
     assert!(registry.contains("TODO\tdocs/README.md\t1\tTODO: decide the owner."));
-    assert!(registry.contains("BOOTSTRAP_ONLY owner=TBD; issue=TBD; captured_at=2026-05-10"));
+    assert!(registry.contains("owner=council-architecture; issue=PLACEHOLDER-DEBT-AUTO-CAPTURE; captured_at=2026-05-19; action=close-or-archive-before-production-claim"));
 
     let enforcement_output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -2994,8 +2994,12 @@ fn placeholder_debt_gate_writes_bootstrap_registry() {
         ])
         .output()
         .expect("placeholder debt enforcement command runs");
-    assert!(!enforcement_output.status.success());
-    assert!(String::from_utf8_lossy(&enforcement_output.stderr).contains("bootstrap-only"));
+    assert!(
+        enforcement_output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&enforcement_output.stdout),
+        String::from_utf8_lossy(&enforcement_output.stderr)
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -4635,6 +4639,411 @@ fn master_plan_completion_gate_is_dispatched() {
             .contains("master-plan-completion validation passed")
     );
     fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn planning_closure_gate_accepts_closed_minimal_masterplan_surface() {
+    let temp = TempDirGuard::new("planning-closure-pass");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "planning-closure",
+            "--contract",
+            root.join("specs/planning-closure-contract.json")
+                .to_str()
+                .expect("utf8 contract"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--sequencing",
+            root.join("specs/master-plan-sequencing.json")
+                .to_str()
+                .expect("utf8 sequencing"),
+            "--root-hub",
+            root.join("specs/root-hub-pointers.json")
+                .to_str()
+                .expect("utf8 root hub"),
+            "--vertical-adr",
+            root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md")
+                .to_str()
+                .expect("utf8 adr"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("planning-closure validation passed"));
+}
+
+#[test]
+fn planning_closure_gate_rejects_missing_korea_pack_surface() {
+    let temp = TempDirGuard::new("planning-closure-missing-kr");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), true);
+    let root = repo_root();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "planning-closure",
+            "--contract",
+            root.join("specs/planning-closure-contract.json")
+                .to_str()
+                .expect("utf8 contract"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--sequencing",
+            root.join("specs/master-plan-sequencing.json")
+                .to_str()
+                .expect("utf8 sequencing"),
+            "--root-hub",
+            root.join("specs/root-hub-pointers.json")
+                .to_str()
+                .expect("utf8 root hub"),
+            "--vertical-adr",
+            root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md")
+                .to_str()
+                .expect("utf8 adr"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("korea-localization-pack") || stderr.contains("set mismatch"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_missing_one_click_bootstrap_evidence() {
+    let temp = TempDirGuard::new("planning-closure-missing-one-click");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let mut contract: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(root.join("specs/planning-closure-contract.json"))
+            .expect("contract readable"),
+    )
+    .expect("contract parses");
+    contract
+        .pointer_mut("/deployment_portability_policy/required_artifacts")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("deployment artifacts present")
+        .retain(|artifact| artifact.as_str() != Some("one_click_setup_entrypoint"));
+    let contract_path = temp.path().join("planning-closure-contract.json");
+    fs::write(
+        &contract_path,
+        serde_json::to_string_pretty(&contract).expect("contract serializes"),
+    )
+    .expect("contract fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "planning-closure",
+            "--contract",
+            contract_path.to_str().expect("utf8 contract"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--sequencing",
+            root.join("specs/master-plan-sequencing.json")
+                .to_str()
+                .expect("utf8 sequencing"),
+            "--root-hub",
+            root.join("specs/root-hub-pointers.json")
+                .to_str()
+                .expect("utf8 root hub"),
+            "--vertical-adr",
+            root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md")
+                .to_str()
+                .expect("utf8 adr"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("one_click_setup_entrypoint") || stderr.contains("set mismatch"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_stale_discovery_documents() {
+    let temp = TempDirGuard::new("planning-closure-stale-doc");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let mut sequencing: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(root.join("specs/master-plan-sequencing.json"))
+            .expect("sequencing readable"),
+    )
+    .expect("sequencing parses");
+    sequencing
+        .pointer_mut("/master_plan_discovery_order")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("discovery order present")
+        .push(serde_json::json!("/evidence/goals/implement-masterplan.md"));
+    let sequencing_path = temp.path().join("master-plan-sequencing.json");
+    fs::write(
+        &sequencing_path,
+        serde_json::to_string_pretty(&sequencing).expect("sequencing serializes"),
+    )
+    .expect("sequencing fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "planning-closure",
+            "--contract",
+            root.join("specs/planning-closure-contract.json")
+                .to_str()
+                .expect("utf8 contract"),
+            "--master-plan",
+            master_plan.to_str().expect("utf8 master plan"),
+            "--sequencing",
+            sequencing_path.to_str().expect("utf8 sequencing"),
+            "--root-hub",
+            root.join("specs/root-hub-pointers.json")
+                .to_str()
+                .expect("utf8 root hub"),
+            "--vertical-adr",
+            root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md")
+                .to_str()
+                .expect("utf8 adr"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("stale archived document"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn planning_closure_gate_accepts_repo_default_paths() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .current_dir(repo_root())
+        .args(["gate", "validate", "planning-closure"])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("planning-closure validation passed"));
+}
+
+#[test]
+fn planning_closure_gate_rejects_blocking_masterplan_status() {
+    let temp = TempDirGuard::new("planning-closure-blocking-status");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let mut master_plan_json = read_planning_closure_json(&master_plan);
+    master_plan_json["planning_closure"]["false_green_probe"] = serde_json::json!({
+        "status": "stub"
+    });
+    write_planning_closure_json(&master_plan, &master_plan_json);
+    let root = repo_root();
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root.join("specs/root-hub-pointers.json"),
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("planning closure remains blocked")
+            && stderr.contains("false_green_probe.status"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_missing_root_hub_status_ledger_pointer() {
+    let temp = TempDirGuard::new("planning-closure-missing-root-hub-ledger-pointer");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let (root_hub, _status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut root_hub_json = read_planning_closure_json(&root_hub);
+    root_hub_json
+        .pointer_mut("/entry_points")
+        .and_then(serde_json::Value::as_object_mut)
+        .expect("root hub entry points present")
+        .remove("planning_closure_status_ledger");
+    write_planning_closure_json(&root_hub, &root_hub_json);
+    let root = repo_root();
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("entry_points.planning_closure_status_ledger is missing"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_missing_root_hub_direct_authority_pointer() {
+    let temp = TempDirGuard::new("planning-closure-missing-root-hub-direct-authority");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let (root_hub, _status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut root_hub_json = read_planning_closure_json(&root_hub);
+    root_hub_json
+        .pointer_mut("/entry_points")
+        .and_then(serde_json::Value::as_object_mut)
+        .expect("root hub entry points present")
+        .remove("korea_localization_pack_manifest");
+    write_planning_closure_json(&root_hub, &root_hub_json);
+    let root = repo_root();
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(
+            "root hub missing direct authority pointer entry_points.korea_localization_pack_manifest"
+        ) && stderr.contains("docs/localization-packs/kr/pack.yaml"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_status_ledger_missing_required_exit_evidence() {
+    let temp = TempDirGuard::new("planning-closure-missing-ledger-exit-evidence");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let (root_hub, status_ledger) = write_planning_closure_repo_sidecars(temp.path());
+    let mut status_ledger_json = read_planning_closure_json(&status_ledger);
+    status_ledger_json
+        .pointer_mut("/required_exit_evidence")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("required exit evidence present")
+        .retain(|evidence| evidence.as_str() != Some("korea_localization_pack_exit_evidence"));
+    write_planning_closure_json(&status_ledger, &status_ledger_json);
+    let root = repo_root();
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root_hub,
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("planning closure status ledger root.required_exit_evidence")
+            && stderr.contains("korea_localization_pack_exit_evidence"),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_vertical_adr_missing_false_green_phrase() {
+    let temp = TempDirGuard::new("planning-closure-missing-adr-false-green");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let adr =
+        fs::read_to_string(root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"))
+            .expect("vertical ADR readable");
+    assert!(adr.to_ascii_lowercase().contains("false green signals"));
+    let adr_path = temp.path().join("ADR-0217-vertical-slice-rollout-order.md");
+    fs::write(
+        &adr_path,
+        adr.replace("false green signals", "regression truth signals"),
+    )
+    .expect("vertical ADR fixture written");
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root.join("specs/root-hub-pointers.json"),
+        &adr_path,
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("planning-closure phrase \"false green signals\""),
+        "stderr={stderr}"
+    );
+}
+
+#[test]
+fn planning_closure_gate_rejects_no_placeholder_policy_without_false_signal_controls() {
+    let temp = TempDirGuard::new("planning-closure-missing-false-signal-controls");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let mut contract =
+        read_planning_closure_json(&root.join("specs/planning-closure-contract.json"));
+    contract["no_placeholder_policy"]["no_false_signals"] = serde_json::json!(false);
+    let contract_path = temp.path().join("planning-closure-contract.json");
+    write_planning_closure_json(&contract_path, &contract);
+
+    let output = run_planning_closure_gate(
+        &contract_path,
+        &master_plan,
+        &root.join("specs/master-plan-sequencing.json"),
+        &root.join("specs/root-hub-pointers.json"),
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("no_placeholder_policy.no_false_signals must be true"),
+        "stderr={stderr}"
+    );
 }
 
 #[test]
@@ -6553,6 +6962,105 @@ fn write_design_spec_maturity_service_fixture(microservices_root: &Path) {
         "# Operational Boundaries\n\nIncident and capacity ownership remain design-only here.\n",
     )
     .expect("operational boundaries written");
+}
+
+fn run_planning_closure_gate(
+    contract: &Path,
+    master_plan: &Path,
+    sequencing: &Path,
+    root_hub: &Path,
+    vertical_adr: &Path,
+) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(["gate", "validate", "planning-closure"])
+        .arg("--contract")
+        .arg(contract)
+        .arg("--master-plan")
+        .arg(master_plan)
+        .arg("--sequencing")
+        .arg(sequencing)
+        .arg("--root-hub")
+        .arg(root_hub)
+        .arg("--vertical-adr")
+        .arg(vertical_adr)
+        .output()
+        .expect("gate command runs")
+}
+
+fn read_planning_closure_json(path: &Path) -> serde_json::Value {
+    serde_json::from_str(&fs::read_to_string(path).expect("json fixture readable"))
+        .expect("json fixture parses")
+}
+
+fn write_planning_closure_json(path: &Path, value: &serde_json::Value) {
+    fs::write(
+        path,
+        serde_json::to_string_pretty(value).expect("json fixture serializes"),
+    )
+    .expect("json fixture written");
+}
+
+fn write_planning_closure_repo_sidecars(dir: &Path) -> (PathBuf, PathBuf) {
+    let root = repo_root();
+    let specs_dir = dir.join("specs");
+    fs::create_dir_all(&specs_dir).expect("specs fixture dir created");
+    let archive_dir = dir.join(".omc/archive/stale-documents/2026-05-19-planning-closure");
+    fs::create_dir_all(&archive_dir).expect("archive fixture dir created");
+
+    let root_hub = specs_dir.join("root-hub-pointers.json");
+    fs::copy(root.join("specs/root-hub-pointers.json"), &root_hub)
+        .expect("root hub fixture copied");
+    let status_ledger = specs_dir.join("planning-closure-status-closure-ledger.json");
+    fs::copy(
+        root.join("specs/planning-closure-status-closure-ledger.json"),
+        &status_ledger,
+    )
+    .expect("status ledger fixture copied");
+    fs::copy(
+        root.join(".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json"),
+        archive_dir.join("manifest.json"),
+    )
+    .expect("archive manifest fixture copied");
+
+    (root_hub, status_ledger)
+}
+
+fn write_planning_closure_masterplan_fixture(
+    dir: &Path,
+    remove_korea_pack_surface: bool,
+) -> PathBuf {
+    let root = repo_root();
+    let mut master_plan: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(root.join("specs/masterplan.json")).expect("masterplan readable"),
+    )
+    .expect("masterplan parses");
+
+    let mut fixture = serde_json::json!({
+        "_meta": master_plan
+            .get_mut("_meta")
+            .expect("meta present")
+            .take(),
+        "planning_closure": master_plan
+            .get_mut("planning_closure")
+            .expect("planning closure present")
+            .take()
+    });
+
+    if remove_korea_pack_surface {
+        let surfaces = fixture
+            .pointer_mut("/planning_closure/first_deliverable/required_surfaces")
+            .and_then(serde_json::Value::as_array_mut)
+            .expect("required surfaces present");
+        surfaces.retain(|surface| surface.as_str() != Some("korea-localization-pack"));
+    }
+
+    let path = dir.join("masterplan.json");
+    fs::write(
+        &path,
+        serde_json::to_string_pretty(&fixture).expect("fixture serializes"),
+    )
+    .expect("planning closure masterplan fixture written");
+    path
 }
 
 struct TempDirGuard {

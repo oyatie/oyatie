@@ -25,16 +25,15 @@ Canonical vertical rollout order:
 
 | Order | Vertical | Rationale |
 | --- | --- | --- |
-| 1 | Enterprise Generic | Largest revenue surface, best cross-product integration test, medium compliance bar. |
-| 2 | Healthcare | Highest early compliance pressure; validates HIPAA, Joint Commission, state DPH, Epic/Cerner FHIR connectors, and multi-context platform stress. |
+| 1 | Enterprise Generic + SMB Generic | First deliverable. Must exit in full production depth, not MVP/preview/reduced scope. Required scope includes core, messenger, mail, community, infra, Ops Dashboard / Control Center, Foundry, Workflow, Ontology, canonical base, and Korea localization pack. Enterprise proves complex integration pressure; SMB proves mass-market onboarding and ease-of-adoption against the same substrate before sector-specific fan-out. |
+| 2 | Healthcare | Highest early compliance pressure; validates HIPAA, Joint Commission, state DPH, Epic/Cerner FHIR connectors, and multi-context platform stress after the generic product substrate is proven. |
 | 3 | Retail / Commerce | Validates B2C marketplace, commerce stack, payments, and consumer surfaces at scale. |
-| 4 | SMB Generic | Tests mass-market onboarding and ease-of-adoption claims after enterprise substrate hardens. |
-| 5 | Manufacturing | Validates ERP integration, operational technology adjacency, and dense sector data models. |
-| 6 | Logistics and Delivery | Validates route optimization, fleet workflows, and consent-graph real-time visibility. |
-| 7 | Hospitality | Validates PMS integration, reservations, service operations, and workforce scheduling. |
-| 8 | Financial Services | Validates the highest combined regulatory bar: KYC, AML, SOC 2, PCI-DSS, and fintech integrations. |
-| 9 | Education | Validates LMS, campus recruiting, student/teacher/parent contexts, and FERPA-like boundaries. |
-| 10 | Government | Validates procurement, public-sector controls, and FedRAMP High style trust posture; longest sales cycle, so last. |
+| 4 | Manufacturing | Validates ERP integration, operational technology adjacency, and dense sector data models. |
+| 5 | Logistics and Delivery | Validates route optimization, fleet workflows, and consent-graph real-time visibility. |
+| 6 | Hospitality | Validates PMS integration, reservations, service operations, and workforce scheduling. |
+| 7 | Financial Services | Validates the highest combined regulatory bar: KYC, AML, SOC 2, PCI-DSS, and fintech integrations. |
+| 8 | Education | Validates LMS, campus recruiting, student/teacher/parent contexts, and FERPA-like boundaries. |
+| 9 | Government | Validates procurement, public-sector controls, and FedRAMP High style trust posture; longest sales cycle, so last. |
 
 ### Gate for starting the next vertical
 
@@ -45,14 +44,25 @@ The next vertical may start only after the current vertical has:
 - tenant control requirements per ADR-0218;
 - no-code UX surfaces per ADR-0219;
 - intelligence scope per ADR-0220 where AI is in scope;
+- flat microservice boundaries, clean architecture layer boundaries, API-first contracts, hyperscaler pattern mappings, and independent horizontal scaling strategy before implementation handlers land;
 - compliance pack and threat model;
 - SLOs, runbooks, CI lanes, audit-chain evidence, and rollback plan.
+- a production-grade exit record proving there were no deferrals, scope reductions, placeholders, stubs, or thin scaffolds inside the vertical's accepted scope.
+- canonical base plus Korea localization pack readiness evidence for the first deliverable before sector-specific vertical fan-out begins.
+- reproducible cloud-native Kubernetes deployment evidence through one-command or one-click setup across Talos, Ubuntu LTS, Debian, Fedora Server, Oracle Linux, RHEL-compatible distributions, CentOS Stream, Rocky Linux, AlmaLinux, SUSE Linux Enterprise, and macOS Apple Silicon; product code must not assume a host distribution or desktop OS.
+- one-time script or one-click setup evidence proving any supported machine that meets declared prerequisites can securely join the production cluster as a secured, hardened, policy-compliant member with observability and audit enrollment, or fail closed with an actionable evidence report.
+- remote config-driven secure cluster join evidence for Talos-class nodes, with signed policy-validated config, externalized secrets, identity proof, and auditable join evidence.
+- distroless or scratch production image posture by default, with fuller base images allowed only through explicit exception evidence, SBOM, image-size and vulnerability budgets, and a removal/optimization follow-up.
+- Ops Dashboard / Control Center evidence at full vertical depth, covering incident response, deployment control, cluster/node health, tenant lifecycle, tenant isolation posture, policy/compliance decisions, audit trails, SLO/error-budget state, evidence packs, bootstrap/recovery workflows, localization/escalation runbooks, and safe operator actions with approval and rollback.
+- evidence-backed claim controls proving no empty promises, false green signals, or silent regressions in behavior, performance, policy, schema, API, tenant isolation, observability, or auditability.
+- development-pipeline evolution controls proving phase-appropriate agent skills, CI gates, review loops, and regression baselines ratchet with the masterplan and the product.
+- automation-first development-cycle controls proving automatable work is automated and any manual exception has evidence, owner, expiry trigger, and automation follow-up.
 
 ## In-house roadmap
 
 This is operating doctrine, not a vendor-replaceable runtime. The roadmap lives in repo-native phase specs, product PRDs, and governance lanes. The rollout order can change only through a new ADR that names the vertical moved, the evidence that changed, and the impact on already-authored follow-up PRs.
 
-Phase 1 ships Enterprise Generic depth. Phase 2 uses Healthcare as the stress test for multi-context, consent, FHIR, and compliance. Later phases reuse hardened substrate rather than restarting architecture.
+Phase 1 ships Enterprise Generic + SMB Generic at full production depth. The first deliverable includes core, messenger, mail, community, infra, Ops Dashboard / Control Center, Foundry, Workflow, Ontology, canonical base, and Korea localization pack. Flat microservices, clean architecture, API-first architecture, independent horizontal scaling, and hyperscaler patterns are entry criteria for implementation packets, not cleanup passes after handlers exist. Every deployable must have reproducible cloud-native Kubernetes setup evidence for major enterprise Linux families and macOS Apple Silicon before exit; setup must be one-command or one-click, backed by OpenTofu/IaC, GitOps, multi-arch OCI images, SBOM/provenance, conformance, local Kubernetes/OCI parity, one-time secure bootstrap, remote config-driven Talos cluster join, production hardening, and restore evidence. Production images default to distroless or scratch where technically viable. Empty promises, false green signals, and silent regressions are release blockers, not review comments. The development pipeline must evolve with the project: phase-appropriate agent skills, CI gates, review loops, performance baselines, and regression detectors ratchet as the masterplan changes. Automatable development-cycle work must be automated; manual exceptions require evidence, owner, expiry trigger, and automation follow-up. It is explicitly not an MVP, preview, or reduced-scope launch; exit means the generic product is ready to support honest industry-leading and hyperscaler-grade claims for that scope. Phase 2 uses Healthcare as the stress test for multi-context, consent, FHIR, and compliance. Later phases reuse hardened substrate rather than restarting architecture.
 
 ## Alternatives considered
 
@@ -60,9 +70,9 @@ Phase 1 ships Enterprise Generic depth. Phase 2 uses Healthcare as the stress te
 
 **Rejected because** it optimizes demo breadth over production depth. A shallow healthcare, retail, finance, and government surface would create false signals and make every CI gate look green without proving any real workflow.
 
-### Alternative 2 - Start with the easiest SMB vertical
+### Alternative 2 - Start with SMB as a later standalone vertical
 
-**Rejected because** ease of onboarding is important but does not stress the substrate enough. Enterprise Generic surfaces more cross-product integration earlier while staying below the healthcare/finance regulatory ceiling.
+**Rejected because** SMB onboarding is not optional polish; it is part of the first generic-product proof. Shipping Enterprise Generic first and postponing SMB would let the plan defer ease-of-adoption, self-service onboarding, and low-touch operations. SMB is therefore bundled with Enterprise Generic in the first deliverable while sharing the same core, messenger, mail, community, infra, Ops Dashboard / Control Center, Foundry, Workflow, Ontology, canonical base, and Korea localization pack substrate.
 
 ### Alternative 3 - Start with the highest-compliance vertical
 
@@ -85,7 +95,7 @@ Phase 1 ships Enterprise Generic depth. Phase 2 uses Healthcare as the stress te
 
 - Later verticals wait longer even if their market demand appears attractive.
 - Some shared platform work must be planned before it is used by every vertical, which can feel slower early.
-- Enterprise Generic becomes the first proof point and therefore carries high integration pressure.
+- Enterprise Generic + SMB Generic becomes the first proof point and therefore carries both high integration pressure and high ease-of-adoption pressure.
 
 ### Operational
 
@@ -93,6 +103,13 @@ Phase 1 ships Enterprise Generic depth. Phase 2 uses Healthcare as the stress te
 - New vertical PRs must name the prior vertical's exit evidence or declare themselves pre-GA planning only.
 - Reviewers should reject product PRs that claim GA depth without the gate evidence listed above.
 - Parallel work is allowed for substrate and shared tooling, but GA claims remain sequential by vertical.
+- The first deliverable's planning and implementation packets must explicitly name core, messenger, mail, community, infra, Ops Dashboard / Control Center, Foundry, Workflow, Ontology, canonical base, and Korea localization pack as required full-depth production scope.
+- The first deliverable's implementation packets must prove flat microservice boundaries, clean architecture inward dependency direction, API-first contract existence before handlers, independent horizontal scaling and backpressure design, and mapping to the hyperscaler architecture invariant catalog.
+- The first deliverable's gates must reject empty coverage, aspirational done states, and silent regressions through baseline-diff evidence and non-empty claim evidence.
+- The first deliverable's gates must reject host-distro lock-in, mutable-host snowflakes, missing macOS Apple Silicon parity, missing multi-arch OCI evidence, and setup paths that require undocumented manual steps instead of one-command or one-click bootstrap.
+- The first deliverable's gates must reject setup scripts that partially mutate hosts after failed prerequisites, cluster joins without signed config and externalized secrets, missing hardening evidence, and production images that use fuller base layers without exception evidence.
+- The first deliverable's pipeline must prove phase-appropriate use of agent skills and ratchet CI, review, performance, and regression gates when implementation evidence reveals a new class of risk.
+- The first deliverable's pipeline must automate every repeatable development-cycle control, including contract validation, boundary checks, impacted-test mapping, CI-fix context bundles, evidence-pack generation, and blocker audits; manual exceptions expire into automation ratchet work.
 
 ## Named industry sources
 

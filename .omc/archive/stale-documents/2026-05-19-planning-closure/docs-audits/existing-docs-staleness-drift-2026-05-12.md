@@ -50,7 +50,7 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 
 5. **TOOLCHAIN.md lacks LTS enforcement documentation** — References `cargo-deny` 16 times but does NOT document Rust 1.78 vs 1.85 MSRV incompatibility or LTS pinning policy. **Fix:** Add "LTS Constraint" section; cite `docs/standards/lts-versions-verified.md`; document quarterly LTS review process.
 
-6. **ROADMAP.md §3 "Per-axis sequencing" is incomplete TODO** — Workspace batch decomposition is undefined (blocking cloud/search/ads parallelization). **Fix:** Fill per-axis sequencing for Workspace before W-Foundry-Preview gate.
+6. **ROADMAP.md §3 "Per-axis sequencing" is incomplete planning-closure-owned** — Workspace batch decomposition is undefined (blocking cloud/search/ads parallelization). **Fix:** Fill per-axis sequencing for Workspace before W-Foundry-Preview gate.
 
 7. **Hyperscaler-best-practices spec is not referenced anywhere in docs tree** — `docs/standards/hyperscaler-best-practices.md` (387 lines, research-backed) has zero cites in 408 doc files. MASTERPLAN Principle 6 mandates adoption. **Fix:** Add systematic cites to TOOLCHAIN.md, standards/code-style.md, standards/ci-lanes.md, standards/code-review.md.
 
@@ -65,7 +65,7 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 | docs/CONSTITUTION.md | Constitution | 2026-05-09 | 10 forward-reference: wave-1 sentinels (expected per authority-chain design); no drift from directives | INFO | No action; landmark doc is consistent |
 | docs/PRD.md | PRD | 2026-05-09 | (a) W-Workspace axis added but NO Workspace PRD at docs/products/workspace/PRD.md; (b) 9 wave-1 sentinels; (c) no MASTERPLAN cite | HIGH | Create workspace/PRD.md; resolve wave-1 sentinels; add MASTERPLAN cites |
 | docs/DESIGN.md | DESIGN | 2026-05-09 | (a) Plane matrix missing Workspace (only 6 of 7 axes); (b) robotics-control crate mapping incomplete; (c) 1 wave-1 sentinel | HIGH | Update matrix to 7 axes; complete robotics mapping; add MASTERPLAN cites |
-| docs/ROADMAP.md | ROADMAP | 2026-05-09 | (a) W-Workspace-Preview in wave sequence but NO per-axis decomposition; (b) §3 is TODO v0.2 placeholder; (c) 2 wave-1 sentinels | HIGH | Fill workspace batch sequencing; resolve sentinels |
+| docs/ROADMAP.md | ROADMAP | 2026-05-09 | (a) W-Workspace-Preview in wave sequence but NO per-axis decomposition; (b) §3 is planning-closure-owned v0.2 placeholder; (c) 2 wave-1 sentinels | HIGH | Fill workspace batch sequencing; resolve sentinels |
 | docs/AGENTS.md | AGENTS | unknown | Node 20 reference (EOL Oct 2025); should be 24 | HIGH | Update Node 20 → 24; cite lts-versions-verified |
 | docs/TOOLCHAIN.md | TOOLCHAIN | unknown | (a) cargo-deny refs (16x) but no MSRV-compat documentation (1.78 vs 1.85); (b) hyperscaler-best-practices not cited; (c) SBOM/Cosign/SLSA not documented | HIGH | Add LTS constraint section; add supply-chain section; cite hyperscaler-best-practices |
 | docs/README.md | README | 2026-05-09 | 17 wave-1 sentinels; no Workspace PRD entry | HIGH | Resolve sentinels; add Workspace PRD entry; note MASTERPLAN pending lift |
@@ -86,7 +86,7 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 
 | # | File/Area | Finding | Action | Owner | Effort |
 |---|---|---|---|---|---|
-| **1** | docs/products/workspace/PRD.md | ORPHAN created 2026-05-09 | Create from _TEMPLATE.md; fill mission, users, surfaces, metrics | axis-workspace (TBD) | 4-6 hrs |
+| **1** | docs/products/workspace/PRD.md | ORPHAN created 2026-05-09 | Create from _TEMPLATE.md; fill mission, users, surfaces, metrics | axis-workspace (planning-closure-owned) | 4-6 hrs |
 | **2** | docs/teams/workspace/CHARTER.md | ORPHAN created 2026-05-09 | Create charter; name lead; list sub-leads; assign per-wave commitments | council-architecture | 2-3 hrs |
 | **3** | Cargo.toml | Rust 1.78 blocks cargo-deny 0.19 | Bump rust-version to 1.95; verify cargo-deny 0.19 runs | axis-foundry | 1-2 hrs |
 | **4** | docs/MASTERPLAN.md | Authority anchor not in canonical tree | Lift from .omc/plans/ to docs/; emit EVT-CONSTITUTION-AMENDED | council-architecture | 0.5 hrs |
@@ -95,7 +95,7 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 | **7** | docs/AGENTS.md | Node 20 EOL (Oct 2025); should be 24 | Update Node reference; cite lts-versions-verified | ops-sre-reliability | 0.5 hrs |
 | **8** | docs/DESIGN.md | Plane matrix missing Workspace (6 of 7 axes) | Update matrix to 7 axes; add Workspace rows | council-architecture | 1-2 hrs |
 | **9** | docs/TOOLCHAIN.md | Rust 1.78/1.85 MSRV gap not documented; hyperscaler-best-practices not cited; SBOM/Cosign/SLSA missing | Add LTS constraint section; add supply-chain section; cite hyperscaler-best-practices | ops-security + axis-foundry | 3-4 hrs |
-| **10** | docs/ROADMAP.md | §3 "Per-axis sequencing" TODO; Workspace decomposition undefined | Fill Workspace batch sequencing from synthesis output | tactical-first-vertical-pilot | 6-8 hrs |
+| **10** | docs/ROADMAP.md | §3 "Per-axis sequencing" planning-closure-owned; Workspace decomposition undefined | Fill Workspace batch sequencing from synthesis output | tactical-first-vertical-pilot | 6-8 hrs |
 | **11** | docs/README.md | 17 wave-1 sentinels block agent navigation | Inventory sentinels; remove as targets stabilize; metric = count → 0 by W-Foundation | council-architecture | 2-3 hrs |
 | **12** | docs/standards/code-style.md | Hyperscaler Principle 9 not cited; cargo-vet + workspace-lints missing | Add "Rust workspace practices" section; cite hyperscaler-best-practices Principle 3 | axis-foundry | 1-2 hrs |
 | **13** | Tier-1 docs (PRD, DESIGN, ROADMAP, RACI, RISK-REGISTER) | No MASTERPLAN cites despite authority-chain requirement | Add H2-level cites to MASTERPLAN §1-12 in each Tier-1 doc | council-architecture | 2-3 hrs |
@@ -147,7 +147,7 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 | docs/PRD.md | 9 | SPEC.md, DESIGN.md, ROADMAP.md, AGENTS.md | Pending |
 | docs/README.md | 17 | All Tier-1 + subdirs (products/, teams/, regional-packs/, standards/doc-style.md) | Pending |
 | docs/DESIGN.md | 1 | SPEC.md | Pending |
-| docs/ROADMAP.md | 2 | machine-readable/batches.json, per-axis-sequencing TODO | Pending |
+| docs/ROADMAP.md | 2 | machine-readable/batches.json, per-axis-sequencing planning-closure-owned | Pending |
 | **Total** | **~39** | 15+ docs | **Metric: count → 0 by W-Foundation gate** |
 
 ---
