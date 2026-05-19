@@ -382,9 +382,12 @@ pub trait SubagentPort {
 /// Deterministic mock port. Per the IP brief hard-stop ("network egress
 /// denied in test/CI environment → emit a runtime contract that lets
 /// the API call be mocked deterministically in tests; NOT a stub —
-/// the test path is canonical mock infrastructure"). The mock derives
-/// a deterministic [`FacetRecommendation`] from the facet id so panel
-/// completeness tests are reproducible without hitting Anthropic.
+/// the test path is canonical mock infrastructure").
+///
+/// Important: the mock is a CI smoke/fixture surface, not a quality
+/// reviewer. Its default is [`FacetRecommendation::Approve`] so the
+/// required check is not driven by meaningless facet-id hash noise. Tests
+/// that need negative rollups use explicit fixture directives or overrides.
 #[derive(Debug, Clone, Default)]
 pub struct MockSubagentPort {
     /// Optional override per facet id; useful for end-to-end tests
@@ -410,22 +413,10 @@ impl SubagentPort for MockSubagentPort {
         let recommendation = if let Some(over) = self.overrides.get(&request.facet_id) {
             *over
         } else {
-            // Deterministic projection: use the facet id's byte sum
-            // modulo 3 to pick APPROVE / CHANGES_REQUESTED / REJECT.
-            // This guarantees reproducible test output without
-            // pretending the mock is "smart" — it is just a fixture.
-            let byte_sum: u32 = request.facet_id.bytes().map(u32::from).sum();
-            match byte_sum % 3 {
-                0 => FacetRecommendation::Approve,
-                1 => FacetRecommendation::ChangesRequested,
-                _ => FacetRecommendation::Reject,
-            }
+            mock_directive_recommendation(&request.user_message)
+                .unwrap_or(FacetRecommendation::Approve)
         };
-        let body = format!(
-            "deterministic-mock finding for facet {facet} (change {change})",
-            facet = request.facet_id,
-            change = request.change_id,
-        );
+        let body = mock_findings_body(request, recommendation);
         Ok(SubagentResponse {
             facet_id: request.facet_id.clone(),
             reviewer_id: request.reviewer_id.clone(),
@@ -433,6 +424,36 @@ impl SubagentPort for MockSubagentPort {
             findings_body: body,
         })
     }
+}
+
+fn mock_directive_recommendation(user_message: &str) -> Option<FacetRecommendation> {
+    let lower = user_message.to_ascii_lowercase();
+    if lower.contains("oya_mock_reject") || lower.contains("mock_recommendation=reject") {
+        Some(FacetRecommendation::Reject)
+    } else if lower.contains("oya_mock_changes_requested")
+        || lower.contains("mock_recommendation=changes_requested")
+    {
+        Some(FacetRecommendation::ChangesRequested)
+    } else if lower.contains("oya_mock_approve") || lower.contains("mock_recommendation=approve") {
+        Some(FacetRecommendation::Approve)
+    } else {
+        None
+    }
+}
+
+fn mock_findings_body(request: &SubagentRequest, recommendation: FacetRecommendation) -> String {
+    let mode_note = match mock_directive_recommendation(&request.user_message) {
+        Some(_) => "explicit fixture directive selected this recommendation",
+        None => {
+            "no explicit fixture directive was present; defaulted APPROVE as deterministic CI smoke"
+        }
+    };
+    format!(
+        "deterministic-mock CI smoke for facet {facet} (change {change}); recommendation={recommendation}; {mode_note}; no content-quality claim is made by this mock path",
+        facet = request.facet_id,
+        change = request.change_id,
+        recommendation = recommendation.wire_value(),
+    )
 }
 
 /// Serializer for the per-facet `<facet>.json` evidence file consumed
@@ -607,6 +628,58 @@ mod tests {
         let r1 = port.complete(&request).unwrap();
         let r2 = port.complete(&request).unwrap();
         assert_eq!(r1, r2);
+    }
+
+    #[test]
+    fn mock_port_defaults_to_approve_without_fixture_directive() {
+        let port = MockSubagentPort::new();
+        let sref = SecretReference::new("sref://test-anthropic-key".into()).unwrap();
+        let request = SubagentRequest {
+            facet_id: "F3_adversarial".into(),
+            reviewer_id: "github-actions-agent-review-F3-pr1".into(),
+            change_id: "pr1".into(),
+            system_prompt: "sys mentions REJECT as a severity option".into(),
+            user_message: "ordinary PR diff without fixture directives".into(),
+            api_key_ref: sref,
+            model_id: "claude-opus-4-7".into(),
+        };
+        let response = port.complete(&request).unwrap();
+        assert_eq!(response.recommendation, FacetRecommendation::Approve);
+        assert!(response.findings_body.contains("deterministic CI smoke"));
+        assert!(response.findings_body.contains("no content-quality claim"));
+    }
+
+    #[test]
+    fn mock_port_honors_negative_fixture_directives() {
+        let port = MockSubagentPort::new();
+        let sref = SecretReference::new("sref://test-anthropic-key".into()).unwrap();
+        let reject = SubagentRequest {
+            facet_id: "F7_security".into(),
+            reviewer_id: "rid-reject".into(),
+            change_id: "pr1".into(),
+            system_prompt: "sys".into(),
+            user_message: "fixture says OYA_MOCK_REJECT".into(),
+            api_key_ref: sref.clone(),
+            model_id: "claude-opus-4-7".into(),
+        };
+        assert_eq!(
+            port.complete(&reject).unwrap().recommendation,
+            FacetRecommendation::Reject
+        );
+
+        let changes_requested = SubagentRequest {
+            facet_id: "F5_quality".into(),
+            reviewer_id: "rid-changes".into(),
+            change_id: "pr1".into(),
+            system_prompt: "sys".into(),
+            user_message: "fixture says mock_recommendation=changes_requested".into(),
+            api_key_ref: sref,
+            model_id: "claude-opus-4-7".into(),
+        };
+        assert_eq!(
+            port.complete(&changes_requested).unwrap().recommendation,
+            FacetRecommendation::ChangesRequested
+        );
     }
 
     #[test]
