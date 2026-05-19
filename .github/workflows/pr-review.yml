@@ -193,7 +193,13 @@ jobs:
           # explicit Check Run above because workflow_run jobs attach to
           # the default-branch workflow SHA, not reliably to the PR head.
           if [ "$conclusion" != "success" ]; then
-            echo "::error::pr-review verdict ${verdict} pending=${pending} — blocking merge" >&2
+            if [ "$pending" != "false" ]; then
+              echo "::error::pr-review runtime still pending — refusing required-check pass" >&2
+            elif [ "$verdict" = "CHANGES_REQUESTED" ]; then
+              echo "::error::pr-review verdict CHANGES_REQUESTED — fix-loop dispatched via pr-review-fix-requested event" >&2
+            else
+              echo "::error::pr-review verdict ${verdict} — blocking merge" >&2
+            fi
             exit 1
           fi
           echo "pr-review APPROVE (pending=${pending})"
