@@ -1195,10 +1195,58 @@
       "status": "pass",
       "summary": "workspace diff check clean for shared i18n/email neutral locale fixture slice",
       "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "workspace formatting clean after SaaS marketplace/workflow neutral fixture slice",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
+    },
+    {
+      "command": "cargo test -p oya-saas-plugin-marketplace-kernel",
+      "status": "pass",
+      "summary": "29 marketplace/auction/fanout tests passed after neutral tenant and pack fixtures",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
+    },
+    {
+      "command": "cargo test -p oya-saas-workflow-domain",
+      "status": "pass",
+      "summary": "5 workflow-domain tests passed after neutral regional pack fixture update",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
+    },
+    {
+      "command": "cargo test -p oya-saas-workflow-kernel",
+      "status": "pass",
+      "summary": "22 workflow-kernel tests passed after neutral regional pack fixture update",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-saas-plugin-marketplace-kernel --root crates/oya-saas-workflow-domain --root crates/oya-saas-workflow-kernel",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 8 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 210 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "workspace diff check clean for SaaS marketplace/workflow neutral fixture slice",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 253 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blockers remain residency/tenancy canonical-vs-pack separation and shared backup regulatory-pack naming, followed by search/SaaS surfaces.",
+    "Default canonical-base-neutrality scan currently fails with 210 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blockers remain residency/tenancy canonical-vs-pack separation, search locale/morphology seams, and shared backup regulatory-pack naming.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
@@ -1214,36 +1262,36 @@
       "risk": "high"
     },
     {
-      "lane": "shared backup regulatory-pack deprecation/migration",
-      "write_scope": "crates/oya-shared-backup-kernel",
-      "risk": "high"
-    },
-    {
       "lane": "search locale and tenant fixture neutralization",
       "write_scope": "crates/oya-search-*-domain",
       "risk": "high"
     },
     {
-      "lane": "SaaS marketplace/workflow pack fixture neutralization",
-      "write_scope": "crates/oya-saas-*",
+      "lane": "shared backup regulatory-pack deprecation/migration",
+      "write_scope": "crates/oya-shared-backup-kernel",
+      "risk": "high"
+    },
+    {
+      "lane": "post-neutrality PR/CI governance repair",
+      "write_scope": ".github/workflows, branch-protection evidence, PR #148 status once local blockers are green",
       "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T14:28:45Z",
+  "updated_at": "2026-05-19T14:31:28Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T14:28:45Z",
-    "change_scope": "shared i18n/email neutral locale fixture slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 263 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 253 jurisdiction leaks",
+    "observed_at": "2026-05-19T14:31:28Z",
+    "change_scope": "SaaS marketplace/workflow neutral tenant and pack fixture slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 253 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 210 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 10,
+      "jurisdiction_leaks_removed": 43,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "crates/oya-shared-i18n-kernel and crates/oya-shared-email-comms-kernel test locale fixtures",
-    "targeted_clean_summary": "cargo fmt --all --check passed; oya-shared-i18n-kernel and oya-shared-email-comms-kernel tests passed; scoped canonical-base-neutrality passed with 3 files checked and 0 jurisdiction leaks. Test fixtures now use synthetic locale tags while preserving BCP-47 shape, RTL primary-language behavior, fallback coverage, source-locale listing, and email preflight behavior.",
-    "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 253 leaks. The first remaining leak is still the gate-catalog EU-named command identity, requiring deprecation/migration. The largest semantic blockers remain residency/tenancy production seams and shared backup regulatory pack naming, followed by search and SaaS marketplace/workflow fixtures.",
-    "workspace_verification_note": "This slice changed test fixtures only. Production i18n locale parsing, RTL primary-language allowlist, catalog behavior, and email communication contracts stayed intact."
+    "targeted_clean_scope": "crates/oya-saas-plugin-marketplace-kernel, crates/oya-saas-workflow-domain, crates/oya-saas-workflow-kernel test fixtures",
+    "targeted_clean_summary": "cargo fmt --all --check passed; saas plugin marketplace, workflow-domain, and workflow-kernel tests passed; scoped canonical-base-neutrality passed with 8 files checked and 0 jurisdiction leaks. Tenant, listing, regional pack, and invalid-pack fixtures now use neutral alpha/beta labels while preserving tenant mismatch, listing filter, pack-prefix validation, workflow definition, and run lifecycle behavior.",
+    "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 210 leaks. The first remaining leak is gate-catalog regulated-AI command identity; major semantic buckets remain residency/tenancy, search locale/morphology, and shared backup regulatory-pack naming.",
+    "workspace_verification_note": "This slice changed SaaS test fixtures only. Production marketplace listing validation, auction tenant isolation, workflow regional-pack prefix checks, and lifecycle behavior stayed intact."
   },
   "remediation_history": [
     {
@@ -1724,6 +1772,21 @@
       "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 253 leaks. The first remaining leak is still the gate-catalog EU-named command identity, requiring deprecation/migration. The largest semantic blockers remain residency/tenancy production seams and shared backup regulatory pack naming, followed by search and SaaS marketplace/workflow fixtures.",
       "workspace_verification_note": "This slice changed test fixtures only. Production i18n locale parsing, RTL primary-language allowlist, catalog behavior, and email communication contracts stayed intact."
+    },
+    {
+      "observed_at": "2026-05-19T14:31:28Z",
+      "change_scope": "SaaS marketplace/workflow neutral tenant and pack fixture slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 253 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 210 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 43,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "crates/oya-saas-plugin-marketplace-kernel, crates/oya-saas-workflow-domain, crates/oya-saas-workflow-kernel test fixtures",
+      "targeted_clean_summary": "cargo fmt --all --check passed; saas plugin marketplace, workflow-domain, and workflow-kernel tests passed; scoped canonical-base-neutrality passed with 8 files checked and 0 jurisdiction leaks. Tenant, listing, regional pack, and invalid-pack fixtures now use neutral alpha/beta labels while preserving tenant mismatch, listing filter, pack-prefix validation, workflow definition, and run lifecycle behavior.",
+      "evidence_log": "/tmp/fd001-saas-marketplace-workflow-neutral-fixtures-verify-20260519T143128Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 210 leaks. The first remaining leak is gate-catalog regulated-AI command identity; major semantic buckets remain residency/tenancy, search locale/morphology, and shared backup regulatory-pack naming.",
+      "workspace_verification_note": "This slice changed SaaS test fixtures only. Production marketplace listing validation, auction tenant isolation, workflow regional-pack prefix checks, and lifecycle behavior stayed intact."
     }
   ]
 }
