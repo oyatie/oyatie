@@ -1066,10 +1066,7 @@ fn validate_tenant_id(value: &str) -> Result<(), CloudFinopsError> {
 fn validate_financial_class(data_class: DataClass) -> Result<PrivacyDataClass, CloudFinopsError> {
     let data_class =
         PrivacyDataClass::new(data_class).map_err(|_| CloudFinopsError::InvalidDataClass)?;
-    if matches!(
-        data_class.data_class(),
-        DataClass::Financial | DataClass::FinancialKrCredit
-    ) {
+    if matches!(data_class.data_class(), DataClass::Financial) {
         Ok(data_class)
     } else {
         Err(CloudFinopsError::InvalidDataClass)
@@ -1097,11 +1094,11 @@ fn public<T>(value: T) -> Classified<T> {
 }
 
 fn financial<T>(value: T) -> Classified<T> {
-    Classified::new(value, DataClass::FinancialKrCredit)
+    Classified::new(value, DataClass::Financial)
 }
 
 fn financial_value<T>(value: T) -> Classified<T> {
-    Classified::new(value, DataClass::FinancialKrCredit)
+    Classified::new(value, DataClass::Financial)
 }
 
 fn is_ascii_token(value: &str) -> bool {
@@ -1117,9 +1114,9 @@ mod tests {
     use super::*;
 
     const TENANT: &str = "ten_alpha";
-    const REGION: &str = "kr-seoul";
-    const RESOURCE: &str = "oya:cloud:kr-seoul:ten_alpha:instance:vm-a";
-    const RATE_CARD: &str = "rate/kr-standard";
+    const REGION: &str = "alpha-region";
+    const RESOURCE: &str = "oya:cloud:alpha-region:ten_alpha:instance:vm-a";
+    const RATE_CARD: &str = "rate/standard";
 
     fn period() -> FinopsPeriod {
         FinopsPeriod::new(1_000, 2_000).expect("period")
@@ -1129,8 +1126,8 @@ mod tests {
         FinopsPeriod::new(1, 1_001).expect("baseline period")
     }
 
-    fn money_krw(minor_units: u64) -> Money {
-        Money::new("KRW", minor_units).expect("money")
+    fn money_units(minor_units: u64) -> Money {
+        Money::new("TOK", minor_units).expect("money")
     }
 
     fn meter_event(id: &str, axis: AxisId, quantity: u64, ts: u64) -> MeterEvent {
@@ -1154,10 +1151,10 @@ mod tests {
             region: REGION.to_string(),
             axis,
             unit_kind,
-            currency: "KRW".to_string(),
+            currency: "TOK".to_string(),
             rate,
             effective_period: FinopsPeriod::new(1, 3_000).expect("rate period"),
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
         }
     }
 
@@ -1168,13 +1165,13 @@ mod tests {
             resource_id: RESOURCE.to_string(),
             rate_card_ref: RATE_CARD.to_string(),
             meter_event: event,
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
         }
     }
 
     fn report_request() -> FinopsReportRequest {
         FinopsReportRequest {
-            id: "finr_kr_month".to_string(),
+            id: "finr_month".to_string(),
             tenant_id: TENANT.to_string(),
             region: REGION.to_string(),
             period: period(),
@@ -1182,7 +1179,7 @@ mod tests {
             axes: vec![AxisId::Cloud, AxisId::Saas],
             anomaly_policy: AnomalyPolicy::new(1_000, 100).expect("policy"),
             minimum_gross_margin_bps: STABLE_GROSS_MARGIN_TARGET_BPS,
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
         }
     }
 
@@ -1215,10 +1212,10 @@ mod tests {
                 region: REGION.to_string(),
                 axis: AxisId::Cloud,
                 period: period(),
-                budget: money_krw(10_000),
+                budget: money_units(10_000),
                 soft_threshold_bps: 8_000,
                 hard_threshold_bps: 10_000,
-                data_class: DataClass::FinancialKrCredit,
+                data_class: DataClass::Financial,
             })
             .expect("budget");
         ledger
@@ -1241,8 +1238,8 @@ mod tests {
             .expect("current saas");
 
         let report = ledger.generate_report(report_request()).expect("report");
-        assert_eq!(report.total_cost.value, money_krw(5_000));
-        assert_eq!(report.total_cost_of_revenue.value, money_krw(2_200));
+        assert_eq!(report.total_cost.value, money_units(5_000));
+        assert_eq!(report.total_cost_of_revenue.value, money_units(2_200));
         assert_eq!(report.gross_margin_bps.value, 5_600);
         assert_eq!(report.axis_costs.value.len(), 2);
         assert_eq!(report.resource_costs.value.len(), 2);
@@ -1260,10 +1257,10 @@ mod tests {
                 region: REGION.to_string(),
                 axis: AxisId::Cloud,
                 period: period(),
-                budget: money_krw(3_000),
+                budget: money_units(3_000),
                 soft_threshold_bps: 8_000,
                 hard_threshold_bps: 10_000,
-                data_class: DataClass::FinancialKrCredit,
+                data_class: DataClass::Financial,
             })
             .expect("budget");
         ledger
@@ -1337,7 +1334,7 @@ mod tests {
         assert_eq!(
             ledger
                 .record_allocation(CostAllocationCreate {
-                    resource_id: "oya:cloud:kr-seoul:ten_other:instance:vm-a".to_string(),
+                    resource_id: "oya:cloud:alpha-region:ten_other:instance:vm-a".to_string(),
                     ..allocation(
                         "fca_bad_tenant",
                         meter_event("mtr_bad_tenant", AxisId::Cloud, 1_000_000, 1_500),
@@ -1382,10 +1379,10 @@ mod tests {
                 region: REGION.to_string(),
                 axis: AxisId::Cloud,
                 period: period(),
-                budget: money_krw(1_000),
+                budget: money_units(1_000),
                 soft_threshold_bps: 10_000,
                 hard_threshold_bps: 8_000,
-                data_class: DataClass::FinancialKrCredit,
+                data_class: DataClass::Financial,
             })
             .unwrap_err(),
             CloudFinopsError::InvalidBudgetThreshold
@@ -1415,7 +1412,7 @@ mod tests {
                 region: REGION.to_string(),
                 axis: AxisId::Cloud,
                 period: period(),
-                budget: money_krw(1_000),
+                budget: money_units(1_000),
                 soft_threshold_bps: 8_000,
                 hard_threshold_bps: 10_000,
                 data_class: DataClass::Public,
