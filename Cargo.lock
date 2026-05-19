@@ -1317,6 +1317,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-data-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-kms-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
 name = "oya-cloud-data-kernel"
 version = "0.1.0"
 
