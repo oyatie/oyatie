@@ -1256,6 +1256,17 @@ name = "oya-cloud-billing-tax-app"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-capacity-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-billing-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
+]
+
+[[package]]
 name = "oya-cloud-capacity-kernel"
 version = "0.1.0"
 

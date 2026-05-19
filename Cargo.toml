@@ -189,6 +189,7 @@ members = [
   "crates/oya-cloud-storage-block-api",
   "crates/oya-cloud-storage-object-api",
   "crates/oya-cloud-capacity-kernel",
+  "crates/oya-cloud-capacity-domain",
   "crates/oya-cloud-data-kernel",
   "crates/oya-cloud-billing-kernel",
   "crates/oya-cloud-billing-tax-app",
