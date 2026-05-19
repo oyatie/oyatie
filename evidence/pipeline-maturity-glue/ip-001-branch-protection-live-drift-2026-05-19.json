@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "changeset": "M01-P17-IP-001",
+  "recorded_at": "2026-05-19T06:15:00Z",
+  "repository": "jason931225/oyatie",
+  "branch": "dev",
+  "policy_sources": [
+    ".github/branch-protection.yaml",
+    "infra/branch-protection/dev.json",
+    ".github/workflows/oya-foundry-fitness-protection-context-match.yml"
+  ],
+  "canonical_required_contexts": [
+    "cargo-fmt",
+    "cargo-check",
+    "cargo-clippy",
+    "cargo-nextest",
+    "oya-vcs-admission",
+    "oya-vcs-provider-execution",
+    "oya-foundry-fitness-supply-chain",
+    "oya-foundry-fitness-cohesion",
+    "oya-foundry-fitness-api-semver",
+    "oya-foundry-fitness-honest-claims",
+    "oya-foundry-fitness-aspirational-enforcement",
+    "oya-foundry-fitness-banned-primitives",
+    "oya-foundry-fitness-protection-context-match",
+    "oya-governance-dependency-seam",
+    "oya-pr-review"
+  ],
+  "live_required_contexts": [
+    "cargo-fmt",
+    "cargo-check",
+    "cargo-clippy",
+    "cargo-nextest",
+    "oya-vcs-admission",
+    "oya-vcs-provider-execution",
+    "oya-foundry-fitness-supply-chain",
+    "oya-foundry-fitness-cohesion",
+    "oya-foundry-fitness-api-semver",
+    "oya-foundry-fitness-protection-context-match"
+  ],
+  "missing_from_live": [
+    "oya-foundry-fitness-aspirational-enforcement",
+    "oya-foundry-fitness-banned-primitives",
+    "oya-foundry-fitness-honest-claims",
+    "oya-governance-dependency-seam",
+    "oya-pr-review"
+  ],
+  "extra_in_live": [],
+  "local_gate_command": "cargo run -q -p oya-dev-cli -- gate validate protection-context-match --live-required-contexts <live-json>",
+  "local_gate_exit_code": 1,
+  "local_gate_output": "protection-context-match validation failed:\nlive branch protection required_status_checks for branch `dev` diverge from .github/branch-protection.yaml\nmissing from live branch protection: oya-foundry-fitness-aspirational-enforcement, oya-foundry-fitness-banned-primitives, oya-foundry-fitness-honest-claims, oya-governance-dependency-seam, oya-pr-review",
+  "official_github_docs": {
+    "protected_branch_status_check_endpoint": "https://docs.github.com/en/rest/branches/branch-protection#get-status-checks-protection",
+    "permission_required": "Administration repository permissions (read)",
+    "github_token_workflow_permissions": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions"
+  },
+  "verdict": "blocked_until_live_dev_branch_protection_matches_repo_policy"
+}
