@@ -35,6 +35,19 @@ pub struct AgentInstructionFileScan {
     pub usages: Vec<PrimitiveUsage>,    // data_class: INTERNAL_ONLY
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommandInvocation {
+    pub source: String,  // data_class: INTERNAL_ONLY
+    pub line: u32,       // data_class: INTERNAL_ONLY
+    pub command: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommandInvocationScan {
+    pub invocation: CommandInvocation, // data_class: INTERNAL_ONLY
+    pub usages: Vec<PrimitiveUsage>,   // data_class: INTERNAL_ONLY
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum PrimitiveKind {
     DirectVcs,
@@ -213,6 +226,18 @@ pub fn scan_agent_instruction_file(
         },
         usages,
     })
+}
+
+pub fn scan_command_invocation(invocation: CommandInvocation) -> CommandInvocationScan {
+    let mut usages = Vec::new();
+    detect_usages(
+        &invocation.source,
+        invocation.line,
+        &invocation.command,
+        &mut usages,
+    );
+
+    CommandInvocationScan { invocation, usages }
 }
 
 pub fn check_documented_genuine_need(
@@ -409,7 +434,11 @@ fn shellish_tokens(line: &str) -> Vec<String> {
 }
 
 fn is_sanctioned_git_token(tokens: &[String], index: usize) -> bool {
-    is_token_filtered(tokens, index, "oya")
+    index
+        .checked_sub(1)
+        .and_then(|previous_index| tokens.get(previous_index))
+        .map(|token| token == "oya" || token.ends_with("/oya"))
+        .unwrap_or(false)
 }
 
 fn is_token_filtered(tokens: &[String], index: usize, previous: &str) -> bool {
@@ -624,6 +653,48 @@ mod tests {
         .expect("scan succeeds");
 
         assert!(scan.usages.is_empty());
+    }
+
+    #[test]
+    fn scan_command_invocation_allows_sanctioned_bin_oya_git_surface() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source: "registry/fitness-corpora/banned-primitives/command-log.v1.jsonl".into(),
+            line: 1,
+            command: "bin/oya git status --short".into(),
+        });
+
+        assert!(scan.usages.is_empty());
+    }
+
+    #[test]
+    fn scan_command_invocation_rejects_direct_git_status() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source: "registry/fitness-corpora/banned-primitives/reject-direct-git.jsonl".into(),
+            line: 1,
+            command: "git status --short".into(),
+        });
+
+        assert_eq!(scan.usages.len(), 1);
+        assert_eq!(scan.usages[0].primitive, PrimitiveKind::DirectVcs);
+    }
+
+    #[test]
+    fn scan_command_invocation_rejects_hard_banned_even_with_rationale() {
+        let scan = scan_command_invocation(CommandInvocation {
+            source: "registry/fitness-corpora/banned-primitives/reject-manual-push.jsonl".into(),
+            line: 1,
+            command: "git push origin dev rationale: ICM-1".into(),
+        });
+
+        assert_eq!(scan.usages[0].primitive, PrimitiveKind::ManualPush);
+        assert_eq!(
+            check_documented_genuine_need(&required_sources(), &scan.usages, &["ICM-1".into()]),
+            Err(BannedPrimitivesFitnessError::HardBannedPrimitive {
+                path: "registry/fitness-corpora/banned-primitives/reject-manual-push.jsonl".into(),
+                line: 1,
+                primitive: PrimitiveKind::ManualPush,
+            })
+        );
     }
 
     #[test]

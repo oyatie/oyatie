@@ -25,7 +25,7 @@ Current implementation shape:
 
 - kernel crate: `crates/oya-foundry-fitness-banned-primitives-kernel`
 - direct runner: `tools/oya-foundry-fitness-banned-primitives-app`
-- gate runner: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives`
+- gate runner: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives`
 - workflow context: `oya-foundry-fitness-banned-primitives`
 - quality lane: `registry/quality/lanes.yaml::oya-foundry-fitness-banned-primitives`
 - branch-protection row: `.github/branch-protection.yaml::branches.dev.required_status_checks`
@@ -34,10 +34,13 @@ Current implementation shape:
 
 - `check_documented_genuine_need(...)` remains the kernel enforcement function.
 - `scan_agent_instruction_file(...)` parses fenced `agent-instructions` source blocks and emits typed primitive usage records.
-- `oya gate validate banned-primitives` is part of `oya gate run-all`.
+- `scan_command_invocation(...)` parses sanitized command-log records and emits typed primitive usage records.
+- `oya gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives` is part of `oya gate run-all`.
 - `quality-lanes`, `protection-context-match`, `aspirational-enforcement`, and `planning-closure` remain green after the lane is registered.
 
 ## Exit evidence
 
 - `/evidence/fd001/cs-fitness-001-banned-primitives.json`
 - `/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json`
+- `/evidence/fd001/cs-fitness-001-command-log-corpus.json`
+- `/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json`

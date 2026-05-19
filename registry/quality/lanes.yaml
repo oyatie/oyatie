@@ -85,10 +85,10 @@ lanes:
     stage: foundation
     status: active
     owner_team: council-architecture
-    purpose: block banned primitive use inside fenced agent-instruction contracts unless a direct primitive has a documented genuine-need rationale
+    purpose: block banned primitive use inside fenced agent-instruction contracts and the sanitized tracked command-log corpus
     source: specs/master-plan-sequencing.json / F-FORBIDDEN-PRIMITIVES-CI-GUARD
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-dev-cli -- gate validate banned-primitives
+    check_command: cargo run -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives
   - id: oya-foundry-fitness-workspace-hygiene
     stage: foundation
     status: active

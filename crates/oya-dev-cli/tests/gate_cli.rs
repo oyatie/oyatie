@@ -6119,6 +6119,349 @@ fn banned_primitives_gate_rejects_manual_push_inside_agent_fence() {
 }
 
 #[test]
+fn banned_primitives_gate_accepts_sanitized_command_log_corpus() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-clean");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "command-log.v1.jsonl",
+        r#"{"record_id":"clean-001","origin":"session_tool_call_fixture","tool":"bin/oya","args":["git","status","--short"],"redacted":true,"expected":"allow"}
+{"record_id":"clean-002","origin":"session_tool_call_fixture","tool":"oya","args":["vcs","verify","--agent","fd001"],"redacted":true,"expected":"allow"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected sanitized command-log corpus to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("2 command-log records"),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_requires_command_log_records_when_requested() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-required");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("command-log corpus required"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_direct_git_in_command_log_corpus() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-direct-git");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-direct-git-status.jsonl",
+        r#"{"record_id":"reject-001","origin":"session_tool_call_fixture","tool":"git","args":["status","--short"],"redacted":true,"expected":"direct-vcs"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("forbidden command-log primitive direct-vcs"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_nested_shell_command_log_corpus() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-shell");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-nested-shell.jsonl",
+        r#"{"record_id":"reject-002","origin":"session_tool_call_fixture","tool":"Bash","tool_input":{"command":"git push origin dev"},"redacted":true,"expected":"manual-push"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("forbidden command-log primitive manual-push"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_cmd_command_log_field() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-cmd-field");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-cmd-field.jsonl",
+        r#"{"record_id":"reject-004","origin":"session_tool_call_fixture","tool":"Bash","cmd":"git push origin dev","redacted":true,"expected":"manual-push"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("forbidden command-log primitive manual-push"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_json_encoded_tool_arguments() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-json-arguments");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-json-arguments.jsonl",
+        r#"{"record_id":"reject-005","origin":"session_tool_call_fixture","tool":"Bash","arguments":"{\"cmd\":\"gh pr merge 123\"}","redacted":true,"expected":"forge-merge"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("forbidden command-log primitive forge-merge"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_tool_only_command_log_records() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-tool-only");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-tool-only.jsonl",
+        r#"{"record_id":"reject-006","origin":"session_tool_call_fixture","tool":"Bash","redacted":true,"expected":"reject-missing-command-surface"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("has no command or tool/args surface"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_unredacted_command_log_records() {
+    let temp = TempDirGuard::new("banned-primitives-command-log-unredacted");
+    write_banned_primitives_fixture(temp.path(), "  - oya-git\n");
+    let corpus = temp
+        .path()
+        .join("registry/fitness-corpora/banned-primitives");
+    write_command_log_fixture(
+        &corpus,
+        "reject-unredacted.jsonl",
+        r#"{"record_id":"reject-003","origin":"session_tool_call_fixture","tool":"oya","args":["git","status"],"redacted":false,"expected":"reject-unredacted"}
+"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+            "--require-command-log-corpus",
+            "--command-log-root",
+            "registry/fitness-corpora/banned-primitives",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("redacted=true"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn aspirational_enforcement_gate_rejects_missing_required_workflow() {
     let temp = TempDirGuard::new("aspirational-missing-workflow");
     let fixture = write_aspirational_fixture(temp.path());
@@ -6937,6 +7280,11 @@ fn write_banned_primitives_fixture(root: &Path, root_agent_fence_body: &str) {
         "# Docs agent contract\n\n<!-- agent-instructions:start -->\nsanctioned_primitives:\n  - oya-vcs\n<!-- agent-instructions:end -->\n",
     )
     .expect("docs AGENTS fixture written");
+}
+
+fn write_command_log_fixture(root: &Path, file_name: &str, contents: &str) {
+    fs::create_dir_all(root).expect("command-log corpus dir created");
+    fs::write(root.join(file_name), contents).expect("command-log fixture written");
 }
 
 fn write_honest_claims_plan(plans_dir: &Path, file_name: &str, id: &str, extra: &str) {
