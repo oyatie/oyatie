@@ -1226,16 +1226,12 @@ mod tests {
         PrivacyDataClass::new(data_class).expect("test fixture uses privacy class")
     }
 
-    fn residency_class_from_label_parts(parts: &[&str]) -> ResidencyClass {
-        oya_residency_domain::parse_residency_class_label(&parts.concat()).unwrap()
-    }
-
     fn cross_region_residency_class() -> ResidencyClass {
-        residency_class_from_label_parts(&["k", "r", "_with_", "u", "s", "_failover"])
+        ResidencyClass::HomeWithFailover
     }
 
     fn strict_residency_class() -> ResidencyClass {
-        residency_class_from_label_parts(&["strict", "_", "k", "r"])
+        ResidencyClass::StrictHome
     }
 
     fn platform_dsr_bundle() -> (DsrRequest, DsrCompletionRecord, ErasureProof) {
