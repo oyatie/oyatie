@@ -1403,6 +1403,47 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("fd001-manifest-workspace-alignment")) => {
+            match crate::parse_fd001_manifest_workspace_alignment_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_fd001_manifest_workspace_alignment_gate(args) {
+                    Ok(report) => {
+                        let evidence = report
+                            .emitted_report_path
+                            .as_ref()
+                            .map(|path| format!(", report={}", path.display()))
+                            .unwrap_or_default();
+                        if report.report_only {
+                            println!(
+                                "fd001-manifest-workspace-alignment report-only: {} manifests, {} required crates, {} missing{}",
+                                report.manifest_count,
+                                report.required_crate_count,
+                                report.missing_crates.len(),
+                                evidence
+                            );
+                        } else {
+                            println!(
+                                "fd001-manifest-workspace-alignment validation passed: {} manifests, {} required crates, {} missing{}",
+                                report.manifest_count,
+                                report.required_crate_count,
+                                report.missing_crates.len(),
+                                evidence
+                            );
+                        }
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!(
+                            "fd001-manifest-workspace-alignment validation failed: {message}"
+                        );
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("planning-closure")) => {
             match crate::parse_planning_closure_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_planning_closure_gate(args) {

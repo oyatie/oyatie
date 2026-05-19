@@ -53,6 +53,7 @@ mod date_utils;
 mod dependency_seam_gates;
 mod design_spec_maturity_claims_gate;
 mod documentation_gates;
+mod fd001_manifest_workspace_alignment_gate;
 mod foundation_audit_gates;
 mod foundation_fixture;
 mod foundry_capability_schema_gates;
@@ -142,6 +143,10 @@ pub(crate) use documentation_gates::{
     parse_doc_catalog_validate_args, parse_documentation_system_validate_args,
     parse_readme_doc_coverage_validate_args, validate_doc_catalog_gate,
     validate_documentation_system_gate, validate_readme_doc_coverage_gate,
+};
+pub(crate) use fd001_manifest_workspace_alignment_gate::{
+    parse_fd001_manifest_workspace_alignment_validate_args,
+    validate_fd001_manifest_workspace_alignment_gate,
 };
 pub(crate) use foundation_audit_gates::{
     parse_audit_chain_replay_validate_args, parse_foundation_bypass_validate_args,
@@ -318,6 +323,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate aspirational-enforcement [--clear-default-corpus] [--corpus-root <path>]... [--crates-dir <crates>] [--workflows-dir <.github/workflows>] [--quality-lanes <registry/quality/lanes.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--branch <dev>]"
         + "\n       oya gate validate banned-primitives [--repo-root <.>] [--clear-default-roots] [--root <path>]... [--command-log-root <path>]... [--require-command-log-corpus] [--known-rationale <id>]..."
         + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
+        + "\n       oya gate validate fd001-manifest-workspace-alignment [--repo-root <.>] [--workspace <Cargo.toml>] [--manifest-index <specs/microservices/manifests-index.json>] [--all-manifests] [--manifest <microservices/<id>/manifest.json>]... [--report-only] [--emit-report <evidence/...json>]"
         + "\n       oya gate validate korea-localization-evidence [--repo-root <.>] [--pack-overview <docs/localization-packs/kr.md>] [--pack-manifest <docs/localization-packs/kr/pack.yaml>] [--corpus-lock <docs/localization-packs/kr/corpus.lock>] [--evidence-dir <docs/localization-packs/kr/evidence>] [--emit-evidence <evidence/fd001/korea-localization-pack-evidence-2026-05-19.json>]"
         + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
         + "\n       oya gate validate canonical-base-neutrality [--repo-root <.>] [--root <path>]... [--exclude-root <path>]... [--self-test]"
