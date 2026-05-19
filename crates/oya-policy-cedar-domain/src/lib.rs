@@ -471,13 +471,13 @@ mod tests {
             .publish(policy_version(
                 POLICY_ID,
                 "1.0.0",
-                PolicyScope::Tenant("ten_kr".to_string()),
+                PolicyScope::Tenant("ten_alpha".to_string()),
                 None,
             ))
             .expect("tenant policy publishes");
 
         assert_eq!(global.scope, PolicyScope::Global);
-        assert_eq!(tenant.scope, PolicyScope::Tenant("ten_kr".to_string()));
+        assert_eq!(tenant.scope, PolicyScope::Tenant("ten_alpha".to_string()));
     }
 
     #[test]
@@ -586,11 +586,11 @@ mod tests {
 
         let decision = policies.authorize(&AuthorizationQuery {
             subject: AuthorizationSubject {
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 roles: vec!["tenant-admin".to_string()],
             },
             action: "tenant.settings.update".to_string(),
-            resource: "tenant:ten_kr:settings".to_string(),
+            resource: "tenant:ten_alpha:settings".to_string(),
             attributes: BTreeMap::new(),
         });
 
@@ -606,7 +606,7 @@ mod tests {
     #[test]
     fn authz_engine_types_serialize_and_deserialize_via_serde_json() {
         let request = AuthzRequest {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             principal_type: PrincipalType::User,
             principal_id: Some("usr_001".to_string()),
             action: "Read".to_string(),
@@ -708,7 +708,7 @@ mod tests {
     // ── helpers ───────────────────────────────────────────────────────────────
 
     fn tenant_scope() -> PolicyScope {
-        PolicyScope::Tenant("ten_kr".to_string())
+        PolicyScope::Tenant("ten_alpha".to_string())
     }
 
     fn policy_version(

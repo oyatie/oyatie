@@ -351,7 +351,7 @@ mod tests {
         let span = observer.start_capability_invocation(&CapabilityInvocationTraceContext {
             service_name: "oya-foundation-app".to_string(),
             tenant_id: "ten_noop".to_string(),
-            tenant_region: "kr-seoul".to_string(),
+            tenant_region: "region-alpha".to_string(),
             cell_id: Some("cell-noop".to_string()),
             capability_id: "cap.noop".to_string(),
             data_classes_touched: "INTERNAL_ONLY".to_string(),
