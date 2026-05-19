@@ -1117,10 +1117,46 @@
       "status": "pass",
       "summary": "workspace diff check clean for metering/observability/policy-Cedar neutral fixture slice",
       "evidence_log": "/tmp/fd001-metering-observability-policy-neutral-fixtures-verify-20260519T141353Z.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "workspace formatting clean after tenancy-domain neutral test-fixture slice",
+      "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log"
+    },
+    {
+      "command": "cargo test -p oya-tenancy-domain",
+      "status": "pass",
+      "summary": "10 tenancy-domain tests passed after replacing jurisdiction-specific tenant/residency fixtures with neutral Global/PerPack fixtures",
+      "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-tenancy-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 263 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "workspace diff check clean for tenancy-domain neutral fixture slice",
+      "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 276 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest remaining blocker is residency/tenancy canonical-vs-pack separation, followed by search/shared backup/i18n/email/SaaS surfaces.",
+    "Default canonical-base-neutrality scan currently fails with 263 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blocker remains residency/tenancy canonical-vs-pack separation in oya-residency-domain and oya-tenancy-kernel, followed by search/shared backup/i18n/email/SaaS surfaces.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
@@ -1132,7 +1168,7 @@
     },
     {
       "lane": "residency/tenancy canonical-vs-pack boundary review",
-      "write_scope": "crates/oya-residency-domain, crates/oya-tenancy-domain, crates/oya-tenancy-kernel",
+      "write_scope": "crates/oya-residency-domain and crates/oya-tenancy-kernel; oya-tenancy-domain test fixtures are now clean",
       "risk": "high"
     },
     {
@@ -1151,21 +1187,21 @@
       "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T14:13:53Z",
+  "updated_at": "2026-05-19T14:23:01Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T14:13:53Z",
-    "change_scope": "metering observability and policy cedar neutral test-fixture slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 285 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 276 jurisdiction leaks",
+    "observed_at": "2026-05-19T14:23:01Z",
+    "change_scope": "tenancy-domain neutral test-fixture slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 276 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 263 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 9,
+      "jurisdiction_leaks_removed": 13,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "crates/oya-metering-domain, crates/oya-observability-domain, crates/oya-policy-cedar-domain",
-    "targeted_clean_summary": "cargo fmt --all --check passed; metering-domain, observability-domain, and policy-cedar-domain tests passed; scoped canonical-base-neutrality passed with 4 files checked and 0 jurisdiction leaks; rg found no old metering/observability/policy fixture literals in the edited files.",
-    "evidence_log": "/tmp/fd001-metering-observability-policy-neutral-fixtures-verify-20260519T141353Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 276 leaks. The next first-listed blocker remains the gate-catalog EU-named command identity, followed by a large residency/tenancy canonical-vs-pack boundary review, search, shared backup/i18n/email, and SaaS marketplace/workflow fixture surfaces.",
-    "workspace_verification_note": "This slice changed test fixtures only: tenant IDs, idempotency keys, telemetry tenant region, and Cedar policy test resources now use neutral synthetic identifiers while production validation and authorization behavior stayed intact."
+    "targeted_clean_scope": "crates/oya-tenancy-domain/src/lib.rs test fixtures",
+    "targeted_clean_summary": "cargo fmt --all --check passed; oya-tenancy-domain tests passed; scoped canonical-base-neutrality passed with 2 files checked and 0 jurisdiction leaks. The mismatch test now uses neutral per-pack allowed-region fixtures instead of StrictKr/kr/us test data.",
+    "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 263 leaks. The first remaining leak is still the gate-catalog EU-named command identity, which needs a deprecation/migration slice. Residency and tenancy production semantics remain a high-risk canonical-vs-pack boundary review in oya-residency-domain and oya-tenancy-kernel, followed by search, shared backup/i18n/email, and SaaS marketplace/workflow fixture surfaces.",
+    "workspace_verification_note": "This slice changed tenancy-domain tests only. Production Tenant::new validation stayed intact; the home-region rejection behavior is still covered through ResidencyClass::PerPack allowed_primary_regions rather than concrete jurisdiction-specific StrictKr fixtures."
   },
   "remediation_history": [
     {
@@ -1616,6 +1652,21 @@
       "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 285 leaks. The next first-listed blocker is the gate-catalog EU-named command identity; because that touches live CI lane naming, it needs a deprecation/migration slice rather than a blind rename. Remaining bulk blockers then start in metering/observability/policy cedar, residency/tenancy, search, shared backup/i18n/email, and SaaS marketplace/workflow surfaces.",
       "workspace_verification_note": "Retention schedules now use neutral baseline names; Foundry autonomy pack classifier uses neutral health/financial regulated-pack tokens; route policy default residency is region-default; application autonomy fixtures no longer require regional pack or region strings. Behavior remains covered by existing domain/application tests."
+    },
+    {
+      "observed_at": "2026-05-19T14:23:01Z",
+      "change_scope": "tenancy-domain neutral test-fixture slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 276 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 263 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 13,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "crates/oya-tenancy-domain/src/lib.rs test fixtures",
+      "targeted_clean_summary": "cargo fmt --all --check passed; oya-tenancy-domain tests passed; scoped canonical-base-neutrality passed with 2 files checked and 0 jurisdiction leaks. The mismatch test now uses neutral per-pack allowed-region fixtures instead of StrictKr/kr/us test data.",
+      "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 263 leaks. The first remaining leak is still the gate-catalog EU-named command identity, which needs a deprecation/migration slice. Residency and tenancy production semantics remain a high-risk canonical-vs-pack boundary review in oya-residency-domain and oya-tenancy-kernel, followed by search, shared backup/i18n/email, and SaaS marketplace/workflow fixture surfaces.",
+      "workspace_verification_note": "This slice changed tenancy-domain tests only. Production Tenant::new validation stayed intact; the home-region rejection behavior is still covered through ResidencyClass::PerPack allowed_primary_regions rather than concrete jurisdiction-specific StrictKr fixtures."
     }
   ]
 }

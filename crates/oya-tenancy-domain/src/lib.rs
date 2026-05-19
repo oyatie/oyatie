@@ -64,31 +64,55 @@ impl Tenant {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_residency_domain::{
+        PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
+    };
+
+    fn per_pack_residency(allowed_primary_regions: Vec<&str>) -> ResidencyClass {
+        let regulator_overlay = RegulatorOverlay::new(RegulatorOverlayCreate {
+            regulator_refs: vec!["regulator-alpha".to_string()],
+            evidence_ref: "evidence/residency-alpha".to_string(),
+        })
+        .expect("regulator overlay fixture is valid");
+
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: allowed_primary_regions
+                    .into_iter()
+                    .map(str::to_string)
+                    .collect(),
+                allowed_replica_regions: vec!["region-replica".to_string()],
+                forbidden_regions: Vec::new(),
+                regulator_overlay,
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
+    }
 
     #[test]
     fn tenant_identity_includes_residency_class() {
         let tenant = Tenant::new(
-            "ten_kr".to_string(),
-            "KR Tenant".to_string(),
-            "kr-seoul".to_string(),
-            ResidencyClass::StrictKr,
-            vec!["oya-pack-kr".to_string()],
+            "ten_alpha".to_string(),
+            "Tenant Alpha".to_string(),
+            "region-alpha".to_string(),
+            ResidencyClass::Global,
+            vec!["pack-alpha".to_string()],
         )
-        .expect("KR tenant residency is valid");
+        .expect("tenant residency fixture is valid");
 
-        assert_eq!(tenant.residency_class.value.label(), Some("strict_kr"));
+        assert_eq!(tenant.residency_class.value.label(), Some("global"));
     }
 
     #[test]
     fn tenant_rejects_residency_home_region_mismatch() {
         let error = Tenant::new(
-            "ten_us".to_string(),
-            "US Tenant".to_string(),
-            "us-east".to_string(),
-            ResidencyClass::StrictKr,
-            vec!["oya-pack-kr".to_string()],
+            "ten_beta".to_string(),
+            "Tenant Beta".to_string(),
+            "region-beta".to_string(),
+            per_pack_residency(vec!["region-alpha"]),
+            vec!["pack-alpha".to_string()],
         )
-        .expect_err("strict KR tenants require KR home region");
+        .expect_err("tenant home region must be allowed by residency class");
 
         assert_eq!(error, TenantError::HomeRegionNotAllowedForResidency);
     }
