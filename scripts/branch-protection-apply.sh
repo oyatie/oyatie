@@ -65,6 +65,11 @@ require_cmd gh
 require_cmd jq
 require_cmd cargo
 
+if [[ -n "${GITHUB_ACTIONS:-}" && -z "${GH_TOKEN:-}" ]]; then
+  echo "::error::OYA_BRANCH_PROTECTION_READ_TOKEN is required; GitHub branch-protection status-check APIs require Administration read permission, which GITHUB_TOKEN cannot request." >&2
+  exit 1
+fi
+
 if [[ ! -f "$config" ]]; then
   echo "branch-protection config not found: $config" >&2
   exit 66

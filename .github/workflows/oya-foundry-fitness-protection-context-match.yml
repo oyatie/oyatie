@@ -47,19 +47,10 @@ jobs:
         uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
         with:
           shared-key: pr-tests
-      - name: Fetch live dev branch-protection contexts
+      - name: oya gate validate protection-context-match
         env:
           GH_TOKEN: ${{ secrets.OYA_BRANCH_PROTECTION_READ_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          if [ -z "${GH_TOKEN:-}" ]; then
-            echo "::error::OYA_BRANCH_PROTECTION_READ_TOKEN is required; GitHub branch-protection status-check APIs require Administration read permission, which GITHUB_TOKEN cannot request."
-            exit 1
-          fi
-          gh api "repos/${GITHUB_REPOSITORY}/branches/dev/protection/required_status_checks" \
-            --jq '.contexts' > live-required-status-checks.json
-      - name: oya gate validate protection-context-match
-        env:
           CARGO_TERM_COLOR: always
           CARGO_INCREMENTAL: "0"
-        run: cargo run -q -p oya-dev-cli -- gate validate protection-context-match --live-required-contexts live-required-status-checks.json
+        run: scripts/branch-protection-apply.sh --check --repo "${GITHUB_REPOSITORY}" --branch dev
