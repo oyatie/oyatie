@@ -66,6 +66,7 @@ mod loop_recovery_patterns_gate;
 mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
+mod planning_closure_gate;
 mod pre_push_contract_gate;
 mod protection_context_match_gate;
 mod quality_lane_gates;
@@ -178,6 +179,9 @@ pub(crate) use openapi_rest_route_parity_gate::{
 pub(crate) use path_format::slash_path;
 pub(crate) use placeholder_debt_gates::{
     parse_placeholder_debt_validate_args, validate_placeholder_debt_gate,
+};
+pub(crate) use planning_closure_gate::{
+    parse_planning_closure_validate_args, validate_planning_closure_gate,
 };
 pub(crate) use pre_push_contract_gate::{
     parse_pre_push_contract_validate_args, validate_pre_push_contract_gate,
@@ -297,6 +301,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate honest-claims [--clear-default-corpus] [--corpus-root <path>]... [--plans-dir <.omc/plans/milestones>]"
         + "\n       oya gate validate aspirational-enforcement [--clear-default-corpus] [--corpus-root <path>]... [--crates-dir <crates>] [--workflows-dir <.github/workflows>] [--quality-lanes <registry/quality/lanes.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--branch <dev>]"
         + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
+        + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/microservices/workflow-studio.json>] [--workflow <specs/microservices/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"
         + "\n       oya gate validate workspace-hygiene [--policy <specs/workspace-hygiene.json>] [--no-scan] [--strict] [--clean-build-artifacts] [--clean-temp-artifacts]"

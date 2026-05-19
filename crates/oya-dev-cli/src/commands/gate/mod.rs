@@ -1340,6 +1340,32 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("planning-closure")) => {
+            match crate::parse_planning_closure_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_planning_closure_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "planning-closure validation passed: {} verticals, {} surfaces, {} kr-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
+                            report.vertical_count,
+                            report.surface_count,
+                            report.kr_pack_surface_count,
+                            report.architecture_rule_count,
+                            report.status_fields_checked,
+                            report.blocker_count
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("planning-closure validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("workspace-hygiene")) => {
             match crate::parse_workspace_hygiene_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_workspace_hygiene_gate(args) {

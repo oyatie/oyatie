@@ -12,7 +12,7 @@ doc_status: published
 - **Region:** South Korea (대한민국)
 - **Locale codes:** ko-KR (primary), en-KR (secondary for English-speaking residents + global tenants)
 - **Status:** draft (target preview at W-Cloud-Preview)
-- **Owning team:** [`teams/regional-packs/`](../../teams/regional-packs/) (KR-pack maintainer TBD)
+- **Owning team:** [`teams/regional-packs/`](../../teams/regional-packs/) (KR-pack maintainer council-owned)
 - **Catalog record:** `registry/catalog/regional-packs/oya-pack-kr.yaml`
 
 ## 1. Regulatory binding (KR statutes + agencies)
