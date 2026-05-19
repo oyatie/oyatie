@@ -22,29 +22,21 @@
     "purpose": "Documents each external workspace dependency rationale, owner, layer seam, and replacement strategy for policy gates."
   },
   "entries": {
-    "hyper": {
+    "anyhow": {
       "version_pin": "1",
-      "layer_seam": "adapter-only",
+      "layer_seam": "tooling-and-application-error-boundaries",
       "owner_team": "council-architecture",
-      "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
-    },
-    "hyper-util": {
-      "version_pin": "0.1",
-      "layer_seam": "adapter-only",
-      "owner_team": "council-architecture",
-      "rationale": "Tokio + auto-builder helpers for hyper. Adapter-local; no kernel exposure. Provides ConnBuilder used for slowloris-defense timeouts (ADR-0092 Phase 8 S4).",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
-    },
-    "http-body-util": {
-      "version_pin": "0.1",
-      "layer_seam": "adapter-only",
-      "owner_team": "council-architecture",
-      "rationale": "Full<Bytes> body collector + Limited<B> bounded-collector. Limited is the load-bearing primitive for S3 unbounded-body DoS defense (ADR-0092 Phase 8).",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
+      "rationale": "Error aggregation for CLI/tooling and application-edge orchestration where typed domain errors have already crossed the boundary. Domain/kernel crates should prefer explicit error enums.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "tooling and application-edge crates; kernel/domain usage report-only",
+      "allowed_crates": [
+        "oya-codeview-cli",
+        "oya-foundry-fitness-purpose-audit-app",
+        "oya-shared-architecture-check-cli",
+        "oya-shared-semver-check-cli",
+        "oya-shared-supply-chain-check-cli",
+        "oya-xtask-metadata-augment-app"
+      ]
     },
     "bytes": {
       "version_pin": "1",
@@ -52,31 +44,71 @@
       "owner_team": "council-architecture",
       "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime — those leaks are CLOSED.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter",
+      "allowed_crates": [
+        "oya-http-runtime-hyper-adapter"
+      ]
     },
-    "tokio": {
-      "version_pin": "1",
-      "layer_seam": "adapter-only (current) + future async chain when ADR-0094 cancellation lands",
-      "owner_team": "council-architecture",
-      "rationale": "Async runtime (rt-multi-thread + net). No realistic alternative for async HTTP server in Rust today. Adapter declares; ops-runtime indirectly via the adapter and #[tokio::main].",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary); cell-runtime main.rs entry"
+    "clap": {
+      "version_pin": "4.5",
+      "layer_seam": "cli-only",
+      "owner_team": "axis-foundry",
+      "rationale": "Command-line parsing for developer/operator tooling. Product runtime libraries must not depend on CLI argument parsing.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "CLI binaries and tooling apps",
+      "allowed_crates": [
+        "oya-codeview-cli",
+        "oya-foundry-webhook-receiver-app",
+        "oya-shared-architecture-check-cli",
+        "oya-shared-semver-check-cli",
+        "oya-shared-supply-chain-check-cli",
+        "oya-tenant-cli",
+        "oya-xtask-metadata-augment-app"
+      ]
     },
-    "tracing": {
+    "http-body-util": {
       "version_pin": "0.1",
-      "layer_seam": "infrastructure-only",
+      "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing — pure types don't emit spans. Current usage is bounded.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "oya-observability-tracing-adapter and similar infrastructure-layer crates"
+      "rationale": "Full<Bytes> body collector + Limited<B> bounded-collector. Limited is the load-bearing primitive for S3 unbounded-body DoS defense (ADR-0092 Phase 8).",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter",
+      "allowed_crates": [
+        "oya-http-runtime-hyper-adapter"
+      ]
     },
-    "tracing-subscriber": {
-      "version_pin": "0.3",
-      "layer_seam": "app-only",
+    "hyper": {
+      "version_pin": "1",
+      "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries — never in libraries — so binaries decide their own log routing.",
+      "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter",
+      "allowed_crates": [
+        "oya-http-runtime-hyper-adapter"
+      ]
+    },
+    "hyper-util": {
+      "version_pin": "0.1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "Tokio + auto-builder helpers for hyper. Adapter-local; no kernel exposure. Provides ConnBuilder used for slowloris-defense timeouts (ADR-0092 Phase 8 S4).",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter",
+      "allowed_crates": [
+        "oya-http-runtime-hyper-adapter"
+      ]
+    },
+    "regex": {
+      "version_pin": "1",
+      "layer_seam": "tooling-and-validation-only",
+      "owner_team": "axis-foundry",
+      "rationale": "Pattern validation in gates and developer tooling. Product hot paths should prefer parsers or bounded string checks unless an ADR names the regex boundary.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "app-layer binaries (composition roots)"
+      "isolated_in_crate": "validation gates and tooling crates",
+      "allowed_crates": [
+        "oya-codeview-cli"
+      ]
     },
     "serde": {
       "version_pin": "1",
@@ -84,7 +116,21 @@
       "owner_team": "council-architecture",
       "rationale": "Serialization framework. Used by adapters (DTOs) and application orchestrators (event emission). Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "adapter and application layer crates; kernel violations report-only"
+      "isolated_in_crate": "adapter and application layer crates; kernel violations report-only",
+      "allowed_crates": [
+        "oya-check-authz-tier-discipline",
+        "oya-check-dependency-seam",
+        "oya-check-ontology-projection-coverage",
+        "oya-check-step-up-auth-coverage",
+        "oya-codeview-cli",
+        "oya-foundry-webhook-receiver-app",
+        "oya-gen-microservice-manifests-app",
+        "oya-policy-cedar-domain",
+        "oya-resolve-scorecards-app",
+        "oya-shared-oidc-client-kernel",
+        "oya-shared-scim-server-kernel",
+        "oya-shared-webauthn-server-kernel"
+      ]
     },
     "serde_json": {
       "version_pin": "1",
@@ -92,7 +138,76 @@
       "owner_team": "council-architecture",
       "rationale": "JSON ser/de. Strictly adapter-layer; kernel responses use hand-rolled formatting per 0-to-minimal-deps directive (see oya-ops-workspace-shell-runtime).",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "adapter-layer crates"
+      "isolated_in_crate": "adapter-layer crates",
+      "allowed_crates": [
+        "oya-check-authz-tier-discipline",
+        "oya-check-dependency-seam",
+        "oya-check-ontology-projection-coverage",
+        "oya-codeview-cli",
+        "oya-dev-cli",
+        "oya-foundry-fitness-purpose-audit-app",
+        "oya-foundry-vcs-admission-gate-app",
+        "oya-foundry-vcs-admission-gate-kernel",
+        "oya-foundry-vcs-changeset-state-app",
+        "oya-foundry-vcs-provider-execution-gate-app",
+        "oya-foundry-vcs-provider-execution-gate-kernel",
+        "oya-foundry-webhook-receiver-app",
+        "oya-gen-microservice-manifests-app",
+        "oya-policy-cedar-domain",
+        "oya-resolve-scorecards-app",
+        "oya-search-index-vector-domain",
+        "oya-shared-oidc-client-kernel",
+        "oya-shared-scim-server-kernel",
+        "oya-shared-webauthn-server-kernel",
+        "oya-xtask-metadata-augment-app"
+      ]
+    },
+    "serde_yaml": {
+      "version_pin": "0.9",
+      "layer_seam": "tooling-and-contract-parser-only",
+      "owner_team": "council-architecture",
+      "rationale": "YAML parsing for repository manifests, policies, and contract gates. Domain/kernel crates should not parse YAML directly.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-check-* lane crates and manifest tooling",
+      "allowed_crates": [
+        "oya-check-step-up-auth-coverage",
+        "oya-foundry-fitness-purpose-audit-app",
+        "oya-foundry-webhook-receiver-app"
+      ]
+    },
+    "tempfile": {
+      "version_pin": "3",
+      "layer_seam": "tests-and-tooling-only",
+      "owner_team": "axis-foundry",
+      "rationale": "Temporary filesystem fixtures for tests and local tooling. Production kernels/domains should accept explicit paths or in-memory adapters.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "tests and tooling crates",
+      "allowed_crates": [
+        "oya-foundry-fitness-adapter-with-no-importer-kernel",
+        "oya-foundry-fitness-mistakes-ledger-kernel",
+        "oya-foundry-fitness-sunset-lifecycle-app",
+        "oya-foundry-jsonl-supervisor-adapter",
+        "oya-foundry-pr-review-dispatcher-app",
+        "oya-foundry-subagent-runtime-app",
+        "oya-xtask-metadata-augment-app"
+      ]
+    },
+    "tokio": {
+      "version_pin": "1",
+      "layer_seam": "adapter-only (current) + future async chain when ADR-0094 cancellation lands",
+      "owner_team": "council-architecture",
+      "rationale": "Async runtime (rt-multi-thread + net). No realistic alternative for async HTTP server in Rust today. Adapter declares; ops-runtime indirectly via the adapter and #[tokio::main].",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary); cell-runtime main.rs entry",
+      "allowed_crates": [
+        "oya-foundry-claude-account-adapter",
+        "oya-foundry-codex-account-adapter",
+        "oya-foundry-gemini-account-adapter",
+        "oya-foundry-supervisor-app",
+        "oya-foundry-webhook-receiver-app",
+        "oya-http-runtime-hyper-adapter",
+        "oya-ops-workspace-shell-app"
+      ]
     },
     "toml": {
       "version_pin": "0.8",
@@ -100,15 +215,45 @@
       "owner_team": "council-architecture",
       "rationale": "TOML reader (Cargo manifest parsing in lane crates). Tooling/lane only. Domain code must not consume TOML directly.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "oya-check-* lane crates + tooling binaries"
+      "isolated_in_crate": "oya-check-* lane crates + tooling binaries",
+      "allowed_crates": [
+        "oya-check-dependency-seam"
+      ]
     },
-    "toml_edit": {
-      "version_pin": "0.22",
-      "layer_seam": "tooling-only",
+    "tracing": {
+      "version_pin": "0.1",
+      "layer_seam": "infrastructure-only",
       "owner_team": "council-architecture",
-      "rationale": "Format-preserving TOML editor (workspace mutation tools). NOT used by production code paths. Tooling-only.",
+      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing — pure types don't emit spans. Current usage is bounded.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "isolated_in_crate": "tooling binaries"
+      "isolated_in_crate": "oya-observability-tracing-adapter and similar infrastructure-layer crates",
+      "allowed_crates": [
+        "oya-application-app",
+        "oya-foundry-supervisor-app"
+      ]
+    },
+    "tracing-subscriber": {
+      "version_pin": "0.3",
+      "layer_seam": "app-only",
+      "owner_team": "council-architecture",
+      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries — never in libraries — so binaries decide their own log routing.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "app-layer binaries (composition roots)",
+      "allowed_crates": [
+        "oya-application-app",
+        "oya-foundry-supervisor-app"
+      ]
+    },
+    "walkdir": {
+      "version_pin": "2",
+      "layer_seam": "tooling-only",
+      "owner_team": "axis-foundry",
+      "rationale": "Repository filesystem traversal for gates/generators. Product runtime code should use explicit adapters and bounded traversals.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-check-* lane crates and tooling binaries",
+      "allowed_crates": [
+        "oya-codeview-cli"
+      ]
     }
   },
   "lane_contract": {
@@ -128,6 +273,12 @@
       "who": "claude-mcc-p06-ip-002",
       "what_changed": "registry created with 11 seed entries; replaces over-engineered tech-debt-ledger from original IP-002",
       "why": "Multispectrum F1 + F2 + F6: state machine + trigger DSL + monotonic transition graph are control plane for problems that don't exist at 11-dep scale. Flat 5-field-per-row overlay solves the actual problem (track + own + decide-removal-path per dep) in 50 lines instead of 500."
+    },
+    {
+      "when": "2026-05-19",
+      "who": "codex-fd001-planning-closure",
+      "what_changed": "Reconciled registry coverage with the live [workspace.dependencies] roster: added anyhow/clap/tempfile/walkdir/serde_yaml/regex and removed orphan toml_edit.",
+      "why": "M01-P13-IP-002 closeout requires registry-coverage to be rerunnable against the current checkout instead of historical evidence only."
     }
   ]
 }

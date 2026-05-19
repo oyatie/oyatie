@@ -49,6 +49,7 @@ mod cross_axis_contracts;
 mod cross_tenant_access_gates;
 mod data_class_gates;
 mod date_utils;
+mod dependency_seam_gates;
 mod design_spec_maturity_claims_gate;
 mod documentation_gates;
 mod foundation_audit_gates;
@@ -125,6 +126,9 @@ pub(crate) use cross_tenant_access_gates::{
 pub(crate) use data_class_gates::{parse_data_class_validate_args, validate_data_class_gate};
 pub(crate) use date_utils::{
     current_epoch_days, current_epoch_days_i64, parse_yyyy_mm_dd_to_epoch_days,
+};
+pub(crate) use dependency_seam_gates::{
+    parse_dependency_seam_validate_args, validate_dependency_seam_gate,
 };
 pub(crate) use design_spec_maturity_claims_gate::{
     parse_design_spec_maturity_claims_validate_args, validate_design_spec_maturity_claims_gate,
@@ -310,6 +314,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/microservices/workflow-studio.json>] [--workflow <specs/microservices/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"
         + "\n       oya gate validate workspace-hygiene [--policy <specs/workspace-hygiene.json>] [--no-scan] [--strict] [--clean-build-artifacts] [--clean-temp-artifacts]"
+        + "\n       oya gate validate dependency-seam [--repo-root <.>] [--registry <registry/dependency-rationales.json>] [--evidence <evidence/multispectrum/<change>.json>]... [--fixture-root <crates/oya-check-dependency-seam/tests/fixtures>] [--offline|--online-audit] [--severity <report-only|error>] [--emit-report <path>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-lockin-discipline [--registry <registry/vendor-lockin-phaseout/index.json>] [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-contract-recency [--ledger <docs/VENDOR-PARTNER-LEDGER.md>] [--today <YYYY-MM-DD>] [--renewal-window-days <90>]"

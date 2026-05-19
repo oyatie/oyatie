@@ -442,6 +442,54 @@ license = "GPL-3.0"
 }
 
 #[test]
+fn dependency_seam_gate_accepts_report_only_fixture_and_emits_report() {
+    let temp = temp_dir("dependency-seam-valid");
+    write_dependency_seam_gate_fixture(&temp, false);
+    let report = temp.join("dependency-seam-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(dependency_seam_gate_args(&temp, &report, "report-only"))
+        .output()
+        .expect("dependency seam gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("dependency-seam validation passed"));
+    assert!(report.exists(), "dependency seam report should be emitted");
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn dependency_seam_gate_rejects_strict_import_violation() {
+    let temp = temp_dir("dependency-seam-strict-violation");
+    write_dependency_seam_gate_fixture(&temp, true);
+    let report = temp.join("dependency-seam-report.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(dependency_seam_gate_args(&temp, &report, "error"))
+        .output()
+        .expect("dependency seam gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("blocking diagnostics"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        report.exists(),
+        "strict failure still emits diagnostic report"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn vendor_contract_recency_gate_accepts_explicit_no_signed_contracts_declaration() {
     let temp = temp_dir("vendor-contract-recency-empty");
     let ledger = write_vendor_contract_ledger(
@@ -4253,6 +4301,115 @@ fn cargo_prefix_args(root: &Path) -> Vec<String> {
             .expect("utf8 workspace")
             .into(),
     ]
+}
+
+fn write_dependency_seam_gate_fixture(root: &Path, include_offender: bool) {
+    fs::create_dir_all(root.join("crates/adapter/src")).expect("adapter dir created");
+    let mut members = vec!["\"crates/adapter\"".to_string()];
+    if include_offender {
+        fs::create_dir_all(root.join("crates/offender/src")).expect("offender dir created");
+        fs::write(
+            root.join("crates/offender/Cargo.toml"),
+            r#"[package]
+name = "offender"
+edition = "2024"
+version = "0.1.0"
+license = "Apache-2.0"
+[dependencies]
+hyper.workspace = true
+"#,
+        )
+        .expect("offender manifest written");
+        fs::write(
+            root.join("crates/offender/src/lib.rs"),
+            "pub fn offender() { let _ = hyper::Version::HTTP_11; }\n",
+        )
+        .expect("offender source written");
+        members.push("\"crates/offender\"".to_string());
+    }
+    fs::write(
+        root.join("Cargo.toml"),
+        format!(
+            "[workspace]\nmembers = [{}]\n[workspace.dependencies]\nhyper = \"1\"\n",
+            members.join(", ")
+        ),
+    )
+    .expect("workspace manifest written");
+    fs::write(
+        root.join("crates/adapter/Cargo.toml"),
+        r#"[package]
+name = "adapter"
+edition = "2024"
+version = "0.1.0"
+license = "Apache-2.0"
+[dependencies]
+hyper.workspace = true
+"#,
+    )
+    .expect("adapter manifest written");
+    fs::write(
+        root.join("crates/adapter/src/lib.rs"),
+        "pub fn adapter() { let _ = hyper::Version::HTTP_11; }\n",
+    )
+    .expect("adapter source written");
+    fs::create_dir_all(root.join("registry")).expect("registry dir created");
+    fs::write(
+        root.join("registry/dependency-rationales.json"),
+        r#"{"entries":{"hyper":{"isolated_in_crate":"adapter"}}}
+"#,
+    )
+    .expect("dependency registry written");
+    fs::create_dir_all(root.join("evidence/multispectrum")).expect("evidence dir created");
+    fs::write(
+        root.join("evidence/multispectrum/dependency-seam-test.json"),
+        dependency_seam_valid_evidence(),
+    )
+    .expect("dependency evidence written");
+}
+
+fn dependency_seam_gate_args(root: &Path, report: &Path, severity: &str) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "dependency-seam".into(),
+        "--repo-root".into(),
+        root.to_str().expect("utf8 root").into(),
+        "--fixture-root".into(),
+        repo_root()
+            .join("crates/oya-check-dependency-seam/tests/fixtures")
+            .to_str()
+            .expect("utf8 fixture root")
+            .into(),
+        "--evidence".into(),
+        root.join("evidence/multispectrum/dependency-seam-test.json")
+            .to_str()
+            .expect("utf8 evidence")
+            .into(),
+        "--severity".into(),
+        severity.into(),
+        "--emit-report".into(),
+        report.to_str().expect("utf8 report").into(),
+    ]
+}
+
+fn dependency_seam_valid_evidence() -> &'static str {
+    r#"{
+  "change_id": "dependency-seam-test",
+  "change_class_id": "CC-7",
+  "git_sha": "abcdef1",
+  "freshness_unix": 1700000000,
+  "facets": {
+    "F1_linus": {"considered": true, "rigor": "scan"},
+    "F2_hyperscaler": {"considered": true, "rigor": "scan"},
+    "F3_adversarial": {"considered": true, "rigor": "deep"},
+    "F4_ergonomic": {"considered": true, "rigor": "scan"},
+    "F5_quality": {"considered": true, "rigor": "scan"},
+    "F6_alternatives": {"considered": true, "rigor": "scan"},
+    "F7_security": {"considered": true, "rigor": "scan"},
+    "F8_performance": {"considered": true},
+    "F9_compliance": {"considered": true}
+  }
+}"#
 }
 
 fn write_quality_lanes_fixture(root: &Path, check_command: &str, markdown_purpose: &str) {
