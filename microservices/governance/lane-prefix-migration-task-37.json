@@ -45,7 +45,7 @@
     {"ip_id": "GOV-PREFIX-020", "old_lane_id": "oya-foundry-fitness-readme-doc-coverage", "new_lane_id": "oya-governance-readme-doc-coverage", "status": "queued"},
     {"ip_id": "GOV-PREFIX-021", "old_lane_id": "oya-foundry-fitness-runbook-index-resolves", "new_lane_id": "oya-governance-runbook-index-resolves", "status": "queued"},
     {"ip_id": "GOV-PREFIX-022", "old_lane_id": "oya-foundry-fitness-slo-coverage", "new_lane_id": "oya-governance-slo-coverage", "status": "queued"},
-    {"ip_id": "GOV-PREFIX-023", "old_lane_id": "oya-foundry-fitness-catalog-records", "new_lane_id": "oya-governance-catalog-records", "status": "queued"},
+    {"ip_id": "GOV-PREFIX-023", "old_lane_id": "oya-foundry-fitness-catalog-records", "new_lane_id": "oya-governance-catalog-records", "status": "completed"},
     {"ip_id": "GOV-PREFIX-024", "old_lane_id": "oya-foundry-fitness-flat-crates", "new_lane_id": "oya-governance-flat-crates", "status": "queued"},
     {"ip_id": "GOV-PREFIX-025", "old_lane_id": "oya-foundry-fitness-product-index", "new_lane_id": "oya-governance-product-index", "status": "queued"},
     {"ip_id": "GOV-PREFIX-026", "old_lane_id": "oya-foundry-fitness-adr-citation", "new_lane_id": "oya-governance-adr-citation", "status": "queued"},

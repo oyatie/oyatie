@@ -42,7 +42,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-readme-doc-coverage` | every root doc has catalog and README discoverability | README.md / DOC-CATALOG.md |
 | `oya-foundry-fitness-runbook-index-resolves` | every RUNBOOKS-INDEX entry is a real file | RUNBOOKS-INDEX.md |
 | `oya-foundry-fitness-slo-coverage` | every catalog record carries SLO coverage | SLO-CATALOG.md |
-| `oya-foundry-fitness-catalog-records` | every Cargo workspace member has a catalog record | ADR-0015 / registry/catalog |
+| `oya-governance-catalog-records` | every Cargo workspace member has a catalog record | ADR-0015 / registry/catalog |
 | `oya-foundry-fitness-flat-crates` | per-PR flat-crates path, legacy-tree, and role-boundary check | ADR-0015 |
 | `oya-foundry-fitness-product-index` | product README index and machine-readable product catalog stay in sync | products/README.md |
 | `oya-foundry-fitness-adr-citation` | only-new-pack-citations check | ADR-LEGACY-REGRESSION-MAPPING |

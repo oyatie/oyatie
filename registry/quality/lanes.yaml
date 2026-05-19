@@ -201,7 +201,7 @@ lanes:
     source: SLO-CATALOG.md
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate slo-coverage
-  - id: oya-foundry-fitness-catalog-records
+  - id: oya-governance-catalog-records
     stage: foundation
     status: active
     owner_team: council-architecture
