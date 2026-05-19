@@ -1153,10 +1153,52 @@
       "status": "pass",
       "summary": "workspace diff check clean for tenancy-domain neutral fixture slice",
       "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "workspace formatting clean after shared i18n/email neutral locale fixture slice",
+      "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log"
+    },
+    {
+      "command": "cargo test -p oya-shared-i18n-kernel",
+      "status": "pass",
+      "summary": "8 unit tests and 5 integration tests passed after synthetic locale fixture update",
+      "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log"
+    },
+    {
+      "command": "cargo test -p oya-shared-email-comms-kernel",
+      "status": "pass",
+      "summary": "11 email-comms tests passed after neutralizing message locale fixture",
+      "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-shared-i18n-kernel --root crates/oya-shared-email-comms-kernel",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 3 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 253 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "workspace diff check clean for shared i18n/email neutral locale fixture slice",
+      "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 263 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blocker remains residency/tenancy canonical-vs-pack separation in oya-residency-domain and oya-tenancy-kernel, followed by search/shared backup/i18n/email/SaaS surfaces.",
+    "Default canonical-base-neutrality scan currently fails with 253 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blockers remain residency/tenancy canonical-vs-pack separation and shared backup regulatory-pack naming, followed by search/SaaS surfaces.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
@@ -1172,14 +1214,14 @@
       "risk": "high"
     },
     {
-      "lane": "search locale and tenant fixture neutralization",
-      "write_scope": "crates/oya-search-*-domain",
+      "lane": "shared backup regulatory-pack deprecation/migration",
+      "write_scope": "crates/oya-shared-backup-kernel",
       "risk": "high"
     },
     {
-      "lane": "shared backup/i18n/email pack-neutral contracts",
-      "write_scope": "crates/oya-shared-*-kernel",
-      "risk": "moderate"
+      "lane": "search locale and tenant fixture neutralization",
+      "write_scope": "crates/oya-search-*-domain",
+      "risk": "high"
     },
     {
       "lane": "SaaS marketplace/workflow pack fixture neutralization",
@@ -1187,21 +1229,21 @@
       "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T14:23:01Z",
+  "updated_at": "2026-05-19T14:28:45Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T14:23:01Z",
-    "change_scope": "tenancy-domain neutral test-fixture slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 276 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 263 jurisdiction leaks",
+    "observed_at": "2026-05-19T14:28:45Z",
+    "change_scope": "shared i18n/email neutral locale fixture slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 263 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 253 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 13,
+      "jurisdiction_leaks_removed": 10,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "crates/oya-tenancy-domain/src/lib.rs test fixtures",
-    "targeted_clean_summary": "cargo fmt --all --check passed; oya-tenancy-domain tests passed; scoped canonical-base-neutrality passed with 2 files checked and 0 jurisdiction leaks. The mismatch test now uses neutral per-pack allowed-region fixtures instead of StrictKr/kr/us test data.",
-    "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 263 leaks. The first remaining leak is still the gate-catalog EU-named command identity, which needs a deprecation/migration slice. Residency and tenancy production semantics remain a high-risk canonical-vs-pack boundary review in oya-residency-domain and oya-tenancy-kernel, followed by search, shared backup/i18n/email, and SaaS marketplace/workflow fixture surfaces.",
-    "workspace_verification_note": "This slice changed tenancy-domain tests only. Production Tenant::new validation stayed intact; the home-region rejection behavior is still covered through ResidencyClass::PerPack allowed_primary_regions rather than concrete jurisdiction-specific StrictKr fixtures."
+    "targeted_clean_scope": "crates/oya-shared-i18n-kernel and crates/oya-shared-email-comms-kernel test locale fixtures",
+    "targeted_clean_summary": "cargo fmt --all --check passed; oya-shared-i18n-kernel and oya-shared-email-comms-kernel tests passed; scoped canonical-base-neutrality passed with 3 files checked and 0 jurisdiction leaks. Test fixtures now use synthetic locale tags while preserving BCP-47 shape, RTL primary-language behavior, fallback coverage, source-locale listing, and email preflight behavior.",
+    "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 253 leaks. The first remaining leak is still the gate-catalog EU-named command identity, requiring deprecation/migration. The largest semantic blockers remain residency/tenancy production seams and shared backup regulatory pack naming, followed by search and SaaS marketplace/workflow fixtures.",
+    "workspace_verification_note": "This slice changed test fixtures only. Production i18n locale parsing, RTL primary-language allowlist, catalog behavior, and email communication contracts stayed intact."
   },
   "remediation_history": [
     {
@@ -1667,6 +1709,21 @@
       "evidence_log": "/tmp/fd001-tenancy-domain-neutral-fixtures-verify-20260519T142301Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 263 leaks. The first remaining leak is still the gate-catalog EU-named command identity, which needs a deprecation/migration slice. Residency and tenancy production semantics remain a high-risk canonical-vs-pack boundary review in oya-residency-domain and oya-tenancy-kernel, followed by search, shared backup/i18n/email, and SaaS marketplace/workflow fixture surfaces.",
       "workspace_verification_note": "This slice changed tenancy-domain tests only. Production Tenant::new validation stayed intact; the home-region rejection behavior is still covered through ResidencyClass::PerPack allowed_primary_regions rather than concrete jurisdiction-specific StrictKr fixtures."
+    },
+    {
+      "observed_at": "2026-05-19T14:28:45Z",
+      "change_scope": "shared i18n/email neutral locale fixture slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 263 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 253 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 10,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "crates/oya-shared-i18n-kernel and crates/oya-shared-email-comms-kernel test locale fixtures",
+      "targeted_clean_summary": "cargo fmt --all --check passed; oya-shared-i18n-kernel and oya-shared-email-comms-kernel tests passed; scoped canonical-base-neutrality passed with 3 files checked and 0 jurisdiction leaks. Test fixtures now use synthetic locale tags while preserving BCP-47 shape, RTL primary-language behavior, fallback coverage, source-locale listing, and email preflight behavior.",
+      "evidence_log": "/tmp/fd001-shared-i18n-email-neutral-fixtures-verify-20260519T142845Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 253 leaks. The first remaining leak is still the gate-catalog EU-named command identity, requiring deprecation/migration. The largest semantic blockers remain residency/tenancy production seams and shared backup regulatory pack naming, followed by search and SaaS marketplace/workflow fixtures.",
+      "workspace_verification_note": "This slice changed test fixtures only. Production i18n locale parsing, RTL primary-language allowlist, catalog behavior, and email communication contracts stayed intact."
     }
   ]
 }
