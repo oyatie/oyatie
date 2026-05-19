@@ -1,13 +1,14 @@
 {
   "schema_version": 1,
   "changeset": "M01-P17-IP-001",
-  "recorded_at": "2026-05-19T07:03:54Z",
+  "recorded_at": "2026-05-19T07:11:41Z",
   "repository": "jason931225/oyatie",
   "branch": "dev",
   "policy_sources": [
     ".github/branch-protection.yaml",
     "infra/branch-protection/dev.json",
-    ".github/workflows/oya-foundry-fitness-protection-context-match.yml"
+    ".github/workflows/oya-foundry-fitness-protection-context-match.yml",
+    "scripts/branch-protection-apply.sh"
   ],
   "canonical_required_contexts": [
     "cargo-fmt",
@@ -61,7 +62,9 @@
     "mutation_mode": "--apply",
     "default_behavior": "read live required_status_checks, print canonical/live delta, and run oya gate validate protection-context-match; exits non-zero on drift",
     "apply_behavior": "PATCH only repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks from infra/branch-protection/dev.json, then re-check",
-    "auth_boundary": "uses gh CLI auth or GH_TOKEN; --check requires GitHub Administration read and --apply requires Administration write; no token is stored in repo"
+    "auth_boundary": "uses gh CLI auth or GH_TOKEN; --check requires GitHub Administration read and --apply requires Administration write; no token is stored in repo",
+    "workflow_integration": ".github/workflows/oya-foundry-fitness-protection-context-match.yml invokes scripts/branch-protection-apply.sh --check so local preflight and required CI use the same parity implementation",
+    "github_actions_missing_secret_behavior": "fails closed with the same OYA_BRANCH_PROTECTION_READ_TOKEN error before falling back to unauthenticated gh calls"
   },
   "hosted_check_failure": {
     "workflow": ".github/workflows/oya-foundry-fitness-protection-context-match.yml",
@@ -72,9 +75,9 @@
     "interpretation": "hosted CI is failing closed because the required secret is absent; this is not a stale-green signal"
   },
   "local_script_check": {
-    "command": "scripts/branch-protection-apply.sh --check --repo jason931225/oyatie --branch dev",
+    "command": "bash -n scripts/branch-protection-apply.sh && scripts/branch-protection-apply.sh --check --repo jason931225/oyatie --branch dev",
     "exit_code": 1,
-    "result": "expected drift failure; missing_from_live matches this evidence record"
+    "result": "bash syntax passed; expected drift failure from --check; missing_from_live matches this evidence record"
   },
   "bootstrap_notes": [
     "Do not require all 15 contexts on live dev until the missing contexts are present and oya-pr-review can post a check run on PR heads.",
