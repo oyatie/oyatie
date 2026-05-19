@@ -16,16 +16,6 @@
       "status": "pass"
     },
     {
-      "command": "cargo test -p oya-dev-cli canonical_base_neutrality -- --nocapture",
-      "status": "pass",
-      "summary": "7 unit tests and 2 CLI integration tests passed"
-    },
-    {
-      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --self-test",
-      "status": "pass",
-      "summary": "2 self-test fixtures checked, 0 jurisdiction leaks"
-    },
-    {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-capacity-domain",
       "status": "pass",
       "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
@@ -99,16 +89,12 @@
         "crates/oya-cloud-marketplace-domain/src/lib.rs:1180:36: jurisdiction-identifier `FinancialKrCredit` — data_class: DataClass::FinancialKrCredit,",
         "crates/oya-cloud-marketplace-domain/src/lib.rs:1186:17: jurisdiction-string `cme_observability_agent_tenant_kr` — id: \"cme_observability_agent_tenant_kr\".to_string(),"
       ],
-      "note": "Updated after cloud-kms-domain neutrality slice; KMS findings are absent and marketplace is now the next source-level blocker."
+      "note": "Updated after KCMVP lexicon hardening; KMS remains absent and marketplace remains the next source-level blocker."
     },
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
       "status": "pass",
       "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
-    },
-    {
-      "command": "cargo clippy -p oya-dev-cli --all-targets -- -D warnings",
-      "status": "pass"
     },
     {
       "command": "bin/oya git diff --check",
@@ -250,6 +236,35 @@
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-kms-domain",
       "status": "pass",
       "summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo fmt -p oya-dev-cli -p oya-cloud-kms-domain -p oya-cloud-kms-api -- --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli canonical_base_neutrality -- --nocapture",
+      "status": "pass",
+      "summary": "7 canonical-base-neutrality unit tests and 2 CLI integration tests passed; KCMVP identifier/string fixtures are now explicit positives"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --self-test",
+      "status": "pass",
+      "summary": "self-test passed with KCMVP dirty fixture coverage"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --all-targets -- -D warnings",
+      "status": "pass",
+      "summary": "dev-cli gate changes lint clean after KCMVP lexicon hardening"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-kms-api",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks after neutral API fixtures/message"
+    },
+    {
+      "command": "rg -n 'Kcmvp|KCMVP|kcmvp|kr-seoul|ten_kr|StrictKr' crates/oya-cloud-kms-domain crates/oya-cloud-kms-api",
+      "status": "pass",
+      "summary": "no KCMVP or KR-shaped strings remain in KMS domain/API source or tests"
     }
   ],
   "known_blockers": [
@@ -279,21 +294,22 @@
       "risk": "medium"
     }
   ],
-  "updated_at": "2026-05-19T12:17:44Z",
+  "updated_at": "2026-05-19T12:27:54Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T12:17:44Z",
-    "change_scope": "crates/oya-cloud-kms-domain canonical HSM policy/fixture neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 703 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 657 jurisdiction leaks",
+    "observed_at": "2026-05-19T12:27:54Z",
+    "change_scope": "canonical-base-neutrality KCMVP lexicon hardening and KMS HSM profile neutralization",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 657 jurisdiction leaks; reviewer found a KCMVP false-negative in KMS despite the clean scoped scan",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 657 jurisdiction leaks; KCMVP/Kcmvp is now a positive gate token and KMS domain/API no longer contain KR-specific HSM profile terms",
     "delta": {
-      "jurisdiction_leaks_removed": 46,
-      "files_checked_delta": 0
+      "jurisdiction_leaks_removed": 0,
+      "files_checked_delta": 0,
+      "false_negative_classes_closed": 1
     },
-    "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-kms-domain",
-    "targeted_clean_summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks",
-    "evidence_log": "/tmp/fd001-cloud-kms-neutrality-verify-20260519T121744Z.log",
+    "targeted_clean_scope": "cargo test -p oya-dev-cli canonical_base_neutrality -- --nocapture; cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-kms-domain; --root crates/oya-cloud-kms-api",
+    "targeted_clean_summary": "gate unit/CLI tests include KCMVP dirty fixtures; KMS domain/API scoped scans pass with 0 jurisdiction leaks",
+    "evidence_log": "/tmp/fd001-kcmvp-neutrality-hardening-verify-20260519T122754Z.log",
     "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-marketplace-domain/src/lib.rs.",
-    "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-kms-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical KMS no longer derives HSM validation requirements from jurisdiction-coded region prefixes, while pack-specific enhanced validation remains an explicit input supplied outside that regional branch."
+    "workspace_verification_note": "Code review REQUEST CHANGES on commit 6676d3ac was resolved by replacing canonical HsmValidation::KcmvpFips1403Level3 with a neutral pack-enhanced profile name, neutralizing KMS API message/fixtures, and expanding the gate lexicon/tests so future KCMVP/Kcmvp canonical leaks fail mechanically."
   },
   "remediation_history": [
     {
@@ -442,6 +458,21 @@
       "evidence_log": "/tmp/fd001-cloud-iam-neutrality-verify-20260519T121150Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-kms-domain/src/lib.rs.",
       "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-iam-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical identity-provider, tenant, pack, region, SAML subject, and certificate fixtures now use pack-neutral labels."
+    },
+    {
+      "observed_at": "2026-05-19T12:17:44Z",
+      "change_scope": "crates/oya-cloud-kms-domain canonical HSM policy/fixture neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 703 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 657 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 46,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-kms-domain",
+      "targeted_clean_summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-cloud-kms-neutrality-verify-20260519T121744Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-marketplace-domain/src/lib.rs.",
+      "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-kms-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical KMS no longer derives HSM validation requirements from jurisdiction-coded region prefixes, while pack-specific enhanced validation remains an explicit input supplied outside that regional branch."
     }
   ]
 }

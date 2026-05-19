@@ -5709,10 +5709,12 @@ fn canonical_base_neutrality_catches_identifier_and_string_leaks() {
         r#"
 pub struct FinancialKrCredit;
 pub enum ResidencyClass { StrictKr }
+pub enum HsmValidation { KcmvpFips1403Level3 }
 pub struct LeastUsed;
 pub struct KmsUseReceipt;
 pub struct InvalidUserDataUri;
 pub const LOCALE: &str = "ko-KR";
+pub const CERT: &str = "KCMVP validated module";
 "#,
     )
     .expect("fixture source written");
@@ -5748,6 +5750,10 @@ pub const LOCALE: &str = "ko-KR";
     assert!(
         stderr.contains("ko-KR"),
         "stderr must name string leak; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("KcmvpFips1403Level3") && stderr.contains("KCMVP validated module"),
+        "stderr must name KCMVP identifier and string leaks; got: {stderr}"
     );
     assert!(
         !stderr.contains("LeastUsed")

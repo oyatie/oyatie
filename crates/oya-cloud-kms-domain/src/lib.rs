@@ -83,7 +83,7 @@ pub enum KmsKeyUsage {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum HsmValidation {
-    KcmvpFips1403Level3,
+    PackEnhancedFips1403Level3,
     Fips1403Level3,
     Cryptrec,
     CommonCriteriaEal4,
@@ -711,7 +711,7 @@ fn validate_use_key(
 
 fn validate_hsm_profile(validation: HsmValidation) -> Result<(), CloudKmsError> {
     match validation {
-        HsmValidation::Fips1403Level3 | HsmValidation::KcmvpFips1403Level3 => Ok(()),
+        HsmValidation::Fips1403Level3 | HsmValidation::PackEnhancedFips1403Level3 => Ok(()),
         HsmValidation::Cryptrec | HsmValidation::CommonCriteriaEal4 | HsmValidation::PciHsm => {
             Err(CloudKmsError::HsmValidationDenied)
         }
@@ -954,13 +954,13 @@ mod tests {
         assert_eq!(baseline.hsm_validation.value, HsmValidation::Fips1403Level3);
 
         let enhanced = KmsKey::new(KmsKeyCreate {
-            hsm_validation: HsmValidation::KcmvpFips1403Level3,
+            hsm_validation: HsmValidation::PackEnhancedFips1403Level3,
             ..key_create()
         })
-        .expect("pack-specific enhanced profile remains an explicit input");
+        .expect("pack-enhanced profile remains an explicit input");
         assert_eq!(
             enhanced.hsm_validation.value,
-            HsmValidation::KcmvpFips1403Level3
+            HsmValidation::PackEnhancedFips1403Level3
         );
 
         let residency_error = KmsKey::new(KmsKeyCreate {

@@ -23,8 +23,8 @@ const USAGE: &str = "oya gate validate canonical-base-neutrality \
                      [--exclude-root <path>] (repeatable) \
                      [--self-test]";
 
-const JURISDICTION_TOKENS: &[&str] = &["Kr", "Us", "Eu", "Jp", "Sea", "Mena"];
-const JURISDICTION_CODES: &[&str] = &["kr", "us", "eu", "jp", "sea", "mena"];
+const JURISDICTION_TOKENS: &[&str] = &["Kr", "Us", "Eu", "Jp", "Sea", "Mena", "Kcmvp"];
+const JURISDICTION_CODES: &[&str] = &["kr", "us", "eu", "jp", "sea", "mena", "kcmvp"];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CanonicalBaseNeutralityValidateArgs {
@@ -180,7 +180,9 @@ const BUSINESS: &str = "business";
     let dirty = r#"
 pub struct FinancialKrCredit;
 pub enum ResidencyClass { StrictKr }
+pub enum HsmValidation { KcmvpFips1403Level3 }
 const LOCALE: &str = "ko-KR";
+const CERT: &str = "KCMVP validated module";
 "#;
 
     let clean_hits = scan_document("<self-test-clean>", clean);
@@ -488,6 +490,9 @@ mod tests {
             "KrWithUsFailover"
         ));
         assert!(identifier_contains_jurisdiction_component("SovereignEu"));
+        assert!(identifier_contains_jurisdiction_component(
+            "KcmvpFips1403Level3"
+        ));
     }
 
     #[test]
@@ -504,6 +509,7 @@ mod tests {
         assert!(string_contains_jurisdiction_code("strict KR residency"));
         assert!(string_contains_jurisdiction_code("ko-KR"));
         assert!(string_contains_jurisdiction_code("sovereign-kr"));
+        assert!(string_contains_jurisdiction_code("KCMVP validated module"));
         assert!(!string_contains_jurisdiction_code("business"));
         assert!(!string_contains_jurisdiction_code("trust"));
     }
