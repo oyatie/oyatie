@@ -393,7 +393,7 @@ lanes:
     source: feedback_no_silent_regression + feedback_no_exceptions_canonical
     runtime_budget_seconds: 60
     check_command: cargo run -p oya-dev-cli -- gate validate retired-vocabulary
-  - id: oya-foundry-fitness-protection-context-match
+  - id: oya-governance-protection-context-match
     stage: per-pr
     status: active
     owner_team: axis-foundry

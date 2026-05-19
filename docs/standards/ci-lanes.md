@@ -71,7 +71,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-loop-recovery-patterns` | pre-push repeat-mistake blocker joins deterministic score cards, loop-recovery patterns, and mistakes-ledger rows without shell hook expansion |
 | `oya-foundry-fitness-master-plan-completion` | status-honesty audit — no phase in specs/masterplan.json#live_implementation_index may be Complete while any child IP is stub/planned/pending/blocked/in-flight/probe-green; every complete IP must be referenced by at least one evidence JSON file |
 | `oya-foundry-fitness-retired-vocabulary` | no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record) |
-| `oya-foundry-fitness-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
+| `oya-governance-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
 | `oya-governance-vacuous-green` | ADR-0221 fixture-backed check that vacuous-green hook detection fails on intentionally empty gate evidence |
 | `oya-governance-adr-orphan-citation` | ADR-0221 fixture-backed check that orphan ADR citation detection catches missing decision records |
 | `oya-governance-version-pin-source-citation` | ADR-0221 fixture-backed check that OpenAPI and AsyncAPI version pins reject noncanonical versions |

@@ -12,7 +12,7 @@ name: oya-foundry-fitness-changeset-state
 #   closed 13-value `ChangesetState` enum.
 #
 # Job-key MUST equal the `name:` field (protection-context-match
-# invariant — see .github/workflows/oya-foundry-fitness-protection-context-match.yml).
+# invariant — see .github/workflows/oya-governance-protection-context-match.yml).
 
 on:
   pull_request:
