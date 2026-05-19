@@ -26,6 +26,20 @@
       "summary": "2 self-test fixtures checked, 0 jurisdiction leaks"
     },
     {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-billing-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo test -p oya-cloud-billing-domain",
+      "status": "pass",
+      "summary": "8 unit tests passed after tax format seam neutralization"
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-billing-domain --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cell-domain",
       "status": "pass",
       "summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks"
@@ -38,22 +52,22 @@
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
       "status": "expected_fail",
-      "summary": "canonical base neutrality violations: 196 files checked, 920 jurisdiction leaks",
+      "summary": "canonical base neutrality violations: 196 files checked, 873 jurisdiction leaks",
       "sample_findings": [
-        "crates/oya-cloud-billing-domain/src/lib.rs:96:5: jurisdiction-identifier `KrElectronicTaxInvoice` \u2014 KrElectronicTaxInvoice,",
-        "crates/oya-cloud-billing-domain/src/lib.rs:97:5: jurisdiction-identifier `JpQualifiedInvoice` \u2014 JpQualifiedInvoice,",
-        "crates/oya-cloud-billing-domain/src/lib.rs:98:5: jurisdiction-identifier `EuCountryEInvoice` \u2014 EuCountryEInvoice,",
-        "crates/oya-cloud-billing-domain/src/lib.rs:321:31: jurisdiction-identifier `KrElectronicTaxInvoice` \u2014 TaxInvoiceFormat::KrElectronicTaxInvoice => value",
-        "crates/oya-cloud-billing-domain/src/lib.rs:322:31: jurisdiction-string `kr-bizreg/` \u2014 .strip_prefix(\"kr-bizreg/\")",
-        "crates/oya-cloud-billing-domain/src/lib.rs:324:31: jurisdiction-identifier `JpQualifiedInvoice` \u2014 TaxInvoiceFormat::JpQualifiedInvoice => value",
-        "crates/oya-cloud-billing-domain/src/lib.rs:325:31: jurisdiction-string `jp-qualified/T` \u2014 .strip_prefix(\"jp-qualified/T\")",
-        "crates/oya-cloud-billing-domain/src/lib.rs:327:31: jurisdiction-identifier `EuCountryEInvoice` \u2014 TaxInvoiceFormat::EuCountryEInvoice => value",
-        "crates/oya-cloud-billing-domain/src/lib.rs:328:31: jurisdiction-string `eu-vat/` \u2014 .strip_prefix(\"eu-vat/\")",
-        "crates/oya-cloud-billing-domain/src/lib.rs:409:13: jurisdiction-string `oya-pack-kr` \u2014 \"oya-pack-kr\" => Ok(Self::KrElectronicTaxInvoice),",
-        "crates/oya-cloud-billing-domain/src/lib.rs:409:39: jurisdiction-identifier `KrElectronicTaxInvoice` \u2014 \"oya-pack-kr\" => Ok(Self::KrElectronicTaxInvoice),",
-        "crates/oya-cloud-billing-domain/src/lib.rs:410:13: jurisdiction-string `oya-pack-jp` \u2014 \"oya-pack-jp\" => Ok(Self::JpQualifiedInvoice),"
+        "crates/oya-cloud-billing-kernel/src/lib.rs:125:57: jurisdiction-string `kr` \u2014 let l = line(\"L1\", UsageUnit::Cpu, 5, 100, Some(\"kr\"));",
+        "crates/oya-cloud-billing-kernel/src/lib.rs:131:57: jurisdiction-string `kr` \u2014 let l = line(\"L1\", UsageUnit::Cpu, 5, 100, Some(\"kr\"));",
+        "crates/oya-cloud-billing-kernel/src/lib.rs:146:57: jurisdiction-string `kr` \u2014 let l = line(\"L1\", UsageUnit::Cpu, 0, 100, Some(\"kr\"));",
+        "crates/oya-cloud-billing-kernel/src/lib.rs:152:55: jurisdiction-string `kr` \u2014 let l = line(\"\", UsageUnit::Cpu, 5, 100, Some(\"kr\"));",
+        "crates/oya-cloud-billing-kernel/src/lib.rs:161:61: jurisdiction-string `kr` \u2014 let mut l = line(\"L1\", UsageUnit::Cpu, 5, 100, Some(\"kr\"));",
+        "crates/oya-cloud-capacity-domain/src/lib.rs:1068:43: jurisdiction-identifier `FinancialKrCredit` \u2014 DataClass::Financial | DataClass::FinancialKrCredit",
+        "crates/oya-cloud-capacity-domain/src/lib.rs:1087:39: jurisdiction-identifier `FinancialKrCredit` \u2014 Classified::new(value, DataClass::FinancialKrCredit)",
+        "crates/oya-cloud-capacity-domain/src/lib.rs:1106:17: jurisdiction-string `csku_gp_kr_seoul_a` \u2014 id: \"csku_gp_kr_seoul_a\".to_string(),",
+        "crates/oya-cloud-capacity-domain/src/lib.rs:1107:21: jurisdiction-string `kr-seoul` \u2014 region: \"kr-seoul\".to_string(),",
+        "crates/oya-cloud-capacity-domain/src/lib.rs:1108:22: jurisdiction-string `cell-kr-seoul-a-001` \u2014 cell_id: \"cell-kr-seoul-a-001\".to_string(),",
+        "crates/oya-cloud-capacity-domain/src/lib.rs:1128:17: jurisdiction-string `cres_ten_kr_gp` \u2014 id: \"cres_ten_kr_gp\".to_string(),",
+        "crates/oya-cloud-capacity-domain/src/lib.rs:1129:24: jurisdiction-string `ten_kr` \u2014 tenant_id: \"ten_kr\".to_string(),"
       ],
-      "note": "Updated after cell-domain neutrality slice; previous 937-leak observation is retained in latest_observation.before_summary."
+      "note": "Updated after cloud-billing neutrality slice; prior observations are retained in remediation_history/latest_observation.before_summary."
     },
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
@@ -101,19 +115,35 @@
       "risk": "medium"
     }
   ],
-  "updated_at": "2026-05-19T11:39:16Z",
+  "updated_at": "2026-05-19T11:43:56Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T11:39:16Z",
-    "change_scope": "crates/oya-cell-domain source/test fixture neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 937 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 920 jurisdiction leaks",
+    "observed_at": "2026-05-19T11:43:56Z",
+    "change_scope": "crates/oya-cloud-billing-domain canonical tax-format seam neutrality slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 920 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 873 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 17,
+      "jurisdiction_leaks_removed": 47,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cell-domain",
-    "targeted_clean_summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks",
-    "evidence_log": "/tmp/fd001-cell-domain-neutrality-verify-20260519T113916Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-billing-domain/src/lib.rs."
-  }
+    "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-billing-domain",
+    "targeted_clean_summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks",
+    "evidence_log": "/tmp/fd001-cloud-billing-neutrality-verify-20260519T114356Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-billing-kernel/src/lib.rs and crates/oya-cloud-capacity-domain/src/lib.rs."
+  },
+  "remediation_history": [
+    {
+      "observed_at": "2026-05-19T11:39:16Z",
+      "change_scope": "crates/oya-cell-domain source/test fixture neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 937 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 920 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 17,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cell-domain",
+      "targeted_clean_summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-cell-domain-neutrality-verify-20260519T113916Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-billing-domain/src/lib.rs."
+    }
+  ]
 }
