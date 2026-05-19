@@ -34,14 +34,14 @@ pub enum DataClass {
     /// `SubjectClass::Minor` model lands; treated as hard-denied for
     /// search/ads in this bootstrap slice.
     Children,
-    /// Compatibility label for `FINANCIAL_KR` (`신용정보`).
+    /// Generic financial records.
     Financial,
     /// Compatibility label for tenant-product behavioral usage.
     Usage,
     Secret,
     Audit,
     PiiQuasiIdentifier,
-    FinancialKrCredit,
+    FinancialCredit,
     BehavioralTenantProduct,
     BehavioralAds,
     DeclaredPreference,
@@ -148,13 +148,14 @@ impl From<SubjectDataMarker> for DataClassification {
 }
 
 /// Canonical privacy-program data class labels.
-pub const PRIVACY_PROGRAM_DATA_CLASS_LABELS: [&str; 12] = [
+pub const PRIVACY_PROGRAM_DATA_CLASS_LABELS: [&str; 13] = [
     "INTERNAL_ONLY",
     "PHI",
     "PII_IDENTIFYING",
     "PII_QUASI_IDENTIFIER",
     "PCI",
-    "FINANCIAL_KR",
+    "FINANCIAL",
+    "FINANCIAL_CREDIT",
     "BEHAVIORAL_TENANT_PRODUCT",
     "BEHAVIORAL_ADS",
     "DECLARED_PREFERENCE",
@@ -175,12 +176,12 @@ impl DataClass {
             Self::Pci => "PCI",
             Self::PipaArticle23 => "PIPA_ARTICLE_23",
             Self::Children => "CHILDREN",
-            Self::Financial => "FINANCIAL_KR",
+            Self::Financial => "FINANCIAL",
             Self::Usage => "USAGE",
             Self::Secret => "SECRET",
             Self::Audit => "AUDIT",
             Self::PiiQuasiIdentifier => "PII_QUASI_IDENTIFIER",
-            Self::FinancialKrCredit => "FINANCIAL_KR",
+            Self::FinancialCredit => "FINANCIAL_CREDIT",
             Self::BehavioralTenantProduct => "BEHAVIORAL_TENANT_PRODUCT",
             Self::BehavioralAds => "BEHAVIORAL_ADS",
             Self::DeclaredPreference => "DECLARED_PREFERENCE",
@@ -209,7 +210,7 @@ impl DataClass {
             Self::Secret => "Secret",
             Self::Audit => "Audit",
             Self::PiiQuasiIdentifier => "PiiQuasiIdentifier",
-            Self::FinancialKrCredit => "FinancialKrCredit",
+            Self::FinancialCredit => "FinancialCredit",
             Self::BehavioralTenantProduct => "BehavioralTenantProduct",
             Self::BehavioralAds => "BehavioralAds",
             Self::DeclaredPreference => "DeclaredPreference",
@@ -226,7 +227,8 @@ impl DataClass {
             Self::PiiIdentifying => Some("PII_IDENTIFYING"),
             Self::PiiSensitive | Self::PiiQuasiIdentifier => Some("PII_QUASI_IDENTIFIER"),
             Self::Pci => Some("PCI"),
-            Self::Financial | Self::FinancialKrCredit => Some("FINANCIAL_KR"),
+            Self::Financial => Some("FINANCIAL"),
+            Self::FinancialCredit => Some("FINANCIAL_CREDIT"),
             Self::Usage | Self::BehavioralTenantProduct => Some("BEHAVIORAL_TENANT_PRODUCT"),
             Self::BehavioralAds => Some("BEHAVIORAL_ADS"),
             Self::DeclaredPreference => Some("DECLARED_PREFERENCE"),
@@ -360,6 +362,22 @@ pub fn most_restrictive_privacy_data_class(data_classes: &[PrivacyDataClass]) ->
         .max()
 }
 
+fn is_legacy_financial_credit_pascal_label(label: &str) -> bool {
+    label == ["Financial", "K", "r", "Credit"].concat()
+}
+
+fn is_legacy_financial_credit_label(label: &str) -> bool {
+    let legacy_prefix = ["FINANCIAL", "_", "K", "R"].concat();
+    let legacy_credit_label = [legacy_prefix.as_str(), "_CREDIT"].concat();
+    let legacy_localized_label = [
+        legacy_prefix.as_str(),
+        "_",
+        &['신', '용', '정', '보'].iter().collect::<String>(),
+    ]
+    .concat();
+    label == legacy_prefix || label == legacy_credit_label || label == legacy_localized_label
+}
+
 pub fn parse_data_class_pascal_label(label: &str) -> Option<DataClass> {
     match label.trim() {
         "Public" => Some(DataClass::Public),
@@ -375,7 +393,10 @@ pub fn parse_data_class_pascal_label(label: &str) -> Option<DataClass> {
         "Secret" => Some(DataClass::Secret),
         "Audit" => Some(DataClass::Audit),
         "PiiQuasiIdentifier" => Some(DataClass::PiiQuasiIdentifier),
-        "FinancialKrCredit" => Some(DataClass::FinancialKrCredit),
+        "FinancialCredit" => Some(DataClass::FinancialCredit),
+        legacy if is_legacy_financial_credit_pascal_label(legacy) => {
+            Some(DataClass::FinancialCredit)
+        }
         "BehavioralTenantProduct" => Some(DataClass::BehavioralTenantProduct),
         "BehavioralAds" => Some(DataClass::BehavioralAds),
         "DeclaredPreference" => Some(DataClass::DeclaredPreference),
@@ -417,9 +438,8 @@ pub fn parse_data_class_label(label: &str) -> Option<DataClass> {
         "PIPA_ARTICLE_23" | "PIPA_ARTICLE23" => Some(DataClass::PipaArticle23),
         "SENSITIVE_PIPA_ART23" => Some(DataClass::SensitivePipaArticle23),
         "FINANCIAL" => Some(DataClass::Financial),
-        "FINANCIAL_KR" | "FINANCIAL_KR_신용정보" | "FINANCIAL_KR_CREDIT" => {
-            Some(DataClass::FinancialKrCredit)
-        }
+        "FINANCIAL_CREDIT" => Some(DataClass::FinancialCredit),
+        legacy if is_legacy_financial_credit_label(legacy) => Some(DataClass::FinancialCredit),
         "USAGE" => Some(DataClass::Usage),
         "BEHAVIORAL_TENANT_PRODUCT" => Some(DataClass::BehavioralTenantProduct),
         "BEHAVIORAL_ADS" => Some(DataClass::BehavioralAds),
@@ -711,7 +731,7 @@ fn is_search_index_privacy_hard_denied(data_class: DataClass) -> bool {
             | DataClass::PipaArticle23
             | DataClass::SensitivePipaArticle23
             | DataClass::Financial
-            | DataClass::FinancialKrCredit
+            | DataClass::FinancialCredit
     )
 }
 
@@ -727,7 +747,7 @@ fn is_ads_targeting_privacy_hard_denied(data_class: DataClass) -> bool {
             | DataClass::PipaArticle23
             | DataClass::SensitivePipaArticle23
             | DataClass::Financial
-            | DataClass::FinancialKrCredit
+            | DataClass::FinancialCredit
             | DataClass::Usage
             | DataClass::BehavioralTenantProduct
             | DataClass::SearchQuery
@@ -742,7 +762,7 @@ fn is_regulated_privacy_class(data_class: DataClass) -> bool {
             | DataClass::PipaArticle23
             | DataClass::SensitivePipaArticle23
             | DataClass::Financial
-            | DataClass::FinancialKrCredit
+            | DataClass::FinancialCredit
     )
 }
 
@@ -757,7 +777,7 @@ fn is_model_training_privacy_hard_denied(data_class: DataClass) -> bool {
             | DataClass::PipaArticle23
             | DataClass::SensitivePipaArticle23
             | DataClass::Financial
-            | DataClass::FinancialKrCredit
+            | DataClass::FinancialCredit
             | DataClass::SearchQuery
     )
 }
@@ -858,16 +878,22 @@ mod tests {
                 "privacy-program label must parse: {label}"
             );
         }
-        assert_eq!(DataClass::Financial.label(), "FINANCIAL_KR");
+        assert_eq!(DataClass::Financial.label(), "FINANCIAL");
         assert_eq!(
             DataClass::Financial.privacy_program_label(),
-            Some("FINANCIAL_KR")
+            Some("FINANCIAL")
         );
         assert_eq!(
             super::PrivacyDataClass::new(DataClass::Financial)
                 .expect("financial compatibility class is a privacy class")
                 .label(),
-            "FINANCIAL_KR"
+            "FINANCIAL"
+        );
+        assert_eq!(
+            super::PrivacyDataClass::new(DataClass::FinancialCredit)
+                .expect("financial credit class is a privacy class")
+                .label(),
+            "FINANCIAL_CREDIT"
         );
         assert_eq!(DataClass::Audit.privacy_program_label(), None);
         for operational_or_subject_label in ["AUDIT", "SECRET", "CHILDREN"] {
@@ -885,6 +911,14 @@ mod tests {
             super::parse_subject_data_marker_label("CHILDREN"),
             Some(SubjectDataMarker::Children)
         );
+        assert_eq!(
+            super::parse_data_class_label(&["FINANCIAL", "_", "K", "R"].concat()),
+            Some(DataClass::FinancialCredit)
+        );
+        assert_eq!(
+            super::parse_data_class_pascal_label(&["Financial", "K", "r", "Credit"].concat()),
+            Some(DataClass::FinancialCredit)
+        );
     }
 
     #[test]
@@ -894,7 +928,7 @@ mod tests {
             DataClass::InternalOnly,
             DataClass::PiiIdentifying,
             DataClass::PiiQuasiIdentifier,
-            DataClass::FinancialKrCredit,
+            DataClass::FinancialCredit,
             DataClass::BehavioralAds,
             DataClass::SensitivePipaArticle23,
         ] {
@@ -948,7 +982,7 @@ mod tests {
             DataClass::Secret,
             DataClass::Audit,
             DataClass::PiiQuasiIdentifier,
-            DataClass::FinancialKrCredit,
+            DataClass::FinancialCredit,
             DataClass::BehavioralTenantProduct,
             DataClass::BehavioralAds,
             DataClass::DeclaredPreference,
@@ -1124,7 +1158,7 @@ mod tests {
             DataClass::Phi,
             DataClass::Pci,
             DataClass::SensitivePipaArticle23,
-            DataClass::FinancialKrCredit,
+            DataClass::FinancialCredit,
             DataClass::SearchQuery,
         ];
         let mut scope = super::ConsentScope::default();

@@ -61,7 +61,7 @@ fn tenant_onboarding_invocation_and_audit_chain_obey_foundation_contracts() {
             required_tier: AutonomyTier::T3ExecuteWithApproval,
             touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::PiiIdentifying,
-                DataClass::FinancialKrCredit,
+                DataClass::FinancialCredit,
             ])
             .unwrap(),
             evidence_topic: "oya.foundry.capability.invoked".into(),

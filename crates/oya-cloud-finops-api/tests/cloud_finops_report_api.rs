@@ -100,7 +100,7 @@ fn rate_line(axis: AxisId, rate: UnitRate) -> RateCardLineCreate {
         currency: "KRW".to_string(),
         rate,
         effective_period: FinopsPeriod::new(1, 3_000).expect("rate period"),
-        data_class: DataClass::FinancialKrCredit,
+        data_class: DataClass::Financial,
     }
 }
 
@@ -111,7 +111,7 @@ fn allocation(id: &str, event: MeterEvent) -> CostAllocationCreate {
         resource_id: RESOURCE.to_string(),
         rate_card_ref: RATE_CARD.to_string(),
         meter_event: event,
-        data_class: DataClass::FinancialKrCredit,
+        data_class: DataClass::Financial,
     }
 }
 
@@ -139,7 +139,7 @@ fn ledger_with_report_data() -> CloudFinopsLedger {
             budget: money_krw(3_000),
             soft_threshold_bps: 8_000,
             hard_threshold_bps: 10_000,
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
         })
         .expect("budget");
     ledger
@@ -183,7 +183,7 @@ fn report_body(id: &str) -> CloudFinopsReportGenerateRequest {
             min_absolute_delta_minor_units: 100,
         },
         minimum_gross_margin_bps: STABLE_GROSS_MARGIN_TARGET_BPS,
-        data_class: "FINANCIAL_KR_신용정보".to_string(),
+        data_class: "FINANCIAL".to_string(),
     }
 }
 
@@ -254,7 +254,7 @@ fn finops_report_api_generates_report_once_and_replays_same_idempotent_result() 
     assert_eq!(first.data.axis_costs.len(), 2);
     assert_eq!(first.data.resource_costs.len(), 2);
     assert_eq!(first.data.recommendations.len(), first.data.anomalies.len());
-    assert_eq!(first.data.data_class, "FINANCIAL_KR");
+    assert_eq!(first.data.data_class, "FINANCIAL");
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(
         first

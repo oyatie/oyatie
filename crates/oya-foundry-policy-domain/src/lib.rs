@@ -376,7 +376,7 @@ fn is_health_regulated_privacy_class(data_class: PrivacyDataClass) -> bool {
 fn is_financial_regulated_privacy_class(data_class: PrivacyDataClass) -> bool {
     matches!(
         data_class.data_class(),
-        DataClass::Pci | DataClass::FinancialKrCredit | DataClass::Financial
+        DataClass::Pci | DataClass::FinancialCredit | DataClass::Financial
     )
 }
 

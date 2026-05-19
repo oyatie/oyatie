@@ -160,7 +160,7 @@ pub const fn log_exposure_for_classification(
             | DataClass::PiiSensitive
             | DataClass::PiiQuasiIdentifier
             | DataClass::Financial
-            | DataClass::FinancialKrCredit
+            | DataClass::FinancialCredit
             | DataClass::BehavioralTenantProduct
             | DataClass::BehavioralAds
             | DataClass::DeclaredPreference
@@ -375,10 +375,10 @@ mod tests {
         assert_eq!(
             legacy_data_classes_label(&[
                 DataClass::PiiQuasiIdentifier,
-                DataClass::FinancialKrCredit,
+                DataClass::FinancialCredit,
                 DataClass::SensitivePipaArticle23,
             ]),
-            "PII_QUASI_IDENTIFIER,FINANCIAL_KR,SENSITIVE_PIPA_ART23"
+            "PII_QUASI_IDENTIFIER,FINANCIAL_CREDIT,SENSITIVE_PIPA_ART23"
         );
         #[allow(deprecated)]
         {

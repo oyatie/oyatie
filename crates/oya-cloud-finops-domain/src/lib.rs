@@ -114,7 +114,7 @@ pub struct CostAllocationCreate {
     pub resource_id: String,     // data_class: INTERNAL_ONLY
     pub rate_card_ref: String,   // data_class: INTERNAL_ONLY
     pub meter_event: MeterEvent, // data_class: INTERNAL_ONLY
-    pub data_class: DataClass,   // data_class: FINANCIAL_KR_신용정보
+    pub data_class: DataClass,   // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -127,10 +127,10 @@ pub struct CostAllocation {
     pub meter_event_id: Classified<MeterEventId>, // data_class: INTERNAL_ONLY
     pub rate_card_ref: Classified<RateCardRef>, // data_class: INTERNAL_ONLY
     pub occurred_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
-    pub actual_cost: Classified<Money>,   // data_class: FINANCIAL_KR_신용정보
-    pub cost_of_revenue: Classified<Money>, // data_class: FINANCIAL_KR_신용정보
+    pub actual_cost: Classified<Money>,   // data_class: FINANCIAL
+    pub cost_of_revenue: Classified<Money>, // data_class: FINANCIAL
     pub gross_margin_bps: Classified<u16>, // data_class: INTERNAL_ONLY
-    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL_KR_신용정보
+    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
     pub schema_version: Classified<u32>,  // data_class: PUBLIC
 }
 
@@ -141,10 +141,10 @@ pub struct AxisBudgetCreate {
     pub region: String,          // data_class: PUBLIC
     pub axis: AxisId,            // data_class: INTERNAL_ONLY
     pub period: FinopsPeriod,    // data_class: INTERNAL_ONLY
-    pub budget: Money,           // data_class: FINANCIAL_KR_신용정보
+    pub budget: Money,           // data_class: FINANCIAL
     pub soft_threshold_bps: u16, // data_class: INTERNAL_ONLY
     pub hard_threshold_bps: u16, // data_class: INTERNAL_ONLY
-    pub data_class: DataClass,   // data_class: FINANCIAL_KR_신용정보
+    pub data_class: DataClass,   // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -154,20 +154,20 @@ pub struct AxisBudget {
     pub region: Classified<RegionCode>,      // data_class: PUBLIC
     pub axis: Classified<AxisId>,            // data_class: INTERNAL_ONLY
     pub period: Classified<FinopsPeriod>,    // data_class: INTERNAL_ONLY
-    pub budget: Classified<Money>,           // data_class: FINANCIAL_KR_신용정보
+    pub budget: Classified<Money>,           // data_class: FINANCIAL
     pub soft_threshold_bps: Classified<u16>, // data_class: INTERNAL_ONLY
     pub hard_threshold_bps: Classified<u16>, // data_class: INTERNAL_ONLY
-    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL_KR_신용정보
+    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
     pub schema_version: Classified<u32>,     // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AxisCostBreakdown {
     pub axis: AxisId,                        // data_class: INTERNAL_ONLY
-    pub actual_cost: Money,                  // data_class: FINANCIAL_KR_신용정보
-    pub cost_of_revenue: Money,              // data_class: FINANCIAL_KR_신용정보
+    pub actual_cost: Money,                  // data_class: FINANCIAL
+    pub cost_of_revenue: Money,              // data_class: FINANCIAL
     pub gross_margin_bps: u16,               // data_class: INTERNAL_ONLY
-    pub budget: Option<Money>,               // data_class: FINANCIAL_KR_신용정보
+    pub budget: Option<Money>,               // data_class: FINANCIAL
     pub budget_utilization_bps: Option<u16>, // data_class: INTERNAL_ONLY
 }
 
@@ -175,8 +175,8 @@ pub struct AxisCostBreakdown {
 pub struct ResourceCostBreakdown {
     pub resource_id: ResourceId, // data_class: INTERNAL_ONLY
     pub axis: AxisId,            // data_class: INTERNAL_ONLY
-    pub actual_cost: Money,      // data_class: FINANCIAL_KR_신용정보
-    pub cost_of_revenue: Money,  // data_class: FINANCIAL_KR_신용정보
+    pub actual_cost: Money,      // data_class: FINANCIAL
+    pub cost_of_revenue: Money,  // data_class: FINANCIAL
     pub gross_margin_bps: u16,   // data_class: INTERNAL_ONLY
 }
 
@@ -185,8 +185,8 @@ pub struct CostAnomaly {
     pub kind: CostAnomalyKind,           // data_class: INTERNAL_ONLY
     pub axis: AxisId,                    // data_class: INTERNAL_ONLY
     pub resource_id: Option<ResourceId>, // data_class: INTERNAL_ONLY
-    pub actual_cost: Money,              // data_class: FINANCIAL_KR_신용정보
-    pub baseline_cost: Option<Money>,    // data_class: FINANCIAL_KR_신용정보
+    pub actual_cost: Money,              // data_class: FINANCIAL
+    pub baseline_cost: Option<Money>,    // data_class: FINANCIAL
     pub threshold_bps: u16,              // data_class: INTERNAL_ONLY
 }
 
@@ -209,7 +209,7 @@ pub struct FinopsReportRequest {
     pub axes: Vec<AxisId>,                     // data_class: INTERNAL_ONLY
     pub anomaly_policy: AnomalyPolicy,         // data_class: INTERNAL_ONLY
     pub minimum_gross_margin_bps: u16,         // data_class: INTERNAL_ONLY
-    pub data_class: DataClass,                 // data_class: FINANCIAL_KR_신용정보
+    pub data_class: DataClass,                 // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -219,15 +219,15 @@ pub struct FinopsReport {
     pub region: Classified<RegionCode>,   // data_class: PUBLIC
     pub period: Classified<FinopsPeriod>, // data_class: INTERNAL_ONLY
     pub axes: Classified<Vec<AxisId>>,    // data_class: INTERNAL_ONLY
-    pub axis_costs: Classified<Vec<AxisCostBreakdown>>, // data_class: FINANCIAL_KR_신용정보
-    pub resource_costs: Classified<Vec<ResourceCostBreakdown>>, // data_class: FINANCIAL_KR_신용정보
-    pub anomalies: Classified<Vec<CostAnomaly>>, // data_class: FINANCIAL_KR_신용정보
+    pub axis_costs: Classified<Vec<AxisCostBreakdown>>, // data_class: FINANCIAL
+    pub resource_costs: Classified<Vec<ResourceCostBreakdown>>, // data_class: FINANCIAL
+    pub anomalies: Classified<Vec<CostAnomaly>>, // data_class: FINANCIAL
     pub recommendations: Classified<Vec<FinopsRecommendation>>, // data_class: INTERNAL_ONLY
-    pub total_cost: Classified<Money>,    // data_class: FINANCIAL_KR_신용정보
-    pub total_cost_of_revenue: Classified<Money>, // data_class: FINANCIAL_KR_신용정보
+    pub total_cost: Classified<Money>,    // data_class: FINANCIAL
+    pub total_cost_of_revenue: Classified<Money>, // data_class: FINANCIAL
     pub gross_margin_bps: Classified<u16>, // data_class: INTERNAL_ONLY
     pub minimum_gross_margin_bps: Classified<u16>, // data_class: INTERNAL_ONLY
-    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL_KR_신용정보
+    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
     pub schema_version: Classified<u32>,  // data_class: PUBLIC
 }
 

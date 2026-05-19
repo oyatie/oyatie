@@ -161,7 +161,7 @@ fn vertical_pack_caps_healthcare_and_fintech_regulated_data() {
         "cap.fintech.credit-report",
         AutonomyTier::T4AutoExecute,
         vec![
-            privacy_class(DataClass::FinancialKrCredit),
+            privacy_class(DataClass::FinancialCredit),
             privacy_class(DataClass::Financial),
         ],
     );

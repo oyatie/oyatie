@@ -699,7 +699,7 @@ fn hard_denied_data_classes_cannot_be_enabled_by_recorded_grants() {
         ("phi", DataClass::Phi),
         ("pci", DataClass::Pci),
         ("sensitive-pipa-art23", DataClass::SensitivePipaArticle23),
-        ("financial-kr-credit", DataClass::FinancialKrCredit),
+        ("financial-kr-credit", DataClass::FinancialCredit),
     ];
 
     for (class_label, data_class) in hard_denied_classes {

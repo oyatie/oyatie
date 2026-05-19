@@ -703,55 +703,139 @@
       "status": "pass",
       "summary": "workspace diff check clean for Trust Portal slice",
       "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "workspace formatting clean after financial taxonomy neutrality updates",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo test -p oya-data-boundary-kernel",
+      "status": "pass",
+      "summary": "26 unit tests passed after FinancialCredit neutral taxonomy and legacy parser compatibility update",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo clippy -p oya-data-boundary-kernel --all-targets -- -D warnings",
+      "status": "pass",
+      "summary": "data-boundary kernel lint clean",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo test -p oya-cloud-finops-api",
+      "status": "pass",
+      "summary": "8 integration tests passed after preserving generic FINANCIAL classification for finops report validation",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo test -p oya-foundry-evidence-domain",
+      "status": "pass",
+      "summary": "12 unit tests and 7 evidence-chain integration tests passed with neutral financial credit labels",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo test -p oya-foundry-policy-domain",
+      "status": "pass",
+      "summary": "6 autonomy decision tests passed with neutral financial credit labels",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo test -p oya-observability-domain",
+      "status": "pass",
+      "summary": "14 unit tests passed with neutral financial credit exposure labels",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo test -p oya-application-app data_use_boundary -- --nocapture",
+      "status": "pass",
+      "summary": "filtered application data-use boundary test passed after neutral financial taxonomy update",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli foundry_capability -- --nocapture",
+      "status": "pass",
+      "summary": "3 foundry capability schema CLI tests passed with neutral/legacy financial credit parser mapping",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-data-boundary-kernel",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 311 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "workspace diff check clean for data-boundary financial taxonomy slice",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
+    },
+    {
+      "command": "rg -n 'FinancialKrCredit|FINANCIAL_KR' crates --glob '*.rs' | rg -v 'canonical_base_neutrality_gate.rs|gate_cli.rs'",
+      "status": "pass",
+      "summary": "no non-gate-fixture source references to FinancialKrCredit or FINANCIAL_KR remain",
+      "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 343 source-level jurisdiction leaks, starting in data-boundary financial taxonomy seams and continuing into DSR/eventing/eval/foundry policy/residency/shared tenancy/search surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "Default canonical-base-neutrality scan currently fails with 311 source-level jurisdiction leaks, starting in DSR/eventing/foundry cloud mutation/eval/evidence/gate-catalog/policy surfaces and continuing into residency/tenancy/search/shared backup/i18n/email/SaaS surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
     {
-      "lane": "data-boundary financial KR taxonomy seam",
-      "write_scope": "crates/oya-data-boundary-kernel/src/lib.rs and crates/oya-data-boundary-kernel/src/retention_policy.rs",
-      "risk": "high"
-    },
-    {
-      "lane": "DSR/eventing/eval/foundry-policy jurisdiction fixture follow-up",
-      "write_scope": "crates/oya-dsr-domain/src/lib.rs, crates/oya-eventing-domain/src/cloud_event.rs, crates/oya-foundry-*-domain/src/lib.rs",
+      "lane": "DSR regional fixture neutralization",
+      "write_scope": "crates/oya-dsr-domain/src/lib.rs",
       "risk": "moderate"
     },
     {
-      "lane": "shared residency/backup/tenancy canonical-vs-pack boundary review",
-      "write_scope": "crates/oya-residency-domain/src/lib.rs, crates/oya-shared-backup-kernel/src/lib.rs, and crates/oya-tenancy-*/src/lib.rs",
-      "risk": "high"
-    },
-    {
-      "lane": "search locale/tenant/shard fixture neutralization",
-      "write_scope": "crates/oya-search-*-domain/src/lib.rs",
+      "lane": "eventing cell and tenant fixture neutralization",
+      "write_scope": "crates/oya-eventing-domain/src/cloud_event.rs",
       "risk": "moderate"
     },
     {
-      "lane": "ops-dashboard-control-center manifest bootstrap",
-      "write_scope": "microservices/ops-dashboard-control-center/manifest.json plus manifests-index after manifest exists",
-      "risk": "medium"
+      "lane": "foundry eval/policy/route jurisdiction fixture split",
+      "write_scope": "crates/oya-foundry-eval-domain, crates/oya-foundry-eval-usecase, crates/oya-foundry-policy-domain, crates/oya-foundry-route-policy-kernel",
+      "risk": "high"
+    },
+    {
+      "lane": "residency/tenancy canonical-vs-pack boundary review",
+      "write_scope": "crates/oya-residency-domain, crates/oya-tenancy-domain, crates/oya-tenancy-kernel",
+      "risk": "high"
+    },
+    {
+      "lane": "search and SaaS marketplace/workflow fixture neutralization",
+      "write_scope": "crates/oya-search-*-domain, crates/oya-saas-marketplace-domain, crates/oya-saas-workflow-domain, crates/oya-saas-workflow-kernel",
+      "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T13:27:58Z",
+  "updated_at": "2026-05-19T13:37:03Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T13:27:58Z",
-    "change_scope": "connect Trust Portal residency and pack-boundary fixture neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 362 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 343 jurisdiction leaks",
+    "observed_at": "2026-05-19T13:37:03Z",
+    "change_scope": "data-boundary financial taxonomy neutralization and dependent source compatibility slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 343 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 311 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 19,
+      "jurisdiction_leaks_removed": 32,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo fmt/test/clippy for oya-connect-trust-portal-domain; scoped canonical-base-neutrality for crates/oya-connect-trust-portal-domain",
-    "targeted_clean_summary": "Trust Portal scoped scan passes with 1 file checked and 0 jurisdiction leaks; 8 unit tests, fmt, and clippy pass",
-    "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 343 leaks; next highest-signal source starts in data-boundary financial KR taxonomy seams, then DSR/eventing/eval/foundry policy and residency/tenancy/search surfaces.",
-    "workspace_verification_note": "Trust Portal fixtures now use neutral regions, pack IDs, jurisdiction labels, and operator names; cross-region residency validation avoids source-level jurisdiction variant names while preserving strict-residency denial through the ResidencyClass label seam and dynamic test construction."
+    "targeted_clean_scope": "cargo fmt --all -- --check; cargo test/clippy for oya-data-boundary-kernel; dependent package tests for oya-cloud-finops-api, oya-foundry-evidence-domain, oya-foundry-policy-domain, oya-observability-domain, filtered oya-application-app data_use_boundary, filtered oya-dev-cli foundry_capability; scoped canonical-base-neutrality for crates/oya-data-boundary-kernel",
+    "targeted_clean_summary": "Data-boundary scoped scan passes with 2 files checked and 0 jurisdiction leaks; 26 data-boundary tests, 8 cloud-finops-api tests, 19 foundry-evidence tests, 6 foundry-policy tests, 14 observability tests, the application data-use filtered test, and 3 dev-cli foundry capability tests pass.",
+    "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 311 leaks; next sources start in DSR, eventing, foundry cloud mutation/eval/evidence/gate-catalog/policy/route policy, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
+    "workspace_verification_note": "Canonical DataClass::Financial is generic FINANCIAL; new neutral DataClass::FinancialCredit replaces source-level FinancialKrCredit; legacy FINANCIAL_KR*/FinancialKrCredit labels remain accepted through dynamically constructed compatibility parsers outside the intentional gate dirty fixtures."
   },
   "remediation_history": [
     {
@@ -1097,6 +1181,21 @@
       "evidence_log": "/tmp/fd001-connect-translate-neutrality-verify-20260519T132249Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 362 leaks; next connect source is trust-portal residency/pack-boundary fixtures before data-boundary/residency/tenancy/search work.",
       "workspace_verification_note": "Connect Translate tests now use pack-neutral synthetic locale-alpha/locale-beta/locale-gamma and region-alpha/region-beta fixtures while preserving locale syntax validation, glossary matching, provider-region matching, and result target-locale mismatch behavior."
+    },
+    {
+      "observed_at": "2026-05-19T13:27:58Z",
+      "change_scope": "connect Trust Portal residency and pack-boundary fixture neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 362 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 343 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 19,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo fmt/test/clippy for oya-connect-trust-portal-domain; scoped canonical-base-neutrality for crates/oya-connect-trust-portal-domain",
+      "targeted_clean_summary": "Trust Portal scoped scan passes with 1 file checked and 0 jurisdiction leaks; 8 unit tests, fmt, and clippy pass",
+      "evidence_log": "/tmp/fd001-connect-trust-portal-neutrality-verify-20260519T132758Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 343 leaks; next highest-signal source starts in data-boundary financial KR taxonomy seams, then DSR/eventing/eval/foundry policy and residency/tenancy/search surfaces.",
+      "workspace_verification_note": "Trust Portal fixtures now use neutral regions, pack IDs, jurisdiction labels, and operator names; cross-region residency validation avoids source-level jurisdiction variant names while preserving strict-residency denial through the ResidencyClass label seam and dynamic test construction."
     }
   ]
 }
