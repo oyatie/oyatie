@@ -597,8 +597,8 @@ mod tests {
         TranslateGlossary::new(TranslateGlossaryCreate {
             glossary_id: "glossary-1".into(),
             tenant_id: "tenant-1".into(),
-            source_locale: locale("en-US"),
-            target_locale: locale("ko-KR"),
+            source_locale: locale("locale-alpha"),
+            target_locale: locale("locale-beta"),
             entries: vec![entry("incident", "장애")],
             data_class: None,
             updated_at_epoch_seconds: 1_700_000_000,
@@ -610,11 +610,11 @@ mod tests {
         TranslationRequestCreate {
             request_id: "translate-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             cell_id: "cell-a".into(),
             actor_ref: "user:translator@example.com".into(),
-            source_locale: locale("en-US"),
-            target_locale: locale("ko-KR"),
+            source_locale: locale("locale-alpha"),
+            target_locale: locale("locale-beta"),
             source_text: "incident review".into(),
             glossary_id: Some("glossary-1".into()),
             max_output_chars: 4096,
@@ -631,7 +631,7 @@ mod tests {
         TranslateProviderBinding::new(
             "foundry-translate".into(),
             "cap.workspace.translate".into(),
-            "us-east-1".into(),
+            "region-alpha-1".into(),
             "translate-model-v1".into(),
             "idem-1".into(),
             vec![default_workspace_translation_data_class()],
@@ -658,7 +658,7 @@ mod tests {
     #[test]
     fn locale_and_glossary_shape_are_fail_closed() {
         assert_eq!(
-            LocaleId::new("en US".into()),
+            LocaleId::new("locale alpha".into()),
             Err(TranslateError::InvalidLocale)
         );
 
@@ -666,8 +666,8 @@ mod tests {
             TranslateGlossary::new(TranslateGlossaryCreate {
                 glossary_id: "glossary-dup".into(),
                 tenant_id: "tenant-1".into(),
-                source_locale: locale("en-US"),
-                target_locale: locale("ko-KR"),
+                source_locale: locale("locale-alpha"),
+                target_locale: locale("locale-beta"),
                 entries: vec![entry("Incident", "장애"), entry("incident", "사고")],
                 data_class: None,
                 updated_at_epoch_seconds: 1,
@@ -690,7 +690,7 @@ mod tests {
         );
 
         let mut same_locale = request_input();
-        same_locale.target_locale = locale("en-US");
+        same_locale.target_locale = locale("locale-alpha");
         assert_eq!(
             TranslationRequest::new(same_locale, Some(&glossary)),
             Err(TranslateError::SameSourceAndTargetLocale)
@@ -708,7 +708,7 @@ mod tests {
     fn provider_route_requires_region_and_data_class_allowance() {
         let request = request();
         let mut wrong_region = binding();
-        wrong_region.provider_region = internal("eu-west-1".into());
+        wrong_region.provider_region = internal("region-beta-1".into());
         assert_eq!(
             TranslationJob::new(
                 TranslationJobCreate {
@@ -729,7 +729,7 @@ mod tests {
             TranslateProviderBinding::new(
                 "foundry-translate".into(),
                 "cap.workspace.translate".into(),
-                "us-east-1".into(),
+                "region-alpha-1".into(),
                 "translate-model-v1".into(),
                 "idem-1".into(),
                 Vec::new(),
@@ -748,7 +748,7 @@ mod tests {
                 job_id: "job-1".into(),
                 request_id: "translate-1".into(),
                 tenant_id: "tenant-1".into(),
-                output_locale: locale("ko-KR"),
+                output_locale: locale("locale-beta"),
                 translated_text: "장애 검토".into(),
                 byte_len: 16,
                 data_class: None,
@@ -767,7 +767,7 @@ mod tests {
                     job_id: "job-1".into(),
                     request_id: "translate-1".into(),
                     tenant_id: "tenant-1".into(),
-                    output_locale: locale("ja-JP"),
+                    output_locale: locale("locale-gamma"),
                     translated_text: "レビュー".into(),
                     byte_len: 12,
                     data_class: None,
