@@ -2,7 +2,7 @@
   "evidence_id": "fd001-canonical-base-neutrality-gate-2026-05-19",
   "created_at": "2026-05-19T07:32:09Z",
   "scope": "FD-001 canonical-base/KR localization boundary truth surface",
-  "claim": "Added executable oya gate validate canonical-base-neutrality lane; full default repo scan is intentionally red and exposes current jurisdiction leakage instead of treating planning closure as source-level proof.",
+  "claim": "Executable canonical-base-neutrality now passes for the full default canonical-base scan; remaining FD-001 blockers are policy-content, KR/ops evidence, and hosted PR/CI governance rather than source-level jurisdiction leakage.",
   "artifacts": {
     "runner": "crates/oya-dev-cli/src/canonical_base_neutrality_gate.rs",
     "dispatch": "crates/oya-dev-cli/src/commands/gate/mod.rs",
@@ -1343,20 +1343,54 @@
       "command": "bin/oya git diff --check",
       "status": "pass",
       "summary": "no whitespace errors after search locale/morphology migration slice"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "passed after shared backup regulatory-pack slot migration"
+    },
+    {
+      "command": "cargo test -p oya-shared-backup-kernel",
+      "status": "pass",
+      "summary": "13 unit tests passed after RegulatoryPack slot migration"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-shared-backup-kernel",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 196 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate regulated-ai-refusal-grounding",
+      "status": "expected_fail",
+      "summary": "regulated-ai-refusal-grounding reports 5 docs/tasks Cedar forbid coverage violations; policy-content blocker remains"
+    },
+    {
+      "command": "python3 -m json.tool evidence/fd001/canonical-base-neutrality-2026-05-19.json >/dev/null",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "status": "pass",
+      "summary": "no whitespace errors after shared backup regulatory-pack slot migration"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 23 source-level jurisdiction leaks, all mapped to crates/oya-shared-backup-kernel/src/lib.rs regulatory-pack variants, labels, and tests.",
-    "The strict regulated-ai-refusal-grounding gate is now wired through active quality lanes, but it reports 5 real docs/tasks Cedar forbid policy violations; this remains a policy-content blocker rather than an automation false green.",
+    "The strict regulated-ai-refusal-grounding gate is wired through active quality lanes, but it reports 5 real docs/tasks Cedar forbid policy violations; this remains a policy-content blocker rather than an automation false green.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
-    "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
+    "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action.",
+    "Final FD-001 completion audit still needs prompt-to-artifact review across masterplan surfaces, gates, evidence, review, and CI signals."
   ],
   "next_dispatches": [
-    {
-      "lane": "shared backup regulatory-pack deprecation/migration",
-      "write_scope": "crates/oya-shared-backup-kernel; preserve retention-floor behavior while replacing concrete regulatory pack variants/labels with canonical-neutral slots",
-      "risk": "high"
-    },
     {
       "lane": "regulated-AI refusal policy-content closure",
       "write_scope": "microservices docs/tasks capability and Cedar policy fragments flagged by regulated-ai-refusal-grounding",
@@ -1378,25 +1412,24 @@
       "risk": "high"
     }
   ],
-  "updated_at": "2026-05-19T15:17:57Z",
+  "updated_at": "2026-05-19T15:30:18Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T15:17:57Z",
-    "change_scope": "residency/tenancy canonical-neutral production residency class and region-slot migration",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 156 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 23 jurisdiction leaks",
+    "observed_at": "2026-05-19T15:30:18Z",
+    "change_scope": "shared backup regulatory-pack canonical-neutral slot migration",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 23 jurisdiction leaks",
+    "after_summary": "canonical-base-neutrality validation passed: 196 files checked, 0 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 133,
+      "jurisdiction_leaks_removed": 23,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "crates/oya-residency-domain and crates/oya-tenancy-kernel plus direct source/API/test callers touched by the public label migration",
-    "targeted_clean_summary": "Residency and tenancy production seams now use canonical-neutral residency classes StrictHome, HomeWithFailover, StrictSecondary and neutral region slots Home, Secondary, Failover, Partner, ExpansionOne..ExpansionSix. Scoped canonical-base-neutrality passes for residency/tenancy. Workspace fmt/check plus domain/API/application/foundry/cloud/identity/SaaS targeted tests passed; direct caller/test fixture roots were scoped through canonical-base-neutrality with 30 files checked and 0 jurisdiction leaks; non-workspace API fixture files were rustfmt-checked but cannot be cargo-tested because they are not Cargo workspace members.",
-    "evidence_log": "/tmp/fd001-residency-tenancy-final-verify-20260519T151757Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 23 leaks, all in crates/oya-shared-backup-kernel/src/lib.rs RegulatoryPack variants/labels. regulated-ai-refusal-grounding now has active quality-lane wiring but still reports 5 real docs/tasks Cedar forbid policy-content violations. KR localization evidence and ops dashboard/control-center evidence gaps remain separate FD-001 blockers; remote PR/CI branch-protection evidence remains externally blocked.",
-    "workspace_verification_note": "This slice is a production enum/API label migration, not a compatibility alias. The old strict_kr/kr_with_us_failover/StrictKr/KrWithUsFailover command labels were removed from changed Rust files. Non-workspace crates oya-foundry-api and oya-workspace-{drive,forms,meet}-api cannot be tested via cargo without workspace membership changes; their changed fixture files were limited to neutral string substitutions and rustfmt checks.",
+    "targeted_clean_scope": "crates/oya-shared-backup-kernel",
+    "targeted_clean_summary": "Shared backup RegulatoryPack variants and wire labels now use canonical-neutral pack slots (PackPrimary, PackSecondary, PackHealth, PackFinancial, PackPublicSector) while preserving existing retention-floor behavior. Scoped canonical-base-neutrality passes for oya-shared-backup-kernel; default canonical-base-neutrality now passes with 196 files checked and 0 jurisdiction leaks. Shared-backup unit tests, fmt check, planning-closure, evidence JSON parse, and diff check passed. regulated-ai-refusal-grounding remains expected-red with 5 docs/tasks Cedar forbid coverage violations.",
+    "evidence_log": "/tmp/fd001-shared-backup-neutrality-verify-20260519T153018Z.log",
+    "remaining_blocker": "Canonical-base-neutrality is closed locally. Remaining FD-001 blockers are regulated-ai-refusal-grounding policy content (5 docs/tasks Cedar forbid violations), KR localization evidence and ops-dashboard/control-center manifest gaps from worker audits, hosted PR/CI branch-protection evidence blocked by repo-admin/live-context access, and final FD-001 completion audit.",
+    "workspace_verification_note": "This slice deliberately removes concrete jurisdiction-coded regulatory pack variants and labels from the shared backup kernel instead of preserving aliases. Concrete retention regimes must be modeled in localization/regional packs; canonical base retains neutral pack slots only.",
     "supporting_evidence_logs": [
-      "/tmp/fd001-residency-tenancy-broader-tests-20260519T151500Z.log",
-      "/tmp/fd001-residency-tenancy-broader-tests-2-20260519T151800Z.log",
-      "/tmp/fd001-residency-tenancy-supporting-tests-final-20260519T152357Z.log",
+      "/tmp/fd001-shared-backup-neutrality-verify-20260519T153018Z.log",
+      "/tmp/fd001-residency-tenancy-final-verify-20260519T151757Z.log",
       "/tmp/fd001-regulated-ai-quality-lane-registry-final-20260519T151555Z.log"
     ]
   },
@@ -1958,6 +1991,26 @@
         "/tmp/fd001-residency-tenancy-broader-tests-20260519T151500Z.log",
         "/tmp/fd001-residency-tenancy-broader-tests-2-20260519T151800Z.log",
         "/tmp/fd001-residency-tenancy-supporting-tests-final-20260519T152357Z.log",
+        "/tmp/fd001-regulated-ai-quality-lane-registry-final-20260519T151555Z.log"
+      ]
+    },
+    {
+      "observed_at": "2026-05-19T15:30:18Z",
+      "change_scope": "shared backup regulatory-pack canonical-neutral slot migration",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 23 jurisdiction leaks",
+      "after_summary": "canonical-base-neutrality validation passed: 196 files checked, 0 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 23,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "crates/oya-shared-backup-kernel",
+      "targeted_clean_summary": "Shared backup RegulatoryPack variants and wire labels now use canonical-neutral pack slots (PackPrimary, PackSecondary, PackHealth, PackFinancial, PackPublicSector) while preserving existing retention-floor behavior. Scoped canonical-base-neutrality passes for oya-shared-backup-kernel; default canonical-base-neutrality now passes with 196 files checked and 0 jurisdiction leaks. Shared-backup unit tests, fmt check, planning-closure, evidence JSON parse, and diff check passed. regulated-ai-refusal-grounding remains expected-red with 5 docs/tasks Cedar forbid coverage violations.",
+      "evidence_log": "/tmp/fd001-shared-backup-neutrality-verify-20260519T153018Z.log",
+      "remaining_blocker": "Canonical-base-neutrality is closed locally. Remaining FD-001 blockers are regulated-ai-refusal-grounding policy content (5 docs/tasks Cedar forbid violations), KR localization evidence and ops-dashboard/control-center manifest gaps from worker audits, hosted PR/CI branch-protection evidence blocked by repo-admin/live-context access, and final FD-001 completion audit.",
+      "workspace_verification_note": "This slice deliberately removes concrete jurisdiction-coded regulatory pack variants and labels from the shared backup kernel instead of preserving aliases. Concrete retention regimes must be modeled in localization/regional packs; canonical base retains neutral pack slots only.",
+      "supporting_evidence_logs": [
+        "/tmp/fd001-shared-backup-neutrality-verify-20260519T153018Z.log",
+        "/tmp/fd001-residency-tenancy-final-verify-20260519T151757Z.log",
         "/tmp/fd001-regulated-ai-quality-lane-registry-final-20260519T151555Z.log"
       ]
     }
