@@ -1706,9 +1706,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        // PR #143 Fix-D — EU AI Act Annex III refusal grounding.
-        (Some("validate"), Some("eu-ai-act-annex-iii-refusal")) => {
-            crate::adr_0145_gates::run_eu_ai_act_annex_iii_refusal(args.collect())
+        // PR #143 Fix-D — regulated AI refusal grounding.
+        (Some("validate"), Some("regulated-ai-refusal-grounding")) => {
+            crate::adr_0145_gates::run_regulated_ai_refusal_grounding(args.collect())
         }
         // PR #143 Fix-D — SLSA L3 evidence-grounded check.
         (Some("validate"), Some("slsa-l3-evidence-grounded")) => {

@@ -1346,19 +1346,20 @@
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 157 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blockers remain residency/tenancy canonical-vs-pack separation and shared backup regulatory-pack naming.",
+    "Default canonical-base-neutrality scan currently fails with 156 source-level jurisdiction leaks. The largest semantic blockers are residency/tenancy canonical-vs-pack separation and shared backup regulatory-pack naming.",
+    "The strict regulated-ai-refusal-grounding gate now dispatches under a neutral command identity, but it reports 5 real docs/tasks Cedar forbid policy violations; this remains a policy-content blocker rather than a command-name false green.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
     {
-      "lane": "gate-catalog regulated-AI command deprecation/migration",
-      "write_scope": "crates/oya-foundry-gate-catalog-domain plus dev-cli/quality-lane command identity if migration is safe",
+      "lane": "residency/tenancy canonical-vs-pack boundary review and migration",
+      "write_scope": "crates/oya-residency-domain and crates/oya-tenancy-kernel; preserve behavior while moving concrete jurisdiction semantics behind neutral pack slots",
       "risk": "high"
     },
     {
-      "lane": "residency/tenancy canonical-vs-pack boundary review",
-      "write_scope": "crates/oya-residency-domain and crates/oya-tenancy-kernel; oya-tenancy-domain test fixtures are now clean",
+      "lane": "regulated-AI refusal policy-content closure",
+      "write_scope": "microservices docs/tasks capability and Cedar policy fragments flagged by regulated-ai-refusal-grounding",
       "risk": "high"
     },
     {
@@ -1377,21 +1378,21 @@
       "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T14:42:22Z",
+  "updated_at": "2026-05-19T14:54:46Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T14:42:22Z",
-    "change_scope": "search locale/morphology canonical-neutral enum and fixture migration",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 200 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 157 jurisdiction leaks",
+    "observed_at": "2026-05-19T14:54:46Z",
+    "change_scope": "gate-catalog regulated-AI command identity migration",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 157 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 156 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 43,
+      "jurisdiction_leaks_removed": 1,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "crates/oya-search-parser-domain, crates/oya-search-query-domain, crates/oya-search-index-inverted-domain, crates/oya-search-index-vector-domain, crates/oya-search-rank-domain, crates/oya-search-rag-domain, and crates/oya-search-serp-domain",
-    "targeted_clean_summary": "Search locale enums now use canonical-neutral slot names (Generic, PackPrimary, PackSecondary) instead of jurisdiction-coded variants. Search-wide scoped canonical-base-neutrality passes with 11 files checked and 0 jurisdiction leaks. Parser, query, inverted index, vector index, rank, RAG, and SERP tests passed; post-rustfmt fmt check, planning-closure, and diff check passed.",
-    "evidence_log": "/tmp/fd001-search-locale-migration-verify-20260519T144222Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 157 leaks. The first remaining leak is gate-catalog regulated-AI command identity; remaining high-risk semantic buckets are residency/tenancy production seams and shared backup regulatory-pack naming.",
-    "workspace_verification_note": "This slice is an explicit internal Rust API migration for search locale slots. No serde or wire string mapping was present; behavior remains covered by tenant-boundary, locale-mismatch, query-planning, ranking, SERP, and RAG data-boundary tests."
+    "targeted_clean_scope": "crates/oya-foundry-gate-catalog-domain regulated-AI lane name plus dev-cli gate dispatch/output and caller documentation",
+    "targeted_clean_summary": "The aggregated gate catalog and dev-cli dispatch now use the canonical-neutral command identity regulated-ai-refusal-grounding instead of a jurisdiction-coded command string. The old command identity is intentionally not retained as an alias because keeping it would preserve the source-level canonical-base-neutrality blocker. Scoped canonical-base-neutrality passes for oya-foundry-gate-catalog-domain with 1 file checked and 0 jurisdiction leaks; planning-closure and diff check passed.",
+    "evidence_log": "/tmp/fd001-gate-catalog-command-migration-final-verify-20260519T145500Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 156 leaks. The remaining mapped high-risk semantic buckets are residency/tenancy production canonical-vs-pack seams and shared backup regulatory-pack naming. The new regulated-ai-refusal-grounding command dispatches, but the strict content gate reports 5 real policy violations in docs/tasks Cedar forbid coverage; that is a surfaced policy blocker, not a false green.",
+    "workspace_verification_note": "This slice is a command-identity deprecation/migration only. The check crate package name remains oya-check-eu-ai-act-annex-iii-refusal because its BNF crate identity and legal-domain implementation are out of this canonical gate-catalog command scope. The focused verification log also records that the retired eu-ai-act-annex-iii-refusal CLI command is no longer accepted. A full oya-dev-cli integration run was attempted earlier but aborted when a workspace nextest scan exhausted disk; focused gate/library coverage was rerun after target cleanup."
   },
   "remediation_history": [
     {
@@ -1917,6 +1918,21 @@
       "evidence_log": "/tmp/fd001-search-locale-migration-verify-20260519T144222Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 157 leaks. The first remaining leak is gate-catalog regulated-AI command identity; remaining high-risk semantic buckets are residency/tenancy production seams and shared backup regulatory-pack naming.",
       "workspace_verification_note": "This slice is an explicit internal Rust API migration for search locale slots. No serde or wire string mapping was present; behavior remains covered by tenant-boundary, locale-mismatch, query-planning, ranking, SERP, and RAG data-boundary tests."
+    },
+    {
+      "observed_at": "2026-05-19T14:54:46Z",
+      "change_scope": "gate-catalog regulated-AI command identity migration",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 157 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 156 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 1,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "crates/oya-foundry-gate-catalog-domain regulated-AI lane name plus dev-cli gate dispatch/output and caller documentation",
+      "targeted_clean_summary": "The aggregated gate catalog and dev-cli dispatch now use the canonical-neutral command identity regulated-ai-refusal-grounding instead of a jurisdiction-coded command string. The old command identity is intentionally not retained as an alias because keeping it would preserve the source-level canonical-base-neutrality blocker. Scoped canonical-base-neutrality passes for oya-foundry-gate-catalog-domain with 1 file checked and 0 jurisdiction leaks; planning-closure and diff check passed.",
+      "evidence_log": "/tmp/fd001-gate-catalog-command-migration-final-verify-20260519T145500Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 156 leaks. The remaining mapped high-risk semantic buckets are residency/tenancy production canonical-vs-pack seams and shared backup regulatory-pack naming. The new regulated-ai-refusal-grounding command dispatches, but the strict content gate reports 5 real policy violations in docs/tasks Cedar forbid coverage; that is a surfaced policy blocker, not a false green.",
+      "workspace_verification_note": "This slice is a command-identity deprecation/migration only. The check crate package name remains oya-check-eu-ai-act-annex-iii-refusal because its BNF crate identity and legal-domain implementation are out of this canonical gate-catalog command scope. The focused verification log also records that the retired eu-ai-act-annex-iii-refusal CLI command is no longer accepted. A full oya-dev-cli integration run was attempted earlier but aborted when a workspace nextest scan exhausted disk; focused gate/library coverage was rerun after target cleanup."
     }
   ]
 }
