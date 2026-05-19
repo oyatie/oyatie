@@ -1536,6 +1536,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-surface-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "oya-codeview-cli"
 version = "0.1.0"
 dependencies = [

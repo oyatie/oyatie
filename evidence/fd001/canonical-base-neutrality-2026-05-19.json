@@ -503,19 +503,38 @@
       "status": "expected_fail",
       "summary": "canonical base neutrality violations: 196 files checked, 442 jurisdiction leaks",
       "note": "Updated after storage fixture neutrality slice; cloud-surface and broader canonical/pack seams remain the next blockers."
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-surface-domain -- --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-cloud-surface-domain",
+      "status": "pass",
+      "summary": "5 unit tests passed after neutral cloud-surface fixture update and workspace membership admission"
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-surface-domain --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-surface-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 437 jurisdiction leaks",
+      "note": "Updated after cloud-surface neutrality/workspace admission slice; connect-domain regional fixtures and data-boundary KR taxonomy seams remain the next blockers."
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 442 source-level jurisdiction leaks, starting in crates/oya-cloud-surface-domain/src/lib.rs and continuing into connect/data-boundary/shared tenancy and search surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "Default canonical-base-neutrality scan currently fails with 437 source-level jurisdiction leaks, starting in crates/oya-connect-*-domain region fixtures and continuing into data-boundary/shared tenancy/search surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
-    {
-      "lane": "cloud-surface canonical provider fixture neutrality",
-      "write_scope": "crates/oya-cloud-surface-domain/src/lib.rs",
-      "risk": "medium-high"
-    },
     {
       "lane": "connect-domain regional fixture sweep",
       "write_scope": "crates/oya-connect-*-domain/src/lib.rs high-signal region fixtures in bounded batches",
@@ -542,21 +561,21 @@
       "risk": "low-medium"
     }
   ],
-  "updated_at": "2026-05-19T12:59:45Z",
+  "updated_at": "2026-05-19T13:14:10Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T12:59:45Z",
-    "change_scope": "crates/oya-cloud-storage-domain canonical storage fixture neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 491 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 442 jurisdiction leaks",
+    "observed_at": "2026-05-19T13:14:10Z",
+    "change_scope": "crates/oya-cloud-surface-domain canonical provider/region fixture neutrality and workspace CI admission slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 442 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 437 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 49,
+      "jurisdiction_leaks_removed": 5,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo fmt -p oya-cloud-storage-domain -- --check; cargo test -p oya-cloud-storage-domain; cargo clippy -p oya-cloud-storage-domain --all-targets -- -D warnings; cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-storage-domain",
-    "targeted_clean_summary": "storage scoped scan passes with 1 file checked and 0 jurisdiction leaks; 12 unit tests, fmt, and clippy pass",
-    "evidence_log": "/tmp/fd001-cloud-storage-neutrality-verify-20260519T125945Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 442 leaks; next highest-signal source starts at crates/oya-cloud-surface-domain/src/lib.rs and then connect/data-boundary/domain-wide pack leaks.",
-    "workspace_verification_note": "Storage tests use neutral alpha/beta region, tenant, cell, KMS/BYOK/HYOK, resource, and per-pack residency fixtures while preserving object-lock, replication, encryption, snapshot, filesystem, archive-vault, metering, and resource-id behavior."
+    "targeted_clean_scope": "cargo fmt -p oya-cloud-surface-domain -- --check; cargo test -p oya-cloud-surface-domain; cargo clippy -p oya-cloud-surface-domain --all-targets -- -D warnings; cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-surface-domain",
+    "targeted_clean_summary": "cloud-surface scoped scan passes with 1 file checked and 0 jurisdiction leaks; 5 unit tests, fmt, and clippy pass; crate is admitted to workspace membership so package-level CI commands can select it",
+    "evidence_log": "/tmp/fd001-cloud-surface-neutrality-verify-20260519T131410Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 437 leaks; next highest-signal sources begin in crates/oya-connect-*-domain region fixtures and data-boundary KR financial taxonomy seams.",
+    "workspace_verification_note": "Cloud-surface production day-one region prefix now uses a neutral region- namespace, test provider refs use generic public-cloud/hybrid-colo/owned-dc names, and the crate is in Cargo workspace membership so fmt/test/clippy cannot silently skip it."
   },
   "remediation_history": [
     {
@@ -812,6 +831,21 @@
       "evidence_log": "/tmp/fd001-cloud-region-resource-neutrality-verify-20260519T125414Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 491 leaks; next highest-signal sources start at crates/oya-cloud-storage-domain/src/lib.rs and crates/oya-cloud-surface-domain/src/lib.rs.",
       "workspace_verification_note": "Canonical region/resource tests now use neutral alpha/beta location labels and generic/global or per-pack residency fixtures while retaining the same invalid routing, cell, resource-id, metering, and residency mismatch checks."
+    },
+    {
+      "observed_at": "2026-05-19T12:59:45Z",
+      "change_scope": "crates/oya-cloud-storage-domain canonical storage fixture neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 491 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 442 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 49,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo fmt -p oya-cloud-storage-domain -- --check; cargo test -p oya-cloud-storage-domain; cargo clippy -p oya-cloud-storage-domain --all-targets -- -D warnings; cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-storage-domain",
+      "targeted_clean_summary": "storage scoped scan passes with 1 file checked and 0 jurisdiction leaks; 12 unit tests, fmt, and clippy pass",
+      "evidence_log": "/tmp/fd001-cloud-storage-neutrality-verify-20260519T125945Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 442 leaks; next highest-signal source starts at crates/oya-cloud-surface-domain/src/lib.rs and then connect/data-boundary/domain-wide pack leaks.",
+      "workspace_verification_note": "Storage tests use neutral alpha/beta region, tenant, cell, KMS/BYOK/HYOK, resource, and per-pack residency fixtures while preserving object-lock, replication, encryption, snapshot, filesystem, archive-vault, metering, and resource-id behavior."
     }
   ]
 }
