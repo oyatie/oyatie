@@ -49,7 +49,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: oya-pr-review-${{ github.event.workflow_run.head_sha }}
+  group: oya-pr-review-${{ github.event.workflow_run.pull_requests[0].head.sha || github.event.workflow_run.head_sha }}
   cancel-in-progress: true
 
 jobs:
@@ -66,10 +66,46 @@ jobs:
     # runs against red CI.
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
     steps:
+      - name: Resolve PR number and PR head SHA
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          event_pr_number=$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")
+          event_pr_head_sha=$(jq -r '.workflow_run.pull_requests[0].head.sha // empty' "$GITHUB_EVENT_PATH")
+
+          pr_number="${event_pr_number}"
+          if [ -z "$pr_number" ]; then
+            pr_number=$(gh api \
+              "repos/${{ github.repository }}/commits/${UPSTREAM_HEAD_SHA}/pulls" \
+              --jq '.[0].number // empty')
+          fi
+          if [ -z "$pr_number" ]; then
+            echo "::error::could not resolve PR number for upstream workflow_run SHA ${UPSTREAM_HEAD_SHA}" >&2
+            exit 1
+          fi
+
+          pr_head_sha=$(gh pr view "${pr_number}" --json headRefOid --jq '.headRefOid // empty')
+          if [ -z "$pr_head_sha" ]; then
+            echo "::error::could not resolve PR head SHA for PR #${pr_number}" >&2
+            exit 1
+          fi
+          if [ -n "$event_pr_head_sha" ] && [ "$event_pr_head_sha" != "$pr_head_sha" ]; then
+            echo "::notice::workflow_run payload PR head ${event_pr_head_sha} differs from live PR head ${pr_head_sha}; binding oya-pr-review to live PR head"
+          fi
+
+          {
+            echo "pr_number=$pr_number"
+            echo "pr_head_sha=$pr_head_sha"
+            echo "upstream_head_sha=$UPSTREAM_HEAD_SHA"
+          } >> "$GITHUB_OUTPUT"
+          echo "Resolved PR #$pr_number head=${pr_head_sha} upstream_workflow_run_head=${UPSTREAM_HEAD_SHA}"
+
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ steps.pr.outputs.pr_head_sha }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
@@ -81,28 +117,12 @@ jobs:
         with:
           shared-key: oya-pr-review
 
-      - name: Resolve PR number from workflow_run head SHA
-        id: pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-        run: |
-          pr_number=$(gh api \
-            "repos/${{ github.repository }}/commits/${HEAD_SHA}/pulls" \
-            --jq '.[0].number // empty')
-          if [ -z "$pr_number" ]; then
-            echo "::error::could not resolve PR number for head SHA ${HEAD_SHA}" >&2
-            exit 1
-          fi
-          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
-          echo "Resolved PR #$pr_number"
-
       - name: Capture PR review input bundle
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         run: |
-          mkdir -p evidence/pipeline-maturity-glue/ip-004-pr-review/${PR_NUMBER}
+          mkdir -p "evidence/pipeline-maturity-glue/ip-004-pr-review/${PR_NUMBER}"
           {
             echo "PR #${PR_NUMBER}"
             echo
@@ -121,7 +141,7 @@ jobs:
         run: |
           cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out \
             --pr-number "${{ steps.pr.outputs.pr_number }}" \
-            --change-id "${{ github.event.workflow_run.head_sha }}" \
+            --change-id "${{ steps.pr.outputs.pr_head_sha }}" \
             --templates-dir evidence/pipeline-maturity-glue/ip-004-pr-review/facets \
             --evidence-dir evidence/pipeline-maturity-glue/ip-004-pr-review \
             --user-message-file "evidence/pipeline-maturity-glue/ip-004-pr-review/${{ steps.pr.outputs.pr_number }}/review-input.md" \
@@ -154,20 +174,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_SHA: ${{ steps.pr.outputs.pr_head_sha }}
+          UPSTREAM_HEAD_SHA: ${{ steps.pr.outputs.upstream_head_sha }}
           REVIEW_RUNTIME_MODE: deterministic-mock
         run: |
           rollup="evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json"
           verdict="ROLLUP_MISSING"
           pending="unknown"
           conclusion="failure"
-          summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; rollup file missing at ${rollup}"
+          summary="PR #${PR_NUMBER}; pr_head_sha=${HEAD_SHA}; upstream_workflow_run_head_sha=${UPSTREAM_HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; rollup file missing at ${rollup}"
 
           if [ ! -f "$rollup" ]; then
             echo "::error::rollup file missing at $rollup" >&2
           else
-            verdict=$(grep -o '"verdict": *"[A-Z_]*"' "$rollup" | head -n1 | sed 's/.*"\([A-Z_]*\)"/\1/' || true)
-            pending=$(grep -o '"subagent_runtime_pending": *\(true\|false\)' "$rollup" | head -n1 | awk -F': *' '{print $2}' || true)
+            verdict=$(jq -r '.verdict // empty' "$rollup" 2>/dev/null || true)
+            pending=$(jq -r '.subagent_runtime_pending // empty' "$rollup" 2>/dev/null || true)
             if [ -z "$verdict" ]; then
               verdict="UNKNOWN"
             fi
@@ -177,7 +198,7 @@ jobs:
             if [ "$verdict" = "APPROVE" ] && [ "$pending" = "false" ]; then
               conclusion="success"
             fi
-            summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; verdict=${verdict}; subagent_runtime_pending=${pending}"
+            summary="PR #${PR_NUMBER}; pr_head_sha=${HEAD_SHA}; upstream_workflow_run_head_sha=${UPSTREAM_HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; verdict=${verdict}; subagent_runtime_pending=${pending}"
           fi
 
           echo "rollup verdict=${verdict} pending=${pending} conclusion=${conclusion} runtime_mode=${REVIEW_RUNTIME_MODE}"
@@ -187,8 +208,8 @@ jobs:
             -f status="completed" \
             -f conclusion="${conclusion}" \
             -f details_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
-            -f output[title]="pr-review ${verdict} (${REVIEW_RUNTIME_MODE})" \
-            -f output[summary]="${summary}"
+            -f "output[title]=pr-review ${verdict} (${REVIEW_RUNTIME_MODE})" \
+            -f "output[summary]=${summary}"
 
           # Required-check semantics: branch protection binds to the
           # explicit Check Run above because workflow_run jobs attach to
