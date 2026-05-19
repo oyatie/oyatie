@@ -715,7 +715,7 @@ mod tests {
         CollabRuntime::new(CollabRuntimeCreate {
             document_id: "site-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             cell_id: "cell-a".into(),
             surface,
             data_class: None,
@@ -763,7 +763,7 @@ mod tests {
         SiteCreate {
             id: "site-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha-1".into(),
             cell_id: "cell-a".into(),
             title: "Engineering Handbook".into(),
             slug: "engineering-handbook".into(),
@@ -783,8 +783,8 @@ mod tests {
 
     fn approved_policy() -> ContentModerationPolicyRef {
         ContentModerationPolicyRef::new(
-            "us-east-1".into(),
-            "content-safety-us".into(),
+            "region-alpha-1".into(),
+            "content-safety-alpha".into(),
             ModerationStatus::Approved,
             Some(1_700_000_020),
         )
@@ -793,8 +793,8 @@ mod tests {
 
     fn pending_policy() -> ContentModerationPolicyRef {
         ContentModerationPolicyRef::new(
-            "us-east-1".into(),
-            "content-safety-us".into(),
+            "region-alpha-1".into(),
+            "content-safety-alpha".into(),
             ModerationStatus::Pending,
             None,
         )

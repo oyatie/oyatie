@@ -552,22 +552,52 @@
       "status": "expected_fail",
       "summary": "canonical base neutrality violations: 196 files checked, 429 jurisdiction leaks",
       "note": "Updated after bounded connect single-region fixture neutrality batch; remaining connect multi-leak sources and data-boundary KR taxonomy seams remain blockers."
+    },
+    {
+      "command": "cargo fmt -p connect regional batch -- --check",
+      "status": "pass",
+      "summary": "fmt passed for 10 connect regional packages"
+    },
+    {
+      "command": "cargo test -p connect regional batch",
+      "status": "pass",
+      "summary": "66 unit tests passed across 10 connect regional packages"
+    },
+    {
+      "command": "cargo clippy -p connect regional batch --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root connect regional batch",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 10 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 390 jurisdiction leaks",
+      "note": "Updated after bounded connect regional fixture neutrality batch; remaining connect dlp/retention/translate/trust seams and broader data-boundary/residency/tenancy/search leaks remain blockers."
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 429 source-level jurisdiction leaks, starting in remaining connect-domain regional/locale fixtures and continuing into data-boundary/shared tenancy/search surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "Default canonical-base-neutrality scan currently fails with 390 source-level jurisdiction leaks, starting in remaining connect-domain dlp/retention/translate/trust-portal seams and continuing into data-boundary/residency/shared tenancy/search surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
     {
-      "lane": "connect-domain multi-leak regional fixture sweep",
-      "write_scope": "crates/oya-connect-{dlp,document-format,drive,dsr,ediscovery,forms,notes,retention,sheets,sites,slides,tasks}-domain/src/lib.rs in bounded batches",
+      "lane": "connect dlp/retention regional fixture plus FinancialKrCredit seam split",
+      "write_scope": "crates/oya-connect-dlp-domain/src/lib.rs and crates/oya-connect-retention-domain/src/lib.rs",
       "risk": "high"
     },
     {
-      "lane": "connect translate/trust-portal locale and pack-boundary split",
-      "write_scope": "crates/oya-connect-translate-domain/src/lib.rs and crates/oya-connect-trust-portal-domain/src/lib.rs",
+      "lane": "connect translate locale/region fixture seam",
+      "write_scope": "crates/oya-connect-translate-domain/src/lib.rs",
+      "risk": "high"
+    },
+    {
+      "lane": "connect trust-portal residency and pack-boundary split",
+      "write_scope": "crates/oya-connect-trust-portal-domain/src/lib.rs",
       "risk": "high"
     },
     {
@@ -576,31 +606,26 @@
       "risk": "high"
     },
     {
-      "lane": "shared i18n/backup/tenancy canonical-vs-pack boundary review",
-      "write_scope": "crates/oya-shared-*-kernel/src/lib.rs and crates/oya-tenancy-*/src/lib.rs",
+      "lane": "shared residency/backup/tenancy canonical-vs-pack boundary review",
+      "write_scope": "crates/oya-residency-domain/src/lib.rs, crates/oya-shared-backup-kernel/src/lib.rs, and crates/oya-tenancy-*/src/lib.rs",
       "risk": "high"
-    },
-    {
-      "lane": "ops-dashboard-control-center manifest bootstrap",
-      "write_scope": "microservices/ops-dashboard-control-center/manifest.json plus manifests-index after manifest exists",
-      "risk": "medium"
     }
   ],
-  "updated_at": "2026-05-19T13:23:15Z",
+  "updated_at": "2026-05-19T13:32:40Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T13:23:15Z",
-    "change_scope": "bounded connect-domain single-region fixture neutrality batch",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 437 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 429 jurisdiction leaks",
+    "observed_at": "2026-05-19T13:32:40Z",
+    "change_scope": "bounded connect-domain regional fixture neutrality batch",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 429 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 390 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 8,
+      "jurisdiction_leaks_removed": 39,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo fmt/test/clippy for oya-connect-address-book-domain, oya-connect-calendar-domain, oya-connect-collab-runtime-domain, oya-connect-docs-domain, oya-connect-mail-domain, oya-connect-meet-domain, oya-connect-messenger-domain, and oya-connect-recordings-domain; scoped canonical-base-neutrality for the same roots",
-    "targeted_clean_summary": "connect single-region scoped scan passes with 11 files checked and 0 jurisdiction leaks; 76 unit tests, fmt, and clippy pass across 8 packages",
-    "evidence_log": "/tmp/fd001-connect-single-region-neutrality-verify-20260519T132315Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 429 leaks; next connect sources include dlp/document-format/drive/dsr/ediscovery/forms/notes/retention/sheets/sites/slides/tasks/translate/trust-portal plus data-boundary KR financial taxonomy seams.",
-    "workspace_verification_note": "Single-region connect fixtures now use neutral region-alpha-1 values in bounded low-risk crates while preserving each domain's validation and privacy-classification behavior."
+    "targeted_clean_scope": "cargo fmt/test/clippy for oya-connect-document-format-domain, oya-connect-drive-domain, oya-connect-dsr-domain, oya-connect-ediscovery-domain, oya-connect-forms-domain, oya-connect-notes-domain, oya-connect-sheets-domain, oya-connect-sites-domain, oya-connect-slides-domain, and oya-connect-tasks-domain; scoped canonical-base-neutrality for the same roots",
+    "targeted_clean_summary": "connect regional scoped scan passes with 10 files checked and 0 jurisdiction leaks; 66 unit tests, fmt, and clippy pass across 10 packages",
+    "evidence_log": "/tmp/fd001-connect-regional-batch-neutrality-verify-20260519T133240Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 390 leaks; next connect sources are dlp/retention regional fixtures plus FinancialKrCredit seams, translate locale/region fixtures, and trust-portal residency/pack-boundary fixtures before broader data-boundary/residency/tenancy/search work.",
+    "workspace_verification_note": "Regional Connect fixtures now use neutral region-alpha-1/region-beta-1 values and content-safety-alpha policy refs while preserving cross-region consent, moderation, DSR, drive, document, notes, sheets, slides, tasks, and forms validation behavior."
   },
   "remediation_history": [
     {
@@ -886,6 +911,21 @@
       "evidence_log": "/tmp/fd001-cloud-surface-neutrality-verify-20260519T131410Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 437 leaks; next highest-signal sources begin in crates/oya-connect-*-domain region fixtures and data-boundary KR financial taxonomy seams.",
       "workspace_verification_note": "Cloud-surface production day-one region prefix now uses a neutral region- namespace, test provider refs use generic public-cloud/hybrid-colo/owned-dc names, and the crate is in Cargo workspace membership so fmt/test/clippy cannot silently skip it."
+    },
+    {
+      "observed_at": "2026-05-19T13:23:15Z",
+      "change_scope": "bounded connect-domain single-region fixture neutrality batch",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 437 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 429 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 8,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo fmt/test/clippy for oya-connect-address-book-domain, oya-connect-calendar-domain, oya-connect-collab-runtime-domain, oya-connect-docs-domain, oya-connect-mail-domain, oya-connect-meet-domain, oya-connect-messenger-domain, and oya-connect-recordings-domain; scoped canonical-base-neutrality for the same roots",
+      "targeted_clean_summary": "connect single-region scoped scan passes with 11 files checked and 0 jurisdiction leaks; 76 unit tests, fmt, and clippy pass across 8 packages",
+      "evidence_log": "/tmp/fd001-connect-single-region-neutrality-verify-20260519T132315Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 429 leaks; next connect sources include dlp/document-format/drive/dsr/ediscovery/forms/notes/retention/sheets/sites/slides/tasks/translate/trust-portal plus data-boundary KR financial taxonomy seams.",
+      "workspace_verification_note": "Single-region connect fixtures now use neutral region-alpha-1 values in bounded low-risk crates while preserving each domain's validation and privacy-classification behavior."
     }
   ]
 }
