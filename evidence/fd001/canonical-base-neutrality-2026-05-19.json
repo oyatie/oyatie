@@ -829,22 +829,69 @@
       "status": "pass",
       "summary": "workspace diff check clean for DSR fixture neutrality slice",
       "evidence_log": "/tmp/fd001-dsr-domain-neutrality-verify-20260519T134217Z.log"
+    },
+    {
+      "command": "cargo fmt -p oya-eventing-domain -- --check",
+      "status": "pass",
+      "summary": "eventing domain formatting clean after CloudEvent fixture neutralization",
+      "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log"
+    },
+    {
+      "command": "cargo test -p oya-eventing-domain",
+      "status": "pass",
+      "summary": "25 unit tests passed after neutral cell and dotted-tenant fixture update",
+      "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log"
+    },
+    {
+      "command": "cargo clippy -p oya-eventing-domain --all-targets -- -D warnings",
+      "status": "pass",
+      "summary": "eventing domain lint clean",
+      "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-eventing-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 2 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 299 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "workspace diff check clean for eventing fixture neutrality slice",
+      "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 304 source-level jurisdiction leaks, starting in eventing cell/tenant fixtures and continuing into foundry cloud mutation/eval/evidence/gate-catalog/policy surfaces, metering/observability/policy cedar, residency/tenancy, search/shared backup/i18n/email/SaaS surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "Default canonical-base-neutrality scan currently fails with 299 source-level jurisdiction leaks, starting in foundry cloud mutation/eval/evidence/gate-catalog/policy/route surfaces and continuing into metering/observability/policy cedar, residency/tenancy, search/shared backup/i18n/email/SaaS surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
     {
-      "lane": "eventing cell and tenant fixture neutralization",
-      "write_scope": "crates/oya-eventing-domain/src/cloud_event.rs",
+      "lane": "foundry cloud mutation region fixture neutrality",
+      "write_scope": "crates/oya-foundry-cloud-mutation-domain/src/lib.rs",
       "risk": "moderate"
     },
     {
-      "lane": "foundry cloud mutation/eval/policy/route jurisdiction fixture split",
-      "write_scope": "crates/oya-foundry-cloud-mutation-domain, crates/oya-foundry-eval-domain, crates/oya-foundry-eval-usecase, crates/oya-foundry-policy-domain, crates/oya-foundry-route-policy-kernel",
+      "lane": "foundry eval locale cohort canonical-vs-pack split",
+      "write_scope": "crates/oya-foundry-eval-domain/src/lib.rs and crates/oya-foundry-eval-usecase/src/lib.rs",
+      "risk": "high"
+    },
+    {
+      "lane": "foundry evidence/gate-catalog/policy/route jurisdiction naming split",
+      "write_scope": "crates/oya-foundry-evidence-domain, crates/oya-foundry-gate-catalog-domain, crates/oya-foundry-policy-domain, crates/oya-foundry-route-policy-kernel",
       "risk": "high"
     },
     {
@@ -853,31 +900,26 @@
       "risk": "moderate"
     },
     {
-      "lane": "residency/tenancy canonical-vs-pack boundary review",
-      "write_scope": "crates/oya-residency-domain, crates/oya-tenancy-domain, crates/oya-tenancy-kernel",
+      "lane": "residency/tenancy/search/shared/SaaS boundary and fixture neutralization",
+      "write_scope": "crates/oya-residency-domain, crates/oya-tenancy-*, crates/oya-search-*, crates/oya-shared-*, crates/oya-saas-*",
       "risk": "high"
-    },
-    {
-      "lane": "search/shared/SaaS marketplace workflow fixture neutralization",
-      "write_scope": "crates/oya-search-*-domain, crates/oya-shared-*-kernel, crates/oya-saas-*",
-      "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T13:42:17Z",
+  "updated_at": "2026-05-19T13:44:17Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T13:42:17Z",
-    "change_scope": "DSR regional test-fixture neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 311 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 304 jurisdiction leaks",
+    "observed_at": "2026-05-19T13:44:17Z",
+    "change_scope": "eventing CloudEvent cell and dotted-tenant test-fixture neutrality slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 304 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 299 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 7,
+      "jurisdiction_leaks_removed": 5,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo fmt/test/clippy for oya-dsr-domain; scoped canonical-base-neutrality for crates/oya-dsr-domain",
-    "targeted_clean_summary": "DSR scoped scan passes with 1 file checked and 0 jurisdiction leaks; 7 unit tests, fmt, and clippy pass.",
-    "evidence_log": "/tmp/fd001-dsr-domain-neutrality-verify-20260519T134217Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 304 leaks; next sources start in eventing cell/tenant fixtures, then foundry cloud mutation/eval/evidence/gate-catalog/policy/route policy, metering, observability, policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
-    "workspace_verification_note": "DSR test fixtures now use neutral region-alpha-1/region-beta-1 values while preserving same-region dispatch acceptance and wrong-region StoreOutOfScope validation behavior."
+    "targeted_clean_scope": "cargo fmt/test/clippy for oya-eventing-domain; scoped canonical-base-neutrality for crates/oya-eventing-domain",
+    "targeted_clean_summary": "Eventing scoped scan passes with 2 files checked and 0 jurisdiction leaks; 25 unit tests, fmt, and clippy pass.",
+    "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 299 leaks; next sources start in foundry cloud mutation/eval/evidence/gate-catalog/policy/route policy, then metering, observability, policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
+    "workspace_verification_note": "CloudEvent tests now use neutral cell-alpha-1 and tenant.alpha fixtures while preserving normalization, topic round-trip, and dotted-component rejection behavior."
   },
   "remediation_history": [
     {
@@ -1253,6 +1295,21 @@
       "evidence_log": "/tmp/fd001-data-boundary-financial-neutrality-verify-20260519T133703Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 311 leaks; next sources start in DSR, eventing, foundry cloud mutation/eval/evidence/gate-catalog/policy/route policy, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
       "workspace_verification_note": "Canonical DataClass::Financial is generic FINANCIAL; new neutral DataClass::FinancialCredit replaces source-level FinancialKrCredit; legacy FINANCIAL_KR*/FinancialKrCredit labels remain accepted through dynamically constructed compatibility parsers outside the intentional gate dirty fixtures."
+    },
+    {
+      "observed_at": "2026-05-19T13:42:17Z",
+      "change_scope": "DSR regional test-fixture neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 311 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 304 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 7,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo fmt/test/clippy for oya-dsr-domain; scoped canonical-base-neutrality for crates/oya-dsr-domain",
+      "targeted_clean_summary": "DSR scoped scan passes with 1 file checked and 0 jurisdiction leaks; 7 unit tests, fmt, and clippy pass.",
+      "evidence_log": "/tmp/fd001-dsr-domain-neutrality-verify-20260519T134217Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 304 leaks; next sources start in eventing cell/tenant fixtures, then foundry cloud mutation/eval/evidence/gate-catalog/policy/route policy, metering, observability, policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
+      "workspace_verification_note": "DSR test fixtures now use neutral region-alpha-1/region-beta-1 values while preserving same-region dispatch acceptance and wrong-region StoreOutOfScope validation behavior."
     }
   ]
 }
