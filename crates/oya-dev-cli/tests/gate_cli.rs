@@ -5595,6 +5595,92 @@ fn protection_context_match_gate_catches_live_branch_protection_drift() {
     fs::remove_dir_all(temp).ok();
 }
 
+#[test]
+fn canonical_base_neutrality_self_test_passes() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "canonical-base-neutrality",
+            "--self-test",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected self-test to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("canonical-base-neutrality validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+}
+
+#[test]
+fn canonical_base_neutrality_catches_identifier_and_string_leaks() {
+    let temp = temp_dir("canonical-base-neutrality-dirty");
+    let src_dir = temp.join("crates/oya-cloud-data-kernel/src");
+    fs::create_dir_all(&src_dir).expect("fixture src dir created");
+    fs::write(
+        src_dir.join("lib.rs"),
+        r#"
+pub struct FinancialKrCredit;
+pub enum ResidencyClass { StrictKr }
+pub struct LeastUsed;
+pub struct KmsUseReceipt;
+pub struct InvalidUserDataUri;
+pub const LOCALE: &str = "ko-KR";
+"#,
+    )
+    .expect("fixture source written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "canonical-base-neutrality",
+            "--repo-root",
+            temp.to_str().expect("utf8 temp path"),
+            "--root",
+            "crates/oya-cloud-data-kernel/src",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected jurisdiction leaks to fail\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("FinancialKrCredit"),
+        "stderr must name identifier leak; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("StrictKr"),
+        "stderr must name second identifier leak; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("ko-KR"),
+        "stderr must name string leak; got: {stderr}"
+    );
+    assert!(
+        !stderr.contains("LeastUsed")
+            && !stderr.contains("KmsUseReceipt")
+            && !stderr.contains("InvalidUserDataUri"),
+        "stderr must avoid common Us false positives; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn write_catalog_record(registry_dir: &Path, crate_id: &str, plane: &str) {
     write_catalog_record_with_claim(registry_dir, crate_id, plane, "preview");
 }
