@@ -84,22 +84,22 @@
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
       "status": "expected_fail",
-      "summary": "canonical base neutrality violations: 196 files checked, 727 jurisdiction leaks",
+      "summary": "canonical base neutrality violations: 196 files checked, 703 jurisdiction leaks",
       "sample_findings": [
-        "crates/oya-cloud-iam-domain/src/lib.rs:825:17: jurisdiction-string `idp_kr_saml` — id: \"idp_kr_saml\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:826:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:827:26: jurisdiction-string `oya-pack-kr` — region_pack: \"oya-pack-kr\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:829:25: jurisdiction-string `https://idp.kr.example/saml` — issuer_uri: \"https://idp.kr.example/saml\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:831:40: jurisdiction-string `cert/kr-saml-signing` — verification_material_ref: \"cert/kr-saml-signing\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:839:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:844:26: jurisdiction-string `oya-pack-kr` — region_pack: \"oya-pack-kr\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:854:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:859:26: jurisdiction-string `oya-pack-kr` — region_pack: \"oya-pack-kr\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:869:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:870:21: jurisdiction-string `kr-seoul` — region: \"kr-seoul\".to_string(),",
-        "crates/oya-cloud-iam-domain/src/lib.rs:905:28: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),"
+        "crates/oya-cloud-kms-domain/src/lib.rs:716:48: jurisdiction-string `kr-` — let required = if region.value.starts_with(\"kr-\") {",
+        "crates/oya-cloud-kms-domain/src/lib.rs:828:26: jurisdiction-string `oya:cloud:kr-seoul:ten_kr:kms-key:object-key` — resource_id: \"oya:cloud:kr-seoul:ten_kr:kms-key:object-key\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:829:21: jurisdiction-string `kms/kr-seoul/ten_kr/object-key` — key_id: \"kms/kr-seoul/ten_kr/object-key\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:830:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:831:21: jurisdiction-string `kr-seoul` — region: \"kr-seoul\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:832:22: jurisdiction-string `cell-kr-seoul-a-001` — cell_id: \"cell-kr-seoul-a-001\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:833:32: jurisdiction-string `hsm/kr-seoul/cell-kr-seoul-a-001` — hsm_partition_ref: \"hsm/kr-seoul/cell-kr-seoul-a-001\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:837:40: jurisdiction-identifier `StrictKr` — residency: ResidencyClass::StrictKr,",
+        "crates/oya-cloud-kms-domain/src/lib.rs:848:21: jurisdiction-string `kms/kr-seoul/ten_kr/object-key` — key_id: \"kms/kr-seoul/ten_kr/object-key\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:849:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:850:28: jurisdiction-string `matref/ten_kr/object/001` — plaintext_ref: \"matref/ten_kr/object/001\".to_string(),",
+        "crates/oya-cloud-kms-domain/src/lib.rs:851:29: jurisdiction-string `ct/ten_kr/object/001` — ciphertext_ref: \"ct/ten_kr/object/001\".to_string(),"
       ],
-      "note": "Updated after cloud-finops-domain neutrality slice; prior observations are retained in remediation_history/latest_observation.before_summary."
+      "note": "Updated after cloud-iam-domain neutrality slice; IAM findings are absent and KMS is now the next source-level blocker."
     },
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
@@ -209,6 +209,24 @@
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-finops-domain",
       "status": "pass",
       "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-iam-domain -- --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-domain",
+      "status": "pass",
+      "summary": "8 unit tests passed after neutral regional identity fixture update and workspace membership addition"
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-domain --all-targets -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-iam-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
     }
   ],
   "known_blockers": [
@@ -219,8 +237,8 @@
   "next_dispatches": [
     {
       "lane": "canonical leak remediation batch 1",
-      "write_scope": "next high-signal canonical crates from gate output: crates/oya-cloud-iam-domain/src/lib.rs, then oya-cloud-kms-domain/src/lib.rs",
-      "risk": "medium"
+      "write_scope": "next high-signal canonical crates from gate output: crates/oya-cloud-kms-domain/src/lib.rs, then oya-cloud-marketplace-domain/src/lib.rs",
+      "risk": "medium-high"
     },
     {
       "lane": "ops-dashboard-control-center manifest bootstrap",
@@ -238,21 +256,21 @@
       "risk": "medium"
     }
   ],
-  "updated_at": "2026-05-19T12:07:36Z",
+  "updated_at": "2026-05-19T12:11:50Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T12:07:36Z",
-    "change_scope": "crates/oya-cloud-finops-domain canonical FinOps fixture/data-class neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 741 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 727 jurisdiction leaks",
+    "observed_at": "2026-05-19T12:11:50Z",
+    "change_scope": "crates/oya-cloud-iam-domain canonical identity fixture neutrality slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 727 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 703 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 14,
+      "jurisdiction_leaks_removed": 24,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-finops-domain",
+    "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-iam-domain",
     "targeted_clean_summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks",
-    "evidence_log": "/tmp/fd001-cloud-finops-neutrality-verify-20260519T120736Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-iam-domain/src/lib.rs.",
-    "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-finops-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical financial classification now uses pack-neutral DataClass::Financial and tokenized test currency."
+    "evidence_log": "/tmp/fd001-cloud-iam-neutrality-verify-20260519T121150Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-kms-domain/src/lib.rs.",
+    "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-iam-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical identity-provider, tenant, pack, region, SAML subject, and certificate fixtures now use pack-neutral labels."
   },
   "remediation_history": [
     {
@@ -371,6 +389,21 @@
       "evidence_log": "/tmp/fd001-cloud-dcops-neutrality-verify-20260519T120516Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-finops-domain/src/lib.rs.",
       "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-dcops-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; clippy surfaced and the slice removed an expect_used source lint."
+    },
+    {
+      "observed_at": "2026-05-19T12:07:36Z",
+      "change_scope": "crates/oya-cloud-finops-domain canonical FinOps fixture/data-class neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 741 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 727 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 14,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-finops-domain",
+      "targeted_clean_summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-cloud-finops-neutrality-verify-20260519T120736Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-iam-domain/src/lib.rs.",
+      "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-finops-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; canonical financial classification now uses pack-neutral DataClass::Financial and tokenized test currency."
     }
   ]
 }
