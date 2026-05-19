@@ -991,17 +991,89 @@
       "status": "pass",
       "summary": "workspace diff check clean for Foundry eval neutral cohort split",
       "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "workspace formatting clean after Foundry evidence/policy/route neutrality slice",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo test -p oya-foundry-evidence-domain",
+      "status": "pass",
+      "summary": "12 unit tests and 7 evidence-chain integration tests passed after neutral retention schedule labels",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo test -p oya-foundry-policy-domain",
+      "status": "pass",
+      "summary": "6 autonomy decision tests passed after neutral regulated-pack classifier tokens",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo test -p oya-foundry-route-policy-kernel",
+      "status": "pass",
+      "summary": "9 route policy tests passed after neutral default residency text",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo test -p oya-application-app autonomy -- --nocapture",
+      "status": "pass",
+      "summary": "application autonomy-related tests passed for broad smoke coverage",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo test -p oya-application-app --test foundry_autonomy_ceiling_caps -- --nocapture",
+      "status": "pass",
+      "summary": "6 Foundry autonomy ceiling cap tests passed after neutral pack/region fixtures",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-foundry-evidence-domain --root crates/oya-foundry-policy-domain --root crates/oya-foundry-route-policy-kernel",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 7 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-application-app/tests/foundry_autonomy_ceiling_caps.rs",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "rg old Foundry policy/route/evidence jurisdiction literals",
+      "status": "pass",
+      "summary": "no old evidence schedule, policy pack, route residency, or changed app autonomy fixture jurisdiction literals remain in the edited slice",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 285 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "workspace diff check clean for Foundry evidence/policy/route neutrality slice",
+      "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 293 source-level jurisdiction leaks, starting in Foundry evidence/gate-catalog/policy/route and continuing into metering/observability/policy cedar, residency/tenancy, search/shared backup/i18n/email/SaaS surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "Default canonical-base-neutrality scan currently fails with 285 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; remaining bulk leaks continue through metering/observability/policy cedar, residency/tenancy, search/shared backup/i18n/email/SaaS surfaces.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
     {
-      "lane": "foundry evidence/gate-catalog/policy/route jurisdiction naming split",
-      "write_scope": "crates/oya-foundry-evidence-domain, crates/oya-foundry-gate-catalog-domain, crates/oya-foundry-policy-domain, crates/oya-foundry-route-policy-kernel",
+      "lane": "gate-catalog regulated-AI command deprecation/migration",
+      "write_scope": "crates/oya-foundry-gate-catalog-domain plus dev-cli/quality-lane command identity if migration is safe",
       "risk": "high"
     },
     {
@@ -1025,21 +1097,21 @@
       "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T14:01:45Z",
+  "updated_at": "2026-05-19T14:09:36Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T14:01:45Z",
-    "change_scope": "foundry eval neutral linguistic cohort split across domain/usecase/registry/application/demo templates",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 298 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 293 jurisdiction leaks",
+    "observed_at": "2026-05-19T14:09:36Z",
+    "change_scope": "foundry evidence retention policy, autonomy regulated-pack classifier, route defaults, and app autonomy fixtures neutrality slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 293 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 285 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 5,
+      "jurisdiction_leaks_removed": 8,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "Foundry eval domain/usecase/registry API/application/dev-cli eval fixtures plus capability eval templates; registry API added to workspace so modified API tests are build-covered",
-    "targeted_clean_summary": "cargo fmt --all --check passed; oya-foundry-eval-domain, oya-foundry-eval-usecase, oya-foundry-registry-api, oya-application-app foundry tests, oya-dev-cli foundry_eval/demo_eval/foundry_capability tests passed; scoped Foundry eval canonical-base-neutrality scan passed with 3 roots and 0 leaks; scoped rg found no old concrete locale codes/case IDs in the edited eval slice.",
-    "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 293 leaks; next sources start in Foundry evidence/gate-catalog/policy/route, then metering/observability/policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
-    "workspace_verification_note": "Canonical Foundry eval coverage now requires REQUIRED_LINGUISTIC_COHORTS neutral cohort slots. Concrete locale mappings are expected to live in localization packs, while registry/API/application/demo templates preserve the signed eval-set plus adversarial coverage behavior."
+    "targeted_clean_scope": "crates/oya-foundry-evidence-domain, crates/oya-foundry-policy-domain, crates/oya-foundry-route-policy-kernel, and crates/oya-application-app/tests/foundry_autonomy_ceiling_caps.rs",
+    "targeted_clean_summary": "cargo fmt --all --check passed; evidence-domain, policy-domain, route-policy-kernel tests passed; application foundry autonomy ceiling tests passed; scoped canonical-base-neutrality passed for Foundry evidence/policy/route roots and the changed application autonomy fixture with 0 leaks; rg found no old schedule, regional pack, route, or autonomy fixture literals in the edited slice.",
+    "evidence_log": "/tmp/fd001-foundry-policy-route-neutrality-verify-20260519T140936Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 285 leaks. The next first-listed blocker is the gate-catalog EU-named command identity; because that touches live CI lane naming, it needs a deprecation/migration slice rather than a blind rename. Remaining bulk blockers then start in metering/observability/policy cedar, residency/tenancy, search, shared backup/i18n/email, and SaaS marketplace/workflow surfaces.",
+    "workspace_verification_note": "Retention schedules now use neutral baseline names; Foundry autonomy pack classifier uses neutral health/financial regulated-pack tokens; route policy default residency is region-default; application autonomy fixtures no longer require regional pack or region strings. Behavior remains covered by existing domain/application tests."
   },
   "remediation_history": [
     {
@@ -1460,6 +1532,21 @@
       "evidence_log": "/tmp/fd001-foundry-cloud-mutation-neutrality-verify-20260519T134823Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 298 leaks; next sources start in Foundry eval locale cohort strings/usecase messages, foundry evidence/gate-catalog/policy/route policy, then metering/observability/policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
       "workspace_verification_note": "Foundry cloud mutation tests now use neutral region-alpha-1 target_region while preserving dry-run approval, quorum, execution, rollback, and break-glass mutation control behavior."
+    },
+    {
+      "observed_at": "2026-05-19T14:01:45Z",
+      "change_scope": "foundry eval neutral linguistic cohort split across domain/usecase/registry/application/demo templates",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 298 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 293 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 5,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "Foundry eval domain/usecase/registry API/application/dev-cli eval fixtures plus capability eval templates; registry API added to workspace so modified API tests are build-covered",
+      "targeted_clean_summary": "cargo fmt --all --check passed; oya-foundry-eval-domain, oya-foundry-eval-usecase, oya-foundry-registry-api, oya-application-app foundry tests, oya-dev-cli foundry_eval/demo_eval/foundry_capability tests passed; scoped Foundry eval canonical-base-neutrality scan passed with 3 roots and 0 leaks; scoped rg found no old concrete locale codes/case IDs in the edited eval slice.",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 293 leaks; next sources start in Foundry evidence/gate-catalog/policy/route, then metering/observability/policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
+      "workspace_verification_note": "Canonical Foundry eval coverage now requires REQUIRED_LINGUISTIC_COHORTS neutral cohort slots. Concrete locale mappings are expected to live in localization packs, while registry/API/application/demo templates preserve the signed eval-set plus adversarial coverage behavior."
     }
   ]
 }

@@ -124,11 +124,11 @@ fn vertical_pack_caps_healthcare_and_fintech_regulated_data() {
         vec![privacy_class(DataClass::Phi)],
     );
     assert_eq!(
-        vertical_pack_cap(&["hipaa".into()], &healthcare_phi),
+        vertical_pack_cap(&["health-regulated-pack".into()], &healthcare_phi),
         AutonomyTier::T2Advisory
     );
     assert_eq!(
-        vertical_pack_cap(&["oya-pack-kr-pipa-health".into()], &healthcare_phi),
+        vertical_pack_cap(&["healthcare-pack".into()], &healthcare_phi),
         AutonomyTier::T2Advisory
     );
     let healthcare_article_23 = capability_with_classes(
@@ -140,7 +140,7 @@ fn vertical_pack_caps_healthcare_and_fintech_regulated_data() {
         ],
     );
     assert_eq!(
-        vertical_pack_cap(&["kr-pipa-health".into()], &healthcare_article_23),
+        vertical_pack_cap(&["health-pack".into()], &healthcare_article_23),
         AutonomyTier::T2Advisory
     );
 
@@ -150,11 +150,11 @@ fn vertical_pack_caps_healthcare_and_fintech_regulated_data() {
         vec![privacy_class(DataClass::Pci)],
     );
     assert_eq!(
-        vertical_pack_cap(&["pci".into()], &fintech_pci),
+        vertical_pack_cap(&["payment-card-pack".into()], &fintech_pci),
         AutonomyTier::T2Advisory
     );
     assert_eq!(
-        vertical_pack_cap(&["kr-fsc".into()], &fintech_pci),
+        vertical_pack_cap(&["financial-regulated-pack".into()], &fintech_pci),
         AutonomyTier::T2Advisory
     );
     let fintech_credit = capability_with_classes(
@@ -166,13 +166,16 @@ fn vertical_pack_caps_healthcare_and_fintech_regulated_data() {
         ],
     );
     assert_eq!(
-        vertical_pack_cap(&["jp-fsa".into()], &fintech_credit),
+        vertical_pack_cap(&["financial-pack".into()], &fintech_credit),
         AutonomyTier::T2Advisory
     );
 
     let internal = capability("cap.demo.internal", AutonomyTier::T4AutoExecute);
     assert_eq!(
-        vertical_pack_cap(&["hipaa".into(), "pci".into()], &internal),
+        vertical_pack_cap(
+            &["health-regulated-pack".into(), "payment-card-pack".into()],
+            &internal
+        ),
         AutonomyTier::T4AutoExecute
     );
 }
