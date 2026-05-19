@@ -1,0 +1,12 @@
+schema_version: "1.0"
+name: incident-declare
+tier: T2
+eu_ai_act_risk_class: limited
+description: Declare an incident and emit a sealed incident event.
+authz:
+  cedar_policy: microservices/ops-dashboard-control-center/policy/cedar/operator-actions.cedar
+  requires_mfa: true
+  requires_idempotency_key: true
+audit_chain:
+  required: true
+  seal_event: OpsIncidentDeclare
