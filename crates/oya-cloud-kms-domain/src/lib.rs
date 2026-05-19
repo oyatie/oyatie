@@ -2,7 +2,7 @@
 //!
 //! The kernel owns the typed control/data contract behind
 //! `cloud.kms.encrypt` / `cloud.kms.decrypt`: per-tenant keys, per-cell HSM
-//! partition binding, residency, KCMVP/FIPS validation, key-use receipts, and
+//! partition binding, residency, HSM validation profile, key-use receipts, and
 //! key-destruction evidence. It does not perform cryptography or HSM I/O; those
 //! belong in adapter/runtime crates that consume these invariants.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
@@ -425,7 +425,7 @@ impl KmsKey {
         let region = RegionCode::new(input.region).map_err(|_| CloudKmsError::InvalidResourceId)?;
         let cell_id = CellId::new(input.cell_id).map_err(|_| CloudKmsError::InvalidCellId)?;
         validate_cell_region(&cell_id, &region)?;
-        validate_hsm_for_region(input.hsm_validation, &region)?;
+        validate_hsm_profile(input.hsm_validation)?;
         if !residency_class_allows_home_region_label(&input.residency, &region.value) {
             return Err(CloudKmsError::ResidencyRegionMismatch);
         }
@@ -709,19 +709,12 @@ fn validate_use_key(
     Ok(())
 }
 
-fn validate_hsm_for_region(
-    validation: HsmValidation,
-    region: &RegionCode,
-) -> Result<(), CloudKmsError> {
-    let required = if region.value.starts_with("kr-") {
-        HsmValidation::KcmvpFips1403Level3
-    } else {
-        HsmValidation::Fips1403Level3
-    };
-    if validation == required {
-        Ok(())
-    } else {
-        Err(CloudKmsError::HsmValidationDenied)
+fn validate_hsm_profile(validation: HsmValidation) -> Result<(), CloudKmsError> {
+    match validation {
+        HsmValidation::Fips1403Level3 | HsmValidation::KcmvpFips1403Level3 => Ok(()),
+        HsmValidation::Cryptrec | HsmValidation::CommonCriteriaEal4 | HsmValidation::PciHsm => {
+            Err(CloudKmsError::HsmValidationDenied)
+        }
     }
 }
 
@@ -822,19 +815,22 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_residency_domain::{
+        PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
+    };
 
     fn key_create() -> KmsKeyCreate {
         KmsKeyCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:kms-key:object-key".to_string(),
-            key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
-            cell_id: "cell-kr-seoul-a-001".to_string(),
-            hsm_partition_ref: "hsm/kr-seoul/cell-kr-seoul-a-001".to_string(),
+            resource_id: "oya:cloud:alpha-region:ten_alpha:kms-key:object-key".to_string(),
+            key_id: "kms/alpha-region/ten_alpha/object-key".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "alpha-region".to_string(),
+            cell_id: "cell-alpha-region-a-001".to_string(),
+            hsm_partition_ref: "hsm/alpha-region/cell-alpha-region-a-001".to_string(),
             origin: KmsKeyOrigin::OyatieManaged,
             usage: KmsKeyUsage::EncryptDecrypt,
-            hsm_validation: HsmValidation::KcmvpFips1403Level3,
-            residency: ResidencyClass::StrictKr,
+            hsm_validation: HsmValidation::Fips1403Level3,
+            residency: ResidencyClass::Global,
             data_class: DataClass::PiiIdentifying,
             state: KmsKeyState::Enabled,
             rotation_period_days: Some(90),
@@ -845,10 +841,10 @@ mod tests {
     fn encrypt_request(event_id: &str) -> KmsEncryptRequest {
         KmsEncryptRequest {
             event_id: event_id.to_string(),
-            key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            plaintext_ref: "matref/ten_kr/object/001".to_string(),
-            ciphertext_ref: "ct/ten_kr/object/001".to_string(),
+            key_id: "kms/alpha-region/ten_alpha/object-key".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            plaintext_ref: "matref/ten_alpha/object/001".to_string(),
+            ciphertext_ref: "ct/ten_alpha/object/001".to_string(),
             data_class: DataClass::PiiIdentifying,
             purpose: KmsPurpose::CloudObjectStorage,
             actor: "sp_storage".to_string(),
@@ -856,6 +852,26 @@ mod tests {
                 .to_string(),
             requested_at_epoch_seconds: 1_700_000_010,
         }
+    }
+
+    fn per_pack_residency(allowed_primary_regions: &[&str]) -> ResidencyClass {
+        let regulator_overlay = RegulatorOverlay::new(RegulatorOverlayCreate {
+            regulator_refs: vec!["regulator/baseline".to_string()],
+            evidence_ref: "evidence/residency/pack-alpha".to_string(),
+        })
+        .expect("regulator overlay fixture is valid");
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: allowed_primary_regions
+                    .iter()
+                    .map(|region| (*region).to_string())
+                    .collect(),
+                allowed_replica_regions: vec!["beta-region".to_string()],
+                forbidden_regions: vec![],
+                regulator_overlay,
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
     }
 
     #[test]
@@ -867,11 +883,11 @@ mod tests {
             key.key_id.value.origin().unwrap(),
             KmsKeyOrigin::OyatieManaged
         );
-        assert_eq!(key.region.value.value, "kr-seoul");
-        assert_eq!(key.cell_id.value.value, "cell-kr-seoul-a-001");
+        assert_eq!(key.region.value.value, "alpha-region");
+        assert_eq!(key.cell_id.value.value, "cell-alpha-region-a-001");
         assert_eq!(
             key.hsm_partition_ref.value.value,
-            "hsm/kr-seoul/cell-kr-seoul-a-001"
+            "hsm/alpha-region/cell-alpha-region-a-001"
         );
         assert_eq!(key.current_version.value, 1);
         assert_eq!(key.schema_version.value, KMS_SCHEMA_VERSION);
@@ -880,21 +896,21 @@ mod tests {
     #[test]
     fn rejects_key_id_resource_and_hsm_partition_drift() {
         let wrong_origin = KmsKey::new(KmsKeyCreate {
-            key_id: "byok/kr-seoul/ten_kr/object-key".to_string(),
+            key_id: "byok/alpha-region/ten_alpha/object-key".to_string(),
             ..key_create()
         })
         .expect_err("key id origin must match declared origin");
         assert_eq!(wrong_origin, CloudKmsError::KeyIdOriginMismatch);
 
         let wrong_kind = KmsKey::new(KmsKeyCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:bucket:object-key".to_string(),
+            resource_id: "oya:cloud:alpha-region:ten_alpha:bucket:object-key".to_string(),
             ..key_create()
         })
         .expect_err("resource id kind must be kms-key");
         assert_eq!(wrong_kind, CloudKmsError::ResourceKindMismatch);
 
         let wrong_partition = KmsKey::new(KmsKeyCreate {
-            hsm_partition_ref: "hsm/kr-seoul/cell-kr-seoul-b-001".to_string(),
+            hsm_partition_ref: "hsm/alpha-region/cell-alpha-region-b-001".to_string(),
             ..key_create()
         })
         .expect_err("HSM partition is cell-bound");
@@ -902,58 +918,62 @@ mod tests {
     }
 
     #[test]
-    fn enforces_kr_kcmvp_global_fips_and_residency_rules() {
-        let hsm_error = KmsKey::new(KmsKeyCreate {
-            hsm_validation: HsmValidation::Fips1403Level3,
-            ..key_create()
-        })
-        .expect_err("KR keys require KCMVP+FIPS validation");
-        assert_eq!(hsm_error, CloudKmsError::HsmValidationDenied);
-
+    fn enforces_pack_neutral_hsm_and_residency_rules() {
         for validation in [
             HsmValidation::Cryptrec,
             HsmValidation::CommonCriteriaEal4,
             HsmValidation::PciHsm,
         ] {
-            let global_error = KmsKey::new(KmsKeyCreate {
-                resource_id: "oya:cloud:us-east:ten_us:kms-key:object-key".to_string(),
-                key_id: "kms/us-east/ten_us/object-key".to_string(),
-                tenant_id: "ten_us".to_string(),
-                region: "us-east".to_string(),
-                cell_id: "cell-us-east-a-001".to_string(),
-                hsm_partition_ref: "hsm/us-east/cell-us-east-a-001".to_string(),
+            let profile_error = KmsKey::new(KmsKeyCreate {
+                resource_id: "oya:cloud:beta-region:ten_beta:kms-key:object-key".to_string(),
+                key_id: "kms/beta-region/ten_beta/object-key".to_string(),
+                tenant_id: "ten_beta".to_string(),
+                region: "beta-region".to_string(),
+                cell_id: "cell-beta-region-a-001".to_string(),
+                hsm_partition_ref: "hsm/beta-region/cell-beta-region-a-001".to_string(),
                 hsm_validation: validation,
                 residency: ResidencyClass::Global,
                 ..key_create()
             })
-            .expect_err("global KMS keys require FIPS 140-3 validation");
-            assert_eq!(global_error, CloudKmsError::HsmValidationDenied);
+            .expect_err("KMS keys require a FIPS 140-3 Level 3 profile");
+            assert_eq!(profile_error, CloudKmsError::HsmValidationDenied);
         }
 
-        let global = KmsKey::new(KmsKeyCreate {
-            resource_id: "oya:cloud:us-east:ten_us:kms-key:object-key".to_string(),
-            key_id: "kms/us-east/ten_us/object-key".to_string(),
-            tenant_id: "ten_us".to_string(),
-            region: "us-east".to_string(),
-            cell_id: "cell-us-east-a-001".to_string(),
-            hsm_partition_ref: "hsm/us-east/cell-us-east-a-001".to_string(),
+        let baseline = KmsKey::new(KmsKeyCreate {
+            resource_id: "oya:cloud:beta-region:ten_beta:kms-key:object-key".to_string(),
+            key_id: "kms/beta-region/ten_beta/object-key".to_string(),
+            tenant_id: "ten_beta".to_string(),
+            region: "beta-region".to_string(),
+            cell_id: "cell-beta-region-a-001".to_string(),
+            hsm_partition_ref: "hsm/beta-region/cell-beta-region-a-001".to_string(),
             hsm_validation: HsmValidation::Fips1403Level3,
             residency: ResidencyClass::Global,
             ..key_create()
         })
-        .expect("global KMS key accepts FIPS 140-3 validation");
-        assert_eq!(global.hsm_validation.value, HsmValidation::Fips1403Level3);
+        .expect("baseline KMS key accepts FIPS 140-3 validation");
+        assert_eq!(baseline.hsm_validation.value, HsmValidation::Fips1403Level3);
 
-        let residency_error = KmsKey::new(KmsKeyCreate {
-            resource_id: "oya:cloud:us-east:ten_kr:kms-key:object-key".to_string(),
-            key_id: "kms/us-east/ten_kr/object-key".to_string(),
-            region: "us-east".to_string(),
-            cell_id: "cell-us-east-a-001".to_string(),
-            hsm_partition_ref: "hsm/us-east/cell-us-east-a-001".to_string(),
-            hsm_validation: HsmValidation::Fips1403Level3,
+        let enhanced = KmsKey::new(KmsKeyCreate {
+            hsm_validation: HsmValidation::KcmvpFips1403Level3,
             ..key_create()
         })
-        .expect_err("strict KR key cannot be created in US region");
+        .expect("pack-specific enhanced profile remains an explicit input");
+        assert_eq!(
+            enhanced.hsm_validation.value,
+            HsmValidation::KcmvpFips1403Level3
+        );
+
+        let residency_error = KmsKey::new(KmsKeyCreate {
+            resource_id: "oya:cloud:beta-region:ten_alpha:kms-key:object-key".to_string(),
+            key_id: "kms/beta-region/ten_alpha/object-key".to_string(),
+            region: "beta-region".to_string(),
+            cell_id: "cell-beta-region-a-001".to_string(),
+            hsm_partition_ref: "hsm/beta-region/cell-beta-region-a-001".to_string(),
+            hsm_validation: HsmValidation::Fips1403Level3,
+            residency: per_pack_residency(&["alpha-region"]),
+            ..key_create()
+        })
+        .expect_err("per-pack key cannot be created outside its allowed primary region");
         assert_eq!(residency_error, CloudKmsError::ResidencyRegionMismatch);
     }
 
@@ -970,9 +990,9 @@ mod tests {
             &key,
             KmsDecryptRequest {
                 event_id: "kmsuse_decrypt_001".to_string(),
-                key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                ciphertext_ref: "ct/ten_kr/object/001".to_string(),
+                key_id: "kms/alpha-region/ten_alpha/object-key".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                ciphertext_ref: "ct/ten_alpha/object/001".to_string(),
                 data_class: DataClass::PiiIdentifying,
                 purpose: KmsPurpose::CloudObjectStorage,
                 actor: "usr_alice".to_string(),
@@ -1024,8 +1044,8 @@ mod tests {
         assert_eq!(rotated.current_version.value, 2);
 
         let hyok = KmsKey::new(KmsKeyCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:kms-key:tenant-held".to_string(),
-            key_id: "hyok/kr-seoul/ten_kr/tenant-held".to_string(),
+            resource_id: "oya:cloud:alpha-region:ten_alpha:kms-key:tenant-held".to_string(),
+            key_id: "hyok/alpha-region/ten_alpha/tenant-held".to_string(),
             origin: KmsKeyOrigin::Hyok,
             rotation_period_days: None,
             ..key_create()
@@ -1056,8 +1076,8 @@ mod tests {
 
         let destruction = directory
             .destroy_key(KeyDestructionRequest {
-                key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                key_id: "kms/alpha-region/ten_alpha/object-key".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 proof_ref: "kproof_tenant_offboard_001".to_string(),
                 requested_at_epoch_seconds: 1_700_000_200,
                 completed_at_epoch_seconds: 1_700_000_300,
@@ -1074,8 +1094,8 @@ mod tests {
         let key = KmsKey::new(key_create()).expect("key is valid");
         let error = key
             .destroy(KeyDestructionRequest {
-                key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                key_id: "kms/alpha-region/ten_alpha/object-key".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 proof_ref: "kproof_tenant_offboard_001".to_string(),
                 requested_at_epoch_seconds: 1_700_000_000,
                 completed_at_epoch_seconds: 1_700_090_401,
