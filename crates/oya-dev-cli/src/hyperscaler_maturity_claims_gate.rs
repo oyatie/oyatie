@@ -6,6 +6,8 @@ use serde_json::Value;
 
 use crate::usage;
 
+const GOVERNANCE_PROTECTION_CONTEXT_MATCH_CHECK: &str = "oya-governance-protection-context-match";
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct HyperscalerMaturityClaimsValidateArgs {
     gates_path: PathBuf,
@@ -380,7 +382,7 @@ fn validate_pipeline_closure(
     }
     if !protection
         .required_status_checks
-        .contains("oya-foundry-fitness-protection-context-match")
+        .contains(GOVERNANCE_PROTECTION_CONTEXT_MATCH_CHECK)
     {
         return Err("branch protection must require context matching before merge".into());
     }
