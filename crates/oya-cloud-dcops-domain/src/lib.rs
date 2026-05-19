@@ -1342,16 +1342,11 @@ impl Equipment {
         if self.lifecycle.value != EquipmentLifecycle::Received {
             return Err(CloudDcopsError::InvalidStateTransition);
         }
+        let installed_at_epoch_seconds = installation.installed_at_epoch_seconds;
         let mut next = self.clone();
         next.lifecycle = public(EquipmentLifecycle::Installed);
         next.installation = internal(Some(installation));
-        next.updated_at_epoch_seconds = internal(
-            next.installation
-                .value
-                .as_ref()
-                .expect("installation inserted")
-                .installed_at_epoch_seconds,
-        );
+        next.updated_at_epoch_seconds = internal(installed_at_epoch_seconds);
         Ok(next)
     }
 
@@ -2619,9 +2614,9 @@ fn validate_work_order_data_class(data_class: DataClass) -> Result<(), CloudDcop
 
 fn validate_sustainability_data_class(data_class: DataClass) -> Result<(), CloudDcopsError> {
     match data_class {
-        DataClass::InternalOnly
-        | DataClass::FinancialKrCredit
-        | DataClass::BehavioralTenantProduct => Ok(()),
+        DataClass::InternalOnly | DataClass::Financial | DataClass::BehavioralTenantProduct => {
+            Ok(())
+        }
         _ => Err(CloudDcopsError::InvalidDataClass),
     }
 }
@@ -2671,20 +2666,20 @@ fn audit<T>(value: T) -> Classified<T> {
 mod tests {
     use super::*;
 
-    const SITE_ID: &str = "dc/kr-seoul1/site-a";
-    const HALL_ID: &str = "zone/dc/kr-seoul1/site-a/hall-a";
-    const POWER_ID: &str = "power/dc/kr-seoul1/site-a/power-a";
-    const COOLING_ID: &str = "cooling/dc/kr-seoul1/site-a/cooling-a";
-    const SECURITY_ID: &str = "security/dc/kr-seoul1/site-a/sec-a";
-    const RACK_ID_VALUE: &str = "rack/dc/kr-seoul1/site-a/rack-a";
-    const EQUIP_ID: &str = "equip/dc/kr-seoul1/site-a/server-a";
-    const EQUIP_ID_B: &str = "equip/dc/kr-seoul1/site-a/server-b";
+    const SITE_ID: &str = "dc/alpha-region1/site-a";
+    const HALL_ID: &str = "zone/dc/alpha-region1/site-a/hall-a";
+    const POWER_ID: &str = "power/dc/alpha-region1/site-a/power-a";
+    const COOLING_ID: &str = "cooling/dc/alpha-region1/site-a/cooling-a";
+    const SECURITY_ID: &str = "security/dc/alpha-region1/site-a/sec-a";
+    const RACK_ID_VALUE: &str = "rack/dc/alpha-region1/site-a/rack-a";
+    const EQUIP_ID: &str = "equip/dc/alpha-region1/site-a/server-a";
+    const EQUIP_ID_B: &str = "equip/dc/alpha-region1/site-a/server-b";
 
     fn site_create() -> DatacenterSiteCreate {
         DatacenterSiteCreate {
             id: SITE_ID.to_string(),
-            region: "kr-seoul1".to_string(),
-            availability_zone: "kr-seoul1-a".to_string(),
+            region: "alpha-region1".to_string(),
+            availability_zone: "alpha-region1-a".to_string(),
             physical_ref: "physical/colo/site-a".to_string(),
             phase: DcSubstratePhase::ColoCage,
             tier: DatacenterTier::Tier3,
@@ -2852,7 +2847,7 @@ mod tests {
         );
         assert_eq!(
             DatacenterSite::new(DatacenterSiteCreate {
-                id: "dc/jp-tokyo1/site-a".to_string(),
+                id: "dc/beta-region1/site-a".to_string(),
                 ..site_create()
             })
             .expect_err("id region must match payload"),
@@ -2931,7 +2926,7 @@ mod tests {
             .expect("second install");
         let cable = catalog
             .add_cable_run(CableRunCreate {
-                id: "cable/dc/kr-seoul1/site-a/cable-a".to_string(),
+                id: "cable/dc/alpha-region1/site-a/cable-a".to_string(),
                 site_id: SITE_ID.to_string(),
                 from: CableEndpoint {
                     equipment_id: EQUIP_ID.to_string(),
@@ -2954,7 +2949,7 @@ mod tests {
         assert_eq!(cable.state.value, CableState::Installed);
         assert_eq!(
             CableRun::new(CableRunCreate {
-                id: "cable/dc/kr-seoul1/site-a/cable-b".to_string(),
+                id: "cable/dc/alpha-region1/site-a/cable-b".to_string(),
                 site_id: SITE_ID.to_string(),
                 from: CableEndpoint {
                     equipment_id: EQUIP_ID.to_string(),
@@ -2980,7 +2975,7 @@ mod tests {
         let mut catalog = active_catalog();
         let point = catalog
             .add_bms_point(BmsPointCreate {
-                id: "bms/dc/kr-seoul1/site-a/temp-a".to_string(),
+                id: "bms/dc/alpha-region1/site-a/temp-a".to_string(),
                 site_id: SITE_ID.to_string(),
                 equipment_id: None,
                 kind: BmsPointKind::Temperature,
@@ -3030,7 +3025,7 @@ mod tests {
         let equipment_id = received_equipment(&mut catalog, EQUIP_ID);
         let work_order = catalog
             .open_work_order(WorkOrderCreate {
-                id: "wo/dc/kr-seoul1/site-a/wo-a".to_string(),
+                id: "wo/dc/alpha-region1/site-a/wo-a".to_string(),
                 site_id: SITE_ID.to_string(),
                 equipment_id: Some(equipment_id.value.clone()),
                 kind: WorkOrderKind::Install,
@@ -3045,7 +3040,7 @@ mod tests {
             .expect("work order");
         assert_eq!(
             WorkOrder::new(WorkOrderCreate {
-                id: "wo/dc/kr-seoul1/site-a/wo-b".to_string(),
+                id: "wo/dc/alpha-region1/site-a/wo-b".to_string(),
                 site_id: SITE_ID.to_string(),
                 equipment_id: None,
                 kind: WorkOrderKind::Audit,
@@ -3085,7 +3080,7 @@ mod tests {
         let mut catalog = active_catalog();
         let snapshot = catalog
             .record_sustainability_snapshot(SustainabilitySnapshotCreate {
-                id: "sustainability/dc/kr-seoul1/site-a/day-1".to_string(),
+                id: "sustainability/dc/alpha-region1/site-a/day-1".to_string(),
                 site_id: SITE_ID.to_string(),
                 period_start_epoch_seconds: 100,
                 period_end_epoch_seconds: 200,
@@ -3102,7 +3097,7 @@ mod tests {
         assert_eq!(snapshot.pue_milli.value, 1_500);
         assert_eq!(
             SustainabilitySnapshot::new(SustainabilitySnapshotCreate {
-                id: "sustainability/dc/kr-seoul1/site-a/day-2".to_string(),
+                id: "sustainability/dc/alpha-region1/site-a/day-2".to_string(),
                 site_id: SITE_ID.to_string(),
                 period_start_epoch_seconds: 100,
                 period_end_epoch_seconds: 200,

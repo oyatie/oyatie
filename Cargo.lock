@@ -1332,6 +1332,14 @@ name = "oya-cloud-data-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-dcops-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "oya-cloud-finops-api"
 version = "0.1.0"
 dependencies = [

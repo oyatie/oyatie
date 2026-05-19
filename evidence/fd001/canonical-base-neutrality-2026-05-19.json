@@ -84,22 +84,22 @@
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
       "status": "expected_fail",
-      "summary": "canonical base neutrality violations: 196 files checked, 760 jurisdiction leaks",
+      "summary": "canonical base neutrality violations: 196 files checked, 741 jurisdiction leaks",
       "sample_findings": [
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2623:22: jurisdiction-identifier `FinancialKrCredit` — | DataClass::FinancialKrCredit",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2674:27: jurisdiction-string `dc/kr-seoul1/site-a` — const SITE_ID: &str = \"dc/kr-seoul1/site-a\";",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2675:27: jurisdiction-string `zone/dc/kr-seoul1/site-a/hall-a` — const HALL_ID: &str = \"zone/dc/kr-seoul1/site-a/hall-a\";",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2676:28: jurisdiction-string `power/dc/kr-seoul1/site-a/power-a` — const POWER_ID: &str = \"power/dc/kr-seoul1/site-a/power-a\";",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2677:30: jurisdiction-string `cooling/dc/kr-seoul1/site-a/cooling-a` — const COOLING_ID: &str = \"cooling/dc/kr-seoul1/site-a/cooling-a\";",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2678:31: jurisdiction-string `security/dc/kr-seoul1/site-a/sec-a` — const SECURITY_ID: &str = \"security/dc/kr-seoul1/site-a/sec-a\";",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2679:33: jurisdiction-string `rack/dc/kr-seoul1/site-a/rack-a` — const RACK_ID_VALUE: &str = \"rack/dc/kr-seoul1/site-a/rack-a\";",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2680:28: jurisdiction-string `equip/dc/kr-seoul1/site-a/server-a` — const EQUIP_ID: &str = \"equip/dc/kr-seoul1/site-a/server-a\";",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2681:30: jurisdiction-string `equip/dc/kr-seoul1/site-a/server-b` — const EQUIP_ID_B: &str = \"equip/dc/kr-seoul1/site-a/server-b\";",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2686:21: jurisdiction-string `kr-seoul1` — region: \"kr-seoul1\".to_string(),",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2687:32: jurisdiction-string `kr-seoul1-a` — availability_zone: \"kr-seoul1-a\".to_string(),",
-        "crates/oya-cloud-dcops-domain/src/lib.rs:2855:21: jurisdiction-string `dc/jp-tokyo1/site-a` — id: \"dc/jp-tokyo1/site-a\".to_string(),"
+        "crates/oya-cloud-finops-domain/src/lib.rs:1071:43: jurisdiction-identifier `FinancialKrCredit` — DataClass::Financial | DataClass::FinancialKrCredit",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1100:39: jurisdiction-identifier `FinancialKrCredit` — Classified::new(value, DataClass::FinancialKrCredit)",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1104:39: jurisdiction-identifier `FinancialKrCredit` — Classified::new(value, DataClass::FinancialKrCredit)",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1120:26: jurisdiction-string `kr-seoul` — const REGION: &str = \"kr-seoul\";",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1121:28: jurisdiction-string `oya:cloud:kr-seoul:ten_alpha:instance:vm-a` — const RESOURCE: &str = \"oya:cloud:kr-seoul:ten_alpha:instance:vm-a\";",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1122:29: jurisdiction-string `rate/kr-standard` — const RATE_CARD: &str = \"rate/kr-standard\";",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1160:36: jurisdiction-identifier `FinancialKrCredit` — data_class: DataClass::FinancialKrCredit,",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1171:36: jurisdiction-identifier `FinancialKrCredit` — data_class: DataClass::FinancialKrCredit,",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1177:17: jurisdiction-string `finr_kr_month` — id: \"finr_kr_month\".to_string(),",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1185:36: jurisdiction-identifier `FinancialKrCredit` — data_class: DataClass::FinancialKrCredit,",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1221:40: jurisdiction-identifier `FinancialKrCredit` — data_class: DataClass::FinancialKrCredit,",
+        "crates/oya-cloud-finops-domain/src/lib.rs:1266:40: jurisdiction-identifier `FinancialKrCredit` — data_class: DataClass::FinancialKrCredit,"
       ],
-      "note": "Updated after cloud-data-kernel neutrality slice; prior observations are retained in remediation_history/latest_observation.before_summary."
+      "note": "Updated after cloud-dcops-domain neutrality slice; prior observations are retained in remediation_history/latest_observation.before_summary."
     },
     {
       "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
@@ -172,6 +172,25 @@
       "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-data-kernel",
       "status": "pass",
       "summary": "canonical-base-neutrality validation passed: 3 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-dcops-domain -- --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-cloud-dcops-domain",
+      "status": "pass",
+      "summary": "8 unit tests passed after neutral dcops fixture/data-class update and workspace membership addition"
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-dcops-domain --all-targets -- -D warnings",
+      "status": "pass",
+      "summary": "also removed a newly exposed expect_used lint in Equipment::install"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-dcops-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
     }
   ],
   "known_blockers": [
@@ -182,7 +201,7 @@
   "next_dispatches": [
     {
       "lane": "canonical leak remediation batch 1",
-      "write_scope": "next high-signal canonical crates from gate output: crates/oya-cloud-dcops-domain/src/lib.rs, then oya-cloud-finops/iam/kms domains",
+      "write_scope": "next high-signal canonical crates from gate output: crates/oya-cloud-finops-domain/src/lib.rs, then oya-cloud-iam/kms domains",
       "risk": "medium"
     },
     {
@@ -201,21 +220,21 @@
       "risk": "medium"
     }
   ],
-  "updated_at": "2026-05-19T12:02:16Z",
+  "updated_at": "2026-05-19T12:05:17Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T12:02:16Z",
-    "change_scope": "crates/oya-cloud-data-kernel canonical sovereign residency tier neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 776 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 760 jurisdiction leaks",
+    "observed_at": "2026-05-19T12:05:17Z",
+    "change_scope": "crates/oya-cloud-dcops-domain canonical datacenter-ops fixture/data-class neutrality slice",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 760 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 741 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 16,
+      "jurisdiction_leaks_removed": 19,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-data-kernel",
-    "targeted_clean_summary": "canonical-base-neutrality validation passed: 3 files checked, 0 jurisdiction leaks",
-    "evidence_log": "/tmp/fd001-cloud-data-kernel-neutrality-verify-20260519T120215Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-dcops-domain/src/lib.rs.",
-    "workspace_verification_note": "Renamed canonical sovereign residency variants from jurisdiction-coded forms to pack-neutral primary/secondary/tertiary tiers; regional pack mapping must happen outside canonical kernel source."
+    "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-dcops-domain",
+    "targeted_clean_summary": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks",
+    "evidence_log": "/tmp/fd001-cloud-dcops-neutrality-verify-20260519T120516Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-finops-domain/src/lib.rs.",
+    "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-dcops-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; clippy surfaced and the slice removed an expect_used source lint."
   },
   "remediation_history": [
     {
@@ -304,6 +323,21 @@
       "evidence_log": "/tmp/fd001-cloud-data-neutrality-verify-20260519T115944Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-data-kernel/src/lib.rs.",
       "workspace_verification_note": "Cargo.toml now includes crates/oya-cloud-data-domain so cargo fmt/test/clippy can verify this previously orphaned workspace-inheriting crate; Cargo.lock records its path dependency closure."
+    },
+    {
+      "observed_at": "2026-05-19T12:02:16Z",
+      "change_scope": "crates/oya-cloud-data-kernel canonical sovereign residency tier neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 776 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 760 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 16,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-cloud-data-kernel",
+      "targeted_clean_summary": "canonical-base-neutrality validation passed: 3 files checked, 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-cloud-data-kernel-neutrality-verify-20260519T120215Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red; next highest-signal source starts at crates/oya-cloud-dcops-domain/src/lib.rs.",
+      "workspace_verification_note": "Renamed canonical sovereign residency variants from jurisdiction-coded forms to pack-neutral primary/secondary/tertiary tiers; regional pack mapping must happen outside canonical kernel source."
     }
   ]
 }
