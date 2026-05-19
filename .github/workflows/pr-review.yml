@@ -21,8 +21,8 @@ name: oya-foundry-fitness-pr-review
 #     (multispectrum subagent panel per feedback_multispectrum_review_v22 +
 #     feedback_multispectrum_adherence_facets);
 #   - rolls them up to APPROVE / CHANGES_REQUESTED / REJECT;
-#   - posts a single Check Run named `oya-pr-review` (matches the
-#     branch-protection required-check binding);
+#   - posts a single explicit Check Run named `oya-pr-review` on the
+#     PR head SHA (matches the branch-protection required-check binding);
 #   - on APPROVE → emits `pr-review-approved` into
 #     `registry/merge-queue-admission-log.json`
 #     (consumed by IP-006 merge-queue);
@@ -154,29 +154,46 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           rollup="evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json"
+          verdict="ROLLUP_MISSING"
+          pending="unknown"
+          conclusion="failure"
+          summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; rollup file missing at ${rollup}"
+
           if [ ! -f "$rollup" ]; then
             echo "::error::rollup file missing at $rollup" >&2
-            exit 1
+          else
+            verdict=$(grep -o '"verdict": *"[A-Z_]*"' "$rollup" | head -n1 | sed 's/.*"\([A-Z_]*\)"/\1/' || true)
+            pending=$(grep -o '"subagent_runtime_pending": *\(true\|false\)' "$rollup" | head -n1 | awk -F': *' '{print $2}' || true)
+            if [ -z "$verdict" ]; then
+              verdict="UNKNOWN"
+            fi
+            if [ -z "$pending" ]; then
+              pending="unknown"
+            fi
+            if [ "$verdict" = "APPROVE" ] && [ "$pending" = "false" ]; then
+              conclusion="success"
+            fi
+            summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; verdict=${verdict}; subagent_runtime_pending=${pending}"
           fi
-          verdict=$(grep -o '"verdict": *"[A-Z_]*"' "$rollup" | head -n1 | sed 's/.*"\([A-Z_]*\)"/\1/')
-          pending=$(grep -o '"subagent_runtime_pending": *\(true\|false\)' "$rollup" | head -n1 | awk -F': *' '{print $2}')
-          echo "rollup verdict=${verdict} pending=${pending}"
-          # Required-check semantics: the cargo run step above already
-          # exits non-zero on REJECT-state I/O failures. The Check Run
-          # status is implicit in the job conclusion (job success =
-          # required-check pass = APPROVE; job failure = block merge).
-          if [ "$verdict" = "REJECT" ]; then
-            echo "::error::pr-review verdict REJECT — blocking merge" >&2
-            exit 1
-          fi
-          if [ "$verdict" = "CHANGES_REQUESTED" ]; then
-            echo "::error::pr-review verdict CHANGES_REQUESTED — fix-loop dispatched via pr-review-fix-requested event" >&2
-            exit 1
-          fi
-          if [ "$pending" != "false" ]; then
-            echo "::error::pr-review runtime still pending — refusing required-check pass" >&2
+
+          echo "rollup verdict=${verdict} pending=${pending} conclusion=${conclusion}"
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/check-runs" \
+            -f name="oya-pr-review" \
+            -f head_sha="${HEAD_SHA}" \
+            -f status="completed" \
+            -f conclusion="${conclusion}" \
+            -f details_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            -f output[title]="pr-review ${verdict}" \
+            -f output[summary]="${summary}"
+
+          # Required-check semantics: branch protection binds to the
+          # explicit Check Run above because workflow_run jobs attach to
+          # the default-branch workflow SHA, not reliably to the PR head.
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::pr-review verdict ${verdict} pending=${pending} — blocking merge" >&2
             exit 1
           fi
           echo "pr-review APPROVE (pending=${pending})"
