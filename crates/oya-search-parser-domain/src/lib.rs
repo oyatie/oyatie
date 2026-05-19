@@ -1,7 +1,7 @@
-//! Search parser domain: morphology pipeline for KR/JP/EN tokens.
+//! Search parser domain: morphology pipeline for generic and pack-provided tokens.
 //!
-//! Per M03-P05-IP-001 (mecab-ko / khaiii / JP tokenizer / EN tokenizer). Pure
-//! domain — concrete tokenizer adapters live downstream.
+//! Per M03-P05-IP-001. Pure domain — concrete tokenizer adapters live
+//! downstream, with pack-specific adapter selection kept outside canonical base.
 
 #![forbid(unsafe_code)]
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
@@ -12,9 +12,9 @@ use oya_search_crawler_domain::CrawlTarget;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum MorphologyLocale {
-    Kr,
-    Jp,
-    En,
+    Generic,
+    PackPrimary,
+    PackSecondary,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -102,9 +102,9 @@ mod tests {
     fn target() -> CrawlTarget {
         CrawlTarget::new(CrawlTargetCreate {
             target_id: "tgt_001".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             scheme: CrawlScheme::Https,
-            canonical_url: "https://kr.example.com/p/1".to_string(),
+            canonical_url: "https://alpha.example.test/p/1".to_string(),
             priority: CrawlPriority::Normal,
             depth_budget: 2,
             headers: BTreeMap::new(),
@@ -123,18 +123,18 @@ mod tests {
     }
 
     #[test]
-    fn builds_kr_document() {
+    fn builds_pack_primary_document() {
         let doc = ParsedDocument::new(ParsedDocumentCreate {
             document_id: "doc_1".to_string(),
             source: target(),
-            locale: MorphologyLocale::Kr,
-            tokens: vec![token("안녕", MorphologyLocale::Kr)],
+            locale: MorphologyLocale::PackPrimary,
+            tokens: vec![token("term-a", MorphologyLocale::PackPrimary)],
             body_byte_length: 6,
         })
         .expect("parsed");
         assert_eq!(doc.token_count(), 1);
-        assert_eq!(doc.locale, MorphologyLocale::Kr);
-        assert_eq!(doc.tenant_id, "ten_kr");
+        assert_eq!(doc.locale, MorphologyLocale::PackPrimary);
+        assert_eq!(doc.tenant_id, "ten_alpha");
     }
 
     #[test]
@@ -142,7 +142,7 @@ mod tests {
         let result = ParsedDocument::new(ParsedDocumentCreate {
             document_id: "doc_x".to_string(),
             source: target(),
-            locale: MorphologyLocale::En,
+            locale: MorphologyLocale::Generic,
             tokens: vec![],
             body_byte_length: 0,
         });
@@ -154,10 +154,10 @@ mod tests {
         let result = ParsedDocument::new(ParsedDocumentCreate {
             document_id: "doc_2".to_string(),
             source: target(),
-            locale: MorphologyLocale::Jp,
+            locale: MorphologyLocale::PackSecondary,
             tokens: vec![
-                token("こんにちは", MorphologyLocale::Jp),
-                token("hello", MorphologyLocale::En),
+                token("term-c", MorphologyLocale::PackSecondary),
+                token("hello", MorphologyLocale::Generic),
             ],
             body_byte_length: 20,
         });
@@ -169,8 +169,8 @@ mod tests {
         let result = ParsedDocument::new(ParsedDocumentCreate {
             document_id: "".to_string(),
             source: target(),
-            locale: MorphologyLocale::En,
-            tokens: vec![token("hi", MorphologyLocale::En)],
+            locale: MorphologyLocale::Generic,
+            tokens: vec![token("hi", MorphologyLocale::Generic)],
             body_byte_length: 2,
         });
         assert_eq!(result, Err(ParseError::EmptyDocumentId));

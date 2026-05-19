@@ -1283,10 +1283,70 @@
       "command": "bin/oya git diff --check",
       "status": "pass",
       "summary": "no whitespace errors after search fixture-neutrality slice"
+    },
+    {
+      "command": "cargo test -p oya-search-parser-domain",
+      "status": "pass",
+      "summary": "4 unit tests passed after MorphologyLocale neutral slot migration"
+    },
+    {
+      "command": "cargo test -p oya-search-query-domain",
+      "status": "pass",
+      "summary": "16 unit tests passed after QueryLocale neutral slot migration and engine comment cleanup"
+    },
+    {
+      "command": "cargo test -p oya-search-index-inverted-domain",
+      "status": "pass",
+      "summary": "4 unit tests passed after neutral morphology slot and tenant/shard fixture migration"
+    },
+    {
+      "command": "cargo test -p oya-search-index-vector-domain",
+      "status": "pass",
+      "summary": "18 unit tests passed after Generic morphology slot update"
+    },
+    {
+      "command": "cargo test -p oya-search-rank-domain",
+      "status": "pass",
+      "summary": "4 unit tests passed after Generic query locale update"
+    },
+    {
+      "command": "cargo test -p oya-search-rag-domain",
+      "status": "pass",
+      "summary": "4 unit tests passed after PackPrimary query locale and neutral tenant fixture update"
+    },
+    {
+      "command": "cargo test -p oya-search-serp-domain",
+      "status": "pass",
+      "summary": "4 unit tests passed after PackPrimary query locale and neutral tenant fixture update"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "passed after rustfmt during search locale/morphology migration slice"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-search-crawler-domain --root crates/oya-search-parser-domain --root crates/oya-search-index-inverted-domain --root crates/oya-search-index-vector-domain --root crates/oya-search-query-domain --root crates/oya-search-rag-domain --root crates/oya-search-rank-domain --root crates/oya-search-serp-domain",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed: 11 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 157 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "no whitespace errors after search locale/morphology migration slice"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 200 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blockers remain residency/tenancy canonical-vs-pack separation, search locale/morphology enum/API seams, and shared backup regulatory-pack naming.",
+    "Default canonical-base-neutrality scan currently fails with 157 source-level jurisdiction leaks. The first remaining leak is the gate-catalog EU-named command identity, which requires an explicit deprecation/migration lane because it is wired to CI command identity; the largest semantic blockers remain residency/tenancy canonical-vs-pack separation and shared backup regulatory-pack naming.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
@@ -1302,14 +1362,14 @@
       "risk": "high"
     },
     {
-      "lane": "search locale and morphology enum/API migration",
-      "write_scope": "crates/oya-search-parser-domain, crates/oya-search-query-domain, crates/oya-search-index-inverted-domain, crates/oya-search-rag-domain, and crates/oya-search-serp-domain",
-      "risk": "high"
-    },
-    {
       "lane": "shared backup regulatory-pack deprecation/migration",
       "write_scope": "crates/oya-shared-backup-kernel",
       "risk": "high"
+    },
+    {
+      "lane": "ops-dashboard-control-center manifest and KR localization evidence gap closure",
+      "write_scope": "ops-dashboard/control-center manifests and KR localization evidence artifacts identified by worker audits",
+      "risk": "moderate"
     },
     {
       "lane": "post-neutrality PR/CI governance repair",
@@ -1317,21 +1377,21 @@
       "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T14:37:42Z",
+  "updated_at": "2026-05-19T14:42:22Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T14:37:42Z",
-    "change_scope": "search crawler/vector/rank neutral tenant and URL fixture slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 210 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 200 jurisdiction leaks",
+    "observed_at": "2026-05-19T14:42:22Z",
+    "change_scope": "search locale/morphology canonical-neutral enum and fixture migration",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 200 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 157 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 10,
+      "jurisdiction_leaks_removed": 43,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "crates/oya-search-crawler-domain, crates/oya-search-index-vector-domain, and crates/oya-search-rank-domain test fixtures",
-    "targeted_clean_summary": "cargo fmt --all --check passed; crawler, vector-index, and rank tests passed; scoped canonical-base-neutrality passed with 4 files checked and 0 jurisdiction leaks. Tenant and URL fixtures now use neutral alpha/beta labels while preserving crawl target validation, vector tenant-boundary rejection, dimension validation, and ranking behavior.",
-    "evidence_log": "/tmp/fd001-search-fixture-neutrality-verify-20260519T143742Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 200 leaks. The first remaining leak is gate-catalog regulated-AI command identity; remaining high-risk semantic buckets are residency/tenancy production seams, search locale/morphology enum/API seams, and shared backup regulatory-pack naming.",
-    "workspace_verification_note": "This slice changed test fixture literals only. QueryLocale and MorphologyLocale production enum/API semantics were intentionally not changed in this fixture-only commit."
+    "targeted_clean_scope": "crates/oya-search-parser-domain, crates/oya-search-query-domain, crates/oya-search-index-inverted-domain, crates/oya-search-index-vector-domain, crates/oya-search-rank-domain, crates/oya-search-rag-domain, and crates/oya-search-serp-domain",
+    "targeted_clean_summary": "Search locale enums now use canonical-neutral slot names (Generic, PackPrimary, PackSecondary) instead of jurisdiction-coded variants. Search-wide scoped canonical-base-neutrality passes with 11 files checked and 0 jurisdiction leaks. Parser, query, inverted index, vector index, rank, RAG, and SERP tests passed; post-rustfmt fmt check, planning-closure, and diff check passed.",
+    "evidence_log": "/tmp/fd001-search-locale-migration-verify-20260519T144222Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 157 leaks. The first remaining leak is gate-catalog regulated-AI command identity; remaining high-risk semantic buckets are residency/tenancy production seams and shared backup regulatory-pack naming.",
+    "workspace_verification_note": "This slice is an explicit internal Rust API migration for search locale slots. No serde or wire string mapping was present; behavior remains covered by tenant-boundary, locale-mismatch, query-planning, ranking, SERP, and RAG data-boundary tests."
   },
   "remediation_history": [
     {
@@ -1842,6 +1902,21 @@
       "evidence_log": "/tmp/fd001-search-fixture-neutrality-verify-20260519T143742Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 200 leaks. The first remaining leak is gate-catalog regulated-AI command identity; remaining high-risk semantic buckets are residency/tenancy production seams, search locale/morphology enum/API seams, and shared backup regulatory-pack naming.",
       "workspace_verification_note": "This slice changed test fixture literals only. QueryLocale and MorphologyLocale production enum/API semantics were intentionally not changed in this fixture-only commit."
+    },
+    {
+      "observed_at": "2026-05-19T14:42:22Z",
+      "change_scope": "search locale/morphology canonical-neutral enum and fixture migration",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 200 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 157 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 43,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "crates/oya-search-parser-domain, crates/oya-search-query-domain, crates/oya-search-index-inverted-domain, crates/oya-search-index-vector-domain, crates/oya-search-rank-domain, crates/oya-search-rag-domain, and crates/oya-search-serp-domain",
+      "targeted_clean_summary": "Search locale enums now use canonical-neutral slot names (Generic, PackPrimary, PackSecondary) instead of jurisdiction-coded variants. Search-wide scoped canonical-base-neutrality passes with 11 files checked and 0 jurisdiction leaks. Parser, query, inverted index, vector index, rank, RAG, and SERP tests passed; post-rustfmt fmt check, planning-closure, and diff check passed.",
+      "evidence_log": "/tmp/fd001-search-locale-migration-verify-20260519T144222Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 157 leaks. The first remaining leak is gate-catalog regulated-AI command identity; remaining high-risk semantic buckets are residency/tenancy production seams and shared backup regulatory-pack naming.",
+      "workspace_verification_note": "This slice is an explicit internal Rust API migration for search locale slots. No serde or wire string mapping was present; behavior remains covered by tenant-boundary, locale-mismatch, query-planning, ranking, SERP, and RAG data-boundary tests."
     }
   ]
 }

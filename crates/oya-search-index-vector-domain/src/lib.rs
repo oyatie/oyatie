@@ -135,11 +135,11 @@ mod tests {
         ParsedDocument::new(ParsedDocumentCreate {
             document_id: id.to_string(),
             source: target(tenant),
-            locale: MorphologyLocale::En,
+            locale: MorphologyLocale::Generic,
             tokens: vec![MorphologyToken {
                 surface: "hi".to_string(),
                 lemma: "hi".to_string(),
-                locale: MorphologyLocale::En,
+                locale: MorphologyLocale::Generic,
                 part_of_speech: PartOfSpeech::Noun,
                 byte_offset: 0,
             }],

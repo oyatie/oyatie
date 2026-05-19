@@ -85,7 +85,7 @@ mod tests {
             tenant_id: "ten_alpha".to_string(),
             raw_query: "hi".to_string(),
             mode,
-            locale: QueryLocale::En,
+            locale: QueryLocale::Generic,
             limit: 5,
             min_score,
             shard_keys: vec!["s1".to_string()],
