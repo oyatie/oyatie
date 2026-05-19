@@ -76,18 +76,18 @@
       "status": "expected_fail",
       "summary": "canonical base neutrality violations: 196 files checked, 657 jurisdiction leaks",
       "sample_findings": [
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1079:43: jurisdiction-identifier `FinancialKrCredit` — DataClass::Financial | DataClass::FinancialKrCredit",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1108:39: jurisdiction-identifier `FinancialKrCredit` — Classified::new(value, DataClass::FinancialKrCredit)",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1120:26: jurisdiction-string `kr-seoul` — home_region: \"kr-seoul\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1121:31: jurisdiction-string `kyb/kr-seoul/observability-plus` — kyb_evidence_ref: \"kyb/kr-seoul/observability-plus\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1145:37: jurisdiction-string `kr-seoul` — supported_regions: vec![\"kr-seoul\".to_string(), \"jp-tokyo\".to_string()],",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1145:61: jurisdiction-string `jp-tokyo` — supported_regions: vec![\"kr-seoul\".to_string(), \"jp-tokyo\".to_string()],",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1171:17: jurisdiction-string `cpo_observability_agent_tenant_kr` — id: \"cpo_observability_agent_tenant_kr\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1173:24: jurisdiction-string `ten_kr` — tenant_id: \"ten_kr\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1174:33: jurisdiction-string `ba_kr_cloud` — billing_account_id: \"ba_kr_cloud\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1175:30: jurisdiction-string `legal/private-offer/observability-agent/ten-kr` — legal_terms_ref: \"legal/private-offer/observability-agent/ten-kr\".to_string(),",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1180:36: jurisdiction-identifier `FinancialKrCredit` — data_class: DataClass::FinancialKrCredit,",
-        "crates/oya-cloud-marketplace-domain/src/lib.rs:1186:17: jurisdiction-string `cme_observability_agent_tenant_kr` — id: \"cme_observability_agent_tenant_kr\".to_string(),"
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1079:43: jurisdiction-identifier `FinancialKrCredit` \u2014 DataClass::Financial | DataClass::FinancialKrCredit",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1108:39: jurisdiction-identifier `FinancialKrCredit` \u2014 Classified::new(value, DataClass::FinancialKrCredit)",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1120:26: jurisdiction-string `kr-seoul` \u2014 home_region: \"kr-seoul\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1121:31: jurisdiction-string `kyb/kr-seoul/observability-plus` \u2014 kyb_evidence_ref: \"kyb/kr-seoul/observability-plus\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1145:37: jurisdiction-string `kr-seoul` \u2014 supported_regions: vec![\"kr-seoul\".to_string(), \"jp-tokyo\".to_string()],",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1145:61: jurisdiction-string `jp-tokyo` \u2014 supported_regions: vec![\"kr-seoul\".to_string(), \"jp-tokyo\".to_string()],",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1171:17: jurisdiction-string `cpo_observability_agent_tenant_kr` \u2014 id: \"cpo_observability_agent_tenant_kr\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1173:24: jurisdiction-string `ten_kr` \u2014 tenant_id: \"ten_kr\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1174:33: jurisdiction-string `ba_kr_cloud` \u2014 billing_account_id: \"ba_kr_cloud\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1175:30: jurisdiction-string `legal/private-offer/observability-agent/ten-kr` \u2014 legal_terms_ref: \"legal/private-offer/observability-agent/ten-kr\".to_string(),",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1180:36: jurisdiction-identifier `FinancialKrCredit` \u2014 data_class: DataClass::FinancialKrCredit,",
+        "crates/oya-cloud-marketplace-domain/src/lib.rs:1186:17: jurisdiction-string `cme_observability_agent_tenant_kr` \u2014 id: \"cme_observability_agent_tenant_kr\".to_string(),"
       ],
       "note": "Updated after KCMVP lexicon hardening; KMS remains absent and marketplace remains the next source-level blocker."
     },
@@ -913,19 +913,92 @@
       "status": "pass",
       "summary": "workspace diff check clean for foundry cloud mutation fixture neutrality slice",
       "evidence_log": "/tmp/fd001-foundry-cloud-mutation-neutrality-verify-20260519T134823Z.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "status": "pass",
+      "summary": "workspace formatting clean after Foundry eval cohort split and registry workspace membership",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo test -p oya-foundry-eval-domain",
+      "status": "pass",
+      "summary": "3 eval domain tests passed with neutral mandatory linguistic cohort slots",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo test -p oya-foundry-eval-usecase",
+      "status": "pass",
+      "summary": "6 eval run API tests passed with neutral locale cohort error semantics",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo test -p oya-foundry-registry-api",
+      "status": "pass",
+      "summary": "6 registry publish API tests passed after adding registry API to workspace membership",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo test -p oya-application-app foundry -- --nocapture",
+      "status": "pass",
+      "summary": "Foundry application tests passed after support fixtures adopted neutral cohorts; includes MCP hot path and run lifecycle checks",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli foundry_eval -- --nocapture",
+      "status": "pass",
+      "summary": "9 foundry eval CLI tests passed with neutral cohort YAML fixtures",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli demo_eval_set_has_required_linguistic_and_adversarial_cases -- --nocapture",
+      "status": "pass",
+      "summary": "demo eval fixture unit test passed with required cohort coverage and adversarial cases",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli foundry_capability -- --nocapture",
+      "status": "pass",
+      "summary": "3 foundry capability schema CLI tests passed after template cohort neutralization",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --root crates/oya-foundry-eval-domain --root crates/oya-foundry-eval-usecase --root crates/oya-foundry-registry-api",
+      "status": "pass",
+      "summary": "canonical-base-neutrality validation passed for 3 Foundry eval/registry roots with 0 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "rg -n \"ko-KR|ja-JP|en-US|case-(ko|ja|en)|eval://(ko|ja|en)\" <foundry eval slice files>",
+      "status": "pass",
+      "summary": "no old concrete locale codes, old case IDs, or old eval refs remain in the edited Foundry eval slice",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality",
+      "status": "expected_fail",
+      "summary": "canonical base neutrality violations: 196 files checked, 293 jurisdiction leaks",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "pass",
+      "summary": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
+    },
+    {
+      "command": "bin/oya git diff --check",
+      "status": "pass",
+      "summary": "workspace diff check clean for Foundry eval neutral cohort split",
+      "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log"
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 298 source-level jurisdiction leaks, starting in Foundry eval locale cohort strings/usecase messages and continuing into foundry evidence/gate-catalog/policy/route, metering/observability/policy cedar, residency/tenancy, search/shared backup/i18n/email/SaaS surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
+    "Default canonical-base-neutrality scan currently fails with 293 source-level jurisdiction leaks, starting in Foundry evidence/gate-catalog/policy/route and continuing into metering/observability/policy cedar, residency/tenancy, search/shared backup/i18n/email/SaaS surfaces; this remains an explicit FD-001 blocker/evidence item, not a hidden or false-green condition.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
-    {
-      "lane": "foundry eval locale cohort canonical-vs-pack split",
-      "write_scope": "crates/oya-foundry-eval-domain/src/lib.rs and crates/oya-foundry-eval-usecase/src/lib.rs",
-      "risk": "high"
-    },
     {
       "lane": "foundry evidence/gate-catalog/policy/route jurisdiction naming split",
       "write_scope": "crates/oya-foundry-evidence-domain, crates/oya-foundry-gate-catalog-domain, crates/oya-foundry-policy-domain, crates/oya-foundry-route-policy-kernel",
@@ -942,26 +1015,31 @@
       "risk": "high"
     },
     {
-      "lane": "search/shared/SaaS marketplace workflow fixture neutralization",
-      "write_scope": "crates/oya-search-*-domain, crates/oya-shared-*-kernel, crates/oya-saas-*",
+      "lane": "search locale and tenant fixture neutralization",
+      "write_scope": "crates/oya-search-*-domain",
+      "risk": "high"
+    },
+    {
+      "lane": "shared backup/i18n/email plus SaaS marketplace/workflow pack split",
+      "write_scope": "crates/oya-shared-*-kernel, crates/oya-saas-*",
       "risk": "moderate"
     }
   ],
-  "updated_at": "2026-05-19T13:48:23Z",
+  "updated_at": "2026-05-19T14:01:45Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T13:48:23Z",
-    "change_scope": "foundry cloud mutation target-region test-fixture neutrality slice",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 299 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 298 jurisdiction leaks",
+    "observed_at": "2026-05-19T14:01:45Z",
+    "change_scope": "foundry eval neutral linguistic cohort split across domain/usecase/registry/application/demo templates",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 298 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 293 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 1,
+      "jurisdiction_leaks_removed": 5,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "cargo fmt/test/clippy for oya-foundry-cloud-mutation-domain; scoped canonical-base-neutrality for crates/oya-foundry-cloud-mutation-domain",
-    "targeted_clean_summary": "Foundry cloud mutation scoped scan passes with 1 file checked and 0 jurisdiction leaks; 6 unit tests, fmt, and clippy pass.",
-    "evidence_log": "/tmp/fd001-foundry-cloud-mutation-neutrality-verify-20260519T134823Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 298 leaks; next sources start in Foundry eval locale cohort strings/usecase messages, foundry evidence/gate-catalog/policy/route policy, then metering/observability/policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
-    "workspace_verification_note": "Foundry cloud mutation tests now use neutral region-alpha-1 target_region while preserving dry-run approval, quorum, execution, rollback, and break-glass mutation control behavior."
+    "targeted_clean_scope": "Foundry eval domain/usecase/registry API/application/dev-cli eval fixtures plus capability eval templates; registry API added to workspace so modified API tests are build-covered",
+    "targeted_clean_summary": "cargo fmt --all --check passed; oya-foundry-eval-domain, oya-foundry-eval-usecase, oya-foundry-registry-api, oya-application-app foundry tests, oya-dev-cli foundry_eval/demo_eval/foundry_capability tests passed; scoped Foundry eval canonical-base-neutrality scan passed with 3 roots and 0 leaks; scoped rg found no old concrete locale codes/case IDs in the edited eval slice.",
+    "evidence_log": "/tmp/fd001-foundry-eval-neutral-cohorts-verify-20260519T140145Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 293 leaks; next sources start in Foundry evidence/gate-catalog/policy/route, then metering/observability/policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
+    "workspace_verification_note": "Canonical Foundry eval coverage now requires REQUIRED_LINGUISTIC_COHORTS neutral cohort slots. Concrete locale mappings are expected to live in localization packs, while registry/API/application/demo templates preserve the signed eval-set plus adversarial coverage behavior."
   },
   "remediation_history": [
     {
@@ -1367,6 +1445,21 @@
       "evidence_log": "/tmp/fd001-eventing-domain-neutrality-verify-20260519T134417Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 299 leaks; next sources start in foundry cloud mutation/eval/evidence/gate-catalog/policy/route policy, then metering, observability, policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
       "workspace_verification_note": "CloudEvent tests now use neutral cell-alpha-1 and tenant.alpha fixtures while preserving normalization, topic round-trip, and dotted-component rejection behavior."
+    },
+    {
+      "observed_at": "2026-05-19T13:48:23Z",
+      "change_scope": "foundry cloud mutation target-region test-fixture neutrality slice",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 299 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 298 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 1,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "cargo fmt/test/clippy for oya-foundry-cloud-mutation-domain; scoped canonical-base-neutrality for crates/oya-foundry-cloud-mutation-domain",
+      "targeted_clean_summary": "Foundry cloud mutation scoped scan passes with 1 file checked and 0 jurisdiction leaks; 6 unit tests, fmt, and clippy pass.",
+      "evidence_log": "/tmp/fd001-foundry-cloud-mutation-neutrality-verify-20260519T134823Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 298 leaks; next sources start in Foundry eval locale cohort strings/usecase messages, foundry evidence/gate-catalog/policy/route policy, then metering/observability/policy cedar, residency/tenancy, search, shared backup/i18n/email, SaaS marketplace/workflow surfaces.",
+      "workspace_verification_note": "Foundry cloud mutation tests now use neutral region-alpha-1 target_region while preserving dry-run approval, quorum, execution, rollback, and break-glass mutation control behavior."
     }
   ]
 }

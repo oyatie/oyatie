@@ -36,6 +36,7 @@ pub use oya_foundry_capability_domain::{
 use oya_foundry_eval_domain::EvalError;
 pub use oya_foundry_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
+    REQUIRED_LINGUISTIC_COHORTS,
 };
 use oya_foundry_evidence_domain::EvidenceError;
 pub use oya_foundry_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};

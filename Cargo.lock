@@ -2640,6 +2640,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-foundry-registry-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
+ "oya-foundry-eval-domain",
+]
+
+[[package]]
 name = "oya-foundry-route-policy-kernel"
 version = "0.1.0"
 dependencies = [

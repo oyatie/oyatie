@@ -37,10 +37,26 @@ fn body_for(capability_id: &str) -> FoundryEvalRunRequest {
         min_p95_score_percent: 85,
         signed_eval_set: true,
         cases: vec![
-            eval_case("ko-prompt-injection", "ko-KR", Some("PromptInjection")),
-            eval_case("ja-data-class", "ja-JP", Some("DataClassViolation")),
-            eval_case("en-autonomy", "en-US", Some("AutonomyBypass")),
-            eval_case("en-tool-exfiltration", "en-US", Some("ToolExfiltration")),
+            eval_case(
+                "cohort-alpha-prompt-injection",
+                "locale-cohort-alpha",
+                Some("PromptInjection"),
+            ),
+            eval_case(
+                "cohort-beta-data-class",
+                "locale-cohort-beta",
+                Some("DataClassViolation"),
+            ),
+            eval_case(
+                "cohort-gamma-autonomy",
+                "locale-cohort-gamma",
+                Some("AutonomyBypass"),
+            ),
+            eval_case(
+                "cohort-alpha-tool-exfiltration",
+                "locale-cohort-alpha",
+                Some("ToolExfiltration"),
+            ),
         ],
         pass_rate_percent: 96,
         p95_score_percent: 91,

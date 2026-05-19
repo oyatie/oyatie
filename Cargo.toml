@@ -66,6 +66,7 @@ members = [
   "crates/oya-foundry-evidence-file-adapter",
   "crates/oya-foundry-eval-domain",
   "crates/oya-foundry-eval-usecase",
+  "crates/oya-foundry-registry-api",
   "crates/oya-foundry-mcp-gateway-domain",
   "crates/oya-check-runbook-freshness",
   "crates/oya-check-runbook-index",
