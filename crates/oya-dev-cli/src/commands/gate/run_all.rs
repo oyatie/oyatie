@@ -228,9 +228,13 @@ fn run_ci_required_preflight_command(command: &str) -> bool {
             child.args(["scripts/github-actions-required-secrets-check.sh"]);
             child
         }
-        "bash scripts/pr-review-workflow-pr-head-check.sh" => {
+        "bash scripts/pr-review-workflow-pr-head-check.sh --source worktree" => {
             let mut child = Command::new("bash");
-            child.args(["scripts/pr-review-workflow-pr-head-check.sh"]);
+            child.args([
+                "scripts/pr-review-workflow-pr-head-check.sh",
+                "--source",
+                "worktree",
+            ]);
             child
         }
         other => {

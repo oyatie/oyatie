@@ -64,6 +64,17 @@ grep -q 'workflow_run.head_sha' "$tmpdir/stale.err"
 grep -q 'headRefOid' "$tmpdir/stale.err"
 grep -q 'head_sha' "$tmpdir/stale.err"
 
+candidate_worktree_repo="$tmpdir/candidate-worktree"
+make_repo "$stale_workflow" "$candidate_worktree_repo"
+cp "$repo_root/.github/workflows/pr-review.yml" "$candidate_worktree_repo/.github/workflows/pr-review.yml"
+(
+  cd "$candidate_worktree_repo"
+  "$script" --source worktree
+  git add .github/workflows/pr-review.yml
+  git commit -q -m "candidate pr-review workflow"
+  "$script" --source head
+)
+
 stale_headsha_workflow="$tmpdir/stale-headsha-pr-review.yml"
 cat > "$stale_headsha_workflow" <<'YAML'
 name: oya-foundry-fitness-pr-review

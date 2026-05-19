@@ -3,19 +3,25 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/pr-review-workflow-pr-head-check.sh [--remote REMOTE] [--branch BRANCH] [--workflow PATH] [--skip-remote-freshness]
+Usage: scripts/pr-review-workflow-pr-head-check.sh [--source remote-default|head|worktree] [--remote REMOTE] [--branch BRANCH] [--workflow PATH] [--skip-remote-freshness]
 
 Fail closed when the default-branch pr-review workflow cannot be proven to post
 the required `oya-pr-review` Check Run onto the live PR head SHA.
 
+Default source: remote-default
 Default remote: origin
 Default branch: dev
 Default workflow: .github/workflows/pr-review.yml
 
-The script is read-only. By default it verifies that refs/remotes/<remote>/<branch>
-matches `git ls-remote <remote> refs/heads/<branch>` before inspecting the
-workflow from that remote-tracking ref. Pass --skip-remote-freshness only in
-tests or other already-frozen ref contexts.
+The script is read-only. By default (`--source remote-default`) it verifies that
+refs/remotes/<remote>/<branch> matches `git ls-remote <remote>
+refs/heads/<branch>` before inspecting the workflow from that remote-tracking
+ref. Pass --skip-remote-freshness only in tests or other already-frozen ref
+contexts.
+
+Use `--source worktree` for local/PR preflight of the candidate workflow before
+it reaches the default branch. Use `--source head` for an immutable local commit
+snapshot.
 USAGE
 }
 
@@ -23,6 +29,7 @@ remote="origin"
 branch="dev"
 workflow=".github/workflows/pr-review.yml"
 skip_remote_freshness=0
+source_mode="remote-default"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -36,6 +43,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --workflow)
       workflow="${2:-}"
+      shift 2
+      ;;
+    --source)
+      source_mode="${2:-}"
       shift 2
       ;;
     --skip-remote-freshness)
@@ -69,39 +80,74 @@ if [[ -z "$remote" || -z "$branch" || -z "$workflow" ]]; then
   exit 64
 fi
 
-remote_ref="refs/remotes/${remote}/${branch}"
-remote_branch_ref="refs/heads/${branch}"
+case "$source_mode" in
+  remote-default)
+    remote_ref="refs/remotes/${remote}/${branch}"
+    remote_branch_ref="refs/heads/${branch}"
 
-if ! local_head="$(git rev-parse --verify "${remote_ref}^{commit}" 2>/dev/null)"; then
-  echo "::error::missing ${remote_ref}; fetch ${remote}/${branch} before running ci-required verification" >&2
-  exit 66
-fi
+    if ! local_head="$(git rev-parse --verify "${remote_ref}^{commit}" 2>/dev/null)"; then
+      echo "::error::missing ${remote_ref}; fetch ${remote}/${branch} before running ci-required verification" >&2
+      exit 66
+    fi
 
-if [[ "$skip_remote_freshness" -eq 0 ]]; then
-  if ! remote_head="$(git ls-remote --exit-code "$remote" "$remote_branch_ref" 2>/tmp/oya-pr-review-ls-remote-error.$$ | awk '{print $1}')"; then
-    echo "::error::could not read ${remote_branch_ref} from remote ${remote}; refusing stale default-branch workflow proof" >&2
-    cat "/tmp/oya-pr-review-ls-remote-error.$$" >&2 || true
-    rm -f "/tmp/oya-pr-review-ls-remote-error.$$"
-    exit 1
-  fi
-  rm -f "/tmp/oya-pr-review-ls-remote-error.$$"
-  if [[ -z "$remote_head" ]]; then
-    echo "::error::remote ${remote} did not return ${remote_branch_ref}; refusing default-branch workflow proof" >&2
-    exit 66
-  fi
-  if [[ "$remote_head" != "$local_head" ]]; then
-    echo "::error::local ${remote_ref} is stale (${local_head}); remote ${remote_branch_ref} is ${remote_head}; fetch before push" >&2
-    exit 1
-  fi
-fi
+    if [[ "$skip_remote_freshness" -eq 0 ]]; then
+      if ! remote_head="$(git ls-remote --exit-code "$remote" "$remote_branch_ref" 2>/tmp/oya-pr-review-ls-remote-error.$$ | awk '{print $1}')"; then
+        echo "::error::could not read ${remote_branch_ref} from remote ${remote}; refusing stale default-branch workflow proof" >&2
+        cat "/tmp/oya-pr-review-ls-remote-error.$$" >&2 || true
+        rm -f "/tmp/oya-pr-review-ls-remote-error.$$"
+        exit 1
+      fi
+      rm -f "/tmp/oya-pr-review-ls-remote-error.$$"
+      if [[ -z "$remote_head" ]]; then
+        echo "::error::remote ${remote} did not return ${remote_branch_ref}; refusing default-branch workflow proof" >&2
+        exit 66
+      fi
+      if [[ "$remote_head" != "$local_head" ]]; then
+        echo "::error::local ${remote_ref} is stale (${local_head}); remote ${remote_branch_ref} is ${remote_head}; fetch before push" >&2
+        exit 1
+      fi
+    fi
 
-if ! workflow_text="$(git show "${remote_ref}:${workflow}" 2>/tmp/oya-pr-review-workflow-show-error.$$)"; then
-  echo "::error::could not read ${workflow} from ${remote_ref}; default branch cannot emit required oya-pr-review proof" >&2
-  cat "/tmp/oya-pr-review-workflow-show-error.$$" >&2 || true
-  rm -f "/tmp/oya-pr-review-workflow-show-error.$$"
-  exit 66
-fi
-rm -f "/tmp/oya-pr-review-workflow-show-error.$$"
+    if ! workflow_text="$(git show "${remote_ref}:${workflow}" 2>/tmp/oya-pr-review-workflow-show-error.$$)"; then
+      echo "::error::could not read ${workflow} from ${remote_ref}; default branch cannot emit required oya-pr-review proof" >&2
+      cat "/tmp/oya-pr-review-workflow-show-error.$$" >&2 || true
+      rm -f "/tmp/oya-pr-review-workflow-show-error.$$"
+      exit 66
+    fi
+    rm -f "/tmp/oya-pr-review-workflow-show-error.$$"
+    workflow_label="${remote_ref}:${workflow}"
+    ;;
+  head)
+    if ! local_head="$(git rev-parse --verify "HEAD^{commit}" 2>/dev/null)"; then
+      echo "::error::could not resolve HEAD before running pr-review workflow proof" >&2
+      exit 66
+    fi
+    if ! workflow_text="$(git show "HEAD:${workflow}" 2>/tmp/oya-pr-review-workflow-show-error.$$)"; then
+      echo "::error::could not read ${workflow} from HEAD; candidate branch cannot emit required oya-pr-review proof" >&2
+      cat "/tmp/oya-pr-review-workflow-show-error.$$" >&2 || true
+      rm -f "/tmp/oya-pr-review-workflow-show-error.$$"
+      exit 66
+    fi
+    rm -f "/tmp/oya-pr-review-workflow-show-error.$$"
+    workflow_label="HEAD:${workflow}"
+    ;;
+  worktree)
+    if ! local_head="$(git rev-parse --verify "HEAD^{commit}" 2>/dev/null)"; then
+      echo "::error::could not resolve HEAD before running pr-review workflow proof" >&2
+      exit 66
+    fi
+    if [[ ! -f "$workflow" ]]; then
+      echo "::error::could not read ${workflow} from working tree; candidate branch cannot emit required oya-pr-review proof" >&2
+      exit 66
+    fi
+    workflow_text="$(cat "$workflow")"
+    workflow_label="working-tree:${workflow}"
+    ;;
+  *)
+    echo "::error::invalid --source ${source_mode}; expected remote-default, head, or worktree" >&2
+    exit 64
+    ;;
+esac
 
 missing=()
 require_marker() {
@@ -133,11 +179,11 @@ if grep -Eq '^[[:space:]]*HEAD_SHA:[[:space:]]*\$\{\{ github\.event\.workflow_ru
 fi
 
 if [[ "${#missing[@]}" -gt 0 ]]; then
-  echo "::error::${remote_ref}:${workflow} cannot prove PR-head oya-pr-review Check Run semantics" >&2
+  echo "::error::${workflow_label} cannot prove PR-head oya-pr-review Check Run semantics" >&2
   for item in "${missing[@]}"; do
     echo "  - ${item}" >&2
   done
   exit 1
 fi
 
-echo "pr-review workflow PR-head check-run semantics verified for ${remote_ref}:${workflow} (${local_head})"
+echo "pr-review workflow PR-head check-run semantics verified for ${workflow_label} (${local_head})"

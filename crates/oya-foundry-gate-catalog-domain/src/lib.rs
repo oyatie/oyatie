@@ -161,7 +161,7 @@ pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] = &[
     "cargo run -q -p oya-foundry-vcs-admission-gate-app",
     "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
     "bash scripts/github-actions-required-secrets-check.sh",
-    "bash scripts/pr-review-workflow-pr-head-check.sh",
+    "bash scripts/pr-review-workflow-pr-head-check.sh --source worktree",
 ];
 
 /// Catalog of non-`gate validate` commands the legacy `scripts/check.sh`
@@ -484,7 +484,7 @@ mod tests {
         );
         assert!(
             CI_REQUIRED_PREFLIGHT_COMMANDS
-                .contains(&"bash scripts/pr-review-workflow-pr-head-check.sh")
+                .contains(&"bash scripts/pr-review-workflow-pr-head-check.sh --source worktree")
         );
     }
 
