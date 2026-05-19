@@ -128,4 +128,5 @@ fetch_live
 print_delta
 cargo run -q -p oya-dev-cli -- gate validate protection-context-match \
   --branch "$branch" \
+  --applied-branch-protection "$config" \
   --live-required-contexts "$live"
