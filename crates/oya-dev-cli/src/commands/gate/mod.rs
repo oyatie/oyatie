@@ -1267,10 +1267,11 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::validate_banned_primitives_gate(args) {
                     Ok(report) => {
                         println!(
-                            "banned-primitives validation passed: {} files, {} sources, {} fences, {} usages, {} documented exceptions",
+                            "banned-primitives validation passed: {} files, {} sources, {} fences, {} command-log records, {} usages, {} documented exceptions",
                             report.files_scanned,
                             report.sources_checked,
                             report.fences_checked,
+                            report.command_log_records_checked,
                             report.usages_checked,
                             report.documented_exceptions
                         );

@@ -258,38 +258,38 @@
     {
       "primitive": "git",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus — session/tool-call command-log corpus coverage remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
     },
     {
       "primitive": "gh",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus — session/tool-call command-log corpus coverage remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
     },
     {
       "primitive": "manual-branch",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus — session/tool-call command-log corpus coverage remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
     },
     {
       "primitive": "manual-rebase",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus — session/tool-call command-log corpus coverage remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
     },
     {
       "primitive": "manual-merge",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus — session/tool-call command-log corpus coverage remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
     },
     {
       "primitive": "manual-push",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus — session/tool-call command-log corpus coverage remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
     }
   ],
   "chained_enforcement_contract": {
     "adr_citation": "ADR-0133",
-    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, and source-corpus contract exist on branch. The lane oya-foundry-fitness-banned-primitives is active for fenced agent-instruction contracts; command-log corpus coverage remains the open closure gap for F-FORBIDDEN-PRIMITIVES-CI-GUARD.",
-    "status": "source-corpus detector active in CS-FITNESS-001; command-log corpus enforcement still open before full F-FORBIDDEN-PRIMITIVES-CI-GUARD closure"
+    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-foundry-fitness-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted GitHub enforcement deployment remains a GitOps verification gap.",
+    "status": "source-corpus and sanitized command-log corpus detector active in CS-FITNESS-001; hosted enforcement verification pending before production reliance"
   },
   "repo_state_protocol": [
     {

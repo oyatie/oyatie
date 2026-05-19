@@ -26,7 +26,9 @@
 
 use std::process::ExitCode;
 
-use oya_foundry_gate_catalog_domain::AGGREGATED_VALIDATE_LANES;
+use oya_foundry_gate_catalog_domain::{
+    AGGREGATED_VALIDATE_LANES, BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT,
+};
 
 use super::run as gate_dispatch;
 
@@ -83,7 +85,7 @@ pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
     let mut outcomes: Vec<LaneOutcome> = Vec::with_capacity(AGGREGATED_VALIDATE_LANES.len());
     for lane in AGGREGATED_VALIDATE_LANES {
         println!("[gate run-all] starting: {lane}");
-        let dispatch_args = vec!["validate".to_string(), (*lane).to_string()];
+        let dispatch_args = dispatch_args_for_lane(lane);
         let exit = gate_dispatch(dispatch_args, usage);
         let passed = is_success(exit);
         outcomes.push(LaneOutcome {
@@ -121,6 +123,16 @@ pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
     } else {
         ExitCode::FAILURE
     }
+}
+
+fn dispatch_args_for_lane(lane: &str) -> Vec<String> {
+    let mut args = vec!["validate".to_string(), lane.to_string()];
+    if lane == "banned-primitives" {
+        args.push("--require-command-log-corpus".to_string());
+        args.push("--command-log-root".to_string());
+        args.push(BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT.to_string());
+    }
+    args
 }
 
 /// `ExitCode` is opaque (no `==` on Linux/macOS). Compare via a thin

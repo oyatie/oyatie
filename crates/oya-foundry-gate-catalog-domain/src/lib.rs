@@ -140,6 +140,9 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "realtime-transport-tier",
 ];
 
+pub const BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT: &str =
+    "registry/fitness-corpora/banned-primitives";
+
 /// Catalog of non-`gate validate` commands the legacy `scripts/check.sh`
 /// wired into the pre-merge gate sequence. These cover:
 /// 1. Cargo toolchain commands (fmt/check/clippy/audit/deny/machete/nextest).
@@ -240,8 +243,7 @@ pub fn all_canonical_commands() -> Vec<&'static str> {
 pub fn all_canonical_commands_rendered() -> String {
     let mut rendered = String::new();
     for lane in AGGREGATED_VALIDATE_LANES {
-        rendered.push_str("cargo run -p oya-dev-cli -- gate validate ");
-        rendered.push_str(lane);
+        rendered.push_str(&canonical_gate_validate_command(lane));
         rendered.push('\n');
     }
     for command in AGGREGATED_NON_GATE_COMMANDS {
@@ -249,6 +251,16 @@ pub fn all_canonical_commands_rendered() -> String {
         rendered.push('\n');
     }
     rendered
+}
+
+#[must_use]
+pub fn canonical_gate_validate_command(lane: &str) -> String {
+    let mut command = format!("cargo run -p oya-dev-cli -- gate validate {lane}");
+    if lane == "banned-primitives" {
+        command.push_str(" --require-command-log-corpus --command-log-root ");
+        command.push_str(BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT);
+    }
+    command
 }
 
 /// Tier 1 error surface. Currently empty (the catalog is static-data;

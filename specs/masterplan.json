@@ -325,7 +325,7 @@
       "blocking_status_values": [
         "stub",
         "scaffolded",
-        "seed — IP file awaiting",
+        "seed \u2014 IP file awaiting",
         "awaiting approval"
       ],
       "blocking_text_markers": [
@@ -345,13 +345,13 @@
     }
   },
   "vision": {
-    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent µservices integrated through Workflow and Ontology.",
-    "current_markdown_section": "docs/MASTERPLAN.md §1"
+    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent \u00b5services integrated through Workflow and Ontology.",
+    "current_markdown_section": "docs/MASTERPLAN.md \u00a71"
   },
   "architecture_invariants": [
     {
       "id": "workflow-ontology-adapter-layer",
-      "summary": "All inter-µservice integration flows through Workflow or Ontology; direct cross-µservice calls are refused."
+      "summary": "All inter-\u00b5service integration flows through Workflow or Ontology; direct cross-\u00b5service calls are refused."
     },
     {
       "id": "flat-microservice-catalog",
@@ -547,22 +547,24 @@
             {
               "id": "M01-P-FITNESS-IP-001",
               "title": "oya-foundry-fitness-banned-primitives lane (F-FORBIDDEN-PRIMITIVES-CI-GUARD)",
-              "status": "source-contract-local-green",
+              "status": "source-and-command-corpus-local-green",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
               "path": ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md",
               "adr_citation": "ADR-0236",
               "previous_planning_status": "was-seed",
-              "implementation_state": "source-corpus-gate-green-command-log-corpus-required-for-fixuptask-closure",
+              "implementation_state": "source-and-sanitized-command-log-corpus-local-green-hosted-branch-protection-pending",
               "planning_closure_ref": "/specs/planning-closure-contract.json",
               "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
               "planning_closure_closed_at": "2026-05-19",
               "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
               "evidence_refs": [
                 "/evidence/fd001/cs-fitness-001-banned-primitives.json",
-                "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json"
+                "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
+                "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
+                "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
               ],
-              "gate_evidence": "banned-primitives source-corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; full command-log corpus enforcement remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD."
+              "gate_evidence": "banned-primitives source-corpus, sanitized tracked command-log corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; hosted GitHub Actions/branch-protection deployment remains a GitOps verification gap."
             },
             {
               "id": "M01-P-FITNESS-IP-002",
@@ -685,7 +687,7 @@
     "status": "core-complete-ci-admission-wired-provider-adapters-followup",
     "milestone": "M01-foundation",
     "phase": "P00-gitops-vcs-replacement",
-    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev→staging→production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
+    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev\u2192staging\u2192production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
     "must_precede": [
       "M01-P08-agentic-pipeline-cutover",
       "broad M01/M02/M03 parallel fan-out"
@@ -934,13 +936,15 @@
           "id": "M01-P-FITNESS-IP-001",
           "note": "Banned-primitives/chained-enforcement lane is a gate-hardening candidate before product fanout.",
           "claim_rule": "Claim detector/workflow/source-corpus evidence as a serialized governance gate before relying on broad parallel write lanes.",
-          "status": "source-contract-local-green",
-          "implementation_state": "source-corpus-gate-green-command-log-corpus-required-for-fixuptask-closure",
+          "status": "source-and-command-corpus-local-green",
+          "implementation_state": "source-and-sanitized-command-log-corpus-local-green-hosted-branch-protection-pending",
           "evidence_refs": [
             "/evidence/fd001/cs-fitness-001-banned-primitives.json",
-            "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json"
+            "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
+            "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
+            "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
           ],
-          "gate_evidence": "banned-primitives source-corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; full command-log corpus enforcement remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD."
+          "gate_evidence": "banned-primitives source-corpus, sanitized tracked command-log corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; hosted GitHub Actions/branch-protection deployment remains a GitOps verification gap."
         }
       ]
     },
@@ -1897,7 +1901,7 @@
               {
                 "id": "M01-P15-IP-004",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
-                "title": "SLSA level ≥3 attestation publishing",
+                "title": "SLSA level \u22653 attestation publishing",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2074,7 +2078,7 @@
               {
                 "id": "M01-P01-IP-003",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-003-dsr-cascade-engine.md",
-                "title": "dsr.cascade.execute ≤30d cascade engine",
+                "title": "dsr.cascade.execute \u226430d cascade engine",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2483,14 +2487,16 @@
                 "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
                 "status": "reconciled-to-M01-P-FITNESS-IP-001",
                 "previous_planning_status": "was-structured",
-                "implementation_state": "successor-plan-source-contract-local-green-command-log-open",
+                "implementation_state": "successor-plan-source-and-command-corpus-local-green-hosted-verification-pending",
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
                 "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
                 "evidence_refs": [
                   "/evidence/fd001/cs-fitness-001-banned-primitives.json",
-                  "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json"
+                  "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
+                  "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
+                  "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
                 ],
                 "successor_plan": ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md"
               },
@@ -3048,7 +3054,7 @@
               {
                 "id": "M02-P03-IP-002",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/IP-002-foundry-fitness-lane-ratchet.md",
-                "title": "Foundry-fitness lane ratchet (7 lanes WARN→BLOCK)",
+                "title": "Foundry-fitness lane ratchet (7 lanes WARN\u2192BLOCK)",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3976,7 +3982,7 @@
             "slug": "P06-workspace-14-surfaces",
             "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces",
             "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/INDEX.md",
-            "title": "Workspace Axis (14 surfaces — Mail, Calendar, Drive, Meet, Chat, +9 more)",
+            "title": "Workspace Axis (14 surfaces \u2014 Mail, Calendar, Drive, Meet, Chat, +9 more)",
             "status": "planning-closed-contract-authored",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 5,
@@ -4122,7 +4128,7 @@
               {
                 "id": "M03-P07-IP-002",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/IP-002-second-pack.md",
-                "title": "Second pack onboarding (JP/US/EU — council-elected)",
+                "title": "Second pack onboarding (JP/US/EU \u2014 council-elected)",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4160,7 +4166,7 @@
               {
                 "id": "M03-P08-IP-001",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-001-saas-pairs.md",
-                "title": "SaaS↔Cloud + SaaS↔Search + SaaS↔Agent-runtime contracts",
+                "title": "SaaS\u2194Cloud + SaaS\u2194Search + SaaS\u2194Agent-runtime contracts",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4180,7 +4186,7 @@
               {
                 "id": "M03-P08-IP-002",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-002-cloud-pairs.md",
-                "title": "Cloud↔Agent-runtime + Cloud↔Search + Cloud↔Ads contracts",
+                "title": "Cloud\u2194Agent-runtime + Cloud\u2194Search + Cloud\u2194Ads contracts",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4200,7 +4206,7 @@
               {
                 "id": "M03-P08-IP-003",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-003-search-ads-pairs.md",
-                "title": "Search↔Ads + Search↔Agent-runtime + Ads↔Agent-runtime contracts",
+                "title": "Search\u2194Ads + Search\u2194Agent-runtime + Ads\u2194Agent-runtime contracts",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4220,7 +4226,7 @@
               {
                 "id": "M03-P08-IP-004",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-004-vertical-workspace-pairs.md",
-                "title": "Vertical↔others + Workspace↔others contracts",
+                "title": "Vertical\u2194others + Workspace\u2194others contracts",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -4492,7 +4498,7 @@
               {
                 "id": "M04-P02-IP-003",
                 "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/IP-003-kr-vertical-surfaces.md",
-                "title": "KR vertical-specific surfaces (전자세금계산서 / 휴일·야간 근로 / 실명인증 / 사업자등록)",
+                "title": "KR vertical-specific surfaces (\uc804\uc790\uc138\uae08\uacc4\uc0b0\uc11c / \ud734\uc77c\u00b7\uc57c\uac04 \uadfc\ub85c / \uc2e4\uba85\uc778\uc99d / \uc0ac\uc5c5\uc790\ub4f1\ub85d)",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -5270,7 +5276,7 @@
     ]
   },
   "connect_product_catalog_2026_05_17": {
-    "description": "Connect records 7 planned sub-product PRD surfaces as of PR #130. The 4 new B2C sub-product planning surfaces below expand the flat µservice catalog. See ADR-0234.",
+    "description": "Connect records 7 planned sub-product PRD surfaces as of PR #130. The 4 new B2C sub-product planning surfaces below expand the flat \u00b5service catalog. See ADR-0234.",
     "adr_citation": "ADR-0234",
     "pr_reference": "PR #130",
     "existing_sub_products": [
@@ -5379,7 +5385,7 @@
       {
         "id": "HYPER-IP-004",
         "pattern": "golden-signals-dashboard",
-        "title": "Golden signals dashboard (latency / traffic / errors / saturation per µservice)",
+        "title": "Golden signals dashboard (latency / traffic / errors / saturation per \u00b5service)",
         "target_milestone": "M02b-workflow-studio",
         "status": "planning-closed-contract-authored",
         "previous_planning_status": "was-seed-ip-file-awaiting",
@@ -5392,7 +5398,7 @@
       {
         "id": "HYPER-IP-005",
         "pattern": "error-budget-slo-burn-rate-alarms",
-        "title": "Error-budget SLO burn-rate alarms (shared substrate; all substrate µservices)",
+        "title": "Error-budget SLO burn-rate alarms (shared substrate; all substrate \u00b5services)",
         "target_milestone": "M02b-shared-substrate",
         "status": "planning-closed-contract-authored",
         "previous_planning_status": "was-seed-ip-file-awaiting",

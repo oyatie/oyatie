@@ -30,8 +30,8 @@ jobs:
         uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
         with:
           shared-key: pr-tests
-      - name: Validate banned primitive use in agent contracts
+      - name: Validate banned primitive use in agent contracts and command corpus
         env:
           CARGO_TERM_COLOR: always
           CARGO_INCREMENTAL: "0"
-        run: cargo run -q -p oya-dev-cli -- gate validate banned-primitives
+        run: cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives
