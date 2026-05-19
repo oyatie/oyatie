@@ -58,5 +58,11 @@
       "oya.feature_flags.flag.evaluated",
       "oya.feature_flags.kill_switch.invoked"
     ]
+  },
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
   }
 }
