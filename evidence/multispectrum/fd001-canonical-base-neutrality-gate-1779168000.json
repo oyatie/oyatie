@@ -13,7 +13,8 @@
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/tests/gate_cli.rs",
     "evidence/fd001/canonical-base-neutrality-2026-05-19.json",
-    "evidence/multispectrum/fd001-canonical-base-neutrality-gate-1779168000.json"
+    "evidence/multispectrum/fd001-canonical-base-neutrality-gate-1779168000.json",
+    "evidence/audit-chain.jsonl"
   ],
   "facets": {
     "F1_correctness": {
@@ -92,6 +93,11 @@
     {
       "command": "bin/oya git diff --check",
       "status": "pass"
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "status": "pass",
+      "summary": "metadata and authority checks passed; cargo tests + CLI smoke passed after audit-chain coverage row was appended"
     }
   ],
   "council_verdict": "ACCEPT_WITH_REMEDIATION_REQUIRED",

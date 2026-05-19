@@ -7,7 +7,8 @@
     "runner": "crates/oya-dev-cli/src/canonical_base_neutrality_gate.rs",
     "dispatch": "crates/oya-dev-cli/src/commands/gate/mod.rs",
     "usage": "crates/oya-dev-cli/src/lib.rs",
-    "tests": "crates/oya-dev-cli/tests/gate_cli.rs"
+    "tests": "crates/oya-dev-cli/tests/gate_cli.rs",
+    "audit_chain": "evidence/audit-chain.jsonl"
   },
   "validation": [
     {
@@ -55,6 +56,11 @@
     {
       "command": "bin/oya git diff --check",
       "status": "pass"
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "status": "pass",
+      "summary": "metadata and authority checks passed; cargo tests + CLI smoke passed after audit-chain coverage row was appended"
     }
   ],
   "known_blockers": [
