@@ -122,17 +122,36 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_HEAD_SHA: ${{ steps.pr.outputs.pr_head_sha }}
         run: |
           mkdir -p "evidence/pipeline-maturity-glue/ip-004-pr-review/${PR_NUMBER}"
+          metadata_json=$(gh pr view "${PR_NUMBER}" \
+            --json number,title,body,headRefName,baseRefName,headRefOid,baseRefOid,author,labels,files)
+          base_sha=$(jq -r '.baseRefOid // empty' <<< "$metadata_json")
+          head_sha=$(jq -r '.headRefOid // empty' <<< "$metadata_json")
+          if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
+            echo "::error::could not resolve base/head SHA for PR #${PR_NUMBER}" >&2
+            exit 1
+          fi
+          if [ "$head_sha" != "$PR_HEAD_SHA" ]; then
+            echo "::error::live PR head ${head_sha} differs from resolved head ${PR_HEAD_SHA}" >&2
+            exit 1
+          fi
+
           {
             echo "PR #${PR_NUMBER}"
             echo
             echo "## PR Metadata"
-            gh pr view "${PR_NUMBER}" \
-              --json number,title,body,headRefName,baseRefName,headRefOid,baseRefOid,author,labels,files
+            printf '%s\n' "$metadata_json"
             echo
             echo "## PR Diff"
-            gh pr diff "${PR_NUMBER}" --patch
+            if git fetch --no-tags --depth=1 origin "$base_sha"; then
+              git diff --patch --no-ext-diff "$base_sha" "$head_sha"
+            else
+              echo "Local base fetch failed; falling back to paginated file list."
+              gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" \
+                --jq '.[] | "\(.status)\t\(.filename)\t+\(.additions)\t-\(.deletions)"'
+            fi
           } > "evidence/pipeline-maturity-glue/ip-004-pr-review/${PR_NUMBER}/review-input.md"
 
       - name: Run reviewer-agent runtime
@@ -189,7 +208,7 @@ jobs:
             echo "::error::rollup file missing at $rollup" >&2
           else
             verdict=$(jq -r '.verdict // empty' "$rollup" 2>/dev/null || true)
-            pending=$(jq -r '.subagent_runtime_pending // empty' "$rollup" 2>/dev/null || true)
+            pending=$(jq -r 'if has("subagent_runtime_pending") then (.subagent_runtime_pending | tostring) else empty end' "$rollup" 2>/dev/null || true)
             if [ -z "$verdict" ]; then
               verdict="UNKNOWN"
             fi
