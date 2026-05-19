@@ -995,7 +995,7 @@ fn validate_nonzero_time(value: u64) -> Result<(), CloudMarketplaceError> {
 }
 
 fn validate_marketplace_currency(value: &CurrencyCode) -> Result<(), CloudMarketplaceError> {
-    if matches!(value.value.as_str(), "TOK" | "ALT") {
+    if value.value.len() == 3 && value.value.bytes().all(|byte| byte.is_ascii_uppercase()) {
         Ok(())
     } else {
         Err(CloudMarketplaceError::InvalidCurrency)
@@ -1314,13 +1314,25 @@ mod tests {
         let currency_error = catalog
             .create_private_offer(PrivateOfferCreate {
                 id: "cpo_bad_currency".to_string(),
-                fixed_price: Money::new("ZZZ", 10_000).expect("valid ISO currency"),
+                fixed_price: Money {
+                    currency: CurrencyCode {
+                        value: "tok".to_string(),
+                    },
+                    minor_units: 10_000,
+                },
                 ..private_offer()
             })
-            .expect_err(
-                "cloud marketplace settlement uses configured neutral settlement currencies",
-            );
+            .expect_err("currency code invariant is enforced at marketplace boundary");
         assert_eq!(currency_error, CloudMarketplaceError::InvalidCurrency);
+
+        let time_error = catalog
+            .create_private_offer(PrivateOfferCreate {
+                id: "cpo_bad_time".to_string(),
+                expires_at_epoch_seconds: 1_700_000_400,
+                ..private_offer()
+            })
+            .expect_err("private offer expiry must be after start");
+        assert_eq!(time_error, CloudMarketplaceError::InvalidTimeOrder);
     }
 
     #[test]
