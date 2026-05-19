@@ -228,6 +228,11 @@ fn run_ci_required_preflight_command(command: &str) -> bool {
             child.args(["scripts/github-actions-required-secrets-check.sh"]);
             child
         }
+        "bash scripts/pr-review-workflow-pr-head-check.sh" => {
+            let mut child = Command::new("bash");
+            child.args(["scripts/pr-review-workflow-pr-head-check.sh"]);
+            child
+        }
         other => {
             eprintln!("[gate run-all] unsupported ci-required command in catalog: {other}");
             return false;
