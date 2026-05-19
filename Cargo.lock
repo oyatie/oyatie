@@ -1823,6 +1823,7 @@ dependencies = [
  "oya-foundry-cargo-prefix-domain",
  "oya-foundry-catalog-domain",
  "oya-foundry-evidence-file-adapter",
+ "oya-foundry-fitness-banned-primitives-kernel",
  "oya-foundry-gate-catalog-domain",
  "oya-foundry-mdbook-domain",
  "oya-foundry-openapi-domain",

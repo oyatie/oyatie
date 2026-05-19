@@ -6051,6 +6051,74 @@ fn aspirational_enforcement_gate_accepts_real_required_surfaces() {
 }
 
 #[test]
+fn banned_primitives_gate_accepts_sanctioned_oya_git_surface() {
+    let temp = TempDirGuard::new("banned-primitives-clean");
+    write_banned_primitives_fixture(
+        temp.path(),
+        "  - oya-git\nretirement_note: `oya git <git-subcommand>` is the git drop-in surface\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected sanctioned oya git surface to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("banned-primitives validation passed")
+    );
+}
+
+#[test]
+fn banned_primitives_gate_rejects_manual_push_inside_agent_fence() {
+    let temp = TempDirGuard::new("banned-primitives-manual-push");
+    write_banned_primitives_fixture(temp.path(), "run git push origin dev\n");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "banned-primitives",
+            "--repo-root",
+            temp.path().to_str().expect("utf8 temp root"),
+            "--clear-default-roots",
+            "--root",
+            "AGENTS.md",
+            "--root",
+            "CLAUDE.md",
+            "--root",
+            "docs/AGENTS.md",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("manual-push"),
+        "stderr must include manual-push violation; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn aspirational_enforcement_gate_rejects_missing_required_workflow() {
     let temp = TempDirGuard::new("aspirational-missing-workflow");
     let fixture = write_aspirational_fixture(temp.path());
@@ -6848,6 +6916,27 @@ fn write_aspirational_fixture(root: &Path) -> AspirationalFixture {
         quality_lanes,
         branch_protection,
     }
+}
+
+fn write_banned_primitives_fixture(root: &Path, root_agent_fence_body: &str) {
+    fs::create_dir_all(root.join("docs")).expect("docs dir created");
+    fs::write(
+        root.join("AGENTS.md"),
+        format!(
+            "# Agent contract\n\n<!-- agent-instructions:start -->\n{root_agent_fence_body}<!-- agent-instructions:end -->\n"
+        ),
+    )
+    .expect("AGENTS fixture written");
+    fs::write(
+        root.join("CLAUDE.md"),
+        "# Claude contract\n\n<!-- agent-instructions:start -->\ncoordination_surface: foundry_pipeline\n<!-- agent-instructions:end -->\n",
+    )
+    .expect("CLAUDE fixture written");
+    fs::write(
+        root.join("docs/AGENTS.md"),
+        "# Docs agent contract\n\n<!-- agent-instructions:start -->\nsanctioned_primitives:\n  - oya-vcs\n<!-- agent-instructions:end -->\n",
+    )
+    .expect("docs AGENTS fixture written");
 }
 
 fn write_honest_claims_plan(plans_dir: &Path, file_name: &str, id: &str, extra: &str) {

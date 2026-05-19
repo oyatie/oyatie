@@ -54,6 +54,7 @@ branches:
       - oya-foundry-fitness-api-semver
       - oya-foundry-fitness-honest-claims
       - oya-foundry-fitness-aspirational-enforcement
+      - oya-foundry-fitness-banned-primitives
       - oya-foundry-fitness-protection-context-match
       - oya-pr-review
 
