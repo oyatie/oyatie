@@ -15,7 +15,8 @@
       "oya-foundry-fitness-supply-chain",
       "oya-foundry-fitness-cohesion",
       "oya-foundry-fitness-api-semver",
-      "oya-foundry-fitness-protection-context-match"
+      "oya-governance-protection-context-match",
+      "oya-governance-dependency-seam"
     ]
   },
   "enforce_admins": true,
