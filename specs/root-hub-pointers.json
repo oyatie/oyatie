@@ -640,6 +640,14 @@
       "target_path_after_md_retirement": "machine-readable successor after regional-pack projection retirement",
       "migration_phase": "fd001-planning-closure",
       "purpose": "Regional KR pack authority for FD-001 planning closure. Direct pointer for Korea regulatory bindings, agency surfaces, i18n/currency/calendar/tax/payment/identity foundations, cross-border transfer constraints, and regional operational gates."
+    },
+    "legal_ip_domain_taxonomy": {
+      "kind": "spec",
+      "current_path": "/specs/legal-ip-domain-taxonomy.json",
+      "human_compatibility_projection": "docs/LEGAL-IP-LEDGER.md#domain",
+      "target_path_after_md_retirement": "same (machine-readable authority; markdown ledger remains compatibility projection until retired)",
+      "migration_phase": "fd001-legal-ip-domain-taxonomy",
+      "purpose": "Canonical FD-001 domain-purpose taxonomy: oyatie.com primary, oyatie.org trust, oyatie.net status, oyatie.dev developer/API, and oyat.ai AI. Records required registrar/DNS/renewal/trust evidence and current projection drift without claiming production routing or ownership completion."
     }
   },
   "by_kind": {
