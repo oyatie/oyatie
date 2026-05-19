@@ -2,7 +2,7 @@
 
 **Phase:** PHASE-02-FOUNDRY-DATA-SUBSTRATE
 **Owner:** infra (axis-foundry + ops-sre-reliability)
-**Authority ADRs:** ADR-0152 RPO/RTO, ADR-0180 DR business-continuity portfolio policy, ADR-0192 §"Backup and disaster recovery", ADR-0145 inter-microservice communication, ADR-0184 storage tier layering
+**Authority ADRs:** ADR-0152 RPO/RTO, ADR-0241 DR business-continuity portfolio policy, ADR-0192 §"Backup and disaster recovery", ADR-0145 inter-microservice communication, ADR-0184 storage tier layering
 **Depends on:** IP-091
 **Status:** Planned
 **Phase trace:** PHASE-02 §"Backup + drill cadence" (addendum lines 60-66).
@@ -149,7 +149,7 @@ Backup window 02:00-06:00 local; runs as a high-priority kubernetes Job. Watcher
 
 - ADR-0192 §"Backup and disaster recovery".
 - ADR-0152 — RPO/RTO targets.
-- ADR-0180 — DR business-continuity portfolio policy.
+- ADR-0241 — DR business-continuity portfolio policy.
 - ADR-0184 — storage tier layering.
 - ADR-0145 — communication reform.
 - Runbooks: `milvus-restore.md`, `milvus-backup-drill.md`.

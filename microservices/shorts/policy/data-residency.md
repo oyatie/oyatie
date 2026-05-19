@@ -45,7 +45,7 @@ Every tenant is assigned a primary pack at onboarding. Cross-pack movement is **
 
 ### Personal vs Professional residency
 
-Per parallel ADR-0135 dual-context model:
+Per parallel ADR-0238 dual-context model:
 
 - **Professional creator + video data** follows the tenant's pack pinning (above).
 - **Personal creator + video data** follows the user's per-user residency (set at user signup). For most users this matches the tenant's pack, but a user who travels or relocates may have personal data residency change while their tenant pack stays fixed. The system treats this as two separate residency keys.

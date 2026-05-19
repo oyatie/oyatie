@@ -21,7 +21,7 @@ doc_status: published
 
 The `mail` µservice is oyatie's corporate-and-personal mail surface. SMTP/IMAP/JMAP standards-compatible at the edge; native dual-context (Personal B2C vs Professional B2B) isolation per ADR-0135; tenant retention + legal hold + chain-of-custody-preserving eDiscovery export; mail-to-Workflow handoff with explicit consent/policy basis; cross-organization mail-server pattern (each tenant operates its own logical mail-server inside the µservice).
 
-Connect dissolved per ADR-0132 + parallel ADR-0135 into mail/messenger/calendar/community/social/shorts/network/anonymous. This document is the canonical PRD for the **mail** sub-product; calendar, messenger, etc., own their own PRDs.
+Connect dissolved per ADR-0132 + parallel ADR-0238 into mail/messenger/calendar/community/social/shorts/network/anonymous. This document is the canonical PRD for the **mail** sub-product; calendar, messenger, etc., own their own PRDs.
 
 Inherits Bominal ADR-0208 (dual-context unified channel hub), ADR-0210 (M03 KR group-mail launch), ADR-0215 (retention/legal-hold dual-context). The oyatie variant treats mail as a µservice in its own right rather than a "Connect app" — this is the load-bearing structural change of ADR-0132 + ADR-0135.
 

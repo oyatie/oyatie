@@ -75,7 +75,7 @@ Concurrent regulatory regimes:
 
 Sibling `social` ADR-SOC-0003 establishes content-moderation classifier bounds under Annex III §1(a) (recommender systems). `network`'s recommender bounds are stricter because §4 (employment) is more sensitive than §1(a) and carries additional EEOC + NYC LL144 + state-AI-law obligations.
 
-The decision must (a) classify all four sub-capabilities under EU AI Act + EEOC + NYC LL144, (b) define the gating regime for recruiter-stub activation (OFF by default), (c) define the per-release bias-audit cadence + 4/5-rule statistical threshold, (d) define the regulatory-notification + rollback path on failure (per `runbooks/recruiter-classifier-rollback.md`), (e) align with parallel ADR-0135's Professional-context invariant.
+The decision must (a) classify all four sub-capabilities under EU AI Act + EEOC + NYC LL144, (b) define the gating regime for recruiter-stub activation (OFF by default), (c) define the per-release bias-audit cadence + 4/5-rule statistical threshold, (d) define the regulatory-notification + rollback path on failure (per `runbooks/recruiter-classifier-rollback.md`), (e) align with parallel ADR-0238's Professional-context invariant.
 
 ## Decision
 

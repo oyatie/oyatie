@@ -37,7 +37,7 @@ EU DSA Art. 27 (recommender system transparency) and EU AI Act Art. 50 (transpar
 
 KR PIPA Art. 29-2 + EU AI Act Art. 13 require an explanation API surface and an opt-out / human-review path. These obligations apply equally to heuristic and ML-driven ranking when the system "significantly influences" user-facing content.
 
-The decision needs to (a) pick a P01-deliverable ranking strategy, (b) carry forward to P03 ML-driven without violating EU AI Act obligations, (c) coordinate with the content-moderation classifier (ADR-SOC-0003) which is also EU AI Act high-risk, (d) align with parallel ADR-0135's dual-context invariant (Personal-tier and Professional-tier feeds are distinct), and (e) provide a chronological-first default option per EU DSA Art. 27.
+The decision needs to (a) pick a P01-deliverable ranking strategy, (b) carry forward to P03 ML-driven without violating EU AI Act obligations, (c) coordinate with the content-moderation classifier (ADR-SOC-0003) which is also EU AI Act high-risk, (d) align with parallel ADR-0238's dual-context invariant (Personal-tier and Professional-tier feeds are distinct), and (e) provide a chronological-first default option per EU DSA Art. 27.
 
 ## Decision
 
@@ -48,7 +48,7 @@ oyatie social adopts a **three-step strategy**:
    - Optional mode (user opt-in): heuristic-algorithmic — sorted by `rank_score(post, recency_minutes, engagement_signal, follow_proximity)` where `rank_score = 0.5 * recency_decay + 0.3 * engagement_signal + 0.2 * follow_proximity`, clamped to [0, 1]. The heuristic is fully deterministic + auditable from code; no ML model in P01.
    - Per EU DSA Art. 27: user can switch between chronological and algorithmic via a single setting; ranking_explanation API populates contributing signals when algorithmic mode is active.
    - Per EU AI Act Art. 50: client SDK renders an "AI-assessed ranking" label when algorithmic mode is active even though P01 uses heuristic (label is the same to preserve interface stability).
-   - Per parallel ADR-0135: Personal-tier feed and Professional-tier feed are rendered by separate `FeedCache` ports (DCI invariant).
+   - Per parallel ADR-0238: Personal-tier feed and Professional-tier feed are rendered by separate `FeedCache` ports (DCI invariant).
 2. **P03 (M03): ML-driven ranking model.**
    - Owned by `foundry-runtime`; deployed as a T2 capability per `capabilities/T2-auto.yaml`.
    - Inputs: same signals as P01 heuristic + content-embedding similarity to user-history; outputs: ranked feed slice.

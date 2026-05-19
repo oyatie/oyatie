@@ -21,7 +21,7 @@ doc_status: published
 
 The `calendar` µservice is oyatie's native calendar, meeting-scheduling, invitation, cross-tenant availability, and room-booking substrate. Per ADR-0132 (product-suite + bundle dissolution) and parallel-session ADR-0135 (Connect unbundle), calendar is a standalone tenant-facing µservice — no longer part of a Connect suite — owning: event/meeting scheduling; invitations (RFC 5545 iCalendar + CalDAV compatible); recurring events; cross-tenant availability lookups; meeting rooms / resources; time-zone handling (ICU/IANA tzdata); .ics import/export.
 
-The µservice carries dual-context (Personal / Professional) per parallel ADR-0135; details never cross context boundaries except via explicit invitation or policy-bound projection.
+The µservice carries dual-context (Personal / Professional) per parallel ADR-0238; details never cross context boundaries except via explicit invitation or policy-bound projection.
 
 Bominal inheritance: ADR-0208 dual-context unified-channel hub + ADR-0215 retention + legal-hold overlays are inherited 1:1 per `feedback_bominal_inheritance_precedence.md`; oyatie additions captured below.
 

@@ -77,7 +77,7 @@ IP-091 (cluster IaC)
 - ADR-0184 — storage tier layering.
 - ADR-0145 — inter-microservice communication.
 - ADR-0152 — RPO/RTO targets.
-- ADR-0180 — DR business-continuity portfolio.
+- ADR-0241 — DR business-continuity portfolio.
 - ADR-0049 — cross-region replication.
 - ADR-0010 — regional packs.
 - ADR-0026 — AI substrate.

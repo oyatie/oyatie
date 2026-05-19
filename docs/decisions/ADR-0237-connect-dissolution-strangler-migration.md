@@ -1,12 +1,12 @@
 ---
-id: ADR-0134
+id: ADR-0237
 status: Accepted
 deciders: council-architecture, council-product, council-privacy, axis-mail, axis-messenger, axis-calendar, ops-sre-reliability, ops-release-management
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0135]
+related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0238]
 related_memory: [feedback_no_silent_regression, feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145), feedback_bominal_inheritance_precedence]
 related_specs:
   - /specs/per-microservice-flat-layout.json
@@ -16,10 +16,10 @@ related_specs:
 session_context:
   authored: 2026-05-17
   parallel_session_caveat: |
-    Authored in oyatie 2026-05-17 as the operational companion to ADR-0135
+    Authored in oyatie 2026-05-17 as the operational companion to ADR-0238
     (Connect super-app expansion; originally drafted as ADR-0126 in the
     oyatie 2026-05-17 session, renumbered 2026-05-18 to avoid collision with
-    dev's ADR-0126 Employment classification). ADR-0135 establishes the
+    dev's ADR-0126 Employment classification). ADR-0238 establishes the
     target topology; this ADR establishes how legacy `oya-connect-*`
     consumers migrate to the new flat µservices without breaking
     Hyrum's-Law-bound external behaviour.
@@ -30,7 +30,7 @@ purpose: |
   active-usage verification, code-removal sweep, and umbrella-folder retirement.
 ---
 
-# ADR-0134: Connect dissolution — Strangler-pattern migration
+# ADR-0237: Connect dissolution — Strangler-pattern migration
 
 ## Status
 
@@ -42,7 +42,7 @@ Accepted — 2026-05-17.
 
 ## Context
 
-ADR-0135 dissolves Connect into 8 first-class flat µservices (mail, messenger,
+ADR-0238 dissolves Connect into 8 first-class flat µservices (mail, messenger,
 calendar, community, social, shorts, network, anonymous). The new µservices
 **already ship in parallel** under `microservices/<ms>/` per ADR-0131; the
 extant legacy crates `oya-connect-{mail,messenger,calendar}-domain` (and their
@@ -86,12 +86,12 @@ sequential phases**, each gated by a concrete verification command.
 ### Phase 1 — New µservices ship in parallel  *(current state, 2026-05-17)*
 
 `microservices/{mail,messenger,calendar}/` are stood up with full pack-fill
-(mail 84 files, messenger 96 files, calendar in-progress) per ADR-0135. Legacy
+(mail 84 files, messenger 96 files, calendar in-progress) per ADR-0238. Legacy
 `oya-connect-*` crates continue to serve 100% of traffic. New `oya-<ms>-*`
 crates serve 0% of production traffic; they are exercised only by their own
 test suites + dev-cluster canary.
 
-**Entry gate:** ADR-0135 accepted; new µservice PRDs published.
+**Entry gate:** ADR-0238 accepted; new µservice PRDs published.
 **Exit gate:** All three of HG-MAIL, HG-MESSENGER, HG-CALENDAR pass at p99
 SLOs in dev cluster sustained 7d.
 
@@ -210,7 +210,7 @@ exits 0; no `oya_connect_*` symbol resolves anywhere in the workspace.
 
 ### Phase 6 — Connect umbrella µservice retirement
 
-When the LAST of the 8 sub-µservices (per ADR-0135's retirement trigger:
+When the LAST of the 8 sub-µservices (per ADR-0238's retirement trigger:
 HG-MAIL, HG-MESSENGER, HG-CALENDAR, HG-COMMUNITY, HG-SOCIAL, HG-SHORTS,
 HG-NETWORK, HG-ANONYMOUS — all green at p99 SLO sustained 30d) crosses its
 own Phase 5 exit, the Connect umbrella µservice retires:
@@ -218,12 +218,12 @@ own Phase 5 exit, the Connect umbrella µservice retires:
 1. Delete `microservices/connect/` folder (this RETIREMENT-PLAN.md and any
    sibling artifacts in it).
 2. Remove the `connect-umbrella-retirement-readiness` CI lane from
-   `.github/branch-protection.yaml` (per ADR-0135 §Operational).
+   `.github/branch-protection.yaml` (per ADR-0238 §Operational).
 3. Update `docs/architecture/product-graph.md` and `product-graph.html` —
    strip the "Connect" umbrella node, keep the 8 children as first-class
    nodes.
 4. Emit a final registry/placeholder-debt/adr-follow-ups.yaml#connect-umbrella-retirement-marker marker ADR closing the
-   cycle (separate ADR; this ADR-0134 does not pre-author it).
+   cycle (separate ADR; this ADR-0237 does not pre-author it).
 
 **Entry gate:** All 8 HG-<MS> gates green at p99 SLO sustained 30d AND all
 extant Phase 5 exits green (mail / messenger / calendar code removed).
@@ -282,7 +282,7 @@ no `/specs/microservices/*.json` file.
   - Violates skill SKILL.md §"Step 4" (removal is a required step, not
     optional).
   - The `microservices/connect/` umbrella folder never retires →
-    ADR-0135 §"Connect umbrella retires when..." trigger is unreachable.
+    ADR-0238 §"Connect umbrella retires when..." trigger is unreachable.
 - **Rejected** because keeping the adapter forever is the textbook
   Zombie-Code anti-pattern (skill SKILL.md §"Zombie Code").
 
@@ -325,7 +325,7 @@ no `/specs/microservices/*.json` file.
 
 - **6–12 month total migration window.** Each legacy crate family's
   Strangler completes in ~5–7 months; the 8-µservice umbrella retirement
-  (ADR-0135's trigger) requires the 5 net-new µservices to *also* reach
+  (ADR-0238's trigger) requires the 5 net-new µservices to *also* reach
   HG-<MS> green at p99 SLO sustained 30d, which may stretch to 12 months
   from this ADR.
 - **Adapter authoring + maintenance cost.** 3 adapter crates +
@@ -390,7 +390,7 @@ parallel legacy crate families over 2 years ≫ 24 engineer-weeks.)
 Per the skill SKILL.md §"Verification" checklist:
 
 - [ ] **Replacement is production-proven and covers all critical use cases.**
-  Each HG-<MS> gate accepting at p99 SLO sustained 30d (Phase 1 + ADR-0135).
+  Each HG-<MS> gate accepting at p99 SLO sustained 30d (Phase 1 + ADR-0238).
 - [ ] **Migration guide exists with concrete steps and examples.**
   `microservices/{mail,messenger,calendar}/migration-from-connect.md` per
   this ADR cycle.
@@ -413,7 +413,7 @@ Per the skill SKILL.md §"Verification" checklist:
 - ADR-0110: ChangeSet state machine.
 - ADR-0114: Canary observability + rollback.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0135: Connect super-app expansion into 8 flat µservices (target topology).
+- ADR-0238: Connect super-app expansion into 8 flat µservices (target topology).
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.

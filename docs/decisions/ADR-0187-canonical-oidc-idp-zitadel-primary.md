@@ -64,7 +64,7 @@ Zitadel's multi-tenant Instances-Organizations model is the production shape oya
 
 ### Deployment shape
 
-- One Zitadel Instance per regulatory pack (kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa) per ADR-0179-sovereign-cloud-per-regional-pack. No cross-pack federation; each pack owns its own users + sessions + audit log.
+- One Zitadel Instance per regulatory pack (kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa) per ADR-0240-sovereign-cloud-per-regional-pack. No cross-pack federation; each pack owns its own users + sessions + audit log.
 - Per-tenant Organization within the pack's Instance. Tenant lifecycle managed via Workflow saga (ADR-0175 tenant-lifecycle-workflow).
 - Postgres event-store on the pack's primary cluster (ADR-0179 postgres-connection-pooling-pgcat); read replicas per ADR-0172 CQRS.
 - Secrets (JWT signing key, OIDC client secrets, SCIM bearer tokens) live in OpenBao per ADR-0117 SecretReference; referenced as `${openbao:secret/identity/<pack>/<tenant>/<purpose>}`.
@@ -165,7 +165,7 @@ All five surfaces are documented in `docs/standards/identity-vendor-isolation.md
 - ADR-0182 api-gateway-north-south-vs-service-mesh-east-west-separation
 - ADR-0183 policy-engine-separation-cedar-app-authz-kyverno-admission
 - ADR-0173-vendor-lock-in-avoidance-and-stack-ownership
-- ADR-0179-sovereign-cloud-per-regional-pack
+- ADR-0240-sovereign-cloud-per-regional-pack
 - ADR-0188 passkey-webauthn-substrate (sibling)
 - ADR-0189 step-up-authentication-acr-classes (sibling)
 - ADR-0190 scim-2-provisioning-enterprise-tenants (sibling)

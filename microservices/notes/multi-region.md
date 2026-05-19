@@ -15,7 +15,7 @@ doc_status: published
 
 ## Pack Topology
 
-Per ADR-0117 + parallel ADR-0135:
+Per ADR-0117 + parallel ADR-0238:
 
 | Pack | Primary region | DR-pair | Activation status |
 |---|---|---|---|

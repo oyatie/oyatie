@@ -284,10 +284,10 @@
       "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
     },
     {
-      "id": "ADR-0131",
+      "id": "ADR-0234",
       "title": "Connect Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+      "file": "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0132",
@@ -296,16 +296,16 @@
       "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
-      "id": "ADR-0133",
+      "id": "ADR-0236",
       "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
+      "file": "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md"
     },
     {
-      "id": "ADR-0135",
+      "id": "ADR-0238",
       "title": "Connect Super App Expansion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+      "file": "docs/decisions/ADR-0238-connect-super-app-expansion.md"
     },
     {
       "id": "ADR-0139",
