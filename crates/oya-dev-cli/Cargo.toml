@@ -37,6 +37,7 @@ oya-check-glossary-coverage = { path = "../oya-check-glossary-coverage" }
 oya-check-glossary-vocabulary = { path = "../oya-check-glossary-vocabulary" }
 oya-check-honest-claims = { path = "../oya-check-honest-claims" }
 oya-check-aspirational-enforcement = { path = "../oya-check-aspirational-enforcement" }
+oya-foundry-fitness-banned-primitives-kernel = { path = "../oya-foundry-fitness-banned-primitives-kernel" }
 oya-check-license-policy = { path = "../oya-check-license-policy" }
 oya-check-vendor-lockin-discipline = { path = "../oya-check-vendor-lockin-discipline" }
 # PR #143 Fix-M/R/S/T/U advisory lanes (most report-only; promotion triggers in lanes.yaml).

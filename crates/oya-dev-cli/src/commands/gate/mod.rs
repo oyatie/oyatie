@@ -1262,6 +1262,31 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("banned-primitives")) => {
+            match crate::parse_banned_primitives_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_banned_primitives_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "banned-primitives validation passed: {} files, {} sources, {} fences, {} usages, {} documented exceptions",
+                            report.files_scanned,
+                            report.sources_checked,
+                            report.fences_checked,
+                            report.usages_checked,
+                            report.documented_exceptions
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("banned-primitives validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("hyperscaler-arch-invariants")) => {
             match crate::parse_hyperscaler_arch_invariants_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_hyperscaler_arch_invariants_gate(args) {

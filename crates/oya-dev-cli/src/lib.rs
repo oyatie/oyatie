@@ -35,6 +35,7 @@ mod api_contract_registry;
 mod architecture_map_emit_gate;
 mod architecture_plane_gates;
 mod aspirational_enforcement_gate;
+mod banned_primitives_gate;
 mod catalog_contract_gates;
 mod catalog_registry;
 mod cedar_fragment_coverage_gate;
@@ -96,6 +97,9 @@ pub(crate) use architecture_plane_gates::{
 };
 pub(crate) use aspirational_enforcement_gate::{
     parse_aspirational_enforcement_validate_args, validate_aspirational_enforcement_gate,
+};
+pub(crate) use banned_primitives_gate::{
+    parse_banned_primitives_validate_args, validate_banned_primitives_gate,
 };
 pub(crate) use catalog_contract_gates::{
     parse_cohesion_validate_args, parse_slo_coverage_validate_args, validate_cohesion_gate,
@@ -300,6 +304,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate honest-claims [--clear-default-corpus] [--corpus-root <path>]... [--plans-dir <.omc/plans/milestones>]"
         + "\n       oya gate validate aspirational-enforcement [--clear-default-corpus] [--corpus-root <path>]... [--crates-dir <crates>] [--workflows-dir <.github/workflows>] [--quality-lanes <registry/quality/lanes.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--branch <dev>]"
+        + "\n       oya gate validate banned-primitives [--repo-root <.>] [--clear-default-roots] [--root <path>]... [--known-rationale <id>]..."
         + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
         + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"

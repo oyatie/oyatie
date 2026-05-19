@@ -69,6 +69,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "quality-lanes",
     "honest-claims",
     "aspirational-enforcement",
+    "banned-primitives",
     "workspace-hygiene",
     "design-spec-maturity-claims",
     "hyperscaler-arch-invariants",

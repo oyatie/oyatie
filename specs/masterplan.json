@@ -547,17 +547,22 @@
             {
               "id": "M01-P-FITNESS-IP-001",
               "title": "oya-foundry-fitness-banned-primitives lane (F-FORBIDDEN-PRIMITIVES-CI-GUARD)",
-              "status": "planning-closed-contract-authored",
+              "status": "source-contract-local-green",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
               "path": ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md",
               "adr_citation": "ADR-0236",
               "previous_planning_status": "was-seed",
-              "implementation_state": "not-started-changeset-required",
+              "implementation_state": "source-corpus-gate-green-command-log-corpus-required-for-fixuptask-closure",
               "planning_closure_ref": "/specs/planning-closure-contract.json",
               "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
               "planning_closure_closed_at": "2026-05-19",
-              "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+              "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
+              "evidence_refs": [
+                "/evidence/fd001/cs-fitness-001-banned-primitives.json",
+                "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json"
+              ],
+              "gate_evidence": "banned-primitives source-corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; full command-log corpus enforcement remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD."
             },
             {
               "id": "M01-P-FITNESS-IP-002",
@@ -928,7 +933,14 @@
         {
           "id": "M01-P-FITNESS-IP-001",
           "note": "Banned-primitives/chained-enforcement lane is a gate-hardening candidate before product fanout.",
-          "claim_rule": "Claim detector/workflow/source-corpus evidence as a serialized governance gate before relying on broad parallel write lanes."
+          "claim_rule": "Claim detector/workflow/source-corpus evidence as a serialized governance gate before relying on broad parallel write lanes.",
+          "status": "source-contract-local-green",
+          "implementation_state": "source-corpus-gate-green-command-log-corpus-required-for-fixuptask-closure",
+          "evidence_refs": [
+            "/evidence/fd001/cs-fitness-001-banned-primitives.json",
+            "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json"
+          ],
+          "gate_evidence": "banned-primitives source-corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; full command-log corpus enforcement remains open under F-FORBIDDEN-PRIMITIVES-CI-GUARD."
         }
       ]
     },
@@ -2469,13 +2481,18 @@
                 "id": "M01-P17-IP-008",
                 "title": "IP 008 banned primitives fitness check",
                 "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
-                "status": "planning-closed-contract-authored",
+                "status": "reconciled-to-M01-P-FITNESS-IP-001",
                 "previous_planning_status": "was-structured",
-                "implementation_state": "not-started-changeset-required",
+                "implementation_state": "successor-plan-source-contract-local-green-command-log-open",
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
+                "evidence_refs": [
+                  "/evidence/fd001/cs-fitness-001-banned-primitives.json",
+                  "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json"
+                ],
+                "successor_plan": ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md"
               },
               {
                 "id": "M01-P17-IP-009",
