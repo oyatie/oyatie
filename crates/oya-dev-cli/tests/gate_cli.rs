@@ -5531,6 +5531,70 @@ fn protection_context_match_gate_passes_clean_crate() {
     fs::remove_dir_all(temp).ok();
 }
 
+/// Proves the protection-context-match validator also catches the
+/// hosted false-green class: local branch-protection + workflow job
+/// names agree, but live GitHub branch protection requires fewer
+/// contexts than the repo policy.
+#[test]
+fn protection_context_match_gate_catches_live_branch_protection_drift() {
+    let temp = temp_dir("pcm-live-drift");
+    let workflows_dir = temp.join("workflows");
+    fs::create_dir_all(&workflows_dir).expect("workflows dir created");
+
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      - cargo-fmt\n      \
+                             - oya-pr-review\n    require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
+                         name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: cargo fmt --check\n  review:\n    \
+                         name: oya-pr-review\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: echo ok\n";
+    fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
+    let live_required_contexts = temp.join("live-required-contexts.json");
+    fs::write(&live_required_contexts, r#"{"contexts":["cargo-fmt"]}"#)
+        .expect("live contexts written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            "--workflows-dir",
+            workflows_dir.to_str().expect("utf8 workflows dir"),
+            "--branch",
+            "dev",
+            "--live-required-contexts",
+            live_required_contexts
+                .to_str()
+                .expect("utf8 live contexts path"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected exit 1 for live branch-protection drift\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("live branch protection required_status_checks"),
+        "stderr must name live drift; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("missing from live branch protection: oya-pr-review"),
+        "stderr must name the unenforced context; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn write_catalog_record(registry_dir: &Path, crate_id: &str, plane: &str) {
     write_catalog_record_with_claim(registry_dir, crate_id, plane, "preview");
 }

@@ -1568,10 +1568,12 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // protection-context-match: enforces that every required
         // status-check context in `.github/branch-protection.yaml`
         // is the `name:` field of some workflow job in
-        // `.github/workflows/*.yml`. Catches the silent-bypass class
-        // where the protection lists a context name that no
-        // workflow posts; GitHub then waits forever for a check_run
-        // that never arrives. Lane id:
+        // `.github/workflows/*.yml`; when the optional live-contexts
+        // JSON is supplied, also verifies live branch protection
+        // requires exactly the same contexts. Catches both
+        // silent-bypass classes: local config points at a workflow
+        // job that does not exist, or GitHub live enforcement drifts
+        // behind the canonical repo policy. Lane id:
         // `oya-foundry-fitness-protection-context-match`. Kernel:
         // `oya-check-protection-context-match` (port-in-kernel,
         // ADR-0056).
