@@ -274,11 +274,11 @@ build for the tenant-billing UX layer.
 - **The tenant label block** (`oya.io/tenant-id`, etc.) is oyatie-
   authored, CI-enforced, mandatory. No upstream tool dictates this
   shape.
-- **The chargeback formula** (ADR-0174) is oyatie-authored.
+- **The chargeback formula** (ADR-0174) is Oya-authored.
 - **The anomaly thresholds** (1.5× rolling 7d, < 10 % headroom) are
-  oyatie-authored and tuned per workload class.
+  Oya-authored and tuned per workload class.
 - **The regulatory-pack-aware retention discipline** for backups is
-  oyatie-authored (this batch).
+  Oya-authored (this batch).
 
 The Phase 2 portal builds on top of these in-house surfaces.
 

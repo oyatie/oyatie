@@ -256,9 +256,9 @@ specific category that warrants KEEP (no in-house rebuild planned):
 
 ### What stays "in-house" for autoscaling
 
-- **NodeClass templates** are oyatie-authored (per-workload-class,
+- **NodeClass templates** are Oya-authored (per-workload-class,
   per-pack); never inherited from upstream defaults verbatim.
-- **Disruption budgets + maintenance windows** are oyatie-authored;
+- **Disruption budgets + maintenance windows** are Oya-authored;
   business-hour blackout policy is per-µservice.
 - **Cost-attribution labels on every node** are the canonical block
   per ADR-0199.

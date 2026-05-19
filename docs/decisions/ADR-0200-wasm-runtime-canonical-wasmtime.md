@@ -185,7 +185,7 @@ Three integration constraints follow:
 - **Phase 2 (deferred, conditional)**: No in-house WASM engine is
   planned. Building a separate runtime would re-invent what
   Wasmtime already provides, fragment the ecosystem, and break
-  ADR-0173 (vendor lock-in avoidance) by introducing oyatie-only
+  ADR-0173 (vendor lock-in avoidance) by introducing Oya-exclusive
   lock-in. The "in-house" path here is to **own the integration
   layer** (sandbox classes, capability tokens, observability
   emission) rather than the runtime itself.

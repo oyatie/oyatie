@@ -37,7 +37,7 @@
     "id": "FD-001-enterprise-smb-generic-core",
     "name": "Enterprise Generic + SMB Generic full-depth production delivery",
     "delivery_mode": "full_depth_production_hyperscaler_exit",
-    "scope_posture": "not_mvp_not_preview_not_reduced_scope",
+    "scope_posture": "not_minimal_pilot_not_preview_not_reduced_scope",
     "exit_claim_bar": "industry_leading_production_grade_hyperscaler_grade",
     "deferral_policy": "no_deferrals_inside_first_deliverable_scope",
     "verticals": [

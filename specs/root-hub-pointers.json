@@ -612,7 +612,7 @@
       "current_path": "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
       "target_path_after_md_retirement": "same until ADR projection retirement",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Enterprise Generic + SMB Generic first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection."
+      "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Enterprise Generic + SMB Generic first, full-depth/no-thin-pilot posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection."
     },
     "korea_localization_pack_overview": {
       "kind": "localization-pack",

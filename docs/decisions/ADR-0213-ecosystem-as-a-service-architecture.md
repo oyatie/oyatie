@@ -112,7 +112,7 @@ Oyatie ships an **Ecosystem-as-a-Service** product surface, composed of **two si
 
 | µservice | Concern | Persona served | Inheritance |
 |---|---|---|---|
-| `microservices/plugin-app-store/` | Consumer-facing plugin/app discovery + install + per-plugin permission grant + subscription mgmt + audit; admin-facing vetting queue + revocation | tenant-operator, tenant-admin, oyatie-platform-admin | Apple App Store + VS Code Marketplace + AWS Marketplace + Shopify App Store |
+| `microservices/plugin-app-store/` | Consumer-facing plugin/app discovery + install + per-plugin permission grant + subscription mgmt + audit; admin-facing vetting queue + revocation | tenant-operator, tenant-admin, platform-admin | Apple App Store + VS Code Marketplace + AWS Marketplace + Shopify App Store |
 | `microservices/developer-sdk/` | Developer-facing SDK distribution + API contracts (OpenAPI 3.2 + AsyncAPI 3.1 + proto3) + sandbox env + dev portal + signing-key issuance + Stripe-Connect-style onboarding + revenue payout | 3rd-party developer | Stripe Connect (developer onboarding + payout) + Apple Developer Program (signing keys + sandbox) + Backstage (developer portal) |
 
 Both µservices share **no code** with each other beyond canonical contracts (event schemas, Cedar policy fragments). They communicate exclusively via the Workflow + Ontology adapter layer per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`. No `ecosystem` super-bundle; ADR-0132 forbids it.
@@ -171,7 +171,7 @@ Revenue substrate is **100% in-house** per ADR-0211 §revenue-share:
 - KYC + AML on developer onboarding implemented under `microservices/developer-sdk/src/onboarding/` (citing FATF + EU AML5 + US BSA — no third-party KYC SaaS).
 - Payout ledger implemented under `microservices/developer-sdk/src/payout/`; daily settlement to developer-declared bank account via ACH (US) + SEPA (EU) + KFTC (KR) + FedWire (US) per pack.
 - Tax-form generation (1099-MISC for US, EU VAT MOSS, KR VAT) emitted under `microservices/developer-sdk/src/tax/`.
-- Forex / settlement currency conversion via oyatie-internal rate-lock per ADR-0199.
+- Forex / settlement currency conversion via Oya-internal rate-lock per ADR-0199.
 
 ### 6. SDK families (codegen from OpenAPI 3.2)
 
@@ -183,7 +183,7 @@ Per ADR-0185 OpenAPI 3.2 codegen, developer-sdk emits client SDKs for six stacks
 - C# — NuGet package; .NET 8 LTS.
 - Python — PyPI package; 3.12+.
 
-Each SDK is generated from the canonical OpenAPI 3.2 spec under `microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml` plus AsyncAPI 3.1 spec for event subscriptions. Codegen pipeline lives under `microservices/developer-sdk/src/codegen/`; nightly CI publishes new versions to oyatie-internal package registry under `microservices/developer-sdk/iac/registry/`.
+Each SDK is generated from the canonical OpenAPI 3.2 spec under `microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml` plus AsyncAPI 3.1 spec for event subscriptions. Codegen pipeline lives under `microservices/developer-sdk/src/codegen/`; nightly CI publishes new versions to Oya-internal package registry under `microservices/developer-sdk/iac/registry/`.
 
 ### 7. Sandbox environment (developer-facing)
 
