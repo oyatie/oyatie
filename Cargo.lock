@@ -1401,6 +1401,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-marketplace-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-billing-domain",
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
+]
+
+[[package]]
 name = "oya-cloud-marketplace-kernel"
 version = "0.1.0"
 
