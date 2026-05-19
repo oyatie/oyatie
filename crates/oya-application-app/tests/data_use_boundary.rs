@@ -17,9 +17,9 @@ fn data_use_grants_reject_non_privacy_markers() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_marker_grant".into(),
             legal_name: "Marker Grant Tenant".into(),
-            home_region: "kr-seoul".into(),
-            residency_class: "strict_kr".into(),
-            regulatory_packs: vec!["oya-pack-kr".into()],
+            home_region: "home-region".into(),
+            residency_class: "strict_home".into(),
+            regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -57,9 +57,9 @@ fn capability_invocation_requires_purpose_bound_data_class_grant() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_delta".into(),
             legal_name: "Delta Search".into(),
-            home_region: "kr-seoul".into(),
-            residency_class: "strict_kr".into(),
-            regulatory_packs: vec!["oya-pack-kr".into()],
+            home_region: "home-region".into(),
+            residency_class: "strict_home".into(),
+            regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T3ExecuteWithApproval,
         })
         .expect("tenant can be onboarded");
@@ -194,9 +194,9 @@ fn minor_subject_ads_are_denied_by_composite_data_use_boundary() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_minor_ads".into(),
             legal_name: "Minor Ads Tenant".into(),
-            home_region: "us-east".into(),
+            home_region: "failover-region".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -292,9 +292,9 @@ fn ads_action_cannot_underdeclare_effective_data_use_purpose() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_ads_underdeclared".into(),
             legal_name: "Ads Underdeclared Tenant".into(),
-            home_region: "us-east".into(),
+            home_region: "failover-region".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -438,9 +438,9 @@ fn ads_targeting_pii_is_denied_even_with_recorded_grant() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_ads_pii".into(),
             legal_name: "Ads PII Tenant".into(),
-            home_region: "us-east".into(),
+            home_region: "failover-region".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -538,9 +538,9 @@ fn analytics_pci_invocation_is_denied_even_with_recorded_grant() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_analytics_pci".into(),
             legal_name: "Analytics PCI Tenant".into(),
-            home_region: "us-east".into(),
+            home_region: "failover-region".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -678,9 +678,9 @@ fn hard_denied_data_classes_cannot_be_enabled_by_recorded_grants() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_privacy".into(),
             legal_name: "Privacy Boundary Tenant".into(),
-            home_region: "kr-seoul".into(),
-            residency_class: "strict_kr".into(),
-            regulatory_packs: vec!["oya-pack-kr".into()],
+            home_region: "home-region".into(),
+            residency_class: "strict_home".into(),
+            regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T3ExecuteWithApproval,
         })
         .expect("tenant can be onboarded");
@@ -699,7 +699,7 @@ fn hard_denied_data_classes_cannot_be_enabled_by_recorded_grants() {
         ("phi", DataClass::Phi),
         ("pci", DataClass::Pci),
         ("sensitive-pipa-art23", DataClass::SensitivePipaArticle23),
-        ("financial-kr-credit", DataClass::FinancialCredit),
+        ("financial-primary-credit", DataClass::FinancialCredit),
     ];
 
     for (class_label, data_class) in hard_denied_classes {

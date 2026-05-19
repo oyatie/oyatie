@@ -87,7 +87,7 @@ impl CapabilityPack {
         &self.vertical_id.value
     }
 
-    /// Returns the pack reference (e.g. `"oya-pack-kr"`).
+    /// Returns the pack reference (e.g. `"oya-pack-alpha"`).
     pub fn pack_ref(&self) -> &str {
         &self.pack_ref
     }
@@ -140,7 +140,7 @@ mod tests {
     fn corporate_pack() -> CapabilityPack {
         CapabilityPack::new(
             "vertical-corporate".to_string(),
-            "oya-pack-kr".to_string(),
+            "oya-pack-alpha".to_string(),
             PackVersion::Minor {
                 major: 1,
                 minor: 0,
@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn accepts_canonical_corporate_pack() {
         let pack = corporate_pack();
-        assert_eq!(pack.pack_ref(), "oya-pack-kr");
+        assert_eq!(pack.pack_ref(), "oya-pack-alpha");
         assert_eq!(pack.version().triplet(), (1, 0, 0));
         assert_eq!(pack.version().display(), "1.0.0");
     }
@@ -165,7 +165,7 @@ mod tests {
         // rejected at construction time (M04 election invariant).
         let err = CapabilityPack::new(
             "vertical-healthcare".to_string(),
-            "oya-pack-kr".to_string(),
+            "oya-pack-alpha".to_string(),
             PackVersion::Minor {
                 major: 1,
                 minor: 0,
@@ -181,7 +181,7 @@ mod tests {
     fn rejects_empty_vertical_id() {
         let err = CapabilityPack::new(
             "".to_string(),
-            "oya-pack-kr".to_string(),
+            "oya-pack-alpha".to_string(),
             PackVersion::Patch {
                 major: 1,
                 minor: 0,
@@ -213,7 +213,7 @@ mod tests {
     fn rejects_empty_capabilities() {
         let err = CapabilityPack::new(
             "vertical-corporate".to_string(),
-            "oya-pack-kr".to_string(),
+            "oya-pack-alpha".to_string(),
             PackVersion::Minor {
                 major: 1,
                 minor: 0,

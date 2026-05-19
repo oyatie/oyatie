@@ -1346,25 +1346,20 @@
     }
   ],
   "known_blockers": [
-    "Default canonical-base-neutrality scan currently fails with 156 source-level jurisdiction leaks. The largest semantic blockers are residency/tenancy canonical-vs-pack separation and shared backup regulatory-pack naming.",
-    "The strict regulated-ai-refusal-grounding gate now dispatches under a neutral command identity, but it reports 5 real docs/tasks Cedar forbid policy violations; this remains a policy-content blocker rather than a command-name false green.",
+    "Default canonical-base-neutrality scan currently fails with 23 source-level jurisdiction leaks, all mapped to crates/oya-shared-backup-kernel/src/lib.rs regulatory-pack variants, labels, and tests.",
+    "The strict regulated-ai-refusal-grounding gate is now wired through active quality lanes, but it reports 5 real docs/tasks Cedar forbid policy violations; this remains a policy-content blocker rather than an automation false green.",
     "KR localization evidence directory and ops-dashboard-control-center manifest remain separate mapped gaps from worker audits.",
     "Hosted PR remains externally blocked by missing branch-protection read secret/live context sync until repository admin action."
   ],
   "next_dispatches": [
     {
-      "lane": "residency/tenancy canonical-vs-pack boundary review and migration",
-      "write_scope": "crates/oya-residency-domain and crates/oya-tenancy-kernel; preserve behavior while moving concrete jurisdiction semantics behind neutral pack slots",
+      "lane": "shared backup regulatory-pack deprecation/migration",
+      "write_scope": "crates/oya-shared-backup-kernel; preserve retention-floor behavior while replacing concrete regulatory pack variants/labels with canonical-neutral slots",
       "risk": "high"
     },
     {
       "lane": "regulated-AI refusal policy-content closure",
       "write_scope": "microservices docs/tasks capability and Cedar policy fragments flagged by regulated-ai-refusal-grounding",
-      "risk": "high"
-    },
-    {
-      "lane": "shared backup regulatory-pack deprecation/migration",
-      "write_scope": "crates/oya-shared-backup-kernel",
       "risk": "high"
     },
     {
@@ -1374,25 +1369,36 @@
     },
     {
       "lane": "post-neutrality PR/CI governance repair",
-      "write_scope": ".github/workflows, branch-protection evidence, PR #148 status once local blockers are green",
+      "write_scope": ".github/workflows, branch-protection evidence, PR status once local blockers are green",
       "risk": "moderate"
+    },
+    {
+      "lane": "FD-001 completion audit",
+      "write_scope": "prompt-to-artifact checklist across masterplan surfaces, gates, evidence, review, and CI signals",
+      "risk": "high"
     }
   ],
-  "updated_at": "2026-05-19T14:54:46Z",
+  "updated_at": "2026-05-19T15:17:57Z",
   "latest_observation": {
-    "observed_at": "2026-05-19T14:54:46Z",
-    "change_scope": "gate-catalog regulated-AI command identity migration",
-    "before_summary": "canonical base neutrality violations: 196 files checked, 157 jurisdiction leaks",
-    "after_summary": "canonical base neutrality violations: 196 files checked, 156 jurisdiction leaks",
+    "observed_at": "2026-05-19T15:17:57Z",
+    "change_scope": "residency/tenancy canonical-neutral production residency class and region-slot migration",
+    "before_summary": "canonical base neutrality violations: 196 files checked, 156 jurisdiction leaks",
+    "after_summary": "canonical base neutrality violations: 196 files checked, 23 jurisdiction leaks",
     "delta": {
-      "jurisdiction_leaks_removed": 1,
+      "jurisdiction_leaks_removed": 133,
       "files_checked_delta": 0
     },
-    "targeted_clean_scope": "crates/oya-foundry-gate-catalog-domain regulated-AI lane name plus dev-cli gate dispatch/output and caller documentation",
-    "targeted_clean_summary": "The aggregated gate catalog and dev-cli dispatch now use the canonical-neutral command identity regulated-ai-refusal-grounding instead of a jurisdiction-coded command string. The old command identity is intentionally not retained as an alias because keeping it would preserve the source-level canonical-base-neutrality blocker. Scoped canonical-base-neutrality passes for oya-foundry-gate-catalog-domain with 1 file checked and 0 jurisdiction leaks; planning-closure and diff check passed.",
-    "evidence_log": "/tmp/fd001-gate-catalog-command-migration-final-verify-20260519T145500Z.log",
-    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 156 leaks. The remaining mapped high-risk semantic buckets are residency/tenancy production canonical-vs-pack seams and shared backup regulatory-pack naming. The new regulated-ai-refusal-grounding command dispatches, but the strict content gate reports 5 real policy violations in docs/tasks Cedar forbid coverage; that is a surfaced policy blocker, not a false green.",
-    "workspace_verification_note": "This slice is a command-identity deprecation/migration only. The check crate package name remains oya-check-eu-ai-act-annex-iii-refusal because its BNF crate identity and legal-domain implementation are out of this canonical gate-catalog command scope. The focused verification log also records that the retired eu-ai-act-annex-iii-refusal CLI command is no longer accepted. A full oya-dev-cli integration run was attempted earlier but aborted when a workspace nextest scan exhausted disk; focused gate/library coverage was rerun after target cleanup."
+    "targeted_clean_scope": "crates/oya-residency-domain and crates/oya-tenancy-kernel plus direct source/API/test callers touched by the public label migration",
+    "targeted_clean_summary": "Residency and tenancy production seams now use canonical-neutral residency classes StrictHome, HomeWithFailover, StrictSecondary and neutral region slots Home, Secondary, Failover, Partner, ExpansionOne..ExpansionSix. Scoped canonical-base-neutrality passes for residency/tenancy. Workspace fmt/check plus domain/API/application/foundry/cloud/identity/SaaS targeted tests passed; direct caller/test fixture roots were scoped through canonical-base-neutrality with 30 files checked and 0 jurisdiction leaks; non-workspace API fixture files were rustfmt-checked but cannot be cargo-tested because they are not Cargo workspace members.",
+    "evidence_log": "/tmp/fd001-residency-tenancy-final-verify-20260519T151757Z.log",
+    "remaining_blocker": "Default canonical-base-neutrality scan remains red at 23 leaks, all in crates/oya-shared-backup-kernel/src/lib.rs RegulatoryPack variants/labels. regulated-ai-refusal-grounding now has active quality-lane wiring but still reports 5 real docs/tasks Cedar forbid policy-content violations. KR localization evidence and ops dashboard/control-center evidence gaps remain separate FD-001 blockers; remote PR/CI branch-protection evidence remains externally blocked.",
+    "workspace_verification_note": "This slice is a production enum/API label migration, not a compatibility alias. The old strict_kr/kr_with_us_failover/StrictKr/KrWithUsFailover command labels were removed from changed Rust files. Non-workspace crates oya-foundry-api and oya-workspace-{drive,forms,meet}-api cannot be tested via cargo without workspace membership changes; their changed fixture files were limited to neutral string substitutions and rustfmt checks.",
+    "supporting_evidence_logs": [
+      "/tmp/fd001-residency-tenancy-broader-tests-20260519T151500Z.log",
+      "/tmp/fd001-residency-tenancy-broader-tests-2-20260519T151800Z.log",
+      "/tmp/fd001-residency-tenancy-supporting-tests-final-20260519T152357Z.log",
+      "/tmp/fd001-regulated-ai-quality-lane-registry-final-20260519T151555Z.log"
+    ]
   },
   "remediation_history": [
     {
@@ -1933,6 +1939,27 @@
       "evidence_log": "/tmp/fd001-gate-catalog-command-migration-final-verify-20260519T145500Z.log",
       "remaining_blocker": "Default canonical-base-neutrality scan remains red at 156 leaks. The remaining mapped high-risk semantic buckets are residency/tenancy production canonical-vs-pack seams and shared backup regulatory-pack naming. The new regulated-ai-refusal-grounding command dispatches, but the strict content gate reports 5 real policy violations in docs/tasks Cedar forbid coverage; that is a surfaced policy blocker, not a false green.",
       "workspace_verification_note": "This slice is a command-identity deprecation/migration only. The check crate package name remains oya-check-eu-ai-act-annex-iii-refusal because its BNF crate identity and legal-domain implementation are out of this canonical gate-catalog command scope. The focused verification log also records that the retired eu-ai-act-annex-iii-refusal CLI command is no longer accepted. A full oya-dev-cli integration run was attempted earlier but aborted when a workspace nextest scan exhausted disk; focused gate/library coverage was rerun after target cleanup."
+    },
+    {
+      "observed_at": "2026-05-19T15:17:57Z",
+      "change_scope": "residency/tenancy canonical-neutral production residency class and region-slot migration",
+      "before_summary": "canonical base neutrality violations: 196 files checked, 156 jurisdiction leaks",
+      "after_summary": "canonical base neutrality violations: 196 files checked, 23 jurisdiction leaks",
+      "delta": {
+        "jurisdiction_leaks_removed": 133,
+        "files_checked_delta": 0
+      },
+      "targeted_clean_scope": "crates/oya-residency-domain and crates/oya-tenancy-kernel plus direct source/API/test callers touched by the public label migration",
+      "targeted_clean_summary": "Residency and tenancy production seams now use canonical-neutral residency classes StrictHome, HomeWithFailover, StrictSecondary and neutral region slots Home, Secondary, Failover, Partner, ExpansionOne..ExpansionSix. Scoped canonical-base-neutrality passes for residency/tenancy. Workspace fmt/check plus domain/API/application/foundry/cloud/identity/SaaS targeted tests passed; direct caller/test fixture roots were scoped through canonical-base-neutrality with 30 files checked and 0 jurisdiction leaks; non-workspace API fixture files were rustfmt-checked but cannot be cargo-tested because they are not Cargo workspace members.",
+      "evidence_log": "/tmp/fd001-residency-tenancy-final-verify-20260519T151757Z.log",
+      "remaining_blocker": "Default canonical-base-neutrality scan remains red at 23 leaks, all in crates/oya-shared-backup-kernel/src/lib.rs RegulatoryPack variants/labels. regulated-ai-refusal-grounding now has active quality-lane wiring but still reports 5 real docs/tasks Cedar forbid policy-content violations. KR localization evidence and ops dashboard/control-center evidence gaps remain separate FD-001 blockers; remote PR/CI branch-protection evidence remains externally blocked.",
+      "workspace_verification_note": "This slice is a production enum/API label migration, not a compatibility alias. The old strict_kr/kr_with_us_failover/StrictKr/KrWithUsFailover command labels were removed from changed Rust files. Non-workspace crates oya-foundry-api and oya-workspace-{drive,forms,meet}-api cannot be tested via cargo without workspace membership changes; their changed fixture files were limited to neutral string substitutions and rustfmt checks.",
+      "supporting_evidence_logs": [
+        "/tmp/fd001-residency-tenancy-broader-tests-20260519T151500Z.log",
+        "/tmp/fd001-residency-tenancy-broader-tests-2-20260519T151800Z.log",
+        "/tmp/fd001-residency-tenancy-supporting-tests-final-20260519T152357Z.log",
+        "/tmp/fd001-regulated-ai-quality-lane-registry-final-20260519T151555Z.log"
+      ]
     }
   ]
 }

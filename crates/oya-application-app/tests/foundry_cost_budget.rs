@@ -344,9 +344,9 @@ fn foundation_with_capability_fixture(_capability_id: &str) -> Foundation {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_budget".into(),
             legal_name: "Budget Tenant".into(),
-            home_region: "us-east".into(),
+            home_region: "failover-region".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T3ExecuteWithApproval,
         })
         .unwrap();
@@ -369,9 +369,9 @@ fn foundation_with_capability(capability_id: &str) -> Foundation {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_budget".into(),
             legal_name: "Budget Tenant".into(),
-            home_region: "us-east".into(),
+            home_region: "failover-region".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T3ExecuteWithApproval,
         })
         .unwrap();

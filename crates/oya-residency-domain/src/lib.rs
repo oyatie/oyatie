@@ -61,16 +61,16 @@ pub enum ResidencyError {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum RegionJurisdiction {
-    Kr,
-    Eu,
-    Us,
-    Jp,
-    In,
-    Br,
-    Ksa,
-    Uae,
-    Au,
-    Sg,
+    Home,
+    Secondary,
+    Failover,
+    Partner,
+    ExpansionOne,
+    ExpansionTwo,
+    ExpansionThree,
+    ExpansionFour,
+    ExpansionFive,
+    ExpansionSix,
     Other,
 }
 
@@ -115,8 +115,8 @@ pub struct PerPackResidency {
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ResidencyClass {
-    StrictKr,
-    KrWithUsFailover,
+    StrictHome,
+    HomeWithFailover,
     Global,
     PerPack(Box<PerPackResidency>),
 }
@@ -466,8 +466,8 @@ impl TenantResidencyRegistry {
 impl ResidencyClass {
     pub fn label(&self) -> Option<&'static str> {
         match self {
-            Self::StrictKr => Some("strict_kr"),
-            Self::KrWithUsFailover => Some("kr_with_us_failover"),
+            Self::StrictHome => Some("strict_home"),
+            Self::HomeWithFailover => Some("home_with_failover"),
             Self::Global => Some("global"),
             Self::PerPack(_) => None,
         }
@@ -476,8 +476,8 @@ impl ResidencyClass {
 
 pub fn parse_residency_class_label(label: &str) -> Option<ResidencyClass> {
     match label.trim() {
-        "strict_kr" => Some(ResidencyClass::StrictKr),
-        "kr_with_us_failover" => Some(ResidencyClass::KrWithUsFailover),
+        "strict_home" => Some(ResidencyClass::StrictHome),
+        "home_with_failover" => Some(ResidencyClass::HomeWithFailover),
         "global" => Some(ResidencyClass::Global),
         _ => None,
     }
@@ -489,8 +489,8 @@ pub fn residency_class_allows_home_region_label(
 ) -> bool {
     let normalized = home_region.trim().to_ascii_lowercase();
     match residency_class {
-        ResidencyClass::StrictKr | ResidencyClass::KrWithUsFailover => {
-            normalized.starts_with("kr-")
+        ResidencyClass::StrictHome | ResidencyClass::HomeWithFailover => {
+            normalized.starts_with("home-")
         }
         ResidencyClass::Global => !normalized.is_empty(),
         ResidencyClass::PerPack(per_pack) => per_pack
@@ -503,26 +503,26 @@ pub fn residency_class_allows_home_region_label(
 
 pub fn infer_region_jurisdiction_label(region_id: &str) -> RegionJurisdiction {
     let normalized = region_id.trim().to_ascii_lowercase();
-    if normalized.starts_with("kr-") {
-        RegionJurisdiction::Kr
-    } else if normalized.starts_with("eu-") {
-        RegionJurisdiction::Eu
-    } else if normalized.starts_with("us-") {
-        RegionJurisdiction::Us
-    } else if normalized.starts_with("jp-") {
-        RegionJurisdiction::Jp
-    } else if normalized.starts_with("in-") {
-        RegionJurisdiction::In
-    } else if normalized.starts_with("br-") {
-        RegionJurisdiction::Br
-    } else if normalized.starts_with("ksa-") {
-        RegionJurisdiction::Ksa
-    } else if normalized.starts_with("uae-") {
-        RegionJurisdiction::Uae
-    } else if normalized.starts_with("au-") {
-        RegionJurisdiction::Au
-    } else if normalized.starts_with("sg-") {
-        RegionJurisdiction::Sg
+    if normalized.starts_with("home-") {
+        RegionJurisdiction::Home
+    } else if normalized.starts_with("secondary-") {
+        RegionJurisdiction::Secondary
+    } else if normalized.starts_with("failover-") {
+        RegionJurisdiction::Failover
+    } else if normalized.starts_with("partner-") {
+        RegionJurisdiction::Partner
+    } else if normalized.starts_with("expansion-one-") {
+        RegionJurisdiction::ExpansionOne
+    } else if normalized.starts_with("expansion-two-") {
+        RegionJurisdiction::ExpansionTwo
+    } else if normalized.starts_with("expansion-three-") {
+        RegionJurisdiction::ExpansionThree
+    } else if normalized.starts_with("expansion-four-") {
+        RegionJurisdiction::ExpansionFour
+    } else if normalized.starts_with("expansion-five-") {
+        RegionJurisdiction::ExpansionFive
+    } else if normalized.starts_with("expansion-six-") {
+        RegionJurisdiction::ExpansionSix
     } else {
         RegionJurisdiction::Other
     }
@@ -538,20 +538,20 @@ fn validate_transfer_for_residency(
     input: &CrossRegionTransferPermitCreate,
 ) -> Result<(), ResidencyError> {
     match &input.residency_class {
-        ResidencyClass::StrictKr => validate_strict_kr_transfer(input),
-        ResidencyClass::KrWithUsFailover => validate_kr_with_us_transfer(input),
+        ResidencyClass::StrictHome => validate_strict_home_transfer(input),
+        ResidencyClass::HomeWithFailover => validate_home_with_failover_transfer(input),
         ResidencyClass::Global => validate_global_transfer(input),
         ResidencyClass::PerPack(per_pack) => validate_per_pack_transfer(input, per_pack),
     }
 }
 
-fn validate_strict_kr_transfer(
+fn validate_strict_home_transfer(
     input: &CrossRegionTransferPermitCreate,
 ) -> Result<(), ResidencyError> {
-    if input.source_region.jurisdiction.value != RegionJurisdiction::Kr {
+    if input.source_region.jurisdiction.value != RegionJurisdiction::Home {
         return Err(ResidencyError::SourceRegionNotAllowed);
     }
-    if input.destination_region.jurisdiction.value != RegionJurisdiction::Kr {
+    if input.destination_region.jurisdiction.value != RegionJurisdiction::Home {
         return Err(ResidencyError::DestinationRegionNotAllowed);
     }
     if !matches!(
@@ -563,13 +563,13 @@ fn validate_strict_kr_transfer(
     Ok(())
 }
 
-fn validate_kr_with_us_transfer(
+fn validate_home_with_failover_transfer(
     input: &CrossRegionTransferPermitCreate,
 ) -> Result<(), ResidencyError> {
-    if input.source_region.jurisdiction.value != RegionJurisdiction::Kr {
+    if input.source_region.jurisdiction.value != RegionJurisdiction::Home {
         return Err(ResidencyError::SourceRegionNotAllowed);
     }
-    if input.destination_region.jurisdiction.value != RegionJurisdiction::Us {
+    if input.destination_region.jurisdiction.value != RegionJurisdiction::Failover {
         return Err(ResidencyError::DestinationRegionNotAllowed);
     }
     if !matches!(
@@ -578,7 +578,7 @@ fn validate_kr_with_us_transfer(
     ) {
         return Err(ResidencyError::PurposeNotAllowed);
     }
-    if is_always_denied_for_kr_us(input.data_class.data_class()) {
+    if is_always_denied_for_home_failover(input.data_class.data_class()) {
         return Err(ResidencyError::DataClassDeniedForResidency);
     }
     require_consent(input)
@@ -606,8 +606,8 @@ fn validate_primary_region_for_class(
     primary_region: &RegionRef,
 ) -> Result<(), ResidencyError> {
     match residency_class {
-        ResidencyClass::StrictKr | ResidencyClass::KrWithUsFailover => {
-            if primary_region.jurisdiction.value == RegionJurisdiction::Kr {
+        ResidencyClass::StrictHome | ResidencyClass::HomeWithFailover => {
+            if primary_region.jurisdiction.value == RegionJurisdiction::Home {
                 Ok(())
             } else {
                 Err(ResidencyError::SourceRegionNotAllowed)
@@ -632,7 +632,7 @@ fn require_consent(input: &CrossRegionTransferPermitCreate) -> Result<(), Reside
     }
 }
 
-fn is_always_denied_for_kr_us(data_class: DataClass) -> bool {
+fn is_always_denied_for_home_failover(data_class: DataClass) -> bool {
     matches!(
         data_class,
         DataClass::Phi
@@ -781,21 +781,21 @@ mod tests {
     }
 
     fn kr_primary() -> RegionRef {
-        region("kr-seoul-1", RegionJurisdiction::Kr)
+        region("home-region-1", RegionJurisdiction::Home)
     }
 
     fn kr_secondary() -> RegionRef {
-        region("kr-chuncheon-1", RegionJurisdiction::Kr)
+        region("home-region-2", RegionJurisdiction::Home)
     }
 
     fn us_warm() -> RegionRef {
-        region("us-west-2", RegionJurisdiction::Us)
+        region("failover-region-1", RegionJurisdiction::Failover)
     }
 
     fn regulator_overlay() -> RegulatorOverlay {
         RegulatorOverlay::new(RegulatorOverlayCreate {
-            regulator_refs: vec!["kr-pipc".to_string(), "kisa".to_string()],
-            evidence_ref: "regulator-overlay/kr".to_string(),
+            regulator_refs: vec!["regulator-alpha".to_string(), "regulator-beta".to_string()],
+            evidence_ref: "regulator-overlay/alpha".to_string(),
         })
         .expect("regulator overlay fixture is valid")
     }
@@ -804,8 +804,8 @@ mod tests {
         TenantResidencyBindingCreate {
             tenant_id: "ten_1".to_string(),
             primary_region: kr_primary(),
-            residency_class: ResidencyClass::KrWithUsFailover,
-            regional_pack_id: "oya-pack-kr".to_string(),
+            residency_class: ResidencyClass::HomeWithFailover,
+            regional_pack_id: "oya-pack-alpha".to_string(),
             evidence_ref: "residency/binding/ten_1".to_string(),
             bound_at_epoch_seconds: 100,
         }
@@ -819,11 +819,11 @@ mod tests {
             destination_region: us_warm(),
             data_class: privacy(DataClass::PiiIdentifying),
             purpose: CrossRegionTransferPurpose::DisasterRecovery,
-            legal_basis_ref: "legal/pipa-art-28-8".to_string(),
+            legal_basis_ref: "legal/pack-primary-transfer".to_string(),
             consent_receipt_ref: Some("consent/receipt-1".to_string()),
-            cedar_policy_ref: "cedar/residency/kr-us".to_string(),
+            cedar_policy_ref: "cedar/residency/home-failover".to_string(),
             mtls_policy_ref: "mesh/mtls/cross-cell".to_string(),
-            destination_hsm_partition_ref: "hsm/us-west-2/tenant-1".to_string(),
+            destination_hsm_partition_ref: "hsm/failover-region/tenant-1".to_string(),
             audit_event_ref: "audit/cross-region/1".to_string(),
             trust_portal_entry_ref: "trust-portal/residency/1".to_string(),
             permitted_at_epoch_seconds: 120,
@@ -833,26 +833,26 @@ mod tests {
     #[test]
     fn regional_pack_default_must_be_in_allowed_residency_classes() {
         let default = RegionalPackResidencyDefault::new(RegionalPackResidencyDefaultCreate {
-            pack_id: "oya-pack-kr".to_string(),
+            pack_id: "oya-pack-alpha".to_string(),
             home_region: kr_primary(),
-            default_residency_class: ResidencyClass::StrictKr,
+            default_residency_class: ResidencyClass::StrictHome,
             allowed_residency_classes: vec![
-                ResidencyClass::StrictKr,
-                ResidencyClass::KrWithUsFailover,
+                ResidencyClass::StrictHome,
+                ResidencyClass::HomeWithFailover,
             ],
             regulator_overlay: regulator_overlay(),
-            evidence_ref: "regional-pack/kr/residency".to_string(),
+            evidence_ref: "regional-pack/alpha/residency".to_string(),
         })
         .expect("default class is allowed");
-        assert_eq!(default.pack_id.value, "oya-pack-kr");
+        assert_eq!(default.pack_id.value, "oya-pack-alpha");
 
         let error = RegionalPackResidencyDefault::new(RegionalPackResidencyDefaultCreate {
-            pack_id: "oya-pack-kr".to_string(),
+            pack_id: "oya-pack-alpha".to_string(),
             home_region: kr_primary(),
             default_residency_class: ResidencyClass::Global,
-            allowed_residency_classes: vec![ResidencyClass::StrictKr],
+            allowed_residency_classes: vec![ResidencyClass::StrictHome],
             regulator_overlay: regulator_overlay(),
-            evidence_ref: "regional-pack/kr/residency".to_string(),
+            evidence_ref: "regional-pack/alpha/residency".to_string(),
         })
         .expect_err("default class must be allowed");
         assert_eq!(error, ResidencyError::DefaultResidencyNotAllowed);
@@ -880,7 +880,7 @@ mod tests {
             old_binding: old_binding.clone(),
             new_tenant_id: "ten_2".to_string(),
             target_primary_region: kr_primary(),
-            target_residency_class: ResidencyClass::StrictKr,
+            target_residency_class: ResidencyClass::StrictHome,
             migration_plan_ref: "migration/ten-1-to-ten-2".to_string(),
             dsr_id: "dsr-residency-change-1".to_string(),
             deletion_certificate_ref: "certificate/deletion/ten_1".to_string(),
@@ -894,7 +894,7 @@ mod tests {
             old_binding,
             new_tenant_id: "ten_1".to_string(),
             target_primary_region: kr_primary(),
-            target_residency_class: ResidencyClass::StrictKr,
+            target_residency_class: ResidencyClass::StrictHome,
             migration_plan_ref: "migration/ten-1-to-ten-1".to_string(),
             dsr_id: "dsr-residency-change-1".to_string(),
             deletion_certificate_ref: "certificate/deletion/ten_1".to_string(),
@@ -905,29 +905,29 @@ mod tests {
     }
 
     #[test]
-    fn strict_kr_allows_only_intra_kr_dr_or_backup() {
+    fn strict_home_class_allows_only_home_dr_or_backup() {
         let permit = CrossRegionTransferPermit::new(CrossRegionTransferPermitCreate {
-            residency_class: ResidencyClass::StrictKr,
+            residency_class: ResidencyClass::StrictHome,
             destination_region: kr_secondary(),
             consent_receipt_ref: None,
-            ..permit_create(ResidencyClass::StrictKr)
+            ..permit_create(ResidencyClass::StrictHome)
         })
-        .expect("strict KR allows intra-KR DR transfer");
+        .expect("strict home class allows intra-home DR transfer");
         assert_eq!(
             permit.destination_region.value.jurisdiction.value,
-            RegionJurisdiction::Kr
+            RegionJurisdiction::Home
         );
 
-        let error = CrossRegionTransferPermit::new(permit_create(ResidencyClass::StrictKr))
-            .expect_err("strict KR cannot write US replicas");
+        let error = CrossRegionTransferPermit::new(permit_create(ResidencyClass::StrictHome))
+            .expect_err("strict home class cannot write failover replicas");
         assert_eq!(error, ResidencyError::DestinationRegionNotAllowed);
     }
 
     #[test]
-    fn kr_with_us_failover_requires_consent_and_denies_high_risk_classes() {
+    fn home_with_failover_requires_consent_and_denies_high_risk_classes() {
         let permit =
-            CrossRegionTransferPermit::new(permit_create(ResidencyClass::KrWithUsFailover))
-                .expect("KR with US failover allows consented DR replica");
+            CrossRegionTransferPermit::new(permit_create(ResidencyClass::HomeWithFailover))
+                .expect("home with failover allows consented DR replica");
         assert_eq!(
             permit.consent_receipt_ref.value.as_deref(),
             Some("consent/receipt-1")
@@ -935,44 +935,44 @@ mod tests {
 
         let missing_consent = CrossRegionTransferPermit::new(CrossRegionTransferPermitCreate {
             consent_receipt_ref: None,
-            ..permit_create(ResidencyClass::KrWithUsFailover)
+            ..permit_create(ResidencyClass::HomeWithFailover)
         })
-        .expect_err("KR to US failover needs per-class consent");
+        .expect_err("home to failover path needs per-class consent");
         assert_eq!(missing_consent, ResidencyError::MissingConsentReceipt);
 
         let denied_class = CrossRegionTransferPermit::new(CrossRegionTransferPermitCreate {
             data_class: privacy(DataClass::SensitivePipaArticle23),
-            ..permit_create(ResidencyClass::KrWithUsFailover)
+            ..permit_create(ResidencyClass::HomeWithFailover)
         })
-        .expect_err("Sensitive PIPA Art 23 cannot enter US warm replicas");
+        .expect_err("sensitive regulated data cannot enter warm failover replicas");
         assert_eq!(denied_class, ResidencyError::DataClassDeniedForResidency);
     }
 
     #[test]
     fn per_pack_residency_enforces_allowed_regions() {
         let per_pack = PerPackResidency::new(PerPackResidencyCreate {
-            allowed_primary_regions: vec!["eu-paris-1".to_string()],
-            allowed_replica_regions: vec!["eu-stockholm-1".to_string()],
-            forbidden_regions: vec!["us-west-2".to_string()],
+            allowed_primary_regions: vec!["secondary-region-1".to_string()],
+            allowed_replica_regions: vec!["secondary-region-2".to_string()],
+            forbidden_regions: vec!["failover-region-1".to_string()],
             regulator_overlay: regulator_overlay(),
         })
         .expect("per-pack residency fixture is valid");
         let permit = CrossRegionTransferPermit::new(CrossRegionTransferPermitCreate {
             residency_class: ResidencyClass::PerPack(Box::new(per_pack.clone())),
-            source_region: region("eu-paris-1", RegionJurisdiction::Eu),
-            destination_region: region("eu-stockholm-1", RegionJurisdiction::Eu),
+            source_region: region("secondary-region-1", RegionJurisdiction::Secondary),
+            destination_region: region("secondary-region-2", RegionJurisdiction::Secondary),
             purpose: CrossRegionTransferPurpose::Backup,
             ..permit_create(ResidencyClass::PerPack(Box::new(per_pack.clone())))
         })
         .expect("per-pack residency allows declared replica region");
         assert_eq!(
             permit.destination_region.value.region_id.value,
-            "eu-stockholm-1"
+            "secondary-region-2"
         );
 
         let error = CrossRegionTransferPermit::new(CrossRegionTransferPermitCreate {
             residency_class: ResidencyClass::PerPack(Box::new(per_pack)),
-            source_region: region("eu-paris-1", RegionJurisdiction::Eu),
+            source_region: region("secondary-region-1", RegionJurisdiction::Secondary),
             destination_region: us_warm(),
             purpose: CrossRegionTransferPurpose::Backup,
             ..permit_create(ResidencyClass::Global)

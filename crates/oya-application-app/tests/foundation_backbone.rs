@@ -16,22 +16,26 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_gamma".into(),
             legal_name: "Gamma Corporate".into(),
-            home_region: "kr-seoul".into(),
-            residency_class: "strict_kr".into(),
-            regulatory_packs: vec!["oya-pack-kr".into()],
+            home_region: "home-region".into(),
+            residency_class: "strict_home".into(),
+            regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
 
     let pack = foundation
         .register_regional_pack(RegionalPackRegistration {
-            pack_id: "oya-pack-kr".into(),
-            region: "kr-seoul".into(),
-            residency_class: "strict_kr".into(),
-            controls: vec!["PIPA".into(), "K-ISMS-P".into(), "KCMVP".into()],
+            pack_id: "oya-pack-alpha".into(),
+            region: "home-region".into(),
+            residency_class: "strict_home".into(),
+            controls: vec![
+                "CONTROL-ALPHA".into(),
+                "CONTROL-BETA".into(),
+                "CONTROL-GAMMA".into(),
+            ],
         })
         .expect("regional pack registration is valid");
-    assert_eq!(pack.residency_class.value.label(), Some("strict_kr"));
+    assert_eq!(pack.residency_class.value.label(), Some("strict_home"));
 
     let entity = foundation
         .upsert_object_entity(ObjectEntityUpsert {
@@ -47,7 +51,7 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
                 ),
                 ObjectPropertyInput::new(
                     "salary_band".into(),
-                    "KR-4".into(),
+                    "PRIMARY-4".into(),
                     PropertyTier::Struct,
                     privacy_data_class(DataClass::FinancialCredit),
                 ),
@@ -129,9 +133,9 @@ fn object_graph_upsert_rejects_non_privacy_property_markers() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_object_markers".into(),
             legal_name: "Object Marker Tenant".into(),
-            home_region: "kr-seoul".into(),
-            residency_class: "strict_kr".into(),
-            regulatory_packs: vec!["oya-pack-kr".into()],
+            home_region: "home-region".into(),
+            residency_class: "strict_home".into(),
+            regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");

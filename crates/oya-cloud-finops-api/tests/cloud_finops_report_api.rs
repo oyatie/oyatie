@@ -23,8 +23,8 @@ use oya_metering_domain::{
 
 const REPORT_ID: &str = "finr_kr_month";
 const TENANT: &str = "ten_alpha";
-const REGION: &str = "kr-seoul";
-const RESOURCE: &str = "oya:cloud:kr-seoul:ten_alpha:instance:vm-a";
+const REGION: &str = "home-region";
+const RESOURCE: &str = "oya:cloud:home-region:ten_alpha:instance:vm-a";
 const RATE_CARD: &str = "rate/kr-standard";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudFinopsApiBoundaryContext {

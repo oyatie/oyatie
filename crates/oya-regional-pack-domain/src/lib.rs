@@ -77,21 +77,21 @@ mod tests {
     #[test]
     fn accepts_canonical_residency_labels() {
         let pack = RegionalPack::new(
-            "oya-pack-kr".to_string(),
-            "kr-seoul".to_string(),
-            "strict_kr".to_string(),
+            "oya-pack-alpha".to_string(),
+            "home-region".to_string(),
+            "strict_home".to_string(),
             vec!["PIPA".to_string()],
         )
         .expect("canonical residency label should be accepted");
 
-        assert_eq!(pack.residency_class.value.label(), Some("strict_kr"));
+        assert_eq!(pack.residency_class.value.label(), Some("strict_home"));
     }
 
     #[test]
     fn rejects_non_canonical_residency_labels() {
         let error = RegionalPack::new(
-            "oya-pack-kr".to_string(),
-            "kr-seoul".to_string(),
+            "oya-pack-alpha".to_string(),
+            "home-region".to_string(),
             "KR_RESIDENT".to_string(),
             vec!["PIPA".to_string()],
         )

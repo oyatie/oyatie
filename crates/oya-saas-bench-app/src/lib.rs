@@ -187,7 +187,7 @@ mod tests {
     fn scenario() -> BenchScenario {
         BenchScenario {
             tenant_id: "ten_bench".to_string(),
-            regional_pack: "oya-pack-kr".to_string(),
+            regional_pack: "oya-pack-alpha".to_string(),
             definition_id: "wfd_bench_v1".to_string(),
             run_id: "wfr_bench_001".to_string(),
             manifest_id: "plg_bench_v1".to_string(),

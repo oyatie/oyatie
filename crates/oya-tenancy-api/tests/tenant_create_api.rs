@@ -12,7 +12,7 @@ use oya_tenancy_api::{
 const REQUEST_ID: &str = "req_tenant_create_001";
 const IDEMPOTENCY_KEY: &str = "idem_tenant_create_001";
 const OPERATOR_TENANT_ID: &str = "ten_platform";
-const TARGET_TENANT_ID: &str = "ten_kr";
+const TARGET_TENANT_ID: &str = "ten_alpha";
 
 #[test]
 fn tenant_create_contract_runtime_constants_are_covered() {
@@ -45,9 +45,9 @@ fn tenant_create_creates_once_and_replays_same_idempotent_result() {
     assert_eq!(idempotency.len(), 1);
     assert_eq!(first.data.tenant_id, TARGET_TENANT_ID);
     assert_eq!(first.data.legal_name, "KR Tenant Ltd");
-    assert_eq!(first.data.home_region, "kr-seoul");
-    assert_eq!(first.data.residency_class, "strict_kr");
-    assert_eq!(first.data.regulatory_packs[0].value, "oya-pack-kr");
+    assert_eq!(first.data.home_region, "home-region");
+    assert_eq!(first.data.residency_class, "strict_home");
+    assert_eq!(first.data.regulatory_packs[0].value, "oya-pack-alpha");
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(first.metadata.request_id, REQUEST_ID);
     assert!(directory.get(TARGET_TENANT_ID).is_some());
@@ -150,7 +150,7 @@ fn tenant_create_maps_duplicate_invalid_residency_and_kernel_errors() {
         "idem_tenant_bad_region",
         "ten_bad_region",
     );
-    bad_home_region.body.home_region = "us-east".to_string();
+    bad_home_region.body.home_region = "failover-region".to_string();
     assert!(matches!(
         create_tenant_from_api(&mut directory, &mut idempotency, bad_home_region),
         Err(TenantCreateApiError::Tenant(_))
@@ -210,10 +210,10 @@ fn tenant_request(
         body: TenantCreateRequest {
             tenant_id: tenant_id.to_string(),
             legal_name: "KR Tenant Ltd".to_string(),
-            home_region: "kr-seoul".to_string(),
-            residency_class: "strict_kr".to_string(),
+            home_region: "home-region".to_string(),
+            residency_class: "strict_home".to_string(),
             regulatory_packs: vec![TenantRegulatoryPackRef {
-                value: "oya-pack-kr".to_string(),
+                value: "oya-pack-alpha".to_string(),
             }],
         },
     }

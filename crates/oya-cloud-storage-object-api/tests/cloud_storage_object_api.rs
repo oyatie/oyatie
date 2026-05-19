@@ -19,20 +19,20 @@ use oya_cloud_storage_object_api::{
 use oya_data_boundary_kernel::DataClass;
 use oya_residency_domain::ResidencyClass;
 
-const BUCKET_ID: &str = "oya:cloud:kr-seoul:ten_kr:bucket:tenant-assets";
+const BUCKET_ID: &str = "oya:cloud:home-region:ten_alpha:bucket:tenant-assets";
 const OBJECT_KEY: &str = "workspace/report.pdf";
 
 fn bucket_create() -> BucketCreate {
     BucketCreate {
         resource_id: BUCKET_ID.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         name: "tenant-assets".to_string(),
-        region: "kr-seoul".to_string(),
-        residency: ResidencyClass::StrictKr,
+        region: "home-region".to_string(),
+        residency: ResidencyClass::StrictHome,
         tier: BucketTier::Standard,
         replication: ReplicationPolicyCreate::Regional,
         encryption: EncryptionMode::SseKms,
-        kms_key: Some("kms/kr-seoul/ten_kr/object-key".to_string()),
+        kms_key: Some("kms/home-region/ten_alpha/object-key".to_string()),
         object_lock: Some(ObjectLockPolicy {
             mode: ObjectLockMode::Compliance,
             retain_until_epoch_seconds: 1_800_000_000,
@@ -61,7 +61,7 @@ fn mutation_boundary_for(
 ) -> CloudStorageObjectMutationBoundaryContext {
     CloudStorageObjectMutationBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
@@ -69,20 +69,20 @@ fn mutation_boundary_for(
 fn read_boundary_for(request_id: &str) -> CloudStorageObjectReadBoundaryContext {
     CloudStorageObjectReadBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudStorageObjectApiPrincipal {
     CloudStorageObjectApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudStorageObjectApiAuthorization {
     CloudStorageObjectApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -94,10 +94,10 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudStorageObjec
 
 fn object_encryption() -> CloudStorageObjectEncryptionBindingRequest {
     CloudStorageObjectEncryptionBindingRequest {
-        kms_key: "kms/kr-seoul/ten_kr/object-key".to_string(),
+        kms_key: "kms/home-region/ten_alpha/object-key".to_string(),
         kms_key_version: 1,
-        material_ref: "matref/ten_kr/object/report".to_string(),
-        ciphertext_ref: "ct/ten_kr/object/report".to_string(),
+        material_ref: "matref/ten_alpha/object/report".to_string(),
+        ciphertext_ref: "ct/ten_alpha/object/report".to_string(),
         kms_encrypt_event_id: "kmsuse_object_report_001".to_string(),
         purpose: "cloud_object_storage".to_string(),
         shred_proof_ref: None,
@@ -107,7 +107,7 @@ fn object_encryption() -> CloudStorageObjectEncryptionBindingRequest {
 fn put_body(bucket_id: &str, key: &str) -> CloudStorageObjectPutRequest {
     CloudStorageObjectPutRequest {
         bucket_id: bucket_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         key: key.to_string(),
         size_bytes: 42,
         etag: "0123456789abcdef0123456789abcdef".to_string(),
@@ -357,7 +357,7 @@ fn get_object_api_projects_authorized_object_metadata() {
     assert_eq!(response.data.key, OBJECT_KEY);
     assert_eq!(
         response.data.encryption.ciphertext_ref,
-        "ct/ten_kr/object/report"
+        "ct/ten_alpha/object/report"
     );
     assert_eq!(response.data.schema_version, 1);
 }
@@ -397,7 +397,7 @@ fn get_object_api_maps_not_found_and_tenant_drift_explicitly() {
     let tenant_drift = get_cloud_storage_object_from_api(
         &catalog,
         get_request(
-            "oya:cloud:kr-seoul:ten_other:bucket:tenant-assets",
+            "oya:cloud:home-region:ten_other:bucket:tenant-assets",
             OBJECT_KEY,
         ),
     )

@@ -554,8 +554,8 @@ fn az_state_label(state: AzState) -> &'static str {
 
 fn residency_class_label(residency_class: &ResidencyClass) -> &'static str {
     match residency_class {
-        ResidencyClass::StrictKr => "strict_kr",
-        ResidencyClass::KrWithUsFailover => "kr_with_us_failover",
+        ResidencyClass::StrictHome => "strict_home",
+        ResidencyClass::HomeWithFailover => "home_with_failover",
         ResidencyClass::Global => "global",
         ResidencyClass::PerPack(_) => "per_pack",
     }

@@ -12,27 +12,27 @@ use oya_cloud_compute_vm_api::{
     create_cloud_compute_vm_from_api,
 };
 
-const INSTANCE_ID: &str = "oya:cloud:kr-seoul:ten_kr:instance:app-1";
+const INSTANCE_ID: &str = "oya:cloud:home-region:ten_alpha:instance:app-1";
 const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudComputeVmApiBoundaryContext {
     CloudComputeVmApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudComputeVmApiPrincipal {
     CloudComputeVmApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudComputeVmApiAuthorization {
     CloudComputeVmApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -68,38 +68,38 @@ fn flavor() -> CloudComputeVmFlavorSpec {
 fn body(resource_id: &str) -> CloudComputeVmCreateRequest {
     CloudComputeVmCreateRequest {
         resource_id: resource_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
-        region: "kr-seoul".to_string(),
-        az: "kr-seoul-a".to_string(),
-        cell_id: "cell-kr-seoul-a-001".to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        region: "home-region".to_string(),
+        az: "home-region-a".to_string(),
+        cell_id: "cell-home-region-a-001".to_string(),
         flavor: flavor(),
-        image: format!("oci://harbor.kr-seoul.oya/ten_kr/app@sha256:{DIGEST}"),
+        image: format!("oci://harbor.home-region.oya/ten_alpha/app@sha256:{DIGEST}"),
         key_pair: Some("key_prod".to_string()),
-        vpc_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
-        subnet_id: "oya:cloud:kr-seoul:ten_kr:subnet:prod-a".to_string(),
+        vpc_id: "oya:cloud:home-region:ten_alpha:vpc:prod".to_string(),
+        subnet_id: "oya:cloud:home-region:ten_alpha:subnet:prod-a".to_string(),
         security_groups: vec![
             CloudComputeVmSecurityGroupRef {
                 value: "sg_web".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                region: "kr-seoul".to_string(),
-                vpc_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                region: "home-region".to_string(),
+                vpc_id: "oya:cloud:home-region:ten_alpha:vpc:prod".to_string(),
             },
             CloudComputeVmSecurityGroupRef {
                 value: "sg_app".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                region: "kr-seoul".to_string(),
-                vpc_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                region: "home-region".to_string(),
+                vpc_id: "oya:cloud:home-region:ten_alpha:vpc:prod".to_string(),
             },
         ],
         iam_role: Some(CloudComputeVmIamRoleRef {
             value: "role_app".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
-            vpc_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "home-region".to_string(),
+            vpc_id: "oya:cloud:home-region:ten_alpha:vpc:prod".to_string(),
         }),
-        user_data_uri: Some("userdata/ten_kr/app-1/cloud-init.yaml".to_string()),
+        user_data_uri: Some("userdata/ten_alpha/app-1/cloud-init.yaml".to_string()),
         quota: quota(),
-        residency: "strict_kr".to_string(),
+        residency: "strict_home".to_string(),
         data_class: "PUBLIC".to_string(),
         created_at_epoch_seconds: 1_700_100_000,
     }
@@ -146,13 +146,13 @@ fn vm_create_api_creates_instance_once_and_replays_same_idempotent_result() {
     assert_eq!(catalog.instances().count(), 1);
     assert_eq!(first.metadata.request_id, "req-compute-vm-create");
     assert_eq!(first.data.resource_id, INSTANCE_ID);
-    assert_eq!(first.data.region, "kr-seoul");
-    assert_eq!(first.data.az, "kr-seoul-a");
-    assert_eq!(first.data.cell_id, "cell-kr-seoul-a-001");
+    assert_eq!(first.data.region, "home-region");
+    assert_eq!(first.data.az, "home-region-a");
+    assert_eq!(first.data.cell_id, "cell-home-region-a-001");
     assert_eq!(first.data.flavor.class, "general_purpose");
     assert_eq!(first.data.flavor.vcpu, 4);
     assert_eq!(first.data.image_kind, "oci");
-    assert_eq!(first.data.residency, "strict_kr");
+    assert_eq!(first.data.residency, "strict_home");
     assert_eq!(first.data.state, "pending");
     assert_eq!(first.data.data_class, "PUBLIC");
     assert_eq!(first.data.schema_version, 1);
@@ -163,7 +163,7 @@ fn vm_create_api_rejects_path_body_drift_before_catalog_mutation() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
     let mut request = request("req-compute-vm-drift", "idem-compute-vm-drift");
-    request.body.resource_id = "oya:cloud:kr-seoul:ten_kr:instance:other".to_string();
+    request.body.resource_id = "oya:cloud:home-region:ten_alpha:instance:other".to_string();
 
     let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body instance drift is rejected");
@@ -172,7 +172,7 @@ fn vm_create_api_rejects_path_body_drift_before_catalog_mutation() {
         error,
         CloudComputeVmApiError::InstanceIdMismatch {
             path_instance_id: INSTANCE_ID.to_string(),
-            body_resource_id: "oya:cloud:kr-seoul:ten_kr:instance:other".to_string(),
+            body_resource_id: "oya:cloud:home-region:ten_alpha:instance:other".to_string(),
         }
     );
     assert_eq!(error.vm_create_status_code(), 400);
@@ -292,7 +292,7 @@ fn vm_create_api_rejects_foreign_security_group_and_iam_role_proofs_before_ledge
         .iam_role
         .as_mut()
         .expect("role ref exists")
-        .vpc_id = "oya:cloud:kr-seoul:ten_other:vpc:foreign".to_string();
+        .vpc_id = "oya:cloud:home-region:ten_other:vpc:foreign".to_string();
     let role_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, role_request)
         .expect_err("IAM role proof must match VPC boundary");
 
@@ -365,24 +365,26 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
     assert_eq!(quota_error.vm_create_status_code(), 403);
 
     let mut residency_request = request("req-compute-vm-residency", "idem-compute-vm-residency");
-    residency_request.body.region = "us-virginia".to_string();
-    residency_request.body.az = "us-virginia-a".to_string();
-    residency_request.body.cell_id = "cell-us-virginia-a-001".to_string();
-    residency_request.body.resource_id = "oya:cloud:us-virginia:ten_kr:instance:app-1".to_string();
+    residency_request.body.region = "failover-region".to_string();
+    residency_request.body.az = "failover-region-a".to_string();
+    residency_request.body.cell_id = "cell-failover-region-a-001".to_string();
+    residency_request.body.resource_id =
+        "oya:cloud:failover-region:ten_alpha:instance:app-1".to_string();
     residency_request.path_instance_id = residency_request.body.resource_id.clone();
-    residency_request.body.vpc_id = "oya:cloud:us-virginia:ten_kr:vpc:prod".to_string();
-    residency_request.body.subnet_id = "oya:cloud:us-virginia:ten_kr:subnet:prod-a".to_string();
+    residency_request.body.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
+    residency_request.body.subnet_id =
+        "oya:cloud:failover-region:ten_alpha:subnet:prod-a".to_string();
     for group in &mut residency_request.body.security_groups {
-        group.region = "us-virginia".to_string();
-        group.vpc_id = "oya:cloud:us-virginia:ten_kr:vpc:prod".to_string();
+        group.region = "failover-region".to_string();
+        group.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
     }
     if let Some(role) = &mut residency_request.body.iam_role {
-        role.region = "us-virginia".to_string();
-        role.vpc_id = "oya:cloud:us-virginia:ten_kr:vpc:prod".to_string();
+        role.region = "failover-region".to_string();
+        role.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
     }
     let residency_error =
         create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, residency_request)
-            .expect_err("strict KR residency denies US VM placement");
+            .expect_err("strict home residency denies US VM placement");
     assert_eq!(
         residency_error,
         CloudComputeVmApiError::Compute(CloudComputeError::ResidencyRegionMismatch)
@@ -390,7 +392,7 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
     assert_eq!(residency_error.vm_create_status_code(), 403);
 
     let mut image_request = request("req-compute-vm-image", "idem-compute-vm-image");
-    image_request.body.image = "oci://harbor.kr-seoul.oya/ten_kr/app:latest".to_string();
+    image_request.body.image = "oci://harbor.home-region.oya/ten_alpha/app:latest".to_string();
     let image_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, image_request)
         .expect_err("image refs must be digest pinned");
     assert_eq!(

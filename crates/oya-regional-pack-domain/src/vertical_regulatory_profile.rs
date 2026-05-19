@@ -94,14 +94,14 @@ mod tests {
     fn accepts_valid_vertical_regulatory_profile() {
         let profile = VerticalRegulatoryProfile::new(
             AdVertical::Healthcare,
-            "oya-pack-kr".to_string(),
+            "oya-pack-alpha".to_string(),
             vec!["PIPA".to_string(), "HMIS".to_string()],
         )
         .expect("valid profile should be accepted");
 
         assert_eq!(profile.vertical, AdVertical::Healthcare);
         assert_eq!(profile.vertical.label(), "healthcare");
-        assert_eq!(profile.pack_id, "oya-pack-kr");
+        assert_eq!(profile.pack_id, "oya-pack-alpha");
         assert_eq!(profile.controls.len(), 2);
     }
 
@@ -119,9 +119,12 @@ mod tests {
 
     #[test]
     fn rejects_empty_controls() {
-        let err =
-            VerticalRegulatoryProfile::new(AdVertical::Retail, "oya-pack-kr".to_string(), vec![])
-                .expect_err("empty controls must be rejected");
+        let err = VerticalRegulatoryProfile::new(
+            AdVertical::Retail,
+            "oya-pack-alpha".to_string(),
+            vec![],
+        )
+        .expect_err("empty controls must be rejected");
 
         assert_eq!(err, VerticalRegulatoryProfileError::EmptyControls);
     }
