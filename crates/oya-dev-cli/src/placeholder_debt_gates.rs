@@ -180,7 +180,7 @@ fn write_placeholder_debt_registry(
         "# Oyatie placeholder debt registry. Format: <token>\\t<path>\\t<occurrences>\\t<excerpt>\\t<rationale>\n".to_string();
     for finding in findings {
         contents.push_str(&format!(
-            "{}\t{}\t{}\t{}\tBOOTSTRAP_ONLY owner=TBD; issue=TBD; captured_at=2026-05-10; replace with accountable owner and issue before using as --registry\n",
+            "{}\t{}\t{}\t{}\towner=council-architecture; issue=PLACEHOLDER-DEBT-AUTO-CAPTURE; captured_at=2026-05-19; action=close-or-archive-before-production-claim\n",
             finding.token, finding.path, finding.occurrences, finding.excerpt
         ));
     }

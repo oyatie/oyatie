@@ -1,60 +1,22 @@
 # Fitness Lane: banned-primitives
 
-- purpose: Verify fenced agent-instruction sections invoke the sanctioned primitive triad (`grit`, `icm`, `oya-tooling-agent-read`) and that any documented direct VCS / forge exception carries an icm rationale.
-- enforces: Directive 12 (MASTERPLAN) — sanctioned-primitives policy + ADR-0054 + ADR-0055.
-- activation: Defined/scaffolded in M01-P08-IP-006; enforcement activates at M01-P08-IP-007 / P5 merge per ADR-0053 bootstrap-window clause.
-- kernel_crate: `oya-foundry-fitness-banned-primitives-kernel` — `PrimitiveUsage { path, line, primitive, has_icm_rationale }`, verdict `BannedPrimitivesFitnessReport { usages_checked }`.
-- runner_path: `tools/oya-foundry-fitness-banned-primitives`
-- inputs: `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/agents/**/*.md`, `docs/standards/agent-instructions-discipline.md`, `.omc/**/*.md` files that contain `<!-- agent-instructions:start -->`, and icm rationale store dump.
+- purpose: Verify fenced `agent-instructions` sections use the Oya VCS / `oya git` sanctioned surface and verify the sanitized tracked command-log corpus never records direct VCS / forge / manual branch operations.
+- enforces: `specs/master-plan-sequencing.json::forbidden_primitives` and `F-FORBIDDEN-PRIMITIVES-CI-GUARD`.
+- activation: Active required check for `dev` once this ChangeSet promotes; workflow, branch-protection, quality lane, and `oya gate run-all` wiring are part of CS-FITNESS-001.
+- kernel_crate: `oya-foundry-fitness-banned-primitives-kernel` — `scan_agent_instruction_file(...)`, `scan_command_invocation(...)`, plus `check_documented_genuine_need(...)`.
+- runner_path: `tools/oya-foundry-fitness-banned-primitives-app`
+- gate_invocation: `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives`
+- direct_runner_invocation: `cargo run -q -p oya-foundry-fitness-banned-primitives-app --`
+- inputs: `AGENTS.md`, `CLAUDE.md`, `docs/**/*.md`, `.omc/**/*.md`, plus YAML / JSON / TOML files under those roots that contain `<!-- agent-instructions:start -->` fences; sanitized JSONL command corpus under `registry/fitness-corpora/banned-primitives/*.jsonl`.
 - failure_modes:
-  - fenced agent block names a direct VCS / forge primitive without an icm rationale id
-  - fenced agent block invokes a hard-banned merge or hook-bypass primitive
-  - rationale id not in icm store
   - `AGENTS.md`, `CLAUDE.md`, or `docs/AGENTS.md` lacks an `agent-instructions` fence
-- ci_invocation: `cargo run -p oya-foundry-fitness-banned-primitives`
-- runtime_budget: 500 ms
+  - fenced agent block invokes hard-banned primitives: hook bypass, force push, home-directory mutation, external fetch, forge merge, process kill, manual branch, manual rebase, manual merge, or manual push
+  - fenced agent block invokes direct VCS / forge primitives without a known genuine-need rationale
+  - command-log corpus record is missing `redacted=true`
+  - command-log corpus records any banned primitive, including direct VCS / forge surfaces
+  - rationale id is not in the supplied `--known-rationale` set
+- ci_workflow: `.github/workflows/oya-foundry-fitness-banned-primitives.yml`
+- branch_protection_context: `oya-foundry-fitness-banned-primitives`
+- quality_lane: `registry/quality/lanes.yaml::oya-foundry-fitness-banned-primitives`
+- runtime_budget: 500 ms local detector target; CI budget 20 minutes including Rust toolchain and cargo cache
 - severity: BLOCKER
-- kernel_sketch:
-```rust
-pub struct PrimitiveUsage {
-    pub path: String,                // data_class: INTERNAL_ONLY
-    pub line: u32,                   // data_class: INTERNAL_ONLY
-    pub primitive: String,           // data_class: INTERNAL_ONLY
-    pub icm_rationale: Option<String>, // data_class: INTERNAL_ONLY
-}
-
-pub struct BannedPrimitivesFitnessReport { pub usages_checked: usize }
-
-pub enum BannedPrimitivesFitnessError {
-    HardBannedPrimitive { path: String, line: u32, primitive: String },
-    UnjustifiedDirectGit { path: String, line: u32 },
-    UnknownRationale { path: String, rationale: String },
-}
-
-pub fn validate_banned_primitives_fitness(
-    usages: &[PrimitiveUsage],
-    hard_banned: &[String],
-    known_rationales: &[String],
-) -> Result<BannedPrimitivesFitnessReport, BannedPrimitivesFitnessError> {
-    let banned: std::collections::BTreeSet<&str> = hard_banned.iter().map(|s| s.as_str()).collect();
-    let rats: std::collections::BTreeSet<&str> = known_rationales.iter().map(|s| s.as_str()).collect();
-    for u in usages {
-        if banned.contains(u.primitive.as_str()) {
-            return Err(BannedPrimitivesFitnessError::HardBannedPrimitive {
-                path: u.path.clone(), line: u.line, primitive: u.primitive.clone(),
-            });
-        }
-        if u.primitive == "git" || u.primitive == "gh" {
-            let r = u.icm_rationale.as_ref().ok_or_else(|| BannedPrimitivesFitnessError::UnjustifiedDirectGit {
-                path: u.path.clone(), line: u.line,
-            })?;
-            if !rats.contains(r.as_str()) {
-                return Err(BannedPrimitivesFitnessError::UnknownRationale {
-                    path: u.path.clone(), rationale: r.clone(),
-                });
-            }
-        }
-    }
-    Ok(BannedPrimitivesFitnessReport { usages_checked: usages.len() })
-}
-```

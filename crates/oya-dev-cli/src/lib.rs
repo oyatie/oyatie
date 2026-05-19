@@ -35,6 +35,7 @@ mod api_contract_registry;
 mod architecture_map_emit_gate;
 mod architecture_plane_gates;
 mod aspirational_enforcement_gate;
+mod banned_primitives_gate;
 mod catalog_contract_gates;
 mod catalog_registry;
 mod cedar_fragment_coverage_gate;
@@ -48,6 +49,7 @@ mod cross_axis_contracts;
 mod cross_tenant_access_gates;
 mod data_class_gates;
 mod date_utils;
+mod dependency_seam_gates;
 mod design_spec_maturity_claims_gate;
 mod documentation_gates;
 mod foundation_audit_gates;
@@ -66,6 +68,7 @@ mod loop_recovery_patterns_gate;
 mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
+mod planning_closure_gate;
 mod pre_push_contract_gate;
 mod protection_context_match_gate;
 mod quality_lane_gates;
@@ -96,6 +99,9 @@ pub(crate) use architecture_plane_gates::{
 pub(crate) use aspirational_enforcement_gate::{
     parse_aspirational_enforcement_validate_args, validate_aspirational_enforcement_gate,
 };
+pub(crate) use banned_primitives_gate::{
+    parse_banned_primitives_validate_args, validate_banned_primitives_gate,
+};
 pub(crate) use catalog_contract_gates::{
     parse_cohesion_validate_args, parse_slo_coverage_validate_args, validate_cohesion_gate,
     validate_slo_coverage_gate,
@@ -120,6 +126,9 @@ pub(crate) use cross_tenant_access_gates::{
 pub(crate) use data_class_gates::{parse_data_class_validate_args, validate_data_class_gate};
 pub(crate) use date_utils::{
     current_epoch_days, current_epoch_days_i64, parse_yyyy_mm_dd_to_epoch_days,
+};
+pub(crate) use dependency_seam_gates::{
+    parse_dependency_seam_validate_args, validate_dependency_seam_gate,
 };
 pub(crate) use design_spec_maturity_claims_gate::{
     parse_design_spec_maturity_claims_validate_args, validate_design_spec_maturity_claims_gate,
@@ -178,6 +187,9 @@ pub(crate) use openapi_rest_route_parity_gate::{
 pub(crate) use path_format::slash_path;
 pub(crate) use placeholder_debt_gates::{
     parse_placeholder_debt_validate_args, validate_placeholder_debt_gate,
+};
+pub(crate) use planning_closure_gate::{
+    parse_planning_closure_validate_args, validate_planning_closure_gate,
 };
 pub(crate) use pre_push_contract_gate::{
     parse_pre_push_contract_validate_args, validate_pre_push_contract_gate,
@@ -254,7 +266,7 @@ pub fn run_cli_from_env() -> ExitCode {
 }
 
 pub(crate) fn usage() -> String {
-    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--include-deferred] [--gate-args …]   # canonical local pre-push entry; dispatches to `oya gate run-all`\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify → push → open/extend PR\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
+    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--include-deferred] [--ci-required] [--gate-args …]   # canonical local pre-push/pre-PR entry; dispatches to `oya gate run-all`\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify --ci-required → oya git push → open/extend PR\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
         + "\n       oya onprem <plan|install|uninstall|doctor> [--repo-root <.>] [--format <text|json>]"
         + "\n       oya ops <oci-a1-capacity-retry|oci-readiness-probe|onprem-bring-up> [ops-specific args]"
@@ -291,15 +303,18 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate placeholder-debt [--docs-dir <docs>] [--registry <registry/placeholder-debt/registry.tsv>] [--write-registry <path>] [--write-report <path>]"
         + "\n       oya gate validate loop-recovery-patterns [--agent-durable-goal <specs/agent-durable-goal.json>] [--score-cards <specs/score-cards.json>] [--patterns-dir <registry/loop-recovery-patterns>] [--mistakes-ledger <registry/mistakes-ledger.json>]"
         + "\n       oya gate validate pre-push-contract [--done-definition <docs/checklists/done-definition-checklist.md>] [--cli-dispatch-source <crates/oya-dev-cli/src/lib.rs>] [--hook-script <scripts/hooks/pre-push.sh>]"
-        + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <main>]"
+        + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <dev>]"
         + "\n       oya gate validate retired-vocabulary [--registry <registry/vocabulary/retired.yaml>] [--corpus-root <path>] (repeatable) [--exclude-root <path>] (repeatable)"
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate honest-claims [--clear-default-corpus] [--corpus-root <path>]... [--plans-dir <.omc/plans/milestones>]"
         + "\n       oya gate validate aspirational-enforcement [--clear-default-corpus] [--corpus-root <path>]... [--crates-dir <crates>] [--workflows-dir <.github/workflows>] [--quality-lanes <registry/quality/lanes.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--branch <dev>]"
+        + "\n       oya gate validate banned-primitives [--repo-root <.>] [--clear-default-roots] [--root <path>]... [--command-log-root <path>]... [--require-command-log-corpus] [--known-rationale <id>]..."
         + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
+        + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/microservices/workflow-studio.json>] [--workflow <specs/microservices/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"
         + "\n       oya gate validate workspace-hygiene [--policy <specs/workspace-hygiene.json>] [--no-scan] [--strict] [--clean-build-artifacts] [--clean-temp-artifacts]"
+        + "\n       oya gate validate dependency-seam [--repo-root <.>] [--registry <registry/dependency-rationales.json>] [--evidence <evidence/multispectrum/<change>.json>]... [--fixture-root <crates/oya-check-dependency-seam/tests/fixtures>] [--offline|--online-audit] [--severity <report-only|error>] [--emit-report <path>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-lockin-discipline [--registry <registry/vendor-lockin-phaseout/index.json>] [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-contract-recency [--ledger <docs/VENDOR-PARTNER-LEDGER.md>] [--today <YYYY-MM-DD>] [--renewal-window-days <90>]"
@@ -321,8 +336,8 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate milestone-audit [--repo-root <.>] [--audit <registry/milestone-audit/index.json>]"
         + "\n       oya gate validate changeset-state-monotonicity [--log <registry/vcs/changeset-event-log.json>]"
         + "\n       oya gate validate changeset-state-enum-closed [--log <registry/vcs/changeset-event-log.json>]"
-        + "\n       oya gate run-all [--include-deferred]"
-        + "\n       oya verify [--include-deferred]   # local-developer fold of `gate run-all`; canonical pre-push entry"
+        + "\n       oya gate run-all [--include-deferred] [--ci-required]"
+        + "\n       oya verify [--include-deferred] [--ci-required]   # local-developer fold of `gate run-all`; canonical pre-push/pre-PR entry"
 }
 
 pub(crate) fn path_has_component(path: &Path, component: &str) -> bool {

@@ -27,6 +27,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-quality-lanes` | registry/quality/lanes.yaml and this CI-lanes doc mirror stay in sync | standards/ci-lanes.md |
 | `oya-foundry-fitness-honest-claims` | scan authoritative docs/specs/ADRs for deferred active claims and validate ImplementationPlan ChangeSet graph integrity | ADR-0129 / specs/plan-schema.json / specs/masterplan.json |
 | `oya-foundry-fitness-aspirational-enforcement` | block active required enforcement claims that reference missing check crates, workflows, or branch-protection contexts | ADR-0135 / ADR-0133 |
+| `oya-foundry-fitness-banned-primitives` | block banned primitive use inside fenced agent-instruction contracts and the sanitized tracked command-log corpus | specs/master-plan-sequencing.json / F-FORBIDDEN-PRIMITIVES-CI-GUARD |
 | `oya-foundry-fitness-workspace-hygiene` | inventory temp, home, repo-root, build-artifact, and `oyatie-worktrees` residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions | specs/workspace-hygiene.json / ADR-0123 |
 | `oya-foundry-fitness-hyperscaler-maturity-claims` | block unsupported hyperscaler maturity claims unless product depth, pipeline, hygiene, UX, safety, guardrail, and competitor evidence are green | specs/hyperscaler-gates.json / ADR-0123 |
 | `oya-foundry-fitness-design-spec-maturity-claims` | allow only the bounded design/spec maturity claim when every microservice has the required implementation-ready design surfaces, while keeping operational maturity blocked | specs/design-spec-maturity-claims.json / ADR-0123 |
@@ -34,6 +35,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-glossary-cross-doc-coverage` | every glossary term appears outside GLOSSARY when active | GLOSSARY.md §11 / ADR-0018 |
 | `oya-foundry-fitness-glossary-vocabulary` | retired-vocab hard-fail plus casing/acronym warning baseline ratchet | GLOSSARY.md §11 / ADR-0018 |
 | `oya-foundry-fitness-placeholder-debt` | fail-closed `TODO` / `TBD` registry so placeholder cleanup is tracked outside glossary acronym warnings | AGENTS.md Done-Definition / MISTAKES doctrine |
+| `oya-governance-dependency-seam` | fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, multispectrum evidence, change_class declarations, and online cargo-audit vulnerability checks | ADR-0092 / registry/dependency-rationales.json / evidence/multispectrum/cs-p13-dependency-seam-1779166052.json |
 | `oya-foundry-fitness-license` | enforce ADR-0013 license posture | ADR-0013 |
 | `oya-foundry-fitness-plane-class` | catalog plane-class changes require explicit review | ADR-0004 |
 | `oya-foundry-fitness-raci-team-coverage` | every team charter has RACI and CODEOWNERS coverage | RACI-OWNERSHIP.md |
@@ -51,9 +53,9 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | Lane | Purpose |
 |---|---|
 | `cargo-fmt` | `cargo fmt --all -- --check` |
-| `cargo-check` | `cargo check --workspace --all-targets --all-features` |
-| `cargo-clippy` | `cargo clippy --workspace --all-features --all-targets -D warnings` |
-| `cargo-nextest` | `cargo nextest run --workspace --all-features --no-fail-fast` |
+| `cargo-check` | `cargo check --workspace --all-targets --keep-going` |
+| `cargo-clippy` | `cargo clippy --workspace --all-targets --keep-going -D warnings` |
+| `cargo-nextest` | `cargo nextest run --workspace --no-fail-fast` |
 | `cargo-deny` | per ADR-0013 license + advisory check |
 | `oya-foundation-demo-smoke` | `oya demo` foundation smoke path exercises tenant, MCP, audit, run, step, outbox, and secret flows |
 | `machine-readable-json-parse` | every docs/machine-readable JSON file parses before merge |

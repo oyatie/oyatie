@@ -599,6 +599,43 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("dependency-seam")) => {
+            match crate::parse_dependency_seam_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_dependency_seam_gate(args) {
+                    Ok(report) => {
+                        let blocking = report.blocking_diagnostics().len();
+                        println!(
+                            "dependency-seam validation passed: {} subchecks, {} pass, {} report-only, {} skipped, {} fail, {} diagnostics, {} blocking",
+                            report.subchecks.len(),
+                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Pass),
+                            report.status_count(
+                                oya_check_dependency_seam::SubcheckStatus::ReportOnly
+                            ),
+                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Skipped),
+                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Fail),
+                            report.diagnostic_count(),
+                            blocking
+                        );
+                        if blocking == 0 {
+                            ExitCode::SUCCESS
+                        } else {
+                            eprintln!(
+                                "dependency-seam validation failed: {blocking} blocking diagnostics"
+                            );
+                            ExitCode::FAILURE
+                        }
+                    }
+                    Err(message) => {
+                        eprintln!("dependency-seam validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("license-policy")) => {
             match crate::parse_license_policy_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_license_policy_gate(args) {
@@ -1262,6 +1299,32 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("banned-primitives")) => {
+            match crate::parse_banned_primitives_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_banned_primitives_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "banned-primitives validation passed: {} files, {} sources, {} fences, {} command-log records, {} usages, {} documented exceptions",
+                            report.files_scanned,
+                            report.sources_checked,
+                            report.fences_checked,
+                            report.command_log_records_checked,
+                            report.usages_checked,
+                            report.documented_exceptions
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("banned-primitives validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("hyperscaler-arch-invariants")) => {
             match crate::parse_hyperscaler_arch_invariants_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_hyperscaler_arch_invariants_gate(args) {
@@ -1331,6 +1394,32 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     }
                     Err(message) => {
                         eprintln!("design/spec maturity claim validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("planning-closure")) => {
+            match crate::parse_planning_closure_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_planning_closure_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "planning-closure validation passed: {} verticals, {} surfaces, {} kr-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
+                            report.vertical_count,
+                            report.surface_count,
+                            report.kr_pack_surface_count,
+                            report.architecture_rule_count,
+                            report.status_fields_checked,
+                            report.blocker_count
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("planning-closure validation failed: {message}");
                         ExitCode::FAILURE
                     }
                 },
