@@ -3,7 +3,7 @@ role: kernel
 capability: marketplace
 plane: control
 slo: stable-control-plane
-data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL_KR_신용정보]
+data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL_REGULATED_CREDIT]
 operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed

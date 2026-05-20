@@ -52,7 +52,7 @@ impl ClassificationLevel {
             | DataClass::PiiSensitive
             | DataClass::PiiQuasiIdentifier
             | DataClass::Financial
-            | DataClass::FinancialCredit
+            | DataClass::FinancialRegulatedCredit
             | DataClass::BehavioralTenantProduct
             | DataClass::BehavioralAds
             | DataClass::DeclaredPreference
@@ -96,7 +96,7 @@ pub enum DataClassMatcher {
     /// Matches exactly the HARD_DENY set: PHI, PCI, PIPA Article 23 /
     /// Sensitive PIPA Art 23, and Children.
     HardDenySet,
-    /// Matches the regulated-financial set: Financial and FinancialCredit.
+    /// Matches the regulated-financial set: Financial and FinancialRegulatedCredit.
     RegulatedFinancial,
     /// Matches any directly identifying PII variant.
     DirectPii,
@@ -118,7 +118,7 @@ impl DataClassMatcher {
             ),
             Self::RegulatedFinancial => matches!(
                 data_class,
-                DataClass::Financial | DataClass::FinancialCredit
+                DataClass::Financial | DataClass::FinancialRegulatedCredit
             ),
             Self::DirectPii => matches!(
                 data_class,
@@ -131,7 +131,7 @@ impl DataClassMatcher {
                     | DataClass::PipaArticle23
                     | DataClass::SensitivePipaArticle23
                     | DataClass::Financial
-                    | DataClass::FinancialCredit
+                    | DataClass::FinancialRegulatedCredit
             ),
         }
     }
@@ -300,7 +300,7 @@ mod tests {
     #[test]
     fn data_class_matcher_regulated_financial_covers_financial_variants() {
         assert!(DataClassMatcher::RegulatedFinancial.matches(DataClass::Financial));
-        assert!(DataClassMatcher::RegulatedFinancial.matches(DataClass::FinancialCredit));
+        assert!(DataClassMatcher::RegulatedFinancial.matches(DataClass::FinancialRegulatedCredit));
         assert!(!DataClassMatcher::RegulatedFinancial.matches(DataClass::Phi));
         assert!(!DataClassMatcher::RegulatedFinancial.matches(DataClass::Public));
     }
@@ -329,7 +329,7 @@ mod tests {
             DataClass::PipaArticle23,
             DataClass::SensitivePipaArticle23,
             DataClass::Financial,
-            DataClass::FinancialCredit,
+            DataClass::FinancialRegulatedCredit,
         ] {
             assert!(
                 DataClassMatcher::SearchIndexRestricted.matches(dc),
