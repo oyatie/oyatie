@@ -100,6 +100,7 @@ pub enum EncryptionMode {
 pub enum StorageProviderKind {
     OciObjectStorage,
     OciBlockStorage,
+    S3ObjectStorage,
 }
 
 impl StorageProviderKind {
@@ -107,6 +108,7 @@ impl StorageProviderKind {
         match self {
             Self::OciObjectStorage => "oci_object_storage",
             Self::OciBlockStorage => "oci_block_storage",
+            Self::S3ObjectStorage => "s3_object_storage",
         }
     }
 }
