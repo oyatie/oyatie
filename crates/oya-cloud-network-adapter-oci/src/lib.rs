@@ -9,7 +9,9 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_cloud_network_domain::{
-    NetworkProviderKind, NetworkProviderVpcCreateRequest, NetworkProviderVpcError,
+    NetworkProviderKind, NetworkProviderLoadBalancerCreateRequest,
+    NetworkProviderLoadBalancerError, NetworkProviderLoadBalancerPort,
+    NetworkProviderLoadBalancerReceipt, NetworkProviderVpcCreateRequest, NetworkProviderVpcError,
     NetworkProviderVpcPort, NetworkProviderVpcReceipt,
 };
 
@@ -30,6 +32,31 @@ pub struct OciVcnAdapter {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OciVcnCommand {
+    pub operation: &'static str,       // data_class: PUBLIC
+    pub method: &'static str,          // data_class: PUBLIC
+    pub endpoint_origin: String,       // data_class: INTERNAL_ONLY
+    pub path: String,                  // data_class: INTERNAL_ONLY
+    pub body_canonical: String,        // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum OciLoadBalancerAdapterConfigError {
+    InvalidEndpoint,
+    InvalidCompartmentRef,
+    InvalidRegion,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OciLoadBalancerAdapter {
+    endpoint_origin: String,  // data_class: INTERNAL_ONLY
+    compartment_ref: String,  // data_class: INTERNAL_ONLY
+    region: String,           // data_class: PUBLIC
+    clock_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OciLoadBalancerCommand {
     pub operation: &'static str,       // data_class: PUBLIC
     pub method: &'static str,          // data_class: PUBLIC
     pub endpoint_origin: String,       // data_class: INTERNAL_ONLY
@@ -153,6 +180,129 @@ impl NetworkProviderVpcPort for OciVcnAdapter {
     }
 }
 
+impl OciLoadBalancerAdapter {
+    pub fn new(
+        endpoint_origin: impl Into<String>,
+        compartment_ref: impl Into<String>,
+        region: impl Into<String>,
+    ) -> Result<Self, OciLoadBalancerAdapterConfigError> {
+        let endpoint_origin = endpoint_origin.into();
+        let compartment_ref = compartment_ref.into();
+        let region = region.into();
+        validate_lb_endpoint(&endpoint_origin)?;
+        validate_lb_segment(
+            &compartment_ref,
+            OciLoadBalancerAdapterConfigError::InvalidCompartmentRef,
+        )?;
+        validate_lb_segment(&region, OciLoadBalancerAdapterConfigError::InvalidRegion)?;
+        Ok(Self {
+            endpoint_origin,
+            compartment_ref,
+            region,
+            clock_epoch_seconds: 0,
+        })
+    }
+
+    pub fn with_clock(mut self, clock_epoch_seconds: u64) -> Self {
+        self.clock_epoch_seconds = clock_epoch_seconds;
+        self
+    }
+
+    pub fn provider_load_balancer_ref(&self, load_balancer_resource_id: &str) -> String {
+        format!(
+            "oci-lb://{}/{}/{}",
+            self.compartment_ref, self.region, load_balancer_resource_id
+        )
+    }
+
+    pub fn create_load_balancer_command(
+        &self,
+        request: &NetworkProviderLoadBalancerCreateRequest,
+    ) -> Result<OciLoadBalancerCommand, NetworkProviderLoadBalancerError> {
+        request.validate()?;
+        self.ensure_provider_load_balancer(
+            &request.provider_load_balancer_ref,
+            &request.load_balancer.resource_id,
+        )?;
+        let listener_count = request.load_balancer.listeners.len().to_string();
+        let target_group_count = request.load_balancer.target_groups.len().to_string();
+        let mtls_enabled = request.load_balancer.mtls.is_some().to_string();
+        let waf_policy = request
+            .load_balancer
+            .waf_policy
+            .as_deref()
+            .unwrap_or("none");
+        Ok(OciLoadBalancerCommand {
+            operation: "CreateLoadBalancer",
+            method: "POST",
+            endpoint_origin: self.endpoint_origin.clone(),
+            path: "/20170115/loadBalancers".to_string(),
+            body_canonical: canonical_body(&[
+                ("compartment_ref", self.compartment_ref.as_str()),
+                ("region", self.region.as_str()),
+                ("resource_id", request.load_balancer.resource_id.as_str()),
+                ("tenant_id", request.load_balancer.tenant_id.as_str()),
+                ("vpc_id", request.load_balancer.vpc_id.as_str()),
+                ("kind", lb_kind_label(request.load_balancer.kind)),
+                ("listener_count", listener_count.as_str()),
+                ("target_group_count", target_group_count.as_str()),
+                ("mtls_enabled", mtls_enabled.as_str()),
+                ("waf_policy", waf_policy),
+                ("actor", request.actor.as_str()),
+                ("idempotency_key", request.idempotency_key.as_str()),
+            ]),
+            provider_evidence_ref: format!(
+                "oci-lb://{}/{}/{}/{}",
+                self.compartment_ref,
+                self.region,
+                request.load_balancer.resource_id,
+                request.request_id
+            ),
+        })
+    }
+
+    fn ensure_provider_load_balancer(
+        &self,
+        provider_load_balancer_ref: &str,
+        load_balancer_resource_id: &str,
+    ) -> Result<(), NetworkProviderLoadBalancerError> {
+        let expected = self.provider_load_balancer_ref(load_balancer_resource_id);
+        if provider_load_balancer_ref == expected {
+            Ok(())
+        } else {
+            Err(NetworkProviderLoadBalancerError::ProviderRejected {
+                provider: NetworkProviderKind::OciLoadBalancer,
+                reason:
+                    "provider_load_balancer_ref does not match configured OCI load balancer target"
+                        .to_string(),
+            })
+        }
+    }
+
+    fn provider_request_id(&self, request_id: &str) -> String {
+        format!("oci-lb-{}-{request_id}", self.clock_epoch_seconds)
+    }
+}
+
+impl NetworkProviderLoadBalancerPort for OciLoadBalancerAdapter {
+    fn provider_kind(&self) -> NetworkProviderKind {
+        NetworkProviderKind::OciLoadBalancer
+    }
+
+    fn create_load_balancer(
+        &self,
+        input: NetworkProviderLoadBalancerCreateRequest,
+    ) -> Result<NetworkProviderLoadBalancerReceipt, NetworkProviderLoadBalancerError> {
+        let command = self.create_load_balancer_command(&input)?;
+        NetworkProviderLoadBalancerReceipt::create_load_balancer(
+            self.provider_kind(),
+            input.clone(),
+            self.provider_request_id(&input.request_id),
+            command.provider_evidence_ref,
+        )
+    }
+}
+
 fn validate_endpoint(value: &str) -> Result<(), OciVcnAdapterConfigError> {
     if value.starts_with("https://") && no_space_or_control(value) {
         Ok(())
@@ -161,10 +311,29 @@ fn validate_endpoint(value: &str) -> Result<(), OciVcnAdapterConfigError> {
     }
 }
 
+fn validate_lb_endpoint(value: &str) -> Result<(), OciLoadBalancerAdapterConfigError> {
+    if value.starts_with("https://") && no_space_or_control(value) {
+        Ok(())
+    } else {
+        Err(OciLoadBalancerAdapterConfigError::InvalidEndpoint)
+    }
+}
+
 fn validate_segment(
     value: &str,
     error: OciVcnAdapterConfigError,
 ) -> Result<(), OciVcnAdapterConfigError> {
+    if value.trim().is_empty() || value.contains('/') || !no_space_or_control(value) {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
+fn validate_lb_segment(
+    value: &str,
+    error: OciLoadBalancerAdapterConfigError,
+) -> Result<(), OciLoadBalancerAdapterConfigError> {
     if value.trim().is_empty() || value.contains('/') || !no_space_or_control(value) {
         Err(error)
     } else {
@@ -186,13 +355,24 @@ fn canonical_body(fields: &[(&str, &str)]) -> String {
         .join("|")
 }
 
+fn lb_kind_label(kind: oya_cloud_network_domain::LbKind) -> &'static str {
+    match kind {
+        oya_cloud_network_domain::LbKind::L4Tcp => "l4_tcp",
+        oya_cloud_network_domain::LbKind::L4Udp => "l4_udp",
+        oya_cloud_network_domain::LbKind::L7Http => "l7_http",
+        oya_cloud_network_domain::LbKind::L7Grpc => "l7_grpc",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use oya_cloud_network_domain::{
-        CloudNetworkError, IpProtocol, Ipv4Cidr, NetworkProviderVpcPort, RouteCreate,
-        RouteDestination, RouteNextHopKind, RouteTableCreate, RuleDirection, SecurityGroupCreate,
-        SecurityRule, VpcCreate, VpcState,
+        CloudNetworkError, IpProtocol, Ipv4Cidr, LbKind, LbState, ListenerCreate,
+        LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate, NetworkProviderLoadBalancerPort,
+        NetworkProviderVpcPort, RouteCreate, RouteDestination, RouteNextHopKind, RouteTableCreate,
+        RuleDirection, SecurityGroupCreate, SecurityRule, SubnetCreate, SubnetState,
+        TargetGroupCreate, VpcCreate, VpcState,
     };
     use oya_data_boundary_kernel::DataClass;
     use oya_residency_domain::ResidencyClass;
@@ -203,6 +383,16 @@ mod tests {
 
     fn adapter() -> OciVcnAdapter {
         OciVcnAdapter::new(
+            "https://iaas.ap-chuncheon-1.oraclecloud.com",
+            COMPARTMENT_REF,
+            REGION,
+        )
+        .unwrap()
+        .with_clock(1_700_000_000)
+    }
+
+    fn lb_adapter() -> OciLoadBalancerAdapter {
+        OciLoadBalancerAdapter::new(
             "https://iaas.ap-chuncheon-1.oraclecloud.com",
             COMPARTMENT_REF,
             REGION,
@@ -248,6 +438,65 @@ mod tests {
             actor: "sp_network".to_string(),
             idempotency_key: "idem-network-vpc-create".to_string(),
             requested_at_epoch_seconds: 1_700_000_010,
+        }
+    }
+
+    fn subnet_create() -> SubnetCreate {
+        SubnetCreate {
+            resource_id: "oya:cloud:alpha-region:ten_alpha:subnet:prod-a".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            vpc_id: VPC_ID.to_string(),
+            region: "alpha-region".to_string(),
+            az: "alpha-region-a".to_string(),
+            cidr_v4: "10.42.1.0/24".to_string(),
+            cidr_v6: "2001:db8:42:1::/64".to_string(),
+            public_ip_on_launch: false,
+            state: SubnetState::Creating,
+            data_class: DataClass::Public,
+            created_at_epoch_seconds: 1_700_000_010,
+        }
+    }
+
+    fn lb_create() -> LoadBalancerCreate {
+        LoadBalancerCreate {
+            resource_id: "oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            vpc_id: VPC_ID.to_string(),
+            region: "alpha-region".to_string(),
+            kind: LbKind::L7Grpc,
+            listeners: vec![ListenerCreate {
+                port: 443,
+                target_group_id: "tg_api".to_string(),
+                tls_certificate: Some("cert/alpha-region/ten_alpha/frontdoor".to_string()),
+            }],
+            target_groups: vec![TargetGroupCreate {
+                id: "tg_api".to_string(),
+                subnet_ids: vec!["oya:cloud:alpha-region:ten_alpha:subnet:prod-a".to_string()],
+                health_check_path: Some("/healthz".to_string()),
+            }],
+            mtls: Some(MtlsConfigCreate {
+                ca_bundle_ref: "cert/alpha-region/ten_alpha/mesh-ca".to_string(),
+                client_policy: MtlsClientPolicy::RequireVerifiedClientCert,
+            }),
+            waf_policy: Some("waf_cloud_frontdoor".to_string()),
+            state: LbState::Creating,
+            data_class: DataClass::Public,
+            created_at_epoch_seconds: 1_700_000_020,
+        }
+    }
+
+    fn lb_request() -> NetworkProviderLoadBalancerCreateRequest {
+        NetworkProviderLoadBalancerCreateRequest {
+            request_id: "networkprov_req_lb_create_001".to_string(),
+            provider_load_balancer_ref: format!(
+                "oci-lb://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor"
+            ),
+            vpc: request().vpc,
+            subnets: vec![subnet_create()],
+            load_balancer: lb_create(),
+            actor: "sp_network".to_string(),
+            idempotency_key: "idem-network-lb-create".to_string(),
+            requested_at_epoch_seconds: 1_700_000_030,
         }
     }
 
@@ -311,6 +560,103 @@ mod tests {
             Err(NetworkProviderVpcError::InvalidRequestShape(
                 CloudNetworkError::FlowLogsRequired,
             ))
+        );
+    }
+
+    #[test]
+    fn create_load_balancer_command_uses_oci_path_and_reference_only_body() {
+        let command = lb_adapter()
+            .create_load_balancer_command(&lb_request())
+            .expect("valid load balancer request becomes deterministic OCI command");
+
+        assert_eq!(command.operation, "CreateLoadBalancer");
+        assert_eq!(command.method, "POST");
+        assert_eq!(command.path, "/20170115/loadBalancers");
+        assert!(command.body_canonical.contains("compartment_ref=ocid1."));
+        assert!(
+            command
+                .body_canonical
+                .contains("resource_id=oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor")
+        );
+        assert!(command.body_canonical.contains("kind=l7_grpc"));
+        assert!(command.body_canonical.contains("listener_count=1"));
+        assert!(command.body_canonical.contains("target_group_count=1"));
+        assert!(command.body_canonical.contains("mtls_enabled=true"));
+        assert!(!command.body_canonical.contains("private_key"));
+        assert_eq!(
+            command.provider_evidence_ref,
+            format!(
+                "oci-lb://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor/networkprov_req_lb_create_001"
+            )
+        );
+    }
+
+    #[test]
+    fn load_balancer_port_receipts_preserve_refs_without_provider_credentials() {
+        let receipt = lb_adapter()
+            .create_load_balancer(lb_request())
+            .expect("load balancer receipt is generated");
+
+        assert_eq!(receipt.provider, NetworkProviderKind::OciLoadBalancer);
+        assert_eq!(
+            receipt.provider_request_id,
+            "oci-lb-1700000000-networkprov_req_lb_create_001"
+        );
+        assert_eq!(
+            receipt.provider_load_balancer_ref,
+            format!(
+                "oci-lb://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor"
+            )
+        );
+        assert_eq!(
+            receipt.resource_id,
+            "oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor"
+        );
+        assert_eq!(receipt.actor, "sp_network");
+        assert_eq!(receipt.listener_count, 1);
+        assert_eq!(receipt.target_group_count, 1);
+    }
+
+    #[test]
+    fn rejects_provider_load_balancer_drift_and_bad_lb_shape() {
+        let mut drifted = lb_request();
+        drifted.provider_load_balancer_ref = "oci-lb://other/ap-chuncheon-1/lb".to_string();
+        assert!(matches!(
+            lb_adapter().create_load_balancer_command(&drifted),
+            Err(NetworkProviderLoadBalancerError::ProviderRejected { .. })
+        ));
+
+        let mut bad_lb = lb_request();
+        bad_lb.load_balancer.mtls = None;
+        assert_eq!(
+            bad_lb.validate(),
+            Err(NetworkProviderLoadBalancerError::InvalidRequestShape(
+                CloudNetworkError::GrpcRequiresMtls,
+            ))
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_oci_load_balancer_adapter_config() {
+        assert_eq!(
+            OciLoadBalancerAdapter::new("http://iaas", COMPARTMENT_REF, REGION),
+            Err(OciLoadBalancerAdapterConfigError::InvalidEndpoint)
+        );
+        assert_eq!(
+            OciLoadBalancerAdapter::new(
+                "https://iaas.ap-chuncheon-1.oraclecloud.com",
+                "bad compartment",
+                REGION,
+            ),
+            Err(OciLoadBalancerAdapterConfigError::InvalidCompartmentRef)
+        );
+        assert_eq!(
+            OciLoadBalancerAdapter::new(
+                "https://iaas.ap-chuncheon-1.oraclecloud.com",
+                COMPARTMENT_REF,
+                "bad region",
+            ),
+            Err(OciLoadBalancerAdapterConfigError::InvalidRegion)
         );
     }
 
