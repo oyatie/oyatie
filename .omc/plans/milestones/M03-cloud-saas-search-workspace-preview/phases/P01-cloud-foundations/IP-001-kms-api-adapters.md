@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-001
 title: Cloud KMS provider-agnostic API + adapter set
-status: ready-to-claim-2026-05-16 (kernel + api complete; both adapter targets provisioned)
+status: adapter-port-request-contract-green-2026-05-20 (live-provider-smoke pending credentials)
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
@@ -35,7 +35,7 @@ AWS / GCP / Azure adapters are sequenced into follow-up IPs (M03-P01-IP-001a/b/c
 crates/oya-cloud-kms-api/src/lib.rs::encrypt
 crates/oya-cloud-kms-api/src/lib.rs::decrypt
 crates/oya-cloud-kms-adapter-openbao/src/lib.rs::OpenBaoKmsAdapter
-crates/oya-cloud-kms-adapter-aws/src/lib.rs::AwsKmsAdapter
+crates/oya-cloud-kms-adapter-oci/src/lib.rs::OciKmsAdapter
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -50,6 +50,8 @@ scripts/check.sh
 ```
 
 ## Done-criteria
+- Adapter port and request-shape slice: targeted cargo check/test/clippy return 0 (met 2026-05-20).
+- Live-provider smoke remains required before marking this whole IP complete.
 - All acceptance-test commands return 0.
 - Distroless image built (if IP ships a deployed binary); size < per-binary budget per `docs/standards/image-size-budgets.md`.
 - No provider-specific deps outside adapter crates (Directive 4).
@@ -69,4 +71,9 @@ icm store -t context-oyatie -c 'M03-P01-IP-001 Cloud KMS provider-agnostic API +
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this ChangeSet: provider-specific KMS request paths no longer need to enter the Cloud KMS domain/API crates; OpenBao and OCI key refs are confined to adapter crates behind `KmsProviderCryptoPort`.
+
+## ChangeSet evidence — cs-m03-p01-kms-adapter-port-2026-05-20
+- Added provider-neutral `KmsProviderCryptoPort` plus validated provider request/receipt types in `oya-cloud-kms-domain`.
+- Added `oya-cloud-kms-adapter-openbao` and `oya-cloud-kms-adapter-oci` crates with deterministic request-shape and provider-key drift tests.
+- Verification: `cargo test -q -p oya-cloud-kms-domain -p oya-cloud-kms-adapter-openbao -p oya-cloud-kms-adapter-oci`; `cargo clippy -q -p oya-cloud-kms-domain -p oya-cloud-kms-adapter-openbao -p oya-cloud-kms-adapter-oci --all-targets -- -D warnings`; `cargo check -q -p oya-cloud-kms-domain -p oya-cloud-kms-adapter-openbao -p oya-cloud-kms-adapter-oci`.
