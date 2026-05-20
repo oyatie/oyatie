@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P17-IP-001
 title: Branch-protection deploy + live drift enforcement
-status: in-progress
+status: complete-2026-05-20
 tier: S
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -47,3 +47,12 @@ None. Wave-1 IP; can ship before all other M01-P17 IPs.
 
 - `/evidence/pipeline-maturity-glue/ip-001-branch-protection-live-drift-2026-05-19.json`
 - `/evidence/pipeline-maturity-glue/ip-001-deploy-runbook-completion.json` (admin attests one-time deploy executed)
+
+
+## Closeout evidence (2026-05-20)
+
+- Live dev branch-protection required contexts match `.github/branch-protection.yaml` and `infra/branch-protection/dev.json` with no missing or extra contexts.
+- `scripts/github-actions-required-secrets-check.sh --repo jason931225/oyatie --branch dev --config infra/branch-protection/dev.json` passed, proving the hosted `OYA_BRANCH_PROTECTION_READ_TOKEN` secret is visible enough for the governance check.
+- `oya gate validate protection-context-match` passed with 15 required contexts and 45 workflow jobs indexed.
+- Hosted PR evidence: `https://github.com/jason931225/oyatie/pull/151` head `7a923b90701b9fef281821d23129f5b15bff0cfe` has successful `oya-governance-protection-context-match` and required governance/fitness workflow runs.
+- Evidence: `/evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json` and `/evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json`.

@@ -258,38 +258,38 @@
     {
       "primitive": "git",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement verified green on PR #151 head 7a923b90701b9fef281821d23129f5b15bff0cfe"
     },
     {
       "primitive": "gh",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement verified green on PR #151 head 7a923b90701b9fef281821d23129f5b15bff0cfe"
     },
     {
       "primitive": "manual-branch",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement verified green on PR #151 head 7a923b90701b9fef281821d23129f5b15bff0cfe"
     },
     {
       "primitive": "manual-rebase",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement verified green on PR #151 head 7a923b90701b9fef281821d23129f5b15bff0cfe"
     },
     {
       "primitive": "manual-merge",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement verified green on PR #151 head 7a923b90701b9fef281821d23129f5b15bff0cfe"
     },
     {
       "primitive": "manual-push",
       "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
-      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement deployment remains pending verification"
+      "lane_status": "active for fenced agent-instruction source corpus and sanitized tracked command-log corpus; hosted GitHub enforcement verified green on PR #151 head 7a923b90701b9fef281821d23129f5b15bff0cfe"
     }
   ],
   "chained_enforcement_contract": {
     "adr_citation": "ADR-0133",
-    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-foundry-fitness-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted GitHub enforcement deployment remains a GitOps verification gap.",
-    "status": "source-corpus and sanitized command-log corpus detector active in CS-FITNESS-001; hosted enforcement verification pending before production reliance"
+    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-foundry-fitness-banned-primitives is green for fenced agent-instruction contracts plus CI-safe command-log corpus records, and hosted GitHub enforcement is verified green on PR #151.",
+    "status": "source-corpus and sanitized command-log corpus detector active in CS-FITNESS-001; hosted enforcement verified green before product fanout"
   },
   "repo_state_protocol": [
     {
