@@ -19,7 +19,8 @@
     "/evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json",
     "/evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json",
     "specs/masterplan.json::M01-P17-IP-008-successor-status",
-    ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md::successor-status"
+    ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md::successor-status",
+    "evidence/audit-chain.jsonl"
   ],
   "summary": "FD-001 control-state closeout updates stale branch-protection and banned-primitives hosted-pending rows after live and hosted enforcement evidence turned green.",
   "verification": [
@@ -77,6 +78,11 @@
       "command": "git diff --check",
       "status": "passed",
       "evidence": "No whitespace/diff hygiene errors."
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "status": "passed",
+      "evidence": "Admission gate passed after audit-chain JSONL row covered the ChangeSet id."
     }
   ],
   "facets": {
@@ -139,10 +145,13 @@
       "data_class_touched": [
         "INTERNAL_ONLY"
       ],
-      "audit_chain_emission_required": false,
+      "audit_chain_emission_required": true,
       "findings": [
-        "Oya VCS claim/verify/done/promote will carry this changeset evidence."
-      ]
+        "Oya VCS claim/verify/done/promote will carry this changeset evidence.",
+        "Audit-chain JSONL row covers this ChangeSet id for oya-vcs-admission."
+      ],
+      "audit_chain_evidence_path": "evidence/audit-chain.jsonl",
+      "audit_chain_coverage_change_id": "cs-fd001-branch-protection-closeout-2026-05-20"
     },
     "F10_reversibility": {
       "considered": true,
@@ -214,5 +223,15 @@
     "PR #151 is ready/unmerged; downstream product work should stack on its head or wait for controller merge, not manually merge.",
     "FD-001 product/API/data implementation remains incomplete beyond this serialized governance gate closeout."
   ],
-  "verification_log": "/tmp/omx-fd001-branch-protection-closeout/verify-final.log"
+  "verification_log": "/tmp/omx-fd001-branch-protection-closeout/verify-final.log",
+  "submit_repair_notes": [
+    {
+      "timestamp_unix": 1779311526,
+      "timestamp_iso": "2026-05-20T21:12:06Z",
+      "finding": "AUDIT_CHAIN_MISSING_CHANGE_ID",
+      "repair": "Append evidence/audit-chain.jsonl row containing the ChangeSet id and update F9 audit-chain coverage fields.",
+      "follow_up_verification": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "follow_up_verification_status": "passed"
+    }
+  ]
 }
