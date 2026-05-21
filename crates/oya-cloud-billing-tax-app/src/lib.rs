@@ -11,6 +11,23 @@
 pub const CLOUD_BILLING_INVOICE_GENERATE_EVIDENCE_SURFACE: &str = "cloud.billing.invoice.generate";
 pub const CLOUD_BILLING_INVOICE_SCHEMA_VERSION: u32 = 1;
 
+pub struct CloudBillingTaxInvoiceFormatPolicy;
+
+impl CloudBillingTaxInvoiceFormatPolicy {
+    pub fn expected_for_regional_pack(regional_pack: &str) -> Option<&'static str> {
+        match regional_pack {
+            "oya-pack-kr" => Some("kr_electronic_tax_invoice"),
+            "oya-pack-jp" => Some("jp_qualified_invoice"),
+            "oya-pack-eu" => Some("eu_country_e_invoice"),
+            "oya-pack-in" => Some("in_gst"),
+            "oya-pack-br" => Some("br_nfe"),
+            "oya-pack-ksa" => Some("ksa_fatoora"),
+            "oya-pack-uae" => Some("uae_vat"),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudBillingInvoiceGenerateRequest {
     pub id: String,                                  // data_class: INTERNAL_ONLY
@@ -206,6 +223,35 @@ pub fn generate_cloud_billing_invoice_from_api(
             CloudBillingInvoiceGenerateApiStatus::BadRequest,
             "invalid_invoice_request",
             "invoice request violates billing value contract",
+            request_id,
+            None,
+        );
+    }
+    if request.account.regional_pack != request.regional_pack {
+        return error_result(
+            CloudBillingInvoiceGenerateApiStatus::BadRequest,
+            "regional_pack_mismatch",
+            "invoice regional pack must match billing account regional pack",
+            request_id,
+            None,
+        );
+    }
+    let Some(expected_tax_invoice_format) =
+        CloudBillingTaxInvoiceFormatPolicy::expected_for_regional_pack(&request.regional_pack)
+    else {
+        return error_result(
+            CloudBillingInvoiceGenerateApiStatus::BadRequest,
+            "unsupported_regional_pack",
+            "regional pack does not declare a supported tax invoice format",
+            request_id,
+            None,
+        );
+    };
+    if request.tax_invoice_format != expected_tax_invoice_format {
+        return error_result(
+            CloudBillingInvoiceGenerateApiStatus::BadRequest,
+            "invalid_tax_invoice_format",
+            "tax invoice format must match the billing regional pack",
             request_id,
             None,
         );
