@@ -1529,6 +1529,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-storage-adapter-s3"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-storage-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "oya-cloud-storage-block-api"
 version = "0.1.0"
 dependencies = [
