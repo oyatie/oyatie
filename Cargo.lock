@@ -1440,6 +1440,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-network-adapter-selfhosted"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-network-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
 name = "oya-cloud-network-dns-api"
 version = "0.1.0"
 dependencies = [
