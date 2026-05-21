@@ -1,0 +1,319 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-m03-p01-cloud-iam-idp-provider-runtime-2026-05-21",
+  "agent_id": "codex-m03-p01-cloud-iam-idp-runtime-20260521T0945Z",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "timestamp_unix": 1779358447,
+  "timestamp_iso": "2026-05-21T10:14:07Z",
+  "scope": "M03-P01-IP-004 Cloud IAM provider identity-provider runtime sync request-contract slice",
+  "status": "provider-runtime-sync-request-contract-green-live-smoke-pending",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/masterplan.json",
+    "specs/planning-closure-contract.json",
+    "specs/master-plan-sequencing.json#oya-vcs-protocol",
+    "specs/gitops-vcs-replacement.json",
+    "specs/multispectrum-review.json",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-004-iam-cedar-sso-sts.md"
+  ],
+  "files_changed": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/oya-cloud-iam-domain/src/lib.rs",
+    "crates/oya-cloud-iam-adapter-oci/Cargo.toml",
+    "crates/oya-cloud-iam-adapter-oci/src/lib.rs",
+    "crates/oya-cloud-iam-adapter-selfhosted/Cargo.toml",
+    "crates/oya-cloud-iam-adapter-selfhosted/src/lib.rs",
+    "registry/catalog/oya-cloud-iam-adapter-oci.yaml",
+    "registry/catalog/oya-cloud-iam-adapter-selfhosted.yaml",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-004-iam-cedar-sso-sts.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p01-cloud-iam-idp-provider-runtime-2026-05-21.json",
+    "evidence/multispectrum/cs-m03-p01-cloud-iam-idp-provider-runtime-2026-05-21.json"
+  ],
+  "implementation_summary": [
+    "Added Cloud IAM provider identity-provider sync request, receipt, operation, sync-status, provider-kind, error, and port contracts in the provider-neutral domain crate.",
+    "Added OCI Identity Domain request-contract adapter crate that emits deterministic upsert/delete command shapes and receipts without OCI SDK, credentials, or network I/O.",
+    "Added self-hosted/colo IAM request-contract adapter crate that emits the same upsert/delete semantics for Oyatie-operated on-prem/colo control planes.",
+    "Registered both new adapter crates in the workspace and architecture catalog so provider-specific code stays outside Cloud IAM domain/API/app crates.",
+    "Updated M03-P01/IP-004 status to provider-runtime sync request-contract green while keeping credentialed live-provider/self-hosted smoke explicitly pending."
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iam-domain -- provider_identity_provider_sync --nocapture (red)",
+      "status": "failed-as-expected",
+      "evidence": "TDD red captured missing CloudIamProviderKind, IamProviderIdentityProviderSyncRequest, operation/status, receipt, and provider error types before implementation."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-domain -- provider_identity_provider_sync --nocapture",
+      "status": "passed",
+      "evidence": "Targeted domain provider sync request/receipt regression passed: 1 passed, 8 filtered out."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-adapter-oci --all-features -- --nocapture",
+      "status": "passed",
+      "evidence": "OCI Identity Domain adapter tests passed: deterministic upsert command, provider receipt, delete sync status, and wrong provider-ref rejection."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-adapter-selfhosted --all-features -- --nocapture",
+      "status": "passed",
+      "evidence": "Self-hosted/colo IAM adapter tests passed: deterministic upsert command, provider receipt, delete sync status, and wrong provider-ref rejection."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-domain --all-features",
+      "status": "passed",
+      "evidence": "Full Cloud IAM domain suite passed: 9 tests, 0 failures."
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-iam-domain -p oya-cloud-iam-adapter-oci -p oya-cloud-iam-adapter-selfhosted -- --check",
+      "status": "passed",
+      "evidence": "Targeted rustfmt check passed."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-domain -p oya-cloud-iam-adapter-oci -p oya-cloud-iam-adapter-selfhosted --all-features --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted Cloud IAM domain and adapter clippy completed with no warnings."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Planning-closure validation passed after IP/P01 status updates: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate architecture-boundaries",
+      "status": "passed",
+      "evidence": "Architecture-boundaries validation passed after adding catalog records: 391 packages, 391 catalog records, 546 dependency edges."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "No whitespace/diff hygiene errors."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate data-class --workspace Cargo.toml",
+      "status": "passed",
+      "evidence": "Data-class fitness validation passed: 1590 fields checked, 1302 annotated, 288 legacy unannotated."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-idp-provider-runtime-2026-05-21.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency-seam validation passed: 6 subchecks, 5 pass, 1 skipped, 0 fail, 0 blocking diagnostics."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate audit-chain-replay",
+      "status": "passed",
+      "evidence": "Audit-chain replay validation passed: 1 shard, 28 events."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya verify --ci-required",
+      "status": "passed",
+      "evidence": "Canonical CI-required verification passed: gate run-all summary 89/89 lanes; cargo check --workspace --all-targets --keep-going passed; cargo clippy --workspace --all-targets --keep-going -- -D warnings passed; cargo nextest run --workspace --no-fail-fast started 4236 tests across 522 binaries and completed with no failures; provider execution, required secrets, and PR-review workflow semantics passed."
+    }
+  ],
+  "local_review": {
+    "verdict": "approve-local-before-pr-after-targeted-contract-review",
+    "finding_count_required": 0,
+    "notes": [
+      "The port is provider-neutral and shared by OCI plus self-hosted/colo adapters, preserving cloud-provider-agnostic and on-prem/colo hosting goals.",
+      "Adapters build deterministic request shapes only; no provider SDK, credential, live endpoint, or network mutation was introduced.",
+      "Configured provider refs are enforced before receipt creation so a tenant IdP cannot silently sync to the wrong hyperscaler domain or self-hosted realm.",
+      "All public fields in new structs carry data_class comments; catalog records preserve architecture-boundary discoverability.",
+      "GitHub queue/merge remains post-review only: open PR, wait for oya-pr-review and required checks, then enable queue/auto-merge.",
+      "Oya VCS verify/done/promote accepted after canonical verification; GitHub queue/merge remains gated on oya-pr-review plus required checks."
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "live-provider-smoke",
+      "status": "pending-credentials-and-runtime-target",
+      "reason": "No live OCI Identity Domain or self-hosted IAM endpoint was contacted; this slice proves deterministic request-contract adapters only."
+    },
+    {
+      "id": "api-runtime-integration",
+      "status": "pending-follow-up-slice-if-needed",
+      "reason": "Cloud IAM API CRUD remains in-memory/provider-managed; provider sync orchestration from API transaction to adapter runtime is not claimed here."
+    }
+  ],
+  "rollback": "Revert this ChangeSet to remove the Cloud IAM provider sync domain contract, OCI/self-hosted adapter crates, workspace/catalog registrations, plan status updates, audit-chain row, and evidence files.",
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "freshness_unix": 1779358447,
+  "git_sha": "e5e0c1f2",
+  "change_class_id": "CC-2",
+  "facets": {
+    "F1_correctness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Domain and both adapters validate request shape, provider refs, receipts, upsert status, delete status, and tenant binding."
+      ]
+    },
+    "F2_testability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Tests are deterministic and do not require credentials, SDKs, or network access."
+      ]
+    },
+    "F3_architecture": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Provider-specific request shaping lives only in adapter crates; Cloud IAM domain owns the shared port and no API/app crate imports adapters."
+      ]
+    },
+    "F4_interface_contract": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The provider sync port captures request_id, idempotency, actor, operation, provider refs, evidence refs, and deterministic sync status."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The implementation mirrors existing KMS/storage/network adapter patterns instead of inventing a new runtime abstraction."
+      ]
+    },
+    "F6_observability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Receipts preserve provider_request_id and provider_evidence_ref for later audit-chain/live-smoke correlation without secrets."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "No credentials or network calls are introduced; provider-ref mismatch fails closed before command/receipt success."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "standard",
+      "findings": [
+        "Cold-path request-contract shaping only; no hot-path allocation claim or benchmark needed."
+      ]
+    },
+    "F9_maintainability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "OCI and self-hosted implementations share one trait and receipt constructor while keeping provider path/body formats localized."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rollback is bounded to two new adapter crates, one domain extension, workspace/catalog rows, plan updates, and evidence."
+      ]
+    },
+    "F11_documentation_evidence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "IP/P01 status now distinguishes request-contract green from live-smoke pending."
+      ]
+    },
+    "F13_adversarial_review": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Wrong OCI domain and wrong self-hosted cell/realm refs are explicitly tested as provider rejection paths."
+      ]
+    },
+    "M1_policy_adherence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claims were accepted before/around claimed scopes; no forbidden manual merge/push path is used."
+      ]
+    },
+    "M2_evidence_completeness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Evidence includes red/green TDD, targeted tests, fmt, clippy, planning closure, architecture-boundaries, and diff hygiene."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "One shared sync request/receipt removes special cases between OCI and self-hosted provider paths."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The same contract supports hyperscaler and self-hosted/colo providers without hardwiring OCI into the domain/API."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Provider-ref mismatch tests prove sync cannot silently target the wrong provider."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "scan",
+      "findings": [
+        "Adapter constructors expose explicit endpoint/site/domain/realm configuration and deterministic provider ref helpers."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected SDK-backed live adapter in this slice because credentials/live target are a separate gate; rejected embedding provider paths in API/domain request handlers."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "All new public fields have data_class comments; evidence refs avoid raw secrets and live credential material."
+      ]
+    }
+  },
+  "vcs_lifecycle": {
+    "verify": "accepted",
+    "done": "accepted",
+    "promote": "accepted",
+    "environment": "dev",
+    "agent_id": "codex-m03-p01-cloud-iam-idp-runtime-20260521T0945Z",
+    "timestamp_iso": "2026-05-21T10:14:07Z",
+    "evidence_refs": [
+      "evidence/fd001/cs-m03-p01-cloud-iam-idp-provider-runtime-2026-05-21.json",
+      "evidence/multispectrum/cs-m03-p01-cloud-iam-idp-provider-runtime-2026-05-21.json"
+    ]
+  }
+}
