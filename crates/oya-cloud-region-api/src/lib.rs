@@ -4,7 +4,8 @@
 //! the immutable Cloud region/AZ taxonomy before returning API records.
 
 use oya_cloud_region_domain::{
-    AzState, CloudAz, CloudRegion, CloudRegionCatalog, CloudRegionError, RegionCode, RegionState,
+    AzState, CloudAz, CloudCell, CloudCellState, CloudRegion, CloudRegionCatalog, CloudRegionError,
+    RegionCode, RegionState, TenantDensityClass,
 };
 use oya_residency_domain::ResidencyClass;
 
@@ -178,9 +179,22 @@ pub struct CloudAzRecord {
     pub region_code: String,                       // data_class: PUBLIC
     pub power_zones: Vec<CloudRegionPowerZoneRef>, // data_class: PUBLIC
     pub cells: Vec<CloudRegionCellRef>,            // data_class: PUBLIC
+    pub cell_isolation_evidence: Vec<CloudCellIsolationEvidenceRecord>, // data_class: PUBLIC
     pub state: String,                             // data_class: PUBLIC
     pub created_at_epoch_seconds: u64,             // data_class: PUBLIC
     pub schema_version: u32,                       // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudCellIsolationEvidenceRecord {
+    pub cell_id: String,                // data_class: PUBLIC
+    pub region_code: String,            // data_class: PUBLIC
+    pub az_code: String,                // data_class: PUBLIC
+    pub state: String,                  // data_class: PUBLIC
+    pub tenant_density: String,         // data_class: PUBLIC
+    pub allowed_residency: Vec<String>, // data_class: PUBLIC
+    pub evidence_ref: String,           // data_class: PUBLIC
+    pub schema_version: u32,            // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -410,7 +424,7 @@ pub fn list_cloud_azs_from_api(
     let request_id = request.boundary.request_id;
     let data = catalog
         .azs_for_region(&region_code)
-        .map(az_record)
+        .map(|az| az_record(az, catalog))
         .collect();
     Ok(CloudAzListSuccessResponse::ok(data, request_id))
 }
@@ -508,7 +522,12 @@ fn region_record(region: &CloudRegion) -> CloudRegionRecord {
     }
 }
 
-fn az_record(az: &CloudAz) -> CloudAzRecord {
+fn az_record(az: &CloudAz, catalog: &CloudRegionCatalog) -> CloudAzRecord {
+    let cell_isolation_evidence: Vec<_> = catalog
+        .cells_for_region(&az.region_code.value)
+        .filter(|cell| cell.az_code.value == az.code.value)
+        .map(cell_isolation_evidence_record)
+        .collect();
     CloudAzRecord {
         code: az.code.value.value.clone(),
         region_code: az.region_code.value.value.clone(),
@@ -528,9 +547,31 @@ fn az_record(az: &CloudAz) -> CloudAzRecord {
                 value: cell.value.clone(),
             })
             .collect(),
+        cell_isolation_evidence,
         state: az_state_label(az.state.value).to_string(),
         created_at_epoch_seconds: az.created_at_epoch_seconds.value,
         schema_version: az.schema_version.value,
+    }
+}
+
+fn cell_isolation_evidence_record(cell: &CloudCell) -> CloudCellIsolationEvidenceRecord {
+    CloudCellIsolationEvidenceRecord {
+        cell_id: cell.id.value.value.clone(),
+        region_code: cell.region_code.value.value.clone(),
+        az_code: cell.az_code.value.value.clone(),
+        state: cloud_cell_state_label(cell.state.value).to_string(),
+        tenant_density: tenant_density_label(cell.tenant_density.value).to_string(),
+        allowed_residency: cell
+            .allowed_residency
+            .value
+            .iter()
+            .map(|residency_class| residency_class_label(residency_class).to_string())
+            .collect(),
+        evidence_ref: format!(
+            "cell-isolation://{}/{}/{}",
+            cell.region_code.value.value, cell.az_code.value.value, cell.id.value.value
+        ),
+        schema_version: cell.schema_version.value,
     }
 }
 
@@ -549,6 +590,26 @@ fn az_state_label(state: AzState) -> &'static str {
         AzState::Active => "active",
         AzState::DrOnly => "dr_only",
         AzState::Retiring => "retiring",
+    }
+}
+
+fn cloud_cell_state_label(state: CloudCellState) -> &'static str {
+    match state {
+        CloudCellState::Planned => "planned",
+        CloudCellState::Active => "active",
+        CloudCellState::DrOnly => "dr_only",
+        CloudCellState::Draining => "draining",
+        CloudCellState::Retired => "retired",
+    }
+}
+
+fn tenant_density_label(density: TenantDensityClass) -> &'static str {
+    match density {
+        TenantDensityClass::Shared => "shared",
+        TenantDensityClass::Dedicated => "dedicated",
+        TenantDensityClass::Sovereign => "sovereign",
+        TenantDensityClass::AirGapped => "air_gapped",
+        TenantDensityClass::FoundryRuntime => "foundry_runtime",
     }
 }
 

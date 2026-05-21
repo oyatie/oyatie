@@ -207,8 +207,8 @@ components:
         residency_strictness:
           type: string
           enum:
-            - strict_kr
-            - kr_with_us_failover
+            - strict_home
+            - home_with_failover
             - global
             - per_pack
           x-oyatie-rust-type: String
@@ -268,6 +268,7 @@ components:
         - region_code
         - power_zones
         - cells
+        - cell_isolation_evidence
         - state
         - created_at_epoch_seconds
         - schema_version
@@ -292,6 +293,12 @@ components:
             $ref: '#/components/schemas/CloudRegionCellRef'
           x-oyatie-rust-type: Vec<CloudRegionCellRef>
           x-oyatie-data-class: PUBLIC
+        cell_isolation_evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/CloudCellIsolationEvidenceRecord'
+          x-oyatie-rust-type: Vec<CloudCellIsolationEvidenceRecord>
+          x-oyatie-data-class: PUBLIC
         state:
           type: string
           enum:
@@ -306,6 +313,72 @@ components:
           format: uint64
           minimum: 0
           x-oyatie-rust-type: u64
+          x-oyatie-data-class: PUBLIC
+        schema_version:
+          type: integer
+          format: uint32
+          minimum: 1
+          x-oyatie-rust-type: u32
+          x-oyatie-data-class: PUBLIC
+    CloudCellIsolationEvidenceRecord:
+      type: object
+      required:
+        - cell_id
+        - region_code
+        - az_code
+        - state
+        - tenant_density
+        - allowed_residency
+        - evidence_ref
+        - schema_version
+      properties:
+        cell_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
+        region_code:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
+        az_code:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
+        state:
+          type: string
+          enum:
+            - planned
+            - active
+            - dr_only
+            - draining
+            - retired
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
+        tenant_density:
+          type: string
+          enum:
+            - shared
+            - dedicated
+            - sovereign
+            - air_gapped
+            - foundry_runtime
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: PUBLIC
+        allowed_residency:
+          type: array
+          items:
+            type: string
+            enum:
+              - strict_home
+              - home_with_failover
+              - global
+              - per_pack
+          x-oyatie-rust-type: Vec<String>
+          x-oyatie-data-class: PUBLIC
+        evidence_ref:
+          type: string
+          pattern: '^cell-isolation://'
+          x-oyatie-rust-type: String
           x-oyatie-data-class: PUBLIC
         schema_version:
           type: integer
