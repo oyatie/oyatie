@@ -923,9 +923,7 @@ fn cloud_kms_issue(error: &CloudKmsError) -> &'static str {
         CloudKmsError::CellRegionMismatch => "cell_id must belong to key region",
         CloudKmsError::InvalidHsmPartitionRef => "hsm_partition_ref must be canonical",
         CloudKmsError::HsmPartitionMismatch => "hsm_partition_ref must bind region and cell",
-        CloudKmsError::HsmValidationDenied => {
-            "KR keys require KCMVP and global keys require FIPS 140-3"
-        }
+        CloudKmsError::HsmValidationDenied => "KMS keys require an accepted HSM validation profile",
         CloudKmsError::ResidencyRegionMismatch => "residency class must allow key home region",
         CloudKmsError::InvalidDataClass => "request data_class must match key policy class",
         CloudKmsError::InvalidKeyState => "key state must allow cryptographic use",

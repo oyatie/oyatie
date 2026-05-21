@@ -305,7 +305,7 @@ fn validate_linguistic_coverage(cases: &[EvalCase]) -> Result<(), EvalError> {
         .collect::<BTreeSet<_>>();
     if REQUIRED_LINGUISTIC_COHORT_LOCALES
         .iter()
-        .all(|locale| actual.contains(locale))
+        .all(|cohort| actual.contains(cohort))
     {
         Ok(())
     } else {

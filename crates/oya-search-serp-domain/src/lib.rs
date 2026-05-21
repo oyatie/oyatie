@@ -60,10 +60,10 @@ mod tests {
     fn plan(limit: u16) -> QueryPlan {
         QueryPlan::new(QueryPlanCreate {
             query_id: "q1".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             raw_query: "hi".to_string(),
             mode: QueryMode::Hybrid,
-            locale: QueryLocale::Kr,
+            locale: QueryLocale::PackPrimary,
             limit,
             min_score: 0.0,
             shard_keys: vec!["s1".to_string()],
@@ -113,6 +113,6 @@ mod tests {
         let p = plan(5);
         let serp = SerpResponse::new(&p, vec![], 0).expect("serp");
         assert_eq!(serp.query_id, "q1");
-        assert_eq!(serp.tenant_id, "ten_kr");
+        assert_eq!(serp.tenant_id, "ten_alpha");
     }
 }

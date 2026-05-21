@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P03-IP-002
 title: Cloud Billing tax-invoice + metering
-status: stub
+status: regional-pack-tax-format-green; metering-outbox-runtime-pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
@@ -19,8 +19,9 @@ Per-region tax-invoice format via regional pack; per-resource metering via outbo
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-cloud-billing-kernel/src/lib.rs::TaxInvoice
-crates/oya-cloud-billing-kernel/src/lib.rs::generate_invoice
+crates/oya-cloud-billing-tax-app/src/lib.rs::CloudBillingTaxInvoiceFormatPolicy
+crates/oya-cloud-billing-tax-app/src/lib.rs::generate_cloud_billing_invoice_from_api
+crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs::regional_pack_tax_invoice_contract
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -29,9 +30,13 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 
 ## Acceptance-test-commands
 ```
-cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
-scripts/check.sh
+cargo test -p oya-cloud-billing-kernel --all-features
+cargo test -p oya-cloud-billing-domain --all-features
+cargo test -p oya-cloud-billing-tax-app --all-features
+cargo clippy -p oya-cloud-billing-tax-app --all-features --all-targets -- -D warnings
+cargo run -q -p oya-dev-cli -- gate validate cohesion
+cargo run -q -p oya-dev-cli -- gate validate planning-closure
+oya verify --ci-required
 ```
 
 ## Done-criteria
@@ -54,4 +59,13 @@ icm store -t context-oyatie -c 'M03-P03-IP-002 Cloud Billing tax-invoice + meter
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- Cloud Billing tax-invoice API no longer accepts arbitrary tax invoice formats
+  detached from the selected regional pack; the runtime has one provider-neutral
+  regional-pack-to-tax-format policy table covering KR/JP/EU/IN/BR/KSA/UAE.
+- Account/invoice regional pack mismatch is rejected before invoice issuance.
+
+Remaining boundary:
+- This ChangeSet does not introduce a deployed billing runtime, live tax
+  authority integration, persisted idempotency ledger, or provider-specific
+  billing adapter. Those remain follow-up slices.

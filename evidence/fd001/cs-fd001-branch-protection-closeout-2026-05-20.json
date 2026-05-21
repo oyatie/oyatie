@@ -1,0 +1,185 @@
+{
+  "schema_version": "fd001-control-state-closeout/v1",
+  "change_id": "cs-fd001-branch-protection-closeout-2026-05-20",
+  "agent_id": "codex-fd001-branch-protection-closeout",
+  "updated_at": "2026-05-20T20:49:15Z",
+  "workspace": "/Users/jasonlee/oyatie-worktrees/fd001-branch-protection-closeout-20260520T204620Z",
+  "base_branch": "fd001/baseline-gate-unification-20260520T183137Z",
+  "git_sha_before_change": "7a923b90701b9fef281821d23129f5b15bff0cfe",
+  "intent": "Close stale FD-001 branch-protection/chained-enforcement control-state blockers after live and hosted evidence turned green.",
+  "claim_scope": [
+    "specs/masterplan.json::M01-P17-IP-001",
+    "specs/masterplan.json::M01-P17-IP-008.1",
+    "specs/master-plan-sequencing.json::chained_enforcement_contract",
+    ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-001-branch-protection-deploy.md::M01-P17-IP-001-status",
+    ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md::F-FORBIDDEN-PRIMITIVES-CI-GUARD-status",
+    "specs/masterplan.json::M01-P17-IP-008-successor-status",
+    ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md::successor-status"
+  ],
+  "implemented": [
+    "Marked M01-P17-IP-001 branch-protection deploy complete where live branch-protection, secret visibility, local gate, and hosted PR evidence are green.",
+    "Advanced M01-P17-IP-008.1 banned-primitives/chained-enforcement status from local-green/hosted-pending to hosted-green.",
+    "Updated master-plan sequencing so product fanout no longer treats hosted banned-primitives enforcement as a pending GitOps verification gap.",
+    "Preserved older blocked evidence files as historical records instead of rewriting them."
+  ],
+  "live_branch_protection": {
+    "command": "scripts/branch-protection-apply.sh --check --repo jason931225/oyatie --branch dev",
+    "result": "passed",
+    "canonical_context_count": 15,
+    "live_context_count": 15,
+    "missing_from_live": [],
+    "extra_in_live": [],
+    "log": "/tmp/omx-fd001-next-gate/branch-protection-check.log"
+  },
+  "actions_secret_check": {
+    "command": "scripts/github-actions-required-secrets-check.sh --repo jason931225/oyatie --branch dev --config infra/branch-protection/dev.json",
+    "result": "passed",
+    "log": "/tmp/omx-fd001-next-gate/github-actions-required-secrets-check.log"
+  },
+  "local_gate": {
+    "command": "cargo run -q -p oya-dev-cli -- gate validate protection-context-match",
+    "result": "passed: 15 required contexts, 45 workflow jobs indexed across 28 workflows",
+    "log": "/tmp/omx-fd001-next-gate/protection-context-match-local.log"
+  },
+  "hosted_pr_evidence": {
+    "pr": 151,
+    "url": "https://github.com/jason931225/oyatie/pull/151",
+    "head_sha": "7a923b90701b9fef281821d23129f5b15bff0cfe",
+    "draft": false,
+    "mergeable": true,
+    "runs": [
+      {
+        "name": "pr-tests",
+        "run_id": 26188418360,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-governance-protection-context-match",
+        "run_id": 26188418362,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-governance-dependency-seam",
+        "run_id": 26188418427,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-banned-primitives",
+        "run_id": 26188418368,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-aspirational-enforcement",
+        "run_id": 26188418361,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-honest-claims",
+        "run_id": 26188418425,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-api-semver",
+        "run_id": 26188418369,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-cohesion",
+        "run_id": 26188418366,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-supply-chain",
+        "run_id": 26188418364,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-master-plan-completion",
+        "run_id": 26188418426,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-changeset-state",
+        "run_id": 26188418363,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-evidence-secret-scan",
+        "run_id": 26188418359,
+        "conclusion": "success"
+      },
+      {
+        "name": "oya-foundry-fitness-sequential-pr-merge-conflicts",
+        "run_id": 26188673688,
+        "conclusion": "success"
+      }
+    ]
+  },
+  "non_claims": [
+    "Does not merge PR #151; Oya VCS/GitOps controller remains the merge/promotion authority.",
+    "Does not claim all FD-001 product surfaces complete; it only closes the branch-protection/chained-enforcement hosted verification blocker.",
+    "Does not rewrite historical blocked evidence files that accurately recorded earlier PR #148 / missing-secret states."
+  ],
+  "remaining_blockers": [
+    "PR #151 is ready/unmerged; downstream product work should stack on its head or wait for controller merge, not manually merge.",
+    "FD-001 product/API/data implementation remains incomplete beyond this serialized governance gate closeout."
+  ],
+  "validation": [
+    {
+      "command": "python3 -m json.tool specs/masterplan.json specs/master-plan-sequencing.json evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json",
+      "status": "passed",
+      "evidence": "All changed JSON/control evidence files parse successfully."
+    },
+    {
+      "command": "scripts/branch-protection-apply.sh --check --repo jason931225/oyatie --branch dev",
+      "status": "passed",
+      "evidence": "canonical=15 live=15; missing_from_live=[]; extra_in_live=[]."
+    },
+    {
+      "command": "scripts/github-actions-required-secrets-check.sh --repo jason931225/oyatie --branch dev --config infra/branch-protection/dev.json",
+      "status": "passed",
+      "evidence": "Required Actions secret is visible; live/canonical required contexts match."
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed",
+      "evidence": "Workspace Rust formatting check completed successfully."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate protection-context-match",
+      "status": "passed",
+      "evidence": "15 required contexts, 45 workflow jobs indexed across 28 workflows."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives",
+      "status": "passed",
+      "evidence": "1585 files, 18 sources, 18 fences, 3 command-log records, 0 usages, 0 documented exceptions."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion",
+      "status": "passed",
+      "evidence": "80 phases, 172 implementation plans."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate honest-claims",
+      "status": "passed",
+      "evidence": "465 documents, 102003 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate aspirational-enforcement",
+      "status": "passed",
+      "evidence": "1639 documents, 186871 lines, 16 binding mentions, 70 check crates, 31 workflow contexts, 41 quality lane contexts, 15 required contexts."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "No whitespace/diff hygiene errors."
+    }
+  ],
+  "verification_log": "/tmp/omx-fd001-branch-protection-closeout/verify-final.log"
+}

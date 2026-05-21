@@ -6,12 +6,97 @@
 use std::collections::BTreeMap;
 
 use oya_cloud_iam_domain::{
-    AssumeRoleRequest, CloudIamError, IamDirectory, IamRole, IamRoleCreate, StsSession,
+    AssumeRoleRequest, CloudIamError, IamDirectory, IamRole, IamRoleCreate, IdentityProvider,
+    IdentityProviderCreate, IdentityProviderKind, IdentityProviderUpdate, StsSession,
 };
 use oya_data_boundary_kernel::parse_data_class_label;
 
+pub const CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE: &str = "cloud.iam.identity_provider.create";
+pub const CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE: &str = "cloud.iam.identity_provider.delete";
+pub const CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE: &str = "cloud.iam.identity_provider.list";
+pub const CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE: &str = "cloud.iam.identity_provider.update";
 pub const CLOUD_IAM_ROLE_CREATE_SURFACE: &str = "cloud.iam.role.create";
 pub const CLOUD_IAM_STS_TOKEN_SURFACE: &str = "cloud.iam.sts.token";
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamIdentityProviderDeleteApiStatus {
+    Ok,
+    BadRequest,
+    Forbidden,
+    Conflict,
+    UnprocessableEntity,
+}
+
+impl CloudIamIdentityProviderDeleteApiStatus {
+    pub const fn code(self) -> u16 {
+        match self {
+            Self::Ok => 200,
+            Self::BadRequest => 400,
+            Self::Forbidden => 403,
+            Self::Conflict => 409,
+            Self::UnprocessableEntity => 422,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamIdentityProviderListApiStatus {
+    Ok,
+    BadRequest,
+    Forbidden,
+}
+
+impl CloudIamIdentityProviderListApiStatus {
+    pub const fn code(self) -> u16 {
+        match self {
+            Self::Ok => 200,
+            Self::BadRequest => 400,
+            Self::Forbidden => 403,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamIdentityProviderUpdateApiStatus {
+    Ok,
+    BadRequest,
+    Forbidden,
+    Conflict,
+    UnprocessableEntity,
+}
+
+impl CloudIamIdentityProviderUpdateApiStatus {
+    pub const fn code(self) -> u16 {
+        match self {
+            Self::Ok => 200,
+            Self::BadRequest => 400,
+            Self::Forbidden => 403,
+            Self::Conflict => 409,
+            Self::UnprocessableEntity => 422,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamIdentityProviderCreateApiStatus {
+    Created,
+    BadRequest,
+    Forbidden,
+    Conflict,
+    UnprocessableEntity,
+}
+
+impl CloudIamIdentityProviderCreateApiStatus {
+    pub const fn code(self) -> u16 {
+        match self {
+            Self::Created => 201,
+            Self::BadRequest => 400,
+            Self::Forbidden => 403,
+            Self::Conflict => 409,
+            Self::UnprocessableEntity => 422,
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudIamRoleCreateApiStatus {
@@ -60,7 +145,9 @@ pub enum CloudIamApiErrorCode {
     RequestIdEmpty,
     TenantHeaderEmpty,
     IdempotencyKeyEmpty,
+    PathProviderIdEmpty,
     PathRoleIdEmpty,
+    ProviderIdMismatch,
     RoleIdMismatch,
     TenantMismatch,
     PrincipalMismatch,
@@ -81,7 +168,9 @@ impl CloudIamApiErrorCode {
             Self::RequestIdEmpty => "CLOUD_IAM_REQUEST_ID_EMPTY",
             Self::TenantHeaderEmpty => "CLOUD_IAM_TENANT_HEADER_EMPTY",
             Self::IdempotencyKeyEmpty => "CLOUD_IAM_IDEMPOTENCY_KEY_EMPTY",
+            Self::PathProviderIdEmpty => "CLOUD_IAM_PATH_PROVIDER_ID_EMPTY",
             Self::PathRoleIdEmpty => "CLOUD_IAM_PATH_ROLE_ID_EMPTY",
+            Self::ProviderIdMismatch => "CLOUD_IAM_PROVIDER_ID_MISMATCH",
             Self::RoleIdMismatch => "CLOUD_IAM_ROLE_ID_MISMATCH",
             Self::TenantMismatch => "CLOUD_IAM_TENANT_MISMATCH",
             Self::PrincipalMismatch => "CLOUD_IAM_PRINCIPAL_MISMATCH",
@@ -106,6 +195,12 @@ pub struct CloudIamApiBoundaryContext {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiReadBoundaryContext {
+    pub request_id: String, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamApiPrincipal {
     pub tenant_id: String,    // data_class: INTERNAL_ONLY
     pub principal_id: String, // data_class: INTERNAL_ONLY
@@ -127,6 +222,69 @@ pub struct CloudIamPrincipalRef {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamScopeRef {
     pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamIdentityProviderKind {
+    Saml,
+    Oidc,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderCreateRequest {
+    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
+    pub identity_provider_id: String,       // data_class: INTERNAL_ONLY
+    pub region_pack: String,                // data_class: INTERNAL_ONLY
+    pub kind: CloudIamIdentityProviderKind, // data_class: PUBLIC
+    pub issuer_uri: String,                 // data_class: INTERNAL_ONLY
+    pub audience: String,                   // data_class: INTERNAL_ONLY
+    pub verification_material_ref: String,  // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderCreateApiRequest {
+    pub path_identity_provider_id: String, // data_class: INTERNAL_ONLY
+    pub boundary: CloudIamApiBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudIamApiPrincipal,   // data_class: INTERNAL_ONLY
+    pub authorization: CloudIamApiAuthorization, // data_class: INTERNAL_ONLY
+    pub body: CloudIamIdentityProviderCreateRequest, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderUpdateRequest {
+    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
+    pub identity_provider_id: String,       // data_class: INTERNAL_ONLY
+    pub region_pack: String,                // data_class: INTERNAL_ONLY
+    pub kind: CloudIamIdentityProviderKind, // data_class: PUBLIC
+    pub issuer_uri: String,                 // data_class: INTERNAL_ONLY
+    pub audience: String,                   // data_class: INTERNAL_ONLY
+    pub verification_material_ref: String,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderUpdateApiRequest {
+    pub path_identity_provider_id: String, // data_class: INTERNAL_ONLY
+    pub boundary: CloudIamApiBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudIamApiPrincipal,   // data_class: INTERNAL_ONLY
+    pub authorization: CloudIamApiAuthorization, // data_class: INTERNAL_ONLY
+    pub body: CloudIamIdentityProviderUpdateRequest, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderDeleteApiRequest {
+    pub path_identity_provider_id: String, // data_class: INTERNAL_ONLY
+    pub boundary: CloudIamApiBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudIamApiPrincipal,   // data_class: INTERNAL_ONLY
+    pub authorization: CloudIamApiAuthorization, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderListApiRequest {
+    pub boundary: CloudIamApiReadBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudIamApiPrincipal,          // data_class: INTERNAL_ONLY
+    pub authorization: CloudIamApiAuthorization,  // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -173,6 +331,60 @@ pub struct CloudIamStsTokenApiRequest {
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderCreateIdempotencyLedger {
+    entries: BTreeMap<
+        CloudIamIdempotencyLedgerKey,
+        CloudIamIdentityProviderCreateIdempotencyLedgerEntry,
+    >, // data_class: INTERNAL_ONLY
+}
+
+impl CloudIamIdentityProviderCreateIdempotencyLedger {
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderUpdateIdempotencyLedger {
+    entries: BTreeMap<
+        CloudIamIdempotencyLedgerKey,
+        CloudIamIdentityProviderUpdateIdempotencyLedgerEntry,
+    >, // data_class: INTERNAL_ONLY
+}
+
+impl CloudIamIdentityProviderUpdateIdempotencyLedger {
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderDeleteIdempotencyLedger {
+    entries: BTreeMap<
+        CloudIamIdempotencyLedgerKey,
+        CloudIamIdentityProviderDeleteIdempotencyLedgerEntry,
+    >, // data_class: INTERNAL_ONLY
+}
+
+impl CloudIamIdentityProviderDeleteIdempotencyLedger {
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct CloudIamRoleCreateIdempotencyLedger {
     entries: BTreeMap<CloudIamIdempotencyLedgerKey, CloudIamRoleCreateIdempotencyLedgerEntry>, // data_class: INTERNAL_ONLY
 }
@@ -211,6 +423,24 @@ struct CloudIamIdempotencyLedgerKey {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudIamIdentityProviderCreateIdempotencyLedgerEntry {
+    fingerprint: CloudIamRequestFingerprint, // data_class: INTERNAL_ONLY
+    result: CloudIamIdentityProviderCreateApiResult, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudIamIdentityProviderUpdateIdempotencyLedgerEntry {
+    fingerprint: CloudIamRequestFingerprint, // data_class: INTERNAL_ONLY
+    result: CloudIamIdentityProviderUpdateApiResult, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudIamIdentityProviderDeleteIdempotencyLedgerEntry {
+    fingerprint: CloudIamRequestFingerprint, // data_class: INTERNAL_ONLY
+    result: CloudIamIdentityProviderDeleteApiResult, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct CloudIamRoleCreateIdempotencyLedgerEntry {
     fingerprint: CloudIamRequestFingerprint, // data_class: INTERNAL_ONLY
     result: CloudIamRoleCreateApiResult,     // data_class: INTERNAL_ONLY
@@ -229,6 +459,36 @@ struct CloudIamRequestFingerprint {
 
 type CloudIamRoleCreateApiResult = Result<CloudIamRoleCreateSuccessResponse, CloudIamApiError>;
 type CloudIamStsTokenApiResult = Result<CloudIamStsTokenSuccessResponse, CloudIamApiError>;
+type CloudIamIdentityProviderCreateApiResult =
+    Result<CloudIamIdentityProviderCreateSuccessResponse, CloudIamApiError>;
+type CloudIamIdentityProviderUpdateApiResult =
+    Result<CloudIamIdentityProviderUpdateSuccessResponse, CloudIamApiError>;
+type CloudIamIdentityProviderDeleteApiResult =
+    Result<CloudIamIdentityProviderDeleteSuccessResponse, CloudIamApiError>;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderCreateSuccessResponse {
+    pub data: CloudIamIdentityProviderRecord, // data_class: INTERNAL_ONLY
+    pub metadata: CloudIamApiResponseMetadata, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderUpdateSuccessResponse {
+    pub data: CloudIamIdentityProviderRecord, // data_class: INTERNAL_ONLY
+    pub metadata: CloudIamApiResponseMetadata, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderDeleteSuccessResponse {
+    pub data: CloudIamIdentityProviderRecord, // data_class: INTERNAL_ONLY
+    pub metadata: CloudIamApiResponseMetadata, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderListSuccessResponse {
+    pub data: Vec<CloudIamIdentityProviderRecord>, // data_class: INTERNAL_ONLY
+    pub metadata: CloudIamApiResponseMetadata,     // data_class: INTERNAL_ONLY
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamRoleCreateSuccessResponse {
@@ -245,6 +505,19 @@ pub struct CloudIamStsTokenSuccessResponse {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamApiResponseMetadata {
     pub request_id: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderRecord {
+    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
+    pub identity_provider_id: String,       // data_class: INTERNAL_ONLY
+    pub region_pack: String,                // data_class: INTERNAL_ONLY
+    pub kind: CloudIamIdentityProviderKind, // data_class: PUBLIC
+    pub issuer_uri: String,                 // data_class: INTERNAL_ONLY
+    pub audience: String,                   // data_class: INTERNAL_ONLY
+    pub verification_material_ref: String,  // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -279,6 +552,50 @@ pub struct CloudIamStsSessionRecord {
 
 impl CloudIamRoleCreateSuccessResponse {
     pub fn created(data: CloudIamRoleRecord, request_id: impl Into<String>) -> Self {
+        Self {
+            data,
+            metadata: CloudIamApiResponseMetadata {
+                request_id: request_id.into(),
+            },
+        }
+    }
+}
+
+impl CloudIamIdentityProviderCreateSuccessResponse {
+    pub fn created(data: CloudIamIdentityProviderRecord, request_id: impl Into<String>) -> Self {
+        Self {
+            data,
+            metadata: CloudIamApiResponseMetadata {
+                request_id: request_id.into(),
+            },
+        }
+    }
+}
+
+impl CloudIamIdentityProviderUpdateSuccessResponse {
+    pub fn updated(data: CloudIamIdentityProviderRecord, request_id: impl Into<String>) -> Self {
+        Self {
+            data,
+            metadata: CloudIamApiResponseMetadata {
+                request_id: request_id.into(),
+            },
+        }
+    }
+}
+
+impl CloudIamIdentityProviderDeleteSuccessResponse {
+    pub fn deleted(data: CloudIamIdentityProviderRecord, request_id: impl Into<String>) -> Self {
+        Self {
+            data,
+            metadata: CloudIamApiResponseMetadata {
+                request_id: request_id.into(),
+            },
+        }
+    }
+}
+
+impl CloudIamIdentityProviderListSuccessResponse {
+    pub fn ok(data: Vec<CloudIamIdentityProviderRecord>, request_id: impl Into<String>) -> Self {
         Self {
             data,
             metadata: CloudIamApiResponseMetadata {
@@ -325,7 +642,12 @@ pub enum CloudIamApiError {
     EmptyRequestId,
     EmptyTenantHeader,
     EmptyIdempotencyKey,
+    EmptyPathProviderId,
     EmptyPathRoleId,
+    ProviderIdMismatch {
+        path_identity_provider_id: String, // data_class: INTERNAL_ONLY
+        body_identity_provider_id: String, // data_class: INTERNAL_ONLY
+    },
     RoleIdMismatch {
         path_role_id: String, // data_class: INTERNAL_ONLY
         body_role_id: String, // data_class: INTERNAL_ONLY
@@ -363,6 +685,45 @@ pub enum CloudIamApiError {
 }
 
 impl CloudIamApiError {
+    pub fn identity_provider_create_status(&self) -> CloudIamIdentityProviderCreateApiStatus {
+        match self.status_kind() {
+            CloudIamApiStatusKind::BadRequest => {
+                CloudIamIdentityProviderCreateApiStatus::BadRequest
+            }
+            CloudIamApiStatusKind::Forbidden => CloudIamIdentityProviderCreateApiStatus::Forbidden,
+            CloudIamApiStatusKind::Conflict => CloudIamIdentityProviderCreateApiStatus::Conflict,
+            CloudIamApiStatusKind::UnprocessableEntity => {
+                CloudIamIdentityProviderCreateApiStatus::UnprocessableEntity
+            }
+        }
+    }
+
+    pub fn identity_provider_update_status(&self) -> CloudIamIdentityProviderUpdateApiStatus {
+        match self.status_kind() {
+            CloudIamApiStatusKind::BadRequest => {
+                CloudIamIdentityProviderUpdateApiStatus::BadRequest
+            }
+            CloudIamApiStatusKind::Forbidden => CloudIamIdentityProviderUpdateApiStatus::Forbidden,
+            CloudIamApiStatusKind::Conflict => CloudIamIdentityProviderUpdateApiStatus::Conflict,
+            CloudIamApiStatusKind::UnprocessableEntity => {
+                CloudIamIdentityProviderUpdateApiStatus::UnprocessableEntity
+            }
+        }
+    }
+
+    pub fn identity_provider_delete_status(&self) -> CloudIamIdentityProviderDeleteApiStatus {
+        match self.status_kind() {
+            CloudIamApiStatusKind::BadRequest => {
+                CloudIamIdentityProviderDeleteApiStatus::BadRequest
+            }
+            CloudIamApiStatusKind::Forbidden => CloudIamIdentityProviderDeleteApiStatus::Forbidden,
+            CloudIamApiStatusKind::Conflict => CloudIamIdentityProviderDeleteApiStatus::Conflict,
+            CloudIamApiStatusKind::UnprocessableEntity => {
+                CloudIamIdentityProviderDeleteApiStatus::UnprocessableEntity
+            }
+        }
+    }
+
     pub fn role_create_status(&self) -> CloudIamRoleCreateApiStatus {
         match self.status_kind() {
             CloudIamApiStatusKind::BadRequest => CloudIamRoleCreateApiStatus::BadRequest,
@@ -389,6 +750,18 @@ impl CloudIamApiError {
         self.role_create_status().code()
     }
 
+    pub fn identity_provider_create_status_code(&self) -> u16 {
+        self.identity_provider_create_status().code()
+    }
+
+    pub fn identity_provider_update_status_code(&self) -> u16 {
+        self.identity_provider_update_status().code()
+    }
+
+    pub fn identity_provider_delete_status_code(&self) -> u16 {
+        self.identity_provider_delete_status().code()
+    }
+
     pub fn sts_token_status_code(&self) -> u16 {
         self.sts_token_status().code()
     }
@@ -398,7 +771,9 @@ impl CloudIamApiError {
             Self::EmptyRequestId => CloudIamApiErrorCode::RequestIdEmpty,
             Self::EmptyTenantHeader => CloudIamApiErrorCode::TenantHeaderEmpty,
             Self::EmptyIdempotencyKey => CloudIamApiErrorCode::IdempotencyKeyEmpty,
+            Self::EmptyPathProviderId => CloudIamApiErrorCode::PathProviderIdEmpty,
             Self::EmptyPathRoleId => CloudIamApiErrorCode::PathRoleIdEmpty,
+            Self::ProviderIdMismatch { .. } => CloudIamApiErrorCode::ProviderIdMismatch,
             Self::RoleIdMismatch { .. } => CloudIamApiErrorCode::RoleIdMismatch,
             Self::TenantMismatch { .. } => CloudIamApiErrorCode::TenantMismatch,
             Self::PrincipalMismatch { .. } => CloudIamApiErrorCode::PrincipalMismatch,
@@ -450,7 +825,9 @@ impl CloudIamApiError {
             Self::EmptyRequestId
             | Self::EmptyTenantHeader
             | Self::EmptyIdempotencyKey
+            | Self::EmptyPathProviderId
             | Self::EmptyPathRoleId
+            | Self::ProviderIdMismatch { .. }
             | Self::RoleIdMismatch { .. }
             | Self::InvalidDataClassLabel { .. } => CloudIamApiStatusKind::BadRequest,
         }
@@ -461,7 +838,9 @@ impl CloudIamApiError {
             Self::EmptyRequestId => "X-Request-Id header is required",
             Self::EmptyTenantHeader => "X-Tenant-Id header is required",
             Self::EmptyIdempotencyKey => "Idempotency-Key header is required",
+            Self::EmptyPathProviderId => "Path identity provider id is required",
             Self::EmptyPathRoleId => "Path role id is required",
+            Self::ProviderIdMismatch { .. } => "Path and body identity provider ids must match",
             Self::RoleIdMismatch { .. } => "Path and body role ids must match",
             Self::TenantMismatch { .. } => {
                 "Tenant header must match authenticated principal and request body"
@@ -494,7 +873,14 @@ impl CloudIamApiError {
             Self::EmptyIdempotencyKey => {
                 vec![detail("header.Idempotency-Key", "must be non-empty")]
             }
+            Self::EmptyPathProviderId => {
+                vec![detail("path.identity_provider_id", "must be non-empty")]
+            }
             Self::EmptyPathRoleId => vec![detail("path.role_id", "must be non-empty")],
+            Self::ProviderIdMismatch { .. } => vec![detail(
+                "identity_provider_id",
+                "path identity_provider_id and body identity_provider_id must match",
+            )],
             Self::RoleIdMismatch { .. } => vec![detail(
                 "role_id",
                 "path role_id and body role_id must match",
@@ -544,6 +930,83 @@ enum CloudIamApiStatusKind {
     UnprocessableEntity,
 }
 
+pub fn validate_cloud_iam_identity_provider_create_request(
+    request: &CloudIamIdentityProviderCreateApiRequest,
+) -> Result<(), CloudIamApiError> {
+    validate_boundary(&request.boundary)?;
+    if request.path_identity_provider_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyPathProviderId);
+    }
+    if request.path_identity_provider_id != request.body.identity_provider_id {
+        return Err(CloudIamApiError::ProviderIdMismatch {
+            path_identity_provider_id: request.path_identity_provider_id.clone(),
+            body_identity_provider_id: request.body.identity_provider_id.clone(),
+        });
+    }
+    validate_tenant_binding(
+        &request.boundary,
+        &request.principal,
+        &request.body.tenant_id,
+    )?;
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE,
+    )
+}
+
+pub fn validate_cloud_iam_identity_provider_update_request(
+    request: &CloudIamIdentityProviderUpdateApiRequest,
+) -> Result<(), CloudIamApiError> {
+    validate_boundary(&request.boundary)?;
+    if request.path_identity_provider_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyPathProviderId);
+    }
+    if request.path_identity_provider_id != request.body.identity_provider_id {
+        return Err(CloudIamApiError::ProviderIdMismatch {
+            path_identity_provider_id: request.path_identity_provider_id.clone(),
+            body_identity_provider_id: request.body.identity_provider_id.clone(),
+        });
+    }
+    validate_tenant_binding(
+        &request.boundary,
+        &request.principal,
+        &request.body.tenant_id,
+    )?;
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE,
+    )
+}
+
+pub fn validate_cloud_iam_identity_provider_delete_request(
+    request: &CloudIamIdentityProviderDeleteApiRequest,
+) -> Result<(), CloudIamApiError> {
+    validate_boundary(&request.boundary)?;
+    if request.path_identity_provider_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyPathProviderId);
+    }
+    validate_tenant_binding(&request.boundary, &request.principal, &request.tenant_id)?;
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE,
+    )
+}
+
+pub fn validate_cloud_iam_identity_provider_list_request(
+    request: &CloudIamIdentityProviderListApiRequest,
+) -> Result<(), CloudIamApiError> {
+    validate_read_boundary(&request.boundary)?;
+    validate_read_tenant_binding(&request.boundary, &request.principal)?;
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE,
+    )
+}
+
 pub fn validate_cloud_iam_role_create_request(
     request: &CloudIamRoleCreateApiRequest,
 ) -> Result<(), CloudIamApiError> {
@@ -591,6 +1054,146 @@ pub fn validate_cloud_iam_sts_token_request(
         &request.authorization,
         CLOUD_IAM_STS_TOKEN_SURFACE,
     )
+}
+
+pub fn create_cloud_iam_identity_provider_from_api(
+    directory: &mut IamDirectory,
+    idempotency_ledger: &mut CloudIamIdentityProviderCreateIdempotencyLedger,
+    request: CloudIamIdentityProviderCreateApiRequest,
+) -> Result<CloudIamIdentityProviderCreateSuccessResponse, CloudIamApiError> {
+    validate_cloud_iam_identity_provider_create_request(&request)?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE,
+    );
+    let fingerprint = identity_provider_create_fingerprint_for(&request);
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.fingerprint == fingerprint {
+            return entry.result.clone();
+        }
+        return Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let request_id = request.boundary.request_id.clone();
+    let result = directory
+        .register_identity_provider(identity_provider_create_input(request.body))
+        .map_err(CloudIamApiError::Iam)
+        .map(|provider| {
+            CloudIamIdentityProviderCreateSuccessResponse::created(
+                identity_provider_record(provider),
+                request_id,
+            )
+        });
+    idempotency_ledger.entries.insert(
+        key,
+        CloudIamIdentityProviderCreateIdempotencyLedgerEntry {
+            fingerprint,
+            result: result.clone(),
+        },
+    );
+    result
+}
+
+pub fn update_cloud_iam_identity_provider_from_api(
+    directory: &mut IamDirectory,
+    idempotency_ledger: &mut CloudIamIdentityProviderUpdateIdempotencyLedger,
+    request: CloudIamIdentityProviderUpdateApiRequest,
+) -> Result<CloudIamIdentityProviderUpdateSuccessResponse, CloudIamApiError> {
+    validate_cloud_iam_identity_provider_update_request(&request)?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE,
+    );
+    let fingerprint = identity_provider_update_fingerprint_for(&request);
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.fingerprint == fingerprint {
+            return entry.result.clone();
+        }
+        return Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let request_id = request.boundary.request_id.clone();
+    let result = directory
+        .update_identity_provider(identity_provider_update_input(request.body))
+        .map_err(CloudIamApiError::Iam)
+        .map(|provider| {
+            CloudIamIdentityProviderUpdateSuccessResponse::updated(
+                identity_provider_record(provider),
+                request_id,
+            )
+        });
+    idempotency_ledger.entries.insert(
+        key,
+        CloudIamIdentityProviderUpdateIdempotencyLedgerEntry {
+            fingerprint,
+            result: result.clone(),
+        },
+    );
+    result
+}
+
+pub fn delete_cloud_iam_identity_provider_from_api(
+    directory: &mut IamDirectory,
+    idempotency_ledger: &mut CloudIamIdentityProviderDeleteIdempotencyLedger,
+    request: CloudIamIdentityProviderDeleteApiRequest,
+) -> Result<CloudIamIdentityProviderDeleteSuccessResponse, CloudIamApiError> {
+    validate_cloud_iam_identity_provider_delete_request(&request)?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE,
+    );
+    let fingerprint = identity_provider_delete_fingerprint_for(&request);
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.fingerprint == fingerprint {
+            return entry.result.clone();
+        }
+        return Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let request_id = request.boundary.request_id.clone();
+    let result = directory
+        .delete_identity_provider(&request.tenant_id, &request.path_identity_provider_id)
+        .map_err(CloudIamApiError::Iam)
+        .map(|provider| {
+            CloudIamIdentityProviderDeleteSuccessResponse::deleted(
+                identity_provider_record(provider),
+                request_id,
+            )
+        });
+    idempotency_ledger.entries.insert(
+        key,
+        CloudIamIdentityProviderDeleteIdempotencyLedgerEntry {
+            fingerprint,
+            result: result.clone(),
+        },
+    );
+    result
+}
+
+pub fn list_cloud_iam_identity_providers_from_api(
+    directory: &IamDirectory,
+    request: CloudIamIdentityProviderListApiRequest,
+) -> Result<CloudIamIdentityProviderListSuccessResponse, CloudIamApiError> {
+    validate_cloud_iam_identity_provider_list_request(&request)?;
+    let request_id = request.boundary.request_id.clone();
+    let providers = directory
+        .list_identity_providers(&request.boundary.tenant_id)
+        .map_err(CloudIamApiError::Iam)?
+        .into_iter()
+        .map(identity_provider_record)
+        .collect();
+    Ok(CloudIamIdentityProviderListSuccessResponse::ok(
+        providers, request_id,
+    ))
 }
 
 pub fn create_cloud_iam_role_from_api(
@@ -677,6 +1280,18 @@ fn validate_boundary(boundary: &CloudIamApiBoundaryContext) -> Result<(), CloudI
     Ok(())
 }
 
+fn validate_read_boundary(
+    boundary: &CloudIamApiReadBoundaryContext,
+) -> Result<(), CloudIamApiError> {
+    if boundary.request_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyRequestId);
+    }
+    if boundary.tenant_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyTenantHeader);
+    }
+    Ok(())
+}
+
 fn validate_tenant_binding(
     boundary: &CloudIamApiBoundaryContext,
     principal: &CloudIamApiPrincipal,
@@ -687,6 +1302,20 @@ fn validate_tenant_binding(
             header_tenant_id: boundary.tenant_id.clone(),
             principal_tenant_id: principal.tenant_id.clone(),
             body_tenant_id: body_tenant_id.to_string(),
+        });
+    }
+    Ok(())
+}
+
+fn validate_read_tenant_binding(
+    boundary: &CloudIamApiReadBoundaryContext,
+    principal: &CloudIamApiPrincipal,
+) -> Result<(), CloudIamApiError> {
+    if boundary.tenant_id != principal.tenant_id {
+        return Err(CloudIamApiError::TenantMismatch {
+            header_tenant_id: boundary.tenant_id.clone(),
+            principal_tenant_id: principal.tenant_id.clone(),
+            body_tenant_id: boundary.tenant_id.clone(),
         });
     }
     Ok(())
@@ -722,6 +1351,49 @@ fn validate_authorization(
         });
     }
     Ok(())
+}
+
+fn identity_provider_create_input(
+    body: CloudIamIdentityProviderCreateRequest,
+) -> IdentityProviderCreate {
+    IdentityProviderCreate {
+        id: body.identity_provider_id,
+        tenant_id: body.tenant_id,
+        region_pack: body.region_pack,
+        kind: identity_provider_kind_from_api(body.kind),
+        issuer_uri: body.issuer_uri,
+        audience: body.audience,
+        verification_material_ref: body.verification_material_ref,
+        created_at_epoch_seconds: body.created_at_epoch_seconds,
+    }
+}
+
+fn identity_provider_update_input(
+    body: CloudIamIdentityProviderUpdateRequest,
+) -> IdentityProviderUpdate {
+    IdentityProviderUpdate {
+        id: body.identity_provider_id,
+        tenant_id: body.tenant_id,
+        region_pack: body.region_pack,
+        kind: identity_provider_kind_from_api(body.kind),
+        issuer_uri: body.issuer_uri,
+        audience: body.audience,
+        verification_material_ref: body.verification_material_ref,
+    }
+}
+
+fn identity_provider_kind_from_api(kind: CloudIamIdentityProviderKind) -> IdentityProviderKind {
+    match kind {
+        CloudIamIdentityProviderKind::Saml => IdentityProviderKind::Saml,
+        CloudIamIdentityProviderKind::Oidc => IdentityProviderKind::Oidc,
+    }
+}
+
+fn identity_provider_kind_to_api(kind: IdentityProviderKind) -> CloudIamIdentityProviderKind {
+    match kind {
+        IdentityProviderKind::Saml => CloudIamIdentityProviderKind::Saml,
+        IdentityProviderKind::Oidc => CloudIamIdentityProviderKind::Oidc,
+    }
 }
 
 fn role_create_input(body: CloudIamRoleCreateRequest) -> Result<IamRoleCreate, CloudIamApiError> {
@@ -771,6 +1443,136 @@ fn idempotency_key_for(
         principal_id: principal.principal_id.clone(),
         surface: surface.to_string(),
         idempotency_key: boundary.idempotency_key.clone(),
+    }
+}
+
+fn identity_provider_create_fingerprint_for(
+    request: &CloudIamIdentityProviderCreateApiRequest,
+) -> CloudIamRequestFingerprint {
+    CloudIamRequestFingerprint {
+        canonical: [
+            format!(
+                "path.identity_provider_id={}",
+                request.path_identity_provider_id
+            ),
+            format!("header.tenant_id={}", request.boundary.tenant_id),
+            format!("principal.tenant_id={}", request.principal.tenant_id),
+            format!("principal.principal_id={}", request.principal.principal_id),
+            format!(
+                "authorization.tenant_id={}",
+                request.authorization.tenant_id
+            ),
+            format!(
+                "authorization.principal_id={}",
+                request.authorization.principal_id
+            ),
+            format!(
+                "authorization.decision_id={}",
+                request.authorization.decision_id
+            ),
+            format!(
+                "authorization.allowed_surfaces={}",
+                request.authorization.allowed_surfaces.join(",")
+            ),
+            format!("body.tenant_id={}", request.body.tenant_id),
+            format!(
+                "body.identity_provider_id={}",
+                request.body.identity_provider_id
+            ),
+            format!("body.region_pack={}", request.body.region_pack),
+            format!("body.kind={:?}", request.body.kind),
+            format!("body.issuer_uri={}", request.body.issuer_uri),
+            format!("body.audience={}", request.body.audience),
+            format!(
+                "body.verification_material_ref={}",
+                request.body.verification_material_ref
+            ),
+            format!(
+                "body.created_at_epoch_seconds={}",
+                request.body.created_at_epoch_seconds
+            ),
+        ]
+        .join("|"),
+    }
+}
+
+fn identity_provider_update_fingerprint_for(
+    request: &CloudIamIdentityProviderUpdateApiRequest,
+) -> CloudIamRequestFingerprint {
+    CloudIamRequestFingerprint {
+        canonical: [
+            format!(
+                "path.identity_provider_id={}",
+                request.path_identity_provider_id
+            ),
+            format!("header.tenant_id={}", request.boundary.tenant_id),
+            format!("principal.tenant_id={}", request.principal.tenant_id),
+            format!("principal.principal_id={}", request.principal.principal_id),
+            format!(
+                "authorization.tenant_id={}",
+                request.authorization.tenant_id
+            ),
+            format!(
+                "authorization.principal_id={}",
+                request.authorization.principal_id
+            ),
+            format!(
+                "authorization.decision_id={}",
+                request.authorization.decision_id
+            ),
+            format!(
+                "authorization.allowed_surfaces={}",
+                request.authorization.allowed_surfaces.join(",")
+            ),
+            format!("body.tenant_id={}", request.body.tenant_id),
+            format!(
+                "body.identity_provider_id={}",
+                request.body.identity_provider_id
+            ),
+            format!("body.region_pack={}", request.body.region_pack),
+            format!("body.kind={:?}", request.body.kind),
+            format!("body.issuer_uri={}", request.body.issuer_uri),
+            format!("body.audience={}", request.body.audience),
+            format!(
+                "body.verification_material_ref={}",
+                request.body.verification_material_ref
+            ),
+        ]
+        .join("|"),
+    }
+}
+
+fn identity_provider_delete_fingerprint_for(
+    request: &CloudIamIdentityProviderDeleteApiRequest,
+) -> CloudIamRequestFingerprint {
+    CloudIamRequestFingerprint {
+        canonical: [
+            format!(
+                "path.identity_provider_id={}",
+                request.path_identity_provider_id
+            ),
+            format!("header.tenant_id={}", request.boundary.tenant_id),
+            format!("principal.tenant_id={}", request.principal.tenant_id),
+            format!("principal.principal_id={}", request.principal.principal_id),
+            format!(
+                "authorization.tenant_id={}",
+                request.authorization.tenant_id
+            ),
+            format!(
+                "authorization.principal_id={}",
+                request.authorization.principal_id
+            ),
+            format!(
+                "authorization.decision_id={}",
+                request.authorization.decision_id
+            ),
+            format!(
+                "authorization.allowed_surfaces={}",
+                request.authorization.allowed_surfaces.join(",")
+            ),
+            format!("body.tenant_id={}", request.tenant_id),
+        ]
+        .join("|"),
     }
 }
 
@@ -885,6 +1687,20 @@ fn sts_token_fingerprint_for(request: &CloudIamStsTokenApiRequest) -> CloudIamRe
     }
 }
 
+fn identity_provider_record(provider: IdentityProvider) -> CloudIamIdentityProviderRecord {
+    CloudIamIdentityProviderRecord {
+        tenant_id: provider.tenant_id.value,
+        identity_provider_id: provider.id.value.value,
+        region_pack: provider.region_pack.value,
+        kind: identity_provider_kind_to_api(provider.kind.value),
+        issuer_uri: provider.issuer_uri.value,
+        audience: provider.audience.value,
+        verification_material_ref: provider.verification_material_ref.value,
+        created_at_epoch_seconds: provider.created_at_epoch_seconds.value,
+        schema_version: provider.schema_version.value,
+    }
+}
+
 fn role_record(role: IamRole) -> CloudIamRoleRecord {
     CloudIamRoleRecord {
         tenant_id: role.tenant_id.value,
@@ -934,7 +1750,8 @@ fn cloud_iam_status_kind(error: &CloudIamError) -> CloudIamApiStatusKind {
         CloudIamError::DuplicateProvider
         | CloudIamError::DuplicatePrincipal
         | CloudIamError::DuplicateRole
-        | CloudIamError::DuplicateSession => CloudIamApiStatusKind::Conflict,
+        | CloudIamError::DuplicateSession
+        | CloudIamError::ProviderInUse => CloudIamApiStatusKind::Conflict,
         CloudIamError::PrincipalCannotAssumeRole
         | CloudIamError::MfaNotVerified
         | CloudIamError::ExternalIdRequired
@@ -1016,6 +1833,9 @@ fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
         }
         CloudIamError::ProviderTenantMismatch => {
             "identity provider tenant must match principal tenant"
+        }
+        CloudIamError::ProviderInUse => {
+            "identity provider cannot be deleted while principals reference it"
         }
         CloudIamError::MissingExternalSubject => {
             "federated/external principal requires external_subject"

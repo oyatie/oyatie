@@ -2,10 +2,272 @@ openapi: 3.2.0
 info:
   title: Oyatie Cloud IAM API
   version: 1.0.0
-  description: Tenant-scoped Cloud IAM role creation and STS token issuance contract.
+  description: Tenant-scoped Cloud IAM identity provider discovery, registration, update, role creation, and STS token issuance contract.
 servers:
   - url: https://api.oyatie.com
 paths:
+  /v1/cloud/iam/identity-providers:
+    get:
+      operationId: listCloudIamIdentityProviders
+      summary: List tenant-scoped SAML and OIDC identity providers for Cloud IAM federation.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: X-Request-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+      responses:
+        '200':
+          description: Tenant-scoped identity providers listed in deterministic provider-id order.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamIdentityProviderListSuccessResponse'
+        '400':
+          description: Request shape or Cloud IAM value contract is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '403':
+          description: Tenant or IAM policy binding denied the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+  /v1/cloud/iam/identity-providers/{identity_provider_id}:
+    post:
+      operationId: createCloudIamIdentityProvider
+      summary: Register a tenant-scoped SAML or OIDC identity provider for Cloud IAM federation.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: identity_provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Request-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudIamIdentityProviderCreateRequest'
+      responses:
+        '201':
+          description: Identity provider registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamIdentityProviderCreateSuccessResponse'
+        '400':
+          description: Request shape, path/body binding, or Cloud IAM value contract is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '403':
+          description: Tenant or IAM policy binding denied the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '409':
+          description: Identity provider conflicts with an existing resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '422':
+          description: Idempotency key was already used with a different request fingerprint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+    put:
+      operationId: updateCloudIamIdentityProvider
+      summary: Update a tenant-scoped SAML or OIDC identity provider for Cloud IAM federation.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: identity_provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Request-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudIamIdentityProviderUpdateRequest'
+      responses:
+        '200':
+          description: Identity provider updated while preserving its original creation timestamp.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamIdentityProviderUpdateSuccessResponse'
+        '400':
+          description: Request shape, path/body binding, provider existence, or Cloud IAM value contract is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '403':
+          description: Tenant or IAM policy binding denied the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '409':
+          description: Identity provider update conflicts with existing resource state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '422':
+          description: Idempotency key was already used with a different request fingerprint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+    delete:
+      operationId: deleteCloudIamIdentityProvider
+      summary: Delete an unreferenced tenant-scoped SAML or OIDC identity provider for Cloud IAM federation.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: identity_provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Request-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudIamIdentityProviderDeleteRequest'
+      responses:
+        '200':
+          description: Identity provider deleted and returned for idempotent audit replay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamIdentityProviderDeleteSuccessResponse'
+        '400':
+          description: Request shape, provider existence, or Cloud IAM value contract is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '403':
+          description: Tenant or IAM policy binding denied the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '409':
+          description: Identity provider is still referenced by Cloud IAM principals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '422':
+          description: Idempotency key was already used with a different request fingerprint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
   /v1/cloud/iam/roles/{role_id}:
     post:
       operationId: createCloudIamRole
@@ -173,6 +435,114 @@ components:
           type: string
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderKind:
+      type: string
+      enum:
+        - Saml
+        - Oidc
+      x-oyatie-rust-type: CloudIamIdentityProviderKind
+      x-oyatie-data-class: PUBLIC
+    CloudIamIdentityProviderCreateRequest:
+      type: object
+      required:
+        - tenant_id
+        - identity_provider_id
+        - region_pack
+        - kind
+        - issuer_uri
+        - audience
+        - verification_material_ref
+        - created_at_epoch_seconds
+      properties:
+        tenant_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        identity_provider_id:
+          type: string
+          description: Must match the `{identity_provider_id}` path parameter.
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        region_pack:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        kind:
+          $ref: '#/components/schemas/CloudIamIdentityProviderKind'
+          x-oyatie-rust-type: CloudIamIdentityProviderKind
+          x-oyatie-data-class: PUBLIC
+        issuer_uri:
+          type: string
+          format: uri
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        audience:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        verification_material_ref:
+          type: string
+          description: "`cert/...` for SAML and `jwks/...` for OIDC."
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        created_at_epoch_seconds:
+          type: integer
+          format: uint64
+          minimum: 0
+          x-oyatie-rust-type: u64
+          x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderUpdateRequest:
+      type: object
+      required:
+        - tenant_id
+        - identity_provider_id
+        - region_pack
+        - kind
+        - issuer_uri
+        - audience
+        - verification_material_ref
+      properties:
+        tenant_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        identity_provider_id:
+          type: string
+          description: Must match the `{identity_provider_id}` path parameter.
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        region_pack:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        kind:
+          $ref: '#/components/schemas/CloudIamIdentityProviderKind'
+          x-oyatie-rust-type: CloudIamIdentityProviderKind
+          x-oyatie-data-class: PUBLIC
+        issuer_uri:
+          type: string
+          format: uri
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        audience:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        verification_material_ref:
+          type: string
+          description: "`cert/...` for SAML and `jwks/...` for OIDC."
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderDeleteRequest:
+      type: object
+      required:
+        - tenant_id
+      properties:
+        tenant_id:
+          type: string
+          description: Must match `X-Tenant-Id` and the authenticated Cloud IAM principal.
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
     CloudIamRoleCreateRequest:
       type: object
       required:
@@ -286,6 +656,64 @@ components:
           minimum: 0
           x-oyatie-rust-type: u64
           x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderCreateSuccessResponse:
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudIamIdentityProviderRecord'
+          x-oyatie-rust-type: CloudIamIdentityProviderRecord
+          x-oyatie-data-class: INTERNAL_ONLY
+        metadata:
+          $ref: '#/components/schemas/CloudIamApiResponseMetadata'
+          x-oyatie-rust-type: CloudIamApiResponseMetadata
+          x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderUpdateSuccessResponse:
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudIamIdentityProviderRecord'
+          x-oyatie-rust-type: CloudIamIdentityProviderRecord
+          x-oyatie-data-class: INTERNAL_ONLY
+        metadata:
+          $ref: '#/components/schemas/CloudIamApiResponseMetadata'
+          x-oyatie-rust-type: CloudIamApiResponseMetadata
+          x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderDeleteSuccessResponse:
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudIamIdentityProviderRecord'
+          x-oyatie-rust-type: CloudIamIdentityProviderRecord
+          x-oyatie-data-class: INTERNAL_ONLY
+        metadata:
+          $ref: '#/components/schemas/CloudIamApiResponseMetadata'
+          x-oyatie-rust-type: CloudIamApiResponseMetadata
+          x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderListSuccessResponse:
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CloudIamIdentityProviderRecord'
+          x-oyatie-rust-type: Vec<CloudIamIdentityProviderRecord>
+          x-oyatie-data-class: INTERNAL_ONLY
+        metadata:
+          $ref: '#/components/schemas/CloudIamApiResponseMetadata'
+          x-oyatie-rust-type: CloudIamApiResponseMetadata
+          x-oyatie-data-class: INTERNAL_ONLY
     CloudIamRoleCreateSuccessResponse:
       type: object
       required:
@@ -323,6 +751,57 @@ components:
           type: string
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderRecord:
+      type: object
+      required:
+        - tenant_id
+        - identity_provider_id
+        - region_pack
+        - kind
+        - issuer_uri
+        - audience
+        - verification_material_ref
+        - created_at_epoch_seconds
+        - schema_version
+      properties:
+        tenant_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        identity_provider_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        region_pack:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        kind:
+          $ref: '#/components/schemas/CloudIamIdentityProviderKind'
+          x-oyatie-rust-type: CloudIamIdentityProviderKind
+          x-oyatie-data-class: PUBLIC
+        issuer_uri:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        audience:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        verification_material_ref:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        created_at_epoch_seconds:
+          type: integer
+          format: uint64
+          x-oyatie-rust-type: u64
+          x-oyatie-data-class: INTERNAL_ONLY
+        schema_version:
+          type: integer
+          format: uint32
+          x-oyatie-rust-type: u32
+          x-oyatie-data-class: PUBLIC
     CloudIamRoleRecord:
       type: object
       required:

@@ -18,21 +18,21 @@ const VPC_ID: &str = "oya:cloud:region-home:ten_kr:vpc:prod";
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudNetworkVpcApiBoundaryContext {
     CloudNetworkVpcApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudNetworkVpcApiPrincipal {
     CloudNetworkVpcApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudNetworkVpcApiAuthorization {
     CloudNetworkVpcApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -203,8 +203,8 @@ fn vpc_create_api_rejects_required_header_and_tenant_drift_before_ledger() {
         create_cloud_network_vpc_from_api(&mut catalog, &mut ledger, request),
         Err(CloudNetworkVpcApiError::TenantMismatch {
             header_tenant_id: "ten_other".to_string(),
-            principal_tenant_id: "ten_kr".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
         })
     );
     assert!(ledger.is_empty());
@@ -275,7 +275,7 @@ fn vpc_create_api_maps_flow_log_and_residency_invariants() {
     assert_eq!(catalog.vpcs().count(), 0);
 
     let mut residency_drift = create_request("req-network-vpc-res", "idem-network-vpc-res");
-    residency_drift.body.region = "us-virginia".to_string();
+    residency_drift.body.region = "failover-region".to_string();
     let residency_error =
         create_cloud_network_vpc_from_api(&mut catalog, &mut ledger, residency_drift)
             .expect_err("strict home-region residency cannot create a US VPC");

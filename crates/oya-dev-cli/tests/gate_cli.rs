@@ -1693,6 +1693,76 @@ fn design_spec_maturity_claims_gate_accepts_fixture_and_emits_evidence() {
 }
 
 #[test]
+fn korea_localization_evidence_gate_accepts_fixture_and_emits_bundle() {
+    let temp = temp_dir("korea-localization-evidence");
+    write_korea_localization_evidence_fixture(&temp);
+    let evidence_path = temp.join("evidence/fd001/kr-localization.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "korea-localization-evidence",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo root"),
+            "--emit-evidence",
+            evidence_path.to_str().expect("utf8 evidence path"),
+        ])
+        .output()
+        .expect("korea localization evidence gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("korea-localization-evidence validation passed"));
+    assert!(stdout.contains("pack_status=planning-closed-foundational"));
+    assert!(stdout.contains("activation_claim=not-active"));
+    let evidence = fs::read_to_string(&evidence_path).expect("evidence bundle written");
+    assert!(evidence.contains("\"schema_version\": \"oyatie.kr-localization-evidence.v1\""));
+    assert!(evidence.contains("\"covered_kr_pack_surface_count\": 12"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn korea_localization_evidence_gate_rejects_missing_surface_evidence() {
+    let temp = temp_dir("korea-localization-evidence-missing");
+    write_korea_localization_evidence_fixture(&temp);
+    fs::remove_file(temp.join("docs/localization-packs/kr/evidence/mail.md"))
+        .expect("fixture file removed");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "korea-localization-evidence",
+            "--repo-root",
+            temp.to_str().expect("utf8 repo root"),
+        ])
+        .output()
+        .expect("korea localization evidence gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("korea-localization-evidence validation failed"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("mail.md"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn design_spec_maturity_claims_gate_rejects_unblocked_operational_claims() {
     let temp = temp_dir("design-spec-maturity-operational-claim");
     let microservices_root = temp.join("microservices");
@@ -2025,6 +2095,11 @@ fn workspace_hygiene_gate_strict_mode_rejects_build_artifact_residue() {
     assert!(!output.status.success());
     assert!(
         String::from_utf8_lossy(&output.stderr).contains("build-artifacts"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("target"),
         "stderr={}",
         String::from_utf8_lossy(&output.stderr)
     );
@@ -5430,11 +5505,11 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
     let workflows_dir = temp.join("workflows");
     fs::create_dir_all(&workflows_dir).expect("workflows dir created");
 
-    // branch-protection lists `oya-foundry-fitness-protection-context-match`
+    // branch-protection lists `oya-governance-protection-context-match`
     // but the workflow posts `pcm-check` (different label) — silent bypass.
     let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
                              required_status_checks:\n      \
-                             - oya-foundry-fitness-protection-context-match\n    \
+                             - oya-governance-protection-context-match\n    \
                              require_signed_commits: true\n";
     let protection_file = temp.join("branch-protection.yaml");
     fs::write(&protection_file, branch_protection).expect("branch-protection written");
@@ -5472,7 +5547,7 @@ fn protection_context_match_gate_catches_data_class_label_mismatch() {
         "stderr must contain failure message; got: {stderr}"
     );
     assert!(
-        stderr.contains("oya-foundry-fitness-protection-context-match"),
+        stderr.contains("oya-governance-protection-context-match"),
         "stderr must name the missing context; got: {stderr}"
     );
 
@@ -5489,7 +5564,7 @@ fn protection_context_match_gate_passes_clean_crate() {
 
     let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
                              required_status_checks:\n      - cargo-fmt\n      \
-                             - oya-foundry-fitness-protection-context-match\n    \
+                             - oya-governance-protection-context-match\n    \
                              require_signed_commits: true\n";
     let protection_file = temp.join("branch-protection.yaml");
     fs::write(&protection_file, branch_protection).expect("branch-protection written");
@@ -5497,7 +5572,7 @@ fn protection_context_match_gate_passes_clean_crate() {
     let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
                          name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
                          - run: cargo fmt --check\n  pcm:\n    \
-                         name: oya-foundry-fitness-protection-context-match\n    \
+                         name: oya-governance-protection-context-match\n    \
                          runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n";
     fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
 

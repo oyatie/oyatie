@@ -27,6 +27,8 @@ const TENANT_ID_PREFIX: &str = "ten_";
 const PAYMENT_METHOD_PREFIX: &str = "pm_";
 const RATE_CARD_PREFIX: &str = "rate/";
 const REGIONAL_PACK_PREFIX: &str = "oya-pack-";
+const TAX_INVOICE_FORMAT_PREFIX: &str = "tax-format/";
+const TAX_REGISTRATION_ID_PREFIX: &str = "tax-registration/";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct BillingAccountId {
@@ -496,8 +498,7 @@ impl Invoice {
         if input.tax_invoice_format != expected_format {
             return Err(CloudBillingError::InvalidTaxInvoiceFormat);
         }
-        let tax_registration_id =
-            TaxRegistrationId::new(input.tax_registration_id, input.tax_invoice_format)?;
+        let tax_registration_id = TaxRegistrationId::new(input.tax_registration_id, expected_format)?;
         let line_items = invoice_line_items(&input.tenant_id, input.line_items)?;
         let computed_subtotal = sum_line_items(&line_items)?;
         if computed_subtotal != input.subtotal

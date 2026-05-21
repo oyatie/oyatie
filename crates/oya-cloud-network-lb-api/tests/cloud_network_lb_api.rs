@@ -26,21 +26,21 @@ const LB_ID: &str = "oya:cloud:region-home:ten_kr:lb-v7:frontdoor";
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudNetworkLbApiBoundaryContext {
     CloudNetworkLbApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudNetworkLbApiPrincipal {
     CloudNetworkLbApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudNetworkLbApiAuthorization {
     CloudNetworkLbApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -53,7 +53,7 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudNetworkLbApi
 fn lb_body(resource_id: &str) -> CloudNetworkLbCreateRequest {
     CloudNetworkLbCreateRequest {
         resource_id: resource_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         vpc_id: VPC_ID.to_string(),
         region: "region-home".to_string(),
         kind: "l7_grpc".to_string(),
@@ -129,7 +129,7 @@ fn seed_subnet(catalog: &mut CloudNetworkCatalog) {
     catalog
         .add_subnet(SubnetCreate {
             resource_id: SUBNET_ID.to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             vpc_id: VPC_ID.to_string(),
             region: "region-home".to_string(),
             az: "region-home-a".to_string(),
@@ -181,7 +181,7 @@ fn lb_create_api_creates_l7_grpc_once_and_replays_same_idempotent_result() {
     assert_eq!(catalog.load_balancers().count(), 1);
     assert_eq!(first.metadata.request_id, "req-network-lb-create");
     assert_eq!(first.data.resource_id, LB_ID);
-    assert_eq!(first.data.tenant_id, "ten_kr");
+    assert_eq!(first.data.tenant_id, "ten_alpha");
     assert_eq!(first.data.vpc_id, VPC_ID);
     assert_eq!(first.data.region, "region-home");
     assert_eq!(first.data.kind, "l7_grpc");
@@ -269,8 +269,8 @@ fn lb_create_api_rejects_required_header_and_tenant_drift_before_ledger() {
         create_cloud_network_load_balancer_from_api(&mut catalog, &mut ledger, request),
         Err(CloudNetworkLbApiError::TenantMismatch {
             header_tenant_id: "ten_other".to_string(),
-            principal_tenant_id: "ten_kr".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
         })
     );
     assert!(ledger.is_empty());

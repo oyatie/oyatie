@@ -10,7 +10,7 @@
 //! When given a live GitHub required-status-checks JSON snapshot, it also
 //! asserts live branch protection requires exactly the canonical contexts.
 //!
-//! Lane id: `oya-foundry-fitness-protection-context-match`. The lane
+//! Lane id: `oya-governance-protection-context-match`. The lane
 //! is the machine-checkable encoding of the
 //! [[feedback_no_silent_regression]] directive applied to the
 //! protection/workflow seam: prevents the silent-bypass class of bug

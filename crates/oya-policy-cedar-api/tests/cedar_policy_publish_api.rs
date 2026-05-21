@@ -49,14 +49,14 @@ fn cedar_policy_publish_publishes_tenant_policy_and_replays_idempotently() {
     assert_eq!(first.data.policy_id, POLICY_ID);
     assert_eq!(first.data.version, VERSION);
     assert_eq!(first.data.scope.kind, "tenant");
-    assert_eq!(first.data.scope.tenant_id.as_deref(), Some("ten_kr"));
+    assert_eq!(first.data.scope.tenant_id.as_deref(), Some("ten_alpha"));
     assert_eq!(first.data.rules[0].effect, "allow");
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(first.metadata.request_id, REQUEST_ID);
 
     let decision = policies.authorize(&AuthorizationQuery {
         subject: AuthorizationSubject {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             roles: vec!["tenant-admin".to_string()],
         },
         action: "tenant.settings.update".to_string(),
@@ -307,7 +307,7 @@ fn policy_request(
             version: version.to_string(),
             scope: CedarPolicyScopeRef {
                 kind: "tenant".to_string(),
-                tenant_id: Some("ten_kr".to_string()),
+                tenant_id: Some("ten_alpha".to_string()),
             },
             supersedes: None,
             rules: vec![CedarPolicyRuleRef {

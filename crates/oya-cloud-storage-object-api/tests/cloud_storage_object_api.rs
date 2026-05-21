@@ -25,7 +25,7 @@ const OBJECT_KEY: &str = "workspace/report.pdf";
 fn bucket_create() -> BucketCreate {
     BucketCreate {
         resource_id: BUCKET_ID.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         name: "tenant-assets".to_string(),
         region: "region-home".to_string(),
         residency: ResidencyClass::StrictHomeRegion,
@@ -61,7 +61,7 @@ fn mutation_boundary_for(
 ) -> CloudStorageObjectMutationBoundaryContext {
     CloudStorageObjectMutationBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
@@ -69,20 +69,20 @@ fn mutation_boundary_for(
 fn read_boundary_for(request_id: &str) -> CloudStorageObjectReadBoundaryContext {
     CloudStorageObjectReadBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudStorageObjectApiPrincipal {
     CloudStorageObjectApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudStorageObjectApiAuthorization {
     CloudStorageObjectApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -96,8 +96,8 @@ fn object_encryption() -> CloudStorageObjectEncryptionBindingRequest {
     CloudStorageObjectEncryptionBindingRequest {
         kms_key: "kms/region-home/ten_kr/object-key".to_string(),
         kms_key_version: 1,
-        material_ref: "matref/ten_kr/object/report".to_string(),
-        ciphertext_ref: "ct/ten_kr/object/report".to_string(),
+        material_ref: "matref/ten_alpha/object/report".to_string(),
+        ciphertext_ref: "ct/ten_alpha/object/report".to_string(),
         kms_encrypt_event_id: "kmsuse_object_report_001".to_string(),
         purpose: "cloud_object_storage".to_string(),
         shred_proof_ref: None,
@@ -107,7 +107,7 @@ fn object_encryption() -> CloudStorageObjectEncryptionBindingRequest {
 fn put_body(bucket_id: &str, key: &str) -> CloudStorageObjectPutRequest {
     CloudStorageObjectPutRequest {
         bucket_id: bucket_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         key: key.to_string(),
         size_bytes: 42,
         etag: "0123456789abcdef0123456789abcdef".to_string(),
@@ -357,7 +357,7 @@ fn get_object_api_projects_authorized_object_metadata() {
     assert_eq!(response.data.key, OBJECT_KEY);
     assert_eq!(
         response.data.encryption.ciphertext_ref,
-        "ct/ten_kr/object/report"
+        "ct/ten_alpha/object/report"
     );
     assert_eq!(response.data.schema_version, 1);
 }

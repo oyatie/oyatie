@@ -133,6 +133,7 @@ uncited-acronym	ATO
 uncited-acronym	ATP
 uncited-acronym	ATS
 uncited-acronym	ATT
+uncited-acronym	ATTENDEE
 uncited-acronym	AUD
 uncited-acronym	AUDIT
 uncited-acronym	AUDITABLE
@@ -196,6 +197,7 @@ uncited-acronym	BREAK
 uncited-acronym	BRL
 uncited-acronym	BROKEN
 uncited-acronym	BSA
+uncited-acronym	BSI
 uncited-acronym	BSL
 uncited-acronym	BSP
 uncited-acronym	BSS
@@ -244,6 +246,7 @@ uncited-acronym	CELL
 uncited-acronym	CENTER
 uncited-acronym	CEO
 uncited-acronym	CEP
+uncited-acronym	CERN
 uncited-acronym	CEST
 uncited-acronym	CET
 uncited-acronym	CEU
@@ -388,6 +391,7 @@ uncited-acronym	CTF
 uncited-acronym	CTO
 uncited-acronym	CTPP
 uncited-acronym	CTR
+uncited-acronym	CUDA
 uncited-acronym	CUE
 uncited-acronym	CUMULATIVE
 uncited-acronym	CVM
@@ -403,6 +407,7 @@ uncited-acronym	DATA
 uncited-acronym	DATEV
 uncited-acronym	DAU
 uncited-acronym	DBA
+uncited-acronym	DBIR
 uncited-acronym	DC
 uncited-acronym	DCA
 uncited-acronym	DCIM
@@ -611,7 +616,6 @@ uncited-acronym	EXECUTIVE
 uncited-acronym	EXEMPLAR
 uncited-acronym	EXIF
 uncited-acronym	EXISTING
-uncited-acronym	EXISTS
 uncited-acronym	EXPANDED
 uncited-acronym	EXPIRED
 uncited-acronym	EXTENDED
@@ -708,6 +712,7 @@ uncited-acronym	FSRA
 uncited-acronym	FTA
 uncited-acronym	FTB
 uncited-acronym	FTC
+uncited-acronym	FTX
 uncited-acronym	FULL
 uncited-acronym	FULLY
 uncited-acronym	FX
@@ -1020,6 +1025,7 @@ uncited-acronym	LFS
 uncited-acronym	LG
 uncited-acronym	LGTM
 uncited-acronym	LGU
+uncited-acronym	LHC
 uncited-acronym	LICENSE
 uncited-acronym	LIME
 uncited-acronym	LIMIT
@@ -1033,6 +1039,7 @@ uncited-acronym	LLC
 uncited-acronym	LOAD
 uncited-acronym	LOC
 uncited-acronym	LOCAL
+uncited-acronym	LOD
 uncited-acronym	LONGER
 uncited-acronym	LOPDGDD
 uncited-acronym	LOW
@@ -1162,9 +1169,12 @@ uncited-acronym	NDPR
 uncited-acronym	NDR
 uncited-acronym	NE
 uncited-acronym	NEFT
+uncited-acronym	NEGLIGIBLE
+uncited-acronym	NEITHER
 uncited-acronym	NEMS
 uncited-acronym	NENA
 uncited-acronym	NER
+uncited-acronym	NESA
 uncited-acronym	NET
 uncited-acronym	NETS
 uncited-acronym	NETWORK
@@ -1184,6 +1194,7 @@ uncited-acronym	NHN
 uncited-acronym	NIBSS
 uncited-acronym	NIC
 uncited-acronym	NICE
+uncited-acronym	NIH
 uncited-acronym	NIN
 uncited-acronym	NIST
 uncited-acronym	NJ
@@ -1298,6 +1309,7 @@ uncited-acronym	PARTIALLY
 uncited-acronym	PARTNER
 uncited-acronym	PARTS
 uncited-acronym	PASS
+uncited-acronym	PASSED
 uncited-acronym	PATCH
 uncited-acronym	PATH
 uncited-acronym	PATIENT
@@ -1406,6 +1418,7 @@ uncited-acronym	PSA
 uncited-acronym	PSAP
 uncited-acronym	PSM
 uncited-acronym	PSP
+uncited-acronym	PSS
 uncited-acronym	PST
 uncited-acronym	PSTN
 uncited-acronym	PT
@@ -1416,6 +1429,8 @@ uncited-acronym	PTY
 uncited-acronym	PUBLIC
 uncited-acronym	PUE
 uncited-acronym	PUT
+uncited-acronym	PV
+uncited-acronym	PVC
 uncited-acronym	PWA
 uncited-acronym	QA
 uncited-acronym	QAD
@@ -1465,6 +1480,7 @@ uncited-acronym	REMEDIATION
 uncited-acronym	REPEATABLE
 uncited-acronym	REPORT
 uncited-acronym	REQUEST
+uncited-acronym	REQUESTED
 uncited-acronym	REQUIRE
 uncited-acronym	REQUIRES
 uncited-acronym	RESCOPED
@@ -1594,6 +1610,7 @@ uncited-acronym	SEEKER
 uncited-acronym	SEES
 uncited-acronym	SELLER
 uncited-acronym	SEM
+uncited-acronym	SEMANTIC
 uncited-acronym	SENSITIVE
 uncited-acronym	SEO
 uncited-acronym	SEPA
@@ -1776,7 +1793,9 @@ uncited-acronym	TOC
 uncited-acronym	TOCTOU
 uncited-acronym	TOMBSTONE
 uncited-acronym	TOML
+uncited-acronym	TOOLING
 uncited-acronym	TOOSHORT
+uncited-acronym	TOP
 uncited-acronym	TOS
 uncited-acronym	TOSEM
 uncited-acronym	TOTAL

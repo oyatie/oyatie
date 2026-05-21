@@ -83,7 +83,7 @@ pub enum KmsKeyUsage {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum HsmValidation {
-    KcmvpFips1403Level3,
+    PackEnhancedFips1403Level3,
     Fips1403Level3,
     Cryptrec,
     CommonCriteriaEal4,
@@ -116,6 +116,46 @@ pub enum KmsPurpose {
 pub enum KmsOperation {
     Encrypt,
     Decrypt,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum KmsProviderKind {
+    OpenBaoTransit,
+    OciKms,
+}
+
+impl KmsProviderKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::OpenBaoTransit => "openbao_transit",
+            Self::OciKms => "oci_kms",
+        }
+    }
+}
+
+impl KmsOperation {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Encrypt => "encrypt",
+            Self::Decrypt => "decrypt",
+        }
+    }
+}
+
+impl KmsPurpose {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::CloudObjectStorage => "cloud_object_storage",
+            Self::CloudBlockStorage => "cloud_block_storage",
+            Self::CloudFileStorage => "cloud_file_storage",
+            Self::CloudArchiveStorage => "cloud_archive_storage",
+            Self::WorkspaceDriveObject => "workspace_drive_object",
+            Self::WorkspaceRecording => "workspace_recording",
+            Self::SecretProvider => "secret_provider",
+            Self::CrossRegionReplication => "cross_region_replication",
+            Self::DatabaseBackup => "database_backup",
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -181,6 +221,69 @@ pub struct KmsDecryptRequest {
     pub purpose: KmsPurpose,             // data_class: INTERNAL_ONLY
     pub actor: String,                   // data_class: INTERNAL_ONLY
     pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsProviderEncryptRequest {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub provider_key_ref: String,        // data_class: INTERNAL_ONLY
+    pub key_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub plaintext_ref: String,           // data_class: INTERNAL_ONLY
+    pub ciphertext_ref: String,          // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,           // data_class: INTERNAL_ONLY
+    pub purpose: KmsPurpose,             // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub aad_fingerprint: String,         // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsProviderDecryptRequest {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub provider_key_ref: String,        // data_class: INTERNAL_ONLY
+    pub key_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub ciphertext_ref: String,          // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,           // data_class: INTERNAL_ONLY
+    pub purpose: KmsPurpose,             // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsProviderCryptoReceipt {
+    pub provider: KmsProviderKind,      // data_class: PUBLIC
+    pub operation: KmsOperation,        // data_class: PUBLIC
+    pub request_id: String,             // data_class: INTERNAL_ONLY
+    pub provider_request_id: String,    // data_class: INTERNAL_ONLY
+    pub provider_key_ref: String,       // data_class: INTERNAL_ONLY
+    pub key_id: String,                 // data_class: INTERNAL_ONLY
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
+    pub material_ref: Option<String>,   // data_class: INTERNAL_ONLY
+    pub ciphertext_ref: String,         // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,          // data_class: INTERNAL_ONLY
+    pub purpose: KmsPurpose,            // data_class: INTERNAL_ONLY
+    pub actor: String,                  // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String,  // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,            // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum KmsProviderCryptoError {
+    InvalidProviderKeyRef,
+    InvalidProviderRequestId,
+    InvalidProviderEvidenceRef,
+    InvalidRequestShape(CloudKmsError),
+    ProviderRejected {
+        provider: KmsProviderKind, // data_class: PUBLIC
+        reason: String,            // data_class: INTERNAL_ONLY
+    },
+    ProviderUnavailable {
+        provider: KmsProviderKind, // data_class: PUBLIC
+        reason: String,            // data_class: INTERNAL_ONLY
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -287,6 +390,20 @@ pub trait KmsRepo {
         &mut self,
         input: KeyDestructionRequest,
     ) -> Result<KeyDestructionReceipt, CloudKmsError>;
+}
+
+pub trait KmsProviderCryptoPort {
+    fn provider_kind(&self) -> KmsProviderKind;
+
+    fn encrypt(
+        &self,
+        input: KmsProviderEncryptRequest,
+    ) -> Result<KmsProviderCryptoReceipt, KmsProviderCryptoError>;
+
+    fn decrypt(
+        &self,
+        input: KmsProviderDecryptRequest,
+    ) -> Result<KmsProviderCryptoReceipt, KmsProviderCryptoError>;
 }
 
 impl KmsKeyOrigin {
@@ -506,6 +623,124 @@ impl KmsKey {
     }
 }
 
+impl KmsProviderEncryptRequest {
+    pub fn validate(&self) -> Result<(), KmsProviderCryptoError> {
+        validate_provider_ref(
+            &self.request_id,
+            KmsProviderCryptoError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &self.provider_key_ref,
+            KmsProviderCryptoError::InvalidProviderKeyRef,
+        )?;
+        KmsKeyId::new(self.key_id.clone()).map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        validate_tenant_id(&self.tenant_id).map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        MaterialRef::new(self.plaintext_ref.clone())
+            .map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        CiphertextRef::new(self.ciphertext_ref.clone())
+            .map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        privacy_class(self.data_class).map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        ActorRef::new(self.actor.clone()).map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        validate_aad_fingerprint(&self.aad_fingerprint)
+            .map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        Ok(())
+    }
+}
+
+impl KmsProviderDecryptRequest {
+    pub fn validate(&self) -> Result<(), KmsProviderCryptoError> {
+        validate_provider_ref(
+            &self.request_id,
+            KmsProviderCryptoError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &self.provider_key_ref,
+            KmsProviderCryptoError::InvalidProviderKeyRef,
+        )?;
+        KmsKeyId::new(self.key_id.clone()).map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        validate_tenant_id(&self.tenant_id).map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        CiphertextRef::new(self.ciphertext_ref.clone())
+            .map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        privacy_class(self.data_class).map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        ActorRef::new(self.actor.clone()).map_err(KmsProviderCryptoError::InvalidRequestShape)?;
+        Ok(())
+    }
+}
+
+impl KmsProviderCryptoReceipt {
+    pub fn encrypt(
+        provider: KmsProviderKind,
+        input: KmsProviderEncryptRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, KmsProviderCryptoError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_provider_ref(
+            &provider_request_id,
+            KmsProviderCryptoError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &provider_evidence_ref,
+            KmsProviderCryptoError::InvalidProviderEvidenceRef,
+        )?;
+        Ok(Self {
+            provider,
+            operation: KmsOperation::Encrypt,
+            request_id: input.request_id,
+            provider_request_id,
+            provider_key_ref: input.provider_key_ref,
+            key_id: input.key_id,
+            tenant_id: input.tenant_id,
+            material_ref: Some(input.plaintext_ref),
+            ciphertext_ref: input.ciphertext_ref,
+            data_class: input.data_class,
+            purpose: input.purpose,
+            actor: input.actor,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: KMS_SCHEMA_VERSION,
+        })
+    }
+
+    pub fn decrypt(
+        provider: KmsProviderKind,
+        input: KmsProviderDecryptRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, KmsProviderCryptoError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_provider_ref(
+            &provider_request_id,
+            KmsProviderCryptoError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &provider_evidence_ref,
+            KmsProviderCryptoError::InvalidProviderEvidenceRef,
+        )?;
+        Ok(Self {
+            provider,
+            operation: KmsOperation::Decrypt,
+            request_id: input.request_id,
+            provider_request_id,
+            provider_key_ref: input.provider_key_ref,
+            key_id: input.key_id,
+            tenant_id: input.tenant_id,
+            material_ref: None,
+            ciphertext_ref: input.ciphertext_ref,
+            data_class: input.data_class,
+            purpose: input.purpose,
+            actor: input.actor,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: KMS_SCHEMA_VERSION,
+        })
+    }
+}
+
 impl KmsUseReceipt {
     pub fn encrypt(key: &KmsKey, input: KmsEncryptRequest) -> Result<Self, CloudKmsError> {
         validate_use_key(key, &input.key_id, &input.tenant_id, input.data_class)?;
@@ -716,7 +951,7 @@ fn validate_hsm_for_residency(
     let required = if matches!(residency, ResidencyClass::Global) {
         HsmValidation::Fips1403Level3
     } else {
-        HsmValidation::KcmvpFips1403Level3
+        HsmValidation::PackEnhancedFips1403Level3
     };
     if validation == required {
         Ok(())
@@ -763,6 +998,21 @@ fn validate_aad_fingerprint(value: &str) -> Result<(), CloudKmsError> {
         Ok(())
     } else {
         Err(CloudKmsError::InvalidAadFingerprint)
+    }
+}
+
+fn validate_provider_ref(
+    value: &str,
+    error: KmsProviderCryptoError,
+) -> Result<(), KmsProviderCryptoError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Err(error)
+    } else {
+        Ok(())
     }
 }
 
@@ -868,7 +1118,7 @@ mod tests {
             hsm_partition_ref: HSM_PARTITION.to_string(),
             origin: KmsKeyOrigin::OyatieManaged,
             usage: KmsKeyUsage::EncryptDecrypt,
-            hsm_validation: HsmValidation::KcmvpFips1403Level3,
+            hsm_validation: HsmValidation::PackEnhancedFips1403Level3,
             residency: residency_class(),
             data_class: DataClass::PiiIdentifying,
             state: KmsKeyState::Enabled,
@@ -893,6 +1143,57 @@ mod tests {
         }
     }
 
+    fn provider_encrypt_request() -> KmsProviderEncryptRequest {
+        KmsProviderEncryptRequest {
+            request_id: "kmsprov_req_encrypt_001".to_string(),
+            provider_key_ref: "openbao/transit/object-key".to_string(),
+            key_id: "kms/alpha-region/ten_alpha/object-key".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            plaintext_ref: "matref/ten_alpha/object/001".to_string(),
+            ciphertext_ref: "ct/ten_alpha/object/001".to_string(),
+            data_class: DataClass::PiiIdentifying,
+            purpose: KmsPurpose::CloudObjectStorage,
+            actor: "sp_storage".to_string(),
+            aad_fingerprint: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                .to_string(),
+            requested_at_epoch_seconds: 1_700_000_010,
+        }
+    }
+
+    fn provider_decrypt_request() -> KmsProviderDecryptRequest {
+        KmsProviderDecryptRequest {
+            request_id: "kmsprov_req_decrypt_001".to_string(),
+            provider_key_ref: "oci/kms/object-key".to_string(),
+            key_id: "kms/alpha-region/ten_alpha/object-key".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            ciphertext_ref: "ct/ten_alpha/object/001".to_string(),
+            data_class: DataClass::PiiIdentifying,
+            purpose: KmsPurpose::CloudObjectStorage,
+            actor: "sp_storage".to_string(),
+            requested_at_epoch_seconds: 1_700_000_020,
+        }
+    }
+
+    fn per_pack_residency(allowed_primary_regions: &[&str]) -> ResidencyClass {
+        let regulator_overlay = RegulatorOverlay::new(RegulatorOverlayCreate {
+            regulator_refs: vec!["regulator/baseline".to_string()],
+            evidence_ref: "evidence/residency/pack-alpha".to_string(),
+        })
+        .expect("regulator overlay fixture is valid");
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: allowed_primary_regions
+                    .iter()
+                    .map(|region| (*region).to_string())
+                    .collect(),
+                allowed_replica_regions: vec!["beta-region".to_string()],
+                forbidden_regions: vec![],
+                regulator_overlay,
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
+    }
+
     #[test]
     fn creates_kms_key_with_resource_hsm_residency_and_validation_binding() {
         let key = KmsKey::new(key_create()).expect("key is valid");
@@ -907,6 +1208,64 @@ mod tests {
         assert_eq!(key.hsm_partition_ref.value.value, HSM_PARTITION);
         assert_eq!(key.current_version.value, 1);
         assert_eq!(key.schema_version.value, KMS_SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn provider_encrypt_request_validates_refs_without_plaintext_material() {
+        let request = provider_encrypt_request();
+
+        request.validate().expect("provider request is valid");
+        assert_eq!(request.purpose.label(), "cloud_object_storage");
+        assert_eq!(KmsOperation::Encrypt.label(), "encrypt");
+        assert_eq!(KmsProviderKind::OpenBaoTransit.label(), "openbao_transit");
+
+        let mut bad_aad = request.clone();
+        bad_aad.aad_fingerprint = "not-hex".to_string();
+        assert_eq!(
+            bad_aad.validate(),
+            Err(KmsProviderCryptoError::InvalidRequestShape(
+                CloudKmsError::InvalidAadFingerprint
+            ))
+        );
+
+        let mut bad_key_ref = request;
+        bad_key_ref.provider_key_ref = " ".to_string();
+        assert_eq!(
+            bad_key_ref.validate(),
+            Err(KmsProviderCryptoError::InvalidProviderKeyRef)
+        );
+    }
+
+    #[test]
+    fn provider_receipts_preserve_operation_and_redacted_material_refs() {
+        let encrypt = KmsProviderCryptoReceipt::encrypt(
+            KmsProviderKind::OpenBaoTransit,
+            provider_encrypt_request(),
+            "openbao-audit-001",
+            "openbao-transit://kms.oyatie.com/transit/object-key/kmsprov_req_encrypt_001",
+        )
+        .expect("encrypt provider receipt is valid");
+
+        assert_eq!(encrypt.provider, KmsProviderKind::OpenBaoTransit);
+        assert_eq!(encrypt.operation, KmsOperation::Encrypt);
+        assert_eq!(
+            encrypt.material_ref.as_deref(),
+            Some("matref/ten_alpha/object/001")
+        );
+        assert_eq!(encrypt.schema_version, KMS_SCHEMA_VERSION);
+
+        let decrypt = KmsProviderCryptoReceipt::decrypt(
+            KmsProviderKind::OciKms,
+            provider_decrypt_request(),
+            "oci-opc-request-001",
+            "oci-kms://vaults/ocid1.vault.oc1.ap-chuncheon-1.test/keys/ocid1.key.test",
+        )
+        .expect("decrypt provider receipt is valid");
+
+        assert_eq!(decrypt.provider, KmsProviderKind::OciKms);
+        assert_eq!(decrypt.operation, KmsOperation::Decrypt);
+        assert_eq!(decrypt.material_ref, None);
+        assert_eq!(decrypt.ciphertext_ref, "ct/ten_alpha/object/001");
     }
 
     #[test]
@@ -960,8 +1319,8 @@ mod tests {
                 residency: ResidencyClass::Global,
                 ..key_create()
             })
-            .expect_err("global KMS keys require FIPS 140-3 validation");
-            assert_eq!(global_error, CloudKmsError::HsmValidationDenied);
+            .expect_err("KMS keys require a FIPS 140-3 Level 3 profile");
+            assert_eq!(profile_error, CloudKmsError::HsmValidationDenied);
         }
 
         let global = KmsKey::new(KmsKeyCreate {
@@ -975,8 +1334,8 @@ mod tests {
             residency: ResidencyClass::Global,
             ..key_create()
         })
-        .expect("global KMS key accepts FIPS 140-3 validation");
-        assert_eq!(global.hsm_validation.value, HsmValidation::Fips1403Level3);
+        .expect("baseline KMS key accepts FIPS 140-3 validation");
+        assert_eq!(baseline.hsm_validation.value, HsmValidation::Fips1403Level3);
 
         let residency_error = KmsKey::new(KmsKeyCreate {
             resource_id: format!("oya:cloud:{FORBIDDEN_REGION}:{TENANT}:kms-key:object-key"),

@@ -9,7 +9,8 @@ use oya_cloud_region_api::{
     list_cloud_azs_from_api, list_cloud_regions_from_api,
 };
 use oya_cloud_region_domain::{
-    AzState, CloudAzCreate, CloudRegionCatalog, CloudRegionCreate, RegionState,
+    AzState, CellCapacity, CellUtilization, CloudAzCreate, CloudCellCreate, CloudCellState,
+    CloudRegionCatalog, CloudRegionCreate, RegionState, TenantDensityClass,
 };
 use oya_residency_domain::ResidencyClass;
 
@@ -255,4 +256,38 @@ fn az_list_projects_only_requested_region_azs() {
     assert_eq!(response.data[0].power_zones[0].value, "pz-a1");
     assert_eq!(response.data[0].power_zones[1].value, "pz-a2");
     assert_eq!(response.data[0].state, "active");
+}
+
+#[test]
+fn az_list_projects_per_cell_isolation_evidence_without_capacity_leakage() {
+    let response = list_cloud_azs_from_api(&catalog(), az_request("home-region"))
+        .expect("authorized AZ list succeeds");
+
+    let az = &response.data[0];
+
+    assert_eq!(az.cells.len(), 2);
+    assert_eq!(az.cell_isolation_evidence.len(), 2);
+    assert_eq!(
+        az.cell_isolation_evidence[0].cell_id,
+        "cell-home-region-a-001"
+    );
+    assert_eq!(az.cell_isolation_evidence[0].region_code, "home-region");
+    assert_eq!(az.cell_isolation_evidence[0].az_code, "home-region-a");
+    assert_eq!(az.cell_isolation_evidence[0].state, "active");
+    assert_eq!(az.cell_isolation_evidence[0].tenant_density, "dedicated");
+    assert_eq!(
+        az.cell_isolation_evidence[0].allowed_residency,
+        vec!["strict_home".to_string()]
+    );
+    assert_eq!(
+        az.cell_isolation_evidence[0].evidence_ref,
+        "cell-isolation://home-region/home-region-a/cell-home-region-a-001"
+    );
+    assert_eq!(az.cell_isolation_evidence[0].schema_version, 1);
+    assert_eq!(
+        az.cell_isolation_evidence[1].cell_id,
+        "cell-home-region-a-002"
+    );
+    assert_eq!(az.cell_isolation_evidence[1].state, "dr_only");
+    assert_eq!(az.cell_isolation_evidence[1].tenant_density, "sovereign");
 }

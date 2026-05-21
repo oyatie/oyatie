@@ -12,7 +12,7 @@ use oya_tenancy_api::{
 const REQUEST_ID: &str = "req_tenant_create_001";
 const IDEMPOTENCY_KEY: &str = "idem_tenant_create_001";
 const OPERATOR_TENANT_ID: &str = "ten_platform";
-const TARGET_TENANT_ID: &str = "ten_kr";
+const TARGET_TENANT_ID: &str = "ten_alpha";
 
 #[test]
 fn tenant_create_contract_runtime_constants_are_covered() {

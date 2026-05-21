@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-005
 title: Cloud region + AZ + cell taxonomy
-status: stub
+status: partial (region-az-cell-isolation-evidence-api-green; live-topology-smoke pending)
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
@@ -19,9 +19,9 @@ Stable cloud.region.list + cloud.az.list with cell-isolation evidence per cell.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-cloud-region-api/src/lib.rs::list_regions
-crates/oya-cloud-region-api/src/lib.rs::list_azs
-crates/oya-cloud-region-app/src/lib.rs::cell_isolation_evidence
+crates/oya-cloud-region-api/src/lib.rs::list_cloud_regions_from_api
+crates/oya-cloud-region-api/src/lib.rs::list_cloud_azs_from_api
+crates/oya-cloud-region-api/src/lib.rs::CloudCellIsolationEvidenceRecord
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -54,5 +54,15 @@ Next IP in this phase's INDEX list (or first IP of next phase if phase complete)
 icm store -t context-oyatie -c 'M03-P01-IP-005 Cloud region + AZ + cell taxonomy shipped; acceptance commands green' -i high -k 'M03-P01-IP-005,complete'
 ```
 
+## Progress
+
+### 2026-05-21 — Region/AZ per-cell isolation evidence API green
+- ChangeSet: `cs-m03-p01-cloud-region-az-cell-taxonomy-2026-05-21`.
+- Added Cloud Region API projection of per-cell isolation evidence on `cloud.az.list`, including cell id, region/AZ binding, lifecycle state, tenant-density tier, allowed residency labels, deterministic evidence ref, and schema version.
+- Kept capacity, utilization, and raw HSM partition refs out of the public AZ response while preserving deterministic evidence refs for auditors.
+- Aligned the OpenAPI `CloudAzRecord` schema with the new evidence projection and corrected residency labels to the runtime contract values.
+- Verification: TDD red captured; targeted region API and domain tests passed; targeted fmt/clippy passed.
+- Remaining: credentialed/live topology smoke against the actual KR-Chuncheon and on-prem KR-Seoul cell inventory is a separate follow-up boundary.
+
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP: `cloud.az.list` now emits cell-isolation evidence from the same catalog used to list AZ cell refs, instead of requiring a separate stale region-app or docs-only evidence path; live topology smoke remains a separate follow-up boundary.

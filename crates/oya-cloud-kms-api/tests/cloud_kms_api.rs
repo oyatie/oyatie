@@ -19,21 +19,21 @@ use oya_residency_domain::ResidencyClass;
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudKmsApiBoundaryContext {
     CloudKmsApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudKmsApiPrincipal {
     CloudKmsApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudKmsApiAuthorization {
     CloudKmsApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -148,8 +148,8 @@ fn encrypt_api_rejects_required_header_and_tenant_drift_before_ledger() {
         authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, empty_request),
         Err(CloudKmsApiError::TenantMismatch {
             header_tenant_id: "ten_other".to_string(),
-            principal_tenant_id: "ten_kr".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
         })
     );
     assert!(ledger.is_empty());
@@ -190,9 +190,9 @@ fn decrypt_api_rejects_actor_drift_before_receipt_mutation() {
     assert_eq!(
         error,
         CloudKmsApiError::PrincipalMismatch {
-            principal_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
             principal_id: "sp_storage".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
             actor: "usr_alice".to_string(),
         }
     );
@@ -218,7 +218,7 @@ fn encrypt_api_authorizes_once_and_replays_same_idempotent_receipt() {
     assert_eq!(first.data.operation, "encrypt");
     assert_eq!(
         first.data.material_ref.as_deref(),
-        Some("matref/ten_kr/object/001")
+        Some("matref/ten_alpha/object/001")
     );
     assert_eq!(first.data.key_version, 1);
     assert_eq!(first.metadata.request_id, "req-kms-encrypt");
@@ -261,7 +261,7 @@ fn encrypt_api_rejects_reused_idempotency_key_with_new_fingerprint() {
         .expect("initial encrypt succeeds");
 
     let mut drifted = request;
-    drifted.body.ciphertext_ref = "ct/ten_kr/object/002".to_string();
+    drifted.body.ciphertext_ref = "ct/ten_alpha/object/002".to_string();
     assert_eq!(
         authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, drifted),
         Err(CloudKmsApiError::IdempotencyKeyReused {

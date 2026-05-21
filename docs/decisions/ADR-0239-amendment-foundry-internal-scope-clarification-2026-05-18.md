@@ -83,7 +83,7 @@ Both Foundry AND Intelligence are Class C in-house mandatory per ADR-0211 — th
 
 ### Operational
 
-- **Naming sweep.** `microservices/oyatie-intelligence/` (incorrect; oyatie- prefix violates naming) → `microservices/intelligence/` (correct; brand label "oyatie intelligence" shown to users only).
+- **Naming sweep.** `microservices/oyatie-intelligence/` (incorrect; legacy brand prefix violates naming) → `microservices/intelligence/` (correct; brand label "oyatie intelligence" shown to users only).
 - **Manifest `audience` field.** Every µservice manifest declares `audience: INTERNAL | B2B-tenant | B2C-consumer | DEVELOPER` per ADR-0221 §M-04 (queued).
 
 ## References

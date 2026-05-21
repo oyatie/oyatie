@@ -505,6 +505,8 @@ impl EmailComms for SmtpEmailComms {
 mod tests {
     use super::*;
 
+    const TEST_LOCALE: &str = "aa-XA";
+
     fn good_binding() -> DeliverabilityBinding {
         DeliverabilityBinding {
             tenant: TenantId("acme".into()),
@@ -527,7 +529,7 @@ mod tests {
             subject: "Hello".into(),
             html_body: "<p>hello</p>".into(),
             plain_body: Some("hello".into()),
-            locale: "en-US".into(),
+            locale: TEST_LOCALE.into(),
             idempotency_key: "id-deadbeefcafe1234567890".into(),
         }
     }

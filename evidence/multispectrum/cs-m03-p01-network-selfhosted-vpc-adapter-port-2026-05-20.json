@@ -1,0 +1,249 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-m03-p01-network-selfhosted-vpc-adapter-port-2026-05-20",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "agent_id": "codex-m03-p01-network-selfhosted-vpc-adapter-port",
+  "timestamp_unix": 1779328707,
+  "timestamp_iso": "2026-05-21T01:58:27Z",
+  "freshness_unix": 1779340555,
+  "git_sha": "0ca24a2f908a",
+  "change_class_id": "CC-2",
+  "change_class_rationale": "Additive Rust provider adapter crate plus provider-kind extension for an FD-001 product implementation slice; no external dependency or production network call added.",
+  "meta_review_triggered": true,
+  "policy_adherence_triggered": true,
+  "scope": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/oya-cloud-network-domain/src/lib.rs",
+    "crates/oya-cloud-network-adapter-selfhosted/Cargo.toml",
+    "crates/oya-cloud-network-adapter-selfhosted/src/lib.rs",
+    "registry/catalog/oya-cloud-network-adapter-selfhosted.yaml",
+    "docs/products/cloud/PRD.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-003-network-api-adapters.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p01-network-selfhosted-vpc-adapter-port-2026-05-20.json",
+    "evidence/multispectrum/cs-m03-p01-network-selfhosted-vpc-adapter-port-2026-05-20.json"
+  ],
+  "summary": "Cloud Network self-hosted/colo VPC request-contract slice adds a first-class on-prem/colo provider target while preserving CDN, remaining second-provider adapters, and live-provider smoke as pending.",
+  "verification": [
+    {
+      "command": "cargo test -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci -p oya-cloud-network-adapter-selfhosted",
+      "status": "passed",
+      "evidence": "16 Cloud Network domain tests, 26 OCI network adapter tests, and 4 self-hosted VPC adapter tests passed."
+    },
+    {
+      "command": "cargo check -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci -p oya-cloud-network-adapter-selfhosted",
+      "status": "passed",
+      "evidence": "Targeted check completed successfully."
+    },
+    {
+      "command": "cargo clippy -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci -p oya-cloud-network-adapter-selfhosted --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted clippy completed with no warnings."
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed",
+      "evidence": "Workspace formatting check passed after self-hosted network adapter crate additions."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate stage0-prereqs --repo-root . --self-test",
+      "status": "passed",
+      "evidence": "stage0-prereqs validation passed: 4 required paths, workspace_member_present=true, edition=2024, rust-version=1.95.0."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate honest-claims --plans-dir .omc/plans/milestones",
+      "status": "passed",
+      "evidence": "honest-claims validation passed: 465 documents, 102004 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "status": "passed",
+      "evidence": "Catalog validation passed: 546 records."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "status": "passed",
+      "evidence": "Data class fitness validation passed: 1590 fields checked, 1302 annotated, 288 legacy unannotated."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "status": "passed",
+      "evidence": "Architecture-boundaries validation passed: 388 packages, 388 catalog records, 541 dependency edges."
+    },
+    {
+      "command": "oya vcs claim/work for codex-m03-p01-network-selfhosted-vpc-adapter-port",
+      "status": "passed",
+      "evidence": "Oya VCS claim and work commands were accepted before implementation writes."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p01-network-selfhosted-vpc-adapter-port-2026-05-20.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "oya vcs verify/done/promote for codex-m03-p01-network-selfhosted-vpc-adapter-port",
+      "status": "passed",
+      "evidence": "Oya VCS verify, done, and promote commands were accepted for this ChangeSet evidence bundle."
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "status": "passed",
+      "evidence": "Trivy vulnerability/misconfiguration scans reported 0 findings; VCS metadata/authority checks, cargo tests, and CLI smoke passed."
+    }
+  ],
+  "facets": {
+    "F1_correctness": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Self-hosted/colo network-segment command construction validates provider-neutral VPC create requests and rejects provider-VPC drift before emitting commands or receipts."
+      ]
+    },
+    "F2_testability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Targeted unit tests cover command shape, provider receipts, provider-VPC drift, invalid config, and absence of credential fields."
+      ]
+    },
+    "F3_architecture": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Site, cell, fabric, endpoint, command path, and evidence refs live in the self-hosted adapter crate; the domain owns only the provider-neutral VPC port contract."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Adapter command bodies contain references and tenant network metadata, not private keys, tokens, or live credentials."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "ChangeSet is isolated to one new adapter crate, one additive provider kind, catalog/product/plan status, and evidence."
+      ]
+    },
+    "F13_adversarial_review": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Avoids claiming IP-003 or FD-001 complete; CDN, remaining second-provider adapters, and credentialed live smoke remain pending."
+      ]
+    },
+    "M1_policy_adherence": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Oya VCS claim/work accepted before writes; promotion remains through verify/done/promote."
+      ]
+    },
+    "M2_evidence_completeness": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "FD-001 evidence, multispectrum evidence, and audit-chain row identify the same ChangeSet id."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Kept self-hosted/colo special cases in a single adapter crate instead of branching provider logic through domain/API code.",
+        "No cloud SDK, hypervisor SDK, or runtime network dependency was introduced in this request-contract slice."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The slice improves hyperscaler independence by proving a first-class on-prem/colo VPC target behind the same provider-neutral VPC port used by OCI VCN."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "passing_fixture_id": "oya-cloud-network-adapter-selfhosted::rejects_provider_vcn_drift_and_bad_vpc_shape and oya-cloud-network-adapter-selfhosted::create_network_segment_command_uses_self_hosted_path_and_reference_only_body",
+      "diagnostic_asserted": "Provider VPC drift, invalid flow-log shape, invalid site/cell/fabric config, and credential leakage are rejected or absent before adapter receipts are emitted.",
+      "findings": [
+        "Tests exercise provider-VPC drift rejection, VPC flow-log validation, invalid config, and absence of private_key/token in adapter command contracts."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "scan",
+      "findings": [
+        "Adapter constructor exposes narrow endpoint/site/cell/fabric configuration and returns inspectable command structs for handler integration and tests."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Deterministic self-hosted VPC command structs follow the existing OCI/S3 adapter lint/test pattern without adding dependencies."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected adding live OVN/OVS/BGP clients in this ChangeSet; deterministic request contracts keep credentialed live smoke as a later bounded slice.",
+        "Rejected treating on-prem/colo as prose-only doctrine; added a first-class adapter crate and provider kind behind the existing port."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Request translation is deterministic string assembly with no network call or runtime SDK client."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Catalog, architecture-boundaries, data-class, planning, honest-claims, and targeted Rust gates passed for the self-hosted VPC adapter contract.",
+        "IP status intentionally says live-smoke and remaining second-provider network surfaces pending, preventing a false FD-001 production-readiness claim."
+      ]
+    }
+  },
+  "known_gaps": [
+    {
+      "id": "credentialed-selfhosted-vpc-smoke",
+      "status": "pending-runtime-credentials",
+      "reason": "This slice proves adapter port and provider command contracts without embedding self-hosted control-plane credentials or making network calls in CI."
+    },
+    {
+      "id": "remaining-network-surfaces",
+      "status": "pending-followup-changesets",
+      "reason": "CDN, remaining second-provider LB/DNS/interconnect adapters, and live provider smoke remain outside this rollback-safe VPC slice."
+    }
+  ],
+  "review_refresh": {
+    "timestamp_unix": 1779340555,
+    "timestamp_iso": "2026-05-21T05:15:55Z",
+    "agent_id": "codex-m03-p01-network-selfhosted-vpc-adapter-port-rereview",
+    "base": "dev@3e4ccd6bf3fc6ed1a2e26d8dac6fea7b651ae5e9",
+    "head_before_evidence_amend": "0ca24a2f908a3456d75ab9df4830d1dd68d1d94c",
+    "effective_diff": "single self-hosted/colo VPC provider adapter request-contract commit rebased after PR #160 signed squash merge",
+    "review_verdict": "approve-after-post-160-squash-rebase-no-code-findings",
+    "source_check": "Self-hosted/colo VPC adapter contract is repo-owned provider-port shape for OVN/OVS/BGP/FRR-backed tenant network segments; reviewed for no provider credentials, no live network mutation, and no provider-specific branching outside the adapter crate"
+  }
+}

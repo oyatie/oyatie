@@ -5,47 +5,58 @@
   "microservices": [
     {
       "name": "application",
-      "manifest": "microservices/application/manifest.json"
+      "manifest": "microservices/application/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "audit-chain",
-      "manifest": "microservices/audit-chain/manifest.json"
+      "manifest": "microservices/audit-chain/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "community",
-      "manifest": "microservices/community/manifest.json"
+      "manifest": "microservices/community/manifest.json",
+      "fd001_material": true
     },
     {
       "name": "observability",
-      "manifest": "microservices/observability/manifest.json"
+      "manifest": "microservices/observability/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "ontology",
-      "manifest": "microservices/ontology/manifest.json"
+      "manifest": "microservices/ontology/manifest.json",
+      "fd001_material": true
     },
     {
       "name": "tenancy",
-      "manifest": "microservices/tenancy/manifest.json"
+      "manifest": "microservices/tenancy/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "workflow-engine",
-      "manifest": "microservices/workflow-engine/manifest.json"
+      "manifest": "microservices/workflow-engine/manifest.json",
+      "fd001_material": true
     },
     {
       "name": "anonymous",
-      "manifest": "microservices/anonymous/manifest.json"
+      "manifest": "microservices/anonymous/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "calendar",
-      "manifest": "microservices/calendar/manifest.json"
+      "manifest": "microservices/calendar/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "docs",
-      "manifest": "microservices/docs/manifest.json"
+      "manifest": "microservices/docs/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "drive",
-      "manifest": "microservices/drive/manifest.json"
+      "manifest": "microservices/drive/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "foundry",
@@ -61,67 +72,83 @@
     },
     {
       "name": "forms",
-      "manifest": "microservices/forms/manifest.json"
+      "manifest": "microservices/forms/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "mail",
-      "manifest": "microservices/mail/manifest.json"
+      "manifest": "microservices/mail/manifest.json",
+      "fd001_material": true
     },
     {
       "name": "meet",
-      "manifest": "microservices/meet/manifest.json"
+      "manifest": "microservices/meet/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "messenger",
-      "manifest": "microservices/messenger/manifest.json"
+      "manifest": "microservices/messenger/manifest.json",
+      "fd001_material": true
     },
     {
       "name": "notes",
-      "manifest": "microservices/notes/manifest.json"
+      "manifest": "microservices/notes/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "recordings",
-      "manifest": "microservices/recordings/manifest.json"
+      "manifest": "microservices/recordings/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "sheets",
-      "manifest": "microservices/sheets/manifest.json"
+      "manifest": "microservices/sheets/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "sites",
-      "manifest": "microservices/sites/manifest.json"
+      "manifest": "microservices/sites/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "slides",
-      "manifest": "microservices/slides/manifest.json"
+      "manifest": "microservices/slides/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "social",
-      "manifest": "microservices/social/manifest.json"
+      "manifest": "microservices/social/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "tasks",
-      "manifest": "microservices/tasks/manifest.json"
+      "manifest": "microservices/tasks/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "translate",
-      "manifest": "microservices/translate/manifest.json"
+      "manifest": "microservices/translate/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "workflow-studio",
-      "manifest": "microservices/workflow-studio/manifest.json"
+      "manifest": "microservices/workflow-studio/manifest.json",
+      "fd001_material": true
     },
     {
       "name": "cloud-iac",
-      "manifest": "microservices/cloud-iac/manifest.json"
+      "manifest": "microservices/cloud-iac/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "cloud-k8s",
-      "manifest": "microservices/cloud-k8s/manifest.json"
+      "manifest": "microservices/cloud-k8s/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "cloud-secrets",
-      "manifest": "microservices/cloud-secrets/manifest.json"
+      "manifest": "microservices/cloud-secrets/manifest.json",
+      "fd001_material": false
     },
     {
       "name": "governance",

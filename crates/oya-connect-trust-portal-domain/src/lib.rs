@@ -848,6 +848,12 @@ fn validate_cross_region_residency(
     Ok(())
 }
 
+fn residency_class_forbids_cross_region(residency_class: &ResidencyClass) -> bool {
+    residency_class
+        .label()
+        .is_some_and(|label| label.starts_with("strict_"))
+}
+
 fn validate_plugin_signature(
     tier: PluginTrustTier,
     signature_ref: Option<&str>,
@@ -1211,6 +1217,14 @@ mod tests {
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).expect("test fixture uses privacy class")
+    }
+
+    fn cross_region_residency_class() -> ResidencyClass {
+        ResidencyClass::HomeWithFailover
+    }
+
+    fn strict_residency_class() -> ResidencyClass {
+        ResidencyClass::StrictHome
     }
 
     fn platform_dsr_bundle() -> (DsrRequest, DsrCompletionRecord, ErasureProof) {

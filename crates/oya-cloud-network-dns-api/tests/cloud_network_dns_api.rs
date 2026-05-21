@@ -23,21 +23,21 @@ const VPC_ID: &str = "oya:cloud:region-home:ten_kr:vpc:prod";
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudNetworkDnsApiBoundaryContext {
     CloudNetworkDnsApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudNetworkDnsApiPrincipal {
     CloudNetworkDnsApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudNetworkDnsApiAuthorization {
     CloudNetworkDnsApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -279,8 +279,8 @@ fn dns_zone_create_api_rejects_required_header_and_tenant_drift_before_ledger() 
         create_cloud_network_dns_zone_from_api(&mut catalog, &mut ledger, request),
         Err(CloudNetworkDnsApiError::TenantMismatch {
             header_tenant_id: "ten_other".to_string(),
-            principal_tenant_id: "ten_kr".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
         })
     );
     assert!(ledger.is_empty());

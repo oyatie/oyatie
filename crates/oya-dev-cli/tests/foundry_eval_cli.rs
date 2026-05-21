@@ -218,7 +218,7 @@ owner_team: axis-foundry
 
     let tool_case = if include_all_adversarial {
         r#"  - case_id: adv-tool
-    locale: en-US
+    locale: locale-cohort-alpha
     input_ref: eval://tool
     expected_ref: eval://tool/expected
     adversarial_kind: ToolExfiltration
@@ -236,30 +236,30 @@ min_pass_rate_percent: 80
 min_p95_score_percent: 80
 signed: true
 cases:
-  - case_id: case-en
-    locale: en-US
-    input_ref: eval://en
-    expected_ref: eval://en/expected
-  - case_id: case-ko
-    locale: ko-KR
-    input_ref: eval://ko
-    expected_ref: eval://ko/expected
-  - case_id: case-ja
-    locale: ja-JP
-    input_ref: eval://ja
-    expected_ref: eval://ja/expected
+  - case_id: case-alpha
+    locale: locale-cohort-alpha
+    input_ref: eval://cohort-alpha
+    expected_ref: eval://cohort-alpha/expected
+  - case_id: case-beta
+    locale: locale-cohort-beta
+    input_ref: eval://cohort-beta
+    expected_ref: eval://cohort-beta/expected
+  - case_id: case-gamma
+    locale: locale-cohort-gamma
+    input_ref: eval://cohort-gamma
+    expected_ref: eval://cohort-gamma/expected
   - case_id: adv-prompt
-    locale: en-US
+    locale: locale-cohort-alpha
     input_ref: eval://prompt
     expected_ref: eval://prompt/expected
     adversarial_kind: PromptInjection
   - case_id: adv-class
-    locale: en-US
+    locale: locale-cohort-alpha
     input_ref: eval://class
     expected_ref: eval://class/expected
     adversarial_kind: DataClassViolation
   - case_id: adv-autonomy
-    locale: en-US
+    locale: locale-cohort-alpha
     input_ref: eval://autonomy
     expected_ref: eval://autonomy/expected
     adversarial_kind: AutonomyBypass

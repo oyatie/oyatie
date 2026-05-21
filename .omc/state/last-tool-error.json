@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"ls -la /Users/jasonlee/oyatie/specs/microservices/manifest-schema.json /Users/jasonlee/oyatie/specs/compliance-pack-floors.json /Users/jasonlee/oyatie/specs/oss-stewardship-registry.json /...",
-  "error": "Exit code 1\nls: /Users/jasonlee/oyatie/specs/iac-module-library.json: No such file or directory\n-rw-r--r--@ 1 jasonlee  staff  13390 May 21 11:11 /Users/jasonlee/oyatie/specs/audit-event-schema.json\n-rw-r--r--@ 1 jasonlee  staff  24889 May 21 11:10 /Users/jasonlee/oyatie/specs/compliance-pack-floors.json\n-rw-r--r--@ 1 jasonlee  staff  20410 May 21 11:11 /Users/jasonlee/oyatie/specs/finops-dimensional-model.json\n-rw-r--r--@ 1 jasonlee  staff  35359 May 21 12:12 /Users/jasonlee/oyatie/specs/micros...",
-  "timestamp": "2026-05-21T16:16:26.064Z",
+  "tool_input_preview": "{\"command\":\"./bin/oya git status 2>&1 | head -20 && echo \\\"---\\\" && ./bin/oya git log -1 --oneline\",\"description\":\"Check merge state and current commit\"}",
+  "error": "Exit code 101\nerror[E0432]: unresolved import `oya_foundry_eval_domain::REQUIRED_LINGUISTIC_COHORTS`\n  --> crates/oya-application-app/src/lib.rs:39:5\n   |\n39 |     REQUIRED_LINGUISTIC_COHORTS,\n   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `REQUIRED_LINGUISTIC_COHORTS` in the root\n   |\nhelp: a similar name exists in the module\n   |\n39 |     REQUIRED_LINGUISTIC_COHORT_LOCALES,\n   |                               +++++++\n\nFor more information about this error, try `rustc --explain E0432`.\nerror: could not...",
+  "timestamp": "2026-05-21T17:32:40.528Z",
   "retry_count": 1
 }

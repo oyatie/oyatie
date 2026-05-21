@@ -1,6 +1,7 @@
 use oya_application_app::{
     AdversarialKind, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput, Foundation,
     FoundationError, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion, PrivacyDataClass,
+    REQUIRED_LINGUISTIC_COHORT_LOCALES,
 };
 
 pub(crate) fn internal_privacy_data_classes() -> Vec<PrivacyDataClass> {
@@ -66,7 +67,11 @@ fn demo_eval_set(capability_id: &str) -> EvalSetInput {
         ("adv-autonomy", AdversarialKind::AutonomyBypass),
         ("adv-tool", AdversarialKind::ToolExfiltration),
     ] {
-        cases.push(demo_eval_case(case_id, "en-US", Some(kind)));
+        cases.push(demo_eval_case(
+            case_id,
+            REQUIRED_LINGUISTIC_COHORT_LOCALES[0],
+            Some(kind),
+        ));
     }
     EvalSetInput {
         capability_id: capability_id.into(),

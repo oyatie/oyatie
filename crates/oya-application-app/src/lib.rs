@@ -36,6 +36,7 @@ pub use oya_foundry_capability_domain::{
 use oya_foundry_eval_domain::EvalError;
 pub use oya_foundry_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
+    REQUIRED_LINGUISTIC_COHORT_LOCALES,
 };
 use oya_foundry_evidence_domain::EvidenceError;
 pub use oya_foundry_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
@@ -3370,7 +3371,7 @@ mod tests {
                     request.user_id.clone(),
                     AutonomyTier::T2Advisory,
                     privacy_data_classes_from(&[DataClass::InternalOnly]).unwrap(),
-                    "us-east".into(),
+                    "failover-region".into(),
                     reservation.reservation_id.value.clone(),
                     request.started_at_epoch_seconds,
                 )
@@ -3457,7 +3458,7 @@ mod tests {
                     request.user_id.clone(),
                     AutonomyTier::T2Advisory,
                     privacy_data_classes_from(&[DataClass::InternalOnly]).unwrap(),
-                    "us-east".into(),
+                    "failover-region".into(),
                     "res_missing".into(),
                     request.started_at_epoch_seconds,
                 )
@@ -3521,7 +3522,7 @@ mod tests {
                     request.user_id.clone(),
                     AutonomyTier::T2Advisory,
                     privacy_data_classes_from(&[DataClass::InternalOnly]).unwrap(),
-                    "us-east".into(),
+                    "failover-region".into(),
                     "res_already_final".into(),
                     request.started_at_epoch_seconds,
                 )

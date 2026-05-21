@@ -7,7 +7,7 @@
 //! protected branch becomes silently un-merge-able — the failure
 //! class that the 2026-05-15 PR #3 merge-block surfaced.
 //!
-//! Lane id: `oya-foundry-fitness-protection-context-match`. The
+//! Lane id: `oya-governance-protection-context-match`. The
 //! lane is the machine-checkable encoding of the
 //! [[feedback_no_silent_regression]] directive applied to the
 //! protection/workflow seam.

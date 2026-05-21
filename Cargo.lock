@@ -1339,12 +1339,43 @@ name = "oya-cloud-billing-tax-app"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-capacity-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-billing-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
+]
+
+[[package]]
 name = "oya-cloud-capacity-kernel"
 version = "0.1.0"
 
 [[package]]
 name = "oya-cloud-cell-app"
 version = "0.1.0"
+
+[[package]]
+name = "oya-cloud-compute-adapter-aws"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-compute-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-cloud-compute-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-compute-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
 
 [[package]]
 name = "oya-cloud-compute-domain"
@@ -1426,11 +1457,34 @@ name = "oya-cloud-finops-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-iam-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-iam-domain",
+]
+
+[[package]]
+name = "oya-cloud-iam-adapter-selfhosted"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-iam-domain",
+]
+
+[[package]]
 name = "oya-cloud-iam-api"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-iam-domain",
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-cloud-iam-app"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-iam-domain",
+ "oya-data-boundary-kernel",
+ "oya-policy-cedar-domain",
 ]
 
 [[package]]
@@ -1440,6 +1494,22 @@ dependencies = [
  "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-identity-domain",
+]
+
+[[package]]
+name = "oya-cloud-kms-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-kms-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-cloud-kms-adapter-openbao"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-kms-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -1474,6 +1544,24 @@ dependencies = [
 [[package]]
 name = "oya-cloud-marketplace-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-cloud-network-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-network-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-cloud-network-adapter-selfhosted"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-network-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
 
 [[package]]
 name = "oya-cloud-network-dns-api"
@@ -1563,6 +1651,22 @@ dependencies = [
  "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-cloud-storage-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-storage-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-cloud-storage-adapter-s3"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-storage-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -2698,6 +2802,15 @@ name = "oya-foundry-rag-endpoint-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-capability-registry-kernel",
+]
+
+[[package]]
+name = "oya-foundry-registry-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
+ "oya-foundry-eval-domain",
 ]
 
 [[package]]

@@ -14,7 +14,7 @@ use oya_workspace_chat_api::{
 
 const CHANNEL_ID: &str = "chat_channel_001";
 const MESSAGE_ID: &str = "chat_message_001";
-const TENANT_ID: &str = "ten_workspace_kr";
+const TENANT_ID: &str = "ten_workspace_alpha";
 const SENDER: &str = "user:owner@example.com";
 
 fn boundary(request_id: &str, idempotency_key: &str) -> WorkspaceChatSendBoundaryContext {

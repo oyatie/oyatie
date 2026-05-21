@@ -1,0 +1,310 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-m03-p02-cloud-capacity-management-2026-05-21",
+  "agent_id": "codex-m03-p02-cloud-capacity-management-20260521T1310Z",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "timestamp_unix": 1779369196,
+  "timestamp_iso": "2026-05-21T13:13:16Z",
+  "scope": "M03-P02-IP-003 Capacity management reserved, committed-use, and spot provider-neutral kernel closeout",
+  "status": "provider-neutral-capacity-kernel-green-provider-runtime-pending",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/masterplan.json",
+    "specs/planning-closure-contract.json",
+    "specs/master-plan-sequencing.json#oya-vcs-protocol",
+    "specs/gitops-vcs-replacement.json",
+    "specs/multispectrum-review.json",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-003-capacity-management.md",
+    "crates/oya-cloud-capacity-kernel/src/lib.rs",
+    "crates/oya-cloud-capacity-kernel/src/committed_use.rs"
+  ],
+  "files_changed": [
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-003-capacity-management.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p02-cloud-capacity-management-2026-05-21.json",
+    "evidence/multispectrum/cs-m03-p02-cloud-capacity-management-2026-05-21.json"
+  ],
+  "implementation_summary": [
+    "Verified existing oya-cloud-capacity-kernel exports ReservedCapacity, CommittedUseContract, and SpotPool from the crate root.",
+    "Closed M03-P02-IP-003 as provider-neutral capacity kernel green without adding provider-specific SDK dependencies or runtime side effects.",
+    "Updated stale scaffold acceptance commands to current workspace commands: oya-dev-cli cohesion gate and oya verify --ci-required.",
+    "Recorded explicit boundary: provider procurement APIs, discount purchase flows, app/API wiring, and live spot/preemptible smoke remain follow-up slices."
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-capacity-kernel --all-features",
+      "status": "passed",
+      "evidence": "Capacity kernel tests passed 42/42, covering reservation quota, cell budget, reserved capacity, committed-use discounts, and spot pool admission."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate cohesion",
+      "status": "passed",
+      "evidence": "Cohesion validation passed: 26 contracts, 10 implemented sources."
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-capacity-kernel -- --check",
+      "status": "passed",
+      "evidence": "Targeted capacity-kernel rustfmt check passed."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-capacity-kernel --all-features --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted capacity-kernel clippy passed with warnings denied."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Planning closure validation passed after IP-003 status and acceptance-command updates: blocker_count=0."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate data-class --workspace Cargo.toml",
+      "status": "passed",
+      "evidence": "Data-class fitness validation passed: 1590 fields checked, 1302 annotated, 288 legacy unannotated."
+    },
+    {
+      "command": "cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob> (legacy scaffold discovery)",
+      "status": "failed-as-expected",
+      "evidence": "Generated scaffold command does not map to a current workspace package; IP-003 acceptance commands were corrected to the current oya-dev-cli cohesion gate."
+    },
+    {
+      "command": "scripts/check.sh (legacy scaffold discovery)",
+      "status": "failed-as-expected",
+      "evidence": "Generated scaffold command references a non-existent repository script; IP-003 acceptance commands were corrected to canonical oya verify --ci-required."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate audit-chain-replay",
+      "status": "passed",
+      "evidence": "Audit-chain replay passed for the updated evidence/audit-chain event set before Oya VCS closeout."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "Whitespace/conflict-marker diff check passed before Oya VCS closeout."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p02-cloud-capacity-management-2026-05-21.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency seam validation passed offline against this evidence; standalone pre-canonical run passed 6 subchecks with 5 pass and 1 skipped, and canonical run-all passed dependency-seam with 6 pass, 0 skipped."
+    },
+    {
+      "command": "env -u RUSTC_WRAPPER SCCACHE_DISABLE=1 CARGO_BUILD_JOBS=1 /tmp/oyatie-selfhosted-dns-target-20260521/debug/oya verify --ci-required",
+      "status": "passed",
+      "evidence": "Canonical local CI gate passed with [gate run-all] summary: 89/89 lanes passed, including cargo fmt/check/clippy/nextest, Oya VCS admission/provider execution, required GitHub context validation, and PR-head review workflow semantics."
+    }
+  ],
+  "local_review": {
+    "verdict": "approve-local-before-pr-after-targeted-capacity-kernel-review",
+    "finding_count_required": 0,
+    "notes": [
+      "Correctness: existing tests cover zero/empty/boundary/exhausted cases for reserved, committed-use, and spot capacity.",
+      "Architecture: the capacity kernel is pure and provider-neutral; provider-specific procurement and interruption APIs remain adapter/runtime work.",
+      "Queue/merge discipline: open PR only after local gates; wait for oya-pr-review and required checks before next-queue/automerge.",
+      "Dependency-seam passed after completing required multispectrum facets; GitHub queue/merge remains blocked until oya-pr-review and required checks pass.",
+      "Canonical oya verify --ci-required passed 89/89; queue/merge remains blocked until GitHub oya-pr-review and required checks pass.",
+      "Oya VCS verify/done/promote accepted for dev after canonical 89/89 local CI; PR queue remains post-review only."
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "capacity-provider-procurement-adapters",
+      "status": "pending-follow-up-runtime-slice",
+      "reason": "No provider-specific reserved/committed-use purchase API or spot/preemptible lifecycle adapter is introduced here."
+    },
+    {
+      "id": "capacity-app-api-wiring",
+      "status": "pending-follow-up-slice",
+      "reason": "No deployed capacity-management API/app route is claimed by this kernel closeout slice."
+    },
+    {
+      "id": "live-capacity-smoke",
+      "status": "pending-credentials-and-runtime-target",
+      "reason": "No live provider spot/preemptible or reserved-capacity endpoint was contacted; this slice proves provider-neutral kernel invariants only."
+    }
+  ],
+  "rollback": "Revert this ChangeSet to restore IP-003/phase status, remove evidence files, and remove audit-chain rows; no capacity kernel code rollback is needed because this closeout does not alter kernel code.",
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "freshness_unix": 1779370744,
+  "git_sha": "aeb6bbf5",
+  "last_verified_iso": "2026-05-21T13:39:04Z",
+  "change_class_id": "CC-1",
+  "facets": {
+    "F1_correctness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Reserved, committed-use, and spot validators cover positive, boundary, and rejection paths in 42 capacity-kernel tests."
+      ]
+    },
+    "F2_testability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The slice is testable without cloud credentials because it is a pure provider-neutral kernel."
+      ]
+    },
+    "F3_architecture": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "No provider SDKs or runtime side effects are introduced; provider-specific procurement remains outside the kernel."
+      ]
+    },
+    "F4_interface_contract": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Crate-root exports match the IP symbols: ReservedCapacity, CommittedUseContract, and SpotPool."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The closeout updates stale scaffold status/commands instead of adding redundant abstractions."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "No external calls or credentials are added; all fields remain internal-only capacity/accounting metadata."
+      ]
+    },
+    "F9_maintainability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Shared RegionId and CapacityClass vocabulary keeps reserved, committed-use, and spot behavior aligned."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Diff is limited to plan status, acceptance-command correction, evidence, and audit-chain rows."
+      ]
+    },
+    "F11_documentation_evidence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "IP-003 and phase index record completion boundary and known runtime/provider gaps."
+      ]
+    },
+    "F13_adversarial_review": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected provider SDK/procurement side effects in the kernel and rejected live-runtime claims from pure tests."
+      ]
+    },
+    "M1_policy_adherence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim was accepted before editing, and closeout evidence will drive verify/done/promote.",
+        "Oya VCS verify/done/promote accepted for dev before PR submission."
+      ]
+    },
+    "M2_evidence_completeness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Evidence records targeted tests, cohesion, fmt, and clippy; canonical gates will be appended before PR.",
+        "Evidence now includes planning-closure, data-class, audit-chain replay, diff-check, and required multispectrum facets.",
+        "Dependency-seam is green against this multispectrum evidence file.",
+        "Canonical oya verify --ci-required passed 89/89 and is recorded before Oya VCS closeout."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Special cases reduced: all capacity classes and purchase modes share one neutral kernel vocabulary."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The kernel remains compatible with hyperscaler, self-hosted, on-prem, and colo capacity adapters because provider APIs are not embedded."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The slice avoids claiming deployed app/API/provider readiness."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Crate-root exports keep the planned capacity symbols easy for callers to import without exposing provider-specific procurement APIs."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Alternative provider-SDK implementation inside the kernel was rejected to preserve cloud/on-prem/colo portability."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Validators are in-memory scalar checks over request structs and slices; no I/O or provider round trips are introduced."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Capacity metadata remains internal-only and the slice does not touch regulated customer data or credentials."
+      ]
+    }
+  },
+  "vcs_lifecycle": {
+    "verify": {
+      "command": "oya vcs --format json verify --agent codex-m03-p02-cloud-capacity-management-20260521T1310Z --evidence evidence/fd001/cs-m03-p02-cloud-capacity-management-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-capacity-management-2026-05-21.json",
+      "status": "accepted",
+      "action": "verify-evidence"
+    },
+    "done": {
+      "command": "oya vcs --format json done --agent codex-m03-p02-cloud-capacity-management-20260521T1310Z --evidence evidence/fd001/cs-m03-p02-cloud-capacity-management-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-capacity-management-2026-05-21.json cs-m03-p02-cloud-capacity-management-2026-05-21",
+      "status": "accepted",
+      "action": "emit-change-bundle",
+      "closeout_mode": "legacy-grit-compatible-done"
+    },
+    "promote": {
+      "command": "oya vcs --format json promote --agent codex-m03-p02-cloud-capacity-management-20260521T1310Z --bundle cs-m03-p02-cloud-capacity-management-2026-05-21 --env dev --evidence evidence/fd001/cs-m03-p02-cloud-capacity-management-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-capacity-management-2026-05-21.json",
+      "status": "accepted",
+      "action": "promote-bundle",
+      "environment": "dev"
+    }
+  }
+}

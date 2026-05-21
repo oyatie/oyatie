@@ -137,6 +137,7 @@ runtime   — composition root (binary)
 | `oya-cloud-storage-api` | api | Storage REST + S3-compatibility API |
 | `oya-cloud-network-kernel` | kernel | VPC, Subnet, RouteTable, NIC, SecurityGroup, LoadBalancer, DnsZone |
 | `oya-cloud-network-adapter` | adapter | OVN / OVS / BGP / FRR / CoreDNS |
+| `oya-cloud-network-adapter-selfhosted` | adapter | Self-hosted/colo VPC + DNS request-contract adapter for OVN / OVS / BGP / FRR-backed tenant network segments and CoreDNS/authoritative-zone control |
 | `oya-cloud-network-vpc-api` | api | VPC create REST API |
 | `oya-cloud-network-lb-api` | api | Load balancer create REST API |
 | `oya-cloud-network-dns-api` | api | DNS zone create REST API |

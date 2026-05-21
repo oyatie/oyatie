@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-tasks + council-privacy + council-ai-safety
-acceptance_lanes: [cargo-test, auto-assign-fairness, eu-ai-act-annex-iii-refusal, cedar-policy-syntax]
+acceptance_lanes: [cargo-test, auto-assign-fairness, regulated-ai-refusal-grounding, cedar-policy-syntax]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -63,7 +63,7 @@ n/a — modifies existing task-store crates + Cedar policies.
 cargo test -p oya-tasks-task-store-domain eu_ai_act_auto_assign_refusal
 cargo test -p oya-tasks-task-store-usecase auto_assign
 cargo run -p oya-dev-cli -- gate validate auto-assign-fairness --microservice tasks
-cargo run -p oya-dev-cli -- gate validate eu-ai-act-annex-iii-refusal --microservice tasks
+cargo run -p oya-dev-cli -- gate validate regulated-ai-refusal-grounding --microservice tasks
 cargo run -p oya-dev-cli -- gate validate cedar-policy-syntax --microservice tasks
 ```
 

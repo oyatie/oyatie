@@ -3,36 +3,55 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_cloud_iam_api::{
+    CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE, CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE,
     CLOUD_IAM_ROLE_CREATE_SURFACE, CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization,
-    CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPrincipal, CloudIamPrincipalRef,
-    CloudIamRoleCreateApiRequest, CloudIamRoleCreateApiStatus, CloudIamRoleCreateIdempotencyLedger,
-    CloudIamRoleCreateRequest, CloudIamScopeRef, CloudIamStsTokenApiRequest,
-    CloudIamStsTokenApiStatus, CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
-    create_cloud_iam_role_from_api, issue_cloud_iam_sts_token_from_api,
+    CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPrincipal,
+    CloudIamApiReadBoundaryContext, CloudIamIdentityProviderCreateApiRequest,
+    CloudIamIdentityProviderCreateApiStatus, CloudIamIdentityProviderCreateIdempotencyLedger,
+    CloudIamIdentityProviderCreateRequest, CloudIamIdentityProviderDeleteApiRequest,
+    CloudIamIdentityProviderDeleteApiStatus, CloudIamIdentityProviderDeleteIdempotencyLedger,
+    CloudIamIdentityProviderKind, CloudIamIdentityProviderListApiRequest,
+    CloudIamIdentityProviderListApiStatus, CloudIamIdentityProviderUpdateApiRequest,
+    CloudIamIdentityProviderUpdateApiStatus, CloudIamIdentityProviderUpdateIdempotencyLedger,
+    CloudIamIdentityProviderUpdateRequest, CloudIamPrincipalRef, CloudIamRoleCreateApiRequest,
+    CloudIamRoleCreateApiStatus, CloudIamRoleCreateIdempotencyLedger, CloudIamRoleCreateRequest,
+    CloudIamScopeRef, CloudIamStsTokenApiRequest, CloudIamStsTokenApiStatus,
+    CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
+    create_cloud_iam_identity_provider_from_api, create_cloud_iam_role_from_api,
+    delete_cloud_iam_identity_provider_from_api, issue_cloud_iam_sts_token_from_api,
+    list_cloud_iam_identity_providers_from_api, update_cloud_iam_identity_provider_from_api,
 };
 use oya_cloud_iam_domain::{
-    CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate, MfaState,
+    CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
+    IdentityProviderCreate, IdentityProviderKind, MfaState,
 };
 use oya_data_boundary_kernel::DataClass;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryContext {
     CloudIamApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
+    }
+}
+
+fn read_boundary_for(request_id: &str) -> CloudIamApiReadBoundaryContext {
+    CloudIamApiReadBoundaryContext {
+        request_id: request_id.to_string(),
+        tenant_id: "ten_alpha".to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudIamApiPrincipal {
     CloudIamApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudIamApiAuthorization {
     CloudIamApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -45,7 +64,7 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudIamApiAuthor
 fn service_principal_create() -> IamPrincipalCreate {
     IamPrincipalCreate {
         id: "sp_cloud_provisioner".to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         kind: IamPrincipalKind::ServiceAccount,
         display_name: "cloud provisioner".to_string(),
         external_subject: None,
@@ -60,7 +79,7 @@ fn service_principal_create() -> IamPrincipalCreate {
 fn user_principal_create() -> IamPrincipalCreate {
     IamPrincipalCreate {
         id: "usr_alice".to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         kind: IamPrincipalKind::User,
         display_name: "Alice".to_string(),
         external_subject: None,
@@ -78,6 +97,60 @@ fn unverified_user_principal_create() -> IamPrincipalCreate {
         display_name: "Bob".to_string(),
         mfa_state: MfaState::Enrolled,
         ..user_principal_create()
+    }
+}
+
+fn external_oidc_provider_create() -> IdentityProviderCreate {
+    IdentityProviderCreate {
+        id: "idp_partner_oidc".to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        region_pack: "oya-pack-alpha".to_string(),
+        kind: IdentityProviderKind::Oidc,
+        issuer_uri: "https://partner.example/oidc".to_string(),
+        audience: "urn:oyatie:cloud".to_string(),
+        verification_material_ref: "jwks/partner".to_string(),
+        created_at_epoch_seconds: 1_700_000_020,
+    }
+}
+
+fn external_saml_provider_create() -> IdentityProviderCreate {
+    IdentityProviderCreate {
+        id: "idp_alpha_saml".to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        region_pack: "oya-pack-alpha".to_string(),
+        kind: IdentityProviderKind::Saml,
+        issuer_uri: "https://partner.example/saml".to_string(),
+        audience: "urn:oyatie:cloud:saml".to_string(),
+        verification_material_ref: "cert/partner".to_string(),
+        created_at_epoch_seconds: 1_700_000_021,
+    }
+}
+
+fn beta_oidc_provider_create() -> IdentityProviderCreate {
+    IdentityProviderCreate {
+        id: "idp_beta_oidc".to_string(),
+        tenant_id: "ten_beta".to_string(),
+        region_pack: "oya-pack-beta".to_string(),
+        kind: IdentityProviderKind::Oidc,
+        issuer_uri: "https://beta.example/oidc".to_string(),
+        audience: "urn:oyatie:cloud:beta".to_string(),
+        verification_material_ref: "jwks/beta".to_string(),
+        created_at_epoch_seconds: 1_700_000_022,
+    }
+}
+
+fn external_principal_create() -> IamPrincipalCreate {
+    IamPrincipalCreate {
+        id: "sp_external_partner".to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        kind: IamPrincipalKind::External,
+        display_name: "Partner".to_string(),
+        external_subject: Some("oidc://partner.example/sub-1".to_string()),
+        identity_provider_id: Some("idp_partner_oidc".to_string()),
+        region_pack: "oya-pack-alpha".to_string(),
+        mfa_state: MfaState::Verified,
+        last_authenticated_at_epoch_seconds: Some(1_700_000_050),
+        created_at_epoch_seconds: 1_700_000_040,
     }
 }
 
@@ -115,6 +188,23 @@ fn directory_with_role() -> IamDirectory {
     directory
 }
 
+fn directory_with_external_role() -> IamDirectory {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    directory
+        .create_principal(external_principal_create())
+        .expect("external principal registers");
+    directory
+        .create_role(IamRoleCreate {
+            assumable_by: vec!["sp_external_partner".to_string()],
+            ..role_create()
+        })
+        .expect("role trusts external principal");
+    directory
+}
+
 fn role_api_request(request_id: &str, idempotency_key: &str) -> CloudIamRoleCreateApiRequest {
     CloudIamRoleCreateApiRequest {
         path_role_id: "role_compute_admin".to_string(),
@@ -122,7 +212,7 @@ fn role_api_request(request_id: &str, idempotency_key: &str) -> CloudIamRoleCrea
         principal: principal_for("sp_cloud_provisioner"),
         authorization: authorization_for("sp_cloud_provisioner", &[CLOUD_IAM_ROLE_CREATE_SURFACE]),
         body: CloudIamRoleCreateRequest {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             role_id: "role_compute_admin".to_string(),
             region: "region-home".to_string(),
             name: "compute-admin".to_string(),
@@ -149,7 +239,7 @@ fn sts_api_request(request_id: &str, idempotency_key: &str) -> CloudIamStsTokenA
         principal: principal_for("sp_cloud_provisioner"),
         authorization: authorization_for("sp_cloud_provisioner", &[CLOUD_IAM_STS_TOKEN_SURFACE]),
         body: CloudIamStsTokenRequest {
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             session_id: "sts_compute_admin_001".to_string(),
             role_id: "role_compute_admin".to_string(),
             assumed_by: "sp_cloud_provisioner".to_string(),
@@ -166,6 +256,525 @@ fn sts_api_request(request_id: &str, idempotency_key: &str) -> CloudIamStsTokenA
             issued_at_epoch_seconds: 1_700_000_100,
         },
     }
+}
+
+fn external_sts_api_request(request_id: &str, idempotency_key: &str) -> CloudIamStsTokenApiRequest {
+    CloudIamStsTokenApiRequest {
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_external_partner"),
+        authorization: authorization_for("sp_external_partner", &[CLOUD_IAM_STS_TOKEN_SURFACE]),
+        body: CloudIamStsTokenRequest {
+            tenant_id: "ten_alpha".to_string(),
+            session_id: "sts_external_partner_001".to_string(),
+            role_id: "role_compute_admin".to_string(),
+            assumed_by: "sp_external_partner".to_string(),
+            external_id: Some("external-customer-alpha".to_string()),
+            requested_duration_sec: 300,
+            scopes: vec![CloudIamScopeRef {
+                value: "cloud.iam.read".to_string(),
+            }],
+            issued_at_epoch_seconds: 1_700_000_100,
+        },
+    }
+}
+
+fn identity_provider_api_request(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudIamIdentityProviderCreateApiRequest {
+    CloudIamIdentityProviderCreateApiRequest {
+        path_identity_provider_id: "idp_partner_oidc".to_string(),
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_cloud_provisioner"),
+        authorization: authorization_for(
+            "sp_cloud_provisioner",
+            &[CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE],
+        ),
+        body: CloudIamIdentityProviderCreateRequest {
+            tenant_id: "ten_alpha".to_string(),
+            identity_provider_id: "idp_partner_oidc".to_string(),
+            region_pack: "oya-pack-alpha".to_string(),
+            kind: CloudIamIdentityProviderKind::Oidc,
+            issuer_uri: "https://partner.example/oidc".to_string(),
+            audience: "urn:oyatie:cloud".to_string(),
+            verification_material_ref: "jwks/partner".to_string(),
+            created_at_epoch_seconds: 1_700_000_020,
+        },
+    }
+}
+
+fn identity_provider_list_api_request(request_id: &str) -> CloudIamIdentityProviderListApiRequest {
+    CloudIamIdentityProviderListApiRequest {
+        boundary: read_boundary_for(request_id),
+        principal: principal_for("sp_cloud_provisioner"),
+        authorization: authorization_for(
+            "sp_cloud_provisioner",
+            &[oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE],
+        ),
+    }
+}
+
+fn identity_provider_update_api_request(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudIamIdentityProviderUpdateApiRequest {
+    CloudIamIdentityProviderUpdateApiRequest {
+        path_identity_provider_id: "idp_partner_oidc".to_string(),
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_cloud_provisioner"),
+        authorization: authorization_for(
+            "sp_cloud_provisioner",
+            &[oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE],
+        ),
+        body: CloudIamIdentityProviderUpdateRequest {
+            tenant_id: "ten_alpha".to_string(),
+            identity_provider_id: "idp_partner_oidc".to_string(),
+            region_pack: "oya-pack-alpha".to_string(),
+            kind: CloudIamIdentityProviderKind::Saml,
+            issuer_uri: "https://partner.example/saml/v2".to_string(),
+            audience: "urn:oyatie:cloud:saml:v2".to_string(),
+            verification_material_ref: "cert/partner-rotated".to_string(),
+        },
+    }
+}
+
+fn identity_provider_delete_api_request(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudIamIdentityProviderDeleteApiRequest {
+    CloudIamIdentityProviderDeleteApiRequest {
+        path_identity_provider_id: "idp_partner_oidc".to_string(),
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_cloud_provisioner"),
+        authorization: authorization_for(
+            "sp_cloud_provisioner",
+            &[CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE],
+        ),
+        tenant_id: "ten_alpha".to_string(),
+    }
+}
+
+#[test]
+fn identity_provider_list_api_returns_tenant_scoped_providers_in_deterministic_order() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    directory
+        .register_identity_provider(beta_oidc_provider_create())
+        .expect("beta provider registers");
+    directory
+        .register_identity_provider(external_saml_provider_create())
+        .expect("SAML provider registers");
+
+    let response = list_cloud_iam_identity_providers_from_api(
+        &directory,
+        identity_provider_list_api_request("req-idp-list"),
+    )
+    .expect("tenant-scoped provider list succeeds");
+
+    assert_eq!(response.metadata.request_id, "req-idp-list");
+    assert_eq!(
+        response
+            .data
+            .iter()
+            .map(|provider| provider.identity_provider_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["idp_alpha_saml", "idp_partner_oidc"]
+    );
+    assert_eq!(response.data[0].kind, CloudIamIdentityProviderKind::Saml);
+    assert_eq!(response.data[1].kind, CloudIamIdentityProviderKind::Oidc);
+    assert_eq!(CloudIamIdentityProviderListApiStatus::Ok.code(), 200);
+    assert_eq!(
+        CloudIamIdentityProviderListApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(CloudIamIdentityProviderListApiStatus::Forbidden.code(), 403);
+}
+
+#[test]
+fn identity_provider_list_api_rejects_cross_tenant_or_unauthorized_reads() {
+    let directory = IamDirectory::default();
+    let mut cross_tenant = identity_provider_list_api_request("req-idp-list-cross-tenant");
+    cross_tenant.boundary.tenant_id = "ten_beta".to_string();
+
+    assert_eq!(
+        list_cloud_iam_identity_providers_from_api(&directory, cross_tenant),
+        Err(CloudIamApiError::TenantMismatch {
+            header_tenant_id: "ten_beta".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_beta".to_string(),
+        })
+    );
+
+    let unauthorized = CloudIamIdentityProviderListApiRequest {
+        authorization: authorization_for("sp_cloud_provisioner", &[CLOUD_IAM_STS_TOKEN_SURFACE]),
+        ..identity_provider_list_api_request("req-idp-list-denied")
+    };
+    assert_eq!(
+        list_cloud_iam_identity_providers_from_api(&directory, unauthorized),
+        Err(CloudIamApiError::AuthorizationDenied {
+            surface: oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE.to_string(),
+        })
+    );
+}
+
+#[test]
+fn identity_provider_delete_api_deletes_existing_provider_with_idempotency_and_tenant_binding() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    let mut ledger = CloudIamIdentityProviderDeleteIdempotencyLedger::default();
+    let request = identity_provider_delete_api_request("req-idp-delete", "idem-idp-delete");
+
+    let first =
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+            .expect("provider-managed IdP deletes through API");
+    let second = delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request)
+        .expect("same IdP delete request replays idempotently");
+
+    assert_eq!(first, second);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(first.metadata.request_id, "req-idp-delete");
+    assert_eq!(first.data.identity_provider_id, "idp_partner_oidc");
+    assert_eq!(first.data.tenant_id, "ten_alpha");
+    assert_eq!(first.data.kind, CloudIamIdentityProviderKind::Oidc);
+    assert_eq!(
+        CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE,
+        "cloud.iam.identity_provider.delete"
+    );
+    assert_eq!(CloudIamIdentityProviderDeleteApiStatus::Ok.code(), 200);
+    assert_eq!(
+        CloudIamIdentityProviderDeleteApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(
+        CloudIamIdentityProviderDeleteApiStatus::Forbidden.code(),
+        403
+    );
+    assert_eq!(
+        CloudIamIdentityProviderDeleteApiStatus::Conflict.code(),
+        409
+    );
+    assert_eq!(
+        CloudIamIdentityProviderDeleteApiStatus::UnprocessableEntity.code(),
+        422
+    );
+
+    let listed = list_cloud_iam_identity_providers_from_api(
+        &directory,
+        identity_provider_list_api_request("req-idp-delete-list"),
+    )
+    .expect("tenant-scoped provider list remains available after delete");
+    assert!(listed.data.is_empty());
+}
+
+#[test]
+fn identity_provider_delete_api_rejects_missing_cross_tenant_unauthorized_or_in_use_deletes() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    directory
+        .register_identity_provider(beta_oidc_provider_create())
+        .expect("beta provider registers");
+    let mut ledger = CloudIamIdentityProviderDeleteIdempotencyLedger::default();
+
+    let mut missing =
+        identity_provider_delete_api_request("req-idp-delete-missing", "idem-delete-missing");
+    missing.path_identity_provider_id = "idp_missing_oidc".to_string();
+    let missing_error =
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, missing)
+            .expect_err("missing provider cannot be deleted");
+    assert_eq!(
+        missing_error,
+        CloudIamApiError::Iam(CloudIamError::UnknownProvider)
+    );
+    assert_eq!(missing_error.identity_provider_delete_status_code(), 400);
+
+    let mut cross_tenant =
+        identity_provider_delete_api_request("req-idp-delete-cross", "idem-delete-cross");
+    cross_tenant.path_identity_provider_id = "idp_beta_oidc".to_string();
+    let cross_tenant_error =
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, cross_tenant)
+            .expect_err("cross-tenant provider cannot be deleted by alpha principal");
+    assert_eq!(
+        cross_tenant_error,
+        CloudIamApiError::Iam(CloudIamError::ProviderTenantMismatch)
+    );
+    assert_eq!(
+        cross_tenant_error.identity_provider_delete_status_code(),
+        403
+    );
+
+    let mut unauthorized =
+        identity_provider_delete_api_request("req-idp-delete-denied", "idem-delete-denied");
+    unauthorized.authorization = authorization_for(
+        "sp_cloud_provisioner",
+        &[oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE],
+    );
+    let before_denied_ledger_len = ledger.len();
+    assert_eq!(
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, unauthorized),
+        Err(CloudIamApiError::AuthorizationDenied {
+            surface: CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE.to_string(),
+        })
+    );
+    assert_eq!(ledger.len(), before_denied_ledger_len);
+
+    let mut drifted =
+        identity_provider_delete_api_request("req-idp-delete-tenant-drift", "idem-delete-drift");
+    drifted.tenant_id = "ten_beta".to_string();
+    assert_eq!(
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, drifted),
+        Err(CloudIamApiError::TenantMismatch {
+            header_tenant_id: "ten_alpha".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_beta".to_string(),
+        })
+    );
+
+    directory
+        .create_principal(external_principal_create())
+        .expect("external principal binds provider");
+    let in_use = delete_cloud_iam_identity_provider_from_api(
+        &mut directory,
+        &mut ledger,
+        identity_provider_delete_api_request("req-idp-delete-in-use", "idem-delete-in-use"),
+    )
+    .expect_err("provider with bound principals cannot be deleted");
+    assert_eq!(in_use, CloudIamApiError::Iam(CloudIamError::ProviderInUse));
+    assert_eq!(in_use.identity_provider_delete_status_code(), 409);
+}
+
+#[test]
+fn identity_provider_update_api_updates_existing_provider_with_idempotency_and_tenant_binding() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    let mut ledger = CloudIamIdentityProviderUpdateIdempotencyLedger::default();
+    let request = identity_provider_update_api_request("req-idp-update", "idem-idp-update");
+
+    let first =
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+            .expect("provider-managed IdP updates through API");
+    let second = update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request)
+        .expect("same IdP update request replays idempotently");
+
+    assert_eq!(first, second);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(first.metadata.request_id, "req-idp-update");
+    assert_eq!(first.data.identity_provider_id, "idp_partner_oidc");
+    assert_eq!(first.data.tenant_id, "ten_alpha");
+    assert_eq!(first.data.kind, CloudIamIdentityProviderKind::Saml);
+    assert_eq!(first.data.issuer_uri, "https://partner.example/saml/v2");
+    assert_eq!(first.data.verification_material_ref, "cert/partner-rotated");
+    assert_eq!(first.data.created_at_epoch_seconds, 1_700_000_020);
+    assert_eq!(
+        oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE,
+        "cloud.iam.identity_provider.update"
+    );
+    assert_eq!(CloudIamIdentityProviderUpdateApiStatus::Ok.code(), 200);
+    assert_eq!(
+        CloudIamIdentityProviderUpdateApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(
+        CloudIamIdentityProviderUpdateApiStatus::Forbidden.code(),
+        403
+    );
+    assert_eq!(
+        CloudIamIdentityProviderUpdateApiStatus::Conflict.code(),
+        409
+    );
+    assert_eq!(
+        CloudIamIdentityProviderUpdateApiStatus::UnprocessableEntity.code(),
+        422
+    );
+
+    let listed = list_cloud_iam_identity_providers_from_api(
+        &directory,
+        identity_provider_list_api_request("req-idp-update-list"),
+    )
+    .expect("updated provider remains tenant-scoped and listable");
+    assert_eq!(listed.data.len(), 1);
+    assert_eq!(listed.data[0].kind, CloudIamIdentityProviderKind::Saml);
+    assert_eq!(
+        listed.data[0].verification_material_ref,
+        "cert/partner-rotated"
+    );
+}
+
+#[test]
+fn identity_provider_update_api_rejects_missing_cross_tenant_or_unauthorized_updates() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    directory
+        .register_identity_provider(beta_oidc_provider_create())
+        .expect("beta provider registers");
+    let mut ledger = CloudIamIdentityProviderUpdateIdempotencyLedger::default();
+
+    let mut missing =
+        identity_provider_update_api_request("req-idp-update-missing", "idem-missing");
+    missing.path_identity_provider_id = "idp_missing_oidc".to_string();
+    missing.body.identity_provider_id = "idp_missing_oidc".to_string();
+    let missing_error =
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, missing)
+            .expect_err("missing provider cannot be updated");
+    assert_eq!(
+        missing_error,
+        CloudIamApiError::Iam(CloudIamError::UnknownProvider)
+    );
+    assert_eq!(missing_error.identity_provider_update_status_code(), 400);
+
+    let mut cross_tenant =
+        identity_provider_update_api_request("req-idp-update-cross", "idem-cross");
+    cross_tenant.path_identity_provider_id = "idp_beta_oidc".to_string();
+    cross_tenant.body.identity_provider_id = "idp_beta_oidc".to_string();
+    let cross_tenant_error =
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, cross_tenant)
+            .expect_err("cross-tenant provider cannot be updated by alpha principal");
+    assert_eq!(
+        cross_tenant_error,
+        CloudIamApiError::Iam(CloudIamError::ProviderTenantMismatch)
+    );
+    assert_eq!(
+        cross_tenant_error.identity_provider_update_status_code(),
+        403
+    );
+
+    let mut unauthorized =
+        identity_provider_update_api_request("req-idp-update-denied", "idem-denied");
+    unauthorized.authorization = authorization_for(
+        "sp_cloud_provisioner",
+        &[oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE],
+    );
+    let before_denied_ledger_len = ledger.len();
+    assert_eq!(
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, unauthorized),
+        Err(CloudIamApiError::AuthorizationDenied {
+            surface: oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE.to_string(),
+        })
+    );
+    assert_eq!(ledger.len(), before_denied_ledger_len);
+
+    let mut drifted = identity_provider_update_api_request("req-idp-update-drift", "idem-drift");
+    drifted.body.identity_provider_id = "idp_other_oidc".to_string();
+    assert_eq!(
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, drifted),
+        Err(CloudIamApiError::ProviderIdMismatch {
+            path_identity_provider_id: "idp_partner_oidc".to_string(),
+            body_identity_provider_id: "idp_other_oidc".to_string(),
+        })
+    );
+}
+
+#[test]
+fn identity_provider_create_api_rejects_path_body_provider_drift_before_ledger() {
+    let mut directory = IamDirectory::default();
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let mut request = identity_provider_api_request("req-idp-drift", "idem-idp-drift");
+    request.body.identity_provider_id = "idp_other_oidc".to_string();
+
+    let result = create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request);
+
+    assert_eq!(
+        result,
+        Err(CloudIamApiError::ProviderIdMismatch {
+            path_identity_provider_id: "idp_partner_oidc".to_string(),
+            body_identity_provider_id: "idp_other_oidc".to_string(),
+        })
+    );
+    assert!(ledger.is_empty());
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("path/body denial happened before directory mutation");
+}
+
+#[test]
+fn identity_provider_create_api_registers_oidc_provider_once_and_replays() {
+    let mut directory = IamDirectory::default();
+    directory
+        .create_principal(service_principal_create())
+        .expect("provisioner principal exists");
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let request = identity_provider_api_request("req-idp-create", "idem-idp-create");
+
+    let first =
+        create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+            .expect("provider-managed OIDC IdP registers through API");
+    let second = create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request)
+        .expect("same IdP create request replays idempotently");
+
+    assert_eq!(first, second);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(first.data.identity_provider_id, "idp_partner_oidc");
+    assert_eq!(first.data.kind, CloudIamIdentityProviderKind::Oidc);
+    assert_eq!(first.data.verification_material_ref, "jwks/partner");
+    assert_eq!(first.metadata.request_id, "req-idp-create");
+    assert_eq!(
+        CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE,
+        "cloud.iam.identity_provider.create"
+    );
+    assert_eq!(CloudIamIdentityProviderCreateApiStatus::Created.code(), 201);
+    assert_eq!(
+        CloudIamIdentityProviderCreateApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(
+        CloudIamIdentityProviderCreateApiStatus::Forbidden.code(),
+        403
+    );
+    assert_eq!(
+        CloudIamIdentityProviderCreateApiStatus::Conflict.code(),
+        409
+    );
+    assert_eq!(
+        CloudIamIdentityProviderCreateApiStatus::UnprocessableEntity.code(),
+        422
+    );
+
+    directory
+        .create_principal(external_principal_create())
+        .expect("registered provider can bind external principal");
+}
+
+#[test]
+fn identity_provider_create_api_maps_duplicate_and_reused_idempotency_key() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("provider exists");
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+
+    let duplicate = create_cloud_iam_identity_provider_from_api(
+        &mut directory,
+        &mut ledger,
+        identity_provider_api_request("req-idp-duplicate", "idem-idp-duplicate"),
+    )
+    .expect_err("duplicate provider maps to conflict");
+    assert_eq!(duplicate.identity_provider_create_status_code(), 409);
+    assert_eq!(
+        duplicate,
+        CloudIamApiError::Iam(CloudIamError::DuplicateProvider)
+    );
+
+    let mut directory = IamDirectory::default();
+    let request = identity_provider_api_request("req-idp-create", "idem-idp-create");
+    create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+        .expect("new provider registers");
+    let mut drifted = request;
+    drifted.body.audience = "urn:oyatie:changed".to_string();
+    assert_eq!(
+        create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, drifted),
+        Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: "idem-idp-create".to_string(),
+        })
+    );
 }
 
 #[test]
@@ -235,8 +844,8 @@ fn role_create_api_rejects_required_header_and_tenant_drift_before_ledger() {
         create_cloud_iam_role_from_api(&mut directory, &mut ledger, empty_request),
         Err(CloudIamApiError::TenantMismatch {
             header_tenant_id: "ten_other".to_string(),
-            principal_tenant_id: "ten_kr".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
         })
     );
     assert!(ledger.is_empty());
@@ -345,9 +954,9 @@ fn sts_token_api_rejects_principal_body_drift_before_directory_mutation() {
     assert_eq!(
         result,
         Err(CloudIamApiError::PrincipalMismatch {
-            principal_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
             principal_id: "sp_cloud_provisioner".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
             assumed_by: "usr_alice".to_string(),
         })
     );
@@ -452,4 +1061,47 @@ fn sts_token_api_maps_mfa_policy_denial_to_forbidden() {
 
     assert_eq!(error.sts_token_status_code(), 403);
     assert_eq!(error, CloudIamApiError::Iam(CloudIamError::MfaNotVerified));
+}
+
+#[test]
+fn sts_token_api_issues_external_oidc_session_with_external_id() {
+    let mut directory = directory_with_external_role();
+    let mut ledger = CloudIamStsTokenIdempotencyLedger::default();
+    let request = external_sts_api_request("req-sts-external", "idem-sts-external");
+
+    let first = issue_cloud_iam_sts_token_from_api(&mut directory, &mut ledger, request.clone())
+        .expect("external OIDC principal can receive scoped STS token");
+    let second = issue_cloud_iam_sts_token_from_api(&mut directory, &mut ledger, request)
+        .expect("same external STS request replays idempotently");
+
+    assert_eq!(first, second);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(first.data.session_id, "sts_external_partner_001");
+    assert_eq!(first.data.assumed_by, "sp_external_partner");
+    assert_eq!(
+        first.data.external_id.as_deref(),
+        Some("external-customer-alpha")
+    );
+    assert_eq!(first.data.expires_at_epoch_seconds, 1_700_000_400);
+    assert_eq!(first.data.scopes[0].value, "cloud.iam.read");
+    assert!(first.data.token_fingerprint.starts_with("sts1:"));
+}
+
+#[test]
+fn sts_token_api_maps_external_id_policy_denial_to_forbidden() {
+    let mut directory = directory_with_external_role();
+    let mut ledger = CloudIamStsTokenIdempotencyLedger::default();
+    let mut request = external_sts_api_request("req-sts-external-id", "idem-sts-external-id");
+    request.body.session_id = "sts_external_partner_no_id".to_string();
+    request.body.external_id = None;
+
+    let error = issue_cloud_iam_sts_token_from_api(&mut directory, &mut ledger, request)
+        .expect_err("external OIDC principal requires external_id");
+
+    assert_eq!(error.sts_token_status_code(), 403);
+    assert_eq!(
+        error,
+        CloudIamApiError::Iam(CloudIamError::ExternalIdRequired)
+    );
+    assert_eq!(ledger.len(), 1);
 }

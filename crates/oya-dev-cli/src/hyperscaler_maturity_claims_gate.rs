@@ -6,6 +6,8 @@ use serde_json::Value;
 
 use crate::usage;
 
+const GOVERNANCE_PROTECTION_CONTEXT_MATCH_CHECK: &str = "oya-governance-protection-context-match";
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct HyperscalerMaturityClaimsValidateArgs {
     gates_path: PathBuf,

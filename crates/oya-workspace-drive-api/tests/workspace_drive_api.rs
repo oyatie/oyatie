@@ -14,7 +14,7 @@ use oya_workspace_drive_api::{
 };
 
 const OBJECT_ID: &str = "drive_object_001";
-const TENANT_ID: &str = "ten_workspace_kr";
+const TENANT_ID: &str = "ten_workspace_alpha";
 const OWNER: &str = "user:owner@example.com";
 
 fn mutation_boundary(
@@ -77,7 +77,7 @@ fn put_body(object_id: &str) -> WorkspaceDriveObjectPutRequest {
         tenant_id: TENANT_ID.to_string(),
         region: "region-home".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),
-        object_storage_key: "ten_workspace_kr/drive/team/roadmap.md".to_string(),
+        object_storage_key: "ten_workspace_alpha/drive/team/roadmap.md".to_string(),
         size_bytes: 2048,
         mime_type: "text/markdown".to_string(),
         kms_shred_key_id: "kms/region-home/ten_workspace_kr/drive/object".to_string(),
@@ -254,7 +254,7 @@ fn get_drive_object_projects_authorized_metadata_and_enforces_acl_before_data_pr
     assert_eq!(owner.metadata.surface, WORKSPACE_DRIVE_GET_SURFACE);
     assert_eq!(
         owner.data.object_storage_key,
-        "ten_workspace_kr/drive/team/roadmap.md"
+        "ten_workspace_alpha/drive/team/roadmap.md"
     );
 
     let viewer = get_workspace_drive_object_from_api(

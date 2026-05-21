@@ -165,6 +165,10 @@ pub const PRIVACY_PROGRAM_DATA_CLASS_LABELS: [&str; 13] = [
 ];
 
 impl DataClass {
+    /// Source-compatibility alias for pre-migration code paths; public labels use FINANCIAL_REGULATED_CREDIT.
+    #[allow(non_upper_case_globals)]
+    pub const FinancialCredit: Self = Self::FinancialRegulatedCredit;
+
     /// Stable label for catalog, OpenAPI, and telemetry surfaces.
     pub const fn label(self) -> &'static str {
         match self {

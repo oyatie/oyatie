@@ -640,7 +640,7 @@ mod tests {
         RegionCode::new(value).expect("valid region")
     }
 
-    fn kr_binding() -> RegionBinding {
+    fn home_binding() -> RegionBinding {
         RegionBinding::new(
             region("region-home"),
             None,
@@ -663,8 +663,8 @@ mod tests {
 
     #[test]
     fn region_binding_enforces_residency_primary_and_failover_rules() {
-        assert_eq!(kr_binding().residency_class(), ResidencyClass::StrictHomeRegion);
-        assert_eq!(kr_binding().schema_version(), REGION_BINDING_SCHEMA_VERSION);
+        assert_eq!(home_binding().residency_class(), ResidencyClass::StrictHomeRegion);
+        assert_eq!(home_binding().schema_version(), REGION_BINDING_SCHEMA_VERSION);
 
         assert_eq!(
             RegionBinding::new(
@@ -703,7 +703,7 @@ mod tests {
         let tenant = Tenant::new(
             tenant_id("ten_alpha"),
             "Alpha Tenant Ltd",
-            kr_binding(),
+            home_binding(),
             vec!["oya-pack-alpha".to_string()],
             TenantPlaneGrants::all(),
         )
@@ -719,7 +719,7 @@ mod tests {
 
     #[test]
     fn tenant_creation_rejects_empty_or_duplicate_regulatory_packs() {
-        let base = (tenant_id("ten_alpha"), "Alpha Tenant Ltd", kr_binding());
+        let base = (tenant_id("ten_alpha"), "Alpha Tenant Ltd", home_binding());
         assert_eq!(
             Tenant::new(
                 base.0.clone(),

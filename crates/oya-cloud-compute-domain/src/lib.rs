@@ -371,6 +371,54 @@ pub trait ComputeRepo {
     ) -> Result<FunctionInvocationReceipt, CloudComputeError>;
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum ComputeProviderKind {
+    AwsEc2,
+    OciCompute,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ComputeProviderVmCreateRequest {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub provider_instance_ref: String,   // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub instance: Instance,              // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ComputeProviderVmReceipt {
+    pub provider_kind: ComputeProviderKind, // data_class: PUBLIC
+    pub provider_request_id: String,        // data_class: INTERNAL_ONLY
+    pub provider_instance_ref: String,      // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String,      // data_class: INTERNAL_ONLY
+    pub instance_resource_id: String,       // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                  // data_class: INTERNAL_ONLY
+    pub region: String,                     // data_class: PUBLIC
+    pub az: String,                         // data_class: PUBLIC
+    pub cell_id: String,                    // data_class: PUBLIC
+    pub schema_version: u32,                // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ComputeProviderVmError {
+    InvalidRequest,
+    ProviderRejected {
+        provider: ComputeProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+}
+
+pub trait ComputeProviderVmPort {
+    fn provider_kind(&self) -> ComputeProviderKind;
+    fn create_vm(
+        &self,
+        input: ComputeProviderVmCreateRequest,
+    ) -> Result<ComputeProviderVmReceipt, ComputeProviderVmError>;
+}
+
 impl ImageRef {
     pub fn new(value: impl Into<String>) -> Result<Self, CloudComputeError> {
         let value = value.into();
@@ -486,6 +534,58 @@ impl IdempotencyKey {
         } else {
             Err(CloudComputeError::InvalidIdempotencyKey)
         }
+    }
+}
+
+impl ComputeProviderKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::AwsEc2 => "aws_ec2",
+            Self::OciCompute => "oci_compute",
+        }
+    }
+}
+
+impl ComputeProviderVmCreateRequest {
+    pub fn validate(&self) -> Result<(), ComputeProviderVmError> {
+        if self.request_id.trim().is_empty()
+            || self.provider_instance_ref.trim().is_empty()
+            || self.tenant_id.trim().is_empty()
+            || self.actor.trim().is_empty()
+            || self.idempotency_key.trim().is_empty()
+            || self.tenant_id != self.instance.tenant_id.value
+        {
+            return Err(ComputeProviderVmError::InvalidRequest);
+        }
+        Ok(())
+    }
+}
+
+impl ComputeProviderVmReceipt {
+    pub fn from_request(
+        provider_kind: ComputeProviderKind,
+        request: ComputeProviderVmCreateRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, ComputeProviderVmError> {
+        request.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        if provider_request_id.trim().is_empty() || provider_evidence_ref.trim().is_empty() {
+            return Err(ComputeProviderVmError::InvalidRequest);
+        }
+        Ok(Self {
+            provider_kind,
+            provider_request_id,
+            provider_instance_ref: request.provider_instance_ref,
+            provider_evidence_ref,
+            instance_resource_id: request.instance.resource_id.value.value,
+            tenant_id: request.tenant_id,
+            region: request.instance.region.value.value,
+            az: request.instance.az.value.value,
+            cell_id: request.instance.cell_id.value.value,
+            schema_version: COMPUTE_SCHEMA_VERSION,
+        })
     }
 }
 
@@ -908,6 +1008,33 @@ impl CloudComputeCatalog {
     }
 }
 
+pub const fn instance_flavor_label(flavor: InstanceFlavor) -> &'static str {
+    match flavor {
+        InstanceFlavor::GeneralPurpose => "general_purpose",
+        InstanceFlavor::ComputeOptimized => "compute_optimized",
+        InstanceFlavor::MemoryOptimized => "memory_optimized",
+        InstanceFlavor::Gpu => "gpu",
+    }
+}
+
+pub const fn image_ref_kind_label(kind: ImageRefKind) -> &'static str {
+    match kind {
+        ImageRefKind::Oci => "oci",
+        ImageRefKind::Qcow2 => "qcow2",
+        ImageRefKind::FunctionBundle => "function_bundle",
+    }
+}
+
+pub const fn instance_state_label(state: InstanceState) -> &'static str {
+    match state {
+        InstanceState::Pending => "pending",
+        InstanceState::Running => "running",
+        InstanceState::Stopping => "stopping",
+        InstanceState::Stopped => "stopped",
+        InstanceState::Terminated => "terminated",
+    }
+}
+
 fn node_pools(
     tenant_id: &str,
     region: &RegionCode,
@@ -1275,6 +1402,19 @@ mod tests {
         }
     }
 
+    fn provider_vm_request() -> ComputeProviderVmCreateRequest {
+        let instance = Instance::new(instance_create()).expect("instance contract is valid");
+        ComputeProviderVmCreateRequest {
+            request_id: "compute-vm-provider-001".to_string(),
+            provider_instance_ref: "provider://cell-alpha-region-a-001/app-1".to_string(),
+            tenant_id: instance.tenant_id.value.clone(),
+            actor: "sp_cloud_provisioner".to_string(),
+            idempotency_key: "idem-compute-vm-provider-001".to_string(),
+            requested_at_epoch_seconds: 1_700_100_050,
+            instance,
+        }
+    }
+
     #[test]
     fn creates_vm_instance_with_cell_network_iam_quota_and_digest_image() {
         let instance = Instance::new(instance_create()).expect("instance contract is valid");
@@ -1287,6 +1427,41 @@ mod tests {
         assert_eq!(instance.security_groups.value.len(), 1);
         assert!(instance.iam_role.value.is_some());
         assert_eq!(instance.schema_version.value, COMPUTE_SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn provider_vm_receipt_requires_non_empty_provider_evidence() {
+        let request = provider_vm_request();
+
+        let receipt = ComputeProviderVmReceipt::from_request(
+            ComputeProviderKind::AwsEc2,
+            request.clone(),
+            "aws-req-001",
+            "aws-ec2://evidence/req-001",
+        )
+        .expect("provider receipt keeps neutral VM identity");
+        assert_eq!(receipt.provider_kind, ComputeProviderKind::AwsEc2);
+        assert_eq!(receipt.tenant_id, "ten_alpha");
+        assert_eq!(receipt.region, "alpha-region");
+        assert_eq!(receipt.az, "alpha-region-a");
+
+        let missing_request_id = ComputeProviderVmReceipt::from_request(
+            ComputeProviderKind::AwsEc2,
+            request.clone(),
+            " ",
+            "aws-ec2://evidence/req-001",
+        )
+        .expect_err("provider request id is required");
+        assert_eq!(missing_request_id, ComputeProviderVmError::InvalidRequest);
+
+        let missing_evidence_ref = ComputeProviderVmReceipt::from_request(
+            ComputeProviderKind::AwsEc2,
+            request,
+            "aws-req-001",
+            "",
+        )
+        .expect_err("provider evidence ref is required");
+        assert_eq!(missing_evidence_ref, ComputeProviderVmError::InvalidRequest);
     }
 
     #[test]

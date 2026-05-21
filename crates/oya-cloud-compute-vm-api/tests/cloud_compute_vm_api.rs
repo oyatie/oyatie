@@ -18,21 +18,21 @@ const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudComputeVmApiBoundaryContext {
     CloudComputeVmApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudComputeVmApiPrincipal {
     CloudComputeVmApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudComputeVmApiAuthorization {
     CloudComputeVmApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -97,7 +97,7 @@ fn body(resource_id: &str) -> CloudComputeVmCreateRequest {
             region: "region-home".to_string(),
             vpc_id: "oya:cloud:region-home:ten_kr:vpc:prod".to_string(),
         }),
-        user_data_uri: Some("userdata/ten_kr/app-1/cloud-init.yaml".to_string()),
+        user_data_uri: Some("userdata/ten_alpha/app-1/cloud-init.yaml".to_string()),
         quota: quota(),
         residency: "strict_home_region".to_string(),
         data_class: "PUBLIC".to_string(),
@@ -365,20 +365,22 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
     assert_eq!(quota_error.vm_create_status_code(), 403);
 
     let mut residency_request = request("req-compute-vm-residency", "idem-compute-vm-residency");
-    residency_request.body.region = "us-virginia".to_string();
-    residency_request.body.az = "us-virginia-a".to_string();
-    residency_request.body.cell_id = "cell-us-virginia-a-001".to_string();
-    residency_request.body.resource_id = "oya:cloud:us-virginia:ten_kr:instance:app-1".to_string();
+    residency_request.body.region = "failover-region".to_string();
+    residency_request.body.az = "failover-region-a".to_string();
+    residency_request.body.cell_id = "cell-failover-region-a-001".to_string();
+    residency_request.body.resource_id =
+        "oya:cloud:failover-region:ten_alpha:instance:app-1".to_string();
     residency_request.path_instance_id = residency_request.body.resource_id.clone();
-    residency_request.body.vpc_id = "oya:cloud:us-virginia:ten_kr:vpc:prod".to_string();
-    residency_request.body.subnet_id = "oya:cloud:us-virginia:ten_kr:subnet:prod-a".to_string();
+    residency_request.body.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
+    residency_request.body.subnet_id =
+        "oya:cloud:failover-region:ten_alpha:subnet:prod-a".to_string();
     for group in &mut residency_request.body.security_groups {
-        group.region = "us-virginia".to_string();
-        group.vpc_id = "oya:cloud:us-virginia:ten_kr:vpc:prod".to_string();
+        group.region = "failover-region".to_string();
+        group.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
     }
     if let Some(role) = &mut residency_request.body.iam_role {
-        role.region = "us-virginia".to_string();
-        role.vpc_id = "oya:cloud:us-virginia:ten_kr:vpc:prod".to_string();
+        role.region = "failover-region".to_string();
+        role.vpc_id = "oya:cloud:failover-region:ten_alpha:vpc:prod".to_string();
     }
     let residency_error =
         create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, residency_request)

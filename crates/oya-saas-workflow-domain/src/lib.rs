@@ -203,7 +203,7 @@ mod tests {
         WorkflowDefinition::new(
             WorkflowDefinitionId::new(id).unwrap(),
             "ten_acme",
-            "oya-pack-kr",
+            "oya-pack-alpha",
             vec![
                 WorkflowStep::new(
                     WorkflowStepId::new("wfs_extract").unwrap(),

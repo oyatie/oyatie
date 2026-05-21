@@ -1319,6 +1319,15 @@ mod tests {
             })
             .expect_err("cloud marketplace settlement opens with OYC and USD");
         assert_eq!(currency_error, CloudMarketplaceError::InvalidCurrency);
+
+        let time_error = catalog
+            .create_private_offer(PrivateOfferCreate {
+                id: "cpo_bad_time".to_string(),
+                expires_at_epoch_seconds: 1_700_000_400,
+                ..private_offer()
+            })
+            .expect_err("private offer expiry must be after start");
+        assert_eq!(time_error, CloudMarketplaceError::InvalidTimeOrder);
     }
 
     #[test]

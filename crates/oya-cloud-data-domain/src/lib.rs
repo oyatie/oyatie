@@ -1219,12 +1219,12 @@ mod tests {
                 EngineShape::Valkey(ValkeyShape {
                     distribution: ValkeyDistribution::ForbiddenSsplRsal74OrLater,
                     major_version: 8,
-                    replica_count: 3,
+                    replica_count: 2,
                     max_ttl_seconds: None,
                 }),
             ))
-            .expect_err("SSPL-era Redis is not accepted"),
-            CloudDataError::InvalidLicensePosture
+            .expect_err("Valkey cache requires replicated topology"),
+            CloudDataError::InvalidEngineShape
         );
     }
 

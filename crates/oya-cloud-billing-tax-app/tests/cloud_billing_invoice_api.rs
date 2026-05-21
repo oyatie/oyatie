@@ -1,8 +1,9 @@
 use oya_cloud_billing_tax_app::{
     CLOUD_BILLING_INVOICE_GENERATE_EVIDENCE_SURFACE, CloudBillingAccountSnapshotRequest,
-    CloudBillingInvoiceGenerateApiResponse, CloudBillingInvoiceGenerateApiStatus,
-    CloudBillingInvoiceGenerateRequest, CloudBillingInvoiceLineItemCreateRequest,
-    CloudBillingMoneyRequest, CloudBillingPeriodRequest, CloudBillingTaxMeterUnitRequest,
+    CloudBillingInvoiceGenerateApiResponse, CloudBillingInvoiceGenerateApiResult,
+    CloudBillingInvoiceGenerateApiStatus, CloudBillingInvoiceGenerateRequest,
+    CloudBillingInvoiceLineItemCreateRequest, CloudBillingMoneyRequest, CloudBillingPeriodRequest,
+    CloudBillingTaxInvoiceFormatPolicy, CloudBillingTaxMeterUnitRequest,
     generate_cloud_billing_invoice_from_api,
 };
 
@@ -63,18 +64,42 @@ fn valid_request() -> CloudBillingInvoiceGenerateRequest {
     }
 }
 
+fn error_code(response: CloudBillingInvoiceGenerateApiResponse) -> String {
+    match response {
+        CloudBillingInvoiceGenerateApiResponse::Error(error) => error.error.code,
+        CloudBillingInvoiceGenerateApiResponse::Created(_) => {
+            panic!("expected error response")
+        }
+    }
+}
+
+fn generate(request: CloudBillingInvoiceGenerateRequest) -> CloudBillingInvoiceGenerateApiResult {
+    generate_cloud_billing_invoice_from_api(
+        "req_001".to_owned(),
+        "ten_001".to_owned(),
+        "idem_001".to_owned(),
+        request,
+    )
+}
+
+fn request_for_pack(
+    regional_pack: &str,
+    tax_invoice_format: &str,
+) -> CloudBillingInvoiceGenerateRequest {
+    let mut request = valid_request();
+    request.account.regional_pack = regional_pack.to_owned();
+    request.regional_pack = regional_pack.to_owned();
+    request.tax_invoice_format = tax_invoice_format.to_owned();
+    request
+}
+
 #[test]
 fn generates_invoice_and_exposes_evidence_surface() {
     assert_eq!(
         CLOUD_BILLING_INVOICE_GENERATE_EVIDENCE_SURFACE,
         "cloud.billing.invoice.generate"
     );
-    let result = generate_cloud_billing_invoice_from_api(
-        "req_001".to_owned(),
-        "ten_001".to_owned(),
-        "idem_001".to_owned(),
-        valid_request(),
-    );
+    let result = generate(valid_request());
     assert_eq!(result.status, CloudBillingInvoiceGenerateApiStatus::Created);
     assert!(matches!(
         result.response,
@@ -96,4 +121,65 @@ fn covers_documented_status_codes() {
         CloudBillingInvoiceGenerateApiStatus::UnprocessableEntity.code(),
         422
     );
+}
+
+#[test]
+fn maps_supported_regional_packs_to_documented_tax_formats() {
+    for (regional_pack, tax_invoice_format) in [
+        ("oya-pack-kr", "kr_electronic_tax_invoice"),
+        ("oya-pack-jp", "jp_qualified_invoice"),
+        ("oya-pack-eu", "eu_country_e_invoice"),
+        ("oya-pack-in", "in_gst"),
+        ("oya-pack-br", "br_nfe"),
+        ("oya-pack-ksa", "ksa_fatoora"),
+        ("oya-pack-uae", "uae_vat"),
+    ] {
+        assert_eq!(
+            CloudBillingTaxInvoiceFormatPolicy::expected_for_regional_pack(regional_pack),
+            Some(tax_invoice_format)
+        );
+    }
+}
+
+#[test]
+fn rejects_account_and_invoice_regional_pack_mismatch() {
+    let result = generate(CloudBillingInvoiceGenerateRequest {
+        regional_pack: "oya-pack-jp".to_owned(),
+        tax_invoice_format: "jp_qualified_invoice".to_owned(),
+        ..valid_request()
+    });
+
+    assert_eq!(
+        result.status,
+        CloudBillingInvoiceGenerateApiStatus::BadRequest
+    );
+    assert_eq!(error_code(result.response), "regional_pack_mismatch");
+}
+
+#[test]
+fn rejects_tax_invoice_format_that_does_not_match_regional_pack() {
+    let result = generate(request_for_pack("oya-pack-jp", "kr_electronic_tax_invoice"));
+
+    assert_eq!(
+        result.status,
+        CloudBillingInvoiceGenerateApiStatus::BadRequest
+    );
+    assert_eq!(
+        error_code(result.response),
+        "invalid_tax_invoice_format".to_owned()
+    );
+}
+
+#[test]
+fn rejects_unsupported_regional_pack_tax_format_pairs() {
+    let result = generate(request_for_pack(
+        "oya-pack-mars",
+        "kr_electronic_tax_invoice",
+    ));
+
+    assert_eq!(
+        result.status,
+        CloudBillingInvoiceGenerateApiStatus::BadRequest
+    );
+    assert_eq!(error_code(result.response), "unsupported_regional_pack");
 }

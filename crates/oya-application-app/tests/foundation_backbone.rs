@@ -47,7 +47,7 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
                 ),
                 ObjectPropertyInput::new(
                     "salary_band".into(),
-                    "KR-4".into(),
+                    "PRIMARY-4".into(),
                     PropertyTier::Struct,
                     privacy_data_class(DataClass::FinancialRegulatedCredit),
                 ),

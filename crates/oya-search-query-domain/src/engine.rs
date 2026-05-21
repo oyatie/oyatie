@@ -10,9 +10,9 @@
 /// Selects which physical search engine services a `SearchQuery`.
 ///
 /// - `Pgroonga` — PostgreSQL full-text index (pgroonga extension); best for
-///   Korean morphology via the bundled tokenizer.
+///   pack-provided morphology via the bundled tokenizer.
 /// - `Tantivy` — on-disk Lucene-style index; lower SQL overhead, good for
-///   large English corpora.
+///   large generic corpora.
 /// - `Auto` — try `Pgroonga` first; fall back to `Tantivy` on error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum SearchEngine {

@@ -16,21 +16,21 @@ const VOLUME_ID: &str = "oya:cloud:region-home:ten_kr:volume:db-primary";
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudStorageBlockApiBoundaryContext {
     CloudStorageBlockApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudStorageBlockApiPrincipal {
     CloudStorageBlockApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudStorageBlockApiAuthorization {
     CloudStorageBlockApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -43,7 +43,7 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudStorageBlock
 fn create_body(resource_id: &str) -> CloudStorageBlockVolumeCreateRequest {
     CloudStorageBlockVolumeCreateRequest {
         resource_id: resource_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         name: "db-primary".to_string(),
         region: "region-home".to_string(),
         az: "region-home-a".to_string(),
@@ -168,8 +168,8 @@ fn block_create_api_rejects_required_header_and_tenant_drift_before_ledger() {
         create_cloud_storage_block_volume_from_api(&mut catalog, &mut ledger, empty_request),
         Err(CloudStorageBlockApiError::TenantMismatch {
             header_tenant_id: "ten_other".to_string(),
-            principal_tenant_id: "ten_kr".to_string(),
-            body_tenant_id: "ten_kr".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_alpha".to_string(),
         })
     );
     assert!(ledger.is_empty());
@@ -288,7 +288,7 @@ fn block_create_api_maps_kms_key_region_mismatch_to_forbidden() {
     let mut catalog = CloudStorageCatalog::default();
     let mut ledger = CloudStorageBlockCreateIdempotencyLedger::default();
     let mut request = create_request("req-storage-block-kms", "idem-storage-block-kms");
-    request.body.kms_key = Some("byok/us-virginia/ten_kr/db-key".to_string());
+    request.body.kms_key = Some("byok/failover-region/ten_alpha/db-key".to_string());
 
     let error = create_cloud_storage_block_volume_from_api(&mut catalog, &mut ledger, request)
         .expect_err("cross-region BYOK binding is denied");

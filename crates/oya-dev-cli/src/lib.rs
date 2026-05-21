@@ -53,6 +53,7 @@ mod date_utils;
 mod dependency_seam_gates;
 mod design_spec_maturity_claims_gate;
 mod documentation_gates;
+mod fd001_manifest_workspace_alignment_gate;
 mod foundation_audit_gates;
 mod foundation_fixture;
 mod foundry_capability_schema_gates;
@@ -64,6 +65,7 @@ mod honest_claims_gate;
 mod hyperscaler_arch_invariants_gate;
 mod hyperscaler_maturity_claims_gate;
 mod json_scan;
+mod korea_localization_evidence_gate;
 mod layered_architecture_gates;
 mod loop_recovery_patterns_gate;
 mod openapi_rest_route_parity_gate;
@@ -142,6 +144,10 @@ pub(crate) use documentation_gates::{
     parse_readme_doc_coverage_validate_args, validate_doc_catalog_gate,
     validate_documentation_system_gate, validate_readme_doc_coverage_gate,
 };
+pub(crate) use fd001_manifest_workspace_alignment_gate::{
+    parse_fd001_manifest_workspace_alignment_validate_args,
+    validate_fd001_manifest_workspace_alignment_gate,
+};
 pub(crate) use foundation_audit_gates::{
     parse_audit_chain_replay_validate_args, parse_foundation_bypass_validate_args,
     parse_pr_traceability_validate_args, validate_audit_chain_replay_gate,
@@ -181,6 +187,9 @@ pub(crate) use json_scan::{
     extract_json_objects, find_matching_json_delimiter, json_field_has_non_empty_value,
     parse_json_string_array_field, parse_json_string_field, parse_json_string_value,
     quoted_json_len,
+};
+pub(crate) use korea_localization_evidence_gate::{
+    parse_korea_localization_evidence_validate_args, validate_korea_localization_evidence_gate,
 };
 pub(crate) use loop_recovery_patterns_gate::{
     parse_loop_recovery_patterns_validate_args, validate_loop_recovery_patterns_gate,

@@ -10,7 +10,7 @@ use oya_cloud_compute_k8s_api::{
     CloudComputeK8sClusterCreateRequest, CloudComputeK8sCreateIdempotencyLedger,
     CloudComputeK8sNodePoolCreateRequest, CloudComputeK8sNodePoolFlavorSpec,
     CloudComputeK8sQuotaEnvelope, CloudComputeK8sSecurityGroupRef,
-    create_cloud_compute_k8s_cluster_from_api,
+    create_cloud_compute_k8s_cluster_from_api, create_cluster,
 };
 
 const CLUSTER_ID: &str = "oya:cloud:region-home:ten_kr:k8s:prod";
@@ -18,21 +18,21 @@ const CLUSTER_ID: &str = "oya:cloud:region-home:ten_kr:k8s:prod";
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudComputeK8sApiBoundaryContext {
     CloudComputeK8sApiBoundaryContext {
         request_id: request_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
     }
 }
 
 fn principal_for(principal_id: &str) -> CloudComputeK8sApiPrincipal {
     CloudComputeK8sApiPrincipal {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
     }
 }
 
 fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudComputeK8sApiAuthorization {
     CloudComputeK8sApiAuthorization {
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         principal_id: principal_id.to_string(),
         decision_id: format!("authz_decision_{principal_id}"),
         allowed_surfaces: surfaces
@@ -185,6 +185,25 @@ fn k8s_create_api_creates_cluster_once_and_replays_same_idempotent_result() {
     assert_eq!(first.data.state, "creating");
     assert_eq!(first.data.data_class, "PUBLIC");
     assert_eq!(first.data.schema_version, 1);
+}
+
+#[test]
+fn planned_create_cluster_entrypoint_delegates_to_api_create() {
+    let mut catalog = CloudComputeCatalog::default();
+    let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
+    let request = request(
+        "req-compute-k8s-create-alias",
+        "idem-compute-k8s-create-alias",
+    );
+
+    let response = create_cluster(&mut catalog, &mut ledger, request)
+        .expect("stable planned create_cluster entrypoint succeeds");
+
+    assert_eq!(response.metadata.request_id, "req-compute-k8s-create-alias");
+    assert_eq!(response.data.resource_id, CLUSTER_ID);
+    assert_eq!(response.data.state, "creating");
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(catalog.kubernetes_clusters().count(), 1);
 }
 
 #[test]

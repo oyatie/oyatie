@@ -64,6 +64,30 @@ impl Tenant {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_residency_domain::{
+        PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
+    };
+
+    fn per_pack_residency(allowed_primary_regions: Vec<&str>) -> ResidencyClass {
+        let regulator_overlay = RegulatorOverlay::new(RegulatorOverlayCreate {
+            regulator_refs: vec!["regulator-alpha".to_string()],
+            evidence_ref: "evidence/residency-alpha".to_string(),
+        })
+        .expect("regulator overlay fixture is valid");
+
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: allowed_primary_regions
+                    .into_iter()
+                    .map(str::to_string)
+                    .collect(),
+                allowed_replica_regions: vec!["region-replica".to_string()],
+                forbidden_regions: Vec::new(),
+                regulator_overlay,
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
+    }
 
     #[test]
     fn tenant_identity_includes_residency_class() {

@@ -15,7 +15,7 @@ use oya_workspace_forms_api::{
 
 const FORM_ID: &str = "form_001";
 const SUBMISSION_ID: &str = "submission_001";
-const TENANT_ID: &str = "ten_workspace_kr";
+const TENANT_ID: &str = "ten_workspace_alpha";
 const SUBMITTER: &str = "user:submitter@example.com";
 
 fn boundary(request_id: &str, idempotency_key: &str) -> WorkspaceFormsIngestBoundaryContext {

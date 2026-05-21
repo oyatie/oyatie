@@ -19,9 +19,10 @@ use oya_cloud_kms_domain::{
 };
 use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
 pub use oya_cloud_resource_domain::{BucketTier, FilesystemTier, VolumeTier};
-use oya_cloud_resource_domain::{CloudResourceError, ResourceId, ResourceKind};
+use oya_cloud_resource_domain::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
+pub use oya_residency_domain::ResidencyClass;
+use oya_residency_domain::residency_class_allows_home_region_label;
 
 const STORAGE_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
@@ -93,6 +94,51 @@ pub enum EncryptionMode {
     SseKms,
     Byok,
     Hyok,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum StorageProviderKind {
+    OciObjectStorage,
+    OciBlockStorage,
+    S3ObjectStorage,
+}
+
+impl StorageProviderKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::OciObjectStorage => "oci_object_storage",
+            Self::OciBlockStorage => "oci_block_storage",
+            Self::S3ObjectStorage => "s3_object_storage",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum StorageObjectOperation {
+    PutObject,
+    GetObject,
+}
+
+impl StorageObjectOperation {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::PutObject => "put_object",
+            Self::GetObject => "get_object",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum StorageBlockOperation {
+    CreateVolume,
+}
+
+impl StorageBlockOperation {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::CreateVolume => "create_volume",
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -244,6 +290,107 @@ pub struct StoredObject {
     pub stored_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub last_accessed_at_epoch_seconds: Classified<Option<u64>>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>,   // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StorageProviderObjectPutRequest {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub provider_bucket_ref: String,     // data_class: INTERNAL_ONLY
+    pub bucket_id: String,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub object_key: String,              // data_class: INTERNAL_ONLY
+    pub object_body_ref: String,         // data_class: INTERNAL_ONLY
+    pub size_bytes: u64,                 // data_class: INTERNAL_ONLY
+    pub etag: String,                    // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,           // data_class: INTERNAL_ONLY
+    pub kms_key: String,                 // data_class: INTERNAL_ONLY
+    pub ciphertext_ref: String,          // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StorageProviderObjectGetRequest {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub provider_bucket_ref: String,     // data_class: INTERNAL_ONLY
+    pub bucket_id: String,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub object_key: String,              // data_class: INTERNAL_ONLY
+    pub result_body_ref: String,         // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StorageProviderObjectReceipt {
+    pub provider: StorageProviderKind,     // data_class: PUBLIC
+    pub operation: StorageObjectOperation, // data_class: PUBLIC
+    pub request_id: String,                // data_class: INTERNAL_ONLY
+    pub provider_request_id: String,       // data_class: INTERNAL_ONLY
+    pub provider_bucket_ref: String,       // data_class: INTERNAL_ONLY
+    pub bucket_id: String,                 // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub object_key: String,                // data_class: INTERNAL_ONLY
+    pub object_body_ref: String,           // data_class: INTERNAL_ONLY
+    pub size_bytes: Option<u64>,           // data_class: INTERNAL_ONLY
+    pub etag: Option<String>,              // data_class: INTERNAL_ONLY
+    pub data_class: Option<DataClass>,     // data_class: INTERNAL_ONLY
+    pub kms_key: Option<String>,           // data_class: INTERNAL_ONLY
+    pub ciphertext_ref: Option<String>,    // data_class: INTERNAL_ONLY
+    pub actor: String,                     // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String,     // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
+    pub schema_version: u32,               // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StorageProviderBlockCreateVolumeRequest {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub provider_volume_ref: String,     // data_class: INTERNAL_ONLY
+    pub volume_id: String,               // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub name: String,                    // data_class: INTERNAL_ONLY
+    pub region: String,                  // data_class: PUBLIC
+    pub az: String,                      // data_class: PUBLIC
+    pub cell_id: String,                 // data_class: PUBLIC
+    pub residency: ResidencyClass,       // data_class: INTERNAL_ONLY
+    pub tier: VolumeTier,                // data_class: PUBLIC
+    pub size_gib: u64,                   // data_class: INTERNAL_ONLY
+    pub performance: VolumePerformance,  // data_class: PUBLIC
+    pub encryption: EncryptionMode,      // data_class: PUBLIC
+    pub kms_key: Option<String>,         // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,           // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StorageProviderBlockReceipt {
+    pub provider: StorageProviderKind,    // data_class: PUBLIC
+    pub operation: StorageBlockOperation, // data_class: PUBLIC
+    pub request_id: String,               // data_class: INTERNAL_ONLY
+    pub provider_request_id: String,      // data_class: INTERNAL_ONLY
+    pub provider_volume_ref: String,      // data_class: INTERNAL_ONLY
+    pub volume_id: String,                // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                // data_class: INTERNAL_ONLY
+    pub name: String,                     // data_class: INTERNAL_ONLY
+    pub region: String,                   // data_class: PUBLIC
+    pub az: String,                       // data_class: PUBLIC
+    pub cell_id: String,                  // data_class: PUBLIC
+    pub residency: ResidencyClass,        // data_class: INTERNAL_ONLY
+    pub tier: VolumeTier,                 // data_class: PUBLIC
+    pub size_gib: u64,                    // data_class: INTERNAL_ONLY
+    pub performance: VolumePerformance,   // data_class: PUBLIC
+    pub encryption: EncryptionMode,       // data_class: PUBLIC
+    pub kms_key: Option<String>,          // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,            // data_class: INTERNAL_ONLY
+    pub actor: String,                    // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,          // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String,    // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64,   // data_class: INTERNAL_ONLY
+    pub schema_version: u32,              // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -427,6 +574,43 @@ pub enum CloudStorageError {
     DuplicateSnapshot,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum StorageProviderObjectError {
+    InvalidProviderBucketRef,
+    InvalidProviderRequestId,
+    InvalidProviderEvidenceRef,
+    InvalidObjectBodyRef,
+    InvalidIdempotencyKey,
+    InvalidActorRef,
+    InvalidRequestShape(CloudStorageError),
+    ProviderRejected {
+        provider: StorageProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+    ProviderUnavailable {
+        provider: StorageProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum StorageProviderBlockError {
+    InvalidProviderVolumeRef,
+    InvalidProviderRequestId,
+    InvalidProviderEvidenceRef,
+    InvalidIdempotencyKey,
+    InvalidActorRef,
+    InvalidRequestShape(CloudStorageError),
+    ProviderRejected {
+        provider: StorageProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+    ProviderUnavailable {
+        provider: StorageProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct CloudStorageCatalog {
     buckets: BTreeMap<ResourceId, Bucket>,
@@ -453,6 +637,29 @@ pub trait StorageRepo {
         &mut self,
         input: SnapshotCreate,
     ) -> Result<VolumeSnapshot, CloudStorageError>;
+}
+
+pub trait StorageProviderObjectPort {
+    fn provider_kind(&self) -> StorageProviderKind;
+
+    fn put_object(
+        &self,
+        input: StorageProviderObjectPutRequest,
+    ) -> Result<StorageProviderObjectReceipt, StorageProviderObjectError>;
+
+    fn get_object(
+        &self,
+        input: StorageProviderObjectGetRequest,
+    ) -> Result<StorageProviderObjectReceipt, StorageProviderObjectError>;
+}
+
+pub trait StorageProviderBlockPort {
+    fn provider_kind(&self) -> StorageProviderKind;
+
+    fn create_volume(
+        &self,
+        input: StorageProviderBlockCreateVolumeRequest,
+    ) -> Result<StorageProviderBlockReceipt, StorageProviderBlockError>;
 }
 
 impl ReplicationPolicy {
@@ -698,6 +905,235 @@ impl StoredObject {
             stored_at_epoch_seconds: internal(input.stored_at_epoch_seconds),
             last_accessed_at_epoch_seconds: internal(input.last_accessed_at_epoch_seconds),
             schema_version: public(STORAGE_SCHEMA_VERSION),
+        })
+    }
+}
+
+impl StorageProviderObjectPutRequest {
+    pub fn validate(&self) -> Result<(), StorageProviderObjectError> {
+        validate_provider_ref(
+            &self.request_id,
+            StorageProviderObjectError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &self.provider_bucket_ref,
+            StorageProviderObjectError::InvalidProviderBucketRef,
+        )?;
+        validate_provider_ref(
+            &self.object_body_ref,
+            StorageProviderObjectError::InvalidObjectBodyRef,
+        )?;
+        validate_provider_ref(
+            &self.idempotency_key,
+            StorageProviderObjectError::InvalidIdempotencyKey,
+        )?;
+        validate_bucket_resource(&self.bucket_id, &self.tenant_id)
+            .map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        ObjectKey::new(self.object_key.clone())
+            .map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        validate_tenant_id(&self.tenant_id)
+            .map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        validate_size(self.size_bytes).map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        ETag::new(self.etag.clone()).map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        privacy_class(self.data_class).map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        KmsKeyId::new(self.kms_key.clone()).map_err(|_| {
+            StorageProviderObjectError::InvalidRequestShape(CloudStorageError::InvalidKmsKeyId)
+        })?;
+        CiphertextRef::new(self.ciphertext_ref.clone()).map_err(|_| {
+            StorageProviderObjectError::InvalidRequestShape(CloudStorageError::InvalidCiphertextRef)
+        })?;
+        PrincipalId::new(self.actor.clone())
+            .map_err(|_| StorageProviderObjectError::InvalidActorRef)?;
+        Ok(())
+    }
+}
+
+impl StorageProviderObjectGetRequest {
+    pub fn validate(&self) -> Result<(), StorageProviderObjectError> {
+        validate_provider_ref(
+            &self.request_id,
+            StorageProviderObjectError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &self.provider_bucket_ref,
+            StorageProviderObjectError::InvalidProviderBucketRef,
+        )?;
+        validate_provider_ref(
+            &self.result_body_ref,
+            StorageProviderObjectError::InvalidObjectBodyRef,
+        )?;
+        validate_bucket_resource(&self.bucket_id, &self.tenant_id)
+            .map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        ObjectKey::new(self.object_key.clone())
+            .map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        validate_tenant_id(&self.tenant_id)
+            .map_err(StorageProviderObjectError::InvalidRequestShape)?;
+        PrincipalId::new(self.actor.clone())
+            .map_err(|_| StorageProviderObjectError::InvalidActorRef)?;
+        Ok(())
+    }
+}
+
+impl StorageProviderObjectReceipt {
+    pub fn put_object(
+        provider: StorageProviderKind,
+        input: StorageProviderObjectPutRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, StorageProviderObjectError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_provider_ref(
+            &provider_request_id,
+            StorageProviderObjectError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &provider_evidence_ref,
+            StorageProviderObjectError::InvalidProviderEvidenceRef,
+        )?;
+        Ok(Self {
+            provider,
+            operation: StorageObjectOperation::PutObject,
+            request_id: input.request_id,
+            provider_request_id,
+            provider_bucket_ref: input.provider_bucket_ref,
+            bucket_id: input.bucket_id,
+            tenant_id: input.tenant_id,
+            object_key: input.object_key,
+            object_body_ref: input.object_body_ref,
+            size_bytes: Some(input.size_bytes),
+            etag: Some(input.etag),
+            data_class: Some(input.data_class),
+            kms_key: Some(input.kms_key),
+            ciphertext_ref: Some(input.ciphertext_ref),
+            actor: input.actor,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: STORAGE_SCHEMA_VERSION,
+        })
+    }
+
+    pub fn get_object(
+        provider: StorageProviderKind,
+        input: StorageProviderObjectGetRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, StorageProviderObjectError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_provider_ref(
+            &provider_request_id,
+            StorageProviderObjectError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &provider_evidence_ref,
+            StorageProviderObjectError::InvalidProviderEvidenceRef,
+        )?;
+        Ok(Self {
+            provider,
+            operation: StorageObjectOperation::GetObject,
+            request_id: input.request_id,
+            provider_request_id,
+            provider_bucket_ref: input.provider_bucket_ref,
+            bucket_id: input.bucket_id,
+            tenant_id: input.tenant_id,
+            object_key: input.object_key,
+            object_body_ref: input.result_body_ref,
+            size_bytes: None,
+            etag: None,
+            data_class: None,
+            kms_key: None,
+            ciphertext_ref: None,
+            actor: input.actor,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: STORAGE_SCHEMA_VERSION,
+        })
+    }
+}
+
+impl StorageProviderBlockCreateVolumeRequest {
+    pub fn validate(&self) -> Result<(), StorageProviderBlockError> {
+        validate_provider_block_ref(
+            &self.request_id,
+            StorageProviderBlockError::InvalidProviderRequestId,
+        )?;
+        validate_provider_block_ref(
+            &self.provider_volume_ref,
+            StorageProviderBlockError::InvalidProviderVolumeRef,
+        )?;
+        validate_provider_block_ref(
+            &self.idempotency_key,
+            StorageProviderBlockError::InvalidIdempotencyKey,
+        )?;
+        BlockVolume::new(VolumeCreate {
+            resource_id: self.volume_id.clone(),
+            tenant_id: self.tenant_id.clone(),
+            name: self.name.clone(),
+            region: self.region.clone(),
+            az: self.az.clone(),
+            cell_id: self.cell_id.clone(),
+            residency: self.residency.clone(),
+            tier: self.tier,
+            size_gib: self.size_gib,
+            performance: self.performance,
+            encryption: self.encryption,
+            kms_key: self.kms_key.clone(),
+            data_class: self.data_class,
+            state: VolumeState::Creating,
+            created_at_epoch_seconds: self.requested_at_epoch_seconds,
+        })
+        .map_err(StorageProviderBlockError::InvalidRequestShape)?;
+        PrincipalId::new(self.actor.clone())
+            .map_err(|_| StorageProviderBlockError::InvalidActorRef)?;
+        Ok(())
+    }
+}
+
+impl StorageProviderBlockReceipt {
+    pub fn create_volume(
+        provider: StorageProviderKind,
+        input: StorageProviderBlockCreateVolumeRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, StorageProviderBlockError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_provider_block_ref(
+            &provider_request_id,
+            StorageProviderBlockError::InvalidProviderRequestId,
+        )?;
+        validate_provider_block_ref(
+            &provider_evidence_ref,
+            StorageProviderBlockError::InvalidProviderEvidenceRef,
+        )?;
+        Ok(Self {
+            provider,
+            operation: StorageBlockOperation::CreateVolume,
+            request_id: input.request_id,
+            provider_request_id,
+            provider_volume_ref: input.provider_volume_ref,
+            volume_id: input.volume_id,
+            tenant_id: input.tenant_id,
+            name: input.name,
+            region: input.region,
+            az: input.az,
+            cell_id: input.cell_id,
+            residency: input.residency,
+            tier: input.tier,
+            size_gib: input.size_gib,
+            performance: input.performance,
+            encryption: input.encryption,
+            kms_key: input.kms_key,
+            data_class: input.data_class,
+            actor: input.actor,
+            idempotency_key: input.idempotency_key,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: STORAGE_SCHEMA_VERSION,
         })
     }
 }
@@ -1122,6 +1558,47 @@ fn validate_tenant_id(value: &str) -> Result<(), CloudStorageError> {
     }
 }
 
+fn validate_bucket_resource(value: &str, tenant_id: &str) -> Result<ResourceId, CloudStorageError> {
+    let bucket_id = ResourceId::new(value.to_string()).map_err(map_resource_error)?;
+    if bucket_id.tenant_id().map_err(map_resource_error)? != tenant_id {
+        return Err(CloudStorageError::ResourceTenantMismatch);
+    }
+    if bucket_id.kind_label().map_err(map_resource_error)? != "bucket" {
+        return Err(CloudStorageError::ResourceKindMismatch);
+    }
+    Ok(bucket_id)
+}
+
+fn validate_provider_ref(
+    value: &str,
+    error: StorageProviderObjectError,
+) -> Result<(), StorageProviderObjectError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
+fn validate_provider_block_ref(
+    value: &str,
+    error: StorageProviderBlockError,
+) -> Result<(), StorageProviderBlockError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
 fn validate_size(value: u64) -> Result<(), CloudStorageError> {
     if value > 0 {
         Ok(())
@@ -1301,6 +1778,38 @@ mod tests {
         }
     }
 
+    fn provider_put_request() -> StorageProviderObjectPutRequest {
+        StorageProviderObjectPutRequest {
+            request_id: "storageprov_req_put_001".to_string(),
+            provider_bucket_ref: "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup".to_string(),
+            bucket_id: "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            object_key: "workspace/report.pdf".to_string(),
+            object_body_ref: "objbody/ten_alpha/workspace/report".to_string(),
+            size_bytes: 42,
+            etag: "0123456789abcdef0123456789abcdef".to_string(),
+            data_class: DataClass::PiiIdentifying,
+            kms_key: "kms/alpha-region/ten_alpha/object-key".to_string(),
+            ciphertext_ref: "ct/ten_alpha/object/report".to_string(),
+            actor: "sp_storage".to_string(),
+            idempotency_key: "idem-storage-object-put".to_string(),
+            requested_at_epoch_seconds: 1_700_000_010,
+        }
+    }
+
+    fn provider_get_request() -> StorageProviderObjectGetRequest {
+        StorageProviderObjectGetRequest {
+            request_id: "storageprov_req_get_001".to_string(),
+            provider_bucket_ref: "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup".to_string(),
+            bucket_id: "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            object_key: "workspace/report.pdf".to_string(),
+            result_body_ref: "objbody/ten_alpha/workspace/report-read".to_string(),
+            actor: "sp_storage".to_string(),
+            requested_at_epoch_seconds: 1_700_000_020,
+        }
+    }
+
     fn volume_create() -> VolumeCreate {
         VolumeCreate {
             resource_id: "oya:cloud:region-alpha1:ten_alpha:volume:db-primary".to_string(),
@@ -1321,6 +1830,31 @@ mod tests {
             data_class: DataClass::PiiIdentifying,
             state: VolumeState::Creating,
             created_at_epoch_seconds: 1_700_000_000,
+        }
+    }
+
+    fn provider_block_create_volume_request() -> StorageProviderBlockCreateVolumeRequest {
+        let volume = volume_create();
+        StorageProviderBlockCreateVolumeRequest {
+            request_id: "storageprov_req_block_create_001".to_string(),
+            provider_volume_ref:
+                "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary".to_string(),
+            volume_id: volume.resource_id,
+            tenant_id: volume.tenant_id,
+            name: volume.name,
+            region: volume.region,
+            az: volume.az,
+            cell_id: volume.cell_id,
+            residency: volume.residency,
+            tier: volume.tier,
+            size_gib: volume.size_gib,
+            performance: volume.performance,
+            encryption: volume.encryption,
+            kms_key: volume.kms_key,
+            data_class: volume.data_class,
+            actor: "sp_storage".to_string(),
+            idempotency_key: "idem-storage-block-create".to_string(),
+            requested_at_epoch_seconds: 1_700_000_010,
         }
     }
 
@@ -1534,6 +2068,146 @@ mod tests {
         )
         .expect_err("object KMS purpose is storage-object specific");
         assert_eq!(wrong_purpose, CloudStorageError::InvalidKmsPurpose);
+    }
+
+    #[test]
+    fn storage_provider_object_requests_validate_refs_bucket_shape_and_actor() {
+        provider_put_request()
+            .validate()
+            .expect("provider put request is valid");
+        provider_get_request()
+            .validate()
+            .expect("provider get request is valid");
+
+        let mut bad_provider_ref = provider_put_request();
+        bad_provider_ref.provider_bucket_ref = " ".to_string();
+        assert_eq!(
+            bad_provider_ref.validate(),
+            Err(StorageProviderObjectError::InvalidProviderBucketRef)
+        );
+
+        let mut bad_bucket_kind = provider_put_request();
+        bad_bucket_kind.bucket_id =
+            "oya:cloud:alpha-region:ten_alpha:volume:not-bucket".to_string();
+        assert_eq!(
+            bad_bucket_kind.validate(),
+            Err(StorageProviderObjectError::InvalidRequestShape(
+                CloudStorageError::ResourceKindMismatch,
+            ))
+        );
+
+        let mut bad_actor = provider_get_request();
+        bad_actor.actor = "storage".to_string();
+        assert_eq!(
+            bad_actor.validate(),
+            Err(StorageProviderObjectError::InvalidActorRef)
+        );
+    }
+
+    #[test]
+    fn storage_provider_object_receipts_redact_provider_payloads() {
+        let put = StorageProviderObjectReceipt::put_object(
+            StorageProviderKind::OciObjectStorage,
+            provider_put_request(),
+            "oci-object-put-001",
+            "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup/workspace/report.pdf/put",
+        )
+        .expect("put receipt keeps references only");
+        let get = StorageProviderObjectReceipt::get_object(
+            StorageProviderKind::OciObjectStorage,
+            provider_get_request(),
+            "oci-object-get-001",
+            "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup/workspace/report.pdf/get",
+        )
+        .expect("get receipt keeps references only");
+
+        assert_eq!(put.provider.label(), "oci_object_storage");
+        assert_eq!(put.operation.label(), "put_object");
+        assert_eq!(get.operation.label(), "get_object");
+        assert_eq!(put.object_body_ref, "objbody/ten_alpha/workspace/report");
+        assert_eq!(
+            get.object_body_ref,
+            "objbody/ten_alpha/workspace/report-read"
+        );
+        assert_eq!(put.size_bytes, Some(42));
+        assert_eq!(
+            put.etag,
+            Some("0123456789abcdef0123456789abcdef".to_string())
+        );
+        assert_eq!(
+            put.kms_key,
+            Some("kms/alpha-region/ten_alpha/object-key".to_string())
+        );
+        assert_eq!(
+            put.ciphertext_ref,
+            Some("ct/ten_alpha/object/report".to_string())
+        );
+        assert_eq!(get.size_bytes, None);
+        assert_eq!(get.etag, None);
+        assert_eq!(get.kms_key, None);
+        assert_eq!(get.ciphertext_ref, None);
+    }
+
+    #[test]
+    fn storage_provider_block_requests_validate_refs_volume_shape_and_actor() {
+        provider_block_create_volume_request()
+            .validate()
+            .expect("provider block create request is valid");
+
+        let mut bad_provider_ref = provider_block_create_volume_request();
+        bad_provider_ref.provider_volume_ref = " ".to_string();
+        assert_eq!(
+            bad_provider_ref.validate(),
+            Err(StorageProviderBlockError::InvalidProviderVolumeRef)
+        );
+
+        let mut bad_volume_kind = provider_block_create_volume_request();
+        bad_volume_kind.volume_id =
+            "oya:cloud:alpha-region:ten_alpha:bucket:not-volume".to_string();
+        assert_eq!(
+            bad_volume_kind.validate(),
+            Err(StorageProviderBlockError::InvalidRequestShape(
+                CloudStorageError::ResourceKindMismatch,
+            ))
+        );
+
+        let mut bad_actor = provider_block_create_volume_request();
+        bad_actor.actor = "storage".to_string();
+        assert_eq!(
+            bad_actor.validate(),
+            Err(StorageProviderBlockError::InvalidActorRef)
+        );
+    }
+
+    #[test]
+    fn storage_provider_block_receipts_keep_refs_without_provider_credentials() {
+        let receipt = StorageProviderBlockReceipt::create_volume(
+            StorageProviderKind::OciBlockStorage,
+            provider_block_create_volume_request(),
+            "oci-block-create-001",
+            "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary/create",
+        )
+        .expect("block receipt keeps references only");
+
+        assert_eq!(receipt.provider.label(), "oci_block_storage");
+        assert_eq!(receipt.operation.label(), "create_volume");
+        assert_eq!(
+            receipt.provider_volume_ref,
+            "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary"
+        );
+        assert_eq!(
+            receipt.volume_id,
+            "oya:cloud:alpha-region:ten_alpha:volume:db-primary"
+        );
+        assert_eq!(receipt.size_gib, 512);
+        assert_eq!(receipt.performance.iops, 12_000);
+        assert_eq!(receipt.encryption, EncryptionMode::Byok);
+        assert_eq!(
+            receipt.kms_key,
+            Some("byok/alpha-region/ten_alpha/db-key".to_string())
+        );
+        assert_eq!(receipt.actor, "sp_storage");
+        assert_eq!(receipt.schema_version, STORAGE_SCHEMA_VERSION);
     }
 
     #[test]

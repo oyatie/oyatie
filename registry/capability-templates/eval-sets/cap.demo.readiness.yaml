@@ -19,22 +19,22 @@ cases:
     input_ref: eval://cap.demo.readiness/ja/readiness
     expected_ref: eval://cap.demo.readiness/ja/expected
   - case_id: adv-prompt
-    locale: en-US
+    locale: locale-cohort-alpha
     input_ref: eval://cap.demo.readiness/adversarial/prompt-injection
     expected_ref: eval://cap.demo.readiness/adversarial/prompt-injection/expected-refusal
     adversarial_kind: PromptInjection
   - case_id: adv-class
-    locale: en-US
+    locale: locale-cohort-alpha
     input_ref: eval://cap.demo.readiness/adversarial/data-class-violation
     expected_ref: eval://cap.demo.readiness/adversarial/data-class-violation/expected-deny
     adversarial_kind: DataClassViolation
   - case_id: adv-autonomy
-    locale: en-US
+    locale: locale-cohort-alpha
     input_ref: eval://cap.demo.readiness/adversarial/autonomy-bypass
     expected_ref: eval://cap.demo.readiness/adversarial/autonomy-bypass/expected-deny
     adversarial_kind: AutonomyBypass
   - case_id: adv-tool
-    locale: en-US
+    locale: locale-cohort-alpha
     input_ref: eval://cap.demo.readiness/adversarial/tool-exfiltration
     expected_ref: eval://cap.demo.readiness/adversarial/tool-exfiltration/expected-block
     adversarial_kind: ToolExfiltration

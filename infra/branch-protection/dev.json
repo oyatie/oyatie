@@ -24,12 +24,8 @@
     ]
   },
   "enforce_admins": true,
-  "required_pull_request_reviews": {
-    "dismiss_stale_reviews": true,
-    "require_code_owner_reviews": false,
-    "require_last_push_approval": false,
-    "required_approving_review_count": 0
-  },
+  "_required_pull_request_reviews_rationale": "GitHub human approving reviews are not the merge authority for `dev`; the required `oya-pr-review` status/check is. Keep this null so branch-protection re-application cannot recreate the hidden requiresApprovingReviews=true/count=0 blocker that stalls the next queue.",
+  "required_pull_request_reviews": null,
   "required_signatures": true,
   "required_conversation_resolution": true,
   "required_linear_history": true,

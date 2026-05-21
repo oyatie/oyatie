@@ -196,7 +196,7 @@ fn minor_subject_ads_are_denied_by_composite_data_use_boundary() {
             legal_name: "Minor Ads Tenant".into(),
             home_region: "region-recovery".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -294,7 +294,7 @@ fn ads_action_cannot_underdeclare_effective_data_use_purpose() {
             legal_name: "Ads Underdeclared Tenant".into(),
             home_region: "region-recovery".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -440,7 +440,7 @@ fn ads_targeting_pii_is_denied_even_with_recorded_grant() {
             legal_name: "Ads PII Tenant".into(),
             home_region: "region-recovery".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
@@ -540,7 +540,7 @@ fn analytics_pci_invocation_is_denied_even_with_recorded_grant() {
             legal_name: "Analytics PCI Tenant".into(),
             home_region: "region-recovery".into(),
             residency_class: "global".into(),
-            regulatory_packs: vec!["oya-pack-us".into()],
+            regulatory_packs: vec!["oya-pack-gamma".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");

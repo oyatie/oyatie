@@ -826,7 +826,7 @@ mod tests {
             destination_region: us_warm(),
             data_class: privacy(DataClass::PiiIdentifying),
             purpose: CrossRegionTransferPurpose::DisasterRecovery,
-            legal_basis_ref: "legal/pipa-art-28-8".to_string(),
+            legal_basis_ref: "legal/pack-primary-transfer".to_string(),
             consent_receipt_ref: Some("consent/receipt-1".to_string()),
             cedar_policy_ref: "cedar/residency/home-recovery".to_string(),
             mtls_policy_ref: "mesh/mtls/cross-cell".to_string(),

@@ -1082,7 +1082,7 @@
           "command": "jq empty /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
         },
         "validation": {
-          "validator": "jq empty + future prompt-artifact schema validator"
+          "validator": "jq empty + planning-closure goal contract cross-check"
         },
         "autogen": {
           "generator": ""

@@ -1,6 +1,7 @@
 context: foundry
 role: worker
 capability: check-client-stack-discipline
+slo: preview-control-plane
 plane: control
 slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY]

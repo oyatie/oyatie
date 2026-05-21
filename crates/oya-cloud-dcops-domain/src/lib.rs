@@ -1342,16 +1342,11 @@ impl Equipment {
         if self.lifecycle.value != EquipmentLifecycle::Received {
             return Err(CloudDcopsError::InvalidStateTransition);
         }
+        let installed_at_epoch_seconds = installation.installed_at_epoch_seconds;
         let mut next = self.clone();
         next.lifecycle = public(EquipmentLifecycle::Installed);
         next.installation = internal(Some(installation));
-        next.updated_at_epoch_seconds = internal(
-            next.installation
-                .value
-                .as_ref()
-                .expect("installation inserted")
-                .installed_at_epoch_seconds,
-        );
+        next.updated_at_epoch_seconds = internal(installed_at_epoch_seconds);
         Ok(next)
     }
 
