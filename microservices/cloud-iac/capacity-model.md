@@ -43,7 +43,7 @@ argocd_app_controller_replicas = ceil(N_microservices / 200) × 1.5 buffer (min 
 argocd_repo_server_replicas    = ceil(N_microservices / 100) × 1.5 buffer (min 3)
 argocd_server_replicas         = ceil(active_ui_users / 100) × 2 HA (min 2)
 argocd_application_set_controller = 1 (singleton; HA via leader election)
-argocd_redis_replicas          = 3 (sentinel cluster)
+argocd_valkey_replicas         = 3 (sentinel cluster)
 
 reconcile_interval = 180s (default; honoured by drift-detection ≤1h gate)
 sync_throughput    = N_microservices / reconcile_interval applications/sec
@@ -55,10 +55,10 @@ References: `argo-cd.readthedocs.io/en/stable/operator-manual/high_availability/
 
 | Scale tier | N_microservices | argocd_replicas | reconcile_interval |
 |---|---|---|---|
-| **XS** (M01 launch; ~36 µservices) | 36 | app-controller=3, repo-server=3, server=2, redis=3 | 180s |
-| **S** (~100 µservices) | 100 | app-controller=3, repo-server=3, server=2, redis=3 | 180s |
-| **M** (~500 µservices) | 500 | app-controller=6, repo-server=6, server=4, redis=3 | 180s |
-| **L** (~2000 µservices) | 2000 | app-controller=20, repo-server=20, server=8, redis=3 | 240s |
+| **XS** (M01 launch; ~36 µservices) | 36 | app-controller=3, repo-server=3, server=2, valkey=3 | 180s |
+| **S** (~100 µservices) | 100 | app-controller=3, repo-server=3, server=2, valkey=3 | 180s |
+| **M** (~500 µservices) | 500 | app-controller=6, repo-server=6, server=4, valkey=3 | 180s |
+| **L** (~2000 µservices) | 2000 | app-controller=20, repo-server=20, server=8, valkey=3 | 240s |
 
 ## Flux Sizing
 

@@ -4,7 +4,7 @@
   "scanned_files": 2,
   "excluded_files": 1,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -20,7 +20,7 @@
             },
             {
               "line": 79,
-              "excerpt": "- Rate-limit backend: Valkey 8.1 (Redis wire-compat) in cell-\u00b5service cluster."
+              "excerpt": "- Rate-limit backend: Valkey 8.1 (RESP wire-compatible) in cell-\u00b5service cluster."
             }
           ],
           "hits_total": 4

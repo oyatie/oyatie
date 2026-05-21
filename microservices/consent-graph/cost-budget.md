@@ -88,7 +88,7 @@ Marginal cost per new agreement: ~$0.05/year (~$0.004/month).
 ## 8. Pricing-to-customers model
 
 Out of scope for this doc (handled by commercial team). consent-graph is internal-cost infrastructure
-covered under EaaS subscription tier; per-agreement metering tracked but not directly invoiced in
+covered under EaaS billing_components contract; per-agreement metering tracked but not directly invoiced in
 year-1.
 
 ## 9. Cross-references

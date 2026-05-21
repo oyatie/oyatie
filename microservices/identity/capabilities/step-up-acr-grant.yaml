@@ -18,7 +18,7 @@ autonomy_tier: T1
 # T1 = orchestrated multi-step ceremony with factor evaluation; not pure
 # deterministic protocol.
 
-eu_ai_act_risk_class: limited
+risk_class: limited
 # Factor-class decisioning carries limited risk under EU AI Act Annex IV
 # operational-decisioning; not high-risk (no profiling for hiring etc.).
 

@@ -1,184 +1,271 @@
 ---
 doc_class: Runbook
-title: Evidence Replay + Auditor Export
-microservice: governance
+title: Evidence Replay
 status: Accepted
-classification: INTERNAL_ONLY
-date: 2026-05-17
-owner_team: ops-security + axis-foundry
-severity_default: Sev-3 (operational; Sev-2 if audit-chain gap detected)
-related_failure_modes: [F-03]
-related_artifacts:
-  - microservices/governance/failure-modes.md
-  - microservices/governance/policy/auditor-scope.cedar
-review_cadence: quarterly + on every external audit cycle
+date: 2026-05-20
+microservice: governance
+severity: sev0
+audience: security-engineer
+owner_team: axis-foundry + council-architecture + ops-sre-reliability
+source_wave: codex-runbooks-substrate-w1
+change_scope: substance rewrite of thin existing runbook
 doc_status: published
 ---
 
-# Runbook: Evidence Replay + Auditor Export
+# Runbook: Evidence Replay
 
-## When to invoke
+## Operator Contract
+- Runbook id: governance-evidence-replay.
+- Primary service namespace: `governance`.
+- Owning rotation: PagerDuty oya-governance-primary; council-architecture reviewer-on-call.
+- Incident channel: `#inc-governance-gates`.
+- External dependencies: Cedar policy runtime maintainers; Wasmtime security list; GitHub Enterprise support.
+- API authority: `https://governance.internal.oyatie.dev/v1/governance/evidence-replay/incident-handoff`.
+- Audit event class: `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` with ADR-0263 fields `incident_id`, `tenant_id`, `cell_id`, `microservice`, `runbook_id`, `decision_id`, `evidence_hash`, `operator_id`.
+- Stop condition: mitigation has held for 30 minutes, GovernanceEvidenceReplayCritical is green, and all handoff APIs in Cross-µservice Coordination return `202 accepted`.
+- Safety invariant: never clear the incident until `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/governance-evidence-replay-<incident-id>.md`.
 
-- External auditor (SOC 2 / ISO 27001 / SLSA / GDPR DPA) requests evidence within a JIT-scoped audit window.
-- Internal SME requests Finding + evidence trail for postmortem / RCA.
-- Audit-chain seal verification fails for one or more Findings (F-03).
-- Tenant requests own µservice's Finding history (DPIA §3 Right of Access).
+## Trigger Conditions
+- Page on alert `GovernanceEvidenceReplayCritical` when `oya_governance_evidence_replay_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `GovernanceEvidenceReplaySloBurn` when `oya_governance_evidence_replay_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev0 if `oya_governance_evidence_replay_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
+- Open a sev1 if `oya_governance_evidence_replay_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Trigger from customer report when Support tags the case `governance.evidence-replay.customer_visible` in Zendesk.
+- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate governance-evidence-replay --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Primary dashboard: `https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
+- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=207`.
+- Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="governance",runbook="evidence-replay"}`.
+- Alertmanager route: `oyatie-governance-evidence-replay-critical`; silence only with incident commander approval and `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` evidence.
+- Synthetic probe: `oya ops probe governance evidence-replay --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
+- Drift detector: `registry/governance/evidence-replay/expected-state.json` hash differs from live `https://governance.internal.oyatie.dev/v1/admin/state-hash`.
 
-## Pre-flight
+## Symptoms
+- User-facing impact: evidence replay blocks or corrupts the governance control path for affected tenants.
+- Operators see Grafana panel `lane-pass-rate / Evidence Replay burn rate` turn red before the primary alert resolves.
+- Loki signature `governance.evidence_replay.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
+- Kubernetes events include `reason=GovernanceEvidenceReplayDegraded` on deployment `governance-evidence-replay-worker`.
+- Audit-chain shows missing or delayed `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` entries when queried with `oya audit-chain query --event-class EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT --since 30m`.
+- Metric pattern: `oya_governance_evidence_replay_error_ratio` rises before `oya_governance_evidence_replay_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `oya_governance_evidence_replay_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `oya_governance_evidence_replay_queue_depth`; isolate before fleet mitigation.
+- Fleet-wide shape: at least three cells report `GovernanceEvidenceReplayCritical` in one 15 minute window; switch to sev1 bridge even if individual tenants are low-volume.
+- Log signature `decision=deny reason=evidence-replay.policy_guard` means the guard is working; investigate caller inputs before rollback.
+- Log signature `decision=permit reason=evidence-replay.break_glass` means manual intervention is active; confirm two-person authorization.
+- Log signature `audit_emit_status=stalled event_class=EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` means mitigation cannot be closed until replay succeeds.
 
-- You are: ops-security on-call OR axis-foundry on-call.
-- You have: `cargo run -p oya-dev-cli` workspace ready; Postgres + S3 + audit-chain credentials in OpenBao; valid JIT token (for auditor requests).
-- You verified: requester identity + scope + window.
+## Diagnostic Steps
+1. Set incident variables: `export INCIDENT_ID=INC-governance-evidence-replay-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
+2. Confirm active alerts: `curl -s https://governance.internal.oyatie.dev/v1/alerts?runbook=evidence-replay | jq .alerts`.
+3. Check Kubernetes rollout: `kubectl -n governance rollout status deploy/governance-evidence-replay-worker --timeout=60s`.
+4. List unhealthy pods: `kubectl -n governance get pods -l app=governance-evidence-replay -o wide`.
+5. Read structured logs: `kubectl -n governance logs deploy/governance-evidence-replay-worker --since=30m | rg "governance.evidence_replay.incident_state|GovernanceEvidenceReplayCritical|EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT"`.
+6. Query Loki directly: `logcli query '{namespace="governance",runbook="evidence-replay"}' --since=30m --limit=200`.
+7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_governance_evidence_replay_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_governance_evidence_replay_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_governance_evidence_replay_queue_depth{cell="prod-us-east-1"}'`.
+10. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116&var-incident=$INCIDENT_ID"`.
+11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=207&var-tenant=$TENANT"`.
+12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
+13. Verify service state: `oya ops governance evidence-replay status --cell $CELL --tenant $TENANT --output json`.
+14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate governance-evidence-replay --production-snapshot --cell $CELL`.
+15. Check Cargo owner crate: `cargo test -p oya-governance-domain evidence_replay -- --nocapture`.
+16. Check API contract smoke: `curl -s https://governance.internal.oyatie.dev/v1/governance/evidence-replay/incident-handoff -H "x-oya-tenant: $TENANT"`.
+17. Inspect config: `kubectl -n governance get configmap governance-evidence-replay-config -o yaml`.
+18. Inspect feature flags: `oya flags get oya.governance.evidence_replay.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
+19. Inspect circuit breaker: `oya ops breaker status governance-evidence-replay-circuit-breaker --cell $CELL --tenant $TENANT`.
+20. Check recent deploy: `kubectl -n governance rollout history deploy/governance-evidence-replay-worker | tail -20`.
+21. Check policy file: `test -f microservices/governance/policy/lane-execution.cedar || test -f microservices/governance/policy/lane-execution.md`.
+22. Check SLO files: `ls microservices/governance/slos/*.openslo.yaml | sort`.
+23. Check catalog components: `find microservices/governance/catalog -maxdepth 1 -type f | sort | rg "governance|evidence"`.
+24. Confirm no cross-cell spread: `oya ops cells query --metric oya_governance_evidence_replay_error_ratio --window 30m --threshold 0.02`.
+25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice governance --runbook evidence-replay --output evidence/incidents/$INCIDENT_ID.json`.
 
-## Decision tree
-
+### Diagnostic Decision Tree
 ```text
-                Who is requesting?
-                  ├─ External auditor → §A (JIT export)
-                  ├─ Internal SME (postmortem) → §B (replay-query)
-                  ├─ Tenant operator (own µservice) → §C (tenant self-service)
-                  └─ Audit-chain gap detected (F-03) → §D (seal reconciliation)
+Evidence Replay incident decision tree
+1. Is GovernanceEvidenceReplayCritical firing in more than one cell?
+   |-- yes: declare fleet incident, page PagerDuty oya-governance-primary; council-architecture reviewer-on-call, and run cross-cell containment.
+   |-- no: keep scope to the affected cell and continue tenant isolation checks.
+2. Does oya_governance_evidence_replay_queue_depth grow while oya_governance_evidence_replay_error_ratio is flat?
+   |-- yes: downstream dependency or replay backlog; choose mitigation branch B.
+   |-- no: local regression or bad input; continue branch selection.
+3. Does audit-chain show EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT gaps?
+   |-- yes: do not close; run evidence replay before resolution.
+   |-- no: mitigation can proceed after state is green.
+4. Is customer or regulator impact confirmed?
+   |-- yes: promote severity, open #inc-governance-gates, and notify compliance handoff.
+   |-- no: keep internal incident and collect evidence.
+```
+- Branch A (confirmed security boundary failure): use the matching mitigation block below and record `decision_branch=A` in `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT`.
+- Branch B (suspected false positive): use the matching mitigation block below and record `decision_branch=B` in `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT`.
+- Branch C (forensic evidence unavailable): use the matching mitigation block below and record `decision_branch=C` in `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT`.
+- Branch D (customer or regulator visible impact): use the matching mitigation block below and record `decision_branch=D` in `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT`.
+
+## Mitigation Steps
+1. Acknowledge page: `pd incident ack --service governance --incident $INCIDENT_ID`.
+2. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-governance-gates --severity sev0`.
+3. Freeze risky automation: `oya flags set oya.governance.evidence_replay.incident_hold=true --cell $CELL --tenant $TENANT --reason $INCIDENT_ID`.
+4. Enable circuit breaker: `oya ops breaker open governance-evidence-replay-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
+5. Reduce blast radius: `kubectl -n governance scale deploy/governance-evidence-replay-worker --replicas=1`.
+6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason governance-evidence-replay --ttl 60m`.
+7. Pause promotion: `oya vcs hold --microservice governance --reason $INCIDENT_ID --runbook evidence-replay`.
+8. Drain queue safely: `oya ops governance evidence-replay drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
+9. Execute bounded drain: `oya ops governance evidence-replay drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
+10. Replay missing audit events: `oya audit-chain replay --event-class EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
+11. Rollback last deploy if causal: `kubectl -n governance rollout undo deploy/governance-evidence-replay-worker`.
+12. Raise HPA cap if saturation: `kubectl -n governance patch hpa governance-evidence-replay-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
+13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface governance.evidence-replay --rps 25 --ttl 30m`.
+14. Block abusive principal: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/governance/runbooks/evidence-replay.md,evidence/incidents/$INCIDENT_ID.json`.
+16. Notify service owners: `oya notify service-owner --microservice governance --incident $INCIDENT_ID --channel #inc-governance-gates`.
+17. Open external vendor ticket: `oya vendor ticket open --vendor primary-governance --incident $INCIDENT_ID --summary evidence-replay`.
+18. Confirm breaker effect: `oya ops breaker status governance-evidence-replay-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
+19. Confirm user impact reduced: `curl -s https://governance.internal.oyatie.dev/v1/governance/evidence-replay/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+20. Emit mitigation audit: `oya audit-chain emit --event-class EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=evidence-replay`.
+
+### Mitigation Branch Guidance
+- Branch A: confirmed security boundary failure.
+  - Required action: keep `governance-evidence-replay-circuit-breaker` open until `oya_governance_evidence_replay_error_ratio` is below 0.005 for 3 windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116` to the incident.
+  - Required audit: emit `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
+- Branch B: suspected false positive.
+  - Required action: keep `governance-evidence-replay-circuit-breaker` open until `oya_governance_evidence_replay_error_ratio` is below 0.005 for 3 windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117` to the incident.
+  - Required audit: emit `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
+- Branch C: forensic evidence unavailable.
+  - Required action: keep `governance-evidence-replay-circuit-breaker` open until `oya_governance_evidence_replay_error_ratio` is below 0.005 for 3 windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=118` to the incident.
+  - Required audit: emit `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
+- Branch D: customer or regulator visible impact.
+  - Required action: keep `governance-evidence-replay-circuit-breaker` open until `oya_governance_evidence_replay_error_ratio` is below 0.005 for 3 windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=119` to the incident.
+  - Required audit: emit `EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
+
+## Resolution Steps
+1. Identify code owner path: `rg "evidence_replay|GovernanceEvidenceReplayCritical|governance.evidence_replay.incident_state" crates microservices/governance -g "!microservices/governance/runbooks/**"`.
+2. Patch domain invariant: `edit oya-governance-domain where evidence_replay state transition is validated`.
+3. Patch API guard: `edit microservices/governance/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
+4. Patch policy: `edit microservices/governance/policy/lane-execution.cedar or .md with explicit deny/permit branch`.
+5. Patch runtime config: `edit microservices/governance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
+6. Add regression test: `cargo test -p oya-governance-domain evidence_replay_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate governance-evidence-replay --fixture incident-evidence-replay.json`.
+8. Add SLO assertion: `update microservices/governance/slos/* with alert GovernanceEvidenceReplayCritical when this was a missing alert`.
+9. Add dashboard panel: `update microservices/governance/dashboards/lane-pass-rate.json with oya_governance_evidence_replay_error_ratio, oya_governance_evidence_replay_lag_seconds, and oya_governance_evidence_replay_queue_depth`.
+10. Rebuild affected crate: `cargo check -p oya-governance-domain --all-targets`.
+11. Run targeted tests: `cargo test -p oya-governance-domain --all-features`.
+12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate governance-policy --microservice governance`.
+13. Deploy canary: `oya deploy canary --microservice governance --component evidence-replay-worker --cell $CELL --weight 1`.
+14. Watch burn rate: `oya ops watch --metric oya_governance_evidence_replay_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+15. Close circuit breaker: `oya ops breaker close governance-evidence-replay-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+16. Unfreeze automation: `oya flags set oya.governance.evidence_replay.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+17. Resume promotion: `oya vcs unhold --microservice governance --reason resolved-$INCIDENT_ID`.
+18. Seal resolution audit: `oya audit-chain emit --event-class EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=evidence-replay`.
+19. Verify seal: `oya audit-chain verify --event-class EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT --incident $INCIDENT_ID`.
+20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
+
+### Code Paths To Inspect First
+- `oya-governance-domain`: inspect for evidence_replay invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
+- `oya-dev-cli`: inspect for evidence_replay invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- `oya-policy-cedar-domain`: inspect for evidence_replay invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
+- `microservices/governance/contracts/`: verify this surface only when the incident evidence points there.
+- `microservices/governance/dashboards/lane-pass-rate.json`: verify this surface only when the incident evidence points there.
+- `microservices/governance/slos/`: verify this surface only when the incident evidence points there.
+- `microservices/governance/policy/lane-execution.*`: verify this surface only when the incident evidence points there.
+
+## Verification Checklist
+- GovernanceEvidenceReplayCritical and GovernanceEvidenceReplaySloBurn are both resolved in Alertmanager for 30 minutes.
+- oya_governance_evidence_replay_error_ratio < 0.005 for 3 consecutive 10 minute windows.
+- oya_governance_evidence_replay_lag_seconds < 120 for all production cells.
+- oya_governance_evidence_replay_queue_depth is draining and not growing for the affected tenant.
+- dashboard https://grafana.dev.oyatie.internal/d/governance-substrate/evidence-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116 shows green panels for the affected cell.
+- audit-chain query for EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT returns mitigation and resolution events.
+- circuit breaker governance-evidence-replay-circuit-breaker is closed after rollback window.
+- feature flag oya.governance.evidence_replay.incident_hold is false for the affected tenant unless long-term hold is approved.
+- runbook invocation evidence is attached to evidence/incidents/$INCIDENT_ID.json.
+- service owner acknowledged final handoff in #inc-governance-gates.
+
+## Postmortem Template
+Use this exact skeleton for the incident document. The field names are intentionally stable for ADR-0263 audit emission extraction.
+```markdown
+---
+doc_class: IncidentPostmortem
+runbook_id: governance-evidence-replay
+microservice: governance
+event_class: EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT
+incident_id: <INC-...>
+severity: sev0
+status: draft
+detected_at: <UTC>
+mitigated_at: <UTC>
+resolved_at: <UTC>
+commander: <handle>
+evidence_hash: <sha256>
+---
+
+# Evidence Replay postmortem
+
+## Summary
+- What happened in governance/evidence-replay.
+- Who was affected: tenant_id list, cell_id list, user-facing surface list.
+- Current status: mitigated, resolved, or monitoring.
+
+## Timeline
+- T0 detection: alert/customer/audit source.
+- T1 acknowledgement: operator handle and channel.
+- T2 mitigation: feature flag, breaker, rollback, or throttle.
+- T3 resolution: code/config/policy fix.
+- T4 verification: dashboard, metric, audit seal, customer confirmation.
+
+## Root Cause
+- Direct trigger.
+- Contributing factors.
+- Why existing controls did not catch it earlier.
+
+## ADR-0263 Audit Emission Requirements
+- Emit EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT with incident_id, tenant_id, cell_id, principal_id, decision_id, evidence_hash, operator_id, runbook_id.
+- Attach dashboard snapshot URLs and command transcripts.
+- Seal mitigation and resolution events before closure.
+
+## Corrective Actions
+- Action, owner, due date, validation command, linked issue.
 ```
 
-## §A — External auditor JIT export
+## Escalation Path
+- Primary on-call: PagerDuty oya-governance-primary; council-architecture reviewer-on-call.
+- Incident SLA: ack 5m for sev1, 15m for sev2, lane owner checkpoint every 20m.
+- Incident commander: first responder from axis-foundry + council-architecture + ops-sre-reliability; transfer only by explicit message in #inc-governance-gates.
+- Security escalation: page `ops-security-primary` immediately for sev0, data-boundary, credential, or audit-seal symptoms.
+- Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, or breach clock symptoms are present.
+- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- External vendors: Cedar policy runtime maintainers; Wasmtime security list; GitHub Enterprise support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
+- Customer communications: use status page component `oyatie-governance-evidence-replay` and keep private details in the incident channel.
+- Regulatory clock: if any tenant data exposure is possible, start the compliance 72h assessment timer even if exposure is unconfirmed.
+- Executive notice: sev0 or fleet-wide sev1 goes to `#exec-incident-readout` within 30 minutes.
 
-### Pre-conditions
+## Cross-µservice Coordination
+- Notify `identity`: `oya incident handoff --target identity --source governance --runbook evidence-replay --incident $INCIDENT_ID --severity sev0 --branch A`; expect `202 accepted`.
+- Require `identity` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `tenancy`: `oya incident handoff --target tenancy --source governance --runbook evidence-replay --incident $INCIDENT_ID --severity sev0 --branch B`; expect `202 accepted`.
+- Require `tenancy` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `compliance`: `oya incident handoff --target compliance --source governance --runbook evidence-replay --incident $INCIDENT_ID --severity sev0 --branch C`; expect `202 accepted`.
+- Require `compliance` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `observability`: `oya incident handoff --target observability --source governance --runbook evidence-replay --incident $INCIDENT_ID --severity sev0 --branch D`; expect `202 accepted`.
+- Require `observability` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Observability handoff API: `oya incident handoff --target observability --source governance --runbook evidence-replay --incident $INCIDENT_ID`.
+- Governance handoff API: `oya incident handoff --target governance --source governance --runbook evidence-replay --incident $INCIDENT_ID`.
+- Compliance handoff API: `oya incident handoff --target compliance --source governance --runbook evidence-replay --incident $INCIDENT_ID`.
+- Identity handoff API: `oya incident handoff --target identity --source governance --runbook evidence-replay --incident $INCIDENT_ID`.
+- Tenancy handoff API: `oya incident handoff --target tenancy --source governance --runbook evidence-replay --incident $INCIDENT_ID`.
 
-1. Auditor identity + scope window negotiated in advance.
-2. DPA addendum signed (per `compliance.md` Cross-Border Transfer Mechanisms).
-3. JIT OIDC token issued via OpenBao: `bao write auth/oidc/role/external-auditor-<auditor-id> ttl=1h scope_microservices=<list> audit_window_start=<unix> audit_window_end=<unix>`.
-4. Auditor acknowledges JIT scope acceptance (per `policy/auditor-scope.cedar` P5).
+## Handoff Notes
+- Do not hand off with only the alert name; include oya_governance_evidence_replay_error_ratio, oya_governance_evidence_replay_lag_seconds, oya_governance_evidence_replay_queue_depth, current breaker state, and audit seal status.
+- Keep governance-evidence-replay-circuit-breaker owner as axis-foundry + council-architecture + ops-sre-reliability until the receiving service explicitly accepts.
+- If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
+- Close only after EVT-GOVERNANCE-EVIDENCE_REPLAY-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
-### Steps
-
-1. **Verify scope**:
-   ```bash
-   cargo run -p oya-dev-cli -- governance auditor-scope verify \
-     --auditor-id <id> --window-start <unix> --window-end <unix>
-   ```
-   Expect: scope_microservices ⊆ auditor's authorized scope.
-
-2. **Trigger export**:
-   ```bash
-   cargo run -p oya-dev-cli -- governance evidence export \
-     --auditor-id <id> \
-     --window-start <unix> --window-end <unix> \
-     --microservices <list> \
-     --output /tmp/audit-export-<id>.tar.zst
-   ```
-
-3. **Verify bundle integrity**:
-   ```bash
-   cargo run -p oya-dev-cli -- governance evidence verify-bundle \
-     --path /tmp/audit-export-<id>.tar.zst
-   ```
-   Expect: all Findings carry valid Ed25519 signatures + audit-chain seal verification passes.
-
-4. **Deliver** via secure channel (per DPA):
-   - encrypted file transfer (per-auditor PGP key, in OpenBao);
-   - or per-audit S3 prefix with auditor-scoped IAM role.
-
-5. **Log delivery** in `evidence/audits/external-auditor-deliveries/<audit-window-id>.md` with:
-   - Auditor identity + scope.
-   - Window start + end.
-   - Bundle SHA256.
-   - Delivery timestamp + channel.
-   - Counter-signature from auditor on receipt.
-
-### Bundle format
-
-Canonical structure (per `contracts/openapi/governance.yaml` schema `EvidenceBundle`):
-
-```
-audit-export-<id>.tar.zst
-├── manifest.json                   # bundle manifest (signed; audit-window metadata; Merkle root)
-├── findings/                       # one JSON per Finding
-│   ├── <finding-id>.json
-│   └── ...
-├── lane-runs/                      # one JSON per lane run
-│   ├── <lane-run-id>.json
-│   └── ...
-├── evidence/                       # raw lane output blobs
-│   ├── <evidence-blob-sha>.bin
-│   └── ...
-├── audit-chain-seals/              # Ed25519 seal records
-│   ├── <seal-id>.json
-│   └── ...
-└── attestations/
-    ├── slsa-provenance.json
-    └── soc2-cc7-4-evidence.json
-```
-
-### Size limits
-
-- Per-export size cap: 5 GB (per `auditor-scope.cedar` F6).
-- Larger requests split into multiple windows.
-
-## §B — Internal SME replay-query (postmortem / RCA)
-
-1. **Query** Findings for a date range + µservice:
-   ```bash
-   cargo run -p oya-dev-cli -- governance finding-query \
-     --microservice <ms> --window-start <unix> --window-end <unix> \
-     --output /tmp/findings-<id>.jsonl
-   ```
-
-2. **Fetch** evidence blob for a specific Finding:
-   ```bash
-   cargo run -p oya-dev-cli -- governance evidence get \
-     --finding-id <id> --output /tmp/evidence-<id>.bin
-   ```
-
-3. **Verify** signature + seal:
-   ```bash
-   cargo run -p oya-dev-cli -- governance evidence verify \
-     --finding-id <id>
-   ```
-
-4. **Document** the SME query in the postmortem at `evidence/audits/postmortems/<incident-id>.md`.
-
-## §C — Tenant operator self-service
-
-1. **Tenant** logs into Application Shell.
-2. **Tenant** navigates to "My µservice → Findings → Export".
-3. **Shell** calls REST `/findings?microservice=<ms>&author=<self-subject>` per `contracts/openapi/governance.yaml`.
-4. **Cedar** policy `tenant-scope.cedar` enforces P1 + P2 + P3 (read own µservice's Findings only).
-5. **Tenant** receives JSON or CSV export.
-
-## §D — Audit-chain seal reconciliation (F-03)
-
-(Sev-2)
-
-1. **Confirm**: `cargo run -p oya-dev-cli -- governance audit-chain status` → expect `unsealed_findings_age_seconds_p99 > 300`.
-2. **Identify** unsealed Findings: `cargo run -p oya-dev-cli -- governance audit-chain unsealed --since <unix>`.
-3. **Check** audit-chain µservice health: `kubectl logs -n audit-chain audit-chain-app | tail -100`.
-4. **If audit-chain healthy** → reconciler should drain naturally; wait 5 min; re-check.
-5. **If audit-chain unhealthy** → engage `microservices/audit-chain/runbooks/audit-chain-outage.md`; OnCall page if not already.
-6. **Once audit-chain recovers** → trigger reconciler back-fill:
-   ```bash
-   cargo run -p oya-dev-cli -- governance audit-chain reconcile --since <unix>
-   ```
-7. **Verify** zero unsealed Findings remain: `cargo run -p oya-dev-cli -- governance audit-chain status`.
-8. **Post-incident**: RCA; consider increasing reconciler concurrency if reconciliation lag became significant.
-
-## Stand-down criteria
-
-- Auditor confirms receipt + verification (for §A).
-- All Findings in the requested window have been delivered with valid signatures (for §A/B).
-- Tenant receives export confirmation (for §C).
-- Audit-chain reconciler reports zero unsealed Findings older than 5 min (for §D).
-
-## Post-action
-
-- Update `compliance.md` ROPA if new transfer occurred.
-- Log delivery in `evidence/audits/external-auditor-deliveries/` (for §A).
-- Update postmortem if applicable.
-
-## References
-
-- `microservices/governance/failure-modes.md` F-03.
-- `microservices/governance/policy/auditor-scope.cedar`.
-- `microservices/governance/dpia.md` §3 Right of Access.
-- `microservices/governance/compliance.md` ROPA.
-- `microservices/audit-chain/PRD.md` (upstream µservice).
-- SOC 2 CC7.4 evidence requirements.
+## Sources Checked During This Substance Pass
+- `microservices/governance/dashboards/` for dashboard names and operational panels.
+- `microservices/governance/slos/` for OpenSLO alert vocabulary and threshold alignment.
+- `microservices/governance/policy/` for named policy and authorization surfaces.
+- `microservices/governance/catalog/` for component and owner vocabulary.
+- Existing thin runbook topic `evidence-replay` was preserved as the scenario anchor while replacing generic steps with concrete commands.

@@ -212,3 +212,7 @@ Used by `agreement-usecase::AcceptAgreement` to call `mint` and by `revocation-u
 - **R**: AttestedQuery query injection (grantee crafts query that bypasses agreement scope).
   **M**: Query is parsed by ontology query-domain, then re-checked against agreement scope; raw query
   text never reaches Ontology unfiltered.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: OneTrust/TrustArc/Cookiebot model purposes and preferences; Snowflake/Databricks/BigQuery expose table/view scope. This IP combines both sets into Oyatie-specific runtime behavior: field narrowing, aggregate-mode k-anonymity, differential privacy budget checks, and AttestedQuery revalidation before any projection leaves the grantor region.

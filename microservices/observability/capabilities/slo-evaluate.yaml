@@ -87,7 +87,7 @@ cedar_policy_fragments:
   - microservices/observability/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/observability/capabilities/eval/slo-evaluate-golden.jsonl
+  reference_inputs_path: microservices/observability/capabilities/eval/slo-evaluate-reference.jsonl
   pass_threshold: 0.99
   eval_metric: verdict-correctness-against-reference-google-sre-workbook-values
   cadence: per-release

@@ -8,7 +8,24 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
+related_adrs:
+  - ADR-0056
+  - ADR-0105
+  - ADR-0106
+  - ADR-0110
+  - ADR-0123
+  - ADR-0139
+  - ADR-0131
+  - ADR-0132
+  - ADR-0133
+  - ADR-0338
+  - ADR-0339
+  - ADR-0340
+  - ADR-0341
+  - ADR-0342
+  - ADR-0343
+  - ADR-0344
+  - ADR-0345
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/industry-best-practice-conformance.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-foundry
@@ -25,7 +42,7 @@ This µservice is the **enforcement origin** of the 6-axis program defined by AD
 
 This µservice is **shared substrate**, not a hero product. It is consumed by every other oyatie µservice (each PR runs through governance lanes before admission to `dev`) and consumed by tenants only indirectly via the conformance posture published on the public-status surface. Its existence is the precondition for oyatie's "hyperscaler-grade in every practice" bar per `feedback_quality_performance_scalability_bar.md`.
 
-This µservice has no Bominal equivalent and originates in oyatie. The historical `oya-foundry-fitness-*` working name retires here; the canonical name is `governance` per ADR-0131 §"Migration DAG → IP-M01-MIGR-014" + ADR-0132.
+This µservice has no Bominal equivalent and originates in oyatie. The historical `oya-governance-*` working name retires here; the canonical name is `governance` per ADR-0131 §"Migration DAG → IP-M01-MIGR-014" + ADR-0132.
 
 ## Tenant Value
 
@@ -89,6 +106,49 @@ This µservice has no Bominal equivalent and originates in oyatie. The historica
 ### Data residency
 
 - Findings and per-PR metadata inherit the originating PR-author's `jurisdiction_code` per ADR-0117. Per-pack overlays at `iac/kustomize/overlays/pack-<pack>/`.
+
+### DR posture
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0343 |
+| Target | Lane-runtime gate decision path RTO 900 s and RPO 60 s, matching `manifest.json#dr`. |
+| Compliance-pack floor | HIPAA floor RTO 3600 s / RPO 300 s, SOC2-T2 floor RTO 14400 s / RPO 900 s, ISO27001 floor RTO 14400 s / RPO 3600 s; governance keeps the stricter 900 s / 60 s target. |
+| Failover runbook | `runbooks/evidence-replay.md`, matching `manifest.json#dr.failover_runbook`; `runbooks/cedar-policy-rollback-protocol.md` remains the gate-decision rollback branch. |
+| Multi-region active-active | Yes, matching `manifest.json#dr.multi_region_active_active=true`; evidence and lane state remain pack-local under the active-active-multi-AZ-cross-region-warm replication shape. |
+| WHY | Governance must fail closed enough to protect the merge queue, but fast enough to restore PR admission and evidence replay before engineers bypass the quality bar. |
+
+### Capacity model
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0340, with pod runtime tier declared by ADR-0338. |
+| Per-tenant baseline | `manifest.json#capacity_model`: 0.20 vCPU, 384 MiB RAM, 6 GB storage, and connections `{valkey: 2, postgres: 4, outbound_http: 10}` per tenant/workflow source. Median PR load from `capacity-model.md`: about 50 lanes per PR, 100 Postgres inserts per PR, 0-2 findings, and 4 KB evidence per finding. |
+| Scaling dimension | `per_workflow_run`, matching `manifest.json#capacity_model.scaling_dimension`; admission verdict and replay queries remain request-shaped inside that workflow envelope. |
+| Cell placement class | Tier-1 per `manifest.json#capacity_model.cell_placement_class`; runtime tier is ADR-0338 Tier-1 because `manifest.json#pod_runtime_tier=1`, with runner sandboxes upgraded to Tier-0 if a lane executes tenant-supplied test fixtures. |
+| Autoscaling boundaries | ARC runner pool min 8, max 200; lane-runtime worker min 2, max 10; policy-engine worker min 2, max 10; evidence-emitter worker min 2, max 10; aggregation-indexer worker min 2, max 5. |
+| WHY | The model absorbs PR bursts and evidence replay without letting one service's PR storm starve the gate decisions for the rest of the fleet. |
+
+### Sustainability + cost attribution
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0344 |
+| Per-call emission claim | Every `LaneFailed`, `FindingEmitted`, `AuditCompleted`, `BaselinePinUpdated`, and `AggregationIndexRegenerated` audit row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region`. |
+| Carbon-aware routing | No for live merge-gate verdicts and security-blocking findings. Yes for quarterly baseline refresh, replay backfills, and aggregation-index regeneration when the merge queue is not waiting. |
+| Tenant transparency surface | The public conformance/status surface shows evidence volume and lane usage; the FinOps portal allocates governance cost by tenant, microservice, lane, cell, and compliance pack. |
+| WHY | CSRD, SB-253, and SEC climate-disclosure reporting need evidence-generation cost and emissions to be attributable, while live security gates must not wait for low-carbon capacity. |
+
+### API versioning posture
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0342 |
+| Public API version model | Date carrier triplet: `Oyatie-Version: YYYY-MM-DD`, `/v/YYYY-MM-DD/...` for public REST/status endpoints, and proto3 `oyatie_version`. |
+| SDK semver model | Governance SDKs use `major.minor.patch`; rule-pack and lane behavior pins remain date-versioned. |
+| Support window | Last N=3 public versions supported for >=180 days. |
+| Per-tenant pinning | Yes for evidence-query, conformance-posture, and auditor replay APIs; merge-queue internals are pinned by lane registry version instead. |
+| Internal-mesh exemption | Yes. ADR-0145 direct gRPC between governance, observability, and audit-chain remains exempt from public URL date prefixes. |
 
 ## Bounded Contexts
 

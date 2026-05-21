@@ -8,7 +8,22 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0139, ADR-0131]
+related_adrs:
+  - ADR-0056
+  - ADR-0105
+  - ADR-0110
+  - ADR-0114
+  - ADR-0139
+  - ADR-0131
+  - ADR-0337
+  - ADR-0338
+  - ADR-0339
+  - ADR-0340
+  - ADR-0341
+  - ADR-0342
+  - ADR-0343
+  - ADR-0344
+  - ADR-0345
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 owner_team: axis-observability
@@ -82,6 +97,49 @@ This µservice has no Bominal equivalent and originates in oyatie.
 ### Data residency
 
 - SLO manifests, ledger records, and per-tenant dashboards inherit the tenant's `jurisdiction_code` per ADR-0117. Mimir multi-tenancy enforces per-tenant data isolation.
+
+### DR posture
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0343 |
+| Target | RTO 900 s and RPO 300 s for evaluator, eligibility-ledger, and ClickHouse telemetry rollup state, matching `manifest.json#dr`. |
+| Compliance-pack floor | HIPAA floor RTO 3600 s / RPO 300 s, SOC2-T2 floor RTO 14400 s / RPO 900 s, ISO27001 floor RTO 14400 s / RPO 3600 s; observability keeps the stricter 900 s / 300 s manifest target. |
+| Failover runbook | `runbooks/held-promotion-recovery.md`, `runbooks/rollback.md`, and `runbooks/clickhouse-restore.md`. |
+| Multi-region active-active | Active-active per pack for ingest and SLO evaluation when the pack has local telemetry stores; ClickHouse cold restore remains runbook-driven and pack-local. |
+| WHY | Promotion gates and incident response depend on fresh SLO evidence, so DR must restore eligibility verdicts before deployment safety degrades. |
+
+### Capacity model
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0340, with pod runtime tier declared by ADR-0338. |
+| Per-tenant baseline | `manifest.json#capacity_model`: 0.26 vCPU, 768 MiB RAM, 20 GB storage, and connections `{valkey: 3, postgres: 3, outbound_http: 8}` per tenant/query source. `capacity-model.md` also parameterizes active series, samples/sec, log bytes/sec, trace spans/sec, and profile rate. |
+| Scaling dimension | `per_query`, matching `manifest.json#capacity_model.scaling_dimension`; ingest and SLO evaluation capacity are attached to the query/telemetry pressure they create. |
+| Cell placement class | Tier-1 per `manifest.json#capacity_model.cell_placement_class`; service criticality remains `criticality_tier=T0`, and runtime tier is ADR-0338 Tier-1 because `manifest.json#pod_runtime_tier=1`. |
+| Autoscaling boundaries | Mimir distributor 4 at XS through 1300 at L; Mimir ingester 12 at XS through 600 at L; SLO engine worker/rest/app min 2. ClickHouse observability ceiling: 500K rows/sec steady, 2M hard; 100 TB hot-tier sustained triggers in-house OLAP review. |
+| WHY | The model serves high-cardinality telemetry and promotion evidence without letting one tenant's log or trace burst erase fleet-wide SLO visibility. |
+
+### Sustainability + cost attribution
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0344 |
+| Per-call emission claim | Every eligibility, SLO-evaluate, OpenSLO-validate, ClickHouse DDL, bridge, promotion, and rollback audit row must emit `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region`. |
+| Carbon-aware routing | Yes for ClickHouse rollups, cold-tier compaction, dashboard backfills, and long-window replay. No for SLO breach evaluation, fast-burn alerts, incident pages, or production promotion gates. |
+| Tenant transparency surface | Tenant observability dashboards and the FinOps portal expose telemetry ingestion, retention, query, and SLO-evaluation cost by tenant, provider, cell, signal type, and compliance pack. |
+| WHY | CSRD, SB-253, and SEC climate-disclosure posture require telemetry cost transparency, but safety gates and incident response have to prefer freshness over carbon placement. |
+
+### API versioning posture
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0342 |
+| Public API version model | Date carrier triplet: `Oyatie-Version: YYYY-MM-DD`, `/v/YYYY-MM-DD/...` for public REST/SSE/WebSocket surfaces, and proto3 `oyatie_version`. |
+| SDK semver model | Observability SDKs use `major.minor.patch`; telemetry schema versions remain explicit signal metadata. |
+| Support window | Last N=3 public versions supported for >=180 days. |
+| Per-tenant pinning | Yes for dashboard/query APIs, SLO authoring, and SDK consumers; emergency alert schemas may receive safety patches without tenant pin delay. |
+| Internal-mesh exemption | Yes. ADR-0145 direct gRPC remains exempt from public URL date prefixes while proto3 metadata preserves compatibility. |
 
 ## Bounded Contexts
 

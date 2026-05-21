@@ -1,0 +1,314 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-billing",
+  "version": "0.1.0",
+  "owner": "axis-cloud-billing",
+  "bounded_contexts": [
+    {
+      "name": "cloud-billing",
+      "description": "Bounded context 'cloud-billing' for billing ledger, metering ingest, invoices, settlement, FOCUS export.",
+      "crates": [
+        "oya-cloud-billing-domain",
+        "oya-cloud-billing-kernel"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml"
+    ],
+    "asyncapi": [
+      "contracts/asyncapi/cloud/cloud-billing-events-v1.yaml"
+    ],
+    "proto": [
+      "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "name": "billing-metering-ingest",
+      "availability": "demo_trial capped; paid per contract/compliance pack",
+      "file": "microservices/cloud-billing/implementation-plans/IP-007-asyncapi-billing-events.md",
+      "risk_class": "high"
+    },
+    {
+      "name": "invoice-generation",
+      "availability": "demo_trial capped; paid per contract/compliance pack",
+      "file": "microservices/cloud-billing/implementation-plans/IP-006-openapi-invoice-endpoint.md",
+      "risk_class": "high"
+    },
+    {
+      "name": "focus-export",
+      "availability": "demo_trial capped; paid per contract/compliance pack",
+      "file": "microservices/cloud-billing/implementation-plans/IP-011-revenue-attribution-cost-centers.md",
+      "risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-cloud-billing-cloud-billing-metering-ingest-p99",
+      "target": "0.99",
+      "sli": "service_manifest_reference{microservice=\"cloud-billing\",slo=\"cloud-billing-metering-ingest-p99\"}",
+      "file": "microservices/cloud-billing/performance-benchmark-numbers-2026-05-20.md"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-006-openapi-invoice-endpoint",
+      "title": "IP-006: OpenAPI invoice endpoint",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-billing/implementation-plans/IP-006-openapi-invoice-endpoint.md"
+    },
+    {
+      "id": "IP-008-grpc-service-surface",
+      "title": "IP-008: gRPC service surface",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-billing/implementation-plans/IP-008-grpc-service-surface.md"
+    },
+    {
+      "id": "IP-014-cell-aware-billing-data-residency",
+      "title": "IP-014: cell-aware billing data residency",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-billing/implementation-plans/IP-014-cell-aware-billing-data-residency.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.83",
+    "postgres": "17.x",
+    "valkey": "8.x"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0337",
+      "title": "Iceberg Canonical Olap Write Path",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md"
+    },
+    {
+      "id": "ADR-0338",
+      "title": "Pod Runtime Tier 0 To 3",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
+    },
+    {
+      "id": "ADR-0339",
+      "title": "Shared Iac Module Library",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0339-shared-iac-module-library.md"
+    },
+    {
+      "id": "ADR-0340",
+      "title": "Capacity Model Per Microservice Manifest",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+    },
+    {
+      "id": "ADR-0341",
+      "title": "Cellular Promotion Gates Explicit Tier Criteria",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md"
+    },
+    {
+      "id": "ADR-0342",
+      "title": "Api Versioning Hybrid Date Public Semver Sdk",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
+    },
+    {
+      "id": "ADR-0343",
+      "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+    },
+    {
+      "id": "ADR-0344",
+      "title": "Sustainability Finops Dimensional Model",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+    },
+    {
+      "id": "ADR-0345",
+      "title": "Oss Stewardship Class Policy And Cve Response Sla",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD via observability canonical PrometheusRule",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING via per-tenant and per-cell limit evidence",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS via service OpenSLO or performance evidence",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET via service SLO gate"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.cloud-billing.doctrine-declared",
+      "oya.cloud-billing.dr-failover"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  },
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.25,
+    "baseline_ram_per_tenant": 512,
+    "storage_per_tenant": 25,
+    "connections_per_tenant": {
+      "valkey": 2,
+      "postgres": 4,
+      "outbound_http": 10
+    },
+    "scaling_dimension": "per_message",
+    "cell_placement_class": "Tier-3",
+    "notes": "Metering and invoice ledger load scales with Kafka-style metering messages, period-close workers, and tenant-scoped ledgers; PRD/architecture cite 5M events/sec and cell-aware data residency."
+  },
+  "dr": {
+    "rto_p99_seconds": 900,
+    "rpo_p99_seconds": 60,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/billing-ledger-failover.md",
+    "dr_tier": "T2",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "First-party billing application workload: it handles Oyatie-authored metering, invoices, settlement, and exports; it does not execute tenant-customer code, while FINANCIAL rows and event ledgers are protected by Cedar and audit-chain rather than a Tier-1 substrate runtime.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/cloud-billing/PRD.md",
+    "microservices/cloud-billing/ARCHITECTURE.md",
+    "microservices/cloud-billing/implementation-plans/IP-014-cell-aware-billing-data-residency.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml",
+        "2026-02-21": "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml",
+        "2025-11-21": "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "contracts/asyncapi/cloud/cloud-billing-events-v1.yaml",
+        "2026-02-21": "contracts/asyncapi/cloud/cloud-billing-events-v1.yaml",
+        "2025-11-21": "contracts/asyncapi/cloud/cloud-billing-events-v1.yaml"
+      },
+      "proto": {
+        "2026-05-21": "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
+        "2026-02-21": "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
+        "2025-11-21": "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "valkey",
+    "kafka",
+    "cedar"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "rds-postgres",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "aws-guest",
+      "primitive": "elasticache-valkey",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "autonomous-db",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "oci-cache-valkey",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oci-guest/always-free",
+      "primitive": "ampere-a1",
+      "version_pin": "v1",
+      "tenant_class_scope": "demo_trial"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "pg-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "valkey-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "tenant-namespace",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-audit-chain-bridge",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ],
+  "data_classes_processed": [
+    "FINANCIAL",
+    "AUDIT",
+    "PII_QUASI_IDENTIFYING"
+  ]
+}

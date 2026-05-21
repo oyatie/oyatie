@@ -53,19 +53,19 @@
       "tier": "T1",
       "name": "eligibility-query",
       "file": "microservices/observability/capabilities/eligibility-query.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T0",
       "name": "openslo-validate",
       "file": "microservices/observability/capabilities/openslo-validate.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     },
     {
       "tier": "T2",
       "name": "slo-evaluate",
       "file": "microservices/observability/capabilities/slo-evaluate.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -267,7 +267,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -282,11 +282,200 @@
     "provider": "openbao",
     "format": "${openbao:secret/<path>}"
   },
-  "ontology_projections": [],
+  "ontology_projections": [
+
+  ],
   "mesh_layering": {
     "cilium_l4": true,
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "observability is a BNF v4.1 kebab-case microservice slug; generated names follow oya-observability-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "hipaa",
+    "kr-isms-p",
+    "NIS2",
+    "lgpd",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5",
+    "DORA"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; ADR-0139 implements |; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here",
+  "owner_team": "axis-observability",
+  "data_classification": "AUDIT, INTERNAL_ONLY, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "hipaa",
+    "kr-isms-p",
+    "NIS2",
+    "lgpd",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5",
+    "DORA"
+  ],
+  "depends_on_microservices": [
+    "compliance",
+    "identity",
+    "tenancy",
+    "audit-chain",
+    "cloud-secrets",
+    "network",
+    "ontology",
+    "detection",
+    "cell",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.26,
+    "baseline_ram_per_tenant": 768,
+    "storage_per_tenant": 20,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 3,
+      "outbound_http": 8
+    },
+    "scaling_dimension": "per_query",
+    "cell_placement_class": "Tier-1",
+    "notes": "Telemetry eligibility, SLO dashboards, and analytical queries scale with query and ingest pressure."
+  },
+  "dr": {
+    "rto_p99_seconds": 900,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "clickhouse_iceberg_layered",
+      "object_storage_versioned",
+      "postgres_wal_g"
+    ],
+    "failover_runbook": "runbooks/clickhouse-restore.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Observability is a shared telemetry and SLO substrate carrying tenant-scoped logs, traces, metrics, profiles, and promotion eligibility evidence. It does not execute tenant code, but it touches tenant data and operational evidence, so Tier 1 applies.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/observability/PRD.md",
+    "microservices/observability/ARCHITECTURE.md",
+    "microservices/observability/IP-006-slo-engine-adapter.md",
+    "microservices/observability/IP-022-otel-to-clickhouse-bridge.md",
+    "microservices/observability/runbooks/clickhouse-restore.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [
+      {
+        "version": "2025-11-21",
+        "deprecated_at": "2026-05-21",
+        "sunset_at": "2026-11-21",
+        "breaking_change_adr": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md",
+        "migration_doc": "microservices/observability/MIGRATION-2026-05-21.md"
+      }
+    ],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/observability/contracts/openapi/slo-engine.yaml",
+        "2026-02-21": "microservices/observability/contracts/openapi/slo-engine.yaml",
+        "2025-11-21": "microservices/observability/contracts/openapi/slo-engine.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml",
+        "2026-02-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml",
+        "2025-11-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/observability/contracts/proto/slo-engine.proto",
+        "2026-02-21": "microservices/observability/contracts/proto/slo-engine.proto",
+        "2025-11-21": "microservices/observability/contracts/proto/slo-engine.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "clickhouse",
+    "opentelemetry",
+    "postgresql",
+    "valkey",
+    "cilium",
+    "istio",
+    "kyverno"
+  ],
+  "oss_stewardship_class_overrides": [
+
+  ],
+  "iac_module_invocations": [
+    {
+      "context": "oci-guest",
+      "primitive": "clickhouse-iceberg-layer",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "telemetry-backbone",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "colo",
+      "primitive": "object-storage-versioned",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "service-mesh-waypoint",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ]
 }

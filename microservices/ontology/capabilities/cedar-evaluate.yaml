@@ -15,11 +15,11 @@ spec:
 
   input:
     principal:
-      type: object  # carries tenant_id, max_tier, pillar_kind, autonomy_tier, cross_pillar_grants
+      type: object  # carries tenant_id, max_sensitivity_level, pillar_kind, autonomy_tier, cross_pillar_grants
     action:
       type: object  # Action::"action-type-name"
     resource:
-      type: object  # carries tenant_id, property_tier, pillar_kind, data_class
+      type: object  # carries tenant_id, property_sensitivity_level, pillar_kind, data_class
     context:
       type: object  # now, request_id, agent_session_id (if agent-gateway dispatch)
 
@@ -47,9 +47,9 @@ spec:
     - "oya_ontology_cedar_deny_total counter incremented"
 
   authority:
-    enforcement_lane: oya-foundry-fitness-cedar-coverage
+    enforcement_lane: oya-governance-cedar-coverage
     cedar_fragment: policy/{tenant-scope,ci-scope,auditor-scope,public-read,pillar}.cedar
-    perf_lane: oya-foundry-fitness-perf-budget
+    perf_lane: oya-governance-perf-budget
 
   failure_modes:
     - "FM-06 (Cedar runaway / pathological) — runbook: runbooks/cedar-fragment-rollback.md"

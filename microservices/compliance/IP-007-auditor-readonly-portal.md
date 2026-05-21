@@ -86,3 +86,9 @@ permit (
 - ADR-0207 — a11y.
 - ADR-0209 — substrate authority.
 - IP-002 — SOC 2 control mapping (drives per-framework inventory rendering).
+
+## Pod runtime tier (per ADR-0338)
+- `pod_runtime_tier: 0`
+- Runtime: Kata Containers plus Cloud Hypervisor are REQUIRED for this tenant-customer execution path.
+- Justification: this IP matched `plugin`, so tenant-customer or third-party code can enter the execution path.
+- Surface evidence: `microservices/compliance/IP-007-auditor-readonly-portal.md` plus `crates/oya-shared-compliance-evidence-kernel/src/lib.rs`; type anchor `crates/oya-shared-compliance-evidence-kernel/src/lib.rs::EvidenceArtifact`.

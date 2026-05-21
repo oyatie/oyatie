@@ -22,8 +22,8 @@ servers:
     description: Per-pack endpoint
     variables:
       pack:
-        enum: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
-        default: kr
+        enum: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+        default: pack-kr
 
 components:
   securitySchemes:

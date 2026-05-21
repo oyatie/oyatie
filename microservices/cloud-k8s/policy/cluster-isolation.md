@@ -283,7 +283,7 @@ kube-apiserver `--encryption-provider-config` flag set; KMS provider per pack. e
 ### FM-08: Bootstrap kubeadm token leaked
 
 **Behaviour:** Secret-scanner detects on commit; OpenBao rotates the token.
-**Detection:** `oya-foundry-fitness-evidence-secret-scan` + GitHub secret-scanning.
+**Detection:** `oya-governance-evidence-secret-scan` + GitHub secret-scanning.
 **Recovery:** rotate token (TTL ≤ 24h already); audit nodes joined within leak window.
 
 ## Audit Trail

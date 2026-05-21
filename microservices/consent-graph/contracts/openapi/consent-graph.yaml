@@ -477,9 +477,9 @@ components:
             purpose_of_use: { type: string }
             request_time: { type: string, format: date-time }
             request_region: { type: string }
-            grantee_capability_tier:
+            tenant_class:
               type: string
-              enum: [T0, T1, T2, T3]
+              enum: [demo_trial, paid]
             prior_revocation_check_ms_ago: { type: integer }
             trace_id: { type: string }
         agreement_id_hint: { type: string, format: ulid, nullable: true }

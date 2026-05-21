@@ -121,3 +121,10 @@ The kernel takes `now_unix` as a parameter on every method that needs time. No h
 - AAGUID refresh worker — IP-006.
 - WebAuthn HTTP handlers (axum routes) — IP-005.
 - Postgres-backed credential store — IP-005.
+
+## Counterpart references - 004-webauthn-relying-party-kernel
+
+- Counterpart class: passkey / recovery assurance.
+- GitHub account security and Twilio Verify show the user-facing recovery and step-up baseline; this IP keeps Oyatie stronger by binding the credential or recovery decision to tenant context, ACR, and sealed identity audit events rather than treating MFA as an app-local add-on.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+

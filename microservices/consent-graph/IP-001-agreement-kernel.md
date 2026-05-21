@@ -240,3 +240,7 @@ Anything else is a layer violation and fails `oya-check-layer-bnf-conformance`.
 - **R**: Schema evolution breaks downstream → grantee SDKs explode.
   **M**: `schema_version` field gated by ADR-0123 hyperscaler maturity claim gate + ADR-0064 canonical-base
   neutrality (no breaking changes without ADR + version bump + 6mo sunset).
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: `competitor-parity-matrix.md` compares Snowflake Secure Data Share and Databricks Delta Sharing as zero-copy sharing precedents, while `feature-parity-matrix-2026-05-20.md` compares OneTrust, TrustArc, and Cookiebot consent records. This kernel's `DataSharingAgreement` state machine is the Oyatie-specific answer: unlike CMP consent logs or storage-share grants, it is bilateral, revocable, sovereignty-aware, and feeds Cedar/projection/audit IPs.

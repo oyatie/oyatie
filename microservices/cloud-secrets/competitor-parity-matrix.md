@@ -26,8 +26,8 @@ Parity dimensions are derived from competitor product documentation (canonical s
 - D10: Automatic key rotation
 - D11: Cascade rotation (dependent re-wrap)
 - D12: Revocation push (server-sent invalidation)
-- D13: BYOK (Bring Your Own Key)
-- D14: BYOK wrapped under platform KEK-of-KEKs
+- D13: encryption-key BYOK (Bring Your Own Key; ADR-0251 §D-10)
+- D14: encryption-key BYOK wrapped under platform KEK-of-KEKs (ADR-0251 §D-10)
 - D15: HSM attestation (daily verified)
 - D16: Audit log (signed / sealed)
 - D17: Audit log Merkle / cryptographic non-repudiation

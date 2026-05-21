@@ -3,6 +3,13 @@
   "microservice": "governance",
   "version": "0.1.0",
   "owner": "axis-governance",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+
+  ],
   "bounded_contexts": [
     {
       "name": "aggregation-indexer",
@@ -99,19 +106,19 @@
       "tier": "T1",
       "name": "audit-refresh",
       "file": "microservices/governance/capabilities/audit-refresh.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "finding-query",
       "file": "microservices/governance/capabilities/finding-query.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "lane-execute",
       "file": "microservices/governance/capabilities/lane-execute.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     }
   ],
   "slos": [
@@ -250,10 +257,10 @@
       "file": "microservices/governance/IP-NEW-chaos-engineering-substrate.md"
     },
     {
-      "id": "IP-NEW-eu-ai-act-annex-iii-refusal-lane",
-      "title": "IP-NEW: wire `oya-check-eu-ai-act-annex-iii-refusal` into oya-dev-cli gate validate",
+      "id": "IP-NEW-high-risk-auto-decision-refusal-lane",
+      "title": "IP-NEW: wire `oya-check-high-risk-auto-decision-refusal` into oya-dev-cli gate validate",
       "acceptance_status": "ga",
-      "file": "microservices/governance/IP-NEW-eu-ai-act-annex-iii-refusal-lane.md"
+      "file": "microservices/governance/IP-NEW-high-risk-auto-decision-refusal-lane.md"
     },
     {
       "id": "IP-NEW-slsa-l3-evidence-grounded-lane",
@@ -373,5 +380,185 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": true,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "governance is a BNF v4.1 kebab-case microservice slug; generated names follow oya-governance-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "soc2",
+    "kr-isms-p",
+    "hipaa",
+    "lgpd",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; sre_signal_set: four-primary-service-signals → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-governance",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "soc2",
+    "kr-isms-p",
+    "hipaa",
+    "lgpd",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "docs",
+    "application",
+    "identity",
+    "tenancy",
+    "observability",
+    "audit-chain",
+    "network",
+    "intelligence",
+    "ontology",
+    "compliance",
+    "detection",
+    "cell",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T1",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.2,
+    "baseline_ram_per_tenant": 384,
+    "storage_per_tenant": 6,
+    "connections_per_tenant": {
+      "valkey": 2,
+      "postgres": 4,
+      "outbound_http": 10
+    },
+    "scaling_dimension": "per_workflow_run",
+    "cell_placement_class": "Tier-1",
+    "notes": "Policy lanes, bundled checks, and evidence emission scale with workflow runs and promotion events."
+  },
+  "dr": {
+    "rto_p99_seconds": 900,
+    "rpo_p99_seconds": 60,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/evidence-replay.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Governance is a shared policy and promotion substrate touching tenant-scoped evidence, policy decisions, and release-gate state. It hosts first-party policy/rule execution rather than tenant-customer code, so Tier 1 isolation is the correct boundary.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/governance/PRD.md",
+    "microservices/governance/ARCHITECTURE.md",
+    "microservices/governance/IP-007-policy-engine-usecase-adapter.md",
+    "microservices/governance/IP-015-runbooks-iac-finalization.md",
+    "microservices/governance/runbooks/evidence-replay.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [
+      {
+        "version": "2025-11-21",
+        "deprecated_at": "2026-05-21",
+        "sunset_at": "2026-11-21",
+        "breaking_change_adr": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md",
+        "migration_doc": "microservices/governance/MIGRATION-2026-05-21.md"
+      }
+    ],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/governance/contracts/openapi/governance.yaml",
+        "2026-02-21": "microservices/governance/contracts/openapi/governance.yaml",
+        "2025-11-21": "microservices/governance/contracts/openapi/governance.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/governance/contracts/asyncapi/governance-events.yaml",
+        "2026-02-21": "microservices/governance/contracts/asyncapi/governance-events.yaml",
+        "2025-11-21": "microservices/governance/contracts/asyncapi/governance-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/governance/contracts/proto/governance.proto",
+        "2026-02-21": "microservices/governance/contracts/proto/governance.proto",
+        "2025-11-21": "microservices/governance/contracts/proto/governance.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "cedar",
+    "opentofu",
+    "wasmtime",
+    "opentelemetry",
+    "cilium",
+    "istio",
+    "kyverno"
+  ],
+  "oss_stewardship_class_overrides": [
+
+  ],
+  "iac_module_invocations": [
+    {
+      "context": "oci-guest",
+      "primitive": "postgresql-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "lane-runner-pool",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "colo",
+      "primitive": "evidence-store",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "service-mesh-waypoint",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ]
 }

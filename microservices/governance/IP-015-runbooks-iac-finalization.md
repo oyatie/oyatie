@@ -144,3 +144,7 @@ When this IP merges:
 - `microservices/governance/runbooks/*.md` (6 runbooks).
 - `microservices/governance/multi-region.md` §"Topology per pack".
 - `microservices/governance/cost-budget.md` (sizing references for Helm values).
+
+## Wave 15 counterpart verification note
+
+This IP was preserved as already substantive; the Wave 15 scrub adds the explicit counterpart hook required by ADR-0328 D-20. Governance parity is evaluated against GitHub Advanced Security, SonarQube, Snyk, Trivy, Open Policy Agent, Backstage TechDocs, and Renovate. The implementation must state which of those controls it closes or deliberately does not target before promotion.

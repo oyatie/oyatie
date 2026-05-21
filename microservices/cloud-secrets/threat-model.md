@@ -68,7 +68,7 @@ All components introduced by ADR-0131 Cloud split and this PRD, deployed in a **
 ```text
 ┌─ Internet ─────────────────────────────────────────────────────────────────┐
 │                                                                            │
-│   Tenant operators (HSM attestation review, BYOK upload)                   │
+│   Tenant operators (HSM attestation review, encryption-key BYOK upload)     │
 │         │ (OIDC + MFA + JIT short-lived token from OpenBao)                │
 │         ▼                                                                  │
 │  ┌─ Public ingress (Envoy/Istio gateway, mTLS-only) ─────────────────────┐ │
@@ -165,7 +165,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | key-rotation-scheduler worker | Trusted internal | SPIFFE identity + OpenBao policy `rotate` | Initiate rotation; trigger cascade; emit audit |
 | per-tenant-namespace-controller | Trusted internal | SPIFFE identity + OpenBao policy `namespace-admin` | Provision + seal tenant namespaces |
 | audit-emitter | Trusted internal | SPIFFE identity + audit-chain bridge cert | Append audit events; cannot read or modify existing |
-| Tenant operator (BYOK upload, attestation review) | Untrusted external | OIDC + MFA + JIT short-lived token | Upload BYOK to own tenant namespace; review own HSM attestation; never read other tenants |
+| Tenant operator (encryption-key BYOK upload, attestation review; ADR-0251 §D-10) | Untrusted external | OIDC + MFA + JIT short-lived token | Upload encryption-key BYOK to own tenant namespace; review own HSM attestation; never read other tenants |
 | ops-security (human) | Trusted internal | OIDC + MFA + JIT elevation + ops-security group | Admin OpenBao; rotate KEK; quarantine namespace; cannot read raw secrets without break-glass |
 | External auditor (SOC 2 / ISO / PCI-DSS QSA) | Read-only external on time-boxed window | OIDC + MFA + JIT token | Read audit-chain events; read policy + IaC; cannot read raw secrets |
 | Reviewer agent (oya-pr-review lane) | Trusted internal | OIDC-bound CI identity | Read OpenBao policy + IaC for PR review; cannot resolve secrets |
@@ -267,12 +267,12 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Residual: L
 - Frameworks: SOC 2 CC7.1; ISO 27001 A.5.28, A.8.15, A.8.16; GDPR Art. 30; HIPAA §164.312(b); PCI-DSS §10.2
 
-**T-R-02 — Tenant denies having uploaded a BYOK that was used to encrypt their data**
-- Asset: BYOK upload events
+**T-R-02 — Tenant denies having uploaded encryption-key BYOK that was used to encrypt their data (ADR-0251 §D-10)**
+- Asset: encryption-key BYOK upload events (ADR-0251 §D-10)
 - Likelihood: L / Impact: M / Risk: **L**
 - Mitigations:
-  - BYOK upload requires tenant OIDC + MFA + JIT short-lived token; signed receipt issued to tenant.
-  - `KekAttested` audit-chain event records the BYOK upload with tenant_id + KEK-of-KEKs SHA + timestamp.
+  - encryption-key BYOK upload requires tenant OIDC + MFA + JIT short-lived token; signed receipt issued to tenant (ADR-0251 §D-10).
+  - `KekAttested` audit-chain event records the encryption-key BYOK upload with tenant_id + KEK-of-KEKs SHA + timestamp.
 - Owner: axis-cloud-secrets + council-privacy
 - Residual: L
 - Frameworks: SOC 2 CC7.1; ISO 27001 A.5.28; GDPR Art. 30; eIDAS Art. 24
@@ -451,7 +451,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 |---|---|---|---|---|
 | L-L-01 | Linkability | Tenant identifiers in OpenBao namespace paths + audit events permit linkage across audit time-series | Salted-hash tenant_id (`tenant:<sha256(tenant_id+salt)[..16]>`); never log raw IDs; rotate salt per pack annually | GDPR Art. 25; KR PIPA Art. 23; HIPAA §164.514(b) |
 | L-I-01 | Identifiability | Audit emission could embed tenant raw IDs | audit-chain receives only salted-hash tenant IDs; raw mapping in OpenBao tenant-resolver | GDPR Art. 25; KR PIPA Art. 23 |
-| L-N-01 | Non-repudiation gap | Tenant denies BYOK upload | Signed receipt at upload time; `KekAttested` audit event with KEK-of-KEKs SHA | eIDAS Art. 24; GDPR Art. 30 |
+| L-N-01 | Non-repudiation gap | Tenant denies encryption-key BYOK upload (ADR-0251 §D-10) | Signed receipt at upload time; `KekAttested` audit event with KEK-of-KEKs SHA | eIDAS Art. 24; GDPR Art. 30 |
 | L-D-01 | Detectability | Probing whether a secret path exists reveals tenant + secret-name presence | 404 returned with constant-time response shape; audit-emit probe-attempt | ISO 27001 A.8.24 |
 | L-DI-01 | Disclosure of information | Resolved value disclosed via verbose error message | Errors return opaque codes; never echo secret value or path | GDPR Art. 32; HIPAA §164.312(e) |
 | L-U-01 | Unawareness | Tenant unaware of when their secret was accessed | Per-pack legal cadence: tenant audit export available; tenant DPA promises access transparency | GDPR Art. 15; KR PIPA Art. 35 |

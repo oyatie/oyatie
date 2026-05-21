@@ -192,3 +192,8 @@ fn raw_row_never_physically_migrates() {
 - microservices/consent-graph/runbooks/regional-sovereignty-violation.md
 - microservices/consent-graph/IP-009 (kernel invariants)
 - microservices/consent-graph/threat-model.md §9.5 (sovereignty bypass)
+
+
+## Counterpart Evidence
+
+This already-substantive IP is preserved. Counterpart anchor for Wave 15 verification: Palantir Foundry Ontology / Palantir AIP, AWS Cedar, Neo4j, AWS Neptune, Apache TinkerPop, Stardog, and Salesforce object model. See `microservices/ontology/competitor-parity-matrix.md` for the service-specific parity rows; the implementation PR must update that row when this IP materially changes parity.

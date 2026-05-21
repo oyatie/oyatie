@@ -209,3 +209,7 @@ Multi-grantor joins (one grantee subscribes to projections from N grantors) are 
 Each (grantor, grantee, entity) tuple is an independent topic. Workflow Studio is responsible for any
 multi-source join logic on the grantee side, and is responsible for re-verifying enforcement at
 join-time.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: Snowflake and Databricks provide zero-copy sharing, BigQuery Authorized Views provides view-level filtering, and CMP tools provide consent records without entity-stream projection. This kernel makes the Oyatie distinction explicit: projection is zero-copy, topic-backed, sovereignty-pinned, and always tied to a DataSharingAgreement instead of warehouse-level sharing alone.

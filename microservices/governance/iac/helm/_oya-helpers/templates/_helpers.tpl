@@ -150,7 +150,7 @@ policyTypes: [Ingress, Egress]
 
        egress:
          {{- include "oya.networkPolicy.allowEgressToCarriers" $ | nindent 4 }}
-         # ... µservice-specific egress (postgres, redis, etc.) ...
+         # ... µservice-specific egress (postgres, valkey, etc.) ...
 
      Per-µservice carrier subset: a µservice MAY include only a subset of
      the five carriers if its PRD declares carry concerns for only those
@@ -303,7 +303,7 @@ periodSeconds: 10
 
      Per-workload override via `.Values.terminationGracePeriodSeconds`:
      30 for app-tier; 60 for workers with long-running batches; 120
-     for stateful cells (Postgres, Redis).
+     for stateful cells (Postgres, Valkey).
    */}}
 {{- define "oya.gracefulShutdown" -}}
 terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
@@ -572,12 +572,11 @@ runtimeClassName: gvisor
          cilium.io/identity-policy=enforced. Default for every µservice
          except api-gateway.
 
-       oya.cache.redisSidecar — opt-in Valkey-cluster client config
+       oya.cache.valkeySidecar — opt-in Valkey-cluster client config
          (env vars + sidecar reference) for µservices using Tier-3 cache
          per ADR-0184. Per ADR-0184 the cache project is Valkey 8.1 (BSD
-         3-Clause); the helper name retains the historical "redis" label
-         for client-library compatibility (valkey-cli is wire-compatible
-         with redis-cli at the protocol layer).
+         3-Clause); Valkey CLI and client-library behavior remains
+         protocol-compatible at the RESP layer.
 
        oya.kyverno.podSecurityPolicy — emits annotation pointing at the
          canonical Kyverno PSS-restricted ClusterPolicy per ADR-0183.
@@ -614,19 +613,18 @@ gateway.networking.k8s.io/gateway-name: {{ printf "%s-waypoint" .Values.microser
 {{- end -}}
 {{- end }}
 
-{{/* oya.cache.redisSidecar — Tier-3 Valkey-cluster client config block
+{{/* oya.cache.valkeySidecar — Tier-3 Valkey-cluster client config block
      per ADR-0184. Renders env vars + initContainer reference for
      µservices opting into the canonical hot read-through cache. The
-     helper name preserves "redis" for wire-protocol-compatibility
-     readability; the deployed cluster is Valkey 8.1 (BSD 3-Clause)
-     per the Redis 7.4+ license-fork rejection in ADR-0184.
+     deployed cluster is Valkey 8.1 (BSD 3-Clause) per ADR-0184 and
+     ADR-0336.
 
      Required Values:
        .Values.cache.enabled              (boolean)
        .Values.cache.clusterEndpoint      (string; e.g. valkey-cluster.cache.svc.cluster.local:6379)
        .Values.cache.tlsSecretName        (string; OpenBao-issued cert)
        .Values.cache.defaultTtlSeconds    (integer; default 60 per ADR-0184) */}}
-{{- define "oya.cache.redisSidecar" -}}
+{{- define "oya.cache.valkeySidecar" -}}
 {{- if .Values.cache.enabled -}}
 - name: OYA_CACHE_BACKEND
   value: "valkey-cluster"
@@ -637,7 +635,7 @@ gateway.networking.k8s.io/gateway-name: {{ printf "%s-waypoint" .Values.microser
 - name: OYA_CACHE_DEFAULT_TTL_SECONDS
   value: {{ .Values.cache.defaultTtlSeconds | default 60 | quote }}
 - name: OYA_CACHE_LICENSE_NOTE
-  value: "Valkey 8.1 BSD-3-Clause (Linux Foundation fork; Redis 7.4+ rejected per ADR-0184 licensing)"
+  value: "Valkey 8.1 BSD-3-Clause (Linux Foundation fork; ADR-0336 canonical substrate)"
 {{- end -}}
 {{- end }}
 

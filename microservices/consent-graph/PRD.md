@@ -1,9 +1,23 @@
+---
+doc_class: PRD
+template_id: TPL-PRD
+prd_id: PRD-consent-graph
+microservice: consent-graph
+status: Drafted
+authority_tier: 2
+owner_team: axis-consent-graph
+related_adrs: [ADR-0003, ADR-0028, ADR-0056, ADR-0058, ADR-0078, ADR-0090, ADR-0105, ADR-0110, ADR-0130, ADR-0131, ADR-0132, ADR-0214, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
+related_specs: [/specs/compliance-pack-floors.json, /specs/finops-dimensional-model.json]
+date: 2026-05-18
+doc_status: drafted
+---
+
 # consent-graph — Product Requirements Document
 
 - Owner: axis-consent-graph
 - Status: Drafted → target Active upon merge of PR #143 to `dev`
 - Authority ADR: docs/decisions/ADR-0214-cross-tenant-real-time-visibility.md
-- Related ADRs: ADR-0003 (audit-chain), ADR-0028 (cloud µservice arch), ADR-0056 (clean architecture
+- Related ADRs: see `related_adrs` frontmatter; legacy anchors include ADR-0003 (audit-chain), ADR-0028 (cloud µservice arch), ADR-0056 (clean architecture
   BNF), ADR-0058 (ontology), ADR-0078 (Pulsar substrate), ADR-0090 (Cedar policy engine), ADR-0105
   (13-layer enum), ADR-0110 (state machine), ADR-0130 (SLO-gated promotion), ADR-0131 (flat layout),
   ADR-0132 (no-suite policy).
@@ -219,6 +233,37 @@ We must give partners **all five**.
 - DSAR cross-tenant: when grantor receives a DSAR for subject X, consent-graph enumerates every active
   agreement projecting subject X's data, fans out a tombstone signal, and audit-chains the cascade.
 - Right-to-erasure: cascade across all grantees within 7 days (regulatory cap).
+
+### 8.6 DR posture (ADR-0343)
+
+- Target: RTO ≤1800s and RPO ≤300s for agreements, revocations, enforcement decisions, partner trust anchors, and bilateral audit pointers, matching manifest `dr.rto_p99_seconds=1800` and `dr.rpo_p99_seconds=300`.
+- Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is RTO 1800s, RPO 300s, multi-region required.
+- Failover runbook: `microservices/consent-graph/runbooks/audit-chain-divergence-recovery.md`, matching manifest `dr.failover_runbook`; revocation recovery uses `microservices/consent-graph/runbooks/revocation-incident.md`.
+- Multi-region active-active: yes for agreement state, enforcement cache invalidation, partner-directory trust anchors, and revocation fan-out; projection data remains grantor-region resident.
+- WHY: partners and data subjects can revoke or enforce agreements through a regional outage without losing bilateral non-repudiation or violating sovereignty constraints.
+
+### 8.7 Capacity model (ADR-0340)
+
+- Per-tenant baseline: 0.12 vCPU, 192 MiB RAM, 4 GiB active-agreement/index storage, 3 Valkey connections, 3 Postgres connections, and 5 outbound Pulsar/audit-chain/partner-directory slots, matching manifest `capacity_model`.
+- Scaling dimension: `per_message`, because manifest doctrine treats revocations, agreement changes, audit emissions, and partner callbacks as consent-event shaped.
+- Cell placement class: Tier-1 cross-tenant policy substrate, matching manifest `capacity_model.cell_placement_class`; runtime placement maps to pod runtime Tier 1 because manifest `pod_runtime_tier=1`.
+- Autoscaling boundary: minimum 2 enforcement replicas, 1 revocation worker, 1 projection worker, and 1 audit bridge per pack/cell; maximum 12 enforcement replicas and 8 revocation/projection workers per tenant-pair shard before agreement graph partitioning is required.
+- WHY: the model supports 10M active agreements, real-time revocation, and high-volume projection reads while keeping each grantor/grantee pair isolated.
+
+### 8.8 Sustainability + cost attribution (ADR-0344)
+
+- Every agreement grant, offer, accept, amend, revoke, projection subscription/read, enforcement decision, partner handshake, and bilateral audit pointer emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, `region`, and `carbon_intensity_source`.
+- Provider-routing affected by carbon: no for revocation, enforcement, HIPAA emergency access, or any realtime projection path; yes for batch reconciliation, monthly partner reports, and non-urgent agreement analytics.
+- Per-tenant cost surface: consent admins see agreement/projection cost in the tenant FinOps dashboard filtered by tenant, product, capability, provider, cell, and compliance_pack; bilateral exports preserve both grantor and grantee attribution.
+- WHY: cross-tenant visibility is a regulated data-sharing surface, so customer bills and climate disclosures must show who paid for each agreement and which side's cell emitted the carbon.
+
+### 8.9 API versioning posture (ADR-0342)
+
+- Public API version model: agreement, revocation, partner-directory, projection subscription, and tenant-facing audit-export APIs use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and `oyatie_version` proto3 field.
+- SDK semver model: grantor/grantee SDKs ship as major.minor.patch, with explicit mappings to supported public date versions.
+- Support window: last 3 public API versions for at least 180 days.
+- Per-tenant pinning: yes for grantor and grantee API clients; enforcement hot-path callers use mesh compatibility instead.
+- Internal-mesh exemption: yes; enforcement and projection-gateway direct gRPC remain exempt under ADR-0145 to preserve low-latency policy checks.
 
 ## 9. API surface (high-level)
 

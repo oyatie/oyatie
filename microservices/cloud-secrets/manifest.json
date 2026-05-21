@@ -73,22 +73,22 @@
   },
   "capabilities": [
     {
-      "tier": "T2",
       "name": "audit-query",
+      "availability": "paid plus demo_trial self-audit export within capped windows",
       "file": "microservices/cloud-secrets/capabilities/audit-query.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T0",
       "name": "secret-reference-resolve",
+      "availability": "always-on for demo_trial and paid tenant_class",
       "file": "microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     },
     {
-      "tier": "T2",
       "name": "secret-rotate",
+      "availability": "always-on for paid; demo_trial bounded by usage and rotation-cadence caps",
       "file": "microservices/cloud-secrets/capabilities/secret-rotate.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -299,12 +299,66 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0337",
+      "title": "Iceberg Canonical Olap Write Path",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md"
+    },
+    {
+      "id": "ADR-0338",
+      "title": "Pod Runtime Tier 0 To 3",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
+    },
+    {
+      "id": "ADR-0339",
+      "title": "Shared Iac Module Library",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0339-shared-iac-module-library.md"
+    },
+    {
+      "id": "ADR-0340",
+      "title": "Capacity Model Per Microservice Manifest",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+    },
+    {
+      "id": "ADR-0341",
+      "title": "Cellular Promotion Gates Explicit Tier Criteria",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md"
+    },
+    {
+      "id": "ADR-0342",
+      "title": "Api Versioning Hybrid Date Public Semver Sdk",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
+    },
+    {
+      "id": "ADR-0343",
+      "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+    },
+    {
+      "id": "ADR-0344",
+      "title": "Sustainability Finops Dimensional Model",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+    },
+    {
+      "id": "ADR-0345",
+      "title": "Oss Stewardship Class Policy And Cve Response Sla",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
     }
   ],
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "core_signals": "INV-FOUR-CORE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -325,5 +379,184 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "cloud-secrets is a BNF v4.1 kebab-case microservice slug; generated names follow oya-cloud-secrets-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_model": {
+    "classes": [
+      "demo_trial",
+      "paid"
+    ],
+    "paid_billing_components": [
+      "revenue_share",
+      "per_seat",
+      "per_usage"
+    ],
+    "source": "docs/decisions/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md"
+  },
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "iso27001",
+    "soc2",
+    "PCI-DSS",
+    "SOC 2 Type 2",
+    "lgpd",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; core_signals: INV-FOUR-CORE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-cloud-secrets",
+  "visibility_classification": "internal",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "iso27001",
+    "soc2",
+    "PCI-DSS",
+    "SOC 2 Type 2",
+    "lgpd",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "audit-chain",
+    "detection",
+    "tenancy",
+    "docs",
+    "identity",
+    "observability",
+    "network",
+    "ontology",
+    "cell",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.16,
+    "baseline_ram_per_tenant": 512,
+    "storage_per_tenant": 4,
+    "connections_per_tenant": {
+      "valkey": 4,
+      "postgres": 3,
+      "outbound_http": 6
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-1",
+    "notes": "Resolve qps, OpenBao reads/writes, HSM signing ops, and namespace count drive scale; capacity-model.md documents OpenBao 5k read qps and HSM 1k ops/s partitions."
+  },
+  "dr": {
+    "rto_p99_seconds": 120,
+    "rpo_p99_seconds": 1,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "openbao_seal_unseal",
+      "postgres_wal_g",
+      "audit_chain_merkle_seal",
+      "object_storage_versioned"
+    ],
+    "failover_runbook": "runbooks/secret-substrate-failover.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Secret-management substrate: cloud-secrets resolves SecretReference values, manages OpenBao namespaces, HSM integration, and key rotation, directly touching tenant secret data and requiring ADR-0338 Tier-1 isolation.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/cloud-secrets/PRD.md",
+    "microservices/cloud-secrets/capacity-model.md",
+    "microservices/cloud-secrets/IP-005-resolver-usecase.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml",
+        "2026-02-21": "microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml",
+        "2025-11-21": "microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "openbao",
+    "postgresql",
+    "valkey",
+    "cedar"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "on-prem",
+      "primitive": "pg-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "valkey-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "vault",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "aws-guest",
+      "primitive": "kms-key",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "per-cell-nodepool-kata",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-audit-chain-bridge",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ]
 }

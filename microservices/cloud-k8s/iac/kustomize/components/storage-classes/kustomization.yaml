@@ -10,7 +10,7 @@ kind: Component
 #   oya-pg-hot     — PostgreSQL block storage, NVMe-class, sub-ms IOPS
 #   oya-pg-warm    — PostgreSQL block storage, SSD-class
 #   oya-pg-cold    — PostgreSQL block storage, HDD/archive-class
-#   oya-redis-hot  — Valkey block storage, NVMe-class
+#   oya-valkey-hot — Valkey block storage, NVMe-class
 #   oya-s3-warm    — S3-compatible object storage, standard tier
 #   oya-s3-cold    — S3-compatible object storage, archive tier
 #   oya-object-warm — alias for oya-s3-warm in non-S3 contexts
@@ -29,7 +29,7 @@ resources:
   - storage-class-oya-pg-hot.yaml
   - storage-class-oya-pg-warm.yaml
   - storage-class-oya-pg-cold.yaml
-  - storage-class-oya-redis-hot.yaml
+  - storage-class-oya-valkey-hot.yaml
   - storage-class-oya-s3-warm.yaml
   - storage-class-oya-s3-cold.yaml
 

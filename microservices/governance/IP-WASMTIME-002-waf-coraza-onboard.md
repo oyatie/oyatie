@@ -134,3 +134,7 @@ cargo test -p oya-governance-waf-coraza --tests
 - Coraza WAF upstream — `https://coraza.io/`.
 - OWASP CRS 4.x — `https://coreruleset.org/`.
 - Envoy WASM extension — `https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/wasm_filter`.
+
+## Wave 15 counterpart verification note
+
+This IP was preserved as already substantive; the Wave 15 scrub adds the explicit counterpart hook required by ADR-0328 D-20. Governance parity is evaluated against GitHub Advanced Security, SonarQube, Snyk, Trivy, Open Policy Agent, Backstage TechDocs, and Renovate. The implementation must state which of those controls it closes or deliberately does not target before promotion.

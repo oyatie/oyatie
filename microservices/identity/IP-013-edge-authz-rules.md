@@ -97,3 +97,10 @@ Custom oyatie rules:
 - Coraza WAF v3
 
 [^1]: Versions current as of 2026-05-18.
+
+## Counterpart references - 013-edge-authz-rules
+
+- Counterpart class: policy and risk gate.
+- Palantir Foundry policy controls and GitHub organization security policies are the relevant counterpart bar; this IP makes the gate Cedar-first, tenant-scoped, and evidence-emitting instead of burying access decisions in route handlers.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+

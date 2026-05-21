@@ -1,0 +1,68 @@
+---
+doc_class: PRD
+template_id: TPL-PRD
+prd_id: PRD-cloud-network
+microservice: cloud-network
+status: Drafting
+sales_segment: cloud-provider-substrate
+tier: internal
+milestone_first_ship: M02-cloud-substrate
+related_adrs: [ADR-0338, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
+related_specs: [/specs/compliance-pack-floors.json, /specs/finops-dimensional-model.json]
+date: 2026-05-21
+owner_team: axis-cloud-network
+doc_status: drafted
+---
+
+# PRD-cloud-network: Tenant Network Control Plane
+
+## Purpose
+
+`cloud-network` owns tenant-scoped VPC-equivalent networking, ingress/egress policy, mTLS enforcement, flow telemetry, and network isolation across Oyatie cells and deployment contexts. Current service-local evidence is `README.md`, `feature-parity-matrix-2026-05-20.md`, FAQ/runbook material, Rust domain sources, and the D-2 `manifest.json` doctrine fields.
+
+## Functional Requirements
+
+- Provision tenant network spaces, subnets, route tables, private endpoints, NAT/egress policy, load-balancer attachments, and network-security policy.
+- Enforce mTLS and tenant/cell isolation on east-west and north-south paths.
+- Emit flow telemetry and privileged network-control actions to `audit-chain`.
+- Provide reachability, route-health, DDoS, and cross-cell routing diagnostics.
+- Support `demo_trial` and `paid` tenant_class envelopes through capacity, context, and compliance-pack policy rather than customer ladder labels.
+
+## Non-Functional Requirements
+
+### DR posture (ADR-0343)
+
+- Target: RTO ≤600s and RPO ≤300s for network control-plane state, route policies, mTLS policy, and flow-telemetry checkpoints, matching manifest `dr.rto_p99_seconds=600` and `dr.rpo_p99_seconds=300`.
+- Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is RTO 600s, RPO 300s, multi-region for regulated cells.
+- Failover runbook: `microservices/cloud-network/runbooks/network-control-plane-failover.md`, matching manifest `dr.failover_runbook`; mTLS and edge-attack recovery use `microservices/cloud-network/runbooks/mtls-handshake-failure-cascade.md` and `microservices/cloud-network/runbooks/ddos-mitigation-engagement.md`.
+- Multi-region active-active: yes for control-plane policy and route intent; data-plane forwarding keeps last-known-good policy while control cells recover.
+- WHY: tenants keep private connectivity and enforceable isolation during control-plane loss without accepting silent route or firewall drift.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: 0.14 vCPU, 256 MiB RAM, 2 GiB route/security/flow metadata, 2 Valkey connections, 2 Postgres connections, and 10 outbound controller/mesh/router slots, matching manifest `capacity_model`.
+- Scaling dimension: `per_capability`, because manifest doctrine treats VPC, route, LB, security-rule, and telemetry work as network-capability-object shaped.
+- Cell placement class: Tier-1 network substrate, matching manifest `capacity_model.cell_placement_class`; runtime placement maps to pod runtime Tier 1 because manifest `pod_runtime_tier=1`.
+- Autoscaling boundary: minimum 2 controllers, 2 route evaluators, and 1 telemetry writer per cell; maximum 20 control-plane workers per high-churn tenant before network namespace sharding is required.
+- WHY: the model serves VPC-style churn and sustained flow telemetry without coupling one tenant's route storm to another tenant's connectivity.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every VPC, subnet, route, firewall, endpoint, mTLS policy, DDoS mitigation, and privileged flow-log access audit row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, `region`, and `carbon_intensity_source`.
+- Provider-routing affected by carbon: no for live routing, mTLS, DDoS mitigation, failover, or HIPAA/PCI realtime paths; yes for scheduled topology analysis and non-urgent reporting jobs.
+- Per-tenant cost surface: the tenant FinOps dashboard exposes network cost/carbon by tenant, product, capability, provider, cell, and compliance_pack, with egress and flow-telemetry shown as separate capability filters.
+- WHY: network substrate spend and emissions are a major cloud-provider bill driver, and regulated tenants need attribution without letting carbon routing delay protective controls.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: network, route, security-group, endpoint, flow-log, and diagnostics APIs use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and `oyatie_version` proto3 field.
+- SDK semver model: cloud-network SDKs ship as major.minor.patch, with each minor mapping to supported public date versions.
+- Support window: last 3 public API versions for at least 180 days.
+- Per-tenant pinning: yes for tenant network-management clients and migration tools.
+- Internal-mesh exemption: yes; direct gRPC for mesh policy propagation remains exempt under ADR-0145.
+
+## Source Notes
+
+- `manifest.json` is present and the PRD values above mirror its `pod_runtime_tier`, `dr`, and `capacity_model` fields.
+- ADR-0339 is not cited because this service path currently has no `iac/<context>/` directory.
+- ADR-0337 is not cited because current evidence does not show cloud-network writing OLAP through the canonical data-warehouse path.

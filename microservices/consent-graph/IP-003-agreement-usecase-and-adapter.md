@@ -234,3 +234,7 @@ Separate binary running:
 - **R**: Tenant impersonation via JWT swap.
   **M**: JWT signed by identity µservice's OpenBao-backed key; consent-graph verifies issuer + audience
   + expiry; ztunnel SPIFFE binds the actual workload identity.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: OneTrust/TrustArc are strong on consent workflow and preference sync, while Snowflake/Databricks are strong on share creation but weak on sub-second bilateral enforcement. This IP binds draft/offer/accept/amend/revoke flows to Postgres/Citus, audit outbox, SDK, REST, and worker behavior so Oyatie has workflow-grade agreement management without losing service-owned enforcement and audit semantics.

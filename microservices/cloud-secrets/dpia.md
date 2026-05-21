@@ -26,7 +26,7 @@ The `cloud-secrets` µservice manages the cryptographic material and credentials
 - **Tenant identifiers** (used as OpenBao namespace paths; classified `SENSITIVE_PIPA_ART23` per KR PIPA Art. 23 due to re-identification potential when combined with other oyatie metadata).
 - **Secret metadata** (path, version, last-rotation timestamp; classified `BEHAVIORAL_TENANT_PRODUCT`).
 - **Access audit events** (who accessed which secret when; classified `AUDIT` + may contain `PII_QUASI_IDENTIFIER` via SPIFFE-id-of-human-operator).
-- **BYOK material from tenants** (tenant-supplied KEK; classified `SECRET` and treated as tenant-supplied processor data per Art. 28).
+- **encryption-key BYOK material from tenants** (tenant-supplied KEK; ADR-0251 §D-10; classified `SECRET` and treated as tenant-supplied processor data per Art. 28).
 
 This DPIA is required because:
 - GDPR Art. 35(3)(a): "systematic and extensive evaluation" of natural persons — partial, via operator audit trails.
@@ -89,7 +89,7 @@ This DPIA is required because:
 | R-02 | Operator OIDC subject id linked to access patterns reveals operator behaviour | M | M | audit retention bounded to legal minimum + 30d engineering buffer; pseudonymisation in pack-eu | L |
 | R-03 | Tenant denies access to own audit log (Art. 15 violation) | L | M | tenant audit export API in `audit-chain`; SLA 30d (GDPR), 30d (KR), 15d (BR), 30d (US-HC accounting-of-disclosures) | L |
 | R-04 | Secret path leakage in error messages reveals tenant business structure | M | M | errors return opaque codes; never echo path or value; debug logs scrubbed at SDK | L |
-| R-05 | BYOK material persists after tenant offboard | L | H (Art. 17 erasure violation) | tenant deprovisioning: 30d-grace soft-delete + cryptographic-erasure of DEKs (KEK destruction renders DEKs unrecoverable); audit-chain seal | L |
+| R-05 | encryption-key BYOK material persists after tenant offboard (ADR-0251 §D-10) | L | H (Art. 17 erasure violation) | tenant deprovisioning: 30d-grace soft-delete + cryptographic-erasure of DEKs (KEK destruction renders DEKs unrecoverable); audit-chain seal | L |
 | R-06 | Cross-pack data movement of audit events | L | H (Art. 44 transfer violation) | per-pack audit-chain instance; forbidden by Cedar `pack-routing.cedar`; quarterly drill | L |
 | R-07 | HSM vendor's home jurisdiction conflicts with pack residency | M | H | per-pack HSM vendor: pack-kr Thales Luna (KR-resident); pack-eu OCI Cloud-HSM (EU-resident); pack-us-hc OCI Cloud-HSM (US HIPAA-eligible region); never extra-pack | L |
 | R-08 | DSR (right-to-erasure) on tenant deprovision: data older than retention may already be deleted | L | L | documented in DPA; tenant notified | L (accepted) |
@@ -107,7 +107,7 @@ This DPIA is required because:
 | Art. 5(1)(c) | Data minimisation | Only tenant_id (salted-hash) + SPIFFE id + secret-path-hash carried in audit; no end-user PII |
 | Art. 5(1)(f) | Integrity + confidentiality | Per-pack OpenBao + HSM + LUKS + mTLS + Ed25519-sealed audit |
 | Art. 25 | Data protection by design + default | Default-deny Cedar; salted-hash tenant_id; LEAN-A11 BLOCKER |
-| Art. 28 | Processor obligations | Per-tenant DPA + BYOK processor model; sub-processors enumerated |
+| Art. 28 | Processor obligations | Per-tenant DPA + encryption-key BYOK processor model (ADR-0251 §D-10); sub-processors enumerated |
 | Art. 30 | Records of processing | This DPIA + `microservices/cloud-secrets/legal/ropa.md` (Slice D) |
 | Art. 32 | Security of processing | Per `threat-model.md`; encryption + access control + audit + resilience |
 | Art. 33 | Breach notification | Sev-1 incident on raw-secret-leak; tenant notification within 72h |
@@ -190,7 +190,7 @@ Tenant DPA enumerates sub-processors; tenants are notified of additions per Art.
 | Art. 16 (rectification) | not applicable (no rectifiable data; OIDC subject id is authoritative) |
 | Art. 17 (erasure) | upon tenant deprovision: 30d grace + cryptographic-erasure of DEKs |
 | Art. 18 (restriction) | namespace seal on dispute; audit retained |
-| Art. 20 (portability) | not applicable (no portable data; tenant BYOK is tenant-supplied) |
+| Art. 20 (portability) | not applicable (no portable data; tenant encryption-key BYOK is tenant-supplied per ADR-0251 §D-10) |
 | Art. 21 (objection) | not applicable (no profiling) |
 | Art. 22 (automated decision-making) | not applicable |
 

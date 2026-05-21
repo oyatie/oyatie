@@ -97,3 +97,10 @@ Every secret consumed via OpenBao SecretReference per ADR-0117:
 ## Rollback
 
 `helm rollback zitadel <previous-revision> --namespace identity-<pack>`; Postgres schema rollback via PITR if minor-version downgrade required. Runbook: `identity-zitadel-rollback`.
+
+## Counterpart references - 001-zitadel-helm-per-pack
+
+- Counterpart class: identity substrate.
+- Palantir Foundry and GitHub Enterprise are the counterpart baseline for governed multi-tenant identity surfaces; this IP ties the slice to Oyatie identity contracts, Cedar, and audit-chain evidence rather than leaving the behavior as generic application authentication.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+

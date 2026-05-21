@@ -8,7 +8,25 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0120, ADR-0121, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
+related_adrs:
+  - ADR-0056
+  - ADR-0105
+  - ADR-0106
+  - ADR-0117
+  - ADR-0120
+  - ADR-0121
+  - ADR-0139
+  - ADR-0131
+  - ADR-0132
+  - ADR-0133
+  - ADR-0338
+  - ADR-0339
+  - ADR-0340
+  - ADR-0341
+  - ADR-0342
+  - ADR-0343
+  - ADR-0344
+  - ADR-0345
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-cloud
@@ -89,6 +107,37 @@ Tenants do not consume `cloud-k8s` directly. Tenant value is **indirect, structu
 ### Data residency
 
 - Cluster components, etcd state, and PV objects pinned per pack jurisdiction per ADR-0117. No cross-pack PV replication. Multi-cluster Istio federation strictly mTLS-only (no payload replication).
+
+### DR posture (ADR-0343)
+
+- Declared target: RTO <= 1800 seconds and RPO <= 300 seconds, matching the current Availability + SLO section. `manifest.json` currently lacks a `dr` block, so D-2 backfill must mirror these values.
+- Applicable floors: HIPAA-2024 (3600/300, multi-region), SOC2-T2 (14400/900), ISO27001-2022 (14400/3600), KR-CSAP-v3.1 (3600/900, multi-region), KR-PIPA-2023-amendment (14400/900), and EU-AI-ACT-2024-HIGH-RISK when the cluster hosts Annex-III workloads (1800/300, multi-region). Effective strictness is RTO 1800 seconds and RPO 300 seconds.
+- Failover runbook reference: `runbooks/control-plane-restore.md` for kubeadm/etcd restore, `runbooks/etcd-quorum-recovery.md` for quorum loss, and `runbooks/kubeadm-upgrade.md` for upgrade recovery.
+- multi_region_active_active posture: false for a single etcd writer/control plane; true at the pack/cell layer only through separate clusters and Istio multi-cluster federation, with no cross-pack PV replication.
+- WHY: tenant workloads need bounded control-plane recovery while preserving Kubernetes' single-cluster consistency model and per-pack jurisdiction boundaries.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: D-2 has not populated `capacity_model`; the current PRD uses substrate envelope values instead: cluster bootstrap <= 30 minutes, node join p99 <= 5 minutes, 10 baseline nodes for launch clusters, and up to 5,000 nodes per cluster once Karpenter NodePools are active.
+- Scaling dimension: `per_capability` for cluster bootstrap, node lifecycle, network policy, service mesh, ingress, CSI, and kubernetes-api-proxy; the Karpenter IP adds workload-class NodePools (`oya-app`, `oya-batch`, `oya-gpu`, `oya-regulatory`) as the runtime scaling primitive.
+- Cell placement class: Tier-2, matching the manifest's `criticality_tier: T2`, because cloud-k8s is shared substrate with tenant workload placement responsibility but not the canonical commercial, identity, or key ledger.
+- Autoscaling boundaries: controller HA starts at two replicas for Karpenter, control plane targets three nodes after HA promotion, NodePools expand by workload class, and regulatory NodePools remain sovereign-region pinned/on-demand only.
+- WHY: capacity tracks cluster and node churn, not application request rate; the model keeps pack clusters available for every µservice while preserving regulatory placement constraints.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every `ClusterBootstrapped`, `NodeJoined`, `NodeDrained`, `NetworkPolicyApplied`, `IstioPolicyChanged`, `KubeadmUpgraded`, and kubernetes-api-proxy audit row also emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours` on the tenant/product/capability/provider/cell/compliance_pack axes.
+- Provider routing is carbon-aware for non-urgent node placement, batch NodePool scale-out, and planned control-plane maintenance. It is not carbon-routed for HIPAA emergency mode, PCI realtime-fraud dependency recovery, control-plane restore, or regulatory NodePool region pins.
+- Tenant transparency surface: finops-portal node/workload-class cost view, OpenCost labels such as `oya.io/workload-class`, and per-pack infrastructure allocation reports.
+- WHY: CSRD, SB-253, SEC climate-disclosure, and FinOps reporting require cluster substrate costs and energy to be explainable by tenant, workload class, cell, and compliance pack.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: cluster lifecycle, node lifecycle, network-policy, CSI, ingress, and kubernetes-api-proxy contracts use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and proto3 version field.
+- SDK semver model: operator and automation SDKs use major.minor.patch, with major bumps reserved for generated type or supported carrier breaks.
+- Support window: last N=3 external control-plane API versions are supported for at least 180 days.
+- Per-tenant pinning: supported for paid/regulatory tenants during cluster maintenance and audit windows; demo_trial follows the platform default.
+- Internal-mesh exemption: yes; in-cluster gRPC and Kubernetes watch paths preserve ADR-0145 direct semantics while the API proxy enforces version carriers on external/operator boundaries.
 
 ## Bounded Contexts
 
@@ -378,7 +427,7 @@ CI lane `oya gate validate air-gap-overlay` enforces sovereign-pack containment.
 
 Per ADR-0161 (2026-05-18), this µservice ships the canonical StorageClass catalog at `iac/kustomize/components/storage-classes/` and the per-pack overlay surface at `iac/kustomize/components/pack-{name}/`.
 
-Canonical names workload µservices reference: `oya-pg-hot`, `oya-pg-warm`, `oya-pg-cold`, `oya-redis-hot`, `oya-s3-warm`, `oya-s3-cold`. Per-pack overlay binds each canonical name to a concrete CSI driver per the matrix in `/specs/csi-storage-class-canonical.json`.
+Canonical names workload µservices reference: `oya-pg-hot`, `oya-pg-warm`, `oya-pg-cold`, `oya-valkey-hot`, `oya-s3-warm`, `oya-s3-cold`. Per-pack overlay binds each canonical name to a concrete CSI driver per the matrix in `/specs/csi-storage-class-canonical.json`.
 
 CI lane `oya gate validate storage-class-canonical` enforces (a) every workload µservice chart references only canonical names, (b) every active pack populates the full matrix.
 

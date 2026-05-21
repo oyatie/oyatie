@@ -67,7 +67,7 @@ Legend: ✓ = supported; ◐ = partial; ✗ = not supported; — = N/A.
 | Air-gapped sovereign pack | ✓ | ✗ | ✗ | ◐ Azure Stack | ✗ | ✗ | ✓ | ✓ |
 | Self-hosted only deployment | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ |
 | Pack-kr / pack-ksa / pack-ae compat | ✓ | ✗ | ✗ | ◐ | ✗ | ✗ | ✓ | ✓ |
-| BYOK / HSM-backed signing | ✓ | ✓ enterprise | ✓ enterprise | ✓ | ✓ KMS | ✓ Cloud KMS | ✓ | ✓ |
+| encryption-key BYOK / HSM-backed signing (ADR-0251 §D-10) | ✓ | ✓ enterprise | ✓ enterprise | ✓ | ✓ KMS | ✓ Cloud KMS | ✓ | ✓ |
 
 ## Audit + compliance
 

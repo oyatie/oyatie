@@ -5,7 +5,7 @@ status: Drafting
 authority_tier: 2
 owner: axis-compliance
 co_owners: [axis-security, council-architecture]
-related_adrs: [ADR-0131, ADR-0145, ADR-0170, ADR-0181, ADR-0183, ADR-0209]
+related_adrs: [ADR-0131, ADR-0145, ADR-0170, ADR-0181, ADR-0183, ADR-0209, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 date: 2026-05-18
 ---
 
@@ -95,6 +95,39 @@ The µservice is a thin layer over existing primitives:
 - **Evidence emission lag p99:** 60 seconds (event-driven collectors); ≤ 15 minutes (cron collectors).
 - **Auditor portal p99 latency:** 800 ms (per `observability.trace_sampling_recipe.p99_latency_threshold_ms`).
 - **Cross-tenant isolation invariant:** 0 violations (any → Sev-1).
+
+## Non-Functional Requirements
+
+### DR posture (ADR-0343)
+
+- Target: RTO ≤1800s and RPO ≤300s for evidence collection state, DSAR queues, auditor engagements, pack-overlay decisions, and audit-seal verification metadata. The current manifest has no D-2 `dr` block, so this is a PRD-level doctrine target pending manifest backfill.
+- Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is RTO 1800s, RPO 300s, multi-region for regulated packs.
+- Failover runbook: `microservices/compliance/runbooks/seaweedfs-evidence-bucket-loss.md`, matching manifest `dr.failover_runbook`; collector and auditor-facing continuity use `microservices/compliance/runbooks/certification-evidence-pipeline-stall.md` and `microservices/compliance/runbooks/regulator-evidence-export-failure.md`.
+- Multi-region active-active: yes for collector scheduling, coverage ledgers, and auditor portal metadata; object evidence remains pack-resident and is restored through the evidence bucket runbook if a storage cell is lost.
+- WHY: auditors and privacy officers can keep statutory evidence windows open during a region outage without risking cross-tenant DSAR leakage or unverifiable artifacts.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: 0.16 vCPU, 256 MiB RAM, 12 GiB evidence/export storage allowance, 2 Valkey connections, 3 Postgres connections, and 8 outbound collector/API slots, matching manifest `capacity_model`.
+- Scaling dimension: `per_workflow_run`, because manifest doctrine treats evidence exports and compliance collectors as workflow-execution shaped.
+- Cell placement class: Tier-2 compliance workflow substrate, matching manifest `capacity_model.cell_placement_class`; runtime placement maps to pod runtime Tier 1 because manifest `pod_runtime_tier=1`.
+- Autoscaling boundary: minimum 2 collectors, 1 DSAR worker, 1 coverage evaluator, and 1 auditor portal replica per regulated pack/cell; maximum 20 collectors and 10 DSAR/evidence workers per tenant during audit windows before workload isolation is required.
+- WHY: the model supports quarterly SOC2/HIPAA/PCI audit surges and DSAR statutory deadlines without letting one tenant's engagement drain collector capacity for another tenant.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every evidence artifact, DSAR state transition, pack subscription, manual upload, auditor access, seal verification, and breach-clock event emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, `region`, and `carbon_intensity_source` in its audit row.
+- Provider-routing affected by carbon: no for breach notification clocks, DSAR statutory caps, evidence sealing, or pack gates; yes for batch evidence replay, coverage recomputation, and non-deadline report generation when pack policy permits.
+- Per-tenant cost surface: the compliance portal shows pack-level evidence costs and links to the tenant FinOps dashboard for the tenant/product/capability/provider/cell/compliance_pack axes.
+- WHY: CSRD, SB-253, and SEC climate-disclosure support must be traceable to compliance evidence itself, not reconstructed after the audit.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: DSAR, evidence coverage, artifact, manual upload, auditor portal, and regulator export APIs use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and `oyatie_version` proto3 field.
+- SDK semver model: compliance client SDKs ship as major.minor.patch and map supported date versions explicitly.
+- Support window: last 3 public API versions for at least 180 days.
+- Per-tenant pinning: yes for auditor engagements, DSAR clients, and regulated-pack integrations.
+- Internal-mesh exemption: yes; collector-to-substrate gRPC remains exempt under ADR-0145.
 
 ## Cost ceiling
 

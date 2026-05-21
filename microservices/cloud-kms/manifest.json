@@ -1,0 +1,228 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-kms",
+  "version": "0.1.0",
+  "owner": "axis-cloud-kms",
+  "bounded_contexts": [
+    {
+      "name": "cloud-kms",
+      "description": "Bounded context 'cloud-kms' for CMK/KEK/DEK lifecycle, envelope encryption, HSM custody, signing, crypto-shred receipts.",
+      "crates": [
+        "oya-cloud-kms-api",
+        "oya-cloud-kms-domain"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "contracts/openapi/cloud/cloud-kms-v1.yaml"
+    ],
+    "asyncapi": [],
+    "proto": []
+  },
+  "capabilities": [
+    {
+      "name": "envelope-encryption",
+      "availability": "demo_trial capped; paid per contract/compliance pack",
+      "file": "microservices/cloud-kms/feature-parity-matrix-2026-05-20.md",
+      "risk_class": "high"
+    },
+    {
+      "name": "hsm-quorum",
+      "availability": "demo_trial capped; paid per contract/compliance pack",
+      "file": "microservices/cloud-kms/runbooks/hsm-cluster-failover.md",
+      "risk_class": "high"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-cloud-kms-cloud-kms-crypto-op-p99",
+      "target": "0.99",
+      "sli": "service_manifest_reference{microservice=\"cloud-kms\",slo=\"cloud-kms-crypto-op-p99\"}",
+      "file": "microservices/cloud-kms/performance-benchmark-numbers-2026-05-20.md"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-wave-d-kms-baseline",
+      "title": "Wave-D KMS baseline from feature and performance matrices",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-kms/feature-parity-matrix-2026-05-20.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.83",
+    "postgres": "17.x",
+    "valkey": "8.x"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0337",
+      "title": "Iceberg Canonical Olap Write Path",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md"
+    },
+    {
+      "id": "ADR-0338",
+      "title": "Pod Runtime Tier 0 To 3",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
+    },
+    {
+      "id": "ADR-0339",
+      "title": "Shared Iac Module Library",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0339-shared-iac-module-library.md"
+    },
+    {
+      "id": "ADR-0340",
+      "title": "Capacity Model Per Microservice Manifest",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+    },
+    {
+      "id": "ADR-0341",
+      "title": "Cellular Promotion Gates Explicit Tier Criteria",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md"
+    },
+    {
+      "id": "ADR-0342",
+      "title": "Api Versioning Hybrid Date Public Semver Sdk",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
+    },
+    {
+      "id": "ADR-0343",
+      "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+    },
+    {
+      "id": "ADR-0344",
+      "title": "Sustainability Finops Dimensional Model",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+    },
+    {
+      "id": "ADR-0345",
+      "title": "Oss Stewardship Class Policy And Cve Response Sla",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD via observability canonical PrometheusRule",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING via per-tenant and per-cell limit evidence",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS via service OpenSLO or performance evidence",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET via service SLO gate"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.cloud-kms.doctrine-declared",
+      "oya.cloud-kms.dr-failover"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  },
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.1,
+    "baseline_ram_per_tenant": 256,
+    "storage_per_tenant": 1,
+    "connections_per_tenant": {
+      "valkey": 2,
+      "postgres": 2,
+      "outbound_http": 4
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-0",
+    "notes": "Encrypt/decrypt/sign/generate data-key hot paths scale by crypto requests and HSM partition queues, not user sessions."
+  },
+  "dr": {
+    "rto_p99_seconds": 300,
+    "rpo_p99_seconds": 0,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "openbao_seal_unseal",
+      "audit_chain_merkle_seal",
+      "object_storage_versioned"
+    ],
+    "failover_runbook": "runbooks/hsm-cluster-failover.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Foundation key-management substrate: cloud-kms touches tenant key metadata, HSM operations, signing, and crypto-shred receipts, matching ADR-0338 Tier-1 and ADR-0340 Tier-0 placement.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/cloud-kms/README.md",
+    "microservices/cloud-kms/feature-parity-matrix-2026-05-20.md",
+    "microservices/cloud-kms/runbooks/hsm-cluster-failover.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "contracts/openapi/cloud/cloud-kms-v1.yaml",
+        "2026-02-21": "contracts/openapi/cloud/cloud-kms-v1.yaml",
+        "2025-11-21": "contracts/openapi/cloud/cloud-kms-v1.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "openbao",
+    "postgresql",
+    "valkey",
+    "cedar"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [],
+  "data_classes_processed": [
+    "AUTHENTICATION",
+    "AUDIT",
+    "INTERNAL_ONLY"
+  ]
+}

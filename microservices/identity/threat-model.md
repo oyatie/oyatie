@@ -87,7 +87,7 @@ Identity is **the** highest-impact attack surface in the fleet: compromise of an
 | S | IP geo spoofing | MaxMind GeoIP + ASN; both required for sensitive geo decisions | geo-spoof detection alert |
 | T | WAF rule bypass via encoding tricks | OWASP CRS v4.25.0 LTS with canonicalisation + double-encoding decoders | WAF-deny rate per rule |
 | R | Repudiation of edge deny | `EdgeDeny` event (truncated PII; tier=edge) sealed | Audit-chain query |
-| I | Exposure of rate-limit counters | Counters in Redis-per-pack; not externally readable | n/a |
+| I | Exposure of rate-limit counters | Counters in Valkey-per-pack; not externally readable | n/a |
 | D | High-volume DDoS | eBPF XDP at NIC + Cilium L3/L4 filter + per-IP rate caps | DDoS-attack runbook |
 | E | Bypassing edge via direct internal path | Network policy: pod ingress only via Envoy Gateway selector | NetworkPolicy deny audit |
 

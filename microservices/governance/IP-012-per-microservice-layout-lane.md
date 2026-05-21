@@ -93,3 +93,7 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 
 - ADR-0131 (per-microservice flat layout).
 - `microservices/governance/runbooks/aggregation-rebuild.md`.
+
+## Wave 15 counterpart verification note
+
+This IP was preserved as already substantive; the Wave 15 scrub adds the explicit counterpart hook required by ADR-0328 D-20. Governance parity is evaluated against GitHub Advanced Security, SonarQube, Snyk, Trivy, Open Policy Agent, Backstage TechDocs, and Renovate. The implementation must state which of those controls it closes or deliberately does not target before promotion.

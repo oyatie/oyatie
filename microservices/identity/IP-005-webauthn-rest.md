@@ -12,16 +12,16 @@ owner_team: axis-identity
 
 ## Goal
 
-Land the `oya-identity-webauthn-relying-party-rest` crate: HTTP handlers as `axum::Router` exposing `/webauthn/register/start`, `/webauthn/register/finish`, `/webauthn/authenticate/start`, `/webauthn/authenticate/finish` per W3C WebAuthn L3, backed by the kernel from IP-004 + a Postgres-backed `CredentialStore` adapter + Redis-backed `ChallengeStore`.
+Land the `oya-identity-webauthn-relying-party-rest` crate: HTTP handlers as `axum::Router` exposing `/webauthn/register/start`, `/webauthn/register/finish`, `/webauthn/authenticate/start`, `/webauthn/authenticate/finish` per W3C WebAuthn L3, backed by the kernel from IP-004 + a Postgres-backed `CredentialStore` adapter + Valkey-backed `ChallengeStore`.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `crates/oya-identity-webauthn-relying-party-rest/Cargo.toml` | manifest; axum + sqlx + redis |
+| `crates/oya-identity-webauthn-relying-party-rest/Cargo.toml` | manifest; axum + sqlx + valkey |
 | `crates/oya-identity-webauthn-relying-party-rest/src/lib.rs` | Router builder + handlers |
 | `crates/oya-identity-webauthn-relying-party-rest/src/postgres_credential_store.rs` | Postgres-backed CredentialStore impl |
-| `crates/oya-identity-webauthn-relying-party-rest/src/redis_challenge_store.rs` | Redis-backed ChallengeStore impl |
+| `crates/oya-identity-webauthn-relying-party-rest/src/valkey_challenge_store.rs` | Valkey-backed ChallengeStore impl |
 | `crates/oya-identity-webauthn-relying-party-rest/src/error.rs` | HTTP error envelope |
 | `crates/oya-identity-webauthn-relying-party-rest/tests/handlers.rs` | request-response tests via `tower::ServiceExt::oneshot` |
 
@@ -63,7 +63,7 @@ CREATE POLICY tenant_scope ON webauthn_credentials
   USING (tenant_id = current_setting('app.tenant_id', true));
 ```
 
-## Redis schema
+## Valkey schema
 
 Key: `webauthn:challenge:{type}:{challenge_id}`; TTL 300s; value: serialised challenge JSON.
 
@@ -99,3 +99,9 @@ Key: `webauthn:challenge:{type}:{challenge_id}`; TTL 300s; value: serialised cha
 - 11 handler tests pass.
 - Conformance against `webauthn.io` virtual authenticator (Chrome DevTools) verifies register + assert + conditional UI.
 - Postgres RLS enforcement test passes.
+
+## Counterpart references - 005-webauthn-rest
+
+- Counterpart class: passkey / recovery assurance.
+- GitHub account security and Twilio Verify show the user-facing recovery and step-up baseline; this IP keeps Oyatie stronger by binding the credential or recovery decision to tenant context, ACR, and sealed identity audit events rather than treating MFA as an app-local add-on.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.

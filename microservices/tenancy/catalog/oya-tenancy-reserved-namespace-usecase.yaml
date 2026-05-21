@@ -1,0 +1,14 @@
+apiVersion: oyatie.io/catalog/v2
+kind: Crate
+metadata:
+  name: oya-tenancy-reserved-namespace-usecase
+  microservice: tenancy
+  bounded_context: reserved-namespace
+  layer: usecase
+spec:
+  binding_adr: ADR-0242
+  naming_justification: "BNF v4.1: oya-<microservice:tenancy>-<bc:reserved-namespace>-<layer:usecase>"
+  ports: [platform-owner-binding-read]
+  dependencies: []
+  audit_event_classes:
+    - oya.tenancy.reserved-namespace-create-refused

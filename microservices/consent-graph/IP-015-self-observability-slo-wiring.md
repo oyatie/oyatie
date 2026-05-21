@@ -44,7 +44,7 @@ Per ADR-0119 (cardinality-bounded observability), every metric label is bounded:
 | `mode` | SharingMode enum | 3 |
 | `outcome` | enum per metric | ≤8 |
 | `action_taken` | PropagationAction enum | 5 |
-| `tier` | CapabilityTier enum | 4 |
+| `tier` | TenantClass enum | 4 |
 | `pack` | regulatory pack | 11 |
 
 No high-cardinality labels (`agreement_id`, `tenant_id`, `entity_id`, `principal_id`) appear in any
@@ -180,3 +180,7 @@ After this IP lands:
 
 This satisfies ADR-0130 promotion gate: consent-graph may now proceed from dev → stage on the
 SLO-gated promotion path.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: OneTrust publishes selected API SLOs and rate limits; Snowflake/Databricks/AWS provide operational monitoring for their data-share products; TrustArc/Cookiebot emphasize reporting rather than service-owned SLO promotion. This IP makes consent-graph's counterpart posture machine-checkable through nine OpenSLO manifests, HG-CONSENT registration, dashboards, and promotion gates.

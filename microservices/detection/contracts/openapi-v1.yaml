@@ -1,0 +1,104 @@
+openapi: 3.2.0
+info:
+  title: Detection API
+  version: 0.1.0
+  summary: ADR-0307 detection substrate API with ADR-0263 audit events.
+servers:
+  -
+    url: "https://detection.tenant.example/v1"
+paths:
+  /signals:evaluate:
+    post:
+      operationId: evaluateDetectionSignal
+      summary: Evaluate a tenant-scoped detection signal.
+      x-related-adrs:
+        - ADR-0307-detection-substrate-streaming-batch
+        - ADR-0308-ml-model-lifecycle-ai-act-compliance
+        - ADR-0309-detection-fairness-audit-civil-rights
+        - ADR-0310-investigation-case-management
+        - ADR-0263-observability-emission-contract
+        - ADR-0105-13-layer-enum-and-check-family-patterns
+        - ADR-0131-per-microservice-flat-layout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetectionEvaluationRequest"
+      responses:
+        200:
+          description: Score emitted with explanation and audit_id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionEvaluationResponse"
+  /replay-runs:
+    post:
+      operationId: startDetectionReplay
+      summary: Start deterministic replay for a model or rule version.
+      x-related-adrs:
+        - ADR-0307-detection-substrate-streaming-batch
+        - ADR-0308-ml-model-lifecycle-ai-act-compliance
+        - ADR-0309-detection-fairness-audit-civil-rights
+        - ADR-0310-investigation-case-management
+        - ADR-0263-observability-emission-contract
+        - ADR-0105-13-layer-enum-and-check-family-patterns
+        - ADR-0131-per-microservice-flat-layout
+      responses:
+        202:
+          description: Replay accepted.
+components:
+  schemas:
+    DetectionEvaluationRequest:
+      type: object
+      required:
+        - tenant_id
+        - principal_id
+        - family
+        - entity_id
+        - trace_id
+        - compliance_packs
+      properties:
+        tenant_id:
+          type: string
+          description: Tenant scope from ADR-0244.
+        principal_id:
+          type: string
+          description: Caller principal.
+        family:
+          type: string
+          enum:
+            - payment-fraud
+            - account-takeover
+            - synthetic-identity
+            - aml-sanctions
+            - content-abuse
+            - fake-reviews-engagement
+            - insider-risk
+            - policy-violation
+        entity_id:
+          type: string
+        trace_id:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+    DetectionEvaluationResponse:
+      type: object
+      required:
+        - score
+        - severity
+        - explanation
+        - audit_id
+      properties:
+        score:
+          type: number
+        severity:
+          type: string
+        explanation:
+          type: array
+          items:
+            type: string
+        audit_id:
+          type: string

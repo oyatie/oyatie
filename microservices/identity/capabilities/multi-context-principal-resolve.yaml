@@ -48,7 +48,7 @@ cedar_policy_fragments:
 
 evidence_topic: oya.identity.context.resolved
 eval_set:
-  golden_inputs_path: microservices/identity/capabilities/eval/multi-context-principal-resolve-golden.jsonl
+  core_inputs_path: microservices/identity/capabilities/eval/multi-context-principal-resolve-core.jsonl
   pass_threshold: 1.0
   eval_metric: context-isolation-and-switch-refusal-correctness
   cadence: per-release

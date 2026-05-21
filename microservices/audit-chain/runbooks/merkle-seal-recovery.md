@@ -1,134 +1,281 @@
 ---
 doc_class: Runbook
-title: Merkle seal recovery — cross-channel divergence + genesis mismatch
-microservice: audit-chain
-severity: Sev-1 (chain-integrity)
+title: Merkle Seal Recovery
 status: Accepted
-owner_team: ops-security + axis-audit-chain
-date: 2026-05-17
-related_artifacts:
-  - microservices/audit-chain/failure-modes.md (FM-03, FM-04)
-  - microservices/audit-chain/policy/seal-integrity.md
-  - microservices/audit-chain/incident-response.md
+date: 2026-05-20
+microservice: audit-chain
+severity: sev1
+audience: compliance-officer
+owner_team: axis-audit-chain + ops-sre-reliability + ops-security
+source_wave: codex-runbooks-substrate-w2
+change_scope: substance rewrite of existing thin runbook
 doc_status: published
 ---
 
-# Runbook: Merkle seal recovery
+# Runbook: Merkle Seal Recovery
 
-## Purpose
+## Operator Contract
+- Runbook id: audit-chain-merkle-seal-recovery.
+- Primary service namespace: `audit-chain`.
+- Owning rotation: PagerDuty oya-audit-chain-primary; compliance-evidence secondary.
+- Incident channel: `#inc-audit-chain`.
+- Operational focus: protecting the append-only audit chain while resolving merkle seal recovery without weakening Merkle, signature, HSM, or retention invariants.
+- External dependencies: Thales Luna HSM support; DigiCert timestamp authority support; Oracle PostgreSQL support.
+- API authority: `https://audit-chain.internal.oyatie.dev/v1/audit-chain/merkle-seal-recovery/incident-handoff`.
+- Audit event class: `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` with ADR-0263 fields `incident_id`, `tenant_id`, `cell_id`, `microservice`, `runbook_id`, `decision_id`, `evidence_hash`, `operator_id`.
+- Stop condition: mitigation has held for 30 minutes, `AuditChainMerkleSealRecoveryCritical` is green, and every handoff API in Cross-microservice Coordination returns `202 accepted`.
+- Safety invariant: never clear the incident until `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/audit-chain-merkle-seal-recovery-<incident-id>.md`.
 
-Recovery for cross-channel root divergence (FM-03) and genesis record mismatch (FM-04). Both are Sev-1 chain-integrity events.
+## Trigger Conditions
+- Page on alert `AuditChainMerkleSealRecoveryCritical` when `oya_audit_chain_merkle_seal_recovery_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `AuditChainMerkleSealRecoverySloBurn` when `oya_audit_chain_merkle_seal_recovery_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev1 if `oya_audit_chain_merkle_seal_recovery_correctness_ratio < 0.9999` and the affected label set includes `tenant_id`, `cell_id`, or `principal_id`.
+- Open a sev1 if `oya_audit_chain_merkle_seal_recovery_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Trigger from customer report when Support tags the case `audit-chain.merkle-seal-recovery.customer_visible` in Zendesk.
+- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate audit-chain-merkle-seal-recovery --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Primary dashboard: `https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
+- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
+- Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="audit-chain",runbook="merkle-seal-recovery"}`.
+- Alertmanager route: `oyatie-audit-chain-merkle-seal-recovery-critical`; silence only with incident commander approval and `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` evidence.
+- Synthetic probe: `oya ops probe audit-chain merkle-seal-recovery --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
+- Drift detector: `registry/audit-chain/merkle-seal-recovery/expected-state.json` hash differs from live `https://audit-chain.internal.oyatie.dev/v1/audit-chain/admin/state-hash`.
+- Service-specific metric `oya_audit_chain_merkle_seal_recovery_merkle_gap_total` exceeds the threshold documented in `microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml`.
 
-## Trigger
+## Symptoms
+- User-facing impact: regulator evidence, customer audit exports, and internal chain-of-custody proofs may be delayed or unverifiable.
+- Operators see Grafana panel `emission-rate.json / Merkle Seal Recovery burn rate` turn red before the primary alert resolves.
+- Loki signature `audit_chain.merkle_seal_recovery.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
+- Kubernetes events include `reason=AuditChainMerkleSealRecoveryDegraded` on deployment `audit-chain-merkle-seal-recovery-worker` or `audit-chain-sealing-worker`.
+- Audit-chain shows missing or delayed `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` entries when queried with `oya audit-chain query --event-class EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT --since 30m`.
+- Metric pattern: `oya_audit_chain_merkle_seal_recovery_error_ratio` rises before `oya_audit_chain_merkle_seal_recovery_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `oya_audit_chain_merkle_seal_recovery_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal, replay backlog, or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `oya_audit_chain_merkle_seal_recovery_queue_depth`; isolate tenant before fleet mitigation.
+- Fleet-wide shape: at least three cells report `AuditChainMerkleSealRecoveryCritical` in one 15 minute window; switch to cross-cell bridge even if individual tenants are low-volume.
+- Log signature `decision=deny reason=merkle-seal-recovery.policy_guard` means the guard is working; investigate caller inputs before rollback.
+- Log signature `decision=permit reason=merkle-seal-recovery.break_glass` means manual intervention is active; confirm two-person authorization.
+- Log signature `audit_emit_status=stalled event_class=EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` means mitigation cannot be closed until replay succeeds.
+- Service-specific metric pattern: `oya_audit_chain_merkle_seal_recovery_seal_latency_seconds` rises while `oya_audit_chain_merkle_seal_recovery_evidence_export_age_seconds` is flat; inspect local worker health before escalating vendors.
+- Service-specific metric pattern: `oya_audit_chain_merkle_seal_recovery_evidence_export_age_seconds` rises while `oya_audit_chain_merkle_seal_recovery_error_ratio` is flat; suspect stale export, stale recommendation, stale projection, or vendor dependency lag.
 
-- FM-03: `oya:audit_chain_root_cross_channel_match:rate < 1.0` for any `(pack, tenant_partition, period_id)`.
-- FM-04: sealing-worker logs `genesis_record_mismatch` at boot.
+## Diagnostic Steps
+1. Set incident variables: `export INCIDENT_ID=INC-audit-chain-merkle-seal-recovery-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
+2. Confirm active alerts: `curl -s https://audit-chain.internal.oyatie.dev/v1/audit-chain/alerts?runbook=merkle-seal-recovery | jq .alerts`.
+3. Check Kubernetes rollout: `kubectl -n audit-chain rollout status deploy/audit-chain-merkle-seal-recovery-worker --timeout=60s`.
+4. List unhealthy pods: `kubectl -n audit-chain get pods -l app=merkle-seal-recovery -o wide`.
+5. Read structured logs: `kubectl -n audit-chain logs deploy/audit-chain-merkle-seal-recovery-worker --since=30m | rg "audit_chain.merkle_seal_recovery.incident_state|AuditChainMerkleSealRecoveryCritical|EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT"`.
+6. Query Loki directly: `logcli query '{namespace="audit-chain",runbook="merkle-seal-recovery"}' --since=30m --limit=200`.
+7. Check Prometheus error ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_audit_chain_merkle_seal_recovery_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_audit_chain_merkle_seal_recovery_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_audit_chain_merkle_seal_recovery_queue_depth{cell="prod-us-east-1"}'`.
+10. Check service-specific signal: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_audit_chain_merkle_seal_recovery_merkle_gap_total{cell="prod-us-east-1"}'`.
+11. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116&var-incident=$INCIDENT_ID"`.
+12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
+13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
+14. Verify service state: `oya ops audit-chain merkle-seal-recovery status --cell $CELL --tenant $TENANT --output json`.
+15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate audit-chain-merkle-seal-recovery --production-snapshot --cell $CELL`.
+16. Run crate smoke test: `cargo test -p oya-audit-chain-domain merkle_seal_recovery -- --nocapture`.
+17. Check API contract smoke: `curl -s https://audit-chain.internal.oyatie.dev/v1/audit-chain/merkle-seal-recovery/incident-handoff -H "x-oya-tenant: $TENANT"`.
+18. Inspect config: `test -f microservices/audit-chain/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/audit-chain/iac/kustomize/base/kustomization.yaml`.
+19. Inspect feature flags: `oya flags get oya.audit-chain.merkle_seal_recovery.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
+20. Inspect circuit breaker: `oya ops breaker status audit-chain-merkle-seal-recovery-circuit-breaker --cell $CELL --tenant $TENANT`.
+21. Check recent deploy: `kubectl -n audit-chain rollout history deploy/audit-chain-merkle-seal-recovery-worker | tail -20`.
+22. Check policy file: `test -f microservices/audit-chain/policy/seal-integrity.md || find microservices/audit-chain/policy -maxdepth 2 -type f | sort`.
+23. Check SLO files: `ls microservices/audit-chain/slos/*.openslo.yaml | sort | rg "chain|merkle"`.
+24. Check catalog components: `find microservices/audit-chain/catalog -maxdepth 1 -type f | sort | rg "emission|sealing|verification|query|retention"`.
+25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from audit_chain_merkle_seal_recovery_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
+26. Confirm no cross-cell spread: `oya ops cells query --metric oya_audit_chain_merkle_seal_recovery_error_ratio --window 30m --threshold 0.02`.
+27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice audit-chain --runbook merkle-seal-recovery --output evidence/incidents/$INCIDENT_ID.json`.
 
-## Severity
+### Diagnostic Decision Tree
+```text
+Merkle Seal Recovery incident decision tree
+1. Is AuditChainMerkleSealRecoveryCritical firing in more than one cell?
+   |-- yes: declare fleet incident, page PagerDuty oya-audit-chain-primary; compliance-evidence secondary, and run cross-cell containment.
+   |-- no: keep scope to the affected cell and continue tenant isolation checks.
+2. Does oya_audit_chain_merkle_seal_recovery_queue_depth grow while oya_audit_chain_merkle_seal_recovery_error_ratio is flat?
+   |-- yes: downstream dependency, replay backlog, or queue-drain issue; choose mitigation branch B.
+   |-- no: local regression, bad input, or policy/config drift; continue branch selection.
+3. Does audit-chain show EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT gaps?
+   |-- yes: do not close; run evidence replay before resolution.
+   |-- no: mitigation can proceed after state is green.
+4. Is customer, finance, security, or regulator impact confirmed?
+   |-- yes: promote severity, open #inc-audit-chain, and notify compliance or security handoff.
+   |-- no: keep internal incident and collect evidence.
+```
+- Branch A (confirmed chain integrity risk): use the matching mitigation block below and record `decision_branch=A` in `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT`.
+- Branch B (export-only degradation): use the matching mitigation block below and record `decision_branch=B` in `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT`.
+- Branch C (HSM or signer dependency degraded): use the matching mitigation block below and record `decision_branch=C` in `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT`.
+- Branch D (regulator-visible evidence gap): use the matching mitigation block below and record `decision_branch=D` in `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT`.
 
-**Sev-1 always.** These events indicate potential tamper of one or more publication channels OR a fundamental misconfiguration that compromises chain integrity.
+## Mitigation Steps
+1. Acknowledge page: `pd incident ack --service audit-chain --incident $INCIDENT_ID`.
+2. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-audit-chain --severity sev1`.
+3. Freeze risky automation: `oya flags set oya.audit-chain.merkle_seal_recovery.incident_hold=true --cell $CELL --tenant $TENANT --reason $INCIDENT_ID`.
+4. Enable circuit breaker: `oya ops breaker open audit-chain-merkle-seal-recovery-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
+5. Reduce blast radius: `kubectl -n audit-chain scale deploy/audit-chain-merkle-seal-recovery-worker --replicas=1`.
+6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason audit-chain-merkle-seal-recovery --ttl 60m`.
+7. Pause promotion: `oya vcs hold --microservice audit-chain --reason $INCIDENT_ID --runbook merkle-seal-recovery`.
+8. Drain queue safely: `oya ops audit-chain merkle-seal-recovery drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
+9. Execute bounded drain: `oya ops audit-chain merkle-seal-recovery drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
+10. Replay missing audit events: `oya audit-chain replay --event-class EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
+11. Rollback last deploy if causal: `kubectl -n audit-chain rollout undo deploy/audit-chain-merkle-seal-recovery-worker`.
+12. Raise HPA cap if saturation is proven: `kubectl -n audit-chain patch hpa audit-chain-merkle-seal-recovery-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
+13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface audit-chain.merkle-seal-recovery --rps 25 --ttl 30m`.
+14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/audit-chain/runbooks/merkle-seal-recovery.md,evidence/incidents/$INCIDENT_ID.json`.
+16. Notify service owners: `oya notify service-owner --microservice audit-chain --incident $INCIDENT_ID --channel #inc-audit-chain`.
+17. Open external vendor ticket: `oya vendor ticket open --vendor "Thales Luna HSM support" --incident $INCIDENT_ID --summary audit-chain-merkle-seal-recovery`.
+18. Confirm breaker effect: `oya ops breaker status audit-chain-merkle-seal-recovery-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
+19. Confirm user impact reduced: `curl -s https://audit-chain.internal.oyatie.dev/v1/audit-chain/merkle-seal-recovery/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+20. Emit mitigation audit: `oya audit-chain emit --event-class EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=merkle-seal-recovery`.
 
-## Cross-channel divergence (FM-03) — Procedure
+### Mitigation Branch Guidance
+- Branch A: confirmed chain integrity risk.
+  - Required action: keep `audit-chain-merkle-seal-recovery-circuit-breaker` open until `oya_audit_chain_merkle_seal_recovery_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117` to the incident.
+  - Required audit: emit `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
+- Branch B: export-only degradation.
+  - Required action: keep `audit-chain-merkle-seal-recovery-circuit-breaker` open until `oya_audit_chain_merkle_seal_recovery_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=118` to the incident.
+  - Required audit: emit `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
+- Branch C: HSM or signer dependency degraded.
+  - Required action: keep `audit-chain-merkle-seal-recovery-circuit-breaker` open until `oya_audit_chain_merkle_seal_recovery_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=119` to the incident.
+  - Required audit: emit `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
+- Branch D: regulator-visible evidence gap.
+  - Required action: keep `audit-chain-merkle-seal-recovery-circuit-breaker` open until `oya_audit_chain_merkle_seal_recovery_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=120` to the incident.
+  - Required audit: emit `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
-### Phase 1: Halt + Engage (≤ 5 min)
+## Resolution Steps
+1. Identify code owner path: `rg "merkle_seal_recovery|AuditChainMerkleSealRecoveryCritical|audit_chain.merkle_seal_recovery.incident_state" crates microservices/audit-chain -g "!microservices/audit-chain/runbooks/**"`.
+2. Patch domain invariant: `edit oya-audit-chain-domain where merkle_seal_recovery state transition is validated`.
+3. Patch API guard: `edit microservices/audit-chain/contracts/openapi/audit-chain.yaml if the failing path is north-south or async handoff`.
+4. Patch policy: `edit microservices/audit-chain/policy/seal-integrity.md with explicit deny/permit branch and tenant/cell scope`.
+5. Patch runtime config: `edit microservices/audit-chain/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
+6. Add regression test: `cargo test -p oya-audit-chain-domain merkle_seal_recovery_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate audit-chain-merkle-seal-recovery --fixture incident-merkle-seal-recovery.json`.
+8. Add SLO assertion: `update microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml with alert AuditChainMerkleSealRecoveryCritical when this was a missing alert`.
+9. Add dashboard panel: `update microservices/audit-chain/dashboards/emission-rate.json with oya_audit_chain_merkle_seal_recovery_error_ratio, oya_audit_chain_merkle_seal_recovery_lag_seconds, and oya_audit_chain_merkle_seal_recovery_queue_depth`.
+10. Rebuild affected crate: `cargo check -p oya-audit-chain-domain --all-targets`.
+11. Run targeted tests: `cargo test -p oya-audit-chain-domain --all-features`.
+12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate audit-chain-policy --microservice audit-chain`.
+13. Deploy canary: `oya deploy canary --microservice audit-chain --component audit-chain-merkle-seal-recovery-worker --cell $CELL --weight 1`.
+14. Watch burn rate: `oya ops watch --metric oya_audit_chain_merkle_seal_recovery_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+15. Close circuit breaker: `oya ops breaker close audit-chain-merkle-seal-recovery-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+16. Unfreeze automation: `oya flags set oya.audit-chain.merkle_seal_recovery.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+17. Resume promotion: `oya vcs unhold --microservice audit-chain --reason resolved-$INCIDENT_ID`.
+18. Seal resolution audit: `oya audit-chain emit --event-class EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=merkle-seal-recovery`.
+19. Verify seal: `oya audit-chain verify --event-class EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT --incident $INCIDENT_ID`.
+20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
-1. Declare Sev-1; open `#inc-<id>` Slack.
-2. Engage IC (ops-security primary) + ops-sre-reliability + axis-audit-chain SME + Cryptography SME + council-privacy.
-3. Halt sealing-worker for affected partition (preserve forensic state): `kubectl scale deployment sealing-worker-<pack>-<shard> --replicas=0`.
-4. Halt continuous-validator's auto-rollback path (manual decision required for chain-state changes).
+### Code Paths To Inspect First
+- `oya-audit-chain-domain`: inspect for `merkle_seal_recovery` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-audit-chain-usecase`: inspect for `merkle_seal_recovery` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-audit-chain-file-adapter`: inspect for `merkle_seal_recovery` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-shared-audit-chain-client-kernel`: inspect for `merkle_seal_recovery` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `microservices/audit-chain/contracts/openapi/audit-chain.yaml`: verify request/response or event contract only when incident evidence points there.
+- `microservices/audit-chain/contracts/asyncapi/audit-events.yaml`: verify request/response or event contract only when incident evidence points there.
+- `microservices/audit-chain/contracts/proto/audit-chain.proto`: verify request/response or event contract only when incident evidence points there.
+- `microservices/audit-chain/dashboards/emission-rate.json`: verify panel coverage for `oya_audit_chain_merkle_seal_recovery_error_ratio`, `oya_audit_chain_merkle_seal_recovery_lag_seconds`, and `oya_audit_chain_merkle_seal_recovery_merkle_gap_total`.
+- `microservices/audit-chain/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
+- `microservices/audit-chain/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
-### Phase 2: Channel Forensics (≤ 1h)
+## Verification Checklist
+- `AuditChainMerkleSealRecoveryCritical` and `AuditChainMerkleSealRecoverySloBurn` are both resolved in Alertmanager for 30 minutes.
+- `oya_audit_chain_merkle_seal_recovery_error_ratio < 0.005` for 3 consecutive 10 minute windows.
+- `oya_audit_chain_merkle_seal_recovery_lag_seconds < 120` for all production cells.
+- `oya_audit_chain_merkle_seal_recovery_queue_depth` is draining and not growing for the affected tenant.
+- Service-specific signal `oya_audit_chain_merkle_seal_recovery_merkle_gap_total` is below the threshold documented in `microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml`.
+- dashboard `https://grafana.dev.oyatie.internal/d/audit-chain-substrate/merkle-seal-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116` shows green panels for the affected cell.
+- audit-chain query for `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` returns mitigation and resolution events.
+- circuit breaker `audit-chain-merkle-seal-recovery-circuit-breaker` is closed after rollback window.
+- feature flag `oya.audit-chain.merkle_seal_recovery.incident_hold` is false for the affected tenant unless long-term hold is approved.
+- runbook invocation evidence is attached to `evidence/incidents/$INCIDENT_ID.json`.
+- service owner acknowledged final handoff in `#inc-audit-chain`.
 
-| Channel | What to check | Tool |
-|---|---|---|
-| S3 WORM blob | Read the SealRecord; compare `root_hash`, `signature`, `signer_public_key_fp` against the canonical Postgres SealRecord row | `aws s3 cp s3://<bucket>/<key> -` + `psql ... -c 'SELECT ... FROM seal_record WHERE ...'` |
-| Mimir series | Query `oya_audit_chain_root_hash{pack=<pack>, period_id=<period>}` | Grafana / Mimir CLI |
-| GitHub-pinned manifest | Read `evidence/audit-chain-roots/<pack>/<epoch>.json` at HEAD + at any historical commit | `git log -p ...` |
-| Postgres SealRecord | Cross-check primary + replica | psql against both |
+## Postmortem Template
+Use this exact skeleton for the incident document. The field names are intentionally stable for ADR-0263 audit emission extraction.
+```markdown
+---
+doc_class: IncidentPostmortem
+runbook_id: audit-chain-merkle-seal-recovery
+microservice: audit-chain
+event_class: EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT
+incident_id: <INC-...>
+severity: sev1
+status: draft
+detected_at: <UTC>
+mitigated_at: <UTC>
+resolved_at: <UTC>
+commander: <handle>
+evidence_hash: <sha256>
+---
 
-Determine WHICH channel diverges.
+# Merkle Seal Recovery postmortem
 
-### Phase 3: Diagnose root cause
+## Summary
+- What happened in audit-chain/merkle-seal-recovery.
+- Who was affected: tenant_id list, cell_id list, user-facing surface list.
+- Current status: mitigated, resolved, or monitoring.
 
-| Suspect cause | Indicators | Action |
-|---|---|---|
-| Config drift / accidental Helm change | Recent Helm rollout near divergence time | Roll back the Helm change |
-| Sealing-worker bug | Sealing-worker logs show error/exception near sealing time | Pin to known-good version; engage axis-audit-chain to bug-hunt |
-| Intentional tamper | No legitimate operation near divergence time; channel state inconsistent with reference Postgres | Engage ops-security forensic team; treat as breach |
-| Mimir series tampering | `oya:audit_chain_root_cross_channel_match:rate` Mimir series diverges from S3 + Postgres + GitHub | Investigate Mimir's tenant boundary; check for unauthorized writes |
+## Timeline
+- T0 detection: alert/customer/audit source.
+- T1 acknowledgement: operator handle and channel.
+- T2 mitigation: feature flag, breaker, rollback, or throttle.
+- T3 resolution: code/config/policy fix.
+- T4 verification: dashboard, metric, audit seal, customer confirmation.
 
-### Phase 4: Recovery
+## Root Cause
+- Direct trigger.
+- Contributing factors.
+- Why existing controls did not catch it earlier.
 
-**If divergence is in Mimir series or GitHub manifest (not S3 + Postgres):**
-1. Postgres + S3 are the canonical source-of-truth per `policy/seal-integrity.md` §"SI-04".
-2. Re-publish from canonical: `cargo run -p oya-dev-cli -- audit-chain republish-roots --pack <pack> --from <period> --to <period>` (2-person rule; emits `RootRepublished` event sealed in chain).
-3. Verify three-channel match returns to 1.0.
-4. Postmortem.
+## ADR-0263 Audit Emission Requirements
+- Emit EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT with incident_id, tenant_id, cell_id, principal_id, decision_id, evidence_hash, operator_id, runbook_id.
+- Attach dashboard snapshot URLs and command transcripts.
+- Seal mitigation and resolution events before closure.
 
-**If divergence is in S3 (S3 WORM blob mutated despite Object Lock):**
-1. This is a fundamental control failure — Object Lock Compliance mode is designed to prevent this.
-2. Engage Oracle Cloud-HSM team + Oracle Object Storage team.
-3. Treat as confirmed tamper attempt.
-4. Forensic preservation of all relevant artifacts.
-5. Possible emergency key revocation per `runbooks/hsm-key-rotation.md` (if tamperer also has signing-key access).
+## Corrective Actions
+- Action, owner, due date, validation command, linked issue.
+```
 
-**If divergence is in Postgres SealRecord:**
-1. Postgres replica may have rolled back to inconsistent state; check `pg_replication_lag_seconds`.
-2. Restore from S3 WORM canonical: SealRecord index is recomputable from S3 raw blobs.
-3. Reindex: `cargo run -p oya-dev-cli -- audit-chain reindex-from-s3 --pack <pack> --from <period> --to <period>` (2-person rule).
-4. Verify.
+## Escalation Path
+- Primary on-call: PagerDuty oya-audit-chain-primary; compliance-evidence secondary.
+- Incident SLA: ack 3m for sev0/sev1, 10m for sev2, 30m for sev3; status update every 10m until `AuditChainMerkleSealRecoveryCritical` clears.
+- Incident commander: first responder from axis-audit-chain + ops-sre-reliability + ops-security; transfer only by explicit message in `#inc-audit-chain`.
+- Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
+- Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
+- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- External vendors: Thales Luna HSM support; DigiCert timestamp authority support; Oracle PostgreSQL support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
+- Customer communications: use status page component `oyatie-audit-chain-merkle-seal-recovery` and keep private details in the incident channel.
+- Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.
+- Executive notice: sev0 or fleet-wide sev1 goes to `#exec-incident-readout` within 30 minutes.
 
-### Phase 5: Tenant + regulator comms
+## Cross-µservice Coordination
+- Notify `observability`: `oya incident handoff --target observability --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID --severity sev1 --branch A`; expect `202 accepted`.
+- Require `observability` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `compliance`: `oya incident handoff --target compliance --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID --severity sev1 --branch B`; expect `202 accepted`.
+- Require `compliance` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `governance`: `oya incident handoff --target governance --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID --severity sev1 --branch C`; expect `202 accepted`.
+- Require `governance` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `tenancy`: `oya incident handoff --target tenancy --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID --severity sev1 --branch D`; expect `202 accepted`.
+- Require `tenancy` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Observability handoff API: `oya incident handoff --target observability --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID`.
+- Governance handoff API: `oya incident handoff --target governance --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID`.
+- Compliance handoff API: `oya incident handoff --target compliance --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID`.
+- Audit-chain handoff API: `oya incident handoff --target audit-chain --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID`.
+- Tenancy handoff API: `oya incident handoff --target tenancy --source audit-chain --runbook merkle-seal-recovery --incident $INCIDENT_ID`.
 
-Per `incident-response.md` Sev-1 template.
+## Handoff Notes
+- Do not hand off with only the alert name; include `oya_audit_chain_merkle_seal_recovery_error_ratio`, `oya_audit_chain_merkle_seal_recovery_lag_seconds`, `oya_audit_chain_merkle_seal_recovery_queue_depth`, `oya_audit_chain_merkle_seal_recovery_merkle_gap_total`, current breaker state, and audit seal status.
+- Keep `audit-chain-merkle-seal-recovery-circuit-breaker` owner as axis-audit-chain + ops-sre-reliability + ops-security until the receiving service explicitly accepts.
+- If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
+- Close only after `EVT_AUDIT_CHAIN_MERKLE_SEAL_RECOVERY_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
-## Genesis record mismatch (FM-04) — Procedure
-
-### Phase 1: Halt sealing (≤ 5 min)
-
-1. Sealing-worker refused to start — chain advance is already halted.
-2. Declare Sev-1; engage ExecSponsor + ops-security director + Cryptography SME + council-architecture chair.
-3. DO NOT proceed without full incident command.
-
-### Phase 2: Channel comparison
-
-For the affected `(pack, tenant_partition)`:
-1. Read genesis record from S3 (`s3://<bucket>/genesis/<pack>/<partition>.json`).
-2. Read genesis record from GitHub-pinned manifest (`evidence/audit-chain-genesis/<pack>/<partition>.json`).
-3. Read genesis record from Postgres (`SELECT ... FROM genesis_record WHERE pack=... AND partition=...`).
-4. Compute the deterministic genesis: `sha256("oyatie-audit-chain-genesis|<pack>|<partition>|<epoch_id>")`.
-
-Identify which channel(s) diverge.
-
-### Phase 3: Recovery
-
-**Critical: only the deterministic genesis is unrelinquishable.** If a channel disagrees with the deterministic genesis, that channel is wrong.
-
-1. Re-compute deterministic genesis.
-2. Restore divergent channel(s) from the deterministic value.
-3. 2-person rule sign-off recorded in chain.
-4. Restart sealing-worker.
-5. Verify boot completes; new periods seal.
-
-### Phase 4: Forensic
-
-If the divergence cannot be explained by drift / corruption, treat as **fundamental tampering**:
-- Engage ExecSponsor + council-architecture for chain-wide audit.
-- Quarantine the affected `(pack, partition)`'s sealing-worker + HSM partition.
-- Consider chain reset for the affected partition (declare new epoch with new genesis; old chain remains for verification of pre-incident events).
-- Notify all affected tenants; regulatory notification chain.
-
-## Verification (post-recovery)
-
-- All three channels' roots agree for the affected period range.
-- Three-channel match rate returns to 1.0 sustained ≥ 1h.
-- Sealing-worker boots cleanly; no genesis_record_mismatch.
-- Sample verification calls succeed.
-- Postmortem within 5 business days.
-
-## References
-
-- `microservices/audit-chain/policy/seal-integrity.md` §"SI-03..SI-05".
-- `microservices/audit-chain/failure-modes.md` FM-03 + FM-04.
-- `microservices/audit-chain/incident-response.md`.
-- Bominal ADR-0028 §"Genesis recording" + §"Cross-channel transparency".
+## Sources Checked During This Substance Pass
+- `microservices/audit-chain/dashboards/` for dashboard names and operational panels: emission-rate.json, seal-latency.json, verification-failure-rate.json.
+- `microservices/audit-chain/slos/` for OpenSLO alert vocabulary and threshold alignment: chain-of-custody-integrity-correctness.openslo.yaml, evidence-export-freshness.openslo.yaml, merkle-chain-verification-latency.openslo.yaml.
+- `microservices/audit-chain/policy/` for named policy and authorization surfaces: seal-integrity.md, auditor-scope.cedar, tenant-scope.cedar.
+- `microservices/audit-chain/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi/audit-chain.yaml, contracts/asyncapi/audit-events.yaml, contracts/proto/audit-chain.proto.
+- `microservices/audit-chain/catalog/` for component and owner vocabulary; existing runbook topic `merkle-seal-recovery` was preserved as the scenario anchor.

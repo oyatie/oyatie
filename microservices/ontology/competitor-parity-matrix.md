@@ -115,7 +115,7 @@ Every observed strength + parity claim is backed by an official source. Per `/sp
 | AWS Neptune | `aws.amazon.com/neptune` | `neptune_query_languages_5_19`, `neptune_analytics_algorithms_5_111`, `neptune_vector_index_non_atomic` |
 | Stardog | `docs.stardog.com` | `stardog_virtual_graphs_422_440`, `stardog_supported_sources`, `stardog_reasoning_420_426`, `stardog_virtual_security` |
 
-LEAN lane `oya-foundry-fitness-source-backed-competitive-claims` validates that every claim in this matrix has a `source_evidence_refs` entry; un-cited claims fail the lane.
+LEAN lane `oya-governance-source-backed-competitive-claims` validates that every claim in this matrix has a `source_evidence_refs` entry; un-cited claims fail the lane.
 
 ## Parity-Gap Closure Plan
 
@@ -148,15 +148,15 @@ Per `/specs/microservices/ontology.json#anti_patterns`:
 
 | Anti-pattern | Why forbidden | Detection lane |
 |---|---|---|
-| Cross-tenant raw SQL bypass RLS | Tenant-isolation violation | `oya-foundry-fitness-no-raw-sql-cross-tenant` |
+| Cross-tenant raw SQL bypass RLS | Tenant-isolation violation | `oya-governance-no-raw-sql-cross-tenant` |
 | Untyped entity creation | Defeats type-system value | Schema validation refuses |
-| Tier-violating query | Data-class violation | `oya-foundry-fitness-ontology-tier-enforcement` |
-| LLM tool-call without Cedar check | Privilege escalation | `oya-foundry-fitness-cedar-coverage` |
+| Tier-violating query | Data-class violation | `oya-governance-ontology-tier-enforcement` |
+| LLM tool-call without Cedar check | Privilege escalation | `oya-governance-cedar-coverage` |
 | Direct cross-cell DB access | Bypasses Ontology adapter; breaks federation | `cargo-deny` on cross-µservice imports |
 | Silent stale dynamic-layer read | Hidden inconsistency | AC-12 freshness budget enforced |
 | External graph DB dep | Cross-tenant isolation harder; we have RLS | `cargo-deny` denylist |
-| Action without audit-chain emission | Provenance gap | `oya-foundry-fitness-audit-chain-emission` |
-| Unsourced competitor benchmark claim | Source-evidence policy violation | `oya-foundry-fitness-source-backed-competitive-claims` |
+| Action without audit-chain emission | Provenance gap | `oya-governance-audit-chain-emission` |
+| Unsourced competitor benchmark claim | Source-evidence policy violation | `oya-governance-source-backed-competitive-claims` |
 | External graph engine as canonical authority | Neo4j/Neptune/Stardog inform adapters only | `cargo-deny` denylist + adapter boundary validator |
 | Vector/reasoning output as policy truth | Approximate retrieval cannot authorize canonical state | Policy/action gate requires canonical entity_id + permission proof + action receipt |
 | Action without transaction receipt | Mutations need deterministic provenance before state change | Ontology action receipt gate |

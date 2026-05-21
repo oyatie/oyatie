@@ -10,7 +10,7 @@ info:
     tenant_id claim by middleware before request reaches handler).
 
     Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.
-    The JWT carries: tenant_id, max_tier, pillar_kind, autonomy_tier (for agent JWTs).
+    The JWT carries: tenant_id, max_sensitivity_level, pillar_kind, autonomy_tier (for agent JWTs).
     X-Tenant-Id header MUST match the JWT tenant_id claim; mismatch returns 401.
   contact:
     name: axis-ontology
@@ -89,13 +89,13 @@ components:
   schemas:
     PropertyDescriptor:
       type: object
-      required: [name, type, property_tier, data_class]
+      required: [name, type, property_sensitivity_level, data_class]
       properties:
         name: {type: string}
         type:
           type: string
           enum: [scalar, vector, timeseries, geo, ciphertext, struct]
-        property_tier:
+        property_sensitivity_level:
           type: string
           enum: [Tier1Sensitive, Tier2Restricted, Tier3Internal, Tier4Public]
         data_class: {type: string}
@@ -175,7 +175,7 @@ components:
         tenant_id: {type: string}
         jurisdiction: {type: string}
         pillar_kind: {type: string, enum: [org, person]}
-        property_tier: {type: string, enum: [Tier1Sensitive, Tier2Restricted, Tier3Internal, Tier4Public]}
+        property_sensitivity_level: {type: string, enum: [Tier1Sensitive, Tier2Restricted, Tier3Internal, Tier4Public]}
         properties: {type: object, additionalProperties: true}
         schema_version: {type: integer}
         created_at: {type: string, format: date-time}
