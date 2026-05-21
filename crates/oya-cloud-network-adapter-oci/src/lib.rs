@@ -9,6 +9,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_cloud_network_domain::{
+    NetworkProviderDirectInterconnectCreateRequest, NetworkProviderDirectInterconnectError,
+    NetworkProviderDirectInterconnectPort, NetworkProviderDirectInterconnectReceipt,
     NetworkProviderDnsZoneCreateRequest, NetworkProviderDnsZoneError, NetworkProviderDnsZonePort,
     NetworkProviderDnsZoneReceipt, NetworkProviderKind, NetworkProviderLoadBalancerCreateRequest,
     NetworkProviderLoadBalancerError, NetworkProviderLoadBalancerPort,
@@ -83,6 +85,31 @@ pub struct OciDnsZoneAdapter {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OciDnsZoneCommand {
+    pub operation: &'static str,       // data_class: PUBLIC
+    pub method: &'static str,          // data_class: PUBLIC
+    pub endpoint_origin: String,       // data_class: INTERNAL_ONLY
+    pub path: String,                  // data_class: INTERNAL_ONLY
+    pub body_canonical: String,        // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum OciDirectInterconnectAdapterConfigError {
+    InvalidEndpoint,
+    InvalidCompartmentRef,
+    InvalidRegion,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OciDirectInterconnectAdapter {
+    endpoint_origin: String,  // data_class: INTERNAL_ONLY
+    compartment_ref: String,  // data_class: INTERNAL_ONLY
+    region: String,           // data_class: PUBLIC
+    clock_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OciDirectInterconnectCommand {
     pub operation: &'static str,       // data_class: PUBLIC
     pub method: &'static str,          // data_class: PUBLIC
     pub endpoint_origin: String,       // data_class: INTERNAL_ONLY
@@ -444,6 +471,149 @@ impl NetworkProviderDnsZonePort for OciDnsZoneAdapter {
     }
 }
 
+impl OciDirectInterconnectAdapter {
+    pub fn new(
+        endpoint_origin: impl Into<String>,
+        compartment_ref: impl Into<String>,
+        region: impl Into<String>,
+    ) -> Result<Self, OciDirectInterconnectAdapterConfigError> {
+        let endpoint_origin = endpoint_origin.into();
+        let compartment_ref = compartment_ref.into();
+        let region = region.into();
+        validate_interconnect_endpoint(&endpoint_origin)?;
+        validate_interconnect_segment(
+            &compartment_ref,
+            OciDirectInterconnectAdapterConfigError::InvalidCompartmentRef,
+        )?;
+        validate_interconnect_segment(
+            &region,
+            OciDirectInterconnectAdapterConfigError::InvalidRegion,
+        )?;
+        Ok(Self {
+            endpoint_origin,
+            compartment_ref,
+            region,
+            clock_epoch_seconds: 0,
+        })
+    }
+
+    pub fn with_clock(mut self, clock_epoch_seconds: u64) -> Self {
+        self.clock_epoch_seconds = clock_epoch_seconds;
+        self
+    }
+
+    pub fn provider_virtual_circuit_ref(&self, direct_interconnect_resource_id: &str) -> String {
+        format!(
+            "oci-fast-connect://{}/{}/{}",
+            self.compartment_ref, self.region, direct_interconnect_resource_id
+        )
+    }
+
+    pub fn create_virtual_circuit_command(
+        &self,
+        request: &NetworkProviderDirectInterconnectCreateRequest,
+    ) -> Result<OciDirectInterconnectCommand, NetworkProviderDirectInterconnectError> {
+        request.validate()?;
+        self.ensure_provider_virtual_circuit(
+            &request.provider_virtual_circuit_ref,
+            &request.direct_interconnect.resource_id,
+        )?;
+        let bandwidth_mbps = request.direct_interconnect.bandwidth_mbps.to_string();
+        let vlan_tag = request.direct_interconnect.vlan_tag.to_string();
+        let redundant_port_count = request.direct_interconnect.redundant_port_count.to_string();
+        let bgp_session_count = request.direct_interconnect.bgp_sessions.len().to_string();
+        let advertised_prefix_count = request
+            .direct_interconnect
+            .advertised_prefixes
+            .len()
+            .to_string();
+        Ok(OciDirectInterconnectCommand {
+            operation: "CreateVirtualCircuit",
+            method: "POST",
+            endpoint_origin: self.endpoint_origin.clone(),
+            path: "/20160918/virtualCircuits".to_string(),
+            body_canonical: canonical_body(&[
+                ("compartment_ref", self.compartment_ref.as_str()),
+                ("region", self.region.as_str()),
+                (
+                    "resource_id",
+                    request.direct_interconnect.resource_id.as_str(),
+                ),
+                ("tenant_id", request.direct_interconnect.tenant_id.as_str()),
+                ("virtual_circuit_type", "PRIVATE"),
+                (
+                    "partner_id",
+                    request.direct_interconnect.partner_id.as_str(),
+                ),
+                (
+                    "peering_location",
+                    request.direct_interconnect.peering_location.as_str(),
+                ),
+                (
+                    "physical_port_id",
+                    request.direct_interconnect.physical_port_id.as_str(),
+                ),
+                ("vlan_tag", vlan_tag.as_str()),
+                ("bandwidth_mbps", bandwidth_mbps.as_str()),
+                ("redundant_port_count", redundant_port_count.as_str()),
+                ("bgp_session_count", bgp_session_count.as_str()),
+                ("advertised_prefix_count", advertised_prefix_count.as_str()),
+                ("actor", request.actor.as_str()),
+                ("idempotency_key", request.idempotency_key.as_str()),
+            ]),
+            provider_evidence_ref: format!(
+                "oci-fast-connect://{}/{}/{}/{}",
+                self.compartment_ref,
+                self.region,
+                request.direct_interconnect.resource_id,
+                request.request_id
+            ),
+        })
+    }
+
+    fn ensure_provider_virtual_circuit(
+        &self,
+        provider_virtual_circuit_ref: &str,
+        direct_interconnect_resource_id: &str,
+    ) -> Result<(), NetworkProviderDirectInterconnectError> {
+        let expected = self.provider_virtual_circuit_ref(direct_interconnect_resource_id);
+        if provider_virtual_circuit_ref == expected {
+            Ok(())
+        } else {
+            Err(NetworkProviderDirectInterconnectError::ProviderRejected {
+                provider: NetworkProviderKind::OciFastConnect,
+                reason:
+                    "provider_virtual_circuit_ref does not match configured OCI FastConnect target"
+                        .to_string(),
+            })
+        }
+    }
+
+    fn provider_request_id(&self, request_id: &str) -> String {
+        format!("oci-fast-connect-{}-{request_id}", self.clock_epoch_seconds)
+    }
+}
+
+impl NetworkProviderDirectInterconnectPort for OciDirectInterconnectAdapter {
+    fn provider_kind(&self) -> NetworkProviderKind {
+        NetworkProviderKind::OciFastConnect
+    }
+
+    fn create_direct_interconnect(
+        &self,
+        input: NetworkProviderDirectInterconnectCreateRequest,
+    ) -> Result<NetworkProviderDirectInterconnectReceipt, NetworkProviderDirectInterconnectError>
+    {
+        let command = self.create_virtual_circuit_command(&input)?;
+        NetworkProviderDirectInterconnectReceipt::create_direct_interconnect(
+            self.provider_kind(),
+            input.clone(),
+            self.provider_request_id(&input.request_id),
+            command.provider_evidence_ref,
+        )
+    }
+}
+
 fn validate_endpoint(value: &str) -> Result<(), OciVcnAdapterConfigError> {
     if value.starts_with("https://") && no_space_or_control(value) {
         Ok(())
@@ -465,6 +635,16 @@ fn validate_dns_endpoint(value: &str) -> Result<(), OciDnsZoneAdapterConfigError
         Ok(())
     } else {
         Err(OciDnsZoneAdapterConfigError::InvalidEndpoint)
+    }
+}
+
+fn validate_interconnect_endpoint(
+    value: &str,
+) -> Result<(), OciDirectInterconnectAdapterConfigError> {
+    if value.starts_with("https://") && no_space_or_control(value) {
+        Ok(())
+    } else {
+        Err(OciDirectInterconnectAdapterConfigError::InvalidEndpoint)
     }
 }
 
@@ -494,6 +674,17 @@ fn validate_dns_segment(
     value: &str,
     error: OciDnsZoneAdapterConfigError,
 ) -> Result<(), OciDnsZoneAdapterConfigError> {
+    if value.trim().is_empty() || value.contains('/') || !no_space_or_control(value) {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
+fn validate_interconnect_segment(
+    value: &str,
+    error: OciDirectInterconnectAdapterConfigError,
+) -> Result<(), OciDirectInterconnectAdapterConfigError> {
     if value.trim().is_empty() || value.contains('/') || !no_space_or_control(value) {
         Err(error)
     } else {
@@ -542,13 +733,15 @@ fn dns_zone_scope_label(kind: oya_cloud_network_domain::DnsZoneKind) -> &'static
 mod tests {
     use super::*;
     use oya_cloud_network_domain::{
-        CloudNetworkError, DnsZoneCreate, DnsZoneKind, DnsZoneState, IpProtocol, Ipv4Cidr, LbKind,
-        LbState, ListenerCreate, LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate,
-        NetworkProviderDnsZoneCreateRequest, NetworkProviderDnsZoneError,
-        NetworkProviderDnsZonePort, NetworkProviderLoadBalancerPort, NetworkProviderVpcPort,
-        RouteCreate, RouteDestination, RouteNextHopKind, RouteTableCreate, RuleDirection,
-        SecurityGroupCreate, SecurityRule, SubnetCreate, SubnetState, TargetGroupCreate, VpcCreate,
-        VpcState,
+        BgpSessionCreate, CloudNetworkError, DirectInterconnectCreate, DirectInterconnectState,
+        DnsZoneCreate, DnsZoneKind, DnsZoneState, InterconnectPartnerCreate, IpProtocol, Ipv4Cidr,
+        LbKind, LbState, ListenerCreate, LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate,
+        NetworkProviderDirectInterconnectCreateRequest, NetworkProviderDirectInterconnectError,
+        NetworkProviderDirectInterconnectPort, NetworkProviderDnsZoneCreateRequest,
+        NetworkProviderDnsZoneError, NetworkProviderDnsZonePort, NetworkProviderLoadBalancerPort,
+        NetworkProviderVpcPort, RouteCreate, RouteDestination, RouteNextHopKind, RouteTableCreate,
+        RuleDirection, SecurityGroupCreate, SecurityRule, SubnetCreate, SubnetState,
+        TargetGroupCreate, VpcCreate, VpcState,
     };
     use oya_data_boundary_kernel::DataClass;
     use oya_residency_domain::ResidencyClass;
@@ -580,6 +773,16 @@ mod tests {
     fn dns_adapter() -> OciDnsZoneAdapter {
         OciDnsZoneAdapter::new(
             "https://dns.ap-chuncheon-1.oraclecloud.com",
+            COMPARTMENT_REF,
+            REGION,
+        )
+        .unwrap()
+        .with_clock(1_700_000_000)
+    }
+
+    fn interconnect_adapter() -> OciDirectInterconnectAdapter {
+        OciDirectInterconnectAdapter::new(
+            "https://iaas.ap-chuncheon-1.oraclecloud.com",
             COMPARTMENT_REF,
             REGION,
         )
@@ -712,6 +915,67 @@ mod tests {
             actor: "sp_network".to_string(),
             idempotency_key: "idem-network-dns-zone-create".to_string(),
             requested_at_epoch_seconds: 1_700_000_040,
+        }
+    }
+
+    fn interconnect_partner_create(id: &str, location: &str) -> InterconnectPartnerCreate {
+        InterconnectPartnerCreate {
+            id: id.to_string(),
+            name: id.trim_start_matches("ixp_").to_ascii_uppercase(),
+            region: "alpha-region".to_string(),
+            peering_locations: vec![location.to_string()],
+            per_link_sla_basis_points: 9_999,
+        }
+    }
+
+    fn bgp_session_create(id: &str, local: &str, peer: &str) -> BgpSessionCreate {
+        BgpSessionCreate {
+            id: id.to_string(),
+            local_asn: 64_512,
+            peer_asn: 64_520,
+            local_address: local.to_string(),
+            peer_address: peer.to_string(),
+        }
+    }
+
+    fn direct_interconnect_create() -> DirectInterconnectCreate {
+        DirectInterconnectCreate {
+            resource_id: "oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary"
+                .to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "alpha-region".to_string(),
+            partner_id: "ixp_alpha".to_string(),
+            peering_location: "alpha-region-fabric-a".to_string(),
+            physical_port_id: "icp_alpha_001".to_string(),
+            vlan_tag: 101,
+            bandwidth_mbps: 10_000,
+            redundant_port_count: 2,
+            bgp_sessions: vec![
+                bgp_session_create("bgp_alpha_1", "169.254.10.1", "169.254.10.2"),
+                bgp_session_create("bgp_alpha_2", "169.254.10.5", "169.254.10.6"),
+            ],
+            advertised_prefixes: vec!["10.42.0.0/16".to_string(), "2001:db8:42::/56".to_string()],
+            per_link_sla_basis_points: 9_999,
+            state: DirectInterconnectState::Creating,
+            data_class: DataClass::Public,
+            created_at_epoch_seconds: 1_700_000_060,
+        }
+    }
+
+    fn interconnect_request() -> NetworkProviderDirectInterconnectCreateRequest {
+        NetworkProviderDirectInterconnectCreateRequest {
+            request_id: "networkprov_req_interconnect_create_001".to_string(),
+            provider_virtual_circuit_ref: format!(
+                "oci-fast-connect://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary"
+            ),
+            interconnect_partners: vec![
+                interconnect_partner_create("ixp_alpha", "alpha-region-fabric-a"),
+                interconnect_partner_create("ixp_beta", "alpha-region-fabric-b"),
+            ],
+            direct_interconnect: direct_interconnect_create(),
+            actor: "sp_network".to_string(),
+            idempotency_key: "idem-network-interconnect-create".to_string(),
+            requested_at_epoch_seconds: 1_700_000_060,
         }
     }
 
@@ -921,6 +1185,107 @@ mod tests {
             Err(NetworkProviderDnsZoneError::InvalidRequestShape(
                 CloudNetworkError::DnssecRequired,
             ))
+        );
+    }
+
+    #[test]
+    fn create_direct_interconnect_command_uses_oci_path_and_reference_only_body() {
+        let command = interconnect_adapter()
+            .create_virtual_circuit_command(&interconnect_request())
+            .expect("valid direct interconnect request becomes deterministic OCI command");
+
+        assert_eq!(command.operation, "CreateVirtualCircuit");
+        assert_eq!(command.method, "POST");
+        assert_eq!(command.path, "/20160918/virtualCircuits");
+        assert!(command.body_canonical.contains("compartment_ref=ocid1."));
+        assert!(command.body_canonical.contains(
+            "resource_id=oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary"
+        ));
+        assert!(
+            command
+                .body_canonical
+                .contains("virtual_circuit_type=PRIVATE")
+        );
+        assert!(command.body_canonical.contains("partner_id=ixp_alpha"));
+        assert!(command.body_canonical.contains("bandwidth_mbps=10000"));
+        assert!(command.body_canonical.contains("redundant_port_count=2"));
+        assert!(command.body_canonical.contains("bgp_session_count=2"));
+        assert!(!command.body_canonical.contains("private_key"));
+        assert_eq!(
+            command.provider_evidence_ref,
+            format!(
+                "oci-fast-connect://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary/networkprov_req_interconnect_create_001"
+            )
+        );
+    }
+
+    #[test]
+    fn direct_interconnect_port_receipts_preserve_refs_without_provider_credentials() {
+        let receipt = interconnect_adapter()
+            .create_direct_interconnect(interconnect_request())
+            .expect("direct interconnect receipt is generated");
+
+        assert_eq!(receipt.provider, NetworkProviderKind::OciFastConnect);
+        assert_eq!(
+            receipt.provider_request_id,
+            "oci-fast-connect-1700000000-networkprov_req_interconnect_create_001"
+        );
+        assert_eq!(
+            receipt.provider_virtual_circuit_ref,
+            format!(
+                "oci-fast-connect://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary"
+            )
+        );
+        assert_eq!(
+            receipt.resource_id,
+            "oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary"
+        );
+        assert_eq!(receipt.actor, "sp_network");
+        assert_eq!(receipt.bgp_session_count, 2);
+        assert_eq!(receipt.advertised_prefix_count, 2);
+    }
+
+    #[test]
+    fn rejects_provider_interconnect_drift_and_bad_shape() {
+        let mut drifted = interconnect_request();
+        drifted.provider_virtual_circuit_ref =
+            "oci-fast-connect://other/ap-chuncheon-1/circuit".to_string();
+        assert!(matches!(
+            interconnect_adapter().create_virtual_circuit_command(&drifted),
+            Err(NetworkProviderDirectInterconnectError::ProviderRejected { .. })
+        ));
+
+        let mut bad_interconnect = interconnect_request();
+        bad_interconnect.direct_interconnect.redundant_port_count = 1;
+        assert_eq!(
+            bad_interconnect.validate(),
+            Err(NetworkProviderDirectInterconnectError::InvalidRequestShape(
+                CloudNetworkError::InterconnectRedundancyRequired,
+            ))
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_oci_direct_interconnect_adapter_config() {
+        assert_eq!(
+            OciDirectInterconnectAdapter::new("http://iaas", COMPARTMENT_REF, REGION),
+            Err(OciDirectInterconnectAdapterConfigError::InvalidEndpoint)
+        );
+        assert_eq!(
+            OciDirectInterconnectAdapter::new(
+                "https://iaas.ap-chuncheon-1.oraclecloud.com",
+                "bad compartment",
+                REGION,
+            ),
+            Err(OciDirectInterconnectAdapterConfigError::InvalidCompartmentRef)
+        );
+        assert_eq!(
+            OciDirectInterconnectAdapter::new(
+                "https://iaas.ap-chuncheon-1.oraclecloud.com",
+                COMPARTMENT_REF,
+                "bad region",
+            ),
+            Err(OciDirectInterconnectAdapterConfigError::InvalidRegion)
         );
     }
 
