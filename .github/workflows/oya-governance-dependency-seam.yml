@@ -47,7 +47,9 @@ jobs:
           if [ ! -d "$ADVISORY_DB_DIR/crates" ]; then
             git clone --depth=1 https://github.com/RustSec/advisory-db.git "$ADVISORY_DB_DIR"
           fi
-          ls "$ADVISORY_DB_DIR/crates" | head -3
+          # Sanity-check that the clone produced the expected directory shape
+          # (avoids `ls | head` which SIGPIPEs under `set -o pipefail`).
+          test -d "$ADVISORY_DB_DIR/crates" && echo "advisory-db populated"
       - name: Validate dependency-seam governance gate
         env:
           CARGO_TERM_COLOR: always
