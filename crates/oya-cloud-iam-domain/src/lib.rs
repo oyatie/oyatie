@@ -246,6 +246,7 @@ pub enum CloudIamError {
     ExternalIdRequired,
     ProviderRequired,
     ProviderTenantMismatch,
+    ProviderInUse,
     MissingExternalSubject,
     UnexpectedExternalSubject,
     DuplicateProvider,
@@ -595,6 +596,34 @@ impl IamDirectory {
         })?;
         self.providers.insert(provider_id, provider.clone());
         Ok(provider)
+    }
+
+    pub fn delete_identity_provider(
+        &mut self,
+        tenant_id: &str,
+        provider_id: &str,
+    ) -> Result<IdentityProvider, CloudIamError> {
+        validate_tenant_id(tenant_id)?;
+        let provider_id = IamIdentityProviderId::new(provider_id.to_string())?;
+        {
+            let existing = self
+                .providers
+                .get(&provider_id)
+                .ok_or(CloudIamError::UnknownProvider)?;
+            if existing.tenant_id.value != tenant_id {
+                return Err(CloudIamError::ProviderTenantMismatch);
+            }
+        }
+        if self
+            .principals
+            .values()
+            .any(|principal| principal.identity_provider_id.value.as_ref() == Some(&provider_id))
+        {
+            return Err(CloudIamError::ProviderInUse);
+        }
+        self.providers
+            .remove(&provider_id)
+            .ok_or(CloudIamError::UnknownProvider)
     }
 
     pub fn create_principal(

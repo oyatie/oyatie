@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-004
 title: Cloud IAM Cedar + SSO + STS API
-status: partial (cedar-bind-app-composition-green; federated-oidc-sts-api-runtime-green; provider-managed-idp-create-api-green; provider-managed-idp-list-api-green; provider-managed-idp-update-api-green; provider-managed-idp-delete/live-smoke pending)
+status: partial (cedar-bind-app-composition-green; federated-oidc-sts-api-runtime-green; provider-managed-idp-create-api-green; provider-managed-idp-list-api-green; provider-managed-idp-update-api-green; provider-managed-idp-delete-api-green; provider-runtime/live-smoke pending)
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
@@ -92,5 +92,12 @@ icm store -t context-oyatie -c 'M03-P01-IP-004 Cloud IAM Cedar + SSO + STS API s
 - Kept the slice provider-agnostic and deterministic: no provider SDK, network call, credential path, or live IdP adapter was introduced; existing provider creation timestamps are preserved.
 - Remaining: IdP delete, provider runtime adapter/sync status, and live-provider/self-hosted IdP smoke are separate follow-up slices before this IP is complete.
 
+### 2026-05-21 — Provider-managed IdP delete API green
+- ChangeSet: `cs-m03-p01-cloud-iam-idp-delete-api-2026-05-21`.
+- Added Cloud IAM API contract/runtime coverage for deleting an existing tenant-scoped SAML/OIDC identity provider with path/body tenant binding, authorization, idempotent replay, missing-provider rejection, cross-tenant denial, and in-use provider conflict handling.
+- Added OpenAPI `DELETE /v1/cloud/iam/identity-providers/{identity_provider_id}` and delete request/success response schemas.
+- Kept the slice provider-agnostic and deterministic: no provider SDK, network call, credential path, or live IdP adapter was introduced; delete refuses providers still referenced by Cloud IAM principals.
+- Remaining: provider runtime adapter/sync status and live-provider/self-hosted IdP smoke are separate follow-up slices before this IP is complete.
+
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: Cedar policy publication and IAM role creation now share one rollback-friendly app seam instead of letting handlers duplicate cross-kernel partial-commit logic; federated STS issuance now reuses the existing STS API path instead of growing a separate SSO token path; IdP registration and update now share the same Cloud IAM API idempotency/authorization boundary instead of a bespoke federation handler; IdP listing now uses a read-only Cloud IAM API boundary instead of exposing directory internals. IdP delete, provider runtime adapter, and live smoke remain separate follow-up boundaries.
+Special cases eliminated by this IP: Cedar policy publication and IAM role creation now share one rollback-friendly app seam instead of letting handlers duplicate cross-kernel partial-commit logic; federated STS issuance now reuses the existing STS API path instead of growing a separate SSO token path; IdP registration, update, and delete now share the same Cloud IAM API idempotency/authorization boundary instead of a bespoke federation handler; IdP listing now uses a read-only Cloud IAM API boundary instead of exposing directory internals. Provider runtime adapter and live smoke remain separate follow-up boundaries.

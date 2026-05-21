@@ -195,6 +195,79 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CloudIamApiErrorResponse'
+    delete:
+      operationId: deleteCloudIamIdentityProvider
+      summary: Delete an unreferenced tenant-scoped SAML or OIDC identity provider for Cloud IAM federation.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: identity_provider_id
+          in: path
+          required: true
+          schema:
+            type: string
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Request-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudIamIdentityProviderDeleteRequest'
+      responses:
+        '200':
+          description: Identity provider deleted and returned for idempotent audit replay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamIdentityProviderDeleteSuccessResponse'
+        '400':
+          description: Request shape, provider existence, or Cloud IAM value contract is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '403':
+          description: Tenant or IAM policy binding denied the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '409':
+          description: Identity provider is still referenced by Cloud IAM principals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
+        '422':
+          description: Idempotency key was already used with a different request fingerprint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloudIamApiErrorResponse'
   /v1/cloud/iam/roles/{role_id}:
     post:
       operationId: createCloudIamRole
@@ -460,6 +533,16 @@ components:
           description: "`cert/...` for SAML and `jwks/...` for OIDC."
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderDeleteRequest:
+      type: object
+      required:
+        - tenant_id
+      properties:
+        tenant_id:
+          type: string
+          description: Must match `X-Tenant-Id` and the authenticated Cloud IAM principal.
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
     CloudIamRoleCreateRequest:
       type: object
       required:
@@ -588,6 +671,20 @@ components:
           x-oyatie-rust-type: CloudIamApiResponseMetadata
           x-oyatie-data-class: INTERNAL_ONLY
     CloudIamIdentityProviderUpdateSuccessResponse:
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          $ref: '#/components/schemas/CloudIamIdentityProviderRecord'
+          x-oyatie-rust-type: CloudIamIdentityProviderRecord
+          x-oyatie-data-class: INTERNAL_ONLY
+        metadata:
+          $ref: '#/components/schemas/CloudIamApiResponseMetadata'
+          x-oyatie-rust-type: CloudIamApiResponseMetadata
+          x-oyatie-data-class: INTERNAL_ONLY
+    CloudIamIdentityProviderDeleteSuccessResponse:
       type: object
       required:
         - data
