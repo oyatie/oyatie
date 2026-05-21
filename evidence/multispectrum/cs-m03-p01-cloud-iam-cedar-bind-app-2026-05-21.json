@@ -1,0 +1,305 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-m03-p01-cloud-iam-cedar-bind-app-2026-05-21",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "agent_id": "codex-masterplan-next-20260521T0600Z",
+  "timestamp_unix": 1779344244,
+  "timestamp_iso": "2026-05-21T06:17:24Z",
+  "freshness_unix": 1779344358,
+  "git_sha": "fe3671c67232",
+  "change_class_id": "CC-2",
+  "change_class_rationale": "Additive Rust app composition crate plus plan/evidence status for an FD-001 product implementation slice; no external dependency or production network call added.",
+  "meta_review_triggered": true,
+  "policy_adherence_triggered": true,
+  "scope": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/oya-cloud-iam-app/Cargo.toml",
+    "crates/oya-cloud-iam-app/src/lib.rs",
+    "crates/oya-cloud-iam-app/tests/cedar_policy_bind.rs",
+    "registry/catalog/oya-cloud-iam-app.yaml",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-004-iam-cedar-sso-sts.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p01-cloud-iam-cedar-bind-app-2026-05-21.json",
+    "evidence/multispectrum/cs-m03-p01-cloud-iam-cedar-bind-app-2026-05-21.json"
+  ],
+  "summary": "Cloud IAM Cedar bind app composition adds a domain-only transactional seam for publishing a Cedar policy and creating the matching IAM role while preserving SSO/STS runtime work as pending.",
+  "verification": [
+    {
+      "command": "PATH=... RUSTC_WRAPPER= CARGO_TARGET_DIR=/tmp/oyatie-masterplan-next-start-gate cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Start gate passed before selecting M03-P01-IP-004: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "cargo fmt --check -p oya-cloud-iam-app",
+      "status": "passed",
+      "evidence": "Cloud IAM app crate formatting check passed."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-app --all-features",
+      "status": "passed",
+      "evidence": "3 cedar_policy_bind integration tests passed: success, role/policy mismatch no mutation, and IAM rejection rollback."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-app --all-features --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted clippy completed with no warnings."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api --all-features",
+      "status": "passed",
+      "evidence": "Existing Cloud IAM API regression tests passed: 12 passed."
+    },
+    {
+      "command": "cargo test -p oya-policy-cedar-api --all-features",
+      "status": "passed",
+      "evidence": "Existing Cedar API regression tests passed: 7 passed."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "status": "passed",
+      "evidence": "Architecture-boundaries validation passed after removing app->api dependencies: 389 packages, 389 catalog records, 544 dependency edges."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "status": "passed",
+      "evidence": "Catalog validation passed: 547 records."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate cohesion --workspace Cargo.toml --registry registry/catalog --contracts docs/machine-readable/contracts.json",
+      "status": "passed",
+      "evidence": "Cohesion validation passed: 26 contracts, 10 implemented sources."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Planning-closure validation passed after crate/catalog/plan updates: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya verify --ci-required",
+      "status": "passed",
+      "evidence": "Canonical pre-PR verification completed green: gate run-all summary 89/89 lanes passed; cargo-nextest reported 4220 tests across 520 binaries; Trivy reported 0 Cargo.lock vulnerabilities and 0 terraform/k8s misconfigurations."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-cedar-bind-app-2026-05-21.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency-seam validation passed after adding required F9_compliance facet: 6 subchecks, 5 pass, 1 skipped, 0 fail, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "No whitespace/diff hygiene errors."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya vcs --format json verify/done/promote --agent codex-masterplan-next-20260521T0600Z --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-cedar-bind-app-2026-05-21.json --evidence evidence/fd001/cs-m03-p01-cloud-iam-cedar-bind-app-2026-05-21.json ...",
+      "status": "passed",
+      "evidence": "Oya VCS verify, done, and promote were accepted for the implementation, plan, evidence, and audit-chain scopes; promote bundle=cs-m03-p01-cloud-iam-cedar-bind-app-2026-05-21 environment=dev."
+    }
+  ],
+  "local_review": {
+    "verdict": "approve-local-after-architecture-boundary-fix",
+    "finding_count_required": 0,
+    "notes": [
+      "Initial app implementation depended on oya-cloud-iam-api and oya-policy-cedar-api; architecture-boundaries rejected forbidden app->api edges.",
+      "Final implementation depends only on domain crates and passes architecture-boundaries.",
+      "Tests prove happy path, pre-mutation mismatch rejection, and rollback when IAM role creation fails after policy publication on the transaction clone."
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "scripts-check-absent",
+      "status": "replaced-by-canonical-oya-verify",
+      "reason": "The IP scaffold still names scripts/check.sh, but this worktree has no scripts/check.sh. The canonical local pre-PR entrypoint used here is oya verify --ci-required."
+    },
+    {
+      "id": "sso-federation-runtime",
+      "status": "pending-follow-up-slice",
+      "reason": "This ChangeSet adds Cedar policy bind app composition only; SSO/federation runtime contracts remain required before M03-P01-IP-004 is complete."
+    },
+    {
+      "id": "sts-runtime-expansion",
+      "status": "pending-follow-up-slice",
+      "reason": "Existing Cloud IAM API STS tests are green, but runtime/provider expansion beyond the existing API surface is intentionally not claimed by this Cedar bind ChangeSet."
+    }
+  ],
+  "facets": {
+    "F1_correctness": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "bind_cedar_policy validates request id, tenant id, request/role tenant match, role policy id/version match, and tenant-scoped policy match before cloning commits.",
+        "Both domain kernel mutations are committed only after policy publish and role create succeed on transaction clones."
+      ]
+    },
+    "F2_testability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Integration tests cover transactional success, role/policy mismatch with no mutation, and rollback when IAM rejects missing assumable principal."
+      ]
+    },
+    "F3_architecture": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Final app crate depends only on domain crates; architecture-boundaries passed and forbids the rejected app->api shape."
+      ]
+    },
+    "F4_interface_contract": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "New app request/response/error structs are additive and do not alter existing cloud.iam or policy.cedar API contracts."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Small domain-composition crate follows existing workspace lint/test patterns and adds no third-party dependency."
+      ]
+    },
+    "F6_observability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Response metadata carries request_id, tenant_id, policy id/version, role id, and schema version for audit correlation without credentials."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "No provider credentials, external SDKs, network calls, or secret payloads are introduced; request fields remain internal-only except public schema/data classifications already owned by domain types."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The transaction uses bounded in-memory clone/commit over domain state and adds no hot-path I/O or unbounded provider loop."
+      ]
+    },
+    "F9_maintainability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Cross-kernel Cedar/IAM binding is centralized in one app seam instead of duplicating partial-commit handling in handlers."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "ChangeSet is isolated to one new app crate, catalog row, workspace/lockfile rows, plan status, and evidence."
+      ]
+    },
+    "F11_documentation_evidence": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "IP-004 and P01 index record Cedar-bind app composition green while explicitly preserving SSO/STS follow-up work."
+      ]
+    },
+    "F13_adversarial_review": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Review caught and removed the tempting app->api dependency shape; final evidence avoids claiming full IP completion."
+      ]
+    },
+    "M1_policy_adherence": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Oya VCS claim/work accepted before evidence and plan writes; verify/done/promote remains the closeout path.",
+        "Oya VCS verify/done/promote accepted after evidence attachment."
+      ]
+    },
+    "M2_evidence_completeness": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "FD-001 evidence, multispectrum evidence, and audit-chain row identify the same ChangeSet id.",
+        "Promotion status was written back to both evidence files and the audit-chain."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Removed cross-layer special case: handlers do not need to coordinate policy and role partial commits.",
+        "Rejected preserving app->api calls after architecture-boundaries exposed the forbidden edge."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "IAM role binding now composes Cedar policy state without coupling to any cloud provider runtime, preserving provider-agnostic control-plane design."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "passing_fixture_id": "oya-cloud-iam-app::cedar_policy_bind_rolls_back_published_policy_when_iam_directory_rejects_role",
+      "diagnostic_asserted": "IAM failure after policy publication leaves policy state uncommitted in the caller-visible PolicySet.",
+      "findings": [
+        "Tests intentionally force missing-principal failure to prove no partial policy side effect is visible."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "scan",
+      "findings": [
+        "The app function accepts explicit domain state and request structs, keeping handler integration straightforward and testable."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected app-layer calls into API crates; domain-only composition is the architecture-compliant seam."
+      ]
+    },
+    "F7_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Catalog, cohesion, planning-closure, and architecture-boundaries gates all passed after the crate and plan updates."
+      ]
+    },
+    "F8_operability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "No live provider dependency is required for this deterministic app composition slice; SSO/STS runtime remains a separate deployable follow-up."
+      ]
+    },
+    "F9_scope_control": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The ChangeSet does not claim SSO/federation or STS runtime completion and leaves those as explicit IP-004 follow-ups."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The ChangeSet carries CC-2 classification, required multispectrum facets, and no new third-party dependency registry entries.",
+        "Catalog, cohesion, planning-closure, architecture-boundaries, and dependency-seam gates are part of the evidence loop."
+      ]
+    }
+  },
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "promoted_at_iso": "2026-05-21T06:19:18Z"
+}

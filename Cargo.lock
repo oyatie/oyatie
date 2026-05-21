@@ -1373,6 +1373,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-iam-app"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-iam-domain",
+ "oya-data-boundary-kernel",
+ "oya-policy-cedar-domain",
+]
+
+[[package]]
 name = "oya-cloud-iam-domain"
 version = "0.1.0"
 dependencies = [
