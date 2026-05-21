@@ -555,6 +555,18 @@ pub fn invoke_cloud_compute_function_from_api(
     result
 }
 
+/// Stable planned entrypoint for `cloud.compute.functions.invoke`.
+///
+/// The implementation delegates to the explicit API-boundary function so the
+/// plan symbol remains stable without adding a second validation path.
+pub fn invoke(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeFunctionsInvokeIdempotencyLedger,
+    request: CloudComputeFunctionsInvokeApiRequest,
+) -> Result<CloudComputeFunctionsInvokeSuccessResponse, CloudComputeFunctionsApiError> {
+    invoke_cloud_compute_function_from_api(catalog, idempotency_ledger, request)
+}
+
 fn validate_boundary(
     boundary: &CloudComputeFunctionsApiBoundaryContext,
 ) -> Result<(), CloudComputeFunctionsApiError> {

@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P02-IP-002
 title: Cloud Compute K8s + Functions API
-status: stub
+status: complete (stable-api-entrypoints-green; app/transport/provider-adapter runtime not claimed)
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
@@ -53,5 +53,11 @@ Next IP in this phase's INDEX list (or first IP of next phase if phase complete)
 icm store -t context-oyatie -c 'M03-P02-IP-002 Cloud Compute K8s + Functions API shipped; acceptance commands green' -i high -k 'M03-P02-IP-002,complete'
 ```
 
+## Progress
+- 2026-05-21: Stabilized the planned `create_cluster` and `invoke` public entrypoints as thin delegates to the existing API-boundary functions. This removes plan-symbol drift without adding a second validation path.
+- 2026-05-21: Targeted K8s/Functions API tests pass with planned entrypoint coverage (`k8s-api` 11/11, `functions-api` 10/10). App/transport wiring and provider adapter runtimes are not claimed by this IP.
+
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP: plan-facing symbols now resolve to stable public wrappers while the detailed API-boundary functions keep the single validation/idempotency/error-mapping path.
+Rejected: duplicating K8s or Functions validation logic in the stable wrappers; a second path would drift from the already-tested API boundary.
+Rejected: claiming deployed app/transport/provider adapter runtime readiness from API crate tests; those remain follow-up runtime slices.

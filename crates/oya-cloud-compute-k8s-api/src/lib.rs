@@ -649,6 +649,18 @@ pub fn create_cloud_compute_k8s_cluster_from_api(
     result
 }
 
+/// Stable planned entrypoint for `cloud.compute.k8s.cluster.create`.
+///
+/// The implementation delegates to the explicit API-boundary function so the
+/// plan symbol remains stable without adding a second validation path.
+pub fn create_cluster(
+    catalog: &mut CloudComputeCatalog,
+    idempotency_ledger: &mut CloudComputeK8sCreateIdempotencyLedger,
+    request: CloudComputeK8sClusterCreateApiRequest,
+) -> Result<CloudComputeK8sClusterCreateSuccessResponse, CloudComputeK8sApiError> {
+    create_cloud_compute_k8s_cluster_from_api(catalog, idempotency_ledger, request)
+}
+
 fn validate_boundary(
     boundary: &CloudComputeK8sApiBoundaryContext,
 ) -> Result<(), CloudComputeK8sApiError> {

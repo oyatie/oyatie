@@ -11,7 +11,7 @@ use oya_cloud_compute_functions_api::{
     CloudComputeFunctionsApiBoundaryContext, CloudComputeFunctionsApiError,
     CloudComputeFunctionsApiPrincipal, CloudComputeFunctionsInvokeApiRequest,
     CloudComputeFunctionsInvokeApiStatus, CloudComputeFunctionsInvokeIdempotencyLedger,
-    CloudComputeFunctionsInvokeRequest, invoke_cloud_compute_function_from_api,
+    CloudComputeFunctionsInvokeRequest, invoke, invoke_cloud_compute_function_from_api,
 };
 use oya_cloud_resource_domain::FunctionRuntime;
 use oya_data_boundary_kernel::DataClass;
@@ -164,6 +164,30 @@ fn functions_invoke_api_records_invocation_once_and_replays_same_idempotent_resu
     assert_eq!(first.data.cold_start_budget_ms, 750);
     assert_eq!(first.data.accepted_at_epoch_seconds, 1_700_100_030);
     assert_eq!(first.data.schema_version, 1);
+}
+
+#[test]
+fn planned_invoke_entrypoint_delegates_to_api_invoke() {
+    let mut catalog = CloudComputeCatalog::default();
+    seed_active_function(&mut catalog);
+    let mut ledger = CloudComputeFunctionsInvokeIdempotencyLedger::default();
+    let request = request(
+        "req-compute-functions-invoke-alias",
+        "idem-functions-invoke-alias",
+        "fninv_alias",
+    );
+
+    let response = invoke(&mut catalog, &mut ledger, request)
+        .expect("stable planned invoke entrypoint succeeds");
+
+    assert_eq!(
+        response.metadata.request_id,
+        "req-compute-functions-invoke-alias"
+    );
+    assert_eq!(response.data.invocation_id, "fninv_alias");
+    assert_eq!(response.data.function_id, FUNCTION_ID);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(catalog.invocations().count(), 1);
 }
 
 #[test]
