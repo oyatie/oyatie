@@ -1,0 +1,323 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-m03-p02-cloud-k8s-functions-api-2026-05-21",
+  "agent_id": "codex-m03-p02-cloud-k8s-functions-api-20260521T1214Z",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "timestamp_unix": 1779365974,
+  "timestamp_iso": "2026-05-21T12:19:34Z",
+  "scope": "M03-P02-IP-002 Cloud Compute K8s create and Functions invoke stable API entrypoint slice",
+  "status": "k8s-functions-stable-api-entrypoints-green-runtime-adapters-pending",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/masterplan.json",
+    "specs/planning-closure-contract.json",
+    "specs/master-plan-sequencing.json#oya-vcs-protocol",
+    "specs/gitops-vcs-replacement.json",
+    "specs/multispectrum-review.json",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-002-k8s-functions-api.md",
+    "contracts/openapi/cloud/cloud-compute-k8s-v1.yaml",
+    "contracts/openapi/cloud/cloud-compute-functions-v1.yaml"
+  ],
+  "files_changed": [
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-002-k8s-functions-api.md",
+    "crates/oya-cloud-compute-k8s-api/src/lib.rs",
+    "crates/oya-cloud-compute-k8s-api/tests/cloud_compute_k8s_api.rs",
+    "crates/oya-cloud-compute-functions-api/src/lib.rs",
+    "crates/oya-cloud-compute-functions-api/tests/cloud_compute_functions_api.rs",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json",
+    "evidence/multispectrum/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json"
+  ],
+  "implementation_summary": [
+    "Added stable plan-facing create_cluster wrapper for cloud.compute.k8s.cluster.create without duplicating validation/idempotency logic.",
+    "Added stable plan-facing invoke wrapper for cloud.compute.functions.invoke without duplicating validation/idempotency logic.",
+    "Added targeted tests proving the planned public symbols delegate to existing API-boundary functions.",
+    "Updated M03-P02/IP-002 status and decision log to distinguish stable API entrypoints from app/transport/provider-runtime follow-up work."
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-compute-k8s-api -p oya-cloud-compute-functions-api --all-features (baseline before alias tests)",
+      "status": "passed",
+      "evidence": "Existing K8s and Functions API suites passed before plan-symbol alias work: K8s 10/10, Functions 9/9."
+    },
+    {
+      "command": "cargo test -p oya-cloud-compute-k8s-api -p oya-cloud-compute-functions-api --all-features (red after planned entrypoint tests)",
+      "status": "failed-as-expected",
+      "evidence": "TDD red captured unresolved public imports for planned symbols: create_cluster and invoke were not exported by the API crates."
+    },
+    {
+      "command": "cargo test -p oya-cloud-compute-k8s-api -p oya-cloud-compute-functions-api --all-features",
+      "status": "passed",
+      "evidence": "Targeted API suites passed after stable wrappers: K8s API 11/11 and Functions API 10/10, including planned create_cluster/invoke entrypoint delegation tests."
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-compute-k8s-api -p oya-cloud-compute-functions-api -- --check",
+      "status": "passed",
+      "evidence": "Targeted formatting check passed after applying rustfmt."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-compute-k8s-api -p oya-cloud-compute-functions-api --all-features --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted clippy passed with warnings denied for K8s and Functions API crates."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Planning closure validation passed after IP-002 status/progress updates."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate openapi-rest-route-parity",
+      "status": "passed",
+      "evidence": "OpenAPI/REST route parity passed for Cloud Compute K8s and Functions contracts."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate data-class --workspace Cargo.toml",
+      "status": "passed",
+      "evidence": "Data-class fitness passed with K8s/Functions API boundary changes."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate api-semver --contracts-dir contracts",
+      "status": "passed",
+      "evidence": "API semver validation passed for all 41 contracts."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency seam validation passed offline with 6 subchecks: 5 pass, 1 skipped, 0 fail."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate audit-chain-replay",
+      "status": "passed",
+      "evidence": "Audit-chain replay passed for the updated evidence/audit-chain event set before Oya VCS closeout."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "Whitespace/conflict-marker diff check passed before Oya VCS closeout."
+    },
+    {
+      "command": "env -u RUSTC_WRAPPER SCCACHE_DISABLE=1 CARGO_BUILD_JOBS=1 /tmp/oyatie-selfhosted-dns-target-20260521/debug/oya verify --ci-required",
+      "status": "passed",
+      "evidence": "Canonical local CI gate passed with [gate run-all] summary: 89/89 lanes passed."
+    }
+  ],
+  "local_review": {
+    "verdict": "approve-local-before-pr-after-canonical-verify",
+    "finding_count_required": 0,
+    "notes": [
+      "Correctness: wrappers are thin delegates to the already-tested API-boundary functions, so there is one validation/idempotency path per surface.",
+      "Architecture: K8s and Functions remain provider-neutral API crates; no provider-specific dependency or runtime call was introduced.",
+      "Queue/merge discipline: open PR only after local gates; wait for oya-pr-review and required checks before next-queue/automerge.",
+      "Canonical oya verify --ci-required passed 89/89 locally; PR queue/merge remains blocked until oya-pr-review and required GitHub checks pass.",
+      "Oya VCS verify/done/promote accepted for dev after canonical local verification; GitHub merge remains gated by oya-pr-review and required checks."
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "app-transport-wiring",
+      "status": "pending-follow-up-runtime-slice",
+      "reason": "No deployed app/transport route wiring is claimed by this API entrypoint slice."
+    },
+    {
+      "id": "k8s-functions-provider-runtime-adapters",
+      "status": "pending-follow-up-slice",
+      "reason": "No provider-specific K8s or Functions runtime adapter is introduced here."
+    },
+    {
+      "id": "live-k8s-functions-smoke",
+      "status": "pending-credentials-and-runtime-target",
+      "reason": "No live cluster/function provider endpoint was contacted; this slice proves API boundary entrypoint stability only."
+    }
+  ],
+  "rollback": "Revert this ChangeSet to remove stable create_cluster/invoke wrappers, targeted alias tests, IP-002 status updates, audit-chain row, and evidence files.",
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "freshness_unix": 1779367645,
+  "git_sha": "4cbaa157",
+  "last_verified_iso": "2026-05-21T12:47:25Z",
+  "change_class_id": "CC-1",
+  "facets": {
+    "F1_correctness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Wrappers delegate to existing create/invoke API boundary paths; tests prove public symbol resolution and successful catalog/ledger mutation."
+      ]
+    },
+    "F2_testability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Red/green tests isolate the missing planned symbols and prove delegation without live provider dependencies."
+      ]
+    },
+    "F3_architecture": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "No second validation path or provider coupling was introduced; API crates remain provider-neutral."
+      ]
+    },
+    "F4_interface_contract": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Plan-facing symbols now match exported public functions for cloud.compute.k8s.cluster.create and cloud.compute.functions.invoke."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Thin wrappers remove symbol drift with minimal code and no new abstraction layer."
+      ]
+    },
+    "F6_observability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Existing response metadata/request-id behavior is preserved by wrapper delegation."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Authorization, tenant binding, payload/data-class checks remain in the original API boundary functions."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Wrapper overhead is one direct function call on cold API request paths."
+      ]
+    },
+    "F9_maintainability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Future callers can use stable plan symbols while detailed names remain available for explicit API-boundary tests."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The diff is limited to wrappers, tests, plan status, and evidence."
+      ]
+    },
+    "F11_documentation_evidence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "IP-002 and phase index record exact completion boundary and known gaps."
+      ]
+    },
+    "F13_adversarial_review": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected duplicating validation logic and rejected runtime readiness claims from API tests."
+      ]
+    },
+    "M1_policy_adherence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim was accepted before editing; evidence/audit-chain will gate closeout."
+      ]
+    },
+    "M2_evidence_completeness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Evidence records red/green tests, formatting, clippy, planning, OpenAPI parity, data-class, and API semver gates.",
+        "Evidence now includes dependency-seam, audit-chain-replay, diff-check, and canonical oya verify --ci-required 89/89 PASS."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Special cases eliminated: plan symbol drift resolved by one delegate per surface rather than a parallel API path."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Surfaces remain provider-neutral and compatible with hyperscaler/self-hosted runtime adapters later."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The slice avoids claiming app/transport or live runtime readiness."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Callers can import create_cluster/invoke directly as planned."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected renaming detailed boundary functions because that would churn existing callers/tests."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "No provider-specific dependency, credential, or network mutation added."
+      ]
+    }
+  },
+  "vcs_lifecycle": {
+    "verify": {
+      "command": "oya vcs --format json verify --agent codex-m03-p02-cloud-k8s-functions-api-20260521T1214Z --evidence evidence/fd001/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json",
+      "status": "accepted",
+      "action": "verify-evidence"
+    },
+    "done": {
+      "command": "oya vcs --format json done --agent codex-m03-p02-cloud-k8s-functions-api-20260521T1214Z --evidence evidence/fd001/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json cs-m03-p02-cloud-k8s-functions-api-2026-05-21",
+      "status": "accepted",
+      "action": "emit-change-bundle",
+      "closeout_mode": "legacy-grit-compatible-done"
+    },
+    "promote": {
+      "command": "oya vcs --format json promote --agent codex-m03-p02-cloud-k8s-functions-api-20260521T1214Z --bundle cs-m03-p02-cloud-k8s-functions-api-2026-05-21 --env dev --evidence evidence/fd001/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-k8s-functions-api-2026-05-21.json",
+      "status": "accepted",
+      "action": "promote-bundle",
+      "environment": "dev"
+    }
+  }
+}
