@@ -116,7 +116,7 @@ message EmbeddingOutboxRecord {
 
 ## Exit criteria
 
-All test-plan rows green; 7 consecutive days in dev cell with consumer lag < 60s p99; quarantine count = 0 over a 24h golden run; SLO `milvus-ingest-lag` budget unburned over the burn-in window.
+All test-plan rows green; 7 consecutive days in dev cell with consumer lag < 60s p99; quarantine count = 0 over a 24h baseline run; SLO `milvus-ingest-lag` budget unburned over the burn-in window.
 
 ## Capacity sizing baseline (medium cell)
 
@@ -157,3 +157,9 @@ HPA triggers: Pulsar consumer lag > 10s OR CPU > 70%. Scale-down debounce 5min.
 - OpenSLO: `microservices/foundry/slos/milvus-ingest-lag.openslo.yaml`.
 - Kernel: `oya-shared-vector-store-kernel`.
 - Adapter (built in IP-094): `oya-shared-vector-store-milvus-adapter`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Snowflake Cortex Search, Databricks Vector Search, OpenAI vector stores, and Palantir AIP ontology retrieval.
+- Gap closure: this IP closes Foundry retrieval/vector substrate for tenant-isolated agent grounding and eval replay.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

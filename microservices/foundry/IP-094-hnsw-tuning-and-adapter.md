@@ -45,7 +45,7 @@ The crate pins HNSW parameters per ADR-0192 §"Index types — pinned per worklo
 | Conversational memory (K ≤ 20, low-cardinality) | **HNSW** | 16 | 200 | 32 | ≥ 0.92 | p99 ≤ 15ms |
 | Semantic search corpus (K ≤ 100, mid-cardinality) | **HNSW** | 32 | 256 | 96 | ≥ 0.97 | p99 ≤ 80ms |
 | Cold-tier corpus (rare reads, > 100M vectors) | **DiskANN** | n/a | n/a | n/a | ≥ 0.93 | p99 ≤ 200ms |
-| Eval golden-set (offline) | **IVF_FLAT** | n/a (nlist=4096) | n/a | n/a | 1.0 | best-effort |
+| Eval baseline-set (offline) | **IVF_FLAT** | n/a (nlist=4096) | n/a | n/a | 1.0 | best-effort |
 | GPU-accelerated build (per IP-095) | **GPU_CAGRA** | n/a (graph_degree=32) | n/a | n/a | ≥ 0.95 | build 10x CPU |
 
 ## Adapter trait surface (consumed via `oya-shared-vector-store-kernel`)
@@ -152,3 +152,9 @@ The adapter has zero compile-time dependencies on kernel callers (inward-only fl
 - Kernel crate: `oya-shared-vector-store-kernel`.
 - OpenSLO: `microservices/foundry/slos/milvus-search-latency.openslo.yaml`.
 - Upstream Milvus protobuf: vendored at `crates/oya-shared-vector-store-milvus-adapter/proto/`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Snowflake Cortex Search, Databricks Vector Search, OpenAI vector stores, and Palantir AIP ontology retrieval.
+- Gap closure: this IP closes Foundry retrieval/vector substrate for tenant-isolated agent grounding and eval replay.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

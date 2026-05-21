@@ -26,7 +26,7 @@ Cross-BC capacity envelope for foundry. Per-BC capacity models preserved at
 | Supervision commands/sec | supervisor | 100 cmd/s | 1,000 cmd/s | event-bus lag > 5s |
 | Active fleets | supervisor | 1,000 | 10,000 | k8s operator queue > 100 |
 | Eval-runs in flight | eval | 50 | 500 | GPU pool > 80% utilisation |
-| Eval golden-output entries | eval | 100,000 | 1,000,000 | ClickHouse storage > 70% |
+| Eval baseline-output entries | eval | 100,000 | 1,000,000 | ClickHouse storage > 70% |
 | Evidence packs per day | evidence | 100 | 5,000 | S3 PUT rate > 70% account ceiling |
 | Evidence blob storage | evidence | 1 TB | 100 TB | S3 lifecycle policy archives ≥30d |
 | Guardrail inline checks/sec | guardrails | 2,000/s | 20,000/s | classifier-serving CPU > 70% or queue > 100 |
@@ -47,7 +47,7 @@ Cross-BC capacity envelope for foundry. Per-BC capacity models preserved at
   fanout up to 8/pack; primary vertical scale until `db.standard.E4.16`.
 - **ClickHouse** (eval parity store): 3-replica per pack; horizontal scale
   by shard.
-- **S3** (eval golden store + evidence blob): scale-by-design; per-tenant
+- **S3** (eval baseline store + evidence blob): scale-by-design; per-tenant
   bucket prefix + lifecycle policies.
 - **GPU pool** (eval): 0–16 A100 slots per pack; HPA on queue depth.
 

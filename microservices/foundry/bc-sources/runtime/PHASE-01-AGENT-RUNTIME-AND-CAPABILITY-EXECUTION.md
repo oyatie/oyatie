@@ -10,7 +10,7 @@ entry_gate: |
   cargo workspace ready to accept the 35 new crates under microservices/foundry-runtime/src/crates/.
 exit_gate: |
   All 15 IPs merged; capability dispatch p99 ≤50ms verified by load test; session-state hot read
-  p99 ≤10ms verified; autonomy-tier refusal end-to-end test green; runtime-pool drain verified;
+  p99 ≤10ms verified; autonomy-ceiling refusal end-to-end test green; runtime-pool drain verified;
   cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout
   --microservice foundry-runtime exits 0; oya gate validate authority-cohesion exits 0;
   HG-FR gate in /specs/hyperscaler-gates.json registers green; OpenSLO manifests merged + verdict
@@ -35,7 +35,7 @@ This phase ships the full ADR-0025 design — the agent runtime + capability exe
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (AWS Bedrock + GCP Vertex + Azure AI Foundry + LangServe + OpenAI Assistants competitive posture).
 - Nothing scheduled-for-distinct-tracked-work (every FUTURE-marked seam in the prior monolithic Foundry runtime sketch is decommissioned by this phase).
-- No silent regression (autonomy-tier violation surfaces auto-blocks dispatch).
+- No silent regression (autonomy-ceiling violation surfaces auto-blocks dispatch).
 - Per-microservice flat layout (this phase is authored natively under ADR-0131 alongside observability).
 
 ## Scope
@@ -78,7 +78,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-009-capability-executor-api-and-rest.md`](IP-009-capability-executor-api-and-rest.md) | api + rest crates exposing the OpenAPI contract; mTLS to sibling µservices | pending | axis-foundry-runtime | IP-004, IP-007 |
 | [`IP-010-capability-executor-sdk.md`](IP-010-capability-executor-sdk.md) | Rust SDK crate for programmatic capability invocation | pending | axis-foundry-runtime | IP-009 |
 | [`IP-011-capability-executor-app.md`](IP-011-capability-executor-app.md) | composition root binary wiring executor + orchestrator + pool + cache + session-state adapters | pending | axis-foundry-runtime | IP-005, IP-006, IP-007, IP-008, IP-009 |
-| [`IP-012-autonomy-tier-gate.md`](IP-012-autonomy-tier-gate.md) | AutonomyGate wiring: tenancy lookup + per-tenant ceiling read + dispatch refusal + audit emission | pending | axis-foundry-runtime + ops-security | IP-004 |
+| [`IP-012-autonomy-ceiling-gate.md`](IP-012-autonomy-ceiling-gate.md) | AutonomyGate wiring: tenancy lookup + per-tenant ceiling read + dispatch refusal + audit emission | pending | axis-foundry-runtime + ops-security | IP-004 |
 | [`IP-013-dsr-cascade-session-handler.md`](IP-013-dsr-cascade-session-handler.md) | TenantDsrCascade event consumer in session-state worker | pending | axis-foundry-runtime + council-privacy | IP-006 |
 | [`IP-014-runtime-self-slo-manifests.md`](IP-014-runtime-self-slo-manifests.md) | OpenSLO manifests for availability/latency/correctness/freshness at `slos/` per ADR-0139 | pending | axis-foundry-runtime + axis-observability | IP-011 |
 | [`IP-015-hg-fr-hyperscaler-gate-registration.md`](IP-015-hg-fr-hyperscaler-gate-registration.md) | Register HG-FR in `/specs/hyperscaler-gates.json` per ADR-0123; competitor parity assertions | pending | axis-foundry-runtime + council-architecture | IP-014 |

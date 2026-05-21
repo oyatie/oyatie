@@ -14,5 +14,5 @@ traceability:
 allowed_dependency_edges: [kernel, domain, usecase]
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, INTERNAL_ONLY, AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 backend: classifier-model  # per ADR-0105 *-adapter-<backend>; ONNX runtime + foundry-providers LLM-judge

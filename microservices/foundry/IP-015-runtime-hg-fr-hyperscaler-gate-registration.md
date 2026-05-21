@@ -21,7 +21,7 @@ Register the foundry-runtime hyperscaler-maturity gate `HG-FR` per ADR-0123. The
 
 ## ChangeSet boundary
 
-Edit `/specs/hyperscaler-gates.json` to add the HG-FR entry. Update `registry/artifact-capabilities-registry.json` to register the µservice's capability catalog. No Rust crate changes (the gate logic itself lives in `oya-foundry-fitness-hyperscaler-maturity-claims` shared lane crate).
+Edit `/specs/hyperscaler-gates.json` to add the HG-FR entry. Update `registry/artifact-capabilities-registry.json` to register the µservice's capability catalog. No Rust crate changes (the gate logic itself lives in `oya-governance-hyperscaler-maturity-claims` shared lane crate).
 
 ## Concrete File Targets
 
@@ -72,7 +72,7 @@ Edit `/specs/hyperscaler-gates.json` to add the HG-FR entry. Update `registry/ar
       "microservices/foundry/capabilities/session-resume.yaml",
       "microservices/foundry/dashboards/invocation-rate.json",
       "microservices/foundry/dashboards/session-pool-health.json",
-      "microservices/foundry/dashboards/autonomy-tier-mix.json",
+      "microservices/foundry/dashboards/autonomy-ceiling-mix.json",
       "microservices/foundry/slos/availability.openslo.yaml",
       "microservices/foundry/slos/latency.openslo.yaml",
       "microservices/foundry/slos/correctness.openslo.yaml",

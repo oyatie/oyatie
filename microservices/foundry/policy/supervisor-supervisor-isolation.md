@@ -66,7 +66,7 @@ tenant_scope:
     - internal: oyatie's own µservice dogfooding the supervisor
 ```
 
-Tenant scope drives capacity + autonomy-tier ceiling but does NOT relax isolation invariants — every scope shares identical isolation invariants below.
+Tenant scope drives capacity + autonomy-ceiling ceiling but does NOT relax isolation invariants — every scope shares identical isolation invariants below.
 
 ## Postgres Isolation Invariants (TI-P-*)
 

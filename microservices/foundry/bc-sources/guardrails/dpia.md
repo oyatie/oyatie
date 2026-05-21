@@ -62,7 +62,7 @@ DPIA mandatory pre-deployment. This document is the canonical DPIA + AI Act risk
 
 ### 2.1 Nature of the processing
 
-**What:** foundry-guardrails accepts a candidate prompt (pre-invocation) + provider output (post-invocation) + tenant context (tenant_id_hashed, capability, autonomy-tier-claim) from foundry-runtime; runs classifier ensemble + Cedar policy evaluation; returns verdict (allow / block / redact + reason). Verdict + decision metadata emitted to foundry-evidence + audit-chain. No prompt / output content persisted by guardrails itself.
+**What:** foundry-guardrails accepts a candidate prompt (pre-invocation) + provider output (post-invocation) + tenant context (tenant_id_hashed, capability, autonomy-ceiling-claim) from foundry-runtime; runs classifier ensemble + Cedar policy evaluation; returns verdict (allow / block / redact + reason). Verdict + decision metadata emitted to foundry-evidence + audit-chain. No prompt / output content persisted by guardrails itself.
 
 **How:** foundry-runtime → guardrails REST/gRPC (mTLS + SPIFFE) → classifier-model serving (in-cluster ONNX) + Cedar engine (in-process) + Postgres rule-store (per-pack HA) + optional LLM-judge fallback (via foundry-providers). Verdict → AsyncAPI publisher → foundry-evidence + audit-chain.
 
@@ -169,7 +169,7 @@ Cross-reference: every risk has at least one mitigation in §6 + one correspondi
 | Risk | Measures | Mitigated to | Owner |
 |---|---|---|---|
 | R-01 (false-positive) | Per-tenant FP escalation budget; rule-author review queue; shadow→enforce rollout; decision detail explanation per GDPR Art. 22 | L-M (engineering discipline floor) | axis-foundry-guardrails |
-| R-02 (false-negative) | Multi-detector ensemble; LLM-judge ambiguous fallback; post-output validator (second line); golden-fixture catalogue; monthly red-team | L | axis-foundry-guardrails |
+| R-02 (false-negative) | Multi-detector ensemble; LLM-judge ambiguous fallback; post-output validator (second line); baseline-fixture catalogue; monthly red-team | L | axis-foundry-guardrails |
 | R-03 (prompt leakage in logs) | OTel redactor; data_class annotation; `oya-check-data-class` lane; synthetic-PII drills | M (engineering discipline floor) | every owner |
 | R-04 (model inversion) | Verdict-only classifier output; LLM-judge with no-data-disclosure template; training-data provenance documented | L | axis-foundry-guardrails |
 | R-05 (cross-tenant rule leak) | Cedar `tenant-scope`; Postgres RLS; typed `RuleStore` port | L | axis-foundry-guardrails |

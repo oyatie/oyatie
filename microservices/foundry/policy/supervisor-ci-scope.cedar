@@ -120,7 +120,7 @@ forbid (
   principal == Service::"oya-ci",
   action in [
     Action::"write_autonomy_entitlement",
-    Action::"escalate_autonomy_tier"
+    Action::"escalate_autonomy_level"
   ],
   resource
 );

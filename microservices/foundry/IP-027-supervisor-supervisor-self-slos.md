@@ -85,3 +85,9 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims # register
 - ADR-0139; ADR-0123 (HG-FND-SUP).
 - `microservices/observability/PRD.md` AC-01.
 - Google SRE Workbook ch. 5.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Palantir AIP Operator, Azure AI Foundry deployments, and GitHub merge-queue controls.
+- Gap closure: this IP closes fleet control, kill-switch propagation, and deployability evidence with tenant-scoped policy enforcement.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

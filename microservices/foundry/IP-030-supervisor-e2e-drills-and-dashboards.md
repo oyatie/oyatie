@@ -24,7 +24,7 @@ Wire all AC-01..AC-10 acceptance criteria via e2e tests + Grafana dashboards. Va
 |---|---|
 | `microservices/foundry/tests/e2e/kill_switch_latency.rs` | create (AC-02) |
 | `microservices/foundry/tests/e2e/canary_rollout_gated.rs` | create (AC-03) |
-| `microservices/foundry/tests/e2e/autonomy_tier_refusal.rs` | create (AC-04) |
+| `microservices/foundry/tests/e2e/autonomy_level_refusal.rs` | create (AC-04) |
 | `microservices/foundry/tests/e2e/supervision_event_lag.rs` | create (AC-05) |
 | `microservices/foundry/tests/e2e/drain_no_loss.rs` | create (AC-06) |
 | `microservices/foundry/tests/e2e/postgres_failover.rs` | create (AC-07) |
@@ -82,3 +82,9 @@ PHASE-01 exit gate is achieved when:
 - `failure-modes.md` (all FMs covered by runbooks).
 - `dashboards/{deployment-rate,kill-switch-coverage,autonomy-violation-rate}.json`.
 - ADR-0123 + ADR-0133.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Palantir AIP Operator, Azure AI Foundry deployments, and GitHub merge-queue controls.
+- Gap closure: this IP closes fleet control, kill-switch propagation, and deployability evidence with tenant-scoped policy enforcement.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

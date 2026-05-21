@@ -154,3 +154,9 @@ Backup window 02:00-06:00 local; runs as a high-priority kubernetes Job. Watcher
 - ADR-0145 — communication reform.
 - Runbooks: `milvus-restore.md`, `milvus-backup-drill.md`.
 - Upstream tool: github.com/zilliztech/milvus-backup (Apache-2.0).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Snowflake Cortex Search, Databricks Vector Search, OpenAI vector stores, and Palantir AIP ontology retrieval.
+- Gap closure: this IP closes Foundry retrieval/vector substrate for tenant-isolated agent grounding and eval replay.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

@@ -1,0 +1,32 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: emr-cds-hooks-deadline-compliance
+  microservice: emr
+spec:
+  description: |
+    CDS Hooks 2.0 deadline compliance — when EMR invokes clinical-decision-support for
+    prescribe-time / order-time / view-time hooks, the call MUST return within the
+    declared deadline (default 500ms; tenant-configurable 200–1500ms). Non-compliance
+    surfaces as a "CDS unavailable" warning to the clinician.
+  service: emr
+  indicator:
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum by(tenant, cell, hook) (rate(emr_cds_hooks_within_deadline_total[1m]))
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum by(tenant, cell, hook) (rate(emr_cds_hooks_invocations_total[1m]))
+  objectives:
+    - target: 0.99
+      timeWindow:
+        - duration: 28d
+          isRolling: true
+  budgetingMethod: Occurrences

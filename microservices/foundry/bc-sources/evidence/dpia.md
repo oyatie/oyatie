@@ -35,7 +35,7 @@ The foundry-evidence µservice processes per-capability-invocation evidence pack
 | `prompt_payload_sha`, `output_payload_sha` | foundry-runtime | INTERNAL_ONLY (hashes) | tamper detection | legitimate interest |
 | Raw prompt + output text (content-addressed in WORM) | foundry-runtime | variable (declared by source); may be PII / PHI / PIPA Art. 23 / SECRET | regulator-grade forensic evidence on dispute | legal obligation (HIPAA §164.312(b); KR PIPA Art. 29; GDPR Art. 30) + tenant contract |
 | `subject_hash` (if available from tenant-side hashing) | foundry-runtime | quasi-identifier | linking to tenant-side records during DSR | legitimate interest |
-| `autonomy_tier_decision` | foundry-supervisor | INTERNAL_ONLY | EU AI Act Art. 26 + ADR-0024 | legal obligation |
+| `autonomy_level_decision` | foundry-supervisor | INTERNAL_ONLY | EU AI Act Art. 26 + ADR-0024 | legal obligation |
 | `guardrail_decisions[]` | foundry-guardrails | INTERNAL_ONLY | safety evidence | legitimate interest |
 | `eval_verdict_at_invocation` | foundry-eval | INTERNAL_ONLY | ADR-0024 eval-evidence integration | legitimate interest |
 | `tenant_id` | SPIFFE binding | INTERNAL_ONLY | tenant scope | contract |
@@ -79,7 +79,7 @@ The foundry-evidence µservice processes per-capability-invocation evidence pack
 | Restriction (Art. 18) | Tenant DSR sets `restricted=true` flag on subject_hash; queries filter accordingly; export endpoints refuse restricted packs |
 | Portability (Art. 20) | Tenant-controlled export via `regulator-export` with `framework=portability`; bundle Ed25519-signed; receiving-side verifiable |
 | Object (Art. 21) | Tenant-level objection raised via `tenancy`; legitimate-interest-based processing reviewed; controller may refuse where legal obligation overrides |
-| Automated-decision (Art. 22) | Evidence packs CARRY the agent's decision rationale + autonomy-tier; tenant can review and request human-intervention via `governance` workflow; foundry-evidence emits an `Art22Reviewed` event back to chain |
+| Automated-decision (Art. 22) | Evidence packs CARRY the agent's decision rationale + autonomy-ceiling; tenant can review and request human-intervention via `governance` workflow; foundry-evidence emits an `Art22Reviewed` event back to chain |
 | KR PIPA Art. 23 sensitive-info-handling | Per `policy/data-residency.md` §DR-04; sensitive-info packs gated by explicit consent entitlement at tenancy onboarding |
 
 ## Section 5 — Risks to data subjects
@@ -92,7 +92,7 @@ The foundry-evidence µservice processes per-capability-invocation evidence pack
 | Re-identification via subject_hash + auxiliary data | L | Medium | salt rotation per-tenant; `subject_hash` not exposed in public-read transparency | L |
 | Retention overrun (data kept past legal max) | L | Medium | per-pack retention cascade (audit-chain substrate); LEAN `retention-cascade-on-cadence` | L |
 | Long-lived pre-signed URL leak | L | High | URLs ≤ 5 min TTL + IP-bound; audit-emitted on issuance | L |
-| Inadvertent disclosure of T3 escalation rationale | L | Medium | autonomy_tier rationale is INTERNAL_ONLY; entitlement-gated | L |
+| Inadvertent disclosure of T3 escalation rationale | L | Medium | autonomy_level rationale is INTERNAL_ONLY; entitlement-gated | L |
 | Regulator-export delivered to wrong tenant | L | Critical | 2-person rule; receiving-bucket bound to receiving-tenant SCC; audit-emitted | L |
 | Plaintext exposure via OS-level log scraping | L | Critical | Plaintext never written to stdout/stderr or log files; LEAN `no-payload-in-logs` blocks debug-level logging of payload fields | L |
 | Audit-of-audits creates unbounded recursion | M | Low | recursive emits bounded depth + flagged via `event_class=foundry.evidence.read.v1`; substrate emits without re-emitting | L |

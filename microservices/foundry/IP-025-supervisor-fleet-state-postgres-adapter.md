@@ -106,3 +106,9 @@ cargo run -p oya-dev-cli -- gate validate shardability --microservice foundry-su
 - PostgreSQL RLS docs — `postgresql.org/docs/current/ddl-rowsecurity.html`.
 - `policy/supervisor-isolation.md` TI-P-01..TI-P-06.
 - PRD §"Horizontal Scalability".
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Palantir AIP Operator, Azure AI Foundry deployments, and GitHub merge-queue controls.
+- Gap closure: this IP closes fleet control, kill-switch propagation, and deployability evidence with tenant-scoped policy enforcement.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

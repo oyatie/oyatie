@@ -48,7 +48,7 @@ docs preserved at `bc-sources/<bc>/multi-region.md`.
 |---|---|---|---|
 | runtime | session-state Valkey + capability-cache Postgres | none | dispatch p99 ≤50ms — co-locate with caller |
 | supervisor | fleet-state Postgres | none | command propagation ≤5s — same-pack |
-| eval | golden-store S3 + ClickHouse | optional cross-pack read of golden store (signed, content-addressed) | scheduling ≤500ms |
+| eval | baseline-store S3 + ClickHouse | optional cross-pack read of baseline store (signed, content-addressed) | scheduling ≤500ms |
 | evidence | pack-builder Postgres + blob S3 | regulator-export across packs (signed envelope only) | pack assembly ≤2s/100MB |
 | guardrails | rule-store Postgres + ONNX serving | none | inline ≤20ms |
 | providers | router Postgres + Valkey rate-limit + OpenBao | provider call goes to provider-side endpoint (provider's own region) | router ≤5ms |

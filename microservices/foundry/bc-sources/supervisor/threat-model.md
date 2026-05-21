@@ -127,7 +127,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 |---|---|---|---|---|
 | Fleet-state rows (per-tenant agent counts, capability versions) | `BEHAVIORAL_TENANT_PRODUCT` | High | 2y per pack (per `data-residency.md`) | Postgres |
 | Capability definitions (per-tenant) | `BEHAVIORAL_TENANT_PRODUCT` + `INTERNAL_ONLY` | Medium | append-only git history | Tenant-owned git repos |
-| Autonomy entitlements (per-tenant tier grants + expiration) | `SENSITIVE_PIPA_ART23` + `AUDIT` | Critical | 5y per pack (KR-FSS sector default) | Postgres + OpenBao |
+| Autonomy entitlements (per-tenant autonomy ceiling grants + expiration) | `SENSITIVE_PIPA_ART23` + `AUDIT` | Critical | 5y per pack (KR-FSS sector default) | Postgres + OpenBao |
 | Deployment history (admit, canary phase, verdict, rollback) | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | High | 2y (HIPAA pack: 6y) | Postgres |
 | Kill-switch state (engaged/disengaged + scope + reason) | `AUDIT` + `BEHAVIORAL_TENANT_PRODUCT` | Critical | 2y (HIPAA pack: 6y) | Valkey + Postgres archive |
 | Supervision events (Ed25519-signed) | `AUDIT` | Critical | indefinite (audit-chain immutable) | Valkey Stream → audit-chain µservice |
@@ -364,7 +364,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 **T-E-01 — Tenant escalates autonomy tier T0→T3 without DPA entitlement**
 - Asset: autonomy-policy-enforcement
 - Likelihood: M / Impact: H / Risk: **H**
-- Mitigations: Cedar default-deny; tier escalation requires explicit `principal.tier_entitlements` claim issued by OpenBao at onboarding; entitlement issuance requires DPO signature; pen-test attempts annually.
+- Mitigations: Cedar default-deny; tier escalation requires explicit `principal.billing_components` claim issued by OpenBao at onboarding; entitlement issuance requires DPO signature; pen-test attempts annually.
 - Owner: ops-security + council-privacy
 - Residual: L
 - Frameworks: SOC 2 CC6.1, CC6.2; ISO 27001 A.5.15, A.5.18, A.8.2; GDPR Art. 22; EU AI Act Art. 14
@@ -388,7 +388,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 **T-E-04 — Capability YAML escapes intended autonomy tier (smuggling)**
 - Asset: capability admit-loop
 - Likelihood: L / Impact: H / Risk: **M**
-- Mitigations: admit-loop parses YAML and bounds the autonomy_tier field to ENUM (`T0 | T1 | T2 | T3`); higher-than-tenant-entitled tiers refused; LEAN check on schema; PR review enforces.
+- Mitigations: admit-loop parses YAML and bounds the autonomy_level field to ENUM (`T0 | T1 | T2 | T3`); higher-than-tenant-entitled tiers refused; LEAN check on schema; PR review enforces.
 - Owner: axis-foundry-control-plane + ops-security
 - Residual: L
 

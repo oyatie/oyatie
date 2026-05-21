@@ -126,3 +126,9 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 - PRD §"Bounded Contexts" capability-registry-cache.
 - `threat-model.md` T-T-04 (descriptor signature validation).
 - `policy/data-residency.md` (capability descriptor routing).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

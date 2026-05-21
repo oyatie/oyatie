@@ -14,4 +14,4 @@ traceability:
 allowed_dependency_edges: [kernel]
 data_classes_owned: []
 operational_classes_owned: []
-autonomy_tier_required: T1
+autonomy_level_required: T1

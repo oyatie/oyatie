@@ -57,7 +57,7 @@ ClickHouse capacity:
 - Annual storage ≈ 17 GB (well within XS budget).
 
 S3 storage:
-- Golden outputs (steady-state per capability): ~500 cases × ~2KB = 1MB; 20 caps × 1MB = 20MB (signed envelopes).
+- Baseline outputs (steady-state per capability): ~500 cases × ~2KB = 1MB; 20 caps × 1MB = 20MB (signed envelopes).
 - Eval-run results: 46k cases/day × ~2KB = 92MB/day → ~33GB/year.
 - Replay traces (sampled): 1000/day × ~10KB = 10MB/day → ~3.6GB/year (hot); 24mo archive cold ~7GB.
 - Total ~50GB at XS scale; well within budget.
@@ -92,7 +92,7 @@ S3 storage:
 | Postgres eval-set metadata QPS | 1 k | 10 k | replica CPU > 70% |
 | ClickHouse parity-analytics QPS | 100 | 1 k | shard CPU > 70% |
 | ClickHouse rows | – | 10 B (per cluster) | week-partition seal forced |
-| S3 golden-output throughput | 1 GB/s | 10 GB/s | provider SLO breach |
+| S3 baseline-output throughput | 1 GB/s | 10 GB/s | provider SLO breach |
 | Replay traces ingest | 10⁶/day | 10⁸/day | S3 PUT rate-limit warning |
 | KMS DEK ops/sec | 10 | 100 | KMS rate-limit warning |
 
@@ -117,7 +117,7 @@ At each scale tier, identify load-bearing constraint:
 
 - M01 launch: pack-kr only; single region; no cross-region replication.
 - Post-M01: per-pack region pinning; cross-region replication of eval-sets (read-only) via S3 cross-region replication + Cosign signature integrity preserved across boundary.
-- Cross-region golden-output / replay-trace replication: forbidden by default (residency); allowed only with tenant SCC.
+- Cross-region baseline-output / replay-trace replication: forbidden by default (residency); allowed only with tenant SCC.
 
 ## References
 

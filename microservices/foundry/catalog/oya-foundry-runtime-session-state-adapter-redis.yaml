@@ -15,4 +15,4 @@ traceability:
 allowed_dependency_edges: [kernel, domain, usecase, api, adapter]
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, PII_IDENTIFYING, SENSITIVE_PIPA_ART23]
 operational_classes_owned: []
-autonomy_tier_required: T2
+autonomy_level_required: T2

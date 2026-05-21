@@ -95,3 +95,9 @@ cargo run -p oya-dev-cli -- gate validate classifier-model-cosign-signed
 - IP-004 (prompt-classifier-kernel port).
 - ONNX Runtime — `onnxruntime.ai`.
 - Cosign — `docs.sigstore.dev/cosign/`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

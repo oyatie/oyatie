@@ -94,9 +94,9 @@ when {
 // foundry-runtime requests "may capability C invoke at tier T for tenant X?"
 // This is allowed when:
 //   - the principal is the foundry-runtime SPIFFE identity,
-//   - the tenant has an entitlement for the requested tier,
+//   - the tenant has an entitlement for the requested autonomy level,
 //   - no kill-switch is engaged on any matching scope,
-//   - the requested tier ≤ the tenant's max-tier ceiling per DPA.
+//   - the requested autonomy level ≤ the tenant's autonomy ceiling ceiling per DPA.
 
 permit (
   principal == Service::"foundry-runtime",
@@ -106,13 +106,15 @@ permit (
 when {
   resource has tenant_id &&
   resource has capability_id &&
-  resource has requested_tier &&
-  resource has tenant_max_tier &&
+  resource has requested_autonomy_level &&
+  resource has tenant_autonomy_ceiling &&
   resource has kill_switch_engaged &&
-  resource.requested_tier <= resource.tenant_max_tier &&
+  resource.requested_autonomy_level <= resource.tenant_autonomy_ceiling &&
   resource.kill_switch_engaged == false &&
-  resource has tier_entitlement &&
-  resource.tier_entitlement == true
+  principal has tenant_class &&
+  principal.tenant_class == "paid" &&
+  principal has billing_components &&
+  principal.billing_components contains "per_seat"
 };
 
 // =============================================================================
@@ -183,7 +185,7 @@ forbid (
   principal in TenantOperator::?p,
   action in [
     Action::"write_autonomy_entitlement",
-    Action::"escalate_autonomy_tier"
+    Action::"escalate_autonomy_level"
   ],
   resource
 );

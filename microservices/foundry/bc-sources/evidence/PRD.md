@@ -22,7 +22,7 @@ doc_status: published
 
 ## Purpose
 
-The `foundry-evidence` µservice is the **Foundry-specific evidence frontend** that records every capability-invocation made by a Foundry agent (model call, tool call, autonomy-tier decision, guardrail decision, eval outcome) into a structured **evidence pack** and emits that pack to the global `audit-chain` substrate for cryptographic sealing.
+The `foundry-evidence` µservice is the **Foundry-specific evidence frontend** that records every capability-invocation made by a Foundry agent (model call, tool call, autonomy-ceiling decision, guardrail decision, eval outcome) into a structured **evidence pack** and emits that pack to the global `audit-chain` substrate for cryptographic sealing.
 
 Per ADR-0131 (Foundry split): `foundry-evidence` owns audit-evidence emission for the Foundry agent runtime. It is **not** an audit substrate itself — that role belongs to the `audit-chain` µservice. `foundry-evidence` is the **assembly + frontend** that aggregates the heterogeneous runtime signals into a uniform evidence-pack schema, hands it to `audit-chain` for Merkle-sealing, and exposes regulator-grade query + export surfaces over the indexed evidence.
 
@@ -40,7 +40,7 @@ This split is deliberate:
 
 ## Tenant Value
 
-- **Tenant Outcome 1 — EU AI Act Art. 12 + Art. 26 traceability out-of-the-box.** Every Foundry agent invocation produces a regulator-grade evidence pack with model version, prompt hash, output hash, autonomy-tier decision, guardrail decisions, eval outcomes, and Merkle-sealed audit link. Tenants do not write their own logging glue.
+- **Tenant Outcome 1 — EU AI Act Art. 12 + Art. 26 traceability out-of-the-box.** Every Foundry agent invocation produces a regulator-grade evidence pack with model version, prompt hash, output hash, autonomy-ceiling decision, guardrail decisions, eval outcomes, and Merkle-sealed audit link. Tenants do not write their own logging glue.
 - **Tenant Outcome 2 — Per-invocation forensic answer in ≤ 100 ms p99.** "What did the agent see, decide, and do during invocation X?" returns a full evidence pack in one query; the auditor or incident responder is not joining 5 systems.
 - **Tenant Outcome 3 — Regulator-ready export by (tenant, framework, window).** Tenant raises an AI-Act, HIPAA §164.312(b), GDPR Art. 30, KR PIPA Art. 29 audit request; oyatie exports a signed, Merkle-linked, time-bounded evidence-pack bundle scoped to that framework's required fields; regulator independently verifies via the substrate chain.
 - **Tenant Outcome 4 — Eval-evidence join.** Every agent invocation links to the eval set that gated its release and to the eval verdict at the invocation moment, per ADR-0024.
@@ -52,14 +52,14 @@ This split is deliberate:
 | ID | As a… | I want… | So that… | BC | Priority |
 |---|---|---|---|---|---|
 | FR-01 | foundry-runtime worker | to call `record_invocation(invocation_envelope)` and receive `{pack_id, audit_event_id}` synchronously within ≤500 ms p99 | the capability call can complete without waiting on regulator-grade pack assembly | capability-invocation-recorder | Must |
-| FR-02 | evidence-pack-builder | to aggregate signals from foundry-runtime (provider response, prompt, output), foundry-eval (eval verdict at invocation time), foundry-guardrails (guardrail decisions), foundry-supervisor (autonomy-tier decision) into a single evidence pack per `(invocation_id)` | downstream regulator export and forensic query operate on a single uniform shape | evidence-pack-builder | Must |
+| FR-02 | evidence-pack-builder | to aggregate signals from foundry-runtime (provider response, prompt, output), foundry-eval (eval verdict at invocation time), foundry-guardrails (guardrail decisions), foundry-supervisor (autonomy-ceiling decision) into a single evidence pack per `(invocation_id)` | downstream regulator export and forensic query operate on a single uniform shape | evidence-pack-builder | Must |
 | FR-03 | evidence-pack-builder | to emit the assembled pack to `audit-chain` with `event_class=foundry.invocation.evidence.v1` and receive the audit `event_id` + `period_id` back | Merkle-sealing is delegated to the substrate; foundry-evidence never invents its own sealing | evidence-pack-builder | Must |
 | FR-04 | eval-evidence-aggregator | to join the eval-set verdict at invocation-time (from foundry-eval) to the invocation envelope before pack emission | per ADR-0024 every invocation carries the eval-verdict that was current at the moment of execution | eval-evidence-aggregator | Must |
-| FR-05 | evidence-query API | to read `evidence_packs(tenant, time_range, invocation_id?, agent_id?, capability?, autonomy_tier?, framework_filter?)` with pagination | tenants and internal forensic users get per-invocation answers | evidence-query | Must |
+| FR-05 | evidence-query API | to read `evidence_packs(tenant, time_range, invocation_id?, agent_id?, capability?, autonomy_level?, framework_filter?)` with pagination | tenants and internal forensic users get per-invocation answers | evidence-query | Must |
 | FR-06 | regulator-export | to produce a signed, Merkle-linked, framework-filtered evidence-pack bundle for `(tenant, framework, time_range)` where `framework ∈ {eu-ai-act, hipaa, gdpr, kr-pipa, soc2, iso-27001}` | regulator engagement honours each framework's specific evidence requirements | regulator-export | Must |
 | FR-07 | evidence-query API | every read is itself audit-emitted via `audit-chain` per Bominal ADR-0028 §"Self-observability" (audit-of-audits) | tenants and regulators can see who read what evidence and when | evidence-query | Must |
 | FR-08 | every Foundry µservice integration | to consume a stable `oya-foundry-evidence-sdk` client (Rust + future TS/Python bindings) | uniform integration across foundry-runtime, foundry-guardrails, foundry-supervisor, foundry-eval | capability-invocation-recorder | Must |
-| FR-09 | autonomy-tier overlay | to attach the autonomy-tier decision (T0..T3) that was active for the invocation per ADR-0024 + ADR-0139 | regulator-grade T2/T3 evidence requirements are satisfied by construction | evidence-pack-builder | Must |
+| FR-09 | autonomy-ceiling overlay | to attach the autonomy-ceiling decision (T0..T3) that was active for the invocation per ADR-0024 + ADR-0139 | regulator-grade T2/T3 evidence requirements are satisfied by construction | evidence-pack-builder | Must |
 | FR-10 | evidence-archive cascade | to drive cold-tier archival of evidence-pack blobs at per-pack retention boundaries while preserving the audit-chain Merkle proof | regulatory retention obligations honoured without operator action; chain integrity preserved | regulator-export | Must |
 
 ## Non-Functional Requirements
@@ -129,7 +129,7 @@ This split is deliberate:
 | `audit-chain` µservice | Merkle sealing of every evidence pack; WORM blob storage; chain query | ADR-0028, ADR-0131 |
 | `observability` µservice | SLO ingestion + alerting + gate-of-promotion | ADR-0139 |
 | `tenancy` µservice | Tenant identity + DSR cascade entry-points | ADR-0131 |
-| `governance` µservice | Cedar policy evaluation; autonomy-tier authority resolution | ADR-0056 + ADR-0131 |
+| `governance` µservice | Cedar policy evaluation; autonomy-ceiling authority resolution | ADR-0056 + ADR-0131 |
 | `foundry-runtime` µservice | Invocation envelope source | ADR-0131 |
 | `foundry-eval` µservice | Eval-verdict source | ADR-0024, ADR-0131 |
 | `foundry-guardrails` µservice | Guardrail decision source | ADR-0131 |

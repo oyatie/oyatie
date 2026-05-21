@@ -1,0 +1,47 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-patient-monitoring-code-blue-activation
+  displayName: "patient-monitoring: code-blue activation → team-pager delivered p99 ≤ 2 s"
+  labels:
+    microservice: patient-monitoring
+    bounded_context: code-blue
+    sli_class: latency
+    tier: product
+    plane: data
+    owner_team: axis-clinical-realtime
+    pack_scope: all
+spec:
+  service: patient-monitoring
+  description: |
+    Code-blue activation → team-pager delivered p99 ≤ 2 s. Tight latency
+    is life-critical. Activation may be manual, auto (non-ack escalation),
+    or suggested (sepsis-watch / deterioration ≥ 0.95). Cedar fails OPEN
+    here for activation per ADR-0332 §B-7.
+  indicator:
+    metadata:
+      name: code-blue-activation-p99
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_code_blue_activation_seconds_bucket{le="2.0"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_code_blue_activation_seconds_count[5m]))
+  objectives:
+    - target: 0.999
+      displayName: "p99.9 ≤ 2 s"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-burn-rate-multi-window

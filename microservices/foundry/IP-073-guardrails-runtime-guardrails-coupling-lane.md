@@ -13,7 +13,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, runtime-guardrails-coupling, oya-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-013: oya-foundry-fitness-runtime-guardrails-coupling CI lane (BLOCKER)
+# IP-013: oya-governance-runtime-guardrails-coupling CI lane (BLOCKER)
 
 ## Intent
 
@@ -30,7 +30,7 @@ Adds to `crates/oya-dev-cli/src/foundation_audit_gates.rs` a new validator + com
 | `crates/oya-dev-cli/src/foundation_audit_gates.rs` | update | add `validate_runtime_guardrails_coupling()` function |
 | `crates/oya-dev-cli/src/commands/gate/mod.rs` | update | wire new validator |
 | `crates/oya-dev-cli/tests/runtime_guardrails_coupling.rs` | create | static + runtime test fixtures |
-| `.github/branch-protection.yaml` | update | add `oya-foundry-fitness-runtime-guardrails-coupling` to dev + staging required_status_checks |
+| `.github/branch-protection.yaml` | update | add `oya-governance-runtime-guardrails-coupling` to dev + staging required_status_checks |
 | `/specs/hyperscaler-gates.json` | update | register HG-FGUARD gate per ADR-0123 |
 
 ## Code Shape
@@ -93,3 +93,9 @@ cargo run -p oya-dev-cli -- gate validate runtime-guardrails-coupling --sha HEAD
 - ADR-0022, ADR-0123, ADR-0139, ADR-0131.
 - `/specs/hyperscaler-gates.json`.
 - PHASE-01 §"branch-protection.yaml diff preview".
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

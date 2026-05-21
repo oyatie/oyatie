@@ -148,9 +148,9 @@ forbid (
   resource in TenantData::?r
 )
 when {
-  resource has declared_tier &&
+  resource has declared_autonomy_level &&
   principal has autonomy_ceiling &&
-  resource.declared_tier > principal.autonomy_ceiling
+  resource.declared_autonomy_level > principal.autonomy_ceiling
 };
 
 // =============================================================================

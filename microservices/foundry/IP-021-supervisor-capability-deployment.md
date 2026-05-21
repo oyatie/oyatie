@@ -91,3 +91,9 @@ cargo run -p oya-dev-cli -- gate validate capability-yaml-conformance --microser
 - ADR-0139 §"Canary observability rollback" (precedent).
 - PRD FR-01..FR-03.
 - `microservices/observability/contracts/asyncapi/eligibility-events.yaml` (consumed).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Palantir AIP Operator, Azure AI Foundry deployments, and GitHub merge-queue controls.
+- Gap closure: this IP closes fleet control, kill-switch propagation, and deployability evidence with tenant-scoped policy enforcement.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

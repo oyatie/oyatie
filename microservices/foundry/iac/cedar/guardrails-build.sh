@@ -25,7 +25,7 @@ fi
 echo "[cedar/build] validating default-deny in cedar-base.cedar..."
 if ! grep -E '^\s*forbid\s*\(' "$POLICY_DIR/cedar-base.cedar" > /dev/null; then
   echo "FATAL: cedar-base.cedar lacks default-deny 'forbid (...)' block" >&2
-  echo "(per policy/guardrail-enforcement.md + oya-foundry-fitness-cedar-default-deny-enforced lane)" >&2
+  echo "(per policy/guardrail-enforcement.md + oya-governance-cedar-default-deny-enforced lane)" >&2
   exit 4
 fi
 

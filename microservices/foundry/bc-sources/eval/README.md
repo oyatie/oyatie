@@ -13,7 +13,7 @@ oyatie's eval-harness substrate. Per ADR-0024 + ADR-0026 + ADR-0131.
 
 ## What this µservice does
 
-- Runs per-capability eval sets (golden + adversarial + linguistic + replay cohorts) against provider routes.
+- Runs per-capability eval sets (baseline + adversarial + linguistic + replay cohorts) against provider routes.
 - Computes pass/fail aggregates + per-cohort breakdowns.
 - Gates capability publish (refuse on missing eval-set, adversarial fail, linguistic minima fail, stale run).
 - Runs nightly drift detection.
@@ -29,7 +29,7 @@ oyatie's eval-harness substrate. Per ADR-0024 + ADR-0026 + ADR-0131.
 - `eval-runner`: case execution; nightly orchestrator; publish-gate.
 - `parity-analyzer`: two-run delta + in-house cutover decisioning.
 - `replay-engine`: sample + replay + divergence detection.
-- `golden-output-store`: Cosign-signed per-subject-keyed golden outputs.
+- `baseline-output-store`: Cosign-signed per-subject-keyed baseline outputs.
 
 ## Entry points
 
@@ -70,7 +70,7 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 helm install gpu-runner-pool microservices/foundry-eval/iac/helm/gpu-runner-pool/
 helm install postgres microservices/foundry-eval/iac/helm/postgres/
 helm install clickhouse microservices/foundry-eval/iac/helm/clickhouse/
-helm install golden-store microservices/foundry-eval/iac/helm/golden-store/
+helm install baseline-store microservices/foundry-eval/iac/helm/baseline-store/
 ```
 
 ## Status

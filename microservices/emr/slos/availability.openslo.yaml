@@ -1,0 +1,28 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: emr-availability
+  microservice: emr
+spec:
+  description: EMR µservice availability — 99.99% (≤ 4.38 min/month downtime)
+  service: emr
+  indicator:
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(emr_http_requests_total{status=~"2..|3.."}[1m])) by (tenant, cell)
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(emr_http_requests_total[1m])) by (tenant, cell)
+  objectives:
+    - target: 0.9999
+      timeWindow:
+        - duration: 28d
+          isRolling: true
+  budgetingMethod: Occurrences

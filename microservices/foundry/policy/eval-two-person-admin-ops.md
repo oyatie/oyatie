@@ -10,7 +10,7 @@ deciders: ops-security, axis-foundry, council-architecture, council-privacy
 related_adrs: [ADR-0024, ADR-0131]
 related_artifacts:
   - microservices/foundry/threat-model.md
-  - microservices/foundry/runbooks/golden-output-restore.md
+  - microservices/foundry/runbooks/baseline-output-restore.md
   - microservices/foundry/runbooks/replay-divergence-investigation.md
 review_cadence: quarterly + on every Sev-1 admin-op incident
 doc_status: published

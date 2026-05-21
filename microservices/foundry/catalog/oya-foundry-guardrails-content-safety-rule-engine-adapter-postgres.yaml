@@ -14,5 +14,5 @@ traceability:
 allowed_dependency_edges: [kernel, domain, usecase]
 data_classes_owned: [INTERNAL_ONLY, AUDIT, BEHAVIORAL_TENANT_PRODUCT, SECRET]
 operational_classes_owned: [AUDIT, SECRET]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 backend: postgres  # per ADR-0105 *-adapter-<backend>

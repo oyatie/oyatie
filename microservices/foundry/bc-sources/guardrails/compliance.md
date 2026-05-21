@@ -70,7 +70,7 @@ Authoritative control-to-framework mapping for foundry-guardrails. Tells an exte
 | P4 | Use, retention, disposal | Retention matrix; DSR cascade |
 | P5 | Access | Tenant operator can read own decisions; Art. 22 explanation |
 | P6 | Disclosure to third parties | Sub-processor list + transfer register |
-| P7 | Quality | Cedar v4 + shadow→enforce + golden fixtures |
+| P7 | Quality | Cedar v4 + shadow→enforce + baseline fixtures |
 | P8 | Monitoring + enforcement | Continuous-compliance-evidence lane |
 
 ### ISO 27001:2022 (Annex A)

@@ -46,7 +46,7 @@ when {
 //
 // The oya-system reserved tenant carries oyatie-owned capability templates.
 // Anonymous browsing is permitted (similar to GitHub Marketplace listings)
-// for the descriptor surface (name, description, declared_tier, purpose-of-use,
+// for the descriptor surface (name, description, declared_autonomy_level, purpose-of-use,
 // eu_ai_act_class, regulatory_packs_consumed). The actual capability invocation
 // path requires authenticated principal.
 

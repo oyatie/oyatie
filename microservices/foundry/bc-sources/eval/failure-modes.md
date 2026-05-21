@@ -70,7 +70,7 @@ Each failure carries: FM-ID; Trigger; Detection (SLI/alert/metric); Tenant impac
 
 | Field | Value |
 |---|---|
-| Trigger | Provider drift; sandbox CUDA bleed; tokeniser drift; capability prompt template changed; golden mismatch |
+| Trigger | Provider drift; sandbox CUDA bleed; tokeniser drift; capability prompt template changed; baseline mismatch |
 | Detection | `oya_foundry_eval_replay_divergence_ms{quantile="0.99"} > 100` sustained ≥ 5min |
 | Tenant impact | Model-upgrade gate held; replay-based drift detection compromised |
 | Severity | Sev-1 if critical capability; Sev-2 otherwise |
@@ -79,17 +79,17 @@ Each failure carries: FM-ID; Trigger; Detection (SLI/alert/metric); Tenant impac
 | Recovery runbook | `runbooks/replay-divergence-investigation.md` |
 | Postmortem owner | axis-foundry + ops-security if sandbox escape suspected |
 
-## FM-05: Golden-output integrity breach (Cosign verify fails or block-validator mismatch)
+## FM-05: Baseline-output integrity breach (Cosign verify fails or block-validator mismatch)
 
 | Field | Value |
 |---|---|
-| Trigger | Object tampering (T-T-02), bit-rot, transient S3 read-error, mass golden loss |
-| Detection | `oya_foundry_eval_golden_cosign_verify_failed_total > 0` OR monthly block-validator quarantine |
+| Trigger | Object tampering (T-T-02), bit-rot, transient S3 read-error, mass baseline loss |
+| Detection | `oya_foundry_eval_baseline_cosign_verify_failed_total > 0` OR monthly block-validator quarantine |
 | Tenant impact | Affected capability eval halts; potential signal of tampering |
 | Severity | Sev-2 (signature breach) or Sev-1 (mass loss) |
 | Immediate mitigation | Quarantine; 2-person rule investigation; restore from DR pair |
 | RTO | ≤ 1h per-object restore from DR; ≤ 4h mass restore |
-| Recovery runbook | `runbooks/golden-output-restore.md` |
+| Recovery runbook | `runbooks/baseline-output-restore.md` |
 | Postmortem owner | axis-foundry + ops-security |
 
 ## FM-06: ClickHouse cluster imbalance / query-latency spike / cross-tenant leak
@@ -150,7 +150,7 @@ Each failure carries: FM-ID; Trigger; Detection (SLI/alert/metric); Tenant impac
 |---|---|
 | Trigger | KMS regional outage; KMS rate-limit hit |
 | Detection | `oya_foundry_eval_dek_unwrap_failed_total > 0` rate-sustained |
-| Tenant impact | Replay halts; golden read halts (encrypted goldens) |
+| Tenant impact | Replay halts; baseline read halts (encrypted baselines) |
 | Severity | Sev-2 |
 | Immediate mitigation | Failover to DR pair KMS; pause replay sampling |
 | RTO | ≤ 1h provider-dependent |
@@ -200,7 +200,7 @@ Each failure carries: FM-ID; Trigger; Detection (SLI/alert/metric); Tenant impac
 
 | Field | Value |
 |---|---|
-| Trigger | New judge model disagrees materially with prior judge on gold pool |
+| Trigger | New judge model disagrees materially with prior judge on baseline pool |
 | Detection | `oya_foundry_eval_judge_cohen_kappa{capability="<cap>"} < 0.7` |
 | Tenant impact | HumanJudged cohort verdicts unreliable for that capability |
 | Severity | Sev-3 |
@@ -230,7 +230,7 @@ Each failure carries: FM-ID; Trigger; Detection (SLI/alert/metric); Tenant impac
 | GPU pool exhaustion | 30 min | 0 (queued cases re-dispatched) |
 | Parity regression | 1 h categorisation | 0 |
 | Replay divergence > 100ms | 1 h categorisation | 0 |
-| Golden-output integrity breach | 1 h per-object restore | 0 (per-object signature) |
+| Baseline-output integrity breach | 1 h per-object restore | 0 (per-object signature) |
 | ClickHouse imbalance | 1 h | 0 (replication-factor) |
 | ClickHouse cross-tenant leak | 5 min freeze | N/A (breach) |
 | Eval-runner-worker outage | 5 min HA | 0 (stateless) |
