@@ -2,7 +2,7 @@ name: oya-foundry-next-queue-automerge
 
 on:
   pull_request:
-    types: [closed]
+    types: [closed, ready_for_review]
   workflow_dispatch:
     inputs:
       base_branch:
@@ -44,6 +44,10 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' &&
        github.event.pull_request.merged == true &&
+       github.event.action == 'closed' &&
+       github.event.pull_request.base.ref == 'dev') ||
+      (github.event_name == 'pull_request' &&
+       github.event.action == 'ready_for_review' &&
        github.event.pull_request.base.ref == 'dev')
     steps:
       - name: Checkout base branch
@@ -58,7 +62,7 @@ jobs:
           OYA_BRANCH_PROTECTION_READ_TOKEN: ${{ secrets.OYA_BRANCH_PROTECTION_READ_TOKEN }}
           BASE_BRANCH: ${{ github.event.inputs.base_branch || github.event.pull_request.base.ref || 'dev' }}
           START_PR: ${{ github.event.inputs.start_pr || vars.OYA_MERGE_QUEUE_START_PR || '111' }}
-          AFTER_PR: ${{ github.event.inputs.after_pr || github.event.pull_request.number || '0' }}
+          AFTER_PR: ${{ github.event.inputs.after_pr || (github.event.action == 'closed' && github.event.pull_request.number) || '0' }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         run: |
           set -euo pipefail
