@@ -2511,6 +2511,15 @@ Pass: imported credentials are secret references only.
 - Pass: report shows key origin, custody, rotation, and access.
 - Evidence: key_custody_report_id.
 
+## AI substrate + Cellular automation
+
+This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
+
+- ADR-0346 binds Cloud Provider acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 binds Cloud governance and CI-lane authoring to the `oya-governance-*` lane vocabulary after the `oya-foundry-fitness-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
+- ADR-0348 binds Region, AZ, Cell, tenant placement, capacity rebalance, and shard-count automation to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 binds Cloud deployment surfaces to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+
 ## References
 
 - docs/standards/documentation-rigor.md
@@ -2528,6 +2537,10 @@ Pass: imported credentials are secret references only.
 - docs/decisions/ADR-0255-intelligence-two-layer-model.md
 - docs/decisions/ADR-0263-audit-event-registry.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
+- docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
+- docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md
+- docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
+- docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 - specs/products/cloud.json
 - contracts/openapi/cloud/cloud-region-v1.yaml
 - contracts/openapi/cloud/cloud-compute-vm-v1.yaml
