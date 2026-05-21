@@ -55,6 +55,7 @@ jobs:
       - name: Trigger auto-merge for next queue PR only
         env:
           GH_TOKEN: ${{ github.token }}
+          OYA_BRANCH_PROTECTION_READ_TOKEN: ${{ secrets.OYA_BRANCH_PROTECTION_READ_TOKEN }}
           BASE_BRANCH: ${{ github.event.inputs.base_branch || github.event.pull_request.base.ref || 'dev' }}
           START_PR: ${{ github.event.inputs.start_pr || vars.OYA_MERGE_QUEUE_START_PR || '111' }}
           AFTER_PR: ${{ github.event.inputs.after_pr || github.event.pull_request.number || '0' }}
