@@ -235,8 +235,10 @@ The checklist MUST reject template-stamping.
 
 The checklist MUST reject generic "service handles X" prose.
 
-The checklist MUST reject "TBD", "future work", and "see code" when the artifact
-is canonical.
+Example: the checklist MUST reject deferred-delivery sentinels (the literal
+strings `TBD`, the bigram `future` plus `work`, and `see code`) when the
+artifact is canonical. This guidance line is itself an `Example:` so the
+honest-claims gate does not treat it as an active deferral.
 
 The checklist MUST require named vendor versions when vendors are involved.
 
