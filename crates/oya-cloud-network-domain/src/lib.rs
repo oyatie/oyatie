@@ -731,6 +731,7 @@ pub enum NetworkProviderKind {
     OciLoadBalancer,
     OciDnsZone,
     OciFastConnect,
+    SelfHostedColoVpc,
 }
 
 impl NetworkProviderKind {
@@ -740,6 +741,7 @@ impl NetworkProviderKind {
             Self::OciLoadBalancer => "oci_load_balancer",
             Self::OciDnsZone => "oci_dns_zone",
             Self::OciFastConnect => "oci_fast_connect",
+            Self::SelfHostedColoVpc => "selfhosted_colo_vpc",
         }
     }
 }

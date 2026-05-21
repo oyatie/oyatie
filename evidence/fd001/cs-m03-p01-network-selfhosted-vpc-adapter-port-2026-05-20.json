@@ -1,0 +1,134 @@
+{
+  "schema_version": "fd001-evidence/v1",
+  "change_id": "cs-m03-p01-network-selfhosted-vpc-adapter-port-2026-05-20",
+  "agent_id": "codex-m03-p01-network-selfhosted-vpc-adapter-port",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "timestamp_unix": 1779328707,
+  "timestamp_iso": "2026-05-21T01:58:27Z",
+  "scope": "M03-P01-IP-003 Cloud Network self-hosted/colo VPC second-provider adapter request-contract slice",
+  "status": "vpc-second-provider-selfhosted-request-contract-green-cdn-remaining-second-provider-live-smoke-pending",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/masterplan.json",
+    "specs/planning-closure-contract.json",
+    "specs/master-plan-sequencing.json#select_next_ready_item",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-003-network-api-adapters.md"
+  ],
+  "files_changed": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/oya-cloud-network-domain/src/lib.rs",
+    "crates/oya-cloud-network-adapter-selfhosted/Cargo.toml",
+    "crates/oya-cloud-network-adapter-selfhosted/src/lib.rs",
+    "registry/catalog/oya-cloud-network-adapter-selfhosted.yaml",
+    "docs/products/cloud/PRD.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-003-network-api-adapters.md"
+  ],
+  "implementation_summary": [
+    "Added an additive SelfHostedColoVpc provider kind while reusing the existing provider-neutral VPC provider port request and receipt contract.",
+    "Added a self-hosted/colo network adapter crate that translates provider-neutral VPC create requests into deterministic site/cell/fabric tenant network segment command shapes.",
+    "Kept on-prem control-plane endpoint, site, cell, fabric, command path, and evidence refs confined to the adapter crate; no cloud SDK dependency, provider credential, or network call added.",
+    "Recorded IP status as VPC second-provider/on-prem request contract green while preserving CDN, remaining second-provider adapters, and credentialed live provider smoke as pending."
+  ],
+  "verification": [
+    {
+      "command": "cargo test -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci -p oya-cloud-network-adapter-selfhosted",
+      "status": "passed",
+      "evidence": "16 Cloud Network domain tests, 26 OCI network adapter tests, and 4 self-hosted VPC adapter tests passed."
+    },
+    {
+      "command": "cargo check -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci -p oya-cloud-network-adapter-selfhosted",
+      "status": "passed",
+      "evidence": "Targeted check completed successfully."
+    },
+    {
+      "command": "cargo clippy -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci -p oya-cloud-network-adapter-selfhosted --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted clippy completed with no warnings."
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed",
+      "evidence": "Workspace formatting check passed after self-hosted network adapter crate additions."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate stage0-prereqs --repo-root . --self-test",
+      "status": "passed",
+      "evidence": "stage0-prereqs validation passed: 4 required paths, workspace_member_present=true, edition=2024, rust-version=1.95.0."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate honest-claims --plans-dir .omc/plans/milestones",
+      "status": "passed",
+      "evidence": "honest-claims validation passed: 465 documents, 102004 lines, 173 implementation plans, 0 dependency edges, 0 serialization edges, 0 global artifact writes, 26 legacy missing split-rule rows."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "status": "passed",
+      "evidence": "Catalog validation passed: 546 records."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate data-class --workspace Cargo.toml --legacy registry/data-class/legacy-unannotated-fields.tsv",
+      "status": "passed",
+      "evidence": "Data class fitness validation passed: 1590 fields checked, 1302 annotated, 288 legacy unannotated."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "status": "passed",
+      "evidence": "Architecture-boundaries validation passed: 388 packages, 388 catalog records, 541 dependency edges."
+    },
+    {
+      "command": "oya vcs claim/work for codex-m03-p01-network-selfhosted-vpc-adapter-port",
+      "status": "passed",
+      "evidence": "Oya VCS claim and work commands were accepted before implementation writes."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p01-network-selfhosted-vpc-adapter-port-2026-05-20.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency-seam validation passed: 6 subchecks, 5 pass, 0 report-only, 1 skipped, 0 fail, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "oya vcs verify/done/promote for codex-m03-p01-network-selfhosted-vpc-adapter-port",
+      "status": "passed",
+      "evidence": "Oya VCS verify, done, and promote commands were accepted for this ChangeSet evidence bundle."
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "status": "passed",
+      "evidence": "Trivy vulnerability/misconfiguration scans reported 0 findings; VCS metadata/authority checks, cargo tests, and CLI smoke passed."
+    }
+  ],
+  "known_gaps": [
+    {
+      "id": "credentialed-selfhosted-vpc-smoke",
+      "status": "pending-runtime-credentials",
+      "reason": "This slice proves adapter port and provider command contracts without embedding self-hosted control-plane credentials or making network calls in CI."
+    },
+    {
+      "id": "remaining-network-surfaces",
+      "status": "pending-followup-changesets",
+      "reason": "CDN, remaining second-provider LB/DNS/interconnect adapters, and live provider smoke remain outside this rollback-safe VPC slice."
+    }
+  ],
+  "rollback": "Revert this ChangeSet to remove the self-hosted network adapter crate, workspace member, provider kind addition, catalog row, plan/product status updates, and evidence rows.",
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "freshness_unix": 1779340555,
+  "admission_status": "local-admission-gate-passed",
+  "review_refresh": {
+    "timestamp_unix": 1779340555,
+    "timestamp_iso": "2026-05-21T05:15:55Z",
+    "agent_id": "codex-m03-p01-network-selfhosted-vpc-adapter-port-rereview",
+    "base": "dev@3e4ccd6bf3fc6ed1a2e26d8dac6fea7b651ae5e9",
+    "head_before_evidence_amend": "0ca24a2f908a3456d75ab9df4830d1dd68d1d94c",
+    "effective_diff": "single self-hosted/colo VPC provider adapter request-contract commit rebased after PR #160 signed squash merge",
+    "review_verdict": "approve-after-post-160-squash-rebase-no-code-findings",
+    "source_check": "Self-hosted/colo VPC adapter contract is repo-owned provider-port shape for OVN/OVS/BGP/FRR-backed tenant network segments; reviewed for no provider credentials, no live network mutation, and no provider-specific branching outside the adapter crate"
+  }
+}
