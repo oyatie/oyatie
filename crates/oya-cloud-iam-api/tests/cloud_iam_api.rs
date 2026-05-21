@@ -11,7 +11,8 @@ use oya_cloud_iam_api::{
     create_cloud_iam_role_from_api, issue_cloud_iam_sts_token_from_api,
 };
 use oya_cloud_iam_domain::{
-    CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate, MfaState,
+    CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
+    IdentityProviderCreate, IdentityProviderKind, MfaState,
 };
 use oya_data_boundary_kernel::DataClass;
 
@@ -81,6 +82,34 @@ fn unverified_user_principal_create() -> IamPrincipalCreate {
     }
 }
 
+fn external_oidc_provider_create() -> IdentityProviderCreate {
+    IdentityProviderCreate {
+        id: "idp_partner_oidc".to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        region_pack: "oya-pack-alpha".to_string(),
+        kind: IdentityProviderKind::Oidc,
+        issuer_uri: "https://partner.example/oidc".to_string(),
+        audience: "urn:oyatie:cloud".to_string(),
+        verification_material_ref: "jwks/partner".to_string(),
+        created_at_epoch_seconds: 1_700_000_020,
+    }
+}
+
+fn external_principal_create() -> IamPrincipalCreate {
+    IamPrincipalCreate {
+        id: "sp_external_partner".to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        kind: IamPrincipalKind::External,
+        display_name: "Partner".to_string(),
+        external_subject: Some("oidc://partner.example/sub-1".to_string()),
+        identity_provider_id: Some("idp_partner_oidc".to_string()),
+        region_pack: "oya-pack-alpha".to_string(),
+        mfa_state: MfaState::Verified,
+        last_authenticated_at_epoch_seconds: Some(1_700_000_050),
+        created_at_epoch_seconds: 1_700_000_040,
+    }
+}
+
 fn role_create() -> IamRoleCreate {
     IamRoleCreate {
         id: "role_compute_admin".to_string(),
@@ -112,6 +141,23 @@ fn directory_with_role() -> IamDirectory {
     directory
         .create_role(role_create())
         .expect("role registers");
+    directory
+}
+
+fn directory_with_external_role() -> IamDirectory {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    directory
+        .create_principal(external_principal_create())
+        .expect("external principal registers");
+    directory
+        .create_role(IamRoleCreate {
+            assumable_by: vec!["sp_external_partner".to_string()],
+            ..role_create()
+        })
+        .expect("role trusts external principal");
     directory
 }
 
@@ -163,6 +209,26 @@ fn sts_api_request(request_id: &str, idempotency_key: &str) -> CloudIamStsTokenA
                     value: "cloud.iam.read".to_string(),
                 },
             ],
+            issued_at_epoch_seconds: 1_700_000_100,
+        },
+    }
+}
+
+fn external_sts_api_request(request_id: &str, idempotency_key: &str) -> CloudIamStsTokenApiRequest {
+    CloudIamStsTokenApiRequest {
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_external_partner"),
+        authorization: authorization_for("sp_external_partner", &[CLOUD_IAM_STS_TOKEN_SURFACE]),
+        body: CloudIamStsTokenRequest {
+            tenant_id: "ten_alpha".to_string(),
+            session_id: "sts_external_partner_001".to_string(),
+            role_id: "role_compute_admin".to_string(),
+            assumed_by: "sp_external_partner".to_string(),
+            external_id: Some("external-customer-alpha".to_string()),
+            requested_duration_sec: 300,
+            scopes: vec![CloudIamScopeRef {
+                value: "cloud.iam.read".to_string(),
+            }],
             issued_at_epoch_seconds: 1_700_000_100,
         },
     }
@@ -452,4 +518,47 @@ fn sts_token_api_maps_mfa_policy_denial_to_forbidden() {
 
     assert_eq!(error.sts_token_status_code(), 403);
     assert_eq!(error, CloudIamApiError::Iam(CloudIamError::MfaNotVerified));
+}
+
+#[test]
+fn sts_token_api_issues_external_oidc_session_with_external_id() {
+    let mut directory = directory_with_external_role();
+    let mut ledger = CloudIamStsTokenIdempotencyLedger::default();
+    let request = external_sts_api_request("req-sts-external", "idem-sts-external");
+
+    let first = issue_cloud_iam_sts_token_from_api(&mut directory, &mut ledger, request.clone())
+        .expect("external OIDC principal can receive scoped STS token");
+    let second = issue_cloud_iam_sts_token_from_api(&mut directory, &mut ledger, request)
+        .expect("same external STS request replays idempotently");
+
+    assert_eq!(first, second);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(first.data.session_id, "sts_external_partner_001");
+    assert_eq!(first.data.assumed_by, "sp_external_partner");
+    assert_eq!(
+        first.data.external_id.as_deref(),
+        Some("external-customer-alpha")
+    );
+    assert_eq!(first.data.expires_at_epoch_seconds, 1_700_000_400);
+    assert_eq!(first.data.scopes[0].value, "cloud.iam.read");
+    assert!(first.data.token_fingerprint.starts_with("sts1:"));
+}
+
+#[test]
+fn sts_token_api_maps_external_id_policy_denial_to_forbidden() {
+    let mut directory = directory_with_external_role();
+    let mut ledger = CloudIamStsTokenIdempotencyLedger::default();
+    let mut request = external_sts_api_request("req-sts-external-id", "idem-sts-external-id");
+    request.body.session_id = "sts_external_partner_no_id".to_string();
+    request.body.external_id = None;
+
+    let error = issue_cloud_iam_sts_token_from_api(&mut directory, &mut ledger, request)
+        .expect_err("external OIDC principal requires external_id");
+
+    assert_eq!(error.sts_token_status_code(), 403);
+    assert_eq!(
+        error,
+        CloudIamApiError::Iam(CloudIamError::ExternalIdRequired)
+    );
+    assert_eq!(ledger.len(), 1);
 }
