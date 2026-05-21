@@ -57,7 +57,7 @@ Per `policy/data-residency.md`:
 
 ### Backup + cold storage
 
-- Per-pack S3-compatible cold-tier (OCI Object Storage); WORM where supported.
+- Per-pack S3-compatible cold storage (OCI Object Storage); WORM where supported.
 - Backup retention: 30d hot + 12mo cold; pack-us-healthcare ≥ 6y; pack-kr employment-context ≥ 3y (근로기준법 Art. 41).
 - Backup encryption: pack-resident KMS keys; cross-pack restore blocked at KMS level.
 - Backup integrity: weekly hash verification + monthly restore-test drill.
@@ -66,7 +66,7 @@ Per `policy/data-residency.md`:
 
 ### RTO + RPO
 
-- RTO ≤ 15 min (production tier).
+- RTO ≤ 15 min (paid production context).
 - RPO ≤ 60s (within-pack same-jurisdiction).
 - Meilisearch: search-index RPO is effectively infinite (rebuildable from Postgres in ≤30min).
 - DR-region failover: automated via Patroni leader election + DNS update.

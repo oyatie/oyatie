@@ -131,3 +131,21 @@ cargo test -p oya-collab-presence --tests
 - ADR-0204 canvas.
 - `oya-shared-presence-kernel` crate README.
 - Yjs Awareness protocol (Loro inherits design).
+
+## Counterpart Anchors
+This workflow-studio IP is measured against the local Workflow Studio benchmark envelope: n8n for visual workflow authoring depth, Zapier for broad trigger/action accessibility, Make for visual branching and scenario ergonomics, and Workato for enterprise workflow governance. The IP must keep Oyatie's differentiator intact: canonical workflow_spec.v1 round-trip, Cedar-gated save/publish, tenant-scoped collaboration, and audit evidence rather than counterpart-specific runtime authority.
+
+## Sustainability emission (per ADR-0344)
+
+- metering_trigger_evidence: `microservices/workflow-studio/IP-023-presence-awareness-protocol.md` matched [`cost`].
+- per_call_audit_row_fields: `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, `region`, `cell`.
+- carbon_aware_scheduling: eligible only for deferrable work after compliance-pack exclusions and active RTO/RPO floors are satisfied; excluded from realtime Tier 0/1 paths.
+- finops_portal_rollup_axes: `tenant`, `product`, `capability`, `provider`, `cell`.
+- evidence_paths: [`microservices/workflow-studio/IP-023-presence-awareness-protocol.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/capacity-model.md`, `microservices/workflow-studio/compliance.md`, `microservices/workflow-studio/ARCHITECTURE.md`].
+
+## Pod runtime tier (per ADR-0338)
+
+- pod_runtime_tier: `0`.
+- runtime_requirement: Kata Containers plus Cloud Hypervisor REQUIRED.
+- justification: tenant-customer code exists in this IP execution path; trigger_terms: [`workflow-studio`].
+- surface_evidence_paths: [`microservices/workflow-studio/IP-023-presence-awareness-protocol.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/templates/index.json`, `microservices/workflow-studio/templates/schemas/workflow-template.schema.json`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/ARCHITECTURE.md`].

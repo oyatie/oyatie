@@ -66,7 +66,7 @@ impl LanguageDetector for LanguageDetectorImpl {
 | `test_detect_codeswitched_returns_alternates` | mixed-lang |
 | `test_input_bound_4kb_truncation` | ≤ 4 KB |
 | `test_p99_latency_under_50ms` | budget |
-| `tests/integration/golden_eval_pass_95.rs` | golden eval pass ≥ 0.95 |
+| `tests/integration/reference_eval_pass_95.rs` | reference eval pass ≥ 0.95 |
 
 ## Halt Conditions
 
@@ -77,3 +77,13 @@ impl LanguageDetector for LanguageDetectorImpl {
 ## Next IP
 
 [`IP-009-document-translation-stack.md`](IP-009-document-translation-stack.md)
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/translate/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/translate/IP-008-language-detection-stack.md:19` - Per-text language detection. FastText / LangID-class model served on `foundry-runtime`. Per PRD §"Performance": p99 ≤ 50 ms for ≤ 4 KB input.; `microservices/translate/IP-008-language-detection-stack.md:68` - | `test_p99_latency_under_50ms` | budget |.

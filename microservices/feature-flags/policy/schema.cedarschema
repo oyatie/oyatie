@@ -1,0 +1,93 @@
+// Cedar schema for feature-flags µservice
+// Binding ADR: ADR-0183 (policy engine separation), ADR-0243 (Cedar universal gate)
+// Covers all actions referenced by feature-flags Cedar fragments
+
+namespace FeatureFlags {
+
+  // ─── Entity Types ───────────────────────────────────────────────────────────
+
+  entity Principal = {
+    "tenant_id": String,
+    "audience_type": String,       // B2C | B2B | INTERNAL_AGENT | EMERGENCY_SERVICES | FRIENDLY_CRAWLER_PARTNER | MINOR_TARGETED
+    "role": String,                // flag-admin | experiment-designer | sre-oncall | killswitch-operator | compliance-officer | audit-reader | pack-overlay-agent | platform-safety-officer | ci-agent | qsa | regulator
+    "step_up_class": String,       // "" | A | B | C
+    "spiffe_id": String,
+    "pack_overlay_agent_attestation": {
+      "cosign_verified": Bool,
+      "foundry_attested": Bool
+    }
+  };
+
+  entity Flag = {
+    "tenant_id": String,
+    "flag_key": String,
+    "rollout_stage": Long,
+    "pack_locked_fields": Set<String>,
+    "is_emergency_services_flag": Bool,
+    "audience_type": String
+  };
+
+  entity Experiment = {
+    "tenant_id": String,
+    "experiment_id": String,
+    "has_sample_size_estimate": Bool,
+    "audience_type": String,
+    "status": String              // draft | active | paused | concluded
+  };
+
+  entity KillSwitch = {
+    "tenant_id": String,
+    "scope": String,              // Global | Tenant | Flag | Pack
+    "flag_key": String,
+    "is_life_safety_locked": Bool  // true for NENA_I3_ROUTING, NCMEC_REPORTING, FEMA_BROADCAST
+  };
+
+  entity PackOverride = {
+    "tenant_id": String,
+    "pack_id": String,
+    "target_flag_key": String,
+    "disables_emergency_services": Bool
+  };
+
+  entity AuditRecord = {
+    "tenant_id": String,
+    "audit_window_start": String,
+    "audit_window_end": String
+  };
+
+  entity Rollout = {
+    "tenant_id": String,
+    "flag_key": String,
+    "current_stage": Long,
+    "slo_gate_passed": Bool,
+    "slo_breach_detected": Bool
+  };
+
+  // ─── Actions ─────────────────────────────────────────────────────────────────
+
+  action FlagCreate         appliesTo { principal: [Principal], resource: [Flag] };
+  action FlagRead           appliesTo { principal: [Principal], resource: [Flag] };
+  action FlagEvaluate       appliesTo { principal: [Principal], resource: [Flag] };
+  action FlagUpdate         appliesTo { principal: [Principal], resource: [Flag] };
+  action FlagArchive        appliesTo { principal: [Principal], resource: [Flag] };
+  action FlagDelete         appliesTo { principal: [Principal], resource: [Flag] };
+  action FlagUndo           appliesTo { principal: [Principal], resource: [Flag] };
+
+  action ExperimentCreate   appliesTo { principal: [Principal], resource: [Experiment] };
+  action ExperimentRead     appliesTo { principal: [Principal], resource: [Experiment] };
+  action ExperimentActivate appliesTo { principal: [Principal], resource: [Experiment] };
+  action ExperimentPause    appliesTo { principal: [Principal], resource: [Experiment] };
+  action ExperimentConclude appliesTo { principal: [Principal], resource: [Experiment] };
+
+  action KillSwitchEngage   appliesTo { principal: [Principal], resource: [KillSwitch] };
+  action KillSwitchDisengage appliesTo { principal: [Principal], resource: [KillSwitch] };
+
+  action PackOverrideApply  appliesTo { principal: [Principal], resource: [PackOverride] };
+  action PackOverrideRead   appliesTo { principal: [Principal], resource: [PackOverride] };
+
+  action AuditRead          appliesTo { principal: [Principal], resource: [AuditRecord] };
+  action AuditExport        appliesTo { principal: [Principal], resource: [AuditRecord] };
+
+  action RolloutAdvance     appliesTo { principal: [Principal], resource: [Rollout] };
+  action RolloutRollback    appliesTo { principal: [Principal], resource: [Rollout] };
+}

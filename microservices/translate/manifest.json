@@ -99,19 +99,19 @@
       "tier": "T0",
       "name": "translate-segment-suggest-and-lang-hint",
       "file": "microservices/translate/capabilities/T0-suggest.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "translate-assist-suggest-qe-and-langdetect",
       "file": "microservices/translate/capabilities/T1-assist.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "translate-auto-translate-content-class",
       "file": "microservices/translate/capabilities/T2-auto.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -338,7 +338,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -359,5 +359,174 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "translate is a BNF v4.1 kebab-case microservice slug; generated names follow oya-translate-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "eu-ai-act",
+    "hipaa",
+    "kr-pipa",
+    "lgpd",
+    "SOC 2 Type 2",
+    "NIS2",
+    "soc2",
+    "iso27001",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-translate",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "eu-ai-act",
+    "hipaa",
+    "kr-pipa",
+    "lgpd",
+    "SOC 2 Type 2",
+    "NIS2",
+    "soc2",
+    "iso27001",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "foundry",
+    "meet",
+    "messenger",
+    "shorts",
+    "mail",
+    "social",
+    "docs",
+    "sheets",
+    "slides",
+    "cloud-secrets",
+    "identity",
+    "cell",
+    "observability",
+    "community",
+    "marketplace",
+    "tenancy",
+    "audit-chain",
+    "network",
+    "intelligence",
+    "ontology"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.35,
+    "baseline_ram_per_tenant": 768,
+    "storage_per_tenant": 16,
+    "connections_per_tenant": {
+      "valkey": 2,
+      "postgres": 4,
+      "outbound_http": 24
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-3",
+    "notes": "Translation requests, document localization, TM lookups, and external MT provider calls drive capacity more than tenant seat count."
+  },
+  "dr": {
+    "rto_p99_seconds": 2100,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": false,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "valkey"
+    ],
+    "failover_runbook": "runbooks/tm-corruption-restore.md",
+    "replication_shape": "active-passive-cross-region-continuous"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Translate is a first-party translation and localization application; it handles tenant content but does not execute tenant-customer code or own key-management substrate responsibilities.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/translate/PRD.md",
+    "microservices/translate/ARCHITECTURE.md",
+    "microservices/translate/IP-002-translate-router-kernel.md",
+    "microservices/translate/contracts/openapi/translate.yaml"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2025-11-21",
+      "2026-02-21",
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/translate/contracts/openapi/translate.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/translate/contracts/asyncapi/translate-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/translate/contracts/proto/translate.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "valkey",
+    "cedar",
+    "openbao",
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oci-guest",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "dns",
+      "version_pin": "v1"
+    }
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+    "per_seat",
+    "per_usage"
+  ]
 }

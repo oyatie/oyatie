@@ -57,7 +57,7 @@ Enumerate failure modes, blast radius, detection signals, automated recovery, an
 - **Cause:** Tenant operator initiates a 100k-task bulk-edit without second-confirmation pre-check.
 - **Blast radius:** Postgres write storm; tenant's other operations queued; other tenants unaffected (per-tenant rate-limit).
 - **Detection:** `tasks_bulk_edit_in_flight_count > 1`; per-tenant rate-limit-exhausted counter increments.
-- **Automated recovery:** Per-batch atomicity (1000 tasks/batch) prevents full-tenant lockout; throttle to baseline-tier rate; second-confirmation prompt fires.
+- **Automated recovery:** Per-batch atomicity (1000 tasks/batch) prevents full-tenant lockout; throttle to tenant_class baseline rate; second-confirmation prompt fires.
 - **Runbook:** `runbooks/bulk-edit-throttle.md`.
 
 ### FM-06 — Webhook fanout degraded (subscriber unhealthy)

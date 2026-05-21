@@ -284,3 +284,22 @@ spec:
 - ADR-0009 cell architecture.
 - ADR-AN-003-row-level-tenant-isolation.
 - ClickHouse Distributed engine docs: https://clickhouse.com/docs/engines/table-engines/special/distributed.
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/analytics/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `postgres_wal_g`, `iceberg_snapshot`, `clickhouse_iceberg_layered`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/analytics/specs/IP-010-cross-cell-federation.md:262` - ## SLO commitment (downstream IP-014); `microservices/analytics/specs/IP-010-cross-cell-federation.md:264` - - Within-cell `Distributed` query latency overhead: ≤ 10ms p99 vs local table..
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/analytics/specs/IP-010-cross-cell-federation.md:274` - ## Evidence emission.

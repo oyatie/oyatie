@@ -139,3 +139,22 @@ cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microser
 - ADR-0064 — canonical base + localization overlay.
 - microservices/workflow-engine/PHASE-01-DURABLE-EXECUTION-SUBSTRATE.md §"branch-protection.yaml diff preview".
 - GitHub branch-protection API — `https://docs.github.com/en/rest/branches/branch-protection`.
+
+## DR posture (per ADR-0343)
+
+- Authority: ADR-0343.
+- Trigger evidence: `microservices/workflow-engine/IP-014-branch-protection-and-hyperscaler-gates.md` matched `SLO, p99`.
+- Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/workflow-engine/manifest.json`.
+- Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
+- Backup substrate: `postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Runtime evidence: `microservices/workflow-engine/slos/payload-bytes-budget-correctness.openslo.yaml`, `microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml`, `microservices/workflow-engine/slos/worker-poll-availability.openslo.yaml`, `microservices/workflow-engine/slos/workflow-completion-availability.openslo.yaml`, `microservices/workflow-engine/policy/auditor-scope.cedar`.
+
+## Sustainability emission (per ADR-0344)
+
+- Authority: ADR-0344.
+- Trigger evidence: `microservices/workflow-engine/IP-014-branch-protection-and-hyperscaler-gates.md` matched `cost`.
+- Per-call audit row fields: `cost_usd_minor_units`, `co2_grams`, `watt_hours`.
+- Emission evidence: `microservices/workflow-engine/manifest.json` plus this IP's metered trigger text.
+- Carbon-aware scheduling: eligible only when ADR-0344 D-9 compliance-pack exclusions do not bar deferral; otherwise the Cedar scheduler rejects delay while still emitting carbon fields.
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell.

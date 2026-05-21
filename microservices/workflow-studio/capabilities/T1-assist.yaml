@@ -105,7 +105,7 @@ cedar_policy_fragments:
   - microservices/workflow-studio/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/workflow-studio/capabilities/eval/t1-assist-golden.jsonl
+  reference_inputs_path: microservices/workflow-studio/capabilities/eval/t1-assist-reference.jsonl
   pass_threshold: 0.80
   eval_metric: |
     Composite: (a) schema_valid_rate over corpus of 100 prose inputs;

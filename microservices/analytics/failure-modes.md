@@ -113,11 +113,11 @@ This document enumerates each component, its credible failure modes, the detecti
 - **Long-term mitigation:** Controller leader election (2 replicas, one active).
 - **Residual risk:** Negligible.
 
-### 5.2 Quota mis-application (wrong tier applied)
+### 5.2 Quota mis-application (wrong tenant_class applied)
 
 - **Detection:** Reconciliation lane compares observed vs desired quota.
 - **Immediate mitigation:** Controller re-reads tenancy state and re-applies.
-- **Long-term mitigation:** Tier change events are idempotent.
+- **Long-term mitigation:** Tenant_class change events are idempotent.
 - **Residual risk:** Low.
 
 ### 5.3 Tenant offboard partial completion (DB dropped, proof-of-erasure not emitted)
@@ -179,7 +179,7 @@ This document enumerates each component, its credible failure modes, the detecti
 
 - **Detection:** SLO burn (IP-014).
 - **Immediate mitigation:** Customer notice; investigate cold-tier health.
-- **Long-term mitigation:** Hot-tier extension for "last 365 d" queries on Enterprise tier.
+- **Long-term mitigation:** Hot-tier extension for "last 365 d" queries on paid tenant_class contract overlay.
 - **Residual risk:** Medium (cold-tier inherent latency).
 
 ### 8.2 Recursive audit-event storm (querying audit log emits audit event ⇒ inf loop)

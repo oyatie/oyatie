@@ -69,7 +69,7 @@ pub mod regulator_export;
 pub mod billing;
 
 // Public re-exports.
-pub use tenant::{TenantId, TenantTier, ResidencyClass};
+pub use tenant::{TenantId, TenantClass, ResidencyClass};
 pub use dashboard::{WorkflowExecutionBucket, DashboardQuery};
 pub use audit_log::{AuditLogEntry, Axis, AuditLogSearch};
 pub use regulator_export::{RegulatorExportRequest, RegulatorExportManifest};
@@ -376,3 +376,31 @@ async fn test_e2e_dashboard_query() {
 - ADR-0151 X-Request-Id + OTel tracing.
 - ADR-0157 API gateway.
 - `microservices/analytics/contracts/openapi-v1.yaml`, `analytics.proto`, `graphql-v1.sdl`.
+
+## API Versioning (per ADR-0342)
+
+- Binding ADR: ADR-0342.
+- Carrier: public API date version `2026-05-21` via header `Oyatie-Version`, URL prefix `/v/2026-05-21/`, and proto3 envelope field tag `8001` (`oyatie_version`).
+- Initial declared_version: `2026-05-21`; no earlier shipped API date is declared in this IP or its µservice manifest.
+- Support window: keep N=3 public versions available for at least 180 days after deprecation.
+- Surface evidence: `microservices/analytics/specs/IP-015-app-composition-root.md:34` - - REST endpoints from `microservices/analytics/contracts/openapi-v1.yaml` are functional.; `microservices/analytics/specs/IP-015-app-composition-root.md:35` - - gRPC endpoints from `microservices/analytics/contracts/analytics.proto` are functional..
+- Internal-mesh exemption: ADR-0145 direct internal gRPC remains unaffected; the version carriers bind only public OpenAPI, AsyncAPI, and externally exposed proto3 surfaces.
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/analytics/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `iceberg_snapshot`, `clickhouse_iceberg_layered`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/analytics/specs/IP-015-app-composition-root.md:355` - ## SLO commitment (downstream IP-014).
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/analytics/specs/IP-015-app-composition-root.md:365` - ## Evidence emission.

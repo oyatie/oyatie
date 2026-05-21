@@ -39,34 +39,34 @@ Define per-tenant and per-cell unit economics for tasks. FinOps gate: per-tenant
 | Component | Baseline / cell / mo | Notes |
 |---|---|---|
 | Postgres (task-store + project-list + dependency-edge; 3-replica HA + per-tenant RLS) | $4,800 | OCI VM.Standard3.Flex 16 OCPU × 3 + 4TB persistent block + S3 backup |
-| Valkey (view-cache + presence; cluster mode 3-shard) | $1,100 | OCI Caching Service standard tier |
+| Valkey (view-cache + presence; cluster mode 3-shard) | $1,100 | OCI Caching Service standard service class |
 | Meilisearch (search-index; 3-node cluster) | $1,800 | OCI VM.Standard.E5.Flex × 3 (4 OCPU + 32 GB + 500 GB SSD per node) |
 | Kubernetes nodes (rest + worker pods) | $2,800 | OCI VM.Standard.E5.Flex × 8 baseline |
-| Foundry-runtime quota (T0/T1/T2 LLM invocations) | $2,500 | per-tenant tier-bound; pay-per-invocation |
+| Foundry-runtime quota (T0/T1/T2 LLM invocations) | $2,500 | tenant_class and usage-cap bound; pay-per-invocation |
 | Egress (webhook fanout + cross-µservice handoffs) | $500 | OCI egress to mail / messenger / calendar / drive µservices intra-region |
 | Cross-pack mesh egress (when SCC-gated) | $50 | per-pack pair |
 | Observability fan-out | $400 | per the observability µservice envelope |
-| Backup storage (Postgres snapshots + Meilisearch backups + CSV/JSON export retention) | $300 | S3-compatible cold-tier |
+| Backup storage (Postgres snapshots + Meilisearch backups + CSV/JSON export retention) | $300 | S3-compatible cold-storage class |
 | **Total per cell baseline** | **$14,250 / mo** | sized for 10M active tasks / 500k projects |
 
 ## Per-tenant breakeven
 
-| Tenant tier | Monthly bill | Notes |
+| Tenant class / paid billing component | Monthly bill | Notes |
 |---|---|---|
-| Free | $0; 1 project, 100 tasks, no AI, no importers | hard quota |
-| Starter | $10; 10 projects, 5k tasks, T0 only, CSV import | covers infra + 30% margin |
-| Pro | $50; 100 projects, 100k tasks, T1 enabled, all importers | covers infra + 40% margin |
-| Enterprise | custom + per-seat; T2 employment-context refused at Cedar until conformity ADR + tenant per-pack onboarding completes | covers infra + 50% margin + SLA premium |
+| demo_trial | $0; usage-capped project, task, AI, and importer volume | hard quota |
+| paid + per_seat | per named user | covers collaboration and seat-governed usage |
+| paid + per_usage | metered by task/update/search/import/export/timer/ai units | scales with admitted usage |
+| paid + revenue_share | contract percentage where marketplace or downstream revenue applies | settlement owned by cloud-billing |
 
-Breakeven: per-tenant gross margin ≥ 30% at Starter; ≥ 40% at Pro; ≥ 50% at Enterprise.
+Breakeven: per-tenant gross margin target is contract-specific for paid tenant_class and fixed at hard quota for demo_trial.
 
 ## Cost governance gates
 
 | Gate | Threshold | Action |
 |---|---|---|
-| Per-tenant monthly cost > 80% of tier bill | warn FinOps | review for plan upgrade |
-| Per-tenant monthly cost > 100% of tier bill | warn FinOps + tenant | over-quota notification + offer upgrade |
-| Per-tenant monthly cost > 150% of tier bill | throttle (rate-limit lowered to baseline-tier limits) | auto-throttle |
+| Per-tenant monthly cost > 80% of contracted bill | warn FinOps | review billing-component fit |
+| Per-tenant monthly cost > 100% of contracted bill | warn FinOps + tenant | over-quota notification + paid billing-component review |
+| Per-tenant monthly cost > 150% of contracted bill | throttle (rate-limit lowered to tenant_class baseline limits) | auto-throttle |
 | Per-cell total cost > 130% of baseline | hold promotion + finops review | review |
 | Cross-pack egress > 5% of cell cost | finops review | identify cause |
 | AI invocation cost > 25% of cell cost | engineering review | optimisation needed |
@@ -78,7 +78,7 @@ Cost-meter emitted as Mimir metric per ADR-0123 + finops standards:
 
 | Metric | Cardinality | Labels |
 |---|---|---|
-| `tasks_tenant_cost_dollars_per_month` | per-tenant | `tenant_id_hashed`, `tier`, `pack_tag` |
+| `tasks_tenant_cost_dollars_per_month` | per-tenant | `tenant_id_hashed`, `tenant_class`, `paid_billing_component`, `pack_tag` |
 | `tasks_unit_cost_dollars` | per-unit | `unit_type` (task/update/search/expansion/booking/webhook/import/export/timer/ai-t0/ai-t1/ai-t2), `pack_tag` |
 | `tasks_cell_cost_dollars_per_month` | per-cell | `pack_tag`, `cell_id` |
 | `tasks_egress_dollars` | per-cross-pack-pair | `from_pack`, `to_pack` |

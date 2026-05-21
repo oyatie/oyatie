@@ -94,7 +94,7 @@ cedar_policy_fragments:
 eval_set:
   golden_inputs_path: microservices/workflow-engine/capabilities/eval/workflow-execute-golden.jsonl
   pass_threshold: 1.00
-  eval_metric: deterministic-step-sequence-against-golden
+  eval_metric: deterministic-step-sequence-against-canonical-fixture
   cadence: per-release
   reference: PRD AC-02 deterministic replay invariant
 

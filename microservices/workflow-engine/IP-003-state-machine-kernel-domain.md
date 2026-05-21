@@ -8,62 +8,84 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-workflow
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness]
+acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, port-location, layer-correctness, oya-governance-deterministic-replay]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-003: workflow state-machine transition kernel through Postgres checkpoints
 
-# IP-003: oya-workflow-engine-state-machine-{kernel,domain,usecase,api,adapter,adapter-postgres}
+## §A Problem
 
-## Intent
+`workflow-engine` cannot be a Temporal-class durable substrate if transition rules live as incidental REST or worker code. The service contract already exposes run reads, step reads, pause/resume/cancel/signal, and transition history in `microservices/workflow-engine/contracts/openapi/workflow-engine.yaml`; the proto mirrors this with `ExecutionEngine` RPCs in `microservices/workflow-engine/contracts/proto/workflow-engine.proto`. This IP closes the missing state-machine boundary between immutable workflow specs, run-state transitions, and checkpoint persistence.
 
-Scaffold the full state-machine BC: kernel (port traits + entities) + domain (pure transition evaluation + invariant checks) + usecase (orchestrators) + api (typed contracts) + adapter + adapter-postgres (checkpoint persistence). State-machine concerns are PURE — no I/O at evaluation layer.
+The gap is specific to workflow runtime semantics: every `WorkflowStarted`, `StepStarted`, `StepCompleted`, `StepFailed`, `StepRetried`, `WorkflowPaused`, `WorkflowResumed`, `WorkflowCancelled`, `WorkflowCompleted`, and `WorkflowFailed` event in `microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml` needs one deterministic transition path. Without a pure transition evaluator, replay debugging can only compare logs after the fact; it cannot prove the engine would make the same state move from the same event.
 
-## ChangeSet boundary
+## §B Approach
 
-6 new Rust crates. Workspace members added. Catalog rows for each.
+Create a dedicated `state-machine` bounded-context stack under the crate names already declared in `microservices/workflow-engine/manifest.json`: `oya-workflow-engine-state-machine-kernel`, `domain`, `usecase`, `api`, `adapter`, and `adapter-postgres`. The kernel owns value objects and sealed ports. The domain owns pure transition evaluation. The usecase composes domain decisions with checkpoint writes. The adapter-postgres crate persists append-only checkpoints keyed by `(tenant_id, run_id, checkpoint_seq)`.
 
-## Concrete File Targets
+The transition evaluator consumes only a current `StateCheckpoint`, a typed workflow event, and the pinned `spec_id/version_sha`; it must not call wall-clock time, random number generation, network I/O, or storage. That preserves the spec-integrity doctrine in `microservices/workflow-engine/policy/spec-integrity.md`, where system-time access, non-deterministic RNG, uncached I/O, and circular sub-workflow references are forbidden because they break replay.
 
-| Path | Action | Description |
+## §C Deliverables
+
+| Artifact | Action | Substance requirement |
 |---|---|---|
-| `src/crates/oya-workflow-engine-state-machine-kernel/{Cargo.toml,src/{lib,entities,ports,errors}.rs}` | create | `Transition`, `TransitionRule`, `StateCheckpoint` entities + `TransitionEngine`, `InvariantValidator`, `StateCheckpointStore` port traits |
-| `src/crates/oya-workflow-engine-state-machine-domain/{Cargo.toml,src/{lib,transition_eval,invariant_check}.rs}` | create | pure transition eval over spec + current state |
-| `src/crates/oya-workflow-engine-state-machine-usecase/{Cargo.toml,src/{lib,compose}.rs}` | create | orchestrate transition + invariant + checkpoint write via ports |
-| `src/crates/oya-workflow-engine-state-machine-api/{Cargo.toml,src/{lib,types,errors}.rs}` | create | typed I/O |
-| `src/crates/oya-workflow-engine-state-machine-adapter/{Cargo.toml,src/lib.rs}` | create | protocol-neutral impls |
-| `src/crates/oya-workflow-engine-state-machine-adapter-postgres/{Cargo.toml,src/lib.rs}` | create | Postgres checkpoint persistence |
-| `microservices/workflow-engine/catalog/oya-workflow-engine-state-machine-{kernel,domain,usecase,api,adapter,adapter-postgres}.yaml` | create | 6 catalog rows |
-| `Cargo.toml` (workspace) | update | register 6 crates |
+| `microservices/workflow-engine/src/crates/oya-workflow-engine-state-machine-kernel/Cargo.toml` | create | no adapter dependencies; depends only on shared ID/error crates already accepted by repo naming gates |
+| `microservices/workflow-engine/src/crates/oya-workflow-engine-state-machine-kernel/src/entities.rs` | create | `WorkflowState`, `Transition`, `TransitionRule`, `StateCheckpoint`, `CheckpointSeq`, `InvariantViolation` |
+| `microservices/workflow-engine/src/crates/oya-workflow-engine-state-machine-kernel/src/ports.rs` | create | sealed `TransitionEngine`, `InvariantValidator`, `StateCheckpointStore` ports |
+| `microservices/workflow-engine/src/crates/oya-workflow-engine-state-machine-domain/src/transition_eval.rs` | create | pure evaluator for lifecycle and step events from the AsyncAPI contract |
+| `microservices/workflow-engine/src/crates/oya-workflow-engine-state-machine-domain/src/invariant_check.rs` | create | tenant equality, legal terminal-state, pause/resume, cancel, and signal invariants |
+| `microservices/workflow-engine/src/crates/oya-workflow-engine-state-machine-usecase/src/compose.rs` | create | orchestrates evaluate -> validate -> append checkpoint with expected sequence |
+| `microservices/workflow-engine/src/crates/oya-workflow-engine-state-machine-api/src/types.rs` | create | maps OpenAPI/proto transition history fields to kernel types without stringly transitions |
+| `microservices/workflow-engine/src/crates/oya-workflow-engine-state-machine-adapter-postgres/src/lib.rs` | create | checkpoint repository with tenant predicate and optimistic append |
+| `microservices/workflow-engine/catalog/oya-workflow-engine-state-machine-*.yaml` | update/create | six catalog rows matching manifest crate list |
+| `Cargo.toml` | update | workspace members for all six crates |
 
-## Acceptance Gates
+## §D Implementation
 
-```bash
-cargo check -p oya-workflow-engine-state-machine-kernel ... (×6)
-cargo nextest run -p oya-workflow-engine-state-machine-domain --all-features
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-workflow-engine-state-machine-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-workflow-engine-state-machine-domain
-```
+1. Define `WorkflowState` as an enum aligned to proto `RunStatus` and step status fields, with conversion tests proving no unknown production state is silently accepted.
+2. Implement `TransitionEngine::next_state(current, event, spec_ref)` in the domain crate, with event variants sourced from the AsyncAPI lifecycle message names rather than ad hoc strings.
+3. Add invariant checks for tenant equality, monotonic checkpoint sequence, no transition out of `completed/failed/cancelled`, no resume from non-paused state, and no cancel without the policy context required by `policy/tenant-scope.cedar`.
+4. Add the usecase function that loads the current checkpoint, invokes the pure evaluator, validates invariants, and appends a new checkpoint through `StateCheckpointStore` with `expected_checkpoint_seq`.
+5. Implement Postgres append semantics in `adapter-postgres`: one insert per transition; reads always include `tenant_id`; unique key `(tenant_id, run_id, checkpoint_seq)`.
+6. Wire API types so `/runs/{run_id}/steps`, `/runs/{run_id}`, and proto `ListStepExecutions` can rely on checkpoint state without re-deriving from mutable worker state.
+7. Register catalog rows and workspace members, then run port-location and layer-correctness gates against each crate.
 
-## Test Plan
+## §E Acceptance
 
-- kernel: 90%/80% coverage
-- domain: 95%/90% + property tests on transition determinism
-- usecase: 90%/80% with mocked ports
-- adapter-postgres: 85%/75% against testcontainer
+- `cargo check -p oya-workflow-engine-state-machine-kernel --all-features`
+- `cargo check -p oya-workflow-engine-state-machine-domain --all-features`
+- `cargo nextest run -p oya-workflow-engine-state-machine-domain --all-features`
+- `cargo nextest run -p oya-workflow-engine-state-machine-usecase --all-features`
+- `cargo nextest run -p oya-workflow-engine-state-machine-adapter-postgres --all-features`
+- `cargo run -p oya-dev-cli -- gate validate port-location --crate oya-workflow-engine-state-machine-kernel`
+- `cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-workflow-engine-state-machine-domain`
+- Required tests: `transition_eval_replays_identically`, `terminal_state_refuses_late_event`, `tenant_mismatch_refused_before_store`, `checkpoint_append_conflict_detected`, and `pause_resume_signal_sequence_preserved`.
 
-| Test | Verifies |
-|---|---|
-| `test_transition_eval_deterministic` | same (state, event, spec) → same next-state |
-| `test_invariant_four_eyes` | four-eyes constraint refuses single-approver path |
-| `test_checkpoint_persistence_roundtrip` | persist → load returns identical checkpoint |
+## §F Evidence
+
+- Product requirement: `microservices/workflow-engine/PRD.md` names deterministic replay, crash recovery, pause/resume, long-lived signals, and multi-tenant isolation as core engine requirements.
+- Contract evidence: `microservices/workflow-engine/contracts/openapi/workflow-engine.yaml` exposes run state, step reads, and transition history; `contracts/proto/workflow-engine.proto` exposes the same RPC surface.
+- Policy evidence: `microservices/workflow-engine/policy/spec-integrity.md` forbids non-deterministic constructs; `policy/tenant-scope.cedar` binds reads and mutations to tenant-owned workflow data.
+- Runbook evidence: `microservices/workflow-engine/runbooks/workflow-state-corruption-recovery.md` and `runbooks/durable-execution-restart.md` depend on trustworthy checkpoints.
+
+## §G Counterparts
+
+| Counterpart | Relevant behavior | This IP closes |
+|---|---|---|
+| Temporal / Cadence | event-history replay drives deterministic state reconstruction | pure transition evaluator plus append-only checkpoints |
+| Camunda 8 Zeebe | workflow instance state is broker-owned, not REST-handler-owned | state-machine BC owns transitions before adapters persist |
+| AWS Step Functions | state transitions are explicit and replayable from execution history | typed transition set tied to OpenAPI/proto/AsyncAPI events |
+| n8n | best-effort execution state is not deterministic-replay-grade | checkpoint invariants prevent opaque mutable worker state from becoming authority |
 
 ## Next IP
 
 [`IP-004-execution-engine-kernel-domain.md`](IP-004-execution-engine-kernel-domain.md)
 
-## References
+## API Versioning (per ADR-0342)
 
-- PRD §"Bounded Contexts" state-machine row
-- ADR-0035 (Bominal): Workflow engine
-- ADR-0103 (Bominal): Workflow hexagonal migration
+- Authority: ADR-0342.
+- Contract evidence: `microservices/workflow-engine/contracts/openapi/workflow-engine.yaml`, `microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml`, `microservices/workflow-engine/contracts/proto/workflow-engine.proto`.
+- Carrier: `YYYY-MM-DD` value via `Oyatie-Version` header + `/v/<date>/` URL prefix + public proto3 `string oyatie_version = 8001`.
+- Initial `declared_version`: `2026-05-21`.
+- Support window: `N=3` public versions for at least `180` days after deprecation.
+- Internal-mesh exemption: per ADR-0145, internal gRPC over HTTP/3 remains proto3 tag-compatible and does not carry public version routing.

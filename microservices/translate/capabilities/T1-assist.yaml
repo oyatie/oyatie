@@ -106,7 +106,7 @@ pack_overrides:
     forbidden_engines: [google-translate, deepl]
     qe_disabled_for_phi: true  # COMET-Kiwi inference over PHI content forbidden absent BAA-covered endpoint
   pack-eu:
-    eu_ai_act_classification: limited_risk
+    risk_classification: limited_risk
     transparency_obligation: must-label-as-AI-generated per Art. 50; must store evidence_topic record per Art. 13
     art_13_disclosure_per_call: true
     art_50_user_label: true
@@ -131,7 +131,7 @@ cedar_policy_fragments:
   - microservices/translate/policy/ai-act-overlay.md
 
 eval_set:
-  golden_inputs_path: microservices/translate/capabilities/eval/t1-assist-golden.jsonl
+  reference_inputs_path: microservices/translate/capabilities/eval/t1-assist-reference.jsonl
   pass_threshold: 0.92
   eval_metric: |
     translation: BLEU + chrF++ + COMET on WMT-24 dev sets per (source, target) pair;

@@ -13,7 +13,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-006: oya-workflow-engine-event-bus-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis}
+# IP-006: oya-workflow-engine-event-bus-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-valkey}
 
 ## Intent
 
@@ -33,7 +33,7 @@ Typed workflow-event publish/subscribe + outbox + replay-from-offset + backpress
 | `src/crates/oya-workflow-engine-event-bus-api/{...}` | create | typed I/O |
 | `src/crates/oya-workflow-engine-event-bus-adapter/{...}` | create | protocol-neutral impls |
 | `src/crates/oya-workflow-engine-event-bus-adapter-postgres/{Cargo.toml,src/lib.rs,migrations/V1__outbox_schema.sql}` | create | Outbox pattern: append-only outbox table; INSERT trigger; UPDATE/DELETE refused |
-| `src/crates/oya-workflow-engine-event-bus-adapter-redis/{Cargo.toml,src/lib.rs}` | create | Subscription registry + delivery state |
+| `src/crates/oya-workflow-engine-event-bus-adapter-valkey/{Cargo.toml,src/lib.rs}` | create | Subscription registry + delivery state |
 | `microservices/workflow-engine/catalog/oya-workflow-engine-event-bus-*.yaml` | create | 7 catalog rows |
 | `Cargo.toml` (workspace) | update | register |
 
@@ -84,3 +84,12 @@ cargo run -p oya-dev-cli -- gate validate outbox-append-only --crate oya-workflo
 - PRD FR-03, FR-04, FR-13
 - Postgres outbox pattern — `microservices.io/patterns/data/transactional-outbox.html`
 - AsyncAPI contracts at `contracts/asyncapi/workflow-events.yaml`
+
+## API Versioning (per ADR-0342)
+
+- Authority: ADR-0342.
+- Contract evidence: `microservices/workflow-engine/contracts/openapi/workflow-engine.yaml`, `microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml`, `microservices/workflow-engine/contracts/proto/workflow-engine.proto`.
+- Carrier: `YYYY-MM-DD` value via `Oyatie-Version` header + `/v/<date>/` URL prefix + public proto3 `string oyatie_version = 8001`.
+- Initial `declared_version`: `2026-05-21`.
+- Support window: `N=3` public versions for at least `180` days after deprecation.
+- Internal-mesh exemption: per ADR-0145, internal gRPC over HTTP/3 remains proto3 tag-compatible and does not carry public version routing.

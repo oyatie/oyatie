@@ -105,7 +105,7 @@ After 24h without recovery, escalate:
 ## Post-incident review
 
 - Should default circuit-breaker timeout be lowered from 30s?
-- Should subscription cap be raised for enterprise tier?
+- Should subscription cap be raised for paid tenant_class workloads?
 - Should we add tenant-facing "subscription health" dashboard?
 
 ## Drills

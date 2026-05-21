@@ -36,7 +36,7 @@ This document is the canonical operational reference for EU AI Act compliance un
 
 Per ADR-TRANSLATE-0003:
 
-| Content class | Risk tier | Triggers FRIA gate? | Default human-oversight? |
+| Content class | Risk class | Triggers FRIA gate? | Default human-oversight? |
 |---|---|---|---|
 | `UiString` | Limited | No | No |
 | `Marketing` | Limited | No | No |
@@ -134,7 +134,7 @@ Triggered when `content_class` ∈ {legal, medical, employment, credit}. See cla
 ### Art. 15 (Accuracy + robustness + cybersecurity)
 
 - Per-vendor adapter response-shape validator + per-vendor pinned-cert + envelope signing.
-- QE model golden-set evaluation per release (pass ≥ 0.99).
+- QE model reference-set evaluation per release (pass ≥ 0.99).
 - mTLS + Cedar + OpenBao posture covers cybersecurity.
 
 ### Art. 27 (FRIA for deployers of high-risk AI)

@@ -141,7 +141,7 @@ gRPC peer surface; the AsyncAPI catalog enumerates the
 `tasks.task.state.v1` channel. All three must land coherently to
 make T-Outcome-5 work end-to-end.
 
-### Consequence 2 — `via_workflow_id` is observability gold
+### Consequence 2 — `via_workflow_id` is observability paid_scale
 
 When a state transition was driven by workflow-engine, the emitted
 event carries the workflow ID. This enables: (a) "show me all tasks

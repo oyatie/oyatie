@@ -107,7 +107,7 @@ Pending measurement at M03/P01 exit gate:
 - TTI p99 via synthetic Lighthouse harness (test against pack-kr CDN edge).
 - Save round-trip p99 via synthetic save-loop test.
 - Collab CRDT merge p99 via 10-user concurrent drill.
-- Cold-load 5k-node via golden-corpus test.
+- Cold-load 5k-node via reference-corpus test.
 
 ## Key Parity Gaps to Close (oyatie → industry leader)
 

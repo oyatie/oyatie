@@ -31,17 +31,17 @@ Every tenant assigned a primary pack at onboarding. Editor sessions, drafts, col
 
 | Pack | Primary region(s) | Studio cluster footprint | CDN edges | Activated? |
 |---|---|---|---|---|
-| pack-kr | OCI ap-seoul-1 | kr-studio-{pg,redis,ws-gateway}-1 | OCI CDN KR PoPs | YES (M03 launch tenant) |
-| pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-studio-{pg,redis,ws-gateway}-{1,2} | OCI CDN EU PoPs | Conditional (first EU tenant SCC) |
-| pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-studio-{pg,redis,ws-gateway}-{1,2} | OCI CDN US PoPs | Conditional |
-| pack-us-healthcare | OCI us-ashburn-1 (HIPAA-eligible) | us-hc-studio-{pg,redis,ws-gateway}-1; isolated from pack-us | OCI CDN HIPAA-eligible PoPs | Conditional (post-BAA) |
-| pack-jp | OCI ap-tokyo-1 | jp-studio-{pg,redis,ws-gateway}-1 | OCI CDN JP PoPs | Conditional |
-| pack-sg | OCI ap-singapore-1 | sg-studio-{pg,redis,ws-gateway}-1 | OCI CDN SG PoPs | Conditional |
-| pack-au | OCI ap-sydney-1 + ap-melbourne-1 | au-studio-{pg,redis,ws-gateway}-{1,2} | OCI CDN AU PoPs | Conditional |
-| pack-in | OCI ap-hyderabad-1 + ap-mumbai-1 | in-studio-{pg,redis,ws-gateway}-{1,2} | OCI CDN IN PoPs | Conditional (DPDPA) |
-| pack-br | OCI sa-saopaulo-1 + sa-vinhedo-1 | br-studio-{pg,redis,ws-gateway}-{1,2} | OCI CDN BR PoPs | Conditional (LGPD) |
-| pack-ae | OCI me-abudhabi-1 + me-dubai-1 | ae-studio-{pg,redis,ws-gateway}-{1,2} | OCI CDN ME PoPs | Conditional |
-| pack-ksa | OCI me-jeddah-1 + me-riyadh-1 | ksa-studio-{pg,redis,ws-gateway}-{1,2} | OCI CDN KSA PoPs | Conditional (KSA NCA) |
+| pack-kr | OCI ap-seoul-1 | kr-studio-{pg,valkey,ws-gateway}-1 | OCI CDN KR PoPs | YES (M03 launch tenant) |
+| pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-studio-{pg,valkey,ws-gateway}-{1,2} | OCI CDN EU PoPs | Conditional (first EU tenant SCC) |
+| pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-studio-{pg,valkey,ws-gateway}-{1,2} | OCI CDN US PoPs | Conditional |
+| pack-us-healthcare | OCI us-ashburn-1 (HIPAA-eligible) | us-hc-studio-{pg,valkey,ws-gateway}-1; isolated from pack-us | OCI CDN HIPAA-eligible PoPs | Conditional (post-BAA) |
+| pack-jp | OCI ap-tokyo-1 | jp-studio-{pg,valkey,ws-gateway}-1 | OCI CDN JP PoPs | Conditional |
+| pack-sg | OCI ap-singapore-1 | sg-studio-{pg,valkey,ws-gateway}-1 | OCI CDN SG PoPs | Conditional |
+| pack-au | OCI ap-sydney-1 + ap-melbourne-1 | au-studio-{pg,valkey,ws-gateway}-{1,2} | OCI CDN AU PoPs | Conditional |
+| pack-in | OCI ap-hyderabad-1 + ap-mumbai-1 | in-studio-{pg,valkey,ws-gateway}-{1,2} | OCI CDN IN PoPs | Conditional (DPDPA) |
+| pack-br | OCI sa-saopaulo-1 + sa-vinhedo-1 | br-studio-{pg,valkey,ws-gateway}-{1,2} | OCI CDN BR PoPs | Conditional (LGPD) |
+| pack-ae | OCI me-abudhabi-1 + me-dubai-1 | ae-studio-{pg,valkey,ws-gateway}-{1,2} | OCI CDN ME PoPs | Conditional |
+| pack-ksa | OCI me-jeddah-1 + me-riyadh-1 | ksa-studio-{pg,valkey,ws-gateway}-{1,2} | OCI CDN KSA PoPs | Conditional (KSA NCA) |
 
 ### Pack-assignment routing
 

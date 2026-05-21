@@ -62,7 +62,7 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity --microservice ta
 - Every SLO has a matching `record:` + `alert:` rule in
   `prometheusrule.yaml`.
 - Branch protection requires every M03 lane to be green before merge.
-- HG-registration includes pack tags, owner team, capability tier.
+- HG-registration includes pack tags, owner team, tenant_class eligibility, and paid billing components.
 
 ## Halt Conditions
 

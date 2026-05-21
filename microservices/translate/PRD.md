@@ -5,10 +5,10 @@ prd_id: PRD-translate
 microservice: translate
 status: Accepted
 sales_segment: shared-substrate + standalone
-tier: hero-and-substrate
+service_classification: hero-and-substrate
 milestone_first_ship: M01-foundation
 bominal_source: NONE  # net-new per ADR-0135 (no Bominal antecedent)
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-translate + ops-security + council-privacy
@@ -24,7 +24,7 @@ The `translate` microservice is oyatie's machine-translation (MT) and software-l
 - **Real-time text translation** (sub-250 ms p95 for ≤ 500-char segments) routed across in-house oyatie-trained models, external MT vendors (DeepL, Google Cloud Translation, Microsoft Translator, Amazon Translate), and frontier LLMs (Anthropic, OpenAI, Gemini) via `foundry-providers`.
 - **Translation Memory (TM)** with leverage-match scoring: exact (100 %), in-context exact (ICE), fuzzy (75–99 % via minhash-LSH per OmegaT), and TM-leverage decisions per ADR-TRANSLATE-0002.
 - **Termbase + glossary** with per-tenant terminology constraints; TBX (ISO 30042) import/export.
-- **MT-engine routing + fallback** per ADR-TRANSLATE-0001: route to best engine per (language-pair × content-class × quality-tier × residency-pack).
+- **MT-engine routing + fallback** per ADR-TRANSLATE-0001: route to best engine per (language-pair × content-class × quality-profile × residency-pack).
 - **Human-in-the-loop review** (translator → reviewer → approver roles; `workflow-engine` orchestrated) with post-edit-distance metric capture.
 - **Quality Estimation (QE)** — predict edit-distance without a reference (COMET-Kiwi-class); EU AI Act bounds enforced per ADR-TRANSLATE-0003.
 - **Document translation** (DOCX, PPTX, XLSX, PDF, HTML, Markdown, PO, XLIFF, ARB, .strings, .resx, .properties, XLSX-spreadsheet) with format-preserving round-trip per ADR-TRANSLATE-0005 (Pandoc 3.x + LibreOffice 24.x in gVisor sandboxes).
@@ -59,7 +59,7 @@ This µservice is **shared substrate** (every other oyatie product calls it for 
 | FR-08 | quality-estimation client | to receive QE score (0–100) without reference | I can decide whether to flag for human review | quality-estimation | Must |
 | FR-09 | QA tool | to back-translate and compare with source | I detect catastrophic translation failure | back-translation-qa | Should |
 | FR-10 | content localizer | to extract translatable strings from a Markdown/HTML/PO/JSON-i18n/ARB/.strings/.resx/.properties file | I can translate them and re-merge | content-localization | Must |
-| FR-11 | document translator | to translate a DOCX/PPTX/XLSX/PDF file end-to-end with format preserved | round-trip is fidelity-tier-bounded per ADR-TRANSLATE-0005 | document-translation | Must |
+| FR-11 | document translator | to translate a DOCX/PPTX/XLSX/PDF file end-to-end with format preserved | round-trip is fidelity-class-bounded per ADR-TRANSLATE-0005 | document-translation | Must |
 | FR-12 | meet caption stream | to translate audio-derived captions in real time with correction-replay | participants see translated captions ≤ 400 ms p99 from STT output | real-time-translation-stream | Must |
 | FR-13 | i18n developer | to import XLIFF 2.1 / TMX 1.4 / TBX | TMS workflow honours OASIS/LISA/ISO standards | file-import | Must |
 | FR-14 | i18n developer | to export to the same set | round-trip is lossless within fidelity bounds | file-export | Must |
@@ -69,7 +69,7 @@ This µservice is **shared substrate** (every other oyatie product calls it for 
 | FR-18 | bulk-translate client | to submit a 10k-segment XLIFF file and poll job state | result available in ≤ 60 s p95 | bulk-translate | Must |
 | FR-19 | sovereign tenant admin | to assert "no cross-region inference" | engine routing never selects a non-resident endpoint | data-residency-bound-inference | Must |
 | FR-20 | EU tenant operator | to receive Art. 50 disclosure on every QE/MT call | audit + regulatory posture | eu-ai-act-disclosure | Must |
-| FR-21 | language-pack admin | to enable/disable language pairs per tenant | per-tenant pricing tiers reflected | language-pack-management | Must |
+| FR-21 | language-pack admin | to enable/disable language pairs per tenant | tenant_class and paid billing components reflected | language-pack-management | Must |
 | FR-22 | TBX admin | to import per-tenant TBX termbase | local terminology enforced in MT output | termbase-import | Must |
 | FR-23 | translate webhook subscriber | to receive `TranslationCompleted` / `BulkJobCompleted` events | async workflows can react | translate-events | Must |
 | FR-24 | translation requester | to specify content-class (`marketing`, `legal`, `medical`, `code-comment`, `ui-string`, etc.) | engine selection routes per content-class | mt-engine-selection | Should |
@@ -129,6 +129,37 @@ This µservice is **shared substrate** (every other oyatie product calls it for 
   - `pack-cn-stub`: in-house ONLY (CN-region); all external vendors forbidden per PIPL Art. 38–43.
   - `pack-sg` / `pack-au` / `pack-in` / `pack-br` / `pack-ae` / `pack-ksa`: per-pack matrix in `policy/data-residency.md`.
 
+### DR posture (ADR-0343)
+
+- Service target: `translate-router` RTO p99 ≤ 600s and TM/termbase RPO p99 ≤ 300s, matching the existing Availability + SLO section.
+- Compliance floors considered: HIPAA-2024 RTO 3600s/RPO 300s/multi-region true, EU-AI-ACT-2024-HIGH-RISK RTO 1800s/RPO 300s/multi-region true for high-risk QE/MT deployments, SOC2-T2 RTO 14400s/RPO 900s, and KR-PIPA resident-registration-number RTO 3600s/RPO 300s/multi-region true. The effective RPO is 300s; high-risk EU tenants use 600s service RTO inside the 1800s floor.
+- Failover runbook reference: `runbooks/mt-engine-degraded-shed.md` for engine failover, `runbooks/tm-corruption-restore.md` for TM restore, and `runbooks/real-time-caption-stream-stall.md` for streaming recovery.
+- Multi-region posture: active-active router instances per residency pack; stateful TM/termbase ownership stays in tenant home region with replicated restore targets that never violate the engine whitelist.
+- Tenant-visible behavior: single-segment translation falls back to the next allowed engine, while TM leverage may degrade briefly instead of allowing cross-region inference or stale glossary writes.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: 1 vCPU/2GiB router-rest allocation for active tenants, 1GiB TM/termbase storage per language project, four upstream engine connections per enabled language-pair pool, and document-worker scratch storage bounded by uploaded file class.
+- Scaling dimension: `segment_count`, `language_pair`, `content_class`, `quality_profile`, `document_page_count`, and `stream_session` drive independent worker pools.
+- Cell placement class: Tier-2 shared application cell for standard MT; Tier-3 regulated cell for sovereign or medical/legal tenants; document conversion workers use ADR-0338 sandboxed runtime tiers for Pandoc/LibreOffice payloads.
+- Autoscaling boundaries: minimum two router replicas per pack, one TM query worker per hot tenant, maximum eight router/adaptor workers and four document workers per tenant before admission returns async job status.
+- Tenant load profile served: low-latency in-editor translation, bursty 10k-segment XLIFF jobs, and caption streams coexist without a bulk localization job starving real-time calls.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every `TranslationCompleted`, `TmUpdated`, `TermbaseUpdated`, `BulkJob*`, `QualityEstimated`, and `EngineRouted` audit row emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours` in addition to the existing engine/model/residency evidence.
+- Carbon-aware provider routing: yes for bulk/document jobs and non-urgent batch localization when allowed engines satisfy residency and quality; no for real-time caption translation, medical/emergency content, HIPAA-EM, PCI-realtime-fraud, or EU-AI-Act-Annex-III high-risk paths.
+- Tenant cost transparency surface: language-pack management and the FinOps portal show per-language-pair spend, TM leverage savings, engine/provider split, and document-worker energy.
+- Regulatory driver: CSRD, SB-253, and SEC climate-disclosure reporting need cost/energy/emissions attached to the same content-class and provider route that proves Art. 50 transparency and residency compliance.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: REST, webhook, and proto contracts use the YYYY-MM-DD carrier triplet: `Oyatie-API-Version: <date>`, `/api/translate/<date>/...`, and proto3 `api_version` fields.
+- SDK semver model: Rust/TypeScript/Python SDKs publish `major.minor.patch`; semver major changes only when a supported date-versioned contract is removed or broken.
+- Support window: last N=3 public contract dates are supported for at least 180 days.
+- Per-tenant pinning: yes, because localization programs often run long-lived CAT/TMS integrations and need controlled API migration.
+- Internal-mesh exemption: yes; direct gRPC callers from mail, meet, workflow-studio, and other product services keep ADR-0145 routing while boundary contracts remain date-versioned.
+
 ## Bounded Contexts
 
 Per ADR-0105 (13-value canonical layer enum) and ADR-0106, the µservice exposes layers `kernel`, `domain`, `usecase`, `api`, `adapter` (backend-qualified per vendor + per store), `rest`, `worker`, `sdk`, `app`. Per ADR-0131, all crates live under `microservices/translate/src/crates/`.
@@ -161,7 +192,7 @@ JUSTIFICATION:
 NAME: oya-translate-adapter-<backend>
 JUSTIFICATION:
 - microservice = translate
-- bc-tokens = adapter-<backend> (postgres | redis | s3 | meilisearch | foundry-runtime | anthropic | openai | google-translate | deepl | pandoc | libreoffice)
+- bc-tokens = adapter-<backend> (postgres | valkey | s3 | meilisearch | foundry-runtime | anthropic | openai | google-translate | deepl | pandoc | libreoffice)
 - layer = adapter (ADR-0105 13-value enum; backend-qualified per Amendment 3)
 - exemptions claimed: none
 ```
@@ -188,7 +219,7 @@ JUSTIFICATION:
 |---|---|---|
 | TM + termbase + project metadata | **PostgreSQL 16** (HA primary+replica per pack) | `oya-translate-tm-adapter-postgres`, `oya-translate-termbase-adapter-postgres` |
 | TM leverage search + termbase lookup | **Meilisearch 0.10.0** (per pack) | `oya-translate-tm-adapter-meilisearch` |
-| Session + bulk-job state cache | **Valkey 8.1 (Redis wire-compat)** (per pack; sentinel HA) | `oya-translate-bulk-adapter-redis` |
+| Session + bulk-job state cache | **Valkey 8.1 (RESP wire-compatible)** (per pack; sentinel HA) | `oya-translate-bulk-adapter-valkey` |
 | Document storage + bulk-job artifacts | **S3-compatible (OCI Object Storage)** per pack | `oya-translate-doc-adapter-s3`, `oya-translate-bulk-adapter-s3` |
 | In-house MT + QE + LangDetect inference | `foundry-runtime` (vLLM / TGI in-house endpoint) | `oya-translate-adapter-foundry-runtime` |
 | External MT vendors (Anthropic / OpenAI / Google / DeepL) | `foundry-providers` adapter substrate | `oya-translate-adapter-{anthropic, openai, google-translate, deepl}` |
@@ -201,7 +232,7 @@ JUSTIFICATION:
 
 LTS pins per ADR-0133:
 - Postgres 16 (LTS through 2028-11).
-- Valkey 8.1 (Redis wire-compat) (LTS through 2027-Q4).
+- Valkey 8.1 (RESP wire-compatible) (LTS through 2027-Q4).
 - Meilisearch 0.10.0 LTS line.
 - Pandoc 3.x (stable; tracked).
 - LibreOffice 24.x community LTS.

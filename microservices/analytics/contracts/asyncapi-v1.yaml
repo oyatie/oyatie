@@ -23,8 +23,8 @@ channels:
         $ref: '#/components/messages/TenantOnboarded'
       tenant_offboarded:
         $ref: '#/components/messages/TenantOffboarded'
-      tenant_tier_changed:
-        $ref: '#/components/messages/TenantTierChanged'
+      tenant_class_changed:
+        $ref: '#/components/messages/TenantClassChanged'
   events.outbox:
     address: persistent://public/default/oya.events.outbox
     description: Canonical per-µservice outbox stream (ADR-0153)
@@ -62,7 +62,7 @@ operations:
     messages:
       - $ref: '#/channels/tenancy.tenant.events/messages/tenant_onboarded'
       - $ref: '#/channels/tenancy.tenant.events/messages/tenant_offboarded'
-      - $ref: '#/channels/tenancy.tenant.events/messages/tenant_tier_changed'
+      - $ref: '#/channels/tenancy.tenant.events/messages/tenant_class_changed'
   consumeOutboxEvents:
     action: receive
     channel:
@@ -88,10 +88,10 @@ components:
       name: TenantOffboarded
       payload:
         $ref: '#/components/schemas/TenantOffboardedPayload'
-    TenantTierChanged:
-      name: TenantTierChanged
+    TenantClassChanged:
+      name: TenantClassChanged
       payload:
-        $ref: '#/components/schemas/TenantTierChangedPayload'
+        $ref: '#/components/schemas/TenantClassChangedPayload'
     WorkflowExecuted:
       name: WorkflowExecuted
       payload:
@@ -143,11 +143,11 @@ components:
             type: { const: 'oya.tenancy.tenant.onboarded.v1' }
             data:
               type: object
-              required: [tenant_id, residency_class, tier]
+              required: [tenant_id, residency_class, tenant_class]
               properties:
                 tenant_id: { type: string }
                 residency_class: { type: string, enum: [StrictKR, StrictEU, KrWithUsFailover, Global] }
-                tier: { type: string, enum: [Trial, Starter, Growth, Enterprise] }
+                tenant_class: { type: string, enum: [demo_trial, paid] }
     TenantOffboardedPayload:
       allOf:
         - $ref: '#/components/schemas/CloudEventEnvelope'
@@ -159,19 +159,19 @@ components:
               required: [tenant_id]
               properties:
                 tenant_id: { type: string }
-    TenantTierChangedPayload:
+    TenantClassChangedPayload:
       allOf:
         - $ref: '#/components/schemas/CloudEventEnvelope'
         - type: object
           properties:
-            type: { const: 'oya.tenancy.tenant.tier_changed.v1' }
+            type: { const: 'oya.tenancy.tenant.tenant_class_changed.v1' }
             data:
               type: object
-              required: [tenant_id, old_tier, new_tier]
+              required: [tenant_id, old_tenant_class, new_tenant_class]
               properties:
                 tenant_id: { type: string }
-                old_tier: { type: string }
-                new_tier: { type: string }
+                old_tenant_class: { type: string, enum: [demo_trial, paid] }
+                new_tenant_class: { type: string, enum: [demo_trial, paid] }
     WorkflowExecutedPayload:
       allOf:
         - $ref: '#/components/schemas/CloudEventEnvelope'

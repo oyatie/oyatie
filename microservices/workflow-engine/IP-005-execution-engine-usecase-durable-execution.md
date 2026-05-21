@@ -13,7 +13,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-005: oya-workflow-engine-execution-engine-{usecase,api,adapter,adapter-postgres,adapter-redis}
+# IP-005: oya-workflow-engine-execution-engine-{usecase,api,adapter,adapter-postgres,adapter-valkey}
 
 ## Intent
 
@@ -26,7 +26,7 @@ The engineering heart of this phase: durable-execution authoritative store (Post
 - `oya-workflow-engine-execution-engine-api` (typed I/O)
 - `oya-workflow-engine-execution-engine-adapter` (protocol-neutral impls)
 - `oya-workflow-engine-execution-engine-adapter-postgres` (durable run state authoritative)
-- `oya-workflow-engine-execution-engine-adapter-redis` (ephemeral lease + step claim state)
+- `oya-workflow-engine-execution-engine-adapter-valkey` (ephemeral lease + step claim state)
 
 ## Concrete File Targets
 
@@ -36,8 +36,8 @@ The engineering heart of this phase: durable-execution authoritative store (Post
 | `src/crates/oya-workflow-engine-execution-engine-api/{...}` | create | RunStartRequest/Response, StepDispatchRequest/Response, error variants |
 | `src/crates/oya-workflow-engine-execution-engine-adapter/{...}` | create | protocol-neutral impls |
 | `src/crates/oya-workflow-engine-execution-engine-adapter-postgres/{Cargo.toml,src/{lib,run_store,step_store,migrations}.rs,migrations/V1__initial_schema.sql,migrations/V2__add_idempotency.sql,migrations/V3__add_citus_distribution.sql}` | create | Postgres-backed run state + outbox cross-references |
-| `src/crates/oya-workflow-engine-execution-engine-adapter-redis/{Cargo.toml,src/{lib,lease_store,ephemeral_state}.rs}` | create | Valkey lease coordinator |
-| `microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-{usecase,api,adapter,adapter-postgres,adapter-redis}.yaml` | create | 5 catalog rows |
+| `src/crates/oya-workflow-engine-execution-engine-adapter-valkey/{Cargo.toml,src/{lib,lease_store,ephemeral_state}.rs}` | create | Valkey lease coordinator |
+| `microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-{usecase,api,adapter,adapter-postgres,adapter-valkey}.yaml` | create | 5 catalog rows |
 | `Cargo.toml` (workspace) | update | register 5 crates |
 
 ## Code Shape (usecase)
@@ -92,7 +92,7 @@ impl<RS, ES, TE, IV, EB, AC> RunLifecycleOrchestrator<RS, ES, TE, IV, EB, AC> {
 ```bash
 cargo nextest run -p oya-workflow-engine-execution-engine-usecase --all-features
 cargo nextest run -p oya-workflow-engine-execution-engine-adapter-postgres --all-features
-cargo nextest run -p oya-workflow-engine-execution-engine-adapter-redis --all-features
+cargo nextest run -p oya-workflow-engine-execution-engine-adapter-valkey --all-features
 cargo run -p oya-dev-cli -- gate validate deterministic-replay --crate oya-workflow-engine-execution-engine-usecase
 ```
 
@@ -124,3 +124,19 @@ cargo run -p oya-dev-cli -- gate validate deterministic-replay --crate oya-workf
 - `policy/spec-integrity.md` (forbidden constructs)
 - Temporal durability docs — `docs.temporal.io/dev-guide/durability`
 - Postgres optimistic concurrency — `postgresql.org/docs/current/explicit-locking.html`
+
+## Sustainability emission (per ADR-0344)
+
+- Authority: ADR-0344.
+- Trigger evidence: `microservices/workflow-engine/IP-005-execution-engine-usecase-durable-execution.md` matched `emission`.
+- Per-call audit row fields: `cost_usd_minor_units`, `co2_grams`, `watt_hours`.
+- Emission evidence: `microservices/workflow-engine/manifest.json` plus this IP's metered trigger text.
+- Carbon-aware scheduling: eligible only when ADR-0344 D-9 compliance-pack exclusions do not bar deferral; otherwise the Cedar scheduler rejects delay while still emitting carbon fields.
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell.
+
+## Pod runtime tier (per ADR-0338)
+
+- Authority: ADR-0338.
+- `pod_runtime_tier`: `0`.
+- Justification: tenant-customer code exists in this IP execution path; Kata Containers + Cloud Hypervisor are required.
+- Surface evidence: `microservices/workflow-engine/IP-005-execution-engine-usecase-durable-execution.md`, `microservices/workflow-engine/manifest.json`; trigger terms `sandbox`.

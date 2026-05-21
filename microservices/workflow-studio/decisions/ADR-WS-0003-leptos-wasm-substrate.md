@@ -169,7 +169,7 @@ The hybrid suggested in PRD Q2 as the M03-preview fallback.
 
 - `oya-governance-wasm-bundle-sri` — BLOCKER lane on `dev`, `staging` per PHASE-01 (every WASM chunk has SRI; mismatch refuses load).
 - `workflow-studio.editor_tti_p99_ms` — Lighthouse synthetic against pack-kr CDN edge; target ≤ 2s p99 GA.
-- `workflow-studio.canvas_frame_time_p99_ms` — frame-budget assertion; alarm if p99 > 16.7ms during drag interaction on 5k-node golden graph.
+- `workflow-studio.canvas_frame_time_p99_ms` — frame-budget assertion; alarm if p99 > 16.7ms during drag interaction on 5k-node reference graph.
 - `workflow-studio.wasm_bundle_size_bytes` — per-chunk + total; release gate alarms on >+50 KB gzip delta.
 - `workflow-studio.canvas_hydration_time_p99_ms` — initial hydration after WASM load; bounded by TTI budget.
 
@@ -182,7 +182,7 @@ The hybrid suggested in PRD Q2 as the M03-preview fallback.
 
 ### Performance budget verification (gating GA)
 
-- 5k-node golden graph: cold-load ≤ 3s; drag p99 frame time ≤ 16.7ms; CRDT merge p99 ≤ 100ms — all measured at M03/P01 exit gate per PHASE-01 §"End-to-end drill gates".
+- 5k-node reference graph: cold-load ≤ 3s; drag p99 frame time ≤ 16.7ms; CRDT merge p99 ≤ 100ms — all measured at M03/P01 exit gate per PHASE-01 §"End-to-end drill gates".
 - WebGL `-adapter-webgl` exploration: kept under `microservices/workflow-studio/src/crates/oya-workflow-studio-visual-canvas-adapter-webgl/` as a non-blocking exploration; activates only if SVG hits a measured ceiling. Decision scheduled-for-distinct-tracked-work to a successor-IP ADR if invoked.
 
 ### Risk register

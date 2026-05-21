@@ -7,7 +7,7 @@ status: Accepted
 sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
-related_adrs: [ADR-0001, ADR-0003, ADR-0007, ADR-0009, ADR-0049, ADR-0110, ADR-0114, ADR-0128, ADR-0131, ADR-0139, ADR-0145, ADR-0157, ADR-0158, ADR-0159, ADR-0163]
+related_adrs: [ADR-0001, ADR-0003, ADR-0007, ADR-0009, ADR-0049, ADR-0110, ADR-0114, ADR-0128, ADR-0131, ADR-0139, ADR-0145, ADR-0157, ADR-0158, ADR-0159, ADR-0163, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/feature-flag-substrate-canonical.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-18
 owner_team: axis-governance
@@ -72,6 +72,37 @@ Out:
 - **Throughput** ≥ 100k eval/s per replica.
 - **Availability** ≥ 99.99%.
 - **Cache hit rate** ≥ 99% at client SDK.
+
+### DR posture (ADR-0343)
+
+- Service target: flag evaluation remains cell-local with RTO p99 ≤ 60s for server restart and RPO p99 ≤ 5s for flag definition replication, matching the existing definition-replication SLO.
+- Compliance floors considered: HIPAA-2024 RTO 3600s/RPO 300s/multi-region true, PCI-DSS-L1-v4 RTO 86400s/RPO 3600s, SOC2-T2 RTO 14400s/RPO 900s, and EU-AI-ACT-2024-HIGH-RISK RTO 1800s/RPO 300s/multi-region true for flagged automated-decision controls. The effective service target is 60s/5s; multi-region active-active is required by the existing cell model.
+- Failover runbook reference: `runbooks/killswitch-engaged.md`, `runbooks/flag-evaluation-regression.md`, and `runbooks/audit-replay.md`.
+- Multi-region posture: active-active per cell with local SDK cache fallback; definitions replicate asynchronously within the 5s p99 lag budget and each sovereign pack resolves inside its declared cell.
+- Tenant-visible behavior: a tenant retains deterministic last-known/default flag behavior during cell failover, so an emergency kill-switch degrades toward safety instead of disappearing.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: 0.1 vCPU/128MiB server capacity, 10MiB flag-definition storage, 100MiB SDK/evaluation cache, and one streaming SDK connection class per active application.
+- Scaling dimension: `eval_per_second`, `flag_definition_count`, `targeting_rule_complexity`, `sdk_stream_connection`, and `audit_required_eval` size the evaluator and audit replay lanes.
+- Cell placement class: Tier-2 minimum from `manifest.json` `cell_eligibility.tier_min`; ADR-0338 Tier-1/Kata applies to privileged kill-switch mutation workers while hot evaluation replicas stay in the low-latency runtime tier declared by the cell overlay.
+- Autoscaling boundaries: minimum two evaluator replicas per cell, maximum 100 evaluator replicas per cell before tenant rate limits and SDK cache TTLs absorb additional load; audit-required tenants get a separate replay queue.
+- Tenant load profile served: steady high-QPS SDK evaluation, brief rollout storms, and low-frequency compliance audits stay isolated from mutation and kill-switch control paths.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every flag change, evaluation for `audit_required: true`, kill-switch invocation, experiment conclusion, pack override, rollout advance, and rollback row emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours`.
+- Carbon-aware provider routing: no for online flag evaluation or kill-switch paths because latency and safety dominate; yes for offline experiment aggregation, replay, and attribution jobs when ADR-0343 floors remain satisfied.
+- Tenant cost transparency surface: the flag audit ledger, experiment attribution dashboard, and FinOps portal expose per-flag evaluation volume, audit replay cost, cell, and compliance_pack.
+- Regulatory driver: CSRD, SB-253, and SEC climate-disclosure exports need auditable energy/cost evidence for automated decision flags; aggregate-only emissions would not prove which tenant or pack produced the workload.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: OpenFeature REST/gRPC, AsyncAPI, and proto contracts use the YYYY-MM-DD carrier triplet: `Oyatie-API-Version: <date>`, `/api/feature-flags/<date>/...`, and proto3 `api_version` fields.
+- SDK semver model: Rust/TypeScript/Python/OpenFeature SDKs publish `major.minor.patch`; semver major aligns with breaking changes to a supported date-versioned contract.
+- Support window: last N=3 public contract dates are supported for at least 180 days.
+- Per-tenant pinning: yes for server-side providers and SDK clients, because rollouts can span application release windows.
+- Internal-mesh exemption: yes; governance and progressive-delivery direct gRPC keep ADR-0145 behavior while the public OpenFeature surface remains date-versioned.
 
 ## Architecture
 

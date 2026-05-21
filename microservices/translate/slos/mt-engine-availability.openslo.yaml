@@ -8,7 +8,7 @@ metadata:
     microservice: translate
     bc: mt-engine-router
     sli_class: availability
-    tier: hero-and-substrate
+    service_classification: hero-and-substrate
     owner_team: axis-translate + ops-sre-reliability
     pack_scope: all
 spec:

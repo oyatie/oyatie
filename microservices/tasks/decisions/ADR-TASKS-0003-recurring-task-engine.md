@@ -149,7 +149,7 @@ via the shared resolver.
 The domain validator refuses `FREQ ∈ {SECONDLY, MINUTELY, HOURLY}`.
 A future product decision could relax this (e.g., a 6-hour security-
 patrol task in physical-security packs); doing so requires an ADR
-amendment + a corresponding capability tier review per ADR-TASKS-0006.
+amendment + a corresponding tenant_class and paid billing-component review per ADR-0329, ADR-0330, ADR-0331, and ADR-TASKS-0006.
 
 ## References
 

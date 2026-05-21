@@ -84,12 +84,12 @@ When high-risk classification triggers:
 5. **Record-keeping (Art. 12)** — `EuAiActDisclosure` + `QualityEstimated` + `TranslationCompleted` events stored 10y per audit-chain.
 6. **Transparency to deployers (Art. 13)** — disclosure event includes model id + jurisdiction + classification.
 7. **Human oversight (Art. 14)** — high-risk QE results NEVER auto-accept; they are routed through workflow-engine for human review.
-8. **Accuracy + robustness + cybersecurity (Art. 15)** — QE model versioned + canary-deployed + golden-set evaluated (pass ≥ 0.99) + cybersecurity via mTLS + Cedar.
+8. **Accuracy + robustness + cybersecurity (Art. 15)** — QE model versioned + canary-deployed + reference-set evaluated (pass ≥ 0.99) + cybersecurity via mTLS + Cedar.
 
 ### 3. QE deployment lifecycle
 
 - Model versioned: `translate-qe-comet-kiwi-vN`.
-- Golden eval set: `microservices/translate/capabilities/eval/qe-golden.jsonl`; pass threshold 0.99; refreshed per release per ADR-0139.
+- reference eval set: `microservices/translate/capabilities/eval/qe-reference.jsonl`; pass threshold 0.99; refreshed per release per ADR-0139.
 - Rollback: per `runbooks/quality-estimation-rollback.md` ≤ 30 min RTO.
 - Per-call `QualityScore.eu_ai_act_classification` field always populated.
 
@@ -150,7 +150,7 @@ Per `policy/ai-act-overlay.md`, every µservice that consumes translate's QE sco
 
 ### neutral
 
-1. **Quarterly golden eval** is the same cadence as other QE deployments in industry; no new burden.
+1. **Quarterly reference eval** is the same cadence as other QE deployments in industry; no new burden.
 2. **QE deployment via foundry-runtime** is the same pattern as MT + LangDetect; no new runtime concern.
 3. **Per-call disclosure event** is sealed with Ed25519 like every other translate event; uniform posture.
 
@@ -158,7 +158,7 @@ Per `policy/ai-act-overlay.md`, every µservice that consumes translate's QE sco
 
 - `tests/integration/eu_ai_act_disclosure_emitted_per_qe_call.rs`.
 - `tests/integration/high_risk_content_class_requires_fria.rs`.
-- `tests/integration/golden_eval_pass_rate_99.rs`.
+- `tests/integration/reference_eval_pass_rate_99.rs`.
 - Annual external EU AI Act audit by privacy counsel.
 - Workflow Studio ADR-WS-0005 cross-validation.
 

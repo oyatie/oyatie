@@ -17,4 +17,4 @@ allowed_dependency_edges: [kernel, domain, usecase, api]
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, AUDIT]
 operational_classes_owned: [AUDIT]
 autonomy_tier_required: T2
-eu_ai_act_classification: limited_risk
+risk_classification: limited_risk

@@ -34,7 +34,7 @@ may fail intermittently if not mitigated.
    - **Viral sign-in (e.g., post-OAuth-callback)**: high but concentrated source IPs; success rate normal.
    - **Cookie replay attack**: many sessions with same fingerprint; investigate via auth-chain.
    - **Legitimate spike** (new tenant onboarding; product launch).
-2. Confirm Valkey + Redis-Sentinel/Cluster status: which node memory pressure? Are evictions occurring?
+2. Confirm Valkey Sentinel/Cluster status: which node memory pressure? Are evictions occurring?
 3. Confirm HPA on auth-gateway and session-store scaling.
 
 ## Steps

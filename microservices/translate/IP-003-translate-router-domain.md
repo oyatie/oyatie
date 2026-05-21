@@ -75,7 +75,7 @@ pub fn select(req: &TranslationRequest, candidates: &[EngineCandidate], policy: 
         return Err(RouterError::NoResidencyCompliantEngine);
     }
 
-    // 2. Capability filter (language pair, quality tier, content class)
+    // 2. Capability filter (language pair, quality profile, content class)
     let cap_filtered: Vec<_> = residency_filtered.iter()
         .filter(|c| c.language_pair_supported && c.eligible)
         .copied()
@@ -133,3 +133,22 @@ Per FR-15 + FR-16:
 ## Next IP
 
 [`IP-004-translate-router-usecase-and-api.md`](IP-004-translate-router-usecase-and-api.md)
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/translate/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `postgres_wal_g`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/translate/IP-003-translate-router-domain.md:24` - - w_lat  · normalize(p99_latency_ms); `microservices/translate/IP-003-translate-router-domain.md:60` - let lat  = weights.lat  * normalize_latency(candidate.p99_latency_ms);.
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/translate/IP-003-translate-router-domain.md:23` - - w_cost · normalize(cost_per_1k_chars_usd); `microservices/translate/IP-003-translate-router-domain.md:59` - let cost = weights.cost * normalize_cost(candidate.cost_per_1k_chars_usd);.

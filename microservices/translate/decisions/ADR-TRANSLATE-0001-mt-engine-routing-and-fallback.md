@@ -30,7 +30,7 @@ The `translate` µservice must route per-call to the best machine-translation en
 The routing decision must satisfy hyperscaler-grade bars across four orthogonal axes:
 
 1. **Residency** (HARD; default-deny per ADR-TRANSLATE-0004).
-2. **Capability** (language-pair × content-class × quality-tier supported by the engine).
+2. **Capability** (language-pair × content-class × quality-profile supported by the engine).
 3. **Cost** (per-tenant cost ceiling + per-segment cost-per-1K-chars).
 4. **Latency + availability** (rolling-window health from observability + foundry-providers).
 
@@ -62,14 +62,14 @@ Subject to **hard filters** (in order):
 2. **Capability filter** — `language_pair_supported && quality_tier_supported && content_class_supported`.
 3. **Health filter** — engine availability ≥ tenant minimum (default 99 % rolling 15 m); demoted engines excluded.
 
-Weights vary by **quality tier**:
+Weights vary by **quality profile**:
 
-| Quality tier | w_fit | w_cost | w_lat | w_avail | w_pref |
+| Quality profile | w_fit | w_cost | w_lat | w_avail | w_pref |
 |---|---|---|---|---|---|
 | Draft | 0.4 | 0.3 | 0.1 | 0.1 | 0.1 |
 | Standard (default) | 0.4 | 0.2 | 0.2 | 0.1 | 0.1 |
 | Premium | 0.6 | 0.1 | 0.1 | 0.1 | 0.1 |
-| eIDAS (signed-translation tier) | 0.5 | 0.1 | 0.1 | 0.2 | 0.1 |
+| eIDAS (signed-translation profile) | 0.5 | 0.1 | 0.1 | 0.2 | 0.1 |
 
 **In-house parity bar**: the router prefers in-house only when `(BLEU-on-eval-set ≥ 0.95× incumbent) AND (cost ≤ 0.5× incumbent) AND (p99 ≤ 1.2× incumbent)` per quarterly council-architecture review.
 
@@ -107,7 +107,7 @@ Weights vary by **quality tier**:
 
 - **Pros**: best quality on contextual content; consistent UX.
 - **Cons**: 10–100× higher cost than NMT for short segments; latency higher than NMT; rate-limit-bound; residency-bound; not appropriate for ui-string + code-comment content classes.
-- **Verdict**: rejected as default. LLM-class engines used per quality-tier + content-class.
+- **Verdict**: rejected as default. LLM-class engines used per quality-profile + content-class.
 
 ### Alternative F — Aggregator (LiteLLM / OpenRouter pass-through)
 

@@ -11,7 +11,7 @@ lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
   github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
   source_adrs: [ADR-0056, ADR-0105, ADR-0131]
-allowed_dependency_edges: [kernel, domain, usecase, api, adapter, adapter-redis, sdk]
+allowed_dependency_edges: [kernel, domain, usecase, api, adapter, adapter-valkey, sdk]
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, AUDIT, INTERNAL_ONLY]
 operational_classes_owned: [AUDIT, BEHAVIORAL_TENANT_PRODUCT]
 autonomy_tier_required: T2

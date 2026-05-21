@@ -22,7 +22,7 @@ LexoRank-style re-rank for board drag-and-drop moves (no CRDT — pure
 deterministic algorithm); Loro 1.x CRDT for collaborative description
 editing only (aligned with workflow-studio ADR-WS-0001 CRDT scope).
 Saved-view kinds per PRD: list / board / gantt / calendar / timeline /
-table. Redis-backed `ViewStateStore` for presence + cursor; per-tenant
+table. Valkey-backed `ViewStateStore` for presence + cursor; per-tenant
 key prefix; cluster-mode-safe.
 
 Realtime path: WebSocket gateway on `view-engine-rest` (port 8443)
@@ -32,21 +32,21 @@ the same project. Backpressure: bounded per-connection ring buffer
 
 ## ChangeSet boundary
 
-8 view-engine crates (kernel/domain/usecase/api/adapter/adapter-redis/
+8 view-engine crates (kernel/domain/usecase/api/adapter/adapter-valkey/
 rest/app) — kernel + domain already authored in IP-005; this IP fills
-the remaining 6. Loro 1.x dependency added; Valkey adapter (Redis wire-compat) implements
-`ViewStateStore` against Valkey 8.1 (Redis wire-compat).
+the remaining 6. Loro 1.x dependency added; Valkey adapter (RESP wire-compatible) implements
+`ViewStateStore` against Valkey 8.1 (RESP wire-compatible).
 
 ## Crate Naming
 
-`oya-tasks-view-engine-{usecase,api,adapter,adapter-redis,rest,app}`
+`oya-tasks-view-engine-{usecase,api,adapter,adapter-valkey,rest,app}`
 per ADR-0056 v4.1 + ADR-0105 Amendment 3 backend-qualification.
 
 ## Concrete File Targets
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/tasks/src/oya-tasks-view-engine-{usecase,api,adapter,adapter-redis,rest,app}/src/lib.rs` | created/replaced | 6-crate completion |
+| `microservices/tasks/src/oya-tasks-view-engine-{usecase,api,adapter,adapter-valkey,rest,app}/src/lib.rs` | created/replaced | 6-crate completion |
 | `microservices/tasks/src/oya-tasks-view-engine-domain/tests/rerank_determinism.rs` | created | property test |
 | `microservices/tasks/src/oya-tasks-view-engine-usecase/tests/crdt_merge.rs` | created | Loro convergence |
 | `microservices/tasks/catalog/oya-tasks-view-engine-*.yaml` | created | catalog entries |

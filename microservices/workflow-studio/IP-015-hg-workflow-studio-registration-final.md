@@ -64,7 +64,7 @@ Three files updated + evidence emission:
     "authority-cohesion", "hyperscaler-maturity-claims"
   ],
   "drills_passed": [
-    "round-trip byte-equality (100/100 golden specs)",
+    "round-trip byte-equality (100/100 reference specs)",
     "10-user concurrent collab (no silent loss)",
     "Cedar per-seat gate (seat-overage refused)",
     "TTI budget (p99 ≤ 2s GA)",
@@ -124,3 +124,30 @@ End of M03/P01 phase. Next phase: M03/P02-collab-marketplace-substrate (definiti
 - microservices/workflow-studio/PHASE-01-VISUAL-AUTHORING-SUBSTRATE.md §"Acceptance Gates".
 - microservices/workflow-studio/competitor-parity-matrix.md.
 - /specs/hyperscaler-gates.json schema.
+
+## Counterpart Anchors
+This workflow-studio IP is measured against the local Workflow Studio benchmark envelope: n8n for visual workflow authoring depth, Zapier for broad trigger/action accessibility, Make for visual branching and scenario ergonomics, and Workato for enterprise workflow governance. The IP must keep Oyatie's differentiator intact: canonical workflow_spec.v1 round-trip, Cedar-gated save/publish, tenant-scoped collaboration, and audit evidence rather than counterpart-specific runtime authority.
+
+## DR posture (per ADR-0343)
+
+- ha_trigger_evidence: `microservices/workflow-studio/IP-015-hg-workflow-studio-registration-final.md` matched [`p99`].
+- applicable_compliance_pack_floor: [`HIPAA-2024`, `SOC2-T2`, `ISO27001-2022`] from `specs/compliance-pack-floors.json`; `manifest.json#dr` has no D-2 numeric override in this checkout.
+- rto_p99_seconds_target: `3600`; rpo_p99_seconds_target: `300`.
+- multi_region_active_active: `true`; floor_requires_active_active: `true`.
+- backup_substrate: [`postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `audit_chain_merkle_seal`].
+- evidence_paths: [`microservices/workflow-studio/IP-015-hg-workflow-studio-registration-final.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/ARCHITECTURE.md`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/multi-region.md`, `microservices/workflow-studio/capacity-model.md`].
+
+## Sustainability emission (per ADR-0344)
+
+- metering_trigger_evidence: `microservices/workflow-studio/IP-015-hg-workflow-studio-registration-final.md` matched [`emission`].
+- per_call_audit_row_fields: `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, `region`, `cell`.
+- carbon_aware_scheduling: eligible only for deferrable work after compliance-pack exclusions and active RTO/RPO floors are satisfied; excluded from realtime Tier 0/1 paths.
+- finops_portal_rollup_axes: `tenant`, `product`, `capability`, `provider`, `cell`.
+- evidence_paths: [`microservices/workflow-studio/IP-015-hg-workflow-studio-registration-final.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/capacity-model.md`, `microservices/workflow-studio/compliance.md`, `microservices/workflow-studio/ARCHITECTURE.md`].
+
+## Pod runtime tier (per ADR-0338)
+
+- pod_runtime_tier: `0`.
+- runtime_requirement: Kata Containers plus Cloud Hypervisor REQUIRED.
+- justification: tenant-customer code exists in this IP execution path; trigger_terms: [`workflow-studio`].
+- surface_evidence_paths: [`microservices/workflow-studio/IP-015-hg-workflow-studio-registration-final.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/templates/index.json`, `microservices/workflow-studio/templates/schemas/workflow-template.schema.json`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/ARCHITECTURE.md`].

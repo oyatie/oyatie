@@ -21,7 +21,7 @@ doc_status: published
 
 Any of:
 
-- FM-20 (QE score distribution drift; macro-bias > 5 points vs the deployed-version golden eval set).
+- FM-20 (QE score distribution drift; macro-bias > 5 points vs the deployed-version reference eval set).
 - FM-21 (QE p99 latency exceeds 200 ms p99 budget for ≥ 15 min sustained).
 - FM-22 (QE bound-violation: tenant complains that QE flagged accurate human-quality translations as low-quality at > 10× baseline).
 - FM-23 (EU AI Act Art. 13 transparency record missing for ≥ 1 % of `jurisdiction=EU` invocations).
@@ -31,7 +31,7 @@ Any of:
 
 | Symptom | Severity | Notify |
 |---|---|---|
-| Drift (golden-eval bias > 5 pts) | Sev-2 | axis-translate + axis-foundry-runtime |
+| Drift (reference-eval bias > 5 pts) | Sev-2 | axis-translate + axis-foundry-runtime |
 | QE p99 budget breach | Sev-2 | axis-translate + ops-sre-reliability |
 | Bound-violation (tenant impact) | Sev-1 | council-privacy + tenant comms |
 | EU AI Act Art. 13 disclosure gap | Sev-1 | council-privacy + DPA-notification clock starts |
@@ -52,7 +52,7 @@ Any of:
 
 | Hypothesis | Signal | Investigation |
 |---|---|---|
-| Model drift after retrain | timing matches deploy; golden-eval bias regressed | rerun eval golden set per pack; bisect retrain |
+| Model drift after retrain | timing matches deploy; reference-eval bias regressed | rerun eval reference set per pack; bisect retrain |
 | Language-pair skew | bias clusters on `(source_lang, target_lang)` | retrain with lang-pair-balanced data or disable for that pair |
 | Adversarial input pattern | tenant submits crafted segments that score 0 falsely | sample 100 verdicts; ops-security review |
 | EU AI Act Art. 13 disclosure gap | `oya_translate_eu_ai_act_disclosure_emitted_total` drops | check disclosure-emitter adapter; verify per-call gate |
@@ -64,7 +64,7 @@ Per ADR-TRANSLATE-0003 §"bounds":
 
 - QE score MUST be in `[0.0, 100.0]` inclusive; out-of-band → reject + log.
 - Per-call disclosure record MUST be emitted on `jurisdiction = EU` invocations.
-- Per-language-pair confidence interval MUST be ≥ 0.7 (per golden eval).
+- Per-language-pair confidence interval MUST be ≥ 0.7 (per reference eval).
 - `oya_translate_qe_bound_violation_total > 0` is HARD; immediate Sev-1.
 
 Verification commands:
@@ -93,7 +93,7 @@ When QE has incorrectly flagged human-quality translations:
 
 ## Verification (After Recovery)
 
-- `oya_translate_qe_macro_bias` returns within ± 2 pts of golden-eval baseline.
+- `oya_translate_qe_macro_bias` returns within ± 2 pts of reference-eval baseline.
 - `oya_translate_qe_score_latency_seconds_p99 < 0.2` for 30 min sustained.
 - `oya_translate_qe_bound_violation_total == 0` for 1 h sustained.
 - `oya_translate_eu_ai_act_disclosure_emitted_total / oya_translate_qe_invocations_total{jurisdiction="EU"} == 1.0` for 1 h.

@@ -29,7 +29,7 @@ The canonical contract lives at:
 
 Contract changes go through:
 1. Author PR with contract change.
-2. CI lane runs `oya-foundry-fitness-api-contract-stability` — denies breaking changes per ADR-0007 governance.
+2. CI lane runs `oya-governance-api-contract-stability` — denies breaking changes per ADR-0007 governance.
 3. If breaking change is intentional: ADR amendment + major version bump.
 4. SDK regeneration triggered by tag.
 

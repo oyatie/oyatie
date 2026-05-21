@@ -65,8 +65,8 @@ postgres_storage_per_day       = (total_sessions_per_day × editor_session_per_r
 postgres_storage_30d_hot       = postgres_storage_per_day × 30
 postgres_storage_90d_llm       = total_llm_invocations_per_day × 90 × llm_assist_per_row
 
-redis_state_per_session        ≈ 50KB (CRDT state + cursor + presence)
-redis_total                    = total_active_sessions × redis_state_per_session × 2 (HA replication)
+valkey_state_per_session        ≈ 50KB (CRDT state + cursor + presence)
+valkey_total                    = total_active_sessions × valkey_state_per_session × 2 (HA replication)
 ```
 
 ### CDN
@@ -86,7 +86,7 @@ total_cdn_egress_per_day       = (total_sessions_per_day × cdn_egress_per_sessi
 postgres_coordinator_replicas       = 2  (HA primary + standby; always)
 postgres_worker_replicas            = ceil(total_active_sessions / 50_000) × 1.2 buffer
 postgres_read_replica_replicas      = postgres_worker_replicas × 1
-redis_sentinel_replicas             = 3  (quorum)
+valkey_sentinel_replicas             = 3  (quorum)
 
 visual_canvas_rest_replicas         = max(2, ceil(qps_rest / 500)) × 1.2
 collab_crdt_worker_replicas         = max(3, ceil(total_ws_connections / 30_000)) × 1.5 buffer  (WS-stateful; lease-bound)
@@ -130,10 +130,10 @@ shard_count                    = ceil(total_postgres_storage / per_shard_size_ta
 ## Valkey Sizing
 
 ```
-total_redis_keys               = total_active_sessions × 4 (CRDT state + cursor + presence + lease)
+total_valkey_keys               = total_active_sessions × 4 (CRDT state + cursor + presence + lease)
                               + total_active_subscriptions
-redis_memory                   = total_redis_keys × 50KB + 1GB Sentinel overhead
-redis_replicas                 = 3 (quorum)
+valkey_memory                   = total_valkey_keys × 50KB + 1GB Sentinel overhead
+valkey_replicas                 = 3 (quorum)
 ```
 
 ## WebSocket Gateway Sizing
@@ -180,7 +180,7 @@ Replica counts:
   postgres_coordinator     = 2
   postgres_worker          = max(ceil(100 / 50_000), 4) → 4 (HA minimum)
   postgres_read_replica    = 4
-  redis_sentinel           = 3
+  valkey_sentinel           = 3
   visual_canvas_rest       = 2 (HA min)
   collab_crdt_worker       = max(3, ceil(120 / 30_000)) = 3
   node_library_rest        = 2
@@ -205,7 +205,7 @@ Total Studio storage (XS, M03 launch):
 ## References
 
 - Postgres + Citus docs — `docs.citusdata.com/`.
-- Valkey Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `valkey.io/topics/sentinel`.
 - axum WebSocket — `docs.rs/axum/latest/axum/extract/ws/`.
 - OCI CDN — `oracle.com/cloud/cdn/`.
 - `microservices/workflow-studio/cost-budget.md`.

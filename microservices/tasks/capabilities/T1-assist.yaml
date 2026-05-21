@@ -46,7 +46,7 @@ capabilities:
     latency_budget_p99_ms: 1500
     audit_event: TaskAutoCategorised (Ed25519-sealed; payload — task id hash + project id + label list hash + reversibility window expiry)
     fallback_on_model_failure: fall back to T0 suggestion mode
-    eu_ai_act_classification: minimal-risk (no employment-context auto-action; only categorisation)
+    risk_classification: minimal-risk (no employment-context auto-action; only categorisation)
     user_label: "AI is categorising your task — cancel within 30s" (Art. 50 + Art. 14)
 
   - id: T1-task-priority-suggest-with-bulk-apply
@@ -77,7 +77,7 @@ capabilities:
       - TaskBulkPrioritySuggestionShown (one-shot)
       - TaskBulkPriorityApplied (per-applied change; Ed25519-sealed)
     fallback_on_model_failure: fall back to T0 suggestion mode
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggested priority changes — review then apply"
 
   - id: T1-task-dependency-suggest
@@ -106,7 +106,7 @@ capabilities:
     latency_budget_p99_ms: 800
     audit_event: TaskDependencyEdgeSuggested
     fallback_on_model_failure: fall back to T0 suggestion mode
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggested dependency edges — click to apply"
 
 verification:
@@ -114,7 +114,7 @@ verification:
   - All T1 actions emit an audit-chain event (Ed25519-sealed) on action-initiated AND on action-cancelled-within-window AND on action-stood (window-expired).
   - All T1 actions are labelled per EU AI Act Art. 50 + offer the Art. 14 human-oversight cancel-within-window control.
   - All T1 actions respect dual-context isolation: Personal-context actions NEVER touch Professional-context data.
-  - All T1 actions are tenant-tier-gated: Cedar policy `t1-tenant-tier-gate.cedar` admits T1 only for tenant tiers ≥ pro.
+  - All T1 actions are tenant_class-gated: Cedar policy `tenant-class-admission.cedar` admits T1 when tenant_class and usage caps allow the action; paid billing components determine metering, not feature entitlement.
   - **HR-context overlay** (any T1 action used in hiring / performance review / employment-decision adjacent contexts) is DEFERRED to a future ADR-TASKS-XXXX for the EU AI Act Annex III §4 conformity assessment; until that ADR ships, the HR overlay is REFUSED at the Cedar layer for pack-eu tenants.
   - T1 actions never bypass dependency-cycle prevention (per ADR-TASKS-0002); cycle-creating edge suggestions refused before user can apply.
 

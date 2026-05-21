@@ -1,138 +1,313 @@
 ---
 doc_class: Runbook
-title: Template marketplace quarantine (signed node library + template)
-microservice: workflow-studio
-severity: "Sev-1 (active malicious library) / Sev-2 (signature anomaly) / Sev-3 (rev/validation drift)"
+title: Template Marketplace Quarantine
 status: Accepted
-owner_team: ops-security + axis-workflow
-date: 2026-05-17
-related_artifacts:
-  - microservices/workflow-studio/threat-model.md §"T-S-04" + §"T-T-03" + §"T-E-04"
-  - microservices/workflow-studio/PRD.md FR-11 + §"Security" + §"Bounded Contexts" node-library-registry
-  - /specs/microservices/workflow-studio.json §anti_patterns non_deterministic_node_library_load
-  - microservices/workflow-studio/policy/auditor-scope.cedar (revocation event audit)
+date: 2026-05-20
+microservice: workflow-studio
+severity: sev2
+audience: workflow-studio-on-call
+owner_team: axis-workflow-studio + ops-sre-reliability
+source_wave: codex-runbooks-substrate-w3
+change_scope: substance rewrite of existing thin runbook
 doc_status: published
 ---
 
-# Runbook: Template / node-library quarantine
+# Runbook: Template Marketplace Quarantine
 
-## Purpose
+## Operator Contract
+- Runbook id: workflow-studio-template-marketplace-quarantine.
+- Primary service namespace: `workflow-studio`.
+- Owning rotation: PagerDuty oya-workflow-studio-primary; collab-runtime-secondary.
+- Incident channel: `#inc-workflow-studio`.
+- Operational focus: imported workflow template must be quarantined before publication.
+- Named precedent: this follows the Figma multiplayer canvas plus Google Docs CRDT convergence pattern.
+- External dependencies: Cloudflare CDN support; BrowserStack enterprise support; OpenAI enterprise support.
+- API authority: `https://workflow-studio.internal.oyatie.dev/v1/workflow-studio/template-marketplace-quarantine/incident-handoff`.
+- Audit event class: `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` with ADR-0263 fields `incident_id`, `tenant_id`, `cell_id`, `microservice`, `runbook_id`, `decision_id`, `evidence_hash`, `operator_id`.
+- Stop condition: mitigation has held for 30 minutes, `TemplateMarketplaceQuarantineCritical` is green, and every Cross-microservice handoff API returns `202 accepted`.
+- Safety invariant: never clear the incident until `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/workflow-studio-template-marketplace-quarantine-<incident-id>.md`.
 
-Studio's `node-library-registry` BC distributes per-pack signed node libraries (FR-11) and (subsequent-to-GA-tier-promotion) tenant-authored template marketplace bundles. A compromised or malicious library is a supply-chain attack surface — this runbook contains it.
+## Trigger Conditions
+- Page on alert `TemplateMarketplaceQuarantineCritical` when `oya_workflow_studio_template_marketplace_quarantine_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `TemplateMarketplaceQuarantineSloBurn` when `oya_workflow_studio_template_marketplace_quarantine_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open sev2 if `oya_workflow_studio_template_quarantine_total` exceeds the threshold documented in `microservices/workflow-studio/slos/canvas-frame-time-p99.openslo.yaml`.
+- Open sev2 if `oya_workflow_studio_template_marketplace_quarantine_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Trigger from customer report when Support tags the case `workflow-studio.template-marketplace-quarantine.customer_visible` in Zendesk.
+- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workflow-studio-template-marketplace-quarantine --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Primary dashboard: `https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/workflow-studio/dashboards/canvas-perf.json`.
+- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/workflow-studio/dashboards/collab-health.json`.
+- Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workflow-studio",runbook="template-marketplace-quarantine"}`.
+- Alertmanager route: `oyatie-workflow-studio-template-marketplace-quarantine-critical`; silence only with incident commander approval and `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` evidence.
+- Synthetic probe: `oya ops probe workflow-studio template-marketplace-quarantine --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
+- Drift detector: `registry/workflow-studio/template-marketplace-quarantine/expected-state.json` hash differs from live `https://workflow-studio.internal.oyatie.dev/v1/workflow-studio/template-marketplace-quarantine/admin/state-hash`.
+- Service-specific metric `oya_workflow_studio_template_quarantine_total` is red while `oya_workflow_studio_template_marketplace_quarantine_audit_emit_total{status="sealed"}` is flat.
 
-## Trigger
+## Symptoms
+- User-facing impact: builders may see stale canvas state, invalid node graphs, or degraded assisted generation output; scenario focus is imported workflow template must be quarantined before publication.
+- Operators see Grafana panel `canvas-perf.json / Template Marketplace Quarantine burn rate` turn red before the primary alert resolves.
+- Loki signature `workflow_studio.template_marketplace_quarantine.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
+- Kubernetes events include `reason=TemplateMarketplaceQuarantineDegraded` on deployment `workflow-studio-template-marketplace-quarantine-worker` or `workflow-studio-api`.
+- Audit-chain shows missing or delayed `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` entries when queried with `oya audit-chain query --event-class EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT --since 30m`.
+- Metric pattern: `oya_workflow_studio_template_marketplace_quarantine_error_ratio` rises before `oya_workflow_studio_template_marketplace_quarantine_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `oya_workflow_studio_template_marketplace_quarantine_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal, replay backlog, or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `oya_workflow_studio_template_marketplace_quarantine_queue_depth`; isolate tenant before fleet mitigation.
+- Fleet-wide shape: at least three cells report `TemplateMarketplaceQuarantineCritical` in one 15 minute window; switch to cross-cell bridge even if individual tenants are low-volume.
+- Log signature `decision=deny reason=template-marketplace-quarantine.policy_guard` means the guard is working; investigate caller inputs before rollback.
+- Log signature `decision=permit reason=template-marketplace-quarantine.break_glass` means manual intervention is active; confirm two-person authorization.
+- Log signature `audit_emit_status=stalled event_class=EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` means mitigation cannot be closed until replay succeeds.
+- Service-specific pattern: `oya_workflow_studio_template_quarantine_total` rises while `oya_workflow_studio_template_marketplace_quarantine_dependency_error_ratio` is flat; inspect local state before escalating Cloudflare CDN support.
+- Service-specific pattern: `oya_workflow_studio_template_marketplace_quarantine_dependency_error_ratio` rises while `oya_workflow_studio_template_quarantine_total` is flat; inspect vendor or adjacent-service dependency health before local rollback.
 
-ONE of:
+## Failure Mode Tree
+- Failure mode 1: single-tenant WorkflowCanvas inconsistency; contain with tenant quarantine, preserve all `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` rows, and avoid fleet rollback.
+- Failure mode 2: cross-cell NodeGraph drift; freeze writes, compare state hash across cells, and use audit-chain replay before accepting new mutations.
+- Failure mode 3: byzantine or abusive principal; suspend the principal through identity, keep tenant data scoped, and preserve Cedar explain output.
+- Failure mode 4: external dependency outage at Cloudflare CDN support; open vendor ticket only after local dashboards and handoff APIs prove the dependency is causal.
+- Failure mode 5: operator mitigation made state worse; roll back feature flag `oya.workflow-studio.template_marketplace_quarantine.incident_hold`, close `workflow-studio-template-marketplace-quarantine-circuit-breaker`, and restore the previous deployment revision.
+- Failure mode 6: audit emission is delayed; do not close even when customer symptoms improve because ADR-0263 evidence is incomplete.
+- Failure mode 7: regional partition; keep prod-us-east-1 as evidence leader and reject cross-region mutation until `oya_workflow_studio_template_marketplace_quarantine_state_hash_match == 1`.
+- Failure mode 8: compliance-pack mismatch; require compliance handoff when KR-CSAP, EU-sovereign, FedRAMP-High, IL5, or CN-PIPL labels are present.
+- Failure mode 9: stale dashboard data; verify direct Mimir queries before making rollback decisions.
+- Failure mode 10: runbook step ambiguity; halt the ambiguous branch, emit `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` with outcome `blocked`, and patch this runbook after recovery.
 
-1. **Signature verification fails** at any Studio editor open (`oya_workflow_studio_node_library_signature_verification_failed_total > 0`).
-2. **Per-pack signing key rotation event** discovers an unsanctioned library published under the prior key.
-3. **`oya-governance-node-library-signature-verification` LEAN lane fails on a PR.**
-4. **Tenant report**: "a node from library X executes unexpected behavior" — investigate per Path B.
-5. **3x-reload determinism check fails** (`oya-governance-node-library-determinism`) — non-determinism could be a hot-swap supply-chain attack.
-6. **Threat intelligence** (Trivy / Grype / OSV-Scanner) reports CVE on a library dependency.
+## Diagnostic Steps
+1. Set incident variables: `export INCIDENT_ID=INC-workflow-studio-template-marketplace-quarantine-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
+2. Confirm active alerts: `curl -s https://workflow-studio.internal.oyatie.dev/v1/workflow-studio/alerts?runbook=template-marketplace-quarantine | jq .alerts`.
+3. Check Kubernetes rollout: `kubectl -n workflow-studio rollout status deploy/workflow-studio-template-marketplace-quarantine-worker --timeout=60s`.
+4. List unhealthy pods: `kubectl -n workflow-studio get pods -l app=template-marketplace-quarantine -o wide`.
+5. Read structured logs: `kubectl -n workflow-studio logs deploy/workflow-studio-template-marketplace-quarantine-worker --since=30m | rg "workflow_studio.template_marketplace_quarantine.incident_state|TemplateMarketplaceQuarantineCritical|EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT"`.
+6. Query Loki directly: `logcli query '{namespace="workflow-studio",runbook="template-marketplace-quarantine"}' --since=30m --limit=200`.
+7. Check Prometheus error ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_workflow_studio_template_marketplace_quarantine_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_workflow_studio_template_marketplace_quarantine_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_workflow_studio_template_marketplace_quarantine_queue_depth{cell="prod-us-east-1"}'`.
+10. Check service-specific signal: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_workflow_studio_template_quarantine_total{cell="prod-us-east-1"}'`.
+11. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101&var-incident=$INCIDENT_ID"`.
+12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
+13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
+14. Verify service state: `oya ops workflow-studio template-marketplace-quarantine status --cell $CELL --tenant $TENANT --output json`.
+15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate workflow-studio-template-marketplace-quarantine --production-snapshot --cell $CELL`.
+16. Run crate smoke test: `cargo test -p oya-workflow-studio-visual-canvas-kernel template_marketplace_quarantine -- --nocapture`.
+17. Check API contract smoke: `curl -s https://workflow-studio.internal.oyatie.dev/v1/workflow-studio/template-marketplace-quarantine/incident-handoff -H "x-oya-tenant: $TENANT"`.
+18. Inspect config: `test -f microservices/workflow-studio/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/workflow-studio/iac/kustomize/base/kustomization.yaml`.
+19. Inspect feature flags: `oya flags get oya.workflow-studio.template_marketplace_quarantine.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
+20. Inspect circuit breaker: `oya ops breaker status workflow-studio-template-marketplace-quarantine-circuit-breaker --cell $CELL --tenant $TENANT`.
+21. Check recent deploy: `kubectl -n workflow-studio rollout history deploy/workflow-studio-template-marketplace-quarantine-worker | tail -20`.
+22. Check policy file: `test -f microservices/workflow-studio/policy/editor-isolation.md || find microservices/workflow-studio/policy -maxdepth 2 -type f | sort`.
+23. Check SLO files: `ls microservices/workflow-studio/slos/*.openslo.yaml | sort | rg "canvas|collab"`.
+24. Check contract binding: `test -f microservices/workflow-studio/contracts/openapi/workflow-studio.yaml && sed -n '1,120p' microservices/workflow-studio/contracts/openapi/workflow-studio.yaml`.
+25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from workflow_studio_template_marketplace_quarantine_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
+26. Confirm no cross-cell spread: `oya ops cells query --metric oya_workflow_studio_template_marketplace_quarantine_error_ratio --window 30m --threshold 0.02`.
+27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice workflow-studio --runbook template-marketplace-quarantine --output evidence/incidents/$INCIDENT_ID.json`.
 
-## Severity
+### Diagnostic Decision Tree
+```text
+Template Marketplace Quarantine incident decision tree
+1. Is TemplateMarketplaceQuarantineCritical firing in more than one cell?
+   |-- yes: declare fleet incident, page PagerDuty oya-workflow-studio-primary, and run cross-cell containment.
+   |-- no: keep scope to the affected cell and continue tenant isolation checks.
+2. Does oya_workflow_studio_template_marketplace_quarantine_queue_depth grow while oya_workflow_studio_template_marketplace_quarantine_error_ratio is flat?
+   |-- yes: downstream dependency, replay backlog, or queue-drain issue; choose mitigation branch B.
+   |-- no: local regression, bad input, or policy/config drift; continue branch selection.
+3. Does audit-chain show EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT gaps?
+   |-- yes: do not close; run evidence replay before resolution.
+   |-- no: mitigation can proceed after state is green.
+4. Is customer, finance, security, or regulator impact confirmed?
+   |-- yes: promote severity, open #inc-workflow-studio, and notify compliance or security handoff.
+   |-- no: keep internal incident and collect evidence.
+```
+- Branch A (confirmed WorkflowCanvas correctness risk): use the matching mitigation block below and record `decision_branch=A` in `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT`.
+- Branch B (dependency saturation or replay backlog): use the matching mitigation block below and record `decision_branch=B` in `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT`.
+- Branch C (policy, permit, or tenant-scope drift): use the matching mitigation block below and record `decision_branch=C` in `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT`.
+- Branch D (customer-visible or regulated evidence gap): use the matching mitigation block below and record `decision_branch=D` in `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT`.
 
-- Active malicious code in published library, tenants loading it: **Sev-1**.
-- Signature anomaly OR verification failure but no tenant-impact yet: **Sev-2**.
-- Determinism drift / revocation drift: **Sev-3** (signal of weakened control).
+## Mitigation Steps
+1. Acknowledge page: `pd incident ack --service workflow-studio --incident $INCIDENT_ID`.
+2. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-workflow-studio --severity sev2`.
+3. Freeze risky automation: `oya flags set oya.workflow-studio.template_marketplace_quarantine.incident_hold=true --cell $CELL --tenant $TENANT --reason $INCIDENT_ID`.
+4. Enable circuit breaker: `oya ops breaker open workflow-studio-template-marketplace-quarantine-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
+5. Reduce blast radius: `kubectl -n workflow-studio scale deploy/workflow-studio-template-marketplace-quarantine-worker --replicas=1`.
+6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason workflow-studio-template-marketplace-quarantine --ttl 60m`.
+7. Pause promotion: `oya vcs hold --microservice workflow-studio --reason $INCIDENT_ID --runbook template-marketplace-quarantine`.
+8. Drain queue safely: `oya ops workflow-studio template-marketplace-quarantine drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
+9. Execute bounded drain: `oya ops workflow-studio template-marketplace-quarantine drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
+10. Replay missing audit events: `oya audit-chain replay --event-class EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
+11. Rollback last deploy if causal: `kubectl -n workflow-studio rollout undo deploy/workflow-studio-template-marketplace-quarantine-worker`.
+12. Raise HPA cap if saturation is proven: `kubectl -n workflow-studio patch hpa workflow-studio-template-marketplace-quarantine-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
+13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface workflow-studio.template-marketplace-quarantine --rps 25 --ttl 30m`.
+14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/workflow-studio/runbooks/template-marketplace-quarantine.md,evidence/incidents/$INCIDENT_ID.json`.
+16. Notify service owners: `oya notify service-owner --microservice workflow-studio --incident $INCIDENT_ID --channel #inc-workflow-studio`.
+17. Open external vendor ticket: `oya vendor ticket open --vendor "Cloudflare CDN support" --incident $INCIDENT_ID --summary workflow-studio-template-marketplace-quarantine`.
+18. Confirm breaker effect: `oya ops breaker status workflow-studio-template-marketplace-quarantine-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
+19. Confirm user impact reduced: `curl -s https://workflow-studio.internal.oyatie.dev/v1/workflow-studio/template-marketplace-quarantine/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+20. Emit mitigation audit: `oya audit-chain emit --event-class EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=template-marketplace-quarantine`.
 
-## Impact
+### Mitigation Branch Guidance
+- Branch A: confirmed WorkflowCanvas correctness risk.
+  - Required action: keep `workflow-studio-template-marketplace-quarantine-circuit-breaker` open until `oya_workflow_studio_template_marketplace_quarantine_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=110` to the incident.
+  - Required audit: emit `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
+- Branch B: dependency saturation or replay backlog.
+  - Required action: keep `workflow-studio-template-marketplace-quarantine-circuit-breaker` open until `oya_workflow_studio_template_marketplace_quarantine_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=111` to the incident.
+  - Required audit: emit `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
+- Branch C: policy, permit, or tenant-scope drift.
+  - Required action: keep `workflow-studio-template-marketplace-quarantine-circuit-breaker` open until `oya_workflow_studio_template_marketplace_quarantine_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=112` to the incident.
+  - Required audit: emit `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
+- Branch D: customer-visible or regulated evidence gap.
+  - Required action: keep `workflow-studio-template-marketplace-quarantine-circuit-breaker` open until `oya_workflow_studio_template_marketplace_quarantine_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=113` to the incident.
+  - Required audit: emit `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
-- Supply-chain risk: Studio renders node configurations from library descriptors; while descriptors are declarative (not executable), a crafted descriptor could still trigger XSS (T-I-02) OR display misleading data-class markers (deceiving tenant author at FR-16).
-- Tenant trust: load-bearing on signed library distribution (FR-11 + threat-model T-S-04).
-- Audit-chain: every library publish + revocation event Ed25519-sealed; tampering detectable.
+## Resolution Steps
+1. Identify code owner path: `rg "template_marketplace_quarantine|TemplateMarketplaceQuarantineCritical|workflow_studio.template_marketplace_quarantine.incident_state" crates microservices/workflow-studio -g "!microservices/workflow-studio/runbooks/**"`.
+2. Patch domain invariant: `edit oya-workflow-studio-visual-canvas-kernel where template_marketplace_quarantine state transition is validated`.
+3. Patch API guard: `edit microservices/workflow-studio/contracts/openapi/workflow-studio.yaml if the failing path is north-south or async handoff`.
+4. Patch policy: `edit microservices/workflow-studio/policy/editor-isolation.md with explicit deny/permit branch and tenant/cell scope`.
+5. Patch runtime config: `edit microservices/workflow-studio/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
+6. Add regression test: `cargo test -p oya-workflow-studio-visual-canvas-kernel template_marketplace_quarantine_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate workflow-studio-template-marketplace-quarantine --fixture incident-template-marketplace-quarantine.json`.
+8. Add SLO assertion: `update microservices/workflow-studio/slos/canvas-frame-time-p99.openslo.yaml with alert TemplateMarketplaceQuarantineCritical when this was a missing alert`.
+9. Add dashboard panel: `update microservices/workflow-studio/dashboards/canvas-perf.json with oya_workflow_studio_template_marketplace_quarantine_error_ratio, oya_workflow_studio_template_marketplace_quarantine_lag_seconds, and oya_workflow_studio_template_quarantine_total`.
+10. Rebuild affected crate: `cargo check -p oya-workflow-studio-visual-canvas-kernel --all-targets`.
+11. Run targeted tests: `cargo test -p oya-workflow-studio-visual-canvas-kernel --all-features`.
+12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate workflow-studio-policy --microservice workflow-studio`.
+13. Deploy canary: `oya deploy canary --microservice workflow-studio --component workflow-studio-template-marketplace-quarantine-worker --cell $CELL --weight 1`.
+14. Watch burn rate: `oya ops watch --metric oya_workflow_studio_template_marketplace_quarantine_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+15. Close circuit breaker: `oya ops breaker close workflow-studio-template-marketplace-quarantine-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+16. Unfreeze automation: `oya flags set oya.workflow-studio.template_marketplace_quarantine.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+17. Resume promotion: `oya vcs unhold --microservice workflow-studio --reason resolved-$INCIDENT_ID`.
+18. Seal resolution audit: `oya audit-chain emit --event-class EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=template-marketplace-quarantine`.
+19. Verify seal: `oya audit-chain verify --event-class EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT --incident $INCIDENT_ID`.
+20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
-## Pre-checks
+### Code Paths To Inspect First
+- `oya-workflow-studio-visual-canvas-kernel`: inspect for `template_marketplace_quarantine` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-workflow-studio-collab-crdt-domain`: inspect for `template_marketplace_quarantine` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-workflow-studio-dsl-emitter-domain`: inspect for `template_marketplace_quarantine` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-workflow-studio-node-library-registry-domain`: inspect for `template_marketplace_quarantine` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `microservices/workflow-studio/contracts/openapi/workflow-studio.yaml`: verify request/response or event contract only when incident evidence points there.
+- `microservices/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml`: verify request/response or event contract only when incident evidence points there.
+- `microservices/workflow-studio/contracts/proto/workflow-studio.proto`: verify request/response or event contract only when incident evidence points there.
+- `microservices/workflow-studio/dashboards/canvas-perf.json`: verify panel coverage for `oya_workflow_studio_template_marketplace_quarantine_error_ratio`, `oya_workflow_studio_template_marketplace_quarantine_lag_seconds`, and `oya_workflow_studio_template_quarantine_total`.
+- `microservices/workflow-studio/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
+- `microservices/workflow-studio/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
-1. Identify suspect library: `pack`, `library_name`, `version_sha`, `signature_key_id` from alert.
-2. Identify tenants who loaded it: `SELECT tenant_id, COUNT(*) FROM library_load_audit WHERE library_sha = <sha> AND loaded_at > NOW() - INTERVAL '24h' GROUP BY tenant_id`.
-3. Verify signature lineage: `cargo run -p oya-workflow-studio-node-library-registry-domain --bin verify-signature -- --library <sha> --key-id <kid>`.
-4. Check OpenBao key store: `cargo run -p oya-dev-cli -- openbao audit list --path 'secret/workflow-studio/node-library-signing/*'` to confirm key wasn't rotated outside expected schedule.
+## Verification Checklist
+- `TemplateMarketplaceQuarantineCritical` and `TemplateMarketplaceQuarantineSloBurn` are both resolved in Alertmanager for 30 minutes.
+- `oya_workflow_studio_template_marketplace_quarantine_error_ratio < 0.005` for 3 consecutive 10 minute windows.
+- `oya_workflow_studio_template_marketplace_quarantine_lag_seconds < 120` for all production cells.
+- `oya_workflow_studio_template_marketplace_quarantine_queue_depth` is draining and not growing for the affected tenant.
+- Service-specific signal `oya_workflow_studio_template_quarantine_total` is below the threshold documented in `microservices/workflow-studio/slos/canvas-frame-time-p99.openslo.yaml`.
+- Dashboard `https://grafana.dev.oyatie.internal/d/workflow-studio-ops/template-marketplace-quarantine?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` shows green panels for the affected cell.
+- Audit-chain query for `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` returns mitigation and resolution events.
+- Circuit breaker `workflow-studio-template-marketplace-quarantine-circuit-breaker` is closed after rollback window.
+- Feature flag `oya.workflow-studio.template_marketplace_quarantine.incident_hold` is false for the affected tenant unless long-term hold is approved.
+- Runbook invocation evidence is attached to `evidence/incidents/$INCIDENT_ID.json`.
+- Service owner acknowledged final handoff in `#inc-workflow-studio`.
 
-## Recovery Path A — Active malicious library (Sev-1)
+## Capacity and Rollback Guardrails
+- Capacity math: if `oya_workflow_studio_template_marketplace_quarantine_queue_depth` is 5000 and the worker drains 25 items/second, the best-case drain is 200 seconds before retries; page earlier when drain time exceeds 300 seconds.
+- Capacity math: with 12 replicas at 25 items/second each, the hard ceiling is 300 items/second; keep tenant throttle below 25 RPS until error ratio stays below 0.005.
+- Rollback checkpoint 1: before changing `oya.workflow-studio.template_marketplace_quarantine.incident_hold`, snapshot current value with `oya flags get oya.workflow-studio.template_marketplace_quarantine.incident_hold --output json`.
+- Rollback checkpoint 2: before opening `workflow-studio-template-marketplace-quarantine-circuit-breaker`, capture `oya_workflow_studio_template_marketplace_quarantine_request_rate` and `oya_workflow_studio_template_marketplace_quarantine_success_ratio` from Mimir.
+- Rollback checkpoint 3: before scaling deployments, capture `kubectl -n workflow-studio get deploy workflow-studio-template-marketplace-quarantine-worker -o yaml`.
+- Rollback command for flag: `oya flags set oya.workflow-studio.template_marketplace_quarantine.incident_hold=false --cell $CELL --tenant $TENANT --reason rollback-$INCIDENT_ID`.
+- Rollback command for breaker: `oya ops breaker close workflow-studio-template-marketplace-quarantine-circuit-breaker --cell $CELL --tenant $TENANT --reason rollback-$INCIDENT_ID`.
+- Rollback command for deployment: `kubectl -n workflow-studio rollout undo deploy/workflow-studio-template-marketplace-quarantine-worker`.
+- Rollback command for tenant throttle: `oya ops rate-limit clear --tenant $TENANT --surface workflow-studio.template-marketplace-quarantine --reason rollback-$INCIDENT_ID`.
+- Stop rollback if `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` cannot be emitted; preserve the current state and escalate to audit-chain before additional mutation.
 
-Cause: confirmed malicious code in published library; tenants are loading it.
+## Postmortem Template
+Use this exact skeleton for the incident document. The field names are intentionally stable for ADR-0263 audit emission extraction.
+```markdown
+---
+doc_class: IncidentPostmortem
+runbook_id: workflow-studio-template-marketplace-quarantine
+microservice: workflow-studio
+event_class: EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT
+incident_id: <INC-...>
+severity: sev2
+status: draft
+detected_at: <UTC>
+mitigated_at: <UTC>
+resolved_at: <UTC>
+commander: <handle>
+evidence_hash: <sha256>
+---
 
-| Step | Action | Time |
-|---|---|---|
-| 1 | Declare Sev-1; open `#inc-sec-<id>`; engage ops-security IC + axis-workflow + council-privacy. | ≤ 5 min |
-| 2 | **Immediate revoke**: `cargo run -p oya-dev-cli -- workflow-studio library revoke --library <sha> --reason "<rfc>" --severity sev-1`. Revocation propagates via CDN purge + Studio session refresh signal. | ≤ 10 min |
-| 3 | Studio refuses to load the revoked library on next-open AND signals to active sessions to discard cached descriptors. | ≤ 60s p99 |
-| 4 | Verify zero load attempts post-revoke: `rate(oya_workflow_studio_node_library_loaded_total{library_sha="<sha>"}[5m]) == 0` for ≥ 5 min. | ≤ 10 min |
-| 5 | Identify scope: how was the malicious library published? Compromised signing key? Compromised publisher account? Engage ops-security forensics. | ≤ 1h |
-| 6 | **Rotate the publisher signing key** via OpenBao if compromise confirmed. Per `threat-model.md` §"T-S-04" rotation 90d default; emergency rotation immediate. | ≤ 30 min |
-| 7 | **Tenant breach notification per pack**: any tenant who loaded the library is potentially impacted. <br> - pack-kr: PIPA Art. 34 (72h) <br> - pack-eu: GDPR Art. 33 (72h to DPA) + Art. 34 (without undue delay to data subjects if high risk) <br> - pack-us-healthcare: HIPAA §164.404 (60 days max) + §164.408 (HHS notification) <br> - pack-jp: APPI 漏えい等通知 <br> - pack-sg: PDPA Part VIA <br> - pack-au: Notifiable Data Breaches scheme (30 days) <br> - pack-in: DPDPA 2023 §8(6) <br> - pack-br: LGPD Art. 48 <br> - pack-ae/ksa: per local DPA. | per pack |
-| 8 | Postmortem within 5 business days. | – |
+# Template Marketplace Quarantine postmortem
 
-## Recovery Path B — Suspected malicious behavior (Sev-2 → potential Sev-1)
+## Summary
+- What happened in workflow-studio/template-marketplace-quarantine.
+- Who was affected: tenant_id list, cell_id list, user-facing surface list.
+- Current status: mitigated, resolved, or monitoring.
 
-Cause: tenant reports unexpected library behavior; not yet confirmed malicious.
+## Timeline
+- T0 detection: alert/customer/audit source.
+- T1 acknowledgement: operator handle and channel.
+- T2 mitigation: feature flag, breaker, rollback, or throttle.
+- T3 resolution: code/config/policy fix.
+- T4 verification: dashboard, metric, audit seal, customer confirmation.
 
-| Step | Action |
-|---|---|
-| 1 | Engage ops-security + axis-workflow; declare Sev-2 pending investigation. |
-| 2 | **Soft-quarantine**: `cargo run -p oya-dev-cli -- workflow-studio library quarantine --library <sha> --soft`. Tenants see "library temporarily under review" banner; can opt to continue with explicit acknowledgment (2-person rule on tenant side via tenancy SDK). |
-| 3 | Replicate the reported behavior in a sandbox tenant. |
-| 4 | If confirmed malicious: escalate to Path A (Sev-1 hard revoke). |
-| 5 | If false alarm: lift quarantine; explain to reporting tenant. |
+## Root Cause
+- Direct trigger.
+- Contributing factors.
+- Why existing controls did not catch it earlier.
 
-## Recovery Path C — Signature verification failure on PR
+## ADR-0263 Audit Emission Requirements
+- Emit EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT with incident_id, tenant_id, cell_id, principal_id, decision_id, evidence_hash, operator_id, runbook_id.
+- Attach dashboard snapshot URLs and command transcripts.
+- Seal mitigation and resolution events before closure.
 
-Cause: `oya-governance-node-library-signature-verification` LEAN lane reports a library descriptor's signature does not verify against the per-pack signing key.
+## Corrective Actions
+- Action, owner, due date, validation command, linked issue.
+```
 
-| Step | Action |
-|---|---|
-| 1 | Verify the descriptor's `pack` matches the signing key used. |
-| 2 | If wrong pack key used by mistake: re-sign with the correct key; resubmit PR. |
-| 3 | If key not in allowed-publisher set: check `microservices/workflow-studio/iac/terraform/node-library-publishers.tf` — only listed publishers can sign per-pack. |
-| 4 | If suspicious: escalate to Path A. |
+## Escalation Path
+- Primary on-call: PagerDuty oya-workflow-studio-primary; collab-runtime-secondary.
+- Incident SLA: ack 3m for sev0/sev1, 10m for sev2, 30m for sev3; status update every 10m until the critical alert clears.
+- Incident commander: first responder from axis-workflow-studio + ops-sre-reliability; transfer only by explicit message in `#inc-workflow-studio`.
+- Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
+- Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
+- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- External vendors: Cloudflare CDN support; BrowserStack enterprise support; OpenAI enterprise support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
+- Customer communications: use status page component `oyatie-workflow-studio-template-marketplace-quarantine` and keep private details in the incident channel.
+- Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.
+- Executive notice: sev0 or fleet-wide sev1 goes to `#exec-incident-readout` within 30 minutes.
 
-## Recovery Path D — Determinism drift (3x re-load returns different descriptors)
+## Cross-µservice Coordination
+- Notify `workflow-engine`: `oya incident handoff --target workflow-engine --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID --severity sev2 --branch A`; expect `202 accepted`.
+- Require `workflow-engine` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `marketplace`: `oya incident handoff --target marketplace --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID --severity sev2 --branch B`; expect `202 accepted`.
+- Require `marketplace` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `identity`: `oya incident handoff --target identity --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID --severity sev2 --branch C`; expect `202 accepted`.
+- Require `identity` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `tenancy`: `oya incident handoff --target tenancy --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID --severity sev2 --branch D`; expect `202 accepted`.
+- Require `tenancy` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `observability`: `oya incident handoff --target observability --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID --severity sev2 --branch A`; expect `202 accepted`.
+- Require `observability` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Observability handoff API: `oya incident handoff --target observability --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID`.
+- Governance handoff API: `oya incident handoff --target governance --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID`.
+- Compliance handoff API: `oya incident handoff --target compliance --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID`.
+- Audit-chain handoff API: `oya incident handoff --target audit-chain --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID`.
+- Tenancy handoff API: `oya incident handoff --target tenancy --source workflow-studio --runbook template-marketplace-quarantine --incident $INCIDENT_ID`.
 
-Cause: `oya-governance-node-library-determinism` fails — same library version produces non-byte-identical descriptors across 3 loads.
+## Handoff Notes
+- Do not hand off with only the alert name; include `oya_workflow_studio_template_marketplace_quarantine_error_ratio`, `oya_workflow_studio_template_marketplace_quarantine_lag_seconds`, `oya_workflow_studio_template_marketplace_quarantine_queue_depth`, `oya_workflow_studio_template_quarantine_total`, current breaker state, and audit seal status.
+- Keep `workflow-studio-template-marketplace-quarantine-circuit-breaker` owner as axis-workflow-studio + ops-sre-reliability until the receiving service explicitly accepts.
+- If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
+- Close only after `EVT_WORKFLOW_STUDIO_TEMPLATE_MARKETPLACE_QUARANTINE_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
-| Step | Action |
-|---|---|
-| 1 | Validate determinism check: `cargo nextest run -p oya-workflow-studio-node-library-registry-domain --test test_load_determinism` locally. |
-| 2 | If fails: a CDN edge OR object-storage layer is mutating bytes (highly suspicious — potential MITM OR cache-pollution). |
-| 3 | Engage ops-security + cloud-iac. |
-| 4 | Verify SRI hash of served library against expected; if mismatch: Path A (Sev-1 supply-chain). |
+## Sources Checked During This Substance Pass
+- `microservices/workflow-studio/dashboards/` for dashboard names and operational panels: canvas-perf.json, collab-health.json, copilot-quality.json, editor-experience.json.
+- `microservices/workflow-studio/slos/` for OpenSLO alert vocabulary and threshold alignment: canvas-frame-time-p99.openslo.yaml, collab-crdt-merge-latency.openslo.yaml, collab-crdt-no-silent-loss.openslo.yaml, editor-rest-availability.openslo.yaml, editor-rest-latency.openslo.yaml, license-gate-cedar-availability.openslo.yaml.
+- `microservices/workflow-studio/policy/` for named policy and authorization surfaces: editor-isolation.md, tenant-scope.cedar, data-residency.md, auditor-scope.cedar.
+- `microservices/workflow-studio/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi/workflow-studio.yaml, contracts/asyncapi/workflow-studio-events.yaml, contracts/proto/workflow-studio.proto.
+- `microservices/workflow-studio/manifest.json` for owner, dependency, capability, and bounded-context vocabulary; topic `template-marketplace-quarantine` is the scenario anchor.
 
-## Recovery Path E — Threat-intel CVE on library dependency
-
-Cause: Trivy / Grype / OSV-Scanner reports a CVE in a transitive dep of a library descriptor (descriptors reference Ontology types + capability descriptors; these chains can carry CVEs).
-
-| Step | Action |
-|---|---|
-| 1 | Verify CVE applicability: does the affected dep path actually execute in Studio's render context? (Descriptors are declarative; many deps are dev-only). |
-| 2 | If applicable: re-publish library with patched dep; revoke old version. |
-| 3 | If not applicable: file an exception in `cargo deny` config with documented rationale + sunset date. |
-
-## Verification
-
-After recovery:
-- Revoked library: zero load attempts (`rate(... == 0)` for ≥ 5 min).
-- Allowed-publisher set: matches expected (no unauthorized publisher entries).
-- Signing key rotation completed (if applicable); new key in OpenBao + audit-logged.
-- Tenant notifications complete per regulatory timeline (Sev-1 path).
-- Audit-chain seal: revocation event sealed; quarantine event sealed.
-- Studio editor open works for non-affected libraries.
-
-## Post-incident updates
-
-- Postmortem within 5 business days (or per regulatory minimum if Sev-1).
-- Document the attack vector in `threat-model.md`.
-- If publisher account compromised: tighten publisher-account access controls (FIDO2 mandatory, 2-person rule on key access via OpenBao JIT).
-- If CVE chain new: extend `oya-governance-node-library-dep-scan` lane.
-- Action item: review revocation propagation SLI — was 60s p99 met?
-
-## References
-
-- `microservices/workflow-studio/threat-model.md` T-S-04, T-T-03, T-E-04.
-- `microservices/workflow-studio/PRD.md` FR-11, §"Security" — node library supply-chain.
-- `/specs/microservices/workflow-studio.json` §anti_patterns non_deterministic_node_library_load.
-- OWASP Top 10 A06 (Vulnerable Components).
-- NIST SP 800-218 SSDF — software supply-chain practices.
-- SLSA Level 3 spec — `slsa.dev/spec/v1.0/levels`.
-- in-toto attestation framework — `in-toto.io`.
+## Checkpoint Closure Criteria
+- The runbook remains current when `TemplateMarketplaceQuarantineCritical`, `TemplateMarketplaceQuarantineSloBurn`, `oya_workflow_studio_template_quarantine_total`, `oya.workflow-studio.template_marketplace_quarantine.incident_hold`, and `workflow-studio-template-marketplace-quarantine-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
+- The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
+- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.

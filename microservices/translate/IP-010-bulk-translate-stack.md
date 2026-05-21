@@ -20,7 +20,7 @@ Asynchronous bulk translation jobs over XLIFF 2.1 / TMX 1.4 / TBX / large multi-
 
 ## ChangeSet boundary
 
-Crates: `oya-translate-bulk-{kernel, domain, usecase, api, adapter-postgres, adapter-s3, adapter-redis, rest, worker, sdk, app}`.
+Crates: `oya-translate-bulk-{kernel, domain, usecase, api, adapter-postgres, adapter-s3, adapter-valkey, rest, worker, sdk, app}`.
 
 ## Job Lifecycle
 

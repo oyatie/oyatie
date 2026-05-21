@@ -86,7 +86,7 @@ cedar_policy_fragments:
   - microservices/application/policy/public-read.cedar
 
 eval_set:
-  golden_inputs_path: microservices/application/capabilities/eval/shell-render-golden.jsonl
+  canonical_inputs_path: microservices/application/capabilities/eval/shell-render-canonical.jsonl
   pass_threshold: 0.99
   eval_metric: render-correctness-against-reference-html
   cadence: per-release
