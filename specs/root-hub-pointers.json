@@ -17,8 +17,8 @@
       "Heavy diet. Make sure everything has a purpose."
     ],
     "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file.",
-    "last_audited": "2026-05-20",
-    "audit_scope": "ADR index consolidation and spec hub gardening; direct root-hub coverage for top-level specs/*.json."
+    "last_audited": "2026-05-21",
+    "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349."
   },
   "entry_points": {
     "_retired_constitutional_authority": {
@@ -253,8 +253,8 @@
       "kind": "spec",
       "current_path": "/specs/master-plan-sequencing.json",
       "target_path_after_md_retirement": "same",
-      "migration_phase": "complete (just landed in HEAD)",
-      "purpose": "Forbidden-primitive list (git/gh) + Oya VCS protocol + ledger-required-fields + execution sequence."
+      "migration_phase": "wave-15-zf-master-plan-propagated",
+      "purpose": "Forbidden-primitive list (git/gh) + Oya VCS protocol + ledger-required-fields + execution sequence. Also carries Wave 15-ZF doctrine propagation pointers for ADR-0346, ADR-0347, ADR-0348, and ADR-0349, including the canonical purpose excerpts and enforced_by lane lists consumed by downstream artifact slots."
     },
     "hyperscaler_gates": {
       "kind": "spec",
@@ -660,6 +660,50 @@
       "target_path_after_md_retirement": "same until ADR projection retirement",
       "migration_phase": "fd001-planning-closure",
       "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Enterprise Generic + SMB Generic first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection."
+    },
+    "adr_0346_oya_verify_ci_mirror": {
+      "kind": "decision",
+      "current_path": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+      "target_path_after_md_retirement": "same until ADR projection retirement",
+      "migration_phase": "wave-15-zf-master-plan-propagated",
+      "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZA-oya-verify-full-ci-mirror",
+      "purpose": "ADR-0346 authority for `./bin/oya verify --ci-required` as the canonical local pre-push verifier that mirrors the full CI matrix and blocks on exit-0 of each mandatory mirror step before returning success."
+    },
+    "adr_0347_foundry_fitness_governance_bulk_rename": {
+      "kind": "decision",
+      "current_path": "docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md",
+      "target_path_after_md_retirement": "same until ADR projection retirement",
+      "migration_phase": "wave-15-zf-master-plan-propagated",
+      "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZB-foundry-fitness-to-governance-rename",
+      "purpose": "ADR-0347 authority for the single Wave 15-ZB bulk rename of `oya-foundry-fitness-*` lane prefixes to `oya-governance-*` and the associated residue, vocabulary, and inventory-presence governance lanes."
+    },
+    "adr_0348_autosharding_auto_rebalance_dynamic_sharding": {
+      "kind": "decision",
+      "current_path": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+      "target_path_after_md_retirement": "same until ADR projection retirement",
+      "migration_phase": "wave-15-zf-master-plan-propagated",
+      "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZD-autosharding-doctrine",
+      "purpose": "ADR-0348 authority for cellular autosharding, auto-rebalance, and dynamic sharding doctrine, including the per-µservice `sharding_automation` manifest block and audit-chain emission requirements."
+    },
+    "adr_0349_jenkins_argocd_ci_cd_substrate": {
+      "kind": "decision",
+      "current_path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+      "target_path_after_md_retirement": "same until ADR projection retirement",
+      "migration_phase": "wave-15-zf-master-plan-propagated",
+      "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
+      "purpose": "ADR-0349 authority for Jenkins LTS plus ArgoCD as the canonical self-hostable CI/CD substrate, with GitHub Actions parity, cosign-verified sync, tenant namespace isolation, JCasC-only controller state, and deploy audit-chain emission."
+    },
+    "wave_15_zf_doctrine_propagation_adr_0346_0349": {
+      "kind": "batch-control",
+      "current_path": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZF-doctrine-propagation-adr-0346-0349",
+      "canonical_brief": ".omc/state/wave-15-zf-canonical-brief.md",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "wave-15-zf-master-plan-propagated",
+      "owned_master_plan_paths": [
+        "/specs/root-hub-pointers.json",
+        "/specs/master-plan-sequencing.json"
+      ],
+      "purpose": "Wave 15-ZF batch-control pointer for propagating ADR-0346, ADR-0347, ADR-0348, and ADR-0349 doctrine across the corpus while ZF-4 owns only the root-hub and master-plan sequencing amendments."
     },
     "korea_localization_pack_overview": {
       "kind": "localization-pack",
