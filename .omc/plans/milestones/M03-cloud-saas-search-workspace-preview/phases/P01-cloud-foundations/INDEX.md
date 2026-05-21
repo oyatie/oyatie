@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P01
 title: Cloud Foundations (KMS / Storage / Network / IAM / Region / Cell)
-status: in-progress (IP-001 adapter-port green; IP-002 OCI object+block plus S3 object request-contract green 2026-05-20; IP-003 OCI network plus self-hosted VPC+DNS request-contract green 2026-05-21; IP-004 Cedar bind plus federated OIDC STS API runtime green 2026-05-21; live-smoke/provider-managed IdP follow-up pending)
+status: in-progress (IP-001 adapter-port green; IP-002 OCI object+block plus S3 object request-contract green 2026-05-20; IP-003 OCI network plus self-hosted VPC+DNS request-contract green 2026-05-21; IP-004 Cedar bind plus federated OIDC STS API runtime plus provider-managed IdP create API green 2026-05-21; live-smoke/IdP update-list-delete follow-up pending)
 purpose: Lift the in-flight cloud kernels to API+app+adapter+runtime completeness; provider-agnostic by default.
 execution_variant: merge-into-existing-crates
 decided_at: "2026-05-17"
@@ -32,7 +32,7 @@ Continue the in-flight cloud bring-up per [`../../../../../.omx/notepad.md`](../
 | IP-001 | Cloud KMS provider-agnostic API + adapter set | adapter-port-request-contract-green; live-smoke pending | [`IP-001-kms-api-adapters.md`](IP-001-kms-api-adapters.md) |
 | IP-002 | Cloud Storage object + block API + adapter set | object-and-block-oci-plus-s3-object-request-contract-green; live-smoke pending | [`IP-002-storage-api-adapters.md`](IP-002-storage-api-adapters.md) |
 | IP-003 | Cloud Network VPC + LB + DNS + CDN + interconnect API | vpc-dns-second-provider-selfhosted-lb-interconnect-oci-request-contract-green; cdn-remaining-second-provider-live-smoke pending | [`IP-003-network-api-adapters.md`](IP-003-network-api-adapters.md) |
-| IP-004 | Cloud IAM Cedar + SSO + STS API | cedar-bind-app-composition-green; federated-oidc-sts-api-runtime-green; provider-managed IdP/live-smoke pending | [`IP-004-iam-cedar-sso-sts.md`](IP-004-iam-cedar-sso-sts.md) |
+| IP-004 | Cloud IAM Cedar + SSO + STS API | cedar-bind-app-composition-green; federated-oidc-sts-api-runtime-green; provider-managed-idp-create-api-green; IdP update/list/delete and live-smoke pending | [`IP-004-iam-cedar-sso-sts.md`](IP-004-iam-cedar-sso-sts.md) |
 | IP-005 | Cloud region + AZ + cell taxonomy | partial | [`IP-005-region-az-cell-taxonomy.md`](IP-005-region-az-cell-taxonomy.md) |
 
 ## Estimated parallelism
@@ -48,7 +48,7 @@ Continue the in-flight cloud bring-up per [`../../../../../.omx/notepad.md`](../
 | KMS | `oya-cloud-kms-api` + `oya-cloud-kms-domain` complete; OpenBao + OCI adapter request contracts green; live-provider smoke pending | OpenBao on-prem at `https://kms.oyatie.com` (Shamir 5/3, file storage on ZFS, audit log on `/srv/oyatie/audit-chain/openbao-audit.jsonl`); OCI KMS vault `bitween-default-vault` + AES-256 master key in `cloud` compartment |
 | Storage | `oya-cloud-storage-domain` object + block provider ports, `oya-cloud-storage-adapter-oci` object/block request contracts, and `oya-cloud-storage-adapter-s3` object request contract green; live-smoke pending | OCI Object Storage namespace `axdotp9iv3ua` + bucket `oyatie-audit-cold-backup` (Archive tier); OCI Block Volume request-contract scoped to cloud compartment; S3 request-contract scoped to `ap-northeast-2` bucket `oyatie-s3-cold-backup` |
 | Network | `oya-cloud-network-{dns,lb,vpc}-api` partial plus `oya-cloud-network-adapter-oci` VPC/VCN, Load Balancer, DNS, and FastConnect request contracts green and `oya-cloud-network-adapter-selfhosted` VPC + DNS request contracts green; CDN, remaining second-provider adapters, and live smoke pending — IP-003 | OCI nonprod VCN (10.0.0.0/16), IGW + NAT GW + Service GW + 3 NSGs + public/private subnets; self-hosted/colo VPC and DNS targets via site/cell/fabric control-plane request contracts |
-| IAM | `oya-cloud-iam-{api,domain}` partial plus `oya-cloud-iam-app` Cedar bind composition green and federated OIDC STS API runtime green; provider-managed IdP CRUD/runtime adapter and live smoke pending — IP-004 | OCI tenancy `bitween` (ap-chuncheon-1) + 4 sub-compartments (foundry / cloud / prod / nonprod) |
+| IAM | `oya-cloud-iam-{api,domain}` partial plus `oya-cloud-iam-app` Cedar bind composition green, federated OIDC STS API runtime green, and provider-managed IdP create API green; IdP update/list/delete, provider runtime adapter/sync status, and live smoke pending — IP-004 | OCI tenancy `bitween` (ap-chuncheon-1) + 4 sub-compartments (foundry / cloud / prod / nonprod) |
 | Region/Cell | `oya-cloud-region-api` partial — IP-005 | KR-Chuncheon AD-1 + on-prem KR-Seoul (per ADR-0043) — 2 cells live |
 
 ## Agent-handoff

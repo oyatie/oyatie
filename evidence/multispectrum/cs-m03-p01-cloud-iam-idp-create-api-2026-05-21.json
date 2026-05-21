@@ -1,0 +1,322 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-m03-p01-cloud-iam-idp-create-api-2026-05-21",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "agent_id": "codex-m03-p01-cloud-iam-idp-crud-20260521T0705Z",
+  "timestamp_unix": 1779348982,
+  "timestamp_iso": "2026-05-21T07:36:22Z",
+  "freshness_unix": 1779348982,
+  "git_sha": "d3658a6f",
+  "change_class_id": "CC-1",
+  "change_class_rationale": "Additive Cloud IAM API contract/runtime slice for provider-managed IdP create; no new dependencies, provider SDK, live cloud mutation, or credential path.",
+  "meta_review_triggered": true,
+  "policy_adherence_triggered": true,
+  "scope": [
+    "crates/oya-cloud-iam-api/src/lib.rs",
+    "crates/oya-cloud-iam-api/tests/cloud_iam_api.rs",
+    "contracts/openapi/cloud/cloud-iam-v1.yaml",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-004-iam-cedar-sso-sts.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json",
+    "evidence/multispectrum/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json"
+  ],
+  "summary": "Cloud IAM API now supports deterministic provider-managed SAML/OIDC identity-provider create registration through the shared Cloud IAM API idempotency and authorization boundary.",
+  "verification": [
+    {
+      "command": "cargo fmt -p oya-cloud-iam-api -- --check",
+      "status": "passed",
+      "evidence": "Cloud IAM API formatting check passed after rustfmt."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api --test cloud_iam_api -- identity_provider_create_api",
+      "status": "passed",
+      "evidence": "Targeted provider-managed IdP create API tests passed: 3 passed, 14 filtered out."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api --all-features",
+      "status": "passed",
+      "evidence": "Full Cloud IAM API suite passed: 17 tests, 0 failures."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-api --all-features --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted Cloud IAM API clippy completed with no warnings."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate openapi-rest-route-parity",
+      "status": "passed",
+      "evidence": "OpenAPI REST route parity validation passed: 6 REST routes, 6 OpenAPI paths."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Planning-closure validation passed after plan status updates: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "No whitespace/diff hygiene errors."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya verify --ci-required",
+      "status": "passed",
+      "evidence": "Canonical CI-required verification completed successfully: gate run-all summary 89/89 lanes passed, including cargo fmt/check/clippy/nextest, Oya VCS admission/provider-execution, fitness, dependency-seam, protection-context-match, and PR-review workflow semantics."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency-seam validation passed before PR: 6 subchecks, 5 pass, 1 skipped, 0 fail, 0 blocking diagnostics."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate audit-chain-replay",
+      "status": "passed",
+      "evidence": "Audit-chain replay validation passed before PR: 1 shard, 28 events."
+    }
+  ],
+  "local_review": {
+    "verdict": "approve-local-before-pr-after-targeted-contract-review-and-canonical-verify",
+    "finding_count_required": 0,
+    "notes": [
+      "The create API reuses the existing Cloud IAM domain registration path instead of introducing a parallel federation handler.",
+      "The API boundary validates request id, tenant, path/body provider id binding, authorization, duplicate provider, and idempotency-key drift before claiming runtime completion.",
+      "The OpenAPI path is additive and route-parity checked; no provider SDK, network, credential, or live mutation path is present.",
+      "The ChangeSet explicitly does not claim IdP update/list/delete, provider sync, or live smoke completion.",
+      "Canonical CI-required verification passed before PR; auto-merge remains gated on GitHub review/check contexts, especially oya-pr-review."
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "provider-managed-idp-update-list-delete",
+      "status": "pending-follow-up-slice",
+      "reason": "This ChangeSet adds create/register only; update, list, and delete are separately reviewable IdP lifecycle surfaces."
+    },
+    {
+      "id": "provider-runtime-adapter-sync-status",
+      "status": "pending-follow-up-slice",
+      "reason": "No provider adapter, provider SDK, cloud account mutation, or runtime sync status path was introduced."
+    },
+    {
+      "id": "live-provider-smoke",
+      "status": "pending-credentials-and-runtime-target",
+      "reason": "No live cloud or self-hosted IdP endpoint was contacted; this is deterministic API contract/runtime evidence only."
+    }
+  ],
+  "facets": {
+    "F1_correctness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Tests cover success, idempotent replay, path/body drift before mutation, duplicate conflict, and idempotency-key drift for the new IdP create API."
+      ]
+    },
+    "F2_testability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Coverage is deterministic and in-memory inside the existing oya-cloud-iam-api integration suite."
+      ]
+    },
+    "F3_architecture": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The API boundary delegates to the existing Cloud IAM domain register_identity_provider path and does not add provider SDK/network coupling."
+      ]
+    },
+    "F4_interface_contract": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The OpenAPI contract gained one additive provider registration route and route parity passed with 6 REST routes and 6 OpenAPI paths."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Names mirror existing Cloud IAM role/STS API boundary conventions and keep the lifecycle surface explicitly scoped to create."
+      ]
+    },
+    "F6_observability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Evidence files, audit-chain row, and API response metadata retain request_id without introducing secret-bearing logs."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Tenant binding, authorization surface matching, provider path/body binding, duplicate conflict, and idempotency drift are enforced before replay/mutation claims.",
+        "No credentials, provider SDKs, or live cloud calls are added."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The new path uses bounded in-memory map lookups and existing domain registration logic in tests."
+      ]
+    },
+    "F9_maintainability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The create API follows the existing role create/STS request validation and idempotency ledger pattern, avoiding bespoke federation handlers."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rollback is limited to one API crate, one OpenAPI file, two plan docs, and evidence rows/files."
+      ]
+    },
+    "F11_documentation_evidence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "P01/IP-004 status now distinguishes IdP create API green from update/list/delete, runtime adapter, and live-smoke gaps."
+      ]
+    },
+    "F13_adversarial_review": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The review boundary rejects over-claiming full provider-managed IdP CRUD or live-provider readiness."
+      ]
+    },
+    "M1_policy_adherence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim/work was accepted before implementation; verify/done/promote remains the closeout path."
+      ]
+    },
+    "M2_evidence_completeness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "FD-001 evidence, multispectrum evidence, and audit-chain row share the same ChangeSet id and known-gap boundary."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "IdP registration joins the existing Cloud IAM API idempotency/authorization boundary instead of adding a special-case federation handler."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The provider kind and verification reference model is provider-neutral and compatible with cloud-provider-agnostic, self-hosted, on-prem, or colo IdP control planes."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "passing_fixture_id": "oya-cloud-iam-api::identity_provider_create_api_rejects_path_body_provider_drift_before_ledger",
+      "diagnostic_asserted": "Path/body provider drift is rejected and the ledger remains empty before directory mutation.",
+      "findings": [
+        "The negative fixture would fail if the API could mutate or cache a mismatched provider id request."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The typed API request mirrors existing Cloud IAM API request structs and is straightforward for handler integration to reuse."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected implementing list/update/delete/live sync in this ChangeSet to keep the create boundary small and reviewable."
+      ]
+    },
+    "F7_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Planning-closure, OpenAPI route parity, fmt/test/clippy, and diff hygiene passed after status/evidence updates."
+      ]
+    },
+    "F8_operability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The API proof does not require live IdP credentials; live smoke remains explicitly pending."
+      ]
+    },
+    "F9_scope_control": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The ChangeSet claims provider-managed IdP create API only and does not claim full IP-004 completion."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The ChangeSet carries CC-1 classification, multispectrum facets, no dependency additions, and a bounded verification loop."
+      ]
+    }
+  },
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "vcs_lifecycle": {
+    "status": "accepted",
+    "timestamp_iso": "2026-05-21T07:36:22Z",
+    "timestamp_unix": 1779348982,
+    "agent_id": "codex-m03-p01-cloud-iam-idp-crud-20260521T0705Z",
+    "bundle_id": "cs-m03-p01-cloud-iam-idp-create-api-2026-05-21",
+    "environment": "dev",
+    "steps": [
+      {
+        "command": "oya vcs --format json verify --agent codex-m03-p01-cloud-iam-idp-crud-20260521T0705Z --evidence evidence/fd001/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json",
+        "status": "accepted",
+        "action": "verify-evidence"
+      },
+      {
+        "command": "oya vcs --format json done --agent codex-m03-p01-cloud-iam-idp-crud-20260521T0705Z --evidence evidence/fd001/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json",
+        "status": "accepted",
+        "action": "emit-change-bundle",
+        "closeout_mode": "legacy-grit-compatible-done"
+      },
+      {
+        "command": "oya vcs --format json promote --agent codex-m03-p01-cloud-iam-idp-crud-20260521T0705Z --bundle cs-m03-p01-cloud-iam-idp-create-api-2026-05-21 --env dev --evidence evidence/fd001/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-idp-create-api-2026-05-21.json",
+        "status": "accepted",
+        "action": "promote-bundle",
+        "closeout_mode": "controller-promote"
+      }
+    ]
+  }
+}

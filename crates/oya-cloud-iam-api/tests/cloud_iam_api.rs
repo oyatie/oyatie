@@ -3,12 +3,16 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_cloud_iam_api::{
-    CLOUD_IAM_ROLE_CREATE_SURFACE, CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization,
-    CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPrincipal, CloudIamPrincipalRef,
+    CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE, CLOUD_IAM_ROLE_CREATE_SURFACE,
+    CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization, CloudIamApiBoundaryContext,
+    CloudIamApiError, CloudIamApiPrincipal, CloudIamIdentityProviderCreateApiRequest,
+    CloudIamIdentityProviderCreateApiStatus, CloudIamIdentityProviderCreateIdempotencyLedger,
+    CloudIamIdentityProviderCreateRequest, CloudIamIdentityProviderKind, CloudIamPrincipalRef,
     CloudIamRoleCreateApiRequest, CloudIamRoleCreateApiStatus, CloudIamRoleCreateIdempotencyLedger,
     CloudIamRoleCreateRequest, CloudIamScopeRef, CloudIamStsTokenApiRequest,
     CloudIamStsTokenApiStatus, CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
-    create_cloud_iam_role_from_api, issue_cloud_iam_sts_token_from_api,
+    create_cloud_iam_identity_provider_from_api, create_cloud_iam_role_from_api,
+    issue_cloud_iam_sts_token_from_api,
 };
 use oya_cloud_iam_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
@@ -232,6 +236,135 @@ fn external_sts_api_request(request_id: &str, idempotency_key: &str) -> CloudIam
             issued_at_epoch_seconds: 1_700_000_100,
         },
     }
+}
+
+fn identity_provider_api_request(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudIamIdentityProviderCreateApiRequest {
+    CloudIamIdentityProviderCreateApiRequest {
+        path_identity_provider_id: "idp_partner_oidc".to_string(),
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_cloud_provisioner"),
+        authorization: authorization_for(
+            "sp_cloud_provisioner",
+            &[CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE],
+        ),
+        body: CloudIamIdentityProviderCreateRequest {
+            tenant_id: "ten_alpha".to_string(),
+            identity_provider_id: "idp_partner_oidc".to_string(),
+            region_pack: "oya-pack-alpha".to_string(),
+            kind: CloudIamIdentityProviderKind::Oidc,
+            issuer_uri: "https://partner.example/oidc".to_string(),
+            audience: "urn:oyatie:cloud".to_string(),
+            verification_material_ref: "jwks/partner".to_string(),
+            created_at_epoch_seconds: 1_700_000_020,
+        },
+    }
+}
+
+#[test]
+fn identity_provider_create_api_rejects_path_body_provider_drift_before_ledger() {
+    let mut directory = IamDirectory::default();
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let mut request = identity_provider_api_request("req-idp-drift", "idem-idp-drift");
+    request.body.identity_provider_id = "idp_other_oidc".to_string();
+
+    let result = create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request);
+
+    assert_eq!(
+        result,
+        Err(CloudIamApiError::ProviderIdMismatch {
+            path_identity_provider_id: "idp_partner_oidc".to_string(),
+            body_identity_provider_id: "idp_other_oidc".to_string(),
+        })
+    );
+    assert!(ledger.is_empty());
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("path/body denial happened before directory mutation");
+}
+
+#[test]
+fn identity_provider_create_api_registers_oidc_provider_once_and_replays() {
+    let mut directory = IamDirectory::default();
+    directory
+        .create_principal(service_principal_create())
+        .expect("provisioner principal exists");
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+    let request = identity_provider_api_request("req-idp-create", "idem-idp-create");
+
+    let first =
+        create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+            .expect("provider-managed OIDC IdP registers through API");
+    let second = create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request)
+        .expect("same IdP create request replays idempotently");
+
+    assert_eq!(first, second);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(first.data.identity_provider_id, "idp_partner_oidc");
+    assert_eq!(first.data.kind, CloudIamIdentityProviderKind::Oidc);
+    assert_eq!(first.data.verification_material_ref, "jwks/partner");
+    assert_eq!(first.metadata.request_id, "req-idp-create");
+    assert_eq!(
+        CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE,
+        "cloud.iam.identity_provider.create"
+    );
+    assert_eq!(CloudIamIdentityProviderCreateApiStatus::Created.code(), 201);
+    assert_eq!(
+        CloudIamIdentityProviderCreateApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(
+        CloudIamIdentityProviderCreateApiStatus::Forbidden.code(),
+        403
+    );
+    assert_eq!(
+        CloudIamIdentityProviderCreateApiStatus::Conflict.code(),
+        409
+    );
+    assert_eq!(
+        CloudIamIdentityProviderCreateApiStatus::UnprocessableEntity.code(),
+        422
+    );
+
+    directory
+        .create_principal(external_principal_create())
+        .expect("registered provider can bind external principal");
+}
+
+#[test]
+fn identity_provider_create_api_maps_duplicate_and_reused_idempotency_key() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("provider exists");
+    let mut ledger = CloudIamIdentityProviderCreateIdempotencyLedger::default();
+
+    let duplicate = create_cloud_iam_identity_provider_from_api(
+        &mut directory,
+        &mut ledger,
+        identity_provider_api_request("req-idp-duplicate", "idem-idp-duplicate"),
+    )
+    .expect_err("duplicate provider maps to conflict");
+    assert_eq!(duplicate.identity_provider_create_status_code(), 409);
+    assert_eq!(
+        duplicate,
+        CloudIamApiError::Iam(CloudIamError::DuplicateProvider)
+    );
+
+    let mut directory = IamDirectory::default();
+    let request = identity_provider_api_request("req-idp-create", "idem-idp-create");
+    create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+        .expect("new provider registers");
+    let mut drifted = request;
+    drifted.body.audience = "urn:oyatie:changed".to_string();
+    assert_eq!(
+        create_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, drifted),
+        Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: "idem-idp-create".to_string(),
+        })
+    );
 }
 
 #[test]
