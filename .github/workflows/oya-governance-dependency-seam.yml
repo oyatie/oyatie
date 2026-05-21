@@ -35,11 +35,19 @@ jobs:
         run: cargo install cargo-audit --locked --version 0.22.1
       - name: Fetch RustSec advisory database
         # cargo-audit 0.22.1 in the dep-seam gate path does not auto-fetch the
-        # advisory database; without an explicit fetch the cargo-audit-shell
+        # advisory database; without explicit population the cargo-audit-shell
         # subcheck fails with "error loading advisory database: ... No such
         # file or directory". Local runs work because ~/.cargo/advisory-db/
         # is populated from prior cargo-audit invocations.
-        run: cargo audit fetch
+        # `cargo audit fetch` is not a subcommand in 0.22.1, so we clone the
+        # advisory DB directly into the canonical cache path.
+        run: |
+          set -euo pipefail
+          ADVISORY_DB_DIR="${CARGO_HOME:-$HOME/.cargo}/advisory-db"
+          if [ ! -d "$ADVISORY_DB_DIR/crates" ]; then
+            git clone --depth=1 https://github.com/RustSec/advisory-db.git "$ADVISORY_DB_DIR"
+          fi
+          ls "$ADVISORY_DB_DIR/crates" | head -3
       - name: Validate dependency-seam governance gate
         env:
           CARGO_TERM_COLOR: always
