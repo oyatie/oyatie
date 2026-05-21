@@ -1,0 +1,361 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-m03-p02-cloud-compute-vm-adapters-2026-05-21",
+  "agent_id": "codex-m03-p02-cloud-compute-vm-adapters-20260521T1104Z",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "timestamp_unix": 1779362227,
+  "timestamp_iso": "2026-05-21T11:17:07Z",
+  "scope": "M03-P02-IP-001 Cloud Compute VM API provider-agnostic AWS/OCI adapter request-contract slice",
+  "status": "aws-oci-vm-adapter-request-contract-green-live-provider-and-selfhosted-colo-pending",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/masterplan.json",
+    "specs/planning-closure-contract.json",
+    "specs/master-plan-sequencing.json#oya-vcs-protocol",
+    "specs/gitops-vcs-replacement.json",
+    "specs/multispectrum-review.json",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-001-vm-api-adapters.md",
+    "contracts/openapi/cloud/cloud-compute-vm-v1.yaml"
+  ],
+  "files_changed": [
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-001-vm-api-adapters.md",
+    "Cargo.lock",
+    "Cargo.toml",
+    "contracts/openapi/cloud/cloud-compute-vm-v1.yaml",
+    "crates/oya-cloud-compute-domain/src/lib.rs",
+    "crates/oya-cloud-compute-adapter-aws/Cargo.toml",
+    "crates/oya-cloud-compute-adapter-aws/src/lib.rs",
+    "crates/oya-cloud-compute-adapter-oci/Cargo.toml",
+    "crates/oya-cloud-compute-adapter-oci/src/lib.rs",
+    "registry/catalog/oya-cloud-compute-adapter-aws.yaml",
+    "registry/catalog/oya-cloud-compute-adapter-oci.yaml",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json",
+    "evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json"
+  ],
+  "implementation_summary": [
+    "Added provider-neutral ComputeProviderVmPort, request, receipt, provider kind, and validation contract to the compute domain kernel.",
+    "Added AWS EC2 and OCI Compute adapter crates that deterministically project RunInstances/LaunchInstance command shapes and provider receipts without SDK dependencies, credentials, network I/O, or live endpoint mutation.",
+    "Registered compute AWS/OCI adapters in the workspace and catalog as source-only preview control-plane adapters.",
+    "Aligned Cloud Compute VM OpenAPI residency labels with the provider-neutral taxonomy already used by runtime parser/tests.",
+    "Updated M03-P02/IP-001 status to distinguish request-contract green from pending live-provider smoke and self-hosted/on-prem/colo adapter parity."
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-compute-adapter-aws -p oya-cloud-compute-adapter-oci --all-features (red)",
+      "status": "failed-as-expected",
+      "evidence": "TDD red captured that AWS/OCI adapter crates were not workspace members before this slice: cargo reported packages outside workspace."
+    },
+    {
+      "command": "cargo test -p oya-cloud-compute-vm-api --all-features (baseline before adapter changes)",
+      "status": "passed",
+      "evidence": "Existing VM API suite passed before adapter implementation: 12 tests, 0 failures."
+    },
+    {
+      "command": "cargo test -p oya-cloud-compute-domain -p oya-cloud-compute-adapter-aws -p oya-cloud-compute-adapter-oci -p oya-cloud-compute-vm-api --all-features",
+      "status": "passed",
+      "evidence": "Targeted compute domain, AWS adapter, OCI adapter, and VM API suites passed after local review hardening: AWS adapter 3/3, OCI adapter 3/3, compute domain 10/10, VM API 12/12."
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-compute-domain -p oya-cloud-compute-adapter-aws -p oya-cloud-compute-adapter-oci -p oya-cloud-compute-vm-api -- --check",
+      "status": "passed",
+      "evidence": "Targeted formatting check passed for compute domain, AWS adapter, OCI adapter, and VM API crates."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-compute-domain -p oya-cloud-compute-adapter-aws -p oya-cloud-compute-adapter-oci -p oya-cloud-compute-vm-api --all-features --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted clippy passed with warnings denied for compute domain, AWS adapter, OCI adapter, and VM API crates."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Planning closure validation passed after M03-P02/IP-001 status updates."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate openapi-rest-route-parity",
+      "status": "passed",
+      "evidence": "OpenAPI/REST route parity passed with cloud-compute-vm residency enum alignment."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate data-class --workspace Cargo.toml",
+      "status": "passed",
+      "evidence": "Workspace data-class gate passed with new compute adapter catalog/domain changes."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate api-semver --contracts-dir contracts",
+      "status": "passed",
+      "evidence": "API semver gate passed for the contract set after provider-neutral residency label alignment."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency seam validation passed with multispectrum evidence attached and F4 ergonomic rigor corrected to scan."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate audit-chain-replay",
+      "status": "passed",
+      "evidence": "Audit-chain replay passed after attaching multispectrum evidence."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "Diff whitespace check passed."
+    },
+    {
+      "command": "env -u RUSTC_WRAPPER SCCACHE_DISABLE=1 CARGO_BUILD_JOBS=1 /tmp/oyatie-selfhosted-dns-target-20260521/debug/oya verify --ci-required",
+      "status": "passed",
+      "evidence": "Final canonical verify passed after local review hardening, transient target cleanup, and disabling sccache: gate run-all summary 89/89 lanes passed; cargo fmt/check/clippy/nextest, VCS admission, provider execution, required-secrets, and PR-head review workflow checks passed."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya vcs --format json verify --agent codex-m03-p02-cloud-compute-vm-adapters-20260521T1104Z --evidence evidence/fd001/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json",
+      "status": "accepted",
+      "evidence": "Oya VCS evidence verify accepted again after post-review hardening and refreshed evidence."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya vcs --format json done --agent codex-m03-p02-cloud-compute-vm-adapters-20260521T1104Z --evidence evidence/fd001/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json cs-m03-p02-cloud-compute-vm-adapters-2026-05-21",
+      "status": "accepted",
+      "evidence": "Oya VCS done/change-bundle closeout accepted again after post-review hardening and refreshed evidence."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya vcs --format json promote --agent codex-m03-p02-cloud-compute-vm-adapters-20260521T1104Z --bundle cs-m03-p02-cloud-compute-vm-adapters-2026-05-21 --env dev --evidence evidence/fd001/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json",
+      "status": "accepted",
+      "evidence": "Oya VCS promote accepted again for dev after post-review hardening and refreshed evidence."
+    }
+  ],
+  "local_review": {
+    "verdict": "approve-local-before-pr-after-fixed-findings-and-final-gates",
+    "finding_count_required": 0,
+    "notes": [
+      "Code quality fixed before PR: AWS/OCI create_vm paths no longer clone validated requests unnecessarily.",
+      "Finding fixed before PR: provider receipts reject blank provider request/evidence references and targeted compute domain tests cover the rejection path.",
+      "Correctness: provider receipts reuse the same tenant/resource/region/AZ/cell validation path and targeted tests assert success and mismatch rejection for both providers.",
+      "Architecture: provider-specific behavior is isolated under adapter crates and a domain-owned port; no provider SDK dependency leaks into the VM API or domain kernel.",
+      "Security: command projections intentionally contain no credential fields and tests assert common AWS/OCI secret markers are absent.",
+      "Performance: cold-path string projection only; no hot-path runtime or network calls are introduced.",
+      "Queue/merge discipline: open PR only after local gates; wait for oya-pr-review and required checks before next-queue/automerge.",
+      "Post-review gate: do not trigger next-queue/automerge until the PR has oya-pr-review plus required GitHub checks green."
+    ],
+    "findings_fixed": [
+      "Provider receipts now reject blank provider_request_id and blank provider_evidence_ref before PR.",
+      "AWS/OCI adapters no longer clone validated requests unnecessarily in create_vm."
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "live-provider-smoke",
+      "status": "pending-credentials-and-runtime-target",
+      "reason": "No AWS EC2 or OCI Compute live API was contacted; this slice proves deterministic command/receipt contracts only."
+    },
+    {
+      "id": "selfhosted-onprem-colo-vm-adapter",
+      "status": "pending-follow-up-slice",
+      "reason": "AWS/OCI prove adapter seam shape, but the cloud-provider-agnostic hosting goal still needs a self-hosted/on-prem/colo VM adapter such as KVM/Firecracker/Proxmox/OpenStack-compatible runtime."
+    },
+    {
+      "id": "gcp-azure-adapters",
+      "status": "pending-follow-up-slice-if-needed",
+      "reason": "The IP remains provider-agnostic; GCP/Azure parity is not claimed by this AWS/OCI request-contract slice."
+    }
+  ],
+  "rollback": "Revert this ChangeSet to remove the compute provider VM port, AWS/OCI adapter crates/catalog entries, OpenAPI residency label alignment, P02/IP-001 status updates, audit-chain row, and evidence files.",
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "freshness_unix": 1779365074,
+  "git_sha": "9f40ba57",
+  "change_class_id": "CC-2",
+  "facets": {
+    "F1_correctness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The domain request validates non-empty identity/idempotency fields and tenant drift before adapters emit receipts; AWS/OCI tests cover happy path and mismatched provider refs."
+      ]
+    },
+    "F2_testability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Adapters are credential-free and deterministic, making provider command shape and receipt tests runnable offline in CI."
+      ]
+    },
+    "F3_architecture": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Provider-specific EC2/OCI details live only in adapter crates behind ComputeProviderVmPort; VM API/domain remain provider-neutral."
+      ]
+    },
+    "F4_interface_contract": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "OpenAPI residency enum now matches runtime parser labels and adapter receipts expose provider-neutral region/AZ/cell identity."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Shared label helpers remove adapter-local enum matching for flavor/image/state labels."
+      ]
+    },
+    "F6_observability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Provider evidence refs are deterministic handles for future live smoke correlation without storing credentials or raw provider responses."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "No SDK credentials, access keys, private keys, or network mutation are introduced; tests assert common secret marker absence."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "standard",
+      "findings": [
+        "Only cold-path canonical string projection is added; no runtime hot-loop or synchronous network I/O is introduced."
+      ]
+    },
+    "F9_maintainability": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Workspace/catalog registration and a small domain port make additional providers or self-hosted adapters additive without VM API rewrites."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rollback is bounded to two new adapter crates, one domain extension, catalog/OpenAPI/plan/evidence rows."
+      ]
+    },
+    "F11_documentation_evidence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "P02/IP-001 status names what is green and keeps live smoke plus self-hosted/colo parity pending."
+      ]
+    },
+    "F13_adversarial_review": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected a false maturity claim from AWS/OCI-only coverage; self-hosted/on-prem/colo adapter remains an explicit gap."
+      ]
+    },
+    "M1_policy_adherence": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Oya VCS claim, verify, done, and promote were accepted for exact scope/evidence; queue/merge remains post-review only."
+      ]
+    },
+    "M2_evidence_completeness": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Evidence includes TDD red, baseline VM API, targeted fmt/test/clippy/gates, dependency-seam, audit-chain replay, diff-check, canonical oya verify --ci-required PASS 89/89 lanes, and Oya VCS verify/done/promote closeout."
+      ]
+    },
+    "F1_linus": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The change avoids branching provider behavior inside the API by moving provider projection behind one port."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "AWS and OCI request-contract adapters exercise two hyperscaler shapes while retaining provider-neutral receipts."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Tests reject provider ref drift and assert credential markers are absent from command bodies."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "scan",
+      "findings": [
+        "Future callers receive a single receipt shape regardless of EC2 or OCI backend."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected adding live SDK calls now; deterministic offline adapter contracts are safer until credentialed smoke lanes exist."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "New domain fields carry data_class annotations and catalog entries declare owned data/operational classes."
+      ]
+    }
+  },
+  "last_verified_iso": "2026-05-21T12:04:34Z",
+  "vcs_lifecycle": {
+    "status": "oya-vcs-promote-accepted-dev",
+    "environment": "dev",
+    "timestamp_unix": 1779365074,
+    "timestamp_iso": "2026-05-21T12:04:34Z",
+    "verify": {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya vcs --format json verify --agent codex-m03-p02-cloud-compute-vm-adapters-20260521T1104Z --evidence evidence/fd001/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json",
+      "status": "accepted",
+      "action": "verify-evidence",
+      "evidence_refs": [
+        "evidence/fd001/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json",
+        "evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json"
+      ]
+    },
+    "done": {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya vcs --format json done --agent codex-m03-p02-cloud-compute-vm-adapters-20260521T1104Z --evidence evidence/fd001/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json cs-m03-p02-cloud-compute-vm-adapters-2026-05-21",
+      "status": "accepted",
+      "action": "emit-change-bundle",
+      "bundle_scope": "cs-m03-p02-cloud-compute-vm-adapters-2026-05-21",
+      "closeout_mode": "legacy-grit-compatible-done"
+    },
+    "promote": {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya vcs --format json promote --agent codex-m03-p02-cloud-compute-vm-adapters-20260521T1104Z --bundle cs-m03-p02-cloud-compute-vm-adapters-2026-05-21 --env dev --evidence evidence/fd001/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json --evidence evidence/multispectrum/cs-m03-p02-cloud-compute-vm-adapters-2026-05-21.json",
+      "status": "accepted",
+      "action": "promote-bundle",
+      "bundle_id": "cs-m03-p02-cloud-compute-vm-adapters-2026-05-21",
+      "environment": "dev",
+      "closeout_mode": "controller-promote"
+    }
+  }
+}
