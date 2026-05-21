@@ -17,7 +17,6 @@ doc_status: published
 
 # Playbook: Vertical-Pack Update
 
-> **Status:** Accepted. **Owner:** `axis-vertical`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -85,7 +84,6 @@ Per pack update, emit:
 - Per-tenant DPA amendment ID (if applicable).
 - Cohort-roll-out timeline.
 
-Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), all artefacts stored via `icm store -t vertical-pack-updates`.
 
 ## 9. Hyperscaler equivalent
 
@@ -93,5 +91,4 @@ Microsoft Government Community Cloud (GCC / GCC-High) release pattern; AWS GovCl
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — pack-update artefacts stored via `icm store -t vertical-pack-updates`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — regulated vertical: bi-weekly staging → prod; M=7d canary; `privacy-reviewer` + `database-reviewer` re-affirm at gate 5; human-signoff required.

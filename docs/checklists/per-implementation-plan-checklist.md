@@ -4,7 +4,6 @@ checklist_id: CHK-IP
 status: Accepted
 date: 2026-05-12
 purpose: |
-  IP-internal verification. Walked before flipping an IP `status:` from `in-progress` to `merged` and before the worker agent runs `grit done`.
 enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
@@ -13,22 +12,17 @@ related:
   - docs/checklists/agent-completion-checklist.md
 adrs_cited:
   - ADR-0052  # inventory ledger (migration-class IP rows)
-  - ADR-0053  # sanctioned primitives (grit done, icm store)
   - ADR-0054  # scaffold-claim (symbol coverage)
 doc_status: published
 ---
 
 # Per-IP Completion Checklist
 
-> Walk **all** rows before `grit done` and before flipping IP `status:` to `merged`. Each row names a lane / command / advisory.
 
 ## Structural
 
 - [ ] **IP0** IP declares `execution_unit: ChangeSet` and its scope is claimable, independently verifiable, bundleable, promotable, and not over-broad. Split before execution if unrelated lock scopes, packages, or deployables are present. *Lane:* `oya-governance-plan-hierarchy`.
-- [ ] **IP1** All `grit_claim_symbols` from frontmatter were claimed and have `grit done` events (ADR-0053). *Command:* `oya-tooling-agent-read grit-status --ip IP-NNN-<slug>`.
 - [ ] **IP2** IP frontmatter `final_shape_compliance: true` honored — no `TODO` / `FIXME` / `unimplemented!()` / `todo!()` introduced (outside `flaky/` or ADR-tracked carve-outs). *Lane:* `oya-governance-no-placeholder`.
-- [ ] **IP3** All `agent_prerequisites` from frontmatter were read (verifiable via `icm recall-context` cache for the IP slug). *(advisory)*
-- [ ] **IP4** `§Symbols to grit-claim` set is the **exact** symbol set claimed (no over-claim, no under-claim) per ADR-0054. *Lane:* `oya-governance-claim-coverage`.
 
 ## Acceptance + verification
 
@@ -46,7 +40,6 @@ doc_status: published
 
 - [ ] **IP11** Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Evidence`. *Lane:* `oya-governance-audit-emission`.
 - [ ] **IP12** Rollback procedure (IP `§Rollback procedure`) was dry-run validated (where safe) or has a runbook reference. *(advisory; required for migration-class IPs — Lane:* `oya-governance-schema-migration`).
-- [ ] **IP13** IP `§Icm-store-payload` was emitted verbatim (ADR-0053). *Command:* `icm store -t context-<project> …`.
 - [ ] **IP14-INV** If migration-class IP: inventory ledger row appended per `docs/checklists/inventory-update-checklist.md` (ADR-0052). *Lane:* `oya-governance-inventory-tracker`.
 
 ## Hand-off
@@ -55,4 +48,3 @@ doc_status: published
 - [ ] **IP16** Parent phase INDEX `§Implementation Plans` row updated to `merged`. *Lane:* `oya-governance-plan-hierarchy`.
 - [ ] **IP17** IP frontmatter `status: merged` flipped in same PR. *Lane:* `oya-governance-plan-hierarchy`.
 
-If any row is unchecked, **do not** run `grit done`. Loop back per `docs/checklists/agent-completion-checklist.md`.

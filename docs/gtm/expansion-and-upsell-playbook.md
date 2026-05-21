@@ -32,6 +32,8 @@ related_journeys:
   - docs/user-journeys/j54-quote-to-contract-to-payment-saas/README.md
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Expansion and Upsell Playbook
 
 ## Purpose
@@ -266,36 +268,6 @@ This document is a GTM playbook and not a pricing authority.
 
 ### Capability-Tier Upgrade Triggers
 
-- Bronze-to-Silver Trigger BTS-01: Active seat count approaches 250-seat Bronze cap.
-- Bronze-to-Silver Trigger BTS-02: Customer needs SAML or SCIM beyond basic admin controls.
-- Bronze-to-Silver Trigger BTS-03: Customer needs service-mesh integration posture.
-- Bronze-to-Silver Trigger BTS-04: Customer needs audit hot retention beyond 30 days.
-- Bronze-to-Silver Trigger BTS-05: Customer requires P1 response faster than 240 minutes.
-- Bronze-to-Silver Trigger BTS-06: Customer requires RPO better than 1440 minutes.
-- Bronze-to-Silver Trigger BTS-07: Customer requires RTO better than 480 minutes.
-- Bronze-to-Silver Trigger BTS-08: Customer request rate approaches 2000 RPS.
-- Bronze-to-Silver Trigger BTS-09: Customer needs shadow migration support.
-- Bronze-to-Silver Trigger BTS-10: Customer has multiple business units preparing onboarding.
-- Silver-to-Gold Trigger STG-01: Active seat count approaches 2500-seat Silver cap.
-- Silver-to-Gold Trigger STG-02: Customer needs multi-AZ active-active posture.
-- Silver-to-Gold Trigger STG-03: Customer needs 7-year evidence posture.
-- Silver-to-Gold Trigger STG-04: Customer requires P1 response faster than 120 minutes.
-- Silver-to-Gold Trigger STG-05: Customer requires RTO better than 120 minutes.
-- Silver-to-Gold Trigger STG-06: Customer requires request capacity beyond 10000 RPS.
-- Silver-to-Gold Trigger STG-07: Customer needs audit hot retention beyond 90 days.
-- Silver-to-Gold Trigger STG-08: Customer has material executive dependency on QBR evidence.
-- Silver-to-Gold Trigger STG-09: Customer runs mission-critical workflows with low tolerance for manual fallback.
-- Silver-to-Gold Trigger STG-10: Customer needs formal operational incident debrief cadence.
-- Gold-to-Platinum Trigger GTP-01: Active seat count approaches 25000-seat Gold cap.
-- Gold-to-Platinum Trigger GTP-02: Customer needs sovereign or highly regulated posture.
-- Gold-to-Platinum Trigger GTP-03: Customer needs air-gap option.
-- Gold-to-Platinum Trigger GTP-04: Customer needs HSM-rooted CA posture.
-- Gold-to-Platinum Trigger GTP-05: Customer requires P1 response faster than 30 minutes.
-- Gold-to-Platinum Trigger GTP-06: Customer requires RPO better than 240 minutes.
-- Gold-to-Platinum Trigger GTP-07: Customer requires RTO better than 60 minutes.
-- Gold-to-Platinum Trigger GTP-08: Customer requires request capacity beyond 50000 RPS.
-- Gold-to-Platinum Trigger GTP-09: Customer needs audit hot retention beyond 365 days.
-- Gold-to-Platinum Trigger GTP-10: Customer has regulator-reviewed evidence or isolation requirements.
 
 ### Named Usage-Pattern Signals
 
@@ -344,7 +316,6 @@ This document is a GTM playbook and not a pricing authority.
 - CP-02 Opening: "The workflow is now operationally important enough that the current RTO and support targets deserve review."
 - CP-02 Evidence: incident trend, RTO expectation, workflow criticality, error-budget burn.
 - CP-02 Buyer: COO Akira Watanabe with CTO Diego Vargas.
-- CP-02 Recommendation: move from Bronze to Silver, Silver to Gold, or Gold to Platinum depending on target.
 - CP-02 Policy Note: activate `cedar.tenant.slo_budget.executive_viewer` and support escalation changes.
 - CP-02 Success Metric: tabletop P1 acknowledgement and recovery target alignment.
 - CP-02 Risk if deferred: business-critical workflow relies on package below operational expectation.
@@ -430,14 +401,6 @@ This document is a GTM playbook and not a pricing authority.
 - Metric: Capability Expansion Health; Target: new capability has named owner and first-value metric within 30 days.
 - Metric: Compliance Expansion Health; Target: evidence retrieval passes before regulated workflow activation.
 - Metric: Reliability Upgrade Health; Target: tabletop confirms P1 response and RTO/RPO targets before relying on upgraded tier.
-- Bronze Boundary Target: review expansion when active seats exceed 200 or sustained RPS exceeds 1400.
-- Silver Boundary Target: review expansion when active seats exceed 2000 or sustained RPS exceeds 7000.
-- Gold Boundary Target: review expansion when active seats exceed 20000 or sustained RPS exceeds 35000.
-- Platinum Boundary Target: review architecture when active seats exceed 80000 or sustained RPS exceeds 70000.
-- Bronze SLA Anchor: 99.9 percent availability, 240-minute P1 response, 1440-minute RPO, 480-minute RTO.
-- Silver SLA Anchor: 99.95 percent availability, 120-minute P1 response, 240-minute RPO, 120-minute RTO.
-- Gold SLA Anchor: 99.99 percent availability, 30-minute P1 response, 240-minute RPO, 60-minute RTO.
-- Platinum SLA Anchor: 99.995 percent pack-bound availability, 15-minute P1 response, 60-minute RPO, 30-minute RTO.
 
 ## Named Failure Modes + Recovery
 
@@ -628,9 +591,6 @@ Regards,
 
 ### Tier Review Controls
 
-- Tier Review Control TRC-001: Bronze-to-Silver recommendation must name at least one Bronze boundary pressure.
-- Tier Review Control TRC-002: Silver-to-Gold recommendation must name at least one Silver boundary pressure.
-- Tier Review Control TRC-003: Gold-to-Platinum recommendation must name at least one Gold boundary pressure.
 - Tier Review Control TRC-004: Tier recommendation must include current availability target.
 - Tier Review Control TRC-005: Tier recommendation must include proposed availability target.
 - Tier Review Control TRC-006: Tier recommendation must include current P1 response target.
@@ -792,10 +752,6 @@ Regards,
 - `docs/GTM-PLAN.md` for packaging, customer success, and GTM expansion narrative.
 - `docs/personas/MASTER-ROSTER-2026-05-21.md` for named sales, customer success, executive, finance, security, compliance, data, and operations personas.
 - `docs/standards/capability-tier-matrix.md` for tier boundaries and package expectations.
-- `registry/capability-tiers/bronze.json` for Bronze capacity, support, RPO, RTO, and retention targets.
-- `registry/capability-tiers/silver.json` for Silver capacity, support, RPO, RTO, and retention targets.
-- `registry/capability-tiers/gold.json` for Gold capacity, support, RPO, RTO, and retention targets.
-- `registry/capability-tiers/platinum.json` for Platinum capacity, support, RPO, RTO, and retention targets.
 - `specs/tenant-model.json` for tenant fields used in entitlement and expansion readiness.
 - `docs/standards/tenant-lifecycle.md` for Active, Suspended, Migrating, and Offboarded lifecycle constraints.
 - `docs/standards/cedar-policy-authoring.md` for policy rules governing entitlement changes.

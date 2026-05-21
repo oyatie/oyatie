@@ -8,7 +8,7 @@ excludes:
   reason: Machine-readable entry-point registry; this contract is discovered through
     it.
 - path: /specs/master-plan-sequencing.json
-  reason: Forbidden primitives, grit protocol, and ChangeSet sequencing; cited and
+  reason: Primitive policy, Oya VCS sequencing, and ChangeSet promotion; cited and
     not duplicated fully.
 - path: /specs/markdown-retirement-policy.json
   reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
@@ -170,9 +170,12 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
 ## Sanctioned primitives
 
-Agent-callable coordination and state-transition primitives are a closed set: Oya VCS compatibility ratchet claim / verify / done / promote plus the `oya-vcs-admission` CI lane, all delivered through the Foundry pipeline (M01-P18). Oya VCS owns claims, ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock release until the task #38 `oya git` drop-in surface lands with explicit policy verbs split out. ADR-0052/ADR-0053/ADR-0054 are historical records only; the external coordination tools they sanctioned (grit, icm, rtk, vox) are retired per ADR-0116 (2026-05-16).
-
-External agent-coordination tooling (grit, rtk, icm, vox) is retired per ADR-0116. New crate scaffolds use plain `git mv` inside a per-agent `git worktree`; concurrent-file coordination happens at admission-gate time via `registry/vcs/concurrent-safe-paths.yaml` (ADR-0111 conflict-avoidance pre-admit gate). No external coordination tool participates in the prescribed surface.
+Agent-callable coordination and state-transition primitives are a closed set:
+Oya VCS compatibility ratchet claim / verify / done / promote plus the
+`oya-vcs-admission` CI lane, delivered through the Foundry pipeline (M01-P18).
+`oya git <git-subcommand>` is the git drop-in surface. Oya VCS owns claims,
+ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock
+release until those policy verbs split explicitly.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
@@ -189,7 +192,6 @@ required_sequence:
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-retirement_note: legacy grit/icm/rtk/vox are retired per ADR-0116; omx/omc/oya-tooling-agent-read remain compatibility/provenance-only during the cutover window. `oya git <git-subcommand>` is the git drop-in surface; Oya VCS remains the compatibility policy-ratchet spelling for claim / verify / done / promote until those policy verbs split explicitly.
 <!-- agent-instructions:end -->
 
 ## PR shape

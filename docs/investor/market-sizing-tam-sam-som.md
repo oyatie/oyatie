@@ -7,6 +7,8 @@ owner: founder-office
 target_audience: seed_investors, growth_investors, strategic_corporate_development
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Market Sizing: TAM, SAM, SOM
 
 ## 01 - Scope and Method
@@ -231,7 +233,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: audit-chain and ontology-backed lineage.
 - Policy angle: Cedar gates for authority, segregation of duties, data residency, and AI action.
 - Deployment angle: dedicated cells for regulated subsidiaries.
-- Pricing fit: Gold at $720,000 ARR and Platinum at $1.8 million ARR.
 - Sales cycle assumption: 9 to 15 months.
 - Pilot target: one non-production compliance workflow.
 - Expansion target: quote-to-cash, treasury workflow, data governance, and AI cost controls.
@@ -259,7 +260,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Evidence angle: HIPAA, GDPR, GxP, 21 CFR Part 11, audit trails, and consent proof.
 - Data angle: sensitive data classes and pack-specific Cedar decisions.
 - Deployment angle: regional cells and strict tenant isolation.
-- Pricing fit: Platinum at $1.8 million ARR for regulated deployments.
 - Pilot target: non-clinical regulated evidence workflow.
 - Expansion target: consent graph, DSR cascade, vendor workflow, and quality management.
 - Sales cycle assumption: 9 to 18 months.
@@ -291,7 +291,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: ontology linking supplier, part, work order, lot, quality event, and corrective action.
 - Policy angle: Cedar gates for plant, role, quality signoff, and regulated data class.
 - Deployment angle: factory cell and offline/edge considerations.
-- Pricing fit: Gold at $720,000 ARR plus integration overage.
 - Pilot target: supplier corrective action workflow.
 - Expansion target: production planning, warehouse, maintenance, quality, and compliance.
 - Sales cycle assumption: 6 to 12 months.
@@ -321,7 +320,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: classification, tenant cell, and audit-chain controls.
 - Policy angle: Cedar gates for jurisdiction, clearance, program, and data class.
 - Deployment angle: sovereign or dedicated cell.
-- Pricing fit: Platinum at $1.8 million ARR plus dedicated cell premium.
 - Pilot target: evidence pack and change-control workflow.
 - Expansion target: procurement, program workflow, incident, compliance, and asset governance.
 - Sales cycle assumption: 12 to 24 months.
@@ -351,7 +349,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: matter, client, team, document, approval, billing event, and risk status.
 - Policy angle: Cedar gates for client wall, conflict, matter, role, and jurisdiction.
 - Deployment angle: managed cloud with dedicated cell option for large firms.
-- Pricing fit: Silver at $180,000 ARR to Gold at $720,000 ARR.
 - Pilot target: client onboarding and matter approval workflow.
 - Expansion target: billing workflow, knowledge, collaboration, and risk evidence.
 - Sales cycle assumption: 4 to 9 months.
@@ -381,7 +378,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: customer, order, inventory, promotion, return, and service event.
 - Policy angle: Cedar gates for consent, region, data class, and channel.
 - Deployment angle: managed cloud plus regional packs.
-- Pricing fit: Silver at $180,000 ARR to Gold at $720,000 ARR.
 - Pilot target: consent-governed customer operations workflow.
 - Expansion target: service, marketing, supply chain, loyalty, and analytics.
 - Sales cycle assumption: 4 to 10 months.
@@ -411,7 +407,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: supplier, shipment, lane, SKU, order, invoice, tariff, and exception.
 - Policy angle: Cedar gates for jurisdiction, counterparty, data class, and exception approval.
 - Deployment angle: multi-region managed cell.
-- Pricing fit: Gold at $720,000 ARR for complex operators.
 - Pilot target: trade exception workflow with audit evidence.
 - Expansion target: supplier onboarding, quality, route exceptions, and cost attribution.
 - Sales cycle assumption: 6 to 12 months.
@@ -441,7 +436,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: asset, property, lease, vendor, work order, cost center, and approval.
 - Policy angle: Cedar gates for property, tenant, vendor, jurisdiction, and spend threshold.
 - Deployment angle: managed cloud.
-- Pricing fit: Silver at $180,000 ARR to Gold at $720,000 ARR.
 - Pilot target: lease abstraction and approval workflow.
 - Expansion target: facilities, rent roll, vendor onboarding, and capital project workflow.
 - Sales cycle assumption: 4 to 9 months.
@@ -471,7 +465,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: customer, workspace, source change, incident, control, evidence, and policy decision.
 - Policy angle: Cedar gates for development workflow, customer data access, AI capability, and cost.
 - Deployment angle: managed cloud and self-hosted option for sensitive source code.
-- Pricing fit: Gold at $720,000 ARR for enterprise SaaS companies.
 - Pilot target: audit evidence automation plus AI action governance.
 - Expansion target: Oya VCS, Foundry, customer trust portal, and compliance evidence.
 - Sales cycle assumption: 3 to 9 months.
@@ -501,7 +494,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: learner, program, credential, employer, consent, and funding source.
 - Policy angle: Cedar gates for student data, guardian consent, program, and jurisdiction.
 - Deployment angle: managed cloud with regional controls.
-- Pricing fit: Silver at $180,000 ARR.
 - Pilot target: credential and workforce program workflow.
 - Expansion target: learning management, identity, compliance, and employer marketplace.
 - Sales cycle assumption: 6 to 15 months.
@@ -531,7 +523,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: asset, work order, operator, incident, vendor, region, and control.
 - Policy angle: Cedar gates for facility, role, risk level, and regulated data.
 - Deployment angle: dedicated cells and possible edge/offline mode.
-- Pricing fit: Platinum at $1.8 million ARR for major operators.
 - Pilot target: incident or maintenance evidence workflow.
 - Expansion target: vendor governance, asset risk, and compliance reporting.
 - Sales cycle assumption: 9 to 18 months.
@@ -561,7 +552,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: customer, account, incident, network asset, service, SLA, and partner.
 - Policy angle: Cedar gates for customer data, service tier, region, and incident role.
 - Deployment angle: managed cloud or dedicated cell for large operators.
-- Pricing fit: Gold at $720,000 ARR.
 - Pilot target: incident plus customer-impact workflow.
 - Expansion target: service operations, partner marketplace, and analytics.
 - Sales cycle assumption: 6 to 12 months.
@@ -591,7 +581,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: location, employee, vendor, incident, task, and finance event.
 - Policy angle: Cedar gates for location, franchise, role, and data class.
 - Deployment angle: managed cloud.
-- Pricing fit: Silver at $180,000 ARR with location-based usage.
 - Pilot target: multi-location onboarding or incident workflow.
 - Expansion target: workforce tasks, vendor compliance, and finance approvals.
 - Sales cycle assumption: 4 to 9 months.
@@ -621,7 +610,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: customer, project, invoice, employee, task, contract, and document.
 - Policy angle: Cedar gates can be packaged invisibly for admins.
 - Deployment angle: managed cloud only in early phase.
-- Pricing fit: Bronze at $48,000 ARR and Silver at $180,000 ARR.
 - Pilot target: founder-led SMB operating system workflow.
 - Expansion target: CRM, tasks, mail, docs, workflow, billing, and customer trust.
 - Sales cycle assumption: 30 to 120 days.
@@ -651,7 +639,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Data angle: tenant hierarchy, subsidiary, region, policy, transaction, control, and evidence.
 - Policy angle: Cedar gates for tenant hierarchy, jurisdiction, role, pack, and data class.
 - Deployment angle: multi-cell, regional packs, and dedicated regulated cells.
-- Pricing fit: Platinum at $1.8 million ARR plus cell premiums.
 - Pilot target: one group-level compliance or procurement workflow.
 - Expansion target: subsidiary onboarding, cross-region evidence, and software portfolio rationalization.
 - Sales cycle assumption: 12 to 18 months.
@@ -692,10 +679,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 
 ## 23 - Pricing and Market Capture Assumptions
 
-- Bronze modeled ARR: $48,000 per tenant.
-- Silver modeled ARR: $180,000 per tenant.
-- Gold modeled ARR: $720,000 per tenant.
-- Platinum modeled ARR: $1,800,000 per tenant.
 - Dedicated cell add-on: $300,000 to $1,200,000 per year.
 - Evidence pack add-on: $60,000 to $250,000 per year.
 - AI and workflow overage: 20 percent to 40 percent of base ARR at maturity.
@@ -821,7 +804,6 @@ target_audience: seed_investors, growth_investors, strategic_corporate_developme
 - Scenario E implies 610 total paying tenants.
 - Scenario B is the most credible planning case.
 - Scenario C is the investor upside case.
-- Scenario D is possible if Platinum regulated tenants convert.
 - Scenario E requires distribution and support maturity that seed plan should not assume.
 - All scenarios require first paid pilot by 2026-12-15.
 - All scenarios require repeatable onboarding by 2027-12-31.

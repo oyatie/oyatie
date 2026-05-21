@@ -11,7 +11,6 @@ related:
   - docs/AGENTS.md
   - docs/RACI-OWNERSHIP.md  # row: human-orchestrator-cutover + escalation contacts
   - docs/INCIDENT-MANAGEMENT.md
-  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md  # §Glossary §Human orchestrator
   - docs/checklists/agent-kickoff-checklist.md
   - docs/checklists/agent-completion-checklist.md
 adrs_cited:
@@ -30,7 +29,6 @@ doc_status: published
 The full list of sanctioned escalation classes (steady-state):
 
 ### E1. Cutover one-time human-orchestrator carve-out
-**Trigger:** Cutover phase requires `git mv` (P6 archive) / `git rm` (P7 delete) / `gh issue create` (P9 upstream-bug filing) per ADR-0053 §Consequences §Neutral. **Resolution:** Named human orchestrator (per `docs/RACI-OWNERSHIP.md` row `human-orchestrator-cutover`) executes the action; `icm store -t cutover-orchestrator-actions -c "<action>" -i critical` emitted BEFORE execution. Inventory row appended per ADR-0052. **Mechanical prevention candidate:** Add `grit mv`, `grit rm`, `oya-tooling-agent-read issue-create` to sanctioned set in future ADR. *Target collapse: yes.*
 
 ### E2. Authority-class doc edit
 **Trigger:** A change to `docs/CONSTITUTION.md`, `docs/PRD.md`, `docs/MASTERPLAN.md` (council-only docs per `docs/DOC-CATALOG.md §agent_authoring_allowed: NO`). **Resolution:** Halt; emit issue request to council-architecture; council member edits manually. **Mechanical prevention candidate:** None (intentional — authority-class docs are human-only by design).
@@ -54,16 +52,12 @@ The full list of sanctioned escalation classes (steady-state):
 **Trigger:** Consumer-axis team declines a cross-axis contract change without an alternative path. **Resolution:** Halt; council-architecture mediates per `cross-axis-contract-change-checklist.md`. *Target collapse: no — design conflict is human-mediated.*
 
 ### E9. Upstream tool bug blocking sanctioned primitive
-**Trigger:** `grit session start` bug (or analogous) blocks the sanctioned pipeline (ADR-0053). **Resolution:** Halt sanctioned flow; switch to documented workaround per `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 1`; emit `icm store -t upstream-tool-bugs -c "<one line>" -i high`; human orchestrator files upstream issue. *Target collapse: yes (when upstream ships fix).*
 
-### E10. ICM / audit-chain unreachable
-**Trigger:** `icm store` fails repeatedly, OR audit-chain emission endpoint returns errors. **Resolution:** Halt all in-flight work; do not silently proceed without audit trail. Route to ops-sre-reliability. *Target collapse: no — by design.*
 
 ## How to emit `BLOCKED_ON_HUMAN_ORCHESTRATOR`
 
 <!-- agent-instructions:start -->
 ```
-icm store \
   -t blocked-on-human \
   -c "<one-line description of block; cite escalation class E1..E10>" \
   -i critical \
@@ -72,15 +66,12 @@ icm store \
 
 Then halt the loop:
 - If inside Ralph / autopilot / ultrawork / team: do **NOT** `/oh-my-claudecode:cancel` silently; re-walk `done-definition-checklist.md` for the current change, then cancel with a comment naming the block.
-- If at IP boundary: **DO NOT** `grit done`; the symbols remain claimed-and-stalled until a human resolves the block or revokes the claim via `grit force-release` (human orchestrator only).
 - Emit issue request via `oya-tooling-agent-read issue-create --title "BLOCKED: <one-line>" --body "<context>"` if a tracking issue is needed (ADR-0053 sanctioned primitive).
 <!-- agent-instructions:end -->
 
 ## Anti-patterns
 
 - Inventing an 11th escalation class on the fly — author an ADR instead.
-- Halting silently (no `icm store`) — the absence of an audit row is itself a `MISTAKES-LEDGER` row trigger.
-- Halting because of a transient (single-retry-recoverable) failure — retry once with `icm store -t errors-resolved`; only halt if the retry fails.
 - Re-claiming a symbol that's flagged `BLOCKED` — another agent / human orchestrator owns resolution.
 
 ## Quarterly council review

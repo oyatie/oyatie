@@ -7,7 +7,7 @@ journey_id: J-PM-29-anonymous-engagement-pulse
 status: proposed
 date: 2026-05-20
 owner: axis-performance-management
-capability_tier: T3
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-029: Engagement Pulse Anonymity Guard

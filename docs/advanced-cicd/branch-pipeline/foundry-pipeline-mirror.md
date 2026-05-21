@@ -47,19 +47,14 @@ provider: <provider id per ADR-0020>
 
 # NEW fields (this composer)
 stage: dev-draft | dev | staging | prod    # current lifecycle stage
-promoted_from: <prior stage's icm record id, or null for dev-draft>
-promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
 stage_history:                              # append-only audit log
   - stage: dev-draft
     promoted_at: <rfc3339>
     promoter: <agent id>
-    evidence_id: <icm record id>
   - stage: dev
     promoted_at: <rfc3339>
     promoter: dev-promoter
-    evidence_id: <icm record id>
     pr_id: <int>
-    reviewer_verdicts: [<icm record ids>]
   # ... staging, prod
 ```
 

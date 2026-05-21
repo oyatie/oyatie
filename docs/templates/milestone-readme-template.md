@@ -38,9 +38,7 @@ entry_gate: |
 exit_gate: |
   Exact condition that declares M0X complete. Must name at least:
   - a cargo/CI command
-  - a grit primitive (grit done called on all milestone symbols)
   - a product-level outcome (e.g., "1 KR paying tenant live")
-  - an ICM milestone-complete row emitted
 owner_team: <team-id>
 bominal_adrs_inherited:
   - ADR-####  # list Bominal ADRs this milestone inherits 1:1 (translated)
@@ -78,10 +76,8 @@ If M01: "none — first milestone."
 Exact, measurable conditions that declare this milestone complete:
 
 1. `<cargo / CI command>` exits 0 across all milestone-scope crates.
-2. `<grit primitive>`: `grit done` called on all milestone symbols; no orphan claims.
 3. `<product outcome>`: e.g., "1 KR group paying tenant live; 4대보험 EDI green."
 4. `<fitness lane>`: all LEAN lanes exit 0 for milestone-scope crates.
-5. ICM row emitted: `icm store -t context-oyatie -c "M0X-<slug> complete ..." -i high`.
 
 ---
 
@@ -138,11 +134,9 @@ The first file a fresh executor MUST read to enter this milestone:
 .omc/plans/milestones/M0X-<slug>/README.md   ← you are here
   → phases/P01-<slug>/README.md              ← first open phase
   → phases/P01-<slug>/<impl-plan-name>.md    ← first open IP
-  → grit claim <first symbol from IP §Grit Symbol-Locks>
 ```
 
 Before claiming, executor MUST:
-1. `icm recall-context "M0X-<slug>" --limit 5` — read returned memories.
 2. Read `docs/prds/<µservice>.md` for each µservice in milestone scope.
 3. Read `docs/CONSTITUTION.md §Decision principles + §Prohibitions`.
 4. Confirm no symbols in the first IP are currently claimed by another agent.

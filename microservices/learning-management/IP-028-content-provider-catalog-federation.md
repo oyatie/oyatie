@@ -7,7 +7,7 @@ journey_id: J-LMS-28-provider-catalog-federation
 status: proposed
 date: 2026-05-20
 owner: axis-learning-management
-capability_tier: T3
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-028: Content Provider Catalog Federation

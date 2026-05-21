@@ -1,5 +1,7 @@
 # Emergency Department Information System (ED-IS)
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 `microservices/emergency/` — the µservice that owns every Emergency-Department workflow inside the oyatie platform.
 
 Authority: ADR-0332 (in flight) | ADR-0131 | ADR-0132 | ADR-0251 | ADR-0328
@@ -93,7 +95,6 @@ microservices/emergency/
   iac/
     aws-guest/              # OpenTofu module
     oci-guest/              # OpenTofu module
-    oci-always-free/        # Bronze tier on OCI Always Free
     on-prem/                # OpenTofu module
     colo/                   # OpenTofu module
     oyatie-cloud/           # OpenTofu module
@@ -143,7 +144,6 @@ Per `feedback_multi_context_provider_agnostic_2026_05_20`:
 
 1. **aws-guest** — Oyatie hosted on AWS, customer is a tenant.
 2. **oci-guest** — Oyatie hosted on OCI, customer is a tenant.
-3. **oci-always-free** — Bronze tier, Always Free shape (2× Ampere A1 ARM 4 OCPU + 24 GB + 2× Autonomous DB + 200 GB block).
 4. **on-prem** — Customer-controlled on-premise hospital deployment.
 5. **colo** — Customer-controlled colocation.
 6. **oyatie-cloud** — Oyatie as cloud provider (own IaaS).
@@ -289,7 +289,6 @@ ED-IS calls peer µservices via direct gRPC + AsyncAPI per ADR-0145. Notable int
 5. Verify SLOs are reporting under `observability`.
 6. Verify Cedar policies are loaded under `governance`.
 
-For OCI Always Free Bronze tier: `iac/oci-always-free/` is sized to fit the 2× Ampere A1 ARM Always Free shape and runs the full ED-IS stack for demo / sandbox / Bronze trials.
 
 ---
 

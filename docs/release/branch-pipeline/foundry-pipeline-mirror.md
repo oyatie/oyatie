@@ -19,7 +19,6 @@ doc_status: published
 
 # Foundry Pipeline Mirror — Capability Stages in Lockstep with Branch Layers
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. Thesis
 
@@ -47,19 +46,14 @@ provider: <provider id per ADR-0020>
 
 # NEW fields (this composer)
 stage: dev-draft | dev | staging | prod    # current lifecycle stage
-promoted_from: <prior stage's icm record id, or null for dev-draft>
-promoted_to: <next stage's icm record id, or null for prod or active-on-current-stage>
 stage_history:                              # append-only audit log
   - stage: dev-draft
     promoted_at: <rfc3339>
     promoter: <agent id>
-    evidence_id: <icm record id>
   - stage: dev
     promoted_at: <rfc3339>
     promoter: dev-promoter
-    evidence_id: <icm record id>
     pr_id: <int>
-    reviewer_verdicts: [<icm record ids>]
   # ... staging, prod
 ```
 
@@ -150,5 +144,4 @@ This file does not own:
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — capability stage transitions recorded via `icm store -t capability-stage-transitions`; all sanctioned tool usage.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — capability stages mirror the four branch layers defined in ADR-0055; `oya-governance-capability-stage-binding` is a branch-pipeline lane.

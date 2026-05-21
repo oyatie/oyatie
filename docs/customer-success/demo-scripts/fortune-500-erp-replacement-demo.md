@@ -15,6 +15,8 @@ date: 2026-05-20
 owner: customer-success
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Fortune 500 ERP Replacement Demo
 
 ## Pre-Demo Checklist
@@ -108,7 +110,6 @@ owner: customer-success
 - Click `Executive ERP Replacement View`.
 - Dialogue: "I am starting at tenant posture, not an app launcher, because ERP replacement fails when scope is invisible."
 - Show the five active cells.
-- Show Gold tier posture.
 - Show active packs and absent packs.
 - Show `38 plants`, `11,600 suppliers`, and `47,000 employees`.
 - Click `Cost Dimensions`.
@@ -501,7 +502,6 @@ owner: customer-success
 - Explain that implementation services depend on connector quality and custom logic decomposition.
 - Explain that compliance-pack activation can change infrastructure cost.
 - Explain that regulated retention changes storage and audit-chain cost.
-- Explain that Gold tier posture is materially different from Silver tier posture.
 - Use the Helios synthetic run-rate as the story, not as a guarantee.
 - Pricing phrase: "We price the first step so your team can stop if the evidence is weak."
 - Pricing phrase: "Expansion is earned by validated objects, not by slideware."

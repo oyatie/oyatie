@@ -4,7 +4,6 @@ checklist_id: CHK-PHASE
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Phase-internal verification. Walked before flipping a phase INDEX `status:` from `in-progress` to `merged` and before emitting the phase-handoff icm event.
 enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
@@ -13,7 +12,6 @@ related:
   - docs/checklists/per-implementation-plan-checklist.md
 adrs_cited:
   - ADR-0052  # inventory ledger (phase audit emission)
-  - ADR-0053  # sanctioned primitives (icm handoff store)
   - ADR-0054  # scaffold-claim (symbol reconciliation)
 doc_status: published
 ---
@@ -26,7 +24,6 @@ doc_status: published
 
 - [ ] **PH1** All IPs under `phases/P0N-<slug>/` have `status: merged` in their frontmatter. *Lane:* `oya-governance-plan-hierarchy`.
 - [ ] **PH2** Phase INDEX `§Acceptance` criteria all met (each row has a lane / command / advisory; all PASS). *Verification:* per-row evidence captured in PR.
-- [ ] **PH3** Phase INDEX `§Symbols touched (high level)` reconciled — no orphan symbols claimed-but-not-released via `grit` (ADR-0054). *Command:* `oya-tooling-agent-read grit-status --phase P0N-<slug> --orphans`.
 - [ ] **PH4** No `<!-- forward-reference: wave-1 -->` markers remain pointing at artifacts the phase was supposed to ship. *Lane:* `oya-governance-forward-reference`.
 
 ## Engineering bar
@@ -46,7 +43,6 @@ doc_status: published
 ## Audit-chain + handoff
 
 - [ ] **PH13** Audit-chain emits `EVT-PHASE-COMPLETED` with phase ID + merge SHA + IP list. *Lane:* `oya-governance-audit-emission`. Inventory entry per ADR-0052.
-- [ ] **PH14** Phase-handoff icm event emitted (verbatim from phase INDEX `§Agent-handoff`). *Command:* `icm store -t phase-handoff …` (ADR-0053 sanctioned primitive).
 - [ ] **PH15** Next-phase INDEX `gates_on:` row marks this phase `merged`. *Lane:* `oya-governance-plan-hierarchy`.
 - [ ] **PH16** Status reporting row added to `docs/status-reports/YYYY-Www.md` per `MASTERPLAN.md §11 cadence`. *(advisory)*
 

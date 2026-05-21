@@ -17,7 +17,6 @@ doc_status: published
 
 # Stable Cohort Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Thesis
 
@@ -70,7 +69,6 @@ A tenant's cohort can be changed by:
 3. **Tenant request** (opt-in / opt-out from canary-pioneer or experiment cohort).
 4. **Operator override** (Sev-1 mitigation; time-boxed; audited).
 
-All changes emit D14 audit-chain records ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)). Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), cohort change evidence stored via `icm store -t cohort-changes`.
 
 ## 8. Connect-no-ads cohort (LEDG-021 honour)
 
@@ -87,5 +85,4 @@ Per-tenant trust portal ([ADR-0038](../../decisions/ADR-0038-trust-framework-and
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — cohort-change evidence stored via `icm store -t cohort-changes`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — cohort intersection applies at `staging` (canary cohort sees staging deploys) and at `prod` (stable-regulated tenants lag ≥ 28 days post prod-promotion).

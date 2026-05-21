@@ -119,7 +119,6 @@ Runs weekly + on every cherry-pick commit.
 Checks:
 1. Every commit on `release/X.Y` (except the cut commit) has a matching
    commit on `origin/prod` (by content hash or `git cherry`).
-2. Every cherry-pick has a corresponding icm `release-cherry-picks` record.
 3. Every patch tag (`oya-vX.Y.Z`, Z ≥ 1) has a `gh release` record.
 4. No commit on `release/X.Y` lacks a Cosign keyless OIDC signature from the
    `release-cherry-pick` agent identity.

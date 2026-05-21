@@ -1,5 +1,7 @@
 # ED-IS Competitor Parity Matrix
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 Microservice: `emergency`
 Authority: ADR-0332 (in flight) | feedback_microservice_ownership_coherence_2026_05_20 | feedback_docs_substance_not_scaffold_2026_05_20
 
@@ -121,7 +123,6 @@ Counterpart columns: T = T-System, W = Wellsoft, F = FirstNet (Cerner / Oracle H
 | 105 | OpenTelemetry tracing | n | n | n | n | n | n | n | target-exceed | µservice-wide |
 | 106 | Cedar-evaluated gates | n | n | n | n | n | n | n | target-exceed (per ADR-0243) | µservice-wide |
 | 107 | OpenTofu IaC modules | n | n | n | n | n | n | n | target-exceed (per zero-handroll memory) | µservice-wide |
-| 108 | OCI Always Free Bronze tier | n | n | n | n | n | n | n | target-exceed | iac/oci-always-free |
 | 109 | MLS E2EE communication | n | n | n | n | n | n | n | target-exceed (via messenger µservice) | IP-002 / Comm context |
 | 110 | HTTP/3 + QUIC default | n | n | n | n | n | n | n | target-exceed (per ADR-0253) | µservice-wide |
 | 111 | Trauma registry signed export | n | n | n | n | n | n | n | target-exceed (audit-chain attested) | IP-009 |

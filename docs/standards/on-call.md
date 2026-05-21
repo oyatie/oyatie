@@ -79,7 +79,6 @@ Rules:
    body. Lane: `oya-governance-alert-runbook-link`.
 3. Suppressed alerts MUST have an expiry timestamp; auto-renewal is
    forbidden. Suppression > 7 days requires team-lead approval logged
-   to icm.
 4. The **error-budget policy** is in
    [`release-management.md`](release-management.md) §6 (release-gate
    semantics) — exhausted budget freezes feature work until burn rate
@@ -109,7 +108,6 @@ Required runbook shape (per `templates/runbook-template.md`):
 2. **Severity tier**: Sev-1 / Sev-2 / Sev-3 / Sev-4.
 3. **SLO links**: list of `SLO-*` IDs.
 4. **Symptoms**: how the on-call recognizes this incident.
-5. **Diagnosis**: 1–3 minute triage commands (every command `rtk`-prefixed
    for the dual-audience contract).
 6. **Mitigation**: ordered steps with explicit "if X fails, escalate to Y".
 7. **Recovery verification**: how to confirm green.

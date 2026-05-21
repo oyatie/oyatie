@@ -25,6 +25,8 @@ excludes:
     reason: Rigor standard; this hub follows it and points readers there for the full rule.
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Oyatie Docs Hub
 
 This file is the canonical human-readable entry point for `/Users/jasonlee/oyatie/docs`. The repo-root `README.md` is intentionally thin; agents, engineers, auditors, and stakeholders use this hub to reach the substantive source of truth without relying on memory, Slack, or guesses.
@@ -1309,10 +1311,6 @@ Capability tiers define capability maturity and autonomy boundaries across produ
 ### Canonical Docs (Top 12)
 
 1. [capability tier index](../registry/capability-tiers/index.json) - capability tier registry index.
-2. [bronze tier](../registry/capability-tiers/bronze.json) - Bronze tier capability contract.
-3. [silver tier](../registry/capability-tiers/silver.json) - Silver tier capability contract.
-4. [gold tier](../registry/capability-tiers/gold.json) - Gold tier capability contract.
-5. [platinum tier](../registry/capability-tiers/platinum.json) - Platinum tier capability contract.
 6. [checkpoint tier](../registry/capability-tiers/checkpoint.json) - checkpoint tier behavior.
 7. [microservice tier mapping](../registry/capability-tiers/microservice-tier-mapping.yaml) - microservice to capability tier mapping.
 8. [vendor tier mapping](../registry/capability-tiers/vendor-tier-mapping.yaml) - vendor to capability tier mapping.
@@ -1334,13 +1332,9 @@ Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#sectio
 
 ### Capability Tier Registry Files
 
-1. [bronze.json](../registry/capability-tiers/bronze.json) - Bronze: capability-tier registry or tier-governance authority.
 2. [checkpoint.json](../registry/capability-tiers/checkpoint.json) - Checkpoint: capability-tier registry or tier-governance authority.
-3. [gold.json](../registry/capability-tiers/gold.json) - Gold: capability-tier registry or tier-governance authority.
 4. [index.json](../registry/capability-tiers/index.json) - Index: capability-tier registry or tier-governance authority.
 5. [microservice-tier-mapping.yaml](../registry/capability-tiers/microservice-tier-mapping.yaml) - Microservice Tier Mapping: capability-tier registry or tier-governance authority.
-6. [platinum.json](../registry/capability-tiers/platinum.json) - Platinum: capability-tier registry or tier-governance authority.
-7. [silver.json](../registry/capability-tiers/silver.json) - Silver: capability-tier registry or tier-governance authority.
 8. [vendor-tier-mapping.yaml](../registry/capability-tiers/vendor-tier-mapping.yaml) - Vendor Tier Mapping: capability-tier registry or tier-governance authority.
 
 <a id="section-11-governance-crates"></a>
@@ -1478,7 +1472,6 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§1 Architectu
 5. [runbooks/ads/click-fraud-spike.md](runbooks/ads/click-fraud-spike.md) - Click Fraud Spike: operational procedure for incident, rollback, audit, release, or service recovery.
 6. [runbooks/ads/data-use-boundary-violation.md](runbooks/ads/data-use-boundary-violation.md) - Data Use Boundary Violation: operational procedure for incident, rollback, audit, release, or service recovery.
 7. [runbooks/agent-authoring-evidence-attach.md](runbooks/agent-authoring-evidence-attach.md) - Agent Authoring Evidence Attach: operational procedure for incident, rollback, audit, release, or service recovery.
-8. [runbooks/agentic-pipeline/grit-parallel-claim-demo.md](runbooks/agentic-pipeline/grit-parallel-claim-demo.md) - Grit Parallel Claim Demo: operational procedure for incident, rollback, audit, release, or service recovery.
 9. [runbooks/alias-sunset-promotion.md](runbooks/alias-sunset-promotion.md) - Alias Sunset Promotion: operational procedure for incident, rollback, audit, release, or service recovery.
 10. [runbooks/aml-alert-escalation.md](runbooks/aml-alert-escalation.md) - Aml Alert Escalation: operational procedure for incident, rollback, audit, release, or service recovery.
 11. [runbooks/analytics/dp-budget-exhausted.md](runbooks/analytics/dp-budget-exhausted.md) - Dp Budget Exhausted: operational procedure for incident, rollback, audit, release, or service recovery.
@@ -1586,7 +1579,6 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§1 Architectu
 113. [runbooks/foundry-vision-lawful-basis-incident.md](runbooks/foundry-vision-lawful-basis-incident.md) - Foundry Vision Lawful Basis Incident: operational procedure for incident, rollback, audit, release, or service recovery.
 114. [runbooks/gl-reconciliation.md](runbooks/gl-reconciliation.md) - Gl Reconciliation: operational procedure for incident, rollback, audit, release, or service recovery.
 115. [runbooks/glossary-amendment-pr.md](runbooks/glossary-amendment-pr.md) - Glossary Amendment Pr: operational procedure for incident, rollback, audit, release, or service recovery.
-116. [runbooks/grit-session-bug-upstream.md](runbooks/grit-session-bug-upstream.md) - Grit Session Bug Upstream: operational procedure for incident, rollback, audit, release, or service recovery.
 117. [runbooks/healthcare-break-glass.md](runbooks/healthcare-break-glass.md) - Healthcare Break Glass: operational procedure for incident, rollback, audit, release, or service recovery.
 118. [runbooks/iam-key-rotation.md](runbooks/iam-key-rotation.md) - Iam Key Rotation: operational procedure for incident, rollback, audit, release, or service recovery.
 119. [runbooks/identity-provider-federation.md](runbooks/identity-provider-federation.md) - Identity Provider Federation: operational procedure for incident, rollback, audit, release, or service recovery.

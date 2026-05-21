@@ -10,6 +10,8 @@ asyncapi_version: 3.1.0
 proto3: true
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # ontology API Reference
 
 Canonical REST, gRPC, and AsyncAPI reference for the `ontology`
@@ -919,17 +921,9 @@ product-fragmented limits.
 
 | Tier | REST requests per second | gRPC requests per second | Async publishes per second | Burst |
 | --- | ---: | ---: | ---: | ---: |
-| Bronze | 50 | 100 | 100 | 2x for 10s |
-| Silver | 150 | 300 | 500 | 2x for 20s |
-| Gold | 450 | 900 | 2000 | 3x for 30s |
-| Platinum | 1200 | 2400 | 8000 | 3x for 60s |
 
 Special limits:
 
-- Object instance writes: Bronze `25 rps`, Silver `100`, Gold `400`, Platinum `1200`.
-- Link traversal: Bronze `20 rps`, Silver `75`, Gold `250`, Platinum `800`.
-- Agent tool calls: Bronze `5 rps`, Silver `25`, Gold `100`, Platinum `400`.
-- OpenAPI projection generation: Bronze `1 rps`, Silver `3`, Gold `10`, Platinum `30`.
 
 ## OpenAPI 3.2.0 Schema
 

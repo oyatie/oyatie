@@ -7,6 +7,8 @@ owner: founder-office
 target_audience: seed_investors, finance_diligence, enterprise_procurement_review
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Unit Economics and Pricing Model
 
 ## 01 - Model Purpose
@@ -48,14 +50,12 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 - Principle 8: preserve transparent downgrade and upgrade paths.
 - Principle 9: avoid hidden AI overage surprises.
 - Principle 10: expose cost attribution per tenant and capability.
-- Principle 11: map Bronze, Silver, Gold, and Platinum to buyer complexity.
 - Principle 12: let compliance packs force higher tiers when evidence depth requires it.
 - Principle 13: keep SMB pricing simple.
 - Principle 14: keep enterprise pricing anchored to replacement or containment value.
 - Principle 15: keep dedicated cell pricing high enough to protect margin.
 - Principle 16: offer design-partner discounts only for reference rights and feedback obligations.
 - Principle 17: require executive sponsor for discounted enterprise pilots.
-- Principle 18: do not sell Platinum without security and compliance readiness.
 - Principle 19: do not sell broad vertical transformation before the wedge works.
 - Principle 20: every price should map to a cost driver and a value driver.
 - Principle 21: price annual upfront by default.
@@ -65,14 +65,6 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 
 ## 03 - List Price Architecture
 
-- Bronze list price: $48,000 ARR per tenant.
-- Silver list price: $180,000 ARR per tenant.
-- Gold list price: $720,000 ARR per tenant.
-- Platinum list price: $1,800,000 ARR per tenant.
-- Bronze onboarding fee: $15,000 one-time.
-- Silver onboarding fee: $50,000 one-time.
-- Gold onboarding fee: $150,000 one-time.
-- Platinum onboarding fee: $400,000 one-time.
 - Evidence-pack add-on low band: $60,000 ARR.
 - Evidence-pack add-on mid band: $150,000 ARR.
 - Evidence-pack add-on high band: $250,000 ARR.
@@ -92,122 +84,13 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 - Marketplace take rate: 15 percent of third-party paid capability-pack revenue.
 - Partner implementation referral margin: 10 percent to 15 percent when Oyatie originates.
 
-## 04 - Bronze Tier Economics
 
-- Bronze target customer: founder-led SMB, small regulated team, or department pilot.
-- Bronze list ARR: $48,000.
-- Bronze monthly equivalent: $4,000.
-- Bronze onboarding fee: $15,000.
-- Bronze included users: 50 named users.
-- Bronze additional user pack: $6,000 ARR per 25 users.
-- Bronze included workflows: 10 active workflows.
-- Bronze included evidence volume: 100,000 audit events per month.
-- Bronze included integration calls: 100,000 calls per month.
-- Bronze included AI budget: $1,000 model/provider cost per month.
-- Bronze target cloud cost: $900 per month.
-- Bronze target support cost: $500 per month.
-- Bronze target infrastructure plus support cost: $16,800 annually.
-- Bronze target gross profit: $31,200 annually.
-- Bronze target gross margin: 65 percent.
-- Bronze CAC target after repeatability: $12,000.
-- Bronze CAC payback target: 4.6 months.
-- Bronze early CAC risk: $25,000 if founder-led sales is not repeatable.
-- Bronze early CAC payback at $25,000 CAC: 9.6 months.
-- Bronze expansion path: Silver upgrade within 12 months.
-- Bronze downgrade rule: preserve data export, evidence archive, and policy history.
-- Bronze risk: support burden exceeds ACV.
-- Bronze mitigation: product-led templates before broad SMB launch.
-- Bronze competitor names: HubSpot Starter/Professional, Zoho One, Monday.com, ClickUp, Google Workspace, Microsoft 365.
-- Bronze moat factor: governed workflow and evidence in an affordable package.
-- Bronze milestone: SMB beta decision by 2027-04-30.
 
-## 05 - Silver Tier Economics
 
-- Silver target customer: midmarket team, regulated department, or professional-services firm.
-- Silver list ARR: $180,000.
-- Silver monthly equivalent: $15,000.
-- Silver onboarding fee: $50,000.
-- Silver included users: 250 named users.
-- Silver additional user pack: $18,000 ARR per 100 users.
-- Silver included workflows: 50 active workflows.
-- Silver included evidence volume: 1.0 million audit events per month.
-- Silver included integration calls: 1.0 million calls per month.
-- Silver included AI budget: $5,000 provider cost per month.
-- Silver target cloud cost: $3,500 per month.
-- Silver target support cost: $2,500 per month.
-- Silver target infrastructure plus support cost: $72,000 annually.
-- Silver target gross profit: $108,000 annually.
-- Silver target gross margin: 60 percent early, 72 percent at scale.
-- Silver CAC target: $60,000.
-- Silver CAC payback at 60 percent gross margin: 6.7 months.
-- Silver CAC payback at 72 percent gross margin: 5.6 months.
-- Silver expansion path: Gold upgrade, evidence-pack add-on, integration overage.
-- Silver risk: customer expects enterprise controls at midmarket price.
-- Silver mitigation: clear tier limits and compliance-pack upgrade triggers.
-- Silver competitor names: Salesforce Professional/Enterprise, ServiceNow Pro editions, Workday departmental adoption, Microsoft Dynamics 365, Atlassian Premium.
-- Silver moat factor: dual-context professional collaboration plus evidence.
-- Silver milestone: first Silver pilot template by 2027-01-31.
 
-## 06 - Gold Tier Economics
 
-- Gold target customer: enterprise business unit, regulated operator, or enterprise SaaS company.
-- Gold list ARR: $720,000.
-- Gold monthly equivalent: $60,000.
-- Gold onboarding fee: $150,000.
-- Gold included users: 1,500 named users.
-- Gold additional user pack: $60,000 ARR per 500 users.
-- Gold included workflows: 250 active workflows.
-- Gold included evidence volume: 10.0 million audit events per month.
-- Gold included integration calls: 10.0 million calls per month.
-- Gold included AI budget: $25,000 provider cost per month.
-- Gold target cloud cost: $15,000 per month.
-- Gold target support cost: $12,000 per month.
-- Gold target customer engineering cost allocation: $8,000 per month after onboarding.
-- Gold target annual service cost: $420,000 early.
-- Gold target gross profit early: $300,000.
-- Gold target gross margin early: 41.7 percent if heavily supported.
-- Gold target annual service cost at scale: $180,000.
-- Gold target gross profit at scale: $540,000.
-- Gold target gross margin at scale: 75 percent.
-- Gold CAC target by year 3: $240,000.
-- Gold CAC payback at scale gross margin: 5.3 months.
-- Gold early CAC risk: $500,000.
-- Gold early CAC payback at 60 percent gross margin: 13.9 months.
-- Gold expansion path: Platinum, dedicated cell, evidence packs, AI usage, marketplace packs.
-- Gold competitor names: Salesforce Enterprise/Unlimited, ServiceNow Enterprise, SAP BTP plus modules, Workday Enterprise, Microsoft Dynamics 365 Enterprise.
-- Gold moat factor: governed enterprise workflow with audit-chain evidence.
-- Gold milestone: first paid Gold pilot by 2026-12-15.
 
-## 07 - Platinum Tier Economics
 
-- Platinum target customer: regulated multinational, sovereign workload, or high-assurance enterprise.
-- Platinum list ARR: $1,800,000.
-- Platinum monthly equivalent: $150,000.
-- Platinum onboarding fee: $400,000.
-- Platinum included users: 5,000 named users.
-- Platinum additional user pack: $150,000 ARR per 1,000 users.
-- Platinum included workflows: 1,000 active workflows.
-- Platinum included evidence volume: 100.0 million audit events per month.
-- Platinum included integration calls: 50.0 million calls per month.
-- Platinum included AI budget: $75,000 provider cost per month.
-- Platinum target cloud cost: $60,000 per month.
-- Platinum target support cost: $35,000 per month.
-- Platinum target compliance support allocation: $20,000 per month.
-- Platinum target annual service cost: $1,380,000 early.
-- Platinum target gross profit early: $420,000.
-- Platinum target gross margin early: 23.3 percent if underpriced or bespoke.
-- Platinum target annual service cost at scale: $540,000.
-- Platinum target gross profit at scale: $1,260,000.
-- Platinum target gross margin at scale: 70 percent.
-- Platinum dedicated cell add-on improves margin when priced above $750,000 ARR.
-- Platinum CAC target by year 3: $600,000.
-- Platinum CAC payback at 70 percent gross margin: 5.7 months.
-- Platinum early CAC risk: $1.2 million.
-- Platinum risk: bespoke regulated implementation destroys product margin.
-- Platinum mitigation: sell only after security baseline and reusable pack templates.
-- Platinum competitor names: Palantir Foundry, SAP regulated deployments, Oracle Cloud and Fusion, Microsoft Government/regulated cloud, ServiceNow regulated workflows.
-- Platinum moat factor: compliance packs plus dedicated cells plus audit-chain evidence.
-- Platinum milestone: first Platinum-ready compliance pack by 2028-03-31.
 
 ## 08 - Evidence-Pack Pricing
 
@@ -240,7 +123,6 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 ## 09 - Dedicated Cell Pricing
 
 - Dedicated cell pricing protects regulated deployment economics.
-- Standard managed cell is included in Bronze, Silver, and Gold.
 - Dedicated customer cell low band: $300,000 ARR.
 - Dedicated customer cell mid band: $750,000 ARR.
 - Dedicated customer cell high band: $1,200,000 ARR.
@@ -298,10 +180,6 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 ## 11 - Migration Services Economics
 
 - Migration services are necessary but should not dominate revenue.
-- Bronze migration package: $75,000 one-time.
-- Silver migration package: $150,000 one-time.
-- Gold migration package: $250,000 one-time.
-- Platinum migration package: $500,000 one-time.
 - Salesforce migration accelerator package: $250,000.
 - ServiceNow containment accelerator package: $250,000.
 - Workday workflow overlay package: $300,000.
@@ -446,10 +324,6 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 - Subscription gross margin target year 1: 55 percent.
 - Subscription gross margin target year 2: 68 percent.
 - Subscription gross margin target year 3: 78 percent.
-- Bronze target gross margin at scale: 65 percent.
-- Silver target gross margin at scale: 72 percent.
-- Gold target gross margin at scale: 75 percent.
-- Platinum target gross margin at scale: 70 percent.
 - Evidence-pack target gross margin at scale: 80 percent.
 - Workflow usage target gross margin at scale: 80 percent.
 - AI usage target gross margin at scale: 65 percent.
@@ -486,9 +360,6 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 - Expansion lever 8: marketplace capability packs.
 - Expansion lever 9: regional compliance packs.
 - Expansion lever 10: support tier.
-- Example Bronze to Silver expansion: $48,000 to $180,000 ARR.
-- Example Silver to Gold expansion: $180,000 to $720,000 ARR.
-- Example Gold to Platinum expansion: $720,000 to $1,800,000 ARR.
 - Example evidence pack attach: plus $150,000 ARR.
 - Example dedicated cell attach: plus $750,000 ARR.
 - Example AI usage expansion: plus 20 percent of subscription ARR.
@@ -574,9 +445,6 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 - Oyatie should anchor pricing to integration reduction.
 - Oyatie should anchor pricing to AI governance and cost controls.
 - Oyatie should anchor pricing to dedicated regulated deployment where applicable.
-- Procurement argument: Gold at $720,000 ARR is cheaper than multiple overlapping enterprise systems.
-- Procurement argument: Platinum at $1.8 million ARR is justified only with compliance and deployment value.
-- Procurement argument: Bronze at $48,000 ARR competes with bundled SMB suites only if governance matters.
 - Procurement argument: migration fees should be one-time and scoped.
 - Procurement argument: usage charges need transparent caps.
 - Competitive pricing should be revisited quarterly.
@@ -733,10 +601,6 @@ target_audience: seed_investors, finance_diligence, enterprise_procurement_revie
 
 - Oyatie should price as a governed enterprise operating substrate.
 - Oyatie should not price as a simple seat-based productivity tool.
-- Bronze at $48,000 ARR creates an accessible entry point.
-- Silver at $180,000 ARR creates midmarket and departmental adoption.
-- Gold at $720,000 ARR is the main enterprise wedge.
-- Platinum at $1,800,000 ARR is the regulated and sovereign expansion tier.
 - Evidence packs create recurring compliance value.
 - Dedicated cells create regulated deployment value.
 - Usage pricing captures AI and workflow activity but must be capped.

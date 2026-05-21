@@ -28,7 +28,6 @@ Hyperscaler default (Google, Microsoft per `.omc/scratch/hyperscaler-best-practi
 
 Oyatie deliberately deviates by adopting a **four-layer** model and placing gates **asymmetrically**:
 
-- **Layer 0 (worktree)** and **Layer 1 (agent local dev clone)**: autonomous; agents may sync local-dev to/from origin/dev at any time without ceremony. `grit done` is the atomic primitive.
 - **Layer 1 → Layer 2 (local-dev → origin/dev)**: **3-gate** (PR shape + reviewer-agent `APPROVE` + CI green). This is the first shared-world boundary; quality goes in here.
 - **Layer 2 → Layer 3 (origin/dev → staging)**: **autonomous** — CI was already cleared at dev entry, no re-verification needed.
 - **Layer 3 → Layer 4 (staging → prod)**: **5-gate** (comments-resolved + CI-green ≥ N runs + canary-100% ≥ M hrs + zero-SLO-fast + optional reviewer-re-affirm). This is the runtime-validation boundary.
@@ -74,7 +73,6 @@ We do **not** treat canary regression as a defect to be eliminated. We treat it 
 | Canary regression detection lag (staging cohort too small to catch tail issue) | Med | Canary cohort sized per `.omc/advanced-cicd/progressive-delivery/canary-rail-spec.md` (≥ 200 sampled requests at gate 1; stage-progression bounded by SLO-burn-rate-bounded holds). |
 | 5-gate verification stuck (perpetual red on one gate) | Med | Per-gate metrics emitted; `prod_promotion_failure_rate` > 5% triggers HIGH alert to council-architecture. |
 | Direct push to origin/dev bypassing PR flow | Catastrophic if it happened | `oya-governance-no-direct-origin-dev-commit` (BLOCKER) — every origin/dev commit traces to a PR merge by `dev-promoter`. Branch-protection mutator allowlist. |
-| Reviewer-agent skew (different reviewers approve same change differently over time) | Low | Reviewer verdict templates versioned; per-reviewer training data tracked in `icm` topic; periodic calibration audit. |
 
 ## 7. Velocity metrics (targets, lane-enforced)
 

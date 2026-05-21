@@ -9,7 +9,6 @@ enforcing_fitness_lane: oya-governance-inventory-tracker
 owner_team: axis-foundry
 related:
   - .omc/scratch/inventory-draft-oyatie-cutover.md
-  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - docs/templates/implementation-plan-template.md
 adrs_cited:
   - ADR-0052  # inventory ledger (this checklist IS the ADR-0052 operational procedure)
@@ -40,13 +39,11 @@ doc_status: published
   action: keep | move | archive | delete | rename | recreate-forbidden
   source_path: <repo-relative path>
   target_path: <repo-relative path | null>
-  archive_path: archive/pre-grit-cutover-2026-05-12/... | null
   tombstone:
     enabled: true | false
     forbid_recreation_lane: oya-governance-legacy-path-recreation
   bootstrap_window: true | false
   invocation:
-    primitive: grit | icm | oya-tooling-agent-read | human-orchestrator-carve-out
     command: "<sanctioned command or human-only carve-out description>"
     purpose: "<one-line>"
     actor:
@@ -69,8 +66,6 @@ doc_status: published
 ## During action
 
 <!-- agent-instructions:start -->
-- [ ] **I6** Emit `icm store -t direct-tool-invocations -c "<one-line rationale>" -i high -k "<primitive>,<context>"` **BEFORE** invocation (ADR-0053 + MASTERPLAN.md §2 principle 12).
-- [ ] **I7** Execute the action via the documented primitive (`grit` / `icm` / `oya-tooling-agent-read` for steady-state; documented carve-out commands for bootstrap-window or human-orchestrator).
 - [ ] **I8** Capture stdout via `oya-tooling-agent-read run-evidence <cmd>`.
 <!-- agent-instructions:end -->
 
@@ -80,7 +75,6 @@ doc_status: published
 - [ ] **I10** Verify audit chain emitted `EVT-INV-<ulid>`. *Lane:* `oya-governance-audit-emission`.
 - [ ] **I11** Confirm tombstone: if `action: archive | delete`, `oya-governance-legacy-path-recreation` lane refuses any future recreation at `source_path`.
 - [ ] **I12** Confirm symmetry: if `action: move`, both `source_path` (now absent) and `target_path` (now present) are honored by the appropriate lanes. *Lane:* `oya-governance-inventory-tracker`.
-- [ ] **I13** Update the IP `§Symbols to grit-claim` if grit symbols moved with the file (per ADR-0054).
 - [ ] **I14** Update `docs/CHANGELOG.md` if a canonical doc was moved/archived/deleted.
 
 ## Sample row (move + archive)
@@ -93,14 +87,12 @@ doc_status: published
   action: archive
   source_path: example/legacy/source-ledger.jsonl
   target_path: null
-  archive_path: archive/pre-grit-cutover-2026-05-12/example-source-ledger.jsonl
   tombstone:
     enabled: true
     forbid_recreation_lane: oya-governance-legacy-path-recreation
   bootstrap_window: false
   invocation:
     primitive: oya-tooling-agent-read
-    command: "oya-tooling-agent-read archive --from example/legacy/source-ledger.jsonl --to archive/pre-grit-cutover-2026-05-12/example-source-ledger.jsonl"
     purpose: "archive legacy ultragoal ledger per ADR-0053"
     actor:
       kind: agent

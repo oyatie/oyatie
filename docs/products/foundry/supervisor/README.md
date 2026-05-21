@@ -213,7 +213,6 @@ The outbox can be drained by:
 
 ## References
 
-- **Plan:** `ralplan-foundry-supervisor-simple-v4-2026-05-14.md` (v4, 49 grit units + 14 sub-units)
 - **v5 Delta:** `ralplan-foundry-supervisor-simple-v5-delta-settings-template-2026-05-15.md` (settings-template, +18 units)
 - **v6 Amendments:** `ralplan-foundry-supervisor-simple-v6-amendments-2026-05-15.md` (BLOCKER edits, BLOCKERs 1-12)
 - **Key ADRs:** ADR-0056 (12-layer), ADR-0003 (audit), ADR-0024 (autonomy), ADR-0042 (OTel)

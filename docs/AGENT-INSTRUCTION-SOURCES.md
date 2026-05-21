@@ -9,7 +9,6 @@ doc_status: published
 ---
 # Agent Instruction Sources
 
-This inventory enumerates repo-local files that contain exact `agent-instructions` fences after M01-P08-IP-007. It is the P5 audit surface for the banned-primitives lane; out-of-repo user-machine hooks are intentionally not listed here and are tracked by ICM / inventory references only.
 
 | Path | Fences | Start lines | End lines | Rewrite verified |
 |---|---:|---|---|---|
@@ -41,6 +40,5 @@ This inventory enumerates repo-local files that contain exact `agent-instruction
 
 Inventory total: 25 files; 25 fenced sections.
 
-Activation note: `oya-governance-banned-primitives` is active for these fenced sections at M01-P08-IP-007. The lane rejects hard-banned primitives unconditionally and rejects direct VCS / forge primitives unless a known ICM rationale is supplied.
 
 Validation command: `cargo run -p oya-governance-banned-primitives`. In this workspace the cargo invocation is still blocked by the pre-existing missing `crates/oya-tenancy-kernel/Cargo.toml`; standalone rustc validation for the lane is recorded in the IP-007 evidence bundle.

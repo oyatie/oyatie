@@ -18,7 +18,6 @@ doc_status: published
 
 # Playbook: Foundry Capability Rollout
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -57,7 +56,6 @@ Per-cell rollback default. Capability-publish rollback re-emits a D14 entry nami
 
 For **replay-affecting** capability changes (output schema, tool-call signature), blue/green is mandatory; rollback re-shifts traffic to the prior version's MCP endpoint.
 
-Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), capability rollback evidence stored via `icm store -t prod-rollbacks`.
 
 ## 7. Audit-chain artefacts
 
@@ -81,5 +79,4 @@ OpenAI's model-card + system-card publication discipline; Anthropic's Acceptable
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — capability rollback evidence stored via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — capability stages mirror branch layers; `capability-reviewer` re-affirms at staging → prod gate 5.

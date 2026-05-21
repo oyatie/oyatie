@@ -41,6 +41,8 @@ related_journeys:
   - j168-coo-akira-watanabe-quarterly-ops-review-and-incident-debrief
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Tenant Prospect-to-Active Stages
 
 ## Purpose
@@ -1359,7 +1361,6 @@ Target: less than 14 days after Onboard for standard tenants.
 
 Metric: support response.
 
-Target: matches contracted tier; P1 Bronze 240 minutes, Silver 120 minutes, Gold 30 minutes, Platinum 15 minutes.
 
 Metric: tenant dashboard latency.
 
@@ -1619,7 +1620,6 @@ Customer Success Manager
 
 - `docs/standards/tenant-lifecycle.md` for onboard, migrate, offboard, and delete sagas.
 
-- `docs/standards/capability-tier-matrix.md` for Bronze, Silver, Gold, and Platinum tier responsibilities.
 
 - `registry/capability-tiers/index.json` for tier registry authority and source counts.
 

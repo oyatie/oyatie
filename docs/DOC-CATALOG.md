@@ -112,7 +112,6 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.adr_0100` | `decisions/ADR-0100-supervisor-public-contract-lean-a10.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0101` | `decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0102` | `decisions/ADR-0102-foundry-settings-template-canonical-rendering.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
-| `doc.adr_0103` | `decisions/ADR-0103-grit-cutover-inventory.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0104` | `decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0105` | `decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0106` | `decisions/ADR-0106-rename-application-to-usecase.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |

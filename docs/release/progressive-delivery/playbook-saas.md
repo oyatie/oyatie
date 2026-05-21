@@ -17,7 +17,6 @@ doc_status: published
 
 # Playbook: SaaS Surface Rollout
 
-> **Status:** Accepted. **Owner:** `axis-saas`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -88,5 +87,4 @@ Salesforce sandbox-promote pattern; Microsoft 365 deployment-rings; Google Works
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — rollout evidence stored via `icm store -t staging-promotions` and `icm store -t prod-promotions`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — SaaS weekly cadence; no reviewer re-affirm required at staging → prod gate 5 for general surfaces.

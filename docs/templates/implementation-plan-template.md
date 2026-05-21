@@ -4,7 +4,6 @@ template_id: TPL-IP
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Canonical Implementation Plan shape for every IP under `.omc/plans/milestones/M*/phases/P*/IP-NNN-<slug>.md`. Built to final shape from day one (Master Plan principle 3). Names real `file::Identifier` grit-claim symbols, enumerates agent prerequisites, acceptance test commands, done criteria, rollback, next-IP pointer, and icm-store payload.
 enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
@@ -12,9 +11,7 @@ related:
   - docs/templates/phase-index-template.md
   - docs/templates/milestone-index-template.md
   - docs/checklists/per-implementation-plan-checklist.md
-  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
 adrs_cited:
-  - ADR-0053  # sanctioned primitives (grit claim symbols)
   - ADR-0054  # scaffold-claim pattern
   - ADR-0052  # inventory ledger (migration-class IPs)
 doc_status: published
@@ -61,7 +58,6 @@ One paragraph. What this IP delivers. Why now (its position in the phase depende
 
 State why this IP is one cohesive ChangeSet: exact issue-level scope, affected symbols/artifact pointers, affected crates/packages/deployables, required tests, evidence bundle, and promotion boundary. If the work cannot be claimed, verified, bundled, and promoted independently, split it before execution. Whole-tree locks or full-workspace cold builds require explicit graph-proven rationale.
 
-## Symbols to grit-claim
 
 Real `file::Identifier` list. New-crate IPs scaffold the symbols first (per ADR-0054); the scaffold commit is the first claimable artifact.
 
@@ -74,13 +70,10 @@ contracts/<surface>.openapi.yaml::<operationId>
 ## Agent prerequisites
 
 <!-- agent-instructions:start -->
-Before `grit claim`, the agent **MUST**:
-1. `icm recall-context "<phase> <ip-slug>" --limit 5` and read returned memories.
 2. Read `.omc/plans/MASTERPLAN.md §2 principles` (inherited verbatim by this IP).
 3. Read parent phase `INDEX.md` (`./INDEX.md`).
 4. Read `docs/AGENTS.md §Pre-flight checklist`.
 5. Read `docs/CONSTITUTION.md §Decision principles + §Prohibitions`.
-6. Confirm none of the `grit_claim_symbols` are currently claimed by another agent (`oya-tooling-agent-read grit-status <symbol>`).
 <!-- agent-instructions:end -->
 
 **Human path:** read the same files; run `oya gate validate plan-hierarchy --ip IP-NNN-<slug>` to confirm parent pointers resolve and frontmatter is well-formed.
@@ -99,11 +92,9 @@ $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <capture
 
 ## Done criteria
 
-- [ ] All `grit_claim_symbols` claimed → work → `grit done` (no orphan claims).
 - [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked (see `docs/checklists/done-definition-checklist.md`).
 - [ ] All acceptance commands PASS; outputs captured in PR `## Verification`.
 - [ ] Dependency additions cleared `cargo deny check` and named in PR `## Traceability`.
-- [ ] `icm store -t context-<project> -c "<icm-store-payload>" -i high` emitted (see §Icm-store-payload).
 - [ ] Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Evidence`.
 - [ ] Phase INDEX `§Implementation Plans` row updated to `merged`.
 - [ ] Inventory ledger row added if migration-class (per ADR-0052).
@@ -111,7 +102,6 @@ $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <capture
 ## Rollback procedure
 
 1. Identify rollback boundary: `<git revision range | feature flag | capability T-tier downshift>`.
-2. Execute: `<exact command>` (e.g., `grit revert <claim-id>`, capability tier `T3→T2` via Cedar policy update, schema migration `down` per `oya-governance-schema-migration`).
 3. Verify: `<command + expected output>` (SLOs return to within budget; audit chain emits `EVT-IP-ROLLED-BACK`).
 4. Postmortem trigger threshold: Sev-2 if rollback executed in production; Sev-3 if in staging.
 
@@ -119,14 +109,10 @@ $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <capture
 
 `IP-NNN+1-<slug>.md` (or `phases/P0N+1-<slug>/IP-001-<slug>.md` if phase boundary). Cite the exact file path.
 
-## Icm-store-payload
 
-The exact `icm store` payload to emit at IP completion. Drop in verbatim:
 
 ```
-icm store \
   -t context-<project> \
-  -c "IP-NNN-<slug> merged at <git-sha>; grit symbols released: <list>; acceptance lanes green: <list>; next IP: <pointer>" \
   -i high \
   -k "M0N,P0N,IP-NNN,<axis>"
 ```

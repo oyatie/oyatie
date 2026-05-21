@@ -17,7 +17,6 @@ doc_status: published
 
 # Fitness Lanes for the Branch Pipeline
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. The six new lanes (this composer)
 
@@ -112,7 +111,6 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Scope:** every PR open against `origin/dev`.
 
-**Evaluation logic.** Returns PASS when, for every change-class invoked by the PR's file-glob, a verdict record exists in `icm topic pr-review-verdicts` keyed by `pr-<id>,<reviewer-name>` with `verdict ∈ {APPROVE, REQUEST_CHANGES, COMMENT}`. Returns FAIL if any required reviewer has no verdict recorded.
 
 **Output schema:** `{pr_id, missing_reviewers: [], present_verdicts: [{reviewer, verdict, icm_record_id}]}`.
 
@@ -122,7 +120,6 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Scope:** every change set landed on `staging` since last prod-promotion.
 
-**Evaluation logic.** Walks every reviewer-agent comment on the originating PR (recorded in `icm topic pr-review-comments`). For each comment, checks one of: (a) `resolved: true` annotation present; OR (b) a follow-up commit on `origin/dev` (subsequently auto-promoted to staging) references the comment id (via commit message `Closes-comment: <id>` trailer). Returns FAIL with the unresolved comment ids if any.
 
 **Output schema:** `{staging_head_sha, prs_landed: [], unresolved_comments: []}`.
 
@@ -182,9 +179,7 @@ Tracks per-reviewer-agent acceptance-rate baseline. Outliers (per-reviewer `APPR
 
 ## 10. Lane implementation notes (provider-agnostic)
 
-Every lane ships as a binary in a distroless container per [Directive 5](../../../docs/MASTERPLAN.md). Lane logic lives in `crates/oya-governance-<lane-name>/`; invoked by the CI runner kernel (per [`ci-policy-per-branch.md`](ci-policy-per-branch.md) §1). Lane output is JSON conforming to the schemas above; ingested by `oya-governance-aggregator` for cross-lane reporting. Evidence stored via `icm store -t fitness-lane-results` per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — lane evidence stored via `icm store`; all lane invocations use sanctioned primitives.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — these lanes are the enforcement mechanism for the four-layer pipeline gates defined in ADR-0055.

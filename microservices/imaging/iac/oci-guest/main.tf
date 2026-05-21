@@ -6,7 +6,7 @@
 # 4 OCPU + 24GB RAM / 2× Autonomous DB / 200GB block / 10GB obj / 10TB
 # egress / Vault / LB / Streaming).
 #
-# Paid profile: Bronze tier on OCI = Always Free baseline + paid scale.
+# Paid profile: Always Free baseline plus paid scale.
 
 terraform {
   required_version = ">= 1.7"
@@ -58,7 +58,7 @@ resource "oci_core_instance" "pacs_a1_arm" {
   }
 }
 
-# Paid tier: scale-out OKE cluster.
+# Paid profile: scale-out OKE cluster.
 resource "oci_containerengine_cluster" "imaging" {
   count          = local.is_always_free ? 0 : 1
   compartment_id = var.compartment_ocid

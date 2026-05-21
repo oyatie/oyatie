@@ -77,9 +77,7 @@ doc_status: published
 | [`AGENT-ENTRY-POINT.md`](AGENT-ENTRY-POINT.md) | Single page a fresh agent reads first | 2 |
 | [`AGENT-DECISION-TREE.md`](AGENT-DECISION-TREE.md) | Per-decision flowchart | 3 |
 | [`AGENT-TOOL-PROTOCOL.md`](AGENT-TOOL-PROTOCOL.md) | Tool-by-tool calling convention | 4 |
-| [`AGENT-COMPLETION-PROTOCOL.md`](AGENT-COMPLETION-PROTOCOL.md) | C1–C11 mile to `grit done` | 5 |
 | [`AGENT-FAILURE-RECOVERY.md`](AGENT-FAILURE-RECOVERY.md) | R1–R7 recoveries | 6 |
-| [`AGENT-ICM-TOPIC-CONVENTIONS.md`](AGENT-ICM-TOPIC-CONVENTIONS.md) | Canonical icm topics | 7 |
 | [`CROSS-REFERENCE-INDEX.md`](CROSS-REFERENCE-INDEX.md) | This file | 8 |
 | [`AGENT-CHEAT-SHEET.md`](AGENT-CHEAT-SHEET.md) | Printable 1-pager | 9 |
 | [`HUMAN-OPERATOR-GUIDE.md`](HUMAN-OPERATOR-GUIDE.md) | For humans when matrix matches | 10 |

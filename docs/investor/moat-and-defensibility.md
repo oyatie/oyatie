@@ -7,6 +7,8 @@ owner: founder-office
 target_audience: seed_investors, strategic_investors, enterprise_architecture_diligence
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Moat and Defensibility
 
 ## 01 - Core Moat Thesis
@@ -139,11 +141,6 @@ target_audience: seed_investors, strategic_investors, enterprise_architecture_di
 - A capability tier can bind compliance overlays.
 - A capability tier can bind observability metadata.
 - A capability tier can bind cost metadata.
-- Bronze, Silver, Gold, and Platinum create commercial packaging.
-- Bronze can map to small-team or starter use.
-- Silver can map to professional collaboration.
-- Gold can map to enterprise automation and integration.
-- Platinum can map to regulated or sovereign posture.
 - Competitors package by product edition.
 - Salesforce packages Sales Cloud, Service Cloud, Marketing Cloud, Revenue Cloud, and Data Cloud.
 - SAP packages module and suite functionality.
@@ -229,7 +226,6 @@ target_audience: seed_investors, strategic_investors, enterprise_architecture_di
 - Example packs include FDA 21 CFR Part 11.
 - Compliance packs bind policy, data class, jurisdiction, evidence, and retention.
 - Compliance packs are better than custom services per regulation.
-- Compliance packs can push tier selection toward Gold or Platinum.
 - Compliance packs create expansion revenue.
 - Evidence-pack add-on range is $60,000 to $250,000 annually.
 - Dedicated-cell add-on range is $300,000 to $1,200,000 annually.
@@ -314,13 +310,11 @@ target_audience: seed_investors, strategic_investors, enterprise_architecture_di
 - Portability increases test matrix burden.
 - Portability can reduce gross margin if dedicated cells are underpriced.
 - Dedicated cell premium is modeled at $300,000 to $1,200,000 annually.
-- Platinum regulated tier is modeled at $1,800,000 ARR before cell add-ons.
 - Portability moat grows if deployment evidence becomes part of audits.
 - Portability moat grows if regulatory pressure favors sovereign deployments.
 - Portability moat weakens if customers prefer hyperscaler-native convenience.
 - Mitigation is cloud marketplace integration plus portable architecture.
 - Cloud marketplace listing target is 2028-06-30.
-- First dedicated-cell architecture proof should be ready before Platinum sales.
 - First security baseline target is 2027-03-31.
 - First regional compliance-pack GA target is 2028-03-31.
 - The deployment story should not be first-slide marketing.
@@ -522,7 +516,6 @@ target_audience: seed_investors, strategic_investors, enterprise_architecture_di
 - Defense strategy: integrate with best-of-breed tools where customers need them.
 - Defense strategy: sell audit and policy value.
 - Defense strategy: avoid overcomplicated UX for simple users.
-- Defense strategy: make Bronze and Silver tiers usable.
 - Defense strategy: keep workflow authoring ergonomic.
 - Defense strategy: let customers consolidate gradually.
 - Defense strategy: measure replacement and containment savings.
@@ -582,19 +575,15 @@ target_audience: seed_investors, strategic_investors, enterprise_architecture_di
 - A 2 percent budget capture on $55.7 million equals $1.114 million ACV.
 - A 3 percent budget capture on $55.7 million equals $1.671 million ACV.
 - A 5 percent budget capture on $55.7 million equals $2.785 million ACV.
-- Oyatie's Gold model at $720,000 ARR is 1.29 percent of $55.7 million.
-- Oyatie's Platinum model at $1.8 million ARR is 3.23 percent of $55.7 million.
 - This supports enterprise pricing if ROI is proven.
 - Example direct software displacement: $1.2 million.
 - Example integration maintenance savings: $400,000.
 - Example audit evidence savings: $250,000.
 - Example AI cost-control savings: $300,000.
 - Example gross annual benefit: $2.15 million.
-- Example Gold subscription: $720,000.
 - Example net benefit before migration services: $1.43 million.
 - The economic moat is expansion through more capability tiers.
 - The economic moat is not charging more without value proof.
-- The expansion path is Bronze to Silver to Gold to Platinum.
 - The expansion path is single workflow to multi-workflow.
 - The expansion path is one compliance pack to many packs.
 - The expansion path is managed deployment to dedicated cell.

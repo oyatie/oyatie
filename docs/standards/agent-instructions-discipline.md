@@ -71,12 +71,10 @@ mechanical shape.
 
 Inside a fence, the content is **agent-readable**:
 
-- Shell commands (`grit`, `icm`, `cargo`, `oya-tooling-agent-read`, or
   `git`/`gh` per [`git-workflow.md`](git-workflow.md) Directive 12).
 - JSON payloads (capability records, audit-event templates).
 - Per-tool harness arguments (Claude Code `Skill(skill="...")`, OMC
   `/oh-my-claudecode:autopilot`, etc.).
-- Real `file::Identifier` symbols for `grit claim` (per MASTERPLAN §6).
 
 What does NOT go inside the fence:
 
@@ -93,14 +91,10 @@ boundary.
 
 | Token inside fence | Verdict |
 |---|---|
-| `git ` / `gh ` without matching icm-store rationale row | **FAIL** |
-| `git ` / `gh ` with matching icm-store row | PASS |
 | `--no-verify` | **FAIL** (unconditional) |
 | `git push --force` / `--force-with-lease` to `main` | **FAIL** (unconditional) |
 | `~/.claude/` mutation | **FAIL** (unconditional) |
 | `~/.codex/` mutation | **FAIL** (unconditional) |
-| `rtk <cmd>` | PASS (token-killer convention) |
-| `grit ...`, `icm ...`, `oya-tooling-agent-read ...` | PASS |
 | `cargo ...`, `cosign ...`, `syft ...` | PASS |
 | `gh pr merge` without `## Code Review` in target PR | **FAIL** |
 | Bare `curl` / `wget` to external endpoints | **FAIL** (use a sanctioned MCP / `oya-tooling-agent-read`) |
@@ -166,7 +160,6 @@ Per [`multi-agent-tool-map.md`](multi-agent-tool-map.md):
 1. **Fence with no prose.** Refused by `dual-audience` lane.
 2. **Fence content with `git push --force` to dodge Directive 12.**
    Refused unconditionally.
-3. **Mixing rtk-prefixed and raw commands inside one fence.** Pick the
    harness target; mixing breaks the cross-harness portability rule.
 4. **Fence in a Tier-1 strategy doc** (PRD, DESIGN).
    Tier-1 docs are reading material. Move the directive to an IP /
@@ -189,7 +182,6 @@ directives inline without the fence. Migration rule:
 1. Wrap the directive in the fence.
 2. Add the adjacent prose if missing.
 3. Run the banned-token grep against the new fence; address any failures
-   (typically via the Directive-12 icm-store rationale or by replacing
    the call with a sanctioned primitive).
 4. Add a CHANGELOG row noting the migration.
 
@@ -200,22 +192,15 @@ sign-off, the `agent-instructions-fence` lane is fully blocking.
 
 The following block is a complete, conformant directive:
 
-> To claim and complete the RAG-tenant-gate IP, the agent calls grit to
-> acquire the work lease, brings prior decisions into context via icm,
 > performs the edit, runs the evidence test, stores the decision, and
 > releases the lease. Throughout, the tooling triad is sufficient — no
 > direct git or gh invocation is required.
 >
 > ```
 > <!-- agent-instructions:start -->
-> grit claim "oya-foundry-runtime-rag/src/gate.rs::tenant_gate_check"
-> icm recall-context "rag tenant gate, foundry runtime" --limit 5
 > # ...edits via Read/Edit/Write...
-> rtk cargo nextest run --package oya-foundry-runtime-rag --no-fail-fast
-> icm store -t decisions-foundry \
 >   -c "tenant-gate-check rejects cross-tenant retrieval" \
 >   -i high -k "foundry,rag,tenant-gate"
-> grit done "oya-foundry-runtime-rag/src/gate.rs::tenant_gate_check"
 > <!-- agent-instructions:end -->
 > ```
 

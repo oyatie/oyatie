@@ -86,7 +86,6 @@ The first symbol/file a fresh agent **MUST** read after this INDEX to enter the 
 ```
 .omc/plans/milestones/M0N/phases/P01-<slug>/INDEX.md
 → then pick the first OPEN IP per its `§Implementation Plans` list
-→ then `grit claim <first symbol from that IP §Symbols to grit-claim>`
 ```
 
 ## Inherited hyperscaler practices

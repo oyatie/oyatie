@@ -7,7 +7,7 @@ journey_id: J-PM-27-calibration-fairness-review
 status: proposed
 date: 2026-05-20
 owner: axis-performance-management
-capability_tier: T3
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-027: Review Calibration Fairness Ledger

@@ -10,6 +10,8 @@ asyncapi_version: 3.1.0
 proto3: true
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # workflow-studio API Reference
 
 Canonical REST, gRPC, and AsyncAPI reference for the `workflow-studio`
@@ -866,16 +868,9 @@ product-fragmented limits.
 
 | Tier | REST requests per second | gRPC requests per second | Async publishes per second | Burst |
 | --- | ---: | ---: | ---: | ---: |
-| Bronze | 25 | 40 | 20 | 2x for 10s |
-| Silver | 75 | 120 | 75 | 2x for 20s |
-| Gold | 200 | 350 | 200 | 3x for 30s |
-| Platinum | 600 | 1000 | 600 | 3x for 60s |
 
 Special limits:
 
-- LLM assist: Bronze `2 rps`, Silver `5 rps`, Gold `15 rps`, Platinum `40 rps`.
-- Debugger frame stream: Bronze `5 streams`, Silver `20`, Gold `75`, Platinum `200`.
-- CRDT op ingestion: Bronze `100 ops/s`, Silver `500`, Gold `2000`, Platinum `8000`.
 
 ## OpenAPI 3.2.0 Schema
 

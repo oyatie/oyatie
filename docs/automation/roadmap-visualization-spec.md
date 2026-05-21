@@ -73,7 +73,6 @@ gantt
   M02-P02 policy-cedar   :          m02p2, after m02p1, 30d
 
   section M-CC Cross-cutting
-  M01-P08 grit-icm cutover :crit, mccp1, 2026-05-15, 60d
 ```
 
 Sections grouped by milestone; M-CC threaded as its own section with `:crit` tag where dependencies are critical-path.

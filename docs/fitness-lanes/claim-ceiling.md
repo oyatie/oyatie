@@ -6,12 +6,9 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- purpose: Verify no agent holds more concurrent grit-claims than the configured ceiling per session.
 - enforces: STANDARD/claim-ceiling; existing crate `oya-foundry-claim-ceiling-kernel` (EXISTING).
-- adr_citations: ADR-0054 (scaffold-claim pattern — defines icm-coordination-lock as the claim mechanism; ceiling enforcement prevents runaway concurrent scaffolds)
 - kernel_crate: `oya-foundry-claim-ceiling-kernel` (EXISTING) — `ClaimSnapshot { agent_id, active_claims }`, verdict `ClaimCeilingFitnessReport { agents_checked }`.
 - runner_path: `tools/oya-governance-claim-ceiling`
-- inputs: grit-claim ledger snapshot, ceiling-policy registry.
 - failure_modes:
   - agent holds claims above ceiling
   - claim with no expiry

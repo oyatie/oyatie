@@ -1,5 +1,7 @@
 # ARCHITECTURE — Emergency Department Information System (ED-IS)
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 Microservice slug: `emergency`
 Layer: L7-application
 Authority: ADR-0332 (in flight) | ADR-0131 | ADR-0132 | ADR-0145 | ADR-0248 | ADR-0251 | ADR-0253
@@ -387,7 +389,6 @@ Per `feedback_zero_handroll_opentofu_only_2026_05_20`, every deployment context 
 
 - `iac/aws-guest/` — EKS + Aurora PostgreSQL + ElastiCache for Valkey + MSK / NATS-on-EKS + KMS.
 - `iac/oci-guest/` — OKE + Autonomous DB + Valkey + Streaming + Vault.
-- `iac/oci-always-free/` — 2× Ampere A1 ARM (4 OCPU + 24 GB each) + 2× Autonomous DB + 200 GB block + Load Balancer + Vault + Streaming. Bronze tier deployment ceiling.
 - `iac/on-prem/` — vSphere / KubeVirt / Talos + Postgres operator + Valkey operator + NATS cluster.
 - `iac/colo/` — colocation hardware + Talos + Postgres + Valkey + NATS.
 - `iac/oyatie-cloud/` — Cloud Hypervisor + Kata pods (per ADR-0254) on oyatie's own substrate.

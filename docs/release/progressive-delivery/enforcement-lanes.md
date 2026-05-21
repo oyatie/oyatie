@@ -15,7 +15,6 @@ doc_status: published
 
 # Enforcement Lanes — Progressive Delivery
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Lane catalogue
 
@@ -124,5 +123,4 @@ Phase A → B promotion gated by per-lane PR with 30-d evidence summary.
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — lane evidence emitted via `icm store`; all lane runs use sanctioned primitives only.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — progressive-delivery lanes bind to the four-layer branch pipeline: `canary-required` at local-dev → origin/dev; `slo-coverage` + `rollback-evidence` at staging → prod gate 2 and gate 4.

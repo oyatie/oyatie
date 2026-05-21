@@ -40,7 +40,6 @@ doc_status: published
 ### feature
 - [ ] PRFAQ authored (if new-product / new-axis / new-vertical scope) per `docs/templates/prfaq-template.md`. *(advisory; Founder + Council approval gate)*
 - [ ] Design doc authored per `docs/templates/design-doc-template.md`; reviewers named. *Lane:* `oya-governance-design-doc-shape` (advisory).
-- [ ] IP authored per `docs/templates/implementation-plan-template.md`; grit-claim symbols enumerated (ADR-0054). *Lane:* `oya-governance-plan-hierarchy`.
 
 ### bugfix
 - [ ] Reproduction recipe documented (input + observed + expected). *(advisory)*

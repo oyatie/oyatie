@@ -1,4 +1,4 @@
-// OpenTofu module — ED-IS on OCI Always Free shape (Bronze tier).
+// OpenTofu module — ED-IS on OCI Always Free shape.
 // Authority: ADR-0332 (in flight) |
 //            feedback_oci_always_free_maximization_2026_05_20 |
 //            feedback_zero_handroll_opentofu_only_2026_05_20
@@ -14,7 +14,7 @@
 //   - Vault + KMS key (Always Free vault tier)
 //   - Streaming (Always Free quota)
 //
-// Used by demo / sandbox / Bronze tier tenants.
+// Used by demo_trial tenants and sandbox deployments.
 
 terraform {
   required_version = ">= 1.7.0"
@@ -54,7 +54,7 @@ resource "oci_core_instance" "emergency_a1_primary" {
     "microservice" = "emergency"
     "tenant_id"    = var.tenant_id
     "cell_id"      = var.cell_id
-    "tier"         = "bronze-always-free"
+    "tenant_class_profile" = "demo-trial-always-free"
   }
 }
 
@@ -88,7 +88,7 @@ resource "oci_database_autonomous_database" "emergency_adb_primary" {
   db_workload              = "OLTP"
   freeform_tags = {
     "microservice" = "emergency"
-    "tier"         = "always-free"
+    "tenant_class_profile" = "demo-trial-always-free"
   }
 }
 

@@ -21,6 +21,8 @@ inbound_citations:
   - .omc/plans/realign-oyatie-corpus-plan-2026-05-20.md
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Brief Template Standard
 
 ## §1 Purpose — Why every future agent dispatch must use this template
@@ -1326,7 +1328,6 @@ policy, portability gates, and severity cues.
 Swift/Kotlin/WinUI scopes, forbidden languages, canonical Cargo build
 invocation, anti-script authoring rules, grep targets, and severity cues.
 
-§D-19 adds OCI Always Free Bronze policy, resource budgets, per-µservice
 `iac/oci-guest/always-free/` contract, zero-cost billing events, OCI state
 backend, strategic rationale, provider-agnostic boundary, and severity cues.
 
@@ -1349,7 +1350,6 @@ CI lane policy, manifest requirement, and ADR pointer.
 frontend scoping, authorized backend extensions, forbidden backend languages,
 build invocation, exception protocol, and ADR pointer.
 
-`oci_always_free` adds OCI Bronze scope, compute/storage/database/network
 budgets, per-µservice module path, cross-cloud prohibition, and ADR pointer.
 
 `docs/standards/brief-template.md` was amended with §3.9 through §3.12.

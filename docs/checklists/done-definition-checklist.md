@@ -15,7 +15,6 @@ related:
 adrs_cited:
   - ADR-0052  # inventory ledger (D17 migration rows)
   - ADR-0053  # sanctioned primitives (agent tool use)
-  - ADR-0054  # scaffold-claim pattern (grit symbols)
 doc_status: published
 ---
 

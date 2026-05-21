@@ -19,7 +19,6 @@ doc_status: published
 
 # Feature-Flag Architecture — Oyatie
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Standard: OpenFeature
 
@@ -77,7 +76,6 @@ Every flag evaluation is intersected with the tenant's cohort (per [`stable-coho
 
 Every flag flip emits a D14 audit-chain record ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)): `who`, `which flag`, `what value`, `targeted cohort`, `timestamp`, `signed-commit-hash`. Flips during incident response are tagged `incident_id`. No anonymous flips.
 
-Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), flag-flip evidence is stored via `icm store -t flag-flips`.
 
 ## 8. Hyperscaler equivalents
 
@@ -101,5 +99,4 @@ Flag UI / admin console is owned by `oya-platform-feature-flag-app` (NEW; separa
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — flag-flip evidence stored via `icm store`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — feature flags hide incomplete work on `origin/dev`; canary stages drive flag enablement in sync with branch pipeline promotion.

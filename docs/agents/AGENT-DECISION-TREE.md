@@ -31,10 +31,8 @@ Use this page when you are mid-work and an outcome forks. Resolve in-place where
 
 ```mermaid
 flowchart TD
-  A[grit claim] -->|OK| W[Work in worktree]
   A -->|FK error| SC[Scaffold-claim pattern - ADR-0054]
   SC -->|lock acquired| W
-  SC -->|lock held by other| ICL[icm-coordination-lock fallback]
   ICL --> W
   A -->|session error| SL[Session-less mode]
   SL --> W
@@ -66,21 +64,15 @@ flowchart TD
   CAT --> W
 
   W --> G{need git/gh directly?}
-  G -->|yes| D12[Directive-12: icm store -t direct-tool-invocations BEFORE call]
   D12 --> W
 
   W --> H{matches ESCALATION-MATRIX?}
-  H -->|yes| HALT[icm store cutover-orchestrator-actions + grit release]
   H -->|no| W
 ```
 
-## D1 — `grit claim` fails
 
 | Failure | Resolution |
 |---|---|
-| Foreign-key error (referenced symbol not yet in symbol-graph) | **Scaffold-claim pattern (ADR-0054).** `icm recall -t scaffold-locks-oyatie -k "<crate path>"`. If no lock, claim a real symbol on the parent crate (e.g. `lib.rs::__scaffold`), write the file skeleton, push it through `grit symbols --refresh`, then claim the real symbol. Emit `icm store -t scaffold-locks-oyatie -c "<crate>: scaffold by <agent>" -i high -k "scaffold,<crate>"`. |
-| Lock already held by another agent | **`icm-coordination-lock` fallback.** Run `grit watch --symbol <file::Id>` until release-event arrives OR after 30 min: `icm store -t context-oyatie -c "waiting on <other-agent> for <symbol>; picking next IP" -i medium`, then choose a sibling IP whose symbols are unclaimed. Never force-steal. |
-| `grit session` start error (known 0.3.0 bug, RM-05) | **Session-less mode.** Drop `--session` flag; rely on per-agent worktree isolation. Emit `icm store -t errors-resolved -c "grit session start bug; session-less worktree mode" -i high -k "grit,session"`. |
 
 ## D2 — `cargo build` / `cargo check` fails
 
@@ -117,13 +109,10 @@ Map lane → standard → resolution:
 ## D5 — Need to invoke `git` or `gh` directly (Directive 12)
 
 ```
-icm store -t direct-tool-invocations \
-  -c "<one-line genuine need: e.g. 'git log --since=2026-05-10 because grit lacks date-range query'>" \
   -i high -k "git,<context>"
 # then invoke the raw command
 ```
 
-Direct invocation is permitted ONLY when no grit/icm primitive exists AND inventing one would be over-engineering (Directive 12). If you repeat the same shape ≥5 times in 30 days, also emit a `MISTAKES-LEDGER` migration-candidate row.
 
 ## D6 — Need to create a new file
 
@@ -156,8 +145,6 @@ Copy the template; fill every required frontmatter field; do not delete `status:
 Release claim cleanly (no halt yet). Pick a sibling IP. Emit:
 
 ```
-icm store -t context-oyatie -c "<IP> deferred: blocker is <area> outside claim scope; picking <next-IP>" -i medium
-grit release --agent <agent-id> --reason "out-of-claim-scope; deferred"
 ```
 
 This is NOT a halt — autonomy preserved. Halt only when [`ESCALATION-MATRIX.md`](ESCALATION-MATRIX.md) matches.
@@ -167,10 +154,8 @@ This is NOT a halt — autonomy preserved. Halt only when [`ESCALATION-MATRIX.md
 Exact format:
 
 ```
-icm store -t cutover-orchestrator-actions \
   -c "BLOCKED_ON_HUMAN_ORCHESTRATOR: <case-id from ESCALATION-MATRIX>: <one-line>" \
   -i critical -k "halt,<area>"
-grit release --agent <agent-id> --reason "BLOCKED_ON_HUMAN_ORCHESTRATOR: <case-id>"
 ```
 
 Then exit. The orchestrator's poll of `cutover-orchestrator-actions` will surface the row.

@@ -18,7 +18,6 @@ doc_status: published
 
 # Blue/Green Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Scope (when blue/green, not canary)
 
@@ -81,7 +80,6 @@ Every blue/green release MUST emit signed evidence covering all five rollback mo
 
 All five emitted by `oya-foundry-evidence-kernel` and validated by `oya-governance-rollback-evidence` (NEW; BLOCKER if unsigned).
 
-Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), rollback evidence stored via `icm store -t prod-rollbacks`.
 
 ## 6. Per-tenant blue/green (regulated)
 
@@ -103,5 +101,4 @@ AWS CodeDeploy Blue/Green (ECS/EC2/Lambda); Microsoft Azure Slot Swap (App Servi
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — rollback evidence stored via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — blue/green soak of ≥ M hours feeds the canary-100% gate in the staging → prod 5-gate verification.

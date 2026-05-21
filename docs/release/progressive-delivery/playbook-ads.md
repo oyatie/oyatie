@@ -18,7 +18,6 @@ doc_status: published
 
 # Playbook: Ads / Analytics Rollout
 
-> **Status:** Accepted. **Owner:** `axis-ads`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -90,5 +89,4 @@ Google Ads release-track (privacy-gate-first); Microsoft Advertising deployment-
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — privacy-gate declarations stored via `icm store -t ads-privacy-gates`; rollback evidence via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — Ads weekly cadence; `privacy-reviewer` re-affirms at staging → prod gate 5; attribution-model paths carry `requires_human_signoff: true`.

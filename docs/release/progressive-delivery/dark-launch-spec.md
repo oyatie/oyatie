@@ -17,7 +17,6 @@ doc_status: published
 
 # Dark-Launch Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. What dark-launch means here
 
@@ -109,5 +108,4 @@ Dark-launch sits **before** canary, not in place of it. Both are required for hi
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — dark-launch diff verdicts stored via `icm store -t shadow-diff-verdicts`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — dark-launch on `staging` feeds the shadow-diff evidence required before `prod-promoter` fires.

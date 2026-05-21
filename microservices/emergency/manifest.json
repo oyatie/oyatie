@@ -121,7 +121,7 @@
     },
     {
       "id": "oci-always-free",
-      "description": "OCI Always Free demo/sandbox/Bronze tier"
+      "description": "OCI Always Free demo_trial tenant class profile"
     },
     {
       "id": "on-prem",

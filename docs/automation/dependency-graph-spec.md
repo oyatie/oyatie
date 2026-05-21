@@ -46,7 +46,6 @@ doc_class: ImplementationPlan
 parent: .omc/plans/milestones/M02-foundry-preview/phases/P03-policy-cedar/INDEX.md
 depends_on:
   - .omc/plans/milestones/M01-foundation/phases/P02-identity/IP-005-cedar-bootstrap.md
-  - .omc/plans/milestones/M01-foundation/phases/M01-P08-grit-icm-cutover/IP-001-grit-bootstrap.md
 status: open
 ```
 
@@ -93,7 +92,6 @@ Color = status (`done=palegreen`, `active=lightblue`, `gated=lightcoral`, `open=
 Each IP node embeds an SVG `<title>` element with:
 - IP id + slug
 - Status
-- Symbols-to-grit-claim count
 - Estimated parallelism
 - Linked ADRs
 

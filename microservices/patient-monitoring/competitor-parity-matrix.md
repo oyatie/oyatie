@@ -1,5 +1,7 @@
 # patient-monitoring — Competitor parity matrix
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 **Status**: wave-15m-f-authoring
 **Date**: 2026-05-21
 **Maintained by**: axis-clinical-realtime
@@ -292,7 +294,6 @@ Ma = Masimo; W = Welch Allyn/Hillrom; Ed = Edwards; BT = BioTelemetry; Dr = Drag
 | M05 | Per-pack overlay (regulatory + clinical) | ✅ |
 | M06 | EU AI Act decision lineage at every prediction | ✅ |
 | M07 | OpenTofu-only zero-handroll deployment in 6 contexts | ✅ |
-| M08 | OCI Always Free Bronze-tier RPM demo deployment | ✅ |
 | M09 | Cross-vendor device-registry merge | ✅ |
 | M10 | Wearable-derived AFib into alarm stream | 🅱 W17 |
 

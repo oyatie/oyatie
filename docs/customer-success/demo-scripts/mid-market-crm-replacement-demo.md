@@ -16,6 +16,8 @@ date: 2026-05-20
 owner: customer-success
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Mid-Market CRM Replacement Demo
 
 ## Pre-Demo Checklist
@@ -40,7 +42,6 @@ owner: customer-success
 - Prepare tool: Pack Evidence Exporter.
 - Prepare tool: Pricing and Packaging Model.
 - Load Acme fixture before the meeting.
-- Confirm tenant tier is Silver.
 - Confirm active cells are `us-central-silver-a` and `eu-west-silver-a`.
 - Confirm active packs are GDPR and SOC2 Type II.
 - Confirm intentionally absent packs include HIPAA, DORA, KR-PIPA, and EU AI Act.
@@ -106,7 +107,6 @@ owner: customer-success
 - Click `Acme Innovations Inc.`
 - Click `CRM Replacement View`.
 - Dialogue: "I am starting with revenue motion, not a CRM home page."
-- Show Silver tier posture.
 - Show active packs: GDPR and SOC2 Type II.
 - Show active cells: US central and EU west.
 - Show customer count: `1,850`.
@@ -465,7 +465,6 @@ owner: customer-success
 - Use $140K for two source CRMs, activity history, consent export, evidence request, and executive value model.
 - Production subscription should be discussed only after assessment scope is accepted.
 - Subscription pricing depends on active capability tiers, users, workflow volume, evidence retention, and cells.
-- Mid-market Silver tier should be the default unless regulated needs require Gold.
 - Do not discount below the effort needed for migration mapping and workflow proof.
 - Strong savings anchor: CRM license and add-on reduction around $420K in the Acme fixture.
 - Strong efficiency anchor: RevOps admin drag around $310K in the Acme fixture.

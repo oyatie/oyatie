@@ -33,6 +33,8 @@ related_journeys:
   - docs/user-journeys/j168-coo-akira-watanabe-quarterly-ops-review-and-incident-debrief/README.md
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Tenant Onboarding 90-Day Program
 
 ## Purpose
@@ -482,17 +484,12 @@ This playbook should be attached to the customer kickoff and reviewed at every o
 - Metric: Pilot Login Rate; Target: 70 percent of invited pilot users log in by Day 60.
 - Metric: Pilot Workflow Completion; Target: 60 percent of pilot users complete at least one target workflow by Day 60.
 - Metric: Support Ticket First Response; Target: package-specific P1 response target honored in tabletop and live incidents.
-- Metric: Incident Tabletop Completion; Target: incident rehearsal completed by Day 60 for Silver and above.
 - Metric: Policy-Deny Triage; Target: unexpected deny events triaged within one business day during onboarding.
 - Metric: Day 90 First Value Confirmation; Target: one executive-accepted value metric documented by Day 90.
 - Metric: Day 90 QBR Pack Completeness; Target: metrics, risks, incidents, adoption, value, and next actions complete.
 - Metric: Evidence Archive Completeness; Target: 100 percent required onboarding evidence archived before closeout.
 - Metric: Expansion Classification; Target: every account classified Stabilize, Optimize, Expand, or Recover at Day 90.
 - Metric: Onboarding Closeout Timeliness; Target: closeout completed within five business days after Day 90 review.
-- Bronze SLA Target: 99.9 percent availability, P1 response 240 minutes, RPO 1440 minutes, RTO 480 minutes.
-- Silver SLA Target: 99.95 percent availability, P1 response 120 minutes, RPO 240 minutes, RTO 120 minutes.
-- Gold SLA Target: 99.99 percent availability, P1 response 30 minutes, RPO 240 minutes, RTO 60 minutes.
-- Platinum SLA Target: 99.995 percent pack-bound availability, P1 response 15 minutes, RPO 60 minutes, RTO 30 minutes.
 
 ## Named Failure Modes + Recovery
 
@@ -746,7 +743,6 @@ Regards,
 - Support Control SC-002: escalation contacts are shared on Day 1.
 - Support Control SC-003: package P1 target is recorded on Day 1.
 - Support Control SC-004: support routing is tested by Day 30.
-- Support Control SC-005: incident tabletop is run by Day 60 for Silver and above.
 - Support Control SC-006: support ticket trend is reviewed at Day 90.
 - Support Control SC-007: customer notification owner is named before launch.
 - Support Control SC-008: executive notification owner is named before launch.

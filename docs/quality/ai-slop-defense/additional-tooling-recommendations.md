@@ -107,7 +107,6 @@ doc_status: published
 | **Unicode-discipline lane** | Block BiDi-control characters in source / `.cursorrules` / `.claude/`. Defeats Pillar Security "Rules File Backdoor". ([Pillar](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)) | **BLOCKER** | `oya-governance-unicode-discipline` | ADR-XXX-unicode |
 | **Redundant-generation diff-vote** | Generate change with Claude + Codex + Gemini; merge only if 2-of-3 agree on the diff structure ([oh-my-claudecode ccg](https://github.com/.../oh-my-claudecode); `omc ccg` skill). | MED | `oya-governance-diff-vote` (new, opt-in per high-blast-radius change) | ADR-XXX-diff-vote |
 | **RepoMap / repo-graph context** | Improves AI-context quality; reduces hallucinated APIs by 6.8× ([code-review-graph](https://github.com/tirth8205/code-review-graph)). | MED | `oya-governance-context-quality` (new) | ADR-XXX-repomap |
-| **Reviewer-agent verdict** | Independent LLM reviews PR; verdict logged to `icm`. Disagreement → council-architecture. | HIGH | `oya-governance-reviewer-verdict` | ADR-XXX-reviewer-agent |
 | **Replay-as-eval** (existing ADR-0024) | Replay past failure modes against current `main`. | HIGH | extends `oya-governance-mistakes-ledger-cite` | extension |
 
 ## 8. Python / mixed-language tooling

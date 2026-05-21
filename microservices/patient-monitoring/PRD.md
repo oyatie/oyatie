@@ -29,6 +29,8 @@ related_adrs:
   - ADR-0345
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # patient-monitoring — Product Requirements Document (PRD)
 
 **Status**: wave-15m-f-authoring
@@ -1191,7 +1193,6 @@ Compliance to global memory constraints:
   macOS clinician kiosks via Apple-Silicon Rust+SDL2).
 - All 13 supported_oses authored + supported-oses.json populated.
 - 6 deployment_contexts authored.
-- OCI Always Free flagged for Bronze/demo/sandbox/dev tenants in iac/guest-on-oci/.
 - ADR-0244 tenant-scoping enforced at every storage + retrieval surface.
 - ADR-0245 substrate-vs-product layering respected (this µservice = product; consumes substrate
   µservices iam/cell/kms/data/audit-chain).

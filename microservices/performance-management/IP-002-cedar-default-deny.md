@@ -7,7 +7,7 @@ journey_id: J-PM-02-review-access-policy
 status: proposed
 date: 2026-05-20
 owner: axis-performance-management
-capability_tier: T2
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-002: Performance Management Cedar Default Deny

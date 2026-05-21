@@ -6,7 +6,6 @@ authority_tier: 1
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Per-stage rollback mechanics. local-dev: discard via grit cancel. origin/dev: revert
   via standard local-dev → origin/dev path. staging: revert via the standard path
   (cannot push directly to staging). prod: SLO-burn-rate-fast auto-rollback per
   ADR-0040 + hot-fix path with reduced gate set + Directive 12 human-orchestrator signature.
@@ -19,7 +18,6 @@ doc_status: published
 
 # Rollback Mechanics Per Stage
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. Scope
 
@@ -27,15 +25,12 @@ Rollback procedures per layer of the four-layer pipeline. Every rollback emits D
 
 ## 2. Layer 0 — worktree rollback
 
-**Mechanism.** `grit cancel --agent <id>` (or `grit discard`). Worktree state cleared; symbols released back to the claim pool.
 
-**Evidence.** Audit event `EVT-WORKTREE-DISCARDED` emitted via `icm store -t worktree-events -c '<id, reason>' -i low`. No D14 evidence required (private workspace).
 
 **Authority.** The originating agent only.
 
 ## 3. Layer 1 — agent local-dev clone rollback
 
-**Mechanism.** `git reset --hard origin/dev` (Directive 12 permitted with `icm store -t direct-tool-invocations -c 'rollback local-dev clone after grit cancel' -i high -k 'git,rollback'`). Or `grit cancel` if the agent had `grit done` to local-dev but not yet opened a PR.
 
 **Evidence.** `EVT-LOCAL-DEV-RESET` emitted. No D14 (still private).
 
@@ -99,12 +94,6 @@ Every rollback emits a signed D14 artefact via `oya-foundry-evidence-kernel`:
 
 | Rollback class | Artefact shape | Signed by | Stored in |
 |---|---|---|---|
-| worktree discard | `EVT-WORKTREE-DISCARDED` | agent identity | `icm: worktree-events` |
-| local-dev reset | `EVT-LOCAL-DEV-RESET` | agent identity | `icm: local-dev-events` |
-| origin/dev revert | `revert_record` | reviewer-agent + dev-promoter | `audit-chain` + `icm: dev-promotions` |
-| staging revert (via origin/dev) | same as above + `EVT-STAGING-PROMOTED` | reviewer + dev-promoter + staging-promoter | `audit-chain` + `icm: staging-promotions` |
-| prod SLO-auto-rollback | `auto_rollback_record` | rollout-controller identity | `audit-chain` + `icm: prod-rollbacks` |
-| prod hot-fix forward-fix | `hotfix_record` | full chain + human-signoff | `audit-chain` + `icm: prod-promotions` |
 | per-cell rollback | `per_cell_rollback` | rollout-controller | per-cell audit chain |
 | per-tenant rollback | `per_tenant_rollback` | rollout-controller + cohort kernel | per-tenant + audit chain |
 
@@ -124,5 +113,4 @@ This file does not own:
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — all rollback artefacts stored via `icm store`; direct `git` reset under Directive 12 with `icm store -t direct-tool-invocations`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — rollback mechanics respect the four-layer mutator allowlists; no direct push to `origin/dev`, `staging`, or `prod` even for rollbacks.

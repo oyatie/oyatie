@@ -22,7 +22,6 @@ doc_status: published
 
 # Branch Protection Rules
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. Provider-agnostic protection schema
 
@@ -190,5 +189,4 @@ This file does not own:
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — branch-protection schema changes go through the standard PR path; direct `git`/`gh` usage under Directive 12 with `icm store -t direct-tool-invocations`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — this file specifies the branch-protection rules that enforce the mutator allowlists and gate requirements defined in ADR-0055.

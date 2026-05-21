@@ -27,6 +27,8 @@ related_adrs:
   - ADR-0345
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # PRD — Emergency Department Information System (ED-IS)
 
 Microservice slug: `emergency`
@@ -638,7 +640,6 @@ ED-IS ships an OpenTofu (NOT Terraform) module per deployment context (per `feed
 
 - `iac/aws-guest/`
 - `iac/oci-guest/`
-- `iac/oci-always-free/` (Bronze tier; honors `feedback_oci_always_free_maximization_2026_05_20` — runs full ED-IS on 2× Ampere A1 ARM 4 OCPU + 24 GB Always Free shape)
 - `iac/on-prem/`
 - `iac/colo/`
 - `iac/oyatie-cloud/`

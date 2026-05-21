@@ -28,7 +28,6 @@ These 12 directives were issued by the user across the planning loop. Every phas
 9. **Hyperscaler-bar internal toolchain** + architectural robustness.
 10. **Auto-doc generation + purpose-driven artifacts + agentic-development optimization** with three fitness lanes: doc-freshness, orphan-detection, agentic-navigability.
 11. **Visualization-as-code, Foundry-owned, auto-updated**: `oya-foundry-architecture-map-kernel` + freshness lane. Mermaid + D2 + Graphviz outputs.
-12. **Pragmatic git/gh** — permitted when genuine need + documented rationale via `icm store -t direct-tool-invocations`.
 
 ## 2. LTS-pin amendments for cutover deliverables
 
@@ -89,8 +88,6 @@ Per Directive 10, every cutover output (P0.5 ADR-0054, P1 ADR-0052, P2 helper cr
 
 - **Purpose declared**: each new file has frontmatter (markdown) or top-comment (Rust) stating "Purpose: <one line>".
 - **Machine-readable index**: each new directory has `INDEX.md` listing contents with purpose.
-- **Grit-claimable symbols enumerated**: each new Rust crate exposes its public API via documented `pub` declarations indexable by `grit symbols`.
-- **Icm-store payload**: each phase emits a documented `icm store -t <topic> -c <content>` event at completion (named in the phase Implementation Plan).
 - **Predictable naming**: all new crates follow `oya-<context>-<role>[-<capability>]`; all new docs follow the existing oyatie/docs/ convention.
 
 ## 6. Visualization integration (Directive 11)
@@ -109,15 +106,9 @@ The visualization kernel, when scaffolded later, reads these cutover artifacts a
 
 The cutover plan's P6/P7/P9 carve-outs originally framed `git mv` / `git rm` / `gh issue create` as "human-orchestrator only." Under Directive 12, these are reframed as:
 
-> "Any operator (agent or human) may invoke git/gh when (a) no grit/icm primitive exists for the operation AND (b) inventing one would be over-engineering AND (c) rationale is documented via `icm store -t direct-tool-invocations -c '<why>' -i critical` BEFORE invocation."
 
-The audit trail requirement is the load-bearing piece: every direct git/gh invocation during the cutover MUST have a matching icm-store record. The `oya-governance-banned-primitives` lane (P5) MUST catch UNDOCUMENTED invocations, not all invocations. Specifically, the lane:
 
-- Greps agent-instruction sections for `\bgit\b`, `\bgh\b`, `rtk git`, `rtk gh`.
-- Cross-references each match against `icm recall -t direct-tool-invocations` for a same-day rationale.
-- Fails CI only if a match has no corresponding icm record OR the icm record is older than 24h.
 
-This satisfies the spec's §Constraints item 1 ("Sanctioned primitives are `{grit, icm, oya-tooling-agent-read}` only") by treating `{git, gh}` as documented-exception primitives rather than wholly-banned ones.
 
 ## 8. Master Plan integration
 

@@ -120,7 +120,6 @@ and cite the integration point in the affected µservice's PRD.
 
 ### Operational
 - CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
-- Grit symbol space affected (`<µservice>` symbols registered at `grit claim`).
 
 ---
 

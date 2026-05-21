@@ -132,7 +132,6 @@ Primary ADR: microservices/data-pipeline/decisions/ADR-MS-001-lineage-first-inge
 - Rule 7: claims about Airbyte throughput must distinguish source/destination benchmark from general service guarantee.
 - Rule 8: claims about dbt schedule behavior must distinguish deployment jobs, CI jobs, merge jobs, API jobs, and manual jobs.
 - Rule 9: claims about Semantic Layer accuracy must distinguish benchmark coverage from Oyatie production metric correctness.
-- Rule 10: claims about tenant_class must not reintroduce Bronze/Silver/Gold or tier-delta language.
 - Rule 11: IP-031 and IP-032 count as operating-bar closure, not feature-parity arithmetic changes.
 - Rule 12: IP-033 through IP-037 count as the five filed feature-gap closures.
 

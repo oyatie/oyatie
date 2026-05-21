@@ -32,6 +32,8 @@ related_journeys:
   - docs/user-journeys/j54-quote-to-contract-to-payment-saas/README.md
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Customer Success Quarterly Business Review Template
 
 ## Purpose
@@ -353,22 +355,6 @@ This document provides the repeatable QBR agenda, metric list, risk-signal catal
 
 ### Named SLA Targets
 
-- SLA Target QBR-SLA-001: Bronze availability target is 99.9 percent.
-- SLA Target QBR-SLA-002: Bronze P1 response target is 240 minutes.
-- SLA Target QBR-SLA-003: Bronze RPO target is 1440 minutes.
-- SLA Target QBR-SLA-004: Bronze RTO target is 480 minutes.
-- SLA Target QBR-SLA-005: Silver availability target is 99.95 percent.
-- SLA Target QBR-SLA-006: Silver P1 response target is 120 minutes.
-- SLA Target QBR-SLA-007: Silver RPO target is 240 minutes.
-- SLA Target QBR-SLA-008: Silver RTO target is 120 minutes.
-- SLA Target QBR-SLA-009: Gold availability target is 99.99 percent.
-- SLA Target QBR-SLA-010: Gold P1 response target is 30 minutes.
-- SLA Target QBR-SLA-011: Gold RPO target is 240 minutes.
-- SLA Target QBR-SLA-012: Gold RTO target is 60 minutes.
-- SLA Target QBR-SLA-013: Platinum availability target is 99.995 percent where pack-bound.
-- SLA Target QBR-SLA-014: Platinum P1 response target is 15 minutes.
-- SLA Target QBR-SLA-015: Platinum RPO target is 60 minutes.
-- SLA Target QBR-SLA-016: Platinum RTO target is 30 minutes.
 - SLA Target QBR-SLA-017: QBR prep target is evidence pack complete five business days before meeting.
 - SLA Target QBR-SLA-018: QBR recap target is sent within two business days after meeting.
 - SLA Target QBR-SLA-019: QBR action-owner target is every action has owner and due date before close.

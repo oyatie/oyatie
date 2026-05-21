@@ -20,7 +20,6 @@ doc_status: published
 
 # Velocity Without Stability Loss — The Trade-Off Doc
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. The deliberate deviation
 
@@ -28,7 +27,6 @@ Hyperscaler default (Google, Microsoft) is **trunk-based development** — one l
 
 Oyatie deliberately deviates by adopting a **four-layer** model and placing gates **asymmetrically**:
 
-- **Layer 0 (worktree)** and **Layer 1 (agent local dev clone)**: autonomous; agents may sync local-dev to/from origin/dev at any time without ceremony. `grit done` is the atomic primitive.
 - **Layer 1 → Layer 2 (local-dev → origin/dev)**: **3-gate** (PR shape + reviewer-agent `APPROVE` + CI green). This is the first shared-world boundary; quality goes in here.
 - **Layer 2 → Layer 3 (origin/dev → staging)**: **autonomous** — CI was already cleared at dev entry, no re-verification needed.
 - **Layer 3 → Layer 4 (staging → prod)**: **5-gate** (comments-resolved + CI-green ≥ N runs + canary-100% ≥ M hrs + zero-SLO-fast + optional reviewer-re-affirm). This is the runtime-validation boundary.
@@ -74,7 +72,6 @@ We do **not** treat canary regression as a defect to be eliminated. We treat it 
 | Canary regression detection lag (staging cohort too small to catch tail issue) | Med | Canary cohort sized per [`canary-rail-spec.md`](../progressive-delivery/canary-rail-spec.md) (≥ 200 sampled requests at gate 1; stage-progression bounded by SLO-burn-rate-bounded holds). |
 | 5-gate verification stuck (perpetual red on one gate) | Med | Per-gate metrics emitted; `prod_promotion_failure_rate` > 5% triggers HIGH alert to council-architecture. |
 | Direct push to origin/dev bypassing PR flow | Catastrophic if it happened | `oya-governance-no-direct-origin-dev-commit` (BLOCKER) — every origin/dev commit traces to a PR merge by `dev-promoter`. Branch-protection mutator allowlist. |
-| Reviewer-agent skew (different reviewers approve same change differently over time) | Low | Reviewer verdict templates versioned; per-reviewer training data tracked in `icm` topic; periodic calibration audit. |
 
 ## 7. Velocity metrics (targets, lane-enforced)
 
@@ -118,5 +115,4 @@ The four-layer model is the simplest representation that places each gate at the
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — all promoter agents use `grit` + `icm` + `oya-tooling-agent-read`; reviewer verdicts stored via `icm store -t pr-review-verdicts`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — this document is the trade-off justification for the four-layer pipeline defined in ADR-0055.

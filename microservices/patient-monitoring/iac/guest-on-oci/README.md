@@ -1,10 +1,10 @@
 # iac/guest-on-oci — patient-monitoring
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 Deployment context: **guest-on-oci**. Used when the tenant has an OCI account or when
-Bronze-tier / demo / sandbox tenants exploit the OCI Always Free tier per the
 `feedback_oci_always_free_maximization_2026_05_20` constraint.
 
-Tier mapping: Tier-2 default; Always Free profile available for Bronze tier.
 
 ## Modules
 
@@ -17,7 +17,6 @@ Tier mapping: Tier-2 default; Always Free profile available for Bronze tier.
 - `module.patient_monitoring_load_balancer_oci` — OCI Load Balancer
 - `module.patient_monitoring_notification_oci` — OCI Notifications
 
-## Always Free profile (Bronze tier)
 
 `iac/guest-on-oci/always-free/` exploits:
 
@@ -30,7 +29,6 @@ Tier mapping: Tier-2 default; Always Free profile available for Bronze tier.
 - 1× Load Balancer
 - OCI Streaming basic tier
 
-Bronze tier supports demo + sandbox + trial + dev tenants; ≤ 50 active RPM patients per
 tenant; ICU/CCU bedside monitoring not supported on Always Free (insufficient durability
 guarantees per the HIPAA + IEC 62304 SaMD Class C posture).
 

@@ -6,7 +6,6 @@ authority_tier: 2
 length_cap: 120
 date: 2026-05-12
 purpose: |
-  Step-by-step the final mile: from "code looks done" to `grit done`. Every step has a
   typed artifact (command output, lane, ledger row). No agent declares completion
   without walking this protocol in order.
 canonical_authority: docs/CONSTITUTION.md
@@ -14,7 +13,6 @@ foundation: ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim)
 related:
   - docs/agents/AGENT-ENTRY-POINT.md
   - docs/agents/AGENT-TOOL-PROTOCOL.md
-  - docs/agents/AGENT-ICM-TOPIC-CONVENTIONS.md
   - docs/templates/checklists/agent-completion-checklist.md
   - docs/AGENTS.md
 doc_status: published
@@ -22,7 +20,6 @@ doc_status: published
 
 # Agent Completion Protocol
 
-> Run these in order. Each step produces a typed artifact (command output, lane row, ledger row). Skipping a step = silent regression. The merge gate refuses `grit done` if D16 (audit emission) or `## Code Review` is missing. Foundation: ADR-0053 (sanctioned primitives) and ADR-0054 (scaffold-claim).
 
 ## C1 — Re-read the IP `done-criteria`
 
@@ -45,12 +42,9 @@ If the IP frontmatter adds lane-specific commands (e.g. `oya-governance-data-cla
 
 Capture exit code + last 20 lines (or full output if shorter) into a local `evidence.txt` in your worktree. The PR template `## Verification` section consumes this. The `traceability-validator` lane refuses PRs without per-check pass/fail lines.
 
-## C4 — `icm store` the named topic + payload
 
-The IP frontmatter declares `icm-store-payload:` with `topic`, `content-template`, `importance`, `keywords`. Emit it verbatim (substitute `<placeholders>`):
 
 ```
-icm store -t <topic> -c "<content with placeholders filled>" -i <importance> -k "<kw1,kw2>"
 ```
 
 Almost always `context-oyatie` at `high`. Add `decisions-oyatie` if you made a non-trivial architectural call.
@@ -78,20 +72,16 @@ Phases under M01-P08 (agentic-pipeline cutover) and any phase whose INDEX `inven
 
 Open [`docs/AGENTS.md`](../AGENTS.md) §Done-Definition. Tick every box. Any unticked box = NOT DONE, loop back. The reviewer-agent verdict for your change class must be captured in PR `## Code Review`.
 
-## C9 — `grit done`
 
 ```
-grit done --agent <agent-id>
 ```
 
 Outcomes:
-- **OK** → claim merged via merge queue; your worktree is GC'd; emit one final `icm store -t context-oyatie -c "<IP> shipped; EVT=<id>; PR=<n>" -i high`.
 - **Conflict** → see [`AGENT-FAILURE-RECOVERY.md`](AGENT-FAILURE-RECOVERY.md) §R3.
 - **Missing-evidence refusal** → loop back to C2–C5; do NOT bypass.
 
 ## C10 — Do NOT manually rebase or merge
 
-`grit done` is the only sanctioned merge primitive. If `grit done` is unhealthy on your harness, that is a halt case (`HALT-03` in [`ESCALATION-MATRIX.md`](ESCALATION-MATRIX.md)) — release the claim, emit the halt row, do not work around it with raw `git`. Working around `grit done` invalidates the audit chain.
 
 ## C11 — Post-merge: pick the next IP
 

@@ -7,7 +7,7 @@ journey_id: J-PM-30-compensation-readiness-handoff
 status: proposed
 date: 2026-05-20
 owner: axis-performance-management
-capability_tier: T3
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-030: Compensation Readiness Handoff

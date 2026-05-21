@@ -30,7 +30,7 @@ related_microservices:
   - workflow-studio
   - ontology
   - policy-engine
-capability_tier: Gold
+tenant_class: ["demo_trial", "paid"]
 related_adrs:
   - ADR-0131
   - ADR-0132
@@ -2076,7 +2076,6 @@ ERP Coverage exists so an organization can start with one oyatie tenant and neve
 ### JTBD-ERP-05 - Convert side-business simplicity into enterprise depth
 - Situation: Tomas starts with invoices and inventory, then adds treasury, warehouse, compliance, and HR.
 - Motivation: He should activate modules without tenant migration.
-- Acceptance: Bronze exposes simple finance and inventory; Silver adds procurement and payroll connectors; Gold adds manufacturing and treasury; Platinum adds multi-entity consolidation and regulated packs.
 
 ### JTBD-ERP-06 - Govern trade, customs, and sanctions
 - Situation: Alejandra ships dual-use goods from KR to EU.
@@ -2339,10 +2338,6 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 - Resource erp::AccountingDocument includes tenant_id, entity_id, ledger, period, data_class.
 - Resource erp::SupplierProfile includes tenant_id, country, risk_rating, pack_set.
 - Resource erp::QualityHold includes tenant_id, plant_id, severity, release_signature.
-- Bronze guard: only single-entity finance and inventory actions are enabled.
-- Silver guard: procurement, AP, AR, and warehouse actions enabled with standard approval thresholds.
-- Gold guard: manufacturing, treasury, project, trade, and HR cost sync enabled.
-- Platinum guard: multi-entity consolidation, sovereign pack, and advanced controls enabled.
 
 ## Workflow Engine Integration
 
@@ -2391,25 +2386,9 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 - Pack JP-ISMAP activates JP residency, invoice preservation, and local audit-language pack.
 - Pack Healthcare activates HIPAA class redaction and patient-billing separation.
 - Pack Public-Sector activates procurement transparency, conflict-of-interest disclosure, and retention floor.
-- Bronze tier supports default commercial pack only.
-- Silver tier supports one regional compliance pack.
-- Gold tier supports multi-pack conflict resolution.
-- Platinum tier supports sovereign-cell plus multi-entity pack inheritance.
 
 ## SLO Targets
 
-- Bronze: single-entity dashboard p95 <= 800 ms.
-- Bronze: simple invoice create p99 <= 500 ms.
-- Bronze: migration dry-run batch <= 50k rows per hour.
-- Silver: procurement approval route p99 <= 500 ms.
-- Silver: three-way match p95 <= 2 s for 10k open invoices.
-- Silver: audit event emission completeness = 100%.
-- Gold: close console p95 <= 1 s for 100 entities.
-- Gold: manufacturing order update p99 <= 750 ms.
-- Gold: treasury forecast recalculation p95 <= 5 min for daily cycle.
-- Platinum: consolidation run p95 <= 30 min for 1000 entities.
-- Platinum: cutover dry-run reconciliation accuracy = 100% row accounting.
-- Platinum: cross-region evidence export availability >= 99.99%.
 
 ## Telemetry
 
@@ -2449,14 +2428,6 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 
 ## Capability Tier Deltas
 
-- Bronze includes single-entity finance, customers, suppliers, inventory basics, and simple invoice.
-- Bronze excludes manufacturing, treasury, multi-entity close, and regulated trade.
-- Silver adds procurement, AP, AR, warehouse receiving, and one regional pack.
-- Silver adds standard approval routes and audit evidence export.
-- Gold adds manufacturing, quality, project systems, treasury, and trade compliance.
-- Gold adds ERP migration dry-run from SAP, Oracle, NetSuite, Dynamics, and Workday.
-- Platinum adds multi-entity consolidation, sovereign cell, SOX, DORA, CSAP, and public-sector packs.
-- Platinum adds cutover cockpit, intercompany elimination, advanced treasury, and regulator portal export.
 
 ## Competitive Positioning
 
@@ -2479,7 +2450,6 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 - Wave 5: trade, customs, sanctions, transportation, EWM, public-sector procurement.
 - Phase M04: internal oyatie tenant dogfood for finance and procurement workflows.
 - Phase M05: design-partner enterprise migration dry runs.
-- Phase M06: Platinum regulated consolidation and sovereign-cell cutovers.
 
 ## Cross-Product Dependencies
 

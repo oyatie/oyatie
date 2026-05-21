@@ -10,6 +10,8 @@ asyncapi_version: 3.1.0
 proto3: true
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # audit-chain API Reference
 
 Canonical REST, gRPC, and AsyncAPI reference for the `audit-chain`
@@ -834,17 +836,9 @@ product-fragmented limits.
 
 | Tier | REST requests per second | gRPC requests per second | Async publishes per second | Burst |
 | --- | ---: | ---: | ---: | ---: |
-| Bronze | 40 | 80 | 100 | 2x for 10s |
-| Silver | 120 | 240 | 500 | 2x for 20s |
-| Gold | 350 | 700 | 2000 | 3x for 30s |
-| Platinum | 1000 | 2000 | 8000 | 3x for 60s |
 
 Special limits:
 
-- Emit ingestion: Bronze `250 events/s`, Silver `1000`, Gold `5000`, Platinum `20000`.
-- Proof lookup: Bronze `25 rps`, Silver `100`, Gold `400`, Platinum `1500`.
-- Export requests: Bronze `1 rps`, Silver `3`, Gold `10`, Platinum `25`.
-- Integrity replay: Bronze `1 concurrent`, Silver `3`, Gold `10`, Platinum `25`.
 
 ## OpenAPI 3.2.0 Schema
 

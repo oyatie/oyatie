@@ -17,7 +17,6 @@ Primary ADR: microservices/data-pipeline/decisions/ADR-MS-001-lineage-first-inge
 - Encode tenant quota, tenant_class capacity, home_cell, pack overlay, drift hold, and cost budget before each fire.
 - Give Foundry principals a Cedar-bound scheduling lane without bypassing human operator constraints.
 - Close the audit row where scheduling was delegated without local bounded-context evidence.
-- Preserve no-tier doctrine: scheduling limits are capacity and billing components, not Bronze/Silver/Gold feature tiers.
 - Treat schedule fire as an audit event and a cost event.
 - Use ADR-MS-001 lineage-first constraints by refusing schedules that would publish unverifiable outputs.
 - No writes outside microservices/data-pipeline/ are needed for the plan.

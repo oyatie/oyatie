@@ -7,6 +7,8 @@ owner: founder-office
 target_audience: seed_investors, strategic_enterprise_buyers, regulated-market_partners
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Oyatie Company Overview Deck
 
 ## Slide 01 - Investor Thesis
@@ -96,10 +98,6 @@ target_audience: seed_investors, strategic_enterprise_buyers, regulated-market_p
 - The product layer presents familiar business surfaces: CRM, tasks, mail, workflow, ontology, community, analytics, governance, and ops control.
 - The substrate layer owns tenant identity, policy evaluation, audit chain, capability registry, workflow execution, evidence, quotas, and cells.
 - The capability-tier layer turns product packaging into grantable bundles.
-- Bronze tiers cover baseline team or department behavior.
-- Silver tiers cover collaborative professional behavior.
-- Gold tiers cover enterprise automation, integration, and evidence behavior.
-- Platinum tiers cover regulated, sovereign, or high-assurance behavior.
 - Cedar policy fragments gate authorization, routing, retention, cost, residency, and autonomy.
 - The audit chain records consequential state changes and evidence references.
 - The ontology layer provides shared object types and relationship semantics.
@@ -263,10 +261,6 @@ target_audience: seed_investors, strategic_enterprise_buyers, regulated-market_p
 - Tertiary model: regulated deployment premium for dedicated cells, sovereign packs, and high-assurance support.
 - Services model: migration and implementation services through partners, capped to avoid becoming consulting-led.
 - Marketplace model: revenue share on third-party capability packs and connector packs.
-- Bronze entry price: $48,000 annual contract value per tenant.
-- Silver professional price: $180,000 annual contract value per tenant.
-- Gold enterprise price: $720,000 annual contract value per tenant.
-- Platinum regulated price: $1,800,000 annual contract value per tenant.
 - Usage floor for AI and workflow execution: included allowance plus overage.
 - Evidence-pack add-on: $60,000 to $250,000 annually depending on compliance packs.
 - Dedicated cell add-on: $300,000 to $1,200,000 annually depending on region and SLO.
@@ -431,7 +425,6 @@ target_audience: seed_investors, strategic_enterprise_buyers, regulated-market_p
 - Example enterprise baseline: $55.7 million annual SaaS spend from Zylo average.
 - Example replacement target: 8 percent of spend addressable in first contract year.
 - Example addressable budget: $4.456 million.
-- Example Oyatie year-1 ACV: $720,000 Gold tier.
 - Example direct software displacement target: $1.2 million.
 - Example integration maintenance reduction: $400,000.
 - Example audit evidence savings: $250,000.

@@ -1701,7 +1701,6 @@ Pattern ID: AP-C08.
 
 Severity: P0 for state transitions.
 
-Failure: docs or commands use grit, rtk, icm, vox, or omx as transition
 authority after ADR-0116 retirement.
 
 Why it harms Oyatie: retired primitives are compatibility/provenance surfaces,
@@ -2063,7 +2062,6 @@ Pattern ID: AP-L06.
 
 Severity: P0 in agent instructions and lifecycle docs.
 
-Failure: docs instruct grit, rtk, icm, vox, or raw git/gh where oya vcs or oya
 git is canonical.
 
 Why it harms Oyatie: stale instructions cause agents to bypass gates.

@@ -89,7 +89,6 @@ tools/agent-skills/                       # Vendored lifecycle skills (addyosman
 bash tools/hooks/session-start-context-inject.sh
 
 # Test stale-tool suggester with mock input
-TOOL_INPUT='{"command":"grit done"}' bash tools/hooks/stale-tool-suggester.sh
 TOOL_INPUT='{"command":"git status --short"}' bash tools/hooks/stale-tool-suggester.sh
 
 # Test oya-git cutover inventory warning

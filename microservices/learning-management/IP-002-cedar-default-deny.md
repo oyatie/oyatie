@@ -7,7 +7,7 @@ journey_id: J-LMS-02-governed-learning-administration
 status: proposed
 date: 2026-05-20
 owner: axis-learning-management
-capability_tier: T2
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-002: Cedar Default Deny

@@ -18,7 +18,6 @@ doc_status: published
 
 # Canary Rail Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Controllers
 
@@ -111,5 +110,4 @@ AWS CodeDeploy "Canary 10/45" + "Linear 10/3min"; Microsoft Azure Deployment Rin
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — rollback evidence emitted via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — canary 100% ≥ M hours is gate 3 of the staging → prod 5-gate; `EVT-CANARY-COMPLETE` triggers `prod-promoter`.

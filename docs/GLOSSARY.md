@@ -3,6 +3,8 @@ purpose: Oyatie — Glossary, Vocabulary, Conventions
 doc_status: published
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Oyatie — Glossary, Vocabulary, Conventions
 
 > **Status:** Draft v0.1 — 2026-05-09. Single source of truth for terminology across all consolidated docs, per-product PRDs, ADRs, code comments, PR descriptions, and customer-facing material.
@@ -1138,7 +1140,6 @@ Definition: A capability tier is a named, tenant-visible projection bundle that 
 
 ADR-0316 replaces product fragmentation with capability tiers. A tier activates a coherent bundle: Cedar permits, ontology projection or workflow-only declaration, workflow templates or read-only declaration, UX shell manifest, compliance overlay mapping, schema revisions, audit evidence, and cost dimensions.
 
-Tiers can be commercial, operational, or regulatory, but they must not fork the core substrate. Bronze, Silver, Gold, or Platinum style matrices should vary limits, evidence, support, and permissions while keeping the underlying action namespace and audit obligations coherent.
 
 Named µservices using the term include `workflow-studio`, `intelligence`, `cloud-secrets`, `developer-sdk`, `governance`, and `marketplace`. Their tier matrices define what a tenant receives without duplicating service implementations.
 

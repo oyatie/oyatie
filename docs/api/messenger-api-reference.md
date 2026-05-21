@@ -10,6 +10,8 @@ asyncapi_version: 3.1.0
 proto3: true
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # messenger API Reference
 
 Canonical REST, gRPC, and AsyncAPI reference for the `messenger` microservice.
@@ -449,10 +451,6 @@ ADR-0316 tier names map to tenant-visible capability tiers, not separate service
 
 | Tier | REST reads | REST writes | gRPC streams | WebSocket fanout | Notes |
 |---|---:|---:|---:|---:|---|
-| Bronze | 100 rps | 40 rps | 20 streams | 2,000 events/min | dev and small tenant cells |
-| Silver | 1,000 rps | 400 rps | 200 streams | 50,000 events/min | default production tier |
-| Gold | 5,000 rps | 2,000 rps | 1,000 streams | 500,000 events/min | multi-AZ high traffic |
-| Platinum | 10,000 rps | 4,000 rps | 2,000 streams | 1,000,000 events/min | sovereign pack, in-pack only |
 
 Rate-limit headers:
 

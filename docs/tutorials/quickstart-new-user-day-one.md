@@ -16,6 +16,8 @@ owner: docs-experience
 estimated_completion_time: "55 minutes"
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # First-Day-on-Oyatie Quickstart
 
 ## Goal
@@ -394,7 +396,6 @@ Future tutorials assume `Acme Day One` exists and contains this evidence.
 - [Build an employee-onboarding workflow](workflow-studio-build-employee-onboarding.md).
 - [Capture and propagate consent across microservices](consent-cascade-across-microservices.md).
 - [Activate multiple compliance packs on a tenant](multi-pack-tenant-activation.md).
-- [Upgrade a tenant from Bronze to Platinum](capability-tier-upgrade-bronze-to-platinum.md).
 
 ## References
 

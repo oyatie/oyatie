@@ -92,11 +92,8 @@ How the 9 layers interact:
 
 | Failure | Behavior |
 |---|---|
-| Agent hangs mid-IP | `grit` claim TTL expires (default 30 min); next agent re-claims; partial work either compiles + tests-pass (CI gate enforces) or branch is auto-abandoned. |
-| Agent crashes | Same as hang. `icm` stores the in-progress trace; resumption agent recalls and continues. |
 | Agent claim expires | Same TTL mechanism. Other agents see expired claim and re-claim with deduplication. |
 | Partial commits | `pre-commit` + CI prevent merging an incoherent diff. Branch protection on `main` blocks bypass. |
-| Agent loops on a failing test | `oya-governance-test-flake` (new) — caps retries; `icm` raises a "stuck-agent" signal; council-architecture pages. |
 | Agent ignores its prompt | Reviewer-agent (Layer 3) disagrees, escalation fires. |
 | Agent uses banned primitive | `oya-governance-banned-primitives` + Directive 12 audit row required. |
 

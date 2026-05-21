@@ -20,9 +20,6 @@ Resolved during Architect run, between Planner and Critic phases. The Critic SHO
 **Actual**: Highest existing is **ADR-0051** (`mobile-and-native-client-strategy.md`). Plan's assumption is wrong by ~25 slots.
 
 **Correct slot allocation:**
-- **ADR-0052** — `inventory-grit-cutover.md` (was P1's ADR-#### target)
-- **ADR-0053** — `grit-icm-as-sanctioned-primitives.md` (the central direction ADR)
-- **ADR-0054** — `grit-scaffold-claim-pattern.md` (the chicken-and-egg resolution; new — see Q1 resolution below)
 
 Update plan §P1 and §P2 and §"ADR Block" to use these slot numbers. Plus `ADR-INDEX.md` must be appended in the same PR per spec §Acceptance Criteria A2/A9.
 
@@ -45,36 +42,27 @@ The plan's P2 should be updated to enumerate Rust file claims rather than langua
 
 ---
 
-## Q3 — New-crate chicken-and-egg (RESOLVED — icm-coordination-lock is the only viable path)
 
 **Verified findings:**
 - `tools/` directory does NOT exist in the oyatie repo (`ls -d tools/` returns "tools/ does NOT exist").
-- `grit symbols | grep Cargo.toml` returns **zero** matches. grit at v0.3.0 does NOT index Cargo.toml at all.
 - Therefore the scaffold-claim pattern's PRIMARY option (`Cargo.toml::workspace_members`) is **not viable**.
 
 **Resolution:** The fallback from `docs/plans/M01-foundation-cc-01-cutover/pre-cutover-drafts.md §Draft 2` is the actual path:
 
 ```
-1. icm store -t scaffold-locks-oyatie \
      -c "agent=<id> path=tools/oya-tooling-agent-read window=open started_at=<ts>" \
      -i critical \
      -k "scaffold-lock,oya-tooling-agent-read,open"
 2. <agent creates tools/oya-tooling-agent-read/{Cargo.toml, src/main.rs, src/lib.rs}>
 3. <agent appends "tools/oya-tooling-agent-read" to Cargo.toml workspace.members>
-4. icm store -t scaffold-locks-oyatie \
      -c "agent=<id> path=tools/oya-tooling-agent-read window=closed finished_at=<ts>" \
      -i critical \
      -k "scaffold-lock,oya-tooling-agent-read,closed"
-5. grit init   # re-index, now tools/oya-tooling-agent-read/ symbols are claimable
-6. Subsequent edits to the new crate use normal `grit claim file::Identifier`
 ```
 
 Plan should be updated to:
 - Move the scaffold-claim pattern from "alternative" to "canonical for new-crate phases" (P2, and any future new-crate phase).
-- Add a check at step 1 that other agents `icm recall -t scaffold-locks-oyatie -k "open"` and back off if any open window exists against an overlapping path.
-- Note that this is a temporary protocol until grit gains file-level or workspace-level locks upstream.
 
-**Promote to ADR-0054** `grit-scaffold-claim-pattern.md`. This was previously deferred to "follow-up"; the verified findings make it gating for P2, so it must land in the same PR as P2.
 
 ---
 
@@ -90,17 +78,13 @@ Mitigation: each carve-out emits `BLOCKED_ON_HUMAN_ORCHESTRATOR` in the autopilo
 
 ## Q4 — CI extension to flag archive-path tokens (CONFIRMED — into `oya-governance-banned-primitives`)
 
-The banned-primitives lane already exists in the plan (§P5 / §P7). Extend its scope at P5 implementation time to ALSO grep for any post-archive path references (e.g., references to `archive/pre-grit-cutover-2026-05-12/` from the active path that aren't explicitly the deprecation notice). Add this as a sub-task under P5; no new lane crate needed.
 
 ---
 
 ## Q5 — Demo symbol selection (RECOMMENDED — billing-app symbols)
 
 The pre-cutover demo script (`docs/plans/M01-foundation-cc-01-cutover/pre-cutover-drafts.md §Draft 3`) uses:
-- `crates/oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus` (verified grit-indexed)
-- `crates/oya-cloud-billing-app/src/lib.rs::CloudBillingMeterUnitRecord` (verified grit-indexed)
 
-Both are in the same file, different identifiers — exactly demonstrates "non-overlapping symbols within one crate." Plan §P8 should cite this draft and either reuse the symbols verbatim or pick equivalent verified-indexed symbols. **Verification ran**: `grit symbols | grep CloudBilling...` returned both. (Inspected during initial probing.)
 
 ---
 
@@ -112,7 +96,6 @@ Both are in the same file, different identifiers — exactly demonstrates "non-o
 
 ## Q7 — `oya-agent-write` future surface (CONFIRMED OUT-OF-SCOPE for this cutover)
 
-The discovery that `grit session pr` IS the PR-creation primitive (per `grit session --help`) means we already have a sanctioned write-path for PRs once the session-start bug is fixed upstream. The interim solution is human-orchestrator `gh pr create` per Q3. Defer `oya-agent-write` entirely. Tracking-only.
 
 ---
 

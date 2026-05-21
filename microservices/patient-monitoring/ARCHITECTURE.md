@@ -1,5 +1,7 @@
 # patient-monitoring — Architecture
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 **Status**: wave-15m-f-authoring
 **Date**: 2026-05-21
 **Owner**: axis-clinical-realtime
@@ -662,7 +664,6 @@ Estimated cell cost (US-East-1 + on-prem equivalent): ~$50K/month at 5,000-bed s
 
 ### 16.3 guest-on-oci
 
-- Common for OCI-Always-Free demo tenants and Bronze-tier tenants.
 - iac/guest-on-oci/always-free/ exploits Always Free for sandbox.
 
 ### 16.4 on-prem

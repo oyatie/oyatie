@@ -37,7 +37,7 @@ related_microservices:
   - identity
   - ontology
   - plugin-app-store
-capability_tier: Platinum
+tenant_class: ["demo_trial", "paid"]
 related_adrs:
   - ADR-0009-cell-architecture-per-tenant-per-region
   - ADR-0028-cloud-microservice-architecture
@@ -2265,7 +2265,6 @@ Pass: Cedar denies undeclared resource access.
 ### Surface WI-SURF-04 - Workflow Studio Template Browser
 ```
 + Flow + Pack + Tier + Editable + Last version +
-| LeaveRequestSaga | KR labor | Silver+ | yes | v12 |
 +--------------------------------------------------------+
 ```
 
@@ -2328,10 +2327,6 @@ Pass: Cedar denies undeclared resource access.
 - Action workplace::export_evidence requires audit scope and redaction pack.
 - Resource workplace::WorkplaceRun includes tenant_id, flow_id, actor_id, data_class, pack_set.
 - Resource workplace::ApprovalCard includes approver_scope, expiry, and action_token_hash.
-- Bronze guard: self-service flows only, no plugins, no regulated evidence export.
-- Silver guard: manager approvals, one pack overlay, basic mobile mini-apps.
-- Gold guard: HR, finance, procurement, onboarding, offboarding, and signed plugin extensions.
-- Platinum guard: sovereign packs, regulator export, multi-country labor overlays, and advanced automation.
 
 ## Workflow Engine Integration
 
@@ -2372,10 +2367,6 @@ Pass: Cedar denies undeclared resource access.
 - Healthcare pack activates HIPAA redaction and clinical persona access constraints.
 - Finance pack activates SOX expense, access-review, and evidence export controls.
 - Public-sector pack activates conflict-of-interest and procurement transparency gates.
-- Bronze supports base commercial flows.
-- Silver supports one regional pack.
-- Gold supports multiple packs plus signed plugins.
-- Platinum supports sovereign-cell evidence and regulator portal export.
 
 ## SLO Targets
 
@@ -2389,10 +2380,6 @@ Pass: Cedar denies undeclared resource access.
 - Mobile offline replay conflict detection p95 <= 5 s after reconnect.
 - Plugin hook timeout default <= 2 s with isolated failure.
 - Audit event emission completeness = 100% for regulated flows.
-- Bronze availability >= 99.5%.
-- Silver availability >= 99.9%.
-- Gold availability >= 99.95%.
-- Platinum availability >= 99.99%.
 
 ## Telemetry
 
@@ -2425,13 +2412,6 @@ Pass: Cedar denies undeclared resource access.
 
 ## Capability Tier Deltas
 
-- Bronze: chat/mail/mobile self-service for leave, meeting, announcement, and simple tasks.
-- Bronze: no plugin extensions, no regulator export, one tenant region.
-- Silver: manager approvals, expense capture, e-sign packet, calendar integration, one pack overlay.
-- Silver: basic audit export for internal audit.
-- Gold: onboarding, offboarding, performance, procurement, travel, compliance training, signed plugins.
-- Gold: multi-pack conflict resolution and mobile offline replay.
-- Platinum: sovereign-cell evidence, regulator portal export, multi-country labor overlays, advanced fairness, and enterprise plugin certification.
 
 ## Competitive Positioning
 

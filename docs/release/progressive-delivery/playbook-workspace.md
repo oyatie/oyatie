@@ -17,7 +17,6 @@ doc_status: published
 
 # Playbook: Workspace Surface Rollout
 
-> **Status:** Accepted. **Owner:** `axis-workspace`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -87,5 +86,4 @@ Google Workspace release-tracks (rapid / scheduled); Microsoft 365 deployment-ri
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — rollout evidence stored via `icm store -t staging-promotions` and `icm store -t prod-promotions`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — Workspace weekly cadence per-surface; mail-spool changes carry `requires_human_signoff: true`; typescript-reviewer + rust-reviewer in dispatch.

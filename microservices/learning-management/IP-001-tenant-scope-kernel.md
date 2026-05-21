@@ -7,7 +7,7 @@ journey_id: J-LMS-01-tenant-learning-program-launch
 status: proposed
 date: 2026-05-20
 owner: axis-learning-management
-capability_tier: T2
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-001: Tenant Scope Kernel

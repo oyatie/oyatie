@@ -15,6 +15,8 @@ date: 2026-05-20
 owner: Customer Success Engineering
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Financial Services Vertical Demo
 
 ## Pre-Demo Checklist
@@ -128,7 +130,6 @@ owner: Customer Success Engineering
 - Click `Tenant Switcher`.
 - Select `tenant-nordic-bank-tier-1-finance`.
 - Click `Load Regulated Service Map`.
-- Point to the banner `Platinum Financial Services Tenant`.
 - Say: "This tenant is not a product SKU."
 - Say: "It is a regulated operating boundary with capabilities, policy, evidence, and cost controls attached."
 - Point to `Critical Services`.

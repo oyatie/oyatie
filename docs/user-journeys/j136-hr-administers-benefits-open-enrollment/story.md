@@ -32,6 +32,8 @@ benefits_categories:
   - wellness-stipend
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # j136 — Priya runs annual benefits open enrollment for 5,000 employees
 
 ## Cold-open
@@ -59,7 +61,6 @@ She begins.
 Marcus's tenant offers per-jurisdiction plan menus designed by Aisha + Priya, in consultation with the 5 benefits-provider tenants:
 
 **US-AUS (1,500 employees including new hires from j132)**:
-- Medical: 3 plan tiers (PPO Gold, PPO Silver, HDHP-with-HSA Bronze)
 - Dental: 2 tiers (PPO Premium, PPO Standard)
 - Vision: 1 plan
 - 401(k): contribution-match 100% up to 4%; Roth + Traditional options

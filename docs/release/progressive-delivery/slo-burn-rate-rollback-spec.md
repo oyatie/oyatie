@@ -19,7 +19,6 @@ doc_status: published
 
 # SLO Burn-Rate Rollback Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Source:** [Google SRE Workbook §5 — Alerting on SLOs](https://sre.google/workbook/alerting-on-slos/). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Burn-rate formula
 
@@ -118,5 +117,4 @@ We adopt the Google formulation as the canonical math; provider adapters surface
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — rollback evidence emitted via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — zero open `slo-burn-rate-fast` alerts is gate 4 of the staging → prod 5-gate verification; `oya-governance-slo-burn-rate-fast` lane enforces this.

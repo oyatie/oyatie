@@ -12,7 +12,6 @@ owner_team: crew-adr-promotion
 related:
   - docs/ADR-INDEX.md
   - docs/ADR-CONSOLIDATION-PLAN.md
-  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - docs/decisions/
 adrs_cited:
   - ADR-0052  # inventory ledger (traceability)

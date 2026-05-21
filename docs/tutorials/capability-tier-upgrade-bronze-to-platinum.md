@@ -17,11 +17,11 @@ owner: docs/tutorial-library
 estimated_completion_time: 95 minutes
 ---
 
-# Upgrade A Tenant From Bronze To Platinum
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 
 ## Goal
 
-You will upgrade the Contoso Research work tenant from the Bronze capability tier to the Platinum capability tier without creating a product-specific fork. The finished tenant will have the Platinum grant active, the Bronze grant superseded, the new permit set evaluated through Cedar, the upgraded ontology projections visible in the UX shell, the required workflow templates loaded, and the audit-chain evidence packet ready for customer-success handoff.
 
 ## Prerequisites
 
@@ -66,14 +66,11 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 - Browser requirement: Chrome 124 or later with passkey support enabled.
 - Test data requirement: no real PHI, payment card data, or export-controlled data in screenshots.
 - Recovery authority: Evelyn may pause the upgrade, but only Marcus may approve activation.
-- Billing authority: Li must approve the projected Platinum monthly cost before activation.
-- Evidence destination: `Drive -> Tenant Evidence -> Tier Upgrades -> 2026-05-20 Platinum`.
 - Screenshot naming prefix: `tier-upgrade-contoso-`.
 - UI route used in this tutorial: `Tenant Admin -> Capability Tiers -> Upgrade`.
 - Command palette namespace used in this tutorial: `tier upgrade`.
 - Verification query name: `tutorial.capability_tier_upgrade_status`.
 - Expected output label: `contoso_platinum_ready`.
-- Stop condition: Platinum is active, Bronze is superseded, no product fork exists, audit export is sealed.
 
 ## Step-by-Step
 
@@ -117,7 +114,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Select the `Current tier` tab.
 
-   Confirm the visible tier card reads `Bronze`.
 
    Confirm the grant id line reads `grant-contoso-bronze-2026`.
 
@@ -125,7 +121,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Select `Upgrade tenant`.
 
-   In the modal titled `Start tier upgrade`, choose target tier `Platinum`.
 
    Set `Upgrade bundle id` to `tier-upgrade-contoso-bronze-platinum-2026-05-20`.
 
@@ -135,9 +130,7 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Screenshot to capture: `tier-upgrade-contoso-02-upgrade-workspace.png`.
 
-   The workspace banner should read `Draft upgrade: Bronze -> Platinum`.
 
-3. Confirm the Bronze grant before changing anything.
 
    In the upgrade workspace, select `Source tier`.
 
@@ -157,7 +150,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Select `Export source snapshot`.
 
-   Save the export to Drive path `/Tenant Evidence/Tier Upgrades/2026-05-20 Platinum/source-bronze-snapshot.json`.
 
    Open the command palette with `Command-K`.
 
@@ -169,11 +161,9 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Screenshot to capture: `tier-upgrade-contoso-03-source-grant.png`.
 
-4. Preview Platinum entitlement changes.
 
    Select `Target tier`.
 
-   Choose `Platinum`.
 
    The preview panel should list `enterprise-analytics`, `advanced-workflow-studio`, `intelligence-document-assist`, and `marketplace-settlement-plus`.
 
@@ -223,11 +213,9 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Expand `Decision log`.
 
-   Confirm the context includes `tier_target=Platinum`.
 
    Confirm the context includes `upgrade_bundle=tier-upgrade-contoso-bronze-platinum-2026-05-20`.
 
-   Export the decision log to `/Tenant Evidence/Tier Upgrades/2026-05-20 Platinum/cedar-preview.json`.
 
    Screenshot to capture: `tier-upgrade-contoso-05-cedar-preview.png`.
 
@@ -289,7 +277,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Select `Save preview evidence`.
 
-   Save to `/Tenant Evidence/Tier Upgrades/2026-05-20 Platinum/workflow-template-preview.json`.
 
    Screenshot to capture: `tier-upgrade-contoso-07-workflow-templates.png`.
 
@@ -333,9 +320,7 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Set `Currency` to `USD`.
 
-   Confirm the current Bronze monthly estimate is `USD 240.00`.
 
-   Confirm the Platinum monthly estimate is `USD 1,840.00`.
 
    Confirm one-time upgrade charge is `USD 0.00`.
 
@@ -347,7 +332,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Address the approval to `li.na@contoso.example`.
 
-   Add note `Approve Platinum upgrade for enterprise workflow and intelligence pilot`.
 
    Screenshot to capture: `tier-upgrade-contoso-09-finops-preview.png`.
 
@@ -391,7 +375,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Set approver to `marcus.reed@contoso.example`.
 
-   Set approval reason to `Activate Platinum capability tier for Contoso Research enterprise rollout`.
 
    Set effective time to `Immediate after approval`.
 
@@ -405,23 +388,17 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Choose decision `Approved`.
 
-   Enter comment `Approved for tenant-wide Platinum capability activation`.
 
    Select `Record executive approval`.
 
    Screenshot to capture: `tier-upgrade-contoso-11-executive-approval.png`.
 
-12. Activate Platinum.
 
-   In the `Activation` tab, select `Activate Platinum`.
 
-   The confirmation modal title should read `Activate Platinum for Contoso Research`.
 
    Review the confirmation checklist.
 
-   Check `Bronze grant will be superseded`.
 
-   Check `Platinum grant will become active`.
 
    Check `No product fork will be created`.
 
@@ -433,7 +410,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Wait until the progress step `Capability grant active` is complete.
 
-   Wait until the progress step `Bronze grant superseded` is complete.
 
    Wait until the progress step `Policy bundle published` is complete.
 
@@ -443,11 +419,9 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Screenshot to capture: `tier-upgrade-contoso-12-activation-progress.png`.
 
-13. Confirm Bronze is superseded and Platinum is active.
 
    Select `Current tier`.
 
-   Confirm the tier card now reads `Platinum`.
 
    Confirm the active grant id reads `grant-contoso-platinum-2026`.
 
@@ -469,7 +443,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Screenshot to capture: `tier-upgrade-contoso-13-current-tier.png`.
 
-14. Check the Platinum UX shell.
 
    Open a new tab in the same tenant.
 
@@ -537,7 +510,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Select `Build evidence packet`.
 
-   Include `Source Bronze snapshot`.
 
    Include `Cedar preview`.
 
@@ -561,7 +533,6 @@ You will upgrade the Contoso Research work tenant from the Bronze capability tie
 
    Expected seal status: `sealed`.
 
-   Save to `/Tenant Evidence/Tier Upgrades/2026-05-20 Platinum/evidence-packet.json`.
 
    Screenshot to capture: `tier-upgrade-contoso-16-evidence-packet.png`.
 
@@ -649,8 +620,6 @@ Expected output:
 ```text
 result_label: contoso_platinum_ready
 tenant_id: tenant-contoso-research
-source_tier: Bronze
-target_tier: Platinum
 source_grant_id: grant-contoso-bronze-2026
 target_grant_id: grant-contoso-platinum-2026
 source_state: superseded
@@ -670,7 +639,6 @@ finance_reference: FIN-APPROVAL-2026-05-20-PLATINUM
 executive_approval: approved
 product_fork_created: false
 audit_packet_sealed: true
-evidence_packet_path: /Tenant Evidence/Tier Upgrades/2026-05-20 Platinum/evidence-packet.json
 ```
 
 The success condition is not just `target_state: active`.
@@ -697,8 +665,6 @@ Do not close the customer-success case until the query returns the expected outp
 
 - Pitfall: Evelyn signs in to her personal tenant.
 - Recovery: stop immediately, switch to `tenant-contoso-research`, and repeat step 1.
-- Pitfall: the target tier is selected as `Gold`.
-- Recovery: cancel the draft workspace and create a new one with target tier `Platinum`.
 - Pitfall: `grant-contoso-bronze-2026` is missing.
 - Recovery: inspect tenant history; do not infer source state from billing alone.
 - Pitfall: the preview says `product fork will be created`.
@@ -710,12 +676,10 @@ Do not close the customer-success case until the query returns the expected outp
 - Pitfall: workflow templates try to modify running workflows.
 - Recovery: change load mode to `add templates only`; running workflow mutation is out of scope.
 - Pitfall: `intelligence` health is degraded.
-- Recovery: pause the upgrade; Platinum may activate only after the readiness matrix is green.
 - Pitfall: finance approval is simulated before cost preview is generated.
 - Recovery: delete the approval fixture and regenerate the cost preview with Li as approver.
 - Pitfall: Marcus approves from the wrong tenant.
 - Recovery: void the approval and resend from `tenant-contoso-research`.
-- Pitfall: activation progresses but Bronze remains active.
 - Recovery: use `Capability Tiers -> Current tier -> Resolve grant conflict` and rerun verification.
 - Pitfall: the UX shell does not show `Enterprise Dashboard`.
 - Recovery: refresh tenant shell cache and confirm `enterprise-platinum-shell` is bound.
@@ -730,11 +694,8 @@ Do not close the customer-success case until the query returns the expected outp
 - Pitfall: the upgrade creates separate `platinum-drive` or `platinum-mail` services.
 - Recovery: disable the forked services; tier behavior belongs in grants, projections, UX shell, and workflow templates.
 - Pitfall: audit packet path is outside tenant evidence.
-- Recovery: move the packet into `/Tenant Evidence/Tier Upgrades/2026-05-20 Platinum`.
 - Pitfall: a screenshot contains confidential customer records.
 - Recovery: delete it, retake the screenshot with only tutorial fixture rows visible, and update the evidence packet.
-- Pitfall: a downstream user loses Bronze-only menu access.
-- Recovery: inspect Platinum compatibility aliases; Platinum should include Bronze baseline capabilities unless explicitly deprecated.
 - Pitfall: the command-line query runs against a local developer tenant.
 - Recovery: confirm the shell header reads `tenant-contoso-research` before running the command.
 - Pitfall: the tutorial ends after UI activation without command-line verification.

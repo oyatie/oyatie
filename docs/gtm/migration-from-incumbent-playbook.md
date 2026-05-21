@@ -32,6 +32,8 @@ related_journeys:
   - docs/user-journeys/j168-coo-akira-watanabe-quarterly-ops-review-and-incident-debrief/README.md
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Migration From Incumbent Playbook
 
 ## Purpose
@@ -463,10 +465,6 @@ This document supports presales POCs, onboarding migrations, expansion migration
 - Metric: Decommission Decision Timeliness; Target: decommission or retention exception recorded within thirty days after acceptance.
 - Metric: Evidence Archive Completeness; Target: migration plan, mapping, validation, cutover, and acceptance evidence archived.
 - Metric: QBR Baseline Update; Target: migration outcome included in next QBR pack.
-- SLA Target: Bronze P1 response remains 240 minutes during migration unless higher tier is contracted.
-- SLA Target: Silver P1 response remains 120 minutes during migration unless higher tier is contracted.
-- SLA Target: Gold P1 response remains 30 minutes during migration unless higher tier is contracted.
-- SLA Target: Platinum P1 response remains 15 minutes during migration when pack-bound support applies.
 - SLA Target: Migration recap sent within two business days after cutover close.
 
 ## Named Failure Modes + Recovery

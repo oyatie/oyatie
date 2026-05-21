@@ -15,6 +15,8 @@ date: 2026-05-20
 owner: Customer Success Engineering
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Healthcare System Demo
 
 ## Pre-Demo Checklist
@@ -132,7 +134,6 @@ owner: Customer Success Engineering
 - Click `Tenant Switcher`.
 - Select `tenant-crescent-health-academic-medical-center`.
 - Click `Load Healthcare Operating View`.
-- Point to banner `Platinum Healthcare Tenant`.
 - Say: "This tenant is a healthcare operating boundary, not an EHR replacement."
 - Point to `Active Domains`.
 - Show `Clinical Operations`, `Integration`, `Compliance`, `Research`, `Revenue Cycle`, and `Evidence`.

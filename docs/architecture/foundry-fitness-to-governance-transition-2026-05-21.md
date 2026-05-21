@@ -97,7 +97,6 @@ docs/AGENT-INSTRUCTION-SOURCES.md
 docs/AGENTS.md
 docs/agents/AGENT-COMPLETION-PROTOCOL.md
 docs/agents/AGENT-DECISION-TREE.md
-docs/agents/AGENT-ICM-TOPIC-CONVENTIONS.md
 docs/agents/AGENT-TOOL-PROTOCOL.md
 docs/agents/CROSS-REFERENCE-INDEX.md
 docs/architecture/hyperscaler-pattern-attribution.md
@@ -161,13 +160,9 @@ docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md
 docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
 docs/decisions/ADR-0050-automation-first-pipeline.md
 docs/decisions/ADR-0051-mobile-and-native-client-strategy.md
-docs/decisions/ADR-0052-inventory-grit-cutover.md
-docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md
-docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
 docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md
 docs/decisions/ADR-0083-rust-error-handling-tier-decision.md
 docs/decisions/ADR-0090-hyper-canonical-http-backbone.md
-docs/decisions/ADR-0103-grit-cutover-inventory.md
 docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md
 docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md
 docs/decisions/ADR-0106-rename-application-to-usecase.md

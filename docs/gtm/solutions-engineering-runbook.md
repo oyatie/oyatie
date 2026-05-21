@@ -42,6 +42,8 @@ related_journeys:
   - docs/user-journeys/j168-coo-akira-watanabe-quarterly-ops-review-and-incident-debrief/README.md
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Solutions Engineering Runbook
 
 ## Purpose
@@ -122,7 +124,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - Step 1.02: SDR Kofi Asante attaches discovery notes, primary pain, current incumbent, buying committee, and known disqualifiers.
 - Step 1.03: SE confirms whether the customer profile is Fortune 500, mid-market, SMB, regulated, or mixed.
 - Step 1.04: SE records the expected tenant model: standalone tenant, parent-child tenant, subsidiary tenant, sandbox tenant, or regulated tenant.
-- Step 1.05: SE records the buyer's likely capability tier: Bronze, Silver, Gold, or Platinum.
 - Step 1.06: SE records the buyer's likely DR tier from the business-continuity registry.
 - Step 1.07: SE records likely residency class: strict_kr, kr_with_us_failover, or global.
 - Step 1.08: SE records required compliance packs, including KR privacy, financial-services, health, or internal audit if present.
@@ -308,7 +309,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - Fortune 500 Step F5-04: Show parent-child tenant hierarchy when subsidiaries or regions matter.
 - Fortune 500 Step F5-05: Show strict tenant-scoped access decisions.
 - Fortune 500 Step F5-06: Show capability-tier entitlement checks.
-- Fortune 500 Step F5-07: Show 7-year evidence posture when Gold or Platinum is in scope.
 - Fortune 500 Step F5-08: Show incident debrief flow using the COO quarterly ops review journey.
 - Fortune 500 Step F5-09: Show FinOps cost-center reporting for Finance Director Mei-Ling Wu.
 - Fortune 500 Step F5-10: Show procurement evidence for Procurement Manager Wei Liu.
@@ -317,7 +317,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - Fortune 500 Step F5-13: Require security review artifacts before regulated data enters any test environment.
 - Fortune 500 Step F5-14: Require architecture signoff before integration buildout.
 - Fortune 500 Step F5-15: Require migration source-owner availability before migration dry run.
-- Fortune 500 Step F5-16: Use Gold or Platinum comparison explicitly; do not blur tier boundaries.
 - Fortune 500 Step F5-17: Use legal and procurement timeline in mutual action plan.
 - Fortune 500 Step F5-18: Treat unknown subsidiary data residency as a gating issue.
 - Fortune 500 Step F5-19: Treat unsupported custom entitlement models as product-gap risk.
@@ -331,7 +330,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - Mid-Market Step MM-04: Show quote-to-contract-to-payment journey when revenue operations matter.
 - Mid-Market Step MM-05: Show tenant lifecycle states with emphasis on Pending to Active.
 - Mid-Market Step MM-06: Show SAML or SCIM only if buyer actually needs it.
-- Mid-Market Step MM-07: Show Silver and Gold package boundaries clearly.
 - Mid-Market Step MM-08: Show migration dry-run results for the top incumbent source.
 - Mid-Market Step MM-09: Show admin operations for IT Manager Jamie O'Connor.
 - Mid-Market Step MM-10: Show adoption dashboards for Business Analyst Aditya Verma.
@@ -355,7 +353,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - SMB Step SMB-05: Show core workflow in fewer than fifteen minutes.
 - SMB Step SMB-06: Show admin setup in fewer than ten minutes.
 - SMB Step SMB-07: Show support path in fewer than five minutes.
-- SMB Step SMB-08: Show Bronze and Silver package differences clearly.
 - SMB Step SMB-09: Avoid promising custom integrations during demo.
 - SMB Step SMB-10: Avoid POC unless deal risk justifies it.
 - SMB Step SMB-11: Use trial provisioning when available and appropriate.
@@ -381,7 +378,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - Regulated Step REG-08: Show denied access cases, not only allowed cases.
 - Regulated Step REG-09: Show destructive-action authority checks.
 - Regulated Step REG-10: Show data-class required attributes.
-- Regulated Step REG-11: Use Gold or Platinum tiers when retention, sovereignty, or HSM expectations require them.
 - Regulated Step REG-12: Require compliance-owner signoff before POC provisioning.
 - Regulated Step REG-13: Require security-owner signoff before integration.
 - Regulated Step REG-14: Require migration chain-of-custody plan before dry run.
@@ -630,30 +626,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 
 ### Tier-Specific Targets Used in SE Conversations
 
-- Bronze Availability Target: 99.9 percent.
-- Bronze P1 Response Target: 240 minutes.
-- Bronze RPO Target: 1440 minutes.
-- Bronze RTO Target: 480 minutes.
-- Bronze Rate Target: 2000 requests per second.
-- Bronze Audit Hot Retention Target: 30 days.
-- Silver Availability Target: 99.95 percent.
-- Silver P1 Response Target: 120 minutes.
-- Silver RPO Target: 240 minutes.
-- Silver RTO Target: 120 minutes.
-- Silver Rate Target: 10000 requests per second.
-- Silver Audit Hot Retention Target: 90 days.
-- Gold Availability Target: 99.99 percent.
-- Gold P1 Response Target: 30 minutes.
-- Gold RPO Target: 240 minutes.
-- Gold RTO Target: 60 minutes.
-- Gold Rate Target: 50000 requests per second.
-- Gold Audit Hot Retention Target: 365 days.
-- Platinum Availability Target: 99.995 percent where pack-bound.
-- Platinum P1 Response Target: 15 minutes.
-- Platinum RPO Target: 60 minutes.
-- Platinum RTO Target: 30 minutes.
-- Platinum Rate Target: 100000 requests per second.
-- Platinum Audit Hot Retention Target: 2555 days.
 
 ## Named Failure Modes + Recovery
 
@@ -665,7 +637,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - Failure Mode: `DEMO-POLICY-BLUR`; Signal: permissions are shown as generic admin power; Recovery: name the Cedar permit and show allow/deny boundary.
 - Failure Mode: `DEMO-SERVICE-OUTAGE`; Signal: live service unavailable; Recovery: use approved backup artifact and schedule evidence follow-up.
 - Failure Mode: `DEMO-DATA-CONFUSION`; Signal: buyer mistakes sample data for real customer data; Recovery: restate sandbox status and artifact provenance.
-- Failure Mode: `DEMO-TIER-CONFUSION`; Signal: buyer assumes Platinum feature in Silver package; Recovery: show capability-tier matrix and update recap.
 - Failure Mode: `DEMO-NO-NEXT-STEP`; Signal: call ends without technical owner or next checkpoint; Recovery: AE schedules technical fit call within two business days.
 - Failure Mode: `DEMO-SECURITY-DERAIL`; Signal: security review consumes value demo; Recovery: split security deep dive with CISO Yuki Park and keep business agenda intact.
 - Failure Mode: `DEMO-MIGRATION-OVERPROMISE`; Signal: SE implies unsupported source can be migrated with no analysis; Recovery: route to migration discovery and define dry-run scope.
@@ -691,7 +662,6 @@ It references product, policy, lifecycle, and journey documents so that GTM moti
 - Failure Mode: `TECH-EVAL-SECURITY-NO-OWNER`; Signal: security asks questions through AE only; Recovery: require named CISO delegate for technical closure.
 - Failure Mode: `TECH-EVAL-ARCHITECTURE-MISMATCH`; Signal: buyer expects single-tenant deployment where offer is multi-tenant cell placement; Recovery: explain tenant isolation and escalate package fit.
 - Failure Mode: `TECH-EVAL-CUSTOM-POLICY-DEMAND`; Signal: buyer demands bespoke policy model in POC; Recovery: map to Cedar extensibility or mark product gap.
-- Failure Mode: `TECH-EVAL-DR-TIER-MISMATCH`; Signal: buyer expects Platinum RTO on Silver package; Recovery: present tier matrix and commercial path.
 - Failure Mode: `TECH-EVAL-UNOWNED-CONDITION`; Signal: conditional pass has no owner; Recovery: block technical closeout until owner and date are named.
 - Failure Mode: `TECH-EVAL-REFERENCE-NEEDED`; Signal: buyer requires reference before signoff; Recovery: coordinate with AE and Customer Champion Akemi Sato if approved.
 - Failure Mode: `TECH-EVAL-HANDOFF-GAP`; Signal: CSM receives no technical context; Recovery: SE writes handoff before contract or flags onboarding risk.
@@ -849,11 +819,6 @@ Regards,
 - `specs/tenant-model.json` for tenant fields used during qualification and POC scoping.
 - `specs/tenant-lifecycle.json` for tenant lifecycle states and onboarding saga references.
 - `docs/standards/tenant-lifecycle.md` for lifecycle governance and state-transition language.
-- `docs/standards/capability-tier-matrix.md` for Bronze, Silver, Gold, and Platinum packaging targets.
-- `registry/capability-tiers/bronze.json` for Bronze availability, support, RPO, RTO, and audit retention.
-- `registry/capability-tiers/silver.json` for Silver availability, support, RPO, RTO, and audit retention.
-- `registry/capability-tiers/gold.json` for Gold availability, support, RPO, RTO, and audit retention.
-- `registry/capability-tiers/platinum.json` for Platinum availability, support, RPO, RTO, and audit retention.
 - `docs/standards/cedar-policy-authoring.md` for tenant-scope, auditor-scope, CI-scope, regulated-data, and destructive-action policy rules.
 - `contracts/openapi/platform/platform-tenant-v1.yaml` for tenant creation contract and residency-class fields.
 - `contracts/openapi/platform/platform-policy-cedar-v1.yaml` for policy publishing contract.

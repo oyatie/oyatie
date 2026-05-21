@@ -64,7 +64,6 @@ doc_status: published
 
 ## Capability / Foundry
 
-- [ ] **RR25** Every Foundry capability shipping in this wave has: record + eval-set ≥ min-pass-rate + autonomy tier + audit topic + Cosign. *Lane:* `oya-governance-capability-publish`. Grit symbols scaffolded per ADR-0054.
 - [ ] **RR26** Capability deprecation announcements (if any) follow `12 months announce + 6 months EOL`. *Lane:* `oya-governance-capability-sunset`.
 
 ## Communications

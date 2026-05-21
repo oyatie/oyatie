@@ -260,7 +260,6 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/agents/AGENT-DECISION-TREE.md` | C1 | 757 | 5 | 12 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/agents/AGENT-ENTRY-POINT.md` | C1 | 757 | 6 | 8 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/agents/AGENT-FAILURE-RECOVERY.md` | C1 | 757 | 5 | 5 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
-| `docs/agents/AGENT-ICM-TOPIC-CONVENTIONS.md` | C1 | 757 | 5 | 0 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/agents/AGENT-TOOL-PROTOCOL.md` | C1 | 757 | 3 | 5 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/agents/CROSS-REFERENCE-INDEX.md` | C1 | 757 | 1 | 11 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
 | `docs/agents/ESCALATION-MATRIX.md` | C1 | 757 | 9 | 1 | same weak component as docs/README.md but no forward directed path from docs/README.md reaches this file |
@@ -622,7 +621,6 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/runbooks/ads/click-fraud-spike.md` | C1 | 757 | 0 | 6 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/ads/data-use-boundary-violation.md` | C1 | 757 | 0 | 6 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/agent-authoring-evidence-attach.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
-| `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` | C1 | 757 | 0 | 1 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/alias-sunset-promotion.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/aml-alert-escalation.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/analytics-warehouse-reconciliation.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
@@ -729,7 +727,6 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/runbooks/foundry/supervisor/lifecycle.md` | C290 | 1 | 0 | 0 | weak component C290 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/runbooks/gl-reconciliation.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/glossary-amendment-pr.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
-| `docs/runbooks/grit-session-bug-upstream.md` | C1 | 757 | 0 | 1 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/healthcare-break-glass.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/iam-key-rotation.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
 | `docs/runbooks/identity-provider-federation.md` | C1 | 757 | 0 | 5 | same weak component as docs/README.md but directed-BFS unreachable; file has zero resolved inbound corpus links |
@@ -7440,7 +7437,6 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 8 | `docs/DOC-CATALOG.md` | 36 | 0 | 1 | reachable |
 | 9 | `docs/PRIVACY-PROGRAM.md` | 32 | 4 | 1 | reachable |
 | 10 | `docs/COMPLIANCE-MATRIX.md` | 29 | 6 | 1 | reachable |
-| 11 | `docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md` | 29 | 1 | 2 | reachable |
 | 12 | `docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md` | 28 | 0 | 2 | reachable |
 | 13 | `docs/PRD.md` | 24 | 6 | 1 | reachable |
 | 14 | `docs/STANDARDS-AND-TEMPLATES.md` | 21 | 62 | 1 | reachable |
@@ -7519,7 +7515,6 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 87 | `docs/GTM-PLAN.md` | 5 | 2 | 1 | reachable |
 | 88 | `docs/decisions/ADR-0008-data-use-boundary.md` | 5 | 1 | 2 | reachable |
 | 89 | `docs/decisions/ADR-0015-architectural-flattening-target.md` | 5 | 1 | 2 | reachable |
-| 90 | `docs/agents/AGENT-ICM-TOPIC-CONVENTIONS.md` | 5 | 0 | n/a | unreachable |
 | 91 | `docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md` | 5 | 0 | 2 | reachable |
 | 92 | `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md` | 5 | 0 | 2 | reachable |
 | 93 | `docs/decisions/ADR-0013-product-license-policy.md` | 5 | 0 | 2 | reachable |

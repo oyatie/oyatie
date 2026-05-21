@@ -18,7 +18,6 @@ doc_status: published
 
 # Playbooks By Axis × Stage
 
-> **Status:** Accepted. **Owner:** `axis-foundry` + per-axis leads. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. Scope
 
@@ -147,5 +146,4 @@ This file does not own:
 
 ## 13. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — per-axis promotion evidence stored via `icm store -t axis-promotions`; all sanctioned tool usage.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — this file is the per-axis playbook layer over the four-layer pipeline architecture defined in ADR-0055.

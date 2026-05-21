@@ -1,6 +1,6 @@
 # OpenTofu module — EMR µservice — context: guest-on-oci
 # Tenant's own OCI account; OKE cluster; BAA-eligible
-# Per memory feedback_oci_always_free_maximization — Bronze tier may use Always Free
+# Per memory feedback_oci_always_free_maximization — demo_trial tenants may use Always Free
 # Wave 15M-B authored 2026-05-21
 
 terraform {

@@ -34,8 +34,6 @@ The model deliberately deviates from the hyperscaler-default trunk-based posture
 
 | Layer | Name | Mutator | Gate inbound | Consumer |
 |---|---|---|---|---|
-| 0 | per-agent worktree (`.grit/worktrees/<agent-id>/`) | the agent doing the work | n/a (private workspace) | only the agent itself |
-| 1 | agent local dev clone (the agent's local copy of `origin/dev`) | `grit done --agent <id>` (atomic, treats as sync with origin/dev) | **none** — autonomous sync | only the agent itself |
 | 2 | `origin/dev` (shared remote dev branch) | only `dev-promoter` agent via PR auto-merge | **3-gate** (§4): PR shape + reviewer-`APPROVE` + CI green | downstream agents pulling new dev for sync; `staging-promoter` for promotion |
 | 3 | `staging` (canary-deployment branch) | only `staging-promoter` agent | **none** (autonomous) — CI was already green at dev entry | canary cohort + internal eval; SLO observations accumulate |
 | 4 | `prod` (verified production branch) | only `prod-promoter` agent | **5-gate** (§5): comments-resolved + CI-green ≥ N + canary-100% ≥ M + zero-SLO-fast + optional reviewer-re-affirm | GA tenants honouring autonomy ceiling |
@@ -45,7 +43,6 @@ The model deliberately deviates from the hyperscaler-default trunk-based posture
 ```mermaid
 flowchart LR
   subgraph A0["Layer 0 — worktree"]
-    W["agent worktree<br/>(.grit/worktrees/<id>/)"]
   end
   subgraph A1["Layer 1 — local dev clone"]
     LD["agent local dev<br/>(local copy of origin/dev)"]
@@ -60,7 +57,6 @@ flowchart LR
     PR["prod<br/>(verified)"]
   end
 
-  W -->|"grit done<br/>(autonomous)"| LD
   LD -->|"PR opened"| G1{"3-gate<br/>local-dev → origin/dev"}
   G1 -->|"PR shape OK +<br/>reviewer APPROVE +<br/>CI green"| OD
   G1 -->|"any red"| LD
@@ -77,7 +73,6 @@ flowchart LR
 Target design: `dev-promoter` agent (per [`agent-roles-spec.md`](agent-roles-spec.md) §2) orchestrates. **All three must be green** for auto-merge after the planned lanes below are wired as active required contexts; until then, promotion is limited to current branch-protection checks plus recorded review evidence:
 
 1. **PR shape conforms.** Five H2 sections per the project PR template; planned advisory lane: `oya-governance-pr-shape` (planned blocker).
-2. **Reviewer-agent verdict = `APPROVE`.** Per-change-class dispatch (per `docs/AGENTS.md`): `rust-reviewer`, `typescript-reviewer`, `python-reviewer`, `database-reviewer`, `security-reviewer`, `privacy-reviewer`, `tdd-guide`, `silent-failure-hunter`, `doc-updater`, `doc-style-reviewer`, `capability-reviewer`, `perf-reviewer`. Multi-class PRs invoke multiple reviewers in parallel; all must `APPROVE`. Verdict recorded via `icm store -t pr-review-verdicts -c '<verdict + items>' -i high -k 'pr-<id>,<reviewer>'`. Planned advisory lane: `oya-governance-pr-review-verdict-present` (planned blocker, scoped to this transition).
 3. **CI cleared.** Every fitness lane on PR HEAD is GREEN. Planned advisory lane: `oya-governance-promotion-gate-local-dev-to-origin-dev` (planned blocker, gate-class).
 
 Promotion mechanic: squash-merge into `origin/dev` (PR's merge commit). Linear history preserved; no merge commits.

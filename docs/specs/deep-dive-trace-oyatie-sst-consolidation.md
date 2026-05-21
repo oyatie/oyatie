@@ -10,23 +10,17 @@ Captured 2026-05-12. Source: `/deep-dive` Phase 3 synthesis with mid-trace direc
 
 ## Observed Result
 
-The user owns two related repositories — `/Users/jasonlee/bominal/` (parent monorepo with extensive planning corpus) and `/Users/jasonlee/oyatie/` (child product/codebase). They want a single source of truth (SoT) for `oyatie` before applying a major direction shift, then to hand off to `/ralplan` + grit `claim → work → done`. Four doc paths were investigated: `bominal/agents/ultragoal/`, `bominal/docs/`, `oyatie/.omx/`, `oyatie/docs/`.
 
 Mid-trace, the user disclosed the direction shift in five increments:
 
 1. *"Major shift in direction of the project so discuss with me in detail. I want you to come up with agentic development implementation plan."*
-2. *"Because of grit, we no longer have to over engineer the agentic pipeline of foundry (merge conflict no longer possible as long as agents follow grit protocol)."*
-3. *"We can implement what works from https://github.com/rtk-ai/grit and https://github.com/rtk-ai/icm to our pipeline."*
-4. *"agents should not use git at all. or gh. everything is through grit pipeline."*
 5. *"Make sure all the files, directories, and scripts are accounted for."*
 
-The direction shift is therefore not a product re-scoping; it is an **agentic-pipeline simplification + sanctioned-primitive lockdown**: grit becomes the only agent-side coordination/state-transition primitive, icm becomes the only cross-session knowledge primitive, and direct `git`/`gh` invocation by agents is banned.
 
 ## Ranked Hypotheses
 
 | Rank | Hypothesis | Confidence | Evidence Strength | Why it leads |
 |---|---|---|---|---|
-| 1 | **SoT-ownership / orchestration** (Lane 2) is the structural problem | High | Strong | All 4 corpora declare authority but the bominal-parent → oyatie-child boundary is implicit; canonical-home symlink rule is declared in `ultragoal/2026-05-12-foundry-ultragoal-mega-plan.md §0.2` but unenforced; orchestration glue (ledger.jsonl, codex-goal-*.json, omx ultragoal checkpoint) duplicates what grit's primitives already provide |
 | 2 | **Contradiction / stale-premise** (Lane 3) is real but tracked | High | Moderate | Corpus has working machinery (CONTRADICTION-LEDGER 77 entries, MISTAKES-LEDGER, MFL fitness lanes); known contradictions are owned with SLAs; newly-discovered gaps (Workspace SPEC undercount, datacenter anti-scope editorial gap) are mechanical, not pathological |
 | 3 | **Authoritative-content drift** (Lane 1) is minor — definitions agree | Medium | Weak-Moderate | All 4 corpora agree on "one cohesive seven-axis EaaS (SaaS, Workspace, Vertical, Foundry, Cloud, Search, Ads + Analytics)"; divergences are sequencing/timeline (Foundry-second-vs-immediately-after-Foundation, in-house model timeline), not identity |
 
@@ -35,14 +29,6 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 ### Hypothesis 1 — SoT-ownership / orchestration
 - Two authoritative-chain declarations co-exist with no precedence: `bominal/docs/source-of-truth.md` (portfolio router for the whole monorepo) and `oyatie/docs/CONSTITUTION.md` (project frame). Both declare identical chains `docs/ > catalog records > Redirect-class > drafts` but neither cites the other.
 - Bominal `docs/consolidated/PRD.md` is the published portfolio-level PRD (97KB, 7 axes, brand "Oyatie", `oyatie.com` domain). Oyatie `docs/PRD.md` exists (Lane 1 quoted `:17-19`) and uses identical scope language — but neither cross-cites.
-- Orchestration glue duplicates grit primitives. `bominal/agents/ultragoal/` carries 14+ artifacts that grit + icm subsume:
-  - `goals.json` + 9× `codex-goal-*.json` → `grit claim --agent X --intent "…"` + `icm store -t goals-oyatie`
-  - `ledger.jsonl` → `grit watch` event stream (room.sock) + grit lock state
-  - `omx ultragoal checkpoint` / `complete-goals` → `grit done --agent X` + `icm store -t context-oyatie`
-  - `G004-reconciliation-blocker.md` → does not exist under grit (no objective-state to mismatch)
-  - `PAUSE.md` → not a grit verb; agent halts via `release` or TTL expiry
-  - `.codex/worktree_init.sh` → `grit worktree` primitive
-- Inspection of seven suspect `oya-foundry-*-kernel` crates (`claim-ceiling`, `authority-cohesion`, `bypass`, `pr-traceability`, `pre-push`, `quality-lane`, `cohesion-fitness`) shows they are **product-quality fitness/policy kernels**, not agent-coordination kernels — they survive the grit pivot. The "over-engineered" surface is the orchestration glue layer in `bominal/agents/` and the codex/omx wrappers, not the in-tree foundry crates.
 
 ### Hypothesis 2 — Contradiction / stale-premise
 - `CONTRADICTION-LEDGER.md` carries 77 contradictions across BLOCKER/HIGH/MED/LOW with explicit owners and resolution batches. `MISTAKES-LEDGER.md` carries 13 active mistakes each backed by a CI fitness lane.
@@ -88,17 +74,11 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 
 ## Lane 3 Misplacement / SoT Ownership Scope
 
-Per the deep-dive skill, every MOVE candidate must be classified by `ownership_scope` with cross-boundary flags. Lane 2 surfaced 7 cross-boundary candidates; this synthesis enriches them with the grit-pivot lens (what the candidate becomes under the simplification).
 
 | Source | Candidate destination | ownership_scope (src → dst) | Boundary relationship | Default? | Warning |
 |---|---|---|---|---|---|
 | `bominal/agents/ultragoal/oyatie-product-delivery-implementation-plan.md` | `oyatie/docs/IMPLEMENTATION-PLAN.md` (with bidirectional cite to bominal upstream) | shared-config → project-scoped | cross-boundary | **no** | Source plan is parent-org planning corpus; copying without bidirectional cite breaks single-author authority. Prefer KEEP-IN-PLACE + add forward-ref from `oyatie/docs/README.md`. |
 | `bominal/agents/ultragoal/latest-source-register.md` | `oyatie/docs/REGULATORY-SOURCING.md` | shared-config → project-scoped | cross-boundary | **no** | Regulatory sourcing is jurisdictional-pack input that may apply to other Bominal products too. Prefer COMPRESS into a thin oyatie pointer doc + KEEP-IN-PLACE upstream. |
-| `oyatie/docs/raw/agentic-delivery-fabric-executable-prd.md` | promote to `oyatie/docs/AGENTIC-PIPELINE.md` OR move to `bominal/docs/consolidated/` | project-scoped (draft) → project-scoped (canonical) | same-scope | yes (promote in-place) | Working draft already cites `repo: bominal`. Under the grit pivot this doc becomes ground-zero for the new agentic-pipeline spec — promote in oyatie, do not move to bominal. |
-| `oyatie/.omx/ultragoal/` | symlink to `bominal/agents/ultragoal/` per §0.2 canonical-home rule | personal-config (session state) → shared-config (canonical planning) | cross-boundary | **no** | Session-scoped working state. Under the grit pivot the right answer is DELETE: grit's worktree + lock + done lifecycle replaces `.omx/ultragoal/` session state. Do not symlink; retire. |
-| `bominal/agents/ultragoal/{ledger.jsonl, goals.json, codex-goal-*.json, G004-reconciliation-blocker.md, PAUSE.md}` | archive then delete | shared-config (active orchestration) → archive | same-scope (within bominal) | yes (archive default; delete after grit cutover verified) | These are the orchestration-glue deletion targets. Archive under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` so history is preserved, then delete from active path. |
-| `oyatie/.codex/worktree_init.sh` (if exists) and any equivalent codex/gemini per-agent init scripts | delete | personal-config (per-agent init) → removed | same-scope | yes | Replaced wholesale by `grit worktree` + `grit claim`. Inventory pass must enumerate every such script before deletion. |
-| `oyatie/CLAUDE.md` RTK section + `~/.claude/CLAUDE.md` RTK section (as they apply to agent instructions) | rewrite to remove agent-side `rtk git`/`rtk gh` references | personal-config / shared-config → updated | **flagged for user decision** | RTK is the user's personal token-optimization layer. Banning agent-side `rtk git` is project-level; banning all `rtk git` in `~/.claude/CLAUDE.md` would extend the rule to every project the user owns. Default: edit oyatie/CLAUDE.md only; leave global RTK as-is unless user explicitly broadens the rule. |
 
 **Cross-boundary rule audit**: every cross-boundary candidate above has `Default? = no` per the skill specification, with an explicit warning. The personal-config `~/.claude/CLAUDE.md` is flagged for user decision rather than auto-edited.
 
@@ -107,7 +87,6 @@ Per the deep-dive skill, every MOVE candidate must be classified by `ownership_s
 Leader: **Hypothesis 1 (SoT-ownership / orchestration)**. Strongest rebuttal: Hypothesis 2 (Contradiction / stale-premise).
 
 - **Rebuttal**: "The corpus already has working machinery to detect and track contradictions (CONTRADICTION-LEDGER + MFL lanes). The structural-boundary problem Lane 2 flags is a symptom of in-flight 2026-05-09 reframing, not a permanent design defect. Therefore Hypothesis 2 is more load-bearing than Hypothesis 1."
-- **Counter**: The direction shift the user disclosed is *agentic-pipeline simplification*, not a content reframe. Under that shift, the orchestration glue (Hypothesis 1 evidence) is the deletion target — `ledger.jsonl`, `codex-goal-*.json`, omx ultragoal checkpoint flow, `.codex/worktree_init.sh`. The contradiction ledger (Hypothesis 2 evidence) is *preserved* because contradictions are product-quality concerns, which survive the grit pivot. Therefore Hypothesis 1 leads under the disclosed direction shift; Hypothesis 2 is real but orthogonal.
 - **Leader holds.** The deletion footprint of the direction shift maps precisely to Hypothesis 1's evidence set; Hypothesis 2's evidence set is unaffected by the shift.
 
 ## Convergence / Separation Notes
@@ -119,21 +98,15 @@ Leader: **Hypothesis 1 (SoT-ownership / orchestration)**. Strongest rebuttal: Hy
 
 ## Most Likely Explanation
 
-The "no single source of truth for oyatie" pain is **structurally an ownership/orchestration boundary problem (Hypothesis 1)** layered on a real-but-tracked contradiction backlog (Hypothesis 2). The major direction shift the user is about to apply does not touch product content — it absorbs the agentic-orchestration layer into upstream tools (`rtk-ai/grit` for coordination, `rtk-ai/icm` for cross-session knowledge). Under the shift, much of the duplicated authority surface (oyatie's `.omx/ultragoal/`, bominal's `agents/ultragoal/` orchestration glue, codex per-agent init scripts) becomes deletion target; the in-tree foundry fitness/policy kernels survive because they govern product quality, not agent coordination.
 
 Net: the consolidation deliverable is **two layers**, not one:
 
 1. **Product-content SoT layer** (Hypotheses 2 + 3): one canonical PRD/DESIGN/SPEC pair across the bominal-oyatie boundary, with the 2026-05-09 reframing propagated to ULTRAGOAL artifacts, and the OPEN ledger entries triaged against the direction shift to mark which close and which remain.
-2. **Agentic-pipeline layer** (Hypothesis 1 under the direction shift): one canonical operating contract that names grit + icm as the only sanctioned primitives, bans agent-side git/gh, lists every deletion target with an archive→retire plan, and rewrites the oyatie `CLAUDE.md`/`AGENTS.md` to reflect the new rule.
 
 ## Critical Unknown
 
 After the trace + direction-shift disclosure, one unknown dominates: **what is the agent-side read-side surface under the no-git/no-gh rule?** Specifically:
 
-- `grit symbols` enumerates code symbols; can it answer "what files changed in the last claim" the way `git diff` does?
-- `grit show-session` / `grit watch` exist but their read-path semantics for "give me the state of N concurrent agents right now" are not yet specified.
-- For history operations agents currently use `git log` for (e.g., a debugger agent reading the last 20 commits to find a regression), grit has no equivalent — does the answer come from icm `recall -t commits-oyatie`, or does the agent invoke a *non-agent* helper that wraps `git log` and returns the result?
-- For PR-equivalent operations agents currently use `gh pr create` for, `grit done` is the closest primitive — does `grit done` create a PR on a remote, or does it merge locally and leave PR creation to a separate non-agent flow?
 
 These details are necessary inputs to the Phase 4 spec; without them, the no-git/no-gh rule cannot be operationalized.
 
@@ -141,10 +114,8 @@ These details are necessary inputs to the Phase 4 spec; without them, the no-git
 
 Two probes that should run before Phase 4 spec crystallization:
 
-1. **Read `grit done --help`, `grit watch --help`, `grit symbols --help`, `grit session --help`, `grit show-session --help` (if present), and `grit assign --help` in full to map the agent read-side surface.** Document which `git`/`gh` read-side calls are absorbed natively vs which require a non-agent helper wrapper.
 2. **Ask the user the three Phase-4-gating questions in one batch**:
    - "Is `bominal/docs/consolidated/PRD.md` the Oyatie product north star (Oyatie consumes it as upstream), or is `oyatie/docs/PRD.md` the canonical and Bominal's is a legacy artifact?"
-   - "For agent read-side surface where `grit` has no equivalent (e.g., `git log`-style commit-history queries), is the answer: (a) icm `recall -t commits-oyatie`, (b) a sanctioned non-agent helper, or (c) extend grit with the missing read primitive?"
    - "Of the OPEN ledger entries (LEDG-008 axis count, LEDG-017 consumer scope, LEDG-021 Connect-no-ads, LEDG-024 Korea regulatory gaps), which does this direction shift force-close, and which remain in flight?"
 
 These two probes collapse the residual uncertainty enough to crystallize the Phase 4 spec with ambiguity ≤ 20%.

@@ -25,7 +25,6 @@ tenant_class_scope: demo_trial
 
 Document the demo_trial tenant_class behavior per ADR-0330 §B.3. demo_trial is the canonical zero-cost trial path: a tenant gets the **full** product surface (no degraded mode, no feature lockout, no second-class UX) bounded by usage caps, time caps, and a closed set of Cedar-denied actions (compliance pack activation, BYOK opt-in, marketplace listing publishing).
 
-The previous tier-model (Bronze / Silver / Gold / Platinum) is retired (ADR-0316 retirement, Wave 15J tier-corpus scrub). The replacement is binary `tenant_class ∈ {demo_trial, paid}` per ADR-0330; demo_trial is one of the two.
 
 ## §B Scope
 

@@ -30,7 +30,7 @@ related_microservices:
   - cloud-billing
   - cloud-finops
   - cloud-observability
-capability_tier: Platinum
+tenant_class: ["demo_trial", "paid"]
 doc_status: published
 ---
 
@@ -919,7 +919,6 @@ Pass: bucket policy change invalidates policy cache.
 ### Story CLOUD-HS-007 - KMS Key Lifecycle
 As compliance officer, I want key create, rotate, disable, and shred with evidence so that data lifecycle is provable.
 Pass: key action emits policy decision and audit event.
-Pass: shred requires two-person approval for Platinum.
 
 ### Story CLOUD-HS-008 - VPC Build
 As network engineer, I want VPC, subnets, routes, security groups, and load balancers in one workflow so that topology is consistent.
@@ -1062,7 +1061,6 @@ Pass: imported credentials are secret references only.
 ### Surface CLOUD-SURF-04 - IAM Policy Editor
 ```
 + Principal + Action + Resource + Tier guard + Decision preview +
-| dev-role | storage:GetObject | bucket/payroll | Platinum | allow |
 +------------------------------------------------+
 ```
 
@@ -1230,10 +1228,6 @@ Pass: imported credentials are secret references only.
 - Resource cloud::KmsKey carries key_class, material_origin, pack_set, and shred_state.
 - Resource cloud::Cell carries isolation_tier, density_class, and health.
 - Resource cloud::Invoice carries account_id, tax_pack, currency, and period.
-- Bronze guard: one region, shared cell class, limited managed services, standard KMS.
-- Silver guard: two regions, private networking, budget alerts, and one compliance pack.
-- Gold guard: multi-region, dedicated cell option, advanced KMS, managed database, and audit export.
-- Platinum guard: sovereign cell, HSM/KCMVP/FIPS mode, regulator export, dedicated interconnect, and custom SLA.
 
 ## Workflow Engine Integration
 
@@ -1286,10 +1280,6 @@ Pass: imported credentials are secret references only.
 - ANZ-IRAP pack activates IRAP evidence, AU region, and privacy retention profile.
 - Healthcare pack activates HIPAA redaction and key separation.
 - Public-sector pack activates procurement transparency, regulator export, and audit retention.
-- Bronze supports default commercial pack and one region.
-- Silver supports one compliance pack and private networking.
-- Gold supports multi-pack conflict resolution.
-- Platinum supports sovereign-cell and regulator evidence export.
 
 ## SLO Targets
 
@@ -1312,10 +1302,6 @@ Pass: imported credentials are secret references only.
 - Invoice generation p95 <= 48 h after period close.
 - Budget anomaly detection p95 <= 15 min after meter aggregation.
 - Evidence export p95 <= 10 min for one tenant-period.
-- Control plane availability Bronze >= 99.5%.
-- Control plane availability Silver >= 99.9%.
-- Control plane availability Gold >= 99.95%.
-- Control plane availability Platinum >= 99.99%.
 
 ## Telemetry
 
@@ -1362,14 +1348,6 @@ Pass: imported credentials are secret references only.
 
 ## Capability Tier Deltas
 
-- Bronze: single-region accounts, shared cell class, VM, object bucket, VPC, basic IAM, basic billing.
-- Bronze: no sovereign evidence export, no direct interconnect, no BYOK/HYOK.
-- Silver: private networking, managed Postgres, budget alerts, one compliance pack, scheduled backups.
-- Silver: one read-only evidence export per month.
-- Gold: multi-region, dedicated cell option, advanced KMS, managed Kubernetes, managed Kafka, FinOps analytics.
-- Gold: resource-based policy, interconnect, cross-region replication where policy allows.
-- Platinum: sovereign cell, KCMVP/FIPS/HSM, regulator export, dedicated interconnect, custom SLA, BYOK/HYOK.
-- Platinum: Foundry cloud operations with human-gated destructive actions and full evidence chain.
 
 ## Competitive Positioning
 
@@ -1390,7 +1368,6 @@ Pass: imported credentials are secret references only.
 - Wave C2: managed Kubernetes, function service, block volume, DNS, LB, evidence export.
 - Wave C3: managed Postgres, Redis, Kafka, marketplace install plan, cost explorer.
 - Wave C4: direct interconnect, cross-region replication, FinOps anomaly, regulator portal.
-- Wave C5: sovereign-cell Platinum, multi-region failover, external cloud GA.
 - Phase M04: internal oyatie workload migration.
 - Phase M05: design partner regulated cloud tenants.
 - Phase M06: public cloud GA per region pack.
@@ -1832,7 +1809,6 @@ Pass: imported credentials are secret references only.
 
 ### CLOUD-CAP-080 - KMS shred
 - Owner: cloud-kms.
-- Pass: destructive shred requires Platinum two-person approval.
 - Evidence: key_shred_event.
 
 ### CLOUD-CAP-081 - Secret reference create

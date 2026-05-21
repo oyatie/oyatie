@@ -10,6 +10,8 @@ asyncapi_version: 3.1.0
 proto3: true
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # drive API Reference
 
 Canonical REST, gRPC, and AsyncAPI reference for the `drive` microservice.
@@ -455,10 +457,6 @@ ADR-0316 capability tiers control throughput and storage envelopes.
 
 | Tier | Metadata reads | Metadata writes | Upload ingress | Download egress | Notes |
 |---|---:|---:|---:|---:|---|
-| Bronze | 100 rps | 30 rps | 250 MiB/s | 500 MiB/s | dev and demo cells |
-| Silver | 1,000 rps | 300 rps | 2 GiB/s | 5 GiB/s | default tenant tier |
-| Gold | 5,000 rps | 1,500 rps | 10 GiB/s | 25 GiB/s | multi-AZ high-volume |
-| Platinum | 10,000 rps | 3,000 rps | 20 GiB/s | 50 GiB/s | sovereign pack in-pack only |
 
 Rate-limit headers:
 

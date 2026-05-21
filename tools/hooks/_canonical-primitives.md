@@ -19,7 +19,6 @@ Cutover note: task #38 landed true drop-in `oya git <git-subcommand>` behavior;
 task #36 owns advisory cross-agent hook suggestions toward that surface.
 Do not treat the current `oya vcs status` ratchet as `git status`.
 
-Retired (do NOT use): grit, rtk, icm, vox
 Authority: ADR-0223 checkpoint, feedback_oya_git_canonical_2026_05_18
 
 ---
@@ -264,28 +263,21 @@ ADR-0335: foundry µservice retired (Wave 15I) — AI substrate absorbed into in
 
 ---
 
-## Retired Tooling
-
-grit — retired per ADR-0116; current policy ratchet: oya vcs; git cutover target: oya git
-rtk  — retired per ADR-0116; current policy ratchet: oya vcs; git cutover target: oya git
-icm  — retired per ADR-0116; current policy ratchet: oya vcs; git cutover target: oya git
-vox  — retired per ADR-0116; current policy ratchet: oya vcs; git cutover target: oya git
-
----
-
 ## Forbidden Primitives
 
 See: specs/master-plan-sequencing.json#forbidden_primitives
-Summary: grit, rtk, icm, vox in Bash commands; OpenAPI != 3.2.0; AsyncAPI != 3.1.0
+Summary: Bash agent commands route through `oya git` for ordinary git
+operations and `oya vcs` for policy state transitions; OpenAPI must be 3.2.0;
+AsyncAPI must be 3.1.0.
 
 ---
 
 ## Common Pitfalls
 
-1. Using `grit done` instead of Oya policy commands or the `oya git` drop-in
+1. Bypassing `oya vcs` claim / verify / done / promote for agent state transitions.
 2. Writing `openapi: 3.3.0` (no such released version as of 2026-05-18)
 3. Writing `asyncapi: 3.0.0` (use 3.1.0)
-4. Treating microservices/foundry/ as a live µservice (RETIRED per ADR-0335 Wave 15I; absorbed into microservices/intelligence/)
+4. Treating microservices/foundry/ as a live µservice (ADR-0335 absorbed it into microservices/intelligence/)
 5. Conflating plugin-app-store / marketplace / community
 6. Creating µservices with <100 artifacts (buildability bar)
 7. Bundling multiple concerns into one µservice (ADR-0132 no-suite policy)

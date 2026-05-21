@@ -29,7 +29,7 @@ related_microservices:
   - policy-engine
   - audit-chain
   - metering
-capability_tier: Platinum
+tenant_class: ["demo_trial", "paid"]
 doc_status: published
 ---
 # Oyatie — Product PRD: Foundry — AI Agent Runtime + Foundry engineering platform (UNIFIED)
@@ -1431,10 +1431,6 @@ Pass: export hash verifies.
 - Resource foundry::Capability includes data_classes, side_effect_class, min_autonomy_tier, and owner.
 - Resource foundry::Run includes tenant_id, actor_id, provider_route_id, cost_meter_id, and state.
 - Resource foundry::EvidenceBundle includes redaction_pack, run_ids, event_ids, and requester.
-- Bronze guard: pure read and draft suggestions only.
-- Silver guard: tenant-read and low-risk workflow assists.
-- Gold guard: tenant-write with approvals and certified evals.
-- Platinum guard: regulated, sovereign, destructive, and cross-product actions require full evidence plus human gates.
 
 ## Workflow Engine Integration
 
@@ -1487,10 +1483,6 @@ Pass: export hash verifies.
 - Public-sector pack activates procurement, transparency, and regulator evidence.
 - Developer preview pack allows draft-only actions and no tenant-write.
 - Marketplace pack requires signed plugin, certification, and listing evidence.
-- Bronze supports pure-read and draft suggestions.
-- Silver supports tenant-read with explanations.
-- Gold supports tenant-write with human approvals.
-- Platinum supports sovereign and regulated actions with full evidence.
 
 ## SLO Targets
 
@@ -1507,10 +1499,6 @@ Pass: export hash verifies.
 - Engineering Agent Console p95 <= 1 s.
 - Cost meter emit p99 <= 500 ms.
 - Evidence export p95 <= 5 min for 100 runs.
-- Bronze availability >= 99.5%.
-- Silver availability >= 99.9%.
-- Gold availability >= 99.95%.
-- Platinum availability >= 99.99% for evidence path.
 
 ## Telemetry
 
@@ -1554,14 +1542,6 @@ Pass: export hash verifies.
 
 ## Capability Tier Deltas
 
-- Bronze: draft suggestions, pure read, no tenant write, no marketplace publish.
-- Bronze: provider route limited to default approved providers and low data classes.
-- Silver: tenant-read, RAG, memory recall, workflow explanations, basic eval gate.
-- Silver: one compliance pack and limited provider fallback.
-- Gold: tenant-write under human approval, marketplace capability install, provider failover, full metering.
-- Gold: Engineering Agent Console for internal repo work with claim/verify/done/promote.
-- Platinum: regulated write, destructive cloud or ERP actions, sovereign provider routes, regulator export, and full evidence bundle.
-- Platinum: every run emits complete evidence, meter, policy, provider, eval, and rollback metadata.
 
 ## Competitive Positioning
 

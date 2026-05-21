@@ -139,7 +139,6 @@ insufficient. Reviewer-agent verdict required per change class.
 - **CHANGELOG row** (existing): `oya-governance-changelog`.
 - **Audit-chain emit** (existing): `EVT-PR-MERGE` row.
 - **Reviewer agent** (new under Directive 9): a separate Claude/Codex/Gemini
-  reviewer runs the Code Review checklist; verdict logged in `icm`.
   Disagreement between primary author agent and reviewer agent
   auto-escalates to council-architecture.
 

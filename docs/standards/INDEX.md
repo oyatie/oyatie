@@ -50,11 +50,9 @@ that informed it where one exists.
 | [`testing.md`](testing.md) | Test pyramid 2.0 + nextest + proptest/quickcheck + cargo-mutants + cargo-fuzz + coverage budget + 14-day flaky SLA | `oya-governance-test-evidence`, `-fuzz-coverage`, `-flaky-sla` | Tier 2 |
 | [`security-review.md`](security-review.md) | OWASP + cargo-deny/audit/vet + Sigstore + SBOM + threat-modeling + data-class boundary + autonomy ceiling | `oya-governance-supply-chain`, `-security-review` | Tier 2 |
 | [`on-call.md`](on-call.md) | Rotation cadence + runbook discipline + escalation + blameless postmortem trigger + SLO-burn-rate alerting | `oya-governance-runbook-index-resolves`, `-error-budget-gate` | Tier 2 |
-| [`claude-code-harness.md`](claude-code-harness.md) | Sanctioned-primitive contract `{grit, icm, oya-tooling-agent-read}` + Directive 12 + grit lifecycle + icm topic conventions + hooks ordering | `oya-governance-banned-primitives`, `-hook-self-test` | Tier 2 |
 | [`multi-agent-tool-map.md`](multi-agent-tool-map.md) | Claude Code / Codex / Gemini / OMC tool-name mapping + sanctioned tools per agent + delegation patterns | `oya-governance-tool-map-cohesion` | Tier 2 |
 | [`observability.md`](observability.md) | OpenTelemetry mandatory + tracing/metrics/logs + `EVT-*` audit-chain emission + structured logging schema + Prometheus 3.11+ + exemplars | `oya-governance-otel-emit`, `-audit-emission` | Tier 2 |
 | [`release-management.md`](release-management.md) | Trunk-based + canary + feature flags + progressive delivery + SLO-burn-rate auto-rollback + Sigstore-signed releases | `oya-governance-flag-debt`, `-supply-chain`, `-error-budget-gate` | Tier 2 |
-| [`git-workflow.md`](git-workflow.md) | Directive 12 pragmatic-git + grit-first + when git/gh is justified + icm rationale logging + cutover-bootstrap exception | `oya-governance-banned-primitives` (revised), `-direct-tool-rationale` | Tier 2 |
 | [`dependency-policy.md`](dependency-policy.md) | LTS pinning + license posture + cargo-vet + cargo-deny + Renovate + provider-SDK ProviderAdapter trait | `oya-governance-lts-dependency`, `-cargo-vet`, `-license` | Tier 2 |
 | [`image-discipline.md`](image-discipline.md) | distroless-debian13 + musl static linking + image-size budget + Cosign keyless OIDC + SBOM + SLSA L2 | `oya-governance-image-discipline`, `-container-base`, `-supply-chain` | Tier 2 |
 | [`data-class.md`](data-class.md) | Every kernel struct field carries `oyatie.data_class`; cross-pillar flow rules; DSR cascade integration | `oya-governance-data-class`, `-dsr-cascade` | Tier 2 |
@@ -100,7 +98,6 @@ Every file in this directory:
 
 Status: **Accepted** (landed at `docs/standards/` via Stage 1 Wave 2 lift, 2026-05-12).
 Sanctioned-primitive ADRs landing in parallel: ADR-0053 (sanctioned primitives),
-ADR-0052 (pre-grit artifact inventory), ADR-0054 (scaffold-claim pattern).
 
 ## Sources scanned
 

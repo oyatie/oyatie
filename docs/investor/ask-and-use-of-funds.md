@@ -7,6 +7,8 @@ owner: founder-office
 target_audience: seed_investors, board_observers, strategic_finance_review
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Ask and Use of Funds
 
 ## 01 - Financing Summary
@@ -21,7 +23,6 @@ target_audience: seed_investors, board_observers, strategic_finance_review
 - The financing objective is to prove FD-001 wedge readiness, policy enforcement, audit-chain evidence, pilots, and regulated deployment posture.
 - The round should support enterprise design partners before broad go-to-market hiring.
 - The round should support security and compliance evidence before regulated-market promises.
-- The round should support dedicated-cell proof before Platinum-tier sales.
 - The round should support pricing evidence before aggressive quota scaling.
 - The round should support investor trust by tying use of funds to named milestones.
 - The operating plan assumes a base monthly burn of $450,000 by Q4 2026.
@@ -167,7 +168,6 @@ target_audience: seed_investors, board_observers, strategic_finance_review
 - Named milestone: SOC 2 Type II observation window start by January 31, 2028.
 - Named milestone: compliance-pack pilot matrix by March 31, 2028.
 - Named milestone: regulated-customer diligence binder by June 30, 2028.
-- Security work is required before claiming Platinum readiness.
 - Compliance-pack claims must remain advisory until registry and enforcement substrate prove them.
 - Cedar universal-gate claims must remain gate-bound until enforcement lands.
 - Audit-chain claims should be tied to ADR-0003 and customer-visible evidence.
@@ -432,7 +432,6 @@ target_audience: seed_investors, board_observers, strategic_finance_review
 - Milestone date: December 31, 2027.
 - Milestone: first renewal and expansion path documented.
 - Tranche 3 success criterion: technical moat is visible to customers.
-- Tranche 3 stop condition: do not sell Platinum before dedicated-cell and security evidence exist.
 
 ## 16 - Tranche 4 Milestones
 
@@ -505,8 +504,6 @@ target_audience: seed_investors, board_observers, strategic_finance_review
 - Revenue milestone: $6.0 million ARR run-rate by December 31, 2028.
 - Average first-year enterprise ACV target: $250,000.
 - Average year-two enterprise ACV target: $500,000.
-- Average mature Gold-tier ACV target: $720,000.
-- Platinum dedicated-cell ACV target: $1.8 million before add-ons.
 - Evidence-pack add-on target: $60,000 to $250,000 ARR.
 - Dedicated-cell add-on target: $300,000 to $750,000 ARR.
 - Professional-services gross margin target: above 25 percent.
@@ -702,7 +699,6 @@ target_audience: seed_investors, board_observers, strategic_finance_review
 - Governance principle: every research spend maps to a pricing or market assumption.
 - Governance principle: every buffer release maps to a board-visible reason.
 - Governance principle: discounts require reference, feedback, or strategic value.
-- Governance principle: no Platinum sale without security and dedicated-cell evidence.
 - Governance principle: no compliance-pack sale without supporting diligence artifacts.
 - Governance principle: no broad microservice maturity claim from directory count alone.
 - Governance principle: no "hyperscaler ready" claim before gate evidence.

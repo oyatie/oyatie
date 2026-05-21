@@ -206,7 +206,7 @@ This passes because workflow owns the state and ontology exposes projection.
 ### Example 2: Customer graph capability tier
 
 ```yaml
-capability_tier: crm.customer-graph.professional
+tenant_class: ["demo_trial", "paid"]
 ontology_projection:
   object_types:
     - ontology.object.Account.v1

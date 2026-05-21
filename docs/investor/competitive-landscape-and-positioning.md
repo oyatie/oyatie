@@ -7,6 +7,8 @@ owner: founder-office
 target_audience: seed_investors, strategic_partners, enterprise_buyers
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Competitive Landscape and Positioning
 
 ## 01 - Positioning Thesis
@@ -473,10 +475,6 @@ target_audience: seed_investors, strategic_partners, enterprise_buyers
 ## 18 - Moat Factor: Capability Tiers
 
 - Capability tiers turn product breadth into commercial control.
-- Bronze defines the entry tier for simple tenants.
-- Silver defines the managed-growth tier for more workflow depth.
-- Gold defines the regulated-enterprise tier for larger organizations.
-- Platinum defines the dedicated-cell and highest-assurance tier.
 - Tiering creates a cleaner adoption ladder than a collection of unrelated modules.
 - Tiering lets finance compare value against Salesforce, SAP, Workday, ServiceNow, and Microsoft bundles.
 - Tiering lets security demand higher assurance before sensitive workflows activate.
@@ -492,7 +490,6 @@ target_audience: seed_investors, strategic_partners, enterprise_buyers
 - Tiering can align with workflow execution limits.
 - Tiering can align with data residency needs.
 - The moat is the connection between tiers and substrate enforcement.
-- The moat is not the names Bronze, Silver, Gold, and Platinum.
 - The risk is confusing buyers with too many add-ons.
 - The mitigation is a simple base tier plus named evidence and dedicated-cell add-ons.
 - The positioning is enterprise-grade packaging without incumbent bundle opacity.
@@ -616,10 +613,6 @@ target_audience: seed_investors, strategic_partners, enterprise_buyers
 - Vertical SaaS products can dominate one department but still require integration spend.
 - Oyatie should price below the fully loaded multi-suite replacement value.
 - Oyatie should price above point tools because it sells substrate and evidence.
-- Bronze at $48,000 ARR is an entry tenant price.
-- Silver at $180,000 ARR is a department or regulated-growth price.
-- Gold at $720,000 ARR is a serious enterprise-platform price.
-- Platinum at $1,800,000 ARR is a dedicated-cell regulated-enterprise price.
 - Evidence-pack add-ons create a compliance value line.
 - Dedicated-cell add-ons create a regulated deployment value line.
 - Usage budgets create transparency versus surprise AI overages.

@@ -2,6 +2,7 @@
 id: ADR-0315
 status: Proposed
 date: 2026-05-20
+owner: council-product + axis-erp
 doc_class: Architecture-Decision-Record
 purpose: Codify oyatie ERP coverage doctrine against SAP S/4HANA module parity without introducing a monolithic ERP suite.
 related_adrs:

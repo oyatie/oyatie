@@ -18,7 +18,6 @@ doc_status: published
 
 # Progressive-Delivery Strategy — Oyatie
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Thesis
 
@@ -77,5 +76,4 @@ This strategy does not own: SLO catalog (per [ADR-0042](../../decisions/ADR-0042
 
 ## 9. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — sanctioned agent primitives; rollout controllers invoke `icm store` for evidence emission.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — four-layer branch pipeline; canary 100% ≥ M hours is gate 3 of the staging → prod 5-gate verification.

@@ -21,7 +21,15 @@ variable "oyatie_cell_certification_levels" {
 variable "k8s_cluster_endpoint" { type = string }
 variable "k8s_ca_cert" { type = string, sensitive = true }
 variable "k8s_token" { type = string, sensitive = true }
-variable "service_tier" { type = string, default = "Silver", description = "Bronze / Silver / Gold / Platinum" }
+variable "tenant_class" {
+  type        = string
+  default     = "paid"
+  description = "Tenant class for EMR capacity and billing semantics."
+  validation {
+    condition     = contains(["demo_trial", "paid"], var.tenant_class)
+    error_message = "tenant_class must be demo_trial or paid."
+  }
+}
 
 provider "kubernetes" {
   host                   = var.k8s_cluster_endpoint
@@ -36,7 +44,7 @@ resource "kubernetes_namespace" "emr" {
       "oyatie.io/microservice"     = "emr"
       "oyatie.io/tenant_id"        = var.tenant_id
       "oyatie.io/oyatie-cell-id"   = var.oyatie_cell_id
-      "oyatie.io/service-tier"     = var.service_tier
+      "oyatie.io/tenant-class"     = var.tenant_class
       "oyatie.io/data-class"       = "phi-protected-health-information"
       "oyatie.io/compliance-pack"  = "HIPAA-2024"
       "oyatie.io/billing-emit"     = "true"
@@ -52,7 +60,7 @@ resource "helm_release" "emr" {
     image = { repository = "registry.oyatie.health/emr", tag = "1.0.0-wave-15m-b" }
     tenantId                 = var.tenant_id
     oyatieCellId             = var.oyatie_cell_id
-    serviceTier              = var.service_tier
+    tenantClass              = var.tenant_class
     billingEmitToCloudBilling = true
     compliancePacksRequired  = ["HIPAA-2024"]
     paidBillingComponentsEmitted = [
@@ -68,14 +76,11 @@ resource "helm_release" "emr" {
       "emr.audit_event.emission_per_million"
     ]
     resources = (
-      var.service_tier == "Bronze"  ? { requests = { cpu = "1", memory = "4Gi" },  limits = { cpu = "2", memory = "8Gi" } } :
-      var.service_tier == "Silver"  ? { requests = { cpu = "2", memory = "8Gi" },  limits = { cpu = "8", memory = "32Gi" } } :
-      var.service_tier == "Gold"    ? { requests = { cpu = "4", memory = "16Gi" }, limits = { cpu = "16", memory = "64Gi" } } :
-      var.service_tier == "Platinum"? { requests = { cpu = "8", memory = "32Gi" }, limits = { cpu = "32", memory = "128Gi" } } :
+      var.tenant_class == "demo_trial" ? { requests = { cpu = "1", memory = "4Gi" },  limits = { cpu = "2", memory = "8Gi" } } :
       { requests = { cpu = "2", memory = "8Gi" }, limits = { cpu = "8", memory = "32Gi" } }
     )
   })]
 }
 
 output "emr_namespace" { value = kubernetes_namespace.emr.metadata[0].name }
-output "service_tier" { value = var.service_tier }
+output "tenant_class" { value = var.tenant_class }

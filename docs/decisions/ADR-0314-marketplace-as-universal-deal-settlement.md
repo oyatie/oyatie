@@ -2,6 +2,7 @@
 id: ADR-0314
 status: Proposed
 date: 2026-05-20
+owner: council-product + council-architecture
 doc_class: Architecture-Decision-Record
 purpose: Formalize marketplace as the universal deal-settlement substrate for every tenant-to-tenant and tenant-to-consumer commercial exchange.
 related_adrs:

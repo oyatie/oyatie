@@ -17,7 +17,6 @@ doc_status: published
 
 # Playbook: Cross-Axis Contract Change
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -76,7 +75,6 @@ Per stage, emit a single D14 artefact aggregating:
 - Cohort intersection results.
 - Lockstep verdict (promote / hold / abort).
 
-Stored in `oya-foundry-evidence-kernel`; verified by `oya-governance-rollback-evidence`. Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), stored via `icm store -t cross-axis-lockstep-verdicts`.
 
 ## 8. Rollback
 
@@ -92,5 +90,4 @@ Google internal Stubby contract versioning; Amazon Smithy / AWS API Gateway vers
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — lockstep verdicts stored via `icm store -t cross-axis-lockstep-verdicts`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — at staging → prod, gate 4 (zero SLO-fast) must hold across all affected axes; gate 5 collects per-class reviewer re-affirm from each consumer axis; `staging-fixer` orchestrates cross-axis fix if any consumer is red.

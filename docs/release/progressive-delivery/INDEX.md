@@ -16,7 +16,6 @@ doc_status: published
 
 # Progressive-Delivery + SLO-Burn-Rate-Rollback Architecture — Index
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## Strategy + specs (under `docs/release/progressive-delivery/`)
 
@@ -67,5 +66,4 @@ doc_status: published
 
 ## ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — grit + icm + oya-tooling-agent-read as sanctioned primitives; all agent operations in this composer use these exclusively.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — four-layer branch pipeline; progressive-delivery rails bind to the staging → prod gate.

@@ -7,7 +7,7 @@ journey_id: J-PM-01-tenant-review-cycle-launch
 status: proposed
 date: 2026-05-20
 owner: axis-performance-management
-capability_tier: T2
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-001: Performance Management Tenant Scope Kernel

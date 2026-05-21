@@ -24,7 +24,7 @@ if [ -f "$PRIMITIVES" ]; then
 else
     # Fallback inline summary when file not found (should not happen in normal use)
     echo "VCS:       oya git <git-subcommand> is the cutover target; current policy ratchet remains oya vcs <claim|work|verify|done|status|symbols|queue|watch|promote>"
-    echo "RETIRED:   grit, rtk, icm, vox  (ADR-0116)"
+    echo "VCS policy: Oya VCS state transitions plus oya git drop-in; ADR-0116 owns the transition boundary"
     echo "Contracts: OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3"
     echo "AI:        microservices/intelligence/ (consumer) | microservices/foundry/ (internal)"
     echo "Taxonomy:  plugin-app-store / marketplace / community — 3 distinct µservices"

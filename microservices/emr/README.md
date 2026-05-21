@@ -265,7 +265,6 @@ The owning team (`axis-emr`) RACI-owns every artifact under `microservices/emr/`
 
 ## License
 
-Proprietary; oyatie tenants license EMR per their service tier (Bronze / Silver / Gold / Platinum) in `oyatie-as-cloud-provider` mode, or as part of bundled-substrate in BYO-cloud deployments.
 
 ## Contact
 
@@ -310,7 +309,6 @@ Yes — that's the structural advantage over Epic. `/fhir/$export` FHIR Bulk Dat
 
 ### Q: What's the typical EMR billing rate (oyatie-as-cloud-provider mode)?
 
-Per-tenant pricing aggregates the `paid_billing_components_emitted` declared in `manifest.json`. A 500-physician IDN running Gold service-tier with 50k active patients typically lands at a multi-million-dollar annual run rate, competitive with Epic + Cerner's enterprise SKUs while delivering substantively more sovereignty + portability.
 
 ### Q: Is there an audit / compliance report customers can receive?
 

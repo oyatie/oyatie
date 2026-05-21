@@ -20,6 +20,8 @@ owner: docs-experience
 estimated_completion_time: "100 minutes"
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Handle a GDPR Art. 17 Erasure Request End-to-End
 
 ## Goal
@@ -395,7 +397,6 @@ The tutorial is complete when the case timeline shows `CompletionNoticeSent`.
 - [Activate multiple compliance packs on a tenant](multi-pack-tenant-activation.md).
 - [First-day-on-Oyatie quickstart](quickstart-new-user-day-one.md).
 - [Project Salesforce CRM data into Oyatie ontology](ontology-projection-from-external-source.md).
-- [Upgrade a tenant from Bronze to Platinum](capability-tier-upgrade-bronze-to-platinum.md).
 
 ## References
 

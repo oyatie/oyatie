@@ -10,6 +10,8 @@ asyncapi_version: 3.1.0
 proto3: true
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # governance API Reference
 
 Canonical REST, gRPC, and AsyncAPI reference for the `governance`
@@ -854,17 +856,9 @@ product-fragmented limits.
 
 | Tier | REST requests per second | gRPC requests per second | Async publishes per second | Burst |
 | --- | ---: | ---: | ---: | ---: |
-| Bronze | 30 | 60 | 50 | 2x for 10s |
-| Silver | 100 | 200 | 200 | 2x for 20s |
-| Gold | 300 | 600 | 800 | 3x for 30s |
-| Platinum | 900 | 1800 | 3000 | 3x for 60s |
 
 Special limits:
 
-- Lane dispatch: Bronze `5 rps`, Silver `20`, Gold `80`, Platinum `250`.
-- Evidence export: Bronze `1 rps`, Silver `3`, Gold `10`, Platinum `30`.
-- Admission evaluation: Bronze `25 rps`, Silver `100`, Gold `400`, Platinum `1200`.
-- Aggregation regeneration: Bronze `1 concurrent`, Silver `3`, Gold `10`, Platinum `30`.
 
 ## OpenAPI 3.2.0 Schema
 

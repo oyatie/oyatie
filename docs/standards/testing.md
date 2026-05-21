@@ -199,7 +199,6 @@ Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-06:
    row is filed (class: `mechanical` if there is a fix; `cultural`
    otherwise).
 2. The fix SLA is **14 calendar days**.
-3. Day 7: assignee receives a reminder via icm; day 12: incident commander
    escalates; day 14: the lane `oya-governance-flaky-sla` opens a
    blocking PR check on the owning crate.
 4. Resolution requires either fix (delete `#[ignore]`) or retirement

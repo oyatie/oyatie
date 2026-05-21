@@ -132,7 +132,6 @@ Honest assessment of where cloud-billing trails counterparts at the substantive 
 | SOAP API | Zuora legacy SOAP | proto3 only | Modern substrate |
 | Per-API-key scopes | Stripe permissions | Per-action Cedar gates | Finer-grained authz |
 | Customer.tax_ids[] | Stripe customer-level tax IDs | BillingAccount.tax_registration_id (per-account) | Multi-jurisdiction tenants use multiple accounts; cleaner audit |
-| Tier-based plans (Bronze/Silver/Gold) | Many SaaS billing tools | `tenant_class ∈ {demo_trial, paid}` + composable billing_components | ADR-0330 replaces tier model |
 
 ### §C.4 Capability coverage rollup
 

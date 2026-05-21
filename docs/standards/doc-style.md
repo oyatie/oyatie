@@ -95,8 +95,6 @@ The mechanical contract:
 - **Plain-English explanation** for the same directive sits **outside** the
   fence and MUST stand alone (a human reading only the prose understands the
   intent without the fenced commands).
-- **Terminal commands shown to humans** MUST use the `rtk` prefix per the
-  project CLAUDE.md / RTK convention; agents inside `<!-- agent-instructions
   -->` blocks call the same primitive through their harness.
 
 The lane `oya-governance-dual-audience` checks that every fenced block has

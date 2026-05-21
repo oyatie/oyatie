@@ -6,11 +6,9 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- purpose: Verify every non-trivial directory has an `INDEX.md`, predictable naming, and grit-claim symbols on key entry points.
 - enforces: Directive 10 (MASTERPLAN) — agentic navigability.
 - kernel_crate: `oya-governance-agentic-navigability-kernel` — `DirEntry { path, file_count, has_index }`, verdict `AgenticNavigabilityFitnessReport { dirs_checked }`.
 - runner_path: `tools/oya-governance-agentic-navigability`
-- inputs: directory snapshot, naming-rule registry, grit-claim symbol map.
 - failure_modes:
   - dir with > 5 files but no INDEX.md
   - filename violates naming pattern (e.g., `Final-v2-NEW.md`)

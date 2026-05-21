@@ -17,7 +17,6 @@ doc_status: published
 
 # Traffic-Mirror Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Source:** [ADR-0044 service-mesh strategy](../../decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Primitive
 
@@ -79,7 +78,6 @@ Mirrored traffic is sampled **only** from cohorts that consent to participate. S
 
 Every mirror activation emits a D14 audit-chain entry: which surface, which percentage, which cohort sample, start/stop timestamps, correlation IDs. Mirror activation requires named approver for surfaces tagged `regulated` ([ADR-0034](../../decisions/ADR-0034-per-vertical-data-class-overrides.md)).
 
-Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), mirror activation records stored via `icm store -t mirror-activations`.
 
 ## 8. Per-cell scope
 
@@ -105,5 +103,4 @@ Mirror = 1.0×–1.1× compute on the shadow path (cold-start amortised by long-
 
 ## 12. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — mirror activation records stored via `icm store -t mirror-activations`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — traffic mirror used in `staging` layer for dark-launch shadow traffic before `prod-promoter` evaluates the 5-gate.

@@ -112,7 +112,6 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Scope:** every PR open against `origin/dev`.
 
-**Evaluation logic.** Returns PASS when, for every change-class invoked by the PR's file-glob, a verdict record exists in `icm topic pr-review-verdicts` keyed by `pr-<id>,<reviewer-name>` with `verdict ∈ {APPROVE, REQUEST_CHANGES, COMMENT}`. Returns FAIL if any required reviewer has no verdict recorded.
 
 **Output schema:** `{pr_id, missing_reviewers: [], present_verdicts: [{reviewer, verdict, icm_record_id}]}`.
 
@@ -122,7 +121,6 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Scope:** every change set landed on `staging` since last prod-promotion.
 
-**Evaluation logic.** Walks every reviewer-agent comment on the originating PR (recorded in `icm topic pr-review-comments`). For each comment, checks one of: (a) `resolved: true` annotation present; OR (b) a follow-up commit on `origin/dev` (subsequently auto-promoted to staging) references the comment id (via commit message `Closes-comment: <id>` trailer). Returns FAIL with the unresolved comment ids if any.
 
 **Output schema:** `{staging_head_sha, prs_landed: [], unresolved_comments: []}`.
 

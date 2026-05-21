@@ -7,7 +7,7 @@ journey_id: J-PM-03-review-goal-import
 status: proposed
 date: 2026-05-20
 owner: axis-performance-management
-capability_tier: T2
+tenant_class: ["demo_trial", "paid"]
 ---
 
 # IP-003: Performance Management Ontology Projection

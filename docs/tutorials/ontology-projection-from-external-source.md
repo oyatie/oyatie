@@ -20,6 +20,8 @@ owner: docs-experience
 estimated_completion_time: "110 minutes"
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Project Salesforce CRM Data into the Oyatie Ontology
 
 ## Goal
@@ -406,7 +408,6 @@ Keep continuous sync disabled until a separate production runbook approves it.
 ## Next Tutorials
 
 - [Use intelligence to summarize a 200-page contract](ai-assisted-document-summarization.md).
-- [Upgrade a tenant from Bronze to Platinum](capability-tier-upgrade-bronze-to-platinum.md).
 - [List, sell, buy, and settle a marketplace deal](marketplace-list-sell-buy.md).
 - [Activate HIPAA, SOC 2, GDPR, and KR-PIPA](multi-pack-tenant-activation.md).
 - [Build an employee-onboarding workflow](workflow-studio-build-employee-onboarding.md).

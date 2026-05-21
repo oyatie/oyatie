@@ -41,6 +41,8 @@ companion_docs:
 journey_range: j001-j150 plus future j151+
 ---
 
+Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+
 # Persona Dossier — External Auditor Hyo-Jin Lee
 
 ## §A. Archetype
@@ -411,7 +413,6 @@ Edge-case synthesis:
 ## §K.1 Substance Anchors — 2026-05-20 Pass
 
 - Place/time: Samil PwC Tower, Yongsan, Seoul, 23:10 KST during a cold river-wind advisory before the KR control freeze.
-- Current named tools: PwC Aura Platinum 2026 audit workpapers, Workiva Wdesk SOX 2026.1, SAP GRC Access Control 12.0 review exports, Naver Works Enterprise evidence mail, and oyatie `compliance` regulator-ready packet.
 - Named pain points: the "ERP Role ZFI_POST" sample changed after screenshot capture, risked ₩780m misstatement scoping, and Hyo-Jin spent 12h reconciling SAP logs with hash-sealed evidence.
 - Jobs-to-be-done: weekly access-control sample testing, quarterly OKR AUD-KR-01 "all KR PIPA evidence region-pinned", Project HanRiver control audit, and yearly independence/rotation review.
 - Cedar binding: principal `User::"hyo-jin-lee@big4-audit-kr"` accesses `AccessReview::*`, `SapRoleSample::*`, `EvidencePacket::*`, and `AuditFinding::*`; actions `request_sample`, `verify_region_pin`, `raise_finding`, and `deny_unscoped_employee_lookup`.

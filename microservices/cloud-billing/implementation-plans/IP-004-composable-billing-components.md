@@ -24,7 +24,6 @@ tenant_class_scope: paid
 
 Document the composable `billing_components` semantics per ADR-0330 §B.11. A paid tenant carries an immutable `tenant_class = paid` enum value plus a mutable subset of `billing_components ⊆ {revenue_share, per_seat, per_usage}`. Any non-empty subset is valid: a single component, any pair, or all three. The components compose orthogonally — adding a component does not remove existing line-item streams; removing a component freezes its line-item streams without affecting others.
 
-This is the canonical replacement for the retired Bronze/Silver/Gold/Platinum tier model (ADR-0316 retirement; tier corpus scrub captured in Wave 15J). Tenant_class drives access scope (demo_trial vs paid); billing_components drives revenue computation.
 
 ## §B Scope
 

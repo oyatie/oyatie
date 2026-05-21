@@ -20,7 +20,6 @@ doc_status: published
 
 # CI Policy Per Branch / Per Layer
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Governed by:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. Provider-agnostic CI adapter
 
@@ -52,17 +51,14 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 | `oya-governance-rollback-evidence` | BLOCKER | prod | [`../progressive-delivery/blue-green-spec.md`](../progressive-delivery/blue-green-spec.md) |
 | `oya-governance-slo-coverage` | HIGH | every service | [ADR-0042](../../decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md) |
 
-## 3. Layer 0 — worktree (`.grit/worktrees/<agent-id>/`)
 
 **CI policy:** none. Private workspace. Agents may run lanes locally via sanctioned tooling for personal confidence; results are not promoted to a shared store.
 
 ## 4. Layer 1 — agent local dev clone
 
-**CI policy:** none at the layer boundary. The agent's local-dev clone is just a local copy of `origin/dev`; `grit done` is the atomic merge primitive. Agents may sync local-dev to/from `origin/dev` (fetch + rebase + merge) at any time without ceremony.
 
 ## 5. Layer 1 → Layer 2 — local-dev → origin/dev (the 3-gate)
 
-**Lanes that run:** all BLOCKER + HIGH lanes from §2 on the PR HEAD (the local-dev tip targeting `origin/dev`). The PR opens automatically when the agent declares `grit done` (or via `dev-promoter` orchestration).
 
 **Gate semantics:** **gate 3** of the 3-gate verification requires **every BLOCKER lane GREEN** on the PR HEAD. Combined with gate 1 (PR shape) and gate 2 (reviewer-agent `APPROVE`), the auto-merge fires.
 
@@ -97,7 +93,6 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 - `oya-governance-cohort-honor`
 - `oya-governance-slo-burn-rate-fast` (zero open alerts; freshness ≤ 5 min)
 
-**Promotion gate semantics:** the **5 staging → prod gates** all green. Per-gate evidence stored as signed icm records. `prod-promoter` evaluates and fires automatically (except Directive-12 carve-out classes).
 
 **Mutator constraint.** Only `prod-promoter` agent. Cosign-signed + SLSA L2+ provenance mandatory.
 
@@ -120,5 +115,4 @@ This file does not own:
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — all CI invocations use sanctioned primitives; direct `gh` usage under Directive 12 with `icm store -t direct-tool-invocations`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — this file specifies the CI policy for each layer of the four-layer pipeline defined in ADR-0055.
