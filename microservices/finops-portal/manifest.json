@@ -67,12 +67,31 @@
     }
   ],
   "depends_on": [
-    {"microservice": "observability", "via": "opencost-prom-federation"},
-    {"microservice": "cloud-iac", "via": "seaweedfs-s3"},
-    {"microservice": "tenancy", "via": "tenant-id-resolver"},
-    {"microservice": "audit-chain", "via": "regulator-evidence-emit"}
+    {
+      "microservice": "observability",
+      "via": "opencost-prom-federation"
+    },
+    {
+      "microservice": "cloud-iac",
+      "via": "seaweedfs-s3"
+    },
+    {
+      "microservice": "tenancy",
+      "via": "tenant-id-resolver"
+    },
+    {
+      "microservice": "audit-chain",
+      "via": "regulator-evidence-emit"
+    }
   ],
-  "regulatory_pack_compatibility": ["generic", "kr", "eu", "us-healthcare", "us-financial", "us-public-sector"],
+  "regulatory_pack_compatibility": [
+    "generic",
+    "kr",
+    "eu",
+    "us-healthcare",
+    "us-financial",
+    "us-public-sector"
+  ],
   "lts_pins": {
     "opencost": "1.110.0",
     "focus_spec": "1.3",
@@ -99,5 +118,152 @@
     "cilium_l4": true,
     "ambient_ztunnel": true,
     "ambient_waypoint": false
-  }
+  },
+  "naming_justifications": "finops-portal is a BNF v4.1 kebab-case microservice slug; generated names follow oya-finops-portal-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_adoption": [
+    "limited-risk",
+    "minimal-risk"
+  ],
+  "packs": [
+    "generic",
+    "kr",
+    "eu",
+    "us-healthcare",
+    "us-financial",
+    "us-public-sector",
+    "soc2",
+    "iso27001-2022",
+    "gdpr",
+    "kr-pipa",
+    "iso27001",
+    "soc2-type2",
+    "hipaa",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals; 1: AWS Verified Permissions Cedar anchors the external control pattern for cedar-gates; 2: Google Zanzibar provides a second independent hyperscaler pattern for cedar-gates; 1: Stripe Connect account isolation anchors the external control pattern for tenant-scoping; 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for tenant-scoping",
+  "owner_team": "ops-finops",
+  "tier_classification": "full-pack-ready",
+  "data_classification": "tenant_id (medium), dollar_amounts (medium), correlated_events (low — system-level only), per-resource dollar amounts (medium), cloud-provider sub-account ids (low — opaque), tenant_name (low — already known), cost_center_breakdown (low — internal classification), dollar_amounts (medium — business-confidential)",
+  "compliance_packs_applicable": [
+    "generic",
+    "kr",
+    "eu",
+    "us-healthcare",
+    "us-financial",
+    "us-public-sector",
+    "soc2",
+    "iso27001-2022",
+    "gdpr",
+    "kr-pipa",
+    "iso27001",
+    "soc2-type2",
+    "hipaa",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "observability",
+    "cloud-iac",
+    "tenancy",
+    "audit-chain"
+  ],
+  "failure_domain": "tenant-cell and regional-failover execution domain",
+  "criticality_tier": "limited-risk",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.12,
+    "baseline_ram_per_tenant": 256,
+    "storage_per_tenant": 6,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 6,
+      "outbound_http": 20
+    },
+    "scaling_dimension": "per_query",
+    "cell_placement_class": "Tier-2",
+    "notes": "Cost allocation, invoice rendering, anomaly analysis, and FOCUS exports are analytical/query-heavy financial-control workflows with regulatory evidence obligations."
+  },
+  "dr": {
+    "rto_p99_seconds": 3600,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "iceberg_snapshot",
+      "clickhouse_iceberg_layered"
+    ],
+    "failover_runbook": "runbooks/quarterly-regulator-emit-miss.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "FinOps portal is a first-party financial control and reporting app. It handles tenant spend, invoice, allocation, and regulator evidence data but does not own platform storage substrate, so runtime Tier 2 with cell Tier-2 criticality is the correct split.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/finops-portal/PRD.md",
+    "microservices/finops-portal/ARCHITECTURE.md",
+    "microservices/finops-portal/IP-journey-j94-sox404-public-company-controls.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/finops-portal/contracts/tenant-invoice-public.openapi.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "cedar",
+    "postgresql",
+    "valkey",
+    "iceberg",
+    "clickhouse",
+    "opentelemetry",
+    "opentofu",
+    "openbao"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "tenant-namespace",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "aws-guest",
+      "primitive": "postgres-wal-g",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "iceberg-snapshot",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "clickhouse-iceberg-layered",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "openbao-policy",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ]
 }

@@ -1,0 +1,14 @@
+{
+  "service": "workplace-integration",
+  "scorecards": [
+    "doc-suite-completeness",
+    "contract-version-exact",
+    "tenant-scope",
+    "cedar-default-deny",
+    "audit-evidence"
+  ],
+  "naming_justifications": {
+    "bnf_v4": "workplace-integration.scorecard.overrides",
+    "layer_enum": "13-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api"
+  }
+}

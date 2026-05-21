@@ -1,0 +1,11 @@
+[package]
+name = "oya-workplace-integration-doc-suite-scaffold"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Workplace Integration documentation-suite scaffold crate"
+
+[lib]
+path = "src/lib.rs"
+
+[workspace]

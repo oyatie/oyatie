@@ -1,0 +1,31 @@
+apiVersion: oyatie.dev/v2
+kind: CapabilityRecord
+metadata:
+  name: itsm-predictive-intelligence
+  service: itsm
+spec:
+  businessCapability: service-management
+  capability: predictive-intelligence
+  counterparts:
+    - "ServiceNow Predictive Intelligence"
+    - "Atlassian Intelligence (predictive)"
+    - "Freshservice Freddy Predict"
+  bindingAdrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0255, ADR-0263, ADR-0328]
+  surface:
+    inferences:
+      - ticket_category_classification
+      - assignment_group_routing
+      - priority_suggestion
+      - similar_incident_clustering
+      - resolution_time_estimate
+    training_data_scope: tenant_isolated
+  tenantScope:
+    requiredFields: [tenant_id, requester_or_agent_principal_id, audience_type, purpose, data_class]
+    dataClass: incident_ticket_metadata_only
+  cedarGate: microservices/itsm/policy/predictive-intelligence-authorization.cedar
+  intelligenceBinding:
+    classifier_model: per-tenant fine-tune via intelligence µservice
+    explanation_kind: top_k_features_with_audit_trail
+  tenantClassSupport:
+    demo_trial: false
+    paid: true

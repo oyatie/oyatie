@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: itsm-local-domain-egress
+  labels:
+    service: itsm
+    suite: local-operational-primitive
+    adr: ADR-0130
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ticket-api
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              oyatie.dev/plane: edge
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              oyatie.dev/plane: audit-chain
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              oyatie.dev/plane: eventing

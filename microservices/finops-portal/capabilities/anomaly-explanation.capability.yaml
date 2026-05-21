@@ -23,7 +23,7 @@ capability:
   outputs:
     - explanation (top contributions, correlated events, confidence)
     - recommendation (NoOpKnownSafe | AwaitConfirmation | OpenFoundryTicket | PageCustomerSuccess)
-  eu_ai_act:
+  risk_class:
     risk_class: limited
     rationale: |
       The capability surfaces a deterministic explanation;

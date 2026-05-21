@@ -1,0 +1,272 @@
+{
+  "schema_version": "1.0",
+  "microservice": "workplace-integration",
+  "version": "0.1.0",
+  "owner": "axis-workplace-integration",
+  "tier": "product",
+  "doctrine": "workplace agreement, e-sign, roster, and regulated workforce integration substrate",
+  "primary_adr": "ADR-0320",
+  "related_adrs": [
+    "ADR-0105",
+    "ADR-0131",
+    "ADR-0243",
+    "ADR-0244",
+    "ADR-0263",
+    "ADR-0319",
+    "ADR-0320"
+  ],
+  "artifact_bar": {
+    "pr_143_operating_bar_minimum": 100,
+    "generated_suite_target": "at-or-above-operating-bar"
+  },
+  "naming_justifications": {
+    "bnf_v4": "<service>.<bounded_context>.<action>.<resource> using workplace-integration",
+    "layer_enum": "13-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api"
+  },
+  "bounded_contexts": [
+    {
+      "name": "WorkplaceAgreement",
+      "primitive": "WorkplaceAgreement",
+      "secondary_primitive": "ESignSession",
+      "layers": [
+        "api",
+        "rest",
+        "application",
+        "usecase",
+        "domain",
+        "kernel",
+        "adapter",
+        "worker",
+        "sdk",
+        "iac",
+        "policy",
+        "observability"
+      ]
+    }
+  ],
+  "dependencies": [
+    "identity",
+    "mail",
+    "drive",
+    "workflow-engine",
+    "community",
+    "compliance",
+    "audit-chain",
+    "marketplace",
+    "payments",
+    "tenancy"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/workplace-integration/contracts/openapi-v1.yaml"
+    ],
+    "asyncapi": [
+      "microservices/workplace-integration/contracts/asyncapi-v1.yaml"
+    ],
+    "proto": [
+      "microservices/workplace-integration/contracts/workplace-integration-v1.proto"
+    ]
+  },
+  "journey_ips": [
+    {
+      "id": "j109",
+      "concept": "Esign Roster Binding",
+      "file": "microservices/workplace-integration/IP-journey-j109-esign-roster-binding.md"
+    },
+    {
+      "id": "j110",
+      "concept": "Esign Roster Binding",
+      "file": "microservices/workplace-integration/IP-journey-j110-esign-roster-binding.md"
+    },
+    {
+      "id": "j112",
+      "concept": "Esign Roster Binding",
+      "file": "microservices/workplace-integration/IP-journey-j112-esign-roster-binding.md"
+    },
+    {
+      "id": "j113",
+      "concept": "Esign Roster Binding",
+      "file": "microservices/workplace-integration/IP-journey-j113-esign-roster-binding.md"
+    },
+    {
+      "id": "j114",
+      "concept": "Esign Roster Binding",
+      "file": "microservices/workplace-integration/IP-journey-j114-esign-roster-binding.md"
+    },
+    {
+      "id": "j121",
+      "concept": "Esign Closing Package",
+      "file": "microservices/workplace-integration/IP-journey-j121-esign-closing-package.md"
+    },
+    {
+      "id": "j132",
+      "concept": "Offer Letter Esign Per Jurisdiction",
+      "file": "microservices/workplace-integration/IP-journey-j132-offer-letter-esign-per-jurisdiction.md"
+    },
+    {
+      "id": "j134",
+      "concept": "Engagement Agreement And Staffing Aware Offer",
+      "file": "microservices/workplace-integration/IP-journey-j134-engagement-agreement-and-staffing-aware-offer.md"
+    },
+    {
+      "id": "j140",
+      "concept": "Internal Audit Dlp Egress Cross Tenant Trace",
+      "file": "microservices/workplace-integration/IP-journey-j140-internal-audit-dlp-egress-cross-tenant-trace.md"
+    },
+    {
+      "id": "j37",
+      "concept": "Clock In Geofence",
+      "file": "microservices/workplace-integration/IP-journey-j37-clock-in-geofence.md"
+    },
+    {
+      "id": "j38",
+      "concept": "E Sign Session",
+      "file": "microservices/workplace-integration/IP-journey-j38-e-sign-session.md"
+    },
+    {
+      "id": "j51",
+      "concept": "E Sign On Po",
+      "file": "microservices/workplace-integration/IP-journey-j51-e-sign-on-po.md"
+    },
+    {
+      "id": "j54",
+      "concept": "E Signature",
+      "file": "microservices/workplace-integration/IP-journey-j54-e-signature.md"
+    },
+    {
+      "id": "j56",
+      "concept": "Offer E Sign",
+      "file": "microservices/workplace-integration/IP-journey-j56-offer-e-sign.md"
+    },
+    {
+      "id": "j63",
+      "concept": "Informed Consent",
+      "file": "microservices/workplace-integration/IP-journey-j63-informed-consent.md"
+    },
+    {
+      "id": "j70",
+      "concept": "E Sign",
+      "file": "microservices/workplace-integration/IP-journey-j70-e-sign.md"
+    }
+  ],
+  "capabilities": [
+    "microservices/workplace-integration/capabilities/esign-initiate.yaml",
+    "microservices/workplace-integration/capabilities/esign-sign.yaml",
+    "microservices/workplace-integration/capabilities/offer-generate.yaml",
+    "microservices/workplace-integration/capabilities/roster-bind.yaml",
+    "microservices/workplace-integration/capabilities/clock-attest.yaml",
+    "microservices/workplace-integration/capabilities/dlp-trace-seal.yaml"
+  ],
+  "slos": [
+    "microservices/workplace-integration/slos/esign-initiate-availability.openslo.yaml",
+    "microservices/workplace-integration/slos/signature-capture-latency.openslo.yaml",
+    "microservices/workplace-integration/slos/offer-generation-latency.openslo.yaml",
+    "microservices/workplace-integration/slos/roster-binding-accuracy.openslo.yaml",
+    "microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml",
+    "microservices/workplace-integration/slos/dlp-trace-seal-fidelity.openslo.yaml"
+  ],
+  "policies": [
+    "microservices/workplace-integration/policies/esign-initiate.cedar",
+    "microservices/workplace-integration/policies/esign-sign.cedar",
+    "microservices/workplace-integration/policies/offer-generate.cedar",
+    "microservices/workplace-integration/policies/roster-bind.cedar",
+    "microservices/workplace-integration/policies/clock-attest.cedar",
+    "microservices/workplace-integration/policies/dlp-trace-seal.cedar"
+  ],
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.09,
+    "baseline_ram_per_tenant": 224,
+    "storage_per_tenant": 5,
+    "connections_per_tenant": {
+      "valkey": 4,
+      "postgres": 5,
+      "outbound_http": 18
+    },
+    "scaling_dimension": "per_workflow_run",
+    "cell_placement_class": "Tier-3",
+    "notes": "E-sign, workplace consent, shift, document, and DLP flows are workflow-oriented and evidence-heavy rather than simple request/seat scaling."
+  },
+  "dr": {
+    "rto_p99_seconds": 3600,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/e-sign-session-corruption-recovery.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Workplace integration is a first-party app for workplace agreements, e-sign, roster, consent, and DLP workflows. It handles sensitive tenant records but is not a tenant-code execution host or substrate owner, so Tier 2 is correct.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/workplace-integration/PRD.md",
+    "microservices/workplace-integration/ARCHITECTURE.md",
+    "microservices/workplace-integration/ip/IP-002-esign-session-domain.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/workplace-integration/contracts/openapi-v1.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/workplace-integration/contracts/asyncapi-v1.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/workplace-integration/contracts/workplace-integration-v1.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "cedar",
+    "postgresql",
+    "valkey",
+    "opentelemetry",
+    "opentofu",
+    "openbao",
+    "cosign"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "tenant-namespace",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "aws-guest",
+      "primitive": "postgres-wal-g",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "colo",
+      "primitive": "audit-chain-merkle-seal",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "openbao-policy",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "object-storage-versioned",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ]
+}

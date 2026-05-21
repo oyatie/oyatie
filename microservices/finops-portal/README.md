@@ -21,6 +21,20 @@ differentiated tenant-billing UX layer:
 - Committed-use discount UX (per FOCUS 1.3 Contract Commitment dataset).
 - Credit-ledger UX (customer-success negotiated credits).
 
+## Tenant Class And Billing Components
+
+Per ADR-0330, `finops-portal` uses `tenant_class` instead of customer
+capability tiers. `demo_trial` tenants run inside capped cost and usage
+envelopes, with OCI Always Free as the default free-profile target where
+applicable. `paid` tenants receive the same capability surface and compose
+commercial terms through `billing_components`: `revenue_share`, `per_seat`,
+and `per_usage`.
+
+The portal must not expose retired customer-tier columns, filters, or feature
+tables. Cost visibility, forecast cadence, export limits, and chargeback
+workflows are modeled as tenant_class caps, billing_component contract terms,
+compliance_pack activation, or cell_topology constraints.
+
 ## What this µservice is NOT
 
 - NOT the cost-aggregation engine — that's OpenCost (ADR-0199 D-3).
