@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-003
 title: Cloud Network VPC + LB + DNS + CDN + interconnect API
-status: vpc-lb-dns-oci-request-contract-green; cdn-interconnect-second-provider-live-smoke pending
+status: vpc-lb-dns-interconnect-oci-request-contract-green; cdn-second-provider-live-smoke pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
@@ -39,7 +39,8 @@ scripts/check.sh
 ## Done-criteria
 - OCI VCN/VPC request-contract slice: targeted cargo check/test/clippy return 0 (met 2026-05-20).
 - OCI Load Balancer request-contract slice: targeted cargo check/test/clippy return 0 (met 2026-05-20).
-- CDN, interconnect, second-provider adapters, and credentialed live provider smoke remain required before marking this whole IP complete.
+- OCI FastConnect direct interconnect request-contract slice: targeted cargo check/test/clippy return 0 (met 2026-05-20).
+- CDN, second-provider adapters, and credentialed live provider smoke remain required before marking this whole IP complete.
 - All acceptance-test commands return 0.
 - Distroless image built (if IP ships a deployed binary); size < per-binary budget per `docs/standards/image-size-budgets.md`.
 - No provider-specific deps outside adapter crates (Directive 4).
@@ -55,7 +56,7 @@ Next IP in this phase's INDEX list (or first IP of next phase if phase complete)
 
 ## Icm-store-payload
 ```
-icm store -t context-oyatie -c 'M03-P01-IP-003 OCI VCN/VPC, Load Balancer, and DNS request contracts green; CDN/interconnect, second provider, and live smoke pending' -i high -k 'M03-P01-IP-003,partial,live-smoke-pending'
+icm store -t context-oyatie -c 'M03-P01-IP-003 OCI VCN/VPC, Load Balancer, DNS, and FastConnect request contracts green; CDN, second provider, and live smoke pending' -i high -k 'M03-P01-IP-003,partial,live-smoke-pending'
 ```
 
 ## Progress ledger
@@ -65,8 +66,10 @@ icm store -t context-oyatie -c 'M03-P01-IP-003 OCI VCN/VPC, Load Balancer, and D
 
 - 2026-05-20 — `cs-m03-p01-network-dns-oci-adapter-port-2026-05-20` extended the provider-neutral Cloud Network port surface to DNS zone create and extended `oya-cloud-network-adapter-oci` with deterministic OCI DNS CreateZone command/receipt shape. This proves OCI DNS request contract only; CDN, interconnect, second-provider adapters, and credentialed live smoke remain pending.
 
+- 2026-05-20 — `cs-m03-p01-network-interconnect-oci-adapter-port-2026-05-20` extended the provider-neutral Cloud Network port surface to direct interconnect create and extended `oya-cloud-network-adapter-oci` with deterministic OCI FastConnect CreateVirtualCircuit command/receipt shape. This proves OCI FastConnect request contract only; CDN, second-provider adapters, and credentialed live smoke remain pending.
+
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: OCI VCN, Load Balancer, and DNS compartment/region/path/reference handling stays inside the adapter crate instead of branching through domain/API crates; no OCI SDK or live network call was added to these request-contract slices.
+Special cases eliminated by this IP: OCI VCN, Load Balancer, DNS, and FastConnect compartment/region/path/reference handling stays inside the adapter crate instead of branching through domain/API crates; no OCI SDK or live network call was added to these request-contract slices.
 
 
 ## ChangeSet evidence — cs-m03-p01-network-vpc-oci-adapter-port-2026-05-20
@@ -88,3 +91,10 @@ Special cases eliminated by this IP: OCI VCN, Load Balancer, and DNS compartment
 - Extended `oya-cloud-network-adapter-oci` with deterministic OCI DNS CreateZone command shape and provider-DNS-zone drift/config tests.
 - Verification: `cargo test -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci`; `cargo clippy -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci --all-targets -- -D warnings`; `cargo check -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci`.
 - Status boundary: OCI VCN/VPC, Load Balancer, and DNS request contracts are green; CDN, interconnect, second-provider adapters, and credentialed live provider smoke remain pending.
+
+
+## ChangeSet evidence — cs-m03-p01-network-interconnect-oci-adapter-port-2026-05-20
+- Added provider-neutral `NetworkProviderDirectInterconnectPort` plus validated direct interconnect create request and receipt types in `oya-cloud-network-domain`.
+- Extended `oya-cloud-network-adapter-oci` with deterministic OCI FastConnect CreateVirtualCircuit command shape and provider-virtual-circuit drift/config tests.
+- Verification: `cargo test -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci`; `cargo clippy -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci --all-targets -- -D warnings`; `cargo check -q -p oya-cloud-network-domain -p oya-cloud-network-adapter-oci`.
+- Status boundary: OCI VCN/VPC, Load Balancer, DNS, and FastConnect request contracts are green; CDN, second-provider adapters, and credentialed live provider smoke remain pending.

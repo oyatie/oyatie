@@ -730,6 +730,7 @@ pub enum NetworkProviderKind {
     OciVcn,
     OciLoadBalancer,
     OciDnsZone,
+    OciFastConnect,
 }
 
 impl NetworkProviderKind {
@@ -738,6 +739,7 @@ impl NetworkProviderKind {
             Self::OciVcn => "oci_vcn",
             Self::OciLoadBalancer => "oci_load_balancer",
             Self::OciDnsZone => "oci_dns_zone",
+            Self::OciFastConnect => "oci_fast_connect",
         }
     }
 }
@@ -777,6 +779,19 @@ impl NetworkProviderDnsZoneOperation {
     pub const fn label(self) -> &'static str {
         match self {
             Self::CreateDnsZone => "create_dns_zone",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum NetworkProviderDirectInterconnectOperation {
+    CreateDirectInterconnect,
+}
+
+impl NetworkProviderDirectInterconnectOperation {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::CreateDirectInterconnect => "create_direct_interconnect",
         }
     }
 }
@@ -932,6 +947,60 @@ pub enum NetworkProviderDnsZoneError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NetworkProviderDirectInterconnectCreateRequest {
+    pub request_id: String,                   // data_class: INTERNAL_ONLY
+    pub provider_virtual_circuit_ref: String, // data_class: INTERNAL_ONLY
+    pub interconnect_partners: Vec<InterconnectPartnerCreate>, // data_class: INTERNAL_ONLY
+    pub direct_interconnect: DirectInterconnectCreate, // data_class: INTERNAL_ONLY
+    pub actor: String,                        // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,              // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NetworkProviderDirectInterconnectReceipt {
+    pub provider: NetworkProviderKind, // data_class: PUBLIC
+    pub operation: NetworkProviderDirectInterconnectOperation, // data_class: PUBLIC
+    pub request_id: String,            // data_class: INTERNAL_ONLY
+    pub provider_request_id: String,   // data_class: INTERNAL_ONLY
+    pub provider_virtual_circuit_ref: String, // data_class: INTERNAL_ONLY
+    pub resource_id: String,           // data_class: INTERNAL_ONLY
+    pub tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub region: String,                // data_class: PUBLIC
+    pub partner_id: String,            // data_class: INTERNAL_ONLY
+    pub peering_location: String,      // data_class: PUBLIC
+    pub physical_port_id: String,      // data_class: INTERNAL_ONLY
+    pub vlan_tag: u16,                 // data_class: INTERNAL_ONLY
+    pub bandwidth_mbps: u32,           // data_class: PUBLIC
+    pub redundant_port_count: u8,      // data_class: PUBLIC
+    pub bgp_session_count: usize,      // data_class: PUBLIC
+    pub advertised_prefix_count: usize, // data_class: PUBLIC
+    pub actor: String,                 // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,       // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String, // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,           // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum NetworkProviderDirectInterconnectError {
+    InvalidProviderVirtualCircuitRef,
+    InvalidProviderRequestId,
+    InvalidProviderEvidenceRef,
+    InvalidIdempotencyKey,
+    InvalidActorRef,
+    InvalidRequestShape(CloudNetworkError),
+    ProviderRejected {
+        provider: NetworkProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+    ProviderUnavailable {
+        provider: NetworkProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudNetworkError {
     InvalidTenantId,
     InvalidResourceId,
@@ -1068,6 +1137,15 @@ pub trait NetworkProviderDnsZonePort {
         &self,
         input: NetworkProviderDnsZoneCreateRequest,
     ) -> Result<NetworkProviderDnsZoneReceipt, NetworkProviderDnsZoneError>;
+}
+
+pub trait NetworkProviderDirectInterconnectPort {
+    fn provider_kind(&self) -> NetworkProviderKind;
+
+    fn create_direct_interconnect(
+        &self,
+        input: NetworkProviderDirectInterconnectCreateRequest,
+    ) -> Result<NetworkProviderDirectInterconnectReceipt, NetworkProviderDirectInterconnectError>;
 }
 
 pub trait NetworkRepo {
@@ -1305,6 +1383,85 @@ impl NetworkProviderDnsZoneReceipt {
             kind: input.dns_zone.kind,
             vpc_id: input.dns_zone.vpc_id,
             dnssec_enabled: input.dns_zone.dnssec_key_ref.is_some(),
+            actor: input.actor,
+            idempotency_key: input.idempotency_key,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: NETWORK_SCHEMA_VERSION,
+        })
+    }
+}
+
+impl NetworkProviderDirectInterconnectCreateRequest {
+    pub fn validate(&self) -> Result<(), NetworkProviderDirectInterconnectError> {
+        validate_network_provider_direct_interconnect_ref(
+            &self.request_id,
+            NetworkProviderDirectInterconnectError::InvalidProviderRequestId,
+        )?;
+        validate_network_provider_direct_interconnect_ref(
+            &self.provider_virtual_circuit_ref,
+            NetworkProviderDirectInterconnectError::InvalidProviderVirtualCircuitRef,
+        )?;
+        validate_network_provider_direct_interconnect_ref(
+            &self.idempotency_key,
+            NetworkProviderDirectInterconnectError::InvalidIdempotencyKey,
+        )?;
+        let mut known_partners = BTreeMap::new();
+        for partner_input in self.interconnect_partners.clone() {
+            let partner = InterconnectPartner::new(partner_input)
+                .map_err(NetworkProviderDirectInterconnectError::InvalidRequestShape)?;
+            if known_partners
+                .insert(partner.id.value.clone(), partner)
+                .is_some()
+            {
+                return Err(NetworkProviderDirectInterconnectError::InvalidRequestShape(
+                    CloudNetworkError::DuplicateInterconnectPartner,
+                ));
+            }
+        }
+        DirectInterconnect::new(&known_partners, self.direct_interconnect.clone())
+            .map_err(NetworkProviderDirectInterconnectError::InvalidRequestShape)?;
+        PrincipalId::new(self.actor.clone())
+            .map_err(|_| NetworkProviderDirectInterconnectError::InvalidActorRef)?;
+        Ok(())
+    }
+}
+
+impl NetworkProviderDirectInterconnectReceipt {
+    pub fn create_direct_interconnect(
+        provider: NetworkProviderKind,
+        input: NetworkProviderDirectInterconnectCreateRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, NetworkProviderDirectInterconnectError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_network_provider_direct_interconnect_ref(
+            &provider_request_id,
+            NetworkProviderDirectInterconnectError::InvalidProviderRequestId,
+        )?;
+        validate_network_provider_direct_interconnect_ref(
+            &provider_evidence_ref,
+            NetworkProviderDirectInterconnectError::InvalidProviderEvidenceRef,
+        )?;
+        Ok(Self {
+            provider,
+            operation: NetworkProviderDirectInterconnectOperation::CreateDirectInterconnect,
+            request_id: input.request_id,
+            provider_request_id,
+            provider_virtual_circuit_ref: input.provider_virtual_circuit_ref,
+            resource_id: input.direct_interconnect.resource_id,
+            tenant_id: input.direct_interconnect.tenant_id,
+            region: input.direct_interconnect.region,
+            partner_id: input.direct_interconnect.partner_id,
+            peering_location: input.direct_interconnect.peering_location,
+            physical_port_id: input.direct_interconnect.physical_port_id,
+            vlan_tag: input.direct_interconnect.vlan_tag,
+            bandwidth_mbps: input.direct_interconnect.bandwidth_mbps,
+            redundant_port_count: input.direct_interconnect.redundant_port_count,
+            bgp_session_count: input.direct_interconnect.bgp_sessions.len(),
+            advertised_prefix_count: input.direct_interconnect.advertised_prefixes.len(),
             actor: input.actor,
             idempotency_key: input.idempotency_key,
             provider_evidence_ref,
@@ -2753,6 +2910,21 @@ fn validate_network_provider_dns_zone_ref(
     }
 }
 
+fn validate_network_provider_direct_interconnect_ref(
+    value: &str,
+    error: NetworkProviderDirectInterconnectError,
+) -> Result<(), NetworkProviderDirectInterconnectError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
 fn public_metadata_class(data_class: DataClass) -> Result<PrivacyDataClass, CloudNetworkError> {
     if data_class != DataClass::Public {
         return Err(CloudNetworkError::InvalidDataClass);
@@ -3115,6 +3287,26 @@ mod tests {
         }
     }
 
+    fn interconnect_partner_creates() -> Vec<InterconnectPartnerCreate> {
+        vec![
+            interconnect_partner_create("ixp_alpha", "alpha-region-fabric-a"),
+            interconnect_partner_create("ixp_beta", "alpha-region-fabric-b"),
+        ]
+    }
+
+    fn provider_direct_interconnect_create_request()
+    -> NetworkProviderDirectInterconnectCreateRequest {
+        NetworkProviderDirectInterconnectCreateRequest {
+            request_id: "networkprov_req_interconnect_create_001".to_string(),
+            provider_virtual_circuit_ref: "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary".to_string(),
+            interconnect_partners: interconnect_partner_creates(),
+            direct_interconnect: direct_interconnect_create(),
+            actor: "sp_network".to_string(),
+            idempotency_key: "idem-network-interconnect-create".to_string(),
+            requested_at_epoch_seconds: 1_700_000_060,
+        }
+    }
+
     fn ddos_create() -> DdosProtectionCreate {
         DdosProtectionCreate {
             resource_id: "oya:cloud:alpha-region:ten_alpha:ddos-protection:frontdoor".to_string(),
@@ -3397,6 +3589,64 @@ mod tests {
         assert_eq!(receipt.kind, DnsZoneKind::Public);
         assert_eq!(receipt.vpc_id, None);
         assert!(receipt.dnssec_enabled);
+        assert_eq!(receipt.actor, "sp_network");
+        assert_eq!(receipt.schema_version, NETWORK_SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn network_provider_direct_interconnect_requests_validate_context_shape_and_actor() {
+        provider_direct_interconnect_create_request()
+            .validate()
+            .expect("provider direct interconnect request is valid");
+
+        let mut bad_provider_ref = provider_direct_interconnect_create_request();
+        bad_provider_ref.provider_virtual_circuit_ref = " ".to_string();
+        assert_eq!(
+            bad_provider_ref.validate(),
+            Err(NetworkProviderDirectInterconnectError::InvalidProviderVirtualCircuitRef)
+        );
+
+        let mut bad_shape = provider_direct_interconnect_create_request();
+        bad_shape.direct_interconnect.redundant_port_count = 1;
+        assert_eq!(
+            bad_shape.validate(),
+            Err(NetworkProviderDirectInterconnectError::InvalidRequestShape(
+                CloudNetworkError::InterconnectRedundancyRequired,
+            ))
+        );
+
+        let mut bad_actor = provider_direct_interconnect_create_request();
+        bad_actor.actor = "network".to_string();
+        assert_eq!(
+            bad_actor.validate(),
+            Err(NetworkProviderDirectInterconnectError::InvalidActorRef)
+        );
+    }
+
+    #[test]
+    fn network_provider_direct_interconnect_receipts_keep_refs_without_provider_credentials() {
+        let receipt = NetworkProviderDirectInterconnectReceipt::create_direct_interconnect(
+            NetworkProviderKind::OciFastConnect,
+            provider_direct_interconnect_create_request(),
+            "oci-fast-connect-1700000000-networkprov_req_interconnect_create_001",
+            "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary/networkprov_req_interconnect_create_001",
+        )
+        .expect("direct interconnect receipt keeps provider references only");
+
+        assert_eq!(receipt.provider.label(), "oci_fast_connect");
+        assert_eq!(receipt.operation.label(), "create_direct_interconnect");
+        assert_eq!(
+            receipt.resource_id,
+            "oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary"
+        );
+        assert_eq!(receipt.partner_id, "ixp_alpha");
+        assert_eq!(receipt.peering_location, "alpha-region-fabric-a");
+        assert_eq!(receipt.physical_port_id, "icp_alpha_001");
+        assert_eq!(receipt.vlan_tag, 101);
+        assert_eq!(receipt.bandwidth_mbps, 10_000);
+        assert_eq!(receipt.redundant_port_count, 2);
+        assert_eq!(receipt.bgp_session_count, 2);
+        assert_eq!(receipt.advertised_prefix_count, 2);
         assert_eq!(receipt.actor, "sp_network");
         assert_eq!(receipt.schema_version, NETWORK_SCHEMA_VERSION);
     }
