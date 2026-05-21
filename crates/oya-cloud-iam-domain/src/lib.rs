@@ -546,6 +546,19 @@ impl IamDirectory {
         Ok(provider)
     }
 
+    pub fn list_identity_providers(
+        &self,
+        tenant_id: &str,
+    ) -> Result<Vec<IdentityProvider>, CloudIamError> {
+        validate_tenant_id(tenant_id)?;
+        Ok(self
+            .providers
+            .values()
+            .filter(|provider| provider.tenant_id.value == tenant_id)
+            .cloned()
+            .collect())
+    }
+
     pub fn create_principal(
         &mut self,
         input: IamPrincipalCreate,
