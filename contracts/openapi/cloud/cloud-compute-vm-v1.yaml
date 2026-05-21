@@ -185,8 +185,8 @@ components:
         residency:
           type: string
           enum:
-            - strict_kr
-            - kr_with_us_failover
+            - strict_home
+            - home_with_failover
             - global
           x-oyatie-rust-type: String
           x-oyatie-data-class: INTERNAL_ONLY
@@ -424,8 +424,8 @@ components:
         residency:
           type: string
           enum:
-            - strict_kr
-            - kr_with_us_failover
+            - strict_home
+            - home_with_failover
             - global
             - per_pack
           x-oyatie-rust-type: String
