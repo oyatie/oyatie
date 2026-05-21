@@ -5,14 +5,16 @@
 use oya_cloud_iam_api::{
     CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE, CLOUD_IAM_ROLE_CREATE_SURFACE,
     CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization, CloudIamApiBoundaryContext,
-    CloudIamApiError, CloudIamApiPrincipal, CloudIamIdentityProviderCreateApiRequest,
-    CloudIamIdentityProviderCreateApiStatus, CloudIamIdentityProviderCreateIdempotencyLedger,
-    CloudIamIdentityProviderCreateRequest, CloudIamIdentityProviderKind, CloudIamPrincipalRef,
-    CloudIamRoleCreateApiRequest, CloudIamRoleCreateApiStatus, CloudIamRoleCreateIdempotencyLedger,
-    CloudIamRoleCreateRequest, CloudIamScopeRef, CloudIamStsTokenApiRequest,
-    CloudIamStsTokenApiStatus, CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
+    CloudIamApiError, CloudIamApiPrincipal, CloudIamApiReadBoundaryContext,
+    CloudIamIdentityProviderCreateApiRequest, CloudIamIdentityProviderCreateApiStatus,
+    CloudIamIdentityProviderCreateIdempotencyLedger, CloudIamIdentityProviderCreateRequest,
+    CloudIamIdentityProviderKind, CloudIamIdentityProviderListApiRequest,
+    CloudIamIdentityProviderListApiStatus, CloudIamPrincipalRef, CloudIamRoleCreateApiRequest,
+    CloudIamRoleCreateApiStatus, CloudIamRoleCreateIdempotencyLedger, CloudIamRoleCreateRequest,
+    CloudIamScopeRef, CloudIamStsTokenApiRequest, CloudIamStsTokenApiStatus,
+    CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
     create_cloud_iam_identity_provider_from_api, create_cloud_iam_role_from_api,
-    issue_cloud_iam_sts_token_from_api,
+    issue_cloud_iam_sts_token_from_api, list_cloud_iam_identity_providers_from_api,
 };
 use oya_cloud_iam_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
@@ -25,6 +27,13 @@ fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryC
         request_id: request_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
         idempotency_key: idempotency_key.to_string(),
+    }
+}
+
+fn read_boundary_for(request_id: &str) -> CloudIamApiReadBoundaryContext {
+    CloudIamApiReadBoundaryContext {
+        request_id: request_id.to_string(),
+        tenant_id: "ten_alpha".to_string(),
     }
 }
 
@@ -96,6 +105,32 @@ fn external_oidc_provider_create() -> IdentityProviderCreate {
         audience: "urn:oyatie:cloud".to_string(),
         verification_material_ref: "jwks/partner".to_string(),
         created_at_epoch_seconds: 1_700_000_020,
+    }
+}
+
+fn external_saml_provider_create() -> IdentityProviderCreate {
+    IdentityProviderCreate {
+        id: "idp_alpha_saml".to_string(),
+        tenant_id: "ten_alpha".to_string(),
+        region_pack: "oya-pack-alpha".to_string(),
+        kind: IdentityProviderKind::Saml,
+        issuer_uri: "https://partner.example/saml".to_string(),
+        audience: "urn:oyatie:cloud:saml".to_string(),
+        verification_material_ref: "cert/partner".to_string(),
+        created_at_epoch_seconds: 1_700_000_021,
+    }
+}
+
+fn beta_oidc_provider_create() -> IdentityProviderCreate {
+    IdentityProviderCreate {
+        id: "idp_beta_oidc".to_string(),
+        tenant_id: "ten_beta".to_string(),
+        region_pack: "oya-pack-beta".to_string(),
+        kind: IdentityProviderKind::Oidc,
+        issuer_uri: "https://beta.example/oidc".to_string(),
+        audience: "urn:oyatie:cloud:beta".to_string(),
+        verification_material_ref: "jwks/beta".to_string(),
+        created_at_epoch_seconds: 1_700_000_022,
     }
 }
 
@@ -261,6 +296,82 @@ fn identity_provider_api_request(
             created_at_epoch_seconds: 1_700_000_020,
         },
     }
+}
+
+fn identity_provider_list_api_request(request_id: &str) -> CloudIamIdentityProviderListApiRequest {
+    CloudIamIdentityProviderListApiRequest {
+        boundary: read_boundary_for(request_id),
+        principal: principal_for("sp_cloud_provisioner"),
+        authorization: authorization_for(
+            "sp_cloud_provisioner",
+            &[oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE],
+        ),
+    }
+}
+
+#[test]
+fn identity_provider_list_api_returns_tenant_scoped_providers_in_deterministic_order() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    directory
+        .register_identity_provider(beta_oidc_provider_create())
+        .expect("beta provider registers");
+    directory
+        .register_identity_provider(external_saml_provider_create())
+        .expect("SAML provider registers");
+
+    let response = list_cloud_iam_identity_providers_from_api(
+        &directory,
+        identity_provider_list_api_request("req-idp-list"),
+    )
+    .expect("tenant-scoped provider list succeeds");
+
+    assert_eq!(response.metadata.request_id, "req-idp-list");
+    assert_eq!(
+        response
+            .data
+            .iter()
+            .map(|provider| provider.identity_provider_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["idp_alpha_saml", "idp_partner_oidc"]
+    );
+    assert_eq!(response.data[0].kind, CloudIamIdentityProviderKind::Saml);
+    assert_eq!(response.data[1].kind, CloudIamIdentityProviderKind::Oidc);
+    assert_eq!(CloudIamIdentityProviderListApiStatus::Ok.code(), 200);
+    assert_eq!(
+        CloudIamIdentityProviderListApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(CloudIamIdentityProviderListApiStatus::Forbidden.code(), 403);
+}
+
+#[test]
+fn identity_provider_list_api_rejects_cross_tenant_or_unauthorized_reads() {
+    let directory = IamDirectory::default();
+    let mut cross_tenant = identity_provider_list_api_request("req-idp-list-cross-tenant");
+    cross_tenant.boundary.tenant_id = "ten_beta".to_string();
+
+    assert_eq!(
+        list_cloud_iam_identity_providers_from_api(&directory, cross_tenant),
+        Err(CloudIamApiError::TenantMismatch {
+            header_tenant_id: "ten_beta".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_beta".to_string(),
+        })
+    );
+
+    let unauthorized = CloudIamIdentityProviderListApiRequest {
+        authorization: authorization_for("sp_cloud_provisioner", &[CLOUD_IAM_STS_TOKEN_SURFACE]),
+        ..identity_provider_list_api_request("req-idp-list-denied")
+    };
+    assert_eq!(
+        list_cloud_iam_identity_providers_from_api(&directory, unauthorized),
+        Err(CloudIamApiError::AuthorizationDenied {
+            surface: oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE.to_string(),
+        })
+    );
 }
 
 #[test]
