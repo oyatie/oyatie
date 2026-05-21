@@ -3,11 +3,13 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_cloud_iam_api::{
-    CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE, CLOUD_IAM_ROLE_CREATE_SURFACE,
-    CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization, CloudIamApiBoundaryContext,
-    CloudIamApiError, CloudIamApiPrincipal, CloudIamApiReadBoundaryContext,
-    CloudIamIdentityProviderCreateApiRequest, CloudIamIdentityProviderCreateApiStatus,
-    CloudIamIdentityProviderCreateIdempotencyLedger, CloudIamIdentityProviderCreateRequest,
+    CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE, CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE,
+    CLOUD_IAM_ROLE_CREATE_SURFACE, CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization,
+    CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPrincipal,
+    CloudIamApiReadBoundaryContext, CloudIamIdentityProviderCreateApiRequest,
+    CloudIamIdentityProviderCreateApiStatus, CloudIamIdentityProviderCreateIdempotencyLedger,
+    CloudIamIdentityProviderCreateRequest, CloudIamIdentityProviderDeleteApiRequest,
+    CloudIamIdentityProviderDeleteApiStatus, CloudIamIdentityProviderDeleteIdempotencyLedger,
     CloudIamIdentityProviderKind, CloudIamIdentityProviderListApiRequest,
     CloudIamIdentityProviderListApiStatus, CloudIamIdentityProviderUpdateApiRequest,
     CloudIamIdentityProviderUpdateApiStatus, CloudIamIdentityProviderUpdateIdempotencyLedger,
@@ -16,8 +18,8 @@ use oya_cloud_iam_api::{
     CloudIamScopeRef, CloudIamStsTokenApiRequest, CloudIamStsTokenApiStatus,
     CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
     create_cloud_iam_identity_provider_from_api, create_cloud_iam_role_from_api,
-    issue_cloud_iam_sts_token_from_api, list_cloud_iam_identity_providers_from_api,
-    update_cloud_iam_identity_provider_from_api,
+    delete_cloud_iam_identity_provider_from_api, issue_cloud_iam_sts_token_from_api,
+    list_cloud_iam_identity_providers_from_api, update_cloud_iam_identity_provider_from_api,
 };
 use oya_cloud_iam_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
@@ -336,6 +338,22 @@ fn identity_provider_update_api_request(
     }
 }
 
+fn identity_provider_delete_api_request(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudIamIdentityProviderDeleteApiRequest {
+    CloudIamIdentityProviderDeleteApiRequest {
+        path_identity_provider_id: "idp_partner_oidc".to_string(),
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_cloud_provisioner"),
+        authorization: authorization_for(
+            "sp_cloud_provisioner",
+            &[CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE],
+        ),
+        tenant_id: "ten_alpha".to_string(),
+    }
+}
+
 #[test]
 fn identity_provider_list_api_returns_tenant_scoped_providers_in_deterministic_order() {
     let mut directory = IamDirectory::default();
@@ -399,6 +417,135 @@ fn identity_provider_list_api_rejects_cross_tenant_or_unauthorized_reads() {
             surface: oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE.to_string(),
         })
     );
+}
+
+#[test]
+fn identity_provider_delete_api_deletes_existing_provider_with_idempotency_and_tenant_binding() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    let mut ledger = CloudIamIdentityProviderDeleteIdempotencyLedger::default();
+    let request = identity_provider_delete_api_request("req-idp-delete", "idem-idp-delete");
+
+    let first =
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+            .expect("provider-managed IdP deletes through API");
+    let second = delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request)
+        .expect("same IdP delete request replays idempotently");
+
+    assert_eq!(first, second);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(first.metadata.request_id, "req-idp-delete");
+    assert_eq!(first.data.identity_provider_id, "idp_partner_oidc");
+    assert_eq!(first.data.tenant_id, "ten_alpha");
+    assert_eq!(first.data.kind, CloudIamIdentityProviderKind::Oidc);
+    assert_eq!(
+        CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE,
+        "cloud.iam.identity_provider.delete"
+    );
+    assert_eq!(CloudIamIdentityProviderDeleteApiStatus::Ok.code(), 200);
+    assert_eq!(
+        CloudIamIdentityProviderDeleteApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(
+        CloudIamIdentityProviderDeleteApiStatus::Forbidden.code(),
+        403
+    );
+    assert_eq!(
+        CloudIamIdentityProviderDeleteApiStatus::Conflict.code(),
+        409
+    );
+    assert_eq!(
+        CloudIamIdentityProviderDeleteApiStatus::UnprocessableEntity.code(),
+        422
+    );
+
+    let listed = list_cloud_iam_identity_providers_from_api(
+        &directory,
+        identity_provider_list_api_request("req-idp-delete-list"),
+    )
+    .expect("tenant-scoped provider list remains available after delete");
+    assert!(listed.data.is_empty());
+}
+
+#[test]
+fn identity_provider_delete_api_rejects_missing_cross_tenant_unauthorized_or_in_use_deletes() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    directory
+        .register_identity_provider(beta_oidc_provider_create())
+        .expect("beta provider registers");
+    let mut ledger = CloudIamIdentityProviderDeleteIdempotencyLedger::default();
+
+    let mut missing =
+        identity_provider_delete_api_request("req-idp-delete-missing", "idem-delete-missing");
+    missing.path_identity_provider_id = "idp_missing_oidc".to_string();
+    let missing_error =
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, missing)
+            .expect_err("missing provider cannot be deleted");
+    assert_eq!(
+        missing_error,
+        CloudIamApiError::Iam(CloudIamError::UnknownProvider)
+    );
+    assert_eq!(missing_error.identity_provider_delete_status_code(), 400);
+
+    let mut cross_tenant =
+        identity_provider_delete_api_request("req-idp-delete-cross", "idem-delete-cross");
+    cross_tenant.path_identity_provider_id = "idp_beta_oidc".to_string();
+    let cross_tenant_error =
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, cross_tenant)
+            .expect_err("cross-tenant provider cannot be deleted by alpha principal");
+    assert_eq!(
+        cross_tenant_error,
+        CloudIamApiError::Iam(CloudIamError::ProviderTenantMismatch)
+    );
+    assert_eq!(
+        cross_tenant_error.identity_provider_delete_status_code(),
+        403
+    );
+
+    let mut unauthorized =
+        identity_provider_delete_api_request("req-idp-delete-denied", "idem-delete-denied");
+    unauthorized.authorization = authorization_for(
+        "sp_cloud_provisioner",
+        &[oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE],
+    );
+    let before_denied_ledger_len = ledger.len();
+    assert_eq!(
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, unauthorized),
+        Err(CloudIamApiError::AuthorizationDenied {
+            surface: CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE.to_string(),
+        })
+    );
+    assert_eq!(ledger.len(), before_denied_ledger_len);
+
+    let mut drifted =
+        identity_provider_delete_api_request("req-idp-delete-tenant-drift", "idem-delete-drift");
+    drifted.tenant_id = "ten_beta".to_string();
+    assert_eq!(
+        delete_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, drifted),
+        Err(CloudIamApiError::TenantMismatch {
+            header_tenant_id: "ten_alpha".to_string(),
+            principal_tenant_id: "ten_alpha".to_string(),
+            body_tenant_id: "ten_beta".to_string(),
+        })
+    );
+
+    directory
+        .create_principal(external_principal_create())
+        .expect("external principal binds provider");
+    let in_use = delete_cloud_iam_identity_provider_from_api(
+        &mut directory,
+        &mut ledger,
+        identity_provider_delete_api_request("req-idp-delete-in-use", "idem-delete-in-use"),
+    )
+    .expect_err("provider with bound principals cannot be deleted");
+    assert_eq!(in_use, CloudIamApiError::Iam(CloudIamError::ProviderInUse));
+    assert_eq!(in_use.identity_provider_delete_status_code(), 409);
 }
 
 #[test]
