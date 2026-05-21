@@ -1365,6 +1365,20 @@ name = "oya-cloud-finops-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-iam-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-iam-domain",
+]
+
+[[package]]
+name = "oya-cloud-iam-adapter-selfhosted"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-iam-domain",
+]
+
+[[package]]
 name = "oya-cloud-iam-api"
 version = "0.1.0"
 dependencies = [

@@ -182,6 +182,8 @@ members = [
   "crates/oya-cloud-finops-api",
   "crates/oya-cloud-iam-app",
   "crates/oya-cloud-iam-api",
+  "crates/oya-cloud-iam-adapter-oci",
+  "crates/oya-cloud-iam-adapter-selfhosted",
   "crates/oya-cloud-kms-api",
   "crates/oya-cloud-kms-adapter-openbao",
   "crates/oya-cloud-kms-adapter-oci",

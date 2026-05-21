@@ -21,6 +21,7 @@ const IAM_PRINCIPAL_SCHEMA_VERSION: u32 = 1;
 const IAM_ROLE_SCHEMA_VERSION: u32 = 1;
 const STS_SESSION_SCHEMA_VERSION: u32 = 1;
 const IDENTITY_PROVIDER_SCHEMA_VERSION: u32 = 1;
+const IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
 const USER_ID_PREFIX: &str = "usr_";
 const SERVICE_PRINCIPAL_PREFIX: &str = "sp_";
@@ -97,6 +98,60 @@ pub enum IdentityProviderKind {
     Oidc,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum CloudIamProviderKind {
+    OciIdentityDomain,
+    SelfHostedOidcControlPlane,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum IamProviderIdentityProviderOperation {
+    Upsert,
+    Delete,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum IamProviderIdentityProviderSyncStatus {
+    Synchronized,
+    DeleteSynchronized,
+}
+
+impl IdentityProviderKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Saml => "saml",
+            Self::Oidc => "oidc",
+        }
+    }
+}
+
+impl CloudIamProviderKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::OciIdentityDomain => "oci_identity_domain",
+            Self::SelfHostedOidcControlPlane => "selfhosted_oidc_control_plane",
+        }
+    }
+}
+
+impl IamProviderIdentityProviderOperation {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Upsert => "upsert",
+            Self::Delete => "delete",
+        }
+    }
+}
+
+impl IamProviderIdentityProviderSyncStatus {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Synchronized => "synchronized",
+            Self::DeleteSynchronized => "delete_synchronized",
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct IdentityProviderCreate {
     pub id: String,                        // data_class: INTERNAL_ONLY
@@ -131,6 +186,54 @@ pub struct IdentityProvider {
     pub verification_material_ref: Classified<String>, // data_class: INTERNAL_ONLY
     pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>,       // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IamProviderIdentityProviderSyncRequest {
+    pub request_id: String,                     // data_class: INTERNAL_ONLY
+    pub provider_identity_provider_ref: String, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                      // data_class: INTERNAL_ONLY
+    pub actor: String,                          // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,                // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
+    pub operation: IamProviderIdentityProviderOperation, // data_class: PUBLIC
+    pub identity_provider: IdentityProvider,    // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IamProviderIdentityProviderSyncReceipt {
+    pub provider: CloudIamProviderKind, // data_class: PUBLIC
+    pub operation: IamProviderIdentityProviderOperation, // data_class: PUBLIC
+    pub sync_status: IamProviderIdentityProviderSyncStatus, // data_class: PUBLIC
+    pub request_id: String,             // data_class: INTERNAL_ONLY
+    pub provider_request_id: String,    // data_class: INTERNAL_ONLY
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
+    pub identity_provider_id: String,   // data_class: INTERNAL_ONLY
+    pub identity_provider_kind: IdentityProviderKind, // data_class: PUBLIC
+    pub provider_identity_provider_ref: String, // data_class: INTERNAL_ONLY
+    pub actor: String,                  // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,        // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String,  // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,            // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum IamProviderIdentityProviderError {
+    InvalidProviderIdentityProviderRef,
+    InvalidProviderRequestId,
+    InvalidProviderEvidenceRef,
+    InvalidIdempotencyKey,
+    InvalidActorRef,
+    InvalidRequestShape(CloudIamError),
+    ProviderRejected {
+        provider: CloudIamProviderKind, // data_class: PUBLIC
+        reason: String,                 // data_class: INTERNAL_ONLY
+    },
+    ProviderUnavailable {
+        provider: CloudIamProviderKind, // data_class: PUBLIC
+        reason: String,                 // data_class: INTERNAL_ONLY
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -269,6 +372,15 @@ pub struct IamDirectory {
     sessions: BTreeMap<StsSessionId, StsSession>,
 }
 
+pub trait IamProviderIdentityProviderPort {
+    fn provider_kind(&self) -> CloudIamProviderKind;
+
+    fn sync_identity_provider(
+        &self,
+        input: IamProviderIdentityProviderSyncRequest,
+    ) -> Result<IamProviderIdentityProviderSyncReceipt, IamProviderIdentityProviderError>;
+}
+
 impl IamIdentityProviderId {
     pub fn new(value: impl Into<String>) -> Result<Self, CloudIamError> {
         prefixed_id(
@@ -390,6 +502,78 @@ impl IdentityProvider {
             verification_material_ref: internal(input.verification_material_ref),
             created_at_epoch_seconds: internal(input.created_at_epoch_seconds),
             schema_version: public(IDENTITY_PROVIDER_SCHEMA_VERSION),
+        })
+    }
+}
+
+impl IamProviderIdentityProviderSyncRequest {
+    pub fn validate(&self) -> Result<(), IamProviderIdentityProviderError> {
+        validate_provider_ref(
+            &self.request_id,
+            IamProviderIdentityProviderError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &self.provider_identity_provider_ref,
+            IamProviderIdentityProviderError::InvalidProviderIdentityProviderRef,
+        )?;
+        validate_provider_ref(
+            &self.idempotency_key,
+            IamProviderIdentityProviderError::InvalidIdempotencyKey,
+        )?;
+        validate_tenant_id(&self.tenant_id)
+            .map_err(IamProviderIdentityProviderError::InvalidRequestShape)?;
+        infer_principal_id(self.actor.clone())
+            .map_err(|_| IamProviderIdentityProviderError::InvalidActorRef)?;
+        if self.identity_provider.tenant_id.value != self.tenant_id {
+            return Err(IamProviderIdentityProviderError::InvalidRequestShape(
+                CloudIamError::ProviderTenantMismatch,
+            ));
+        }
+        Ok(())
+    }
+}
+
+impl IamProviderIdentityProviderSyncReceipt {
+    pub fn from_request(
+        provider: CloudIamProviderKind,
+        input: IamProviderIdentityProviderSyncRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, IamProviderIdentityProviderError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_provider_ref(
+            &provider_request_id,
+            IamProviderIdentityProviderError::InvalidProviderRequestId,
+        )?;
+        validate_provider_ref(
+            &provider_evidence_ref,
+            IamProviderIdentityProviderError::InvalidProviderEvidenceRef,
+        )?;
+        let sync_status = match input.operation {
+            IamProviderIdentityProviderOperation::Upsert => {
+                IamProviderIdentityProviderSyncStatus::Synchronized
+            }
+            IamProviderIdentityProviderOperation::Delete => {
+                IamProviderIdentityProviderSyncStatus::DeleteSynchronized
+            }
+        };
+        Ok(Self {
+            provider,
+            operation: input.operation,
+            sync_status,
+            request_id: input.request_id,
+            provider_request_id,
+            tenant_id: input.tenant_id,
+            identity_provider_id: input.identity_provider.id.value.value,
+            identity_provider_kind: input.identity_provider.kind.value,
+            provider_identity_provider_ref: input.provider_identity_provider_ref,
+            actor: input.actor,
+            idempotency_key: input.idempotency_key,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: IAM_PROVIDER_IDP_SYNC_SCHEMA_VERSION,
         })
     }
 }
@@ -879,6 +1063,21 @@ fn validate_non_empty(value: &str, error: CloudIamError) -> Result<(), CloudIamE
     }
 }
 
+fn validate_provider_ref(
+    value: &str,
+    error: IamProviderIdentityProviderError,
+) -> Result<(), IamProviderIdentityProviderError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
 fn display_name_class(kind: IamPrincipalKind) -> DataClass {
     match kind {
         IamPrincipalKind::User | IamPrincipalKind::Federated | IamPrincipalKind::External => {
@@ -1214,5 +1413,62 @@ mod tests {
         })
         .expect_err("role metadata class must stay public privacy metadata");
         assert_eq!(class_error, CloudIamError::InvalidDataClass);
+    }
+
+    #[test]
+    fn provider_identity_provider_sync_requests_validate_refs_and_receipts() {
+        let identity_provider =
+            IdentityProvider::new(provider_create()).expect("identity provider fixture is valid");
+        let request = IamProviderIdentityProviderSyncRequest {
+            request_id: "iam-idp-sync-001".to_string(),
+            provider_identity_provider_ref: "oci-iam-idp://identity-domain-alpha/idp_alpha_saml"
+                .to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            actor: "sp_cloud_provisioner".to_string(),
+            idempotency_key: "idem-iam-idp-sync-001".to_string(),
+            requested_at_epoch_seconds: 1_700_000_020,
+            operation: IamProviderIdentityProviderOperation::Upsert,
+            identity_provider,
+        };
+
+        request.validate().expect("provider sync request is valid");
+        assert_eq!(request.operation.label(), "upsert");
+        assert_eq!(
+            CloudIamProviderKind::OciIdentityDomain.label(),
+            "oci_identity_domain"
+        );
+
+        let receipt = IamProviderIdentityProviderSyncReceipt::from_request(
+            CloudIamProviderKind::OciIdentityDomain,
+            request.clone(),
+            "oci-iam-1700000020-iam-idp-sync-001",
+            "oci-iam-idp://identity-domain-alpha/idp_alpha_saml/iam-idp-sync-001",
+        )
+        .expect("provider sync receipt is valid");
+
+        assert_eq!(receipt.provider, CloudIamProviderKind::OciIdentityDomain);
+        assert_eq!(
+            receipt.sync_status,
+            IamProviderIdentityProviderSyncStatus::Synchronized
+        );
+        assert_eq!(receipt.identity_provider_id, "idp_alpha_saml");
+        assert_eq!(receipt.tenant_id, "ten_alpha");
+        assert_eq!(receipt.occurred_at_epoch_seconds, 1_700_000_020);
+
+        let mut mismatched_tenant = request.clone();
+        mismatched_tenant.tenant_id = "ten_beta".to_string();
+        assert_eq!(
+            mismatched_tenant.validate(),
+            Err(IamProviderIdentityProviderError::InvalidRequestShape(
+                CloudIamError::ProviderTenantMismatch
+            ))
+        );
+
+        let mut blank_provider_ref = request;
+        blank_provider_ref.provider_identity_provider_ref = " ".to_string();
+        assert_eq!(
+            blank_provider_ref.validate(),
+            Err(IamProviderIdentityProviderError::InvalidProviderIdentityProviderRef)
+        );
     }
 }
