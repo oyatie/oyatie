@@ -1,0 +1,239 @@
+openapi: 3.2.0
+info:
+  title: Production Planning API
+  version: 1.0.0
+  summary: SAP PP parity API with marketplace settlement boundaries
+servers:
+  - url: https://api.oyatie.example/production-planning
+    description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
+x-enterprise-benchmarks:
+  - "SAP PP Production Planning"
+  - "Oracle Fusion Cloud Manufacturing"
+  - "Workday Adaptive Planning production-capacity counterpart"
+  - "NetSuite Manufacturing WIP and Routings"
+  - "Microsoft Dynamics 365 Supply Chain Management"
+paths:
+  /v1/production-planning/bom-revision:
+    post:
+      summary: Create or amend Production Planning bom-revision
+      operationId: production_planning_bom_revision_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BomRevisionCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/production-planning/mrp-run:
+    post:
+      summary: Create or amend Production Planning mrp-run
+      operationId: production_planning_mrp_run_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MrpRunCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/production-planning/capacity-calendar:
+    post:
+      summary: Create or amend Production Planning capacity-calendar
+      operationId: production_planning_capacity_calendar_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CapacityCalendarCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/production-planning/routing-step:
+    post:
+      summary: Create or amend Production Planning routing-step
+      operationId: production_planning_routing_step_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoutingStepCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/production-planning/production-order:
+    post:
+      summary: Create or amend Production Planning production-order
+      operationId: production_planning_production_order_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductionOrderCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/production-planning/shop-floor-release:
+    post:
+      summary: Create or amend Production Planning shop-floor-release
+      operationId: production_planning_shop_floor_release_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShopFloorReleaseCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+components:
+  schemas:
+    BomRevisionCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    MrpRunCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    CapacityCalendarCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    RoutingStepCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    ProductionOrderCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    ShopFloorReleaseCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object

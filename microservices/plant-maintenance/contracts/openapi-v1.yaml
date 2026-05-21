@@ -1,0 +1,239 @@
+openapi: 3.2.0
+info:
+  title: Plant Maintenance API
+  version: 1.0.0
+  summary: SAP PM parity API with marketplace settlement boundaries
+servers:
+  - url: https://api.oyatie.example/plant-maintenance
+    description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
+x-enterprise-benchmarks:
+  - "SAP PM Plant Maintenance"
+  - "Oracle Fusion Maintenance"
+  - "Workday Extend asset-maintenance workflow counterpart"
+  - "NetSuite Fixed Assets and Field Service counterpart"
+  - "Microsoft Dynamics 365 Asset Management"
+paths:
+  /v1/plant-maintenance/equipment-master:
+    post:
+      summary: Create or amend Plant Maintenance equipment-master
+      operationId: plant_maintenance_equipment_master_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentMasterCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/plant-maintenance/maintenance-plan:
+    post:
+      summary: Create or amend Plant Maintenance maintenance-plan
+      operationId: plant_maintenance_maintenance_plan_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenancePlanCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/plant-maintenance/work-order:
+    post:
+      summary: Create or amend Plant Maintenance work-order
+      operationId: plant_maintenance_work_order_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkOrderCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/plant-maintenance/spare-part-reservation:
+    post:
+      summary: Create or amend Plant Maintenance spare-part-reservation
+      operationId: plant_maintenance_spare_part_reservation_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SparePartReservationCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/plant-maintenance/technician-dispatch:
+    post:
+      summary: Create or amend Plant Maintenance technician-dispatch
+      operationId: plant_maintenance_technician_dispatch_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TechnicianDispatchCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/plant-maintenance/downtime-window:
+    post:
+      summary: Create or amend Plant Maintenance downtime-window
+      operationId: plant_maintenance_downtime_window_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DowntimeWindowCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+components:
+  schemas:
+    EquipmentMasterCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    MaintenancePlanCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    WorkOrderCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    SparePartReservationCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    TechnicianDispatchCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    DowntimeWindowCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object

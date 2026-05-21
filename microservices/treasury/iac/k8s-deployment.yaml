@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oya-treasury
+  labels:
+    app: oya-treasury
+    sap-code: "TRM"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: oya-treasury
+  template:
+    metadata:
+      labels:
+        app: oya-treasury
+    spec:
+      containers:
+        - name: service
+          image: registry.example/oya-treasury:0.1.0
+          ports:
+            - name: h3
+              containerPort: 8443
+          env:
+            - name: OYA_HTTP_DEFAULT
+              value: HTTP/3
+            - name: OYA_ECH_ENABLED
+              value: "true"
+            - name: OYA_PQC_HYBRID
+              value: X25519MLKEM768

@@ -1,0 +1,239 @@
+openapi: 3.2.0
+info:
+  title: Quality Management API
+  version: 1.0.0
+  summary: SAP QM parity API with marketplace settlement boundaries
+servers:
+  - url: https://api.oyatie.example/quality-management
+    description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
+x-enterprise-benchmarks:
+  - "SAP QM Quality Management"
+  - "Oracle Fusion Quality Management"
+  - "Workday Extend quality-workflow counterpart"
+  - "NetSuite Quality Management"
+  - "Microsoft Dynamics 365 Supply Chain Quality Management"
+paths:
+  /v1/quality-management/inspection-plan:
+    post:
+      summary: Create or amend Quality Management inspection-plan
+      operationId: quality_management_inspection_plan_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectionPlanCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/inspection-lot:
+    post:
+      summary: Create or amend Quality Management inspection-lot
+      operationId: quality_management_inspection_lot_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectionLotCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/certificate-of-analysis:
+    post:
+      summary: Create or amend Quality Management certificate-of-analysis
+      operationId: quality_management_certificate_of_analysis_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateOfAnalysisCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/quality-notification:
+    post:
+      summary: Create or amend Quality Management quality-notification
+      operationId: quality_management_quality_notification_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QualityNotificationCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/quality-hold:
+    post:
+      summary: Create or amend Quality Management quality-hold
+      operationId: quality_management_quality_hold_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QualityHoldCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/audit-evidence:
+    post:
+      summary: Create or amend Quality Management audit-evidence
+      operationId: quality_management_audit_evidence_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuditEvidenceCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+components:
+  schemas:
+    InspectionPlanCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    InspectionLotCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    CertificateOfAnalysisCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    QualityNotificationCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    QualityHoldCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    AuditEvidenceCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object

@@ -1,0 +1,21 @@
+schema_version: "1.0"
+crate: oya-global-trade-export-control-classification-usecase
+microservice: global-trade
+bounded_context: export-control-classification
+layer: usecase
+adr_0105_layer: usecase
+owner_team: axis-global-trade
+status: planned
+sap_code: "GTS"
+benchmarks:
+  - "SAP GTS Global Trade Services"
+  - "Oracle Global Trade Management"
+  - "Workday supplier-compliance workflow counterpart"
+  - "NetSuite international tax and trade counterpart"
+  - "Microsoft Dynamics 365 global trade and export-control counterpart"
+contracts:
+  openapi: microservices/global-trade/contracts/openapi-v1.yaml
+  asyncapi: microservices/global-trade/contracts/asyncapi-v1.yaml
+  proto: microservices/global-trade/contracts/global-trade-v1.proto
+policy_fragment: microservices/global-trade/policy/export-control-classification-authorization.cedar
+settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

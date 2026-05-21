@@ -1,0 +1,239 @@
+openapi: 3.2.0
+info:
+  title: Global Trade API
+  version: 1.0.0
+  summary: SAP GTS parity API with marketplace settlement boundaries
+servers:
+  - url: https://api.oyatie.example/global-trade
+    description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
+x-enterprise-benchmarks:
+  - "SAP GTS Global Trade Services"
+  - "Oracle Global Trade Management"
+  - "Workday supplier-compliance workflow counterpart"
+  - "NetSuite international tax and trade counterpart"
+  - "Microsoft Dynamics 365 global trade and export-control counterpart"
+paths:
+  /v1/global-trade/customs-declaration:
+    post:
+      summary: Create or amend Global Trade customs-declaration
+      operationId: global_trade_customs_declaration_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomsDeclarationCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/global-trade/sanctions-screening:
+    post:
+      summary: Create or amend Global Trade sanctions-screening
+      operationId: global_trade_sanctions_screening_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SanctionsScreeningCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/global-trade/export-control-classification:
+    post:
+      summary: Create or amend Global Trade export-control-classification
+      operationId: global_trade_export_control_classification_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportControlClassificationCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/global-trade/trade-document:
+    post:
+      summary: Create or amend Global Trade trade-document
+      operationId: global_trade_trade_document_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradeDocumentCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/global-trade/denied-party-hit:
+    post:
+      summary: Create or amend Global Trade denied-party-hit
+      operationId: global_trade_denied_party_hit_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeniedPartyHitCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/global-trade/broker-filing:
+    post:
+      summary: Create or amend Global Trade broker-filing
+      operationId: global_trade_broker_filing_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerFilingCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+components:
+  schemas:
+    CustomsDeclarationCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    SanctionsScreeningCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    ExportControlClassificationCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    TradeDocumentCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    DeniedPartyHitCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    BrokerFilingCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object

@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: quality-management-availability
+  labels:
+    service: quality-management
+    sap_code: "QM"
+spec:
+  description: "Quality Management quality-management-availability objective; benchmarks SAP QM Quality Management | Oracle Fusion Quality Management | Workday Extend quality-workflow counterpart | NetSuite Quality Management | Microsoft Dynamics 365 Supply Chain Quality Management"
+  service: quality-management
+  indicator:
+    metadata:
+      name: quality-management-availability-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_requests_total{service=\"quality-management\",status=~\"2..\"}[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_requests_total{service=\"quality-management\"}[5m]))"
+  objectives:
+    - displayName: quality-management-availability
+      target: 0.999

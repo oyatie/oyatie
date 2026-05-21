@@ -1,0 +1,239 @@
+openapi: 3.2.0
+info:
+  title: Supply Chain Planning API
+  version: 1.0.0
+  summary: SAP SCM/APO parity API with marketplace settlement boundaries
+servers:
+  - url: https://api.oyatie.example/supply-chain-planning
+    description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
+x-enterprise-benchmarks:
+  - "SAP SCM/APO and SAP IBP"
+  - "Oracle Supply Chain Planning"
+  - "Workday Adaptive Planning supply-chain scenario counterpart"
+  - "NetSuite Demand Planning"
+  - "Microsoft Dynamics 365 Master Planning"
+paths:
+  /v1/supply-chain-planning/demand-plan:
+    post:
+      summary: Create or amend Supply Chain Planning demand-plan
+      operationId: supply_chain_planning_demand_plan_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemandPlanCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/supply-chain-planning/supply-network-plan:
+    post:
+      summary: Create or amend Supply Chain Planning supply-network-plan
+      operationId: supply_chain_planning_supply_network_plan_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplyNetworkPlanCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/supply-chain-planning/available-to-promise:
+    post:
+      summary: Create or amend Supply Chain Planning available-to-promise
+      operationId: supply_chain_planning_available_to_promise_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailableToPromiseCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/supply-chain-planning/replenishment-plan:
+    post:
+      summary: Create or amend Supply Chain Planning replenishment-plan
+      operationId: supply_chain_planning_replenishment_plan_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReplenishmentPlanCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/supply-chain-planning/transportation-plan:
+    post:
+      summary: Create or amend Supply Chain Planning transportation-plan
+      operationId: supply_chain_planning_transportation_plan_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransportationPlanCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/supply-chain-planning/planning-scenario:
+    post:
+      summary: Create or amend Supply Chain Planning planning-scenario
+      operationId: supply_chain_planning_planning_scenario_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanningScenarioCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+components:
+  schemas:
+    DemandPlanCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    SupplyNetworkPlanCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    AvailableToPromiseCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    ReplenishmentPlanCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    TransportationPlanCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    PlanningScenarioCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object

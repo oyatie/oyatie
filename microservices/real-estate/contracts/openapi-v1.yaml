@@ -1,0 +1,239 @@
+openapi: 3.2.0
+info:
+  title: Real Estate API
+  version: 1.0.0
+  summary: SAP RE-FX parity API with marketplace settlement boundaries
+servers:
+  - url: https://api.oyatie.example/real-estate
+    description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
+x-enterprise-benchmarks:
+  - "SAP RE-FX Flexible Real Estate Management"
+  - "Oracle Fusion Lease Accounting"
+  - "Workday Lease Accounting"
+  - "NetSuite Fixed Assets and lease-accounting counterpart"
+  - "Microsoft Dynamics 365 Finance Lease Accounting"
+paths:
+  /v1/real-estate/lease-contract:
+    post:
+      summary: Create or amend Real Estate lease-contract
+      operationId: real_estate_lease_contract_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeaseContractCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/real-estate/facility-master:
+    post:
+      summary: Create or amend Real Estate facility-master
+      operationId: real_estate_facility_master_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FacilityMasterCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/real-estate/occupancy-allocation:
+    post:
+      summary: Create or amend Real Estate occupancy-allocation
+      operationId: real_estate_occupancy_allocation_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OccupancyAllocationCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/real-estate/rent-schedule:
+    post:
+      summary: Create or amend Real Estate rent-schedule
+      operationId: real_estate_rent_schedule_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RentScheduleCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/real-estate/lease-accounting-event:
+    post:
+      summary: Create or amend Real Estate lease-accounting-event
+      operationId: real_estate_lease_accounting_event_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeaseAccountingEventCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/real-estate/facility-service-request:
+    post:
+      summary: Create or amend Real Estate facility-service-request
+      operationId: real_estate_facility_service_request_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FacilityServiceRequestCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+components:
+  schemas:
+    LeaseContractCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    FacilityMasterCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    OccupancyAllocationCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    RentScheduleCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    LeaseAccountingEventCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    FacilityServiceRequestCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object

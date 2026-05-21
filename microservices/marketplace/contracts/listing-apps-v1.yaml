@@ -1,0 +1,90 @@
+# Marketplace category-apps listing surface — extends DealSetCommand envelope (ADR-0249 KS#11)
+openapi: 3.2.0
+info:
+  title: Marketplace Apps Category API
+  version: 1.0.0
+  description: Per-ADR-0249 app-category listing surface for SaaS / container / managed-tenant apps.
+paths:
+  /marketplace/categories/apps/listings:
+    post:
+      operationId: AppListingPublish
+      summary: Publish an app listing
+      x-cedar-action: marketplace.category-apps.listing.publish
+      x-tenant-class-required: paid_only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppListingPublishCommand'
+      responses:
+        '201':
+          description: Listing created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealSetReceipt'
+        '403':
+          description: Cedar deny (tenant_class / kyc / security-review)
+  /marketplace/categories/apps/listings/{listing_id}/entitlement:
+    post:
+      operationId: AppEntitlementProvision
+      summary: Provision app entitlement (container pull or hosted-tenant provisioning)
+      x-cedar-action: marketplace.category-apps.entitlement.provision
+      parameters:
+        - name: listing_id
+          in: path
+          required: true
+          schema: { type: string, format: ulid }
+      responses:
+        '200':
+          description: Entitlement provisioned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppEntitlement'
+components:
+  schemas:
+    AppListingPublishCommand:
+      type: object
+      required: [tenant_id, sub_scope_path, principal_id, audit_chain_ref, tenant_class,
+                 revenue_share_cohort_id, title, description, delivery_mode, integration_surface,
+                 target_domain, sbom_ref, revenue_share_rate_basis_points, pricing_model,
+                 kyc_artifact_ref, terms_of_service_ref]
+      properties:
+        tenant_id: { type: string, format: ulid }
+        sub_scope_path: { type: string }
+        principal_id: { type: string }
+        audit_chain_ref: { type: string }
+        tenant_class: { type: string, enum: [paid] }
+        revenue_share_cohort_id: { type: string }
+        title: { type: string, minLength: 4, maxLength: 128 }
+        description: { type: string, maxLength: 65535 }
+        delivery_mode: { type: string, enum: [saas-hosted-tenant, byo-cluster-container, ami-image, mcp-server] }
+        integration_surface: { type: string, enum: [rest, grpc, mcp, async-events] }
+        target_domain: { type: string, enum: [healthcare, finance, ecommerce, devtools, productivity, supply-chain] }
+        container_image_signature: { type: string, description: 'cosign over OCI digest' }
+        mcp_server_manifest_ref: { type: string }
+        sbom_ref: { type: string }
+        revenue_share_rate_basis_points: { type: integer, minimum: 0, maximum: 10000 }
+        pricing_model: { type: string, enum: [free, one_time, subscription, usage_based, tiered, private_offer, contract] }
+        kyc_artifact_ref: { type: string }
+        terms_of_service_ref: { type: string }
+        dpia_ref: { type: string }
+        sla_addendum_ref: { type: string }
+        private_offer_terms_ref: { type: string }
+    AppEntitlement:
+      type: object
+      required: [listing_id, provisioning_kind, provisioning_handle, audit_chain_seal_id]
+      properties:
+        listing_id: { type: string, format: ulid }
+        provisioning_kind: { type: string, enum: [container_pull, hosted_tenant_cell_id, mcp_endpoint, ami_id] }
+        provisioning_handle: { type: string }
+        audit_chain_seal_id: { type: string }
+    DealSetReceipt:
+      type: object
+      properties:
+        listing_id: { type: string }
+        decision: { type: string, enum: [permit, deny] }
+        evidence_ref: { type: string }
+        state: { type: string }

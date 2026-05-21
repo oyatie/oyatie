@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: inspection-plan-success-rate
+  labels:
+    service: quality-management
+    sap_code: "QM"
+spec:
+  description: "Quality Management inspection-plan-success-rate objective; benchmarks SAP QM Quality Management | Oracle Fusion Quality Management | Workday Extend quality-workflow counterpart | NetSuite Quality Management | Microsoft Dynamics 365 Supply Chain Quality Management"
+  service: quality-management
+  indicator:
+    metadata:
+      name: inspection-plan-success-rate-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_quality_management_inspection_plan_success_total[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_quality_management_inspection_plan_attempt_total[5m]))"
+  objectives:
+    - displayName: inspection-plan-success-rate
+      target: 0.999

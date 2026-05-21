@@ -1,0 +1,47 @@
+{
+  "title": "Plant Maintenance health",
+  "tags": [
+    "erp",
+    "plant-maintenance",
+    "equipment-master",
+    "PM"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "benchmarks": [
+    "SAP PM Plant Maintenance",
+    "Oracle Fusion Maintenance",
+    "Workday Extend asset-maintenance workflow counterpart",
+    "NetSuite Fixed Assets and Field Service counterpart",
+    "Microsoft Dynamics 365 Asset Management"
+  ],
+  "panels": [
+    {
+      "title": "equipment-master command rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_plant_maintenance_equipment_master_commands_total[5m])) by (tenant_id)"
+        }
+      ]
+    },
+    {
+      "title": "equipment-master p99 latency",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_plant_maintenance_equipment_master_latency_seconds_bucket[5m])) by (le, tenant_id))"
+        }
+      ]
+    },
+    {
+      "title": "equipment-master audit events",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(audit_events_total{service=\"plant-maintenance\",bounded_context=\"equipment-master\"}[5m]))"
+        }
+      ]
+    }
+  ]
+}

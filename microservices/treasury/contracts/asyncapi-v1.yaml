@@ -1,0 +1,153 @@
+asyncapi: 3.1.0
+info:
+  title: Treasury Events
+  version: 1.0.0
+  description: AsyncAPI 3.1.0 channels for SAP TRM parity events.
+defaultContentType: application/json
+channels:
+  treasury.cash-position.events.v1:
+    address: treasury.cash-position.events.v1
+    messages:
+      CashPositionChanged:
+        $ref: "#/components/messages/CashPositionChanged"
+  treasury.liquidity-forecast.events.v1:
+    address: treasury.liquidity-forecast.events.v1
+    messages:
+      LiquidityForecastChanged:
+        $ref: "#/components/messages/LiquidityForecastChanged"
+  treasury.bank-account.events.v1:
+    address: treasury.bank-account.events.v1
+    messages:
+      BankAccountChanged:
+        $ref: "#/components/messages/BankAccountChanged"
+  treasury.debt-instrument.events.v1:
+    address: treasury.debt-instrument.events.v1
+    messages:
+      DebtInstrumentChanged:
+        $ref: "#/components/messages/DebtInstrumentChanged"
+  treasury.fx-exposure.events.v1:
+    address: treasury.fx-exposure.events.v1
+    messages:
+      FxExposureChanged:
+        $ref: "#/components/messages/FxExposureChanged"
+  treasury.hedge-designation.events.v1:
+    address: treasury.hedge-designation.events.v1
+    messages:
+      HedgeDesignationChanged:
+        $ref: "#/components/messages/HedgeDesignationChanged"
+components:
+  messages:
+    CashPositionChanged:
+      name: CashPositionChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-TREASURY-CASH_POSITION-CHANGED
+          bounded_context:
+            type: string
+            const: cash-position
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    LiquidityForecastChanged:
+      name: LiquidityForecastChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-TREASURY-LIQUIDITY_FORECAST-CHANGED
+          bounded_context:
+            type: string
+            const: liquidity-forecast
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    BankAccountChanged:
+      name: BankAccountChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-TREASURY-BANK_ACCOUNT-CHANGED
+          bounded_context:
+            type: string
+            const: bank-account
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    DebtInstrumentChanged:
+      name: DebtInstrumentChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-TREASURY-DEBT_INSTRUMENT-CHANGED
+          bounded_context:
+            type: string
+            const: debt-instrument
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    FxExposureChanged:
+      name: FxExposureChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-TREASURY-FX_EXPOSURE-CHANGED
+          bounded_context:
+            type: string
+            const: fx-exposure
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    HedgeDesignationChanged:
+      name: HedgeDesignationChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-TREASURY-HEDGE_DESIGNATION-CHANGED
+          bounded_context:
+            type: string
+            const: hedge-designation
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time

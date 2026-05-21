@@ -1,0 +1,82 @@
+# Marketplace category-workflows listing surface — extends DealSetCommand envelope (ADR-0249 KS#11)
+openapi: 3.2.0
+info:
+  title: Marketplace Workflows Category API
+  version: 1.0.0
+  description: Per-ADR-0249 workflow-category listing surface for n8n-class visual workflows + Forge functions.
+paths:
+  /marketplace/categories/workflows/listings:
+    post:
+      operationId: WorkflowListingPublish
+      x-cedar-action: marketplace.category-workflows.listing.publish
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowListingPublishCommand'
+      responses:
+        '201':
+          description: Listing created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealSetReceipt'
+  /marketplace/categories/workflows/listings/{listing_id}/entitlement:
+    post:
+      operationId: WorkflowEntitlementImport
+      x-cedar-action: marketplace.category-workflows.entitlement.import
+      parameters:
+        - name: listing_id
+          in: path
+          required: true
+          schema: { type: string, format: ulid }
+      responses:
+        '200':
+          description: Workflow template imported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowEntitlement'
+components:
+  schemas:
+    WorkflowListingPublishCommand:
+      type: object
+      required: [tenant_id, sub_scope_path, principal_id, audit_chain_ref, tenant_class,
+                 revenue_share_cohort_id, title, description, workflow_class, trigger_type,
+                 workflow_definition_signature, required_connectors_manifest, sbom_ref,
+                 revenue_share_rate_basis_points, pricing_model]
+      properties:
+        tenant_id: { type: string, format: ulid }
+        sub_scope_path: { type: string }
+        principal_id: { type: string }
+        audit_chain_ref: { type: string }
+        tenant_class: { type: string, enum: [paid, demo_trial] }
+        revenue_share_cohort_id: { type: string }
+        title: { type: string, minLength: 4, maxLength: 128 }
+        description: { type: string, maxLength: 65535 }
+        workflow_class: { type: string, enum: [agentic, business-process, devops, healthcare, supply-chain, delivery] }
+        trigger_type: { type: string, enum: [http, schedule, event-bus, webhook, agent-tool-call] }
+        workflow_definition_signature: { type: string }
+        required_connectors_manifest: { type: string }
+        sbom_ref: { type: string }
+        revenue_share_rate_basis_points: { type: integer, minimum: 0, maximum: 10000 }
+        pricing_model: { type: string, enum: [free, one_time, subscription, usage_based, private_offer] }
+        template_variables_schema: { type: string }
+        example_inputs_ref: { type: string }
+        kyc_artifact_ref: { type: string }
+    WorkflowEntitlement:
+      type: object
+      required: [listing_id, workflow_engine_template_ref, signature, audit_chain_seal_id]
+      properties:
+        listing_id: { type: string, format: ulid }
+        workflow_engine_template_ref: { type: string }
+        signature: { type: string }
+        audit_chain_seal_id: { type: string }
+    DealSetReceipt:
+      type: object
+      properties:
+        listing_id: { type: string }
+        decision: { type: string }
+        evidence_ref: { type: string }
+        state: { type: string }
