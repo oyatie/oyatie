@@ -227,7 +227,15 @@ fn no_space_or_control(value: &str) -> bool {
 }
 
 fn encode_object_path(object_key: &str) -> String {
-    object_key.replace('/', "%2F")
+    object_key
+        .bytes()
+        .map(|byte| match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
+                (byte as char).to_string()
+            }
+            _ => format!("%{byte:02X}"),
+        })
+        .collect::<String>()
 }
 
 fn canonical_body(fields: &[(&str, &str)]) -> String {
@@ -330,6 +338,21 @@ mod tests {
         assert_eq!(command.method, "GET");
         assert!(command.body_canonical.contains("result_body_ref=objbody/"));
         assert!(!command.body_canonical.contains("raw_bytes"));
+    }
+
+    #[test]
+    fn object_path_percent_encodes_provider_url_segments() {
+        let mut request = get_request();
+        request.object_key = "workspace/final report #1.pdf".to_string();
+
+        let command = adapter()
+            .get_command(&request)
+            .expect("object key with spaces remains a valid domain key");
+
+        assert_eq!(
+            command.path,
+            format!("/n/{NAMESPACE}/b/{BUCKET}/o/workspace%2Ffinal%20report%20%231.pdf")
+        );
     }
 
     #[test]
