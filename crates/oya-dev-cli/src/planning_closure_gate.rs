@@ -21,7 +21,7 @@ const EXPECTED_GATE_COMMAND: &str = "cargo run -q -p oya-dev-cli -- gate validat
 const EXPECTED_CLAIM_STATUS: &str = "blocked_until_planning_closure_gate_green";
 const EXPECTED_FIRST_DELIVERABLE_ID: &str = "FD-001-enterprise-smb-generic-core";
 const EXPECTED_DELIVERY_MODE: &str = "full_depth_production_hyperscaler_exit";
-const EXPECTED_SCOPE_POSTURE: &str = "not_minimal_pilot_not_preview_not_reduced_scope";
+const EXPECTED_SCOPE_POSTURE: &str = "not_mvp_not_preview_not_reduced_scope";
 const EXPECTED_EXIT_CLAIM_BAR: &str = "industry_leading_production_grade_hyperscaler_grade";
 const EXPECTED_GOAL_PROMPT_PATH: &str =
     "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json";
@@ -1100,7 +1100,7 @@ fn validate_vertical_adr(contents: &str, path: &Path) -> Result<(), String> {
     for phrase in [
         "enterprise generic + smb generic",
         "full production depth",
-        "not thin-pilot",
+        "not minimum viable product",
         "core",
         "messenger",
         "mail",

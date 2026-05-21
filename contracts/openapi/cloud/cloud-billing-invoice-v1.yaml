@@ -165,7 +165,7 @@ components:
         tax_registration_id:
           type: string
           x-oyatie-rust-type: String
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         issued_at_epoch_seconds:
           type: integer
           format: uint64
@@ -449,7 +449,7 @@ components:
         tax_registration_id:
           type: string
           x-oyatie-rust-type: String
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         state:
           type: string
           enum:
