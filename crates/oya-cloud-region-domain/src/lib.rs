@@ -915,8 +915,11 @@ mod tests {
         let catalog = catalog_with_cell();
         let cell_id = CellId::new("cell-region-alpha1-a-001").expect("fixture cell id is valid");
 
+        // Cell manifest declares `allowed_residency: [PerPack(...)]`. Binding requests
+        // `Global` — region check passes (any non-empty region code), then cell
+        // manifest check denies because Global is not in the cell's allowed list.
         let error = catalog
-            .binding_for_cell("ten_global".to_string(), residency_class(), &cell_id)
+            .binding_for_cell("ten_global".to_string(), ResidencyClass::Global, &cell_id)
             .expect_err("binding must not ignore the cell residency manifest");
 
         assert_eq!(error, CloudRegionError::CellResidencyDenied);
