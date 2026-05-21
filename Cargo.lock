@@ -1275,6 +1275,26 @@ name = "oya-cloud-cell-app"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-compute-adapter-aws"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-compute-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-cloud-compute-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-compute-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
 name = "oya-cloud-compute-domain"
 version = "0.1.0"
 dependencies = [
