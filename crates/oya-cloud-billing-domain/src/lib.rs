@@ -498,7 +498,8 @@ impl Invoice {
         if input.tax_invoice_format != expected_format {
             return Err(CloudBillingError::InvalidTaxInvoiceFormat);
         }
-        let tax_registration_id = TaxRegistrationId::new(input.tax_registration_id, expected_format)?;
+        let tax_registration_id =
+            TaxRegistrationId::new(input.tax_registration_id, expected_format)?;
         let line_items = invoice_line_items(&input.tenant_id, input.line_items)?;
         let computed_subtotal = sum_line_items(&line_items)?;
         if computed_subtotal != input.subtotal

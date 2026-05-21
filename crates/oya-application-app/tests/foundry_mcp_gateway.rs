@@ -83,7 +83,8 @@ fn foundation_projects_per_tenant_mcp_descriptor_without_cross_tenant_leakage() 
     );
 
     let mut wrong_audience = access_token("ten_mcp", vec![DISCOVER_SCOPE.into()], 100);
-    wrong_audience.audience = "https://mcp.foundry.region-recovery.oyatie.test/tenants/ten_mcp".into();
+    wrong_audience.audience =
+        "https://mcp.foundry.region-recovery.oyatie.test/tenants/ten_mcp".into();
     assert_eq!(
         foundation.discover_mcp_gateway(McpDiscoveryRequest {
             tenant_id: "ten_mcp".into(),

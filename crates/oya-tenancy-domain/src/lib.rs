@@ -100,7 +100,10 @@ mod tests {
         )
         .expect("home-region tenant residency is valid");
 
-        assert_eq!(tenant.residency_class.value.label(), Some("strict_home_region"));
+        assert_eq!(
+            tenant.residency_class.value.label(),
+            Some("strict_home_region")
+        );
     }
 
     #[test]

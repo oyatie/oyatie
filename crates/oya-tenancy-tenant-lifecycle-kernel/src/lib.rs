@@ -61,6 +61,9 @@ pub trait TenantContextResolver {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TenantKernelError {
     NotFound,
-    InvalidTransition { from: TenantStatus, to: TenantStatus },
+    InvalidTransition {
+        from: TenantStatus,
+        to: TenantStatus,
+    },
     PersistenceUnavailable,
 }

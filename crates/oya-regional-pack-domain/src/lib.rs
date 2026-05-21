@@ -84,7 +84,10 @@ mod tests {
         )
         .expect("canonical residency label should be accepted");
 
-        assert_eq!(pack.residency_class.value.label(), Some("strict_home_region"));
+        assert_eq!(
+            pack.residency_class.value.label(),
+            Some("strict_home_region")
+        );
     }
 
     #[test]

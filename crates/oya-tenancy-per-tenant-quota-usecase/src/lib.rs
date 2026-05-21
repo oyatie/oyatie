@@ -51,5 +51,9 @@ pub fn resolve<C: TenantClassReader, O: QuotaOverrideRepository>(
     let (limit, source) = override_value
         .map(|v| (v, QuotaSource::TenantOverride))
         .unwrap_or((0, QuotaSource::ClassDefault));
-    Ok(QuotaDecision { limit, effective: limit, source })
+    Ok(QuotaDecision {
+        limit,
+        effective: limit,
+        source,
+    })
 }

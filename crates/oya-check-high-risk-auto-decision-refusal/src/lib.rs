@@ -308,9 +308,8 @@ fn parse_high_risk_refusal_claims(doc: &CapabilityDocument) -> Vec<HighRiskRefus
 
 fn line_declares_high_risk_refusal(line: &str) -> bool {
     let lower = line.to_ascii_lowercase();
-    let high_risk = lower.contains("high-risk")
-        || lower.contains("high_risk")
-        || lower.contains("high risk");
+    let high_risk =
+        lower.contains("high-risk") || lower.contains("high_risk") || lower.contains("high risk");
     let refused = lower.contains("refused at cedar")
         || lower.contains("refused at the cedar")
         || lower.contains("refused-at-cedar");
@@ -480,7 +479,11 @@ permit (principal, action, resource);
             contents: T2_AUTO_YAML_WITH_REFUSAL.into(),
         };
         let claims = parse_high_risk_refusal_claims(&cap);
-        assert_eq!(claims.len(), 1, "expected exactly one high-risk refusal claim");
+        assert_eq!(
+            claims.len(),
+            1,
+            "expected exactly one high-risk refusal claim"
+        );
         assert_eq!(claims[0].capability_id, "T2-task-auto-assign");
         assert_eq!(
             claims[0].risk_anchor_section,
@@ -568,11 +571,9 @@ permit (principal, action, resource);
             microservice: "tasks".into(),
             contents: T2_AUTO_YAML_WITH_REFUSAL.into(),
         };
-        let err = validate_high_risk_auto_decision_refusals(
-            vec![cap],
-            Vec::<CedarPolicyDocument>::new(),
-        )
-        .expect_err("missing cedar must fail");
+        let err =
+            validate_high_risk_auto_decision_refusals(vec![cap], Vec::<CedarPolicyDocument>::new())
+                .expect_err("missing cedar must fail");
         assert_eq!(err.kind, ViolationKind::NoCedarFragmentForMicroservice);
     }
 
@@ -588,11 +589,9 @@ capabilities:
 "#
             .into(),
         };
-        let report = validate_high_risk_auto_decision_refusals(
-            vec![cap],
-            Vec::<CedarPolicyDocument>::new(),
-        )
-        .expect("no claims => no findings");
+        let report =
+            validate_high_risk_auto_decision_refusals(vec![cap], Vec::<CedarPolicyDocument>::new())
+                .expect("no claims => no findings");
         assert_eq!(report.claims_found, 0);
     }
 

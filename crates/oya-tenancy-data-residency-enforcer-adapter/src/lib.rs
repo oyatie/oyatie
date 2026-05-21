@@ -28,8 +28,11 @@ pub trait ResidencyPolicyEvaluator {
 }
 
 pub trait ResidencyDenialAuditSink {
-    fn emit_denial(&self, ctx: &ResidencyContext, decision: ResidencyDecision)
-        -> Result<(), ResidencyAdapterError>;
+    fn emit_denial(
+        &self,
+        ctx: &ResidencyContext,
+        decision: ResidencyDecision,
+    ) -> Result<(), ResidencyAdapterError>;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

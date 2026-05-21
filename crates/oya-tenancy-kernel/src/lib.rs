@@ -213,7 +213,9 @@ impl ResidencyClass {
 
     pub fn allows_primary_region(self, region: &RegionCode) -> bool {
         match self {
-            Self::StrictHomeRegion | Self::HomeWithRecoveryFailover => region.as_str().starts_with("region-home"),
+            Self::StrictHomeRegion | Self::HomeWithRecoveryFailover => {
+                region.as_str().starts_with("region-home")
+            }
             Self::StrictFederatedRegion => region.as_str().starts_with("region-federated"),
             Self::Global => true,
         }
@@ -663,8 +665,14 @@ mod tests {
 
     #[test]
     fn region_binding_enforces_residency_primary_and_failover_rules() {
-        assert_eq!(home_binding().residency_class(), ResidencyClass::StrictHomeRegion);
-        assert_eq!(home_binding().schema_version(), REGION_BINDING_SCHEMA_VERSION);
+        assert_eq!(
+            home_binding().residency_class(),
+            ResidencyClass::StrictHomeRegion
+        );
+        assert_eq!(
+            home_binding().schema_version(),
+            REGION_BINDING_SCHEMA_VERSION
+        );
 
         assert_eq!(
             RegionBinding::new(

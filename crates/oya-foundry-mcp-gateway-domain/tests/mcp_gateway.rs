@@ -281,7 +281,8 @@ fn access_token_claims_are_bound_to_endpoint_resource_issuer_and_expiry() {
     assert_eq!(principal.autonomy_ceiling, AutonomyTier::T2Advisory);
 
     let mut wrong_audience = claims.clone();
-    wrong_audience.audience = "https://mcp.foundry.region-recovery.oyatie.test/tenants/ten_alpha".into();
+    wrong_audience.audience =
+        "https://mcp.foundry.region-recovery.oyatie.test/tenants/ten_alpha".into();
     assert_eq!(
         validate_access_token(&endpoint, wrong_audience, 999, AutonomyTier::T2Advisory),
         Err(McpGatewayError::TokenAudienceMismatch)

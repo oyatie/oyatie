@@ -470,12 +470,7 @@ mod tests {
             ))
             .expect("global policy publishes");
         let tenant = policies
-            .publish(policy_version(
-                POLICY_ID,
-                "1.0.0",
-                tenant_scope(),
-                None,
-            ))
+            .publish(policy_version(POLICY_ID, "1.0.0", tenant_scope(), None))
             .expect("tenant policy publishes");
 
         assert_eq!(global.scope, PolicyScope::Global);

@@ -31,7 +31,10 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
             controls: vec!["PIPA".into(), "K-ISMS-P".into(), "KCMVP".into()],
         })
         .expect("regional pack registration is valid");
-    assert_eq!(pack.residency_class.value.label(), Some("strict_home_region"));
+    assert_eq!(
+        pack.residency_class.value.label(),
+        Some("strict_home_region")
+    );
 
     let entity = foundation
         .upsert_object_entity(ObjectEntityUpsert {
