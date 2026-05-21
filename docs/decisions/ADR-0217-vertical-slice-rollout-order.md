@@ -25,7 +25,7 @@ Canonical vertical rollout order:
 
 | Order | Vertical | Rationale |
 | --- | --- | --- |
-| 1 | Enterprise Generic + SMB Generic | First deliverable. Must exit in full production depth, not thin-pilot/preview/reduced scope. Required scope includes core, messenger, mail, community, infra, Ops Dashboard / Control Center, Foundry, Workflow, Ontology, canonical base, and Korea localization pack. Enterprise proves complex integration pressure; SMB proves mass-market onboarding and ease-of-adoption against the same substrate before sector-specific fan-out. |
+| 1 | Enterprise Generic + SMB Generic | First deliverable. Must exit in full production depth, not minimum viable product, not thin-pilot, not preview, and not reduced scope. Required scope includes core, messenger, mail, community, infra, Ops Dashboard / Control Center, Foundry, Workflow, Ontology, canonical base, and Korea localization pack. Enterprise proves complex integration pressure; SMB proves mass-market onboarding and ease-of-adoption against the same substrate before sector-specific fan-out. |
 | 2 | Healthcare | Highest early compliance pressure; validates HIPAA, Joint Commission, state DPH, Epic/Cerner FHIR connectors, and multi-context platform stress after the generic product substrate is proven. |
 | 3 | Retail / Commerce | Validates B2C marketplace, commerce stack, payments, and consumer surfaces at scale. |
 | 4 | Manufacturing | Validates ERP integration, operational technology adjacency, and dense sector data models. |

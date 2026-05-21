@@ -201,7 +201,7 @@ components:
           format: uint64
           minimum: 1
           x-oyatie-rust-type: u64
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
     CloudFinopsReportGenerateSuccessResponse:
       type: object
       required:
@@ -211,7 +211,7 @@ components:
         data:
           $ref: '#/components/schemas/CloudFinopsReportRecord'
           x-oyatie-rust-type: CloudFinopsReportRecord
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         metadata:
           $ref: '#/components/schemas/CloudFinopsReportMetadata'
           x-oyatie-rust-type: CloudFinopsReportMetadata
@@ -278,7 +278,7 @@ components:
           format: uint64
           minimum: 0
           x-oyatie-rust-type: u64
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
     CloudFinopsReportRecord:
       type: object
       required:
@@ -334,19 +334,19 @@ components:
           items:
             $ref: '#/components/schemas/CloudFinopsAxisCostRecord'
           x-oyatie-rust-type: Vec<CloudFinopsAxisCostRecord>
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         resource_costs:
           type: array
           items:
             $ref: '#/components/schemas/CloudFinopsResourceCostRecord'
           x-oyatie-rust-type: Vec<CloudFinopsResourceCostRecord>
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         anomalies:
           type: array
           items:
             $ref: '#/components/schemas/CloudFinopsCostAnomalyRecord'
           x-oyatie-rust-type: Vec<CloudFinopsCostAnomalyRecord>
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         recommendations:
           type: array
           items:
@@ -356,11 +356,11 @@ components:
         total_cost:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           x-oyatie-rust-type: CloudFinopsMoneyRecord
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         total_cost_of_revenue:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           x-oyatie-rust-type: CloudFinopsMoneyRecord
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         gross_margin_bps:
           type: integer
           format: uint16
@@ -398,11 +398,11 @@ components:
         actual_cost:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           x-oyatie-rust-type: CloudFinopsMoneyRecord
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         cost_of_revenue:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           x-oyatie-rust-type: CloudFinopsMoneyRecord
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         gross_margin_bps:
           type: integer
           format: uint16
@@ -413,7 +413,7 @@ components:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           nullable: true
           x-oyatie-rust-type: Option<CloudFinopsMoneyRecord>
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         budget_utilization_bps:
           type: integer
           format: uint16
@@ -441,11 +441,11 @@ components:
         actual_cost:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           x-oyatie-rust-type: CloudFinopsMoneyRecord
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         cost_of_revenue:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           x-oyatie-rust-type: CloudFinopsMoneyRecord
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         gross_margin_bps:
           type: integer
           format: uint16
@@ -481,12 +481,12 @@ components:
         actual_cost:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           x-oyatie-rust-type: CloudFinopsMoneyRecord
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         baseline_cost:
           $ref: '#/components/schemas/CloudFinopsMoneyRecord'
           nullable: true
           x-oyatie-rust-type: Option<CloudFinopsMoneyRecord>
-          x-oyatie-data-class: FINANCIAL_KR_신용정보
+          x-oyatie-data-class: FINANCIAL_REGULATED_CREDIT
         threshold_bps:
           type: integer
           format: uint16

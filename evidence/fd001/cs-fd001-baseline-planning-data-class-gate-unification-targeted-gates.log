@@ -1,0 +1,20 @@
+### cargo fmt --all --check
+### cargo run -q -p oya-dev-cli -- catalog validate
+catalog validation passed: 540 records
+### cargo run -q -p oya-dev-cli -- gate validate planning-closure
+planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0
+### cargo run -q -p oya-dev-cli -- gate validate data-class
+data class fitness validation passed: 1590 fields checked, 1302 annotated, 288 legacy unannotated
+### cargo run -q -p oya-dev-cli -- gate validate architecture-boundaries
+architecture-boundaries validation passed: 382 packages, 382 catalog records, 527 dependency edges
+### cargo run -q -p oya-dev-cli -- gate validate dependency-seam
+dependency-seam validation passed: 6 subchecks, 3 pass, 2 report-only, 1 skipped, 0 fail, 2 diagnostics, 0 blocking
+### cargo run -q -p oya-dev-cli -- gate validate quality-lanes
+quality lane validation passed: 97 registry records, 97 markdown rows, 92 active commands, 39 owner teams
+### cargo run -q -p oya-dev-cli -- gate validate foundry-eval
+foundry eval validation passed: 1 capabilities, 7 cases, 1 passing runs
+### cargo run -q -p oya-dev-cli -- gate validate glossary-vocabulary
+glossary vocabulary validation passed: 889 documents, 755 casing warnings, 1307 uncited acronym warnings
+### cargo run -q -p oya-dev-cli -- gate validate regulated-ai-refusal-grounding
+regulated-ai-refusal-grounding: 141 capabilities, 5 claims, 184 cedar fragments, 42 µservices
+### ./target/debug/oya git diff --check

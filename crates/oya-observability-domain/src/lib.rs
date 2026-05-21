@@ -378,7 +378,7 @@ mod tests {
                 DataClass::FinancialCredit,
                 DataClass::SensitivePipaArticle23,
             ]),
-            "PII_QUASI_IDENTIFIER,FINANCIAL_CREDIT,SENSITIVE_PIPA_ART23"
+            "PII_QUASI_IDENTIFIER,FINANCIAL_REGULATED_CREDIT,SENSITIVE_PIPA_ART23"
         );
         #[allow(deprecated)]
         {
