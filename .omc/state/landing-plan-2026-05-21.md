@@ -38,9 +38,20 @@
 
 ## §3. Phased landing sequence
 
-### Phase 1 — Doctrine checkpoint commit (immediate, low conflict)
+### Phase 1 — Doctrine checkpoint commit ✅ LANDED 2026-05-21
 
-**Trigger**: WAVE-D D-1 schema verification completes (no race risk; schema files don't overlap with origin/dev recent commits).
+Commit: `a72f257e` "Wave 15 doctrine bundle: 9 ADRs + 5 specs + canonical primitives" (24 files / +14,359 / -42)
+Follow-up commit: `0c6ff994` "Hygiene: align 4 amendment-ADR H1 ids" (4 files / +5,335)
+
+WAVE-D ✅ LANDED 2026-05-21 — 25 codex agents complete:
+- D-0 naming normalization (10 keys + 146 cross-refs)
+- D-1 manifest-schema consolidation (5 field blocks + iac-module-library.json created)
+- D-2 manifest fan-out (8 codex, 80 µservices, 0 co-variance violations)
+- D-3 PRD propagation (12 codex, 78 PRDs modified)
+- D-4 IP selective updates (5 codex, 1,614 IPs scanned, 739/1082/947/148 trigger matches)
+- D-5 self consolidation (this commit)
+
+**Original trigger** (preserved): WAVE-D D-1 schema verification completes (no race risk; schema files don't overlap with origin/dev recent commits).
 
 **Scope** (~35-50 files):
 - `docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md`
@@ -106,26 +117,29 @@ Not-tested: per-µservice manifest field adoption (sequenced in 15P-15Y).
 
 **Estimated review effort**: 2-4 hours (focused doctrine review)
 
-### Phase 2 — Pull origin/dev + reconcile cloud-data (immediate after Phase 1)
+### Phase 2 — REVISED: defer origin/dev merge (2026-05-21 update)
 
-```bash
-oya git fetch origin dev
-oya git merge-base HEAD origin/dev  # find ancestor
-# Identify conflict files:
-oya git diff --name-only origin/dev -- microservices/cloud-data/
-```
+**Original plan was to merge origin/dev immediately after Phase 1.** Revised after assessing scope:
+- origin/dev has **590 files changed** since our local base (not just 3 cloud-data files)
+- Working tree has **~5,547 modified + 3,184 untracked = ~8,731 uncommitted files** from this session
+- Doing a 590-file merge against this much uncommitted state = unmanageable conflict cascade
 
-Strategy:
-- Take origin/dev #175 cache-surface alignment as baseline
-- Layer our broader corpus Valkey vocabulary on top (where they differ)
-- For substantive code edits, take their version (they're closer to production-tested)
-- For PRD/ARCH/IP prose, take our version (broader doctrine coverage)
+**New strategy: defer merge until working tree is checkpoint-committed.**
 
-### Phase 3 — WAVE-D D-2/D-3/D-4 dispatch (after Phase 2)
+ResidencyClass conflict resolution decision (LOCKED 2026-05-21 by user):
+- origin/dev #175 proposed: `SovereignPrimary` / `SovereignSecondary` / `SovereignTertiary` (tier ordering)
+- Our local: `SovereignPack` / `FederatedPack` / `DedicatedPack` (pack-typology)
+- **DECISION: our pack-typology wins** — aligns with ADR-0251 compliance-pack-primitive + ADR-0064 canonical-base + localization. To be re-applied when merge happens in Phase 4.
 
-Now writing onto a clean base + with doctrine committed.
+### Phase 3 — REVISED: WAVE-D D-2/D-3/D-4 dispatch (immediate after Phase 1)
 
-### Phase 4 — Topic-grouped corpus commits
+Writing onto current local base. Working tree fills up further but with topic-grouped contents that can be commit-checkpointed.
+
+### Phase 4 — REVISED: Topic-grouped checkpoint commits (after WAVE-D lands)
+
+**New step inserted**: BEFORE the PR cascade, commit each topic group as a checkpoint commit. These checkpoint commits live on `post-merge-2026-05-18`; they will later be cherry-picked or rebased to individual PR branches.
+
+This step is the precondition for Phase 5 origin/dev merge — a clean working tree means the 590-file conflict surfaces as commit-level resolution, which is reviewable.
 
 | # | PR title | Scope | Estimated files |
 |---|---|---|---:|
@@ -143,11 +157,24 @@ Now writing onto a clean base + with doctrine committed.
 
 Each PR ≤500 files (reviewer-tractable). Sequential dependency graph documented per PR.
 
-### Phase 5 — Per-PR review + merge
+### Phase 5 — REVISED: Pull origin/dev → resolve 590-file conflict in commit form
+
+After Phase 4 checkpoint commits land, working tree is clean. Now safe to merge:
+
+```bash
+oya git fetch origin dev
+oya git merge origin/dev
+# Conflicts surface in commit form (clean tree)
+# Resolve cloud-data ResidencyClass: KEEP our pack-typology (per Phase 2 decision)
+# Resolve remaining ~587 conflicts file-by-file with intent-preservation
+oya git commit -m "Reconcile origin/dev: keep pack-typology for ResidencyClass + integrate 29 dev commits"
+```
+
+### Phase 6 — Per-PR review + merge (final)
 
 Per ADR-0111 merge-queue projected-state fix:
-- PR opens against `dev`
-- Foundry pipeline admission gate (Cedar + Kyverno + cosign signature verification)
+- Each Phase 4 checkpoint becomes a PR against `dev`
+- Foundry-pipeline-style admission gate (Cedar + Kyverno + cosign signature verification)
 - Multispectrum review v2.4.0 facets (F1-F11 + M1+M2 + A1-A7)
 - Reviewer-agent APPROVE + CI green
 - Auto-merge via queue

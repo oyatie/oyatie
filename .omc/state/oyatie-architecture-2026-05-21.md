@@ -492,6 +492,35 @@ Foundry retirement detail: 125 `oya-foundry-*` crates retained as transition deb
 | ADR-0334 | Shorts µservice RETIRED (merged into social) | LANDED 2026-05-21 |
 | ADR-0335 | Foundry µservice RETIRED (absorbed by intelligence) | LANDED 2026-05-21 (774 lines) |
 | ADR-0336 | Valkey not Redis substrate | LANDED 2026-05-21 (731 lines) |
+| ADR-0337 | Iceberg canonical OLAP write path (Delta + Hudi demoted to adapters) | LANDED 2026-05-21 (816 lines) |
+| ADR-0338 | Pod runtime tier 0..3 (Kata for 0/1; runc for 2/3) | LANDED 2026-05-21 (1,023 lines) |
+| ADR-0339 | Shared IaC module library (385 dirs → ~50 + thin wrappers) | LANDED 2026-05-21 (856 lines) |
+| ADR-0340 | Capacity model per µservice manifest | LANDED 2026-05-21 (1,008 lines) |
+| ADR-0341 | Cellular promotion gates explicit Tier 0..4 + auto-promotion | LANDED 2026-05-21 (799 lines) |
+| ADR-0342 | API versioning HYBRID (date public + semver SDK) | LANDED 2026-05-21 (946 lines) |
+| ADR-0343 | DR + RTO/RPO matrix per-µservice + per-compliance-pack | LANDED 2026-05-21 (939 lines) |
+| ADR-0344 | Sustainability + FinOps dimensional model | LANDED 2026-05-21 (851 lines) |
+| ADR-0345 | OSS stewardship class + CVE-response SLA | LANDED 2026-05-21 (≥600 lines) |
+
+**Total Wave 15 doctrine bundle: 17 ADRs / ~14,500+ lines**
+
+## §20.1. WAVE-D doctrine propagation (2026-05-21)
+
+| Sub-wave | Agents | Scope | Status |
+|---|---:|---|---|
+| D-0 naming normalization | 1 codex | 15-X-name → 15{P..Y}-name across master-plan + 16 cross-ref files | ✅ LANDED |
+| D-1 manifest-schema consolidation | 1 Claude | 5 new field blocks + iac-module-library.json created + 5 companion specs validated | ✅ LANDED |
+| D-2 per-µservice manifest fan-out | 8 codex | 80 manifests / 6 blocks / 0 co-variance violations | ✅ LANDED |
+| D-3 per-µservice PRD propagation | 12 codex | 78 PRDs modified (4 cloud-* PRDs absent — flagged) / 4 sub-sections each / manifest-PRD consistency PASS | ✅ LANDED |
+| D-4 IP selective updates | 5 codex | 1,614 IPs scanned / 739 API Versioning + 1,082 DR + 947 Sustainability + 148 Pod Runtime sections added | ✅ LANDED |
+| D-5 self consolidation | self | State file updates: this section + audit-doctrine + landing-plan + memory pointers | ✅ THIS COMMIT |
+
+**Substantive coherence findings flagged for Phase 4 commit grouping:**
+- workflow-engine manifest RTO=2100s exceeds EU-AI Act high-risk floor=1800s (admission gap — tighten or refuse high-risk EU-AI tenants)
+- 4 cloud-* µservices have NO PRD.md (cloud-billing-tax / cloud-data / cloud-iam / cloud-kms) — Wave 15Z PRD authoring sub-wave queued
+- learning-mgmt + incident-mgmt HIPAA RPO=300s vs finops-portal SOX journal RPO=60s reconciliation
+- 7 of 11 cloud-* µservices need PRD/ARCH/IP canonical backfill
+- `microservices/cloud-iac/modules/` absent → iac_module_invocations schema-valid but awaits Wave 15Q module bodies
 
 ---
 

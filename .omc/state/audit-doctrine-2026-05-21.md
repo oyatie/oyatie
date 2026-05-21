@@ -39,6 +39,15 @@ If you find yourself unsure between two interpretations: this doctrine wins. If 
    ADR-0334 shorts-µservice-merged-into-social
    ADR-0335 foundry-µservice-retired-absorbed-by-intelligence
    ADR-0336 valkey-not-redis-substrate
+   ADR-0337 iceberg-canonical-olap-write-path
+   ADR-0338 pod-runtime-tier-0-to-3
+   ADR-0339 shared-iac-module-library
+   ADR-0340 capacity-model-per-microservice-manifest
+   ADR-0341 cellular-promotion-gates-explicit-tier-criteria
+   ADR-0342 api-versioning-hybrid-date-public-semver-sdk
+   ADR-0343 dr-rto-rpo-matrix-per-microservice-per-compliance-pack
+   ADR-0344 sustainability-finops-dimensional-model
+   ADR-0345 oss-stewardship-class-policy-and-cve-response-sla
         ↓
 3. OTHER ADRs (chronological; newer wins unless explicit supersession)
         ↓
