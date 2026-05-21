@@ -1,0 +1,294 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "agent_id": "codex-m03-p01-cloud-iam-sso-sts-api-20260521T0630Z",
+  "timestamp_unix": 1779345453,
+  "timestamp_iso": "2026-05-21T06:37:33Z",
+  "freshness_unix": 1779346831,
+  "git_sha": "da5bb722",
+  "change_class_id": "CC-1",
+  "change_class_rationale": "Additive regression coverage plus plan/evidence status for an FD-001 product-runtime proof; no production code path or dependency is changed.",
+  "meta_review_triggered": true,
+  "policy_adherence_triggered": true,
+  "scope": [
+    "crates/oya-cloud-iam-api/tests/cloud_iam_api.rs",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-004-iam-cedar-sso-sts.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json",
+    "evidence/multispectrum/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json"
+  ],
+  "summary": "Cloud IAM API now proves federated OIDC external principals use the existing STS token issuance path with external_id enforcement.",
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iam-api --test cloud_iam_api -- sts_token_api_issues_external_oidc_session_with_external_id sts_token_api_maps_external_id_policy_denial_to_forbidden",
+      "status": "passed",
+      "evidence": "Targeted federated STS runtime tests passed: 2 passed, 12 filtered out."
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-iam-api -- --check",
+      "status": "passed",
+      "evidence": "Cloud IAM API formatting check passed after rustfmt."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api --all-features",
+      "status": "passed",
+      "evidence": "Full Cloud IAM API suite passed: 14 tests, 0 failures."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-api --all-features --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted Cloud IAM API clippy completed with no warnings."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Planning-closure validation passed after plan status updates: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "No whitespace/diff hygiene errors."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya verify --ci-required",
+      "status": "passed",
+      "evidence": "Canonical pre-PR verify passed: gate run-all summary 89/89 lanes passed; cargo nextest ran 4222 tests with 4222 passed and 0 skipped; protection-context-match showed no missing/extra live contexts."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency-seam validation passed after canonical verify evidence and Oya VCS closeout updates: 6 subchecks, 5 pass, 1 skipped, 0 fail, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate audit-chain-replay",
+      "status": "passed",
+      "evidence": "Audit-chain replay validation passed after appended ChangeSet evidence/closeout rows: 1 shards, 28 events."
+    }
+  ],
+  "local_review": {
+    "verdict": "approve-local-after-targeted-runtime-expansion",
+    "finding_count_required": 0,
+    "notes": [
+      "Existing STS API handles external/federated principals with external_id enforcement; no duplicate SSO issuance path was introduced.",
+      "Scope is intentionally limited to deterministic API runtime proof and plan/evidence status."
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "provider-managed-idp-crud-runtime",
+      "status": "pending-follow-up-slice",
+      "reason": "Provider-managed IdP CRUD/runtime adapter remains separate from this STS issuance proof."
+    },
+    {
+      "id": "live-provider-smoke",
+      "status": "pending-credentials-and-runtime-target",
+      "reason": "No live cloud or self-hosted IdP endpoint was contacted."
+    }
+  ],
+  "facets": {
+    "F1_correctness": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The success test constructs an OIDC provider, external principal, trust role, and STS API request, then asserts session id, assumed_by, external_id, expiry, scope, and token fingerprint.",
+        "The denial test asserts missing external_id maps to CloudIamError::ExternalIdRequired and HTTP 403 status."
+      ],
+      "rigor": "deep"
+    },
+    "F2_testability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The targeted tests are deterministic, in-memory, and run inside the existing oya-cloud-iam-api integration suite."
+      ],
+      "rigor": "deep"
+    },
+    "F3_architecture": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The tests reuse existing domain and API surfaces; no new crate, dependency, provider adapter, or cross-layer edge is introduced."
+      ],
+      "rigor": "deep"
+    },
+    "F4_interface_contract": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The public Cloud IAM API structs and OpenAPI runtime bindings are unchanged; this ChangeSet proves behavior already represented by the STS token contract."
+      ],
+      "rigor": "deep"
+    },
+    "F5_quality": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Fixtures are named by IAM concept and kept near existing principal/role helpers."
+      ]
+    },
+    "F6_observability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Assertions cover non-secret token_fingerprint and request-visible session metadata without exposing credentials."
+      ],
+      "rigor": "deep"
+    },
+    "F7_security": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "External principals must include external_id; denial is policy-forbidden rather than silently issuing credentials.",
+        "No secrets, SDK credentials, or network calls are introduced."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The additional tests use bounded in-memory domain state only."
+      ],
+      "rigor": "deep"
+    },
+    "F9_maintainability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Federated STS behavior is proven through existing STS API helpers instead of adding a parallel SSO-specific path."
+      ],
+      "rigor": "deep"
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Rollback is limited to one test file, two plan status docs, and evidence rows/files."
+      ],
+      "rigor": "deep"
+    },
+    "F11_documentation_evidence": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "IP-004 and P01 status distinguish federated OIDC STS API runtime green from provider-managed IdP/live-smoke gaps."
+      ],
+      "rigor": "deep"
+    },
+    "F13_adversarial_review": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The review boundary rejects over-claiming full IP completion or adding provider CRUD into the STS proof slice."
+      ],
+      "rigor": "deep"
+    },
+    "M1_policy_adherence": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Oya VCS claim/work accepted before modifications; verify/done/promote remains the closeout path."
+      ],
+      "rigor": "deep"
+    },
+    "M2_evidence_completeness": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "FD-001 evidence, multispectrum evidence, and audit-chain row use the same ChangeSet id."
+      ],
+      "rigor": "deep"
+    },
+    "F1_linus": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "No new special-case token path: external OIDC principals travel through the same STS issuance code as service principals."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The external principal/external_id trust model is cloud-provider-neutral and compatible with self-hosted IdP deployment."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "passing_fixture_id": "oya-cloud-iam-api::sts_token_api_maps_external_id_policy_denial_to_forbidden",
+      "diagnostic_asserted": "External principals without external_id receive CloudIamError::ExternalIdRequired and HTTP 403.",
+      "findings": [
+        "The negative fixture would fail if external principals could mint STS credentials without the external-id guard."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "The API helper mirrors existing STS request construction and remains easy for handler integration tests to reuse."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "verdict": "PASS",
+      "rigor": "deep",
+      "findings": [
+        "Rejected adding provider CRUD or a separate SSO token endpoint in this slice; those are separately claimable boundaries."
+      ]
+    },
+    "F7_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "Planning-closure and targeted Rust quality gates passed after status/evidence updates."
+      ],
+      "rigor": "deep"
+    },
+    "F8_operability": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The runtime proof is deterministic and does not require live IdP credentials; live-smoke remains explicitly pending."
+      ],
+      "rigor": "deep"
+    },
+    "F9_scope_control": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The ChangeSet claims federated STS API runtime only; it does not claim full IP-004 completion."
+      ],
+      "rigor": "deep"
+    },
+    "F9_compliance": {
+      "considered": true,
+      "verdict": "PASS",
+      "findings": [
+        "The ChangeSet carries CC-1 classification, multispectrum facets, no dependency additions, and a bounded verification loop."
+      ],
+      "rigor": "deep"
+    }
+  },
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "vcs_lifecycle": {
+    "verify": "accepted",
+    "done": "accepted",
+    "promote": "accepted",
+    "environment": "dev",
+    "bundle_id": "cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21",
+    "timestamp_unix": 1779346831,
+    "timestamp_iso": "2026-05-21T07:00:31Z",
+    "evidence_refs": [
+      "evidence/fd001/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json",
+      "evidence/multispectrum/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json"
+    ]
+  }
+}
