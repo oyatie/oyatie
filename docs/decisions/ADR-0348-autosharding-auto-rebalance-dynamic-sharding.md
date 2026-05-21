@@ -95,7 +95,7 @@ enforced_by:
   - oya-governance-auto-rebalance-residency-honored (new lane; greps every manifest declaring sharding_automation.auto_rebalance.enabled true and refuses if the same manifest also declares honors_residency false OR omits the field; cross-jurisdiction rebalance without Cedar permit is refused at admission time per ADR-0243)
   - oya-governance-dynamic-sharding-threshold-coverage (new lane; refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits ANY of the four canonical thresholds (hot_split_threshold_p99_ms, hot_split_utilization_threshold_percent, cold_merge_utilization_threshold_percent, cold_merge_minimum_quiet_hours); default-fill is REJECTED to force per-µservice declaration of load characteristics)
   - oya-governance-audit-chain-emit-on-automation-events (new lane; greps every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true and refuses if the same manifest omits audit_chain_emit true on the corresponding sub-block; every automation event MUST emit per ADR-0263 observability-emission-contract)
-  - oya-check-tenant-migration-reversibility (new lane; refuses any µservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)
+  - oya-governance-tenant-migration-reversibility (new lane; refuses any µservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)
 purpose: >
   Declare that cellular topology MUST support three control-plane-driven
   automation modes underneath the cell-level promotion gates already
@@ -143,7 +143,7 @@ It runs in coordination with the 2026-05-21 realignment-wave authoring session: 
 
 It directly amends ADR-0248 (cellular topology baseline) by declaring that tenant→cell/shard placement is control-plane-driven by default rather than operator-driven; hot-cell rebalancing is automatic by default; shard count within a cell is dynamic by default. It directly amends ADR-0341 (cellular promotion gates) by layering tenant-level + shard-level automation underneath the cell-level promotion gates; auto-rebalance triggers when a cell's promotion criteria are breached due to load skew rather than capacity declaration drift. It directly amends ADR-0333 (cell µservice retired — pattern not service) by clarifying that the cell-orchestrator responsibility lives within tenancy + observability — NOT as a revived cell µservice. It directly amends ADR-0340 (capacity_model per-µservice manifest) by consuming the capacity_model block as one of the inputs to the autosharding placement algorithm.
 
-Enforcement transitions from `advisory-until-wave-15-zd-doctrine-pr-lands` to `BLOCKER` per the lane sequence in §E below: at landing of this ADR's doctrine PR, the six new lanes (`oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-check-tenant-migration-reversibility`) promote from REPORT-ONLY to BLOCKER 30 days post-Wave-15-ZD completion for new authoring. Wave 15-ZD is the actual cell-orchestrator implementation sub-wave; the doctrine PR (this ADR + manifest-schema amendment + lane scaffolds) lands first.
+Enforcement transitions from `advisory-until-wave-15-zd-doctrine-pr-lands` to `BLOCKER` per the lane sequence in §E below: at landing of this ADR's doctrine PR, the six new lanes (`oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`) promote from REPORT-ONLY to BLOCKER 30 days post-Wave-15-ZD completion for new authoring. Wave 15-ZD is the actual cell-orchestrator implementation sub-wave; the doctrine PR (this ADR + manifest-schema amendment + lane scaffolds) lands first.
 
 The decision does not author the actual cell-orchestrator Rust crate implementation; the doctrine PR + manifest-schema admission + lane scaffolds land first, then Wave 15-ZD implements. The decision does not change the existing oya-shuffle-sharding crate (ADR-0333); the crate continues to provide the shuffle-sharding algorithm consumed by the autosharding control plane. The decision does not retire any prior ADR. The decision does not introduce a new µservice; the cell-orchestrator is a logical responsibility composed across tenancy + observability per ADR-0333 absorption. The decision does not relax compliance pack constraints (ADR-0251) or residency invariants; cross-jurisdiction migration continues to require a Cedar permit per ADR-0243.
 
@@ -213,7 +213,7 @@ This ADR declares all three properties as MANDATORY for every automation event:
 - **Reversibility**: every event records pre-state + post-state + transition rationale in the audit chain; the inverse operation is enumerable from the audit-chain row.
 - **Audit-chain emission**: every event emits per ADR-0263 observability emission contract; emission includes tenant_id + cell_source + cell_target (for auto-rebalance) OR shard_source + shard_targets (for hot-split) OR shard_sources + shard_target (for cold-merge) + residency_check_result + compliance_pack_check_result + cedar_permit_id (if cross-jurisdiction).
 
-The `oya-governance-audit-chain-emit-on-automation-events` lane refuses any manifest declaring auto_rebalance.enabled OR dynamic_sharding.enabled that omits `audit_chain_emit: true` on the corresponding sub-block. The `oya-check-tenant-migration-reversibility` lane refuses IP authoring without an explicit `rollback_path` section.
+The `oya-governance-audit-chain-emit-on-automation-events` lane refuses any manifest declaring auto_rebalance.enabled OR dynamic_sharding.enabled that omits `audit_chain_emit: true` on the corresponding sub-block. The `oya-governance-tenant-migration-reversibility` lane refuses IP authoring without an explicit `rollback_path` section.
 
 ### A.7 Named pressure: doctrine before implementation per ADR-0328 batch discipline
 
@@ -641,7 +641,7 @@ D-7.2. The `rollback_path` section enumerates:
 - (d) The audit-chain emission contract for the rollback event (rollback is itself an automation event; rollback emits per ADR-0263).
 - (e) Edge cases: in-flight transaction handling during rollback; session state restoration; cross-jurisdiction rollback (requires new Cedar permit).
 
-D-7.3. The `rollback_path` section is enforced by E.6 (`oya-check-tenant-migration-reversibility`). New IP authoring without the section is refused.
+D-7.3. The `rollback_path` section is enforced by E.6 (`oya-governance-tenant-migration-reversibility`). New IP authoring without the section is refused.
 
 D-7.4. Existing IPs authored before this ADR's Acceptance are NOT retroactively required to carry the section; the lane applies prospectively to new IP authoring.
 
@@ -671,7 +671,7 @@ E.4 `oya-governance-dynamic-sharding-threshold-coverage` (new) — refuses any m
 
 E.5 `oya-governance-audit-chain-emit-on-automation-events` (new) — greps every manifest declaring `auto_rebalance.enabled: true` OR `dynamic_sharding.enabled: true` and refuses if the same manifest omits `audit_chain_emit: true` on the corresponding sub-block. Every automation event MUST emit per ADR-0263 observability-emission-contract. REPORT-ONLY at this ADR's Acceptance; promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
 
-E.6 `oya-check-tenant-migration-reversibility` (new) — refuses any µservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail. The lane applies prospectively to new IP authoring; existing IPs are not retroactively required. REPORT-ONLY at this ADR's Acceptance; promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
+E.6 `oya-governance-tenant-migration-reversibility` (new) — refuses any µservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail. The lane applies prospectively to new IP authoring; existing IPs are not retroactively required. REPORT-ONLY at this ADR's Acceptance; promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
 
 E.7 `oya-governance-cell-orchestrator-no-new-microservice` (informational; not enforced as a blocker) — verifies that the corpus does not introduce a new `cell-orchestrator` µservice directory under `microservices/`. The cell-orchestrator responsibility is a logical composition across tenancy + observability + cloud-iac + audit-chain per ADR-0333; introducing a new µservice would revive cell µservice ownership shape that ADR-0333 retired. REPORT-ONLY indefinitely.
 
@@ -721,7 +721,7 @@ H.1 **Enforcement transition.** From ADR Acceptance, the six new lanes (§E.1..E
 - E.3 (`oya-governance-auto-rebalance-residency-honored`) promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
 - E.4 (`oya-governance-dynamic-sharding-threshold-coverage`) promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
 - E.5 (`oya-governance-audit-chain-emit-on-automation-events`) promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
-- E.6 (`oya-check-tenant-migration-reversibility`) promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new IP authoring.
+- E.6 (`oya-governance-tenant-migration-reversibility`) promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new IP authoring.
 - E.7 (`oya-governance-cell-orchestrator-no-new-microservice`) remains informational indefinitely.
 
 H.2 **Sunset window.** The 30-day post-Wave-15-ZD sunset window is the window for new authoring to update to the new prefix. After day 30, new authoring under the legacy prefix is refused outside the historical-context allowlist.
@@ -763,7 +763,7 @@ I.2 ADR anchors:
 - ADR-0110 (changeset state machine) — doctrine PR's changeset state transitions through the standard sequence.
 - ADR-0111 (merge queue projected state) — doctrine PR enters the merge queue.
 - ADR-0131 (per-microservice flat layout) — preserved verbatim.
-- ADR-0132 (no-suite policy + governance prefix) — preserved verbatim; six new lanes carry `oya-governance-*` + `oya-check-*` canonical prefixes per ADR-0347.
+- ADR-0132 (no-suite policy + governance prefix) — preserved verbatim; six new lanes carry the `oya-governance-*` canonical prefix per ADR-0347.
 - ADR-0145 (inter-microservice communication reform) — cross-µservice coordinator pattern consumed for cell-orchestrator composition.
 - ADR-0150 (Cedar policy engine) — Cedar gates for cross-jurisdiction migration permits.
 - ADR-0158 (multi-region active-active) — cross-region migration treated as cross-jurisdiction by default.
@@ -830,7 +830,7 @@ audit_chain_emission_contract: ADR-0263 (every automation event emits)
 cross_jurisdiction_permit_contract: ADR-0243 (Cedar permit required)
 compliance_pack_constraint_contract: ADR-0251 (compliance packs filter candidate cells; PHI cross-pack requires §D-10 BYOK)
 residency_contract: ADR-0240 (sovereign cells residency-scoped)
-new_lanes: 6 + 1 informational (oya-governance-sharding-automation-coverage, oya-governance-autosharding-manual-mode-refusal, oya-governance-auto-rebalance-residency-honored, oya-governance-dynamic-sharding-threshold-coverage, oya-governance-audit-chain-emit-on-automation-events, oya-check-tenant-migration-reversibility; informational oya-governance-cell-orchestrator-no-new-microservice)
+new_lanes: 6 + 1 informational (oya-governance-sharding-automation-coverage, oya-governance-autosharding-manual-mode-refusal, oya-governance-auto-rebalance-residency-honored, oya-governance-dynamic-sharding-threshold-coverage, oya-governance-audit-chain-emit-on-automation-events, oya-governance-tenant-migration-reversibility; informational oya-governance-cell-orchestrator-no-new-microservice)
 manifest_field_canonical_shape: sharding_automation.{autosharding, auto_rebalance.{enabled, trigger_load_skew_threshold_percent, honors_residency, honors_compliance_packs, audit_chain_emit}, dynamic_sharding.{enabled, hot_split_threshold_p99_ms, hot_split_utilization_threshold_percent, cold_merge_utilization_threshold_percent, cold_merge_minimum_quiet_hours, audit_chain_emit}}
 default_thresholds: hot_split_p99_ms=50, hot_split_utilization=80%, cold_merge_utilization=20%, cold_merge_quiet_hours=24, auto_rebalance_load_skew=30%
 default_thresholds_require_per_microservice_declaration: true (E.4 rejects default-fill)
