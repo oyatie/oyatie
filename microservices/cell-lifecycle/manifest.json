@@ -1,0 +1,546 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cell-lifecycle",
+  "version": "0.1.0",
+  "owner": "axis-cellular",
+  "bounded_context": "cell-logical-state-machine",
+  "governance_lane_authority": [
+    "ADR-0276",
+    "ADR-0266",
+    "ADR-0204"
+  ],
+  "tenant_class": [
+    "demo_trial",
+    "paid"
+  ],
+  "pod_runtime_tier": 1,
+  "cell_placement_class": 0,
+  "id_strategy": "uuidv7",
+  "id_strategy_note": "ADR-0275 was requested as authority for uuidv7; this scaffold declares uuidv7 ids for Cell, LifecycleHistory, and idempotency records while implementation remains downstream.",
+  "bounded_contexts": [
+    {
+      "name": "cell-logical-state-machine",
+      "description": "Logical Cell aggregate lifecycle state machine per ADR-0276 D-3; not infrastructure provisioning, tenant migration, routing, or generic cell service scope.",
+      "crates": [
+        "oya-cell-lifecycle-kernel",
+        "oya-cell-lifecycle-domain",
+        "oya-cell-lifecycle-usecase",
+        "oya-cell-lifecycle-api",
+        "oya-cell-lifecycle-rest",
+        "oya-cell-lifecycle-grpc",
+        "oya-cell-lifecycle-adapter",
+        "oya-cell-lifecycle-worker",
+        "oya-cell-lifecycle-sdk",
+        "oya-cell-lifecycle-app"
+      ]
+    }
+  ],
+  "layers": [
+    "kernel",
+    "domain",
+    "usecase",
+    "api",
+    "rest",
+    "grpc",
+    "adapter",
+    "worker",
+    "sdk",
+    "app"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/cell-lifecycle/contracts/openapi.yaml"
+    ],
+    "asyncapi": [],
+    "proto": []
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "register-cell",
+      "file": "microservices/cell-lifecycle/capabilities/capability-catalog.md",
+      "risk_class": "limited"
+    },
+    {
+      "tier": "T1",
+      "name": "activate-cell",
+      "file": "microservices/cell-lifecycle/capabilities/capability-catalog.md",
+      "risk_class": "limited"
+    },
+    {
+      "tier": "T0",
+      "name": "promote-cell",
+      "file": "microservices/cell-lifecycle/capabilities/capability-catalog.md",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T0",
+      "name": "drain-cell",
+      "file": "microservices/cell-lifecycle/capabilities/capability-catalog.md",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T0",
+      "name": "decommission-cell",
+      "file": "microservices/cell-lifecycle/capabilities/capability-catalog.md",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "list-cells",
+      "file": "microservices/cell-lifecycle/capabilities/capability-catalog.md",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "read-lifecycle-history",
+      "file": "microservices/cell-lifecycle/capabilities/capability-catalog.md",
+      "risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "cell-lifecycle-register-api-p99",
+      "target": "100ms",
+      "sli": "api_p99_latency_ms{operation=\"registerCell\"}",
+      "file": "microservices/cell-lifecycle/slos/cell-lifecycle.openslo.yaml"
+    },
+    {
+      "name": "cell-lifecycle-promote-api-p99",
+      "target": "500ms",
+      "sli": "api_p99_latency_ms{operation=\"promoteCell\"}",
+      "file": "microservices/cell-lifecycle/slos/cell-lifecycle.openslo.yaml"
+    },
+    {
+      "name": "cell-lifecycle-drain-api-p99",
+      "target": "200ms",
+      "sli": "api_p99_latency_ms{operation=\"drainCell\"}",
+      "file": "microservices/cell-lifecycle/slos/cell-lifecycle.openslo.yaml"
+    },
+    {
+      "name": "cell-lifecycle-lookup-api-p99",
+      "target": "50ms",
+      "sli": "api_p99_latency_ms{operation=~\"listCells|getCellLifecycle\"}",
+      "file": "microservices/cell-lifecycle/slos/cell-lifecycle.openslo.yaml"
+    },
+    {
+      "name": "promotion-evidence-validation-p99",
+      "target": "30s",
+      "sli": "promotion_evidence_validation_p99_seconds",
+      "file": "microservices/cell-lifecycle/slos/cell-lifecycle.openslo.yaml"
+    },
+    {
+      "name": "drain-to-decommission-duration",
+      "target": "168h",
+      "sli": "drain_to_decommission_max_duration_hours",
+      "file": "microservices/cell-lifecycle/slos/cell-lifecycle.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-cell-lifecycle",
+      "title": "Bounded Context and State Machine",
+      "acceptance_status": "planned",
+      "file": "microservices/cell-lifecycle/IPs/IP-CL-001-bounded-context-and-state-machine.md"
+    },
+    {
+      "id": "IP-002-cell-lifecycle",
+      "title": "Promotion Gate Evidence Pack",
+      "acceptance_status": "planned",
+      "file": "microservices/cell-lifecycle/IPs/IP-CL-002-promotion-gate-evidence-pack.md"
+    },
+    {
+      "id": "IP-003-cell-lifecycle",
+      "title": "Drain and Decommission Coordination with Rebalancer",
+      "acceptance_status": "planned",
+      "file": "microservices/cell-lifecycle/IPs/IP-CL-003-drain-decommission-coordination-with-rebalancer.md"
+    },
+    {
+      "id": "IP-004-cell-lifecycle",
+      "title": "API Surface REST gRPC HTTP3",
+      "acceptance_status": "planned",
+      "file": "microservices/cell-lifecycle/IPs/IP-CL-004-api-surface-rest-grpc-http3.md"
+    },
+    {
+      "id": "IP-005-cell-lifecycle",
+      "title": "Cedar Authorization Promotion Permit",
+      "acceptance_status": "planned",
+      "file": "microservices/cell-lifecycle/IPs/IP-CL-005-cedar-authorization-promotion-permit.md"
+    },
+    {
+      "id": "IP-006-cell-lifecycle",
+      "title": "Audit Chain Transition Evidence",
+      "acceptance_status": "planned",
+      "file": "microservices/cell-lifecycle/IPs/IP-CL-006-audit-chain-transition-evidence.md"
+    },
+    {
+      "id": "IP-007-cell-lifecycle",
+      "title": "SLO Metrics Observability",
+      "acceptance_status": "planned",
+      "file": "microservices/cell-lifecycle/IPs/IP-CL-007-slo-metrics-observability.md"
+    },
+    {
+      "id": "IP-008-cell-lifecycle",
+      "title": "Foundry Self Modification Boundary",
+      "acceptance_status": "planned",
+      "file": "microservices/cell-lifecycle/IPs/IP-CL-008-foundry-self-modification-boundary.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.83",
+    "postgres": "16.3",
+    "valkey": "8.x",
+    "tokio": "1.x",
+    "hyper": "1.x",
+    "uuid": "1.x"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0079",
+      "title": "ADR-0079",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0079.md"
+    },
+    {
+      "id": "ADR-0099",
+      "title": "ADR-0099",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0099.md"
+    },
+    {
+      "id": "ADR-0204",
+      "title": "ADR-0204",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0204.md"
+    },
+    {
+      "id": "ADR-0207",
+      "title": "ADR-0207",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0207.md"
+    },
+    {
+      "id": "ADR-0208",
+      "title": "ADR-0208",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0208.md"
+    },
+    {
+      "id": "ADR-0209",
+      "title": "ADR-0209",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0209.md"
+    },
+    {
+      "id": "ADR-0217",
+      "title": "ADR-0217",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0217.md"
+    },
+    {
+      "id": "ADR-0276",
+      "title": "ADR-0276",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0276.md"
+    },
+    {
+      "id": "ADR-0265",
+      "title": "ADR-0265",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0265.md"
+    },
+    {
+      "id": "ADR-0266",
+      "title": "ADR-0266",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0266.md"
+    },
+    {
+      "id": "ADR-0267",
+      "title": "ADR-0267",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0267.md"
+    },
+    {
+      "id": "ADR-0268",
+      "title": "ADR-0268",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0268.md"
+    },
+    {
+      "id": "ADR-0273",
+      "title": "ADR-0273",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0273.md"
+    },
+    {
+      "id": "ADR-0275",
+      "title": "ADR-0275",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0275.md"
+    },
+    {
+      "id": "ADR-0276",
+      "title": "ADR-0276",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0276.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "blast_radius_cellular_topology": "ADR-0204 Tier 0..4 placement checks enforced before promotion",
+    "promotion_gate_error_budget": "ADR-0266 error budget, warm-soak, canary, mesh, tenant-class, compliance-pack gates",
+    "audit_chain_seal": "ADR-0217 transition evidence emitted for every accepted or rejected privileged lifecycle transition",
+    "carrier_triplet": "ADR-0267 header, URL prefix, and schema-level oyatie_version carriers in OpenAPI contract"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "cell.lifecycle.transition.accepted",
+      "cell.lifecycle.transition.rejected",
+      "cell.promotion.executed",
+      "cell.drain.requested",
+      "cell.decommission.executed",
+      "cell.rollback.initiated"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "Cell",
+      "projection_target_table": "ontology_cells",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 30
+    },
+    {
+      "entity_name": "LifecycleHistory",
+      "projection_target_table": "ontology_cell_lifecycle_history",
+      "projection_kind": "append-only",
+      "lag_budget_seconds": 30
+    }
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": true,
+    "north_south_only": false
+  },
+  "naming_justifications": "cell-lifecycle is a narrow ADR-0276 D-3 bounded-context name and does not resurrect the retired generic cell microservice from ADR-0276.",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "lgpd",
+    "soc2",
+    "iso27001",
+    "gdpr",
+    "hipaa",
+    "us-financial",
+    "us-public-sector",
+    "PCI-DSS",
+    "soc2-type2",
+    "il5",
+    "il6",
+    "fedramp-high",
+    "eu-ai-act"
+  ],
+  "hyperscaler_benchmark": "AWS-shaped cell lifecycle control plane: explicit cell state, blast-radius tiering, evidence-gated promotion, drain/decommission auditability, and multi-region registry recovery.",
+  "owner_team": "axis-cellular",
+  "data_classification": "INTERNAL_ONLY, AUDIT, CELL_TOPOLOGY_METADATA",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "lgpd",
+    "soc2",
+    "iso27001",
+    "gdpr",
+    "hipaa",
+    "us-financial",
+    "us-public-sector",
+    "PCI-DSS",
+    "soc2-type2",
+    "il5",
+    "il6",
+    "fedramp-high",
+    "eu-ai-act"
+  ],
+  "depends_on_microservices": [
+    "cloud-iac",
+    "cell-rebalancer",
+    "tenancy",
+    "observability",
+    "audit-chain",
+    "policy-cedar",
+    "api-gateway"
+  ],
+  "failure_domain": "global logical cell lifecycle registry per region with cross-region HLC replication",
+  "criticality_tier": "T0",
+  "layer": "domain",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.01,
+    "baseline_ram_per_tenant": 32,
+    "storage_per_tenant": 1,
+    "connections_per_tenant": {
+      "valkey": 1,
+      "postgres": 1,
+      "outbound_http": 3
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-0",
+    "tenant_class_deltas": {
+      "demo_trial": {
+        "baseline_cpu_per_tenant": 0.005,
+        "baseline_ram_per_tenant": 16,
+        "storage_per_tenant": 1,
+        "connections_per_tenant": {
+          "valkey": 1,
+          "postgres": 1,
+          "outbound_http": 2
+        },
+        "scaling_dimension": "per_request",
+        "cell_placement_class": "Tier-0"
+      },
+      "paid": {
+        "baseline_cpu_per_tenant": 0.02,
+        "baseline_ram_per_tenant": 64,
+        "storage_per_tenant": 2,
+        "connections_per_tenant": {
+          "valkey": 1,
+          "postgres": 1,
+          "outbound_http": 4
+        },
+        "scaling_dimension": "per_request",
+        "cell_placement_class": "Tier-0"
+      }
+    },
+    "notes": "Small footprint control-plane registry; cell count grows slowly, but Tier-0 placement is required because lifecycle mistakes expand blast radius."
+  },
+  "dr": {
+    "rto_minutes": 5,
+    "rto_p99_seconds": 300,
+    "rpo_p99_seconds": 30,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "valkey_cluster",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/on-call.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier_justification": "cell-lifecycle is a substrate service controlling logical cell state and tenant-data-plane blast-radius decisions, so it runs at Tier 1 Kata even though it does not execute tenant-supplied code.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/cell-lifecycle/PRD.md",
+    "microservices/cell-lifecycle/ARCH.md",
+    "microservices/cell-lifecycle/IPs/IP-CL-005-cedar-authorization-promotion-permit.md",
+    "microservices/cell-lifecycle/runbooks/emergency-drain.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [
+      {
+        "version": "2025-11-21",
+        "deprecated_at": "2026-05-21",
+        "sunset_at": "2026-11-21",
+        "breaking_change_adr": "docs/decisions/ADR-0267-api-versioning-hybrid-date-public-semver-sdk.md",
+        "migration_doc": "microservices/cell-lifecycle/README.md"
+      }
+    ],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/cell-lifecycle/contracts/openapi.yaml",
+        "2026-02-21": "microservices/cell-lifecycle/contracts/openapi.yaml",
+        "2025-11-21": "microservices/cell-lifecycle/contracts/openapi.yaml"
+      },
+      "asyncapi": {},
+      "proto": {}
+    }
+  },
+  "consumes_upstream_oss": [
+    "uuid",
+    "tokio",
+    "hyper",
+    "postgresql",
+    "valkey"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [],
+  "sharding_automation": {
+    "autosharding_mode": "not_applicable_registry_authority",
+    "auto_rebalance": {
+      "enabled": false,
+      "reason": "cell-lifecycle does not auto-rebalance itself; it triggers cell-rebalancer during drain."
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "reason": "cell count grows slowly and registry history is Postgres-partitioned, not dynamically split by this service."
+    },
+    "drain_rebalance_trigger": {
+      "enabled": true,
+      "target_microservice": "cell-rebalancer",
+      "receipt_required": true
+    }
+  },
+  "supported_oses": [
+    "talos-linux",
+    "rhel",
+    "oracle-linux",
+    "suse-linux-enterprise",
+    "ubuntu-lts",
+    "debian",
+    "rocky-linux",
+    "almalinux",
+    "centos-stream",
+    "amazon-linux",
+    "flatcar-container-linux",
+    "vmware-photon",
+    "macos-apple-silicon-dev-only"
+  ]
+}
