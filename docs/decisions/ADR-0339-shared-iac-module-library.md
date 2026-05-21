@@ -81,13 +81,13 @@ line_floor: 600
 bespoke_authoring_requirement: documentation-rigor-1.1-plus-ADR-0322
 enforcement_status: advisory-until-module-library-lands
 enforced_by:
-  - oya-check-iac-shared-module-usage (new lane; promoted to BLOCKER after Wave 15Q-IaC-modules lands)
-  - oya-check-iac-module-path-canonical (new lane; refuses from-scratch per-µservice iac/<context>/ bodies that do not invoke a shared module)
-  - oya-check-iac-module-signature-cosign (new lane; refuses module sources that lack ADR-0181 cosign attestation)
-  - oya-check-iac-module-pin (new lane; refuses unpinned shared-module references; module source MUST include `?ref=v<MAJOR>.<MINOR>.<PATCH>` or equivalent)
-  - oya-check-iac-opentofu-only (existing; refuses HashiCorp Terraform syntax; preserved verbatim from `feedback_zero_handroll_opentofu_only_2026_05_20`)
-  - oya-check-iac-thin-wrapper-line-floor (new lane; per-µservice `iac/<context>/main.tf` must be ≤ 80 LOC excluding comments; substance is in the wrapper's primitive selection, not its plumbing)
-  - oya-check-iac-module-catalog-discoverability (new lane; refuses additions of new primitives to the library without a corresponding entry in `docs/standards/iac-module-catalog.md`)
+  - oya-check-iac-shared-module-usage (new lane; advisory until crate lands; planned promotion to BLOCKER after Wave 15Q-IaC-modules lands)
+  - oya-check-iac-module-path-canonical (new lane; advisory until crate lands; planned to refuse from-scratch per-µservice iac/<context>/ bodies that do not invoke a shared module)
+  - oya-check-iac-module-signature-cosign (new lane; advisory until crate lands; planned to refuse module sources that lack ADR-0181 cosign attestation)
+  - oya-check-iac-module-pin (new lane; advisory until crate lands; planned to refuse unpinned shared-module references; module source MUST include `?ref=v<MAJOR>.<MINOR>.<PATCH>` or equivalent)
+  - oya-check-iac-opentofu-only (advisory until crate lands; planned to refuse HashiCorp Terraform syntax; preserved verbatim from `feedback_zero_handroll_opentofu_only_2026_05_20`)
+  - oya-check-iac-thin-wrapper-line-floor (new lane; advisory until crate lands; planned per-µservice `iac/<context>/main.tf` must be ≤ 80 LOC excluding comments; substance is in the wrapper's primitive selection, not its plumbing)
+  - oya-check-iac-module-catalog-discoverability (new lane; advisory until crate lands; planned to refuse additions of new primitives to the library without a corresponding entry in `docs/standards/iac-module-catalog.md`)
 purpose: >
   Establish `microservices/cloud-iac/modules/<context>/<primitive>/` as the
   canonical home for reusable, signed, OpenTofu module primitives across
@@ -275,7 +275,7 @@ B2.007. Module consumers (per-µservice wrappers) pin a specific version. Unpinn
 
 B2.008. The per-µservice wrapper at `iac/<context>/main.tf` is OpenTofu-only. HashiCorp Terraform syntax remains forbidden per ADR-0218 and the existing `oya-check-iac-opentofu-only` lane.
 
-B2.009. The per-µservice wrapper at `iac/<context>/main.tf` MUST be ≤ 80 LOC excluding comments and blank lines. The line ceiling is enforced by `oya-check-iac-thin-wrapper-line-floor` (§E). Substance is in primitive selection + parameter passing, not in plumbing.
+B2.009. The per-µservice wrapper at `iac/<context>/main.tf` MUST be ≤ 80 LOC excluding comments and blank lines. The line ceiling is planned to be enforced by `oya-check-iac-thin-wrapper-line-floor` (advisory until the crate lands per §E). Substance is in primitive selection + parameter passing, not in plumbing.
 
 B2.010. Per-µservice wrappers MUST declare `tenant_id` + `tenant_class` parameters per ADR-0244 + ADR-0331 §D-8. The shared modules validate these parameters internally; per-µservice wrappers do not duplicate the validation.
 
@@ -439,7 +439,7 @@ D-2.3. The wrapper file declares `variables.tf` for per-µservice inputs (typica
 
 D-2.4. The wrapper file MUST NOT declare `resource` blocks. Inline resources are refused by `oya-check-iac-module-path-canonical`.
 
-D-2.5. The wrapper file MUST be ≤ 80 LOC excluding comments and blank lines. Enforced by `oya-check-iac-thin-wrapper-line-floor`.
+D-2.5. The wrapper file MUST be ≤ 80 LOC excluding comments and blank lines. Planned to be enforced by `oya-check-iac-thin-wrapper-line-floor` (advisory until the crate lands).
 
 D-2.6. Reference example for a µservice's `iac/oci-guest/main.tf`:
 

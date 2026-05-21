@@ -87,7 +87,7 @@ line_floor: 600
 bespoke_authoring_requirement: documentation-rigor-1.1-plus-ADR-0322
 enforcement_status: advisory-until-data-warehouse-rewrite-lands
 enforced_by:
-  - oya-check-iceberg-canonical-write-path (new; promoted to BLOCKER after Wave 15-OLAP lands)
+  - oya-check-iceberg-canonical-write-path (new; advisory at landing, planned promotion to BLOCKER after Wave 15-OLAP lands)
   - oya-governance-olap-table-format-vocabulary (new; refuses bare Delta/Hudi as canonical write paths corpus-wide outside the adapter allow-list)
   - oya-governance-iceberg-crate-naming (new; refuses `oya-*-adapter-delta-write-*` or `oya-*-adapter-hudi-write-*` canonical-write-path crate names after Wave 15-OLAP)
   - oya-governance-iceberg-rest-catalog-binding (new; refuses non-Iceberg-REST-catalog OLAP table-format catalog bindings in new µservice authoring after Wave 15-OLAP)

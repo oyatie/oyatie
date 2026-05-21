@@ -20,7 +20,7 @@
       "microservices/cloud-iac/modules/catalog.json",
       "microservices/cloud-iac/ARCHITECTURE.md"
     ],
-    "enforced_by": [
+    "enforced_by_planned_advisory_until_crates_land": [
       "oya-check-iac-shared-module-usage",
       "oya-check-iac-module-path-canonical",
       "oya-check-iac-module-signature-cosign",

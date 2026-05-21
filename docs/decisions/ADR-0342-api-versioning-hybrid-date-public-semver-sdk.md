@@ -93,13 +93,13 @@ line_floor: 600
 bespoke_authoring_requirement: documentation-rigor-1.1-plus-ADR-0322
 enforcement_status: advisory-until-version-router-and-sdk-pipeline-land
 enforced_by:
-  - oya-check-public-api-date-version (new lane; refuses contract authoring that omits a YYYY-MM-DD Oyatie-Version anchor on every public OpenAPI 3.2.0 path / AsyncAPI 3.1.0 channel / proto3 service)
-  - oya-check-public-api-version-triplet (new lane; refuses public-facing handlers that do not honor all three carriers — header `Oyatie-Version`, URL prefix `/v/<YYYY-MM-DD>/...`, protobuf field `oyatie_version`)
-  - oya-check-public-api-supported-window (new lane; refuses contract drops below N=3 supported versions and refuses removal earlier than 180 days post-deprecation)
-  - oya-check-public-api-sunset-adr (new lane; refuses a tenant-affecting breaking change without a paired sunset-class ADR + audit-chain `api.version.sunset` event emission)
-  - oya-check-sdk-semver-bump (new lane; refuses SDK releases that do not honor the major-on-breaking / minor-on-additive / patch-on-fix rule; refuses SDK packages that fail to pin a date-version under-the-hood)
-  - oya-check-sdk-language-coverage (new lane; refuses SDK release trains that omit any of the 10 canonical languages without an exception ADR)
-  - oya-check-tenant-version-pinning (new lane; refuses tenant manifests that omit `api_version_pinning` block; refuses pinning to an unsupported / dropped version)
+  - oya-check-public-api-date-version (new lane; advisory until crate lands; planned to refuse contract authoring that omits a YYYY-MM-DD Oyatie-Version anchor on every public OpenAPI 3.2.0 path / AsyncAPI 3.1.0 channel / proto3 service)
+  - oya-check-public-api-version-triplet (new lane; advisory until crate lands; planned to refuse public-facing handlers that do not honor all three carriers — header `Oyatie-Version`, URL prefix `/v/<YYYY-MM-DD>/...`, protobuf field `oyatie_version`)
+  - oya-check-public-api-supported-window (new lane; advisory until crate lands; planned to refuse contract drops below N=3 supported versions and refuses removal earlier than 180 days post-deprecation)
+  - oya-check-public-api-sunset-adr (new lane; advisory until crate lands; planned to refuse a tenant-affecting breaking change without a paired sunset-class ADR + audit-chain `api.version.sunset` event emission)
+  - oya-check-sdk-semver-bump (new lane; advisory until crate lands; planned to refuse SDK releases that do not honor the major-on-breaking / minor-on-additive / patch-on-fix rule; refuses SDK packages that fail to pin a date-version under-the-hood)
+  - oya-check-sdk-language-coverage (new lane; advisory until crate lands; planned to refuse SDK release trains that omit any of the 10 canonical languages without an exception ADR)
+  - oya-check-tenant-version-pinning (new lane; advisory until crate lands; planned to refuse tenant manifests that omit `api_version_pinning` block; refuses pinning to an unsupported / dropped version)
   - oya-governance-version-routing-canonical-carriers (refuses any non-canonical version carrier — e.g., a `?api_version=` query param, a custom `X-API-Version` header, a separate sub-domain `v20260521.api.oyatie.dev`)
 purpose: >
   Establish a HYBRID API versioning model that separates the public-API
@@ -648,9 +648,9 @@ D-4.2. Pipeline stages:
   6. **Sign.** Generate cosign attestation per ADR-0181 including SDK semver + pinned date + content hash.
   7. **Publish.** Emit to per-language distribution channel.
 
-D-4.3. The semver bump rule is enforced by CI lane `oya-check-sdk-semver-bump`: a release with a breaking diff that ships as MINOR or PATCH is refused.
+D-4.3. The semver bump rule is planned to be enforced by CI lane `oya-check-sdk-semver-bump` (advisory until the crate lands): a release with a breaking diff that ships as MINOR or PATCH is refused.
 
-D-4.4. The 10-language coverage is enforced by CI lane `oya-check-sdk-language-coverage`: a minor or major release that omits any language without an exception ADR is refused.
+D-4.4. The 10-language coverage is planned to be enforced by CI lane `oya-check-sdk-language-coverage` (advisory until the crate lands): a minor or major release that omits any language without an exception ADR is refused.
 
 D-4.5. The release-manifest schema:
 ```json

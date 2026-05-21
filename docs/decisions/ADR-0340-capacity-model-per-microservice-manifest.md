@@ -95,13 +95,13 @@ line_floor: 600
 bespoke_authoring_requirement: documentation-rigor-1.1-plus-ADR-0322
 enforcement_status: advisory-until-capacity-model-declaration-lands
 enforced_by:
-  - oya-check-capacity-model-present (new CI lane; refuses missing or malformed capacity_model blocks in manifest.json; REPORT-ONLY at landing; BLOCKER per-µservice as each capacity_model declaration lands)
-  - oya-check-capacity-model-units (new CI lane; refuses non-canonical units; baseline_cpu_per_tenant MUST be vCPU as a decimal; baseline_ram_per_tenant MUST be MiB as an integer; storage_per_tenant MUST be GB as an integer; connections_per_tenant fields MUST be non-negative integers)
-  - oya-check-capacity-model-scaling-dimension (new CI lane; refuses scaling_dimension values outside the closed enum {per_user, per_request, per_capability, per_message, per_query, per_workflow_run})
-  - oya-check-capacity-model-cell-placement (new CI lane; refuses cell_placement_class values outside {Tier-0, Tier-1, Tier-2, Tier-3, Tier-4} and refuses Tier-0/Tier-1 declarations without an audit-chain seal event reference per ADR-0263)
-  - oya-check-capacity-model-tenant-class-deltas (new CI lane; refuses capacity_model declarations that omit demo_trial vs paid delta rows when the µservice serves both tenant classes per ADR-0330 + ADR-0331)
-  - oya-check-capacity-model-finops-anchor (new CI lane; refuses capacity_model values that diverge from the per-µservice FinOps cost-center declaration in `finops` section by more than the soft-band tolerance recorded in registry/finops/cost-tag-vocabulary.yaml)
-  - oya-check-capacity-model-cellular-tier-coherence (new CI lane; refuses cell_placement_class values that conflict with the µservice's declared pod_runtime_tier per ADR-0338 + ADR-0248 co-variance table in D-6)
+  - oya-check-capacity-model-present (new CI lane; advisory until crate lands; planned to refuse missing or malformed capacity_model blocks in manifest.json; REPORT-ONLY at landing; BLOCKER per-µservice as each capacity_model declaration lands)
+  - oya-check-capacity-model-units (new CI lane; advisory until crate lands; planned to refuse non-canonical units; baseline_cpu_per_tenant MUST be vCPU as a decimal; baseline_ram_per_tenant MUST be MiB as an integer; storage_per_tenant MUST be GB as an integer; connections_per_tenant fields MUST be non-negative integers)
+  - oya-check-capacity-model-scaling-dimension (new CI lane; advisory until crate lands; planned to refuse scaling_dimension values outside the closed enum {per_user, per_request, per_capability, per_message, per_query, per_workflow_run})
+  - oya-check-capacity-model-cell-placement (new CI lane; advisory until crate lands; planned to refuse cell_placement_class values outside {Tier-0, Tier-1, Tier-2, Tier-3, Tier-4} and refuses Tier-0/Tier-1 declarations without an audit-chain seal event reference per ADR-0263)
+  - oya-check-capacity-model-tenant-class-deltas (new CI lane; advisory until crate lands; planned to refuse capacity_model declarations that omit demo_trial vs paid delta rows when the µservice serves both tenant classes per ADR-0330 + ADR-0331)
+  - oya-check-capacity-model-finops-anchor (new CI lane; advisory until crate lands; planned to refuse capacity_model values that diverge from the per-µservice FinOps cost-center declaration in `finops` section by more than the soft-band tolerance recorded in registry/finops/cost-tag-vocabulary.yaml)
+  - oya-check-capacity-model-cellular-tier-coherence (new CI lane; advisory until crate lands; planned to refuse cell_placement_class values that conflict with the µservice's declared pod_runtime_tier per ADR-0338 + ADR-0248 co-variance table in D-6)
 purpose: >
   Establish the canonical `capacity_model` block in every µservice's
   `microservices/<name>/manifest.json` as the machine-readable declaration

@@ -104,11 +104,11 @@ line_floor: 600
 bespoke_authoring_requirement: documentation-rigor-1.1-plus-ADR-0322
 enforcement_status: advisory-until-per-microservice-sustainability-emission-model-declared
 enforced_by:
-  - oya-check-audit-row-carbon-fields (new lane; refuses audit-chain emission paths that do not populate cost_usd_minor_units + co2_grams + watt_hours + provider + region; promoted to BLOCKER after Wave 15Y-Sustainability-FinOps lands)
-  - oya-check-sustainability-emission-model (new lane; refuses µservice manifests that lack sustainability_emission_model block once a workload is emitted)
-  - oya-check-finops-portal-dimensional-rollup (new lane; refuses finops-portal dashboards / reports that do not expose all six canonical dimensional axes — tenant / product / capability / provider / cell / compliance_pack)
-  - oya-check-carbon-intensity-provider-binding (new lane; refuses microservice runtime that resolves region carbon intensity from a non-canonical provider; electricityMaps API is canonical, with documented fallback grid-average per ADR-0263)
-  - oya-check-regulatory-sustainability-report-emission (new lane; refuses regulator-class quarterly audit-chain reports — CSRD / SB-253 / SEC-climate-disclosure — that lack carbon + energy + cost totals across the dimensional axes)
+  - oya-check-audit-row-carbon-fields (new lane; advisory until crate lands; planned to refuse audit-chain emission paths that do not populate cost_usd_minor_units + co2_grams + watt_hours + provider + region; promoted to BLOCKER after Wave 15Y-Sustainability-FinOps lands)
+  - oya-check-sustainability-emission-model (new lane; advisory until crate lands; planned to refuse µservice manifests that lack sustainability_emission_model block once a workload is emitted)
+  - oya-check-finops-portal-dimensional-rollup (new lane; advisory until crate lands; planned to refuse finops-portal dashboards / reports that do not expose all six canonical dimensional axes — tenant / product / capability / provider / cell / compliance_pack)
+  - oya-check-carbon-intensity-provider-binding (new lane; advisory until crate lands; planned to refuse microservice runtime that resolves region carbon intensity from a non-canonical provider; electricityMaps API is canonical, with documented fallback grid-average per ADR-0263)
+  - oya-check-regulatory-sustainability-report-emission (new lane; advisory until crate lands; planned to refuse regulator-class quarterly audit-chain reports — CSRD / SB-253 / SEC-climate-disclosure — that lack carbon + energy + cost totals across the dimensional axes)
   - oya-governance-sustainability-tag-allowlist (existing ADR-0174 sustainability_class lane; preserved unchanged)
   - oya-governance-carbon-aware-scheduling (new lane; refuses Cedar fragments that gate workload placement on carbon intensity without referencing this ADR + ADR-0243)
 purpose: >

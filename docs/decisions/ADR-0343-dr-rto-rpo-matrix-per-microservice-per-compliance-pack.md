@@ -94,13 +94,13 @@ line_floor: 600
 bespoke_authoring_requirement: documentation-rigor-1.1-plus-ADR-0322
 enforcement_status: advisory-until-manifest-dr-block-lands
 enforced_by:
-  - oya-check-dr-manifest-block (new lane; refuses missing or malformed `dr` block in per-µservice manifest)
-  - oya-check-dr-pack-floor-satisfaction (new lane; computes effective RTO/RPO per tenant-pack combination and refuses µservice declarations that fail to satisfy any applicable pack floor on cells they may serve)
-  - oya-check-dr-multi-region-required (new lane; refuses `multi_region_active_active=false` when µservice serves a pack that mandates multi-region — HIPAA, KR-PIPA via CSAP, EU AI Act high-risk)
-  - oya-check-dr-runbook-presence (new lane; refuses a `failover_runbook` pointer that does not resolve to an existing markdown file in the µservice's `runbooks/` directory)
-  - oya-check-dr-backup-substrate-allowlist (new lane; refuses backup substrate identifiers outside the canonical allowlist defined in §D-5)
-  - oya-check-dr-drill-evidence-fresh (new lane; refuses µservices whose `last_drill_evidence_id` resolves to an audit row older than the pack-mandated drill cadence)
-  - oya-check-dr-pack-floor-table-coverage (new lane; refuses `/specs/compliance-pack-floors.json` versions that omit a pack referenced by any active tenant)
+  - oya-check-dr-manifest-block (new lane; advisory until crate lands; planned to refuse missing or malformed `dr` block in per-µservice manifest)
+  - oya-check-dr-pack-floor-satisfaction (new lane; advisory until crate lands; planned to compute effective RTO/RPO per tenant-pack combination and refuse µservice declarations that fail to satisfy any applicable pack floor on cells they may serve)
+  - oya-check-dr-multi-region-required (new lane; advisory until crate lands; planned to refuse `multi_region_active_active=false` when µservice serves a pack that mandates multi-region — HIPAA, KR-PIPA via CSAP, EU AI Act high-risk)
+  - oya-check-dr-runbook-presence (new lane; advisory until crate lands; planned to refuse a `failover_runbook` pointer that does not resolve to an existing markdown file in the µservice's `runbooks/` directory)
+  - oya-check-dr-backup-substrate-allowlist (new lane; advisory until crate lands; planned to refuse backup substrate identifiers outside the canonical allowlist defined in §D-5)
+  - oya-check-dr-drill-evidence-fresh (new lane; advisory until crate lands; planned to refuse µservices whose `last_drill_evidence_id` resolves to an audit row older than the pack-mandated drill cadence)
+  - oya-check-dr-pack-floor-table-coverage (new lane; advisory until crate lands; planned to refuse `/specs/compliance-pack-floors.json` versions that omit a pack referenced by any active tenant)
   - oya-governance-dr-auditor-dashboard-presence (new lane; refuses missing per-pack auditor dashboard manifest entries that enumerate which µservices serve the pack and report floor satisfaction)
 purpose: >
   Establish the canonical disaster-recovery (DR) and business-continuity
@@ -205,7 +205,7 @@ The effective drill cadence is the SHORTEST cadence across the µservice's tier-
 
 ADR-0336 (Valkey not Redis substrate) and ADR-0337 (Iceberg canonical OLAP write path) establish the canonical persistence substrate for in-memory KV and OLAP table format respectively. PostgreSQL with WAL-G continuous archive is the canonical OLTP substrate. Object storage with versioning (S3 + object-lock; OCI Object Storage with retention; MinIO on-prem with versioning) is the canonical immutable-snapshot substrate. SeaweedFS is the canonical large-scale object substrate per ADR-0196.
 
-A µservice's `backup_substrate` field declares which of these substrates the µservice depends on for DR-time recovery. The allowlist enforced by `oya-check-dr-backup-substrate-allowlist` (§D-5) is:
+A µservice's `backup_substrate` field declares which of these substrates the µservice depends on for DR-time recovery. The allowlist (planned to be enforced by `oya-check-dr-backup-substrate-allowlist`, advisory until the crate lands per §D-5) is:
 
 - `valkey` (in-memory KV; backup via Valkey AOF + RDB to object storage)
 - `valkey_cluster` (in-memory KV cluster; backup via per-shard AOF + RDB)
@@ -686,7 +686,7 @@ D-4.10. **Worked example 5**: tenant activates `KR-PIPA-2023-amendment`; µservi
 
 ### D-5: Backup substrate allowlist
 
-D-5.1. The canonical backup substrate allowlist enforced by `oya-check-dr-backup-substrate-allowlist`:
+D-5.1. The canonical backup substrate allowlist (planned to be enforced by `oya-check-dr-backup-substrate-allowlist`, advisory until the crate lands):
 
 - `valkey` (in-memory KV; backup via Valkey AOF + RDB to object_storage_versioned)
 - `valkey_cluster` (in-memory KV cluster; per-shard AOF + RDB)

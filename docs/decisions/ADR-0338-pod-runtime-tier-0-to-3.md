@@ -96,7 +96,7 @@ line_floor: 600
 bespoke_authoring_requirement: documentation-rigor-1.1-plus-ADR-0322
 enforcement_status: advisory-until-tier-declaration-lands
 enforced_by:
-  - oya-check-pod-runtime-tier (new CI lane; refuses missing or invalid pod_runtime_tier declarations; refuses tier-vs-nodepool mismatches; promoted to BLOCKER after corpus-wide declaration lands)
+  - oya-check-pod-runtime-tier (new CI lane; advisory until crate lands; planned to refuse missing or invalid pod_runtime_tier declarations; refuses tier-vs-nodepool mismatches; promoted to BLOCKER after corpus-wide declaration lands)
   - Kyverno admission policy `enforce-pod-runtime-tier` (refuses pod admission when pod.spec.runtimeClassName does not match the µservice's declared pod_runtime_tier or when pod placement violates the nodepool taint/toleration contract)
   - oya-governance-runtime-class-allowlist (refuses RuntimeClass declarations outside {kata-cloud-hypervisor, runc, runc-edge})
   - oya-governance-nodepool-binding (refuses workloads that target a nodepool the µservice is not authorized to land on)
