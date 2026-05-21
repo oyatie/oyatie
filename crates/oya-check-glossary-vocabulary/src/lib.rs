@@ -351,8 +351,10 @@ fn contains_forbidden_word(line: &str, token: &str) -> bool {
 }
 
 fn casing_warning_variants(prose: &str) -> Vec<String> {
+    // Preserve hyphens so brand-qualified compounds (e.g., "oyatie-owned") stay
+    // as a single token and do not duplicate brand-residue gate warnings.
     let words = prose
-        .split(|character: char| !character.is_ascii_alphanumeric())
+        .split(|character: char| !character.is_ascii_alphanumeric() && character != '-')
         .filter(|word| !word.is_empty())
         .collect::<Vec<_>>();
     let mut variants = Vec::new();
