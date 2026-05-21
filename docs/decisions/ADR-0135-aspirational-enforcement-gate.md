@@ -63,10 +63,10 @@ files, unreadable crate directories, and unreadable branch-protection records.
 It treats these named surfaces as known:
 
 - `oya-check-*` crate directories under `crates/`
-- `oya-foundry-fitness-*` workflow `name:` values, job keys, and job-level
+- `oya-governance-*` workflow `name:` values, job keys, and job-level
   `name:` values under `.github/workflows/`; filenames alone do not satisfy
   enforcement
-- active `oya-foundry-fitness-*` lane IDs in `registry/quality/lanes.yaml`
+- active `oya-governance-*` lane IDs in `registry/quality/lanes.yaml`
 - required-status contexts listed in `.github/branch-protection.yaml`
 
 The detector fails explicit binding lines that combine a named enforcement
@@ -91,10 +91,10 @@ work unless their concrete gates are active and green.
 
 ## Branch Protection
 
-The branch protection required check is `oya-foundry-fitness-aspirational-enforcement`.
+The branch protection required check is `oya-governance-aspirational-enforcement`.
 The workflow name, workflow job key, branch-protection context, quality-lane
 registry entry, and CI-lanes documentation row use that same value so
-`oya-foundry-fitness-protection-context-match` can detect drift.
+`oya-governance-protection-context-match` can detect drift.
 
 ## Rejected Alternatives
 

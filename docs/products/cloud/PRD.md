@@ -1,4 +1,36 @@
 ---
+doc_class: ProductRequirements
+product: cloud
+status: Draft
+date: 2026-05-20
+owner: council-product + axis-cloud
+related_oyatie_adrs:
+  - ADR-0003
+  - ADR-0007
+  - ADR-0009
+  - ADR-0040
+  - ADR-0043
+  - ADR-0044
+  - ADR-0045
+  - ADR-0050
+  - ADR-0199
+  - ADR-0220
+  - ADR-0251
+  - ADR-0255
+  - ADR-0263
+  - ADR-0316
+related_microservices:
+  - cloud-region
+  - cloud-cell
+  - cloud-compute
+  - cloud-storage
+  - cloud-network
+  - cloud-iam
+  - cloud-kms
+  - cloud-billing
+  - cloud-finops
+  - cloud-observability
+capability_tier: Platinum
 doc_status: published
 ---
 
@@ -23,7 +55,7 @@ A standalone "Oyatie Cloud" sale (per-resource-hour IaaS) is a real commercial p
 | Persona | What they get | What they pay for |
 |---|---|---|
 | **Cloud customer (startup)** | KR-resident or JP-resident or EU-resident IaaS without US hyperscaler exposure; managed Postgres / k8s / object store; per-second metering; serverless functions | Per-resource-hour, per-API-call, per-GB egress |
-| **Cloud customer (enterprise)** | Direct interconnect, dedicated cells, BYOK / HYOK, Cedar-based IAM with SAML federation, signed audit log export, cross-region replication under explicit policy | Committed-use discount + per-resource overage; FinOps console |
+| **Cloud customer (enterprise)** | Direct interconnect, dedicated cells, encryption-BYOK / HYOK, Cedar-based IAM with SAML federation, signed audit log export, cross-region replication under explicit policy | Committed-use discount + per-resource overage; FinOps console |
 | **Sovereign / regulated buyer** (KR public sector, KR healthcare, JP government, EU financial) | Per-pack regulatory evidence (CSAP / K-ISMS-P / KCMVP HSM, ISMAP, FedRAMP path, GAIA-X, DORA), data residency under cell-isolation evidence, regulator-equivalent attestation surface | Sovereign-tier pricing; per-region attestation surfaces |
 | **Internal Oyatie axes** (SaaS / Search / Ads / Vertical / Foundry) | Cell-routed compute, storage, network; canonical billing event emission; per-cell IAM; observability dataplane; Foundry-callable mutators | (Internal — metered to axis cost center) |
 | **Foundry agent** | Cloud control-plane API surfaced as capabilities; autonomy-ceiling-bound mutators (provision instance, publish IAM role, register region, rebalance capacity) | (Internal — agent-run cost metered to tenant) |
@@ -38,7 +70,7 @@ A standalone "Oyatie Cloud" sale (per-resource-hour IaaS) is a real commercial p
 |---|---|---|
 | **W-Foundation** | `Resource`, `Region`, `AZ`, `Cell`, `IAM`, `BillingAccount` kernels (`oya-cloud-*-kernel`); cell-isolation primitive; per-cell metadata service (IMDSv2-only per greenfield A11); region/AZ/cell taxonomy; OpenTofu IaC profile (ADR-0050) | None public — kernels and IaC plumbing |
 | **W-Substrate** | Foundry binding for cloud control-plane mutators; capability registry projection; Foundry-callable IAM publish, region register, capacity rebalance under autonomy ceiling; audit-chain emit on every mutation | Internal `Cloud Console` v0 (read-only resource browser); IaC pipelines |
-| **W-Cloud-Preview** | VM service (KVM / Firecracker tenant compute), Kubernetes-as-a-service (managed), serverless / functions (limited language set), bare-metal lease, GPU fleet (per ADR-0044 hybrid), edge compute (limited PoP); Object store (S3-class), Block store (EBS-class), File store (EFS-class), Archive (Glacier-class), managed Postgres / Citus / pgvector / Redis / Kafka / ClickHouse; VPC + subnets, load balancers (L4 + L7), DNS (authoritative + recursive), CDN, direct interconnect, DDoS protection, service mesh integration; IAM + Account (Cedar policies, SAML/OIDC, STS, identity federation, MFA, audit); per-region per-AZ per-cell taxonomy; BYOK/HYOK KMS; per-resource-hour metering + per-region tax-invoice format; per-cell observability dataplane (audit log + SLO dashboards) — **all running canonical-architecture + first regional packs (KR-Seoul, JP-Tokyo, US-Virginia, EU-Frankfurt) in parallel** | `Cloud API v1` (control-plane REST + gRPC), `Cloud Console v1` (Leptos web), `Resource browser`, `IAM editor`, `Billing dashboard`, `Foundry capability surface` (cloud.compute.provision, cloud.iam.publish, cloud.region.register, etc.), KR CSAP path documented, audit-log export |
+| **W-Cloud-Preview** | VM service (KVM / Firecracker tenant compute), Kubernetes-as-a-service (managed), serverless / functions (limited language set), bare-metal lease, GPU fleet (per ADR-0044 hybrid), edge compute (limited PoP); Object store (S3-class), Block store (EBS-class), File store (EFS-class), Archive (Glacier-class), managed Postgres / Citus / pgvector / Redis / Kafka / ClickHouse; VPC + subnets, load balancers (L4 + L7), DNS (authoritative + recursive), CDN, direct interconnect, DDoS protection, service mesh integration; IAM + Account (Cedar policies, SAML/OIDC, STS, identity federation, MFA, audit); per-region per-AZ per-cell taxonomy; encryption-BYOK/HYOK KMS; per-resource-hour metering + per-region tax-invoice format; per-cell observability dataplane (audit log + SLO dashboards) — **all running canonical-architecture + first regional packs (KR-Seoul, JP-Tokyo, US-Virginia, EU-Frankfurt) in parallel** | `Cloud API v1` (control-plane REST + gRPC), `Cloud Console v1` (Leptos web), `Resource browser`, `IAM editor`, `Billing dashboard`, `Foundry capability surface` (cloud.compute.provision, cloud.iam.publish, cloud.region.register, etc.), KR CSAP path documented, audit-log export |
 | **W-Cloud-Stable** | Public cloud-provider GA: marketplace, ISV onboarding, multi-AZ failover automation, FinOps surfaces, KR CSAP + K-ISMS-P + KCMVP HSM in production; reserved instance / committed-use; spot / preemptible; cross-region replication under explicit residency policy; managed-service catalog expansion (Cassandra gated ADR-0045, Iceberg gated ADR-0045, Milvus gated ADR-0047, Temporal gated ADR-0035) | Public Cloud API v1 frozen; SLA committed (99.99% data plane); Marketplace; ISV portal |
 | **W-Public-GA** | SLA 99.99% control plane on critical mutators, 99.999% data plane on object storage durability (eleven-nines model); regulator-equivalent attestations (CSAP / ISMAP / FedRAMP / GAIA-X / DORA / MeitY / LGPD / NDMO / TDRA / IRAP per regional pack); enterprise procurement (committed use + private offer + custom ToS via legal pack) | All surfaces SLA-backed; regulator portal; private-offer surface |
 | **W-Region-Fan-Out** | Add regions in parallel: secondary KR (Busan), JP-Osaka, US-West, EU-Paris, EU-Stockholm, IN-Mumbai, BR-São Paulo, KSA-Riyadh, UAE-Dubai, ANZ-Sydney, SG-Singapore (per regional pack roster); cross-region replication contract per residency class | Per-region surface; per-region regulator dashboard |
@@ -524,7 +556,7 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 
 - **Versioning**: `schema_version: u32` per kernel entity; monotonic per region.
 - **Reversibility**: every migration ships up + down DDL; per-region rollout via Argo Rollouts (ADR-0050) with automated metric-gated rollback.
-- **Dry-run gate**: Foundry fitness function `oya-foundry-fitness-migration` runs against synthetic 10k-resource per-region tenant before merge.
+- **Dry-run gate**: Foundry fitness function `oya-governance-migration` runs against synthetic 10k-resource per-region tenant before merge.
 - **Region-pack-conditional migrations**: regional packs declare migrations independently; canonical core never depends on a pack-specific column.
 
 ## 6. Optimization practices (required) — *slice-level*
@@ -539,7 +571,7 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 | Idempotency | `Idempotency-Key` header on every mutating REST + gRPC call; outbox dedupes 24 h; cloud-init runs are deduped on `instance_id` |
 | Batch dispatch | Capacity-rebalance batches every 5 s; billing aggregation batches every 60 s; observability ingest batches every 1 s or 256 events |
 | Backpressure | Capacity-bound rejection at cell with `429`+`Retry-After`; observability ingest sheds to dead-letter at 95% lag; LB control loop slows under metric pressure |
-| Hot-path benchmarks | STS issuance (`p99 ≤ 100 ms`), Cedar evaluation (`p99 ≤ 5 ms`), object GET (`p99 ≤ 100 ms`), instance `provision-to-running` (`p95 ≤ 60 s`) — wired to `oya-foundry-fitness-bench` |
+| Hot-path benchmarks | STS issuance (`p99 ≤ 100 ms`), Cedar evaluation (`p99 ≤ 5 ms`), object GET (`p99 ≤ 100 ms`), instance `provision-to-running` (`p95 ≤ 60 s`) — wired to `oya-governance-bench` |
 | Agent-driven optimization loops | Foundry capability `cloud.capacity.rebalance` (autonomy ≤ T2): proposes cell rebalance from utilization metrics; `cloud.cost.recommend` (≤ T1): identifies idle resources, recommends down-sizing; `cloud.iam.audit-narrow` (≤ T2): proposes least-privilege role narrowing from access logs; human approves before execution at T2 |
 | FinOps unit-economics | Per-tenant cost = sum(`MeterEvent.units` × per-region rate-card); per-resource breakdown in `Cloud Console FinOps`; target gross-margin per region ≥ 50% at GA |
 | Build-cache and CI affected-graph | `oya-cloud-*` is the largest per-region change subgraph; ADR-0015 flat boundaries keep change-radius bounded; per-region IaC profile (OpenTofu, ADR-0050) is run-once per affected region |
@@ -583,7 +615,7 @@ Per [DESIGN.md §12](../../DESIGN.md):
 | `Apache Kafka` | secondary | Apache-2 | own event bus — rejected; outbox is day-1 | adopt gated (ADR-0046) |
 | `ClickHouse` | secondary | Apache-2 | own OLAP — rejected | adopt (ADR-0045) |
 
-License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden in product code; SSPL / BUSL — ADR review. GPL daemons (KVM/FRR) and AGPL extensions (Mimir) are allowed only at process boundary; the boundary is governed by ADR-0039 and planned advisory lane `oya-foundry-fitness-license`.
+License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden in product code; SSPL / BUSL — ADR review. GPL daemons (KVM/FRR) and AGPL extensions (Mimir) are allowed only at process boundary; the boundary is governed by ADR-0039 and planned advisory lane `oya-governance-license`.
 
 ## 9. Success metrics (required)
 
@@ -611,7 +643,7 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Object backend (Ceph/Seaweed) durability claim does not survive AZ loss | Catastrophic | EC 3+1 across AZs by default; per-bucket scrub schedule; quarterly forced AZ-isolation drill | Cloud-storage team |
 | Cross-region replication leaks under residency-strict policy | Catastrophic | Per-bucket `allowed_data_classes` × residency policy enforced at replication ingress; audit-chain on every cross-region ship | Cloud + Privacy |
 | KVM / hypervisor escape | Catastrophic | Firecracker for high-blast-radius workloads; per-cell host hardening; CVE-driven restart-policy; supply-chain attestation per host image (ADR-0039) | Cloud + Security |
-| AGPL backend (MinIO) accidentally adopted | High | License-policy gate (`oya-foundry-fitness-license`) hard-fails any MinIO link or vendoring | Cloud + Foundry |
+| AGPL backend (MinIO) accidentally adopted | High | License-policy gate (`oya-governance-license`) hard-fails any MinIO link or vendoring | Cloud + Foundry |
 | Foundry mutator misuse (e.g. `cloud.iam.publish` over-broad) | High | Autonomy-ceiling-bound; T3 required for IAM mutation by default; per-mutator scoped capability schema; audit-chain on every invocation | Cloud + Foundry + Governance |
 | KR CSAP attestation slipping past target | High | Parallel KR-pack workstream; contract with KR auditor signed pre-W-Cloud-Preview; controls evidenced via Foundry agents (HIPAA/KISA pattern per DESIGN §3) | Cloud-KR-pack team |
 | Multi-AZ failover not actually exercised | High | Argo Rollouts (ADR-0050) progressive delivery + monthly forced AZ-failover drill; metric-gated rollback validated quarterly | Cloud + SRE |
@@ -647,7 +679,7 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 ## 11. Open questions
 
 1. **Cloud axis pricing model at public-GA**: per-resource-hour AWS-style, or per-tenant-bundle Connect-style? (Same as PRD §8.) Default proposed: per-resource-hour with committed-use discounts.
-2. **BYOK / HYOK at preview**: tenant-key escrow with KCMVP HSM as default for KR-pack; deferred for non-KR packs until W-Cloud-Stable. Confirm at council.
+2. **encryption-BYOK / HYOK at preview**: tenant-key escrow with KCMVP HSM as default for KR-pack; deferred for non-KR packs until W-Cloud-Stable. Confirm at council.
 3. **Bare-metal lease**: managed (Oyatie operates the bare-metal as a service) or unmanaged (tenant gets root)? Default proposed: managed-by-default with unmanaged opt-in.
 4. **Air-gapped sovereign cell** (per ADR-0050 air-gap-first profile): which packs include it from preview (KR public sector? JP government? UAE ADGM?) vs. defer to GA. Council pending.
 5. **Marketplace ISV onboarding**: same gate as `oya-saas-marketplace-kernel` (Plugin trust tiers ADR-0036), or separate cloud-app trust ladder?
@@ -696,12 +728,12 @@ Score honesty note: this section is a design benchmark. `Strong` requires a name
 | **FinOps: cost reporting + right-sizing** | §4.2 `oya-cloud-finops-api`; `cloud.cost.recommend` (≤ T1) identifies idle resources; per-tenant cost breakdown in Cloud Console; per-region gross-margin gate ≥ 50% at GA | AWS Cost Explorer + Trusted Advisor; Azure Cost Management + Advisor |
 | **4 golden signals observability** | §4.2 `oya-cloud-observability-kernel` + `MetricStream`, `LogStream`, `TraceStream`; §4.3 SLO targets on every API surface (latency p99 + availability %); §6 hot-path benchmarks for STS / Cedar / object GET | Google SRE 4 golden signals: latency + traffic + errors + saturation |
 | **Data perimeter / residency** | §5.1 `ResidencyClass` on every `Resource` + `Bucket`; per-bucket `allowed_data_classes`; per-cell `allowed_residency`; cross-region replication blocked unless residency policy explicitly permits | AWS data-perimeter controls; Azure data residency commitments |
-| **KMS / BYOK / HYOK** | §3.1 W-Cloud-Preview BYOK/HYOK KMS; §4.2 `oya-cloud-kms-api`; `EncryptionMode: sse | sse-kms | byok | hyok`; per-pack HSM (KCMVP / FIPS-140-3 / Common Criteria EAL-4+); `cloud.kms_key_used.v1` audit event (indefinite retention) | AWS KMS + CloudHSM; Azure Key Vault + Managed HSM; GCP Cloud KMS + Cloud HSM |
-| **Supply-chain attestation** | §4.2 `oya-cloud-supply-chain-app` (Cosign + Trivy + SBOM per ADR-0039); `oya-foundry-fitness-license` hard-gate; per-host image supply-chain attestation (§10) | AWS SLSA / Sigstore; Google Binary Authorization; Azure Defender for DevOps |
+| **KMS / encryption-BYOK / HYOK** | §3.1 W-Cloud-Preview encryption-BYOK/HYOK KMS; §4.2 `oya-cloud-kms-api`; `EncryptionMode: sse | sse-kms | byok | hyok`; per-pack HSM (KCMVP / FIPS-140-3 / Common Criteria EAL-4+); `cloud.kms_key_used.v1` audit event (indefinite retention) | AWS KMS + CloudHSM; Azure Key Vault + Managed HSM; GCP Cloud KMS + Cloud HSM |
+| **Supply-chain attestation** | §4.2 `oya-cloud-supply-chain-app` (Cosign + Trivy + SBOM per ADR-0039); `oya-governance-license` hard-gate; per-host image supply-chain attestation (§10) | AWS SLSA / Sigstore; Google Binary Authorization; Azure Defender for DevOps |
 | **Idempotency on every mutation** | §6 `Idempotency-Key` header on every mutating REST + gRPC; outbox deduplication 24 h; cloud-init deduped on `instance_id`; `idempotency_key` on every billing event | AWS SDK retry-with-idempotency; Temporal idempotent activities |
 | **Backpressure / rate limiting** | §6 capacity-bound 429 + `Retry-After` at cell; observability ingest sheds at 95% lag; LB control loop slows under metric pressure | AWS throttling + token-bucket; Azure APIM throttling; Google SRE saturation signal |
 | **Audit chain on every mutation** | §5.6 full audit-chain emission contract (10 regulated operations); `prev_hash` chained; per-tenant signed S3 stream; indefinite KMS-use retention | AWS CloudTrail immutable logs; Azure Monitor audit logs; GCP Cloud Audit Logs |
-| **Vendor lock-in avoidance** | §8 every external dep behind adapter trait (`KVM`, `Firecracker`, `Ceph/SeaweedFS`, `OVN`, `FRR`, `OpenTofu`) — never imported directly into product crates; `oya-foundry-fitness-license` enforces boundaries | AWS portability via IaC; Azure WAF vendor-neutrality |
+| **Vendor lock-in avoidance** | §8 every external dep behind adapter trait (`KVM`, `Firecracker`, `Ceph/SeaweedFS`, `OVN`, `FRR`, `OpenTofu`) — never imported directly into product crates; `oya-governance-license` enforces boundaries | AWS portability via IaC; Azure WAF vendor-neutrality |
 | **Fallback-as-failover (not silent fallback)** | §6 Argo Rollouts metric-gated rollback; Istio Ambient with Linkerd as exercised fallback (ADR-0044) — both paths continuously exercised | AWS Builders Library: avoid fallback; convert to failover via continuous exercise |
 
 ### 14.2 Anti-patterns explicitly avoided
@@ -744,7 +776,7 @@ The following patterns from hyperscaler frameworks are partially or entirely abs
 | FinOps | **Adequate** | Per-resource-hour metering; `cloud.cost.recommend`; gross-margin gate; no dedicated FinOps CI lane yet |
 | Observability (4 golden signals) | **Adequate** | Latency + availability SLOs present; explicit saturation SLO per cell dimension missing |
 | Data perimeter | **Adequate** | Residency classes + `allowed_data_classes`; resource-based policies not yet specified |
-| KMS / secrets | **Adequate** | BYOK/HYOK; per-pack HSM; OpenBao; `cloud.kms_key_used.v1` audit; HYOK integration evidence still missing |
+| KMS / secrets | **Adequate** | encryption-BYOK/HYOK; per-pack HSM; OpenBao; `cloud.kms_key_used.v1` audit; HYOK integration evidence still missing |
 | Supply-chain attestation | **Strong** | Cosign + Trivy + SBOM; license gate; per-host image attestation |
 | Vendor lock-in avoidance | **Strong** | All external deps at adapter/process boundary; `cargo-deny` denylist |
 | Error-budget policy | **Gap** | No burn-rate alert contract defined |
@@ -769,9 +801,1758 @@ When this PRD is created or updated, also update:
 
 ## Validation checks
 
-`oya-foundry-fitness-product-prd` runs:
+`oya-governance-product-prd` runs:
 - All required sections present
 - Every flat-crates target referenced exists in `Cargo.toml` or planned roadmap
 - Every entity field has a `data_class` annotation
 - Every external dep has a license-tier row
 - Every cross-axis contract is in DESIGN §10
+
+---
+
+## Hero Surface Substance Bar Addendum - Cloud
+
+This addendum deepens the Cloud product PRD to the hero-surface bar. It preserves the existing AWS-class axis spec above and adds the missing product-documentation layer for personas, JTBDs, stories, surface maps, data, Cedar, workflow, intelligence, pack overlays, SLOs, ADR-0263 telemetry, migration, tier deltas, competitive positioning, roadmap, cross-product handoffs, and recovery behavior.
+
+## Vision
+
+Cloud exists so oyatie can run its own platform and sell a sovereign, audit-chained, agent-operated cloud to tenants that cannot accept generic hyperscaler control boundaries. The product is for regulated enterprises, sovereign buyers, startups, internal oyatie product teams, marketplace ISVs, and Foundry agents that need compute, storage, network, IAM, KMS, observability, and billing from one tenant model. The timing matters because Foundry, workplace, ERP, marketplace, and regional packs cannot honestly claim hyperscaler maturity unless the substrate they run on has region, cell, data perimeter, billing, and evidence behavior documented at the product level.
+
+## Personas
+
+- Primary: CISO Yuki Park, KR enterprise security owner; MASTER-ROSTER row 32.
+- Primary: CFO Helena Brandt, cloud cost and committed-use buyer; MASTER-ROSTER row 26.
+- Primary: CTO Diego Vargas, platform buyer and migration sponsor; MASTER-ROSTER row 28.
+- Primary: Marcus Chen, multinational executive buyer; MASTER-ROSTER row 2.
+- Primary: Diana Reyes, external auditor and regulator-facing reviewer; MASTER-ROSTER row 7.
+- Secondary: Internal Oyatie engineer operating product workloads.
+- Secondary: Foundry agent invoking cloud mutator capabilities.
+- Secondary: Marketplace ISV publishing cloud-native listings.
+- Secondary: Cloud platform SRE handling cell incidents.
+- Secondary: Regional compliance officer validating CSAP, ISMAP, DORA, FedRAMP, and LGPD overlays.
+
+## Jobs-to-be-Done
+
+### JTBD-CLOUD-01 - Provision tenant compute with evidence
+- Situation: Diego provisions a regulated workload in KR-Seoul.
+- Acceptance: VM, image, subnet, KMS key, IAM role, and audit event are linked.
+- Acceptance: provisioning fails closed when region, cell, or pack policy is incompatible.
+
+### JTBD-CLOUD-02 - Store regulated objects under a data perimeter
+- Situation: Yuki stores encrypted exports for a strict-KR tenant.
+- Acceptance: bucket policy, KMS key policy, resource policy, residency class, and audit export are visible.
+- Acceptance: cross-region replication is denied unless residency policy permits.
+
+### JTBD-CLOUD-03 - Create a VPC without hidden shared tenancy
+- Situation: Marcus's enterprise creates VPCs for subsidiaries.
+- Acceptance: subnets, route tables, firewall rules, NAT, and load balancers are scoped to tenant, region, and cell.
+- Acceptance: default route to non-approved region is rejected.
+
+### JTBD-CLOUD-04 - Prove cost and margin per tenant
+- Situation: Helena reviews cloud spend and internal product unit economics.
+- Acceptance: MeterEvent, rate card, budget alert, invoice, tax treatment, and margin attribution are linked.
+- Acceptance: cost anomaly opens FinOps investigation workflow.
+
+### JTBD-CLOUD-05 - Operate a cell failure
+- Situation: an AZ power zone degrades.
+- Acceptance: cell health, workload placement, failover eligibility, SLO burn, and customer notification are visible.
+- Acceptance: recovery emits cell-failover audit events and runbook evidence.
+
+### JTBD-CLOUD-06 - Publish a managed service
+- Situation: an internal team publishes managed Postgres or Kafka.
+- Acceptance: service catalog entry declares SLO, backup, KMS, tenancy, scaling limits, and rollback.
+- Acceptance: service cannot publish without runbook and telemetry contract.
+
+### JTBD-CLOUD-07 - Let Foundry operate cloud safely
+- Situation: Foundry agent rebalances capacity or narrows IAM.
+- Acceptance: capability, autonomy tier, Cedar decision, blast radius, and rollback path are explicit.
+- Acceptance: human approval is required for destructive T0/T1 actions.
+
+### JTBD-CLOUD-08 - Migrate from a hyperscaler
+- Situation: a tenant leaves AWS, Azure, GCP, Naver Cloud, or Oracle Cloud.
+- Acceptance: inventory import maps identity, network, storage, compute, billing, and audit evidence.
+- Acceptance: unsupported resource types are listed with migration blockers.
+
+### JTBD-CLOUD-09 - Certify a sovereign region
+- Situation: compliance prepares KR CSAP or EU DORA evidence.
+- Acceptance: region pack shows controls, KMS mode, cell tier, logging, retention, auditor export, and exceptions.
+- Acceptance: unresolved evidence gaps block region GA.
+
+### JTBD-CLOUD-10 - Run marketplace cloud app install
+- Situation: ISV app provisions tenant resources.
+- Acceptance: install declares required resources, IAM scope, network egress, billing meters, and teardown plan.
+- Acceptance: plugin cannot create resources outside declared scope.
+
+## User Stories
+
+### Story CLOUD-HS-001 - Region Catalog
+As a cloud buyer, I want region status by jurisdiction so that workload placement is legal and available.
+Pass: each region shows state, packs, cell tiers, SLO, and evidence status.
+Pass: hidden or planned regions are not selectable for production workloads.
+
+### Story CLOUD-HS-002 - Tenant Cell Binding
+As a tenant admin, I want my workloads bound to a cell class so that isolation promises are enforceable.
+Pass: tenant cell binding shows region, cell tier, density class, and change history.
+Pass: binding changes require policy approval and audit event.
+
+### Story CLOUD-HS-003 - VM Provision
+As Diego, I want VM create to include image, flavor, subnet, key, role, and KMS choice so that compute is complete.
+Pass: create command returns instance id and evidence id.
+Pass: missing KMS key blocks regulated workloads.
+
+### Story CLOUD-HS-004 - Kubernetes Cluster
+As platform engineer, I want managed Kubernetes with tenant-scoped control plane so that apps can run without unmanaged clusters.
+Pass: cluster includes version, node pools, network policy, backup, and upgrade channel.
+Pass: unsupported version cannot be created.
+
+### Story CLOUD-HS-005 - Function Deploy
+As developer, I want a function deployment with cold-start budget so that event workloads are predictable.
+Pass: function declares runtime, timeout, memory, IAM role, and event trigger.
+Pass: invocation emits metric and audit receipt.
+
+### Story CLOUD-HS-006 - Object Bucket Policy
+As CISO Yuki, I want resource-based bucket policy so that access is not only principal-side.
+Pass: bucket policy can deny even when principal role permits.
+Pass: bucket policy change invalidates policy cache.
+
+### Story CLOUD-HS-007 - KMS Key Lifecycle
+As compliance officer, I want key create, rotate, disable, and shred with evidence so that data lifecycle is provable.
+Pass: key action emits policy decision and audit event.
+Pass: shred requires two-person approval for Platinum.
+
+### Story CLOUD-HS-008 - VPC Build
+As network engineer, I want VPC, subnets, routes, security groups, and load balancers in one workflow so that topology is consistent.
+Pass: every subnet has region, AZ, CIDR, route table, and policy.
+Pass: overlapping CIDR is rejected.
+
+### Story CLOUD-HS-009 - DNS Zone
+As tenant admin, I want DNS zone creation with DNSSEC and audit so that public endpoints are governed.
+Pass: zone includes owner, nameserver set, DNSSEC state, and change evidence.
+Pass: destructive record delete requires confirmation and audit.
+
+### Story CLOUD-HS-010 - Load Balancer
+As app owner, I want L4 and L7 load balancers with health checks so that traffic moves safely.
+Pass: health check, TLS policy, backend set, and WAF mode are visible.
+Pass: unhealthy all-backend state opens incident.
+
+### Story CLOUD-HS-011 - Direct Interconnect
+As enterprise buyer, I want private link provisioning so that regulated traffic avoids public internet.
+Pass: interconnect shows port, BGP session, route filters, and SLA.
+Pass: route leak is denied and alerted.
+
+### Story CLOUD-HS-012 - Managed Postgres
+As application owner, I want managed Postgres with backups, encryption, and maintenance window so that data services are standard.
+Pass: DB create declares version, size, HA mode, backup policy, and KMS key.
+Pass: no DB can run without backup policy.
+
+### Story CLOUD-HS-013 - Managed Redis
+As app owner, I want managed Redis with eviction policy and persistence mode so that cache behavior is predictable.
+Pass: memory class, eviction, AOF/RDB, and network policy are visible.
+Pass: unsafe public exposure is denied.
+
+### Story CLOUD-HS-014 - Managed Kafka
+As platform team, I want event streaming with topic governance so that workloads can publish reliably.
+Pass: topic has retention, partition, schema, ACL, and quota.
+Pass: schema-breaking publish is blocked.
+
+### Story CLOUD-HS-015 - Observability Workspace
+As SRE, I want metrics, logs, traces, and audit in one tenant workspace so that incidents are diagnosable.
+Pass: every resource links to dashboards and alert routes.
+Pass: missing telemetry blocks GA service catalog publish.
+
+### Story CLOUD-HS-016 - Cost Explorer
+As Helena, I want spend by tenant, product, region, tag, and resource so that margin and chargeback are clear.
+Pass: every line item links to MeterEvent and rate card.
+Pass: untagged spend appears in exception queue.
+
+### Story CLOUD-HS-017 - Budget Alert
+As finance owner, I want spend threshold alerts before overrun so that action happens early.
+Pass: alert has threshold, forecast, owner, and workflow action.
+Pass: acknowledged alert emits evidence.
+
+### Story CLOUD-HS-018 - Invoice Export
+As buyer, I want tax-compliant invoice export per jurisdiction so that finance can pay.
+Pass: invoice includes tax pack, region, currency, usage, and signing evidence.
+Pass: pack-specific missing fields block final invoice.
+
+### Story CLOUD-HS-019 - IAM Role Narrowing
+As CISO, I want access analyzer recommendations so that least privilege improves.
+Pass: recommendation cites access logs and policy diff.
+Pass: applying change requires owner approval.
+
+### Story CLOUD-HS-020 - STS Session
+As developer, I want short-lived sessions so that long-lived keys are not used.
+Pass: STS issue p99 <= 100 ms and session has scope, expiry, and actor.
+Pass: session cannot exceed role max duration.
+
+### Story CLOUD-HS-021 - Secret Reference
+As engineer, I want secret references instead of raw secrets so that logs never contain credentials.
+Pass: API returns secret_ref only.
+Pass: serializer redacts secret-like payloads.
+
+### Story CLOUD-HS-022 - Image Signing
+As platform owner, I want signed images only so that supply chain risk is bounded.
+Pass: image launch checks signature, SBOM, vulnerability status, and provenance.
+Pass: unsigned image launch is denied.
+
+### Story CLOUD-HS-023 - Snapshot Restore
+As app owner, I want restore preview before replacing data so that rollback is safe.
+Pass: restore has target, source snapshot, dry-run result, and RPO estimate.
+Pass: destructive restore requires approval.
+
+### Story CLOUD-HS-024 - Cross-Region Replication
+As regulated tenant, I want replication that respects residency so that durability does not violate law.
+Pass: policy explains allowed regions.
+Pass: illegal target region is denied.
+
+### Story CLOUD-HS-025 - Cell Health Page
+As SRE, I want a cell health page so that incidents show blast radius.
+Pass: page lists affected resources, tenants, SLO burn, and failover eligibility.
+Pass: customer notification is generated from affected tenant list.
+
+### Story CLOUD-HS-026 - Capacity Rebalance
+As Foundry agent, I want capacity rebalance under autonomy limits so that hot cells cool down safely.
+Pass: plan lists moves, risk, rollback, and approvals.
+Pass: destructive moves require human approval.
+
+### Story CLOUD-HS-027 - Service Catalog Publish
+As internal service owner, I want to publish managed services to the cloud catalog so that tenants can consume supported offerings.
+Pass: publish requires SLO, telemetry, runbook, backup, KMS, and billing meter.
+Pass: missing field blocks publish.
+
+### Story CLOUD-HS-028 - Marketplace App Install
+As tenant admin, I want marketplace app install to provision resources safely.
+Pass: install plan declares compute, storage, IAM, network, billing, and teardown.
+Pass: app cannot exceed declared scope.
+
+### Story CLOUD-HS-029 - Regulator Evidence Export
+As Diana, I want region and tenant evidence export so that certification can be reviewed.
+Pass: export includes controls, events, KMS mode, cell tier, SLO, and exceptions.
+Pass: export has signed hash.
+
+### Story CLOUD-HS-030 - Hyperscaler Import
+As migration owner, I want AWS or Azure inventory imported so that migration scope is known.
+Pass: import maps resource types and lists unsupported resources.
+Pass: imported credentials are secret references only.
+
+## Surface Map
+
+### Surface CLOUD-SURF-01 - Cloud Console Home
+```
++ Region + Cell + Spend + Incidents + Compliance +
+| KR-Seoul1 GA | cell-a hot | $42k MTD | 1 P2 | CSAP green |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-02 - Resource Browser
+```
++ Resource + Type + Region + Cell + Policy + Cost +
+| vm-818 | instance | KR-Seoul1 | c-a | role:web | $19.44 |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-03 - Region Control Room
+```
++ Region + AZ + Cell + SLO burn + Evidence + Action +
+| KR-Seoul1 | a | cell-07 | 0.7% | sealed | rebalance |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-04 - IAM Policy Editor
+```
++ Principal + Action + Resource + Tier guard + Decision preview +
+| dev-role | storage:GetObject | bucket/payroll | Platinum | allow |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-05 - Network Builder
+```
++ VPC + Subnets + Routes + SG + LB + DNS +
+| vpc-prod | 3 subnets | 2 routes | 6 SG | lb-web | zone ok |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-06 - Storage Bucket Detail
+```
++ Bucket + KMS + Residency + Policy + Replication + Audit +
+| b-payroll | key-kr | strict_kr | locked | disabled | 100% |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-07 - Cost Explorer
+```
++ Tenant + Product + Region + Resource + Tag + Cost + Margin +
+| t-42 | workplace | KR | k8s-node | cost:center:hr | 812 | 31% |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-08 - Marketplace Install Plan
+```
++ App + Compute + Storage + IAM + Network + Meters + Teardown +
+| analytics-pro | 2 fn | 1 bucket | read-only | egress deny | 3 | yes |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-09 - Evidence Export
+```
++ Control + Event count + KMS mode + Cell tier + Exceptions + Hash +
+| CSAP-LOG-01 | 19022 | KCMVP | dedicated | 0 | sha256:... |
++------------------------------------------------+
+```
+
+### Surface CLOUD-SURF-10 - Migration Import
+```
++ Source + Resources + Mapped + Unsupported + Risk + Next +
+| AWS acct 123 | 820 | 744 | 76 | medium | network plan |
++------------------------------------------------+
+```
+
+## Data Model
+
+### Entity CLOUD-ENT-01 - CloudAccount
+- Fields: account_id, tenant_id, billing_account_id, root_policy_id, region_allowlist, status.
+- Relationship: owns Resource, Budget, Invoice, IamPrincipal.
+- Invariant: account has exactly one tenant root.
+
+### Entity CLOUD-ENT-02 - Region
+- Fields: region_code, display_name, status, pack_set, data_residency_class, launch_phase.
+- Relationship: contains AZ and Cell.
+- Invariant: GA requires evidence export green.
+
+### Entity CLOUD-ENT-03 - AvailabilityZone
+- Fields: az_code, region_code, physical_site_ref, power_zone_set, status.
+- Relationship: contains Cell.
+- Invariant: zone cannot host production if status is degraded.
+
+### Entity CLOUD-ENT-04 - Cell
+- Fields: cell_id, region_code, az_code, density_class, tenant_limit, health, isolation_tier.
+- Relationship: hosts ResourcePlacement.
+- Invariant: tenant density cannot exceed class.
+
+### Entity CLOUD-ENT-05 - Resource
+- Fields: resource_id, tenant_id, account_id, region_code, cell_id, kind, state, tags, cost_center.
+- Relationship: parent for compute, storage, network, database, and managed service resources.
+- Invariant: every resource has region and tenant.
+
+### Entity CLOUD-ENT-06 - ComputeInstance
+- Fields: instance_id, image_id, flavor_id, subnet_id, role_id, kms_key_id, boot_state.
+- Relationship: attaches Volume and NetworkInterface.
+- Invariant: regulated instance requires signed image and KMS key.
+
+### Entity CLOUD-ENT-07 - KubernetesCluster
+- Fields: cluster_id, version, node_pool_set, control_plane_cell, upgrade_channel, backup_policy.
+- Relationship: owns NodePool and ClusterAddOn.
+- Invariant: unsupported Kubernetes version cannot be created.
+
+### Entity CLOUD-ENT-08 - FunctionService
+- Fields: function_id, runtime, memory_mb, timeout_ms, trigger_ref, role_id.
+- Relationship: consumes EventSource and emits InvocationMetric.
+- Invariant: timeout cannot exceed tier policy.
+
+### Entity CLOUD-ENT-09 - Bucket
+- Fields: bucket_id, name, region_code, kms_key_id, resource_policy_id, retention_policy, replication_policy.
+- Relationship: owns ObjectVersion.
+- Invariant: object write requires bucket and KMS policy allow.
+
+### Entity CLOUD-ENT-10 - ObjectVersion
+- Fields: object_id, bucket_id, version_id, checksum, size_bytes, data_class, retention_until.
+- Relationship: encrypted by KmsKey.
+- Invariant: retention lock blocks delete.
+
+### Entity CLOUD-ENT-11 - BlockVolume
+- Fields: volume_id, size_gib, iops_class, attached_instance_id, snapshot_policy, encryption_state.
+- Relationship: attached to ComputeInstance.
+- Invariant: attached volume cannot be deleted.
+
+### Entity CLOUD-ENT-12 - Vpc
+- Fields: vpc_id, cidr, region_code, route_table_set, security_group_set, dns_mode.
+- Relationship: owns Subnet.
+- Invariant: CIDR cannot overlap within account.
+
+### Entity CLOUD-ENT-13 - LoadBalancer
+- Fields: lb_id, protocol, listener_set, backend_set, health_check, tls_policy.
+- Relationship: fronts ComputeInstance or KubernetesService.
+- Invariant: public LB requires WAF and TLS policy.
+
+### Entity CLOUD-ENT-14 - DnsZone
+- Fields: zone_id, domain, dnssec_state, owner_account, record_set_hash, last_change_id.
+- Relationship: has DnsRecord.
+- Invariant: record delete emits signed change event.
+
+### Entity CLOUD-ENT-15 - IamRole
+- Fields: role_id, account_id, trust_policy, permission_policy_set, max_session_duration, boundary_policy.
+- Relationship: assumed by Principal via StsSession.
+- Invariant: max_session_duration cannot exceed tier guard.
+
+### Entity CLOUD-ENT-16 - ResourcePolicy
+- Fields: policy_id, resource_id, policy_document, version, status, last_eval_cache_bust.
+- Relationship: attached to Bucket, KmsKey, Queue, or Topic.
+- Invariant: resource deny overrides principal allow.
+
+### Entity CLOUD-ENT-17 - KmsKey
+- Fields: key_id, region_code, key_class, material_origin, rotation_state, shred_state.
+- Relationship: encrypts Bucket, Volume, Secret, and Database.
+- Invariant: disabled key blocks decrypt.
+
+### Entity CLOUD-ENT-18 - MeterEvent
+- Fields: meter_event_id, resource_id, usage_qty, unit, rate_card_id, tags, emitted_at.
+- Relationship: aggregates into InvoiceLine.
+- Invariant: event idempotency key prevents duplicate billing.
+
+### Entity CLOUD-ENT-19 - BudgetAlert
+- Fields: alert_id, account_id, threshold, forecast_amount, owner, state.
+- Relationship: opens FinOpsWorkflow.
+- Invariant: alert cannot close without owner acknowledgement.
+
+### Entity CLOUD-ENT-20 - EvidenceExport
+- Fields: export_id, scope, event_ids, control_ids, pack_set, hash, requester.
+- Relationship: read by auditor.
+- Invariant: export cannot be ready with missing required control.
+
+## Cedar Policy Model
+
+- Principal cloud::AccountRoot can delegate but cannot bypass resource policy.
+- Principal cloud::PlatformEngineer can mutate region and cell only with internal tenant scope.
+- Principal cloud::TenantAdmin can create resources within account quota and region allowlist.
+- Principal cloud::Developer can create resources only through assigned project boundary.
+- Principal cloud::BillingViewer can read cost and invoice but not resource data.
+- Principal cloud::Auditor can read EvidenceExport and audit logs but not secrets.
+- Principal foundry::Agent can invoke cloud mutators only through capability registry.
+- Action cloud::CreateInstance requires image signed, subnet allowed, role allowed, quota available.
+- Action cloud::PutObject requires bucket policy allow, KMS policy allow, retention policy check.
+- Action cloud::RotateKey requires key owner and pack-specific rotation window.
+- Action cloud::ReplicateObject requires source and target residency compatible.
+- Action cloud::CreateVpc requires non-overlap CIDR and tenant account ownership.
+- Action cloud::PublishManagedService requires SLO, telemetry, runbook, billing meter, and rollback.
+- Action cloud::ExportEvidence requires auditor scope and redaction pack.
+- Resource cloud::Bucket carries tenant_id, account_id, region, data_class, retention_policy.
+- Resource cloud::KmsKey carries key_class, material_origin, pack_set, and shred_state.
+- Resource cloud::Cell carries isolation_tier, density_class, and health.
+- Resource cloud::Invoice carries account_id, tax_pack, currency, and period.
+- Bronze guard: one region, shared cell class, limited managed services, standard KMS.
+- Silver guard: two regions, private networking, budget alerts, and one compliance pack.
+- Gold guard: multi-region, dedicated cell option, advanced KMS, managed database, and audit export.
+- Platinum guard: sovereign cell, HSM/KCMVP/FIPS mode, regulator export, dedicated interconnect, and custom SLA.
+
+## Workflow Engine Integration
+
+- Node CLOUD-WF-001 ResolveAccount loads tenant, account, quota, region allowlist, and pack set.
+- Node CLOUD-WF-002 PolicyPreview evaluates Cedar before resource plan.
+- Node CLOUD-WF-003 PlanPlacement chooses region, AZ, and cell.
+- Node CLOUD-WF-004 ReserveQuota locks compute, storage, network, and budget quota.
+- Node CLOUD-WF-005 ProvisionCompute creates instance, cluster, function, or bare-metal lease.
+- Node CLOUD-WF-006 ProvisionStorage creates bucket, volume, snapshot, or archive vault.
+- Node CLOUD-WF-007 ProvisionNetwork creates VPC, subnet, route, SG, LB, DNS, or interconnect.
+- Node CLOUD-WF-008 BindIamRole attaches principal and resource policy.
+- Node CLOUD-WF-009 BindKmsKey attaches key and encryption context.
+- Node CLOUD-WF-010 EmitMeterStart emits billing meter start.
+- Node CLOUD-WF-011 PublishTelemetryBinding creates metrics, logs, traces, and alert routes.
+- Node CLOUD-WF-012 SealAuditEvidence emits ADR-0263 event and evidence id.
+- Node CLOUD-WF-013 NotifyTenant sends status through console and webhooks.
+- Node CLOUD-WF-014 RollbackResource releases quota and deletes partial resources.
+- Node CLOUD-WF-015 RebalanceCell computes safe moves and approval path.
+- Node CLOUD-WF-016 FailoverAZ shifts eligible workloads and notifies tenants.
+- Node CLOUD-WF-017 BuildEvidenceExport packages controls and event ids.
+- Node CLOUD-WF-018 ImportHyperscalerInventory maps source resources.
+- Branch CLOUD-BR-001 denies illegal residency target.
+- Branch CLOUD-BR-002 holds destructive action for human approval.
+- Branch CLOUD-BR-003 degrades to read-only control plane during incident.
+- Branch CLOUD-BR-004 cancels marketplace install when declared scope is exceeded.
+
+## AI / Intelligence Integration
+
+- ADR-0220 layer: classify capacity risk, cost anomalies, policy-risk diffs, and migration blockers.
+- ADR-0255 layer 1: tenant-private retrieval cites resources, audit events, runbooks, and policy decisions.
+- ADR-0255 layer 2: aggregate cloud operations learns cost and incident patterns without tenant data.
+- Capability cloud.capacity.rebalance proposes moves with blast-radius citation.
+- Capability cloud.iam.audit-narrow proposes least-privilege diffs from access logs.
+- Capability cloud.cost.explain-anomaly explains rate, usage, tag, and workload drivers.
+- Capability cloud.migration.map-resource suggests AWS/Azure/GCP to oyatie mappings.
+- Capability cloud.incident.summarize-status drafts customer-safe incident status.
+- Capability cloud.slo.burn-triage ranks SLO burn sources.
+- Capability cloud.policy.explain-denial explains Cedar denial with safe details.
+- Prohibited: Intelligence cannot bypass Cedar, retrieve secrets, rotate keys, delete resources, or approve destructive actions.
+
+## Pack Overlays
+
+- KR-CSAP pack activates KCMVP/KR-HSM option, strict-KR residency, CSAP evidence, and Korean invoice fields.
+- EU-DORA pack activates financial resilience reports, exit evidence, and EU-only replication.
+- JP-ISMAP pack activates APPI/ISMAP controls, JP region rules, and Japanese evidence export.
+- US-FedRAMP pack activates IL5/6 posture, FedRAMP High controls, and US government retention.
+- BR-LGPD pack activates LGPD DSR, tax invoice, and Brazil region controls.
+- KSA-NDMO pack activates sovereign custody, local egress denial, and Arabic evidence export.
+- UAE-TDRA pack activates UAE data controls and telecom-grade evidence requirements.
+- ANZ-IRAP pack activates IRAP evidence, AU region, and privacy retention profile.
+- Healthcare pack activates HIPAA redaction and key separation.
+- Public-sector pack activates procurement transparency, regulator export, and audit retention.
+- Bronze supports default commercial pack and one region.
+- Silver supports one compliance pack and private networking.
+- Gold supports multi-pack conflict resolution.
+- Platinum supports sovereign-cell and regulator evidence export.
+
+## SLO Targets
+
+- Region catalog read p99 <= 100 ms.
+- STS session issue p99 <= 100 ms.
+- Cedar policy evaluation p99 <= 5 ms.
+- VM create API receipt p99 <= 500 ms.
+- VM provision-to-running p95 <= 60 s.
+- Kubernetes cluster create receipt p99 <= 500 ms.
+- Kubernetes control plane ready p95 <= 10 min.
+- Function invocation receipt p99 <= 250 ms.
+- Object metadata GET p99 <= 100 ms.
+- Object write durability target >= eleven nines model at GA.
+- Block volume create receipt p99 <= 500 ms.
+- VPC create receipt p99 <= 500 ms.
+- DNS record publish p95 <= 60 s.
+- Load balancer config publish p95 <= 120 s.
+- KMS encrypt/decrypt authorization receipt p99 <= 100 ms.
+- Meter event ingestion p99 <= 500 ms.
+- Invoice generation p95 <= 48 h after period close.
+- Budget anomaly detection p95 <= 15 min after meter aggregation.
+- Evidence export p95 <= 10 min for one tenant-period.
+- Control plane availability Bronze >= 99.5%.
+- Control plane availability Silver >= 99.9%.
+- Control plane availability Gold >= 99.95%.
+- Control plane availability Platinum >= 99.99%.
+
+## Telemetry
+
+- EVT-CLOUD-ACCOUNT-CREATED emits account_id, tenant_id, region_allowlist, and owner.
+- EVT-CLOUD-REGION-STATE-CHANGED emits region_code, old_state, new_state, and approver.
+- EVT-CLOUD-CELL-BINDING-CREATED emits tenant_id, cell_id, density_class, and isolation_tier.
+- EVT-CLOUD-RESOURCE-PLAN-CREATED emits plan_id, resource_kinds, quota_lock, and policy_decision_id.
+- EVT-CLOUD-INSTANCE-CREATED emits instance_id, image_id, subnet_id, role_id, and kms_key_id.
+- EVT-CLOUD-CLUSTER-CREATED emits cluster_id, version, node_pools, and backup_policy.
+- EVT-CLOUD-FUNCTION-DEPLOYED emits function_id, runtime, trigger_ref, and timeout_ms.
+- EVT-CLOUD-BUCKET-CREATED emits bucket_id, region, kms_key_id, and resource_policy_id.
+- EVT-CLOUD-OBJECT-WRITTEN emits bucket_id, object_id, version_id, checksum, and data_class.
+- EVT-CLOUD-VOLUME-CREATED emits volume_id, size_gib, iops_class, and kms_key_id.
+- EVT-CLOUD-VPC-CREATED emits vpc_id, cidr, region, and route_table_hash.
+- EVT-CLOUD-LB-PUBLISHED emits lb_id, listener_count, tls_policy, and backend_count.
+- EVT-CLOUD-DNS-CHANGE-PUBLISHED emits zone_id, change_id, record_hash, and dnssec_state.
+- EVT-CLOUD-IAM-POLICY-CHANGED emits policy_id, actor, diff_hash, and cache_bust_id.
+- EVT-CLOUD-RESOURCE-POLICY-CHANGED emits resource_id, policy_id, version, and effect_summary.
+- EVT-CLOUD-KMS-KEY-ROTATED emits key_id, rotation_version, material_origin, and approver.
+- EVT-CLOUD-STS-SESSION-ISSUED emits session_id, role_id, principal_id, and expiry.
+- EVT-CLOUD-METER-EVENT-INGESTED emits meter_event_id, resource_id, unit, and usage_qty.
+- EVT-CLOUD-BUDGET-ALERT-OPENED emits alert_id, threshold, forecast_amount, and owner.
+- EVT-CLOUD-INVOICE-GENERATED emits invoice_id, period, tax_pack, and amount_total.
+- EVT-CLOUD-COST-ANOMALY-DETECTED emits anomaly_id, account_id, driver, and estimated_impact.
+- EVT-CLOUD-CELL-HEALTH-DEGRADED emits cell_id, severity, affected_resources, and slo_burn.
+- EVT-CLOUD-AZ-FAILOVER-STARTED emits failover_id, az_code, workload_count, and approver.
+- EVT-CLOUD-AZ-FAILOVER-COMPLETED emits failover_id, duration_ms, failed_moves, and customer_notified.
+- EVT-CLOUD-MARKETPLACE-INSTALL-PLANNED emits install_id, app_id, resource_count, and scope_hash.
+- EVT-CLOUD-EVIDENCE-EXPORT-GENERATED emits export_id, scope, event_count, hash, and requester.
+- EVT-CLOUD-HYPERSCALER-IMPORT-COMPLETED emits source_vendor, account_ref, mapped_count, and unsupported_count.
+
+## Migration Playbook Index
+
+- AWS import: IAM, VPC, EC2, EKS, Lambda, S3, EBS, RDS, Route53, ELB, CloudWatch, CUR.
+- Azure import: Entra, VNet, VM, AKS, Functions, Blob, Disk, SQL, DNS, LB, Monitor, Cost.
+- GCP import: IAM, VPC, Compute Engine, GKE, Cloud Functions, GCS, Persistent Disk, Cloud SQL, DNS, LB, Logging.
+- Oracle Cloud import: compartments, IAM, VCN, compute, OKE, object storage, block volume, database, DNS, load balancer.
+- Naver Cloud import: VPC, server, Kubernetes, object storage, NAS, Cloud DB, Load Balancer, Cloud Log Analytics.
+- NHN Cloud import: compute, network, storage, database, Kubernetes, security groups, billing.
+- KT Cloud import: VM, network, storage, firewall, load balancer, monitoring.
+- Kakao Cloud import: compute, Kubernetes, object storage, VPC, IAM, logging.
+- VMware import: vCenter inventory, clusters, VMs, datastores, networks, tags, snapshots.
+- OpenStack import: projects, flavors, images, instances, Cinder, Swift, Neutron, Keystone.
+
+## Capability Tier Deltas
+
+- Bronze: single-region accounts, shared cell class, VM, object bucket, VPC, basic IAM, basic billing.
+- Bronze: no sovereign evidence export, no direct interconnect, no BYOK/HYOK.
+- Silver: private networking, managed Postgres, budget alerts, one compliance pack, scheduled backups.
+- Silver: one read-only evidence export per month.
+- Gold: multi-region, dedicated cell option, advanced KMS, managed Kubernetes, managed Kafka, FinOps analytics.
+- Gold: resource-based policy, interconnect, cross-region replication where policy allows.
+- Platinum: sovereign cell, KCMVP/FIPS/HSM, regulator export, dedicated interconnect, custom SLA, BYOK/HYOK.
+- Platinum: Foundry cloud operations with human-gated destructive actions and full evidence chain.
+
+## Competitive Positioning
+
+- AWS: oyatie wins on unified tenant graph, Cedar-by-default, and regional pack evidence.
+- Azure: oyatie wins on evidence-native sovereign controls and smaller policy surface.
+- GCP: oyatie wins on audit-chain productization and Foundry-operated control plane.
+- Oracle Cloud: oyatie wins on workload portability and tenant-scoped marketplace integration.
+- Naver Cloud: oyatie wins on cross-region product suite plus KR sovereignty.
+- NHN Cloud: oyatie wins on agent-operated operations and audit export.
+- KT Cloud: oyatie wins on developer-facing managed service breadth and automation.
+- Kakao Cloud: oyatie wins on enterprise control, evidence, and cross-product handoffs.
+- Cloudflare: oyatie wins on full compute/storage/database substrate, not only edge.
+- DigitalOcean: oyatie wins on regulated enterprise and sovereign-cell depth.
+
+## Roadmap
+
+- Wave C1: region catalog, account, IAM, KMS, VPC, VM, object storage, metering.
+- Wave C2: managed Kubernetes, function service, block volume, DNS, LB, evidence export.
+- Wave C3: managed Postgres, Redis, Kafka, marketplace install plan, cost explorer.
+- Wave C4: direct interconnect, cross-region replication, FinOps anomaly, regulator portal.
+- Wave C5: sovereign-cell Platinum, multi-region failover, external cloud GA.
+- Phase M04: internal oyatie workload migration.
+- Phase M05: design partner regulated cloud tenants.
+- Phase M06: public cloud GA per region pack.
+
+## Cross-Product Dependencies
+
+- Foundry invokes cloud.compute.provision, cloud.iam.audit-narrow, cloud.capacity.rebalance, and cloud.incident.summarize-status.
+- Workplace depends on compute, storage, KMS, observability, and budget meters.
+- ERP depends on billing, FinOps, storage, workflow compute, and interconnect.
+- Marketplace depends on app install resource plans and billing meters.
+- Intelligence depends on GPU fleet, vector storage, object storage, and private network.
+- Policy-engine owns Cedar compilation and evaluation.
+- Audit-chain owns event sealing and evidence export.
+- Tenancy owns tenant, account, pack, and membership scoping.
+- Identity owns principals, groups, passkeys, and federation.
+- Observability owns shared metrics, logs, traces, dashboards, and alert routes.
+- Compliance owns region pack and regulator export requirements.
+- Billing and FinOps own rate cards, meter aggregation, budgets, and invoices.
+
+## Failure Modes + Recovery
+
+- Failure: region catalog stale. Recovery: force projection refresh and block new placement until status reconciles.
+- Failure: cell hot spot. Recovery: capacity rebalance plan, quota hold, tenant notification, and migration audit.
+- Failure: VM provision partial. Recovery: rollback quota, delete partial network and disks, preserve event chain.
+- Failure: object write succeeds but meter event fails. Recovery: outbox replay meter event and mark billing lag.
+- Failure: KMS key disabled accidentally. Recovery: deny decrypt, open key incident, and require authorized re-enable.
+- Failure: resource policy cache stale. Recovery: cache-bust event and deny uncertain authorization.
+- Failure: VPC route leak. Recovery: withdraw route, deny propagation, notify affected tenants, and seal event.
+- Failure: LB all backends unhealthy. Recovery: fail closed or route to static maintenance per service policy.
+- Failure: managed DB backup missing. Recovery: mark service red and block promotion until backup completes.
+- Failure: cost meter duplicate. Recovery: idempotency key collapses duplicate and emits duplicate-meter event.
+- Failure: invoice tax field missing. Recovery: block invoice finalization and open tax-pack remediation.
+- Failure: evidence export missing control. Recovery: mark export incomplete and reseal from audit-chain.
+- Failure: marketplace app over-scopes. Recovery: deny install, suspend plan, and require listing update.
+- Failure: Foundry agent proposes destructive unsafe action. Recovery: Cedar denies and emits autonomy denial.
+- Failure: hyperscaler import unsupported type. Recovery: list blocker and manual migration playbook owner.
+- Failure: cross-region replication violates pack. Recovery: deny target and propose legal alternatives.
+- Failure: observability gap on managed service. Recovery: block catalog publish.
+- Failure: direct interconnect BGP instability. Recovery: route dampening, customer notice, and failover path.
+- Failure: secret reference leaked in output. Recovery: serializer redacts, incident opens, key rotation assessed.
+- Failure: SLO burn alert flaps. Recovery: apply burn-rate window, dedupe, and hand to incident workflow.
+
+## Cloud Capability Acceptance Ledger
+
+### CLOUD-CAP-001 - Region catalog publish
+- Owner: cloud-region.
+- Pass: immutable region code, pack set, and status are visible.
+- Evidence: EVT-CLOUD-REGION-STATE-CHANGED.
+
+### CLOUD-CAP-002 - Region GA gate
+- Owner: cloud-region.
+- Pass: GA requires SLO, evidence export, pack controls, and runbooks.
+- Evidence: region_gate_result.
+
+### CLOUD-CAP-003 - AZ registration
+- Owner: cloud-region.
+- Pass: AZ declares power zones, physical site, and status.
+- Evidence: az_registered event.
+
+### CLOUD-CAP-004 - Cell create
+- Owner: cloud-cell.
+- Pass: cell declares isolation tier, density, and tenant limit.
+- Evidence: EVT-CLOUD-CELL-BINDING-CREATED.
+
+### CLOUD-CAP-005 - Tenant cell bind
+- Owner: cloud-cell.
+- Pass: tenant binding is policy-approved and audit-sealed.
+- Evidence: cell_binding_id.
+
+### CLOUD-CAP-006 - Cell health degrade
+- Owner: cloud-cell.
+- Pass: degradation lists resources, tenants, and SLO burn.
+- Evidence: EVT-CLOUD-CELL-HEALTH-DEGRADED.
+
+### CLOUD-CAP-007 - Cell rebalance plan
+- Owner: cloud-cell.
+- Pass: plan lists moves, risk, approvals, and rollback.
+- Evidence: rebalance_plan_id.
+
+### CLOUD-CAP-008 - Account create
+- Owner: cloud-iam.
+- Pass: account is tenant-rooted and has billing account.
+- Evidence: EVT-CLOUD-ACCOUNT-CREATED.
+
+### CLOUD-CAP-009 - Quota reserve
+- Owner: cloud-resource.
+- Pass: resource plan locks quota before provisioning.
+- Evidence: quota_lock_id.
+
+### CLOUD-CAP-010 - Quota release
+- Owner: cloud-resource.
+- Pass: failed provision releases quota idempotently.
+- Evidence: quota_release_id.
+
+### CLOUD-CAP-011 - Image register
+- Owner: cloud-compute.
+- Pass: image has signature, SBOM, provenance, and vulnerability state.
+- Evidence: image_attestation_id.
+
+### CLOUD-CAP-012 - Image deny unsigned
+- Owner: cloud-compute.
+- Pass: unsigned image launch is denied.
+- Evidence: policy_decision_id.
+
+### CLOUD-CAP-013 - Flavor publish
+- Owner: cloud-compute.
+- Pass: flavor declares CPU, RAM, storage, and pack eligibility.
+- Evidence: flavor_record_id.
+
+### CLOUD-CAP-014 - VM create receipt
+- Owner: cloud-compute.
+- Pass: API receipt p99 target and evidence id are returned.
+- Evidence: EVT-CLOUD-INSTANCE-CREATED.
+
+### CLOUD-CAP-015 - VM boot state
+- Owner: cloud-compute.
+- Pass: boot transitions pending, running, stopped, terminated, error.
+- Evidence: instance_state_event.
+
+### CLOUD-CAP-016 - VM stop
+- Owner: cloud-compute.
+- Pass: stop preserves volume and emits meter state change.
+- Evidence: vm_stop_event.
+
+### CLOUD-CAP-017 - VM snapshot
+- Owner: cloud-compute.
+- Pass: snapshot links volume, checksum, KMS key, and retention.
+- Evidence: snapshot_id.
+
+### CLOUD-CAP-018 - VM live migrate
+- Owner: cloud-compute.
+- Pass: migration plan respects cell and host constraints.
+- Evidence: live_migration_plan_id.
+
+### CLOUD-CAP-019 - Bare-metal lease
+- Owner: cloud-compute.
+- Pass: lease has hardware attestation and teardown proof.
+- Evidence: bare_metal_lease_id.
+
+### CLOUD-CAP-020 - GPU fleet allocate
+- Owner: cloud-compute.
+- Pass: allocation shows GPU class, quota, and cost meter.
+- Evidence: gpu_allocation_id.
+
+### CLOUD-CAP-021 - Auto scaling group
+- Owner: cloud-compute.
+- Pass: group declares min, max, health check, and policy.
+- Evidence: asg_policy_id.
+
+### CLOUD-CAP-022 - Placement group
+- Owner: cloud-compute.
+- Pass: anti-affinity and latency placement rules are explicit.
+- Evidence: placement_group_id.
+
+### CLOUD-CAP-023 - Kubernetes cluster create
+- Owner: cloud-compute.
+- Pass: version, node pools, backup, and upgrade channel exist.
+- Evidence: EVT-CLOUD-CLUSTER-CREATED.
+
+### CLOUD-CAP-024 - Kubernetes node pool scale
+- Owner: cloud-compute.
+- Pass: scale respects quota and cell capacity.
+- Evidence: node_pool_scale_id.
+
+### CLOUD-CAP-025 - Kubernetes upgrade
+- Owner: cloud-compute.
+- Pass: unsupported version is denied and rollback is defined.
+- Evidence: cluster_upgrade_plan_id.
+
+### CLOUD-CAP-026 - Kubernetes backup
+- Owner: cloud-compute.
+- Pass: backup covers etcd, manifests, and persistent volume refs.
+- Evidence: cluster_backup_id.
+
+### CLOUD-CAP-027 - Function deploy
+- Owner: cloud-compute.
+- Pass: runtime, timeout, memory, trigger, and role are declared.
+- Evidence: EVT-CLOUD-FUNCTION-DEPLOYED.
+
+### CLOUD-CAP-028 - Function invoke receipt
+- Owner: cloud-compute.
+- Pass: invocation emits latency, status, and audit receipt.
+- Evidence: function_invocation_id.
+
+### CLOUD-CAP-029 - Function cold-start budget
+- Owner: cloud-compute.
+- Pass: cold-start budget is declared per runtime.
+- Evidence: cold_start_metric.
+
+### CLOUD-CAP-030 - Function event trigger
+- Owner: cloud-compute.
+- Pass: trigger binds to allowed event source only.
+- Evidence: trigger_binding_id.
+
+### CLOUD-CAP-031 - Bucket create
+- Owner: cloud-storage.
+- Pass: bucket declares region, KMS, policy, and retention.
+- Evidence: EVT-CLOUD-BUCKET-CREATED.
+
+### CLOUD-CAP-032 - Bucket resource policy
+- Owner: cloud-storage.
+- Pass: resource deny overrides principal allow.
+- Evidence: EVT-CLOUD-RESOURCE-POLICY-CHANGED.
+
+### CLOUD-CAP-033 - Object put
+- Owner: cloud-storage.
+- Pass: checksum, version, KMS context, and data class are stored.
+- Evidence: EVT-CLOUD-OBJECT-WRITTEN.
+
+### CLOUD-CAP-034 - Object get
+- Owner: cloud-storage.
+- Pass: authorization checks principal and resource policy.
+- Evidence: object_read_event.
+
+### CLOUD-CAP-035 - Object retention lock
+- Owner: cloud-storage.
+- Pass: locked object cannot be deleted before retention_until.
+- Evidence: retention_denial_event.
+
+### CLOUD-CAP-036 - Object replication
+- Owner: cloud-storage.
+- Pass: replication target is residency-compatible.
+- Evidence: replication_policy_id.
+
+### CLOUD-CAP-037 - Object lifecycle
+- Owner: cloud-storage.
+- Pass: transition and expire rules are policy-visible.
+- Evidence: lifecycle_rule_id.
+
+### CLOUD-CAP-038 - Archive vault
+- Owner: cloud-storage.
+- Pass: archive has restore SLA, retention, and cost class.
+- Evidence: archive_vault_id.
+
+### CLOUD-CAP-039 - Volume create
+- Owner: cloud-storage.
+- Pass: volume declares size, IOPS class, KMS, and snapshot policy.
+- Evidence: EVT-CLOUD-VOLUME-CREATED.
+
+### CLOUD-CAP-040 - Volume attach
+- Owner: cloud-storage.
+- Pass: attach requires same compatible region and account.
+- Evidence: volume_attach_event.
+
+### CLOUD-CAP-041 - Volume detach
+- Owner: cloud-storage.
+- Pass: detach preserves data and meter state.
+- Evidence: volume_detach_event.
+
+### CLOUD-CAP-042 - Volume snapshot
+- Owner: cloud-storage.
+- Pass: snapshot includes checksum and KMS key.
+- Evidence: volume_snapshot_id.
+
+### CLOUD-CAP-043 - Volume restore
+- Owner: cloud-storage.
+- Pass: restore preview exists before destructive replace.
+- Evidence: restore_plan_id.
+
+### CLOUD-CAP-044 - File share create
+- Owner: cloud-storage.
+- Pass: share declares protocol, ACL, throughput, and retention.
+- Evidence: file_share_id.
+
+### CLOUD-CAP-045 - File share mount
+- Owner: cloud-storage.
+- Pass: mount is restricted by network and IAM.
+- Evidence: mount_authorization_id.
+
+### CLOUD-CAP-046 - Backup policy
+- Owner: cloud-storage.
+- Pass: backup interval, retention, and restore test are declared.
+- Evidence: backup_policy_id.
+
+### CLOUD-CAP-047 - Backup restore test
+- Owner: cloud-storage.
+- Pass: restore test evidence exists for managed data services.
+- Evidence: restore_test_id.
+
+### CLOUD-CAP-048 - VPC create
+- Owner: cloud-network.
+- Pass: CIDR is non-overlap and region-scoped.
+- Evidence: EVT-CLOUD-VPC-CREATED.
+
+### CLOUD-CAP-049 - Subnet create
+- Owner: cloud-network.
+- Pass: subnet declares AZ, CIDR, route table, and tier.
+- Evidence: subnet_id.
+
+### CLOUD-CAP-050 - Route table update
+- Owner: cloud-network.
+- Pass: route update prevents illegal egress and overlap.
+- Evidence: route_change_event.
+
+### CLOUD-CAP-051 - Security group create
+- Owner: cloud-network.
+- Pass: default deny is enforced.
+- Evidence: security_group_id.
+
+### CLOUD-CAP-052 - Security group rule
+- Owner: cloud-network.
+- Pass: rule includes protocol, source, destination, purpose, expiry.
+- Evidence: sg_rule_id.
+
+### CLOUD-CAP-053 - Network ACL
+- Owner: cloud-network.
+- Pass: ACL blocks cross-cell traffic by default.
+- Evidence: network_acl_id.
+
+### CLOUD-CAP-054 - NAT gateway
+- Owner: cloud-network.
+- Pass: egress IP and logging are declared.
+- Evidence: nat_gateway_id.
+
+### CLOUD-CAP-055 - Internet gateway
+- Owner: cloud-network.
+- Pass: public egress requires explicit route and policy.
+- Evidence: internet_gateway_id.
+
+### CLOUD-CAP-056 - Private endpoint
+- Owner: cloud-network.
+- Pass: endpoint avoids public internet path.
+- Evidence: private_endpoint_id.
+
+### CLOUD-CAP-057 - Direct interconnect
+- Owner: cloud-network.
+- Pass: port, BGP, route filters, and SLA are declared.
+- Evidence: interconnect_id.
+
+### CLOUD-CAP-058 - BGP route filter
+- Owner: cloud-network.
+- Pass: route leak is denied and alerted.
+- Evidence: route_filter_event.
+
+### CLOUD-CAP-059 - Load balancer create
+- Owner: cloud-network.
+- Pass: listeners, backend, health check, and TLS policy exist.
+- Evidence: EVT-CLOUD-LB-PUBLISHED.
+
+### CLOUD-CAP-060 - Load balancer health
+- Owner: cloud-network.
+- Pass: all-backend unhealthy opens incident.
+- Evidence: lb_health_incident_id.
+
+### CLOUD-CAP-061 - WAF policy
+- Owner: cloud-network.
+- Pass: public L7 load balancer has WAF policy.
+- Evidence: waf_policy_id.
+
+### CLOUD-CAP-062 - DNS zone create
+- Owner: cloud-network.
+- Pass: zone has DNSSEC option and owner account.
+- Evidence: dns_zone_id.
+
+### CLOUD-CAP-063 - DNS record publish
+- Owner: cloud-network.
+- Pass: record change has signed change id.
+- Evidence: EVT-CLOUD-DNS-CHANGE-PUBLISHED.
+
+### CLOUD-CAP-064 - CDN distribution
+- Owner: cloud-network.
+- Pass: origin, cache rule, TLS, and invalidation path exist.
+- Evidence: cdn_distribution_id.
+
+### CLOUD-CAP-065 - DDoS protection
+- Owner: cloud-network.
+- Pass: protected endpoint has threshold and mitigation profile.
+- Evidence: ddos_profile_id.
+
+### CLOUD-CAP-066 - IAM principal create
+- Owner: cloud-iam.
+- Pass: principal maps to tenant identity and role.
+- Evidence: iam_principal_id.
+
+### CLOUD-CAP-067 - IAM role create
+- Owner: cloud-iam.
+- Pass: trust policy, boundary policy, and max duration exist.
+- Evidence: iam_role_id.
+
+### CLOUD-CAP-068 - IAM policy attach
+- Owner: cloud-iam.
+- Pass: policy diff and owner approval are recorded.
+- Evidence: EVT-CLOUD-IAM-POLICY-CHANGED.
+
+### CLOUD-CAP-069 - IAM policy simulate
+- Owner: cloud-iam.
+- Pass: decision preview is available before save.
+- Evidence: policy_simulation_id.
+
+### CLOUD-CAP-070 - IAM analyzer
+- Owner: cloud-iam.
+- Pass: least-privilege suggestions cite access logs.
+- Evidence: access_analyzer_finding_id.
+
+### CLOUD-CAP-071 - STS assume role
+- Owner: cloud-iam.
+- Pass: session has scope, expiry, and actor.
+- Evidence: EVT-CLOUD-STS-SESSION-ISSUED.
+
+### CLOUD-CAP-072 - Federation OIDC
+- Owner: cloud-iam.
+- Pass: OIDC provider has issuer, audience, thumbprint, and mapping.
+- Evidence: federation_provider_id.
+
+### CLOUD-CAP-073 - Federation SAML
+- Owner: cloud-iam.
+- Pass: SAML metadata and attribute map are versioned.
+- Evidence: saml_provider_id.
+
+### CLOUD-CAP-074 - MFA enforcement
+- Owner: cloud-iam.
+- Pass: high-risk action requires MFA or passkey.
+- Evidence: mfa_requirement_event.
+
+### CLOUD-CAP-075 - KMS key create
+- Owner: cloud-kms.
+- Pass: key declares class, origin, region, and pack.
+- Evidence: kms_key_id.
+
+### CLOUD-CAP-076 - KMS encrypt
+- Owner: cloud-kms.
+- Pass: encrypt validates key, policy, and context.
+- Evidence: kms_encrypt_receipt.
+
+### CLOUD-CAP-077 - KMS decrypt
+- Owner: cloud-kms.
+- Pass: decrypt denies disabled or out-of-context key.
+- Evidence: kms_decrypt_receipt.
+
+### CLOUD-CAP-078 - KMS rotate
+- Owner: cloud-kms.
+- Pass: rotation emits version and approver evidence.
+- Evidence: EVT-CLOUD-KMS-KEY-ROTATED.
+
+### CLOUD-CAP-079 - KMS disable
+- Owner: cloud-kms.
+- Pass: disable shows affected resources and approval.
+- Evidence: key_disable_event.
+
+### CLOUD-CAP-080 - KMS shred
+- Owner: cloud-kms.
+- Pass: destructive shred requires Platinum two-person approval.
+- Evidence: key_shred_event.
+
+### CLOUD-CAP-081 - Secret reference create
+- Owner: cloud-kms.
+- Pass: raw secret is never returned.
+- Evidence: secret_ref_id.
+
+### CLOUD-CAP-082 - Secret rotate
+- Owner: cloud-kms.
+- Pass: rotation updates version and notifies consumers.
+- Evidence: secret_rotation_id.
+
+### CLOUD-CAP-083 - Secret access
+- Owner: cloud-kms.
+- Pass: access logs principal, purpose, and resource.
+- Evidence: secret_access_event.
+
+### CLOUD-CAP-084 - Managed Postgres create
+- Owner: cloud-data.
+- Pass: version, HA, backup, KMS, and maintenance window exist.
+- Evidence: postgres_instance_id.
+
+### CLOUD-CAP-085 - Managed Postgres backup
+- Owner: cloud-data.
+- Pass: backup completes within RPO policy.
+- Evidence: postgres_backup_id.
+
+### CLOUD-CAP-086 - Managed Postgres restore
+- Owner: cloud-data.
+- Pass: restore preview and target are explicit.
+- Evidence: postgres_restore_plan_id.
+
+### CLOUD-CAP-087 - Managed Redis create
+- Owner: cloud-data.
+- Pass: memory, eviction, persistence, and network policy exist.
+- Evidence: redis_instance_id.
+
+### CLOUD-CAP-088 - Managed Kafka cluster
+- Owner: cloud-data.
+- Pass: partitions, retention, schema, ACL, and quota exist.
+- Evidence: kafka_cluster_id.
+
+### CLOUD-CAP-089 - Kafka topic publish
+- Owner: cloud-data.
+- Pass: topic declares schema and retention.
+- Evidence: kafka_topic_id.
+
+### CLOUD-CAP-090 - Managed ClickHouse
+- Owner: cloud-data.
+- Pass: cluster declares shards, replicas, backup, and KMS.
+- Evidence: clickhouse_cluster_id.
+
+### CLOUD-CAP-091 - Meter event ingest
+- Owner: cloud-billing.
+- Pass: usage event has idempotency key and rate card.
+- Evidence: EVT-CLOUD-METER-EVENT-INGESTED.
+
+### CLOUD-CAP-092 - Meter aggregation
+- Owner: cloud-billing.
+- Pass: aggregation groups by account, resource, region, tag, unit.
+- Evidence: meter_aggregation_id.
+
+### CLOUD-CAP-093 - Rate card publish
+- Owner: cloud-billing.
+- Pass: rate card is versioned and effective-dated.
+- Evidence: rate_card_id.
+
+### CLOUD-CAP-094 - Invoice draft
+- Owner: cloud-billing.
+- Pass: draft includes usage, taxes, credits, and adjustments.
+- Evidence: invoice_draft_id.
+
+### CLOUD-CAP-095 - Invoice final
+- Owner: cloud-billing.
+- Pass: final invoice includes tax-pack fields and signed hash.
+- Evidence: EVT-CLOUD-INVOICE-GENERATED.
+
+### CLOUD-CAP-096 - Budget create
+- Owner: cloud-finops.
+- Pass: budget includes owner, period, threshold, and alert route.
+- Evidence: budget_id.
+
+### CLOUD-CAP-097 - Budget alert
+- Owner: cloud-finops.
+- Pass: alert opens before threshold breach when forecast predicts overrun.
+- Evidence: EVT-CLOUD-BUDGET-ALERT-OPENED.
+
+### CLOUD-CAP-098 - Cost anomaly
+- Owner: cloud-finops.
+- Pass: anomaly cites driver and estimated impact.
+- Evidence: EVT-CLOUD-COST-ANOMALY-DETECTED.
+
+### CLOUD-CAP-099 - Cost allocation tag
+- Owner: cloud-finops.
+- Pass: untagged spend is visible in exception queue.
+- Evidence: tag_exception_id.
+
+### CLOUD-CAP-100 - Margin report
+- Owner: cloud-finops.
+- Pass: report shows cost, revenue, gross margin by tenant and product.
+- Evidence: margin_report_id.
+
+### CLOUD-CAP-101 - Observability workspace
+- Owner: cloud-observability.
+- Pass: tenant has metrics, logs, traces, alerts, and audit links.
+- Evidence: observability_workspace_id.
+
+### CLOUD-CAP-102 - Metric stream
+- Owner: cloud-observability.
+- Pass: metric has dimensions and cardinality budget.
+- Evidence: metric_stream_id.
+
+### CLOUD-CAP-103 - Log stream
+- Owner: cloud-observability.
+- Pass: log stream has retention and data class.
+- Evidence: log_stream_id.
+
+### CLOUD-CAP-104 - Trace stream
+- Owner: cloud-observability.
+- Pass: trace has service, span, tenant, and retention fields.
+- Evidence: trace_stream_id.
+
+### CLOUD-CAP-105 - Alert route
+- Owner: cloud-observability.
+- Pass: alert has owner, severity, route, and escalation.
+- Evidence: alert_route_id.
+
+### CLOUD-CAP-106 - SLO burn alert
+- Owner: cloud-observability.
+- Pass: burn alert uses multi-window threshold.
+- Evidence: slo_burn_event.
+
+### CLOUD-CAP-107 - Dashboard publish
+- Owner: cloud-observability.
+- Pass: dashboard links resources and SLOs.
+- Evidence: dashboard_id.
+
+### CLOUD-CAP-108 - Audit log export
+- Owner: cloud-observability.
+- Pass: export includes event ids and signed hash.
+- Evidence: EVT-CLOUD-EVIDENCE-EXPORT-GENERATED.
+
+### CLOUD-CAP-109 - Evidence control map
+- Owner: cloud-observability.
+- Pass: controls map to events and pack requirements.
+- Evidence: control_map_id.
+
+### CLOUD-CAP-110 - Incident status
+- Owner: cloud-observability.
+- Pass: incident status cites affected cells and customer impact.
+- Evidence: incident_status_id.
+
+### CLOUD-CAP-111 - Marketplace install plan
+- Owner: cloud-marketplace.
+- Pass: plan declares resources, IAM, egress, meters, and teardown.
+- Evidence: EVT-CLOUD-MARKETPLACE-INSTALL-PLANNED.
+
+### CLOUD-CAP-112 - Marketplace scope denial
+- Owner: cloud-marketplace.
+- Pass: over-scoped install is denied.
+- Evidence: marketplace_scope_denial_id.
+
+### CLOUD-CAP-113 - Marketplace teardown
+- Owner: cloud-marketplace.
+- Pass: uninstall deletes or preserves resources per plan.
+- Evidence: teardown_plan_id.
+
+### CLOUD-CAP-114 - Service catalog publish
+- Owner: cloud-resource.
+- Pass: service has SLO, telemetry, runbook, backup, KMS, billing.
+- Evidence: service_catalog_record_id.
+
+### CLOUD-CAP-115 - Service catalog block
+- Owner: cloud-resource.
+- Pass: missing telemetry or runbook blocks publish.
+- Evidence: service_catalog_block_event.
+
+### CLOUD-CAP-116 - Hyperscaler import AWS
+- Owner: cloud-migration.
+- Pass: AWS resources map or list blockers.
+- Evidence: EVT-CLOUD-HYPERSCALER-IMPORT-COMPLETED.
+
+### CLOUD-CAP-117 - Hyperscaler import Azure
+- Owner: cloud-migration.
+- Pass: Azure resources map or list blockers.
+- Evidence: azure_import_result.
+
+### CLOUD-CAP-118 - Hyperscaler import GCP
+- Owner: cloud-migration.
+- Pass: GCP resources map or list blockers.
+- Evidence: gcp_import_result.
+
+### CLOUD-CAP-119 - VMware import
+- Owner: cloud-migration.
+- Pass: VM, network, datastore, and tag inventory maps.
+- Evidence: vmware_import_result.
+
+### CLOUD-CAP-120 - OpenStack import
+- Owner: cloud-migration.
+- Pass: project, instance, Cinder, Swift, Neutron, Keystone inventory maps.
+- Evidence: openstack_import_result.
+
+### CLOUD-CAP-121 - Migration unsupported report
+- Owner: cloud-migration.
+- Pass: unsupported resources have owner, reason, and target playbook.
+- Evidence: unsupported_resource_report_id.
+
+### CLOUD-CAP-122 - Migration cutover
+- Owner: cloud-migration.
+- Pass: cutover has freeze, delta, rollback, and evidence plan.
+- Evidence: migration_cutover_id.
+
+### CLOUD-CAP-123 - Migration rollback
+- Owner: cloud-migration.
+- Pass: rollback returns traffic and state to source checkpoint.
+- Evidence: migration_rollback_id.
+
+### CLOUD-CAP-124 - Compliance evidence export
+- Owner: cloud-compliance.
+- Pass: export maps control ids to events and artifacts.
+- Evidence: compliance_export_id.
+
+### CLOUD-CAP-125 - CSAP control
+- Owner: cloud-compliance.
+- Pass: KR controls show KMS, region, logging, and retention proof.
+- Evidence: csap_control_result.
+
+### CLOUD-CAP-126 - DORA control
+- Owner: cloud-compliance.
+- Pass: EU financial resilience export includes exit and continuity evidence.
+- Evidence: dora_control_result.
+
+### CLOUD-CAP-127 - FedRAMP control
+- Owner: cloud-compliance.
+- Pass: US government profile includes required retention and boundary evidence.
+- Evidence: fedramp_control_result.
+
+### CLOUD-CAP-128 - ISMAP control
+- Owner: cloud-compliance.
+- Pass: JP profile includes APPI and local audit language support.
+- Evidence: ismap_control_result.
+
+### CLOUD-CAP-129 - LGPD control
+- Owner: cloud-compliance.
+- Pass: BR profile includes DSR hooks and tax evidence.
+- Evidence: lgpd_control_result.
+
+### CLOUD-CAP-130 - Pack conflict resolve
+- Owner: cloud-compliance.
+- Pass: stricter control wins and legal review opens if needed.
+- Evidence: pack_conflict_result.
+
+### CLOUD-CAP-131 - Data perimeter deny
+- Owner: cloud-policy.
+- Pass: resource policy deny overrides principal allow.
+- Evidence: data_perimeter_denial_id.
+
+### CLOUD-CAP-132 - Cross-region deny
+- Owner: cloud-policy.
+- Pass: incompatible residency target is denied.
+- Evidence: cross_region_denial_id.
+
+### CLOUD-CAP-133 - Public endpoint deny
+- Owner: cloud-policy.
+- Pass: public endpoint requires explicit approved policy.
+- Evidence: public_endpoint_denial_id.
+
+### CLOUD-CAP-134 - Destructive approval hold
+- Owner: cloud-policy.
+- Pass: delete, shred, and failover require tier-specific approvals.
+- Evidence: approval_hold_id.
+
+### CLOUD-CAP-135 - Autonomy tier check
+- Owner: cloud-policy.
+- Pass: Foundry agent action is bounded by autonomy tier.
+- Evidence: autonomy_decision_id.
+
+### CLOUD-CAP-136 - Resource tag enforce
+- Owner: cloud-resource.
+- Pass: required tags are present before resource activation.
+- Evidence: tag_enforcement_event.
+
+### CLOUD-CAP-137 - Resource delete
+- Owner: cloud-resource.
+- Pass: delete checks dependencies, retention, and approval tier.
+- Evidence: resource_delete_event.
+
+### CLOUD-CAP-138 - Dependency graph
+- Owner: cloud-resource.
+- Pass: resource graph lists upstream and downstream dependencies.
+- Evidence: dependency_graph_id.
+
+### CLOUD-CAP-139 - Drift detect
+- Owner: cloud-resource.
+- Pass: resource state drift is detected and owner assigned.
+- Evidence: drift_detection_id.
+
+### CLOUD-CAP-140 - Drift remediate
+- Owner: cloud-resource.
+- Pass: remediation plan is previewed before apply.
+- Evidence: drift_remediation_plan_id.
+
+### CLOUD-CAP-141 - Backup gap alert
+- Owner: cloud-storage.
+- Pass: managed data resource without backup is red.
+- Evidence: backup_gap_alert_id.
+
+### CLOUD-CAP-142 - Restore RTO report
+- Owner: cloud-storage.
+- Pass: restore drill reports RTO and RPO.
+- Evidence: restore_rto_report_id.
+
+### CLOUD-CAP-143 - Endpoint egress log
+- Owner: cloud-network.
+- Pass: egress logs include principal, route, destination, and policy.
+- Evidence: egress_log_event.
+
+### CLOUD-CAP-144 - Private DNS
+- Owner: cloud-network.
+- Pass: private zone is scoped to VPC and account.
+- Evidence: private_dns_zone_id.
+
+### CLOUD-CAP-145 - TLS policy
+- Owner: cloud-network.
+- Pass: TLS policy enforces minimum version and ciphers.
+- Evidence: tls_policy_id.
+
+### CLOUD-CAP-146 - Certificate issue
+- Owner: cloud-network.
+- Pass: certificate issue has domain validation and expiry route.
+- Evidence: certificate_id.
+
+### CLOUD-CAP-147 - Certificate rotate
+- Owner: cloud-network.
+- Pass: rotation completes before expiry and emits evidence.
+- Evidence: certificate_rotation_id.
+
+### CLOUD-CAP-148 - API gateway route
+- Owner: cloud-network.
+- Pass: route declares auth, rate limit, and backend.
+- Evidence: api_route_id.
+
+### CLOUD-CAP-149 - Rate limit
+- Owner: cloud-network.
+- Pass: limit declares key, threshold, burst, and action.
+- Evidence: rate_limit_policy_id.
+
+### CLOUD-CAP-150 - Queue service
+- Owner: cloud-data.
+- Pass: queue declares retention, DLQ, encryption, and quota.
+- Evidence: queue_id.
+
+### CLOUD-CAP-151 - Topic service
+- Owner: cloud-data.
+- Pass: topic declares schema, retention, subscribers, and ACL.
+- Evidence: topic_id.
+
+### CLOUD-CAP-152 - Search service
+- Owner: cloud-data.
+- Pass: index declares schema, data class, shard, and backup.
+- Evidence: search_service_id.
+
+### CLOUD-CAP-153 - Vector service
+- Owner: cloud-data.
+- Pass: vector index declares tenant, embedding class, region, and delete path.
+- Evidence: vector_index_id.
+
+### CLOUD-CAP-154 - Database maintenance
+- Owner: cloud-data.
+- Pass: maintenance window and rollback are declared.
+- Evidence: maintenance_plan_id.
+
+### CLOUD-CAP-155 - Database upgrade
+- Owner: cloud-data.
+- Pass: upgrade dry run and backup checkpoint exist.
+- Evidence: db_upgrade_plan_id.
+
+### CLOUD-CAP-156 - Database failover
+- Owner: cloud-data.
+- Pass: failover emits RTO, RPO, and affected apps.
+- Evidence: db_failover_event.
+
+### CLOUD-CAP-157 - Data export
+- Owner: cloud-data.
+- Pass: export respects data class and pack redaction.
+- Evidence: data_export_id.
+
+### CLOUD-CAP-158 - Data deletion
+- Owner: cloud-data.
+- Pass: delete respects retention lock and legal hold.
+- Evidence: data_delete_event.
+
+### CLOUD-CAP-159 - Legal hold
+- Owner: cloud-data.
+- Pass: hold blocks deletion and lifecycle expiration.
+- Evidence: legal_hold_id.
+
+### CLOUD-CAP-160 - DSR cascade
+- Owner: cloud-data.
+- Pass: data-subject delete or export cascades to eligible resources.
+- Evidence: dsr_cascade_id.
+
+### CLOUD-CAP-161 - Tenant offboarding
+- Owner: cloud-resource.
+- Pass: offboarding plan lists export, delete, hold, invoice, and revoke tasks.
+- Evidence: tenant_offboarding_plan_id.
+
+### CLOUD-CAP-162 - Account suspend
+- Owner: cloud-resource.
+- Pass: suspend blocks new mutations while preserving data.
+- Evidence: account_suspend_event.
+
+### CLOUD-CAP-163 - Account reactivate
+- Owner: cloud-resource.
+- Pass: reactivation requires payment and policy status green.
+- Evidence: account_reactivate_event.
+
+### CLOUD-CAP-164 - SLA claim
+- Owner: cloud-billing.
+- Pass: SLA credit links incident, tenant, and service.
+- Evidence: sla_credit_id.
+
+### CLOUD-CAP-165 - Committed use discount
+- Owner: cloud-billing.
+- Pass: commitment has term, resource scope, discount, and exit rule.
+- Evidence: commitment_id.
+
+### CLOUD-CAP-166 - Reserved instance
+- Owner: cloud-billing.
+- Pass: reservation applies to eligible instance usage.
+- Evidence: reservation_id.
+
+### CLOUD-CAP-167 - Spot instance
+- Owner: cloud-compute.
+- Pass: interruption notice and workload eligibility are explicit.
+- Evidence: spot_instance_id.
+
+### CLOUD-CAP-168 - Preemptible eviction
+- Owner: cloud-compute.
+- Pass: eviction emits notice and billing adjustment.
+- Evidence: preempt_event_id.
+
+### CLOUD-CAP-169 - Edge compute
+- Owner: cloud-compute.
+- Pass: edge location has pack and data perimeter constraints.
+- Evidence: edge_deployment_id.
+
+### CLOUD-CAP-170 - CDN invalidation
+- Owner: cloud-network.
+- Pass: invalidation has scope, caller, and completion status.
+- Evidence: cdn_invalidation_id.
+
+### CLOUD-CAP-171 - Object malware scan
+- Owner: cloud-storage.
+- Pass: object scan result gates public exposure.
+- Evidence: malware_scan_result_id.
+
+### CLOUD-CAP-172 - SBOM store
+- Owner: cloud-supply.
+- Pass: release artifact SBOM is stored and linked to image.
+- Evidence: sbom_artifact_id.
+
+### CLOUD-CAP-173 - Vulnerability gate
+- Owner: cloud-supply.
+- Pass: critical vulnerabilities block publish unless waiver exists.
+- Evidence: vulnerability_gate_result.
+
+### CLOUD-CAP-174 - Cosign verify
+- Owner: cloud-supply.
+- Pass: image signature verifies before launch.
+- Evidence: cosign_verification_id.
+
+### CLOUD-CAP-175 - Provenance verify
+- Owner: cloud-supply.
+- Pass: provenance links build, source, and digest.
+- Evidence: provenance_id.
+
+### CLOUD-CAP-176 - Policy bundle publish
+- Owner: cloud-policy.
+- Pass: Cedar bundle version and tests are recorded.
+- Evidence: policy_bundle_id.
+
+### CLOUD-CAP-177 - Policy cache bust
+- Owner: cloud-policy.
+- Pass: cache bust follows policy or resource-policy change.
+- Evidence: cache_bust_id.
+
+### CLOUD-CAP-178 - Policy test
+- Owner: cloud-policy.
+- Pass: allow and deny fixtures pass before publish.
+- Evidence: policy_test_result_id.
+
+### CLOUD-CAP-179 - Quarantine resource
+- Owner: cloud-security.
+- Pass: quarantine isolates network and stops write mutations.
+- Evidence: quarantine_event_id.
+
+### CLOUD-CAP-180 - Incident containment
+- Owner: cloud-security.
+- Pass: containment plan lists scope, action, and rollback.
+- Evidence: containment_plan_id.
+
+### CLOUD-CAP-181 - Key compromise response
+- Owner: cloud-security.
+- Pass: response rotates or disables affected key and notifies owners.
+- Evidence: key_compromise_run_id.
+
+### CLOUD-CAP-182 - Credential leak response
+- Owner: cloud-security.
+- Pass: token revoked, logs searched, and blast radius reported.
+- Evidence: credential_leak_run_id.
+
+### CLOUD-CAP-183 - Tenant isolation test
+- Owner: cloud-security.
+- Pass: cross-tenant access tests fail closed.
+- Evidence: isolation_test_result_id.
+
+### CLOUD-CAP-184 - Cross-cell chaos drill
+- Owner: cloud-security.
+- Pass: drill proves cross-cell deny and alert.
+- Evidence: chaos_drill_id.
+
+### CLOUD-CAP-185 - DR pair promote
+- Owner: cloud-region.
+- Pass: promote preserves RPO/RTO and audit chain.
+- Evidence: dr_promote_event_id.
+
+### CLOUD-CAP-186 - DR pair demote
+- Owner: cloud-region.
+- Pass: demote has consistency check and rollback.
+- Evidence: dr_demote_event_id.
+
+### CLOUD-CAP-187 - Region evacuation
+- Owner: cloud-region.
+- Pass: evacuation plan lists workloads, data, DNS, and customer notice.
+- Evidence: region_evacuation_plan_id.
+
+### CLOUD-CAP-188 - Region retirement
+- Owner: cloud-region.
+- Pass: retirement has migration, retention, and contract notice.
+- Evidence: region_retirement_id.
+
+### CLOUD-CAP-189 - Resource search
+- Owner: cloud-resource.
+- Pass: search filters by type, tag, region, state, and owner.
+- Evidence: resource_search_query_id.
+
+### CLOUD-CAP-190 - Resource inventory export
+- Owner: cloud-resource.
+- Pass: export includes resource graph and policy attachments.
+- Evidence: inventory_export_id.
+
+### CLOUD-CAP-191 - Customer notification
+- Owner: cloud-support.
+- Pass: notification audience derives from affected resources.
+- Evidence: customer_notification_id.
+
+### CLOUD-CAP-192 - Support case
+- Owner: cloud-support.
+- Pass: case links tenant, resource, incident, and SLA.
+- Evidence: support_case_id.
+
+### CLOUD-CAP-193 - Maintenance notice
+- Owner: cloud-support.
+- Pass: notice includes window, impact, rollback, and owner.
+- Evidence: maintenance_notice_id.
+
+### CLOUD-CAP-194 - Runbook link
+- Owner: cloud-support.
+- Pass: every service has current runbook link.
+- Evidence: runbook_link_check_id.
+
+### CLOUD-CAP-195 - Customer status page
+- Owner: cloud-support.
+- Pass: page reflects incidents by region and service.
+- Evidence: status_page_event_id.
+
+### CLOUD-CAP-196 - Console session
+- Owner: cloud-console.
+- Pass: session is tied to identity, tenant, and MFA state.
+- Evidence: console_session_id.
+
+### CLOUD-CAP-197 - Console action preview
+- Owner: cloud-console.
+- Pass: preview shows policy result and blast radius.
+- Evidence: action_preview_id.
+
+### CLOUD-CAP-198 - Console action execute
+- Owner: cloud-console.
+- Pass: execution uses idempotency key and audit seal.
+- Evidence: console_action_event_id.
+
+### CLOUD-CAP-199 - API idempotency
+- Owner: cloud-api.
+- Pass: mutating APIs require idempotency key.
+- Evidence: idempotency_record_id.
+
+### CLOUD-CAP-200 - API pagination
+- Owner: cloud-api.
+- Pass: list APIs use cursor and bounded page size.
+- Evidence: pagination_contract_id.
+
+### CLOUD-CAP-201 - API deprecation
+- Owner: cloud-api.
+- Pass: deprecation has SemVer, sunset, and migration path.
+- Evidence: api_deprecation_id.
+
+### CLOUD-CAP-202 - API OpenAPI publish
+- Owner: cloud-api.
+- Pass: OpenAPI contract validates and links to tests.
+- Evidence: openapi_validation_id.
+
+### CLOUD-CAP-203 - SDK generate
+- Owner: cloud-api.
+- Pass: SDK generation uses published OpenAPI only.
+- Evidence: sdk_generation_id.
+
+### CLOUD-CAP-204 - CLI command
+- Owner: cloud-api.
+- Pass: CLI command maps to stable API and evidence output.
+- Evidence: cli_command_test_id.
+
+### CLOUD-CAP-205 - Terraform provider
+- Owner: cloud-iac.
+- Pass: provider maps desired state to cloud APIs idempotently.
+- Evidence: terraform_provider_test_id.
+
+### CLOUD-CAP-206 - OpenTofu module
+- Owner: cloud-iac.
+- Pass: module includes examples, rollback, and drift checks.
+- Evidence: opentofu_module_id.
+
+### CLOUD-CAP-207 - GitOps reconcile
+- Owner: cloud-iac.
+- Pass: GitOps sync reports drift and policy denials.
+- Evidence: gitops_reconcile_id.
+
+### CLOUD-CAP-208 - K8s admission
+- Owner: cloud-iac.
+- Pass: admission denies resources that violate pack or policy.
+- Evidence: admission_denial_id.
+
+### CLOUD-CAP-209 - Network policy
+- Owner: cloud-iac.
+- Pass: workload network policy is default deny.
+- Evidence: network_policy_id.
+
+### CLOUD-CAP-210 - Secret binding
+- Owner: cloud-iac.
+- Pass: deployment receives secret refs, not raw secrets.
+- Evidence: secret_binding_id.
+
+### CLOUD-CAP-211 - Sovereign evidence pack
+- Owner: cloud-compliance.
+- Pass: sovereign pack exports controls and exceptions.
+- Evidence: sovereign_pack_export_id.
+
+### CLOUD-CAP-212 - Regulator portal access
+- Owner: cloud-compliance.
+- Pass: regulator has read-only scoped portal.
+- Evidence: regulator_portal_session_id.
+
+### CLOUD-CAP-213 - Auditor redaction
+- Owner: cloud-compliance.
+- Pass: evidence export redacts data by pack.
+- Evidence: auditor_redaction_event_id.
+
+### CLOUD-CAP-214 - Evidence hash verify
+- Owner: cloud-compliance.
+- Pass: export hash verifies against audit-chain.
+- Evidence: evidence_hash_verification_id.
+
+### CLOUD-CAP-215 - Control exception
+- Owner: cloud-compliance.
+- Pass: exception has owner, expiry, compensating control, and approval.
+- Evidence: control_exception_id.
+
+### CLOUD-CAP-216 - Control expiry alert
+- Owner: cloud-compliance.
+- Pass: expiring exception alerts before expiry.
+- Evidence: control_expiry_alert_id.
+
+### CLOUD-CAP-217 - Customer BYOK
+- Owner: cloud-kms.
+- Pass: BYOK imports wrapped key material and custody evidence.
+- Evidence: byok_import_id.
+
+### CLOUD-CAP-218 - Customer HYOK
+- Owner: cloud-kms.
+- Pass: HYOK mode declares external key availability behavior.
+- Evidence: hyok_binding_id.
+
+### CLOUD-CAP-219 - HSM cluster
+- Owner: cloud-kms.
+- Pass: HSM cluster has region, certification, quorum, and backup.
+- Evidence: hsm_cluster_id.
+
+### CLOUD-CAP-220 - Key custody report
+- Owner: cloud-kms.
+- Pass: report shows key origin, custody, rotation, and access.
+- Evidence: key_custody_report_id.
+
+## References
+
+- docs/standards/documentation-rigor.md
+- docs/personas/MASTER-ROSTER-2026-05-21.md
+- docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
+- docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md
+- docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md
+- docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md
+- docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+- docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
+- docs/decisions/ADR-0045-database-tier-strategy.md
+- docs/decisions/ADR-0050-automation-first-pipeline.md
+- docs/decisions/ADR-0199-per-tenant-cost-attribution-finops-substrate.md
+- docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
+- docs/decisions/ADR-0255-intelligence-two-layer-model.md
+- docs/decisions/ADR-0263-audit-event-registry.md
+- docs/decisions/ADR-0316-capability-tier-deltas.md
+- specs/products/cloud.json
+- contracts/openapi/cloud/cloud-region-v1.yaml
+- contracts/openapi/cloud/cloud-compute-vm-v1.yaml
+- contracts/openapi/cloud/cloud-storage-object-v1.yaml
+- contracts/openapi/cloud/cloud-iam-v1.yaml

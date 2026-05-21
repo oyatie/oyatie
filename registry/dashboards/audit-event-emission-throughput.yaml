@@ -1,0 +1,259 @@
+schema_version: "2026-05-20.observability-dashboard.v1"
+doc_class: ObservabilityDashboard
+dashboard_id: audit-event-emission-throughput
+owner: axis-audit-chain
+related_oyatie_adrs:
+  - ADR-0003
+  - ADR-0263
+  - ADR-0130
+  - ADR-0139
+  - ADR-0244
+title: "Audit Event Emission Throughput"
+description: "Audit-chain dashboard for per-microservice and per-event-class event throughput, Merkle attestation lag, seal latency, audit_id propagation, dead-letter queue depth, and compliance evidence export readiness. This view protects the ADR-0263 requirement that state-changing observability emissions carry audit_id."
+refresh: 30s
+time_from: now-12h
+time_to: now
+timezone: utc
+folder: oyatie-audit-chain
+schema_tags:
+  - audit-chain
+  - merkle
+  - evidence
+  - dead-letter
+  - adr-0263
+datasource_defaults:
+  metrics: Mimir
+  logs: Loki
+  analytics: ClickHouse
+variables:
+  - name: environment
+    label: Environment
+    type: custom
+    default: dev
+    values:
+      - dev
+      - staging
+      - production
+  - name: microservice
+    label: Source Microservice
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:audit-chain:writer:events_emitted_total:counter{environment=\"$environment\"}, source_microservice)"
+    multi: true
+    include_all: true
+  - name: event_class
+    label: Event Class
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:audit-chain:writer:events_emitted_total:counter{environment=\"$environment\",source_microservice=~\"$microservice\"}, event_class)"
+    multi: true
+    include_all: true
+  - name: tenant_id
+    label: Tenant
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:audit-chain:writer:events_emitted_total:counter{environment=\"$environment\",source_microservice=~\"$microservice\"}, tenant_id)"
+    multi: true
+    include_all: true
+  - name: cell_id
+    label: Cell
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:audit-chain:writer:events_emitted_total:counter{environment=\"$environment\"}, cell_id)"
+    multi: true
+    include_all: true
+  - name: shard_id
+    label: Audit Shard
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:audit-chain:merkle:attestation_lag_seconds:gauge{environment=\"$environment\"}, shard_id)"
+    multi: true
+    include_all: true
+  - name: window
+    label: Query Window
+    type: custom
+    default: 5m
+    values:
+      - 1m
+      - 5m
+      - 30m
+      - 1h
+annotations:
+  - name: deployment_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=\"DeploymentCompleted\",environment=\"$environment\",microservice=~\"audit-chain|$microservice\"} | json | line_format \"{{.microservice}} {{.version}} {{.changeset_id}}\""
+    tags:
+      - deploy
+      - audit-chain
+  - name: incident_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"AuditChainSealFailure|AuditDeadLetterReplayStarted|AuditAttestationLagBreach\",environment=\"$environment\"} | json | line_format \"{{.severity}} {{.incident_id}} {{.shard_id}}\""
+    tags:
+      - incident
+      - audit
+  - name: regulator_export_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"RegulatorEvidenceExportStarted|RegulatorEvidenceExportCompleted\",environment=\"$environment\"} | json | line_format \"{{.pack_id}} {{.export_id}} {{.status}}\""
+    tags:
+      - evidence-export
+      - compliance
+panels:
+  - title: "Audit events per second by microservice"
+    type: graph
+    datasource: Mimir
+    unit: events/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (source_microservice, event_class, cell_id) (rate(oya:audit-chain:writer:events_emitted_total:counter{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\"}[$window]))"
+        labels:
+          signal: audit_event_throughput
+          adr_anchor: ADR-0263-D13
+  - title: "Event class throughput heatmap"
+    type: heatmap
+    datasource: Mimir
+    unit: events/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (event_class, source_microservice) (rate(oya:audit-chain:writer:events_emitted_total:counter{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\"}[$window]))"
+        labels:
+          signal: event_class_distribution
+          dimension: source_microservice
+  - title: "Merkle seal latency p50"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.50, sum by (le, source_microservice, shard_id) (rate(oya:audit-chain:writer:event_seal_duration_seconds:bucket{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\",shard_id=~\"$shard_id\"}[$window])))"
+        labels:
+          signal: seal_latency_p50
+          bucket_label: le
+  - title: "Merkle seal latency p95"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.95, sum by (le, source_microservice, shard_id) (rate(oya:audit-chain:writer:event_seal_duration_seconds:bucket{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\",shard_id=~\"$shard_id\"}[$window])))"
+        labels:
+          signal: seal_latency_p95
+          bucket_label: le
+  - title: "Merkle seal latency p99"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.99, sum by (le, source_microservice, shard_id) (rate(oya:audit-chain:writer:event_seal_duration_seconds:bucket{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\",shard_id=~\"$shard_id\"}[$window])))"
+        labels:
+          signal: seal_latency_p99
+          bucket_label: le
+  - title: "Merkle attestation lag by shard"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (shard_id, cell_id, region) (oya:audit-chain:merkle:attestation_lag_seconds:gauge{environment=\"$environment\",shard_id=~\"$shard_id\",cell_id=~\"$cell_id\"})"
+        labels:
+          signal: merkle_attestation_lag
+          target_max_seconds: "300"
+  - title: "Dead-letter queue depth"
+    type: graph
+    datasource: Mimir
+    unit: events
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (source_microservice, event_class, dlq_name, cell_id) (oya:audit-chain:writer:dead_letter_queue_depth:gauge{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\"})"
+        labels:
+          signal: dead_letter_depth
+          target_max: "0"
+  - title: "Dead-letter replay throughput"
+    type: graph
+    datasource: Mimir
+    unit: events/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (source_microservice, event_class, dlq_name, replay_result) (rate(oya:audit-chain:writer:dead_letter_replay_total:counter{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\"}[$window]))"
+        labels:
+          signal: dlq_replay_throughput
+          recovery: true
+  - title: "Audit ID propagation coverage"
+    type: gauge
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * sum by (source_microservice, event_class) (rate(oya:audit-chain:writer:events_with_observability_audit_id_total:counter{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\"}[$window])) / clamp_min(sum by (source_microservice, event_class) (rate(oya:audit-chain:writer:events_emitted_total:counter{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\"}[$window])), 0.001)"
+        labels:
+          signal: audit_id_propagation
+          target_percent: "100"
+  - title: "Seal failures by error class"
+    type: graph
+    datasource: Mimir
+    unit: errors/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (source_microservice, event_class, error_class, shard_id) (rate(oya:audit-chain:writer:seal_failures_total:counter{environment=\"$environment\",source_microservice=~\"$microservice\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\",shard_id=~\"$shard_id\"}[$window]))"
+        labels:
+          signal: seal_failures
+          severity: critical
+  - title: "Recent audit events"
+    type: table
+    datasource: Loki
+    targets:
+      - ref_id: A
+        query_type: LogQL
+        expr: "{microservice=\"audit-chain\",environment=\"$environment\",event_class=~\"$event_class\",tenant_id=~\"$tenant_id\"} | json | source_microservice=~\"$microservice\" | line_format \"{{.ts}} {{.tenant_id}} {{.source_microservice}} {{.event_class}} {{.audit_id}} {{.merkle_root}}\""
+        labels:
+          signal: recent_audit_events
+          includes: audit_id
+  - title: "Attestation backlog SQL view"
+    type: table
+    datasource: ClickHouse
+    targets:
+      - ref_id: A
+        query_type: SQL
+        expr: "SELECT shard_id, tenant_id, source_microservice, event_class, countIf(attested_at IS NULL) AS unattested_events, max(dateDiff('second', emitted_at, now())) AS oldest_lag_seconds FROM oya_audit_events WHERE environment = '$environment' AND emitted_at >= now() - INTERVAL 12 HOUR GROUP BY shard_id, tenant_id, source_microservice, event_class ORDER BY oldest_lag_seconds DESC LIMIT 200"
+        labels:
+          signal: attestation_backlog
+          storage: clickhouse
+alerts:
+  - alert_id: audit_merkle_attestation_lag
+    title: "Merkle attestation lag above five minutes"
+    datasource: Mimir
+    severity: page
+    condition: "max(oya:audit-chain:merkle:attestation_lag_seconds:gauge{environment=\"$environment\"}) > 300"
+    for: 5m
+    labels:
+      gate: oya-vcs-promotion-readiness
+      verdict_on_fire: held
+  - alert_id: audit_dead_letter_nonzero
+    title: "Audit dead-letter queue is nonzero"
+    datasource: Mimir
+    severity: page
+    condition: "max(oya:audit-chain:writer:dead_letter_queue_depth:gauge{environment=\"$environment\"}) > 0"
+    for: 2m
+    labels:
+      recovery_runbook: audit-dead-letter-replay
+  - alert_id: audit_id_propagation_gap
+    title: "State-changing emissions missing audit_id"
+    datasource: Mimir
+    severity: critical
+    condition: "100 * sum(rate(oya:audit-chain:writer:events_with_observability_audit_id_total:counter[5m])) / clamp_min(sum(rate(oya:audit-chain:writer:events_emitted_total:counter[5m])), 0.001) < 100"
+    for: 5m
+    labels:
+      adr_anchor: ADR-0263-D13

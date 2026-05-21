@@ -409,7 +409,7 @@ mod tests {
         MailboxCreate {
             id: "mailbox-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             address: "employee@example.com".into(),
             quota_bytes: 10_000,
             retention_policy_id: "retain-default".into(),

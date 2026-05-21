@@ -11,7 +11,7 @@ purpose: |
   reviewer-APPROVE + CI green) → staging (autonomous promotion + canary cohort) →
   prod (5-gate verification). New fitness lane binds stage to source branch.
 planned_enforcement_ref:
-  - oya-foundry-fitness-capability-stage-binding
+  - oya-governance-capability-stage-binding
 related_adrs: [ADR-0020, ADR-0021, ADR-0022, ADR-0024, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -63,7 +63,7 @@ stage_history:                              # append-only audit log
   # ... staging, prod
 ```
 
-Fitness lane `oya-foundry-fitness-capability-stage-binding` (BLOCKER) verifies the capability's `stage:` field matches the branch on which the record exists:
+Fitness lane `oya-governance-capability-stage-binding` (BLOCKER) verifies the capability's `stage:` field matches the branch on which the record exists:
 
 - `stage: dev-draft` ⇔ exists only in agent worktree / local-dev clone.
 - `stage: dev` ⇔ exists in `origin/dev` capability registry.
@@ -151,4 +151,4 @@ This file does not own:
 ## 10. ADR citations
 
 - [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — capability stage transitions recorded via `icm store -t capability-stage-transitions`; all sanctioned tool usage.
-- [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — capability stages mirror the four branch layers defined in ADR-0055; `oya-foundry-fitness-capability-stage-binding` is a branch-pipeline lane.
+- [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — capability stages mirror the four branch layers defined in ADR-0055; `oya-governance-capability-stage-binding` is a branch-pipeline lane.

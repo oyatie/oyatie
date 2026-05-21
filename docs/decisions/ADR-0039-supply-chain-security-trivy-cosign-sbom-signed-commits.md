@@ -25,12 +25,12 @@ This ADR pins the discipline so that every artifact landing in production carrie
 
 ## Decision
 
-We adopt **Trivy 4-layer scanning** (filesystem + container + IaC + dep) on every PR + nightly; **Cosign keyless signing** for every release artifact; **Rekor transparency log** for signature inclusion; **SBOM in SPDX 2.3 + CycloneDX 1.5** per artifact; **signed commits and tags** repo-wide; **merge-governance ruleset** at the GitHub level; **Kyverno (or OPA-equivalent) admission policy** at every cluster; and a dedicated CI lane `oya-foundry-fitness-supply-chain` that gates merge.
+We adopt **Trivy 4-layer scanning** (filesystem + container + IaC + dep) on every PR + nightly; **Cosign keyless signing** for every release artifact; **Rekor transparency log** for signature inclusion; **SBOM in SPDX 2.3 + CycloneDX 1.5** per artifact; **signed commits and tags** repo-wide; **merge-governance ruleset** at the GitHub level; **Kyverno (or OPA-equivalent) admission policy** at every cluster; and a dedicated CI lane `oya-governance-supply-chain` that gates merge.
 
 ### Trivy 4-layer scan
 
 ```yaml
-# .github/workflows/oya-foundry-fitness-supply-chain.yml (canonical CI lane)
+# .github/workflows/oya-governance-supply-chain.yml (canonical CI lane)
 - name: Trivy filesystem scan
   run: trivy fs --severity HIGH,CRITICAL --exit-code 1 .
 
@@ -94,7 +94,7 @@ Repo-wide enforcement:
 GitHub branch-protection ruleset (codified in `.github/branch-protection.yaml`):
 
 - Require PR before merge.
-- Require status checks: `oya-foundry-fitness-supply-chain`, `oya-foundry-fitness-cohesion` (per ADR-0001), `oya-foundry-fitness-api-semver` (per ADR-0037), per-microservice fitness lanes.
+- Require status checks: `oya-governance-supply-chain`, `oya-governance-cohesion` (per ADR-0001), `oya-governance-api-semver` (per ADR-0037), per-microservice fitness lanes.
 - Require signed commits.
 - Require linear history (squash or rebase merge only).
 - Require ≥ 1 reviewer (≥ 2 for substrate kernel changes per ADR-0001).
@@ -131,7 +131,7 @@ spec:
 - Every Pod admission verifies (a) image signature, (b) Rekor transparency log inclusion, (c) image SBOM presence, (d) image not in known-CVE quarantine.
 - Admission denial is audit-chained per ADR-0003.
 
-### CI lane: `oya-foundry-fitness-supply-chain`
+### CI lane: `oya-governance-supply-chain`
 
 Aggregates:
 

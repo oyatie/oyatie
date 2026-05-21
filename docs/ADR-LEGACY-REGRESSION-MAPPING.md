@@ -251,3 +251,8 @@ Per `docs/checklists/legacy-adr-deletion.md` §2:
 - [`docs/raw/adr-index.md`](raw/adr-index.md)
 - All 127 legacy ADRs at `decisions/ADR-*.md`
 - All 50 new pack ADRs at `docs/decisions/ADR-*.md`
+
+
+---
+
+> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

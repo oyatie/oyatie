@@ -3452,11 +3452,11 @@ The recurring lesson: **single canonical doc per concern, machine-traceable, end
 
 ### B.7.1 High-leverage borrows (do first)
 
-1. **Adopt `paths:` skill-frontmatter triggering.** The `oya-foundry-fitness-*` lanes are already path-scoped; promote them to skills with `paths:` frontmatter so the right doc auto-injects when matching files appear in context. Replaces the "always-loaded skills" pattern with implicit per-edit selection. The single most powerful borrow.
+1. **Adopt `paths:` skill-frontmatter triggering.** The `oya-governance-*` lanes are already path-scoped; promote them to skills with `paths:` frontmatter so the right doc auto-injects when matching files appear in context. Replaces the "always-loaded skills" pattern with implicit per-edit selection. The single most powerful borrow.
 2. **Formalize a Hook Output Contract** in `DOC-CATALOG.md` — every blocking hook emits exactly one doc anchor; anchor MUST resolve to an H2 ending in checklist-shape. Mirror OMC's stop-block-with-reason pattern but require structured anchor instead of free prose.
-3. **Stop-hook + state-file as the cross-runtime persistence primitive.** Build it once for Oyatie's `oya-foundry-fitness-*` lanes; works on Claude (OMC pattern) and Codex (OMX pattern) without modification.
-4. **Wrap slow lanes as async hooks.** `oya-foundry-fitness-{cohesion, manifest-mirror, prevention-replay}` are slow. `{async:true, asyncTimeout: <s>}` returns immediately; rewakes the agent on completion. Avoids the in-line block.
-5. **Hook on `InstructionsLoaded`** for doc-anchor refresh. Whenever AGENTS.md / CONSTITUTION.md is reloaded, fire `oya-foundry-fitness-authority-cohesion` to verify the chain still matches.
+3. **Stop-hook + state-file as the cross-runtime persistence primitive.** Build it once for Oyatie's `oya-governance-*` lanes; works on Claude (OMC pattern) and Codex (OMX pattern) without modification.
+4. **Wrap slow lanes as async hooks.** `oya-governance-{cohesion, manifest-mirror, prevention-replay}` are slow. `{async:true, asyncTimeout: <s>}` returns immediately; rewakes the agent on completion. Avoids the in-line block.
+5. **Hook on `InstructionsLoaded`** for doc-anchor refresh. Whenever AGENTS.md / CONSTITUTION.md is reloaded, fire `oya-governance-authority-cohesion` to verify the chain still matches.
 
 ### B.7.2 Medium-leverage borrows
 

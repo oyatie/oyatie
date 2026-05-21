@@ -568,7 +568,7 @@
           "implementation_plans": [
             {
               "id": "M01-P17-IP-008.1",
-              "title": "oya-foundry-fitness-banned-primitives lane (F-FORBIDDEN-PRIMITIVES-CI-GUARD)",
+              "title": "oya-governance-banned-primitives lane (F-FORBIDDEN-PRIMITIVES-CI-GUARD)",
               "status": "source-and-command-corpus-local-green",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
@@ -902,7 +902,7 @@
       "review/fix task independent from original ChangeSet"
     ],
     "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
-    "validation_lane": "oya-foundry-fitness-plan-hierarchy + oya-vcs-admission + oya-foundry-fitness-honest-claims",
+    "validation_lane": "oya-governance-plan-hierarchy + oya-vcs-admission + oya-governance-honest-claims",
     "identity_field": "id",
     "required_frontmatter_fields": [
       "doc_class",
@@ -2035,7 +2035,7 @@
               {
                 "id": "M01-P16-IP-004",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
-                "title": "oya-foundry-fitness-architecture-map-freshness lane",
+                "title": "oya-governance-architecture-map-freshness lane",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",

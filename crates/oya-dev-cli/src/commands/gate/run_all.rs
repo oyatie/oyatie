@@ -250,6 +250,7 @@ fn cargo_with_ci_env() -> Command {
     let mut command = Command::new("cargo");
     command.env("CARGO_TERM_COLOR", "always");
     command.env("CARGO_INCREMENTAL", "0");
+    command.env_remove("RUSTC_WRAPPER");
     command
 }
 

@@ -8,7 +8,7 @@ purpose: |
   .omc/plans/milestones/M0X-slug/phases/P0Y-slug/. Carries entry/exit gates,
   in/out scope, implementation-plan list, acceptance commands, grit symbol space,
   ICM rationale fields, and dependency citations.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/impl-plan-template.md

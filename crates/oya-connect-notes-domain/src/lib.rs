@@ -500,7 +500,7 @@ mod tests {
         CollabRuntime::new(CollabRuntimeCreate {
             document_id: "note-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             surface,
             data_class: None,
@@ -540,7 +540,7 @@ mod tests {
         NoteStoreCreate {
             id: "store-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             owner_ref: "user:owner@example.com".into(),
             data_class: None,
@@ -563,7 +563,7 @@ mod tests {
             id: "note-1".into(),
             store_id: "store-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             owner_ref: "user:owner@example.com".into(),
             title: "Postmortem draft".into(),

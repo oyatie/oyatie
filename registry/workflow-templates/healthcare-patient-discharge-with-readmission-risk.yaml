@@ -1,0 +1,451 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.healthcare-patient-discharge-with-readmission-risk.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0059-workflow-ontology-ecosystem-adapter-layer
+  - ADR-0185-workflow-studio-client-stack
+title: Healthcare patient discharge with readmission risk
+description: >-
+  Coordinates inpatient discharge from named EHR ingestion through medication
+  reconciliation, readmission-risk scoring, discharge instruction generation,
+  follow-up scheduling, and post-discharge outreach while preserving PHI access
+  boundaries and audit evidence for every clinical handoff.
+tags:
+  - healthcare
+  - discharge
+  - ehr
+  - readmission-risk
+  - care-transition
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: gold
+    reason: "Care teams need EHR ingestion, clinical approval, and patient-safe follow-up automation."
+  - tier: platinum
+    reason: "Adds ML risk scoring, patient outreach loops, and clinical governance evidence."
+ontology_refs:
+  object: PatientDischargeCase
+  actions:
+    - DischargeOrderReceived
+    - EhrBundleIngested
+    - MedicationReconciled
+    - ReadmissionRiskScored
+    - FollowUpScheduled
+    - TransitionClosed
+tenant_context:
+  required_fields:
+    - tenant_id
+    - facility_id
+    - attending_principal_id
+    - care_manager_principal_id
+    - patient_id
+principal_context:
+  system_principal: workflow-engine.patient-discharge
+  human_approval_roles:
+    - attending_physician
+    - discharge_nurse
+    - care_manager
+    - pharmacist
+data_classes:
+  - PHI_DEMOGRAPHICS
+  - PHI_DIAGNOSIS
+  - PHI_MEDICATION
+  - PHI_CARE_PLAN
+  - ML_RISK_SCORE
+residency_pack_overlays:
+  - pack: hipaa
+    behavior: "Require minimum-necessary PHI projection and signed access audit per node."
+  - pack: gdpr
+    behavior: "Keep discharge summary and patient communications inside the patient care region."
+observability:
+  metrics:
+    - healthcare_discharge_step_latency_seconds
+    - healthcare_discharge_readmission_high_risk_total
+    - healthcare_discharge_follow_up_missed_total
+  traces:
+    - workflow.template.healthcare_patient_discharge
+  logs:
+    - workflow_healthcare_discharge_audit_projection
+cost_allocation:
+  unit: workflow_step_transition
+  dimensions:
+    - tenant_id
+    - facility_id
+    - service_line
+idempotency:
+  key_shape: "tenant_id:patient_id:encounter_id:template_version:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: finalize_discharge_packet
+  on_cancel: notify_care_team_and_keep_manual_discharge_open
+  audit_event_class: HealthcareDischargeCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_idempotent_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_hospital_demo
+  facility_id:
+    type: string
+    default: facility_general_001
+  patient_id:
+    type: string
+    default: patient_10442
+  encounter_id:
+    type: string
+    default: encounter_2026_7788
+  ehr_source:
+    type: string
+    default: Epic EHR
+  attending_principal_id:
+    type: string
+    default: principal_attending_001
+  care_manager_principal_id:
+    type: string
+    default: principal_care_manager_001
+  discharge_target_date:
+    type: date
+    default: "2026-06-04"
+  preferred_follow_up_channel:
+    type: string
+    default: phone
+outputs:
+  discharge_case_id:
+    type: string
+  terminal_state:
+    type: string
+  readmission_risk_band:
+    type: string
+  follow_up_plan:
+    type: object
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: discharge_order_start
+    type: start
+    config:
+      trigger: ehr.discharge_order.signed.v1
+      validates:
+        - tenant_id
+        - patient_id
+        - encounter_id
+        - attending_principal_id
+    cedar_permits_required:
+      - 'Action::"StartPatientDischargeWorkflow"'
+    audit_event_class: PatientDischargeWorkflowStarted
+    slo_target: "PT5M after signed discharge order"
+    failure_modes:
+      - code: MISSING_DISCHARGE_ORDER
+        behavior: "Reject start and notify attending physician."
+    on_success:
+      - edge_to_ingest_ehr_bundle
+    on_failure:
+      - edge_to_exception_end
+  - id: ingest_epic_fhir_bundle
+    type: action
+    config:
+      service: connector-epic-fhir
+      contract: ehr-discharge-bundle.v1
+      method: GET
+      url: "https://epic-fhir.internal/v1/encounters/${inputs.encounter_id}/discharge-bundle"
+      source_system: Epic EHR
+      fhir_resources:
+        - Patient
+        - Encounter
+        - Condition
+        - MedicationRequest
+        - Observation
+        - CarePlan
+    cedar_permits_required:
+      - 'Action::"IngestEpicDischargeBundle"'
+    audit_event_class: PatientDischargeEhrBundleIngested
+    slo_target: "PT10M"
+    failure_modes:
+      - code: EHR_BUNDLE_UNAVAILABLE
+        behavior: "Pause automation and create nurse review task."
+    on_success:
+      - edge_to_reconcile_medications
+    on_failure:
+      - edge_to_exception_end
+  - id: reconcile_medications
+    type: human_task
+    config:
+      assignee_role: pharmacist
+      task_contract: medication-reconciliation.v1
+      compares:
+        - home_medication_list
+        - inpatient_medication_administration_record
+        - discharge_prescriptions
+      required_attestations:
+        - high_risk_medication_reviewed
+        - duplicate_therapy_checked
+    cedar_permits_required:
+      - 'Action::"ApproveDischargeMedicationReconciliation"'
+    audit_event_class: PatientDischargeMedicationReconciled
+    slo_target: "PT4H"
+    failure_modes:
+      - code: MEDICATION_CONFLICT
+        behavior: "Return to attending physician with conflict evidence."
+    on_success:
+      - edge_to_score_readmission_risk
+    on_failure:
+      - edge_to_exception_end
+  - id: score_readmission_risk
+    type: action
+    config:
+      service: healthcare-ml-risk
+      contract: readmission-risk-score.v1
+      method: POST
+      url: "https://ml-risk.internal/v1/readmission-score"
+      model_name: readmission-risk-30d-xgboost
+      model_version: 2026.05.1
+      body:
+        encounter_id: "${inputs.encounter_id}"
+        patient_projection: "${nodes.ingest_epic_fhir_bundle.output.minimum_necessary_projection}"
+        medication_reconciliation_id: "${nodes.reconcile_medications.output.reconciliation_id}"
+    cedar_permits_required:
+      - 'Action::"ScoreReadmissionRisk"'
+    audit_event_class: PatientDischargeReadmissionRiskScored
+    slo_target: "PT15M"
+    failure_modes:
+      - code: RISK_MODEL_UNAVAILABLE
+        behavior: "Fallback to rule-based LACE score and mark ML gap."
+    on_success:
+      - edge_to_risk_decision
+    on_failure:
+      - edge_to_exception_end
+  - id: risk_decision
+    type: decision
+    config:
+      expression: "${nodes.score_readmission_risk.output.risk_band}"
+      cases:
+        low: finalize_discharge_packet
+        medium: schedule_follow_up
+        high: assign_care_manager
+      default_case: assign_care_manager
+    cedar_permits_required:
+      - 'Action::"DecideReadmissionFollowUpIntensity"'
+    audit_event_class: PatientDischargeRiskBandDecided
+    slo_target: "PT5M after score"
+    failure_modes:
+      - code: RISK_BAND_UNKNOWN
+        behavior: "Treat as high risk and require care manager review."
+    on_success:
+      - edge_to_finalize_low_risk
+      - edge_to_schedule_follow_up
+      - edge_to_assign_care_manager
+    on_failure:
+      - edge_to_exception_end
+  - id: assign_care_manager
+    type: human_task
+    config:
+      assignee_role: care_manager
+      task_contract: high-risk-transition-review.v1
+      required_actions:
+        - confirm_transportation
+        - confirm_home_support
+        - confirm_medication_access
+        - document_escalation_plan
+    cedar_permits_required:
+      - 'Action::"ApproveHighRiskDischargePlan"'
+    audit_event_class: PatientDischargeCareManagerAssigned
+    slo_target: "PT8H"
+    failure_modes:
+      - code: CARE_MANAGER_CAPACITY_EXCEEDED
+        behavior: "Route to care-transition supervisor queue."
+    on_success:
+      - edge_to_schedule_follow_up
+    on_failure:
+      - edge_to_exception_end
+  - id: schedule_follow_up
+    type: action
+    config:
+      service: scheduling
+      contract: post-discharge-follow-up.v1
+      method: POST
+      url: "https://scheduling.internal/v1/follow-ups"
+      body:
+        patient_id: "${inputs.patient_id}"
+        encounter_id: "${inputs.encounter_id}"
+        risk_band: "${nodes.score_readmission_risk.output.risk_band}"
+        preferred_channel: "${inputs.preferred_follow_up_channel}"
+        appointment_window: "P7D"
+    cedar_permits_required:
+      - 'Action::"SchedulePostDischargeFollowUp"'
+    audit_event_class: PatientDischargeFollowUpScheduled
+    slo_target: "PT2H"
+    failure_modes:
+      - code: NO_FOLLOW_UP_SLOT
+        behavior: "Create manual scheduling task and notify clinic coordinator."
+    on_success:
+      - edge_to_finalize_discharge_packet
+    on_failure:
+      - edge_to_exception_end
+  - id: finalize_discharge_packet
+    type: action
+    config:
+      service: patient-documents
+      contract: discharge-packet.v1
+      method: POST
+      url: "https://documents.internal/v1/discharge-packets"
+      body:
+        patient_id: "${inputs.patient_id}"
+        encounter_id: "${inputs.encounter_id}"
+        medication_reconciliation_id: "${nodes.reconcile_medications.output.reconciliation_id}"
+        follow_up_plan: "${nodes.schedule_follow_up.output.follow_up_plan}"
+    cedar_permits_required:
+      - 'Action::"FinalizePatientDischargePacket"'
+    audit_event_class: PatientDischargePacketFinalized
+    slo_target: "PT1H before discharge target"
+    failure_modes:
+      - code: PATIENT_INSTRUCTION_RENDER_FAILED
+        behavior: "Keep discharge packet in draft and alert discharge nurse."
+    on_success:
+      - edge_to_post_discharge_outreach
+    on_failure:
+      - edge_to_exception_end
+  - id: post_discharge_outreach
+    type: loop
+    config:
+      poll_contract: patient-outreach-status.v1
+      outreach_schedule:
+        - "P1D"
+        - "P3D"
+        - "P7D"
+      terminal_statuses:
+        - reached
+        - escalated_to_clinic
+        - declined
+      max_elapsed: P10D
+    cedar_permits_required:
+      - 'Action::"RunPostDischargeOutreach"'
+    audit_event_class: PatientDischargeOutreachPolled
+    slo_target: "P10D"
+    failure_modes:
+      - code: PATIENT_NOT_REACHED
+        behavior: "Escalate to care manager and document missed-contact attempts."
+    on_success:
+      - edge_to_close_transition_case
+    on_failure:
+      - edge_to_exception_end
+  - id: close_transition_case
+    type: end
+    config:
+      terminal_state: completed
+      emits:
+        - discharge_case_closed
+        - follow_up_plan_committed
+        - audit_chain_finalized
+    cedar_permits_required:
+      - 'Action::"ClosePatientDischargeWorkflow"'
+    audit_event_class: PatientDischargeTransitionClosed
+    slo_target: "P10D after discharge"
+    failure_modes:
+      - code: AUDIT_CHAIN_INCOMPLETE
+        behavior: "Hold case open for compliance review."
+    on_success: []
+    on_failure:
+      - edge_to_exception_end
+  - id: exception_end
+    type: end
+    config:
+      terminal_state: exception
+      requires_manual_owner: true
+    cedar_permits_required:
+      - 'Action::"RecordPatientDischargeException"'
+    audit_event_class: PatientDischargeExceptionRecorded
+    slo_target: "PT30M after exception"
+    failure_modes:
+      - code: EXCEPTION_AUDIT_WRITE_FAILED
+        behavior: "Emit dead-letter event for compliance replay."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_ingest_ehr_bundle
+    from: discharge_order_start
+    to: ingest_epic_fhir_bundle
+    name: discharge_order_valid
+  - id: edge_to_reconcile_medications
+    from: ingest_epic_fhir_bundle
+    to: reconcile_medications
+    name: ehr_bundle_ingested
+  - id: edge_to_score_readmission_risk
+    from: reconcile_medications
+    to: score_readmission_risk
+    name: medication_reconciled
+  - id: edge_to_risk_decision
+    from: score_readmission_risk
+    to: risk_decision
+    name: risk_score_available
+  - id: edge_to_finalize_low_risk
+    from: risk_decision
+    to: finalize_discharge_packet
+    name: low_risk_path
+  - id: edge_to_schedule_follow_up
+    from: risk_decision
+    to: schedule_follow_up
+    name: medium_risk_path
+  - id: edge_to_assign_care_manager
+    from: risk_decision
+    to: assign_care_manager
+    name: high_risk_path
+  - id: edge_to_schedule_follow_up_after_manager
+    from: assign_care_manager
+    to: schedule_follow_up
+    name: high_risk_plan_approved
+  - id: edge_to_finalize_discharge_packet
+    from: schedule_follow_up
+    to: finalize_discharge_packet
+    name: follow_up_scheduled
+  - id: edge_to_post_discharge_outreach
+    from: finalize_discharge_packet
+    to: post_discharge_outreach
+    name: discharge_packet_finalized
+  - id: edge_to_close_transition_case
+    from: post_discharge_outreach
+    to: close_transition_case
+    name: outreach_completed
+  - id: edge_to_exception_end
+    from: "*"
+    to: exception_end
+    name: exception_recorded
+failure_modes:
+  - code: POLICY_DENIED
+    behavior: "Stop current node, emit Cedar denial audit, and preserve current clinical owner."
+  - code: PHI_MINIMUM_NECESSARY_VIOLATION
+    behavior: "Block node output and route to privacy officer review."
+  - code: CLINICAL_HANDOFF_INCOMPLETE
+    behavior: "Keep discharge case open until human attestation is complete."
+worked_example:
+  sample_input:
+    tenant_id: tenant_hospital_demo
+    facility_id: facility_general_001
+    patient_id: patient_10442
+    encounter_id: encounter_2026_7788
+    ehr_source: Epic EHR
+    attending_principal_id: principal_attending_001
+    care_manager_principal_id: principal_care_manager_001
+    discharge_target_date: "2026-06-04"
+    preferred_follow_up_channel: phone
+  sample_expected_output:
+    discharge_case_id: discharge_2026_0007788
+    terminal_state: completed
+    readmission_risk_band: high
+    follow_up_plan:
+      clinic_visit: "2026-06-08T14:00:00-04:00"
+      outreach_attempts:
+        - "P1D"
+        - "P3D"
+        - "P7D"
+      care_manager_owner: principal_care_manager_001
+    audit_chain_refs:
+      - audit://workflow/healthcare-discharge/start/01
+      - audit://workflow/healthcare-discharge/risk-score/04
+      - audit://workflow/healthcare-discharge/closed/10

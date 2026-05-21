@@ -1,0 +1,193 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-policy-cedar-domain-canonical-base-neutrality",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779235719,
+  "timestamp_iso": "2026-05-20T00:08:39Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-policy-cedar-domain/src/lib.rs::canonical_base_neutral_policy_scope_fixtures",
+    "crates/oya-policy-cedar-domain/src/lib.rs::canonical_base_neutral_authorization_query_fixture",
+    "crates/oya-policy-cedar-domain/src/lib.rs::canonical_base_neutral_authz_request_fixture",
+    "evidence/multispectrum/cs-policy-cedar-domain-canonical-base-neutrality-1779235719.json::MultispectrumEvidence"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Neutralize policy-cedar-domain canonical-base tenant fixtures\",\"scopes\":[\"crates/oya-policy-cedar-domain/src/lib.rs::canonical_base_neutral_policy_scope_fixtures\",\"crates/oya-policy-cedar-domain/src/lib.rs::canonical_base_neutral_authorization_query_fixture\",\"crates/oya-policy-cedar-domain/src/lib.rs::canonical_base_neutral_authz_request_fixture\",\"evidence/multispectrum/cs-policy-cedar-domain-canonical-base-neutrality-1779235719.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality cleanup for the Cedar policy domain: replace launch-jurisdiction tenant and resource fixtures with neutral ten_alpha constants while preserving publish, supersession, authorization, and serde round-trip behavior.",
+  "baseline_diff": {
+    "before_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-policy-cedar-domain/src/lib.rs failed with 1 file checked and 6 jurisdiction leaks: ten_kr tenant scope fixture, tenant assertion, authorization query tenant/resource, AuthzRequest tenant, and tenant_scope helper.",
+    "before_full": "full canonical-base-neutrality failed before this slice with 196 files checked and 281 jurisdiction leaks; first remaining file was crates/oya-policy-cedar-domain/src/lib.rs.",
+    "red_test": "new neutral tenant assertion failed before implementation: 8 passed, 1 failed; left Tenant(\"ten_kr\"), right Tenant(\"ten_alpha\").",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-policy-cedar-domain/src/lib.rs passed: 1 file checked, 0 jurisdiction leaks.",
+    "after_full": "full canonical-base-neutrality still fails with 196 files checked and 275 jurisdiction leaks outside this ChangeSet; first remaining file crates/oya-residency-domain/src/lib.rs.",
+    "delta": "6 fewer full-gate jurisdiction leaks, from 281 before this slice to 275 after this slice; no scanner carve-outs, no generated allowlist changes, and no coverage weakening."
+  },
+  "verification": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-policy-cedar-cbn-planning-start.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-policy-cedar-domain/src/lib.rs 2>&1 | tee /tmp/cs-policy-cedar-cbn-targeted-before.txt",
+      "status": "failed-before-fix",
+      "evidence": "1 file checked, 6 jurisdiction leaks in policy-cedar-domain test fixtures"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-policy-cedar-cbn-full-before.txt",
+      "status": "blocked-preexisting-before-fix",
+      "evidence": "full gate failed with 196 files checked, 281 jurisdiction leaks; first remaining file crates/oya-policy-cedar-domain/src/lib.rs"
+    },
+    {
+      "command": "cargo test -q -p oya-policy-cedar-domain --all-features 2>&1 | tee /tmp/cs-policy-cedar-cbn-red-test.txt",
+      "status": "failed-before-fix",
+      "evidence": "regression failed before implementation: 8 passed, 1 failed; left Tenant(\"ten_kr\"), right Tenant(\"ten_alpha\")"
+    },
+    {
+      "command": "cargo test -q -p oya-policy-cedar-domain --all-features 2>&1 | tee /tmp/cs-policy-cedar-cbn-test.txt",
+      "status": "passed",
+      "evidence": "policy-cedar-domain tests passed: 9 passed, 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-policy-cedar-domain --check 2>&1 | tee /tmp/cs-policy-cedar-cbn-fmt.txt",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-policy-cedar-domain --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-policy-cedar-cbn-clippy.txt",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo test -q -p oya-platform-policy-cedar-api --all-features 2>&1 | tee /tmp/cs-policy-cedar-cbn-platform-api-test.txt",
+      "status": "blocked-ip-package-name-stale",
+      "evidence": "package name from IP did not resolve in current workspace: cannot specify features for packages outside of workspace"
+    },
+    {
+      "command": "cargo test -q -p oya-policy-cedar-api --all-features 2>&1 | tee /tmp/cs-policy-cedar-cbn-api-test.txt",
+      "status": "passed",
+      "evidence": "current policy-cedar API package tests passed: lib 0 passed, integration 7 passed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-policy-cedar-api --check 2>&1 | tee /tmp/cs-policy-cedar-cbn-api-fmt.txt",
+      "status": "passed",
+      "evidence": "current policy-cedar API rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-policy-cedar-api --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-policy-cedar-cbn-api-clippy.txt",
+      "status": "passed",
+      "evidence": "current policy-cedar API clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-policy-cedar-domain/src/lib.rs 2>&1 | tee /tmp/cs-policy-cedar-cbn-targeted-after.txt",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "rg -n '\\bKR\\b|ten_kr|tenant:ten_kr|kr-' crates/oya-policy-cedar-domain/src/lib.rs || true 2>&1 | tee /tmp/cs-policy-cedar-cbn-token-scan.txt",
+      "status": "passed",
+      "evidence": "no old jurisdiction fixture tokens matched in claimed source file"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-policy-cedar-cbn-planning.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json 2>&1 | tee /tmp/cs-policy-cedar-cbn-master.txt",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-policy-cedar-cbn-full-after.txt",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 196 files checked, 275 jurisdiction leaks outside claimed scope; first remaining file crates/oya-residency-domain/src/lib.rs"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git status --short | tee /tmp/cs-policy-cedar-cbn-status.txt",
+      "status": "passed-with-preexisting-dirty-tree",
+      "evidence": "worktree contains many pre-existing modified/deleted/untracked files from adjacent promoted FD-001 lanes; this ChangeSet only touched policy-cedar-domain and its evidence file"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-policy-cedar-domain-canonical-base-neutrality-1779235719.json > /tmp/cs-policy-cedar-cbn-evidence-json-tool.txt",
+      "status": "passed",
+      "evidence": "evidence JSON parsed successfully"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-policy-cedar-domain/src/lib.rs evidence/multispectrum/cs-policy-cedar-domain-canonical-base-neutrality-1779235719.json 2>&1 | tee /tmp/cs-policy-cedar-cbn-diff-check.txt",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Changed only fixture values and named constants; no new abstractions, dependencies, generated allowlists, or unrelated cleanup.",
+        "Kept the Cedar domain model and helper behavior intact while making the neutral invariant explicit in tests."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Canonical base policy substrate no longer encodes a launch-jurisdiction tenant/resource in base fixtures.",
+        "Tenant identity remains explicit in authorization queries and AuthzRequest for isolation and auditability."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": true,
+      "diagnostic_asserted": "neutral tenant assertion failed until the tenant scope/helper/query/request fixtures were changed from ten_kr to ten_alpha",
+      "findings": [
+        "Red/green proof prevents a scanner-only edit that weakens publish or authorization coverage."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 1,
+      "findings": [
+        "Shared TEST_TENANT_ID and TEST_TENANT_RESOURCE constants make the canonical-base neutral fixture easy to reuse without reintroducing jurisdiction-specific strings."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted domain and downstream API tests, rustfmt, clippy, targeted/full neutrality gates, planning closure, master-plan completion, token scan, status, and diff checks were run fresh."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Policy Cedar domain remains framework-free inner logic; policy-cedar API remains a separate adapter-facing package verified by current package tests."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Publish scope, supersession, authorization, and authz_engine serde tests still execute against neutral tenant fixtures."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence captures claim acceptance, before/after leak counts, red/green proof, stale IP package-name fallback, full-gate blocker state, and Oya VCS lifecycle anchors."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-policy-cedar-domain/src/lib.rs",
+    "evidence/multispectrum/cs-policy-cedar-domain-canonical-base-neutrality-1779235719.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 275 jurisdiction leaks outside this scope; next safe serialized slice starts at crates/oya-residency-domain/src/lib.rs.",
+    "IP-003 references stale package name oya-platform-policy-cedar-api; current workspace package oya-policy-cedar-api was verified instead.",
+    "The working tree contains extensive pre-existing uncommitted FD-001 changes outside this ChangeSet and was not cleaned or reverted."
+  ]
+}

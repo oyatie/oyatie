@@ -88,7 +88,7 @@ Every event that crosses an axis boundary, touches a regulated data class (per A
 ### Topic governance
 
 - Topic creation goes through a catalog PR (`registry/topics/<topic>.yaml`) — not via the broker admin API.
-- Topic schema changes go through `oya-foundry-fitness-event-schema` validator (forward + backward + transitive compat).
+- Topic schema changes go through `oya-governance-event-schema` validator (forward + backward + transitive compat).
 - Per-microservice-team owns its own topics; cross-microservice topics are co-owned per `RACI-OWNERSHIP.md`.
 
 ### Boundary
@@ -118,7 +118,7 @@ Every event that crosses an axis boundary, touches a regulated data class (per A
 
 - On-call: per-cell broker SLO + per-topic consumer-lag SLO; alerts on `EVT-OUTBOX-POLLER-LAG > 30s` and `EVT-CONSUMER-LAG > regulator-bound`.
 - Runbooks: `runbooks/outbox-poller-recovery.md`, `runbooks/topic-schema-rollback.md`, `runbooks/per-cell-broker-failover.md`.
-- CI: `oya-foundry-fitness-event-schema` (compat), `oya-foundry-fitness-eventing-cohesion` (every cross-microservice event must declare audit extensions).
+- CI: `oya-governance-event-schema` (compat), `oya-governance-eventing-cohesion` (every cross-microservice event must declare audit extensions).
 - DR: per-region broker mirror + cross-region MirrorMaker2 for residency-class `cross_region_replicated`.
 
 ---

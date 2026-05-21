@@ -381,7 +381,7 @@ mod tests {
         CloudEvent::new(
             "evt-id-1",
             "acme",
-            "cell-us-east-1",
+            "cell-alpha1",
             "eventing",
             "outbox_dispatched",
             1,
@@ -416,7 +416,7 @@ mod tests {
         let ev = CloudEvent::new(
             "evt-id-2",
             "acme",
-            "cell-us-east-1",
+            "cell-alpha1",
             "eventing",
             "outbox_dispatched",
             3,
@@ -539,7 +539,7 @@ mod tests {
     fn new_rejects_dotted_tenant_id() {
         let err = CloudEvent::new(
             "id",
-            "acme.eu",
+            "tenant.alpha",
             "cell",
             "eventing",
             "dispatched",
@@ -598,7 +598,7 @@ mod tests {
         let ev = CloudEvent::new(
             "id",
             "  ACME  ",
-            "  Cell-US-East-1  ",
+            "  Cell-Alpha1  ",
             "  Eventing  ",
             "  Outbox_Dispatched  ",
             1,
@@ -608,7 +608,7 @@ mod tests {
         .expect("whitespace-padded inputs are valid after trim");
         assert_eq!(ev.event_type(), "t.acme.eventing.outbox_dispatched.v1");
         assert_eq!(ev.oyatie_tenant_id(), "acme");
-        assert_eq!(ev.oyatie_cell_id(), "cell-us-east-1");
+        assert_eq!(ev.oyatie_cell_id(), "cell-alpha1");
     }
 
     /// PRRT_kwDOSbSl2s6CnZ-M (P1): constructor must reject non-JSON payload before

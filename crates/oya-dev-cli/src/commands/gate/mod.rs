@@ -1408,7 +1408,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::validate_planning_closure_gate(args) {
                     Ok(report) => {
                         println!(
-                            "planning-closure validation passed: {} verticals, {} surfaces, {} kr-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
+                            "planning-closure validation passed: {} verticals, {} surfaces, {} regional-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
                             report.vertical_count,
                             report.surface_count,
                             report.kr_pack_surface_count,
@@ -1706,9 +1706,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        // PR #143 Fix-D — EU AI Act Annex III refusal grounding.
-        (Some("validate"), Some("eu-ai-act-annex-iii-refusal")) => {
-            crate::adr_0145_gates::run_eu_ai_act_annex_iii_refusal(args.collect())
+        // PR #143 Fix-D — high-risk auto-decision refusal grounding.
+        (Some("validate"), Some("high-risk-auto-decision-refusal")) => {
+            crate::adr_0145_gates::run_high_risk_auto_decision_refusal(args.collect())
         }
         // PR #143 Fix-D — SLSA L3 evidence-grounded check.
         (Some("validate"), Some("slsa-l3-evidence-grounded")) => {

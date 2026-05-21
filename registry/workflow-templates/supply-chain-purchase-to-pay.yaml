@@ -1,0 +1,456 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.supply-chain-purchase-to-pay.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0059-workflow-ontology-ecosystem-adapter-layer
+  - ADR-0185-workflow-studio-client-stack
+title: Supply-chain purchase to pay
+description: >-
+  Orchestrates purchase-to-pay from purchase requisition through budget approval,
+  supplier validation, purchase order issue, goods receipt, invoice capture,
+  three-way match, exception handling, payment approval, and ERP posting.
+tags:
+  - supply-chain
+  - procurement
+  - accounts-payable
+  - three-way-match
+  - erp
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: silver
+    reason: "Procurement teams need approval, receipt, invoice, and payment orchestration."
+  - tier: gold
+    reason: "Adds three-way match exception routing and ERP payment evidence."
+ontology_refs:
+  object: PurchaseToPayCase
+  actions:
+    - PurchaseRequisitionSubmitted
+    - PurchaseOrderIssued
+    - GoodsReceived
+    - InvoiceCaptured
+    - ThreeWayMatchCompleted
+    - PaymentReleased
+tenant_context:
+  required_fields:
+    - tenant_id
+    - buying_org_id
+    - requester_principal_id
+    - procurement_owner_principal_id
+    - ap_owner_principal_id
+principal_context:
+  system_principal: workflow-engine.purchase-to-pay
+  human_approval_roles:
+    - requester
+    - budget_owner
+    - procurement_owner
+    - accounts_payable_owner
+data_classes:
+  - PURCHASE_REQUISITION
+  - SUPPLIER_PROFILE
+  - PURCHASE_ORDER
+  - RECEIVING_DOCUMENT
+  - SUPPLIER_INVOICE
+  - PAYMENT_INSTRUCTION
+residency_pack_overlays:
+  - pack: sox
+    behavior: "Require approval segregation between requester, receiver, and payment releaser."
+  - pack: vat
+    behavior: "Validate invoice tax fields before payment release."
+observability:
+  metrics:
+    - supply_chain_p2p_step_latency_seconds
+    - supply_chain_p2p_match_exception_total
+    - supply_chain_p2p_late_payment_total
+  traces:
+    - workflow.template.supply_chain_purchase_to_pay
+  logs:
+    - workflow_supply_chain_p2p_audit_projection
+cost_allocation:
+  unit: workflow_step_transition
+  dimensions:
+    - tenant_id
+    - buying_org_id
+    - supplier_id
+idempotency:
+  key_shape: "tenant_id:requisition_id:purchase_order_id:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: issue_purchase_order
+  on_cancel: close_requisition_and_notify_requester
+  audit_event_class: PurchaseToPayCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_idempotent_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_manufacturing_demo
+  buying_org_id:
+    type: string
+    default: org_plants_na
+  requisition_id:
+    type: string
+    default: pr_2026_8801
+  requester_principal_id:
+    type: string
+    default: principal_requester_001
+  procurement_owner_principal_id:
+    type: string
+    default: principal_procurement_001
+  ap_owner_principal_id:
+    type: string
+    default: principal_ap_001
+  supplier_id:
+    type: string
+    default: supplier_4450
+  requested_total:
+    type: number
+    default: 48500
+outputs:
+  p2p_case_id:
+    type: string
+  terminal_state:
+    type: string
+  purchase_order_id:
+    type: string
+  payment_id:
+    type: string
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: requisition_start
+    type: start
+    config:
+      trigger: procurement.requisition.submitted.v1
+      validates:
+        - tenant_id
+        - requisition_id
+        - supplier_id
+        - requested_total
+    cedar_permits_required:
+      - 'Action::"StartPurchaseToPayWorkflow"'
+    audit_event_class: PurchaseRequisitionWorkflowStarted
+    slo_target: "PT10M after requisition submission"
+    failure_modes:
+      - code: REQUISITION_INCOMPLETE
+        behavior: "Return requisition to requester with missing procurement fields."
+    on_success:
+      - edge_to_budget_approval
+    on_failure:
+      - edge_to_exception_end
+  - id: budget_approval
+    type: human_task
+    config:
+      assignee_role: budget_owner
+      task_contract: purchase-requisition-budget-approval.v1
+      approval_thresholds:
+        department_manager: 10000
+        finance_director: 50000
+      required_attestations:
+        - budget_available
+        - business_purpose_valid
+    cedar_permits_required:
+      - 'Action::"ApprovePurchaseRequisitionBudget"'
+    audit_event_class: PurchaseRequisitionBudgetApproved
+    slo_target: "P2D"
+    failure_modes:
+      - code: BUDGET_REJECTED
+        behavior: "Close requisition as rejected and notify requester."
+    on_success:
+      - edge_to_supplier_validation
+    on_failure:
+      - edge_to_exception_end
+  - id: supplier_validation
+    type: action
+    config:
+      service: supplier-master
+      contract: supplier-eligibility-check.v1
+      method: POST
+      url: "https://supplier-master.internal/v1/eligibility"
+      checks:
+        - active_supplier
+        - tax_profile_valid
+        - sanctions_clear
+        - insurance_current
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        buying_org_id: "${inputs.buying_org_id}"
+    cedar_permits_required:
+      - 'Action::"ValidatePurchaseSupplier"'
+    audit_event_class: PurchaseSupplierValidated
+    slo_target: "PT2H"
+    failure_modes:
+      - code: SUPPLIER_BLOCKED
+        behavior: "Stop PO creation and route to supplier risk owner."
+    on_success:
+      - edge_to_issue_purchase_order
+    on_failure:
+      - edge_to_exception_end
+  - id: issue_purchase_order
+    type: action
+    config:
+      service: procurement
+      contract: purchase-order.v1
+      method: POST
+      url: "https://procurement.internal/v1/purchase-orders"
+      body:
+        requisition_id: "${inputs.requisition_id}"
+        supplier_id: "${inputs.supplier_id}"
+        approved_total: "${inputs.requested_total}"
+        buyer: "${inputs.procurement_owner_principal_id}"
+    cedar_permits_required:
+      - 'Action::"IssuePurchaseOrder"'
+    audit_event_class: PurchaseOrderIssued
+    slo_target: "P1D after budget approval"
+    failure_modes:
+      - code: PO_WRITE_FAILED
+        behavior: "Retry idempotently and keep requisition approved."
+    on_success:
+      - edge_to_receive_goods
+    on_failure:
+      - edge_to_exception_end
+  - id: receive_goods
+    type: human_task
+    config:
+      assignee_role: receiving_clerk
+      task_contract: goods-receipt.v1
+      captures:
+        - received_quantity
+        - receipt_date
+        - packing_slip
+        - damage_notes
+    cedar_permits_required:
+      - 'Action::"RecordGoodsReceipt"'
+    audit_event_class: PurchaseGoodsReceived
+    slo_target: "P1D after delivery"
+    failure_modes:
+      - code: RECEIPT_QUANTITY_MISMATCH
+        behavior: "Flag receiving exception and hold invoice match."
+    on_success:
+      - edge_to_capture_invoice
+    on_failure:
+      - edge_to_match_exception
+  - id: capture_invoice
+    type: action
+    config:
+      service: accounts-payable
+      contract: supplier-invoice-capture.v1
+      method: POST
+      url: "https://ap.internal/v1/invoices"
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        purchase_order_id: "${nodes.issue_purchase_order.output.purchase_order_id}"
+        ingestion_channel: ap_mailbox
+    cedar_permits_required:
+      - 'Action::"CaptureSupplierInvoice"'
+    audit_event_class: SupplierInvoiceCaptured
+    slo_target: "PT4H after invoice receipt"
+    failure_modes:
+      - code: INVOICE_OCR_LOW_CONFIDENCE
+        behavior: "Route invoice to AP data-entry review."
+    on_success:
+      - edge_to_three_way_match
+    on_failure:
+      - edge_to_exception_end
+  - id: three_way_match
+    type: action
+    config:
+      service: accounts-payable
+      contract: three-way-match.v1
+      method: POST
+      url: "https://ap.internal/v1/three-way-match"
+      match_inputs:
+        purchase_order_id: "${nodes.issue_purchase_order.output.purchase_order_id}"
+        receipt_id: "${nodes.receive_goods.output.receipt_id}"
+        invoice_id: "${nodes.capture_invoice.output.invoice_id}"
+      tolerances:
+        amount_percent: 2
+        quantity_percent: 0
+    cedar_permits_required:
+      - 'Action::"RunThreeWayMatch"'
+    audit_event_class: PurchaseThreeWayMatchCompleted
+    slo_target: "PT2H"
+    failure_modes:
+      - code: THREE_WAY_MATCH_FAILED
+        behavior: "Create AP exception case with PO, receipt, and invoice diffs."
+    on_success:
+      - edge_to_approve_payment
+    on_failure:
+      - edge_to_match_exception
+  - id: match_exception
+    type: human_task
+    config:
+      assignee_role: accounts_payable_owner
+      task_contract: p2p-match-exception-resolution.v1
+      allowed_resolutions:
+        - supplier_credit_memo
+        - receipt_correction
+        - price_variance_approved
+        - invoice_rejected
+    cedar_permits_required:
+      - 'Action::"ResolvePurchaseToPayException"'
+    audit_event_class: PurchaseToPayExceptionResolved
+    slo_target: "P5D"
+    failure_modes:
+      - code: EXCEPTION_UNRESOLVED
+        behavior: "Place invoice on hold and notify procurement owner."
+    on_success:
+      - edge_to_approve_payment
+    on_failure:
+      - edge_to_exception_end
+  - id: approve_payment
+    type: human_task
+    config:
+      assignee_role: accounts_payable_owner
+      task_contract: supplier-payment-approval.v1
+      segregation_checks:
+        - approver_not_requester
+        - approver_not_receiver
+        - supplier_bank_change_not_recent
+    cedar_permits_required:
+      - 'Action::"ApproveSupplierPayment"'
+    audit_event_class: SupplierPaymentApproved
+    slo_target: "P2D before due date"
+    failure_modes:
+      - code: SEGREGATION_OF_DUTIES_FAILED
+        behavior: "Escalate to controller and block payment release."
+    on_success:
+      - edge_to_release_payment
+    on_failure:
+      - edge_to_exception_end
+  - id: release_payment
+    type: action
+    config:
+      service: treasury
+      contract: supplier-payment-release.v1
+      method: POST
+      url: "https://treasury.internal/v1/payments"
+      body:
+        supplier_id: "${inputs.supplier_id}"
+        invoice_id: "${nodes.capture_invoice.output.invoice_id}"
+        approval_id: "${nodes.approve_payment.output.approval_id}"
+    cedar_permits_required:
+      - 'Action::"ReleaseSupplierPayment"'
+    audit_event_class: SupplierPaymentReleased
+    slo_target: "P1D before payment due"
+    failure_modes:
+      - code: PAYMENT_RAIL_FAILED
+        behavior: "Retry alternate payment rail and keep invoice approved."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_exception_end
+  - id: close_workflow
+    type: end
+    config:
+      terminal_state: completed
+      emits:
+        - p2p_case_closed
+        - payment_evidence_posted
+        - erp_status_synced
+    cedar_permits_required:
+      - 'Action::"ClosePurchaseToPayWorkflow"'
+    audit_event_class: PurchaseToPayWorkflowClosed
+    slo_target: "PT2H after payment release"
+    failure_modes:
+      - code: ERP_POSTING_FAILED
+        behavior: "Keep case in close-pending state and alert AP operations."
+    on_success: []
+    on_failure:
+      - edge_to_exception_end
+  - id: exception_end
+    type: end
+    config:
+      terminal_state: exception
+      requires_manual_owner: true
+    cedar_permits_required:
+      - 'Action::"RecordPurchaseToPayException"'
+    audit_event_class: PurchaseToPayExceptionRecorded
+    slo_target: "PT30M after exception"
+    failure_modes:
+      - code: EXCEPTION_AUDIT_WRITE_FAILED
+        behavior: "Emit dead-letter event for procurement replay."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_budget_approval
+    from: requisition_start
+    to: budget_approval
+    name: requisition_valid
+  - id: edge_to_supplier_validation
+    from: budget_approval
+    to: supplier_validation
+    name: budget_approved
+  - id: edge_to_issue_purchase_order
+    from: supplier_validation
+    to: issue_purchase_order
+    name: supplier_clear
+  - id: edge_to_receive_goods
+    from: issue_purchase_order
+    to: receive_goods
+    name: purchase_order_issued
+  - id: edge_to_capture_invoice
+    from: receive_goods
+    to: capture_invoice
+    name: goods_received
+  - id: edge_to_three_way_match
+    from: capture_invoice
+    to: three_way_match
+    name: invoice_captured
+  - id: edge_to_approve_payment
+    from: three_way_match
+    to: approve_payment
+    name: matched
+  - id: edge_to_match_exception
+    from: three_way_match
+    to: match_exception
+    name: match_exception
+  - id: edge_to_approve_payment_after_exception
+    from: match_exception
+    to: approve_payment
+    name: exception_resolved
+  - id: edge_to_release_payment
+    from: approve_payment
+    to: release_payment
+    name: payment_approved
+  - id: edge_to_close_workflow
+    from: release_payment
+    to: close_workflow
+    name: payment_released
+  - id: edge_to_exception_end
+    from: "*"
+    to: exception_end
+    name: exception_recorded
+failure_modes:
+  - code: POLICY_DENIED
+    behavior: "Stop current node, emit Cedar denial audit, and leave source document state unchanged."
+  - code: DUPLICATE_INVOICE
+    behavior: "Return existing invoice match result and block duplicate payment."
+  - code: PAYMENT_CONTROL_FAILURE
+    behavior: "Hold payment instruction and escalate to AP controller."
+worked_example:
+  sample_input:
+    tenant_id: tenant_manufacturing_demo
+    buying_org_id: org_plants_na
+    requisition_id: pr_2026_8801
+    requester_principal_id: principal_requester_001
+    procurement_owner_principal_id: principal_procurement_001
+    ap_owner_principal_id: principal_ap_001
+    supplier_id: supplier_4450
+    requested_total: 48500
+  sample_expected_output:
+    p2p_case_id: p2p_2026_8801
+    terminal_state: completed
+    purchase_order_id: po_2026_9901
+    payment_id: pay_2026_44009
+    audit_chain_refs:
+      - audit://workflow/p2p/requisition/01
+      - audit://workflow/p2p/three-way-match/07
+      - audit://workflow/p2p/payment/10

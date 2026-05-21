@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Canonical Implementation Plan shape for every IP under `.omc/plans/milestones/M*/phases/P*/IP-NNN-<slug>.md`. Built to final shape from day one (Master Plan principle 3). Names real `file::Identifier` grit-claim symbols, enumerates agent prerequisites, acceptance test commands, done criteria, rollback, next-IP pointer, and icm-store payload.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - .omc/plans/MASTERPLAN.md
@@ -111,7 +111,7 @@ $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <capture
 ## Rollback procedure
 
 1. Identify rollback boundary: `<git revision range | feature flag | capability T-tier downshift>`.
-2. Execute: `<exact command>` (e.g., `grit revert <claim-id>`, capability tier `T3→T2` via Cedar policy update, schema migration `down` per `oya-foundry-fitness-schema-migration`).
+2. Execute: `<exact command>` (e.g., `grit revert <claim-id>`, capability tier `T3→T2` via Cedar policy update, schema migration `down` per `oya-governance-schema-migration`).
 3. Verify: `<command + expected output>` (SLOs return to within budget; audit chain emits `EVT-IP-ROLLED-BACK`).
 4. Postmortem trigger threshold: Sev-2 if rollback executed in production; Sev-3 if in staging.
 
@@ -133,7 +133,7 @@ icm store \
 
 ## Decision log (Linus good-taste row)
 
-One row stating: what special case was eliminated? what data reshape removed the branch? If "none — no candidates," state that explicitly. Empty = `oya-foundry-fitness-plan-hierarchy` fail.
+One row stating: what special case was eliminated? what data reshape removed the branch? If "none — no candidates," state that explicitly. Empty = `oya-governance-plan-hierarchy` fail.
 
 ## Cross-references
 

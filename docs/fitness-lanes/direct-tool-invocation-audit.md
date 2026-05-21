@@ -9,14 +9,14 @@ doc_status: published
 - purpose: Verify every direct git/gh invocation in agent prompts/sessions has a matching icm-record entry.
 - enforces: Directive 12 (MASTERPLAN) — every git/gh has icm record.
 - adr_citations: ADR-0053 (sanctioned primitives — direct git/gh invocations outside sanctioned primitives must carry icm-documented rationale per Directive 12)
-- kernel_crate: `oya-foundry-fitness-direct-tool-invocation-kernel` — `ToolInvocation { session_id, tool, command, icm_record_id }`, verdict `DirectToolInvocationFitnessReport { invocations_checked }`.
-- runner_path: `tools/oya-foundry-fitness-direct-tool-invocation-audit`
+- kernel_crate: `oya-governance-direct-tool-invocation-kernel` — `ToolInvocation { session_id, tool, command, icm_record_id }`, verdict `DirectToolInvocationFitnessReport { invocations_checked }`.
+- runner_path: `tools/oya-governance-direct-tool-invocation-audit`
 - inputs: session transcripts, icm record dump.
 - failure_modes:
   - session log shows `git push` with no icm row
   - icm row references missing session
   - duplicated icm row id for distinct commands
-- ci_invocation: `cargo run -p oya-foundry-fitness-direct-tool-invocation-audit`
+- ci_invocation: `cargo run -p oya-governance-direct-tool-invocation-audit`
 - runtime_budget: 800 ms
 - severity: HIGH
 - kernel_sketch:

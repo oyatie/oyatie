@@ -2445,6 +2445,25 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_residency_domain::{
+        PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
+    };
+
+    fn residency_class() -> ResidencyClass {
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: vec!["region-alpha1".to_string()],
+                allowed_replica_regions: vec!["region-beta1".to_string()],
+                forbidden_regions: vec!["region-gamma1".to_string()],
+                regulator_overlay: RegulatorOverlay::new(RegulatorOverlayCreate {
+                    regulator_refs: vec!["regulator/cloud-network".to_string()],
+                    evidence_ref: "evidence/residency/cloud-network".to_string(),
+                })
+                .expect("regulator overlay fixture is valid"),
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
+    }
 
     fn route_table_create() -> RouteTableCreate {
         RouteTableCreate {
@@ -2479,15 +2498,15 @@ mod tests {
 
     fn vpc_create() -> VpcCreate {
         VpcCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha1".to_string(),
             cidr_v4: "10.42.0.0/16".to_string(),
             cidr_v6: "2001:db8:42::/56".to_string(),
             flow_logs_enabled: true,
             route_table: route_table_create(),
             security_groups: vec![security_group_create()],
-            residency: ResidencyClass::StrictKr,
+            residency: residency_class(),
             state: VpcState::Creating,
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_000_000,
@@ -2496,11 +2515,11 @@ mod tests {
 
     fn subnet_create() -> SubnetCreate {
         SubnetCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:subnet:prod-a".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            vpc_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
-            region: "kr-seoul".to_string(),
-            az: "kr-seoul-a".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:subnet:prod-a".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            vpc_id: "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            region: "region-alpha1".to_string(),
+            az: "region-alpha1-a".to_string(),
             cidr_v4: "10.42.1.0/24".to_string(),
             cidr_v6: "2001:db8:42:1::/64".to_string(),
             public_ip_on_launch: false,
@@ -2512,23 +2531,23 @@ mod tests {
 
     fn lb_create() -> LoadBalancerCreate {
         LoadBalancerCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:lb-v7:frontdoor".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            vpc_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
-            region: "kr-seoul".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            vpc_id: "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            region: "region-alpha1".to_string(),
             kind: LbKind::L7Grpc,
             listeners: vec![ListenerCreate {
                 port: 443,
                 target_group_id: "tg_api".to_string(),
-                tls_certificate: Some("cert/kr-seoul/ten_kr/frontdoor".to_string()),
+                tls_certificate: Some("cert/region-alpha1/ten_alpha/frontdoor".to_string()),
             }],
             target_groups: vec![TargetGroupCreate {
                 id: "tg_api".to_string(),
-                subnet_ids: vec!["oya:cloud:kr-seoul:ten_kr:subnet:prod-a".to_string()],
+                subnet_ids: vec!["oya:cloud:region-alpha1:ten_alpha:subnet:prod-a".to_string()],
                 health_check_path: Some("/healthz".to_string()),
             }],
             mtls: Some(MtlsConfigCreate {
-                ca_bundle_ref: "cert/kr-seoul/ten_kr/mesh-ca".to_string(),
+                ca_bundle_ref: "cert/region-alpha1/ten_alpha/mesh-ca".to_string(),
                 client_policy: MtlsClientPolicy::RequireVerifiedClientCert,
             }),
             waf_policy: Some("waf_cloud_frontdoor".to_string()),
@@ -2540,13 +2559,13 @@ mod tests {
 
     fn public_dns_create() -> DnsZoneCreate {
         DnsZoneCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:dns-zone:example-com".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha1".to_string(),
             name: "example.com".to_string(),
             kind: DnsZoneKind::Public,
             vpc_id: None,
-            dnssec_key_ref: Some("dnssec/kr-seoul/ten_kr/example-com".to_string()),
+            dnssec_key_ref: Some("dnssec/region-alpha1/ten_alpha/example-com".to_string()),
             state: DnsZoneState::Creating,
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_000_030,
@@ -2568,15 +2587,15 @@ mod tests {
 
     fn cdn_create() -> CdnDistributionCreate {
         CdnDistributionCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:cdn-distribution:console".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:cdn-distribution:console".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha1".to_string(),
             hostnames: vec!["console.oyatie.example".to_string()],
             origins: vec![CdnOriginCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:lb-v7:frontdoor".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
                 kind: CdnOriginKind::LoadBalancer,
             }],
-            tls_certificate: "cert/kr-seoul/ten_kr/console-edge".to_string(),
+            tls_certificate: "cert/region-alpha1/ten_alpha/console-edge".to_string(),
             waf_policy: "waf_console_edge".to_string(),
             cache_mode: CdnCacheMode::ConsoleAssets,
             state: CdnState::Creating,
@@ -2589,7 +2608,7 @@ mod tests {
         InterconnectPartnerCreate {
             id: id.to_string(),
             name: id.trim_start_matches("ixp_").to_ascii_uppercase(),
-            region: "kr-seoul".to_string(),
+            region: "region-alpha1".to_string(),
             peering_locations: vec![location.to_string()],
             per_link_sla_basis_points: 9_999,
         }
@@ -2607,11 +2626,12 @@ mod tests {
 
     fn direct_interconnect_create() -> DirectInterconnectCreate {
         DirectInterconnectCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:direct-interconnect:kix-primary".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:direct-interconnect:kix-primary"
+                .to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha1".to_string(),
             partner_id: "ixp_kix".to_string(),
-            peering_location: "kr-seoul-kix".to_string(),
+            peering_location: "region-alpha1-ix-primary".to_string(),
             physical_port_id: "icp_kix_001".to_string(),
             vlan_tag: 101,
             bandwidth_mbps: 10_000,
@@ -2630,14 +2650,14 @@ mod tests {
 
     fn ddos_create() -> DdosProtectionCreate {
         DdosProtectionCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:ddos-protection:frontdoor".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:ddos-protection:frontdoor".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha1".to_string(),
             protected_resource_ids: vec![
-                "oya:cloud:kr-seoul:ten_kr:lb-v7:frontdoor".to_string(),
-                "oya:cloud:kr-seoul:ten_kr:cdn-distribution:console".to_string(),
+                "oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
+                "oya:cloud:region-alpha1:ten_alpha:cdn-distribution:console".to_string(),
             ],
-            scrubbing_regions: vec!["kr-seoul".to_string(), "jp-tokyo".to_string()],
+            scrubbing_regions: vec!["region-alpha1".to_string(), "region-beta1".to_string()],
             line_rate_scrubbing: true,
             always_on: true,
             mitigation_runbook_ref: "runbook/network/ddos/frontdoor".to_string(),
@@ -2650,12 +2670,12 @@ mod tests {
 
     fn mesh_create() -> ServiceMeshCellCreate {
         ServiceMeshCellCreate {
-            mesh_id: "mesh_prod_kr".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
-            cell_id: "cell-kr-seoul-a-001".to_string(),
-            vpc_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
-            namespace: "mesh-cell-kr-seoul-a-001".to_string(),
+            mesh_id: "mesh_prod_alpha".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha1".to_string(),
+            cell_id: "cell-region-alpha1-a-001".to_string(),
+            vpc_id: "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
+            namespace: "mesh-cell-region-alpha1-a-001".to_string(),
             mode: ServiceMeshMode::IstioAmbient,
             edge_gateway: MeshGatewayKind::Envoy,
             mtls_everywhere: true,
@@ -2750,13 +2770,13 @@ mod tests {
         let zone_error = DnsZone::new(
             None,
             DnsZoneCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:dns-zone:example-com".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                region: "kr-seoul".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                region: "region-alpha1".to_string(),
                 name: "example.com".to_string(),
                 kind: DnsZoneKind::Public,
                 vpc_id: None,
-                dnssec_key_ref: Some("dnssec/kr-seoul/ten_kr/example-com".to_string()),
+                dnssec_key_ref: Some("dnssec/region-alpha1/ten_alpha/example-com".to_string()),
                 state: DnsZoneState::Active,
                 data_class: DataClass::Public,
                 created_at_epoch_seconds: 1_700_000_030,
@@ -2772,7 +2792,7 @@ mod tests {
         let subnet = Subnet::new(&vpc, subnet_create()).expect("subnet is valid");
 
         assert_eq!(subnet.resource_id.value.kind_label().unwrap(), "subnet");
-        assert_eq!(subnet.az.value.value, "kr-seoul-a");
+        assert_eq!(subnet.az.value.value, "region-alpha1-a");
         assert_eq!(subnet.cidr_v4.value.value, "10.42.1.0/24");
 
         let outside = Subnet::new(
@@ -2788,7 +2808,7 @@ mod tests {
         let az_error = Subnet::new(
             &vpc,
             SubnetCreate {
-                az: "us-east-a".to_string(),
+                az: "region-gamma1-a".to_string(),
                 ..subnet_create()
             },
         )
@@ -2804,7 +2824,7 @@ mod tests {
 
         let overlap = catalog
             .add_subnet(SubnetCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:subnet:prod-a-overlap".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:subnet:prod-a-overlap".to_string(),
                 cidr_v4: "10.42.1.128/25".to_string(),
                 cidr_v6: "2001:db8:42:1::/65".to_string(),
                 ..subnet_create()
@@ -2814,8 +2834,8 @@ mod tests {
 
         let adjacent = catalog
             .add_subnet(SubnetCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:subnet:prod-b".to_string(),
-                az: "kr-seoul-b".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:subnet:prod-b".to_string(),
+                az: "region-alpha1-b".to_string(),
                 cidr_v4: "10.42.2.0/24".to_string(),
                 cidr_v6: "2001:db8:42:2::/64".to_string(),
                 ..subnet_create()
@@ -2881,7 +2901,9 @@ mod tests {
             .create_load_balancer(LoadBalancerCreate {
                 target_groups: vec![TargetGroupCreate {
                     id: "tg_api".to_string(),
-                    subnet_ids: vec!["oya:cloud:kr-seoul:ten_kr:subnet:missing".to_string()],
+                    subnet_ids: vec![
+                        "oya:cloud:region-alpha1:ten_alpha:subnet:missing".to_string(),
+                    ],
                     health_check_path: Some("/healthz".to_string()),
                 }],
                 ..lb_create()
@@ -2896,13 +2918,13 @@ mod tests {
         catalog.create_vpc(vpc_create()).expect("vpc create");
         let public = catalog
             .create_dns_zone(DnsZoneCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:dns-zone:example-com".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                region: "kr-seoul".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                region: "region-alpha1".to_string(),
                 name: "example.com".to_string(),
                 kind: DnsZoneKind::Public,
                 vpc_id: None,
-                dnssec_key_ref: Some("dnssec/kr-seoul/ten_kr/example-com".to_string()),
+                dnssec_key_ref: Some("dnssec/region-alpha1/ten_alpha/example-com".to_string()),
                 state: DnsZoneState::Creating,
                 data_class: DataClass::Public,
                 created_at_epoch_seconds: 1_700_000_030,
@@ -2912,12 +2934,13 @@ mod tests {
 
         let private = catalog
             .create_dns_zone(DnsZoneCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:dns-zone:internal-example".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                region: "kr-seoul".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:internal-example"
+                    .to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                region: "region-alpha1".to_string(),
                 name: "internal.example".to_string(),
                 kind: DnsZoneKind::Private,
-                vpc_id: Some("oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string()),
+                vpc_id: Some("oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string()),
                 dnssec_key_ref: None,
                 state: DnsZoneState::Creating,
                 data_class: DataClass::Public,
@@ -2932,9 +2955,9 @@ mod tests {
         let dnssec_error = DnsZone::new(
             None,
             DnsZoneCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:dns-zone:example-com".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                region: "kr-seoul".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                region: "region-alpha1".to_string(),
                 name: "example.com".to_string(),
                 kind: DnsZoneKind::Public,
                 vpc_id: None,
@@ -2950,9 +2973,9 @@ mod tests {
         let private_error = DnsZone::new(
             None,
             DnsZoneCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:dns-zone:internal".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                region: "kr-seoul".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:dns-zone:internal".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                region: "region-alpha1".to_string(),
                 name: "internal.example".to_string(),
                 kind: DnsZoneKind::Private,
                 vpc_id: None,
@@ -2973,7 +2996,7 @@ mod tests {
         let event = catalog
             .record_flow_anomaly(
                 "flowanom_001".to_string(),
-                "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
+                "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
                 FlowAnomalySeverity::High,
                 "egress spike to undeclared cidr".to_string(),
                 1_700_000_040,
@@ -2985,7 +3008,7 @@ mod tests {
         let duplicate = catalog
             .record_flow_anomaly(
                 "flowanom_001".to_string(),
-                "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
+                "oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
                 FlowAnomalySeverity::Critical,
                 "duplicate evidence id".to_string(),
                 1_700_000_041,
@@ -3020,7 +3043,8 @@ mod tests {
 
         let duplicate_hostname = catalog
             .create_cdn_distribution(CdnDistributionCreate {
-                resource_id: "oya:cloud:kr-seoul:ten_kr:cdn-distribution:dup-host".to_string(),
+                resource_id: "oya:cloud:region-alpha1:ten_alpha:cdn-distribution:dup-host"
+                    .to_string(),
                 hostnames: vec![
                     "console.oyatie.example".to_string(),
                     "Console.Oyatie.Example.".to_string(),
@@ -3054,7 +3078,7 @@ mod tests {
         let origin_error = catalog
             .create_cdn_distribution(CdnDistributionCreate {
                 origins: vec![CdnOriginCreate {
-                    resource_id: "oya:cloud:kr-seoul:ten_kr:lb-v7:missing".to_string(),
+                    resource_id: "oya:cloud:region-alpha1:ten_alpha:lb-v7:missing".to_string(),
                     kind: CdnOriginKind::LoadBalancer,
                 }],
                 ..cdn_create()
@@ -3075,7 +3099,10 @@ mod tests {
     fn creates_direct_interconnect_with_multi_ixp_bgp_and_sla() {
         let mut catalog = CloudNetworkCatalog::default();
         catalog
-            .add_interconnect_partner(interconnect_partner_create("ixp_kix", "kr-seoul-kix"))
+            .add_interconnect_partner(interconnect_partner_create(
+                "ixp_kix",
+                "region-alpha1-ix-primary",
+            ))
             .expect("primary interconnect partner");
         let diversity_error = catalog
             .create_direct_interconnect(direct_interconnect_create())
@@ -3086,7 +3113,10 @@ mod tests {
         );
 
         catalog
-            .add_interconnect_partner(interconnect_partner_create("ixp_kinx", "kr-seoul-kinx"))
+            .add_interconnect_partner(interconnect_partner_create(
+                "ixp_kinx",
+                "region-alpha1-ix-secondary",
+            ))
             .expect("second interconnect partner");
         let interconnect = catalog
             .create_direct_interconnect(direct_interconnect_create())
@@ -3104,10 +3134,16 @@ mod tests {
     fn rejects_direct_interconnect_without_redundant_bgp_vlan_or_sla() {
         let mut catalog = CloudNetworkCatalog::default();
         catalog
-            .add_interconnect_partner(interconnect_partner_create("ixp_kix", "kr-seoul-kix"))
+            .add_interconnect_partner(interconnect_partner_create(
+                "ixp_kix",
+                "region-alpha1-ix-primary",
+            ))
             .expect("primary interconnect partner");
         catalog
-            .add_interconnect_partner(interconnect_partner_create("ixp_kinx", "kr-seoul-kinx"))
+            .add_interconnect_partner(interconnect_partner_create(
+                "ixp_kinx",
+                "region-alpha1-ix-secondary",
+            ))
             .expect("second interconnect partner");
 
         let bgp_error = catalog
@@ -3168,7 +3204,7 @@ mod tests {
         let resource_error = catalog
             .create_ddos_protection(DdosProtectionCreate {
                 protected_resource_ids: vec![
-                    "oya:cloud:kr-seoul:ten_kr:cdn-distribution:missing".to_string(),
+                    "oya:cloud:region-alpha1:ten_alpha:cdn-distribution:missing".to_string(),
                 ],
                 ..ddos_create()
             })
@@ -3185,7 +3221,7 @@ mod tests {
 
         let scrubbing_error = catalog
             .create_ddos_protection(DdosProtectionCreate {
-                scrubbing_regions: vec!["jp-tokyo".to_string()],
+                scrubbing_regions: vec!["region-beta1".to_string()],
                 ..ddos_create()
             })
             .expect_err("home region must be in scrubbing set");
@@ -3244,8 +3280,8 @@ mod tests {
 
         let cell_error = catalog
             .create_service_mesh_cell(ServiceMeshCellCreate {
-                cell_id: "cell-us-east-a-001".to_string(),
-                namespace: "mesh-cell-us-east-a-001".to_string(),
+                cell_id: "cell-region-gamma1-a-001".to_string(),
+                namespace: "mesh-cell-region-gamma1-a-001".to_string(),
                 ..mesh_create()
             })
             .expect_err("mesh cell must belong to region");

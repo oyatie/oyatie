@@ -12,9 +12,9 @@ purpose: |
   (autonomous origin/dev → staging fast-forward), prod-promoter (5-gate staging → prod).
   Plus staging-fixer (canary/SLO-regression worker) and the reviewer-agent dispatch table.
 planned_enforcement_ref:
-  - oya-foundry-fitness-no-direct-origin-dev-commit
-  - oya-foundry-fitness-no-direct-staging-commit
-  - oya-foundry-fitness-no-direct-prod-commit
+  - oya-governance-no-direct-origin-dev-commit
+  - oya-governance-no-direct-staging-commit
+  - oya-governance-no-direct-prod-commit
 related_adrs: [ADR-0022, ADR-0039, ADR-0041]
 doc_status: published
 ---
@@ -85,7 +85,7 @@ When all three gates green simultaneously, invokes `gh pr merge --squash --auto`
 
 **Trigger.** Three streams: (a) `slo-burn-rate-fast` alert; (b) `EVT-CANARY-REGRESSION` audit event from progressive-delivery rails; (c) `EVT-PROD-PROMOTION-BLOCKED` (staging → prod gate red, including unresolved review comments).
 
-**Action.** Claims symbols associated with the regression (per failing canary metric or per unresolved-comment thread) via `grit claim --agent --intent`. Diagnoses root cause. Authors a fix in the agent worktree. `grit done` to local dev. Opens a PR through the **standard local-dev → origin/dev → staging path**. **Cannot bypass.** SLA: **4 hours** from regression event to staging-stable; tracked by `oya-foundry-fitness-canary-regression-sla` (HIGH).
+**Action.** Claims symbols associated with the regression (per failing canary metric or per unresolved-comment thread) via `grit claim --agent --intent`. Diagnoses root cause. Authors a fix in the agent worktree. `grit done` to local dev. Opens a PR through the **standard local-dev → origin/dev → staging path**. **Cannot bypass.** SLA: **4 hours** from regression event to staging-stable; tracked by `oya-governance-canary-regression-sla` (HIGH).
 
 **Authority.** May claim symbols, modify file contents, add tests, revert specific origin/dev commits via the standard PR path. **Cannot** commit directly to `staging` or `prod` or `origin/dev`. **Cannot** change architectural shape — requires ADR + human review per [Directive 2](../../plans/MASTERPLAN.md).
 
@@ -144,7 +144,7 @@ Reviewer agents render verdicts on PRs at the **local-dev → origin/dev** bound
 | Capability publish (`crates/oya-foundry-capability-*`) | `capability-reviewer` | Approve / Request-Changes (BLOCKER class) | **yes** |
 | Performance change (benchmarks / hot path) | `perf-reviewer` | Approve / Request-Changes | **yes** (uses post-canary perf data) |
 
-Verdict recorded via `icm store -t pr-review-verdicts` per Directive 12; without the record, `oya-foundry-fitness-pr-review-verdict-present` blocks promotion.
+Verdict recorded via `icm store -t pr-review-verdicts` per Directive 12; without the record, `oya-governance-pr-review-verdict-present` blocks promotion.
 
 ## 7. Anti-scope
 

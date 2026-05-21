@@ -28,10 +28,10 @@ pub(crate) fn validate_cross_tenant_access_fuzz_gate(
 
     let mut cases = 0usize;
     let tenant_a_cell = foundation
-        .bind_cell("ten_alpha", "kr-seoul-a", "cell-alpha")
+        .bind_cell("ten_alpha", "region-home-a", "cell-alpha")
         .map_err(|error| format!("tenant alpha cell bind failed: {error:?}"))?;
     let tenant_b_cell = foundation
-        .bind_cell("ten_beta", "kr-seoul-b", "cell-beta")
+        .bind_cell("ten_beta", "region-home-b", "cell-beta")
         .map_err(|error| format!("tenant beta cell bind failed: {error:?}"))?;
     if tenant_a_cell.cell_id.value == tenant_b_cell.cell_id.value {
         return Err("tenant fixture cells unexpectedly collapsed to one cell".to_string());
@@ -40,7 +40,7 @@ pub(crate) fn validate_cross_tenant_access_fuzz_gate(
 
     expect_foundation_error(
         "cell binding is immutable per tenant",
-        foundation.bind_cell("ten_alpha", "kr-seoul-c", "cell-tamper"),
+        foundation.bind_cell("ten_alpha", "region-home-c", "cell-tamper"),
         FoundationError::CellBindingImmutable,
     )?;
     cases += 1;
@@ -145,9 +145,9 @@ fn setup_cross_tenant_fixture(foundation: &mut Foundation) -> Result<(), String>
             .onboard_tenant(TenantRegistration {
                 tenant_id: tenant_id.into(),
                 legal_name: format!("{tenant_id} tenant"),
-                home_region: "kr-seoul".into(),
-                residency_class: "strict_kr".into(),
-                regulatory_packs: vec!["oya-pack-kr".into()],
+                home_region: "region-home".into(),
+                residency_class: "strict_home_region".into(),
+                regulatory_packs: vec!["oya-pack-alpha".into()],
                 autonomy_ceiling: AutonomyTier::T2Advisory,
             })
             .map_err(|error| format!("tenant setup failed {tenant_id}: {error:?}"))?;
@@ -240,5 +240,5 @@ fn authorization_server_for(tenant_id: &str) -> String {
 }
 
 fn mcp_audience_for(tenant_id: &str) -> String {
-    format!("https://mcp.foundry.kr-seoul.oyatie.test/tenants/{tenant_id}")
+    format!("https://mcp.foundry.region-home.oyatie.test/tenants/{tenant_id}")
 }

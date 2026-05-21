@@ -132,7 +132,7 @@ pub struct CapacitySkuCreate {
     pub cell_id: String,               // data_class: PUBLIC
     pub flavor: InstanceFlavor,        // data_class: PUBLIC
     pub unit: CapacityUnits,           // data_class: PUBLIC
-    pub hourly_price: Money,           // data_class: FINANCIAL_KR_신용정보
+    pub hourly_price: Money,           // data_class: FINANCIAL
     pub data_class: DataClass,         // data_class: PUBLIC
     pub created_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
@@ -144,7 +144,7 @@ pub struct CapacitySku {
     pub cell_id: Classified<CellId>,               // data_class: PUBLIC
     pub flavor: Classified<InstanceFlavor>,        // data_class: PUBLIC
     pub unit: Classified<CapacityUnits>,           // data_class: PUBLIC
-    pub hourly_price: Classified<Money>,           // data_class: FINANCIAL_KR_신용정보
+    pub hourly_price: Classified<Money>,           // data_class: FINANCIAL
     pub data_class: Classified<PrivacyDataClass>,  // data_class: PUBLIC
     pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>,           // data_class: PUBLIC
@@ -159,7 +159,7 @@ pub struct CapacityReservationCreate {
     pub term_months: CapacityTermMonths, // data_class: PUBLIC
     pub start_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
     pub end_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
-    pub data_class: DataClass,           // data_class: FINANCIAL_KR_신용정보
+    pub data_class: DataClass,           // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -174,7 +174,7 @@ pub struct CapacityReservation {
     pub state: Classified<CapacityReservationState>, // data_class: INTERNAL_ONLY
     pub start_epoch_seconds: Classified<u64>,  // data_class: INTERNAL_ONLY
     pub end_epoch_seconds: Classified<u64>,    // data_class: INTERNAL_ONLY
-    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL_KR_신용정보
+    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
     pub schema_version: Classified<u32>,       // data_class: PUBLIC
 }
 
@@ -184,11 +184,11 @@ pub struct CommittedUseCreate {
     pub tenant_id: String,               // data_class: INTERNAL_ONLY
     pub region: String,                  // data_class: PUBLIC
     pub term_months: CapacityTermMonths, // data_class: PUBLIC
-    pub spend_commitment: Money,         // data_class: FINANCIAL_KR_신용정보
-    pub discount_bps: u16,               // data_class: FINANCIAL_KR_신용정보
+    pub spend_commitment: Money,         // data_class: FINANCIAL
+    pub discount_bps: u16,               // data_class: FINANCIAL
     pub start_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
     pub end_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
-    pub data_class: DataClass,           // data_class: FINANCIAL_KR_신용정보
+    pub data_class: DataClass,           // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -197,12 +197,12 @@ pub struct CommittedUseContract {
     pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
     pub region: Classified<RegionCode>, // data_class: PUBLIC
     pub term_months: Classified<CapacityTermMonths>, // data_class: PUBLIC
-    pub spend_commitment: Classified<Money>, // data_class: FINANCIAL_KR_신용정보
-    pub discount_bps: Classified<u16>,  // data_class: FINANCIAL_KR_신용정보
+    pub spend_commitment: Classified<Money>, // data_class: FINANCIAL
+    pub discount_bps: Classified<u16>,  // data_class: FINANCIAL
     pub state: Classified<CommitmentState>, // data_class: INTERNAL_ONLY
     pub start_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub end_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
-    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL_KR_신용정보
+    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
     pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
@@ -211,7 +211,7 @@ pub struct SpotPoolCreate {
     pub id: String,                       // data_class: INTERNAL_ONLY
     pub sku_id: String,                   // data_class: PUBLIC
     pub available_units: CapacityUnits,   // data_class: PUBLIC
-    pub current_price: Money,             // data_class: FINANCIAL_KR_신용정보
+    pub current_price: Money,             // data_class: FINANCIAL
     pub interruption_notice_seconds: u32, // data_class: PUBLIC
     pub data_class: DataClass,            // data_class: PUBLIC
 }
@@ -223,7 +223,7 @@ pub struct SpotPool {
     pub region: Classified<RegionCode>,    // data_class: PUBLIC
     pub cell_id: Classified<CellId>,       // data_class: PUBLIC
     pub available_units: Classified<CapacityUnits>, // data_class: PUBLIC
-    pub current_price: Classified<Money>,  // data_class: FINANCIAL_KR_신용정보
+    pub current_price: Classified<Money>,  // data_class: FINANCIAL
     pub interruption_notice_seconds: Classified<u32>, // data_class: PUBLIC
     pub state: Classified<SpotPoolState>,  // data_class: PUBLIC
     pub data_class: Classified<PrivacyDataClass>, // data_class: PUBLIC
@@ -236,9 +236,9 @@ pub struct SpotAssignmentCreate {
     pub tenant_id: String,               // data_class: INTERNAL_ONLY
     pub spot_pool_id: String,            // data_class: INTERNAL_ONLY
     pub units: CapacityUnits,            // data_class: PUBLIC
-    pub max_price: Money,                // data_class: FINANCIAL_KR_신용정보
+    pub max_price: Money,                // data_class: FINANCIAL
     pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
-    pub data_class: DataClass,           // data_class: FINANCIAL_KR_신용정보
+    pub data_class: DataClass,           // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -250,10 +250,10 @@ pub struct SpotAssignment {
     pub region: Classified<RegionCode>,   // data_class: PUBLIC
     pub cell_id: Classified<CellId>,      // data_class: PUBLIC
     pub units: Classified<CapacityUnits>, // data_class: PUBLIC
-    pub max_price: Classified<Money>,     // data_class: FINANCIAL_KR_신용정보
+    pub max_price: Classified<Money>,     // data_class: FINANCIAL
     pub state: Classified<SpotAssignmentState>, // data_class: INTERNAL_ONLY
     pub requested_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
-    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL_KR_신용정보
+    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
     pub schema_version: Classified<u32>,  // data_class: PUBLIC
 }
 
@@ -987,7 +987,7 @@ fn validate_financial_window(
 }
 
 fn validate_money(value: &Money) -> Result<(), CloudCapacityError> {
-    if value.minor_units == 0 || !matches!(value.currency.value.as_str(), "KRW" | "USD") {
+    if value.minor_units == 0 || !matches!(value.currency.value.as_str(), "OYC" | "USD") {
         Err(CloudCapacityError::InvalidMoney)
     } else {
         Ok(())
@@ -1063,10 +1063,7 @@ fn financial_class(
 ) -> Result<Classified<PrivacyDataClass>, CloudCapacityError> {
     let class =
         PrivacyDataClass::new(data_class).map_err(|_| CloudCapacityError::InvalidDataClass)?;
-    if matches!(
-        class.data_class(),
-        DataClass::Financial | DataClass::FinancialKrCredit
-    ) {
+    if matches!(class.data_class(), DataClass::Financial) {
         Ok(financial(class))
     } else {
         Err(CloudCapacityError::InvalidDataClass)
@@ -1084,7 +1081,7 @@ fn internal<T>(value: T) -> Classified<T> {
     Classified::new(value, DataClass::InternalOnly)
 }
 fn financial<T>(value: T) -> Classified<T> {
-    Classified::new(value, DataClass::FinancialKrCredit)
+    Classified::new(value, DataClass::Financial)
 }
 
 #[cfg(test)]
@@ -1103,12 +1100,12 @@ mod tests {
 
     fn sku_create() -> CapacitySkuCreate {
         CapacitySkuCreate {
-            id: "csku_gp_kr_seoul_a".to_string(),
-            region: "kr-seoul".to_string(),
-            cell_id: "cell-kr-seoul-a-001".to_string(),
+            id: "csku_gp_region_alpha_a".to_string(),
+            region: "region-alpha".to_string(),
+            cell_id: "cell-region-alpha-a-001".to_string(),
             flavor: InstanceFlavor::GeneralPurpose,
             unit: units(4, 16),
-            hourly_price: Money::new("KRW", 120_000).expect("money"),
+            hourly_price: Money::new("OYC", 120_000).expect("money"),
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_000_000,
         }
@@ -1125,37 +1122,37 @@ mod tests {
 
     fn reservation_create() -> CapacityReservationCreate {
         CapacityReservationCreate {
-            id: "cres_ten_kr_gp".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            sku_id: "csku_gp_kr_seoul_a".to_string(),
+            id: "cres_ten_alpha_gp".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            sku_id: "csku_gp_region_alpha_a".to_string(),
             units: units(100, 400),
             term_months: CapacityTermMonths::Twelve,
             start_epoch_seconds: 1_700_000_100,
             end_epoch_seconds: 1_732_000_100,
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
         }
     }
 
     fn commitment_create() -> CommittedUseCreate {
         CommittedUseCreate {
-            id: "cuc_ten_kr_12m".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
+            id: "cuc_ten_alpha_12m".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha".to_string(),
             term_months: CapacityTermMonths::Twelve,
-            spend_commitment: Money::new("KRW", 100_000_000).expect("money"),
+            spend_commitment: Money::new("OYC", 100_000_000).expect("money"),
             discount_bps: 2_000,
             start_epoch_seconds: 1_700_000_100,
             end_epoch_seconds: 1_732_000_100,
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
         }
     }
 
     fn spot_pool_create() -> SpotPoolCreate {
         SpotPoolCreate {
-            id: "spot_gp_kr_seoul_a".to_string(),
-            sku_id: "csku_gp_kr_seoul_a".to_string(),
+            id: "spot_gp_region_alpha_a".to_string(),
+            sku_id: "csku_gp_region_alpha_a".to_string(),
             available_units: units(200, 800),
-            current_price: Money::new("KRW", 30_000).expect("money"),
+            current_price: Money::new("OYC", 30_000).expect("money"),
             interruption_notice_seconds: 120,
             data_class: DataClass::Public,
         }
@@ -1171,8 +1168,8 @@ mod tests {
     fn registers_capacity_sku_with_region_cell_and_public_shape() {
         let mut catalog = CloudCapacityCatalog::default();
         let sku = catalog.register_sku(sku_create()).expect("sku is valid");
-        assert_eq!(sku.id.value.value, "csku_gp_kr_seoul_a");
-        assert_eq!(sku.cell_id.value.value, "cell-kr-seoul-a-001");
+        assert_eq!(sku.id.value.value, "csku_gp_region_alpha_a");
+        assert_eq!(sku.cell_id.value.value, "cell-region-alpha-a-001");
         assert_eq!(sku.data_class.value.data_class(), DataClass::Public);
         assert_eq!(catalog.skus().count(), 1);
     }
@@ -1226,7 +1223,7 @@ mod tests {
             .purchase_commitment(commitment_create())
             .expect("commitment");
         assert_eq!(commitment.state.value, CommitmentState::Active);
-        assert_eq!(commitment.spend_commitment.value.currency.value, "KRW");
+        assert_eq!(commitment.spend_commitment.value.currency.value, "OYC");
 
         let term_error = catalog
             .purchase_commitment(CommittedUseCreate {
@@ -1256,13 +1253,13 @@ mod tests {
         assert_eq!(pool.state.value, SpotPoolState::Open);
         let assignment = catalog
             .assign_spot_capacity(SpotAssignmentCreate {
-                id: "spota_ten_kr_gp".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                spot_pool_id: "spot_gp_kr_seoul_a".to_string(),
+                id: "spota_ten_alpha_gp".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
                 units: units(20, 80),
-                max_price: Money::new("KRW", 35_000).expect("money"),
+                max_price: Money::new("OYC", 35_000).expect("money"),
                 requested_at_epoch_seconds: 1_700_000_300,
-                data_class: DataClass::FinancialKrCredit,
+                data_class: DataClass::Financial,
             })
             .expect("spot assignment");
         assert_eq!(assignment.state.value, SpotAssignmentState::Active);
@@ -1288,12 +1285,12 @@ mod tests {
         let price_error = catalog
             .assign_spot_capacity(SpotAssignmentCreate {
                 id: "spota_low_price".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                spot_pool_id: "spot_gp_kr_seoul_a".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
                 units: units(20, 80),
-                max_price: Money::new("KRW", 20_000).expect("money"),
+                max_price: Money::new("OYC", 20_000).expect("money"),
                 requested_at_epoch_seconds: 1_700_000_301,
-                data_class: DataClass::FinancialKrCredit,
+                data_class: DataClass::Financial,
             })
             .expect_err("spot max price must cover current price");
         assert_eq!(price_error, CloudCapacityError::InvalidSpotPrice);
@@ -1301,12 +1298,12 @@ mod tests {
         let capacity_error = catalog
             .assign_spot_capacity(SpotAssignmentCreate {
                 id: "spota_too_large".to_string(),
-                tenant_id: "ten_kr".to_string(),
-                spot_pool_id: "spot_gp_kr_seoul_a".to_string(),
+                tenant_id: "ten_alpha".to_string(),
+                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
                 units: units(300, 1_200),
-                max_price: Money::new("KRW", 35_000).expect("money"),
+                max_price: Money::new("OYC", 35_000).expect("money"),
                 requested_at_epoch_seconds: 1_700_000_302,
-                data_class: DataClass::FinancialKrCredit,
+                data_class: DataClass::Financial,
             })
             .expect_err("spot assignment cannot exceed debited pool capacity");
         assert_eq!(capacity_error, CloudCapacityError::InvalidSpotCapacity);
@@ -1317,13 +1314,13 @@ mod tests {
         let mut catalog = CloudCapacityCatalog::default();
         let plan = catalog
             .propose_rebalance(RebalancePlanCreate {
-                id: "crb_kr_small_move".to_string(),
-                region: "kr-seoul".to_string(),
-                source_cell_id: "cell-kr-seoul-a-001".to_string(),
-                target_cell_id: "cell-kr-seoul-b-001".to_string(),
+                id: "crb_alpha_small_move".to_string(),
+                region: "region-alpha".to_string(),
+                source_cell_id: "cell-region-alpha-a-001".to_string(),
+                target_cell_id: "cell-region-alpha-b-001".to_string(),
                 moved_units: units(50, 200),
                 source_total: units(1_000, 4_000),
-                approval_ref: Some("approval/cloud-capacity/kr-small-move".to_string()),
+                approval_ref: Some("approval/cloud-capacity/alpha-small-move".to_string()),
                 created_at_epoch_seconds: 1_700_000_500,
                 data_class: DataClass::InternalOnly,
             })
@@ -1333,14 +1330,14 @@ mod tests {
 
         let move_error = catalog
             .propose_rebalance(RebalancePlanCreate {
-                id: "crb_kr_big_move".to_string(),
+                id: "crb_alpha_big_move".to_string(),
                 moved_units: units(200, 800),
                 approval_ref: None,
                 ..RebalancePlanCreate {
                     id: "crb_base".to_string(),
-                    region: "kr-seoul".to_string(),
-                    source_cell_id: "cell-kr-seoul-a-001".to_string(),
-                    target_cell_id: "cell-kr-seoul-b-001".to_string(),
+                    region: "region-alpha".to_string(),
+                    source_cell_id: "cell-region-alpha-a-001".to_string(),
+                    target_cell_id: "cell-region-alpha-b-001".to_string(),
                     moved_units: units(50, 200),
                     source_total: units(1_000, 4_000),
                     approval_ref: None,
@@ -1353,10 +1350,10 @@ mod tests {
 
         let memory_move_error = catalog
             .propose_rebalance(RebalancePlanCreate {
-                id: "crb_kr_memory_big_move".to_string(),
-                region: "kr-seoul".to_string(),
-                source_cell_id: "cell-kr-seoul-a-001".to_string(),
-                target_cell_id: "cell-kr-seoul-b-001".to_string(),
+                id: "crb_alpha_memory_big_move".to_string(),
+                region: "region-alpha".to_string(),
+                source_cell_id: "cell-region-alpha-a-001".to_string(),
+                target_cell_id: "cell-region-alpha-b-001".to_string(),
                 moved_units: units(10, 800),
                 source_total: units(1_000, 4_000),
                 approval_ref: None,
@@ -1375,7 +1372,7 @@ mod tests {
         let first = catalog
             .record_capacity_meter(CapacityMeterCreate {
                 meter_event_id: "mtr_capacity_001".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 units: units.clone(),
                 recorded_at_epoch_seconds: 1_700_000_600,
                 idempotency_key: "idem_capacity_001".to_string(),
@@ -1385,7 +1382,7 @@ mod tests {
         let replay = catalog
             .record_capacity_meter(CapacityMeterCreate {
                 meter_event_id: "mtr_capacity_ignored".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 units,
                 recorded_at_epoch_seconds: 1_700_000_601,
                 idempotency_key: "idem_capacity_001".to_string(),

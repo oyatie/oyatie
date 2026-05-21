@@ -14,9 +14,9 @@ purpose: |
   Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and
   every `[package.metadata.oya]` block in the oyatie workspace. Resolves the
   forward-reference left by `docs/standards/code-style-rust.md` §5 (naming
-  conventions) and binds the `oya-foundry-fitness-naming-convention` lane.
+  conventions) and binds the `oya-governance-naming-convention` lane.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-naming-convention
+planned_enforcement_ref: oya-governance-naming-convention
 companion_docs:
   - docs/standards/code-style-rust.md
   - docs/standards/doc-style.md
@@ -42,7 +42,7 @@ This standard operates within the [`decision-principles.json`](../../specs/decis
 frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
 downstream of [`docs/standards/code-style-rust.md`](code-style-rust.md) §5.
 Every `oya-*` crate path under `crates/` MUST conform to the grammar in §2.
-The lane [`oya-foundry-fitness-naming-convention`](../../.omc/fitness-lanes/naming-convention.md)
+The lane [`oya-governance-naming-convention`](../../.omc/fitness-lanes/naming-convention.md)
 mechanically enforces it. Severity = **BLOCKER**.
 
 This standard ports the convergent hyperscaler practice for crate naming:

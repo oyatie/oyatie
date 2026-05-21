@@ -320,7 +320,7 @@ Not applicable. This ADR governs repo structure; it does not produce or consume 
 ### Negative
 
 - One-time migration cost is substantial: every existing µservice/product requires a migration IP. Estimated ~15 migration IPs (one per current µservice + ~50 for the `oya-check-*` family if not bundled). Each IP is small mechanically (move files, update workspace `members`, update cross-references) but the sweep touches the whole repo.
-- Every cross-reference inside the repo (Markdown links, Rust `path =` deps, CI workflow paths, doc-catalog entries) updates exactly once. The `oya-foundry-fitness-cross-ref-validity` lane catches broken links during the sweep; until it does, agents must run `oya gate validate cross-ref-validity` locally before pushing migration IPs.
+- Every cross-reference inside the repo (Markdown links, Rust `path =` deps, CI workflow paths, doc-catalog entries) updates exactly once. The `oya-governance-cross-ref-validity` lane catches broken links during the sweep; until it does, agents must run `oya gate validate cross-ref-validity` locally before pushing migration IPs.
 - Git history for moved files requires `git mv` (or per-file `git log --follow`) to remain navigable. Per-µservice migration IPs use `git mv` exclusively for files, never `rm`+`add`.
 - Some external tooling (IDE workspace plugins, doc-publishing pipelines, dashboards) may have hardcoded paths to `docs/prds/`, `crates/`, etc. These break and must be updated. The migration plan owns this fan-out.
 - Three open questions remain (see §Open Questions) — none blocking; all resolved during the migration sweep.
@@ -333,7 +333,7 @@ Not applicable. This ADR governs repo structure; it does not produce or consume 
   - Crate creation outside `microservices/<ms>/crates/`.
   - Adding a row to a central aggregation index by hand (must be generated).
 - New CI lane: **`oya-governance-aggregation-index-generation`**. Regenerates `docs/prds/INDEX.md`, `registry/catalog/<crate>.yaml` aggregation, and equivalents from per-µservice sources, then asserts the working tree matches.
-- Lane: **`oya-foundry-fitness-cross-ref-validity`** (already exists per ADR-0117 / repo-hygiene) extends to validate the new path shape.
+- Lane: **`oya-governance-cross-ref-validity`** (already exists per ADR-0117 / repo-hygiene) extends to validate the new path shape.
 - Workspace `Cargo.toml` `[workspace.members]` list rewrites to use `microservices/<ms>/crates/<crate>` paths. The rewrite is atomic per migration IP.
 - Templates under `docs/templates/` update to reference per-µservice paths (`microservices/<ms>/IP-NNN-*.md` etc.), retiring the stale `.omc/plans/milestones/...` pointers in `impl-plan-template.md` and `phase-spec-template.md`. The retirement is captured in this ADR's `related:` field and executed by a single template-rewrite IP in M01.
 

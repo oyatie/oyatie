@@ -11,6 +11,9 @@ pub use oya_foundry_account_domain::{
     check_silent_switch,
 };
 
+const DEFAULT_PRIVACY_BOUNDARY: &str = "tenant-default";
+const DEFAULT_RESIDENCY_REGION: &str = "tenant-home-region";
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RouteConstraints {
     pub budget_micros_ceiling: u64,          // data_class: INTERNAL_ONLY
@@ -25,8 +28,8 @@ impl RouteConstraints {
     pub fn new(model_hint: String) -> Self {
         Self {
             budget_micros_ceiling: u64::MAX,
-            required_privacy_boundary: String::from("tenant-default"),
-            required_residency_region: String::from("KR"),
+            required_privacy_boundary: String::from(DEFAULT_PRIVACY_BOUNDARY),
+            required_residency_region: String::from(DEFAULT_RESIDENCY_REGION),
             failover_order: vec![
                 ProviderFamily::Claude,
                 ProviderFamily::OpenAiOrCodex,
@@ -203,10 +206,10 @@ mod tests {
     }
 
     #[test]
-    fn explanation_reason_mentions_residency_and_privacy() {
+    fn explanation_reason_mentions_residency_and_privacy_defaults() {
         let accs = vec![active("a1", ProviderFamily::Claude)];
         let exp = RoutePolicy::explain_route(&accs, &constraints()).unwrap();
-        assert!(exp.reason.contains("residency=KR"));
+        assert!(exp.reason.contains("residency=tenant-home-region"));
         assert!(exp.reason.contains("privacy=tenant-default"));
     }
 

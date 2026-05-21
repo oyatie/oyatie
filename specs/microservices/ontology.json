@@ -109,19 +109,19 @@
     ]
   },
   "metrics": [
-    {"name": "type_lookup_p99_ms", "targets": {"preview": 50, "stable": 10, "GA": 5}, "verification_ref": "cargo bench -p oya-ontology-kernel -- type_lookup_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
-    {"name": "entity_read_p99_ms", "targets": {"preview": 100, "stable": 50, "GA": 20}, "verification_ref": "cargo bench -p oya-ontology-domain -- entity_read_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
-    {"name": "action_p99_ms", "targets": {"preview": 200, "stable": 100, "GA": 50}, "verification_ref": "cargo bench -p oya-ontology-domain -- action_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
-    {"name": "kg_3layer_join_p99_ms", "targets": {"preview": 1000, "stable": 500, "GA": 200}, "verification_ref": "cargo bench -p oya-ontology-api -- kg_3layer_join_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "type_lookup_p99_ms", "targets": {"preview": 50, "stable": 10, "GA": 5}, "verification_ref": "cargo bench -p oya-ontology-kernel -- type_lookup_p99", "lane_ref": "oya-governance-perf-budget"},
+    {"name": "entity_read_p99_ms", "targets": {"preview": 100, "stable": 50, "GA": 20}, "verification_ref": "cargo bench -p oya-ontology-domain -- entity_read_p99", "lane_ref": "oya-governance-perf-budget"},
+    {"name": "action_p99_ms", "targets": {"preview": 200, "stable": 100, "GA": 50}, "verification_ref": "cargo bench -p oya-ontology-domain -- action_p99", "lane_ref": "oya-governance-perf-budget"},
+    {"name": "kg_3layer_join_p99_ms", "targets": {"preview": 1000, "stable": 500, "GA": 200}, "verification_ref": "cargo bench -p oya-ontology-api -- kg_3layer_join_p99", "lane_ref": "oya-governance-perf-budget"},
     {"name": "cross_tenant_link_leak_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "cargo nextest -- test_no_cross_tenant_link", "lane_ref": "cargo-nextest"},
-    {"name": "tier_violation_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "oya gate validate ontology-tier-enforcement --window 30d", "lane_ref": "oya-foundry-fitness-ontology-tier-enforcement"},
-    {"name": "dynamic_layer_freshness_lag_seconds", "targets": {"preview": 30, "stable": 5, "GA": 2}, "verification_ref": "cargo nextest -- test_freshness_budget", "lane_ref": "oya-foundry-fitness-ontology-dynamic-freshness"},
-    {"name": "action_audit_chain_completeness_pct", "targets": {"preview": 100, "stable": 100, "GA": 100}, "verification_ref": "jq cross-check audit-chain vs invocation count", "lane_ref": "oya-foundry-fitness-audit-chain-emission"},
-    {"name": "type_registry_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "verification_ref": "oya gate validate ontology-type-registry-availability --window 30d", "lane_ref": "oya-foundry-fitness-canary-observability"}
+    {"name": "tier_violation_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "oya gate validate ontology-tier-enforcement --window 30d", "lane_ref": "oya-governance-ontology-tier-enforcement"},
+    {"name": "dynamic_layer_freshness_lag_seconds", "targets": {"preview": 30, "stable": 5, "GA": 2}, "verification_ref": "cargo nextest -- test_freshness_budget", "lane_ref": "oya-governance-ontology-dynamic-freshness"},
+    {"name": "action_audit_chain_completeness_pct", "targets": {"preview": 100, "stable": 100, "GA": 100}, "verification_ref": "jq cross-check audit-chain vs invocation count", "lane_ref": "oya-governance-audit-chain-emission"},
+    {"name": "type_registry_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "verification_ref": "oya gate validate ontology-type-registry-availability --window 30d", "lane_ref": "oya-governance-canary-observability"}
   ],
   "risks": [
     {"id": "R-01", "severity": "high", "risk": "schema-evolution breaks pinned callers", "mitigation": "schema_version field + per-type evolution policy (analogous to $ref:bominal/decisions/ADR-0149) + back-compat lane"},
-    {"id": "R-02", "severity": "critical", "risk": "cross-tenant link via policy mis-config", "mitigation": "default-deny Cedar + AC-03 + lane oya-foundry-fitness-ontology-tenancy-isolation"},
+    {"id": "R-02", "severity": "critical", "risk": "cross-tenant link via policy mis-config", "mitigation": "default-deny Cedar + AC-03 + lane oya-governance-ontology-tenancy-isolation"},
     {"id": "R-03", "severity": "critical", "risk": "LLM tool-call escalates autonomy beyond tier", "mitigation_ref": "Cedar autonomy_tier ceiling AC-04 + AC-07 + $ref:specs/agent-durable-goal.json#source_driven_contract"},
     {"id": "R-04", "severity": "high", "risk": "dynamic-layer staleness silently served", "mitigation": "AC-09 freshness budget enforced; never silent stale"},
     {"id": "R-05", "severity": "high", "risk": "KG join latency at scale", "mitigation": "AC-06 + 3-layer index strategy + perf-budget lane"}
@@ -137,7 +137,7 @@
     {"competitor": "Apollo_GraphQL_Federation", "we_beat_on": ["typed-entity model (Apollo is API-stitching)", "audit per action", "jurisdiction overlay"], "measurable": "per-action audit (Apollo: API-tracing only)"}
   ],
   "best_practices": [
-    {"id": "BP-01", "rule": "tier classification per property", "ref": "$ref:bominal/decisions/ADR-0133", "planned_enforcement_ref": "oya-foundry-fitness-ontology-tier-enforcement"},
+    {"id": "BP-01", "rule": "tier classification per property", "ref": "$ref:bominal/decisions/ADR-0133", "planned_enforcement_ref": "oya-governance-ontology-tier-enforcement"},
     {"id": "BP-02", "rule": "default-deny cross-tenant links; Cedar required to permit", "ref": "AC-03"},
     {"id": "BP-03", "rule": "type checking at workflow-deploy time, not runtime", "ref": "AC-05"},
     {"id": "BP-04", "rule": "cryptographically signed audit chain per action (post-$ref:docs/decisions/ADR-0083 cryptographic chain)", "required_at": "GA"},
@@ -163,15 +163,15 @@
     {"pattern": "reasoning_rule_tier", "when": "inferred read projection is produced", "source_evidence_refs": ["stardog_reasoning_420_426"]}
   ],
   "anti_patterns": [
-    {"name": "cross_tenant_raw_sql_bypass_rls", "why_forbidden": "tenant-isolation violation", "detection_lane": "oya-foundry-fitness-no-raw-sql-cross-tenant"},
+    {"name": "cross_tenant_raw_sql_bypass_rls", "why_forbidden": "tenant-isolation violation", "detection_lane": "oya-governance-no-raw-sql-cross-tenant"},
     {"name": "untyped_entity_creation", "why_forbidden": "defeats type-system value", "detection": "type schema validation refuses"},
-    {"name": "tier_violating_query", "why_forbidden": "data-class violation", "detection_lane": "oya-foundry-fitness-ontology-tier-enforcement"},
-    {"name": "llm_tool_call_without_cedar_check", "why_forbidden": "privilege escalation", "detection_lane": "oya-foundry-fitness-cedar-coverage"},
+    {"name": "tier_violating_query", "why_forbidden": "data-class violation", "detection_lane": "oya-governance-ontology-tier-enforcement"},
+    {"name": "llm_tool_call_without_cedar_check", "why_forbidden": "privilege escalation", "detection_lane": "oya-governance-cedar-coverage"},
     {"name": "direct_cross_cell_db_access", "why_forbidden": "bypasses ontology adapter, breaks federation", "detection": "code review + cargo-deny on DB-driver crate visibility"},
     {"name": "silent_stale_dynamic_layer_read", "why_forbidden": "hidden inconsistency", "detection_lane": "AC-09 test enforces freshness budget"},
     {"name": "external_graph_db_dep", "why_forbidden": "cross-tenant isolation harder; we have Postgres RLS", "detection_lane": "cargo-deny denylist"},
-    {"name": "action_without_audit_chain_emission", "why_forbidden": "provenance gap", "detection_lane": "oya-foundry-fitness-audit-chain-emission"},
-    {"name": "unsourced_ontology_competitor_benchmark_claim", "why_forbidden": "competitive deltas must cite official source evidence and distinguish internal targets from measured external facts", "detection_lane": "future oya-foundry-fitness-source-backed-competitive-claims"},
+    {"name": "action_without_audit_chain_emission", "why_forbidden": "provenance gap", "detection_lane": "oya-governance-audit-chain-emission"},
+    {"name": "unsourced_ontology_competitor_benchmark_claim", "why_forbidden": "competitive deltas must cite official source evidence and distinguish internal targets from measured external facts", "detection_lane": "future oya-governance-source-backed-competitive-claims"},
     {"name": "external_graph_engine_as_canonical_authority", "why_forbidden": "Neo4j/Neptune/Stardog may inform adapters, but Oyatie ontology kernel remains canonical", "detection_lane": "cargo-deny denylist + ontology adapter boundary validator"},
     {"name": "vector_or_reasoning_output_as_policy_truth", "why_forbidden": "approximate retrieval and inferred projections cannot authorize or mutate canonical state", "detection_lane": "policy/action gate requires canonical entity_id + permission proof + action receipt"},
     {"name": "virtual_graph_without_pass_through_or_named_scope_security", "why_forbidden": "external-source reads must preserve user/source permissions and data-class scope", "detection_lane": "virtual_source_mapping_receipt validator"},
@@ -179,8 +179,8 @@
   ],
   "goals": {
     "scalability": {"target": "10K tenants per cluster + 1B entities per region + 100M actions per day per region", "verification_ref": "bench + canary load-test pre-GA"},
-    "security": {"target": "per-tenant Postgres RLS + Cedar at every action + tier classification on every property + cryptographically-signed audit chain (post-ADR-0083)", "verification_lane_ref": "oya-foundry-fitness-ontology-tenancy-isolation + oya-foundry-fitness-cedar-coverage"},
-    "performance": {"target": "type-lookup p99 <5ms + entity-read p99 <20ms + action p99 <50ms + 3-layer KG join p99 <200ms", "verification_lane_ref": "oya-foundry-fitness-perf-budget"},
+    "security": {"target": "per-tenant Postgres RLS + Cedar at every action + tier classification on every property + cryptographically-signed audit chain (post-ADR-0083)", "verification_lane_ref": "oya-governance-ontology-tenancy-isolation + oya-governance-cedar-coverage"},
+    "performance": {"target": "type-lookup p99 <5ms + entity-read p99 <20ms + action p99 <50ms + 3-layer KG join p99 <200ms", "verification_lane_ref": "oya-governance-perf-budget"},
     "efficiency": {"target": "<$0.001 per entity-read + <$0.01 per action + per-tenant overhead <$10/month", "verification_ref": "$ref:crates/oya-cloud-finops-kernel"},
     "reliability": {"target": "type registry SLO 99.95% + instance store SLO 99.95% + MTTR <60s auto-rollback canary", "verification_lane_ref": "canary-observability-rollback"}
   },
@@ -445,13 +445,13 @@
       "SatisfiedByLane": {
         "purpose": "Typed compliance attestation join node: one control satisfied by a concrete lane_id with freshness policy.",
         "id_pattern": "^lane-satisfaction:[a-z0-9-]+:[a-z0-9][a-z0-9.:-]*$",
-        "examples": ["lane-satisfaction:oya-foundry-fitness-supply-chain:control:soc2-cc6.1", "lane-satisfaction:oya-vcs-admission:control:isms-p-2.10.1"],
+        "examples": ["lane-satisfaction:oya-governance-supply-chain:control:soc2-cc6.1", "lane-satisfaction:oya-vcs-admission:control:isms-p-2.10.1"],
         "contributing_registries": ["registry/quality/lanes.yaml", "evidence/audit-chain.jsonl"]
       },
       "EvidencePath": {
         "purpose": "Machine-readable evidence location proving a lane satisfied a compliance control, including JSONL path and freshness window.",
         "id_pattern": "^evidence:[a-z0-9_./:@#-]+$",
-        "examples": ["evidence:evidence/audit-chain.jsonl#oya-foundry-fitness-supply-chain", "evidence:evidence/multispectrum/ontology-rename-sweep-1778949351.json"],
+        "examples": ["evidence:evidence/audit-chain.jsonl#oya-governance-supply-chain", "evidence:evidence/multispectrum/ontology-rename-sweep-1778949351.json"],
         "contributing_registries": ["evidence/audit-chain.jsonl", "evidence/multispectrum/*.json"]
       },
       "Incident": {

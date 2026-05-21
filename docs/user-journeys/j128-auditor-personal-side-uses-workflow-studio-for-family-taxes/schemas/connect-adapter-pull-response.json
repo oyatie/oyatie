@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oyatie.dev/specs/journey/j128/connect-adapter-pull-response.json",
+  "title": "ConnectAdapterPullResponse",
+  "version": "1.0.0",
+  "_meta": {
+    "purpose": "Generic response shape from a Connect adapter pull (Stripe, Vanguard, etc.). Per-tenant scoped.",
+    "binding_adr": "ADR-0311-dual-tenant-identity-personal-vs-work-boundary",
+    "status": "Proposed"
+  },
+  "type": "object",
+  "required": ["adapter_id", "tenant_id", "principal_id", "pulled_at", "items"],
+  "properties": {
+    "adapter_id": {"type": "string", "examples": ["stripe-connect-consumer", "vanguard-brokerage", "irs-mef"]},
+    "tenant_id": {"type": "string", "description": "MUST match principal's session tenant."},
+    "principal_id": {"type": "string"},
+    "pulled_at": {"type": "string", "format": "date-time"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_id": {"type": "string"},
+          "item_type": {"type": "string", "examples": ["transaction", "dividend", "w2"]},
+          "amount": {"type": "number"},
+          "currency": {"type": "string", "examples": ["USD"]},
+          "metadata": {"type": "object"}
+        }
+      }
+    }
+  }
+}

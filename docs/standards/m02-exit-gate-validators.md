@@ -48,7 +48,7 @@ The "14 quality/scalability lanes" tracked for M02b/P22 exit gate are the lanes 
 The following lanes in ci-lanes.md run via other mechanisms (cargo toolchain, external scripts, or Foundry fitness crates) and are **out of scope** for this document:
 
 - `cargo-fmt`, `cargo-check`, `cargo-clippy`, `cargo-nextest`, `cargo-deny`, `cargo-machete`
-- All `oya-foundry-fitness-*` lanes (dispatched by their own fitness crate binary, not via `gate validate`)
+- All `oya-governance-*` lanes (dispatched by their own fitness crate binary, not via `gate validate`)
 - `pnpm-typecheck`, `pnpm-test`
 
 ## BLOCKER workflow flip policy

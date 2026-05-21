@@ -1,0 +1,150 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-cloud-billing-canonical-base-neutrality",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779225600,
+  "timestamp_iso": "2026-05-19T21:20:00Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-cloud-billing-domain/src/lib.rs",
+    "evidence/multispectrum/cs-cloud-billing-canonical-base-neutrality-1779225600.json"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize cloud billing canonical-base tax-invoice and fixture jurisdiction leaks without weakening validation\" crates/oya-cloud-billing-domain/src/lib.rs::canonical_base_neutral_cloud_billing",
+      "status": "accepted"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Attach multispectrum evidence for cloud billing canonical-base neutrality ChangeSet\" evidence/multispectrum/cs-cloud-billing-canonical-base-neutrality-1779225600.json::MultispectrumEvidence",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality cleanup for oya-cloud-billing-domain: replace jurisdiction-named tax invoice formats, registration prefixes, regional-pack mappings, financial data class usage, and inline fixtures with neutral canonical-base terms while preserving invoice format matching, registration validation, totals, tenant/region matching, idempotency, and ledger behavior.",
+  "baseline_diff": {
+    "before": "canonical-base-neutrality --repo-root . reported 196 files checked, 920 jurisdiction leaks after the prior ChangeSet; oya-cloud-billing-domain was the first remaining leaking file.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-cloud-billing-domain/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 873 jurisdiction leaks in other files.",
+    "delta": "47 fewer jurisdiction leaks; no gate-policy weakening or scanner carve-out."
+  },
+  "verification": [
+    {
+      "command": "cargo test -q -p oya-cloud-billing-domain --all-features",
+      "status": "passed",
+      "evidence": "8 passed; 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-cloud-billing-domain --check",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0 after formatting the crate"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-cloud-billing-domain/src/lib.rs",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-cloud-billing-domain/src/lib.rs",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root .",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 873 jurisdiction leaks outside claimed scope; first remaining file crates/oya-cloud-billing-kernel/src/lib.rs"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Removed jurisdiction naming from the canonical billing model instead of hiding it with scanner exceptions or encoded literals."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Keeps cloud billing as canonical-base substrate; regional or KR-specific semantics must live in pack adapters rather than base-domain enums, prefixes, or fixtures."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "targeted canonical-base-neutrality gate would have reported cloud-billing-domain jurisdiction leaks before this rewrite",
+      "findings": [
+        "The unchanged gate policy now passes on the claimed file and the full gate still reports unrelated leaks, proving no false-green gate weakening."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 8,
+      "findings": [
+        "Tax format names and fixture values now describe neutral invoice archetypes and pack roles without requiring jurisdiction knowledge."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Cloud billing crate tests, rustfmt check, targeted neutrality gate, planning-closure gate, master-plan-completion gate, and diff whitespace check passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Loosen canonical-base-neutrality scanner for inline test modules",
+        "Construct jurisdiction literals indirectly to bypass the scanner",
+        "Rename the canonical billing model and fixtures to neutral pack archetypes"
+      ],
+      "selected_rationale": "Neutral pack archetypes remove the leak at the source and preserve long-term pack/base separation.",
+      "rejected_reasons": [
+        "Scanner carve-outs would create a false-green path for canonical-base leaks.",
+        "Indirect literal construction would pass mechanically while violating the hyperscaler-quality intent."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "sensitive_data",
+      "findings": [
+        "No credentials, network IO, authorization path, tenant boundary, or payment adapter path changed. Financial classification remains enforced with generic Financial class."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Preserves clean architecture boundaries: the domain keeps validation and ledger rules; regional semantics are no longer encoded in canonical-base identifiers."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Existing behavior assertions remain covered: account validation, meter ingestion, idempotency replay, invoice generation, duplicate invoice rejection, format mismatch, registration validation, totals, inactive accounts, tenant/region/tag mismatch, and data-class rejection."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence captures before/after full-gate counts, targeted pass, command results, and Oya VCS claim/verify/done/promote path."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-cloud-billing-domain/src/lib.rs",
+    "evidence/multispectrum/cs-cloud-billing-canonical-base-neutrality-1779225600.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 873 jurisdiction leaks outside this claimed scope; next safe slice should start with crates/oya-cloud-billing-kernel/src/lib.rs.",
+    "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
+  ]
+}

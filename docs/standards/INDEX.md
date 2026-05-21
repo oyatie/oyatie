@@ -44,22 +44,22 @@ that informed it where one exists.
 
 | File | Purpose | Enforcement lane | Authority depth |
 |---|---|---|---|
-| [`doc-style.md`](doc-style.md) | Diátaxis + RFC-2119 + dual-audience + frontmatter shape + heading hierarchy + line length | `oya-foundry-fitness-doc-style` | Tier 2 |
-| [`code-style-rust.md`](code-style-rust.md) | clippy pedantic, `#![deny(unsafe_code)]`, `[workspace.lints]`, naming, kernel←domain←app←{api,worker,adapter}←runtime layering | `oya-foundry-fitness-clippy-pedantic`, `-workspace-lints-inherit`, `-flat-crates` | Tier 2 |
-| [`error-handling.md`](error-handling.md) | `thiserror` in libraries, `anyhow`/`eyre` at binary edge, no `unwrap` outside tests, silent-failure prevention | `oya-foundry-fitness-error-boundary`, `-no-unwrap-prod` | Tier 2 |
-| [`testing.md`](testing.md) | Test pyramid 2.0 + nextest + proptest/quickcheck + cargo-mutants + cargo-fuzz + coverage budget + 14-day flaky SLA | `oya-foundry-fitness-test-evidence`, `-fuzz-coverage`, `-flaky-sla` | Tier 2 |
-| [`security-review.md`](security-review.md) | OWASP + cargo-deny/audit/vet + Sigstore + SBOM + threat-modeling + data-class boundary + autonomy ceiling | `oya-foundry-fitness-supply-chain`, `-security-review` | Tier 2 |
-| [`on-call.md`](on-call.md) | Rotation cadence + runbook discipline + escalation + blameless postmortem trigger + SLO-burn-rate alerting | `oya-foundry-fitness-runbook-index-resolves`, `-error-budget-gate` | Tier 2 |
-| [`claude-code-harness.md`](claude-code-harness.md) | Sanctioned-primitive contract `{grit, icm, oya-tooling-agent-read}` + Directive 12 + grit lifecycle + icm topic conventions + hooks ordering | `oya-foundry-fitness-banned-primitives`, `-hook-self-test` | Tier 2 |
-| [`multi-agent-tool-map.md`](multi-agent-tool-map.md) | Claude Code / Codex / Gemini / OMC tool-name mapping + sanctioned tools per agent + delegation patterns | `oya-foundry-fitness-tool-map-cohesion` | Tier 2 |
-| [`observability.md`](observability.md) | OpenTelemetry mandatory + tracing/metrics/logs + `EVT-*` audit-chain emission + structured logging schema + Prometheus 3.11+ + exemplars | `oya-foundry-fitness-otel-emit`, `-audit-emission` | Tier 2 |
-| [`release-management.md`](release-management.md) | Trunk-based + canary + feature flags + progressive delivery + SLO-burn-rate auto-rollback + Sigstore-signed releases | `oya-foundry-fitness-flag-debt`, `-supply-chain`, `-error-budget-gate` | Tier 2 |
-| [`git-workflow.md`](git-workflow.md) | Directive 12 pragmatic-git + grit-first + when git/gh is justified + icm rationale logging + cutover-bootstrap exception | `oya-foundry-fitness-banned-primitives` (revised), `-direct-tool-rationale` | Tier 2 |
-| [`dependency-policy.md`](dependency-policy.md) | LTS pinning + license posture + cargo-vet + cargo-deny + Renovate + provider-SDK ProviderAdapter trait | `oya-foundry-fitness-lts-dependency`, `-cargo-vet`, `-license` | Tier 2 |
-| [`image-discipline.md`](image-discipline.md) | distroless-debian13 + musl static linking + image-size budget + Cosign keyless OIDC + SBOM + SLSA L2 | `oya-foundry-fitness-image-discipline`, `-container-base`, `-supply-chain` | Tier 2 |
-| [`data-class.md`](data-class.md) | Every kernel struct field carries `oyatie.data_class`; cross-pillar flow rules; DSR cascade integration | `oya-foundry-fitness-data-class`, `-dsr-cascade` | Tier 2 |
-| [`autonomy-ceiling.md`](autonomy-ceiling.md) | T1/T2/T3/T4 binding + Cedar policy + per-capability autonomy record + config-flag uplift forbidden | `oya-foundry-fitness-autonomy-ceiling` | Tier 2 |
-| [`agent-instructions-discipline.md`](agent-instructions-discipline.md) | `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` fences + banned-token grep scope + documented-rationale flow | `oya-foundry-fitness-agent-instructions-fence`, `-banned-primitives` | Tier 2 |
+| [`doc-style.md`](doc-style.md) | Diátaxis + RFC-2119 + dual-audience + frontmatter shape + heading hierarchy + line length | `oya-governance-doc-style` | Tier 2 |
+| [`code-style-rust.md`](code-style-rust.md) | clippy pedantic, `#![deny(unsafe_code)]`, `[workspace.lints]`, naming, kernel←domain←app←{api,worker,adapter}←runtime layering | `oya-governance-clippy-pedantic`, `-workspace-lints-inherit`, `-flat-crates` | Tier 2 |
+| [`error-handling.md`](error-handling.md) | `thiserror` in libraries, `anyhow`/`eyre` at binary edge, no `unwrap` outside tests, silent-failure prevention | `oya-governance-error-boundary`, `-no-unwrap-prod` | Tier 2 |
+| [`testing.md`](testing.md) | Test pyramid 2.0 + nextest + proptest/quickcheck + cargo-mutants + cargo-fuzz + coverage budget + 14-day flaky SLA | `oya-governance-test-evidence`, `-fuzz-coverage`, `-flaky-sla` | Tier 2 |
+| [`security-review.md`](security-review.md) | OWASP + cargo-deny/audit/vet + Sigstore + SBOM + threat-modeling + data-class boundary + autonomy ceiling | `oya-governance-supply-chain`, `-security-review` | Tier 2 |
+| [`on-call.md`](on-call.md) | Rotation cadence + runbook discipline + escalation + blameless postmortem trigger + SLO-burn-rate alerting | `oya-governance-runbook-index-resolves`, `-error-budget-gate` | Tier 2 |
+| [`claude-code-harness.md`](claude-code-harness.md) | Sanctioned-primitive contract `{grit, icm, oya-tooling-agent-read}` + Directive 12 + grit lifecycle + icm topic conventions + hooks ordering | `oya-governance-banned-primitives`, `-hook-self-test` | Tier 2 |
+| [`multi-agent-tool-map.md`](multi-agent-tool-map.md) | Claude Code / Codex / Gemini / OMC tool-name mapping + sanctioned tools per agent + delegation patterns | `oya-governance-tool-map-cohesion` | Tier 2 |
+| [`observability.md`](observability.md) | OpenTelemetry mandatory + tracing/metrics/logs + `EVT-*` audit-chain emission + structured logging schema + Prometheus 3.11+ + exemplars | `oya-governance-otel-emit`, `-audit-emission` | Tier 2 |
+| [`release-management.md`](release-management.md) | Trunk-based + canary + feature flags + progressive delivery + SLO-burn-rate auto-rollback + Sigstore-signed releases | `oya-governance-flag-debt`, `-supply-chain`, `-error-budget-gate` | Tier 2 |
+| [`git-workflow.md`](git-workflow.md) | Directive 12 pragmatic-git + grit-first + when git/gh is justified + icm rationale logging + cutover-bootstrap exception | `oya-governance-banned-primitives` (revised), `-direct-tool-rationale` | Tier 2 |
+| [`dependency-policy.md`](dependency-policy.md) | LTS pinning + license posture + cargo-vet + cargo-deny + Renovate + provider-SDK ProviderAdapter trait | `oya-governance-lts-dependency`, `-cargo-vet`, `-license` | Tier 2 |
+| [`image-discipline.md`](image-discipline.md) | distroless-debian13 + musl static linking + image-size budget + Cosign keyless OIDC + SBOM + SLSA L2 | `oya-governance-image-discipline`, `-container-base`, `-supply-chain` | Tier 2 |
+| [`data-class.md`](data-class.md) | Every kernel struct field carries `oyatie.data_class`; cross-pillar flow rules; DSR cascade integration | `oya-governance-data-class`, `-dsr-cascade` | Tier 2 |
+| [`autonomy-ceiling.md`](autonomy-ceiling.md) | T1/T2/T3/T4 binding + Cedar policy + per-capability autonomy record + config-flag uplift forbidden | `oya-governance-autonomy-ceiling` | Tier 2 |
+| [`agent-instructions-discipline.md`](agent-instructions-discipline.md) | `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` fences + banned-token grep scope + documented-rationale flow | `oya-governance-agent-instructions-fence`, `-banned-primitives` | Tier 2 |
 
 ## Forward-reference resolution map
 

@@ -37,15 +37,15 @@ not at code-review or social agreement.
 | ID | Invariant | Enforced at | Mechanism |
 |---|---|---|---|
 | **I-01** | No agent can land code that panics on a `Result::Err` path in a production crate. | Compile (L0) + CI (L2) | `clippy::unwrap_used`/`expect_used`/`panic`/`todo` = `deny` in workspace `[lints]`. |
-| **I-02** | No agent can land code that crosses a data-class boundary. | Pre-commit (L1) + CI (L2) | `pre-commit-data-class.sh` + `oya-foundry-fitness-data-class` per ADR-0008. |
+| **I-02** | No agent can land code that crosses a data-class boundary. | Pre-commit (L1) + CI (L2) | `pre-commit-data-class.sh` + `oya-governance-data-class` per ADR-0008. |
 | **I-03** | No agent can introduce a dependency that was not pre-audited. | Compile (L0) + CI (L2) | `cargo-vet` allowlist + `cargo-deny [bans]`. |
-| **I-04** | No agent can ship a binary without Cosign signature + Syft SBOM + SLSA L2+ provenance + Rekor entry. | CI (L2) + admission (L4) | `oya-foundry-fitness-supply-chain` + Kyverno admission policy. |
+| **I-04** | No agent can ship a binary without Cosign signature + Syft SBOM + SLSA L2+ provenance + Rekor entry. | CI (L2) + admission (L4) | `oya-governance-supply-chain` + Kyverno admission policy. |
 | **I-05** | No agent can bypass authn or authz on a regulated capability. | Runtime (L6) | Cedar policy registry — capability not invocable without policy match. |
 | **I-06** | No agent can emit PII to logs. | Compile (L0) + pre-commit (L1) | `data_class:` struct annotation + `tracing` field-filter macro. |
-| **I-07** | No agent can land a migration without rollback evidence. | CI (L2) | `oya-foundry-fitness-schema-migration` + per-tenant + per-cell rollback lanes. |
-| **I-08** | No agent can hide instructions via Unicode (BiDi controls). | Pre-commit (L1) + CI (L2) | `oya-foundry-fitness-unicode-discipline`. |
+| **I-07** | No agent can land a migration without rollback evidence. | CI (L2) | `oya-governance-schema-migration` + per-tenant + per-cell rollback lanes. |
+| **I-08** | No agent can hide instructions via Unicode (BiDi controls). | Pre-commit (L1) + CI (L2) | `oya-governance-unicode-discipline`. |
 | **I-09** | No agent can orphan a `tokio::spawn`. | Compile (L0) + runtime (L6) | `clippy::disallowed_methods` deny bare `tokio::spawn`; `oya-foundry-task-supervisor` wrapper. |
-| **I-10** | Every Sev-1 / Sev-2 produces a new mechanical prevention before the next merge into `main`. | Governance (L8) | `oya-foundry-fitness-mistakes-ledger-cite`. |
+| **I-10** | Every Sev-1 / Sev-2 produces a new mechanical prevention before the next merge into `main`. | Governance (L8) | `oya-governance-mistakes-ledger-cite`. |
 
 ## 2. Mechanical preventions
 
@@ -55,18 +55,18 @@ shed multiple lanes — but it must be at least one-to-one.
 
 | MFL row | Lane(s) | Status |
 |---|---|---|
-| MFL-0001 ADR citation drift | `oya-foundry-fitness-adr-citation` | shipped |
-| MFL-0002 brand alias residue | `oya-foundry-fitness-brand-residue` | shipped |
-| MFL-0003 retired-vocab leak | `oya-foundry-fitness-glossary` | target |
-| MFL-0004 Team terminology drift | `oya-foundry-fitness-glossary` | target |
-| MFL-0005 cross-axis contract drift | `oya-foundry-fitness-blast-radius` | target |
-| MFL-0006 external dep without ledger | `oya-foundry-fitness-build-vs-buy` + `oya-foundry-fitness-dep-allowlist` (new) | target |
-| MFL-0007 AGPL/GPL leak | `oya-foundry-fitness-license` | target |
-| MFL-0008 data-class annotation gap | `oya-foundry-fitness-data-class` | target |
-| MFL-0009 cluster successor authoring | `oya-foundry-fitness-adr-citation` ext. | shipped |
-| MFL-0010 runbook index drift | `oya-foundry-fitness-runbook-index-resolves` | shipped |
-| MFL-0011 brand-rebrand sed | `oya-foundry-fitness-brand-residue` | shipped |
-| MFL-0012 legacy tree reintroduction | `oya-foundry-fitness-flat-crates` | shipped |
+| MFL-0001 ADR citation drift | `oya-governance-adr-citation` | shipped |
+| MFL-0002 brand alias residue | `oya-governance-brand-residue` | shipped |
+| MFL-0003 retired-vocab leak | `oya-governance-glossary` | target |
+| MFL-0004 Team terminology drift | `oya-governance-glossary` | target |
+| MFL-0005 cross-axis contract drift | `oya-governance-blast-radius` | target |
+| MFL-0006 external dep without ledger | `oya-governance-build-vs-buy` + `oya-governance-dep-allowlist` (new) | target |
+| MFL-0007 AGPL/GPL leak | `oya-governance-license` | target |
+| MFL-0008 data-class annotation gap | `oya-governance-data-class` | target |
+| MFL-0009 cluster successor authoring | `oya-governance-adr-citation` ext. | shipped |
+| MFL-0010 runbook index drift | `oya-governance-runbook-index-resolves` | shipped |
+| MFL-0011 brand-rebrand sed | `oya-governance-brand-residue` | shipped |
+| MFL-0012 legacy tree reintroduction | `oya-governance-flat-crates` | shipped |
 | MFL-0013 OpenAPI 3.2 contract drift | contract-parity tests | shipped |
 
 The 22 new lanes proposed in this work pre-emptively cover the next
@@ -96,15 +96,15 @@ How the 9 layers interact:
 | Agent crashes | Same as hang. `icm` stores the in-progress trace; resumption agent recalls and continues. |
 | Agent claim expires | Same TTL mechanism. Other agents see expired claim and re-claim with deduplication. |
 | Partial commits | `pre-commit` + CI prevent merging an incoherent diff. Branch protection on `main` blocks bypass. |
-| Agent loops on a failing test | `oya-foundry-fitness-test-flake` (new) — caps retries; `icm` raises a "stuck-agent" signal; council-architecture pages. |
+| Agent loops on a failing test | `oya-governance-test-flake` (new) — caps retries; `icm` raises a "stuck-agent" signal; council-architecture pages. |
 | Agent ignores its prompt | Reviewer-agent (Layer 3) disagrees, escalation fires. |
-| Agent uses banned primitive | `oya-foundry-fitness-banned-primitives` + Directive 12 audit row required. |
+| Agent uses banned primitive | `oya-governance-banned-primitives` + Directive 12 audit row required. |
 
 ## 5. Resilience to LLM regression
 
 | Regression | Behavior |
 |---|---|
-| Model hallucinates more package names | `cargo-vet` + `oya-foundry-fitness-dep-allowlist` blocks at CI; allowlist is the ground truth. |
+| Model hallucinates more package names | `cargo-vet` + `oya-governance-dep-allowlist` blocks at CI; allowlist is the ground truth. |
 | Model regresses on Rust idioms | Workspace `[lints]` + `cargo clippy -D warnings` is invariant to model version. |
 | Model regresses on security patterns | Semgrep ruleset + gitleaks/trufflehog are deterministic ground truth. |
 | Model emits prompt-injection-laden text | Unicode-discipline lane + `data_class:` annotation. |

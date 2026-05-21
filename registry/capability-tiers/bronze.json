@@ -1,0 +1,98 @@
+{
+  "schema_version": "2026-05-20.capability-tier.v1",
+  "capability_tier_id": "bronze",
+  "display_name": "Bronze",
+  "authority": [
+    "ADR-0316",
+    "ADR-0321",
+    "enterprise-software-coverage-matrix-2026-05-21",
+    "cloud-k8s-tier-matrix"
+  ],
+  "included": "Entry production or pre-production tenant capability tier for small teams and bounded workloads.",
+  "hardware_envelope": {
+    "control_plane_nodes": 3,
+    "control_plane_vcpu_per_node": 8,
+    "control_plane_ram_gib_per_node": 32,
+    "control_plane_nvme_gib_per_node": 200,
+    "etcd_topology": "co-located_on_control_plane",
+    "worker_node_min": 3,
+    "worker_node_max": 50,
+    "worker_vcpu_per_node": 8,
+    "worker_ram_gib_per_node": 32,
+    "worker_nvme_gib_per_node": 500,
+    "aggregate_worker_vcpu_ceiling": 400,
+    "aggregate_worker_ram_gib_ceiling": 1600,
+    "aggregate_raw_storage_tib_ceiling": 25,
+    "az_count": 1,
+    "switch_fabric_count": 1
+  },
+  "service_level_objectives": {
+    "monthly_availability_pct": 99.9,
+    "cluster_api_availability_pct": 99.9,
+    "api_p95_latency_ms": 350,
+    "api_p99_latency_ms": 900,
+    "pod_scheduling_p99_seconds": 30,
+    "node_readiness_p99_minutes": 5,
+    "support_response_minutes_p1": 240,
+    "rpo_minutes": 1440,
+    "rto_minutes": 480
+  },
+  "feature_set": [
+    "single-region activation",
+    "basic Cedar permit sets",
+    "single-pack compliance overlay",
+    "core ontology projections",
+    "workflow templates with manual approval paths",
+    "daily backups",
+    "standard audit-chain emission",
+    "tenant budget alerts",
+    "manual migration cutover runbooks"
+  ],
+  "limits": {
+    "north_south_api_rps_per_tenant": 2000,
+    "east_west_service_rps_per_tenant": 5000,
+    "async_job_starts_per_minute": 300,
+    "websocket_connections_per_tenant": 10000,
+    "concurrent_workflow_runs": 250,
+    "monthly_normalized_events_ceiling": 25000000
+  },
+  "retention_windows": {
+    "audit_hot_days": 30,
+    "audit_cold_days": 365,
+    "metrics_hot_days": 14,
+    "trace_hot_days": 7,
+    "object_version_days": 30,
+    "backup_full_interval_hours": 24,
+    "backup_incremental_interval_hours": 24
+  },
+  "pricing_class_anchors": {
+    "pricing_class": "SMB_OR_PREPROD",
+    "base_platform_usd_per_tenant_month": 2500,
+    "included_seats": 250,
+    "included_monthly_api_requests": 25000000,
+    "overage_usd_per_million_api_requests": 20,
+    "minimum_infra_floor_usd_per_month": 4200
+  },
+  "not_included": [
+    "multi-region active-active",
+    "offline sovereign bundle",
+    "dedicated HSM root",
+    "regulated evidence retention above one year"
+  ],
+  "promotion_inputs_required": {
+    "cedar_fixture_count_min": 4,
+    "ontology_projection_pin_count_min": 4,
+    "workflow_template_test_count_min": 4,
+    "tenant_dry_run_count_min": 1,
+    "rollback_rehearsal_count_min": 1
+  },
+  "observability_dimensions_required": [
+    "tenant_id",
+    "capability_tier_id",
+    "microservice_id",
+    "jurisdiction_pack_id",
+    "workflow_template_id",
+    "ontology_projection_id",
+    "cost_profile_id"
+  ]
+}

@@ -75,7 +75,7 @@ fn valid_start(capability_id: &str, idempotency_key: &str, started_at: u64) -> R
         "usr_admin".into(),
         AutonomyTier::T2Advisory,
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        "kr-seoul".into(),
+        "region-home".into(),
         idempotency_key.into(),
         started_at,
     )

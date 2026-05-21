@@ -61,7 +61,7 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 
 ## 2. The catalog
 
-> Path conventions: rooted at `docs/`. Owner team IDs match `teams/<team-id>/CHARTER.md`. Validation checks named here exist (or will be created) under `oya-foundry-fitness-doc-catalog`.
+> Path conventions: rooted at `docs/`. Owner team IDs match `teams/<team-id>/CHARTER.md`. Validation checks named here exist (or will be created) under `oya-governance-doc-catalog`.
 
 ### 2.1 Tier 1 — Strategy / Architecture / Compliance
 
@@ -87,7 +87,7 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.spec_artifact_profile_defaults` | `/specs/artifact-profile-defaults.json` | `council-architecture` | per-profile defaults change | per event | active-machine-readable-artifact-contract.json | `spec-contract-mirror` | NO |
 | `doc.spec_plan_schema` | `/specs/plan-schema.json` | `council-architecture` | ralplan consensus-plan schema change | per event | masterplan.json | `spec-contract-mirror` | NO |
 | `doc.spec_evidence_taxonomy` | `/specs/evidence-taxonomy.json` | `council-architecture` | evidence class / minimum_completion_set change | per event | audit-chain emitters | `spec-contract-mirror` | NO |
-| `doc.spec_hyperscaler_gates` | `/specs/hyperscaler-gates.json` | `council-architecture` | HG-* gate change | per event | masterplan.json, oya-foundry-fitness-* lanes | `spec-contract-mirror` | NO |
+| `doc.spec_hyperscaler_gates` | `/specs/hyperscaler-gates.json` | `council-architecture` | HG-* gate change | per event | masterplan.json, oya-governance-* lanes | `spec-contract-mirror` | NO |
 | `doc.spec_stop_conditions` | `/specs/stop-conditions.json` | `council-architecture` | SC-* condition change | per event | autonomous_foundry.first_of_kind_protocol | `spec-contract-mirror` | NO |
 | `doc.spec_final_report_schema` | `/specs/final-report-schema.json` | `council-architecture` | MPR final-report schema change | per event | autonomous master-plan loop | `spec-contract-mirror` | NO |
 | `doc.spec_test_standard` | `/specs/test-standard.json` | `council-architecture + axis-foundry` | test class / coverage rule change | per event | agent-durable-goal.json tdd_contract | `spec-contract-mirror` | NO |
@@ -275,8 +275,8 @@ For *any* update to *any* doc in this catalog, follow:
 ### 3.3 Validation
 
 14. ☐ Run the `validation_check` listed in §2 row.
-15. ☐ Run the dependent-docs cross-link check (`oya-foundry-fitness-doc-catalog`).
-16. ☐ Run `oya-foundry-fitness-glossary` to sync any new terms into `GLOSSARY.md`.
+15. ☐ Run the dependent-docs cross-link check (`oya-governance-doc-catalog`).
+16. ☐ Run `oya-governance-glossary` to sync any new terms into `GLOSSARY.md`.
 17. ☐ For agent authoring: emit an evidence record to the audit chain (per ADR-0003) tagged with the doc id, trigger event, and validator hash.
 
 ### 3.4 Review
@@ -352,7 +352,7 @@ Each validation check below is a binary CI gate. Failing one blocks the merge.
 | `documentation-system` | `docs/DOCUMENTATION.md`, `registry/docs/pipeline.tsv`, and `docs/wiki/quickref/README.md` stay mutually grounded. |
 | `readme-doc-coverage` | Every cataloged root doc in `docs/` has a link in README. |
 
-The `oya-foundry-fitness-doc-catalog` CI lane runs all of the above on every PR touching `docs/**`.
+The `oya-governance-doc-catalog` CI lane runs all of the above on every PR touching `docs/**`.
 
 ---
 

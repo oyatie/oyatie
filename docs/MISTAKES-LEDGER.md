@@ -84,3 +84,8 @@ Per `standards/prevention-doctrine.md §5 step 6`:
 - All per-incident postmortems
 - All per-audit findings
 - CLAUDE.md prevention-doctrine pointer
+
+
+---
+
+> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

@@ -3,16 +3,18 @@
 #
 # Purpose: Reverse everything tools/hook-bootstrap/install.sh installed.
 #          Removes hook entries from .claude/settings.json, removes .codex/hooks.json,
-#          .gemini/settings.json, and .hermes/hooks.json if we created them, removes
-#          PATH_add bin from .envrc if we added it. Preserves agent-skills by default
-#          (useful even without hooks).
+#          .gemini/settings.json, removes PATH_add bin from .envrc if we added it,
+#          and removes legacy .hermes/hooks.json artifacts left by pre-ADR-0335 install.sh
+#          (Hermes CLI support retired per ADR-0335 Wave 15I + ADR-0247 D-10; the
+#          uninstall block remains so users with legacy installs can clean up).
+#          Preserves agent-skills by default (useful even without hooks).
 #
 # Usage:
 #   ./tools/hook-bootstrap/uninstall.sh           # interactive uninstall
 #   ./tools/hook-bootstrap/uninstall.sh --dry-run # preview without writing
 #
 # Safety: only removes entries bearing the "oya-bootstrap-v1" marker.
-#         Never touches user-level settings (~/.claude, ~/.codex, ~/.gemini, ~/.hermes).
+#         Never touches user-level settings (~/.claude, ~/.codex, ~/.gemini).
 
 set -euo pipefail
 
@@ -122,7 +124,9 @@ else
     info ".gemini/settings.json not present or not managed by bootstrap (skipping)"
 fi
 
-# ── Remove .hermes/hooks.json if we created it ──────────────────────────────
+# ── Legacy cleanup: remove .hermes/hooks.json if a pre-ADR-0335 install.sh created it
+# (Hermes CLI support retired per ADR-0335 Wave 15I + ADR-0247 D-10; this block remains
+# so users with legacy installs can clean up; new installs no longer create this file)
 
 HERMES_HOOKS="$REPO_ROOT/.hermes/hooks.json"
 if [ -f "$HERMES_HOOKS" ] && grep -q "\"$MARKER\"" "$HERMES_HOOKS" 2>/dev/null; then

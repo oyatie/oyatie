@@ -55,7 +55,7 @@ We adopt a **four-layer pipeline** with **asymmetric auto-promotion gates** and 
 - `staging` ← `staging-promoter` (Cosign identity `oya-foundry-staging-promoter`).
 - `prod` ← `prod-promoter` (Cosign identity `oya-foundry-prod-promoter`).
 
-Direct commits forbidden by branch-protection. Planned advisory lanes: `oya-foundry-fitness-no-direct-origin-dev-commit`, `oya-foundry-fitness-no-direct-staging-commit`, `oya-foundry-fitness-no-direct-prod-commit`.
+Direct commits forbidden by branch-protection. Planned advisory lanes: `oya-governance-no-direct-origin-dev-commit`, `oya-governance-no-direct-staging-commit`, `oya-governance-no-direct-prod-commit`.
 
 **Reviewer-agent dispatch.** Per-PR, by file-glob change class (per `docs/AGENTS.md`). Multi-class PRs invoke multiple reviewers in parallel; all must `APPROVE` for the aggregate verdict to clear gate 2 at local-dev → origin/dev. Verdict recorded via `icm store -t pr-review-verdicts` per [Directive 12](../../plans/MASTERPLAN.md).
 
@@ -63,7 +63,7 @@ Direct commits forbidden by branch-protection. Planned advisory lanes: `oya-foun
 
 **Linear history.** Squash-merge into `origin/dev`; fast-forward into `staging` and `prod`. No merge commits. Bisect always works.
 
-**Foundry capability mirror.** Capabilities flow through the same four-layer lifecycle in lockstep: `stage: dev-draft` → `stage: dev` → `stage: staging` → `stage: prod`. Schema extended with `stage:`, `promoted_from:`, `promoted_to:`, `stage_history[]` fields. New BLOCKER lane `oya-foundry-fitness-capability-stage-binding` verifies stage matches source branch.
+**Foundry capability mirror.** Capabilities flow through the same four-layer lifecycle in lockstep: `stage: dev-draft` → `stage: dev` → `stage: staging` → `stage: prod`. Schema extended with `stage:`, `promoted_from:`, `promoted_to:`, `stage_history[]` fields. New BLOCKER lane `oya-governance-capability-stage-binding` verifies stage matches source branch.
 
 ---
 

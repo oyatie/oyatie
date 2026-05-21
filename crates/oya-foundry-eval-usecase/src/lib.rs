@@ -8,6 +8,7 @@ use std::collections::BTreeMap;
 
 use oya_foundry_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalError, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
+    REQUIRED_LINGUISTIC_COHORTS_DETAIL, REQUIRED_LINGUISTIC_COHORTS_MESSAGE,
 };
 
 const FOUNDRY_EVAL_RUN_SCHEMA_VERSION: u32 = 1;
@@ -408,9 +409,7 @@ impl FoundryEvalRunApiError {
             Self::MissingAdversarialCoverage => {
                 "Eval set must include all mandatory adversarial cohorts"
             }
-            Self::MissingLinguisticCoverage => {
-                "Eval set must include ko-KR, ja-JP, and en-US linguistic cohorts"
-            }
+            Self::MissingLinguisticCoverage => REQUIRED_LINGUISTIC_COHORTS_MESSAGE,
             Self::EvalSetNotFound => "Eval set was not registered for this capability",
             Self::UnsignedEvalRun => "Eval run must be signed before recording",
             Self::EvalRunVersionMismatch => "Eval run version must match the registered eval set",
@@ -464,10 +463,9 @@ impl FoundryEvalRunApiError {
                 "body.cases",
                 "missing prompt-injection, data-class-violation, autonomy-bypass, or tool-exfiltration cohort",
             )],
-            Self::MissingLinguisticCoverage => vec![detail(
-                "body.cases",
-                "missing ko-KR, ja-JP, or en-US locale cohort",
-            )],
+            Self::MissingLinguisticCoverage => {
+                vec![detail("body.cases", REQUIRED_LINGUISTIC_COHORTS_DETAIL)]
+            }
             Self::IdempotencyKeyReused { idempotency_key } => vec![detail(
                 "Idempotency-Key",
                 format!("{idempotency_key} is already bound to a different fingerprint"),

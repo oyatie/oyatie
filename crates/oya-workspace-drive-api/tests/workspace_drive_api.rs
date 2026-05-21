@@ -3,14 +3,14 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_workspace_drive_api::{
-    get_workspace_drive_object_from_api, put_workspace_drive_object_from_api,
+    WORKSPACE_DRIVE_GET_SURFACE, WORKSPACE_DRIVE_OPENAPI_CONTRACT, WORKSPACE_DRIVE_PUT_SURFACE,
     WorkspaceDriveApiAuthorization, WorkspaceDriveApiError, WorkspaceDriveApiPrincipal,
     WorkspaceDriveMutationBoundaryContext, WorkspaceDriveObjectDirectory,
     WorkspaceDriveObjectGetApiRequest, WorkspaceDriveObjectGetApiStatus,
     WorkspaceDriveObjectPutApiRequest, WorkspaceDriveObjectPutApiStatus,
     WorkspaceDriveObjectPutIdempotencyLedger, WorkspaceDriveObjectPutRequest,
     WorkspaceDrivePermissionGrantRequest, WorkspaceDriveReadBoundaryContext,
-    WORKSPACE_DRIVE_GET_SURFACE, WORKSPACE_DRIVE_OPENAPI_CONTRACT, WORKSPACE_DRIVE_PUT_SURFACE,
+    get_workspace_drive_object_from_api, put_workspace_drive_object_from_api,
 };
 
 const OBJECT_ID: &str = "drive_object_001";
@@ -75,12 +75,12 @@ fn put_body(object_id: &str) -> WorkspaceDriveObjectPutRequest {
         folder_id: "folder_team".to_string(),
         path: "/team/roadmap.md".to_string(),
         tenant_id: TENANT_ID.to_string(),
-        region: "kr-seoul".to_string(),
+        region: "region-home".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),
         object_storage_key: "ten_workspace_kr/drive/team/roadmap.md".to_string(),
         size_bytes: 2048,
         mime_type: "text/markdown".to_string(),
-        kms_shred_key_id: "kms/kr-seoul/ten_workspace_kr/drive/object".to_string(),
+        kms_shred_key_id: "kms/region-home/ten_workspace_kr/drive/object".to_string(),
         permissions: grants(),
         created_at_epoch_seconds: 1_700_000_010,
     }

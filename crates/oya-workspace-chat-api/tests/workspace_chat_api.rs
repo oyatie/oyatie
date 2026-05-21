@@ -50,7 +50,7 @@ fn seeded_directory() -> WorkspaceChatMessageDirectory {
         .insert_channel_seed(WorkspaceChatChannelSeed {
             channel_id: CHANNEL_ID.to_string(),
             tenant_id: TENANT_ID.to_string(),
-            region: "kr-seoul".to_string(),
+            region: "region-home".to_string(),
             cell_id: "cell-workspace-kr-001".to_string(),
             kind: "channel".to_string(),
             name: Some("incident-room".to_string()),

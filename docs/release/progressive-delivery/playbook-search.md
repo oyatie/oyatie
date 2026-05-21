@@ -8,9 +8,9 @@ date: 2026-05-12
 purpose: |
   Search index/ranker rollouts with A/B + cohort.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-shadow-diff
-  - oya-foundry-fitness-cohort-honor
+  - oya-governance-canary-required
+  - oya-governance-shadow-diff
+  - oya-governance-cohort-honor
 related_adrs: [ADR-0030, ADR-0046, ADR-0047, ADR-0048, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published

@@ -68,27 +68,27 @@ mod tests {
     #[test]
     fn tenant_identity_includes_residency_class() {
         let tenant = Tenant::new(
-            "ten_kr".to_string(),
-            "KR Tenant".to_string(),
-            "kr-seoul".to_string(),
-            ResidencyClass::StrictKr,
-            vec!["oya-pack-kr".to_string()],
+            "ten_alpha".to_string(),
+            "Alpha Tenant".to_string(),
+            "region-home".to_string(),
+            ResidencyClass::StrictHomeRegion,
+            vec!["oya-pack-alpha".to_string()],
         )
-        .expect("KR tenant residency is valid");
+        .expect("home-region tenant residency is valid");
 
-        assert_eq!(tenant.residency_class.value.label(), Some("strict_kr"));
+        assert_eq!(tenant.residency_class.value.label(), Some("strict_home_region"));
     }
 
     #[test]
     fn tenant_rejects_residency_home_region_mismatch() {
         let error = Tenant::new(
-            "ten_us".to_string(),
-            "US Tenant".to_string(),
-            "us-east".to_string(),
-            ResidencyClass::StrictKr,
-            vec!["oya-pack-kr".to_string()],
+            "ten_beta".to_string(),
+            "Beta Tenant".to_string(),
+            "region-recovery".to_string(),
+            ResidencyClass::StrictHomeRegion,
+            vec!["oya-pack-alpha".to_string()],
         )
-        .expect_err("strict KR tenants require KR home region");
+        .expect_err("strict home-region tenants require home-region primary");
 
         assert_eq!(error, TenantError::HomeRegionNotAllowedForResidency);
     }

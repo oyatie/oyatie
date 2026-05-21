@@ -19,10 +19,10 @@ purpose: |
   `standards/claude-code-harness.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Claude Code).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-banned-primitives
+planned_enforcement_ref: oya-governance-banned-primitives
 enforcement_status:
-  oya-foundry-fitness-banned-primitives: existing
-  oya-foundry-fitness-user-machine-guard: existing (§8)
+  oya-governance-banned-primitives: existing
+  oya-governance-user-machine-guard: existing (§8)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/AGENTS.md
@@ -81,7 +81,7 @@ Direct `git` / `gh` invocation inside agent fences is **permitted** when:
    ```
    **BEFORE** the invocation.
 
-The revised lane `oya-foundry-fitness-banned-primitives` catches
+The revised lane `oya-governance-banned-primitives` catches
 **undocumented** `git` / `gh` calls in agent-instruction sections, not all
 calls. Repeat invocations (≥ 5 same-shape in 30 days) auto-emit a
 migration-candidate row in `docs/MISTAKES-LEDGER.md`.
@@ -201,7 +201,7 @@ Custom OMC subagents (per AGENTS.md §OMC): `executor`, `architect`,
 ## 8. Boundaries
 
 - Claude Code MUST NOT edit `~/.claude/` from a project session — user-
-  machine state. The lane `oya-foundry-fitness-user-machine-guard` checks.
+  machine state. The lane `oya-governance-user-machine-guard` checks.
 - Claude Code MUST NOT touch the read-only reference path
   `/Users/home/Documents/GitHub/claude-code`.
 - Local `AGENTS.md` files under sub-directories MAY narrow context but

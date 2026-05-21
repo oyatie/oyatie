@@ -36,7 +36,7 @@
       "$ref:specs/products/connect/calendar.json",
       "$ref:specs/products/connect/social.json",
       "$ref:specs/products/connect/shorts.json",
-      "$ref:specs/products/connect/network.json",
+      "$ref:microservices/community/PRD.md",
       "$ref:specs/products/connect/anonymous.json",
       "$ref:specs/microservices/mail.json",
       "$ref:specs/microservices/messenger.json",
@@ -367,7 +367,7 @@
         "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
       }
     ],
-    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+    "validation_lane_ref": "oya-governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [
@@ -420,7 +420,7 @@
         "GA": 120
       },
       "verification_ref": "cargo bench -p oya-connect-suite-app -- shell_nav_p95",
-      "lane_ref": "oya-foundry-fitness-perf-budget"
+      "lane_ref": "oya-governance-perf-budget"
     },
     {
       "name": "legal_hold_action_audit_pct",
@@ -430,7 +430,7 @@
         "GA": 100
       },
       "verification_ref": "oya gate validate connect-legal-hold-audit",
-      "lane_ref": "oya-foundry-fitness-audit-chain-emission"
+      "lane_ref": "oya-governance-audit-chain-emission"
     },
     {
       "name": "ops_manual_ssh_paths",
@@ -1069,6 +1069,6 @@
   ],
   "enforcement_status": {
     "connect_expansion": "planning_contract_per_ADR-0131",
-    "validator_gap": "PR #130 updates Connect PRD/design contracts only; social/shorts/network/anonymous crates and validators are follow-up work."
+    "validator_gap": "PR #130 updates Connect PRD/design contracts only; social/shorts/anonymous crates plus the community successor for retired network content are follow-up work."
   }
 }

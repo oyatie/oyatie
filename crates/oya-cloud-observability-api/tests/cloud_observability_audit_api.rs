@@ -18,10 +18,10 @@ use oya_data_boundary_kernel::{DataClass, Purpose};
 use oya_residency_domain::ResidencyClass;
 
 const TENANT: &str = "ten_alpha";
-const REGION: &str = "kr-seoul";
-const CELL: &str = "cell-kr-seoul-a-001";
-const SIGNED_EXPORT: &str = "s3+signed://kr-seoul/ten_alpha/audit?sig=abc123";
-const RESOURCE_ID: &str = "oya:cloud:kr-seoul:ten_alpha:instance:vm-a";
+const REGION: &str = "region-home";
+const CELL: &str = "cell-region-home-a-001";
+const SIGNED_EXPORT: &str = "s3+signed://region-home/ten_alpha/audit?sig=abc123";
+const RESOURCE_ID: &str = "oya:cloud:region-home:ten_alpha:instance:vm-a";
 const HASH_A: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const HASH_B: &str = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
@@ -48,8 +48,8 @@ fn residency() -> ObservabilityResidency {
     ObservabilityResidency::new(ObservabilityResidencyCreate {
         tenant_id: TENANT.to_string(),
         region: REGION.to_string(),
-        regional_pack: "oya-pack-kr".to_string(),
-        residency: ResidencyClass::StrictKr,
+        regional_pack: "oya-pack-alpha".to_string(),
+        residency: ResidencyClass::StrictHomeRegion,
         metric_storage_region: REGION.to_string(),
         log_storage_region: REGION.to_string(),
         trace_storage_region: REGION.to_string(),
@@ -317,7 +317,7 @@ fn audit_read_api_maps_kernel_read_window_cursor_and_topic_scope_errors() {
     assert_eq!(err.status_code(), 400);
 
     let mut bad_cursor = request();
-    bad_cursor.body.cursor = Some("cur/ten_other/kr-seoul/1000/0".to_string());
+    bad_cursor.body.cursor = Some("cur/ten_other/region-home/1000/0".to_string());
     let err = read_cloud_observability_audit_from_api(&catalog(), bad_cursor)
         .expect_err("cursor tenant drift must be unprocessable");
     assert_eq!(err.status_code(), 422);

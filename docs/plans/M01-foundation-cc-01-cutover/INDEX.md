@@ -100,9 +100,9 @@ Iteration: **Iteration 2 — incorporates Architect (4 violations + 8 revisions)
 
 ### P3 — Bidirectional PRD citation + portfolio-citation fitness lane
 - **Inputs/preconditions:** P0.5 merged; P1 merged.
-- **Symbols to claim:** Two-track — doc-only icm-locks for PRD edits; scaffold-claim per ADR-0054 for `oya-foundry-fitness-portfolio-citation-kernel`.
+- **Symbols to claim:** Two-track — doc-only icm-locks for PRD edits; scaffold-claim per ADR-0054 for `oya-governance-portfolio-citation-kernel`.
 - **Agents and parallelism:** Track 1: 2 agents in parallel editing both PRD files. Track 2: 1 lead agent scaffold-claim window; 1 follow-up agent implements kernel logic (lifted from `pre-cutover-drafts.md §Draft 5`).
-- **Outputs / acceptance evidence:** Both PRD files cross-cite; `cargo run -p oya-foundry-fitness-portfolio-citation-kernel` green.
+- **Outputs / acceptance evidence:** Both PRD files cross-cite; `cargo run -p oya-governance-portfolio-citation-kernel` green.
 - **Maps to spec criterion:** A1. Citation: ADR-0054.
 
 ### P3.5 — Cross-cite ultragoal foundry corpus into canonical foundry SPEC
@@ -116,19 +116,19 @@ Iteration: **Iteration 2 — incorporates Architect (4 violations + 8 revisions)
 ### P4 — Rewrite agent-facing memory
 - **Inputs/preconditions:** P2 merged; P1 merged; P3.5 merged.
 - **Symbols to claim:** doc-only — `icm-lock-p4`. Files: `oyatie/CLAUDE.md`, `oyatie/AGENTS.md`, `oyatie/docs/AGENTS.md`. Up to 3 agents in parallel via per-file icm sub-locks.
-- **Outputs / acceptance evidence:** `oya-foundry-fitness-banned-primitives` lane scaffolded (not yet enforcing). HTML-comment-fence convention `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` introduced.
+- **Outputs / acceptance evidence:** `oya-governance-banned-primitives` lane scaffolded (not yet enforcing). HTML-comment-fence convention `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` introduced.
 - **Maps to spec criterion:** A5.
 
 ### P5 — Hook + skill audit (banned-primitives lane activates here)
 - **Inputs/preconditions:** P4 merged.
 - **Symbols to claim:** doc/config-only — `icm-lock-p5`. Scope: all `**/*.md`, `**/*.json`, `**/.claude/**` paths inside the repo containing agent-instruction sections.
-- **Outputs / acceptance evidence:** (a) `oyatie/docs/AGENT-INSTRUCTION-SOURCES.md` enumerates every agent-instruction-bearing file. (b) `oya-foundry-fitness-banned-primitives` lane **activates** — zero hits for banned tokens in agent-instruction sections. (c) Lane scope extended to grep for stray `archive/pre-grit-cutover-2026-05-12/` references.
+- **Outputs / acceptance evidence:** (a) `oyatie/docs/AGENT-INSTRUCTION-SOURCES.md` enumerates every agent-instruction-bearing file. (b) `oya-governance-banned-primitives` lane **activates** — zero hits for banned tokens in agent-instruction sections. (c) Lane scope extended to grep for stray `archive/pre-grit-cutover-2026-05-12/` references.
 - **Linus data-shape reshape:** "scattered git/gh references in agent skills" → "single grit/icm/oya-tooling-agent-read invocation pattern, lane-enforced."
 - **Maps to spec criterion:** A5 (activation), A6.
 
 ### P6 — Archive (NOT delete) orchestration glue + scaffold archive-orphan lane
 - **Inputs/preconditions:** P1, P2, P3.5, P4, P5 merged. Banned-primitives lane green.
-- **Symbols to claim:** Two-track: `git mv` (human-orchestrator carve-out) + scaffold-claim for `oya-foundry-fitness-archive-orphan-kernel`.
+- **Symbols to claim:** Two-track: `git mv` (human-orchestrator carve-out) + scaffold-claim for `oya-governance-archive-orphan-kernel`.
 - **Outputs / acceptance evidence:** Archive directory exists; deprecation notice at `bominal/agents/ultragoal/DEPRECATED.md`; archive-orphan lane green; every ARCHIVE-class row has non-null `archived_at` timestamp; icm carve-out events recorded.
 - **Maps to spec criterion:** A3 (archive half).
 
@@ -151,8 +151,8 @@ Iteration: **Iteration 2 — incorporates Architect (4 violations + 8 revisions)
 
 ### P10 — Authoritative-tracked repo-walk audit
 - **Inputs/preconditions:** P1–P7 merged.
-- **Symbols to claim:** Scaffold-claim per ADR-0054 for `crates/oya-foundry-fitness-authoritative-tracked-kernel/`.
-- **Outputs / acceptance evidence:** `oya-foundry-fitness-authoritative-tracked-kernel` lane green; no `.gitignored` paths hold authoritative state.
+- **Symbols to claim:** Scaffold-claim per ADR-0054 for `crates/oya-governance-authoritative-tracked-kernel/`.
+- **Outputs / acceptance evidence:** `oya-governance-authoritative-tracked-kernel` lane green; no `.gitignored` paths hold authoritative state.
 - **Linus data-shape reshape:** "authoritative state spread across tracked-and-ignored paths" → "authoritative ≡ tracked, lane-enforced."
 - **Maps to spec criterion:** A8. Citation: ADR-0054.
 
@@ -178,14 +178,14 @@ ADR slot numbers verified: highest existing is ADR-0051; 0052/0053/0054 are free
 
 | Spec criterion | Phase(s) | Verification command / lane |
 |---|---|---|
-| A1 — Bidirectional PRD citation | P3 + P3.5 | `cargo run -p oya-foundry-fitness-portfolio-citation-kernel` green on both sides; foundry-corpus cross-cite asserted |
+| A1 — Bidirectional PRD citation | P3 + P3.5 | `cargo run -p oya-governance-portfolio-citation-kernel` green on both sides; foundry-corpus cross-cite asserted |
 | A2 — Inventory ledger committed | P1 (+ P3.5 phantom-path correction) | ADR-shape lane green; every row's classification ∈ closed set; `archived_at` column present; phantom path corrected; referenced from `ADR-INDEX.md` |
 | A3 — Orchestration glue archived + deleted | P6 (archive) + P7 (delete) | `grit symbols` shows no active orchestration-glue paths; archive dir contains the moved set; three concrete gates green at P7 |
 | A4 — `oya-tooling-agent-read` helper shipped | P2 | `cargo test -p oya-tooling-agent-read` green; audit-chain query shows invocations; mutation attempts fail closed; scaffold-claim per ADR-0054 |
-| A5 — Agent-facing memory rewritten + lane active | P4 (scaffold) + P5 (activate) | `oya-foundry-fitness-banned-primitives` lane green from P5 forward |
+| A5 — Agent-facing memory rewritten + lane active | P4 (scaffold) + P5 (activate) | `oya-governance-banned-primitives` lane green from P5 forward |
 | A6 — Hook + skill audit | P5 | `oyatie/docs/AGENT-INSTRUCTION-SOURCES.md` enumerates every agent-instruction-bearing file; each has a passing audit row |
 | A7 — Parallel-claim demo (session-less, single-file) | P8 (+ P9 follow-up for session mode) | `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` reproducible; pinned to billing-app symbols |
-| A8 — Authoritative artifacts repo-tracked | P10 | `oya-foundry-fitness-authoritative-tracked-kernel` lane green; scaffold-claim per ADR-0054 |
+| A8 — Authoritative artifacts repo-tracked | P10 | `oya-governance-authoritative-tracked-kernel` lane green; scaffold-claim per ADR-0054 |
 | A9 — Spec-to-plan handoff path | this document (line 3) | **SATISFIED** — Critic verified via direct file-path check at iter-1 review |
 | A10 — Linus-style audit | Final integration PR template | PR body "good-taste audit" section populated with five reshape items; empty = fail |
 

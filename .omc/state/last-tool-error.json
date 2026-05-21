@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk grep -rln \\\"runtimeClassName: gvisor\\\" /Users/jasonlee/oyatie/microservices/ 2>&1 | head -20 && echo \\\"---\\\" && rtk grep -rln \\\"gvisor\\\" /Users/jasonlee/oyatie/microservices/observabil...",
-  "error": "Exit code 1\n/Users/jasonlee/oyatie/microservices/sheets/IP-001-iac-bootstrap.md\n/Users/jasonlee/oyatie/microservices/anonymous/threat-model.md\n/Users/jasonlee/oyatie/microservices/translate/decisions/ADR-TRANSLATE-0005-document-round-trip-fidelity.md\n/Users/jasonlee/oyatie/microservices/translate/IP-001-iac-and-pack-overlays.md\n/Users/jasonlee/oyatie/microservices/meet/IP-001-iac-bootstrap.md\n/Users/jasonlee/oyatie/microservices/meet/threat-model.md\n/Users/jasonlee/oyatie/microservices/meet/deci...",
-  "timestamp": "2026-05-18T09:08:53.515Z",
+  "tool_input_preview": "{\"command\":\"ls -la /Users/jasonlee/oyatie/specs/microservices/manifest-schema.json /Users/jasonlee/oyatie/specs/compliance-pack-floors.json /Users/jasonlee/oyatie/specs/oss-stewardship-registry.json /...",
+  "error": "Exit code 1\nls: /Users/jasonlee/oyatie/specs/iac-module-library.json: No such file or directory\n-rw-r--r--@ 1 jasonlee  staff  13390 May 21 11:11 /Users/jasonlee/oyatie/specs/audit-event-schema.json\n-rw-r--r--@ 1 jasonlee  staff  24889 May 21 11:10 /Users/jasonlee/oyatie/specs/compliance-pack-floors.json\n-rw-r--r--@ 1 jasonlee  staff  20410 May 21 11:11 /Users/jasonlee/oyatie/specs/finops-dimensional-model.json\n-rw-r--r--@ 1 jasonlee  staff  35359 May 21 12:12 /Users/jasonlee/oyatie/specs/micros...",
+  "timestamp": "2026-05-21T16:16:26.064Z",
   "retry_count": 1
 }

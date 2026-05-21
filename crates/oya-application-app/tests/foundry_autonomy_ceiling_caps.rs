@@ -88,7 +88,7 @@ fn fintech_financial_cap_limits_t4_tenant_to_t2() {
         "ten_cap_fintech",
         "cap.autonomy.fintech",
         AutonomyTier::T3ExecuteWithApproval,
-        vec![DataClass::FinancialKrCredit],
+        vec![DataClass::FinancialRegulatedCredit],
     );
 
     let denied = foundation

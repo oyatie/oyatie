@@ -17,10 +17,10 @@ purpose: |
   Level 2 provenance attestation. Implements MASTERPLAN Directive 5 (distroless
   + smallest-image containers) and Directive 6 (hyperscaler-bar).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-image-discipline
+planned_enforcement_ref: oya-governance-image-discipline
 enforcement_status:
-  oya-foundry-fitness-image-discipline: F-PENDING-IMAGE-DISCIPLINE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
-  oya-foundry-fitness-container-base: F-PENDING-CONTAINER-BASE (crate missing)
+  oya-governance-image-discipline: F-PENDING-IMAGE-DISCIPLINE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  oya-governance-container-base: F-PENDING-CONTAINER-BASE (crate missing)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/security-review.md
@@ -74,7 +74,7 @@ Sources: [distroless support policy](https://github.com/GoogleContainerTools/dis
 | `latest` tag, any image | non-reproducible |
 | Self-hosted FROM scratch with manual cert bundles | distroless ships the cert bundle |
 
-Lane: `oya-foundry-fitness-container-base` refuses production manifests
+Lane: `oya-governance-container-base` refuses production manifests
 that pull from the forbidden list. Build-stage usage is allowed (multi-
 stage with FROM gcr.io/distroless/... as final stage).
 
@@ -141,7 +141,7 @@ Required rules:
 
 ## 5. Image-size budget
 
-Per-binary budget planned for advisory enforcement by `oya-foundry-fitness-image-discipline`:
+Per-binary budget planned for advisory enforcement by `oya-governance-image-discipline`:
 
 | Binary class | Compressed budget | Decompressed budget |
 |---|---|---|
@@ -222,7 +222,7 @@ Policy expectation:
 - Image MUST carry SLSA-L2 provenance.
 - Image MUST be pinned by digest (no tags).
 
-Lane: `oya-foundry-fitness-release-supply-chain` (per DOC-CATALOG.md §4).
+Lane: `oya-governance-release-supply-chain` (per DOC-CATALOG.md §4).
 
 ## 10. Trivy scan gate
 

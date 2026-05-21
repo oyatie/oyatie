@@ -177,7 +177,7 @@ fn parse_capability_data_class(path: &Path, label: &str) -> Result<DataClass, St
         "PIPA_ARTICLE_23" | "PIPA_ARTICLE23" => Ok(DataClass::PipaArticle23),
         "SENSITIVE_PIPA_ART23" => Ok(DataClass::SensitivePipaArticle23),
         "FINANCIAL" => Ok(DataClass::Financial),
-        "FINANCIAL_KR_신용정보" | "FINANCIAL_KR_CREDIT" => Ok(DataClass::FinancialKrCredit),
+        "FINANCIAL_REGULATED_CREDIT" => Ok(DataClass::FinancialRegulatedCredit),
         "USAGE" => Ok(DataClass::Usage),
         "BEHAVIORAL_TENANT_PRODUCT" => Ok(DataClass::BehavioralTenantProduct),
         "BEHAVIORAL_ADS" => Ok(DataClass::BehavioralAds),

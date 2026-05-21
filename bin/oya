@@ -20,4 +20,11 @@ if [ -z "$REPO_ROOT" ]; then
   exit 1
 fi
 
+# The canonical repo gate surface must be reproducible in constrained
+# sandboxes. External rustc wrappers such as sccache can fail before the gate
+# code runs, so keep the wrapper hermetic by default and allow explicit opt-in.
+if [ "${OYA_ALLOW_RUSTC_WRAPPER:-}" != "1" ]; then
+  unset RUSTC_WRAPPER
+fi
+
 exec cargo run --quiet -p oya-dev-cli --manifest-path "$REPO_ROOT/Cargo.toml" -- "$@"

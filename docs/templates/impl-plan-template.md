@@ -9,7 +9,7 @@ purpose: |
   An autonomous executor reading this plan must be able to act without escalation:
   concrete file targets, crate names with BNF v4.1 justification, code skeletons,
   acceptance commands, test plan, grit symbols, ICM payload, halt conditions.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/phase-spec-template.md

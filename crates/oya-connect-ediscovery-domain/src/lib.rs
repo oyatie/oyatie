@@ -745,8 +745,8 @@ mod tests {
         EdiscoveryRequest::new(EdiscoveryRequestCreate {
             request_id: "ediscovery-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
-            destination_region: "us-east-1".into(),
+            region: "region-alpha1".into(),
+            destination_region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             actor_ref: "auditor-1".into(),
             actor_role: EdiscoveryActorRole::Auditor,
@@ -765,7 +765,7 @@ mod tests {
         RetentionRecordRef::new(RetentionRecordRefCreate {
             record_id: source_ref.into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             surface,
             subject_ref: Some("subject-1".into()),
             data_class: privacy(DataClass::PiiIdentifying),
@@ -779,7 +779,7 @@ mod tests {
         let policy = retention_policy_for_export(
             "retention-export".into(),
             "tenant-1".into(),
-            "us-east-1".into(),
+            "region-alpha1".into(),
             surface,
             1_699_000_000,
         )
@@ -851,8 +851,8 @@ mod tests {
         assert_eq!(unauthorized, Err(EdiscoveryError::UnauthorizedActorRole));
 
         let cross_region = EdiscoveryRequest::new(EdiscoveryRequestCreate {
-            region: "kr-seoul-1".into(),
-            destination_region: "us-east-1".into(),
+            region: "region-beta1".into(),
+            destination_region: "region-alpha1".into(),
             consent_receipt_ref: None,
             ..request_create()
         });
@@ -1053,8 +1053,8 @@ mod tests {
         EdiscoveryRequestCreate {
             request_id: "ediscovery-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
-            destination_region: "us-east-1".into(),
+            region: "region-alpha1".into(),
+            destination_region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             actor_ref: "auditor-1".into(),
             actor_role: EdiscoveryActorRole::Auditor,

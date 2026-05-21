@@ -1,0 +1,35 @@
+{"schema_version":"1.0","timestamp":"2026-05-20T15:27:00.147Z","command":"omx team api create-task","ok":true,"operation":"create-task","data":{"task":{"subject":"Community post-store worker dispatch contract seam","description":"FD-001 community product slice, serialized root-manifest/new-crate ownership. Execute one verified ChangeSet only: cs-community-post-store-worker-dispatch-contract-fd001-alignment.
+
+Decision/worker next step:
+- Task61 completed/promoted at commit 5fc03636 with adapter-postgres RLS contract seam.
+- IP-004 still requires worker/sdk/app after adapter-postgres/rest. This slice lands the worker dispatch contract seam for search-reindex + audit-bridge jobs before runtime NATS/live audit/search adapters, so later integration cannot fake queue handling or bypass tenant/idempotency/audit context.
+- Worker-1 owns mail task63. Worker-2 owns messenger task62. Worker-3 remains the only root-manifest/community new-crate owner.
+
+Owned scope:
+- /Users/jasonlee/oyatie-worktrees/fd001-worker3-share-token-20260520T132720Z
+- Cargo.toml and Cargo.lock only as required to register oya-community-post-store-worker
+- crates/oya-community-post-store-worker/**
+- registry/catalog/oya-community-post-store-worker.yaml only if required by catalog/architecture gates
+- evidence/fd001/cs-community-post-store-worker-dispatch-contract-fd001-alignment-*
+- evidence/multispectrum/cs-community-post-store-worker-dispatch-contract-fd001-alignment.json
+
+Context to load before editing:
+- specs/root-hub-pointers.json, docs/AGENTS.md, specs/masterplan.json, specs/planning-closure-contract.json, specs/planning-closure-status-closure-ledger.json, specs/master-plan-sequencing.json, docs/decisions/ADR-0217-vertical-slice-rollout-order.md.
+- microservices/community/IP-004-post-store-adapter-postgres-rest-worker-sdk-app.md.
+- Existing crates/oya-community-post-store-{kernel,domain,api,usecase,adapter,adapter-postgres,rest} and catalogs from tasks48/51/55/61.
+- One existing runtime/catalog role sample if needed for architecture-boundaries.
+
+Implementation bar:
+- Add oya-community-post-store-worker as a runtime/worker crate. No live NATS, no live search engine, no live audit-chain, no app composition root, no fake external readiness.
+- Model protocol-neutral worker job envelopes for search-reindex and audit-bridge with tenant_id, request_id, idempotency_key, correlation_id, post_id, audit_partition_key, occurred_at, retry attempt, and source event label.
+- Provide deterministic validation and dispatch planning that refuses blank tenant/request/idempotency/post/audit fields, tenant mismatch, unsupported event labels, stale schema version, retry budget exhaustion, and audit/search dispatch without partition evidence.
+- Define ports/traits for queue ack/nack, search reindex sink, and audit bridge sink; business decisions stay in pure functions, runtime adapters remain future work.
+- Error/reason labels must be deterministic and non-PII; do not include body, author, sender, recipient, or raw message content in errors.
+- Tests must cover valid search-reindex plan, valid audit-bridge plan, tenant mismatch refusal, blank required fields refusal, unsupported event label refusal, retry exhausted refusal, no PII/body leakage in errors, and ack/nack decision mapping.
+
+Required flow:
+1. Verify worktree clean at 5fc03636 and run planning-closure start gate.
+2. Oya VCS claim before writes with agent worker-3 and this ChangeSet id, including root manifest/package/catalog/evidence paths.
+3. Verify cargo fmt --all --check, focused package tests, cargo nextest for new package, clippy -D warnings, cargo metadata, planning-closure, data-class, architecture-boundaries, catalog validate, dependency-seam, oya git diff --check.
+4. Oya VCS verify/done/promote. Completion result must include a line beginning exactly: Subagent skip reason: serialized root-manifest/new-crate community worker lane; parallel execution is active across worker-1/worker-2 disjoint scopes, but this root-manifest slice was not split further to avoid conflicting claims.
+5. Report exact files, command results, evidence paths, commit, promotion status, and explicitly list live NATS/search/audit-chain/load/SLO gaps as not-tested rather than done.","status":"pending","owner":"worker-3","requires_code_change":true,"id":"64","depends_on":[],"version":1,"created_at":"2026-05-20T15:27:00.153Z"}}}

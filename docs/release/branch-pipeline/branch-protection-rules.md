@@ -11,10 +11,10 @@ purpose: |
   provenance requirement. Git-server-agnostic; same shape on GitHub / GitLab /
   Gitea / Bitbucket. Encoded in branch-protection.yaml schema.
 planned_enforcement_ref:
-  - oya-foundry-fitness-branch-protection-drift
-  - oya-foundry-fitness-no-direct-origin-dev-commit
-  - oya-foundry-fitness-no-direct-staging-commit
-  - oya-foundry-fitness-no-direct-prod-commit
+  - oya-governance-branch-protection-drift
+  - oya-governance-no-direct-origin-dev-commit
+  - oya-governance-no-direct-staging-commit
+  - oya-governance-no-direct-prod-commit
 related_adrs: [ADR-0039, ADR-0041, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -33,7 +33,7 @@ Branch protection is encoded in `.github/branch-protection.yaml` (the GitHub-nat
 - `oya-foundry-branch-protection-adapter-gitea` — Gitea branch-protection endpoint.
 - `oya-foundry-branch-protection-adapter-bitbucket` — Bitbucket repository-restrictions API.
 
-A nightly drift-check (`oya-foundry-fitness-branch-protection-drift`, BLOCKER) compares the live branch-protection state to the schema and refuses divergence.
+A nightly drift-check (`oya-governance-branch-protection-drift`, BLOCKER) compares the live branch-protection state to the schema and refuses divergence.
 
 ## 2. `dev` branch (origin/dev) protection
 
@@ -61,13 +61,13 @@ branches:
             - oya-foundry-dev-promoter
       required_status_checks:
         contexts:
-        - oya-foundry-fitness-cohesion
-        - oya-foundry-fitness-supply-chain
-        - oya-foundry-fitness-api-semver
-        - oya-foundry-fitness-pr-shape
-        - oya-foundry-fitness-pr-review-verdict-present
-        - oya-foundry-fitness-promotion-gate-local-dev-to-origin-dev
-        - oya-foundry-fitness-image-discipline
+        - oya-governance-cohesion
+        - oya-governance-supply-chain
+        - oya-governance-api-semver
+        - oya-governance-pr-shape
+        - oya-governance-pr-review-verdict-present
+        - oya-governance-promotion-gate-local-dev-to-origin-dev
+        - oya-governance-image-discipline
       merge_methods:
         squash: true
         rebase: false
@@ -97,8 +97,8 @@ branches:
       required_status_checks:
         contexts:
         # observational lanes (re-run on push); not strictly gated
-        - oya-foundry-fitness-cohesion
-        - oya-foundry-fitness-supply-chain
+        - oya-governance-cohesion
+        - oya-governance-supply-chain
       merge_methods:
         squash: false
         rebase: false
@@ -131,14 +131,14 @@ branches:
         required_approving_review_count: 0
       required_status_checks:
         contexts:
-        - oya-foundry-fitness-cohesion
-        - oya-foundry-fitness-supply-chain
-        - oya-foundry-fitness-api-semver
-        - oya-foundry-fitness-promotion-gate-staging-to-prod
-        - oya-foundry-fitness-canary-required
-        - oya-foundry-fitness-rollback-evidence
-        - oya-foundry-fitness-cohort-honor
-        - oya-foundry-fitness-slo-burn-rate-fast
+        - oya-governance-cohesion
+        - oya-governance-supply-chain
+        - oya-governance-api-semver
+        - oya-governance-promotion-gate-staging-to-prod
+        - oya-governance-canary-required
+        - oya-governance-rollback-evidence
+        - oya-governance-cohort-honor
+        - oya-governance-slo-burn-rate-fast
       merge_methods:
         squash: false
         rebase: false
@@ -174,7 +174,7 @@ Human reviewers are involved only for **CODEOWNERS-pathed** changes (ADR text, c
 
 ## 8. Drift detection
 
-`oya-foundry-fitness-branch-protection-drift` (BLOCKER) runs nightly. Reconciles live state to schema. Drift → PR auto-opened by `dev-promoter` to restore the schema (with a synthetic reviewer-agent verdict from `branch-protection-reviewer` agent; an exception to the change-class table for this specific file).
+`oya-governance-branch-protection-drift` (BLOCKER) runs nightly. Reconciles live state to schema. Drift → PR auto-opened by `dev-promoter` to restore the schema (with a synthetic reviewer-agent verdict from `branch-protection-reviewer` agent; an exception to the change-class table for this specific file).
 
 ## 9. Hot-fix path (carve-out)
 

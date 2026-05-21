@@ -10,7 +10,7 @@ purpose: |
   API reference inside the mdbook, with a cross-crate link graph and a
   nightly + per-PR delta surface. This is the canonical Rust API doc pipeline
   for Oyatie — no hand-written API reference docs are permitted to compete.
-planned_enforcement_ref: oya-foundry-fitness-rustdoc-publish
+planned_enforcement_ref: oya-governance-rustdoc-publish
 extends_crates:
   - oya-foundry-mdbook-kernel
   - oya-foundry-readme-doc-coverage-kernel
@@ -50,7 +50,7 @@ Take every workspace crate's `cargo doc --no-deps --document-private-items=false
 | Nightly | Full re-render across all workspace members; full link-graph rebuild. |
 | Per-tag release | Snapshot of the rustdoc tree archived to `docs/site/archive/<version>/api/rust/`. |
 
-## 5. Validation gates (the `oya-foundry-fitness-rustdoc-publish` lane)
+## 5. Validation gates (the `oya-governance-rustdoc-publish` lane)
 
 The lane consumes the JSON sidecar plus the rendered source tree and refuses to pass when any of the following hold:
 

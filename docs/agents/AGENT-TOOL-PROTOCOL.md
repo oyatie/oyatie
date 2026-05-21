@@ -24,7 +24,7 @@ doc_status: published
 
 # Agent Tool Protocol
 
-> Sanctioned primitives: **`grit`**, **`icm`**, **`oya-tooling-agent-read`**. Everything else is either Directive-12 documented exception or banned. Lane: `oya-foundry-fitness-banned-primitives`. Foundation: ADR-0053 (sanctioned primitives) and ADR-0054 (scaffold-claim).
+> Sanctioned primitives: **`grit`**, **`icm`**, **`oya-tooling-agent-read`**. Everything else is either Directive-12 documented exception or banned. Lane: `oya-governance-banned-primitives`. Foundation: ADR-0053 (sanctioned primitives) and ADR-0054 (scaffold-claim).
 
 ## `grit` — claim, work, hand-off
 
@@ -88,7 +88,7 @@ icm store -t direct-tool-invocations \
   -i high -k "git,<context>"
 ```
 
-The lane `oya-foundry-fitness-banned-primitives` (revised per Directive 12) catches *undocumented* invocations only. ≥5 invocations of the same shape in 30 days auto-emits a `MISTAKES-LEDGER` migration-candidate row — this is a signal to extend `oya-tooling-agent-read`, not a punishment.
+The lane `oya-governance-banned-primitives` (revised per Directive 12) catches *undocumented* invocations only. ≥5 invocations of the same shape in 30 days auto-emits a `MISTAKES-LEDGER` migration-candidate row — this is a signal to extend `oya-tooling-agent-read`, not a punishment.
 
 **Forbidden under Directive 12 even with rationale:**
 - `git push --force` to `main`

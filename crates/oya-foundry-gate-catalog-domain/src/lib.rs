@@ -104,7 +104,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "changeset-state-monotonicity",
     "changeset-state-enum-closed",
     // PR #143 Fix-D strict gates.
-    "eu-ai-act-annex-iii-refusal",
+    "high-risk-auto-decision-refusal",
     "slsa-l3-evidence-grounded",
     // ADR-0145 enforcement gates (advisory / DEFERRED mode until strict
     // parsers land per registry/placeholder-debt/adr-follow-ups.yaml#adr-0145-*).

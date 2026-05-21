@@ -9,8 +9,8 @@ purpose: |
   Blue/green for stateful migrations, schema changes, runtime cutovers, capability cutovers.
   Atomic switchover via traffic-shift (not deployment-swap). Up/down/dry-run/per-tenant/per-cell rollback per D14.
 planned_enforcement_ref:
-  - oya-foundry-fitness-rollback-evidence
-  - oya-foundry-fitness-schema-migration
+  - oya-governance-rollback-evidence
+  - oya-governance-schema-migration
 related_adrs: [ADR-0040, ADR-0045, ADR-0049, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -65,7 +65,7 @@ green (soaked; blue removed)
 4. **Cut writers to new shape only.** New code stops dual-writing.
 5. **Destructive teardown (separate release).** Drop old columns; **at least 7 days after writer cutover**.
 
-Each step is its own release; **no step compresses two**. Planned advisory lane: `oya-foundry-fitness-schema-migration` (existing lane; extend).
+Each step is its own release; **no step compresses two**. Planned advisory lane: `oya-governance-schema-migration` (existing lane; extend).
 
 ## 5. Up / down / dry-run / per-tenant / per-cell rollback (D14)
 
@@ -79,7 +79,7 @@ Every blue/green release MUST emit signed evidence covering all five rollback mo
 | **Per-tenant** | Re-shift one tenant back to blue while others stay on green | Per-tenant routing rule + cohort intersect log |
 | **Per-cell** | Re-shift one cell back to blue (default unit per [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md)) | Per-cell traffic-shift log |
 
-All five emitted by `oya-foundry-evidence-kernel` and validated by `oya-foundry-fitness-rollback-evidence` (NEW; BLOCKER if unsigned).
+All five emitted by `oya-foundry-evidence-kernel` and validated by `oya-governance-rollback-evidence` (NEW; BLOCKER if unsigned).
 
 Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), rollback evidence stored via `icm store -t prod-rollbacks`.
 
@@ -97,9 +97,9 @@ AWS CodeDeploy Blue/Green (ECS/EC2/Lambda); Microsoft Azure Slot Swap (App Servi
 
 ## 9. Compliance gates
 
-- `oya-foundry-fitness-rollback-evidence` (NEW; BLOCKER).
-- `oya-foundry-fitness-schema-migration` (existing; extend).
-- `oya-foundry-fitness-cohort-honor` (NEW; HIGH).
+- `oya-governance-rollback-evidence` (NEW; BLOCKER).
+- `oya-governance-schema-migration` (existing; extend).
+- `oya-governance-cohort-honor` (NEW; HIGH).
 
 ## 10. ADR citations
 

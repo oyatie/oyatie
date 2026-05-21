@@ -19,7 +19,7 @@ ITERATE-WITH-REVISIONS. Option A's strict-phased archive-first sequencing is the
 
 1. Plan never references the **scaffold-claim pattern** from `pre-cutover-drafts §Draft 2`, so P2's "claim `tools/oya-agent-read/src/main.rs::main`" is impossible-at-claim-time (the file does not exist yet, hence is not in the grit symbol index, hence the claim will FK-fail exactly like the orchestrator already reproduced).
 2. The "two consecutive CI green runs" gate at P7 is unfalsifiable as written — no definition of *which* CI runs count.
-3. P3 lets the bidirectional-citation lane crate (`oya-foundry-fitness-portfolio-citation`) be scaffolded under the same chicken-and-egg as P2 without acknowledging the pattern.
+3. P3 lets the bidirectional-citation lane crate (`oya-governance-portfolio-citation`) be scaffolded under the same chicken-and-egg as P2 without acknowledging the pattern.
 
 Fix those three and the plan is approvable.
 
@@ -41,8 +41,8 @@ Rewrite agent-facing memory FIRST, ship `oya-agent-read` SECOND. Argument: the c
 ## Principle violations (deliberate-mode)
 
 - **VIOLATION 1** — P2 symbol-claim list (`tools/oya-agent-read/src/main.rs::main`, ...) is impossible at claim-time (file does not exist; not indexed by `grit init`; FK error reproduces deterministically on non-indexed symbols). Violates §Constraints items 1 and 5.
-- **VIOLATION 2** — P3 has the same chicken-and-egg as P2 and never acknowledges it (`crates/oya-foundry-fitness-portfolio-citation/src/lib.rs::check`, `::main`).
-- **VIOLATION 3** — P10 has the same problem a third time (`crates/oya-foundry-fitness-authoritative-tracked/src/lib.rs::check`, `::main`).
+- **VIOLATION 2** — P3 has the same chicken-and-egg as P2 and never acknowledges it (`crates/oya-governance-portfolio-citation/src/lib.rs::check`, `::main`).
+- **VIOLATION 3** — P10 has the same problem a third time (`crates/oya-governance-authoritative-tracked/src/lib.rs::check`, `::main`).
 - **VIOLATION 4** — ADR §Decision is literally false during P1-P2. The sanctioned set during that window is `{grit, icm}` plus implicit bootstrap-window carve-out for read-side `git`/`gh`. Plan does not name this.
 
 ## Load-bearing-question answers
@@ -62,7 +62,7 @@ Rewrite agent-facing memory FIRST, ship `oya-agent-read` SECOND. Argument: the c
 
 1. **Add P0.5 (or fold into P1)**: land `registry/placeholder-debt/adr-follow-ups.yaml#grit-scaffold-claim-pattern (superseded by ADR-0116)` (lift from `pre-cutover-drafts §Draft 2`) before P2. Without this, P2's claim-list is impossible. Satisfies A2; unblocks A4.
 2. **Amend ADR §Decision**: add "cutover bootstrap window" clause naming P1-P2 as the bootstrap interval during which the sanctioned set is `{grit, icm}` + audited carve-out; banned-primitives lane activates at P5 merge. Without this, ADR is literally false during cutover. Satisfies A5/A6 with clear activation timing.
-3. **Replace P7's gate** with: "P7 merges only after (a) banned-primitives lane green on main HEAD post-P6-merge, (b) `oya-foundry-fitness-archive-orphan` lane confirms no living code/docs/configs reference archived paths (lane scaffolded at P6), (c) inventory ledger's per-row `archived_at` timestamp non-null for every ARCHIVE-class row." Without this, gate is unfalsifiable. Satisfies A3; tightens A2.
+3. **Replace P7's gate** with: "P7 merges only after (a) banned-primitives lane green on main HEAD post-P6-merge, (b) `oya-governance-archive-orphan` lane confirms no living code/docs/configs reference archived paths (lane scaffolded at P6), (c) inventory ledger's per-row `archived_at` timestamp non-null for every ARCHIVE-class row." Without this, gate is unfalsifiable. Satisfies A3; tightens A2.
 4. **Add ADR §Consequences §Neutral**: "The cutover itself runs under a one-time human-orchestrator carve-out for `git mv`/`git rm`/`gh issue create` (P6/P7/P9). Post-cutover, lifecycle is `grit claim → work → grit done`; cutover commits are not retroactively flowed through `grit done`." Documentation hygiene. Supports A10.
 5. **Define "human orchestrator"** in ADR §Decision Drivers or §Glossary: named individuals authorized in `oyatie/docs/RACI-OWNERSHIP.md`; each carve-out invocation recorded via `icm store -t cutover-orchestrator-actions -c '<action>' -i critical` before execution. Without this, "orchestrator" is rhetorical cover. Satisfies §Constraints item 1 by making carve-out scope literal and audited.
 6. **P8: pin demo symbols** to Draft 3's concrete proposals: `crates/oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus` and `::CloudBillingMeterUnitRecord`. Add one sentence to runbook outline: "Demonstrates per-symbol locking within a single file, satisfying A7's non-overlapping-symbols criterion." Reuse Draft 3 as runbook seed. Without this, demo is deferred and risks compile-fail mid-cutover. Satisfies A7 with concrete artifact.

@@ -1,0 +1,5 @@
+# Leader read-only verification snapshot 20260520T130029Z
+## worker2 current catalog validate
+catalog validation passed: 544 records
+## worker2 current data-class validate
+data class fitness validation passed: 1675 fields checked, 1387 annotated, 288 legacy unannotated

@@ -1,0 +1,105 @@
+{
+  "schema_version": "2026-05-20.capability-tier.v1",
+  "capability_tier_id": "gold",
+  "display_name": "Gold",
+  "authority": [
+    "ADR-0316",
+    "ADR-0321",
+    "enterprise-software-coverage-matrix-2026-05-21",
+    "cloud-k8s-tier-matrix"
+  ],
+  "included": "Revenue-bearing enterprise tier with multi-AZ active-active topology, higher throughput, and seven-year evidence posture.",
+  "hardware_envelope": {
+    "control_plane_nodes": 9,
+    "control_plane_vcpu_per_node": 16,
+    "control_plane_ram_gib_per_node": 64,
+    "control_plane_nvme_gib_per_node": 500,
+    "etcd_topology": "dedicated_multi_az_etcd",
+    "etcd_nodes": 9,
+    "etcd_vcpu_per_node": 16,
+    "etcd_ram_gib_per_node": 64,
+    "etcd_nvme_gib_per_node": 1024,
+    "worker_node_min": 18,
+    "worker_node_max": 300,
+    "worker_vcpu_per_node": 32,
+    "worker_ram_gib_per_node": 128,
+    "worker_nvme_gib_per_node": 2048,
+    "ceph_storage_nodes": 9,
+    "ceph_vcpu_per_node": 32,
+    "ceph_ram_gib_per_node": 128,
+    "ceph_nvme_tib_per_node": 8,
+    "aggregate_worker_vcpu_ceiling": 9600,
+    "aggregate_worker_ram_gib_ceiling": 38400,
+    "aggregate_raw_storage_tib_ceiling": 1200,
+    "az_count": 3,
+    "rack_failure_domains": 9
+  },
+  "service_level_objectives": {
+    "monthly_availability_pct": 99.99,
+    "cluster_api_availability_pct": 99.99,
+    "api_p95_latency_ms": 180,
+    "api_p99_latency_ms": 500,
+    "cross_az_pod_scheduling_p99_seconds": 60,
+    "mesh_policy_propagation_p99_seconds": 20,
+    "support_response_minutes_p1": 30,
+    "rpo_minutes": 240,
+    "rto_minutes": 60
+  },
+  "feature_set": [
+    "multi-AZ active-active service profile",
+    "Ceph RBD storage with erasure-coded pool",
+    "Velero 4-hour incremental backups",
+    "tenant data RPO under four hours",
+    "AI-assisted tier surfaces with human review gates",
+    "advanced workflow replay and rollback",
+    "SOC-2 and ISO-27001 evidence bundle defaults",
+    "cross-service cost attribution",
+    "high-volume migration windows"
+  ],
+  "limits": {
+    "north_south_api_rps_per_tenant": 50000,
+    "east_west_service_rps_per_tenant": 125000,
+    "async_job_starts_per_minute": 7500,
+    "websocket_connections_per_tenant": 250000,
+    "concurrent_workflow_runs": 25000,
+    "monthly_normalized_events_ceiling": 2500000000
+  },
+  "retention_windows": {
+    "audit_hot_days": 365,
+    "audit_cold_days": 2555,
+    "metrics_hot_days": 90,
+    "trace_hot_days": 30,
+    "object_version_days": 365,
+    "backup_full_interval_hours": 24,
+    "backup_incremental_interval_hours": 4
+  },
+  "pricing_class_anchors": {
+    "pricing_class": "ENTERPRISE_REVENUE_BEARING",
+    "base_platform_usd_per_tenant_month": 85000,
+    "included_seats": 25000,
+    "included_monthly_api_requests": 2500000000,
+    "overage_usd_per_million_api_requests": 9,
+    "minimum_infra_floor_usd_per_month": 40000,
+    "reference_cluster_all_in_usd_per_year": 480000
+  },
+  "not_included": [
+    "offline sovereign media transfer",
+    "no-internet-egress pack mode"
+  ],
+  "promotion_inputs_required": {
+    "cedar_fixture_count_min": 16,
+    "ontology_projection_pin_count_min": 16,
+    "workflow_template_test_count_min": 16,
+    "tenant_dry_run_count_min": 4,
+    "rollback_rehearsal_count_min": 2
+  },
+  "observability_dimensions_required": [
+    "tenant_id",
+    "capability_tier_id",
+    "microservice_id",
+    "jurisdiction_pack_id",
+    "workflow_template_id",
+    "ontology_projection_id",
+    "cost_profile_id"
+  ]
+}

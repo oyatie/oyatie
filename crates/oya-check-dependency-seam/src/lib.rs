@@ -300,7 +300,10 @@ fn check_cargo_audit_shell(config: &DependencySeamConfig) -> DependencySeamSubch
 fn run_cargo_audit(config: &DependencySeamConfig) -> AuditOutcome {
     let output = Command::new("cargo")
         .arg("audit")
+        .arg("--no-fetch")
+        .arg("--stale")
         .current_dir(&config.repo_root)
+        .env_remove("RUSTC_WRAPPER")
         .output();
     match output {
         Ok(output) if output.status.success() => AuditOutcome {

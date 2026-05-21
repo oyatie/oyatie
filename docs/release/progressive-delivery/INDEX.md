@@ -8,7 +8,7 @@ date: 2026-05-12
 purpose: |
   Catalogue of progressive-delivery + SLO-burn-rate-rollback architecture for oyatie.
   Maps each artefact to its lift target, the standard(s) it updates, and the lane(s) that enforce it.
-planned_enforcement_ref: oya-foundry-fitness-orphan-detection
+planned_enforcement_ref: oya-governance-orphan-detection
 related_adrs: [ADR-0040, ADR-0042, ADR-0044, ADR-0050, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published

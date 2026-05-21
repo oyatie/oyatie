@@ -50,7 +50,7 @@ fn service_principal_create() -> IamPrincipalCreate {
         display_name: "cloud provisioner".to_string(),
         external_subject: None,
         identity_provider_id: None,
-        region_pack: "oya-pack-kr".to_string(),
+        region_pack: "oya-pack-alpha".to_string(),
         mfa_state: MfaState::NotRequired,
         last_authenticated_at_epoch_seconds: None,
         created_at_epoch_seconds: 1_700_000_001,
@@ -65,7 +65,7 @@ fn user_principal_create() -> IamPrincipalCreate {
         display_name: "Alice".to_string(),
         external_subject: None,
         identity_provider_id: None,
-        region_pack: "oya-pack-kr".to_string(),
+        region_pack: "oya-pack-alpha".to_string(),
         mfa_state: MfaState::Verified,
         last_authenticated_at_epoch_seconds: Some(1_700_000_002),
         created_at_epoch_seconds: 1_700_000_001,
@@ -85,7 +85,7 @@ fn role_create() -> IamRoleCreate {
     IamRoleCreate {
         id: "role_compute_admin".to_string(),
         tenant_id: "ten_kr".to_string(),
-        region: "kr-seoul".to_string(),
+        region: "region-home".to_string(),
         name: "compute-admin".to_string(),
         cedar_policy_id: "pol_cloud_compute_admin".to_string(),
         cedar_policy_version: "1.0.0".to_string(),
@@ -124,7 +124,7 @@ fn role_api_request(request_id: &str, idempotency_key: &str) -> CloudIamRoleCrea
         body: CloudIamRoleCreateRequest {
             tenant_id: "ten_kr".to_string(),
             role_id: "role_compute_admin".to_string(),
-            region: "kr-seoul".to_string(),
+            region: "region-home".to_string(),
             name: "compute-admin".to_string(),
             cedar_policy_id: "pol_cloud_compute_admin".to_string(),
             cedar_policy_version: "1.0.0".to_string(),
@@ -256,7 +256,7 @@ fn role_create_api_creates_role_once_and_replays_same_idempotent_result() {
     assert_eq!(first, second);
     assert_eq!(ledger.len(), 1);
     assert_eq!(first.data.role_id, "role_compute_admin");
-    assert_eq!(first.data.region, "kr-seoul");
+    assert_eq!(first.data.region, "region-home");
     assert_eq!(first.metadata.request_id, "req-role-create");
     assert_eq!(CLOUD_IAM_ROLE_CREATE_SURFACE, "cloud.iam.role.create");
     assert_eq!(CloudIamRoleCreateApiStatus::Created.code(), 201);

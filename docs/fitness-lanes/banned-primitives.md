@@ -10,15 +10,15 @@ doc_status: published
 - enforces: Directive 12 (MASTERPLAN) — sanctioned-primitives policy + ADR-0054 + ADR-0055.
 - activation: Defined/scaffolded in M01-P08-IP-006; enforcement activates at M01-P08-IP-007 / P5 merge per ADR-0053 bootstrap-window clause.
 - adr_citations: ADR-0053 (sanctioned primitives — defines {grit, icm, oya-tooling-agent-read} as the closed set; direct git/gh requires icm-documented rationale)
-- kernel_crate: `oya-foundry-fitness-banned-primitives-kernel` — `PrimitiveUsage { path, line, primitive, has_icm_rationale }`, verdict `BannedPrimitivesFitnessReport { usages_checked }`.
-- runner_path: `tools/oya-foundry-fitness-banned-primitives`
+- kernel_crate: `oya-governance-banned-primitives-kernel` — `PrimitiveUsage { path, line, primitive, has_icm_rationale }`, verdict `BannedPrimitivesFitnessReport { usages_checked }`.
+- runner_path: `tools/oya-governance-banned-primitives`
 - inputs: `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/agents/**/*.md`, `docs/standards/agent-instructions-discipline.md`, `.omc/**/*.md` files that contain `<!-- agent-instructions:start -->`, and icm rationale store dump.
 - failure_modes:
   - fenced agent block names a direct VCS / forge primitive without an icm rationale id
   - fenced agent block invokes a hard-banned merge or hook-bypass primitive
   - rationale id not in icm store
   - `AGENTS.md`, `CLAUDE.md`, or `docs/AGENTS.md` lacks an `agent-instructions` fence
-- ci_invocation: `cargo run -p oya-foundry-fitness-banned-primitives`
+- ci_invocation: `cargo run -p oya-governance-banned-primitives`
 - runtime_budget: 500 ms
 - severity: BLOCKER
 - kernel_sketch:

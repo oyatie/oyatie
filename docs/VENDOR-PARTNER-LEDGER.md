@@ -100,3 +100,8 @@ Per [TOOLCHAIN §3](TOOLCHAIN.md) language-stack matrix. Each row is a real or p
 
 ## 6. Sources
 [`decisions/ADR-0013-product-license-policy.md`](decisions/ADR-0013-product-license-policy.md), [TOOLCHAIN.md §3 + §7](TOOLCHAIN.md), Cargo.toml workspace deps, ADR-0013/0014/0039/0044/0050.
+
+
+---
+
+> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

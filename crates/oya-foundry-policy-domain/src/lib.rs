@@ -3,6 +3,21 @@
 use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, SubjectClass};
 use oya_foundry_capability_domain::{AutonomyTier, Capability, CapabilityAction};
 
+const HEALTH_REGULATED_PACK_MARKERS: &[&str] = &[
+    "clinical",
+    "healthcare",
+    "health-regulated",
+    "protected-health",
+    "regulated-health",
+];
+const FINANCIAL_REGULATED_PACK_MARKERS: &[&str] = &[
+    "cardholder",
+    "financial",
+    "fintech",
+    "payment-card",
+    "regulated-credit",
+];
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantPolicy {
     pub tenant_id: String,              // data_class: INTERNAL_ONLY
@@ -325,24 +340,19 @@ fn ordered_caps(
 }
 
 fn has_healthcare_pack(regulatory_packs: &[String]) -> bool {
-    regulatory_packs.iter().any(|pack| {
-        let normalized = normalize_policy_marker(pack);
-        normalized.contains("hipaa")
-            || normalized.contains("kr-pipa-health")
-            || normalized.contains("pipa-health")
-            || normalized.contains("healthcare")
-            || normalized.contains("health")
-    })
+    has_pack_marker(regulatory_packs, HEALTH_REGULATED_PACK_MARKERS)
 }
 
 fn has_fintech_pack(regulatory_packs: &[String]) -> bool {
+    has_pack_marker(regulatory_packs, FINANCIAL_REGULATED_PACK_MARKERS)
+}
+
+fn has_pack_marker(regulatory_packs: &[String], accepted_markers: &[&str]) -> bool {
     regulatory_packs.iter().any(|pack| {
         let normalized = normalize_policy_marker(pack);
-        normalized.contains("pci")
-            || normalized.contains("kr-fsc")
-            || normalized.contains("jp-fsa")
-            || normalized.contains("fintech")
-            || normalized.contains("financial")
+        accepted_markers
+            .iter()
+            .any(|marker| normalized.contains(marker))
     })
 }
 
@@ -376,7 +386,7 @@ fn is_health_regulated_privacy_class(data_class: PrivacyDataClass) -> bool {
 fn is_financial_regulated_privacy_class(data_class: PrivacyDataClass) -> bool {
     matches!(
         data_class.data_class(),
-        DataClass::Pci | DataClass::FinancialKrCredit | DataClass::Financial
+        DataClass::Pci | DataClass::FinancialRegulatedCredit | DataClass::Financial
     )
 }
 

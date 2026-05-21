@@ -30,7 +30,7 @@ The 127 legacy ADRs at `decisions/ADR-####-<slug>.md` are **RETIRED**. They:
 
 1. Active consolidated docs (`docs/`) MUST NOT cite legacy `ADR-####` numbers (where NNNN ≤ 0233 and predates 2026-05-09 numbering shift). Citations are restricted to the new pack ` ADR-0001..ADR-0051` (and future additions).
 2. Forensic mention is allowed in: ADR-CONSOLIDATION-PLAN.md, CONTRADICTION-LEDGER.md, this RETIRED.md, and any `*-LEGACY.md` snapshot file.
-3. CI lane `oya-foundry-fitness-adr-citation` enforces.
+3. CI lane `oya-governance-adr-citation` enforces.
 
 ## Why retire (not delete)
 

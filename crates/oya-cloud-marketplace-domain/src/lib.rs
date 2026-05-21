@@ -132,18 +132,18 @@ pub enum EntitlementState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RevenueShareCreate {
-    pub seller_bps: u16,               // data_class: FINANCIAL_KR_신용정보
-    pub platform_bps: u16,             // data_class: FINANCIAL_KR_신용정보
+    pub seller_bps: u16,               // data_class: FINANCIAL
+    pub platform_bps: u16,             // data_class: FINANCIAL
     pub payout_cadence: PayoutCadence, // data_class: INTERNAL_ONLY
-    pub settlement_currency: String,   // data_class: FINANCIAL_KR_신용정보
+    pub settlement_currency: String,   // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RevenueShare {
-    pub seller_bps: u16,                   // data_class: FINANCIAL_KR_신용정보
-    pub platform_bps: u16,                 // data_class: FINANCIAL_KR_신용정보
+    pub seller_bps: u16,                   // data_class: FINANCIAL
+    pub platform_bps: u16,                 // data_class: FINANCIAL
     pub payout_cadence: PayoutCadence,     // data_class: INTERNAL_ONLY
-    pub settlement_currency: CurrencyCode, // data_class: FINANCIAL_KR_신용정보
+    pub settlement_currency: CurrencyCode, // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -193,7 +193,7 @@ pub struct ListingDraftCreate {
     pub provisioning_hook: String,         // data_class: INTERNAL_ONLY
     pub support_ref: String,               // data_class: PUBLIC
     pub billing_model: BillingModel,       // data_class: PUBLIC
-    pub revenue_share: RevenueShareCreate, // data_class: FINANCIAL_KR_신용정보
+    pub revenue_share: RevenueShareCreate, // data_class: FINANCIAL
     pub data_class: DataClass,             // data_class: PUBLIC
     pub created_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
 }
@@ -218,7 +218,7 @@ pub struct CloudMarketplaceListing {
     pub provisioning_hook: Classified<ProvisioningHookRef>, // data_class: INTERNAL_ONLY
     pub support_ref: Classified<SupportRef>,  // data_class: PUBLIC
     pub billing_model: Classified<BillingModel>, // data_class: PUBLIC
-    pub revenue_share: Classified<RevenueShare>, // data_class: FINANCIAL_KR_신용정보
+    pub revenue_share: Classified<RevenueShare>, // data_class: FINANCIAL
     pub security_review_ref: Classified<Option<ReviewRef>>, // data_class: INTERNAL_ONLY
     pub license_review_ref: Classified<Option<ReviewRef>>, // data_class: INTERNAL_ONLY
     pub state: Classified<ListingState>,      // data_class: PUBLIC
@@ -235,11 +235,11 @@ pub struct PrivateOfferCreate {
     pub tenant_id: String,             // data_class: INTERNAL_ONLY
     pub billing_account_id: String,    // data_class: INTERNAL_ONLY
     pub legal_terms_ref: String,       // data_class: INTERNAL_ONLY
-    pub fixed_price: Money,            // data_class: FINANCIAL_KR_신용정보
-    pub discount_bps: u16,             // data_class: FINANCIAL_KR_신용정보
+    pub fixed_price: Money,            // data_class: FINANCIAL
+    pub discount_bps: u16,             // data_class: FINANCIAL
     pub starts_at_epoch_seconds: u64,  // data_class: INTERNAL_ONLY
     pub expires_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
-    pub data_class: DataClass,         // data_class: FINANCIAL_KR_신용정보
+    pub data_class: DataClass,         // data_class: FINANCIAL
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -249,13 +249,13 @@ pub struct CloudPrivateOffer {
     pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
     pub billing_account_id: Classified<BillingAccountId>, // data_class: INTERNAL_ONLY
     pub legal_terms_ref: Classified<LegalTermsRef>, // data_class: INTERNAL_ONLY
-    pub fixed_price: Classified<Money>, // data_class: FINANCIAL_KR_신용정보
-    pub discount_bps: Classified<u16>,  // data_class: FINANCIAL_KR_신용정보
+    pub fixed_price: Classified<Money>, // data_class: FINANCIAL
+    pub discount_bps: Classified<u16>,  // data_class: FINANCIAL
     pub starts_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub expires_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub accepted_at_epoch_seconds: Classified<Option<u64>>, // data_class: INTERNAL_ONLY
     pub state: Classified<PrivateOfferState>, // data_class: INTERNAL_ONLY
-    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL_KR_신용정보
+    pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
     pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
@@ -995,7 +995,7 @@ fn validate_nonzero_time(value: u64) -> Result<(), CloudMarketplaceError> {
 }
 
 fn validate_marketplace_currency(value: &CurrencyCode) -> Result<(), CloudMarketplaceError> {
-    if matches!(value.value.as_str(), "KRW" | "USD") {
+    if matches!(value.value.as_str(), "OYC" | "USD") {
         Ok(())
     } else {
         Err(CloudMarketplaceError::InvalidCurrency)
@@ -1074,10 +1074,7 @@ fn financial_class(
 ) -> Result<Classified<PrivacyDataClass>, CloudMarketplaceError> {
     let class =
         PrivacyDataClass::new(data_class).map_err(|_| CloudMarketplaceError::InvalidDataClass)?;
-    if matches!(
-        class.data_class(),
-        DataClass::Financial | DataClass::FinancialKrCredit
-    ) {
+    if matches!(class.data_class(), DataClass::Financial) {
         Ok(financial(class))
     } else {
         Err(CloudMarketplaceError::InvalidDataClass)
@@ -1105,7 +1102,7 @@ fn internal<T>(value: T) -> Classified<T> {
 }
 
 fn financial<T>(value: T) -> Classified<T> {
-    Classified::new(value, DataClass::FinancialKrCredit)
+    Classified::new(value, DataClass::Financial)
 }
 
 #[cfg(test)]
@@ -1117,8 +1114,8 @@ mod tests {
         SellerApplicationCreate {
             id: "isv_observability_plus".to_string(),
             legal_name: "Observability Plus Inc".to_string(),
-            home_region: "kr-seoul".to_string(),
-            kyb_evidence_ref: "kyb/kr-seoul/observability-plus".to_string(),
+            home_region: "region-alpha1".to_string(),
+            kyb_evidence_ref: "kyb/region-alpha1/observability-plus".to_string(),
             support_ref: "support/observability-plus".to_string(),
             data_class: DataClass::InternalOnly,
             created_at_epoch_seconds: 1_700_000_000,
@@ -1142,7 +1139,7 @@ mod tests {
             title: "Observability Agent".to_string(),
             summary: "Cloud-native telemetry collector for tenant workloads".to_string(),
             categories: vec!["observability".to_string(), "sre".to_string()],
-            supported_regions: vec!["kr-seoul".to_string(), "jp-tokyo".to_string()],
+            supported_regions: vec!["region-alpha1".to_string(), "region-beta1".to_string()],
             provisioning_hook: "cap.cloud.marketplace.provision-observability-agent".to_string(),
             support_ref: "support/observability-plus".to_string(),
             billing_model: BillingModel::UsageMetered,
@@ -1150,7 +1147,7 @@ mod tests {
                 seller_bps: 8_500,
                 platform_bps: 1_500,
                 payout_cadence: PayoutCadence::Monthly,
-                settlement_currency: "KRW".to_string(),
+                settlement_currency: "OYC".to_string(),
             },
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_000_200,
@@ -1168,26 +1165,26 @@ mod tests {
 
     fn private_offer() -> PrivateOfferCreate {
         PrivateOfferCreate {
-            id: "cpo_observability_agent_tenant_kr".to_string(),
+            id: "cpo_observability_agent_tenant_alpha".to_string(),
             listing_id: "cml_observability_agent".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            billing_account_id: "ba_kr_cloud".to_string(),
-            legal_terms_ref: "legal/private-offer/observability-agent/ten-kr".to_string(),
-            fixed_price: Money::new("KRW", 50_000_000).expect("valid money"),
+            tenant_id: "ten_alpha".to_string(),
+            billing_account_id: "ba_alpha_cloud".to_string(),
+            legal_terms_ref: "legal/private-offer/observability-agent/ten-alpha".to_string(),
+            fixed_price: Money::new("OYC", 50_000_000).expect("valid money"),
             discount_bps: 1_500,
             starts_at_epoch_seconds: 1_700_000_400,
             expires_at_epoch_seconds: 1_700_086_800,
-            data_class: DataClass::FinancialKrCredit,
+            data_class: DataClass::Financial,
         }
     }
 
     fn entitlement(offer_id: Option<&str>) -> EntitlementCreate {
         EntitlementCreate {
-            id: "cme_observability_agent_tenant_kr".to_string(),
+            id: "cme_observability_agent_tenant_alpha".to_string(),
             listing_id: "cml_observability_agent".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
-            billing_account_id: "ba_kr_cloud".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha1".to_string(),
+            billing_account_id: "ba_alpha_cloud".to_string(),
             accepted_private_offer_id: offer_id.map(str::to_string),
             requested_at_epoch_seconds: 1_700_000_500,
             data_class: DataClass::InternalOnly,
@@ -1279,7 +1276,7 @@ mod tests {
                     seller_bps: 9_800,
                     platform_bps: 200,
                     payout_cadence: PayoutCadence::Monthly,
-                    settlement_currency: "KRW".to_string(),
+                    settlement_currency: "OYC".to_string(),
                 },
                 ..listing_draft()
             })
@@ -1303,7 +1300,7 @@ mod tests {
             .create_private_offer(private_offer())
             .expect("private offer is valid");
         assert_eq!(offer.state.value, PrivateOfferState::Offered);
-        assert_eq!(offer.fixed_price.value.currency.value, "KRW");
+        assert_eq!(offer.fixed_price.value.currency.value, "OYC");
 
         let discount_error = catalog
             .create_private_offer(PrivateOfferCreate {
@@ -1317,10 +1314,10 @@ mod tests {
         let currency_error = catalog
             .create_private_offer(PrivateOfferCreate {
                 id: "cpo_bad_currency".to_string(),
-                fixed_price: Money::new("EUR", 10_000).expect("valid ISO currency"),
+                fixed_price: Money::new("ABC", 10_000).expect("valid fixture currency"),
                 ..private_offer()
             })
-            .expect_err("cloud marketplace settlement opens with KRW and USD");
+            .expect_err("cloud marketplace settlement opens with OYC and USD");
         assert_eq!(currency_error, CloudMarketplaceError::InvalidCurrency);
     }
 
@@ -1332,21 +1329,21 @@ mod tests {
             .expect("private offer");
         catalog
             .accept_private_offer(
-                "cpo_observability_agent_tenant_kr".to_string(),
+                "cpo_observability_agent_tenant_alpha".to_string(),
                 1_700_000_450,
             )
             .expect("accepted private offer");
         let active = catalog
-            .activate_entitlement(entitlement(Some("cpo_observability_agent_tenant_kr")))
+            .activate_entitlement(entitlement(Some("cpo_observability_agent_tenant_alpha")))
             .expect("entitlement is valid");
         assert_eq!(active.state.value, EntitlementState::Active);
-        assert_eq!(active.region.value.value, "kr-seoul");
+        assert_eq!(active.region.value.value, "region-alpha1");
         assert!(active.accepted_private_offer_id.value.is_some());
 
         let region_error = catalog
             .activate_entitlement(EntitlementCreate {
                 id: "cme_wrong_region".to_string(),
-                region: "eu-frankfurt".to_string(),
+                region: "region-gamma1".to_string(),
                 accepted_private_offer_id: None,
                 ..entitlement(None)
             })
@@ -1364,8 +1361,8 @@ mod tests {
         let first = catalog
             .record_marketplace_fee(MarketplaceFeeCreate {
                 meter_event_id: "mtr_market_fee_001".to_string(),
-                entitlement_id: "cme_observability_agent_tenant_kr".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                entitlement_id: "cme_observability_agent_tenant_alpha".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 units: units.clone(),
                 recorded_at_epoch_seconds: 1_700_000_600,
                 idempotency_key: "idem_market_fee_001".to_string(),
@@ -1375,8 +1372,8 @@ mod tests {
         let replay = catalog
             .record_marketplace_fee(MarketplaceFeeCreate {
                 meter_event_id: "mtr_market_fee_ignored".to_string(),
-                entitlement_id: "cme_observability_agent_tenant_kr".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                entitlement_id: "cme_observability_agent_tenant_alpha".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 units,
                 recorded_at_epoch_seconds: 1_700_000_601,
                 idempotency_key: "idem_market_fee_001".to_string(),

@@ -1,0 +1,157 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-cloud-marketplace-workspace-registration",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779232200,
+  "timestamp_iso": "2026-05-19T23:10:00Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "evidence/multispectrum/cs-cloud-marketplace-workspace-registration-1779232200.json"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Register cloud marketplace domain in workspace for verifiable product gates\" Cargo.toml::workspace_members_oya_cloud_marketplace_domain",
+      "status": "accepted"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Refresh lockfile for cloud marketplace workspace registration\" Cargo.lock::workspace_lock_oya_cloud_marketplace_domain",
+      "status": "accepted"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Attach multispectrum evidence for cloud marketplace workspace registration ChangeSet\" evidence/multispectrum/cs-cloud-marketplace-workspace-registration-1779232200.json::MultispectrumEvidence",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Register oya-cloud-marketplace-domain in the root Cargo workspace and refresh Cargo.lock so marketplace domain tests, lint, and gates can run through the same package-addressed verification path as other Cloud domain slices.",
+  "baseline_diff": {
+    "before": "cargo test -q -p oya-cloud-marketplace-domain --all-features failed with 'cannot specify features for packages outside of workspace'; manifest-path test also failed because the package believed it was in the root workspace but was not listed.",
+    "after": "cargo test -q -p oya-cloud-marketplace-domain --all-features passed: 6 passed; 0 failed.",
+    "lockfile": "cargo metadata --format-version 1 --no-deps regenerated the workspace lockfile with oya-cloud-marketplace-domain and its existing local dependencies.",
+    "cumulative_diff_note": "Cargo.toml/Cargo.lock also still show the prior promoted oya-cloud-dcops-domain workspace registration because promoted ChangeSets are uncommitted in this worktree; this ChangeSet adds the marketplace member/package only."
+  },
+  "verification": [
+    {
+      "command": "cargo test -q -p oya-cloud-marketplace-domain --all-features",
+      "status": "passed",
+      "evidence": "6 passed; 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-cloud-marketplace-domain --check",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-cloud-marketplace-domain --all-features -- -D warnings",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- Cargo.toml Cargo.lock",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-cloud-marketplace-domain/src/lib.rs",
+      "status": "blocked-preexisting",
+      "evidence": "targeted marketplace source gate still fails with 23 jurisdiction leaks; this registration ChangeSet intentionally does not edit domain behavior"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The slice is a manifest/lockfile registration only; no product logic or gate policy changed."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "A workspace-registered package is required for repeatable package-addressed tests, clippy, and CI gates before changing the marketplace domain."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "pre-registration package tests were blocked by workspace membership, not marketplace logic",
+      "findings": [
+        "After registration, the package test/lint path is green while canonical-base-neutrality remains red, proving no false product-completion claim."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 2,
+      "findings": [
+        "Contributors can now run cargo test/clippy with -p oya-cloud-marketplace-domain like adjacent Cloud crates."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Package tests, format check, clippy with warnings denied, planning-closure, master-plan-completion, diff whitespace, and the still-red targeted neutrality gate were verified."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Use manifest-path tests while leaving the crate outside the workspace",
+        "Edit marketplace domain without package-addressed CI verification",
+        "Register the crate before behavior changes"
+      ],
+      "selected_rationale": "Root workspace registration is the durable verification seam and matches the prior Cloud domain registration pattern.",
+      "rejected_reasons": [
+        "Manifest-path tests were blocked by workspace mismatch.",
+        "Editing behavior without package-addressed verification would increase false-green risk."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration_and_integrity",
+      "findings": [
+        "No runtime, dependency, credential, or network behavior changed; lockfile entries are local workspace packages only."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Keeps marketplace as a domain crate and does not add outward adapter dependencies."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Workspace registration unlocks direct package tests and clippy for the upcoming canonical-base-neutrality marketplace domain slice."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence records the pre-registration blocker, post-registration package verification, and remaining targeted marketplace neutrality blocker."
+      ]
+    }
+  },
+  "changed_files": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "evidence/multispectrum/cs-cloud-marketplace-workspace-registration-1779232200.json"
+  ],
+  "remaining_risks": [
+    "crates/oya-cloud-marketplace-domain/src/lib.rs still has 23 canonical-base-neutrality leaks and is the next safe product slice.",
+    "Cargo.toml/Cargo.lock carry prior promoted oya-cloud-dcops-domain registration in the same uncommitted worktree diff; this evidence isolates the marketplace registration delta.",
+    "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
+  ]
+}

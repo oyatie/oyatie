@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-05-20T12:35:48Z",
+  "team": "fd-001-durable-team-r-ddcbe5e6",
+  "decision": "worker-2 continues serialized messenger runtime-binding lane on addReaction; worker-1 continues disjoint mail legal-hold domain lane; worker-3 remains on ontology task 27",
+  "operations": [
+    {
+      "schema_version": "1.0",
+      "timestamp": "2026-05-20T12:35:42.163Z",
+      "command": "omx team api create-task",
+      "ok": true,
+      "operation": "create-task",
+      "data": {
+        "task": {
+          "subject": "Messenger addReaction runtime binding registry slice",
+          "description": "Task: cs-messenger-add-reaction-runtime-binding-fd001-alignment.\nUse existing worker-2 worktree /Users/jasonlee/oyatie-worktrees/fd001-worker2-messenger-contract-registry-20260520T115222Z after completed task 24 commit e8cb5eb4. This remains the sole serialized messenger shared API/runtime-binding lane; do not touch mail/workflow/ontology/foundry.\nFresh evidence after task 24: `oya doc openapi --format json` advances past addChannelMember and fails MissingRuntimeBinding addReaction for contracts/openapi/messenger-v1.yaml. Existing source already exposes add_reaction in crates/oya-messenger-message-stream-rest/src/lib.rs with tests/status mappings; this task is a minimal runtime-binding registry closure unless fresh gate evidence proves otherwise.\nScope: registry/openapi/runtime-bindings.tsv addReaction row only, plus exact evidence paths evidence/fd001/cs-messenger-add-reaction-runtime-binding-fd001-alignment-* and evidence/multispectrum/cs-messenger-add-reaction-runtime-binding-fd001-alignment.json. No OpenAPI contracts, schema-bindings, root manifests, source code, catalog, Cargo files, or other registry files unless a fresh blocker is reported first.\nBefore editing read authority/context: specs/root-hub-pointers.json, docs/AGENTS.md, specs/masterplan.json, specs/master-plan-sequencing.json, microservices/messenger/contracts/openapi/messenger-v1.yaml addReaction operation + Reaction/ReactionMutation schemas, registry/openapi/runtime-bindings.tsv, crates/oya-messenger-message-stream-rest/src/lib.rs add_reaction constants/function/tests. Run planning-closure start gate. Claim with Oya VCS as worker-2 intent \"FD001 messenger addReaction runtime binding\" for registry/openapi/runtime-bindings.tsv::addReaction.\nExpected row shape should mirror existing bindings and use operation addReaction, contract contracts/openapi/messenger-v1.yaml, crate oya-messenger-message-stream-rest, source crates/oya-messenger-message-stream-rest/src/lib.rs, symbol add_reaction, status enum AddReactionRestStatus, surface messenger.message.reaction.add, and response vocabulary 201=ReactionMutation;400=Error;401=Error;403=Error;404=Error;409=Error if confirmed from contract/source.\nVerify: cargo fmt --all --check; cargo test -p oya-messenger-message-stream-rest -- --nocapture focused enough to include add_reaction marker/runtime tests; cargo nextest run -p oya-messenger-message-stream-rest; cargo clippy -p oya-messenger-message-stream-rest --all-targets -- -D warnings; cargo test -p oya-foundry-openapi-domain -- --nocapture; oya doc openapi --format json records advancement past MissingRuntimeBinding addReaction and records next blocker if any; planning-closure; api-semver; data-class; architecture-boundaries; catalog; dependency-seam; oya git diff --check; Oya VCS verify/done/promote. Commit only scoped registry/evidence with Lore trailers. Report exact next doc-openapi blocker.",
+          "status": "pending",
+          "owner": "worker-2",
+          "requires_code_change": true,
+          "id": "28",
+          "depends_on": [],
+          "version": 1,
+          "created_at": "2026-05-20T12:35:42.167Z"
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "timestamp": "2026-05-20T12:35:42.301Z",
+      "command": "omx team api send-message",
+      "ok": true,
+      "operation": "send-message",
+      "data": {
+        "message": {
+          "message_id": "f280e85c-d32d-4af5-aa4a-ee0ee1a35c24",
+          "from_worker": "leader-fixed",
+          "to_worker": "worker-2",
+          "body": "New task assigned: task 28 \u2014 Messenger addReaction runtime binding registry slice\n\nTask: cs-messenger-add-reaction-runtime-binding-fd001-alignment.\nUse existing worker-2 worktree /Users/jasonlee/oyatie-worktrees/fd001-worker2-messenger-contract-registry-20260520T115222Z after completed task 24 commit e8cb5eb4. This remains the sole serialized messenger shared API/runtime-binding lane; do not touch mail/workflow/ontology/foundry.\nFresh evidence after task 24: `oya doc openapi --format json` advances past addChannelMember and fails MissingRuntimeBinding addReaction for contracts/openapi/messenger-v1.yaml. Existing source already exposes add_reaction in crates/oya-messenger-message-stream-rest/src/lib.rs with tests/status mappings; this task is a minimal runtime-binding registry closure unless fresh gate evidence proves otherwise.\nScope: registry/openapi/runtime-bindings.tsv addReaction row only, plus exact evidence paths evidence/fd001/cs-messenger-add-reaction-runtime-binding-fd001-alignment-* and evidence/multispectrum/cs-messenger-add-reaction-runtime-binding-fd001-alignment.json. No OpenAPI contracts, schema-bindings, root manifests, source code, catalog, Cargo files, or other registry files unless a fresh blocker is reported first.\nBefore editing read authority/context: specs/root-hub-pointers.json, docs/AGENTS.md, specs/masterplan.json, specs/master-plan-sequencing.json, microservices/messenger/contracts/openapi/messenger-v1.yaml addReaction operation + Reaction/ReactionMutation schemas, registry/openapi/runtime-bindings.tsv, crates/oya-messenger-message-stream-rest/src/lib.rs add_reaction constants/function/tests. Run planning-closure start gate. Claim with Oya VCS as worker-2 intent \"FD001 messenger addReaction runtime binding\" for registry/openapi/runtime-bindings.tsv::addReaction.\nExpected row shape should mirror existing bindings and use operation addReaction, contract contracts/openapi/messenger-v1.yaml, crate oya-messenger-message-stream-rest, source crates/oya-messenger-message-stream-rest/src/lib.rs, symbol add_reaction, status enum AddReactionRestStatus, surface messenger.message.reaction.add, and response vocabulary 201=ReactionMutation;400=Error;401=Error;403=Error;404=Error;409=Error if confirmed from contract/source.\nVerify: cargo fmt --all --check; cargo test -p oya-messenger-message-stream-rest -- --nocapture focused enough to include add_reaction marker/runtime tests; cargo nextest run -p oya-messenger-message-stream-rest; cargo clippy -p oya-messenger-message-stream-rest --all-targets -- -D warnings; cargo test -p oya-foundry-openapi-domain -- --nocapture; oya doc openapi --format json records advancement past MissingRuntimeBinding addReaction and records next blocker if any; planning-closure; api-semver; data-class; architecture-boundaries; catalog; dependency-seam; oya git diff --check; Oya VCS verify/done/promote. Commit only scoped registry/evidence with Lore trailers. Report exact next doc-openapi blocker.",
+          "created_at": "2026-05-20T12:35:42.315Z",
+          "notified_at": "2026-05-20T12:35:45.229Z"
+        },
+        "dispatch": {
+          "ok": true,
+          "transport": "tmux_send_keys",
+          "reason": "hook_timeout_fallback_confirmed:tmux_send_keys_sent",
+          "request_id": "024ca272-cfd4-44ff-b001-6c39e55e2116",
+          "message_id": "f280e85c-d32d-4af5-aa4a-ee0ee1a35c24"
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "timestamp": "2026-05-20T12:35:45.379Z",
+      "command": "omx team api create-task",
+      "ok": true,
+      "operation": "create-task",
+      "data": {
+        "task": {
+          "subject": "Mail legal-hold four-eyes approval domain slice",
+          "description": "Task: cs-mail-legal-hold-four-eyes-approval-fd001-alignment.\nUse existing worker-1 mail worktree /Users/jasonlee/oyatie-worktrees/fd001-worker1-mail-context-20260520T115222Z after completed task 26 commit 895a4c0c. This lane is disjoint from messenger shared runtime bindings and ontology.\nScope: crates/oya-connect-mail-domain/src/lib.rs plus exact evidence paths evidence/fd001/cs-mail-legal-hold-four-eyes-approval-fd001-alignment-* and evidence/multispectrum/cs-mail-legal-hold-four-eyes-approval-fd001-alignment.json only. No root manifests, contracts, registries, adapters, I/O, or policy docs.\nBefore editing read authority/context: specs/root-hub-pointers.json, docs/AGENTS.md, specs/masterplan.json, specs/master-plan-sequencing.json, microservices/mail/IP-011-legal-hold-engine.md, IP-012-ediscovery-export.md, policy/dual-context-isolation.md, current crates/oya-connect-mail-domain/src/lib.rs including StrictMailLegalHoldGuard and StrictMailRetentionSweepGuard, and one similar pure guard pattern in the repo. Run planning-closure start gate. Claim with Oya VCS as worker-1 intent \"FD001 mail legal hold four-eyes approval\" for crates/oya-connect-mail-domain/src/lib.rs::MailLegalHoldApprovalGuard.\nImplement a pure zero-I/O domain primitive for four-eyes legal-hold approval: approval actor model with distinct requester and approver, same tenant-governed context enforced through StrictMailLegalHoldGuard, requester cannot self-approve, approver must be distinct/non-empty, engage/release/export operations require valid two-person approval, plaintext disclosure/export requires explicit approval operation, deterministic MailError variants for invalid requester/approver/self-approval/missing approval, and tests covering engage success, release success, export/plaintext approval success, self-approval rejection, Personal-pillar rejection, cross-context rejection before approval, and invalid approver/requester rejection. Keep business logic in domain; no handler/adapters.\nVerify: cargo fmt --all --check; cargo test -p oya-connect-mail-domain -- --nocapture; cargo nextest run -p oya-connect-mail-domain; cargo clippy -p oya-connect-mail-domain --all-targets -- -D warnings; planning-closure; data-class; architecture-boundaries; catalog; dependency-seam; oya git diff --check; Oya VCS verify/done/promote. Commit only scoped lib/evidence with Lore trailers.",
+          "status": "pending",
+          "owner": "worker-1",
+          "requires_code_change": true,
+          "id": "29",
+          "depends_on": [],
+          "version": 1,
+          "created_at": "2026-05-20T12:35:45.396Z"
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "timestamp": "2026-05-20T12:35:45.579Z",
+      "command": "omx team api send-message",
+      "ok": true,
+      "operation": "send-message",
+      "data": {
+        "message": {
+          "message_id": "f7e07a58-c908-410b-ac07-5eb02e013865",
+          "from_worker": "leader-fixed",
+          "to_worker": "worker-1",
+          "body": "New task assigned: task 29 \u2014 Mail legal-hold four-eyes approval domain slice\n\nTask: cs-mail-legal-hold-four-eyes-approval-fd001-alignment.\nUse existing worker-1 mail worktree /Users/jasonlee/oyatie-worktrees/fd001-worker1-mail-context-20260520T115222Z after completed task 26 commit 895a4c0c. This lane is disjoint from messenger shared runtime bindings and ontology.\nScope: crates/oya-connect-mail-domain/src/lib.rs plus exact evidence paths evidence/fd001/cs-mail-legal-hold-four-eyes-approval-fd001-alignment-* and evidence/multispectrum/cs-mail-legal-hold-four-eyes-approval-fd001-alignment.json only. No root manifests, contracts, registries, adapters, I/O, or policy docs.\nBefore editing read authority/context: specs/root-hub-pointers.json, docs/AGENTS.md, specs/masterplan.json, specs/master-plan-sequencing.json, microservices/mail/IP-011-legal-hold-engine.md, IP-012-ediscovery-export.md, policy/dual-context-isolation.md, current crates/oya-connect-mail-domain/src/lib.rs including StrictMailLegalHoldGuard and StrictMailRetentionSweepGuard, and one similar pure guard pattern in the repo. Run planning-closure start gate. Claim with Oya VCS as worker-1 intent \"FD001 mail legal hold four-eyes approval\" for crates/oya-connect-mail-domain/src/lib.rs::MailLegalHoldApprovalGuard.\nImplement a pure zero-I/O domain primitive for four-eyes legal-hold approval: approval actor model with distinct requester and approver, same tenant-governed context enforced through StrictMailLegalHoldGuard, requester cannot self-approve, approver must be distinct/non-empty, engage/release/export operations require valid two-person approval, plaintext disclosure/export requires explicit approval operation, deterministic MailError variants for invalid requester/approver/self-approval/missing approval, and tests covering engage success, release success, export/plaintext approval success, self-approval rejection, Personal-pillar rejection, cross-context rejection before approval, and invalid approver/requester rejection. Keep business logic in domain; no handler/adapters.\nVerify: cargo fmt --all --check; cargo test -p oya-connect-mail-domain -- --nocapture; cargo nextest run -p oya-connect-mail-domain; cargo clippy -p oya-connect-mail-domain --all-targets -- -D warnings; planning-closure; data-class; architecture-boundaries; catalog; dependency-seam; oya git diff --check; Oya VCS verify/done/promote. Commit only scoped lib/evidence with Lore trailers.",
+          "created_at": "2026-05-20T12:35:45.594Z",
+          "notified_at": "2026-05-20T12:35:48.630Z"
+        },
+        "dispatch": {
+          "ok": true,
+          "transport": "tmux_send_keys",
+          "reason": "hook_timeout_fallback_confirmed:tmux_send_keys_sent",
+          "request_id": "068a6ce4-f8ea-4918-a1e4-c0b93864d2e6",
+          "message_id": "f7e07a58-c908-410b-ac07-5eb02e013865"
+        }
+      }
+    }
+  ]
+}

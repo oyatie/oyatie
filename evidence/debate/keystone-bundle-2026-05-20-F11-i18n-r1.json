@@ -1,0 +1,326 @@
+{
+  "review_id": "keystone-bundle-2026-05-20-F11-i18n-r1",
+  "facet": "F11",
+  "facet_name": "internationalization_and_localization",
+  "lens_description": "Internationalization + Localization. Per ADR-0064 canonical-base + localization overlay. RTL support, CJK rendering, ICU MessageFormat + Fluent, per-pack overlay completeness, KR/JP/EU/KSA coverage.",
+  "review_date": "2026-05-20",
+  "review_version": "v2.4.0",
+  "subject": "keystone-bundle-2026-05-20 (ADR-0242..ADR-0255, 14 foundational doctrine ADRs) + UX best practices + i18n canonical + per-pack overlays + user stories",
+  "corpus_examined": [
+    "docs/standards/ux-best-practices.md (§5 Localization, §3 Accessibility, §2.3 Typography CJK fallback)",
+    "docs/standards/i18n-canonical.md",
+    "docs/INTERNATIONALIZATION.md (per-locale matrix: KR/JP/US/EU/IN/BR/KSA/UAE/AU/SG/MX/CN/TW)",
+    "docs/decisions/ADR-0064-canonical-base-and-localization-packs.md",
+    "docs/decisions/ADR-0206-i18n-substrate-fluent-icu.md",
+    "docs/decisions/ADR-0240-sovereign-cloud-per-regional-pack.md",
+    "docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md",
+    "docs/localization-packs/INDEX.md, kr.md, kr/pack.yaml, kr/corpus.lock",
+    "docs/user-stories/b2b-work-surfaces.md (localization stories)",
+    "registry/catalog/oya-check-i18n-coverage.yaml"
+  ],
+  "verdict": "APPROVE_WITH_RESERVATIONS",
+  "verdict_rationale": "The i18n substrate (ADR-0206 Fluent + ICU MessageFormat), the canonical-base/pack-overlay model (ADR-0064), and the per-pack regulatory bundling (ADR-0251) together form a coherent, production-grade i18n + L10n architecture. The corpus demonstrates discipline that exceeds industry norms (Stripe, Linear, Microsoft Purview): single-source Fluent authoring across six native client stacks; ICU plural with locale-aware categories; RTL-by-default via logical CSS properties; CJK-aware typography (font fallback stack, +1px CJK minimum, +10% line-height, no italic/letter-spacing); pseudo-locale (xx-AC) in CI; per-pack composition (seam/adapter/pack trichotomy with ADR-0064 §1.5 semantic-localization decision rules). The reservations are gaps in the keystone bundle proper (ADR-0242..ADR-0255), not the i18n substrate: ADR-0251 does not bind compliance-pack agreement templates (BAA/DPA/SCC) to localized renderings, ADR-0240 sovereign-cloud overlays are silent on locale-data-residency mapping, and the keystone bundle does not enumerate per-locale ATO/regulator-facing language obligations (KR FSS Korean-language disclosure, KSA Arabic-language disclosure, JP Japanese-language disclosure, EU per-Member-State language). These are addressable in follow-on IPs; they do not block the keystone landing.",
+  "supported_locales": [
+    "en-US (source)",
+    "es-MX",
+    "es-ES",
+    "pt-BR",
+    "de-DE",
+    "fr-FR",
+    "it-IT",
+    "nl-NL",
+    "ru-RU",
+    "ko-KR",
+    "ja-JP",
+    "zh-Hans-CN",
+    "zh-Hant-TW",
+    "zh-Hant-HK",
+    "vi-VN",
+    "th-TH",
+    "id-ID",
+    "hi-IN",
+    "en-IN",
+    "ar-SA",
+    "ar-AE",
+    "he-IL",
+    "fa-IR",
+    "en-GB",
+    "en-EU",
+    "en-AU",
+    "en-NZ",
+    "en-SG",
+    "zh-SG",
+    "en-SA",
+    "en-AE"
+  ],
+  "supported_locales_count": 31,
+  "tier_breakdown": {
+    "tier_1_western": ["en-US", "es-MX", "es-ES", "pt-BR", "de-DE", "fr-FR", "it-IT", "nl-NL", "ru-RU"],
+    "tier_1_cjk_apac": ["ko-KR", "ja-JP", "zh-Hans-CN", "zh-Hant-TW", "vi-VN", "th-TH", "id-ID", "hi-IN"],
+    "tier_1_rtl": ["ar-SA", "ar-AE", "he-IL", "fa-IR"],
+    "tier_1_per_pack_only": ["en-IN", "en-GB", "en-AU", "en-NZ", "en-SG", "zh-SG", "en-SA", "en-AE", "zh-Hant-HK"]
+  },
+  "rtl_support_assessed": "YES",
+  "rtl_support_assessment": {
+    "locales_with_rtl_flag": ["ar", "he", "fa", "ur", "ps", "sd", "ckb", "ug", "yi"],
+    "rtl_substrate": "oya-shared-i18n-kernel LocaleTag.is_rtl carries flag; ADR-0206 mandates root layout direction switch",
+    "logical_css_properties_mandated": "YES (ux-best-practices.md §5.3: padding-inline-start, margin-inline-end, border-inline-start, text-align: start; padding-left/margin-right explicitly forbidden in Avoid list)",
+    "swiftui_layout_direction": "YES (Environment(.layoutDirection); leading/trailing auto-flip per ADR-0206 + ux-best-practices §5.3)",
+    "compose_layout_direction": "YES (LocalLayoutDirection.current; Modifier.padding(start = ...) auto-flips)",
+    "gtk4_default_direction": "YES (gtk_widget_set_default_direction reads locale)",
+    "directional_icon_flip_rule": "YES (arrows, undo/redo, chevrons flip; logos/brand marks DO NOT flip — §5.3 explicit)",
+    "tier_1_rtl_locales_present": ["ar-SA", "ar-AE", "he-IL", "fa-IR"],
+    "bidi_algorithm_compliance": "Unicode Bidirectional Algorithm (UAX #9) implied via native platform; no explicit UAX #9 citation found",
+    "rtl_test_coverage": "ux-best-practices §5.9 pseudo-locale (xx-AC) lengthens strings 40% to surface concatenation bugs; pseudo-RTL (e.g., xx-RT mirror locale) NOT explicitly mentioned — GAP",
+    "gaps": [
+      "No explicit pseudo-RTL locale for snapshot testing (Mozilla / Google ship xx-ZA or qaa-Cyrl mirror locale; oyatie ships only xx-AC)",
+      "ar-AE and ar-SA share base language but diverge in date conventions (Hijri-only vs Hijri+Gregorian) and currency display; not differentiated in standards",
+      "Hebrew calendar (he-IL) not enumerated in INTERNATIONALIZATION.md §4 time-zones / §6 number-date formatting matrix"
+    ]
+  },
+  "per_pack_overlay_completeness": "PARTIAL",
+  "per_pack_overlay_completeness_assessment": {
+    "rating": "PARTIAL (KR fully specified; EU/JP/KSA scaffolded but per-pack-overlay i18n artifacts not enumerated)",
+    "kr_pack_completeness": {
+      "manifest": "PRESENT (docs/localization-packs/kr/pack.yaml)",
+      "corpus_lock": "PRESENT (docs/localization-packs/kr/corpus.lock per ADR-0190 inheritance)",
+      "language_overlays": "PRESENT (Fluent overlay path per ADR-0064 §1.5: microservices/<ms>/clients/i18n/packs/kr/ko.ftl and en.ftl)",
+      "typst_templates": "PRESENT (oya-document-templates-kr-*)",
+      "tax_invoice_format": "전자세금계산서 (NTS) per INTERNATIONALIZATION.md §1",
+      "identity_providers": "본인확인서비스 / CI/DI / KakaoTalk / Naver / 공동인증서 / 금융인증서",
+      "payment_rails": "카카오페이 / 네이버페이 / 토스 / 계좌이체 / 신용카드",
+      "address_normalization": "도로명 + 지번",
+      "calendar_overlays": "Gregorian + KR holidays (no DST)",
+      "regulatory_overlays": "PIPA, FSS, ISMS-P, CSAP, 의료법, 4대보험 EDI, 연말정산 — all enumerated in pack.yaml regulatory_bindings"
+    },
+    "eu_pack_completeness": {
+      "rating": "SCAFFOLDED",
+      "issues": [
+        "EU pack covers 27 Member States with 24 official languages but INTERNATIONALIZATION.md §1 collapses to 'en-GB / en-EU' single row — significant gap",
+        "Per-Member-State e-invoicing formats enumerated (Zugferd/FatturaPA/Chorus/Facturae/KSeF/eFactura) but per-language Typst templates not enumerated in catalog",
+        "GDPR DSAR localization (must be in the data subject's language) not bound to Fluent overlays",
+        "EU AI Act Annex III refusal text not declared as localized per Member State (ADR-0251 mentions FR/DE/IT/ES candidates; not enumerated)"
+      ]
+    },
+    "ksa_pack_completeness": {
+      "rating": "SCAFFOLDED",
+      "issues": [
+        "ar-SA in tier-1 RTL list — locale exists",
+        "Hijri calendar dual-display (Hijri primary + Gregorian secondary) referenced in INTERNATIONALIZATION.md §1 but not in i18n-canonical.md formatting recipes",
+        "FATOORA e-invoicing format requires Arabic-language invoice rendering — Typst template path not enumerated",
+        "SDAIA/NDMO Arabic-language disclosures (ADR-0240 §D-6 regulator evidence) silent on language",
+        "KSA pack NOT yet a catalog entry in docs/localization-packs/INDEX.md (only KR is active per ADR-0064 §6)"
+      ]
+    },
+    "jp_pack_completeness": {
+      "rating": "SCAFFOLDED",
+      "issues": [
+        "ja-JP in tier-1 CJK — locale exists",
+        "JP era calendar (令和/Reiwa) referenced in INTERNATIONALIZATION.md §1 but not bound to ICU formatter recipes in i18n-canonical.md",
+        "適格請求書 (qualified invoice) — Typst template path not enumerated",
+        "JP APPI consent-language (must be Japanese for JP residents) not bound to Fluent overlays via ADR-0251 consent_grant_workflow_ref",
+        "JP pack NOT yet a catalog entry in docs/localization-packs/INDEX.md"
+      ]
+    },
+    "us_pack_completeness": {
+      "rating": "MINIMAL",
+      "issues": [
+        "en-US is source locale; pack is implicit",
+        "es-MX listed but the US Hispanic-locale (es-US) NOT differentiated from es-MX — US Hispanic conventions diverge (e.g., currency display, date format)",
+        "Per-state tax-invoice variation (50 states) not bound to Typst template catalog enumeration"
+      ]
+    }
+  },
+  "top_findings": [
+    {
+      "id": "F11-001",
+      "severity": "P1",
+      "title": "Compliance-pack agreement templates (BAA/DPA/SCC) not bound to localized Fluent overlays",
+      "rationale": "ADR-0251 §D-7 declares agreement_template_refs (baa_template_ref, dpa_template_ref, scc_template_ref, subprocessor_disclosure_template_ref) as monolingual ref pointers. GDPR Article 12(1) requires data-subject-facing terms be in 'clear and plain language' — i.e., the data subject's language. KR-PIPA Article 22 likewise. JP APPI consent must be in Japanese for JP residents. ADR-0251 schema does not require per-locale variants of agreement templates. As written, a HIPAA-2024 BAA could ship English-only; a KR-PIPA DPA could ship English-only; neither would satisfy regulator scrutiny.",
+      "impact": "Regulator-facing audit could fail at first pack-install in non-English jurisdiction.",
+      "recommendation": "Amend ADR-0251 §D-1 agreement_template_refs schema to require a map of locale → template_ref instead of a single ref. Bind per-pack consent_grant_workflow_ref and consent_revoke_workflow_ref to locale routing. Add CI lane oya gate validate agreement-locale-coverage.",
+      "blocking": false
+    },
+    {
+      "id": "F11-002",
+      "severity": "P1",
+      "title": "Sovereign-cloud overlay (ADR-0240) silent on locale-data-residency mapping",
+      "rationale": "ADR-0240 §D-1 declares sovereign_data_classes (PII_KR, HEALTH_RECORD_KR_TIER1, GOV_DATA_KR) but does not bind these to locale-bound content authored in that jurisdiction. A KR tenant whose Fluent ko-KR overlay is generated and stored on AWS us-east-1 (CDN, build artifact, translation memory) violates the sovereign-data intent in spirit if the overlay carries PII-laden sample/test strings.",
+      "impact": "Translation-memory and Fluent-overlay supply chain becomes a sovereign-data leak vector; not enumerated as a controlled surface.",
+      "recommendation": "Cross-reference ADR-0240 in ADR-0206. Add §D-8 to ADR-0240: 'Per-pack Fluent overlays and translation-memory snapshots for sovereign packs must be authored, stored, and served from sovereign substrate.' Add catalog entry in registry/data-class/ for L10N_PII_<pack>.",
+      "blocking": false
+    },
+    {
+      "id": "F11-003",
+      "severity": "P1",
+      "title": "EU pack collapses 27 Member States + 24 official languages into single row",
+      "rationale": "INTERNATIONALIZATION.md §1 lists 'en-GB / en-EU' as a single locale row. EU GDPR rights notices must be served in the language(s) of the Member State of the data subject. With 24 official EU languages (BG/CS/DA/DE/EL/EN/ES/ET/FI/FR/GA/HR/HU/IT/LT/LV/MT/NL/PL/PT/RO/SK/SL/SV), the platform's tier-1 Western set covers DE/FR/IT/NL/ES — i.e., 5 of 24. Bulgarian, Croatian, Czech, Danish, Estonian, Finnish, Greek, Hungarian, Lithuanian, Latvian, Maltese, Polish, Portuguese-PT, Romanian, Slovak, Slovene, Swedish, Irish — all absent.",
+      "impact": "EU AI Act Annex III refusal banners, GDPR DSAR responses, and EU NIS2 incident notifications may be unservable in the data subject's language. Per-Member-State regulator (DPA) could reject the platform's compliance posture.",
+      "recommendation": "Add tier-2 EU locales to ADR-0206 + INTERNATIONALIZATION.md: pl-PL, sv-SE, da-DK, fi-FI, el-GR, cs-CZ, ro-RO, hu-HU, pt-PT minimum (top-9 by speaker count + regulatory weight). Extend pseudo-locale CI to surface drift for EU tier-2.",
+      "blocking": false
+    },
+    {
+      "id": "F11-004",
+      "severity": "P2",
+      "title": "ICU MessageFormat plural categories — no Arabic 'two/few/many' coverage test fixture",
+      "rationale": "i18n-canonical.md mandates ICU plural categories (zero/one/two/few/many/other) and ADR-0206 cites locale-driven plurals. Russian uses 4 forms; Arabic uses 6 (zero/one/two/few/many/other). No test fixture in the corpus enumerates Arabic plural correctness; pseudo-locale (xx-AC) only lengthens strings, doesn't exercise plural.",
+      "impact": "Arabic + Russian + Polish + Czech plural forms may regress silently; oya-check-i18n-coverage measures coverage in basis-points but does not validate plural correctness.",
+      "recommendation": "Extend oya-check-i18n-coverage with plural-category validation: per locale, every plural Fluent variant must enumerate the locale's required CLDR plural categories. Add test fixtures at clients/i18n/test-fixtures/plural-{ar,ru,pl,cs}.ftl.",
+      "blocking": false
+    },
+    {
+      "id": "F11-005",
+      "severity": "P2",
+      "title": "Hijri calendar dual-display (KSA/UAE) not in ICU formatter recipes",
+      "rationale": "INTERNATIONALIZATION.md §1 cites 'gregorian + Hijri + KSA holidays' for ar-SA. ux-best-practices.md §5.5 cites only Intl.DateTimeFormat with gregorian. KSA government-facing surfaces typically require Hijri date primary with Gregorian secondary, or both side-by-side. No formatter recipe enumerates Hijri (Islamic) calendar.",
+      "impact": "ar-SA/ar-AE surfaces may render Gregorian-only in regulator-facing or invoice contexts; FATOORA invoice may be technically valid but conventionally wrong.",
+      "recommendation": "Add ICU recipe to i18n-canonical.md for Islamic calendar (calendar: 'islamic-umalqura' for KSA, 'islamic' for general). Add JP era calendar (calendar: 'japanese') as parallel. Document dual-display pattern in ux-best-practices.md §5.5.",
+      "blocking": false
+    },
+    {
+      "id": "F11-006",
+      "severity": "P2",
+      "title": "Pseudo-locale (xx-AC) tests for length expansion but no pseudo-RTL or pseudo-CJK",
+      "rationale": "ux-best-practices §5.9 specifies xx-AC pseudo-locale (accents + 40% length expansion + bracket wrapping). No pseudo-RTL locale (e.g., xx-ZA Hebrew-mirror) and no pseudo-CJK (xx-CJ wide-character stress) are specified. RTL bugs hide until ar-SA snapshots run; CJK font-fallback bugs hide until ko-KR/ja-JP/zh-CN snapshots run.",
+      "impact": "RTL and CJK regressions land later and cost more.",
+      "recommendation": "Add pseudo-locales xx-RT (Hebrew-mirror RTL) and xx-CJ (CJK wide-char fallback) to clients/i18n/ tooling. Wire into CI snapshot lane.",
+      "blocking": false
+    },
+    {
+      "id": "F11-007",
+      "severity": "P2",
+      "title": "Keyboard shortcut localization gap (en-anchored mnemonics)",
+      "rationale": "ux-best-practices §8.5 acknowledges en-anchored mnemonics (c=Compose, j/k=navigation) and states 'do not localize the keybinding itself; tooltip text localizes.' This matches industry convention (Gmail, Slack, VS Code). However, the doc does not address: (a) keyboard layouts where the en-mnemonic key is in an awkward position (AZERTY for fr-FR, QWERTZ for de-DE, Korean Hangul layout, Arabic layout); (b) right-Alt = AltGr in many EU layouts collides with shortcut combos; (c) IME-active state (Korean/Japanese/Chinese) often intercepts single-key shortcuts.",
+      "impact": "Power-user productivity claim (no-code-first + power-user keyboard) degrades meaningfully outside en-US layout.",
+      "recommendation": "Add per-stack guidance for IME-active state handling (suppress single-key shortcuts while composition is open). Add fallback bindings (e.g., g h AND go-home-button) so layouts that can't reach j/k easily still have a path.",
+      "blocking": false
+    },
+    {
+      "id": "F11-008",
+      "severity": "P3",
+      "title": "es-US (US Hispanic) not differentiated from es-MX",
+      "rationale": "INTERNATIONALIZATION.md §1 lists es-MX for MX market but the US Hispanic locale (es-US, ~42M speakers, with currency-display + date-format + idiom divergence from es-MX) is not enumerated. tier-1 list per ADR-0206 cites es-MX + es-ES only.",
+      "impact": "Minor; most US-Hispanic users tolerate es-MX. Becomes a marketing/UX concern if oyatie targets US healthcare or finance B2C with Hispanic-segment focus.",
+      "recommendation": "Add es-US to tier-1 backlog with low priority; flag for review when US healthcare pack (FERPA/HIPAA US) graduates from planned to active.",
+      "blocking": false
+    },
+    {
+      "id": "F11-009",
+      "severity": "P3",
+      "title": "Indic script support not enumerated beyond hi-IN",
+      "rationale": "INTERNATIONALIZATION.md §1 lists 'hi-IN / en-IN' for IN-Mumbai. India has 22 scheduled languages (Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Punjabi, etc.). DPDPA 2023 requires consent language in the data subject's preferred language. Devanagari font fallback stack is not enumerated in §5.4 (which covers only CJK).",
+      "impact": "DPDPA tenant onboarding may fail in non-Hindi Indian markets.",
+      "recommendation": "Add Indic script section to ux-best-practices §5.4 covering Devanagari (Hindi/Marathi/Sanskrit), Tamil, Telugu, Bengali, Gurmukhi (Punjabi), Gujarati font fallback. Add ta-IN, te-IN, bn-IN to tier-2 backlog.",
+      "blocking": false
+    },
+    {
+      "id": "F11-010",
+      "severity": "P3",
+      "title": "Coverage gate uses basis-points but no per-locale tier policy in keystone bundle",
+      "rationale": "i18n-canonical.md §coverage-gate states 9500 bps (95%) for production locales, 9000 bps (90%) tier-2, 8000 bps (80%) beta. The keystone bundle (ADR-0242..ADR-0255) does not bind these thresholds to compliance-pack readiness in ADR-0251 (e.g., a tenant installing HIPAA-2024 should require KR-PIPA-binding tenants to have ko-KR at 95%+ before the pack-install workflow completes).",
+      "impact": "Pack-install workflow could permit a tenant onboarding without locale prerequisite.",
+      "recommendation": "Add to ADR-0251 §D-3 step 'jurisdiction match' a sub-rule requiring locale coverage ≥ tier threshold for the pack's jurisdiction language(s) before stage 4 (DPIA signed) can proceed.",
+      "blocking": false
+    }
+  ],
+  "strengths": [
+    "ADR-0206 unifies Fluent + ICU MessageFormat across six native client stacks (SvelteKit, Leptos, SwiftUI, Compose, GTK4, WinUI3) with one source of truth — exceeds Stripe/Linear cross-platform parity.",
+    "ux-best-practices §5.3 mandates logical CSS properties (padding-inline-start, margin-inline-end) and explicitly forbids padding-left/margin-right — RTL-by-default at the CSS level.",
+    "ux-best-practices §5.4 CJK rendering rules are unusually precise: +1px size, +10% line-height, native-region font primary in fallback stack, no italic, no letter-spacing.",
+    "ADR-0064 §1.5 semantic-localization decision rules (account classes via seam, FHIR via pack adapters, retention via seam, Cedar policy slots, etc.) is rigorous — handles ambiguous cases that most platforms punt.",
+    "ADR-0064 §8 canonical-base neutrality CI lane (regex Kr|Us|Eu|Jp|Sea|Mena|jurisdiction-codes) mechanically prevents jurisdiction leak into canonical base.",
+    "Pseudo-locale xx-AC in CI catches concatenation bugs before merge — industry-leading discipline.",
+    "ADR-0206 in-house roadmap correctly classifies Fluent + ICU as community/standards layer; no NIH rebuild.",
+    "Per-pack composition (manifest + corpus.lock + per-µservice overlays + Cedar fragments + Workflow templates + Typst templates + acceptance evidence) is comprehensive.",
+    "KR pack #1 fully specified down to identity providers (KakaoTalk/Naver/공동인증서) and payment rails (카카오페이/네이버페이/토스).",
+    "ADR-0251 §D-1 schema includes jurisdiction_overlay[] array enabling country-level + state-level overlay enumeration — extensible to per-language overlays with the schema amendment from F11-001."
+  ],
+  "blockers": [],
+  "non_blocking_concerns": [
+    "F11-001 (agreement template locale variants) — schema amendment needed in ADR-0251 §D-1",
+    "F11-002 (sovereign-cloud + L10n supply chain) — cross-reference between ADR-0240 and ADR-0206",
+    "F11-003 (EU tier-2 locales) — backlog expansion in ADR-0206 + INTERNATIONALIZATION.md",
+    "F11-004 (Arabic/Russian/Polish plural test fixtures) — oya-check-i18n-coverage extension",
+    "F11-005 (Hijri + JP era calendar recipes) — i18n-canonical.md addendum",
+    "F11-006 (pseudo-RTL + pseudo-CJK) — clients/i18n/ tooling extension",
+    "F11-007 (IME-aware shortcut handling) — ux-best-practices §8.5 addendum",
+    "F11-008 (es-US) — backlog (deferred until US Hispanic pack graduates)",
+    "F11-009 (Indic scripts) — backlog (deferred until DPDPA pack graduates)",
+    "F11-010 (pack-install locale prerequisite) — ADR-0251 §D-3 amendment"
+  ],
+  "facet_specific_data": {
+    "i18n_substrate": "Fluent (Mozilla) source + ICU MessageFormat surface (ADR-0206)",
+    "client_stacks_covered": 6,
+    "client_stacks": ["SvelteKit", "Leptos", "SwiftUI", "Jetpack Compose", "GTK 4", "WinUI 3"],
+    "rtl_locales_supported": 4,
+    "cjk_locales_supported": 5,
+    "tier_1_locales_total": 22,
+    "active_packs": 1,
+    "active_pack_list": ["kr"],
+    "planned_packs": ["eu", "jp", "ksa", "us", "us-government"],
+    "ci_gates": [
+      "oya-check-i18n-coverage (advisory; 9500/9000/8000 bps thresholds)",
+      "oya-check-a11y-discipline (interaction with i18n)",
+      "oya-check-architecture --canonical-base-neutrality (jurisdiction-leak detection)",
+      "oya-check-architecture --cross-pack-refusal (pack isolation)",
+      "lean-a5-doc-coverage (per-pack overlay docs)"
+    ],
+    "coverage_threshold_bps": {
+      "production": 9500,
+      "tier_2": 9000,
+      "beta": 8000
+    },
+    "fluent_extensions_used": ["variants (plural/gender/select)", "term references", "attributes", "message references"],
+    "icu_extensions_used": ["plural categories (zero/one/two/few/many/other)", "select", "DateTimeFormat", "NumberFormat", "Collator"]
+  },
+  "cross_facet_interactions": {
+    "F1_correctness": "Locale-aware plural validation needed (F11-004) — locale-aware logic correctness",
+    "F4_ergonomic": "Keyboard shortcut localization (F11-007) and IME-active state handling are UX-ergonomic concerns",
+    "F7_security": "Sovereign-cloud + L10n supply chain (F11-002) is a data-residency security concern",
+    "F9_compliance": "Per-pack agreement-template localization (F11-001) is a regulatory-compliance concern; pack-install locale prerequisite (F11-010) blocks compliance posture",
+    "A1_naming_adherence": "Locale codes (BCP 47) consistent throughout (ko-KR not ko_KR; ar-SA not ar_SA) — passes A1",
+    "A2_documentation_adherence": "i18n-canonical.md, ux-best-practices §5, ADR-0206, ADR-0064 form coherent documentation stack — passes A2"
+  },
+  "comparable_industry_references": {
+    "exceeds": [
+      "Stripe (Stripe localizes UI to ~30 locales; oyatie targets ~31 in tier-1 with formal pack composition)",
+      "Linear (Linear's i18n is English-first with community translations; oyatie's pack-first + Fluent source-of-truth is more rigorous)",
+      "Notion (Notion adds locales reactively; oyatie's pack-pluggability is proactive)"
+    ],
+    "parity_with": [
+      "Microsoft (Microsoft Purview's per-regulation packs match ADR-0251 model)",
+      "AWS Audit Manager (per-framework bundles)",
+      "Mozilla Firefox (Fluent itself originates here; oyatie inherits the discipline)",
+      "Google Workspace (Google's per-language compliance + locale routing is similar architecture)"
+    ],
+    "below": [
+      "Apple (Apple's String Catalog with per-key locale-specific plural rules; oyatie compiles Fluent → .xcstrings via adapter, so technically downstream — but functionally equivalent)",
+      "Salesforce HealthCloud/GovCloud (Salesforce ships per-industry SKUs as separate clouds; oyatie's pack model is more flexible but Salesforce's regulatory completeness per SKU is more mature today)"
+    ]
+  },
+  "evidence_paths": [
+    "/Users/jasonlee/oyatie/docs/standards/ux-best-practices.md",
+    "/Users/jasonlee/oyatie/docs/standards/i18n-canonical.md",
+    "/Users/jasonlee/oyatie/docs/INTERNATIONALIZATION.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0064-canonical-base-and-localization-packs.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0206-i18n-substrate-fluent-icu.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0240-sovereign-cloud-per-regional-pack.md",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md",
+    "/Users/jasonlee/oyatie/docs/localization-packs/INDEX.md",
+    "/Users/jasonlee/oyatie/docs/localization-packs/kr.md",
+    "/Users/jasonlee/oyatie/docs/localization-packs/kr/pack.yaml",
+    "/Users/jasonlee/oyatie/docs/localization-packs/kr/corpus.lock",
+    "/Users/jasonlee/oyatie/registry/catalog/oya-check-i18n-coverage.yaml"
+  ],
+  "reviewer_identity": "F11-i18n-lens-subagent",
+  "review_completed_at": "2026-05-20T00:00:00Z",
+  "next_actions": [
+    "P1 amendments to ADR-0251 (locale-bound agreement templates) — owner council-legal + council-architecture",
+    "P1 cross-reference ADR-0240 ↔ ADR-0206 (sovereign L10n supply chain) — owner council-architecture",
+    "P1 EU tier-2 locale backlog (9 additional locales) — owner axis-regional-pack + council-architecture",
+    "P2 plural fixture extension (oya-check-i18n-coverage) — owner axis-product + council-design-system",
+    "P2 Hijri/JP-era ICU recipes in i18n-canonical.md — owner council-design-system",
+    "P2 pseudo-RTL + pseudo-CJK locales in clients/i18n/ — owner axis-frontend",
+    "Defer P3 items to per-pack graduation milestones"
+  ]
+}

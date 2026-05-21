@@ -162,7 +162,7 @@ pub fn bind_cloud_cell_from_api(
         );
     }
     if request.required_density.as_deref() == Some("air_gapped")
-        && request.residency_class != "strict_kr"
+        && request.residency_class != "strict_home_region"
     {
         return error_result(
             CloudCellBindApiStatus::Conflict,

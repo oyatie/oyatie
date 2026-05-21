@@ -48,7 +48,7 @@ dependent_docs:
   - doc.security_program
   - doc.glossary                            # data class names
   - doc.adr_index                           # ADR cross-references
-validation_lane: oya-foundry-fitness-doc-privacy-program
+validation_lane: oya-governance-doc-privacy-program
 agent_authoring_policy: propose-only        # agents draft; humans approve
 machine_readable_mirror: machine-readable/privacy-program.json
 publish_topic: oya.docs.privacy-program.published.v1
@@ -74,20 +74,20 @@ Three roles based on doc class:
 | **propose-only** | PRD, DESIGN, PRIVACY-PROGRAM, COMPLIANCE-MATRIX, GLOSSARY, ROADMAP, per-pack regulatory text, ADR pack text | **Agent drafts; human approves**; the PR records the agent's draft + human's edits separately |
 | **human-only** | CONSTITUTION.md, source-of-truth.md, council-decision logs, founder ratifications | **Human writes**; agent may surface diffs / cross-references in review comments |
 
-Agents that violate the policy are caught by `oya-foundry-fitness-agent-authoring`, which checks the PR's `## Evidence` block for agent-trace metadata vs the doc's catalog policy.
+Agents that violate the policy are caught by `oya-governance-agent-authoring`, which checks the PR's `## Evidence` block for agent-trace metadata vs the doc's catalog policy.
 
 ### Per-doc validation lanes
 
 | Doc class | Lane |
 |---|---|
-| PRD / DESIGN / ROADMAP | `oya-foundry-fitness-cohesion` (cross-microservice claims must be backed by ADRs) |
-| PRIVACY-PROGRAM | `oya-foundry-fitness-data-class` (data-class taxonomy consistency per ADR-0008) |
-| COMPLIANCE-MATRIX | `oya-foundry-fitness-regulatory-binding` (every regulator row maps to a pack per ADR-0010) |
-| GLOSSARY | `oya-foundry-fitness-glossary` (forbidden vocab + industry alignment per ADR-0018) |
-| TOOLCHAIN / VENDOR-PARTNER-LEDGER | `oya-foundry-fitness-license` (per ADR-0013) + `oya-foundry-fitness-build-vs-buy` (per ADR-0014) |
-| ADR pack | `oya-foundry-fitness-adr-template` (template conformance) + cross-reference check |
-| Catalog records | `oya-foundry-fitness-catalog-records` (each workspace crate has a catalog record per ADR-0015) |
-| Per-pack docs | `oya-foundry-fitness-pack` (seam coverage per ADR-0010) |
+| PRD / DESIGN / ROADMAP | `oya-governance-cohesion` (cross-microservice claims must be backed by ADRs) |
+| PRIVACY-PROGRAM | `oya-governance-data-class` (data-class taxonomy consistency per ADR-0008) |
+| COMPLIANCE-MATRIX | `oya-governance-regulatory-binding` (every regulator row maps to a pack per ADR-0010) |
+| GLOSSARY | `oya-governance-glossary` (forbidden vocab + industry alignment per ADR-0018) |
+| TOOLCHAIN / VENDOR-PARTNER-LEDGER | `oya-governance-license` (per ADR-0013) + `oya-governance-build-vs-buy` (per ADR-0014) |
+| ADR pack | `oya-governance-adr-template` (template conformance) + cross-reference check |
+| Catalog records | `oya-governance-catalog-records` (each workspace crate has a catalog record per ADR-0015) |
+| Per-pack docs | `oya-governance-pack` (seam coverage per ADR-0010) |
 
 ### Machine-readable mirror
 
@@ -130,7 +130,7 @@ A doc's cadence is the *floor*, not the ceiling. Trigger events (regulator chang
 
 - On-call: `EVT-DOC-CADENCE-OVERDUE` weekly rollup; `EVT-DOC-TRIGGER-FIRED` immediate notification to owner.
 - Runbooks: `runbooks/doc-update-pr.md`, `runbooks/cross-doc-impact-analysis.md`, `runbooks/agent-authoring-evidence-attach.md`, `runbooks/machine-readable-mirror-regenerate.md`.
-- CI: per-doc validation lanes (above), `oya-foundry-fitness-doc-cadence` (overdue cadence detection), `oya-foundry-fitness-doc-catalog` (every doc has a catalog row).
+- CI: per-doc validation lanes (above), `oya-governance-doc-cadence` (overdue cadence detection), `oya-governance-doc-catalog` (every doc has a catalog row).
 - Trust portal: customer-facing doc subset published at `docs.oyatie.com` with chain-anchored versioning.
 
 ---

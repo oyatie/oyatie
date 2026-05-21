@@ -1118,8 +1118,27 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_residency_domain::{
+        PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
+    };
 
     const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+
+    fn residency_class() -> ResidencyClass {
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: vec!["region-alpha".to_string()],
+                allowed_replica_regions: vec!["region-beta".to_string()],
+                forbidden_regions: vec!["region-gamma".to_string()],
+                regulator_overlay: RegulatorOverlay::new(RegulatorOverlayCreate {
+                    regulator_refs: vec!["regulator/global-cloud".to_string()],
+                    evidence_ref: "evidence/residency/global-cloud".to_string(),
+                })
+                .expect("regulator overlay fixture is valid"),
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
+    }
 
     fn quota() -> ComputeQuotaEnvelope {
         ComputeQuotaEnvelope {
@@ -1145,30 +1164,30 @@ mod tests {
     }
 
     fn image() -> String {
-        format!("oci://harbor.kr-seoul.oya/ten_kr/app@sha256:{DIGEST}")
+        format!("oci://harbor.region-alpha.oya/ten_alpha/app@sha256:{DIGEST}")
     }
 
     fn function_bundle() -> String {
-        format!("function://harbor.kr-seoul.oya/ten_kr/image-resize@sha256:{DIGEST}")
+        format!("function://harbor.region-alpha.oya/ten_alpha/image-resize@sha256:{DIGEST}")
     }
 
     fn instance_create() -> InstanceCreate {
         InstanceCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:instance:app-1".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
-            az: "kr-seoul-a".to_string(),
-            cell_id: "cell-kr-seoul-a-001".to_string(),
+            resource_id: "oya:cloud:region-alpha:ten_alpha:instance:app-1".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha".to_string(),
+            az: "region-alpha-a".to_string(),
+            cell_id: "cell-region-alpha-a-001".to_string(),
             flavor: flavor(),
             image: image(),
             key_pair: Some("key_prod".to_string()),
-            vpc_id: "oya:cloud:kr-seoul:ten_kr:vpc:prod".to_string(),
-            subnet_id: "oya:cloud:kr-seoul:ten_kr:subnet:prod-a".to_string(),
+            vpc_id: "oya:cloud:region-alpha:ten_alpha:vpc:prod".to_string(),
+            subnet_id: "oya:cloud:region-alpha:ten_alpha:subnet:prod-a".to_string(),
             security_groups: vec!["sg_web".to_string()],
             iam_role: Some("role_app".to_string()),
-            user_data_uri: Some("userdata/ten_kr/app-1/cloud-init.yaml".to_string()),
+            user_data_uri: Some("userdata/ten_alpha/app-1/cloud-init.yaml".to_string()),
             quota: quota(),
-            residency: ResidencyClass::StrictKr,
+            residency: residency_class(),
             state: InstanceState::Pending,
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_100_000,
@@ -1191,31 +1210,31 @@ mod tests {
 
     fn k8s_create() -> KubernetesClusterCreate {
         KubernetesClusterCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:k8s:prod".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
+            resource_id: "oya:cloud:region-alpha:ten_alpha:k8s:prod".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha".to_string(),
             flavor: K8sFlavor::HighAvailability,
             control_plane_version: "v1.30.2-oya.1".to_string(),
             control_plane_private: true,
             node_pools: vec![
                 node_pool(
                     "np_a",
-                    "kr-seoul-a",
-                    "oya:cloud:kr-seoul:ten_kr:subnet:prod-a",
+                    "region-alpha-a",
+                    "oya:cloud:region-alpha:ten_alpha:subnet:prod-a",
                 ),
                 node_pool(
                     "np_b",
-                    "kr-seoul-b",
-                    "oya:cloud:kr-seoul:ten_kr:subnet:prod-b",
+                    "region-alpha-b",
+                    "oya:cloud:region-alpha:ten_alpha:subnet:prod-b",
                 ),
                 node_pool(
                     "np_c",
-                    "kr-seoul-c",
-                    "oya:cloud:kr-seoul:ten_kr:subnet:prod-c",
+                    "region-alpha-c",
+                    "oya:cloud:region-alpha:ten_alpha:subnet:prod-c",
                 ),
             ],
             quota: quota(),
-            residency: ResidencyClass::StrictKr,
+            residency: residency_class(),
             state: KubernetesClusterState::Creating,
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_100_010,
@@ -1224,11 +1243,11 @@ mod tests {
 
     fn function_create() -> FunctionDeploymentCreate {
         FunctionDeploymentCreate {
-            resource_id: "oya:cloud:kr-seoul:ten_kr:function:image-resize".to_string(),
-            tenant_id: "ten_kr".to_string(),
-            region: "kr-seoul".to_string(),
-            az: "kr-seoul-a".to_string(),
-            cell_id: "cell-kr-seoul-a-001".to_string(),
+            resource_id: "oya:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "region-alpha".to_string(),
+            az: "region-alpha-a".to_string(),
+            cell_id: "cell-region-alpha-a-001".to_string(),
             runtime: FunctionRuntime::Wasm,
             name: "image-resize".to_string(),
             bundle: function_bundle(),
@@ -1237,7 +1256,7 @@ mod tests {
             memory_mb: 512,
             max_concurrency: 250,
             allowed_data_classes: vec![DataClass::Public, DataClass::PiiIdentifying],
-            residency: ResidencyClass::StrictKr,
+            residency: residency_class(),
             state: FunctionDeploymentState::Deploying,
             data_class: DataClass::Public,
             created_at_epoch_seconds: 1_700_100_020,
@@ -1247,9 +1266,9 @@ mod tests {
     fn invocation(id: &str, data_class: DataClass) -> FunctionInvocationRequest {
         FunctionInvocationRequest {
             invocation_id: id.to_string(),
-            tenant_id: "ten_kr".to_string(),
-            function_id: "oya:cloud:kr-seoul:ten_kr:function:image-resize".to_string(),
-            region: "kr-seoul".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            function_id: "oya:cloud:region-alpha:ten_alpha:function:image-resize".to_string(),
+            region: "region-alpha".to_string(),
             payload_data_class: data_class,
             idempotency_key: format!("idem-{id}-0123456789"),
             requested_at_epoch_seconds: 1_700_100_030,
@@ -1261,8 +1280,8 @@ mod tests {
         let instance = Instance::new(instance_create()).expect("instance contract is valid");
 
         assert_eq!(instance.resource_id.value.kind_label().unwrap(), "instance");
-        assert_eq!(instance.az.value.value, "kr-seoul-a");
-        assert_eq!(instance.cell_id.value.value, "cell-kr-seoul-a-001");
+        assert_eq!(instance.az.value.value, "region-alpha-a");
+        assert_eq!(instance.cell_id.value.value, "cell-region-alpha-a-001");
         assert_eq!(instance.flavor.value.vcpu, 4);
         assert_eq!(instance.image.value.kind, ImageRefKind::Oci);
         assert_eq!(instance.security_groups.value.len(), 1);
@@ -1290,14 +1309,14 @@ mod tests {
         assert_eq!(quota_error, CloudComputeError::QuotaExceeded);
 
         let image_error = Instance::new(InstanceCreate {
-            image: "oci://harbor.kr-seoul.oya/ten_kr/app:latest".to_string(),
+            image: "oci://harbor.region-alpha.oya/ten_alpha/app:latest".to_string(),
             ..instance_create()
         })
         .expect_err("image refs must be digest pinned");
         assert_eq!(image_error, CloudComputeError::InvalidImageRef);
 
         let cell_error = Instance::new(InstanceCreate {
-            cell_id: "cell-kr-seoul-b-001".to_string(),
+            cell_id: "cell-region-alpha-b-001".to_string(),
             ..instance_create()
         })
         .expect_err("cell id must stay inside selected AZ");
@@ -1320,8 +1339,8 @@ mod tests {
         let ha_error = KubernetesCluster::new(KubernetesClusterCreate {
             node_pools: vec![node_pool(
                 "np_a",
-                "kr-seoul-a",
-                "oya:cloud:kr-seoul:ten_kr:subnet:prod-a",
+                "region-alpha-a",
+                "oya:cloud:region-alpha:ten_alpha:subnet:prod-a",
             )],
             ..k8s_create()
         })

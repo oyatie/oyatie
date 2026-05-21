@@ -8,8 +8,8 @@ date: 2026-05-12
 purpose: |
   Cross-axis contract changes; require all consumer axes to canary in lockstep.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0011, ADR-0012, ADR-0037, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -60,7 +60,7 @@ Removing a contract field / version:
 3. Block removal if any consumer still calls the deprecated field with > 0 calls in last 7 d.
 4. After zero-call window, remove via separate release.
 
-`oya-foundry-fitness-api-semver` (existing) gates this.
+`oya-governance-api-semver` (existing) gates this.
 
 ## 6. Consumer-axis canary independence
 
@@ -76,7 +76,7 @@ Per stage, emit a single D14 artefact aggregating:
 - Cohort intersection results.
 - Lockstep verdict (promote / hold / abort).
 
-Stored in `oya-foundry-evidence-kernel`; verified by `oya-foundry-fitness-rollback-evidence`. Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), stored via `icm store -t cross-axis-lockstep-verdicts`.
+Stored in `oya-foundry-evidence-kernel`; verified by `oya-governance-rollback-evidence`. Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), stored via `icm store -t cross-axis-lockstep-verdicts`.
 
 ## 8. Rollback
 

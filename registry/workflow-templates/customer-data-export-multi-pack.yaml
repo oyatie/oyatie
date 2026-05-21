@@ -1,0 +1,768 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.customer-data-export-multi-pack.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0244-tenant-as-universal-scoping-primitive
+  - ADR-0276-backup-portability-format-gdpr-article-20
+title: Customer data export multi-pack
+description: >-
+  Produces a customer-controlled data export across active compliance packs by
+  resolving pack precedence, gathering eligible datasets, applying pack-specific
+  exclusions, encrypting, delivering, and sealing audit evidence.
+tags:
+  - data-export
+  - portability
+  - multi-pack
+  - encryption
+  - audit-chain
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: gold
+    reason: "Pack-aware data export requires governed discovery, encryption, and delivery evidence."
+ontology_refs:
+  object: CustomerDataExportCase
+  actions:
+    - ExportRequested
+    - PackPrecedenceResolved
+    - ExportDataCollected
+    - ExportEncrypted
+    - ExportDelivered
+    - ExportAuditSealed
+tenant_context:
+  required_fields:
+    - tenant_id
+    - customer_account_id
+    - export_requester_principal_id
+    - active_pack_ids
+principal_context:
+  system_principal: workflow-engine.customer-data-export
+  human_approval_roles:
+    - tenant_admin
+    - privacy_owner
+    - security_owner
+data_classes:
+  - CUSTOMER_ACCOUNT
+  - PORTABILITY_EXPORT
+  - PACK_PRECEDENCE_DECISION
+  - ENCRYPTION_KEY_REFERENCE
+  - DELIVERY_RECEIPT
+residency_pack_overlays:
+  - pack: gdpr
+    behavior: "Prefer portable machine-readable export unless legal hold or third-party rights apply."
+  - pack: hipaa
+    behavior: "Require PHI package encryption and restricted delivery channel."
+  - pack: pci
+    behavior: "Exclude full PAN and export only tokenized payment references."
+observability:
+  metrics:
+    - customer_data_export_latency_seconds
+    - customer_data_export_pack_conflict_total
+    - customer_data_export_delivery_failure_total
+  traces:
+    - workflow.template.customer_data_export_multi_pack
+  logs:
+    - workflow_customer_data_export_audit_projection
+cost_allocation:
+  unit: customer_data_export_step
+  dimensions:
+    - tenant_id
+    - export_scope
+    - pack_precedence_hash
+idempotency:
+  key_shape: "tenant_id:customer_account_id:export_request_id:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: encrypt_export
+  on_cancel: delete_unsealed_export_artifacts_and_close_delivery_request
+  audit_event_class: CustomerDataExportCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_export_package_and_delivery_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_demo
+  export_request_id:
+    type: string
+    default: export_001
+  customer_account_id:
+    type: string
+    default: customer_001
+  export_requester_principal_id:
+    type: string
+    default: principal_admin_001
+  active_pack_ids:
+    type: array
+    default:
+      - gdpr
+      - soc2
+  export_scope:
+    type: string
+    default: full_account_portability
+  delivery_channel:
+    type: string
+    default: secure_portal
+outputs:
+  export_case_id:
+    type: string
+  terminal_state:
+    type: string
+  export_package_id:
+    type: string
+  delivery_receipt_id:
+    type: string
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: export_request_start
+    type: start
+    config:
+      trigger: customer.data_export.requested.v1
+      validates:
+        - tenant_id
+        - export_request_id
+        - customer_account_id
+        - active_pack_ids
+    cedar_permits_required:
+      - 'Action::"StartCustomerDataExport"'
+    audit_event_class: CustomerDataExportStarted
+    slo_target: "PT1H after request"
+    timeout:
+      duration: PT10M
+      on_timeout: export_start_retry
+    retry:
+      max_attempts: 2
+      backoff: PT2M
+      retryable_errors:
+        - EXPORT_REQUEST_EVENT_LAG
+    failure_modes:
+      - code: EXPORT_SCOPE_UNSUPPORTED
+        behavior: "Reject before data discovery."
+    on_success:
+      - edge_to_create_export_case
+    on_failure:
+      - edge_to_export_exception
+  - id: create_export_case
+    type: action
+    config:
+      service: privacy
+      contract: customer-data-export-case.v1
+      method: POST
+      url: "https://privacy.internal/v1/customer-data-exports"
+      body:
+        export_request_id: "${inputs.export_request_id}"
+        customer_account_id: "${inputs.customer_account_id}"
+        export_scope: "${inputs.export_scope}"
+    cedar_permits_required:
+      - 'Action::"CreateCustomerDataExportCase"'
+    audit_event_class: CustomerDataExportCaseCreated
+    slo_target: "PT4H"
+    timeout:
+      duration: PT10M
+      on_timeout: export_case_retry
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - EXPORT_CASE_WRITE_TIMEOUT
+    failure_modes:
+      - code: DUPLICATE_EXPORT_CASE
+        behavior: "Return existing case."
+    on_success:
+      - edge_to_requester_authorization
+    on_failure:
+      - edge_to_export_exception
+  - id: requester_authorization
+    type: action
+    config:
+      service: identity
+      contract: export-requester-authorization.v1
+      method: POST
+      url: "https://identity.internal/v1/export-authorizations"
+      body:
+        requester_principal_id: "${inputs.export_requester_principal_id}"
+        customer_account_id: "${inputs.customer_account_id}"
+        export_scope: "${inputs.export_scope}"
+    cedar_permits_required:
+      - 'Action::"AuthorizeCustomerDataExportRequester"'
+    audit_event_class: CustomerDataExportRequesterAuthorized
+    slo_target: "PT1D"
+    timeout:
+      duration: PT1H
+      on_timeout: requester_auth_retry
+    retry:
+      max_attempts: 3
+      backoff: PT15M
+      retryable_errors:
+        - AUTHORIZATION_SERVICE_TIMEOUT
+    failure_modes:
+      - code: REQUESTER_NOT_AUTHORIZED
+        behavior: "Close export without data discovery."
+    on_success:
+      - edge_to_pack_precedence_resolve
+    on_failure:
+      - edge_to_export_exception
+  - id: pack_precedence_resolve
+    type: action
+    config:
+      service: compliance
+      contract: pack-precedence-resolution.v1
+      method: POST
+      url: "https://compliance.internal/v1/pack-precedence/resolve"
+      body:
+        tenant_id: "${inputs.tenant_id}"
+        active_pack_ids: "${inputs.active_pack_ids}"
+        operation: customer_data_export
+    cedar_permits_required:
+      - 'Action::"ResolvePackPrecedenceForExport"'
+    audit_event_class: CustomerDataExportPackPrecedenceResolved
+    slo_target: "PT4H"
+    timeout:
+      duration: PT30M
+      on_timeout: pack_precedence_retry
+    retry:
+      max_attempts: 3
+      backoff: PT10M
+      retryable_errors:
+        - PACK_PRECEDENCE_TIMEOUT
+    failure_modes:
+      - code: PACK_CONFLICT_UNRESOLVED
+        behavior: "Route to privacy owner; no export generated."
+    on_success:
+      - edge_to_collect_parallel
+    on_failure:
+      - edge_to_export_exception
+  - id: collect_parallel
+    type: parallel
+    config:
+      fan_out_limit: 4
+      join_semantics: all_success_required
+      branches:
+        - collect_account_records
+        - collect_workflow_records
+        - collect_billing_records
+        - collect_audit_projection
+    cedar_permits_required:
+      - 'Action::"RunCustomerDataExportCollection"'
+    audit_event_class: CustomerDataExportCollectionStarted
+    slo_target: "P7D"
+    timeout:
+      duration: P7D
+      on_timeout: export_collection_timeout
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: COLLECTION_BRANCH_FAILED
+        behavior: "Block package and attach failed source list."
+    on_success:
+      - edge_to_collect_account_records
+      - edge_to_collect_workflow_records
+      - edge_to_collect_billing_records
+      - edge_to_collect_audit_projection
+    on_failure:
+      - edge_to_export_exception
+  - id: collect_account_records
+    type: action
+    config:
+      service: tenancy
+      contract: customer-account-export.v1
+      method: POST
+      url: "https://tenancy.internal/v1/exports/account"
+      body:
+        customer_account_id: "${inputs.customer_account_id}"
+        precedence_ref: "${nodes.pack_precedence_resolve.output.precedence_ref}"
+    cedar_permits_required:
+      - 'Action::"CollectCustomerAccountExportRecords"'
+    audit_event_class: CustomerAccountExportRecordsCollected
+    slo_target: "P2D"
+    timeout:
+      duration: P2D
+      on_timeout: account_collect_timeout
+    retry:
+      max_attempts: 2
+      backoff: P1D
+      retryable_errors:
+        - ACCOUNT_EXPORT_TIMEOUT
+    failure_modes:
+      - code: ACCOUNT_RECORD_SCOPE_CONFLICT
+        behavior: "Route to tenant admin; do not package partial scope."
+    on_success:
+      - edge_to_collect_join
+    on_failure:
+      - edge_to_export_exception
+  - id: collect_workflow_records
+    type: action
+    config:
+      service: workflow-engine
+      contract: customer-workflow-export.v1
+      method: POST
+      url: "https://workflow.internal/v1/exports/customer"
+      body:
+        customer_account_id: "${inputs.customer_account_id}"
+        export_scope: "${inputs.export_scope}"
+    cedar_permits_required:
+      - 'Action::"CollectCustomerWorkflowExportRecords"'
+    audit_event_class: CustomerWorkflowExportRecordsCollected
+    slo_target: "P2D"
+    timeout:
+      duration: P2D
+      on_timeout: workflow_collect_timeout
+    retry:
+      max_attempts: 2
+      backoff: P1D
+      retryable_errors:
+        - WORKFLOW_EXPORT_TIMEOUT
+    failure_modes:
+      - code: WORKFLOW_EXPORT_TOO_LARGE
+        behavior: "Switch to artifact-backed chunking."
+    on_success:
+      - edge_to_collect_join
+    on_failure:
+      - edge_to_export_exception
+  - id: collect_billing_records
+    type: action
+    config:
+      service: billing
+      contract: customer-billing-export.v1
+      method: POST
+      url: "https://billing.internal/v1/exports/customer"
+      body:
+        customer_account_id: "${inputs.customer_account_id}"
+        exclude_full_pan: true
+    cedar_permits_required:
+      - 'Action::"CollectCustomerBillingExportRecords"'
+    audit_event_class: CustomerBillingExportRecordsCollected
+    slo_target: "P2D"
+    timeout:
+      duration: P2D
+      on_timeout: billing_collect_timeout
+    retry:
+      max_attempts: 2
+      backoff: P1D
+      retryable_errors:
+        - BILLING_EXPORT_TIMEOUT
+    failure_modes:
+      - code: PCI_EXCLUSION_REQUIRED
+        behavior: "Export tokenized payment references only."
+    on_success:
+      - edge_to_collect_join
+    on_failure:
+      - edge_to_export_exception
+  - id: collect_audit_projection
+    type: action
+    config:
+      service: audit-chain
+      contract: customer-audit-export-projection.v1
+      method: POST
+      url: "https://audit-chain.internal/v1/exports/customer-projection"
+      body:
+        customer_account_id: "${inputs.customer_account_id}"
+        projection_mode: redacted_reference
+    cedar_permits_required:
+      - 'Action::"CollectCustomerAuditExportProjection"'
+    audit_event_class: CustomerAuditExportProjectionCollected
+    slo_target: "P3D"
+    timeout:
+      duration: P3D
+      on_timeout: audit_collect_timeout
+    retry:
+      max_attempts: 2
+      backoff: P1D
+      retryable_errors:
+        - AUDIT_EXPORT_TIMEOUT
+    failure_modes:
+      - code: AUDIT_PROJECTION_DIGEST_FAILED
+        behavior: "Block export and open audit-chain remediation."
+    on_success:
+      - edge_to_collect_join
+    on_failure:
+      - edge_to_export_exception
+  - id: collect_join
+    type: decision
+    config:
+      expression: "${parallel.collect_parallel.all_branches_succeeded}"
+      cases:
+        "true": apply_pack_exclusions
+        "false": export_exception_end
+    cedar_permits_required:
+      - 'Action::"EvaluateCustomerExportCollection"'
+    audit_event_class: CustomerDataExportCollectionEvaluated
+    slo_target: "P8D"
+    timeout:
+      duration: PT8H
+      on_timeout: privacy_owner_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: COLLECTION_INCOMPLETE
+        behavior: "No package generated."
+    on_success:
+      - edge_to_apply_pack_exclusions
+    on_failure:
+      - edge_to_export_exception
+  - id: apply_pack_exclusions
+    type: action
+    config:
+      service: privacy
+      contract: export-pack-exclusion-application.v1
+      method: POST
+      url: "https://privacy.internal/v1/exports/pack-exclusions"
+      body:
+        export_case_id: "${nodes.create_export_case.output.case_id}"
+        precedence_ref: "${nodes.pack_precedence_resolve.output.precedence_ref}"
+        collection_refs:
+          - "${nodes.collect_account_records.output.collection_ref}"
+          - "${nodes.collect_workflow_records.output.collection_ref}"
+          - "${nodes.collect_billing_records.output.collection_ref}"
+          - "${nodes.collect_audit_projection.output.collection_ref}"
+    cedar_permits_required:
+      - 'Action::"ApplyCustomerExportPackExclusions"'
+    audit_event_class: CustomerDataExportPackExclusionsApplied
+    slo_target: "P9D"
+    timeout:
+      duration: P1D
+      on_timeout: exclusion_apply_timeout
+    retry:
+      max_attempts: 2
+      backoff: PT6H
+      retryable_errors:
+        - EXCLUSION_ENGINE_TIMEOUT
+    failure_modes:
+      - code: EXCLUSION_RULE_CONFLICT
+        behavior: "Route to privacy owner; no package generated."
+    on_success:
+      - edge_to_generate_manifest
+    on_failure:
+      - edge_to_export_exception
+  - id: generate_manifest
+    type: action
+    config:
+      service: privacy
+      contract: customer-export-manifest.v1
+      method: POST
+      url: "https://privacy.internal/v1/exports/manifests"
+      body:
+        export_case_id: "${nodes.create_export_case.output.case_id}"
+        filtered_dataset_ref: "${nodes.apply_pack_exclusions.output.filtered_dataset_ref}"
+        include_pack_precedence_hash: true
+    cedar_permits_required:
+      - 'Action::"GenerateCustomerExportManifest"'
+    audit_event_class: CustomerDataExportManifestGenerated
+    slo_target: "P10D"
+    timeout:
+      duration: PT4H
+      on_timeout: manifest_retry
+    retry:
+      max_attempts: 3
+      backoff: PT1H
+      retryable_errors:
+        - MANIFEST_WRITE_TIMEOUT
+    failure_modes:
+      - code: MANIFEST_DIGEST_MISMATCH
+        behavior: "Regenerate manifest before encryption."
+    on_success:
+      - edge_to_encrypt_export
+    on_failure:
+      - edge_to_export_exception
+  - id: encrypt_export
+    type: action
+    config:
+      service: secrets
+      contract: customer-export-encryption.v1
+      method: POST
+      url: "https://secrets.internal/v1/export-encryption"
+      body:
+        manifest_id: "${nodes.generate_manifest.output.manifest_id}"
+        encryption_profile: customer_managed_or_platform_cmek
+        delivery_channel: "${inputs.delivery_channel}"
+    cedar_permits_required:
+      - 'Action::"EncryptCustomerDataExport"'
+    audit_event_class: CustomerDataExportEncrypted
+    slo_target: "P10D"
+    timeout:
+      duration: PT2H
+      on_timeout: encryption_retry
+    retry:
+      max_attempts: 3
+      backoff: PT30M
+      retryable_errors:
+        - ENCRYPTION_WORKER_TIMEOUT
+    failure_modes:
+      - code: ENCRYPTION_KEY_UNAVAILABLE
+        behavior: "Block delivery until key is available."
+    on_success:
+      - edge_to_delivery_decision
+    on_failure:
+      - edge_to_export_exception
+  - id: delivery_decision
+    type: decision
+    config:
+      expression: "${inputs.delivery_channel}"
+      cases:
+        secure_portal: deliver_secure_portal
+        customer_bucket: deliver_customer_bucket
+        offline_transfer: deliver_secure_portal
+    cedar_permits_required:
+      - 'Action::"DecideCustomerExportDeliveryChannel"'
+    audit_event_class: CustomerDataExportDeliveryChannelDecided
+    slo_target: "PT2H after encryption"
+    timeout:
+      duration: PT4H
+      on_timeout: security_owner_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: DELIVERY_CHANNEL_UNSUPPORTED
+        behavior: "Route to tenant admin; keep package encrypted."
+    on_success:
+      - edge_to_deliver_secure_portal
+      - edge_to_deliver_customer_bucket
+    on_failure:
+      - edge_to_export_exception
+  - id: deliver_secure_portal
+    type: action
+    config:
+      service: delivery
+      contract: secure-portal-export-delivery.v1
+      method: POST
+      url: "https://delivery.internal/v1/secure-portal"
+      body:
+        encrypted_package_ref: "${nodes.encrypt_export.output.encrypted_package_ref}"
+        requester_principal_id: "${inputs.export_requester_principal_id}"
+    cedar_permits_required:
+      - 'Action::"DeliverCustomerExportSecurePortal"'
+    audit_event_class: CustomerDataExportDelivered
+    slo_target: "P12D after request"
+    timeout:
+      duration: PT2H
+      on_timeout: portal_delivery_retry
+    retry:
+      max_attempts: 3
+      backoff: PT30M
+      retryable_errors:
+        - PORTAL_DELIVERY_TIMEOUT
+    failure_modes:
+      - code: PORTAL_RECIPIENT_DENIED
+        behavior: "Do not publish link; route to tenant admin."
+    on_success:
+      - edge_to_seal_export_audit
+    on_failure:
+      - edge_to_export_exception
+  - id: deliver_customer_bucket
+    type: action
+    config:
+      service: delivery
+      contract: customer-bucket-export-delivery.v1
+      method: POST
+      url: "https://delivery.internal/v1/customer-bucket"
+      body:
+        encrypted_package_ref: "${nodes.encrypt_export.output.encrypted_package_ref}"
+        customer_account_id: "${inputs.customer_account_id}"
+    cedar_permits_required:
+      - 'Action::"DeliverCustomerExportCustomerBucket"'
+    audit_event_class: CustomerDataExportDelivered
+    slo_target: "P12D after request"
+    timeout:
+      duration: PT2H
+      on_timeout: bucket_delivery_retry
+    retry:
+      max_attempts: 3
+      backoff: PT30M
+      retryable_errors:
+        - BUCKET_DELIVERY_TIMEOUT
+    failure_modes:
+      - code: BUCKET_ATTESTATION_MISSING
+        behavior: "Fallback to secure portal if permitted."
+    on_success:
+      - edge_to_seal_export_audit
+    on_failure:
+      - edge_to_export_exception
+  - id: seal_export_audit
+    type: action
+    config:
+      service: audit-chain
+      contract: customer-data-export-audit.v1
+      method: POST
+      url: "https://audit-chain.internal/v1/customer-data-export/completions"
+      body:
+        export_case_id: "${nodes.create_export_case.output.case_id}"
+        delivery_receipt_id: "${nodes.deliver_secure_portal.output.receipt_id}"
+        manifest_id: "${nodes.generate_manifest.output.manifest_id}"
+    cedar_permits_required:
+      - 'Action::"SealCustomerDataExportAudit"'
+    audit_event_class: CustomerDataExportAuditSealed
+    slo_target: "PT2H after delivery"
+    timeout:
+      duration: PT15M
+      on_timeout: audit_seal_retry
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: AUDIT_SEAL_FAILED
+        behavior: "Do not mark export complete."
+    on_success:
+      - edge_to_export_completed
+    on_failure:
+      - edge_to_export_exception
+  - id: export_completed_end
+    type: end
+    config:
+      terminal_state: delivered
+      output_contract: customer-data-export-result.v1
+    cedar_permits_required:
+      - 'Action::"CompleteCustomerDataExport"'
+    audit_event_class: CustomerDataExportCompleted
+    slo_target: "P14D after request"
+    timeout:
+      duration: PT5M
+      on_timeout: completion_retry
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: COMPLETION_AUDIT_FAILED
+        behavior: "Keep export case open."
+    on_success: []
+    on_failure:
+      - edge_to_export_exception
+  - id: export_exception_end
+    type: end
+    config:
+      terminal_state: blocked_or_delivery_failed
+      output_contract: customer-data-export-exception.v1
+    cedar_permits_required:
+      - 'Action::"CloseCustomerDataExportException"'
+    audit_event_class: CustomerDataExportExceptionClosed
+    slo_target: "PT1D after blocker"
+    timeout:
+      duration: PT5M
+      on_timeout: exception_retry
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: EXCEPTION_AUDIT_FAILED
+        behavior: "Keep security-owner task open."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_create_export_case
+    from: export_request_start
+    to: create_export_case
+    name: export_request_valid
+  - id: edge_to_requester_authorization
+    from: create_export_case
+    to: requester_authorization
+    name: export_case_created
+  - id: edge_to_pack_precedence_resolve
+    from: requester_authorization
+    to: pack_precedence_resolve
+    name: requester_authorized
+  - id: edge_to_collect_parallel
+    from: pack_precedence_resolve
+    to: collect_parallel
+    name: precedence_resolved
+  - id: edge_to_collect_account_records
+    from: collect_parallel
+    to: collect_account_records
+    name: account_records_branch
+  - id: edge_to_collect_workflow_records
+    from: collect_parallel
+    to: collect_workflow_records
+    name: workflow_records_branch
+  - id: edge_to_collect_billing_records
+    from: collect_parallel
+    to: collect_billing_records
+    name: billing_records_branch
+  - id: edge_to_collect_audit_projection
+    from: collect_parallel
+    to: collect_audit_projection
+    name: audit_projection_branch
+  - id: edge_to_collect_join
+    from: collect_parallel
+    to: collect_join
+    name: collect_join
+  - id: edge_to_apply_pack_exclusions
+    from: collect_join
+    to: apply_pack_exclusions
+    name: collection_complete
+  - id: edge_to_generate_manifest
+    from: apply_pack_exclusions
+    to: generate_manifest
+    name: exclusions_applied
+  - id: edge_to_encrypt_export
+    from: generate_manifest
+    to: encrypt_export
+    name: manifest_generated
+  - id: edge_to_delivery_decision
+    from: encrypt_export
+    to: delivery_decision
+    name: package_encrypted
+  - id: edge_to_deliver_secure_portal
+    from: delivery_decision
+    to: deliver_secure_portal
+    name: secure_portal_selected
+  - id: edge_to_deliver_customer_bucket
+    from: delivery_decision
+    to: deliver_customer_bucket
+    name: customer_bucket_selected
+  - id: edge_to_seal_export_audit
+    from: delivery_decision
+    to: seal_export_audit
+    name: delivery_completed
+  - id: edge_to_export_completed
+    from: seal_export_audit
+    to: export_completed_end
+    name: audit_sealed
+  - id: edge_to_export_exception
+    from: export_request_start
+    to: export_exception_end
+    name: blocked_or_failed
+failure_modes:
+  - code: PACK_PRECEDENCE_CONFLICT
+    behavior: "Block export until compliance resolves the conflict."
+  - code: ENCRYPTION_FAILED
+    behavior: "Delete package artifact and retry from manifest."
+  - code: DELIVERY_RECEIPT_MISSING
+    behavior: "Do not mark export delivered."
+worked_example:
+  sample_input:
+    tenant_id: tenant_acme
+    export_request_id: export_2026_099
+    customer_account_id: customer_globex
+    export_requester_principal_id: principal_admin_77
+    active_pack_ids:
+      - gdpr
+      - hipaa
+      - soc2
+    export_scope: full_account_portability
+    delivery_channel: secure_portal
+  sample_expected_output:
+    export_case_id: cde_2026_099
+    terminal_state: delivered
+    export_package_id: cde_pkg_2026_099
+    delivery_receipt_id: delivery_2026_099
+    audit_chain_refs:
+      - audit://workflow/customer-data-export/precedence/01
+      - audit://workflow/customer-data-export/encrypted/02
+      - audit://workflow/customer-data-export/delivered/03

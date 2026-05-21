@@ -17,9 +17,9 @@ purpose: |
   sunset at M01-P08 sign-off), and the revised banned-primitives lane
   semantics (catch *undocumented* invocations only).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-banned-primitives
+planned_enforcement_ref: oya-governance-banned-primitives
 enforcement_status:
-  oya-foundry-fitness-banned-primitives: existing
+  oya-governance-banned-primitives: existing
   F-FORBIDDEN-PRIMITIVES-CI-GUARD: pending Wave-B webhook receiver (ADR-0116)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
@@ -107,7 +107,7 @@ is canonical because of the sunset clause, not despite it.
 > Wave-B webhook receiver** deployment; until then, the per-invocation
 > icm-store rationale contract below is the enforcement mechanism.
 
-Lane: `oya-foundry-fitness-banned-primitives` (existing; Wave-A: catches
+Lane: `oya-governance-banned-primitives` (existing; Wave-A: catches
 **undocumented** `git` / `gh` invocations inside agent-instruction
 sections; Wave-B: `F-FORBIDDEN-PRIMITIVES-CI-GUARD` will add CI-level
 blocking once webhook receiver is deployed per ADR-0116).
@@ -136,7 +136,7 @@ migration-candidate row in
 
 The owning team (default: `axis-foundry`) opens an issue to grow the
 sanctioned-primitive surface. The lane
-`oya-foundry-fitness-direct-tool-rationale` queries icm and flags
+`oya-governance-direct-tool-rationale` queries icm and flags
 patterns that exceed the threshold.
 
 ## 6. Pragmatic gh patterns

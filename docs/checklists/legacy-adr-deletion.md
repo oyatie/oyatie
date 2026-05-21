@@ -56,7 +56,7 @@ Coverage verdict values: **FULL** / **PARTIAL** / **DROPPED-WITH-REASON** / **EX
 
 ## 3. Reference sweep (consolidated docs no longer cite legacy ADRs)
 
-18. ☐ `oya-foundry-fitness-adr-citation` CI lane passes — zero `ADR-####` citations in active consolidated docs (where NNNN ≤ legacy max)
+18. ☐ `oya-governance-adr-citation` CI lane passes — zero `ADR-####` citations in active consolidated docs (where NNNN ≤ legacy max)
 19. ☐ Forensic-allowed citations only in: `ADR-CONSOLIDATION-PLAN.md`, `CONTRADICTION-LEDGER.md`, `RETIRED.md`, `ADR-INDEX-LEGACY.md`
 20. ☐ All per-product PRDs sweep — zero legacy ADR-#### refs
 21. ☐ All team charters sweep — zero legacy ADR-#### refs

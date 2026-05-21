@@ -8,14 +8,14 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every transitive dep is vetted (cargo-vet audit trail present and current).
 - enforces: hyperscaler-best-practices spec — supply-chain review trail via cargo-vet.
-- kernel_crate: `oya-foundry-fitness-cargo-vet-kernel` — `VetRecord { crate_id, version, audited_by, exemption }`, verdict `CargoVetFitnessReport { deps_checked }`.
-- runner_path: `tools/oya-foundry-fitness-cargo-vet`
+- kernel_crate: `oya-governance-cargo-vet-kernel` — `VetRecord { crate_id, version, audited_by, exemption }`, verdict `CargoVetFitnessReport { deps_checked }`.
+- runner_path: `tools/oya-governance-cargo-vet`
 - inputs: `supply-chain/audits.toml`, `supply-chain/imports.lock`, `cargo vet check` JSON.
 - failure_modes:
   - new dep with no audit row
   - exemption used without expiry date
   - cargo-vet reports `unaudited`
-- ci_invocation: `cargo run -p oya-foundry-fitness-cargo-vet`
+- ci_invocation: `cargo run -p oya-governance-cargo-vet`
 - runtime_budget: 1500 ms
 - severity: HIGH
 - kernel_sketch:

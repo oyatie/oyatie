@@ -97,7 +97,7 @@ treated as parking with a fixuptask filed.
 | 13 | GitHub API rate limit | API returns 403 with `X-RateLimit-Remaining: 0` | exponential backoff per retry-budget primitive (`pr_retry_budget.rs`) | budget exhausted → fixuptask |
 | 14 | Same-file logical collision (no textual conflict, but two PRs both add `pub mod X`) | rebase succeeds but post-rebase build fails | treated as blocker #2 (CI red); fix-loop dispatched | next-in-cluster gets re-rebased after head merges |
 | 15 | Bot author (Renovate/Dependabot) without signed-commit | commit verification API | allowlist check; if allowlisted skip blocker #5 | denylist → blocker #5 |
-| 16 | Merge-queue workflow itself fails | `workflow_run: completed` (queue workflow) failure | emit `oya-foundry-fitness-merge-queue-health` lane red on dev | queue health lane pages oncall; manual recovery |
+| 16 | Merge-queue workflow itself fails | `workflow_run: completed` (queue workflow) failure | emit `oya-governance-merge-queue-health` lane red on dev | queue health lane pages oncall; manual recovery |
 | 17 | Required reviewer-agent has not run | reviewer-agent status check missing on PR | enqueue with `ParkedReason::AwaitingReviewerAgent`; trigger reviewer-agent invocation | reviewer-agent completion event re-evaluates |
 | 18 | Branch protection requires N approvals, has N-1 | live PR query | park with `ParkedReason::AwaitingApprovals` | `pull_request_review: submitted` event re-evaluates |
 | 19 | PR base branch is not `dev` | enqueue-time validation | reject; do NOT add to queue | author retargets the PR |
@@ -132,7 +132,7 @@ so nothing silently drops out of the queue.
 
 ### Risk
 - If the merge-queue workflow itself fails silently, PRs stop merging.
-  Mitigation: `oya-foundry-fitness-merge-queue-health` lane checks queue
+  Mitigation: `oya-governance-merge-queue-health` lane checks queue
   depth + last-merge-timestamp and pages on staleness > 1 hour (follow-on,
   tracked as `F-MERGE-QUEUE-HEALTH-LANE` in `registry/fixuptasks.jsonl`).
 
@@ -149,7 +149,7 @@ so nothing silently drops out of the queue.
   `.github/workflows/oya-merge-queue-tick.yml` invokes the subcommand
   on each listed webhook event. Tracked as
   `F-MERGE-QUEUE-WEBHOOK-POLLER-WIRING` in `registry/fixuptasks.jsonl`.
-- **Phase 3 — HEALTH LANE (follow-on PR)**: `oya-foundry-fitness-merge-queue-health`
+- **Phase 3 — HEALTH LANE (follow-on PR)**: `oya-governance-merge-queue-health`
   lane as a required status check on dev. Tracked as
   `F-MERGE-QUEUE-HEALTH-LANE`.
 

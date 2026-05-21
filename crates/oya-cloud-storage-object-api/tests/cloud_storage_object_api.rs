@@ -19,7 +19,7 @@ use oya_cloud_storage_object_api::{
 use oya_data_boundary_kernel::DataClass;
 use oya_residency_domain::ResidencyClass;
 
-const BUCKET_ID: &str = "oya:cloud:kr-seoul:ten_kr:bucket:tenant-assets";
+const BUCKET_ID: &str = "oya:cloud:region-home:ten_kr:bucket:tenant-assets";
 const OBJECT_KEY: &str = "workspace/report.pdf";
 
 fn bucket_create() -> BucketCreate {
@@ -27,12 +27,12 @@ fn bucket_create() -> BucketCreate {
         resource_id: BUCKET_ID.to_string(),
         tenant_id: "ten_kr".to_string(),
         name: "tenant-assets".to_string(),
-        region: "kr-seoul".to_string(),
-        residency: ResidencyClass::StrictKr,
+        region: "region-home".to_string(),
+        residency: ResidencyClass::StrictHomeRegion,
         tier: BucketTier::Standard,
         replication: ReplicationPolicyCreate::Regional,
         encryption: EncryptionMode::SseKms,
-        kms_key: Some("kms/kr-seoul/ten_kr/object-key".to_string()),
+        kms_key: Some("kms/region-home/ten_kr/object-key".to_string()),
         object_lock: Some(ObjectLockPolicy {
             mode: ObjectLockMode::Compliance,
             retain_until_epoch_seconds: 1_800_000_000,
@@ -94,7 +94,7 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudStorageObjec
 
 fn object_encryption() -> CloudStorageObjectEncryptionBindingRequest {
     CloudStorageObjectEncryptionBindingRequest {
-        kms_key: "kms/kr-seoul/ten_kr/object-key".to_string(),
+        kms_key: "kms/region-home/ten_kr/object-key".to_string(),
         kms_key_version: 1,
         material_ref: "matref/ten_kr/object/report".to_string(),
         ciphertext_ref: "ct/ten_kr/object/report".to_string(),
@@ -397,7 +397,7 @@ fn get_object_api_maps_not_found_and_tenant_drift_explicitly() {
     let tenant_drift = get_cloud_storage_object_from_api(
         &catalog,
         get_request(
-            "oya:cloud:kr-seoul:ten_other:bucket:tenant-assets",
+            "oya:cloud:region-home:ten_other:bucket:tenant-assets",
             OBJECT_KEY,
         ),
     )

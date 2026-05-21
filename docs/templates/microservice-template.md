@@ -9,7 +9,7 @@ purpose: |
   skeleton, BC list, [package.metadata.oya] schema, test scaffolding, and
   grit symbol space. An executor filling this template can scaffold a new
   µservice without escalation.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/prd-template.md

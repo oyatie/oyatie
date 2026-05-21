@@ -88,10 +88,10 @@ The CLI defaults to these corpus roots: `docs/PRD.md`, `docs/decisions`,
 
 ## Branch Protection
 
-The active lane is `oya-foundry-fitness-honest-claims`. The workflow name,
+The active lane is `oya-governance-honest-claims`. The workflow name,
 workflow job key, branch-protection context, quality-lane registry entry, and
 CI-lanes documentation row use that same value so the
-`oya-foundry-fitness-protection-context-match` and quality-lanes gates can
+`oya-governance-protection-context-match` and quality-lanes gates can
 detect drift.
 
 ## Rejected Alternatives

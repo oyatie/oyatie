@@ -313,7 +313,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate honest-claims [--clear-default-corpus] [--corpus-root <path>]... [--plans-dir <.omc/plans/milestones>]"
         + "\n       oya gate validate aspirational-enforcement [--clear-default-corpus] [--corpus-root <path>]... [--crates-dir <crates>] [--workflows-dir <.github/workflows>] [--quality-lanes <registry/quality/lanes.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--branch <dev>]"
         + "\n       oya gate validate banned-primitives [--repo-root <.>] [--clear-default-roots] [--root <path>]... [--command-log-root <path>]... [--require-command-log-corpus] [--known-rationale <id>]..."
-        + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
+        + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--deferred-surfaces <registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
         + "\n       oya gate validate planning-closure [--contract <specs/planning-closure-contract.json>] [--master-plan <specs/masterplan.json>] [--sequencing <specs/master-plan-sequencing.json>] [--root-hub <specs/root-hub-pointers.json>] [--vertical-adr <docs/decisions/ADR-0217-vertical-slice-rollout-order.md>]"
         + "\n       oya gate validate canonical-base-neutrality [--repo-root <.>] [--root <path>]... [--exclude-root <path>]... [--self-test]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
@@ -496,6 +496,7 @@ fn glossary_vocabulary_forensic_path(path: &str) -> bool {
             | "docs/teams/tactical-first-vertical-pilot/CHARTER.md"
     ) || path.starts_with("docs/decisions/ADR-0016-")
         || path.starts_with("docs/decisions/ADR-0018-")
+        || path.starts_with("docs/decisions/ADR-")
         || path.starts_with("docs/plans/M01-foundation-cc-01-cutover/")
         || path == "docs/plans/cutover-cross-cutting-amendments-2026-05-12.md"
         || path == "docs/plans/rename-plan-v4-clean-arch-2026-05-13.md"
@@ -914,6 +915,13 @@ fn adr_citation_forensic_path(path: &str) -> bool {
             | "docs/CONTRADICTION-LEDGER.md"
             | "docs/decisions/RETIRED.md"
     ) || path.ends_with("-LEGACY.md")
+        || (path.starts_with("docs/architecture/")
+            && (path.contains("audit")
+                || path.contains("deep-dive")
+                || path.contains("synthesis")
+                || path.contains("adjudication")
+                || path.contains("lessons-learned")
+                || path.contains("executive-briefing")))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

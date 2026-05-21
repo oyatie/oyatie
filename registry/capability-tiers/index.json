@@ -1,0 +1,44 @@
+{
+  "schema_version": "2026-05-20.capability-tier-registry-index.v1",
+  "authority": [
+    "ADR-0316",
+    "ADR-0321",
+    "enterprise-software-coverage-matrix-2026-05-21"
+  ],
+  "registry_path": "registry/capability-tiers",
+  "tier_definition_files": [
+    "bronze.json",
+    "silver.json",
+    "gold.json",
+    "platinum.json"
+  ],
+  "mapping_files": [
+    "microservice-tier-mapping.yaml",
+    "vendor-tier-mapping.yaml"
+  ],
+  "tier_ids": [
+    "bronze",
+    "silver",
+    "gold",
+    "platinum"
+  ],
+  "source_files": {
+    "adr_0316": "docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md",
+    "adr_0321": "docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md",
+    "coverage_matrix": "docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md",
+    "cloud_k8s_tier_matrix": "microservices/cloud-k8s/capability-tiers/tier-matrix.md",
+    "microservice_inventory": "microservices"
+  },
+  "source_counts": {
+    "microservice_directories": 70,
+    "adr_0321_dossiers": 85,
+    "coverage_matrix_rows": 244,
+    "vendor_mapping_rows": 295
+  },
+  "validation_contract": {
+    "json_files_parse": true,
+    "yaml_files_parse": true,
+    "tier_definitions_have_numeric_hardware_sla_limits_retention_pricing": true,
+    "forbidden_empty_markers_absent": true
+  }
+}

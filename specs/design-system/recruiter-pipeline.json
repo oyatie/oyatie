@@ -4,8 +4,8 @@
   "title": "DesignSystem:Recruiter Pipeline",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "recruiter-pipeline",
-  "owner_team": "connect-product-council",
-  "product_ref": "$ref:specs/products/connect/network.json",
+  "owner_team": "axis-community",
+  "product_ref": "$ref:microservices/community/PRD.md",
   "component_name": "RecruiterPipeline",
   "status": "planned-contract",
   "variants": [
@@ -24,7 +24,7 @@
     "wide-desktop"
   ],
   "contract": {
-    "purpose": "RecruiterPipeline is a declared Connect Network UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
-    "state_model_ref": "$ref:specs/products/connect/network.json#frontend_components"
+    "purpose": "RecruiterPipeline is a community jobs-recruiter primitive after Wave 15K and must preserve default-off recruiter search, bias-audit, consent, and policy boundaries described by the community PRD.",
+    "state_model_ref": "$ref:microservices/community/PRD.md#13-bounded-contexts-bcs"
   }
 }

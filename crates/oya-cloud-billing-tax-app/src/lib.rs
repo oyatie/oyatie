@@ -23,7 +23,7 @@ pub struct CloudBillingInvoiceGenerateRequest {
     pub tax: CloudBillingMoneyRequest,               // data_class: INTERNAL_ONLY
     pub total: CloudBillingMoneyRequest,             // data_class: INTERNAL_ONLY
     pub tax_invoice_format: String,                  // data_class: INTERNAL_ONLY
-    pub tax_registration_id: String,                 // data_class: FINANCIAL_KR_신용정보
+    pub tax_registration_id: String,                 // data_class: FINANCIAL_REGULATED_CREDIT
     pub issued_at_epoch_seconds: u64,                // data_class: INTERNAL_ONLY
     pub due_at_epoch_seconds: u64,                   // data_class: INTERNAL_ONLY
     pub data_class: String,                          // data_class: INTERNAL_ONLY
@@ -95,7 +95,7 @@ pub struct CloudBillingInvoiceRecord {
     pub tax_minor_units: u64,            // data_class: INTERNAL_ONLY
     pub total_minor_units: u64,          // data_class: INTERNAL_ONLY
     pub tax_invoice_format: String,      // data_class: INTERNAL_ONLY
-    pub tax_registration_id: String,     // data_class: FINANCIAL_KR_신용정보
+    pub tax_registration_id: String,     // data_class: FINANCIAL_REGULATED_CREDIT
     pub state: String,                   // data_class: INTERNAL_ONLY
     pub issued_at_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
     pub due_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY

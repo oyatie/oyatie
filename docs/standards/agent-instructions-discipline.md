@@ -18,11 +18,11 @@ purpose: |
   followed), and the dual-audience requirement (every fenced block has adjacent
   plain-English prose). Implements MASTERPLAN §7 dual-audience contract.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-agent-instructions-fence
+planned_enforcement_ref: oya-governance-agent-instructions-fence
 enforcement_status:
-  oya-foundry-fitness-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
-  oya-foundry-fitness-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)
-  oya-foundry-fitness-banned-primitives: existing (via claude-code-harness.md)
+  oya-governance-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  oya-governance-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)
+  oya-governance-banned-primitives: existing (via claude-code-harness.md)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/doc-style.md
@@ -64,7 +64,7 @@ Rules:
 5. The opening and closing tokens MUST be byte-identical to the form
    above; whitespace MAY appear around them but not inside the marker.
 
-Lane: `oya-foundry-fitness-agent-instructions-fence` validates the
+Lane: `oya-governance-agent-instructions-fence` validates the
 mechanical shape.
 
 ## 2. What goes inside the fence
@@ -87,7 +87,7 @@ What does NOT go inside the fence:
 
 ## 3. Banned-token grep scope
 
-The lane `oya-foundry-fitness-banned-primitives` greps INSIDE fences for
+The lane `oya-governance-banned-primitives` greps INSIDE fences for
 tokens that violate the sanctioned-primitive triad or the user-machine
 boundary.
 
@@ -127,7 +127,7 @@ understands what the directive accomplishes without the fence body.
 | Fence with no prose, only the fence | NO — refused at PR review |
 | Prose with no fence | YES — prose-only doc is fine |
 
-Lane: `oya-foundry-fitness-dual-audience` checks the adjacency rule.
+Lane: `oya-governance-dual-audience` checks the adjacency rule.
 
 ## 5. Per-doc-class fence usage
 

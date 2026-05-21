@@ -370,7 +370,7 @@ future vendor adoption to follow the same structural pattern.
 | W0 | Wire gate into `oya gate run-all` aggregator | axis-foundry | 2026-05-18 |
 | W1 | Add `External Dependencies` section to each µservice PRD that depends on a Tier II vendor (foundry, observability, cloud-secrets, etc.) | per-µservice owner | 2026-05-25 |
 | W2 | First quarterly phase-out review — confirm readiness gates have not stalled | axis-governance | 2026-08-18 |
-| W3 | Anthropic API phase-out begins when foundry-runtime achieves the readiness gate | axis-foundry | TBD (signal-driven) |
+| W3 | Anthropic API phase-out begins when foundry-runtime achieves the readiness gate | axis-foundry | signal-driven readiness gate |
 
 ## References
 

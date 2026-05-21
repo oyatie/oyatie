@@ -62,15 +62,15 @@ branches:
     protection:
       required_status_checks:
         contexts:
-        - oya-foundry-fitness-cohesion           # ADR-0001
-        - oya-foundry-fitness-supply-chain       # ADR-0039
-        - oya-foundry-fitness-api-semver         # ADR-0037
-        - oya-foundry-fitness-ads-gate-singleton # ADR-0031
-        - oya-foundry-fitness-vertical-override-pack # ADR-0034
-        - oya-foundry-fitness-dcim-substrate     # ADR-0032
-        - oya-foundry-fitness-workflow-cohesion  # ADR-0035
-        - oya-foundry-fitness-cloud-surface      # ADR-0028
-        - oya-foundry-fitness-license-policy
+        - oya-governance-cohesion           # ADR-0001
+        - oya-governance-supply-chain       # ADR-0039
+        - oya-governance-api-semver         # ADR-0037
+        - oya-governance-ads-gate-singleton # ADR-0031
+        - oya-governance-vertical-override-pack # ADR-0034
+        - oya-governance-dcim-substrate     # ADR-0032
+        - oya-governance-workflow-cohesion  # ADR-0035
+        - oya-governance-cloud-surface      # ADR-0028
+        - oya-governance-license-policy
       required_signatures: true                  # ADR-0039 signed commits
       enforce_admins: true
       required_pull_request_reviews:
@@ -91,7 +91,7 @@ branches:
   release-*:
     protection:
       required_status_checks:
-        contexts: [oya-foundry-fitness-cohesion, oya-foundry-fitness-supply-chain]
+        contexts: [oya-governance-cohesion, oya-governance-supply-chain]
       required_signatures: true
       enforce_admins: true
       required_pull_request_reviews:

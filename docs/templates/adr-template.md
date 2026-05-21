@@ -7,7 +7,7 @@ purpose: |
   Canonical ADR shape for every oyatie architectural decision. Enforces BNF v4.1
   naming justification, Bominal inheritance citation, and concrete file-path consequences.
   Every executor authoring a new ADR MUST start from this template.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/standards/naming.md
@@ -34,7 +34,7 @@ doc_status: published
 | **supersedes** | ADR-YYYY (or `-`) |
 | **superseded_by** | ADR-ZZZZ (or `-`) |
 | **owner** | `<team-id>` from `docs/teams/` |
-| **related** | ADR-AAAA, ADR-BBBB |
+| **related** | comma-separated ADR identifiers, or `-` |
 | **bominal_source** | Bominal ADR-#### (inherited) \| oyatie override \| no Bominal equivalent |
 
 ---
@@ -176,5 +176,5 @@ For each alternative:
 - oyatie memory: `feedback_<slug>.md` (override rationale)
 - ADR-0056 BNF v4.1 (naming authority)
 - ADR-0057 LEAN checks (cross-vertical enforcement)
-- Related oyatie ADRs: ADR-AAAA, ADR-BBBB
+- Related oyatie ADRs: list concrete ADR identifiers, or state `-`
 - Issues: `Refs #N`, `Closes #N`

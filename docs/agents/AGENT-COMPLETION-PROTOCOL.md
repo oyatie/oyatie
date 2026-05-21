@@ -39,7 +39,7 @@ cargo deny check
 oya verify
 ```
 
-If the IP frontmatter adds lane-specific commands (e.g. `oya-foundry-fitness-data-class`, `-image-discipline`), run those too.
+If the IP frontmatter adds lane-specific commands (e.g. `oya-governance-data-class`, `-image-discipline`), run those too.
 
 ## C3 — Paste output evidence
 
@@ -63,11 +63,11 @@ The IP `audit-chain-event:` field names the event ID and payload schema. Emit vi
 oya-tooling-agent-read audit-emit --event <EVT-id> --payload '<json>'
 ```
 
-Capture the returned emission ID — this goes into PR body `## Evidence` and is referenced by `oya-foundry-fitness-audit-emission` lane (D16).
+Capture the returned emission ID — this goes into PR body `## Evidence` and is referenced by `oya-governance-audit-emission` lane (D16).
 
 ## C6 — Update inventory ledger (if applicable)
 
-Phases under M01-P08 (agentic-pipeline cutover) and any phase whose INDEX `inventory-ledger-required: true` requires an `oya-foundry-fitness-inventory-tracker` row (CHK-INV). Append the row in this PR.
+Phases under M01-P08 (agentic-pipeline cutover) and any phase whose INDEX `inventory-ledger-required: true` requires an `oya-governance-inventory-tracker` row (CHK-INV). Append the row in this PR.
 
 ## C7 — Update CHANGELOG / MISTAKES-LEDGER (if applicable)
 

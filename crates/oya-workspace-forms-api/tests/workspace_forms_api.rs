@@ -3,14 +3,14 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_workspace_forms_api::{
-    ingest_workspace_forms_submission_from_api, WorkspaceFormsAnswerRequest,
-    WorkspaceFormsApiAuthorization, WorkspaceFormsApiError, WorkspaceFormsApiPrincipal,
-    WorkspaceFormsFieldSeed, WorkspaceFormsFormSeed, WorkspaceFormsIngestBoundaryContext,
-    WorkspaceFormsSubmissionDirectory, WorkspaceFormsSubmissionIngestApiRequest,
-    WorkspaceFormsSubmissionIngestApiStatus, WorkspaceFormsSubmissionIngestIdempotencyLedger,
-    WorkspaceFormsSubmissionIngestRequest, WorkspaceFormsSubmissionMetadata,
-    WorkspaceFormsSubmissionRecord, WORKSPACE_FORMS_OPENAPI_CONTRACT,
-    WORKSPACE_FORMS_SUBMISSION_INGEST_SURFACE,
+    WORKSPACE_FORMS_OPENAPI_CONTRACT, WORKSPACE_FORMS_SUBMISSION_INGEST_SURFACE,
+    WorkspaceFormsAnswerRequest, WorkspaceFormsApiAuthorization, WorkspaceFormsApiError,
+    WorkspaceFormsApiPrincipal, WorkspaceFormsFieldSeed, WorkspaceFormsFormSeed,
+    WorkspaceFormsIngestBoundaryContext, WorkspaceFormsSubmissionDirectory,
+    WorkspaceFormsSubmissionIngestApiRequest, WorkspaceFormsSubmissionIngestApiStatus,
+    WorkspaceFormsSubmissionIngestIdempotencyLedger, WorkspaceFormsSubmissionIngestRequest,
+    WorkspaceFormsSubmissionMetadata, WorkspaceFormsSubmissionRecord,
+    ingest_workspace_forms_submission_from_api,
 };
 
 const FORM_ID: &str = "form_001";
@@ -51,7 +51,7 @@ fn seeded_directory() -> WorkspaceFormsSubmissionDirectory {
         .insert_form_seed(WorkspaceFormsFormSeed {
             form_id: FORM_ID.to_string(),
             tenant_id: TENANT_ID.to_string(),
-            region: "kr-seoul".to_string(),
+            region: "region-home".to_string(),
             cell_id: "cell-workspace-kr-001".to_string(),
             object_graph_route_id: "og_route_forms_intake".to_string(),
             title: "Customer intake".to_string(),

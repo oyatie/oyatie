@@ -59,7 +59,7 @@ pub struct BlockHash([u8; 32]);  // BLAKE3 of canonicalized event bytes + prior_
 
 Every capability declared under `registry/capability-templates/<id>.yaml` carries an explicit `evidence_emission_topic` field. The Foundry runtime (ADR-0007) refuses to invoke a capability whose declared emissions are not satisfied by the chain at run time. The contract is enforced at three points:
 
-1. **Catalog validation** (`oya-foundry-fitness-evidence-contract`) — fails any catalog record whose declared `data_classes_touched` ∪ `regulatory_packs_consumed` does not match the emission contract.
+1. **Catalog validation** (`oya-governance-evidence-contract`) — fails any catalog record whose declared `data_classes_touched` ∪ `regulatory_packs_consumed` does not match the emission contract.
 2. **Runtime guard** — every capability invocation that completes without emitting the contracted events is rolled back and re-tried under a `EVT-EVIDENCE-EMISSION-MISSING` alert.
 3. **Daily integrity check** — `oya-audit-chain-app` walks each tenant shard, verifies hash continuity, recomputes per-day root, compares to the trust-portal anchor, and emits `EVT-AUDIT-INTEGRITY-OK` or pages a P1 bridge on mismatch.
 
@@ -106,7 +106,7 @@ The chain is append-only. DSR-driven deletes are recorded as a `deletion-evidenc
 
 - On-call: `EVT-AUDIT-CHAIN-INTEGRITY-MISMATCH` and `EVT-EVIDENCE-EMISSION-MISSING` page the audit on-call with a 5-minute SLA.
 - Runbooks: `runbooks/audit-chain-integrity-recovery.md`, `runbooks/dsr-cascade-with-evidence.md`, `runbooks/regulator-evidence-pack-regen.md`.
-- CI: `oya-foundry-fitness-evidence-contract` runs on every PR touching `registry/capability-templates/` or `crates/oya-*-app/` with a capability dispatch.
+- CI: `oya-governance-evidence-contract` runs on every PR touching `registry/capability-templates/` or `crates/oya-*-app/` with a capability dispatch.
 - Auditor access: trust portal exposes per-pack evidence pack download with cryptographic chain proof.
 
 ---

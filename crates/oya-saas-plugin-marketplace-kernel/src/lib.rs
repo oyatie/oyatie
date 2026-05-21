@@ -361,7 +361,7 @@ mod tests {
             manifest_id: manifest_id.to_string(),
             trust_tier: TrustTier::Verified,
             verticals: vec![Vertical::Agentic, Vertical::Development],
-            regional_packs: vec!["oya-pack-kr".to_string(), "oya-pack-jp".to_string()],
+            regional_packs: vec!["oya-pack-alpha".to_string(), "oya-pack-beta".to_string()],
             headline: "Summarize anything".to_string(),
             published_at_epoch_seconds: 1_700_000_100,
         }
@@ -400,11 +400,11 @@ mod tests {
         let manifest_id = PluginManifestId::new("plg_sum_v1").unwrap();
         let listing = MarketplaceListing::publish(
             manifest_id.clone(),
-            listing_input("lst_sum_kr", "plg_sum_v1"),
+            listing_input("lst_sum_alpha", "plg_sum_v1"),
         )
         .expect("valid listing");
-        assert!(listing.matches(Vertical::Agentic, "oya-pack-kr"));
-        assert!(!listing.matches(Vertical::Healthcare, "oya-pack-kr"));
+        assert!(listing.matches(Vertical::Agentic, "oya-pack-alpha"));
+        assert!(!listing.matches(Vertical::Healthcare, "oya-pack-alpha"));
 
         let mismatch =
             MarketplaceListing::publish(manifest_id.clone(), listing_input("lst_mis", "plg_other"))
@@ -424,7 +424,7 @@ mod tests {
         let bad_pack = MarketplaceListing::publish(
             manifest_id,
             MarketplaceListingPublish {
-                regional_packs: vec!["kr-seoul".to_string()],
+                regional_packs: vec!["region-home".to_string()],
                 ..listing_input("lst_b", "plg_sum_v1")
             },
         )
@@ -441,16 +441,16 @@ mod tests {
             .expect_err("duplicate manifest rejected");
         assert_eq!(dup, MarketplaceError::DuplicateManifest);
 
-        reg.publish_listing(listing_input("lst_kr", "plg_sum_v1"))
+        reg.publish_listing(listing_input("lst_alpha", "plg_sum_v1"))
             .unwrap();
         let dup_listing = reg
-            .publish_listing(listing_input("lst_kr", "plg_sum_v1"))
+            .publish_listing(listing_input("lst_alpha", "plg_sum_v1"))
             .expect_err("duplicate listing rejected");
         assert_eq!(dup_listing, MarketplaceError::DuplicateListing);
 
-        let agentic_kr = reg.filter(Vertical::Agentic, "oya-pack-kr");
+        let agentic_kr = reg.filter(Vertical::Agentic, "oya-pack-alpha");
         assert_eq!(agentic_kr.len(), 1);
-        let healthcare = reg.filter(Vertical::Healthcare, "oya-pack-kr");
+        let healthcare = reg.filter(Vertical::Healthcare, "oya-pack-alpha");
         assert!(healthcare.is_empty());
     }
 

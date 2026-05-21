@@ -380,7 +380,7 @@ fn validate_pipeline_closure(
     }
     if !protection
         .required_status_checks
-        .contains("oya-foundry-fitness-protection-context-match")
+        .contains("oya-governance-protection-context-match")
     {
         return Err("branch protection must require context matching before merge".into());
     }

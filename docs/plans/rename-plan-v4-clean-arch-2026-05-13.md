@@ -62,8 +62,8 @@ doc_status: published
 > over-engineered layers that did not earn their keep:
 >
 > 1. The verbose `oya-<context>-<feature>-<capability>-<role>` BNF (4–5 segments)
->    produced names like `oya-foundry-fitness-architecture-conventions-kernel`.
-> 2. The `oya-foundry-fitness-freeze-window-kernel` lane primitive duplicated
+>    produced names like `oya-governance-architecture-conventions-kernel`.
+> 2. The `oya-governance-freeze-window-kernel` lane primitive duplicated
 >    grit's existing claim/symbol-lock system.
 > 3. "Fitness" terminology, imported wholesale from *Building Evolutionary
 >    Architectures* jargon, never settled into the team's vocabulary and
@@ -118,7 +118,7 @@ v3) and §6 R3 (re-audited blast-radius row).
    architecture fitness function family*. v4 imports their convention.
 4. **Mechanical change cost is one-time; cognitive load is forever.**
    v3's 37 renames + 31 compound-feature ADR rows + the closed enum + the
-   AMBER carve-out for `oya-foundry-fitness-architecture-conventions-kernel`
+   AMBER carve-out for `oya-governance-architecture-conventions-kernel`
    pay an ongoing readability tax. v4's higher one-time rename count (~50–90)
    buys a permanently simpler grammar.
 5. **Checks are cross-cutting, not layered.** A clean-architecture check
@@ -141,7 +141,7 @@ v3) and §6 R3 (re-audited blast-radius row).
    under a flat `oya-check-<name>` namespace, where the noun (`check`)
    matches the team's actual vocabulary.
 3. **grit already enforces freeze windows via symbol locks.** v3 invented
-   `oya-foundry-fitness-freeze-window-kernel` + `expedite_override_token`
+   `oya-governance-freeze-window-kernel` + `expedite_override_token`
    + `lane-config-oyatie` ICM topic to coordinate one 48 h merge window per
    year. grit's existing claim system locks `Cargo.toml::workspace_members`
    (or, post-ADR-0054, a path-scoped icm-coordination-lock fallback) for
@@ -251,7 +251,7 @@ drivers above; no single-viable-option invalidation rationale needed.
   --workspace --no-deps` graph + `cargo metadata --no-deps | jq` snapshot
   daily for 7 days post-Shard-1; new fitness-equivalent check
   `oya-check-rename-baseline-reset` (renamed from v3's
-  `oya-foundry-fitness-baseline-reset-kernel`) computes a daily delta and
+  `oya-governance-baseline-reset-kernel`) computes a daily delta and
   emits to ICM topic `decisions-oyatie-rename-v4`. Day-7 review acceptance:
   zero unexpected deltas. Counts as the §8.2 "Impossible-to-fail score
   over 7 days" gate.
@@ -1420,7 +1420,7 @@ allows `gh`/`git` invocations during the cutover session iff an ICM
 rationale row is logged via `icm store -t direct-tool-invocations -c
 "rename-cutover-v4 bootstrap session" -i critical -k "cutover,bootstrap,
 rename-v4"`. The `oya-check-banned-primitives` crate (renamed from
-`oya-foundry-fitness-banned-primitives`, if it existed in v3; otherwise
+`oya-governance-banned-primitives`, if it existed in v3; otherwise
 authored fresh in Shard 0) enforces.
 
 ### 5.1 Shard 0 checklist (pure tooling, no renames)
@@ -1497,7 +1497,7 @@ Same shape as v3 §5.2; row counts updated:
 | **R4 — `[lib]` name drift on rename.** Permanent-controls ledger (5 layers). | M | H | Same 5-layer control as v3 R7: (1) preflight xtask checklist, (2) MISTAKES-LEDGER row, (3) `oya-check-architecture` `lib-name-parity` subcommand (LEAN-A1 subcommand 6 per §4a) `[lib]`-vs-`[package]`-name parity check, (4) ICM rationale row, (5) `cargo doc --workspace --no-deps` citation probe. |
 | **R5 — Security P0 expedite during freeze window.** | L | H | Use **grit claim's normal authority** (no separate `expedite_override_token` machinery). If a P0 security hotfix must merge during the 48 h coordination window, the on-call security council member releases the grit symbol-lock via `grit done --agent <id> --force`, lands the P0, and re-acquires the lock. ICM rationale row at `direct-tool-invocations` topic. No fitness-lane primitive needed; grit's existing authority chain handles it. ADR-0057 §"Rollback/expedite protocol" documents the precondition list (same shape as v3 ADR-0055 §"Rollback/expedite protocol" but the token mechanism is replaced by grit claim's exclusive-lock authority). |
 | **R6 — rust-analyzer cache recovery.** | M | M | Runbook-level (port forward from v3 R8): post-rename, `rust-analyzer: Restart server` from each editor's command palette. CI runners are ephemeral. ICM rationale row + runbook link for first 14-day post-merge window. |
-| **R7 — cargo-semver-checks baseline reset.** | M | M | Same strategy as v3 R9: rename = breaking change at package-name level; Shard 1 commits `--baseline-rev <pre-shard-1-sha>` snapshots. New check crate `oya-check-rename-baseline-reset` (renamed from v3's `oya-foundry-fitness-baseline-reset-kernel`) classifies name-change-only failures as class `BASELINE-RESET`. 14-day post-merge grace where any semver-checks failure on a renamed crate is auto-classified `BASELINE-RESET`. |
+| **R7 — cargo-semver-checks baseline reset.** | M | M | Same strategy as v3 R9: rename = breaking change at package-name level; Shard 1 commits `--baseline-rev <pre-shard-1-sha>` snapshots. New check crate `oya-check-rename-baseline-reset` (renamed from v3's `oya-governance-baseline-reset-kernel`) classifies name-change-only failures as class `BASELINE-RESET`. 14-day post-merge grace where any semver-checks failure on a renamed crate is auto-classified `BASELINE-RESET`. |
 | **R8 — Staging-promotion compounding** (port forward from v3 §7.2 REVERT-STAGING-BLOCK soft-edit). | L | M | If Shard 1 reaches staging before a revert fires, the revert PR title prefixes `REVERT-STAGING-BLOCK:`; staging-promotion lane refuses next promotion until a `STAGING-UNBLOCK:` follow-up; post-revert observability sweep is BLOCKING (vs. non-blocking on normal path). |
 | **R9 — Dependency cycle detection (NEW).** Clean Architecture v4 enforces layer dependency direction at compile/CI time. A rogue commit that introduces a cycle (e.g. `oya-audit-chain-application` depending on `oya-audit-chain-file-infrastructure` directly instead of via port trait) would compile but violate clean-arch principles. | L | H | New `oya-check-architecture` crate (LEAN-A1; `dependency-direction` subcommand per §4a) parses `cargo metadata --no-deps`, classifies each edge by source-layer → target-layer pair, and refuses any edge not in the §2.2 allowed-edge table. New §8.1 gate row "Dependency direction check". Severity = BLOCKER. |
 | **R10 — Bounded-context naming drift (NEW; B4 5-layer parity with R4).** Without a closed enum, two teams could disagree on the bounded context for the same domain (`audit` vs. `audit-chain`; `eventing` vs. `events`). | M | H | **Permanent-controls ledger (5 layers, matching R4 [lib] drift)**: (1) **Preflight**: xtask `--check-bc` (A4 codification check) runs before any crate scaffold; refuses unregistered BC. (2) **Ledger**: MISTAKES-LEDGER row keyed `BC-DRIFT-001` (template: "BC X added without rationale paragraph or owner field — corrected via ADR-0056 amendment"). (3) **Lane**: `oya-check-bounded-contexts` (LEAN-A2; renamed from iter-1-fold-A's singular `oya-check-bounded-context-registry` per Codex iter-2 stale-name fix at this R10 row) is BLOCKER post-§8.2 flip. (4) **ICM**: `icm store -t bc-drift-prevention -c "<scaffold-claim-for-new-bc-X>" -i critical -k "bc=X,scaffolder=<agent>"` before any new BC's first use. (5) **Citation probe**: `cargo doc --workspace --no-deps` references the registry; missing-BC reference fails docgen. 90-day auto-deprecation for zero-crate contexts. Scenario A pre-mortem mitigation. ADR-0056 §"Bounded context registry as a living document" + §"BC arbitrator" (B3) govern arbitration. |
@@ -1717,7 +1717,7 @@ above 3 surfaces are NET-NEW pressure tests on the post-fold v4 state.
    sites in `scripts/`, `.github/`, and `docs/` referenced the old
    name. Codex may pressure-test: (a) whether the xtask actually
    catches every fitness-crate reference (especially
-   `oya-foundry-fitness-architecture-conventions-kernel` the
+   `oya-governance-architecture-conventions-kernel` the
    load-bearing lane); (b) whether the BLOCKER-flip strategy for
    check crates (Shard 1 step 15) introduces a chicken-and-egg if a
    check crate's BLOCKER mode would fail the Shard 1 merge itself; (c)
@@ -2243,7 +2243,7 @@ Shard 1. **Supersedes**: ADR-0055.
 machinery from the workspace. Carry forward Hybrid C topology, xtask spec
 (now in v4 §3 + §5), `lockfile-rename` subcommand, 4-layer branch
 pipeline, deterministic acceptance gates. Replace v3's
-`oya-foundry-fitness-freeze-window-kernel` + `lane-config-oyatie` ICM
+`oya-governance-freeze-window-kernel` + `lane-config-oyatie` ICM
 topic + `expedite_override_token` with grit claim's existing exclusive-
 symbol-lock authority (per ADR-0054 amendment); the rename-cutover
 session holds a single grit symbol lock for the 48 h coordination
@@ -2265,7 +2265,7 @@ window.
   emit auditable trail; doesn't compose with non-merge agents.
 
 **Consequences**:
-- Positive: drops 1 fitness lane crate from v3 (`oya-foundry-fitness-
+- Positive: drops 1 fitness lane crate from v3 (`oya-governance-
   freeze-window-kernel`), drops `lane-config-oyatie` ICM topic, drops
   token-rotation race; relies on grit's existing authority.
 - Negative: tighter coupling between rename-cutover and grit's
@@ -2287,7 +2287,7 @@ window.
 
 **CI / scripts** (carried forward from v3 §12):
 - `.github/workflows/release-evidence-pack.yml` (1 site)
-- `.github/workflows/oya-foundry-fitness-supply-chain.yml` (2 sites)
+- `.github/workflows/oya-governance-supply-chain.yml` (2 sites)
 - `scripts/check.sh` (~29 sites)
 - `scripts/hooks/pre-push-repoctl.sh` (1 site)
 - `scripts/check-architecture-boundaries.sh` (3 sites + 1 new for

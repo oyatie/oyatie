@@ -73,7 +73,7 @@ Plus 7 importer files updated (Cargo.toml deps + Rust `use` statements). Cargo.t
 
 ## Consequences
 
-- **`*-application` is no longer a canonical-suffix pattern.** `oya-foundry-fitness-predictable-naming-kernel` enforcement must be updated to accept `*-usecase` and reject `*-application`. A grace period of 1 wave is reasonable; document the cite.
+- **`*-application` is no longer a canonical-suffix pattern.** `oya-governance-predictable-naming-kernel` enforcement must be updated to accept `*-usecase` and reject `*-application`. A grace period of 1 wave is reasonable; document the cite.
 - **5 non-workspace-member `*-application` crates exist on disk** (`oya-cloud-billing-application`, `oya-cloud-billing-tax-application`, `oya-cloud-cell-application`, `oya-eventing-application`, `oya-metering-application`). These are audit finding #6's "16 crates exist on disk but aren't in `[workspace.members]`" — invisible to `cargo check --workspace`. They are NOT renamed in this commit because they're not part of the active workspace. Track in the successor-IP sweep that addresses #6 directly (decision: add to workspace or delete).
 - **Decision-principles.json + forbidden-operations.json + ADR-0061 + a few other doctrinal docs** reference "application" as a layer. Sweep separately (Phase E4 cite sweep).
 - **Documentation rewrite**: `docs/standards/clean-architecture.md` + `ADR-0056` §Layer semantics + ADR-0105 should be updated to use `usecase`. This commit edits Cargo.toml comments inline; the canonical doc updates are tracked as successor-IP so the rename ships atomically.
@@ -97,7 +97,7 @@ Plus 7 importer files updated (Cargo.toml deps + Rust `use` statements). Cargo.t
 1. Update `docs/standards/clean-architecture.md` to use `usecase`.
 2. Update `ADR-0056` §"12-Value Layer Enum (closed)" + §Layer semantics text to use `usecase`. (ADR-0105 added `api`; ADR-0106 renames `application` to `usecase`.)
 3. Update `specs/decision-principles.json` + `forbidden-operations.json` + `decision-rights.json` + `governance-amendment.json` if they reference `application` as a layer.
-4. Update `oya-foundry-fitness-predictable-naming-kernel` to recognize `usecase` + reject `application` post-grace-period.
+4. Update `oya-governance-predictable-naming-kernel` to recognize `usecase` + reject `application` post-grace-period.
 5. Decide what to do with the 5 disk-but-not-workspace `*-application` crates (audit #6 successor-IP).
 6. Update the cargo build/test scripts if any reference `application` by name.
 

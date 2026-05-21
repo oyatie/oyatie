@@ -565,7 +565,7 @@ mod tests {
         TaskStore::new(TaskStoreCreate {
             id: "tasks-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             owner_ref: "user:owner@example.com".into(),
             data_class: None,
@@ -592,7 +592,7 @@ mod tests {
             id: task_id.into(),
             store_id: "tasks-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             title: format!("Task {task_id}"),
             description: Some("Coordinate rollout".into()),

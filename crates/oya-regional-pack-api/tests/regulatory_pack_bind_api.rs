@@ -13,7 +13,7 @@ use oya_regional_pack_api::{
 const REQUEST_ID: &str = "req_regulatory_pack_001";
 const IDEMPOTENCY_KEY: &str = "idem_regulatory_pack_001";
 const TENANT_ID: &str = "ten_regulatory_pack";
-const PRIMARY_PACK_ID: &str = "oya-pack-kr";
+const PRIMARY_PACK_ID: &str = "oya-pack-alpha";
 
 #[test]
 fn regulatory_pack_bind_contract_runtime_constants_are_covered() {
@@ -46,8 +46,8 @@ fn regulatory_pack_bind_binds_once_and_replays_same_idempotent_result() {
     assert_eq!(idempotency.len(), 1);
     assert_eq!(first.data.tenant_id, TENANT_ID);
     assert_eq!(first.data.primary_pack_id, PRIMARY_PACK_ID);
-    assert_eq!(first.data.home_region, "kr-seoul");
-    assert_eq!(first.data.residency_class, "strict_kr");
+    assert_eq!(first.data.home_region, "region-home");
+    assert_eq!(first.data.residency_class, "strict_home_region");
     assert_eq!(first.data.pack_refs.len(), 1);
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(first.metadata.request_id, REQUEST_ID);
@@ -265,15 +265,15 @@ fn bind_request(
         body: RegulatoryPackBindRequest {
             tenant_id: tenant_id.to_string(),
             primary_pack_id: PRIMARY_PACK_ID.to_string(),
-            home_region: "kr-seoul".to_string(),
+            home_region: "region-home".to_string(),
             cell_group_ref: "cellgrp_kr_seoul_001".to_string(),
-            residency_class: "strict_kr".to_string(),
+            residency_class: "strict_home_region".to_string(),
             evidence_ref: "evidence/regulatory-pack/ten_regulatory_pack".to_string(),
             bound_at_epoch_seconds: 1_800_000_000,
             pack_refs: vec![RegulatoryPackBindingPackRef {
                 pack_id: PRIMARY_PACK_ID.to_string(),
-                region: "kr-seoul".to_string(),
-                residency_class: "strict_kr".to_string(),
+                region: "region-home".to_string(),
+                residency_class: "strict_home_region".to_string(),
                 controls: vec![
                     RegulatoryPackControlRef {
                         value: "PIPA".to_string(),

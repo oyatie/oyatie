@@ -142,7 +142,10 @@ fn internal_data_class() -> PrivacyDataClass {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_residency_domain::{RegionJurisdiction, RegionRefCreate};
+    use oya_residency_domain::{
+        PerPackResidency, PerPackResidencyCreate, RegionJurisdiction, RegionRefCreate,
+        RegulatorOverlay, RegulatorOverlayCreate,
+    };
 
     fn region(region_id: &str, jurisdiction: RegionJurisdiction) -> RegionRef {
         RegionRef::new(RegionRefCreate {
@@ -153,15 +156,31 @@ mod tests {
         .expect("region fixture is valid")
     }
 
+    fn residency_class() -> ResidencyClass {
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: vec!["region-alpha".to_string()],
+                allowed_replica_regions: vec!["region-beta".to_string()],
+                forbidden_regions: vec!["region-gamma".to_string()],
+                regulator_overlay: RegulatorOverlay::new(RegulatorOverlayCreate {
+                    regulator_refs: vec!["regulator/global".to_string()],
+                    evidence_ref: "evidence/residency/global".to_string(),
+                })
+                .expect("regulator overlay fixture is valid"),
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
+    }
+
     fn cell_binding_create() -> CellBindingCreate {
         CellBindingCreate {
-            tenant_id: "ten_kr".to_string(),
-            region: region("kr-seoul", RegionJurisdiction::Kr),
-            residency_class: ResidencyClass::StrictKr,
-            az: "kr-seoul-a".to_string(),
-            cell_id: "cell-kr-seoul-a-001".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: region("region-alpha", RegionJurisdiction::Other),
+            residency_class: residency_class(),
+            az: "region-alpha-a".to_string(),
+            cell_id: "cell-region-alpha-a-001".to_string(),
             tier: CellTier::Pooled,
-            hsm_partition_ref: "hsm/kr-seoul/cell-001".to_string(),
+            hsm_partition_ref: "hsm/region-alpha/cell-001".to_string(),
         }
     }
 
@@ -169,8 +188,8 @@ mod tests {
     fn binding_captures_region_residency_tier_and_hsm_partition() {
         let binding = CellBinding::new(cell_binding_create()).expect("cell binding should build");
 
-        assert_eq!(binding.region, "kr-seoul");
-        assert_eq!(binding.residency_class.value, ResidencyClass::StrictKr);
+        assert_eq!(binding.region, "region-alpha");
+        assert_eq!(binding.residency_class.value, residency_class());
         assert_eq!(binding.tier.value, CellTier::Pooled);
         assert_eq!(binding.schema_version.value, CELL_BINDING_SCHEMA_VERSION);
     }
@@ -184,8 +203,8 @@ mod tests {
 
         let error = router
             .bind(CellBindingCreate {
-                az: "kr-seoul-b".to_string(),
-                cell_id: "cell-kr-seoul-b-001".to_string(),
+                az: "region-alpha-b".to_string(),
+                cell_id: "cell-region-alpha-b-001".to_string(),
                 ..cell_binding_create()
             })
             .expect_err("tenant cannot be rebound to another cell");
@@ -196,7 +215,7 @@ mod tests {
     #[test]
     fn rejects_az_outside_declared_region() {
         let error = CellBinding::new(CellBindingCreate {
-            az: "us-east-a".to_string(),
+            az: "region-beta-a".to_string(),
             ..cell_binding_create()
         })
         .expect_err("AZ must belong to declared region");
@@ -207,12 +226,11 @@ mod tests {
     #[test]
     fn rejects_residency_region_mismatch() {
         let error = CellBinding::new(CellBindingCreate {
-            region: region("us-east", RegionJurisdiction::Us),
-            residency_class: ResidencyClass::StrictKr,
-            az: "us-east-a".to_string(),
+            region: region("region-beta", RegionJurisdiction::Other),
+            az: "region-beta-a".to_string(),
             ..cell_binding_create()
         })
-        .expect_err("strict KR cells need KR regions");
+        .expect_err("residency fixture only permits the primary region");
 
         assert_eq!(error, CellError::ResidencyRegionMismatch);
     }

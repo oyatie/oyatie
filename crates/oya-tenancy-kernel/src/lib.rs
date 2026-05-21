@@ -185,27 +185,27 @@ impl FromStr for RegionCode {
 /// Tenant residency class. The value is immutable once bound to a tenant.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ResidencyClass {
-    StrictKr,
-    StrictEu,
-    KrWithUsFailover,
+    StrictHomeRegion,
+    StrictFederatedRegion,
+    HomeWithRecoveryFailover,
     Global,
 }
 
 impl ResidencyClass {
     pub const fn label(self) -> &'static str {
         match self {
-            Self::StrictKr => "strict_kr",
-            Self::StrictEu => "strict_eu",
-            Self::KrWithUsFailover => "kr_with_us_failover",
+            Self::StrictHomeRegion => "strict_home_region",
+            Self::StrictFederatedRegion => "strict_federated_region",
+            Self::HomeWithRecoveryFailover => "home_with_recovery_failover",
             Self::Global => "global",
         }
     }
 
     pub fn parse_label(value: &str) -> Option<Self> {
         match value {
-            "strict_kr" => Some(Self::StrictKr),
-            "strict_eu" => Some(Self::StrictEu),
-            "kr_with_us_failover" => Some(Self::KrWithUsFailover),
+            "strict_home_region" => Some(Self::StrictHomeRegion),
+            "strict_federated_region" => Some(Self::StrictFederatedRegion),
+            "home_with_recovery_failover" => Some(Self::HomeWithRecoveryFailover),
             "global" => Some(Self::Global),
             _ => None,
         }
@@ -213,16 +213,16 @@ impl ResidencyClass {
 
     pub fn allows_primary_region(self, region: &RegionCode) -> bool {
         match self {
-            Self::StrictKr | Self::KrWithUsFailover => region.as_str().starts_with("kr-"),
-            Self::StrictEu => region.as_str().starts_with("eu-"),
+            Self::StrictHomeRegion | Self::HomeWithRecoveryFailover => region.as_str().starts_with("region-home"),
+            Self::StrictFederatedRegion => region.as_str().starts_with("region-federated"),
             Self::Global => true,
         }
     }
 
     pub fn allows_failover_region(self, region: &RegionCode) -> bool {
         match self {
-            Self::StrictKr | Self::StrictEu => false,
-            Self::KrWithUsFailover => region.as_str().starts_with("us-"),
+            Self::StrictHomeRegion | Self::StrictFederatedRegion => false,
+            Self::HomeWithRecoveryFailover => region.as_str().starts_with("region-recovery"),
             Self::Global => true,
         }
     }
@@ -642,35 +642,35 @@ mod tests {
 
     fn kr_binding() -> RegionBinding {
         RegionBinding::new(
-            region("kr-seoul"),
+            region("region-home"),
             None,
-            ResidencyClass::StrictKr,
+            ResidencyClass::StrictHomeRegion,
             "audit_evt_tenant_bound_001",
             1_762_992_000,
         )
-        .expect("strict KR binding is valid")
+        .expect("strict home-region binding is valid")
     }
 
     #[test]
     fn tenant_id_is_a_validated_kernel_newtype() {
-        assert_eq!(tenant_id("ten_kr").as_str(), "ten_kr");
-        assert_eq!("ten_kr".parse::<TenantId>(), Ok(tenant_id("ten_kr")));
+        assert_eq!(tenant_id("ten_alpha").as_str(), "ten_alpha");
+        assert_eq!("ten_alpha".parse::<TenantId>(), Ok(tenant_id("ten_alpha")));
         assert_eq!(
-            TenantId::new("tenant-kr"),
+            TenantId::new("tenant-alpha"),
             Err(TenantKernelError::InvalidTenantId)
         );
     }
 
     #[test]
     fn region_binding_enforces_residency_primary_and_failover_rules() {
-        assert_eq!(kr_binding().residency_class(), ResidencyClass::StrictKr);
+        assert_eq!(kr_binding().residency_class(), ResidencyClass::StrictHomeRegion);
         assert_eq!(kr_binding().schema_version(), REGION_BINDING_SCHEMA_VERSION);
 
         assert_eq!(
             RegionBinding::new(
-                region("us-east"),
+                region("region-recovery"),
                 None,
-                ResidencyClass::StrictKr,
+                ResidencyClass::StrictHomeRegion,
                 "audit_evt_bad_region",
                 1,
             ),
@@ -678,9 +678,9 @@ mod tests {
         );
         assert_eq!(
             RegionBinding::new(
-                region("kr-seoul"),
-                Some(region("jp-tokyo")),
-                ResidencyClass::KrWithUsFailover,
+                region("region-home"),
+                Some(region("region-expansion")),
+                ResidencyClass::HomeWithRecoveryFailover,
                 "audit_evt_bad_failover",
                 1,
             ),
@@ -688,9 +688,9 @@ mod tests {
         );
         assert!(
             RegionBinding::new(
-                region("kr-seoul"),
-                Some(region("us-east")),
-                ResidencyClass::KrWithUsFailover,
+                region("region-home"),
+                Some(region("region-recovery")),
+                ResidencyClass::HomeWithRecoveryFailover,
                 "audit_evt_good_failover",
                 1,
             )
@@ -701,25 +701,25 @@ mod tests {
     #[test]
     fn tenant_contract_exposes_immutable_region_binding_by_accessors_only() {
         let tenant = Tenant::new(
-            tenant_id("ten_kr"),
-            "KR Tenant Ltd",
+            tenant_id("ten_alpha"),
+            "Alpha Tenant Ltd",
             kr_binding(),
-            vec!["oya-pack-kr".to_string()],
+            vec!["oya-pack-alpha".to_string()],
             TenantPlaneGrants::all(),
         )
         .expect("tenant is valid");
 
-        assert_eq!(tenant.id().as_str(), "ten_kr");
-        assert_eq!(tenant.legal_name(), "KR Tenant Ltd");
-        assert_eq!(tenant.region_binding().primary().as_str(), "kr-seoul");
-        assert_eq!(tenant.residency_class().label(), "strict_kr");
+        assert_eq!(tenant.id().as_str(), "ten_alpha");
+        assert_eq!(tenant.legal_name(), "Alpha Tenant Ltd");
+        assert_eq!(tenant.region_binding().primary().as_str(), "region-home");
+        assert_eq!(tenant.residency_class().label(), "strict_home_region");
         assert_eq!(tenant.schema_version(), TENANT_SCHEMA_VERSION);
         assert!(tenant.plane_grants().contains(TenantPlane::Control));
     }
 
     #[test]
     fn tenant_creation_rejects_empty_or_duplicate_regulatory_packs() {
-        let base = (tenant_id("ten_kr"), "KR Tenant Ltd", kr_binding());
+        let base = (tenant_id("ten_alpha"), "Alpha Tenant Ltd", kr_binding());
         assert_eq!(
             Tenant::new(
                 base.0.clone(),
@@ -735,7 +735,7 @@ mod tests {
                 base.0,
                 base.1,
                 base.2,
-                vec!["oya-pack-kr".to_string(), "oya-pack-kr".to_string()],
+                vec!["oya-pack-alpha".to_string(), "oya-pack-alpha".to_string()],
                 TenantPlaneGrants::all(),
             ),
             Err(TenantKernelError::DuplicateRegulatoryPack)
@@ -882,8 +882,8 @@ mod tests {
             TenantId::new("acme-co"),
             Err(TenantKernelError::InvalidTenantId)
         );
-        // Conversely, "ten_kr" parses as both (internal IDs are slug-shaped).
-        assert!(TenantSlug::try_new("ten_kr").is_ok());
-        assert!(TenantId::new("ten_kr").is_ok());
+        // Conversely, "ten_alpha" parses as both (internal IDs are slug-shaped).
+        assert!(TenantSlug::try_new("ten_alpha").is_ok());
+        assert!(TenantId::new("ten_alpha").is_ok());
     }
 }

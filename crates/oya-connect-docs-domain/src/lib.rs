@@ -399,7 +399,7 @@ mod tests {
             id: "doc-1".into(),
             drive_path: "/team/plan.oyadoc".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             data_class: None,
             crdt_snapshot: snapshot(),
             content_type: DocContentType::Document,

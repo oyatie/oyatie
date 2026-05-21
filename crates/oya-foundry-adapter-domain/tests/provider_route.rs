@@ -101,7 +101,7 @@ fn api_profile(provider_id: &str, capability_id: &str, cost: u64) -> ProviderPro
             billing_account: format!("bill_{provider_id}"),
         },
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        vec!["kr-seoul".into()],
+        vec!["region-home".into()],
         cost,
         900,
     )
@@ -121,7 +121,7 @@ fn route_for_profiles(capability_id: &str, profiles: &[ProviderProfile]) -> Prov
         capability: &capability,
         policy: invocation_policy(
             privacy_data_classes(vec![DataClass::InternalOnly]),
-            "kr-seoul",
+            "region-home",
             CostCeiling {
                 monthly_spend_micros: 0,
                 monthly_limit_micros: 1_000_000,
@@ -319,14 +319,14 @@ fn provider_and_policy_legacy_projections_are_derived_from_typed_privacy_allowli
             billing_account: "bill_alpha".into(),
         },
         privacy_data_classes(vec![DataClass::InternalOnly, DataClass::PiiIdentifying]),
-        vec!["us-east".into()],
+        vec!["region-recovery".into()],
         10,
         1_000,
     )
     .unwrap();
     let policy = invocation_policy(
         privacy_data_classes(vec![DataClass::InternalOnly, DataClass::PiiIdentifying]),
-        "us-east",
+        "region-recovery",
         CostCeiling {
             monthly_spend_micros: 0,
             monthly_limit_micros: 1_000,
@@ -419,7 +419,7 @@ fn route_resolution_filters_by_cost_capability_auth_and_data_class() {
                 billing_account: "bill_alpha".into(),
             },
             privacy_data_classes(vec![DataClass::InternalOnly]),
-            vec!["us-east".into()],
+            vec!["region-recovery".into()],
             125,
             4_000,
         )
@@ -437,7 +437,7 @@ fn route_resolution_filters_by_cost_capability_auth_and_data_class() {
                 provider_account: "acct_dev".into(),
             },
             privacy_data_classes(vec![DataClass::InternalOnly, DataClass::Public]),
-            vec!["kr-seoul".into(), "us-east".into()],
+            vec!["region-home".into(), "region-recovery".into()],
             25,
             8_000,
         )
@@ -448,7 +448,7 @@ fn route_resolution_filters_by_cost_capability_auth_and_data_class() {
         capability: &capability,
         policy: invocation_policy(
             privacy_data_classes(vec![DataClass::InternalOnly]),
-            "kr-seoul",
+            "region-home",
             CostCeiling::from_budget_snapshot(&budget_snapshot),
             10_000,
         ),
@@ -464,7 +464,7 @@ fn route_resolution_filters_by_cost_capability_auth_and_data_class() {
 
     assert_eq!(route.providers.len(), 1);
     assert_eq!(route.providers[0].id.value.value, "openai-subscription");
-    assert_eq!(route.selected_region.value, "kr-seoul");
+    assert_eq!(route.selected_region.value, "region-home");
     let debug = format!("{:?}", route.providers[0].auth);
     assert!(!debug.contains("chatgpt-session"));
     assert!(debug.contains("REDACTED"));
@@ -489,7 +489,7 @@ fn route_resolution_rejects_missing_failover_and_policy_violations() {
             billing_account: "bill_alpha".into(),
         },
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        vec!["us-east".into()],
+        vec!["region-recovery".into()],
         10,
         10_000,
     )
@@ -500,7 +500,7 @@ fn route_resolution_rejects_missing_failover_and_policy_violations() {
             capability: &capability,
             policy: invocation_policy(
                 privacy_data_classes(vec![DataClass::InternalOnly]),
-                "us-east",
+                "region-recovery",
                 CostCeiling {
                     monthly_spend_micros: 0,
                     monthly_limit_micros: 1_000,
@@ -522,7 +522,7 @@ fn route_resolution_rejects_missing_failover_and_policy_violations() {
             capability: &capability,
             policy: invocation_policy(
                 privacy_data_classes(vec![DataClass::Phi]),
-                "us-east",
+                "region-recovery",
                 CostCeiling {
                     monthly_spend_micros: 1_000,
                     monthly_limit_micros: 1_000,
@@ -562,7 +562,7 @@ fn provider_profiles_validate_auth_mode_and_identifier_shape() {
                 provider_account: "acct_dev".into(),
             },
             privacy_data_classes(vec![DataClass::InternalOnly]),
-            vec!["us-east".into()],
+            vec!["region-recovery".into()],
             10,
             1_000,
         ),
@@ -588,7 +588,7 @@ fn provider_route_allowlists_reject_non_privacy_markers() {
                     billing_account: "bill_alpha".into(),
                 },
                 vec![marker],
-                vec!["us-east".into()],
+                vec!["region-recovery".into()],
                 10,
                 1_000,
             ),
@@ -599,7 +599,7 @@ fn provider_route_allowlists_reject_non_privacy_markers() {
             InvocationPolicy::try_from_legacy_allowed_data_classes(
                 Classified::new("ten_alpha".into(), DataClass::InternalOnly),
                 vec![marker],
-                Classified::new("us-east".into(), DataClass::InternalOnly),
+                Classified::new("region-recovery".into(), DataClass::InternalOnly),
                 CostCeiling {
                     monthly_spend_micros: 0,
                     monthly_limit_micros: 1_000,
@@ -632,7 +632,7 @@ fn route_resolution_rejects_profiles_outside_required_region() {
             billing_account: "bill_alpha".into(),
         },
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        vec!["us-east".into()],
+        vec!["region-recovery".into()],
         10,
         1_000,
     )
@@ -643,7 +643,7 @@ fn route_resolution_rejects_profiles_outside_required_region() {
             capability: &capability,
             policy: invocation_policy(
                 privacy_data_classes(vec![DataClass::InternalOnly]),
-                "kr-seoul",
+                "region-home",
                 CostCeiling {
                     monthly_spend_micros: 0,
                     monthly_limit_micros: 1_000,
@@ -706,7 +706,7 @@ fn route_resolution_requires_active_subscription_binding_for_tenant_attribution(
             provider_account: "acct_dev".into(),
         },
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        vec!["kr-seoul".into()],
+        vec!["region-home".into()],
         10,
         1_000,
     )
@@ -718,7 +718,7 @@ fn route_resolution_requires_active_subscription_binding_for_tenant_attribution(
                 capability: &capability,
                 policy: invocation_policy(
                     privacy_data_classes(vec![DataClass::InternalOnly]),
-                    "kr-seoul",
+                    "region-home",
                     CostCeiling {
                         monthly_spend_micros: 0,
                         monthly_limit_micros: 1_000,
@@ -774,7 +774,7 @@ fn provider_call_receipt_records_selected_route_without_secret_material() {
             billing_account: "bill_alpha".into(),
         },
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        vec!["kr-seoul".into()],
+        vec!["region-home".into()],
         42,
         900,
     )
@@ -783,7 +783,7 @@ fn provider_call_receipt_records_selected_route_without_secret_material() {
         capability: &capability,
         policy: invocation_policy(
             privacy_data_classes(vec![DataClass::InternalOnly]),
-            "kr-seoul",
+            "region-home",
             CostCeiling {
                 monthly_spend_micros: 0,
                 monthly_limit_micros: 1_000,
@@ -805,7 +805,7 @@ fn provider_call_receipt_records_selected_route_without_secret_material() {
         "provider-call:run_000000000001:step_000000000001_000001:openai-api:001".into(),
         1,
         "foundation-app".into(),
-        "kr-seoul".into(),
+        "region-home".into(),
     )
     .expect("receipt is valid");
 
@@ -815,7 +815,7 @@ fn provider_call_receipt_records_selected_route_without_secret_material() {
         receipt.receipt_id.value,
         "provider-call-receipt:provider-call:run_000000000001:step_000000000001_000001:openai-api:001"
     );
-    assert_eq!(receipt.provider_region.value, "kr-seoul");
+    assert_eq!(receipt.provider_region.value, "region-home");
     assert_eq!(receipt.model_ref.value, "foundation-app");
     assert_eq!(receipt.attempt.value, 1);
     assert_eq!(receipt.projected_cost_micros.value, 42);
@@ -831,7 +831,7 @@ fn provider_call_receipt_records_selected_route_without_secret_material() {
 fn provider_call_receipt_rejects_empty_route_and_unattributed_fields() {
     let empty_route = ProviderRoute {
         providers: Vec::new(),
-        selected_region: Classified::new("kr-seoul".into(), DataClass::InternalOnly),
+        selected_region: Classified::new("region-home".into(), DataClass::InternalOnly),
     };
     assert_eq!(
         ProviderCallReceipt::from_route(
@@ -839,7 +839,7 @@ fn provider_call_receipt_rejects_empty_route_and_unattributed_fields() {
             "provider-call:run_000000000001:step_000000000001_000001:openai-api:001".into(),
             1,
             "foundation-app".into(),
-            "kr-seoul".into(),
+            "region-home".into(),
         ),
         Err(AdapterError::NoProviderAvailable)
     );
@@ -863,13 +863,13 @@ fn provider_call_receipt_rejects_empty_route_and_unattributed_fields() {
                     billing_account: "bill_alpha".into(),
                 },
                 privacy_data_classes(vec![DataClass::InternalOnly]),
-                vec!["kr-seoul".into()],
+                vec!["region-home".into()],
                 42,
                 900,
             )
             .unwrap(),
         ],
-        selected_region: Classified::new("kr-seoul".into(), DataClass::InternalOnly),
+        selected_region: Classified::new("region-home".into(), DataClass::InternalOnly),
     };
 
     assert_eq!(
@@ -878,7 +878,7 @@ fn provider_call_receipt_rejects_empty_route_and_unattributed_fields() {
             String::new(),
             1,
             "foundation-app".into(),
-            "kr-seoul".into(),
+            "region-home".into(),
         ),
         Err(AdapterError::EmptyProviderCallIdempotencyKey)
     );
@@ -888,7 +888,7 @@ fn provider_call_receipt_rejects_empty_route_and_unattributed_fields() {
             "provider-call:run_000000000001:step_000000000001_000001:openai-api:001".into(),
             1,
             " ".into(),
-            "kr-seoul".into(),
+            "region-home".into(),
         ),
         Err(AdapterError::EmptyProviderModelRef)
     );
@@ -898,7 +898,7 @@ fn provider_call_receipt_rejects_empty_route_and_unattributed_fields() {
             "provider-call:run_000000000001:step_000000000001_000001:openai-api:001".into(),
             0,
             "foundation-app".into(),
-            "kr-seoul".into(),
+            "region-home".into(),
         ),
         Err(AdapterError::InvalidProviderCallAttempt)
     );
@@ -933,7 +933,7 @@ fn provider_call_receipt_rejects_region_that_does_not_match_resolved_route() {
             billing_account: "bill_alpha".into(),
         },
         privacy_data_classes(vec![DataClass::InternalOnly]),
-        vec!["kr-seoul".into(), "us-east".into()],
+        vec!["region-home".into(), "region-recovery".into()],
         42,
         900,
     )
@@ -942,7 +942,7 @@ fn provider_call_receipt_rejects_region_that_does_not_match_resolved_route() {
         capability: &capability,
         policy: invocation_policy(
             privacy_data_classes(vec![DataClass::InternalOnly]),
-            "kr-seoul",
+            "region-home",
             CostCeiling {
                 monthly_spend_micros: 0,
                 monthly_limit_micros: 1_000,
@@ -959,14 +959,14 @@ fn provider_call_receipt_rejects_region_that_does_not_match_resolved_route() {
     })
     .expect("multi-region profile is routeable");
 
-    assert_eq!(route.selected_region.value, "kr-seoul");
+    assert_eq!(route.selected_region.value, "region-home");
     assert_eq!(
         ProviderCallReceipt::from_route(
             &route,
             "provider-call:run_000000000001:step_000000000001_000001:multi-region-api:001".into(),
             1,
             "foundation-app".into(),
-            "us-east".into(),
+            "region-recovery".into(),
         ),
         Err(AdapterError::ProviderCallRegionMismatch)
     );

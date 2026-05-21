@@ -12,8 +12,8 @@ fn valid_request() -> CloudBillingInvoiceGenerateRequest {
         account: CloudBillingAccountSnapshotRequest {
             id: "ba_001".to_owned(),
             tenant_id: "ten_001".to_owned(),
-            region: "kr-seoul-1".to_owned(),
-            regional_pack: "oya-pack-kr".to_owned(),
+            region: "region-home-1".to_owned(),
+            regional_pack: "oya-pack-alpha".to_owned(),
             payment_method: "pm_001".to_owned(),
             credit_balance: CloudBillingMoneyRequest {
                 currency: "KRW".to_owned(),
@@ -24,7 +24,7 @@ fn valid_request() -> CloudBillingInvoiceGenerateRequest {
             created_at_epoch_seconds: 1,
         },
         tenant_id: "ten_001".to_owned(),
-        regional_pack: "oya-pack-kr".to_owned(),
+        regional_pack: "oya-pack-alpha".to_owned(),
         period: CloudBillingPeriodRequest {
             start_epoch_seconds: 10,
             end_epoch_seconds: 20,

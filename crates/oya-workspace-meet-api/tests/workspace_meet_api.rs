@@ -3,12 +3,13 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_workspace_meet_api::{
-    start_workspace_meet_session_from_api, WorkspaceMeetApiAuthorization, WorkspaceMeetApiError,
-    WorkspaceMeetApiPrincipal, WorkspaceMeetParticipantRequest, WorkspaceMeetSessionDirectory,
-    WorkspaceMeetSessionMetadata, WorkspaceMeetSessionRecord, WorkspaceMeetSessionStartApiRequest,
+    WORKSPACE_MEET_OPENAPI_CONTRACT, WORKSPACE_MEET_SESSION_START_SURFACE,
+    WorkspaceMeetApiAuthorization, WorkspaceMeetApiError, WorkspaceMeetApiPrincipal,
+    WorkspaceMeetParticipantRequest, WorkspaceMeetSessionDirectory, WorkspaceMeetSessionMetadata,
+    WorkspaceMeetSessionRecord, WorkspaceMeetSessionStartApiRequest,
     WorkspaceMeetSessionStartApiStatus, WorkspaceMeetSessionStartIdempotencyLedger,
     WorkspaceMeetSessionStartRequest, WorkspaceMeetStartBoundaryContext,
-    WORKSPACE_MEET_OPENAPI_CONTRACT, WORKSPACE_MEET_SESSION_START_SURFACE,
+    start_workspace_meet_session_from_api,
 };
 
 const SESSION_ID: &str = "meet_session_001";
@@ -67,7 +68,7 @@ fn start_body(session_id: &str) -> WorkspaceMeetSessionStartRequest {
     WorkspaceMeetSessionStartRequest {
         session_id: session_id.to_string(),
         tenant_id: TENANT_ID.to_string(),
-        region: "kr-seoul".to_string(),
+        region: "region-home".to_string(),
         cell_id: "cell-workspace-kr-001".to_string(),
         sfu_pool_id: "sfu-pool-kr-001".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),
@@ -280,7 +281,7 @@ fn public_response_structs_keep_contract_names_stable() {
     let _record = WorkspaceMeetSessionRecord {
         session_id: "session".to_string(),
         tenant_id: TENANT_ID.to_string(),
-        region: "kr-seoul".to_string(),
+        region: "region-home".to_string(),
         cell_id: "cell".to_string(),
         sfu_pool_id: "sfu".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),

@@ -1,0 +1,5397 @@
+schema_version: "2026-05-20.microservice-capability-tier-mapping.v1"
+authority:
+  - "ADR-0316"
+  - "enterprise-software-coverage-matrix-2026-05-21"
+  - "microservices-directory-inventory"
+source_inventory_count: 70
+microservices:
+  -
+    microservice_id: "analytics"
+    primary_workload_class: "data"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1200
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 6000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 30000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 60000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "api-gateway"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "application"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "audit-chain"
+    primary_workload_class: "governance"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 800
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 4000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 20000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 40000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "calendar"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "cell"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "cloud-iac"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "cloud-k8s"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "cloud-secrets"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "comms-email"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "community"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "compliance"
+    primary_workload_class: "governance"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 800
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 4000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 20000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 40000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "connect"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "consent-graph"
+    primary_workload_class: "governance"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 800
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 4000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 20000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 40000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "contact-center"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "contract-lifecycle-management"
+    primary_workload_class: "regulated"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "crm"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "data-pipeline"
+    primary_workload_class: "data"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1200
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 6000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 30000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 60000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "data-warehouse"
+    primary_workload_class: "data"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1200
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 6000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 30000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 60000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "design-collaboration"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "detection"
+    primary_workload_class: "governance"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 800
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 4000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 20000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 40000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "developer-sdk"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "docs"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "drive"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "feature-flags"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "financial-planning"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "finops-portal"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "forms"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "foundry"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "global-trade"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "governance"
+    primary_workload_class: "governance"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 800
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 4000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 20000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 40000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "healthcare-integration"
+    primary_workload_class: "regulated"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "identity"
+    primary_workload_class: "governance"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 800
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 4000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 20000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 40000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "incident-management"
+    primary_workload_class: "regulated"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "intelligence"
+    primary_workload_class: "data"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1200
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 6000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 30000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 60000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "itsm"
+    primary_workload_class: "regulated"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "learning-management"
+    primary_workload_class: "regulated"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "mail"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "marketing-automation"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "marketplace"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "meet"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "messenger"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "network"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "notes"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "observability"
+    primary_workload_class: "governance"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 800
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 4000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 20000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "policy evidence"
+          - "control attestations"
+          - "retention locks"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 40000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "ontology"
+    primary_workload_class: "data"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1200
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 6000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 30000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 60000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "ops-dashboard-control-center"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "payments"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "performance-management"
+    primary_workload_class: "regulated"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "regulated pack overlay"
+          - "evidence retention"
+          - "dual-control approval"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "plant-maintenance"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "plugin-app-store"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "production-planning"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "quality-management"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "real-estate"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "recordings"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "sheets"
+    primary_workload_class: "data"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1200
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 6000
+        storage_gib_ceiling_per_tenant: 16384
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 30000
+        storage_gib_ceiling_per_tenant: 49152
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "batch ingest"
+          - "semantic projection cache"
+          - "column-level audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 60000
+        storage_gib_ceiling_per_tenant: 147456
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "shorts"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "sites"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "slides"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "social"
+    primary_workload_class: "realtime"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 3000
+        storage_gib_ceiling_per_tenant: 512
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 15000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 6144
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "low-latency fanout"
+          - "presence-aware routing"
+          - "message replay ledger"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 150000
+        storage_gib_ceiling_per_tenant: 18432
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "supply-chain-planning"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "tasks"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "tenancy"
+    primary_workload_class: "infra"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 5000
+        storage_gib_ceiling_per_tenant: 1024
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 25000
+        storage_gib_ceiling_per_tenant: 4096
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 125000
+        storage_gib_ceiling_per_tenant: 12288
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "cell bootstrap"
+          - "deployment controls"
+          - "runtime policy gates"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 250000
+        storage_gib_ceiling_per_tenant: 36864
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "translate"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "treasury"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "warehouse"
+    primary_workload_class: "commerce"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 2000
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 10000
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 50000
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "DealSet binding"
+          - "approval workflow"
+          - "settlement audit"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 100000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "whiteboard"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "workflow-engine"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "workflow-studio"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000
+  -
+    microservice_id: "workplace-integration"
+    primary_workload_class: "productivity"
+    supports_capability_tiers:
+      - "bronze"
+      - "silver"
+      - "gold"
+      - "platinum"
+    owner_boundary: "flat_microservice_contribution_only"
+    per_tier_deltas:
+      bronze:
+        hardware_profile_ref: "bronze"
+        activation_scope: "single-region bounded tenant activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "manual rollback gate"
+        rps_ceiling_per_tenant: 1500
+        storage_gib_ceiling_per_tenant: 2048
+        retention_days: 30
+        max_tenant_seats: 250
+        concurrent_workflow_runs: 250
+        sla_monthly_availability_pct: 99.9
+        p99_api_latency_ms: 900
+        monthly_event_ceiling: 25000000
+      silver:
+        hardware_profile_ref: "silver"
+        activation_scope: "single-region HA production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "mesh policy enforcement"
+          - "shadow migration dry-run"
+        rps_ceiling_per_tenant: 7500
+        storage_gib_ceiling_per_tenant: 8192
+        retention_days: 90
+        max_tenant_seats: 2500
+        concurrent_workflow_runs: 2500
+        sla_monthly_availability_pct: 99.95
+        p99_api_latency_ms: 700
+        monthly_event_ceiling: 250000000
+      gold:
+        hardware_profile_ref: "gold"
+        activation_scope: "multi-AZ revenue production activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "multi-AZ failover drill"
+          - "advanced cost attribution"
+        rps_ceiling_per_tenant: 37500
+        storage_gib_ceiling_per_tenant: 24576
+        retention_days: 365
+        max_tenant_seats: 25000
+        concurrent_workflow_runs: 25000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 500
+        monthly_event_ceiling: 2500000000
+      platinum:
+        hardware_profile_ref: "platinum"
+        activation_scope: "sovereign or regulated pack-bound activation"
+        included_feature_deltas:
+          - "document object projection"
+          - "collaboration audit"
+          - "sharing policy"
+          - "offline evidence seal"
+          - "pack-bound telemetry isolation"
+        rps_ceiling_per_tenant: 75000
+        storage_gib_ceiling_per_tenant: 73728
+        retention_days: 2555
+        max_tenant_seats: 100000
+        concurrent_workflow_runs: 100000
+        sla_monthly_availability_pct: 99.99
+        p99_api_latency_ms: 400
+        monthly_event_ceiling: 10000000000

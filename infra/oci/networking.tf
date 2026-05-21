@@ -10,7 +10,7 @@ resource "oci_core_vcn" "nonprod" {
   compartment_id = oci_identity_compartment.nonprod.id
   display_name   = "oyatie-nonprod-vcn"
   cidr_blocks    = ["10.0.0.0/16"]
-  dns_label      = "oyatienpvcn"
+  dns_label      = var.vcn_dns_label
   freeform_tags  = local.common_tags
 }
 
@@ -102,7 +102,7 @@ resource "oci_core_subnet" "nonprod_public" {
   vcn_id                     = oci_core_vcn.nonprod.id
   display_name               = "oyatie-nonprod-subnet"
   cidr_block                 = "10.0.1.0/24"
-  dns_label                  = "oyatienpsn"
+  dns_label                  = var.subnet_public_dns_label
   prohibit_public_ip_on_vnic = false
   freeform_tags              = local.common_tags
 }

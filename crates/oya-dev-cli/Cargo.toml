@@ -74,7 +74,7 @@ oya-check-supply-chain = { path = "../oya-check-supply-chain" }
 oya-check-typescript-workspace = { path = "../oya-check-typescript-workspace" }
 oya-check-vendor-recency = { path = "../oya-check-vendor-recency" }
 # PR #143 Fix-D + ADR-0145 enforcement gates (some run in advisory/DEFERRED mode).
-oya-check-eu-ai-act-annex-iii-refusal = { path = "../oya-check-eu-ai-act-annex-iii-refusal" }
+oya-check-high-risk-auto-decision-refusal = { path = "../oya-check-high-risk-auto-decision-refusal" }
 oya-check-slsa-l3-evidence-grounded = { path = "../oya-check-slsa-l3-evidence-grounded" }
 oya-check-otel-trace-propagation = { path = "../oya-check-otel-trace-propagation" }
 oya-check-ontology-projection-coverage = { path = "../oya-check-ontology-projection-coverage" }

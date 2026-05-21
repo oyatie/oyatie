@@ -98,7 +98,7 @@ deferred; everything ships as one unit.
     `staging`.
 20. **Decommission of FUTURE-marked stubs** — references in
     `promote-dev-to-staging.yml` and `promote-staging-to-production.yml`
-    to `oya-foundry-fitness-canary-cohort-observability` /
+    to `oya-governance-canary-cohort-observability` /
     `-full-rollout-observability` are replaced by Layer-B components; no
     placeholder lanes remain.
 

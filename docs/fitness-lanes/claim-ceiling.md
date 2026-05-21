@@ -10,13 +10,13 @@ doc_status: published
 - enforces: STANDARD/claim-ceiling; existing crate `oya-foundry-claim-ceiling-kernel` (EXISTING).
 - adr_citations: ADR-0054 (scaffold-claim pattern — defines icm-coordination-lock as the claim mechanism; ceiling enforcement prevents runaway concurrent scaffolds)
 - kernel_crate: `oya-foundry-claim-ceiling-kernel` (EXISTING) — `ClaimSnapshot { agent_id, active_claims }`, verdict `ClaimCeilingFitnessReport { agents_checked }`.
-- runner_path: `tools/oya-foundry-fitness-claim-ceiling`
+- runner_path: `tools/oya-governance-claim-ceiling`
 - inputs: grit-claim ledger snapshot, ceiling-policy registry.
 - failure_modes:
   - agent holds claims above ceiling
   - claim with no expiry
   - duplicate claim id
-- ci_invocation: `cargo run -p oya-foundry-fitness-claim-ceiling`
+- ci_invocation: `cargo run -p oya-governance-claim-ceiling`
 - runtime_budget: 300 ms
 - severity: HIGH
 - kernel_sketch:

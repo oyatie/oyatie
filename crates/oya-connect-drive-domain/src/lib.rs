@@ -380,7 +380,7 @@ mod tests {
             folder_id: "folder-1".into(),
             path: "/team/plan.md".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             data_class: None,
             object_storage_key: "tenant-1/team/plan.md".into(),
             size_bytes: 42,
@@ -397,7 +397,7 @@ mod tests {
             parent_id: None,
             path: "/team".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             data_class: None,
             permissions: permission_set(),
             created_at_epoch_seconds: 1_700_000_000,
@@ -460,7 +460,7 @@ mod tests {
         let put = DriveSurfaceStaging::new(
             "obj-1".into(),
             "tenant-1".into(),
-            "us-east-1".into(),
+            "region-alpha1".into(),
             DriveSurfaceOp::Put,
             "kms-key-1".into(),
         )
@@ -472,7 +472,7 @@ mod tests {
         let get = DriveSurfaceStaging::new(
             "obj-1".into(),
             "tenant-1".into(),
-            "us-east-1".into(),
+            "region-alpha1".into(),
             DriveSurfaceOp::Get,
             "kms-key-1".into(),
         )
@@ -486,7 +486,7 @@ mod tests {
             DriveSurfaceStaging::new(
                 "obj-1".into(),
                 "".into(),
-                "us-east-1".into(),
+                "region-alpha1".into(),
                 DriveSurfaceOp::Put,
                 "kms-key-1".into(),
             ),
@@ -496,7 +496,7 @@ mod tests {
             DriveSurfaceStaging::new(
                 "obj-1".into(),
                 "tenant-1".into(),
-                "us-east-1".into(),
+                "region-alpha1".into(),
                 DriveSurfaceOp::Put,
                 "".into(),
             ),

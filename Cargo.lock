@@ -898,12 +898,79 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-audit-chain-emission-api"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-emission-kernel",
+]
+
+[[package]]
+name = "oya-audit-chain-emission-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-emission-kernel",
+]
+
+[[package]]
+name = "oya-audit-chain-emission-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-audit-chain-file-adapter"
 version = "0.1.0"
 dependencies = [
  "oya-audit-chain-domain",
  "oya-data-boundary-kernel",
 ]
+
+[[package]]
+name = "oya-audit-chain-query-api"
+version = "0.1.0"
+
+[[package]]
+name = "oya-audit-chain-query-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-query-api",
+]
+
+[[package]]
+name = "oya-audit-chain-query-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-audit-chain-retention-cascade-api"
+version = "0.1.0"
+
+[[package]]
+name = "oya-audit-chain-retention-cascade-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-retention-cascade-api",
+]
+
+[[package]]
+name = "oya-audit-chain-retention-cascade-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-audit-chain-sealing-api"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-sealing-kernel",
+]
+
+[[package]]
+name = "oya-audit-chain-sealing-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-domain",
+ "oya-audit-chain-sealing-kernel",
+]
+
+[[package]]
+name = "oya-audit-chain-sealing-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "oya-audit-chain-usecase"
@@ -913,6 +980,22 @@ dependencies = [
  "oya-data-boundary-kernel",
  "oya-eventing-domain",
 ]
+
+[[package]]
+name = "oya-audit-chain-verification-api"
+version = "0.1.0"
+
+[[package]]
+name = "oya-audit-chain-verification-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-domain",
+ "oya-audit-chain-verification-api",
+]
+
+[[package]]
+name = "oya-audit-chain-verification-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "oya-cell-domain"
@@ -1044,10 +1127,6 @@ name = "oya-check-documentation-system"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-eu-ai-act-annex-iii-refusal"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-event-schema-versioning"
 version = "0.1.0"
 
@@ -1057,6 +1136,10 @@ version = "0.1.0"
 
 [[package]]
 name = "oya-check-glossary-vocabulary"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-high-risk-auto-decision-refusal"
 version = "0.1.0"
 
 [[package]]
@@ -1310,6 +1393,14 @@ name = "oya-cloud-data-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-dcops-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "oya-cloud-finops-api"
 version = "0.1.0"
 dependencies = [
@@ -1368,6 +1459,16 @@ dependencies = [
  "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-cloud-marketplace-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-billing-domain",
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
 ]
 
 [[package]]
@@ -1493,6 +1594,13 @@ dependencies = [
  "oya-cloud-storage-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-cloud-surface-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -1781,10 +1889,10 @@ dependencies = [
  "oya-check-dependency-seam",
  "oya-check-doc-catalog",
  "oya-check-documentation-system",
- "oya-check-eu-ai-act-annex-iii-refusal",
  "oya-check-event-schema-versioning",
  "oya-check-glossary-coverage",
  "oya-check-glossary-vocabulary",
+ "oya-check-high-risk-auto-decision-refusal",
  "oya-check-honest-claims",
  "oya-check-i18n-coverage",
  "oya-check-iac-tier-discipline",
@@ -3070,6 +3178,150 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-payments-adapter-adyen"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-adapter-stripe"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-charge-app"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-grpc",
+ "oya-payments-charge-rest",
+]
+
+[[package]]
+name = "oya-payments-charge-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-charge-grpc"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-usecase",
+]
+
+[[package]]
+name = "oya-payments-charge-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-payments-charge-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-usecase",
+]
+
+[[package]]
+name = "oya-payments-charge-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-domain",
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-dispute-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-dispute-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+ "oya-payments-dispute-domain",
+]
+
+[[package]]
+name = "oya-payments-kyc-kyb-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-kyc-kyb-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+ "oya-payments-kyc-kyb-domain",
+]
+
+[[package]]
+name = "oya-payments-payout-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-payout-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+ "oya-payments-payout-domain",
+]
+
+[[package]]
+name = "oya-payments-refund-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-refund-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+ "oya-payments-refund-domain",
+]
+
+[[package]]
+name = "oya-payments-settlement-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-settlement-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-settlement-domain",
+]
+
+[[package]]
+name = "oya-payments-subscription-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+]
+
+[[package]]
+name = "oya-payments-subscription-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-payments-charge-kernel",
+ "oya-payments-subscription-domain",
+]
+
+[[package]]
 name = "oya-policy-cedar-api"
 version = "0.1.0"
 dependencies = [
@@ -3376,6 +3628,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-tenancy-cell-assignment-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-data-residency-enforcer-adapter"
+version = "0.1.0"
+
+[[package]]
 name = "oya-tenancy-domain"
 version = "0.1.0"
 dependencies = [
@@ -3384,7 +3644,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-tenancy-dr-pairing-usecase"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-dsr-cascade-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-isolation-policy-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-tenancy-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-kyb-kyc-verifier-domain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-lifecycle-locks-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-per-tenant-quota-usecase"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-reserved-namespace-usecase"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-sub-scope-registry-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-tenancy-tenant-lifecycle-kernel"
 version = "0.1.0"
 
 [[package]]

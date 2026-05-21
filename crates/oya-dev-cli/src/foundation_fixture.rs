@@ -56,9 +56,9 @@ pub(crate) fn publish_capability_invocation_policy(
 
 fn demo_eval_set(capability_id: &str) -> EvalSetInput {
     let mut cases = vec![
-        demo_eval_case("case-en", "en-US", None),
-        demo_eval_case("case-ko", "ko-KR", None),
-        demo_eval_case("case-ja", "ja-JP", None),
+        demo_eval_case("case-lang-alpha", "lang-alpha1", None),
+        demo_eval_case("case-lang-beta", "lang-beta1", None),
+        demo_eval_case("case-lang-gamma", "lang-gamma1", None),
     ];
     for (case_id, kind) in [
         ("adv-prompt", AdversarialKind::PromptInjection),
@@ -104,7 +104,12 @@ mod tests {
 
         assert_eq!(eval_set.capability_id, "cap.demo.readiness");
         assert_eq!(eval_set.cases.len(), 7);
-        assert!(eval_set.cases.iter().any(|case| case.locale == "ko-KR"));
+        assert!(
+            eval_set
+                .cases
+                .iter()
+                .any(|case| case.locale == "lang-beta1")
+        );
         assert!(
             eval_set
                 .cases

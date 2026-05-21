@@ -94,9 +94,9 @@ pub struct AccessDecision {
 
 ### Validators and CI lanes
 
-- `oya-foundry-fitness-tenant-isolation` — fails PRs that derive tenancy from request headers or other untrusted inputs (closes LEDG-009).
-- `oya-foundry-fitness-iam-lockstep` — fails PRs where the cloud-IAM surface (ADR consumers in `oya-cloud-iam-*`) drifts from `oya-identity-kernel` (closes LEDG-028).
-- `oya-foundry-fitness-substrate-forking` — fails PRs that introduce a new `Tenant`-shaped struct anywhere outside the kernel.
+- `oya-governance-tenant-isolation` — fails PRs that derive tenancy from request headers or other untrusted inputs (closes LEDG-009).
+- `oya-governance-iam-lockstep` — fails PRs where the cloud-IAM surface (ADR consumers in `oya-cloud-iam-*`) drifts from `oya-identity-kernel` (closes LEDG-028).
+- `oya-governance-substrate-forking` — fails PRs that introduce a new `Tenant`-shaped struct anywhere outside the kernel.
 
 ### Boundary
 

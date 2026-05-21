@@ -39,9 +39,9 @@ impl DataServiceKind {
 pub enum ResidencyClass {
     Global,
     RegionBound,
-    SovereignKr,
-    SovereignEu,
-    SovereignUs,
+    SovereignPack,
+    FederatedPack,
+    DedicatedPack,
 }
 
 impl ResidencyClass {
@@ -49,9 +49,9 @@ impl ResidencyClass {
         match self {
             Self::Global => "global",
             Self::RegionBound => "region-bound",
-            Self::SovereignKr => "sovereign-kr",
-            Self::SovereignEu => "sovereign-eu",
-            Self::SovereignUs => "sovereign-us",
+            Self::SovereignPack => "sovereign-pack",
+            Self::FederatedPack => "federated-pack",
+            Self::DedicatedPack => "dedicated-pack",
         }
     }
 }
@@ -198,12 +198,12 @@ mod tests {
             admit_plan(
                 &plan(
                     DataServiceKind::OltpRelational,
-                    ResidencyClass::SovereignKr,
+                    ResidencyClass::SovereignPack,
                     EncryptionRequirement::AtRest
                 ),
                 &adapter(
                     DataServiceKind::OltpRelational,
-                    vec![ResidencyClass::SovereignKr],
+                    vec![ResidencyClass::SovereignPack],
                     EncryptionRequirement::AtRestAndInTransit
                 ),
             )
@@ -236,12 +236,12 @@ mod tests {
             admit_plan(
                 &plan(
                     DataServiceKind::OltpRelational,
-                    ResidencyClass::SovereignKr,
+                    ResidencyClass::SovereignPack,
                     EncryptionRequirement::AtRest
                 ),
                 &adapter(
                     DataServiceKind::OltpRelational,
-                    vec![ResidencyClass::SovereignUs],
+                    vec![ResidencyClass::DedicatedPack],
                     EncryptionRequirement::AtRest
                 ),
             ),
@@ -332,9 +332,9 @@ mod tests {
         let names: HashSet<_> = [
             ResidencyClass::Global,
             ResidencyClass::RegionBound,
-            ResidencyClass::SovereignKr,
-            ResidencyClass::SovereignEu,
-            ResidencyClass::SovereignUs,
+            ResidencyClass::SovereignPack,
+            ResidencyClass::FederatedPack,
+            ResidencyClass::DedicatedPack,
         ]
         .iter()
         .map(|r| r.name())

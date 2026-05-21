@@ -33,7 +33,7 @@ This team owns the eventing backbone (outbox pattern, Kafka topic contracts, eve
 - OG schema evolution with backward-compatible migration policy
 - Backpressure and admission control on Kafka consumers
 - Partition key conventions for tenant isolation
-- Fitness function `oya-foundry-fitness-eventing-topic` — rejects topic shape changes without schema registration
+- Fitness function `oya-governance-eventing-topic` — rejects topic shape changes without schema registration
 
 ## Out-of-scope (anti-scope)
 - Audit chain append (→ `platform-audit-evidence` — separate append path)
@@ -94,7 +94,7 @@ This team owns the eventing backbone (outbox pattern, Kafka topic contracts, eve
 |---|---|---|
 | Kafka consumer lag spikes cross-tenant due to shared partition | High | Per-tenant partition key convention; capacity planning with `ops-dr-capacity` |
 | Event-schema backward-incompatible change breaks consumers | High | Schema registry compatibility gate; CI rejects incompatible schemas |
-| OG property tier misclassified → PHI enters search index | Catastrophic | `oya-foundry-fitness-data-use-boundary` CI gate; co-owned with `platform-privacy-dub` |
+| OG property tier misclassified → PHI enters search index | Catastrophic | `oya-governance-data-use-boundary` CI gate; co-owned with `platform-privacy-dub` |
 
 ## Sources scanned
 DESIGN.md §10 (eventing backbone row, OG property tier row), PRD.md §5 (cohesion thesis OG reference), ADR-0006..0112, DOC-CATALOG.md §2.1.

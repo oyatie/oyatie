@@ -158,7 +158,7 @@
     {
       "adr": "ADR-0013",
       "number": 13,
-      "title": "Product license policy — allowed (Apache-2 / MIT / BSD-2/3 / ISC / 0BSD / MPL-2 / Unicode), forbidden in product code (AGPL / GPL), requires-review tier (LGPL / SSPL / BUSL / Elastic / RSAL / TSL / Confluent / AWS-FSL / Commons Clause), dev-only carve-out, oya-foundry-fitness-license CI lane, per-release SBOM",
+      "title": "Product license policy — allowed (Apache-2 / MIT / BSD-2/3 / ISC / 0BSD / MPL-2 / Unicode), forbidden in product code (AGPL / GPL), requires-review tier (LGPL / SSPL / BUSL / Elastic / RSAL / TSL / Confluent / AWS-FSL / Commons Clause), dev-only carve-out, oya-governance-license CI lane, per-release SBOM",
       "status": "proposed",
       "owner": "council-architecture + ops-security + legal",
       "date": "2026-05-09",
@@ -170,7 +170,7 @@
     {
       "adr": "ADR-0014",
       "number": 14,
-      "title": "Build-vs-buy policy — per-microservice matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, per-dep metadata (license tier + maturity + isolation + replacement plan + owning team), oya-foundry-fitness-build-vs-buy CI lane",
+      "title": "Build-vs-buy policy — per-microservice matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, per-dep metadata (license tier + maturity + isolation + replacement plan + owning team), oya-governance-build-vs-buy CI lane",
       "status": "proposed",
       "owner": "council-architecture + per-microservice leads",
       "date": "2026-05-09",

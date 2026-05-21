@@ -151,7 +151,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 | Per-target compilation | `--target x86_64-unknown-linux-gnu` only when needed; skip cross-targets in PR CI | per-PR savings |
 | Codegen unit count tuning | `codegen-units = 16` (debug); `1` (release) | trade-off across profiles |
 | Link-time optimization gating | LTO only at release; skip in PR | minutes saved per PR |
-| Per-crate compile-time budget | hard ceiling (e.g. ≥ 60s = warn) per `oya-foundry-fitness-build-time` lane | catches slow-dep regressions |
+| Per-crate compile-time budget | hard ceiling (e.g. ≥ 60s = warn) per `oya-governance-build-time` lane | catches slow-dep regressions |
 
 #### 3.0.5.2 Agent-concurrent CI / PR pipeline
 
@@ -171,7 +171,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 | Speculative parallel dispatch | For agent-authored PRs: fire 3 alternative approaches in parallel; pick first to pass acceptance criteria |
 | Replay-as-eval | New PR's affected-test set is replayed against past trace set for regression detection |
 | Nightly affected-rebuild | `main` re-builds nightly with full `--all-features` to catch feature-flag drift (PM-2 from ADR-0015 plan) |
-| Per-lane CI-time budget | `oya-foundry-fitness-ci-time` lane warns when any lane regresses ≥ 20% over baseline |
+| Per-lane CI-time budget | `oya-governance-ci-time` lane warns when any lane regresses ≥ 20% over baseline |
 
 #### 3.0.5.3 Blast-radius containment (the cohesion-side guarantee)
 
@@ -188,7 +188,7 @@ Every agent + automation invocation declares its blast radius. The CI pipeline e
 | `regulatory-impact` | Touches a regulator-bound surface | requires `ops-compliance` review |
 | `data-class-impact` | Changes a `data_class` annotation | requires `council-privacy` review |
 
-The classification is auto-detected by `oya-foundry-fitness-blast-radius` from the diff and emitted as a PR label. The PR-merge-review gate (per `scripts/hooks/guard-pr-merge-review.mjs`) verifies the right reviewers approved per blast class.
+The classification is auto-detected by `oya-governance-blast-radius` from the diff and emitted as a PR label. The PR-merge-review gate (per `scripts/hooks/guard-pr-merge-review.mjs`) verifies the right reviewers approved per blast class.
 
 #### 3.0.5.4 Foundry capabilities for the pipeline
 
@@ -521,7 +521,7 @@ Every axis ships with the following horizontal-scale primitives. The CI fitness 
 | **Idempotency + replay safety** | Every API and event consumer tolerates re-delivery. | Audit-chain consumers must be idempotent; billing events must dedupe; capability invocations must be replay-safe. |
 | **Region failover drill** | Quarterly proven failover in non-prod; annual in prod. | Cloud (#214 multi-AZ failover automation); SaaS (#1302 DR drills); Search (cross-region index replication). |
 
-The fitness function is the enforcement; the primitive list is the contract. Both live in Foundry axis (`oya-foundry-fitness-*`).
+The fitness function is the enforcement; the primitive list is the contract. Both live in Foundry axis (`oya-governance-*`).
 
 ---
 
@@ -558,7 +558,7 @@ This is the table that is auditable. Every entry is an inter-axis contract; any 
 | `REVENUE_METERING_TAX_INVOICE` | SaaS + Cloud + Ads + Marketplace | Cross-axis billing-event contract; per-region tax-invoice format (KR 전자세금계산서, JP 適格請求書, EU per-country e-invoicing, IN GST, BR NF-e, KSA FATOORA, UAE e-invoicing); dispute / chargeback / reconciliation flow | `crates/oya-platform-billing-kernel` + per-pack tax adapter | Billing + Tax + per-pack regional review |
 | `FOUNDATION_BUILDER_CONTRACT_REGISTRY` | Foundry (foundry surface) | Source of truth for every cross-axis contract row in this table; CI fitness function generates this table from the registry | `crates/oya-foundry-contract-registry-*` | Foundation Council |
 
-Anytime a PR touches a row above, the cross-axis label is required, and the labeled review block in the PR template is mandatory. The fitness function (`oya-foundry-fitness-contracts`) checks for orphan contract changes.
+Anytime a PR touches a row above, the cross-axis label is required, and the labeled review block in the PR template is mandatory. The fitness function (`oya-governance-contracts`) checks for orphan contract changes.
 
 ---
 
@@ -677,21 +677,21 @@ This pattern repeats for every vertical and every region — the math is `vertic
 
 ---
 
-## 13. Per-axis design notes (one section per axis — to be filled out in v0.2)
+## 13. Per-axis design notes (one section per axis — v0.2 expansion ledger)
 
 This section will expand to ~3-5 pages per axis in v0.2 once the recon agents land.
 
 ### 13.1 SaaS multi-tenant platform
 
-> **TODO v0.2** — fill in workflow engine (ADR-0035), Ontology (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4), plugin substrate (#29), Connect surface, marketplace, public API surface, tenancy isolation enforcement (#1570), cross-product auth (ADR-0006), metering/quotas substrate (#1576).
+> **v0.2 expansion scope** — workflow engine (ADR-0035), Ontology (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4), plugin substrate (#29), Connect surface, marketplace, public API surface, tenancy isolation enforcement (#1570), cross-product auth (ADR-0006), metering/quotas substrate (#1576).
 
 ### 13.2 Vertical industry cloud
 
-> **TODO v0.2** — fill in per-vertical depth: healthcare (clinical canonical record, FHIR/HL7, medication/allergy/problem reconciliation, e-prescribing, claims), industrial (MES, OEE, ISA-95, OPC UA, SCADA/historian), logistics (shipment, dock, EDI 214/990/997, route optimization, HOS, cold-chain), fintech (PG, open-banking, KYC/KYB, AML, NACHA/RTP), corporate (HR, payroll, GL, mail, comms), legal (regulated corpus, contract analysis), and others. Each per-vertical ADR cluster cited.
+> **v0.2 expansion scope** — per-vertical depth: healthcare (clinical canonical record, FHIR/HL7, medication/allergy/problem reconciliation, e-prescribing, claims), industrial (MES, OEE, ISA-95, OPC UA, SCADA/historian), logistics (shipment, dock, EDI 214/990/997, route optimization, HOS, cold-chain), fintech (PG, open-banking, KYC/KYB, AML, NACHA/RTP), corporate (HR, payroll, GL, mail, comms), legal (regulated corpus, contract analysis), and others. Each per-vertical ADR cluster cited.
 
 ### 13.3 AI agent runtime (Foundry — consolidated 2026-05-09)
 
-> **TODO v0.2** — fill in capability registry, autonomy ceiling, evidence chain, model registry, eval harness, RAG pipeline, multi-provider adapters (Anthropic / OpenAI / Gemini × subscription + API), worker host execution, app-server turn proof, secrets / SecretProvider, smoke lane, daemon hardening (#1266-#1268), AutonomyCeiling policy (#1279).
+> **v0.2 expansion scope** — capability registry, autonomy ceiling, evidence chain, model registry, eval harness, RAG pipeline, multi-provider adapters (Anthropic / OpenAI / Gemini × subscription + API), worker host execution, app-server turn proof, secrets / SecretProvider, smoke lane, daemon hardening (#1266-#1268), AutonomyCeiling policy (#1279).
 
 #### 13.3.1 Top-20 Foundry improvements (synthesized from `/Users/jasonlee/oyatie/docs/raw/foundry-improvements.md`)
 
@@ -737,7 +737,7 @@ The Foundry-improvements research (2026-05-09, 128 leaves) surfaced these high-i
 
 The foundry is a *persona slice* of Foundry, not a separate axis. The same agent runtime that authors workflows also authors PRs; the same fitness function that gates a PR also evaluates an agent step.
 
-> **TODO v0.2** — fill in detailed coverage of: repoctl split (see ROADMAP.md §8 Q16), catalog, claim-ceiling validator, foundation-bypass ledger, plane-gated CI lanes, ADR templates, scorecards (Move #7), fitness functions (Move #8), CODEOWNERS coverage, branch-protection-as-code (#239 / #1295), Kyverno/OPA admission, signed commits (#1299), supply-chain (#614 ADR-0039 Trivy 4-layer), plugin substrate trust gates (ADR-0036/0157/0161/0162), plugin marketplace authoring, marketplace economics.
+> **v0.2 expansion scope** — detailed coverage of repoctl split (see ROADMAP.md §8 Q16), catalog, claim-ceiling validator, foundation-bypass ledger, plane-gated CI lanes, ADR templates, scorecards (Move #7), fitness functions (Move #8), CODEOWNERS coverage, branch-protection-as-code (#239 / #1295), Kyverno/OPA admission, signed commits (#1299), supply-chain (#614 ADR-0039 Trivy 4-layer), plugin substrate trust gates (ADR-0036/0157/0161/0162), plugin marketplace authoring, marketplace economics.
 
 #### 13.4.1 Persona-split CLI (recommended)
 
@@ -766,15 +766,15 @@ Crate targets: `crates/oya-tooling-cli-{dev,admin,build,agent,ops,pack,catalog,g
 
 ### 13.5 Cloud provider (AWS-class)
 
-> **TODO v0.2** — fill in compute (k8s/serverless/VM/bare-metal/GPU/edge), storage (object/block/file/archive/databases/backup), network (VPC/LB/DNS/CDN/interconnect/DDoS/mesh), IAM (Cedar + SSO + STS), regions/AZs/cells, billing (metering + invoice + tax + reserved), marketplace, observability, FinOps, KR CSAP/K-ISMS-P/망분리/전자세금계산서.
+> **v0.2 expansion scope** — compute (k8s/serverless/VM/bare-metal/GPU/edge), storage (object/block/file/archive/databases/backup), network (VPC/LB/DNS/CDN/interconnect/DDoS/mesh), IAM (Cedar + SSO + STS), regions/AZs/cells, billing (metering + invoice + tax + reserved), marketplace, observability, FinOps, KR CSAP/K-ISMS-P/망분리/전자세금계산서.
 
 ### 13.6 Search engine (Google/Naver-class)
 
-> **TODO v0.2** — fill in crawler (politeness/robots/sitemaps/render farm/dup-detect/spam/tenant-private), parser (HTML/PDF/OCR/transcript/Korean morphology/NER/embeddings), indexing (inverted/vector/KG/geo/image/video/per-tenant), ranking (BM25 + semantic rerank + freshness + authority + diversity + Korean signals), QU (parser/expansion/spelling/autocomplete/QA/RAG), SERP, infra (sharding/replication/cell/tiering), safety (RTBF/PIPA/GDPR/youth-protection/audit), search↔Foundry RAG, search↔Ads sponsored slot, KR (Naver-API/Daum-API/저작권 compliance).
+> **v0.2 expansion scope** — crawler (politeness/robots/sitemaps/render farm/dup-detect/spam/tenant-private), parser (HTML/PDF/OCR/transcript/Korean morphology/NER/embeddings), indexing (inverted/vector/KG/geo/image/video/per-tenant), ranking (BM25 + semantic rerank + freshness + authority + diversity + Korean signals), QU (parser/expansion/spelling/autocomplete/QA/RAG), SERP, infra (sharding/replication/cell/tiering), safety (RTBF/PIPA/GDPR/youth-protection/audit), search↔Foundry RAG, search↔Ads sponsored slot, KR (Naver-API/Daum-API/저작권 compliance).
 
 ### 13.7 Advertising + analytics (Google-class)
 
-> **TODO v0.2** — fill in ad serving (sub-100ms / auction / inventory / pacing / brand-safety / quality / targeting / retargeting / multi-format), pricing (manual/CPA/ROAS/smart-bidding/fraud), attribution (click/view/multi-touch/cross-device/server-API/offline/privacy-preserving), advertiser console (campaign/asset/audience/tag/budget/recommendations/API), publisher inventory (onboarding/header-bidding/payout), analytics (event/journey/cohort/funnel/retention/lift/A-B/dashboard/warehouse/streaming/DP), Data Use Boundary enforcement, ad quality + KR policy (KODA/의료/금융/정치), clean-arch + horizontal-scale, KR (Naver 검색광고 conversion-API parity, Kakao Moment integration possibility), ads↔search, ads↔SaaS-tenant-data, ads↔agent-runtime (autonomy-ceiling-gated agentic buying).
+> **v0.2 expansion scope** — ad serving (sub-100ms / auction / inventory / pacing / brand-safety / quality / targeting / retargeting / multi-format), pricing (manual/CPA/ROAS/smart-bidding/fraud), attribution (click/view/multi-touch/cross-device/server-API/offline/privacy-preserving), advertiser console (campaign/asset/audience/tag/budget/recommendations/API), publisher inventory (onboarding/header-bidding/payout), analytics (event/journey/cohort/funnel/retention/lift/A-B/dashboard/warehouse/streaming/DP), Data Use Boundary enforcement, ad quality + KR policy (KODA/의료/금융/정치), clean-arch + horizontal-scale, KR (Naver 검색광고 conversion-API parity, Kakao Moment integration possibility), ads↔search, ads↔SaaS-tenant-data, ads↔agent-runtime (autonomy-ceiling-gated agentic buying).
 
 ---
 

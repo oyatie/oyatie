@@ -150,7 +150,7 @@ The observability µservice's own SLOs are scraped by a **second-tier federated 
    - `tempo/` — Tempo latest 2.x.
    - `grafana/` — Grafana 12.x.
    - `alertmanager/` — AlertManager with PagerDuty + Opsgenie webhooks.
-2. Per-µservice OpenSLO sources live at `microservices/<ms>/slos/*.openslo.yaml`. The `oya-foundry-fitness-slo-coverage` lane (existing) validates the source-to-emitted-PrometheusRule mapping.
+2. Per-µservice OpenSLO sources live at `microservices/<ms>/slos/*.openslo.yaml`. The `oya-governance-slo-coverage` lane (existing) validates the source-to-emitted-PrometheusRule mapping.
 3. Alert webhook URLs come from OpenBao secrets at `secret/observability/pagerduty-webhook-url` + `secret/observability/opsgenie-webhook-url`.
 4. Hubble (Cilium) flow observability ships via OTel exporter to the gateway Collector at Stage 1; ztunnel (Istio Ambient) telemetry ships via OTel; waypoint Envoy access logs ship via the OTel logs receiver.
 5. Per-tenant + per-cell labels are added at Stage 1 (gateway Collector processor) for downstream slicing.

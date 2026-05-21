@@ -1,0 +1,219 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-slo-data-residency-conformance
+  displayName: "Data Residency Conformance Check"
+  labels:
+    library: slo-authoring
+    catalog_template: data-residency-conformance
+    microservice: residency
+    bounded_context: sovereign-data-control
+    sli: conformance
+    data_classes:
+      - tenant-data-location
+      - residency-policy
+      - compliance-evidence
+    pack: data-residency
+    tier: control-plane
+    capability_tiers:
+      - Gold
+      - Platinum
+    plane: control
+    adr:
+      - ADR-0131
+      - ADR-0139
+      - ADR-0316
+    openslo_profile: openslo-v1
+  annotations:
+    oyatie.dev/library-purpose: "Per-tenant data residency conformance check template."
+    oyatie.dev/source-spec: "specs/tenant-model.json"
+    oyatie.dev/time-window-mode: "rolling"
+    oyatie.dev/dashboard-template: "registry/dashboards/data-residency-conformance.yaml"
+    oyatie.dev/runbook-template: "microservices/residency/runbooks/residency-conformance-failure.md"
+spec:
+  service: residency
+  description: |
+    SLO for proving per-tenant data stays inside the declared residency
+    boundary. It covers placement checks, read/write policy evaluation,
+    cross-region replication guards, evidence freshness, and exception closure.
+  tier:
+    doctrine: ADR-0316
+    capabilityTiers:
+      - name: Gold
+        conformanceTarget: 0.9999
+        evidenceFreshness: 15m
+      - name: Platinum
+        conformanceTarget: 0.99995
+        evidenceFreshness: 5m
+    rejectionRule: "Promotion is held when tenant residency conformance or evidence freshness burns budget."
+  indicator:
+    metadata:
+      name: residency-policy-conformance
+      displayName: "Residency policy conformance"
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              queryName: residency-policy-good
+              query: |
+                sum(rate(oya_residency_conformance_checks_total{
+                  service="residency",
+                  result="conformant"
+                }[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              queryName: residency-policy-total
+              query: |
+                sum(rate(oya_residency_conformance_checks_total{
+                  service="residency"
+                }[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: "Tenant placement conformance"
+      name: tenant-placement-conformance
+      targetName: tenant-placement-target
+      target: 0.9999
+      windowName: rolling-30d
+      description: "Tenant data objects are placed only in regions allowed by the tenant residency policy."
+      indicator:
+        metadata:
+          name: residency-placement-conformance
+          displayName: "Placement conformance"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-placement-good
+                  query: |
+                    sum(rate(oya_residency_placement_checks_total{service="residency",result="conformant"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-placement-total
+                  query: |
+                    sum(rate(oya_residency_placement_checks_total{service="residency"}[5m]))
+    - displayName: "Cross-region replication allowed"
+      name: cross-region-replication-allowed
+      targetName: replication-allowance-target
+      target: 0.9999
+      windowName: rolling-30d
+      description: "Replication jobs run only between allowed residency zones for the tenant."
+      indicator:
+        metadata:
+          name: residency-replication-conformance
+          displayName: "Replication conformance"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-replication-good
+                  query: |
+                    sum(rate(oya_residency_replication_checks_total{service="residency",result="allowed"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-replication-total
+                  query: |
+                    sum(rate(oya_residency_replication_checks_total{service="residency"}[5m]))
+    - displayName: "Residency evidence freshness <= 15m"
+      name: residency-evidence-fresh-under-15m
+      targetName: evidence-freshness-15m-target
+      target: 0.999
+      windowName: rolling-30d
+      description: "Gold residency evidence snapshots are no older than fifteen minutes."
+      indicator:
+        metadata:
+          name: residency-evidence-freshness-15m
+          displayName: "Residency evidence freshness 15m"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-evidence-15m-good
+                  query: |
+                    sum(rate(oya_residency_evidence_age_seconds_bucket{service="residency",le="900"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-evidence-15m-total
+                  query: |
+                    sum(rate(oya_residency_evidence_age_seconds_count{service="residency"}[5m]))
+    - displayName: "Platinum residency evidence freshness <= 5m"
+      name: residency-evidence-fresh-under-5m
+      targetName: evidence-freshness-5m-target
+      target: 0.999
+      windowName: rolling-30d
+      description: "Platinum residency evidence snapshots are no older than five minutes."
+      indicator:
+        metadata:
+          name: residency-evidence-freshness-5m
+          displayName: "Residency evidence freshness 5m"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-evidence-5m-good
+                  query: |
+                    sum(rate(oya_residency_evidence_age_seconds_bucket{service="residency",capability_tier="Platinum",le="300"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-evidence-5m-total
+                  query: |
+                    sum(rate(oya_residency_evidence_age_seconds_count{service="residency",capability_tier="Platinum"}[5m]))
+    - displayName: "Residency exception closure"
+      name: residency-exception-closure
+      targetName: exception-closure-target
+      target: 0.999
+      windowName: rolling-30d
+      description: "Approved residency exceptions close before the waiver expiry and emit audit evidence."
+      indicator:
+        metadata:
+          name: residency-exception-closure
+          displayName: "Residency exception closure"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-exception-good
+                  query: |
+                    sum(rate(oya_residency_exceptions_total{service="residency",result="closed_on_time"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: residency-exception-total
+                  query: |
+                    sum(rate(oya_residency_exceptions_total{service="residency"}[5m]))
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-fast-burn-page
+    - alertPolicyRef: oya-canonical-slow-burn-page
+    - alertPolicyRef: oya-canonical-ticket-burn
+    - alertPolicyRef: oya-canonical-budget-exhausted

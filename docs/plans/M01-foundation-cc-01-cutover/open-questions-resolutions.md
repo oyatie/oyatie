@@ -37,7 +37,7 @@ Evidence: `ls docs/decisions/ | tail -15` shows ADR-0049, ADR-0050, ADR-0051 and
 1. Workspace idiom — every other crate in this repo is `oya-*` Rust (140+ crates per `Cargo.toml`).
 2. The helper emits audit-chain events, which are typed in the existing `oya-platform-audit-chain-kernel`. Reusing the kernel from Rust is direct; from Node/TS it requires an FFI or a re-implementation.
 3. Distribution: Rust binaries are static and trivially shippable; no Node runtime dependency for agent boxes.
-4. Fitness lanes (`oya-foundry-fitness-*`) are Rust kernels; banned-primitives lane (P7 §"Outputs") would be a sibling.
+4. Fitness lanes (`oya-governance-*`) are Rust kernels; banned-primitives lane (P7 §"Outputs") would be a sibling.
 
 Crate naming follows the flat-crates convention: `oya-tooling-agent-read` (kernel) + `oya-tooling-agent-read-cli` (binary). Actually — the simpler shape per Linus discipline: a single binary crate `oya-tooling-agent-read` with `src/main.rs` and a small `lib.rs` for the readable surface. Defer the kernel/cli split until evidence justifies it.
 
@@ -88,7 +88,7 @@ Mitigation: each carve-out emits `BLOCKED_ON_HUMAN_ORCHESTRATOR` in the autopilo
 
 ---
 
-## Q4 — CI extension to flag archive-path tokens (CONFIRMED — into `oya-foundry-fitness-banned-primitives`)
+## Q4 — CI extension to flag archive-path tokens (CONFIRMED — into `oya-governance-banned-primitives`)
 
 The banned-primitives lane already exists in the plan (§P5 / §P7). Extend its scope at P5 implementation time to ALSO grep for any post-archive path references (e.g., references to `archive/pre-grit-cutover-2026-05-12/` from the active path that aren't explicitly the deprecation notice). Add this as a sub-task under P5; no new lane crate needed.
 

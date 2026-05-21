@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_at": "2026-05-19",
-  "manifest_count": 34,
+  "manifest_count": 33,
   "microservices": [
     {
       "name": "application",
@@ -10,10 +10,6 @@
     {
       "name": "audit-chain",
       "manifest": "microservices/audit-chain/manifest.json"
-    },
-    {
-      "name": "cell",
-      "manifest": "microservices/cell/manifest.json"
     },
     {
       "name": "community",
@@ -53,6 +49,14 @@
     },
     {
       "name": "foundry",
+      "status": "retired",
+      "retired_by_wave": "15I",
+      "retired_by_adr": "ADR-0335",
+      "retired_at": "2026-05-21",
+      "absorbed_by": "intelligence",
+      "absorbing_manifest": "microservices/intelligence/manifest.json",
+      "retirement_marker": "microservices/foundry/RETIRED.md",
+      "do_not_treat_as_active": true,
       "manifest": "microservices/foundry/manifest.json"
     },
     {
@@ -72,10 +76,6 @@
       "manifest": "microservices/messenger/manifest.json"
     },
     {
-      "name": "network",
-      "manifest": "microservices/network/manifest.json"
-    },
-    {
       "name": "notes",
       "manifest": "microservices/notes/manifest.json"
     },
@@ -86,10 +86,6 @@
     {
       "name": "sheets",
       "manifest": "microservices/sheets/manifest.json"
-    },
-    {
-      "name": "shorts",
-      "manifest": "microservices/shorts/manifest.json"
     },
     {
       "name": "sites",

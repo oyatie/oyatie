@@ -21,12 +21,12 @@ doc_status: published
 
 | Lane ID | Status | Severity | Scope | What it verifies |
 |---|---|---|---|---|
-| `oya-foundry-fitness-feature-flag-debt` | **NEW** | HIGH at 90 d / BLOCKER at 180 d | flag registry + repo grep | Release-class flags have a declared retire date; stable flags age out per [`feature-flag-architecture.md`](feature-flag-architecture.md) §5 |
-| `oya-foundry-fitness-canary-required` | **NEW** | BLOCKER | PR | Kernel/domain/app/api/adapter changes carry a Flagger Canary or Argo Rollout manifest with the canonical 1→5→25→50→100 progression |
-| `oya-foundry-fitness-slo-coverage` | **EXTENDED** | HIGH | service catalog + Prometheus | Every GA+ service has burn-rate alerts wired (fast 5min×1h@14.4×, slow 30min×6h@6.0×); per [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md) |
-| `oya-foundry-fitness-rollback-evidence` | **NEW** | BLOCKER | release artefact | Signed D14 rollback artefact present, covering up / down / dry-run / per-tenant / per-cell paths; Cosign signature valid |
-| `oya-foundry-fitness-cohort-honor` | **NEW** | HIGH | mesh manifests + cohort kernel | Stable-regulated and connect-no-ads cohorts are intersected at flag-evaluation, canary traffic split, and blue/green cutover |
-| `oya-foundry-fitness-shadow-diff` | **NEW** | HIGH for high-risk surfaces | shadow-diff kernel + manifests | High-risk surfaces (per [`dark-launch-spec.md`](dark-launch-spec.md) §2) carry a shadow-diff manifest with sample rate + threshold + side-effect stub list |
+| `oya-governance-feature-flag-debt` | **NEW** | HIGH at 90 d / BLOCKER at 180 d | flag registry + repo grep | Release-class flags have a declared retire date; stable flags age out per [`feature-flag-architecture.md`](feature-flag-architecture.md) §5 |
+| `oya-governance-canary-required` | **NEW** | BLOCKER | PR | Kernel/domain/app/api/adapter changes carry a Flagger Canary or Argo Rollout manifest with the canonical 1→5→25→50→100 progression |
+| `oya-governance-slo-coverage` | **EXTENDED** | HIGH | service catalog + Prometheus | Every GA+ service has burn-rate alerts wired (fast 5min×1h@14.4×, slow 30min×6h@6.0×); per [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md) |
+| `oya-governance-rollback-evidence` | **NEW** | BLOCKER | release artefact | Signed D14 rollback artefact present, covering up / down / dry-run / per-tenant / per-cell paths; Cosign signature valid |
+| `oya-governance-cohort-honor` | **NEW** | HIGH | mesh manifests + cohort kernel | Stable-regulated and connect-no-ads cohorts are intersected at flag-evaluation, canary traffic split, and blue/green cutover |
+| `oya-governance-shadow-diff` | **NEW** | HIGH for high-risk surfaces | shadow-diff kernel + manifests | High-risk surfaces (per [`dark-launch-spec.md`](dark-launch-spec.md) §2) carry a shadow-diff manifest with sample rate + threshold + side-effect stub list |
 
 ## 2. Lane wiring
 
@@ -45,7 +45,7 @@ staging (post-promotion, pre-prod-gate):
   - (re-run) cohort-honor (BLOCKER if regression detected)
 ```
 
-## 3. `oya-foundry-fitness-feature-flag-debt` (NEW)
+## 3. `oya-governance-feature-flag-debt` (NEW)
 
 Inputs: flag registry (`crates/oya-platform-feature-flag-api/`), repo grep for flag references, per-flag metadata.
 
@@ -57,7 +57,7 @@ Checks:
 
 Outputs: PR comment + auto-PR + D14 evidence row.
 
-## 4. `oya-foundry-fitness-canary-required` (NEW)
+## 4. `oya-governance-canary-required` (NEW)
 
 Inputs: PR diff, change-class detection (kernel / domain / app / api / adapter / runtime / migration / capability).
 
@@ -69,7 +69,7 @@ Checks:
 
 Outputs: pass / fail / advisory.
 
-## 5. `oya-foundry-fitness-slo-coverage` (EXTENDED)
+## 5. `oya-governance-slo-coverage` (EXTENDED)
 
 Existing scope: every GA+ service declares an SLO with target + window. Extension:
 1. Every SLO declaration has a paired burn-rate alert wired in Prometheus 3.11+ (per [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md)).
@@ -78,7 +78,7 @@ Existing scope: every GA+ service declares an SLO with target + window. Extensio
 
 Failure surfaces in `oyatie/docs/SLO-CATALOG.md` freshness report.
 
-## 6. `oya-foundry-fitness-rollback-evidence` (NEW)
+## 6. `oya-governance-rollback-evidence` (NEW)
 
 Inputs: release artefact bundle.
 
@@ -90,7 +90,7 @@ Checks:
 
 BLOCKER if any check fails.
 
-## 7. `oya-foundry-fitness-cohort-honor` (NEW)
+## 7. `oya-governance-cohort-honor` (NEW)
 
 Inputs: mesh manifests (Flagger Canary / Argo Rollout / Istio VirtualService), cohort kernel state, flag-evaluation traces.
 
@@ -102,7 +102,7 @@ Checks:
 
 HIGH severity; escalates to BLOCKER on regression.
 
-## 8. `oya-foundry-fitness-shadow-diff` (NEW)
+## 8. `oya-governance-shadow-diff` (NEW)
 
 Inputs: shadow-diff manifests, surface high-risk tag, side-effect stub list.
 

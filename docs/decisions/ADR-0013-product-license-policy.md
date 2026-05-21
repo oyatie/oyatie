@@ -4,7 +4,7 @@ status: proposed
 doc_status: published
 ---
 
-# ADR-0013: Product license policy — allowed (Apache-2 / MIT / BSD-2/3 / ISC / 0BSD / MPL-2 / Unicode), forbidden in product code (AGPL / GPL), requires-review tier (LGPL / SSPL / BUSL / Elastic / RSAL / TSL / Confluent / AWS-FSL / Commons Clause), dev-only carve-out, oya-foundry-fitness-license CI lane, per-release SBOM
+# ADR-0013: Product license policy — allowed (Apache-2 / MIT / BSD-2/3 / ISC / 0BSD / MPL-2 / Unicode), forbidden in product code (AGPL / GPL), requires-review tier (LGPL / SSPL / BUSL / Elastic / RSAL / TSL / Confluent / AWS-FSL / Commons Clause), dev-only carve-out, oya-governance-license CI lane, per-release SBOM
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -70,7 +70,7 @@ A Tier 2 or Tier 3 dep MAY ship in `dev-dependencies` (cargo) or `devDependencie
 
 - It is invoked at build / test / docs / fixtures only (never linked into a product binary).
 - The catalog record under `registry/catalog/<crate>.yaml` declares `dev_only_deps: [<dep-id>: <license>]`.
-- `oya-foundry-fitness-license` validates the dep is not transitively linked into any product target.
+- `oya-governance-license` validates the dep is not transitively linked into any product target.
 
 Examples typically OK as dev-only: GPL-licensed code generators, AGPL-licensed dev databases (e.g. MongoDB Community in test fixtures), BUSL test harnesses.
 
@@ -84,7 +84,7 @@ Examples typically OK as dev-only: GPL-licensed code generators, AGPL-licensed d
 | Go | `go-licenses` | per-module |
 | WASM plugins | `oya-foundry-marketplace` license check at upload time | per-plugin |
 
-### CI lane: `oya-foundry-fitness-license`
+### CI lane: `oya-governance-license`
 
 The lane runs on every PR touching `Cargo.lock`, `pnpm-lock.yaml`, `requirements.txt`, `go.sum`, or any catalog record. It:
 
@@ -130,7 +130,7 @@ Per-release tag, the build pipeline:
 
 - On-call: `EVT-LICENSE-LANE-DENY` alerted to ops-security; `EVT-RELEASE-SBOM-PUBLISHED` confirms compliance posture per release.
 - Runbooks: `runbooks/license-tier-3-review.md`, `runbooks/sbom-regenerate.md`, `runbooks/forbidden-license-rollback.md`.
-- CI: `oya-foundry-fitness-license` is a P0 lane.
+- CI: `oya-governance-license` is a P0 lane.
 - Per-pack overrides: a pack MAY add stricter allow-lists (defense pack forbids LGPL); never weaker.
 
 ---

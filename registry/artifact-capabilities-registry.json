@@ -1066,12 +1066,12 @@
       }
     },
     {
-      "artifact_id": "implement-masterplan-goal-prompt",
-      "artifact_path": "/evidence/goals/implement-masterplan-goal-prompt.json",
+      "artifact_id": "fd001-planning-closure-implementation-goal",
+      "artifact_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
-      "purpose_short": "Detailed goal prompt artifact for autonomous implementation of the Oyatie master plan, with RALPLAN-style review metadata.",
+      "purpose_short": "Active FD-001 planning-closure and implementation goal artifact replacing the archived implement-masterplan-goal-prompt draft.",
       "artifact_profile": "template",
       "capability_overrides": {
         "enforcement": {
@@ -1079,7 +1079,7 @@
         },
         "verification": {
           "checker_crate": "jq + future oya-check-active-artifact-contract",
-          "command": "jq empty /evidence/goals/implement-masterplan-goal-prompt.json"
+          "command": "jq empty /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
         },
         "validation": {
           "validator": "jq empty + future prompt-artifact schema validator"
@@ -1095,8 +1095,8 @@
         },
         "provenance": {
           "current_author": "codex",
-          "current_reviewed_by": "ralplan-style planner/architect/critic review in /evidence/goals/implement-masterplan-goal-prompt.json",
-          "last_modified_at": "2026-05-14T06:36:10Z"
+          "current_reviewed_by": "planning-closure FD-001 replacement recorded in /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+          "last_modified_at": "2026-05-20T00:00:00Z"
         }
       }
     },

@@ -433,7 +433,7 @@ mod tests {
         ChatChannelCreate {
             id: "channel-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "us-east-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             kind: ChatChannelKind::Channel,
             name: Some("incident-room".into()),

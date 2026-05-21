@@ -10,7 +10,7 @@ purpose: |
   Define LTS support window, EOL signaling, and per-major-version end-of-life
   process for oyatie. 12 months from major release; 90-day pre-EOL warning;
   EOL-LEDGER as the single source of truth for support status.
-planned_enforcement_ref: oya-foundry-fitness-version-eol-warning
+planned_enforcement_ref: oya-governance-version-eol-warning
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -52,7 +52,7 @@ The ledger is the source of truth read by the fitness lane and by the
 
 ## 3. EOL signaling (90-day notice)
 
-`oya-foundry-fitness-version-eol-warning` (HIGH severity) emits
+`oya-governance-version-eol-warning` (HIGH severity) emits
 `EVT-VERSION-EOL-APPROACHING` exactly 90 days before EOL. The event triggers:
 
 1. PR comment on every active PR targeting the EOL'ing release branch.
@@ -120,7 +120,7 @@ Three customer-facing channels signal EOL:
 
 Customers and downstream operators subscribe to the feed for advance notice.
 
-## 9. Enforcement (`oya-foundry-fitness-version-eol-warning`)
+## 9. Enforcement (`oya-governance-version-eol-warning`)
 
 Severity: HIGH (escalates to BLOCKER on EOL day for PRs targeting an EOL'd
 branch).

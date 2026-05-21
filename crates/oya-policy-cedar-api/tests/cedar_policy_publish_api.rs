@@ -61,7 +61,7 @@ fn cedar_policy_publish_publishes_tenant_policy_and_replays_idempotently() {
         },
         action: "tenant.settings.update".to_string(),
         resource: "tenant:ten_kr:settings".to_string(),
-        attributes: BTreeMap::from([("region".to_string(), "kr-seoul".to_string())]),
+        attributes: BTreeMap::from([("region".to_string(), "region-home".to_string())]),
     });
     assert!(decision.allowed);
 }
@@ -125,7 +125,7 @@ fn cedar_policy_publish_supports_global_scope_without_tenant_binding() {
         },
         action: "tenant.settings.update".to_string(),
         resource: "tenant:ten_any:settings".to_string(),
-        attributes: BTreeMap::from([("region".to_string(), "kr-seoul".to_string())]),
+        attributes: BTreeMap::from([("region".to_string(), "region-home".to_string())]),
     });
     assert!(decision.allowed);
 }
@@ -317,7 +317,7 @@ fn policy_request(
                 resource_prefix: "tenant:".to_string(),
                 required_attribute: Some(CedarPolicyRequiredAttribute {
                     key: "region".to_string(),
-                    value: "kr-seoul".to_string(),
+                    value: "region-home".to_string(),
                 }),
             }],
         },

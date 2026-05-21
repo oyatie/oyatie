@@ -45,16 +45,16 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudKmsApiAuthor
 
 fn key_create() -> KmsKeyCreate {
     KmsKeyCreate {
-        resource_id: "oya:cloud:kr-seoul:ten_kr:kms-key:object-key".to_string(),
-        key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+        resource_id: "oya:cloud:region-home:ten_kr:kms-key:object-key".to_string(),
+        key_id: "kms/region-home/ten_kr/object-key".to_string(),
         tenant_id: "ten_kr".to_string(),
-        region: "kr-seoul".to_string(),
-        cell_id: "cell-kr-seoul-a-001".to_string(),
-        hsm_partition_ref: "hsm/kr-seoul/cell-kr-seoul-a-001".to_string(),
+        region: "region-home".to_string(),
+        cell_id: "cell-region-home-a-001".to_string(),
+        hsm_partition_ref: "hsm/region-home/cell-region-home-a-001".to_string(),
         origin: KmsKeyOrigin::OyatieManaged,
         usage: KmsKeyUsage::EncryptDecrypt,
         hsm_validation: HsmValidation::KcmvpFips1403Level3,
-        residency: ResidencyClass::StrictKr,
+        residency: ResidencyClass::StrictHomeRegion,
         data_class: DataClass::PiiIdentifying,
         state: KmsKeyState::Enabled,
         rotation_period_days: Some(90),
@@ -72,13 +72,13 @@ fn directory_with_key() -> CloudKmsDirectory {
 
 fn encrypt_api_request(request_id: &str, idempotency_key: &str) -> CloudKmsEncryptApiRequest {
     CloudKmsEncryptApiRequest {
-        path_key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+        path_key_id: "kms/region-home/ten_kr/object-key".to_string(),
         boundary: boundary_for(request_id, idempotency_key),
         principal: principal_for("sp_storage"),
         authorization: authorization_for("sp_storage", &[CLOUD_KMS_ENCRYPT_SURFACE]),
         body: CloudKmsEncryptRequest {
             event_id: "kmsuse_encrypt_001".to_string(),
-            key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+            key_id: "kms/region-home/ten_kr/object-key".to_string(),
             tenant_id: "ten_kr".to_string(),
             plaintext_ref: "matref/ten_kr/object/001".to_string(),
             ciphertext_ref: "ct/ten_kr/object/001".to_string(),
@@ -94,13 +94,13 @@ fn encrypt_api_request(request_id: &str, idempotency_key: &str) -> CloudKmsEncry
 
 fn decrypt_api_request(request_id: &str, idempotency_key: &str) -> CloudKmsDecryptApiRequest {
     CloudKmsDecryptApiRequest {
-        path_key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+        path_key_id: "kms/region-home/ten_kr/object-key".to_string(),
         boundary: boundary_for(request_id, idempotency_key),
         principal: principal_for("sp_storage"),
         authorization: authorization_for("sp_storage", &[CLOUD_KMS_DECRYPT_SURFACE]),
         body: CloudKmsDecryptRequest {
             event_id: "kmsuse_decrypt_001".to_string(),
-            key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+            key_id: "kms/region-home/ten_kr/object-key".to_string(),
             tenant_id: "ten_kr".to_string(),
             ciphertext_ref: "ct/ten_kr/object/001".to_string(),
             data_class: "PII_IDENTIFYING".to_string(),
@@ -116,7 +116,7 @@ fn encrypt_api_rejects_path_body_key_drift_before_receipt_mutation() {
     let mut directory = directory_with_key();
     let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
     let mut request = encrypt_api_request("req-kms-key-drift", "idem-kms-key-drift");
-    request.body.key_id = "kms/kr-seoul/ten_kr/other-key".to_string();
+    request.body.key_id = "kms/region-home/ten_kr/other-key".to_string();
 
     let error = authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, request)
         .expect_err("path/body key drift is rejected");
@@ -124,8 +124,8 @@ fn encrypt_api_rejects_path_body_key_drift_before_receipt_mutation() {
     assert_eq!(
         error,
         CloudKmsApiError::KeyIdMismatch {
-            path_key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
-            body_key_id: "kms/kr-seoul/ten_kr/other-key".to_string(),
+            path_key_id: "kms/region-home/ten_kr/object-key".to_string(),
+            body_key_id: "kms/region-home/ten_kr/other-key".to_string(),
         }
     );
     assert!(ledger.is_empty());
@@ -276,8 +276,8 @@ fn encrypt_api_maps_unknown_key_and_duplicate_event() {
     let mut directory = directory_with_key();
     let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
     let mut unknown_key = encrypt_api_request("req-kms-missing", "idem-kms-missing");
-    unknown_key.path_key_id = "kms/kr-seoul/ten_kr/missing-key".to_string();
-    unknown_key.body.key_id = "kms/kr-seoul/ten_kr/missing-key".to_string();
+    unknown_key.path_key_id = "kms/region-home/ten_kr/missing-key".to_string();
+    unknown_key.body.key_id = "kms/region-home/ten_kr/missing-key".to_string();
     let missing = authorize_cloud_kms_encrypt_from_api(&mut directory, &mut ledger, unknown_key)
         .expect_err("unknown key maps to not found");
     assert_eq!(missing.crypto_status_code(), 404);

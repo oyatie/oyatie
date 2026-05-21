@@ -41,6 +41,6 @@ This inventory enumerates repo-local files that contain exact `agent-instruction
 
 Inventory total: 25 files; 25 fenced sections.
 
-Activation note: `oya-foundry-fitness-banned-primitives` is active for these fenced sections at M01-P08-IP-007. The lane rejects hard-banned primitives unconditionally and rejects direct VCS / forge primitives unless a known ICM rationale is supplied.
+Activation note: `oya-governance-banned-primitives` is active for these fenced sections at M01-P08-IP-007. The lane rejects hard-banned primitives unconditionally and rejects direct VCS / forge primitives unless a known ICM rationale is supplied.
 
-Validation command: `cargo run -p oya-foundry-fitness-banned-primitives`. In this workspace the cargo invocation is still blocked by the pre-existing missing `crates/oya-tenancy-kernel/Cargo.toml`; standalone rustc validation for the lane is recorded in the IP-007 evidence bundle.
+Validation command: `cargo run -p oya-governance-banned-primitives`. In this workspace the cargo invocation is still blocked by the pre-existing missing `crates/oya-tenancy-kernel/Cargo.toml`; standalone rustc validation for the lane is recorded in the IP-007 evidence bundle.

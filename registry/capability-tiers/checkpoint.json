@@ -1,0 +1,99 @@
+{
+  "schema_version": "2026-05-20.capability-tier-checkpoint.v1",
+  "checkpoint_id": "capability-tier-registry-2026-05-20",
+  "agent": "codex-capability-tier-registry",
+  "vcs_claim": {
+    "command": "./bin/oya vcs claim --agent codex-capability-tier-registry --intent capability-tier-registry-buildout registry/capability-tiers",
+    "accepted": true
+  },
+  "vcs_closeout": {
+    "verify": {
+      "command": "./bin/oya vcs verify --agent codex-capability-tier-registry --evidence registry/capability-tiers/checkpoint.json",
+      "accepted": true,
+      "observed": "oya vcs verify accepted: action=verify-evidence agent=codex-capability-tier-registry scopes=0 evidence=1"
+    },
+    "done": {
+      "command": "./bin/oya vcs done --agent codex-capability-tier-registry --evidence registry/capability-tiers/checkpoint.json capability-tier-registry-2026-05-20",
+      "accepted": true,
+      "observed": "oya vcs done accepted: action=emit-change-bundle agent=codex-capability-tier-registry scopes=1 evidence=1"
+    },
+    "promote": {
+      "command": "./bin/oya vcs promote --agent codex-capability-tier-registry --bundle capability-tier-registry-2026-05-20 --environment dev --evidence registry/capability-tiers/checkpoint.json",
+      "accepted": true,
+      "environment": "dev",
+      "observed": "oya vcs promote accepted: action=promote-bundle agent=codex-capability-tier-registry scopes=0 evidence=1"
+    }
+  },
+  "scope": {
+    "edited_path": "registry/capability-tiers",
+    "microservices_surfaces_touched": false,
+    "adr_files_touched": false
+  },
+  "source_counts": {
+    "microservice_directories": 70,
+    "adr_0321_dossiers": 85,
+    "coverage_matrix_rows": 244,
+    "vendor_mapping_rows": 295
+  },
+  "generated_files": [
+    "bronze.json",
+    "silver.json",
+    "gold.json",
+    "platinum.json",
+    "microservice-tier-mapping.yaml",
+    "vendor-tier-mapping.yaml",
+    "index.json",
+    "checkpoint.json"
+  ],
+  "expected_validation": [
+    "all JSON files parse",
+    "all YAML files parse",
+    "four tier files expose numeric hardware, SLA, limit, retention, and pricing fields",
+    "empty-marker scan returns no matches"
+  ],
+  "created_at": "2026-05-20T00:00:00Z",
+  "validation_observed": {
+    "json_parse_passed": true,
+    "yaml_parse_passed": true,
+    "tier_numeric_substance_passed": true,
+    "empty_marker_scan_match_count": 0,
+    "vendor_destination_microservice_refs_missing_count": 0,
+      "line_counts": {
+        "bronze.json": 98,
+        "checkpoint.json": 99,
+        "gold.json": 105,
+        "index.json": 44,
+        "microservice-tier-mapping.yaml": 5397,
+        "platinum.json": 108,
+        "silver.json": 102,
+        "vendor-tier-mapping.yaml": 8651
+      },
+    "total_lines": 14604,
+    "tier_summary": {
+      "bronze": {
+        "north_south_api_rps_per_tenant": 2000,
+        "monthly_availability_pct": 99.9,
+        "audit_hot_retention_days": 30,
+        "base_platform_usd_per_tenant_month": 2500
+      },
+      "silver": {
+        "north_south_api_rps_per_tenant": 10000,
+        "monthly_availability_pct": 99.95,
+        "audit_hot_retention_days": 90,
+        "base_platform_usd_per_tenant_month": 15000
+      },
+      "gold": {
+        "north_south_api_rps_per_tenant": 50000,
+        "monthly_availability_pct": 99.99,
+        "audit_hot_retention_days": 365,
+        "base_platform_usd_per_tenant_month": 85000
+      },
+      "platinum": {
+        "north_south_api_rps_per_tenant": 100000,
+        "monthly_availability_pct": 99.99,
+        "audit_hot_retention_days": 2555,
+        "base_platform_usd_per_tenant_month": 250000
+      }
+    }
+  }
+}

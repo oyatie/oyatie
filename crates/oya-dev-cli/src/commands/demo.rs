@@ -50,14 +50,14 @@ fn run_inner(args: Vec<String>, usage: &str) -> Result<ExitCode, String> {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_demo".into(),
             legal_name: "Oyatie Demo Tenant".into(),
-            home_region: "kr-seoul".into(),
-            residency_class: "strict_kr".into(),
-            regulatory_packs: vec!["oya-pack-kr".into()],
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
+            regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .map_err(|error| format!("tenant onboarding failed: {error:?}"))?;
     let _cell = foundation
-        .bind_cell(&tenant.id, "kr-seoul-a", "cell-control-a")
+        .bind_cell(&tenant.id, "region-home-a", "cell-control-a")
         .map_err(|error| format!("demo cell binding failed: {error:?}"))?;
     let user = foundation
         .upsert_identity(IdentityRegistration {
@@ -123,7 +123,7 @@ fn run_inner(args: Vec<String>, usage: &str) -> Result<ExitCode, String> {
                 tenant_id: tenant.id.clone(),
                 subject_id: user_id.clone(),
                 issuer: "https://auth.oyatie.test/tenants/ten_demo".into(),
-                audience: "https://mcp.foundry.kr-seoul.oyatie.test/tenants/ten_demo".into(),
+                audience: "https://mcp.foundry.region-home.oyatie.test/tenants/ten_demo".into(),
                 expires_at_epoch_seconds: 3_600,
                 scopes: vec![DISCOVER_SCOPE.into()],
             },
