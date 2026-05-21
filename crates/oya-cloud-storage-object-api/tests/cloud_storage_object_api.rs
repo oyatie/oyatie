@@ -19,7 +19,7 @@ use oya_cloud_storage_object_api::{
 use oya_data_boundary_kernel::DataClass;
 use oya_residency_domain::ResidencyClass;
 
-const BUCKET_ID: &str = "oya:cloud:region-home:ten_kr:bucket:tenant-assets";
+const BUCKET_ID: &str = "oya:cloud:region-home:ten_alpha:bucket:tenant-assets";
 const OBJECT_KEY: &str = "workspace/report.pdf";
 
 fn bucket_create() -> BucketCreate {
@@ -32,7 +32,7 @@ fn bucket_create() -> BucketCreate {
         tier: BucketTier::Standard,
         replication: ReplicationPolicyCreate::Regional,
         encryption: EncryptionMode::SseKms,
-        kms_key: Some("kms/region-home/ten_kr/object-key".to_string()),
+        kms_key: Some("kms/region-home/ten_alpha/object-key".to_string()),
         object_lock: Some(ObjectLockPolicy {
             mode: ObjectLockMode::Compliance,
             retain_until_epoch_seconds: 1_800_000_000,
@@ -94,7 +94,7 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudStorageObjec
 
 fn object_encryption() -> CloudStorageObjectEncryptionBindingRequest {
     CloudStorageObjectEncryptionBindingRequest {
-        kms_key: "kms/region-home/ten_kr/object-key".to_string(),
+        kms_key: "kms/region-home/ten_alpha/object-key".to_string(),
         kms_key_version: 1,
         material_ref: "matref/ten_alpha/object/report".to_string(),
         ciphertext_ref: "ct/ten_alpha/object/report".to_string(),

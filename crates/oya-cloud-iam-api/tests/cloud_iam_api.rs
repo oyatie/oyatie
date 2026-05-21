@@ -157,7 +157,7 @@ fn external_principal_create() -> IamPrincipalCreate {
 fn role_create() -> IamRoleCreate {
     IamRoleCreate {
         id: "role_compute_admin".to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         region: "region-home".to_string(),
         name: "compute-admin".to_string(),
         cedar_policy_id: "pol_cloud_compute_admin".to_string(),

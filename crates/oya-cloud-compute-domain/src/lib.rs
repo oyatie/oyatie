@@ -1406,7 +1406,7 @@ mod tests {
         let instance = Instance::new(instance_create()).expect("instance contract is valid");
         ComputeProviderVmCreateRequest {
             request_id: "compute-vm-provider-001".to_string(),
-            provider_instance_ref: "provider://cell-alpha-region-a-001/app-1".to_string(),
+            provider_instance_ref: "provider://cell-region-alpha-a-001/app-1".to_string(),
             tenant_id: instance.tenant_id.value.clone(),
             actor: "sp_cloud_provisioner".to_string(),
             idempotency_key: "idem-compute-vm-provider-001".to_string(),
@@ -1442,8 +1442,8 @@ mod tests {
         .expect("provider receipt keeps neutral VM identity");
         assert_eq!(receipt.provider_kind, ComputeProviderKind::AwsEc2);
         assert_eq!(receipt.tenant_id, "ten_alpha");
-        assert_eq!(receipt.region, "alpha-region");
-        assert_eq!(receipt.az, "alpha-region-a");
+        assert_eq!(receipt.region, "region-alpha");
+        assert_eq!(receipt.az, "region-alpha-a");
 
         let missing_request_id = ComputeProviderVmReceipt::from_request(
             ComputeProviderKind::AwsEc2,

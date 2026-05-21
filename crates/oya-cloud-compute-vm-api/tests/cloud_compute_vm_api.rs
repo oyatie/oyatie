@@ -12,7 +12,7 @@ use oya_cloud_compute_vm_api::{
     create_cloud_compute_vm_from_api,
 };
 
-const INSTANCE_ID: &str = "oya:cloud:region-home:ten_kr:instance:app-1";
+const INSTANCE_ID: &str = "oya:cloud:region-home:ten_alpha:instance:app-1";
 const DIGEST: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudComputeVmApiBoundaryContext {
@@ -68,34 +68,34 @@ fn flavor() -> CloudComputeVmFlavorSpec {
 fn body(resource_id: &str) -> CloudComputeVmCreateRequest {
     CloudComputeVmCreateRequest {
         resource_id: resource_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         region: "region-home".to_string(),
         az: "region-home-a".to_string(),
         cell_id: "cell-region-home-a-001".to_string(),
         flavor: flavor(),
-        image: format!("oci://harbor.region-home.oya/ten_kr/app@sha256:{DIGEST}"),
+        image: format!("oci://harbor.region-home.oya/ten_alpha/app@sha256:{DIGEST}"),
         key_pair: Some("key_prod".to_string()),
-        vpc_id: "oya:cloud:region-home:ten_kr:vpc:prod".to_string(),
-        subnet_id: "oya:cloud:region-home:ten_kr:subnet:prod-a".to_string(),
+        vpc_id: "oya:cloud:region-home:ten_alpha:vpc:prod".to_string(),
+        subnet_id: "oya:cloud:region-home:ten_alpha:subnet:prod-a".to_string(),
         security_groups: vec![
             CloudComputeVmSecurityGroupRef {
                 value: "sg_web".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 region: "region-home".to_string(),
-                vpc_id: "oya:cloud:region-home:ten_kr:vpc:prod".to_string(),
+                vpc_id: "oya:cloud:region-home:ten_alpha:vpc:prod".to_string(),
             },
             CloudComputeVmSecurityGroupRef {
                 value: "sg_app".to_string(),
-                tenant_id: "ten_kr".to_string(),
+                tenant_id: "ten_alpha".to_string(),
                 region: "region-home".to_string(),
-                vpc_id: "oya:cloud:region-home:ten_kr:vpc:prod".to_string(),
+                vpc_id: "oya:cloud:region-home:ten_alpha:vpc:prod".to_string(),
             },
         ],
         iam_role: Some(CloudComputeVmIamRoleRef {
             value: "role_app".to_string(),
-            tenant_id: "ten_kr".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             region: "region-home".to_string(),
-            vpc_id: "oya:cloud:region-home:ten_kr:vpc:prod".to_string(),
+            vpc_id: "oya:cloud:region-home:ten_alpha:vpc:prod".to_string(),
         }),
         user_data_uri: Some("userdata/ten_alpha/app-1/cloud-init.yaml".to_string()),
         quota: quota(),
@@ -163,7 +163,7 @@ fn vm_create_api_rejects_path_body_drift_before_catalog_mutation() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeVmCreateIdempotencyLedger::default();
     let mut request = request("req-compute-vm-drift", "idem-compute-vm-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_kr:instance:other".to_string();
+    request.body.resource_id = "oya:cloud:region-home:ten_alpha:instance:other".to_string();
 
     let error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body instance drift is rejected");
@@ -172,7 +172,7 @@ fn vm_create_api_rejects_path_body_drift_before_catalog_mutation() {
         error,
         CloudComputeVmApiError::InstanceIdMismatch {
             path_instance_id: INSTANCE_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_kr:instance:other".to_string(),
+            body_resource_id: "oya:cloud:region-home:ten_alpha:instance:other".to_string(),
         }
     );
     assert_eq!(error.vm_create_status_code(), 400);
@@ -392,7 +392,7 @@ fn vm_create_api_maps_quota_residency_and_invalid_image_without_masking() {
     assert_eq!(residency_error.vm_create_status_code(), 403);
 
     let mut image_request = request("req-compute-vm-image", "idem-compute-vm-image");
-    image_request.body.image = "oci://harbor.region-home.oya/ten_kr/app:latest".to_string();
+    image_request.body.image = "oci://harbor.region-home.oya/ten_alpha/app:latest".to_string();
     let image_error = create_cloud_compute_vm_from_api(&mut catalog, &mut ledger, image_request)
         .expect_err("image refs must be digest pinned");
     assert_eq!(

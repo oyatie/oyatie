@@ -3288,13 +3288,13 @@ mod tests {
 
     fn direct_interconnect_create() -> DirectInterconnectCreate {
         DirectInterconnectCreate {
-            resource_id: "oya:cloud:region-alpha1:ten_alpha:direct-interconnect:kix-primary"
+            resource_id: "oya:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary"
                 .to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha1".to_string(),
-            partner_id: "ixp_kix".to_string(),
-            peering_location: "region-alpha1-ix-primary".to_string(),
-            physical_port_id: "icp_kix_001".to_string(),
+            partner_id: "ixp_alpha".to_string(),
+            peering_location: "region-alpha1-fabric-a".to_string(),
+            physical_port_id: "icp_alpha_001".to_string(),
             vlan_tag: 101,
             bandwidth_mbps: 10_000,
             redundant_port_count: 2,
@@ -3312,8 +3312,8 @@ mod tests {
 
     fn interconnect_partner_creates() -> Vec<InterconnectPartnerCreate> {
         vec![
-            interconnect_partner_create("ixp_alpha", "alpha-region-fabric-a"),
-            interconnect_partner_create("ixp_beta", "alpha-region-fabric-b"),
+            interconnect_partner_create("ixp_alpha", "region-alpha1-fabric-a"),
+            interconnect_partner_create("ixp_beta", "region-alpha1-fabric-b"),
         ]
     }
 
@@ -3321,7 +3321,7 @@ mod tests {
     -> NetworkProviderDirectInterconnectCreateRequest {
         NetworkProviderDirectInterconnectCreateRequest {
             request_id: "networkprov_req_interconnect_create_001".to_string(),
-            provider_virtual_circuit_ref: "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary".to_string(),
+            provider_virtual_circuit_ref: "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary".to_string(),
             interconnect_partners: interconnect_partner_creates(),
             direct_interconnect: direct_interconnect_create(),
             actor: "sp_network".to_string(),
@@ -3376,7 +3376,7 @@ mod tests {
     fn provider_vpc_create_request() -> NetworkProviderVpcCreateRequest {
         NetworkProviderVpcCreateRequest {
             request_id: "networkprov_req_vpc_create_001".to_string(),
-            provider_vcn_ref: "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:vpc:prod".to_string(),
+            provider_vcn_ref: "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:vpc:prod".to_string(),
             vpc: vpc_create(),
             actor: "sp_network".to_string(),
             idempotency_key: "idem-network-vpc-create".to_string(),
@@ -3387,7 +3387,7 @@ mod tests {
     fn provider_load_balancer_create_request() -> NetworkProviderLoadBalancerCreateRequest {
         NetworkProviderLoadBalancerCreateRequest {
             request_id: "networkprov_req_lb_create_001".to_string(),
-            provider_load_balancer_ref: "oci-lb://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor".to_string(),
+            provider_load_balancer_ref: "oci-lb://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor".to_string(),
             vpc: vpc_create(),
             subnets: vec![subnet_create()],
             load_balancer: lb_create(),
@@ -3400,7 +3400,7 @@ mod tests {
     fn provider_dns_zone_create_request() -> NetworkProviderDnsZoneCreateRequest {
         NetworkProviderDnsZoneCreateRequest {
             request_id: "networkprov_req_dns_create_001".to_string(),
-            provider_dns_zone_ref: "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:dns-zone:example-com".to_string(),
+            provider_dns_zone_ref: "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com".to_string(),
             vpc: None,
             dns_zone: public_dns_create(),
             actor: "sp_network".to_string(),
@@ -3490,7 +3490,7 @@ mod tests {
             NetworkProviderKind::OciVcn,
             provider_vpc_create_request(),
             "oci-vcn-1700000000-networkprov_req_vpc_create_001",
-            "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:vpc:prod/networkprov_req_vpc_create_001",
+            "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:vpc:prod/networkprov_req_vpc_create_001",
         )
         .expect("VPC receipt keeps provider references only");
 
@@ -3498,7 +3498,7 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_vpc");
         assert_eq!(
             receipt.resource_id,
-            "oya:cloud:alpha-region:ten_alpha:vpc:prod"
+            "oya:cloud:region-alpha1:ten_alpha:vpc:prod"
         );
         assert_eq!(receipt.cidr_v4, "10.42.0.0/16");
         assert_eq!(receipt.cidr_v6, "2001:db8:42::/56");
@@ -3543,7 +3543,7 @@ mod tests {
             NetworkProviderKind::OciLoadBalancer,
             provider_load_balancer_create_request(),
             "oci-lb-1700000000-networkprov_req_lb_create_001",
-            "oci-lb://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor/networkprov_req_lb_create_001",
+            "oci-lb://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor/networkprov_req_lb_create_001",
         )
         .expect("load balancer receipt keeps provider references only");
 
@@ -3551,9 +3551,9 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_load_balancer");
         assert_eq!(
             receipt.resource_id,
-            "oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor"
+            "oya:cloud:region-alpha1:ten_alpha:lb-v7:frontdoor"
         );
-        assert_eq!(receipt.vpc_id, "oya:cloud:alpha-region:ten_alpha:vpc:prod");
+        assert_eq!(receipt.vpc_id, "oya:cloud:region-alpha1:ten_alpha:vpc:prod");
         assert_eq!(receipt.kind, LbKind::L7Grpc);
         assert_eq!(receipt.listener_count, 1);
         assert_eq!(receipt.target_group_count, 1);
@@ -3598,7 +3598,7 @@ mod tests {
             NetworkProviderKind::OciDnsZone,
             provider_dns_zone_create_request(),
             "oci-dns-zone-1700000000-networkprov_req_dns_create_001",
-            "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:dns-zone:example-com/networkprov_req_dns_create_001",
+            "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com/networkprov_req_dns_create_001",
         )
         .expect("DNS zone receipt keeps provider references only");
 
@@ -3606,7 +3606,7 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_dns_zone");
         assert_eq!(
             receipt.resource_id,
-            "oya:cloud:alpha-region:ten_alpha:dns-zone:example-com"
+            "oya:cloud:region-alpha1:ten_alpha:dns-zone:example-com"
         );
         assert_eq!(receipt.name, "example.com");
         assert_eq!(receipt.kind, DnsZoneKind::Public);
@@ -3652,7 +3652,7 @@ mod tests {
             NetworkProviderKind::OciFastConnect,
             provider_direct_interconnect_create_request(),
             "oci-fast-connect-1700000000-networkprov_req_interconnect_create_001",
-            "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary/networkprov_req_interconnect_create_001",
+            "oci-fast-connect://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary/networkprov_req_interconnect_create_001",
         )
         .expect("direct interconnect receipt keeps provider references only");
 
@@ -3660,10 +3660,10 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_direct_interconnect");
         assert_eq!(
             receipt.resource_id,
-            "oya:cloud:alpha-region:ten_alpha:direct-interconnect:fabric-a-primary"
+            "oya:cloud:region-alpha1:ten_alpha:direct-interconnect:fabric-a-primary"
         );
         assert_eq!(receipt.partner_id, "ixp_alpha");
-        assert_eq!(receipt.peering_location, "alpha-region-fabric-a");
+        assert_eq!(receipt.peering_location, "region-alpha1-fabric-a");
         assert_eq!(receipt.physical_port_id, "icp_alpha_001");
         assert_eq!(receipt.vlan_tag, 101);
         assert_eq!(receipt.bandwidth_mbps, 10_000);
@@ -4038,8 +4038,8 @@ mod tests {
         let mut catalog = CloudNetworkCatalog::default();
         catalog
             .add_interconnect_partner(interconnect_partner_create(
-                "ixp_kix",
-                "region-alpha1-ix-primary",
+                "ixp_alpha",
+                "region-alpha1-fabric-a",
             ))
             .expect("primary interconnect partner");
         let diversity_error = catalog
@@ -4052,8 +4052,8 @@ mod tests {
 
         catalog
             .add_interconnect_partner(interconnect_partner_create(
-                "ixp_kinx",
-                "region-alpha1-ix-secondary",
+                "ixp_beta",
+                "region-alpha1-fabric-b",
             ))
             .expect("second interconnect partner");
         let interconnect = catalog
@@ -4073,14 +4073,14 @@ mod tests {
         let mut catalog = CloudNetworkCatalog::default();
         catalog
             .add_interconnect_partner(interconnect_partner_create(
-                "ixp_kix",
-                "region-alpha1-ix-primary",
+                "ixp_alpha",
+                "region-alpha1-fabric-a",
             ))
             .expect("primary interconnect partner");
         catalog
             .add_interconnect_partner(interconnect_partner_create(
-                "ixp_kinx",
-                "region-alpha1-ix-secondary",
+                "ixp_beta",
+                "region-alpha1-fabric-b",
             ))
             .expect("second interconnect partner");
 

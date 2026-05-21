@@ -13,7 +13,7 @@ use oya_cloud_network_vpc_api::{
     create_cloud_network_vpc_from_api,
 };
 
-const VPC_ID: &str = "oya:cloud:region-home:ten_kr:vpc:prod";
+const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudNetworkVpcApiBoundaryContext {
     CloudNetworkVpcApiBoundaryContext {
@@ -45,7 +45,7 @@ fn authorization_for(principal_id: &str, surfaces: &[&str]) -> CloudNetworkVpcAp
 fn create_body(resource_id: &str) -> CloudNetworkVpcCreateRequest {
     CloudNetworkVpcCreateRequest {
         resource_id: resource_id.to_string(),
-        tenant_id: "ten_kr".to_string(),
+        tenant_id: "ten_alpha".to_string(),
         region: "region-home".to_string(),
         cidr_v4: "10.42.0.0/16".to_string(),
         cidr_v6: "2001:db8:42::/56".to_string(),
@@ -123,7 +123,7 @@ fn vpc_create_api_creates_vpc_once_and_replays_same_idempotent_result() {
     assert_eq!(catalog.vpcs().count(), 1);
     assert_eq!(first.metadata.request_id, "req-network-vpc-create");
     assert_eq!(first.data.resource_id, VPC_ID);
-    assert_eq!(first.data.tenant_id, "ten_kr");
+    assert_eq!(first.data.tenant_id, "ten_alpha");
     assert_eq!(first.data.region, "region-home");
     assert_eq!(first.data.cidr_v4, "10.42.0.0/16");
     assert_eq!(first.data.cidr_v6, "2001:db8:42::/56");
@@ -141,7 +141,7 @@ fn vpc_create_api_rejects_path_body_vpc_drift_before_catalog_mutation() {
     let mut catalog = CloudNetworkCatalog::default();
     let mut ledger = CloudNetworkVpcCreateIdempotencyLedger::default();
     let mut request = create_request("req-network-vpc-drift", "idem-network-vpc-drift");
-    request.body.resource_id = "oya:cloud:region-home:ten_kr:vpc:other".to_string();
+    request.body.resource_id = "oya:cloud:region-home:ten_alpha:vpc:other".to_string();
 
     let error = create_cloud_network_vpc_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body VPC drift is rejected");
@@ -150,7 +150,7 @@ fn vpc_create_api_rejects_path_body_vpc_drift_before_catalog_mutation() {
         error,
         CloudNetworkVpcApiError::VpcIdMismatch {
             path_vpc_id: VPC_ID.to_string(),
-            body_resource_id: "oya:cloud:region-home:ten_kr:vpc:other".to_string(),
+            body_resource_id: "oya:cloud:region-home:ten_alpha:vpc:other".to_string(),
         }
     );
     assert_eq!(error.vpc_create_status_code(), 400);

@@ -1782,14 +1782,14 @@ mod tests {
         StorageProviderObjectPutRequest {
             request_id: "storageprov_req_put_001".to_string(),
             provider_bucket_ref: "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup".to_string(),
-            bucket_id: "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets".to_string(),
+            bucket_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
             tenant_id: "ten_alpha".to_string(),
             object_key: "workspace/report.pdf".to_string(),
             object_body_ref: "objbody/ten_alpha/workspace/report".to_string(),
             size_bytes: 42,
             etag: "0123456789abcdef0123456789abcdef".to_string(),
             data_class: DataClass::PiiIdentifying,
-            kms_key: "kms/alpha-region/ten_alpha/object-key".to_string(),
+            kms_key: "kms/region-alpha1/ten_alpha/object-key".to_string(),
             ciphertext_ref: "ct/ten_alpha/object/report".to_string(),
             actor: "sp_storage".to_string(),
             idempotency_key: "idem-storage-object-put".to_string(),
@@ -1801,7 +1801,7 @@ mod tests {
         StorageProviderObjectGetRequest {
             request_id: "storageprov_req_get_001".to_string(),
             provider_bucket_ref: "oci-object://axdotp9iv3ua/oyatie-audit-cold-backup".to_string(),
-            bucket_id: "oya:cloud:alpha-region:ten_alpha:bucket:tenant-assets".to_string(),
+            bucket_id: "oya:cloud:region-alpha1:ten_alpha:bucket:tenant-assets".to_string(),
             tenant_id: "ten_alpha".to_string(),
             object_key: "workspace/report.pdf".to_string(),
             result_body_ref: "objbody/ten_alpha/workspace/report-read".to_string(),
@@ -1838,7 +1838,7 @@ mod tests {
         StorageProviderBlockCreateVolumeRequest {
             request_id: "storageprov_req_block_create_001".to_string(),
             provider_volume_ref:
-                "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary".to_string(),
+                "oci-block://ocid1.compartment.oc1..cloud/region-alpha1-a/db-primary".to_string(),
             volume_id: volume.resource_id,
             tenant_id: volume.tenant_id,
             name: volume.name,
@@ -2088,7 +2088,7 @@ mod tests {
 
         let mut bad_bucket_kind = provider_put_request();
         bad_bucket_kind.bucket_id =
-            "oya:cloud:alpha-region:ten_alpha:volume:not-bucket".to_string();
+            "oya:cloud:region-alpha1:ten_alpha:volume:not-bucket".to_string();
         assert_eq!(
             bad_bucket_kind.validate(),
             Err(StorageProviderObjectError::InvalidRequestShape(
@@ -2136,7 +2136,7 @@ mod tests {
         );
         assert_eq!(
             put.kms_key,
-            Some("kms/alpha-region/ten_alpha/object-key".to_string())
+            Some("kms/region-alpha1/ten_alpha/object-key".to_string())
         );
         assert_eq!(
             put.ciphertext_ref,
@@ -2163,7 +2163,7 @@ mod tests {
 
         let mut bad_volume_kind = provider_block_create_volume_request();
         bad_volume_kind.volume_id =
-            "oya:cloud:alpha-region:ten_alpha:bucket:not-volume".to_string();
+            "oya:cloud:region-alpha1:ten_alpha:bucket:not-volume".to_string();
         assert_eq!(
             bad_volume_kind.validate(),
             Err(StorageProviderBlockError::InvalidRequestShape(
@@ -2185,7 +2185,7 @@ mod tests {
             StorageProviderKind::OciBlockStorage,
             provider_block_create_volume_request(),
             "oci-block-create-001",
-            "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary/create",
+            "oci-block://ocid1.compartment.oc1..cloud/region-alpha1-a/db-primary/create",
         )
         .expect("block receipt keeps references only");
 
@@ -2193,18 +2193,18 @@ mod tests {
         assert_eq!(receipt.operation.label(), "create_volume");
         assert_eq!(
             receipt.provider_volume_ref,
-            "oci-block://ocid1.compartment.oc1..cloud/alpha-region-a/db-primary"
+            "oci-block://ocid1.compartment.oc1..cloud/region-alpha1-a/db-primary"
         );
         assert_eq!(
             receipt.volume_id,
-            "oya:cloud:alpha-region:ten_alpha:volume:db-primary"
+            "oya:cloud:region-alpha1:ten_alpha:volume:db-primary"
         );
         assert_eq!(receipt.size_gib, 512);
         assert_eq!(receipt.performance.iops, 12_000);
         assert_eq!(receipt.encryption, EncryptionMode::Byok);
         assert_eq!(
             receipt.kms_key,
-            Some("byok/alpha-region/ten_alpha/db-key".to_string())
+            Some("byok/region-alpha1/ten_alpha/db-key".to_string())
         );
         assert_eq!(receipt.actor, "sp_storage");
         assert_eq!(receipt.schema_version, STORAGE_SCHEMA_VERSION);

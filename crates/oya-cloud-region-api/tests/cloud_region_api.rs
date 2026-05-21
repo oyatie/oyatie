@@ -260,7 +260,7 @@ fn az_list_projects_only_requested_region_azs() {
 
 #[test]
 fn az_list_projects_per_cell_isolation_evidence_without_capacity_leakage() {
-    let response = list_cloud_azs_from_api(&catalog(), az_request("home-region"))
+    let response = list_cloud_azs_from_api(&catalog(), az_request("region-home"))
         .expect("authorized AZ list succeeds");
 
     let az = &response.data[0];
@@ -269,10 +269,10 @@ fn az_list_projects_per_cell_isolation_evidence_without_capacity_leakage() {
     assert_eq!(az.cell_isolation_evidence.len(), 2);
     assert_eq!(
         az.cell_isolation_evidence[0].cell_id,
-        "cell-home-region-a-001"
+        "cell-region-home-a-001"
     );
-    assert_eq!(az.cell_isolation_evidence[0].region_code, "home-region");
-    assert_eq!(az.cell_isolation_evidence[0].az_code, "home-region-a");
+    assert_eq!(az.cell_isolation_evidence[0].region_code, "region-home");
+    assert_eq!(az.cell_isolation_evidence[0].az_code, "region-home-a");
     assert_eq!(az.cell_isolation_evidence[0].state, "active");
     assert_eq!(az.cell_isolation_evidence[0].tenant_density, "dedicated");
     assert_eq!(
@@ -281,12 +281,12 @@ fn az_list_projects_per_cell_isolation_evidence_without_capacity_leakage() {
     );
     assert_eq!(
         az.cell_isolation_evidence[0].evidence_ref,
-        "cell-isolation://home-region/home-region-a/cell-home-region-a-001"
+        "cell-isolation://region-home/region-home-a/cell-region-home-a-001"
     );
     assert_eq!(az.cell_isolation_evidence[0].schema_version, 1);
     assert_eq!(
         az.cell_isolation_evidence[1].cell_id,
-        "cell-home-region-a-002"
+        "cell-region-home-a-002"
     );
     assert_eq!(az.cell_isolation_evidence[1].state, "dr_only");
     assert_eq!(az.cell_isolation_evidence[1].tenant_density, "sovereign");
