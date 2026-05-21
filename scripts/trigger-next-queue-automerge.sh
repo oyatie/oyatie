@@ -165,8 +165,18 @@ check_live_required_contexts() {
   live_file="$scratch_dir/live-required-status-checks.json"
   live_err="$scratch_dir/live-required-status-checks.err"
 
+  if [ -n "${GITHUB_ACTIONS:-}" ] && [ -z "${OYA_BRANCH_PROTECTION_READ_TOKEN:-}" ]; then
+    echo "::error::OYA_BRANCH_PROTECTION_READ_TOKEN is required in GitHub Actions; branch-protection status-check APIs require Administration read permission, which GITHUB_TOKEN cannot request." >&2
+    exit 1
+  fi
+
   set +e
-  gh api "repos/${repo}/branches/${base_branch}/protection/required_status_checks" > "$live_file" 2> "$live_err"
+  if [ -n "${OYA_BRANCH_PROTECTION_READ_TOKEN:-}" ]; then
+    GH_TOKEN="$OYA_BRANCH_PROTECTION_READ_TOKEN" \
+      gh api "repos/${repo}/branches/${base_branch}/protection/required_status_checks" > "$live_file" 2> "$live_err"
+  else
+    gh api "repos/${repo}/branches/${base_branch}/protection/required_status_checks" > "$live_file" 2> "$live_err"
+  fi
   live_status=$?
   set -e
 

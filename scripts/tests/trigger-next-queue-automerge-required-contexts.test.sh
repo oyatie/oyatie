@@ -43,10 +43,18 @@ case "${OYA_TEST_GH_MODE:-missing}" in
       exit 0
     fi
     if [ "$1" = "api" ] && [[ "${2:-}" == repos/*/branches/dev/protection/required_status_checks ]]; then
+      if [ -n "${OYA_EXPECT_BRANCH_PROTECTION_TOKEN:-}" ] && [ "${GH_TOKEN:-}" != "$OYA_EXPECT_BRANCH_PROTECTION_TOKEN" ]; then
+        echo "expected branch-protection API to use GH_TOKEN=${OYA_EXPECT_BRANCH_PROTECTION_TOKEN}, got ${GH_TOKEN:-<unset>}" >&2
+        exit 42
+      fi
       cat "${OYA_TEST_LIVE_CONTEXTS:?}"
       exit 0
     fi
     if [ "$1" = "pr" ] && [ "${2:-}" = "list" ]; then
+      if [ -n "${OYA_EXPECT_DEFAULT_TOKEN:-}" ] && [ "${GH_TOKEN:-}" != "$OYA_EXPECT_DEFAULT_TOKEN" ]; then
+        echo "expected PR API to keep default GH_TOKEN=${OYA_EXPECT_DEFAULT_TOKEN}, got ${GH_TOKEN:-<unset>}" >&2
+        exit 43
+      fi
       echo "[]"
       exit 0
     fi
@@ -99,6 +107,19 @@ run_automerge_success() {
     scripts/trigger-next-queue-automerge.sh --base-ref HEAD --dry-run >"$out" 2>"$err"
 }
 
+run_automerge_success_split_token() {
+  local out="$tmp_dir/split-token.out"
+  local err="$tmp_dir/split-token.err"
+  PATH="$tmp_dir/bin:$PATH" \
+    GH_TOKEN="write-token" \
+    OYA_BRANCH_PROTECTION_READ_TOKEN="admin-read-token" \
+    OYA_EXPECT_DEFAULT_TOKEN="write-token" \
+    OYA_EXPECT_BRANCH_PROTECTION_TOKEN="admin-read-token" \
+    OYA_TEST_GH_MODE="match" \
+    OYA_TEST_LIVE_CONTEXTS="$tmp_dir/live-match.json" \
+    scripts/trigger-next-queue-automerge.sh --base-ref HEAD --dry-run >"$out" 2>"$err"
+}
+
 run_automerge_fail_closed missing "$tmp_dir/live-missing.json"
 grep -Fq "live branch-protection required contexts drift" "$tmp_dir/missing.err"
 grep -Fq "missing_from_live=" "$tmp_dir/missing.err"
@@ -111,5 +132,9 @@ grep -Fq "Resource not accessible by integration" "$tmp_dir/forbidden.err"
 run_automerge_success match "$tmp_dir/live-match.json"
 grep -Fq "live branch-protection required contexts match" "$tmp_dir/match.out"
 grep -Fq "no open PR remains at or after queue floor #1" "$tmp_dir/match.out"
+
+run_automerge_success_split_token
+grep -Fq "live branch-protection required contexts match" "$tmp_dir/split-token.out"
+grep -Fq "no open PR remains at or after queue floor #1" "$tmp_dir/split-token.out"
 
 printf 'trigger-next-queue-automerge required-context drift guard tests passed\n'
