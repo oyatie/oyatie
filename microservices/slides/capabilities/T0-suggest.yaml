@@ -3,12 +3,12 @@
 # Slides µservice low-risk text + design assist; deterministic + local-first when possible.
 # Per ADR-SLIDES-0006 risk-class enforcement (T0 always low-risk by definition).
 
-capability_tier: T0
+automation_risk_class: T0
 capability_name: slides-suggest
 microservice: slides
 status: Accepted
 foundry_runtime_integration: optional  # T0 may run locally without LLM for deterministic suggestions
-ai_act_risk_class_default: low
+risk_class_default: low
 authority: ADR-SLIDES-0006
 related_specs:
   - microservices/slides/contracts/openapi/slides.yaml
@@ -30,7 +30,7 @@ capabilities:
       - up to 5 candidate completions ≤ 80 tokens each
     latency_p95_ms: 200
     risk_class: low
-    ai_act_annex_iii_check: not_applicable
+    auto_decision_risk_check: not_applicable
     audit_emit: false  # T0 suggestions not audited unless accepted (then routed via T1 acceptance log)
     foundry_runtime_invocation: optional
     determinism: high
@@ -48,7 +48,7 @@ capabilities:
       - up to 3 layout candidates with confidence score
     latency_p95_ms: 100
     risk_class: low
-    ai_act_annex_iii_check: not_applicable
+    auto_decision_risk_check: not_applicable
     audit_emit: false
     foundry_runtime_invocation: optional  # heuristic-first; LLM optional
     determinism: high
@@ -65,7 +65,7 @@ capabilities:
       - up to 5 palette candidates, all WCAG AA + color-blind-safe verified
     latency_p95_ms: 300
     risk_class: low
-    ai_act_annex_iii_check: not_applicable
+    auto_decision_risk_check: not_applicable
     audit_emit: false
     foundry_runtime_invocation: optional
     determinism: medium  # different palettes returned across calls
@@ -82,7 +82,7 @@ capabilities:
       - up to 3 paired font suggestions
     latency_p95_ms: 100
     risk_class: low
-    ai_act_annex_iii_check: not_applicable
+    auto_decision_risk_check: not_applicable
     audit_emit: false
     foundry_runtime_invocation: optional
     determinism: high

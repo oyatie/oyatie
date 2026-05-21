@@ -111,7 +111,7 @@ Per-tenant bucket prefix: `tenant-{tenant_id}/{file_id_prefix_4}/{file_id}` (per
   - Egress cost prohibitive at multi-TB-per-day per tenant.
   - Tenant DPA cross-border concerns (SCC + Schrems II).
   - Inconsistent with `cloud-iac` self-hosted posture per ADR-0117.
-- **Rejected** as primary; retained as a tenant-choice alternative for tenant-tier-3 deploy where the tenant owns its own AWS account + DPA (separate ChangeSet IP, not Phase 1).
+- **Rejected** as primary; retained as a tenant-choice alternative for tenant-class-3 deploy where the tenant owns its own AWS account + DPA (separate ChangeSet IP, not Phase 1).
 
 ### C. Single SeaweedFS cluster as the primary backend (no Garage)
 
@@ -173,7 +173,7 @@ Per-tenant bucket prefix: `tenant-{tenant_id}/{file_id_prefix_4}/{file_id}` (per
   - all three expose the `FileRepository` port trait identically (Cedar policy + audit-chain seal emitted at the same surface points);
   - all three support compliance-mode object-lock per ADR-DRIVE-0006.
 - **Helm chart pin policy**: `garage: "1.0.1"`, `minio: "RELEASE.2024-08-17T01-24-54Z"`, `seaweedfs: "3.71.0"` declared in `microservices/drive/iac/helm/Chart.yaml` `dependencies`; `oya-governance-version-pinning-conformance` lane refuses unpinned versions.
-- **Per-pack overlay**: pack-us-healthcare enables SeaweedFS chart by default (HIPAA-eligible operator tooling); other packs ship Garage-only and may tenant-opt-into SeaweedFS via a tenant-tier flag.
+- **Per-pack overlay**: pack-us-healthcare enables SeaweedFS chart by default (HIPAA-eligible operator tooling); other packs ship Garage-only and may tenant-opt-into SeaweedFS via a tenant-class flag.
 - **Runbook `object-storage-degraded.md`** documents per-backend cell-loss recovery.
 
 ### Regulatory

@@ -57,7 +57,7 @@ Three files updated + evidence emission:
   "drills_passed": [
     "Cell value + SUM (100x100 grid)",
     "Formula-engine LibreOffice Calc reference corpus (≥ 400 functions)",
-    "XLSX best-effort round-trip (100/100 golden workbooks)",
+    "XLSX best-effort round-trip (100/100 reference workbooks)",
     "10-user concurrent collab no silent loss",
     "Per-range ACL hides PII",
     "Cedar per-seat gate (seat-overage refused)",

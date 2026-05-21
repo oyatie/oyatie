@@ -40,7 +40,7 @@ Author the long-lived WebSocket gateway worker for slides collab + the tenant SD
 ```rust
 pub struct WsDispatcher {
     crdt_engine: Arc<dyn CrdtMergeEngine>,
-    redis_lease: Arc<dyn EditorSessionLease>,
+    valkey_lease: Arc<dyn EditorSessionLease>,
     hmac_verifier: Arc<dyn HmacVerifier>,
     acl_filter: Arc<dyn PerSlideAclFilter>,  // ADR-SLIDES-0007 refinement at projection
 }

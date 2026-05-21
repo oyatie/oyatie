@@ -39,7 +39,7 @@ All components introduced for the docs µservice across the eight bounded contex
 |---|---|
 | Postgres 16 LTS (document-metadata store + RLS) | `oya-docs-document-store-*` (11 crates) |
 | S3-compatible (OCI Object Storage; content blobs + attachments) | `oya-docs-collab-crdt-*` (9 crates) |
-| Valkey 8.1 (Redis wire-compat) (collab-presence + CRDT op fan-out + cache) | `oya-docs-block-types-*` (7 crates) |
+| Valkey 8.1 (RESP3 wire-compatible) (collab-presence + CRDT op fan-out + cache) | `oya-docs-block-types-*` (7 crates) |
 | Loro 1.x CRDT engine (per ADR-DOCS-0001) | `oya-docs-comments-and-suggestions-*` (9 crates) |
 | Pandoc 3.x (export-import substrate) | `oya-docs-version-history-*` (8 crates) |
 | WeasyPrint 62.x (PDF default backend) | `oya-docs-sharing-and-permissions-*` (8 crates) |

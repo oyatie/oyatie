@@ -41,7 +41,7 @@ Industry precedent:
 | Google Drive | yes (Google KMS) | no | Google KMS |
 | Dropbox | yes (AWS KMS) | no | AWS KMS |
 | OneDrive | yes | no | Microsoft KMS |
-| Box | yes | yes (Box KeySafe) | Box KeySafe (BYOK) |
+| Box | yes | yes (Box KeySafe) | Box KeySafe (encryption-BYOK) |
 | iCloud Drive | yes | yes (Advanced Data Protection) | Apple HSM |
 | Proton Drive | yes | yes (default; libsodium) | client-side |
 | Tresorit | yes | yes (default; libsodium) | client-side |

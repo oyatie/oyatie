@@ -40,7 +40,7 @@ capabilities:
     latency_budget_p99_ms: 200
     audit_event: DocsGrammarSuggestionShown (per-suggestion; minimal payload — block id hash + suggestion type)
     fallback_on_model_failure: silent skip — falls back to rule-based grammar
-    eu_ai_act_classification: minimal-risk (Annex III §3 NOT triggered — grammar-check is not employment/HR decision-making)
+    risk_classification: minimal-risk (Annex III §3 NOT triggered — grammar-check is not employment/HR decision-making)
     user_label: "AI suggestion — click to accept" (Art. 50 transparency)
 
   - id: T0-docs-title-suggest
@@ -65,7 +65,7 @@ capabilities:
     latency_budget_p99_ms: 300
     audit_event: DocsTitleSuggestionShown
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — Tab to accept"
 
   - id: T0-docs-toc-suggest
@@ -88,7 +88,7 @@ capabilities:
     latency_budget_p99_ms: 100
     audit_event: DocsTocSuggestionShown
     fallback_on_model_failure: n/a
-    eu_ai_act_classification: minimal-risk (deterministic logic; no LLM inference)
+    risk_classification: minimal-risk (deterministic logic; no LLM inference)
     user_label: "AI suggestion — click to accept"
 
   - id: T0-docs-formatting-suggest
@@ -112,7 +112,7 @@ capabilities:
     latency_budget_p99_ms: 50
     audit_event: DocsFormattingSuggestionShown
     fallback_on_model_failure: n/a
-    eu_ai_act_classification: minimal-risk (deterministic logic)
+    risk_classification: minimal-risk (deterministic logic)
     user_label: "AI suggestion — Tab to accept"
 
   - id: T0-docs-link-suggest
@@ -135,7 +135,7 @@ capabilities:
     latency_budget_p99_ms: 100
     audit_event: DocsLinkSuggestionShown
     fallback_on_model_failure: n/a
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — Tab to accept"
 
 verification:

@@ -6,7 +6,7 @@
 # under a documented policy boundary. User can revoke the policy at any time;
 # future actions stop. Past actions stand.
 #
-# T2 has the highest scrutiny: explicit Cedar tenant-tier admission, full
+# T2 has the highest scrutiny: explicit Cedar tenant-class admission, full
 # audit-chain coverage, EU AI Act limited-risk classification with conformity
 # assessment for HR overlays (per ADR-DOCS-0005).
 #
@@ -51,11 +51,11 @@ capabilities:
       - DocsAutoTranslatePolicyEnabled (Ed25519-sealed)
       - DocsAutoTranslateRunCompleted (per-run; Ed25519-sealed; payload — source doc id + target lang + sha256 of translated content)
       - DocsAutoTranslatePolicyDisabled (Ed25519-sealed)
-    eu_ai_act_classification: limited-risk (Annex III §3 may apply for HR-document translation — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005 conformity assessment)
+    risk_classification: limited-risk (Annex III §3 may apply for HR-document translation — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005 conformity assessment)
     user_label: "Auto-translated by AI" (Art. 50 on every mirror doc surface)
     cedar_admission_path: |
       tenant-scope.cedar :: action::DocsT2EnableAutoTranslate admits when
-      tenant.tier >= pro AND user.has_opted_in_to_t2_docs_policies.
+      principal.tenant_class == "paid" && principal.billing_components contains "per_seat" AND user.has_opted_in_to_t2_docs_policies.
 
   - id: T2-docs-auto-format
     name: "Auto-format style + structure consistency"
@@ -71,7 +71,7 @@ capabilities:
       - tenant policy "auto-format" enabled
     consent_basis:
       personal_context: not-applicable (workspace-level only)
-      professional_context: explicit-on-tenant-admin-opt-in + tenant-tier-admission
+      professional_context: explicit-on-tenant-admin-opt-in + tenant-class-admission
     data_class_processed: [PROFESSIONAL_DOC_CONTENT]
     data_class_emitted: PROFESSIONAL_DOC_CONTENT (formatted-rewritten content)
     reversibility:
@@ -87,11 +87,11 @@ capabilities:
       - DocsAutoFormatPolicyEnabled (Ed25519-sealed)
       - DocsAutoFormatRunCompleted (per-run; Ed25519-sealed; payload — workspace id + doc count + change count)
       - DocsAutoFormatBlockRewritten (per-rewrite; Ed25519-sealed; payload — doc id hash + block id + before-sha + after-sha)
-    eu_ai_act_classification: minimal-risk (deterministic logic; no LLM)
+    risk_classification: minimal-risk (deterministic logic; no LLM)
     user_label: "Workspace docs auto-formatted by AI overnight" (per-tenant admin notification)
     cedar_admission_path: |
       tenant-scope.cedar :: action::DocsT2EnableAutoFormat admits when
-      tenant.tier >= enterprise AND tenant_admin.has_opted_in_to_t2_docs_policies.
+      principal.tenant_class == "paid" && principal.billing_components contains "per_seat" && compliance_pack.active == true AND tenant_admin.has_opted_in_to_t2_docs_policies.
 
   - id: T2-docs-auto-cite
     name: "Auto-cite (background citation insertion)"
@@ -125,11 +125,11 @@ capabilities:
       - DocsAutoCitePolicyEnabled (Ed25519-sealed)
       - DocsAutoCiteRunCompleted (per-run; Ed25519-sealed; payload — doc id hash + cite count)
       - DocsAutoCiteInserted (per-insertion; Ed25519-sealed; payload — doc id hash + DOI of cited work)
-    eu_ai_act_classification: minimal-risk (citation insertion is not employment-decision)
+    risk_classification: minimal-risk (citation insertion is not employment-decision)
     user_label: "Citations auto-inserted by AI" (per-doc admin notification + Art. 50)
     cedar_admission_path: |
       tenant-scope.cedar :: action::DocsT2EnableAutoCite admits when
-      tenant.tier >= pro AND user.has_opted_in_to_t2_docs_policies.
+      principal.tenant_class == "paid" && principal.billing_components contains "per_seat" AND user.has_opted_in_to_t2_docs_policies.
 
   - id: T2-docs-auto-summarise-on-publish
     name: "Auto-summary on doc publish (e.g., for knowledge-base index)"
@@ -143,7 +143,7 @@ capabilities:
       - doc publish event AND auto-summary-on-publish policy enabled
     consent_basis:
       personal_context: not-applicable (publish is org-scope)
-      professional_context: explicit-on-tenant-admin-opt-in + tenant-tier-admission
+      professional_context: explicit-on-tenant-admin-opt-in + tenant-class-admission
     data_class_processed: [PROFESSIONAL_DOC_CONTENT]
     data_class_emitted: BEHAVIORAL_TENANT_PRODUCT (summary for KB index)
     reversibility:
@@ -158,16 +158,16 @@ capabilities:
     audit_event:
       - DocsAutoSummaryOnPublishPolicyEnabled (Ed25519-sealed)
       - DocsAutoSummaryOnPublishCompleted (per-publish; Ed25519-sealed)
-    eu_ai_act_classification: limited-risk (Annex III §3 may apply for HR-document KB — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005)
+    risk_classification: limited-risk (Annex III §3 may apply for HR-document KB — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005)
     user_label: "AI-generated KB summary"
     cedar_admission_path: |
       tenant-scope.cedar :: action::DocsT2EnableAutoSummaryOnPublish admits when
-      tenant.tier >= enterprise AND tenant_admin.has_opted_in_to_t2_docs_policies.
+      principal.tenant_class == "paid" && principal.billing_components contains "per_seat" && compliance_pack.active == true AND tenant_admin.has_opted_in_to_t2_docs_policies.
 
 verification:
   - All T2 actions emit a Cedar-evaluable principal/action/resource triple to `policy/tenant-scope.cedar` BEFORE acting AND on each scheduled tick.
   - All T2 actions emit an audit-chain event (Ed25519-sealed) on policy-enabled, on each action, on policy-disabled.
-  - All T2 actions are tenant-tier-gated: Cedar policy `cedar/t2-tenant-tier-gate.cedar` admits T2 only for tenant tiers ≥ pro (auto-translate + auto-cite) or ≥ enterprise (auto-format + auto-summary-on-publish).
+  - All T2 actions are tenant_class-gated: Cedar policy `cedar/t2-tenant-class-gate.cedar` admits T2 only for paid tenant_class with per_seat billing_component (auto-translate + auto-cite) or ≥ enterprise (auto-format + auto-summary-on-publish).
   - T2 actions for HR-context overlays in pack-eu are REFUSED at the Cedar layer pending EU AI Act Annex III §3 conformity assessment per ADR-DOCS-0005.
   - T2 actions respect dual-context isolation: Personal-context T2 actions NEVER touch Professional-context data; Professional-context T2 actions NEVER touch Personal-context data.
   - T2 actions respect per-block ACL: auto-translate / auto-cite / auto-summary read only blocks the policy-author principal has access to.

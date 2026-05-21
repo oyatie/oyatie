@@ -78,14 +78,14 @@ networkPolicy:
       ports: [8080]
     - to: sheets-postgres-primary.sheets.svc.cluster.local
       ports: [5432]
-    - to: sheets-redis-primary.sheets.svc.cluster.local
+    - to: sheets-valkey-primary.sheets.svc.cluster.local
       ports: [6379]
 
 # Secret references (OpenBao)
 secrets:
   spiffeIdentityPath: "secret/sheets/cell-grid-rest/spiffe"
   postgresConnectionPath: "secret/sheets/cell-grid-rest/postgres"
-  redisAuthPath: "secret/sheets/cell-grid-rest/redis"
+  valkeyAuthPath: "secret/sheets/cell-grid-rest/valkey"
   ed25519SigningKeyPath: "secret/sheets/audit-chain/signing-key"
   ociObjectStorageCredsPath: "secret/sheets/oci-object-storage/creds"
   foundryRuntimeTokenPath: "secret/sheets/foundry-runtime/token"

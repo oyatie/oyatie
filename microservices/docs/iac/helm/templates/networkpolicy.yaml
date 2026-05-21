@@ -67,7 +67,7 @@ spec:
     # Valkey for collab-crdt + cache
     - to:
         - podSelector:
-            matchLabels: {app.kubernetes.io/name: oya-docs-redis}
+            matchLabels: {app.kubernetes.io/name: oya-docs-valkey}
       ports: [{port: 6379, protocol: TCP}]
     # S3 for content blobs + attachments
     - to:

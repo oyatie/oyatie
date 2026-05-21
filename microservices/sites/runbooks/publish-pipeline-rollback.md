@@ -167,7 +167,7 @@ cargo run -p oya-dev-cli -- gate validate slo --microservice sites --slo page-re
 - File a fix-up task per ADR-0114 canary-observability-rollback rules
   if rollback was used.
 - If Case C, the fix-up must include a regression test in
-  `tests/golden/publish_pipeline.rs`.
+  `tests/reference/publish_pipeline.rs`.
 - If multiple tenants affected, evaluate Sev-1 escalation and
   council-product communication.
 - Update this runbook if the failure signature was new.

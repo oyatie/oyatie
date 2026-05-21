@@ -164,12 +164,12 @@ components:
       allOf:
         - $ref: "#/components/schemas/EnvelopeHeader"
         - type: object
-          required: [form_id, form_version, schema_hash, annex_iii_4_screening]
+          required: [form_id, form_version, schema_hash, auto_decision_screening]
           properties:
             form_id: {type: string}
             form_version: {type: integer}
             schema_hash: {type: string}
-            annex_iii_4_screening: {type: boolean}
+            auto_decision_screening: {type: boolean}
             wcag_22_aa_attested: {type: boolean}
 
     FormResponseSubmittedPayload:
@@ -208,7 +208,7 @@ components:
             cross_microservice_destinations:
               type: array
               items: {type: string}
-            annex_iii_4_screening: {type: boolean}
+            auto_decision_screening: {type: boolean}
             high_risk_classified: {type: boolean}
 
     FormAiBuildAcceptedPayload:

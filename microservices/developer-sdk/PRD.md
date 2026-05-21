@@ -9,7 +9,7 @@ tier: external-facing
 milestone_first_ship: M06-ecosystem-developer-portal
 bominal_source:
   - ADR-0037   # Plugin substrate (developer surface absent; ADR-0213 supersedes)
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0110, ADR-0123, ADR-0131, ADR-0132, ADR-0139, ADR-0170, ADR-0185, ADR-0199, ADR-0211, ADR-0212, ADR-0213]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0110, ADR-0123, ADR-0131, ADR-0132, ADR-0139, ADR-0170, ADR-0185, ADR-0199, ADR-0211, ADR-0212, ADR-0213, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/developer-sdk.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0213
 unbundle_sibling: microservices/plugin-app-store/
@@ -102,6 +102,36 @@ This µservice is **the supply-side persona platform** of the ecosystem: develop
 - Per-developer onboarding cost: ~$5 (KYC + AML + bank verification micropayments).
 - Sandbox tenant cost: charged to oyatie developer-bench cost-center per ADR-0199; developers do not pay.
 - Codegen pipeline: nightly batch cost amortized across all SDK families.
+
+### DR posture (ADR-0343)
+
+- RTO/RPO target: manifest-declared RTO p99 900s and RPO p99 60s for developer onboarding, signing-key issuance metadata, contracts registry, sandbox metadata, payout ledgers, and tax-form state. Applicable floors are SOC2-T2 14400s/900s, ISO27001-2022 14400s/3600s, and KR-PIPA 14400s/900s; the manifest target is stricter because signing keys and payouts are platform load-bearing.
+- Failover reference: manifest `failover_runbook` is `runbooks/dr-failover.md`; supporting drills remain `microservices/developer-sdk/multi-region.md`, `runbooks/signing-key-issuance-timeout.md`, `runbooks/sandbox-provision-slow.md`, and `runbooks/payout-settlement-mismatch.md`.
+- Multi-region active-active posture: true per manifest; replication shape is `active-active-multi-az-cross-region-warm` across `postgres_wal_g`, versioned object storage, OpenBao seal/unseal, audit-chain Merkle seals, and Valkey.
+- Tenant-visible behavior: developers can keep reading contracts and SDK documentation during a regional event, while onboarding, key issuance, and payout changes pause or retry rather than creating duplicate legal or bank state.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: manifest-declared 0.30 vCPU, 768 MiB RAM, 5 GB storage, three Postgres connections, two Valkey connections, and ten outbound HTTP connections.
+- Scaling dimension: `per_workflow_run` per manifest for codegen, sandbox provisioning, signing-key issuance, payout/tax workflows, and developer portal operations, with `per_user` and `per_batch` as secondary portal and codegen dimensions.
+- Cell placement class: Tier-2 per manifest for developer portal, onboarding, contracts, sandbox, payout, and tax-form state; pod runtime tier is 2, with Tier-0 isolation delegated to plugin-app-store for untrusted plugin execution.
+- Autoscaling boundaries: portal and onboarding APIs scale 3-80 replicas, sandbox provisioners 2-40, codegen workers 2-30, and payout/tax workers 2-20 with queue admission by pack and settlement deadline.
+- Tenant load profile: supports 100k registered developers, 10k concurrent sandbox tenants, 10k submissions per day, and 1M daily payout settlements without letting codegen batches delay signing-key issuance.
+
+### Sustainability and cost attribution (ADR-0344)
+
+- Per-call emission claim: onboarding, KYC decision, signing-key issuance, SDK codegen, sandbox provision/reset, payout settlement, and tax-form audit rows emit `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with developer tenant, provider, cell, capability, and compliance_pack axes.
+- Carbon-aware provider routing: yes for nightly codegen, package replication, and tax-form batch work where the jurisdictional deadline allows; no for signing-key issuance, KYC legal checkpoints, payout settlement windows, or sanctions checks.
+- Tenant transparency surface: developer portal and finops-portal expose sandbox, codegen, payout, and package-publication cost lines, separating oyatie-funded developer-bench costs from billable ecosystem activity.
+- Regulatory driver: CSRD, SB-253, and SEC climate disclosure reporting require developer ecosystem and payout processing emissions to be retained with the financial evidence, not estimated from batch totals later.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: `YYYY-MM-DD` carrier triplet across version header, URL prefix, and proto3 field for onboarding, contracts registry, SDK download, sandbox, payout, and tax-form APIs.
+- SDK semver model: all generated SDK families use `major.minor.patch`; a public date-version break is the only reason to bump major.
+- Support window: last 3 public versions are supported for at least 180 days.
+- Per-tenant pinning: yes for developer accounts, sandbox tenants, generated SDK families, and plugin submission contracts.
+- Internal-mesh exemption: yes; ADR-0145 direct gRPC remains valid for internal codegen, payout, and sandbox coordination.
 
 ## Acceptance Criteria (AC)
 

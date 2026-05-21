@@ -8,7 +8,7 @@ sales_segment: shared-substrate + suite-app
 tier: tenant-facing
 milestone_first_ship: M02-product-tier-foundation
 bominal_source: [ADR-Bominal-workspace-drive, ADR-Bominal-connect-files]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345, ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
 related_specs: [/specs/microservices/workspace/drive.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-drive
@@ -110,6 +110,36 @@ Strangler precedent: the legacy `oya-connect-drive-domain` crate at `crates/oya-
 
 - Tenant bytes pinned to the tenant's pack region per ADR-0117 + ADR-0140; cross-region replication forbidden by default; SCC-gated when activated.
 
+### DR Posture (ADR-0343)
+
+- RTO/RPO target: manifest `dr` declares `rto_p99_seconds=900` and `rpo_p99_seconds=60` for file metadata, folder state, permissions, and version manifests. HIPAA-2024 (3600s/300s), SOC2-T2 (14400s/900s), NIS2-aligned operational continuity, ISO27001-2022 (14400s/3600s), and KR-CSAP-v3.1 (3600s/900s) leave the effective drive bound at 900s RTO and 60s RPO.
+- failover_runbook: `runbooks/dr-failover.md`; manifest backup substrate is `postgres_wal_g`, `object_storage_versioned`, `seaweedfs_replicated`, and `valkey`.
+- multi_region_active_active: true, with manifest replication shape `active-active-multi-az-cross-region-warm`; immutable object bytes remain pack-pinned during promotion.
+- WHY: tenants can continue file listing, ownership, quota, and WORM/legal-hold decisions while large object recovery proceeds without breaking residency.
+
+### Capacity Model (ADR-0340)
+
+- Per-tenant baseline: manifest `capacity_model` declares 0.4 vCPU, 1024Mi RAM, 51200Gi storage, 4 Valkey connections, 4 Postgres connections, and 8 outbound HTTP connections per tenant.
+- Scaling dimension: `per_request`; file-list, upload, download, sync, preview-render, and DLP scan traffic drive load while byte storage remains intentionally large because drive is the durable file source of record.
+- Cell placement class: Tier-3, matching manifest `capacity_model.cell_placement_class`, because drive is a high-throughput product/substrate surface rather than tenant-customer code execution.
+- Autoscaling boundaries: service Helm min 3 / max 100 for REST surfaces, worker pools scale on queue depth, and object-store/postgres/Valkey scale-out triggers follow `capacity-model.md` saturation guardrails.
+- WHY: drive serves both user-facing file operations and substrate byte storage, so scale must follow file count, byte volume, and scan queues rather than user count alone.
+
+### Sustainability + Cost Attribution (ADR-0344)
+
+- Every audit-chain row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region` for upload, download, share, permission, version, trash, purge, legal-hold, immutability, preview, virus-scan, and DLP events.
+- Provider routing affected by carbon: yes for preview renders, archive tiering, retention compaction, and scan backlogs; no for DLP enforcement, upload promotion, WORM/legal-hold, malware quarantine, or interactive download.
+- Per-tenant transparency surface: FinOps portal shows storage GB-months by tier, bandwidth, upload/download requests, preview CPU, scan jobs, WORM objects, and cross-product byte consumption by tenant/capability/provider/cell/compliance_pack.
+- WHY: drive is the largest byte-at-rest cost center in this bucket, so CSRD, SB-253, and SEC climate disclosure need tenant-visible storage and egress attribution without delaying security gates.
+
+### API Versioning Posture (ADR-0342)
+
+- Public API version model: YYYY-MM-DD carrier triplet via `Oyatie-Version` header, `/v/<YYYY-MM-DD>` URL prefix, and proto3 `oyatie_version` field for file, folder, upload, download, sync, share-link, permissions, search, preview, and immutability contracts.
+- SDK semver model: major.minor.patch for S3/WebDAV/tus bridges, first-party clients, and cross-service file SDKs.
+- Support window: last N=3 public API versions for at least 180 days; object-lock and share-link schemas cannot be removed inside an active retention window.
+- Per-tenant pinning supported: yes, including regulated tenants validating S3-compatible, WebDAV, and resumable-upload flows.
+- Internal-mesh exemption: yes; direct gRPC consumed by docs/sheets/slides/mail/messenger remains exempt under ADR-0145 when it is internal-only.
+
 ## Bounded Contexts
 
 Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates). 11 primary BCs.
@@ -118,7 +148,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 |---|---|---|---|
 | `file-store` | `oya-drive-file-store-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,adapter-garage,adapter-seaweedfs,rest,worker,sdk,app}` | Object/file persistence; content-addressing; version history; tenant-DEK encryption | `File`, `FileVersion`, `ContentAddress`, `RetentionPolicyRef`, `LegalHoldRef` |
 | `folder-hierarchy` | `oya-drive-folder-hierarchy-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,app}` | Nested folder tree; per-folder permission inheritance | `Folder`, `FolderPermission`, `FolderTree` |
-| `upload` | `oya-drive-upload-{kernel,domain,usecase,api,adapter,adapter-redis,adapter-s3,rest,worker,app}` | Multipart resumable; chunk staging; virus-scan pipeline | `UploadSession`, `Chunk`, `ChunkRef` |
+| `upload` | `oya-drive-upload-{kernel,domain,usecase,api,adapter,adapter-valkey,adapter-s3,rest,worker,app}` | Multipart resumable; chunk staging; virus-scan pipeline | `UploadSession`, `Chunk`, `ChunkRef` |
 | `download` | `oya-drive-download-{kernel,domain,usecase,api,adapter,adapter-s3,rest,app}` | Range-request serving; signed-URL minting; CDN steering | `DownloadTicket`, `RangeRequest`, `SignedDownloadUrl` |
 | `sync` | `oya-drive-sync-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Content-defined chunking; delta protocol; conflict resolution | `SyncSession`, `ChunkManifest`, `DeltaSet`, `SyncConflict` |
 | `share-link` | `oya-drive-share-link-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,app}` | Signed-link minting; password / expiring / view-cap | `ShareLink`, `LinkSignature`, `LinkAccessRecord` |
@@ -164,7 +194,7 @@ JUSTIFICATION:
 
 Layer mapping table per BC (13-layer enum from ADR-0105; `usecase` per ADR-0106). Checkmark = crate exists at GA.
 
-| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-redis | adapter-s3 | adapter-garage | adapter-seaweedfs | adapter-meilisearch | adapter-tika | adapter-clamav | adapter-opswat | adapter-libvips | adapter-qpdf | adapter-libreoffice | adapter-ffmpeg | rest | worker | sdk | app |
+| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-valkey | adapter-s3 | adapter-garage | adapter-seaweedfs | adapter-meilisearch | adapter-tika | adapter-clamav | adapter-opswat | adapter-libvips | adapter-qpdf | adapter-libreoffice | adapter-ffmpeg | rest | worker | sdk | app |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `file-store` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | ✓ | ✓ | ✓ | ✓ |
 | `folder-hierarchy` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — | — | ✓ | — | — | ✓ |
@@ -187,7 +217,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `FileRepository` | `oya-drive-file-store-kernel` | `-adapter-postgres` (metadata) + `-adapter-s3` / `-adapter-garage` / `-adapter-seaweedfs` (bytes) | `PERSONAL_FILE_CONTENT` + `PROFESSIONAL_FILE_CONTENT` (per-context envelope encryption) |
 | `ContentAddressDeriver` | `oya-drive-file-store-kernel` | `-adapter` (Rabin / BuzHash / FastCDC selectable per ADR-DRIVE-0002) | `INTERNAL_ONLY` |
 | `FolderTree` | `oya-drive-folder-hierarchy-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `UploadSessionStore` | `oya-drive-upload-kernel` | `-adapter-redis` (in-flight) + `-adapter-s3` (chunk staging) | `PERSONAL_FILE_CONTENT` + `PROFESSIONAL_FILE_CONTENT` (transient) |
+| `UploadSessionStore` | `oya-drive-upload-kernel` | `-adapter-valkey` (in-flight) + `-adapter-s3` (chunk staging) | `PERSONAL_FILE_CONTENT` + `PROFESSIONAL_FILE_CONTENT` (transient) |
 | `DownloadUrlSigner` | `oya-drive-download-kernel` | `-adapter` (Ed25519 HKDF) | `SECRET` (signing key) |
 | `ChunkManifest` | `oya-drive-sync-kernel` | `-adapter-postgres` | `INTERNAL_ONLY` |
 | `DeltaProtocol` | `oya-drive-sync-kernel` | `-adapter` (LBFS rolling hash) | `INTERNAL_ONLY` |

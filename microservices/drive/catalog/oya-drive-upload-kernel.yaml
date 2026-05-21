@@ -15,5 +15,5 @@ allowed_dependency_edges: []
 data_classes_owned: [PERSONAL_FILE_CONTENT, PROFESSIONAL_FILE_CONTENT, SECRET]
 autonomy_tier_required: T1
 notes: |
-  Owns the multipart resumable upload session state (Redis-backed) + chunk staging
+  Owns the multipart resumable upload session state (Valkey-backed) + chunk staging
   (S3 staging bucket) + virus-scan pipeline integration.

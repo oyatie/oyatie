@@ -131,8 +131,8 @@
       "title": "Valkey lease state (split-brain detection)",
       "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
       "targets": [
-        {"expr": "sum(oya_sheets_redis_lease_acquired_total{pack=\"$pack\"}) - sum(oya_sheets_redis_lease_released_total{pack=\"$pack\"})", "legendFormat": "outstanding leases", "refId": "A"},
-        {"expr": "increase(oya_sheets_redis_lease_conflict_total{pack=\"$pack\"}[5m])", "legendFormat": "lease conflicts (split-brain)", "refId": "B"}
+        {"expr": "sum(oya_sheets_valkey_lease_acquired_total{pack=\"$pack\"}) - sum(oya_sheets_valkey_lease_released_total{pack=\"$pack\"})", "legendFormat": "outstanding leases", "refId": "A"},
+        {"expr": "increase(oya_sheets_valkey_lease_conflict_total{pack=\"$pack\"}[5m])", "legendFormat": "lease conflicts (split-brain)", "refId": "B"}
       ]
     },
     {

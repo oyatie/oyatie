@@ -133,11 +133,11 @@ paths:
                 anonymous_submission_allowed:
                   type: boolean
                   default: false
-                annex_iii_4_screening:
+                auto_decision_screening:
                   type: boolean
-                  description: tenant attests whether this form is used for employment/credit/insurance screening per EU AI Act Annex III §4
+                  description: tenant attests whether this form is used for employment/credit/insurance screening per employment-context high-risk auto-decision
                   default: false
-              required: [policy_preview_acknowledged, annex_iii_4_screening]
+              required: [policy_preview_acknowledged, auto_decision_screening]
       responses:
         "200":
           description: form published
@@ -283,7 +283,7 @@ paths:
                   type: array
                   items: {type: string}
                   description: required for T2-cross; must match tenant allow-list
-                annex_iii_4_screening:
+                auto_decision_screening:
                   type: boolean
                   description: attestation; if true, triggers high-risk classification
       responses:
@@ -382,7 +382,7 @@ components:
         version: {type: integer}
         status: {type: string, enum: [draft, published, archived]}
         ai_build_origin: {type: boolean}
-        annex_iii_4_screening: {type: boolean}
+        auto_decision_screening: {type: boolean}
         accepting_submissions: {type: boolean}
         anonymous_submission_allowed: {type: boolean}
         published_at: {type: string, format: date-time}
@@ -544,7 +544,7 @@ components:
         draft_id: {type: string}
         tier: {type: string}
         cross_microservice_destinations: {type: array, items: {type: string}}
-        annex_iii_4_screening: {type: boolean}
+        auto_decision_screening: {type: boolean}
         high_risk_classified: {type: boolean}
         dpia_required: {type: boolean}
     FormList:

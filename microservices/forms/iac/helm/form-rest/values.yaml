@@ -47,7 +47,7 @@ networkPolicy:
   egress:
     - to: response-store-postgres-primary.forms.svc.cluster.local
       ports: [5432]
-    - to: response-cache-redis-primary.forms.svc.cluster.local
+    - to: response-cache-valkey-primary.forms.svc.cluster.local
       ports: [6379]
     - to: captcha-sidecar.forms.svc.cluster.local
       ports: [8080]
@@ -65,7 +65,7 @@ networkPolicy:
 secrets:
   spiffeIdentityPath: "secret/forms/form-rest/spiffe"
   postgresConnectionPath: "secret/forms/form-rest/postgres"
-  redisAuthPath: "secret/forms/form-rest/redis"
+  valkeyAuthPath: "secret/forms/form-rest/valkey"
   ed25519SigningKeyPath: "secret/forms/audit-chain/signing-key"
   hmacPrefillSecretPath: "secret/forms/prefill-link/hmac"
 

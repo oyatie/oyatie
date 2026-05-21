@@ -8,7 +8,7 @@ sales_segment: shared-substrate + hero-product
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145)]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/docs.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-docs
@@ -101,6 +101,36 @@ Bominal inheritance: ADR-0208 dual-context unified-channel hub + ADR-0215 retent
 
 - Tenant data pinned to the tenant's region per ADR-0117 + ADR-0140; cross-region replication forbidden by default; SCC-gated when activated.
 
+### DR Posture (ADR-0343)
+
+- RTO/RPO target: manifest `dr` declares `rto_p99_seconds=900` and `rpo_p99_seconds=60` for document-read/write state. HIPAA-2024 (3600s/300s), SOC2-T2 (14400s/900s), ISO27001-2022 (14400s/3600s), KR-PIPA-2023-amendment (14400s/900s), and KR-CSAP-v3.1 (3600s/900s) are looser, so the effective docs bound remains 900s RTO and 60s RPO.
+- failover_runbook: `runbooks/dr-failover.md`; manifest backup substrate is `postgres_wal_g`, `object_storage_versioned`, and `valkey`.
+- multi_region_active_active: true, with manifest replication shape `active-active-multi-az-cross-region-warm`; cross-pack replication remains forbidden unless the tenant enables SCC-gated residency flow.
+- WHY: co-authors need their document, comments, suggestions, and legal-hold lineage restored without silent edit loss or cross-pack leakage.
+
+### Capacity Model (ADR-0340)
+
+- Per-tenant baseline: manifest `capacity_model` declares 0.12 vCPU, 384Mi RAM, 25Gi storage, 3 Valkey connections, 3 Postgres connections, and 6 outbound HTTP connections per tenant.
+- Scaling dimension: `per_user`; collaborative editing sessions, CRDT spooling, exports, and attachment resolution scale with active editors rather than raw request count.
+- Cell placement class: Tier-3, matching manifest `capacity_model.cell_placement_class`, because docs is a collaborative application surface rather than tenant-customer code execution.
+- Autoscaling boundaries: document-store REST min 5 / max 100, collab worker min 5 / max 200, export/import gVisor worker min 10 / max 200, with worker queues gating scale-out before Postgres/Valkey saturation.
+- WHY: docs has a read-heavy collaboration profile but expensive export/import spikes, so steady editor capacity and sandboxed worker capacity need independent limits.
+
+### Sustainability + Cost Attribution (ADR-0344)
+
+- Every audit-chain row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region` for create/edit/share/export/comment/suggestion/version/legal-hold events.
+- Provider routing affected by carbon: yes for export/import, embed refresh, and AI-assist queues; no for interactive document open/save, legal-hold application, HIPAA emergency disclosure, or ACL enforcement.
+- Per-tenant transparency surface: FinOps portal shows document storage, edit-event volume, export/import worker time, embed refresh volume, AI-assist calls, and attachment scan cost by tenant/capability/provider/cell/compliance_pack.
+- WHY: document authoring produces many small audit events and occasional high-cost conversions, so CSRD, SB-253, and SEC climate disclosure need both low-latency exclusions and batch-job cost visibility.
+
+### API Versioning Posture (ADR-0342)
+
+- Public API version model: YYYY-MM-DD carrier triplet via `Oyatie-Version` header, `/v/<YYYY-MM-DD>` URL prefix, and proto3 `oyatie_version` field for document, block, comment, sharing, export/import, embed, and lifecycle event contracts.
+- SDK semver model: major.minor.patch for editor SDKs, embed clients, and export/import clients.
+- Support window: last N=3 public API versions for at least 180 days, with export/import schema deprecation visible to tenant admins.
+- Per-tenant pinning supported: yes, so regulated tenants can pin document and export behavior during validation windows.
+- Internal-mesh exemption: yes; direct gRPC with drive, sheets, slides, workflow, and foundry remains exempt under ADR-0145 when the contract is internal-only.
+
 ## Bounded Contexts
 
 Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates). Eight primary BCs.
@@ -108,7 +138,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 | BC | Crate family | Purpose | Key entities |
 |---|---|---|---|
 | `document-store` | `oya-docs-document-store-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,rest,worker,sdk,app}` | Document persistence; metadata; content blobs; tenant-DEK envelope; legal hold | `Document`, `BlockTree`, `RetentionPolicyRef`, `LegalHoldRef` |
-| `collab-crdt` | `oya-docs-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-redis,worker,sdk,app}` | CRDT op stream; presence; cursor sync; conflict surfacing | `CrdtOp`, `PresenceSnapshot`, `CrdtMergeEngine`, `Conflict` |
+| `collab-crdt` | `oya-docs-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-valkey,worker,sdk,app}` | CRDT op stream; presence; cursor sync; conflict surfacing | `CrdtOp`, `PresenceSnapshot`, `CrdtMergeEngine`, `Conflict` |
 | `block-types` | `oya-docs-block-types-{kernel,domain,usecase,api,adapter,sdk,app}` | Block-type schema + renderers + sanitisation (paragraph, heading, list, table, image, embed, code, math, callout) | `Block`, `BlockKind`, `InlineStyle`, `RenderedBlock` |
 | `comments-and-suggestions` | `oya-docs-comments-and-suggestions-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,app}` | Comment threads + suggestion (track-changes) state machine + anchor stability across edits | `Comment`, `Thread`, `Suggestion`, `Anchor` |
 | `version-history` | `oya-docs-version-history-{kernel,domain,usecase,api,adapter,adapter-postgres,worker,app}` | Versioned snapshots + revert; CRDT op log compaction | `Version`, `Snapshot`, `RevertOp` |
@@ -150,7 +180,7 @@ JUSTIFICATION:
 
 Layer mapping table per BC (13-layer enum from ADR-0105; `usecase` per ADR-0106):
 
-| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-s3 | adapter-redis | adapter-pandoc | adapter-weasyprint | adapter-chromium | rest | worker | sdk | app |
+| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-s3 | adapter-valkey | adapter-pandoc | adapter-weasyprint | adapter-chromium | rest | worker | sdk | app |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `document-store` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | ✓ | ✓ | ✓ | ✓ |
 | `collab-crdt` | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | ✓ | — | — | — | — | ✓ | ✓ | ✓ |
@@ -170,7 +200,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `DocumentRepository` | `oya-docs-document-store-kernel` | `-adapter-postgres` | `PERSONAL_DOC_CONTENT` + `PROFESSIONAL_DOC_CONTENT` (per-context envelope encryption) |
 | `BlockBlobStore` | `oya-docs-document-store-kernel` | `-adapter-s3` | `PERSONAL_DOC_CONTENT` + `PROFESSIONAL_DOC_CONTENT` |
 | `CrdtMergeEngine` | `oya-docs-collab-crdt-kernel` | `-adapter` (Loro 1.x wrapping) | `PERSONAL_DOC_CONTENT` + `PROFESSIONAL_DOC_CONTENT` |
-| `PresenceBroadcast` | `oya-docs-collab-crdt-kernel` | `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `PresenceBroadcast` | `oya-docs-collab-crdt-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
 | `BlockSchemaRegistry` | `oya-docs-block-types-kernel` | `-adapter` | `INTERNAL_ONLY` |
 | `CommentRepository` | `oya-docs-comments-and-suggestions-kernel` | `-adapter-postgres` | `PII_IDENTIFYING` (commenter identity) |
 | `SuggestionStateMachine` | `oya-docs-comments-and-suggestions-kernel` | `-adapter-postgres` | `PERSONAL_DOC_CONTENT` + `PROFESSIONAL_DOC_CONTENT` |
@@ -282,7 +312,7 @@ Key parity gaps to close (ordered):
 2. **Per-block ACL** — Notion-class; Google Docs only has whole-doc + commented-range. **Differentiator vs Google Docs.**
 3. **Cross-document embedding via policy-bounded resolver** — workflow-studio canvases, sheets cells, slides decks. **Differentiator.**
 4. **Dual-context (Personal / Professional) isolation enforced structurally** — no competitor enforces context-separation in code; tenant-policy only. **Differentiator.**
-5. **OOXML import-export round-trip fidelity** — must hit best-effort tier per ADR-DOCS-0006; Microsoft Word Web parity target.
+5. **OOXML import-export round-trip fidelity** — must hit best-effort fidelity per ADR-DOCS-0006; Microsoft Word Web parity target.
 6. **PDF/A archival-grade export** — PDF/A-1b + PDF/A-2u per legal-evidence tenants; only Microsoft Word + LibreOffice/Collabora cover this today.
 7. **AI writing assist with EU AI Act conformance** — per ADR-DOCS-0005; refused at Cedar layer in HR-context per pack-eu.
 8. **WCAG 2.2 AA accessibility** — Notion + Coda are partial; Google Docs is the bar.
@@ -294,7 +324,7 @@ Key parity gaps to close (ordered):
 | Document-open (cold) p99 | ≤ 300ms | `cargo bench -p oya-docs-document-store-adapter-postgres -- doc_open_cold` |
 | Document-open (warm) p99 | ≤ 100ms | `cargo bench -p oya-docs-document-store-adapter-postgres -- doc_open_warm` |
 | Save p99 | ≤ 100ms | `cargo bench -p oya-docs-document-store-usecase -- save` |
-| Collab cursor sync p99 | ≤ 150ms | `cargo bench -p oya-docs-collab-crdt-adapter-redis -- cursor_sync` |
+| Collab cursor sync p99 | ≤ 150ms | `cargo bench -p oya-docs-collab-crdt-adapter-valkey -- cursor_sync` |
 | Search-within-doc p99 | ≤ 100ms | `cargo bench -p oya-docs-document-store-domain -- search_in_doc` |
 | Export PDF (50-page) p99 | ≤ 3s | `cargo bench -p oya-docs-export-import-adapter-weasyprint -- export_pdf_50p` |
 | Export DOCX p99 | ≤ 2s | `cargo bench -p oya-docs-export-import-adapter-pandoc -- export_docx` |
@@ -334,7 +364,7 @@ Sharding: documents partitioned by `(tenant_id, document_id_first_byte)`; commen
 | AC-ID | Criterion | Verification |
 |---|---|---|
 | AC-01 | Document create + initial block-tree write completes within p99 ≤ 100ms | `cargo bench` |
-| AC-02 | Round-trip byte-equality: load(emit(canvas-doc)) is byte-equal to the original for 100-doc golden corpus | `cargo nextest -p oya-docs-document-store-domain -- round_trip_byte_equality` |
+| AC-02 | Round-trip byte-equality: load(emit(canvas-doc)) is byte-equal to the original for 100-doc reference corpus | `cargo nextest -p oya-docs-document-store-domain -- round_trip_byte_equality` |
 | AC-03 | OOXML import → CRDT → OOXML export preserves >= 95% of original DOCX features on the Microsoft test corpus | `cargo nextest -p oya-docs-export-import-adapter-pandoc -- ooxml_roundtrip` |
 | AC-04 | Per-block ACL: a block marked `private` is never returned in a query by a principal lacking the per-block grant | `cargo nextest -p oya-docs-sharing-and-permissions-domain -- per_block_acl` |
 | AC-05 | Two concurrent editors making non-conflicting edits both observe each other's edits within p99 ≤ 150ms | E2E `tests/e2e/concurrent-editors.rs` |
@@ -384,4 +414,4 @@ Sharding: documents partitioned by `(tenant_id, document_id_first_byte)`; commen
 | ADR-DOCS-0003 | Export pipeline architecture (Pandoc + WeasyPrint default) | this µservice |
 | ADR-DOCS-0004 | ACL granularity (per-block; Notion-style) | this µservice |
 | ADR-DOCS-0005 | AI writing assist EU AI Act bounds | this µservice |
-| ADR-DOCS-0006 | DOCX import fidelity policy (best-effort tier) | this µservice |
+| ADR-DOCS-0006 | DOCX import fidelity policy (best-effort fidelity) | this µservice |

@@ -47,7 +47,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 |---|---|---|
 | 78 crates | `crates/oya-sites-*` | axis-sites |
 | Postgres schema migrations | `microservices/sites/iac/helm/postgres/migrations/` | axis-sites |
-| Helm charts | `microservices/sites/iac/helm/{postgres,redis,meilisearch,cert-manager,libvips-worker}` | ops-sre-reliability |
+| Helm charts | `microservices/sites/iac/helm/{postgres,valkey,meilisearch,cert-manager,libvips-worker}` | ops-sre-reliability |
 | Kustomize overlays | `microservices/sites/iac/kustomize/{base,overlays/pack-kr,overlays/pack-eu,overlays/pack-us,overlays/pack-us-healthcare}` | ops-sre-reliability |
 | OpenAPI / AsyncAPI / Proto contracts | `microservices/sites/contracts/` | axis-sites |
 | Cedar policies | `microservices/sites/policy/*.cedar` + `policy/*.md` | ops-security |

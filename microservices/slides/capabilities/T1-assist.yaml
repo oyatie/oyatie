@@ -1,14 +1,14 @@
 # Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
 # Capability T1 — Assist tier
 # Foundry-runtime gated; per-invocation risk-class evaluation + audit.
-# Per ADR-SLIDES-0006 + EU AI Act Art. 13 transparency + Art. 14 human oversight.
+# Per ADR-SLIDES-0006 + regional AI-risk Art. 13 transparency + Art. 14 human oversight.
 
-capability_tier: T1
+automation_risk_class: T1
 capability_name: slides-assist
 microservice: slides
 status: Accepted
 foundry_runtime_integration: required
-ai_act_risk_class_default: low_or_medium  # determined per-invocation
+risk_class_default: low_or_medium  # determined per-invocation
 authority: ADR-SLIDES-0006
 
 related_specs:
@@ -30,7 +30,7 @@ capabilities:
       - up to 5 design alternatives with brief explanation
     latency_p95_ms: 1500
     risk_class_default: low
-    ai_act_annex_iii_check: false  # design only; not employment/credit/legal/medical decision
+    auto_decision_risk_check: false  # design only; not employment/credit/legal/medical decision
     audit_emit: true  # every invocation Ed25519-sealed
     foundry_runtime_invocation: required
     human_oversight_required: false  # tenant-accept-or-discard; not auto-applied
@@ -48,7 +48,7 @@ capabilities:
       - delta spec + before/after preview
     latency_p95_ms: 1500
     risk_class_default: low
-    ai_act_annex_iii_check: false
+    auto_decision_risk_check: false
     audit_emit: true
     foundry_runtime_invocation: required
     human_oversight_required: false
@@ -64,7 +64,7 @@ capabilities:
       - refined text (preserving meaning)
     latency_p95_ms: 1500
     risk_class_default: low
-    ai_act_annex_iii_check: contextual  # marketing context → low; employment job posting → check Annex III
+    auto_decision_risk_check: contextual  # marketing context → low; employment job posting → check high-risk auto-decision
     audit_emit: true
     foundry_runtime_invocation: required
     human_oversight_required: true  # tenant must accept/discard
@@ -81,7 +81,7 @@ capabilities:
       - suggested alt-text (≤ 200 chars)
     latency_p95_ms: 2000
     risk_class_default: low
-    ai_act_annex_iii_check: contextual  # medical image → check Annex III medical-device subcontext
+    auto_decision_risk_check: contextual  # medical image → check high-risk auto-decision medical-device subcontext
     audit_emit: true
     foundry_runtime_invocation: required
     human_oversight_required: true
@@ -101,7 +101,7 @@ capabilities:
       - 1-line summary ≤ 100 chars
     latency_p95_ms: 1500
     risk_class_default: low
-    ai_act_annex_iii_check: false
+    auto_decision_risk_check: false
     audit_emit: true
     foundry_runtime_invocation: required
     human_oversight_required: false

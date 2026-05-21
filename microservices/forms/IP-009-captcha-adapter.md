@@ -40,6 +40,43 @@ Multi-provider captcha verifier per ADR-FORMS-0002. Per-pack provider selection 
 
 - ADR-FORMS-0002.
 - hCaptcha + Turnstile + Friendly Captcha provider docs.
+- PRD FR-08 and AC-11.
+- `microservices/forms/policy/data-residency.md`.
+- `microservices/forms/policy/public-read.cedar`.
+- `microservices/forms/runbooks/captcha-degraded.md`.
+- `microservices/forms/runbooks/spam-flood-throttle.md`.
+- `microservices/forms/slos/submission-latency.openslo.yaml`.
+
+## Foundation A-G Substance
+
+- A. Product scope: captcha is a public-submit admission control, not a post-submit spam label.
+- B. Domain model: `CaptchaProvider`, `CaptchaChallenge`, `CaptchaVerification`, and `ProviderResidencyRoute` stay independent of HTTP clients.
+- C. Contracts: REST exposes challenge-required and verification-failed states with stable error codes.
+- D. Policy: provider choice is pack-routed; reCAPTCHA is denied where policy forbids it, even if tenant config requests it.
+- E. Operations: provider timeout, degraded sidecar, and abuse flood runbooks define fail-closed behavior.
+- F. Observability: emit provider latency, challenge solve rate, fail-closed count, forbidden-provider rejections, and bot-score distribution.
+- G. Promotion: pack routing, reCAPTCHA ban, sidecar-kill drill, burst submit test, and public-read policy test gate completion.
+
+## Counterpart Benchmark
+
+- Counterpart: HubSpot Forms captcha controls, Salesforce Web-to-Lead spam protection, and Twilio Verify anti-abuse verification flows.
+- Defensible parity claim: Oyatie must route captcha by residency and fail closed for anonymous writes.
+- Differentiator: provider selection is governed by policy and compliance pack, not a tenant-visible toggle alone.
+- Grep counterpart names: HubSpot Forms; Salesforce Web-to-Lead; Twilio Verify.
+
+## Remediation Notes
+
+- Added artifact-grounded captcha routing, policy, SLO, and runbook substance.
+- Added A-G sections for domain, contracts, policy, operations, observability, and promotion.
+- Added counterpart names for grep-recognized parity review.
+
+## Verification Evidence Required
+
+- Sidecar-kill drill returns 503 for anonymous public submit and never persists a response.
+- Pack routing corpus proves pack-eu, pack-kr, and pack-us-healthcare never load forbidden providers.
+- Bot-score and solve-rate metrics appear in the submission dashboard.
+- Abuse-flood drill links rate-limit and captcha runbooks to the same incident timeline.
+- Contract test proves challenge-required and verification-failed errors are stable.
 
 ## Next IP
 

@@ -34,7 +34,7 @@ related_artifacts:
 autonomy_tier: T2
 # T2 = autonomous mutation given a human-originated trigger; default-deny policy gate.
 
-eu_ai_act:
+risk_class:
   scope: |
     T2-intra (response capture + workflow trigger + webhook fan-out): not an AI
     system; deterministic processing of human-originated submit. Not in scope of
@@ -126,7 +126,7 @@ cedar_policy_fragments:
   - microservices/forms/policy/public-read.cedar
 
 eval_set:
-  golden_inputs_path: microservices/forms/capabilities/eval/t2-auto-golden.jsonl
+  reference_inputs_path: microservices/forms/capabilities/eval/t2-auto-reference.jsonl
   pass_threshold: 0.999
   eval_metric: |
     Composite invariants (must hold over 1000-case corpus):

@@ -293,7 +293,7 @@ paths:
 
 components:
   securitySchemes:
-    oidcBearer: {type: openIdConnect, openIdConnectUrl: https://auth.oyatie.dev/.well-known/openid-configuration}
+    oidcBearer: {type: openIdConnect, openIdConnectUrl: 'https://auth.oyatie.dev/.well-known/openid-configuration'}
     tenantApiKey: {type: apiKey, in: header, name: X-Oyatie-Tenant-Api-Key}
 
   responses:

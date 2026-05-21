@@ -17,7 +17,7 @@ exit_gate: |
   sheets-xlsx-roundtrip-best-effort + sheets-range-acl-cedar-required +
   sheets-import-sandboxed-and-avscan-required CI lanes present in .github/branch-protection.yaml
   required_status_checks on dev and staging; release/sheets/{staging,production} pattern
-  protection live; XLSX best-effort round-trip drill passes (load 100 golden XLSX workbooks,
+  protection live; XLSX best-effort round-trip drill passes (load 100 reference XLSX workbooks,
   export, byte-compatible per fidelity tier); collab CRDT merge drill passes (10 concurrent
   users, no silent loss); Cedar per-seat gate drill passes; recalc 1M-cell drill passes
   (p95 ≤ 10s); formula-engine ≥ 400 functions corpus-verified against LibreOffice Calc reference
@@ -75,7 +75,7 @@ Naming justifications for the new crate families are in `microservices/sheets/PR
 - Workbook template marketplace — scheduled-for-distinct-tracked-work to a subsequent-to-M03-completion phase.
 - VBA / Apps-Script equivalent — explicitly excluded per ADR-SHEETS-0007 named-limit list; scheduled-for-distinct-tracked-work to subsequent-to-GA-tier-promotion T2 review.
 - Per-tenant branding (mid-render) — explicitly anti-pattern per `/specs/microservices/sheets.json` §anti_patterns.
-- Strict OOXML round-trip — explicitly scheduled-for-distinct-tracked-work per ADR-SHEETS-0007; best-effort tier only at M03.
+- Strict OOXML round-trip — explicitly scheduled-for-distinct-tracked-work per ADR-SHEETS-0007; best-effort fidelity only at M03.
 
 ## Implementation Plans
 
@@ -87,7 +87,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-002-cargo-workspace-cell-grid-kernel-domain.md`](IP-002-cargo-workspace-cell-grid-kernel-domain.md) | `oya-sheets-cell-grid-{kernel,domain}` crates: Workbook, Sheet, Cell, Range, Selection, ViewportState entities + pure cell-graph algebra | pending | axis-sheets + council-design-system | — |
 | [`IP-003-formula-engine-kernel-domain-400-functions.md`](IP-003-formula-engine-kernel-domain-400-functions.md) | `oya-sheets-formula-engine-{kernel,domain,usecase,api,adapter,sdk}` with ≥400-function library covering math/logical/lookup/statistical/financial/text/date/array; Excel-reference conformance corpus (LibreOffice Calc reference per ADR-SHEETS-0002) | pending | axis-sheets | IP-002 |
 | [`IP-004-recalc-engine-dep-graph-parallel.md`](IP-004-recalc-engine-dep-graph-parallel.md) | `oya-sheets-recalc-engine-{kernel,domain,usecase,api,adapter,worker,sdk}` — dep-graph builder + topological + parallel-task-graph (ADR-SHEETS-0004); 100k-cell ≤ 1s + 1M-cell ≤ 10s p95 | pending | axis-sheets | IP-003 |
-| [`IP-005-collab-crdt-loro-aligned-ws-0001.md`](IP-005-collab-crdt-loro-aligned-ws-0001.md) | `oya-sheets-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-loro,adapter-redis,worker,sdk}` — Loro 1.x CRDT merge + WebSocket gateway; align with workflow-studio ADR-WS-0001 | pending | axis-sheets | IP-004 |
+| [`IP-005-collab-crdt-loro-aligned-ws-0001.md`](IP-005-collab-crdt-loro-aligned-ws-0001.md) | `oya-sheets-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-loro,adapter-valkey,worker,sdk}` — Loro 1.x CRDT merge + WebSocket gateway; align with workflow-studio ADR-WS-0001 | pending | axis-sheets | IP-004 |
 | [`IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid.md`](IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid.md) | `oya-sheets-large-sheet-storage-{kernel,domain,usecase,api,adapter,adapter-arrow,adapter-parquet,adapter-s3}` per ADR-SHEETS-0003 | pending | axis-sheets | IP-001, IP-004 |
 | [`IP-007-cell-grid-adapter-postgres-and-materialized-views.md`](IP-007-cell-grid-adapter-postgres-and-materialized-views.md) | `oya-sheets-cell-grid-adapter-postgres` — workbook metadata + cell storage with materialized-view caches for hot ranges | pending | axis-sheets | IP-002 |
 | [`IP-008-formatting-pivot-charts-data-validation.md`](IP-008-formatting-pivot-charts-data-validation.md) | `oya-sheets-{formatting,pivot-tables,charts,data-validation}-*` crate families; custom Leptos canvas chart renderer | pending | axis-sheets + council-design-system | IP-003, IP-004 |
@@ -151,7 +151,7 @@ oya gate validate wasm-bundle-sri --microservice sheets
 |---|---|---|
 | Cell value + SUM | `cargo nextest run -p oya-sheets-formula-engine-domain --test test_sum_basic` | 100×100 grid SUM correct |
 | Formula-engine corpus | `cargo nextest run -p oya-sheets-formula-engine-domain --test test_excel_reference_corpus` | ≥ 400 functions; LibreOffice Calc reference behaviour matched |
-| XLSX best-effort round-trip | `cargo nextest run -p oya-sheets-import-export-domain --test test_xlsx_best_effort_roundtrip` | 100 golden XLSX workbooks; best-effort tier per ADR-SHEETS-0007 |
+| XLSX best-effort round-trip | `cargo nextest run -p oya-sheets-import-export-domain --test test_xlsx_best_effort_roundtrip` | 100 reference XLSX workbooks; best-effort fidelity per ADR-SHEETS-0007 |
 | Concurrent collab no-loss | `cargo nextest run -p oya-sheets-collab-crdt-domain --test test_no_silent_overwrite` | 10 concurrent users; CRDT merge applied; explicit conflict for overlap |
 | Per-range ACL hides PII | `cargo nextest run -p oya-sheets-sharing-acl-domain --test test_per_range_acl_hides_pii` | named-ACL Cedar policy enforced |
 | Cedar per-seat gate | `cargo nextest run -p oya-sheets-license-gate-cedar-domain --test test_per_seat_cedar` | seat-overage refuses workbook open; audit emitted |

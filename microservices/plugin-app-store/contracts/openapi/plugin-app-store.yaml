@@ -249,9 +249,9 @@ components:
         declared_data_classes:
           type: array
           items: { type: string }
-        vetting_badge:
+        trust_verdict:
           type: string
-          enum: [bronze, silver, gold, platinum]
+          enum: [reviewed, verified, attested, pack_bound]
         vetted_at: { type: string, format: date-time }
         pricing_model:
           type: string

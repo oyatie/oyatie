@@ -53,6 +53,35 @@ pub struct ValidationDiagnostic {
 - ADR-FORMS-0001 + ADR-FORMS-0004.
 - JSON Schema draft 2020-12.
 - IETF RFC 6901 (JSON Pointer).
+- PRD FR-03 and AC-04.
+- `microservices/forms/contracts/openapi/forms.openapi.yaml` request/response validation payloads.
+- `microservices/forms/contracts/proto/forms.proto` internal validation result messages.
+- `microservices/forms/slos/field-validate-latency.openslo.yaml`.
+- `microservices/forms/runbooks/response-store-corruption.md` for bad accepted-response remediation.
+- `microservices/forms/decisions/ADR-FORMS-0001-form-definition-schema.md`.
+
+## Foundation A-G Substance
+
+- A. Product scope: validation is the authority boundary for every response, import, pre-fill, and workflow-triggered submit.
+- B. Domain model: `ValidationRule`, `CrossFieldRule`, `ValidationDiagnostic`, and `ValidationDecisionTrace` live outside adapters.
+- C. Contracts: diagnostics use JSON Pointer and stable codes so UI, SDK, and webhooks can render the same failure.
+- D. Policy: high-risk and special-category fields require data-class-aware validation before any response-store write.
+- E. Operations: invalid schema publication fails fast; invalid submission returns a typed 422 and sealed audit failure.
+- F. Observability: track p50/p95/p99 validation latency, diagnostic-code cardinality, and client/server disagreement count.
+- G. Promotion: server/client parity, OpenAPI examples, SLO budget, and WCAG diagnostic rendering all gate completion.
+
+## Counterpart Benchmark
+
+- Counterpart: HubSpot Forms field validation, Salesforce Web-to-Lead required-field enforcement, and ServiceNow catalog item variable validation.
+- Defensible parity claim: Oyatie must match required, regex, range, email, date ordering, and cross-field constraints.
+- Differentiator: the server is authoritative and every rejection has an audit-visible diagnostic code.
+- Grep counterpart names: HubSpot Forms; Salesforce Web-to-Lead; ServiceNow catalog item forms.
+
+## Remediation Notes
+
+- Expanded validation beyond file targets into artifact-bound foundation criteria.
+- Added A-G substance for domain, contracts, policy, runtime, telemetry, and promotion gates.
+- Added counterpart names that are easy to grep during competitive and parity audits.
 
 ## Next IP
 

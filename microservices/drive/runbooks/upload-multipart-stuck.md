@@ -43,10 +43,10 @@ kubectl -n drive exec deploy/oya-drive-upload-rest -- \
 
 ```bash
 # Per-session state from Valkey (upload session in-flight)
-kubectl -n drive exec sts/oya-drive-redis-0 -- redis-cli \
+kubectl -n drive exec sts/oya-drive-valkey-0 -- valkey-cli \
   --scan --pattern 'upload-session:<tenant>:*' |
   head -5 |
-  xargs -I {} redis-cli HGETALL {}
+  xargs -I {} valkey-cli HGETALL {}
 ```
 
 Look for:

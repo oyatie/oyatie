@@ -31,7 +31,7 @@ Accepted — 2026-05-17.
 
 ## Context
 
-Slides supports per-object animations (entrance, emphasis, exit, motion-path) + slide-to-slide transitions (fade, slide, push, morph, none) per PRD FR-15 + FR-16. Animations are a competitive parity requirement: Google Slides, PowerPoint Web, Apple Keynote, Beautiful.ai, Canva all ship rich animation engines. Apple Keynote's **Magic Move** is the gold-standard "morph" transition.
+Slides supports per-object animations (entrance, emphasis, exit, motion-path) + slide-to-slide transitions (fade, slide, push, morph, none) per PRD FR-15 + FR-16. Animations are a competitive parity requirement: Google Slides, PowerPoint Web, Apple Keynote, Beautiful.ai, Canva all ship rich animation engines. Apple Keynote's **Magic Move** is the reference standard "morph" transition.
 
 Animations are also a known accessibility concern:
 - W3C WCAG 2.2 SC 2.3.3 Animation from Interactions (AAA): motion animation triggered by interaction can be disabled.

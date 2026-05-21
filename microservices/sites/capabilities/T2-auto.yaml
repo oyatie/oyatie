@@ -59,7 +59,7 @@ capabilities:
     latency_budget_p99_ms: 5000
     audit_event: AiPageBuildAccepted (Ed25519-sealed; payload — page id hash + build id + model id + prompt hash + output hash + EU AI Act classification + accepted_by user_id + reversibility window expiry)
     fallback_on_model_failure: fall back to T1 (block-level suggestions)
-    eu_ai_act_classification: limited-risk-default; high-risk-REFUSED for HR/legal/medical/employment/credit overlays
+    risk_classification: limited-risk-default; high-risk-REFUSED for HR/legal/medical/employment/credit overlays
     user_label: "AI is suggesting this page — review before accept; undo within 30s"
 
   - id: T2-sites-newsletter-from-collection
@@ -89,14 +89,14 @@ capabilities:
     latency_budget_p99_ms: 5000
     audit_event: SitesNewsletterBuildAccepted
     fallback_on_model_failure: fall back to rule-based
-    eu_ai_act_classification: limited-risk (commercial communication)
+    risk_classification: limited-risk (commercial communication)
     user_label: "AI drafted newsletter — review before send; undo within 30s"
 
 verification:
   - All T2 actions emit Cedar-evaluable principal/action/resource BEFORE acting.
   - All T2 actions emit audit-chain Ed25519-sealed events with EU AI Act classification field.
   - All T2 actions are labelled per Art. 50 + offer Art. 14 cancel control.
-  - All T2 actions are tenant-tier-gated: Cedar admits T2 only for tenant tiers ≥ pro.
+  - All T2 actions are tenant-tenant_class-gated: Cedar admits T2 only for tenant_class values ≥ pro.
   - All T2 actions respect tenant-isolation: cross-tenant prompt construction structurally forbidden.
   - HR/legal/medical/employment/credit overlays: T2 REFUSED at Cedar; pack-eu enforced strictly.
   - All T2 prompts are tenant-DEK-wrapped before transit; LLM provider sees ciphertext only via foundry-runtime private-inference channel.
