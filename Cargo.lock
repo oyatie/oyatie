@@ -1382,6 +1382,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-kms-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-kms-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-cloud-kms-adapter-openbao"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-kms-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "oya-cloud-kms-api"
 version = "0.1.0"
 dependencies = [
