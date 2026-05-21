@@ -53,7 +53,7 @@ fn key_create() -> KmsKeyCreate {
         hsm_partition_ref: "hsm/region-home/cell-region-home-a-001".to_string(),
         origin: KmsKeyOrigin::OyatieManaged,
         usage: KmsKeyUsage::EncryptDecrypt,
-        hsm_validation: HsmValidation::KcmvpFips1403Level3,
+        hsm_validation: HsmValidation::PackEnhancedFips1403Level3,
         residency: ResidencyClass::StrictHomeRegion,
         data_class: DataClass::PiiIdentifying,
         state: KmsKeyState::Enabled,

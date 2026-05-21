@@ -1306,7 +1306,7 @@ mod tests {
             HsmValidation::CommonCriteriaEal4,
             HsmValidation::PciHsm,
         ] {
-            let global_error = KmsKey::new(KmsKeyCreate {
+            let profile_error = KmsKey::new(KmsKeyCreate {
                 resource_id: format!(
                     "oya:cloud:{GLOBAL_REGION}:{GLOBAL_TENANT}:kms-key:object-key"
                 ),
@@ -1323,7 +1323,7 @@ mod tests {
             assert_eq!(profile_error, CloudKmsError::HsmValidationDenied);
         }
 
-        let global = KmsKey::new(KmsKeyCreate {
+        let baseline = KmsKey::new(KmsKeyCreate {
             resource_id: format!("oya:cloud:{GLOBAL_REGION}:{GLOBAL_TENANT}:kms-key:object-key"),
             key_id: format!("kms/{GLOBAL_REGION}/{GLOBAL_TENANT}/object-key"),
             tenant_id: GLOBAL_TENANT.to_string(),

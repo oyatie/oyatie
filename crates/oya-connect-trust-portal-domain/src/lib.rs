@@ -1220,11 +1220,11 @@ mod tests {
     }
 
     fn cross_region_residency_class() -> ResidencyClass {
-        ResidencyClass::HomeWithFailover
+        ResidencyClass::HomeWithRecoveryFailover
     }
 
     fn strict_residency_class() -> ResidencyClass {
-        ResidencyClass::StrictHome
+        ResidencyClass::StrictHomeRegion
     }
 
     fn platform_dsr_bundle() -> (DsrRequest, DsrCompletionRecord, ErasureProof) {

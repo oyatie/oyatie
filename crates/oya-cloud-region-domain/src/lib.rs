@@ -916,7 +916,7 @@ mod tests {
         let cell_id = CellId::new("cell-region-alpha1-a-001").expect("fixture cell id is valid");
 
         let error = catalog
-            .binding_for_cell("ten_global".to_string(), pack_residency(), &cell_id)
+            .binding_for_cell("ten_global".to_string(), residency_class(), &cell_id)
             .expect_err("binding must not ignore the cell residency manifest");
 
         assert_eq!(error, CloudRegionError::CellResidencyDenied);
