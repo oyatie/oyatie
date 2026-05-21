@@ -513,19 +513,21 @@
   "oss_stewardship_class_overrides": [],
   "iac_module_invocations": [],
   "sharding_automation": {
-    "autosharding_mode": "not_applicable_registry_authority",
+    "autosharding": "control_plane_driven",
     "auto_rebalance": {
       "enabled": false,
-      "reason": "cell-lifecycle does not auto-rebalance itself; it triggers cell-rebalancer during drain."
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
     },
     "dynamic_sharding": {
       "enabled": false,
-      "reason": "cell count grows slowly and registry history is Postgres-partitioned, not dynamically split by this service."
-    },
-    "drain_rebalance_trigger": {
-      "enabled": true,
-      "target_microservice": "cell-rebalancer",
-      "receipt_required": true
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
     }
   },
   "supported_oses": [

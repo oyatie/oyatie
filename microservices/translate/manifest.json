@@ -452,6 +452,24 @@
     "cell_placement_class": "Tier-3",
     "notes": "Translation requests, document localization, TM lookups, and external MT provider calls drive capacity more than tenant seat count."
   },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
   "dr": {
     "rto_p99_seconds": 2100,
     "rpo_p99_seconds": 300,

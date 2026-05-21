@@ -307,22 +307,19 @@
   "sharding_automation": {
     "autosharding": "control_plane_driven",
     "auto_rebalance": {
-      "enabled": true,
+      "enabled": false,
       "trigger_load_skew_threshold_percent": 30,
       "honors_residency": true,
       "honors_compliance_packs": true,
-      "audit_chain_emit": true,
-      "executor_microservice": "cell-rebalancer",
-      "blast_radius_max_tenants_per_job": 100
+      "audit_chain_emit": true
     },
     "dynamic_sharding": {
-      "enabled": true,
+      "enabled": false,
       "hot_split_threshold_p99_ms": 50,
       "hot_split_utilization_threshold_percent": 80,
       "cold_merge_utilization_threshold_percent": 20,
       "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true,
-      "execution_boundary": "within-cell sharding surfaces; cell-rebalancer handles across-cell tenant migration only"
+      "audit_chain_emit": true
     }
   },
   "supported_oses": [
