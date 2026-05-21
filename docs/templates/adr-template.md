@@ -16,6 +16,7 @@ related:
 adrs_cited:
   - ADR-0056  # BNF v4.1 + layer enum
   - ADR-0057  # LEAN checks
+  - ADR-0346  # oya verify --ci-required full CI mirror pre-push contract
 doc_status: published
 ---
 
@@ -120,6 +121,7 @@ and cite the integration point in the affected µservice's PRD.
 
 ### Operational
 - CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
+- ADR-0346 pre-push contract: `./bin/oya verify --ci-required` is the canonical local pre-push verifier; it MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step before returning success.
 
 ---
 
@@ -175,5 +177,6 @@ For each alternative:
 - oyatie memory: `feedback_<slug>.md` (override rationale)
 - ADR-0056 BNF v4.1 (naming authority)
 - ADR-0057 LEAN checks (cross-vertical enforcement)
+- ADR-0346 `oya verify --ci-required` full CI mirror pre-push contract
 - Related oyatie ADRs: list concrete ADR identifiers, or state `-`
 - Issues: `Refs #N`, `Closes #N`
