@@ -41,7 +41,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 |---|---|---|
 | 44 crates | `crates/oya-calendar-*` | axis-calendar |
 | Postgres schema migrations | `microservices/calendar/iac/helm/postgres/migrations/` | axis-calendar |
-| Helm charts | `microservices/calendar/iac/helm/{postgres,redis,timezone-data}` | ops-sre-reliability |
+| Helm charts | `microservices/calendar/iac/helm/{postgres,valkey,timezone-data}` | ops-sre-reliability |
 | Kustomize overlays | `microservices/calendar/iac/kustomize/{base,overlays/pack-kr}` | ops-sre-reliability |
 | OpenAPI / AsyncAPI / Proto contracts | `microservices/calendar/contracts/` | axis-calendar |
 | Cedar policies | `microservices/calendar/policy/*.cedar` | ops-security |
@@ -57,7 +57,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 | CS-02 | event-store -adapter-postgres + RLS schema | depends CS-01 | A |
 | CS-03 | event-store rest + worker + sdk + app | depends CS-02 | A |
 | CS-04 | recurrence-engine kernel..app (6 crates) | depends CS-01 | B |
-| CS-05 | availability-resolver kernel..adapter-redis + rest + worker + app (9 crates) | depends CS-01 + CS-04 | B |
+| CS-05 | availability-resolver kernel..adapter-valkey + rest + worker + app (9 crates) | depends CS-01 + CS-04 | B |
 | CS-06 | room-booking kernel..rest + app (7 crates) | depends CS-01 | B |
 | CS-07 | invitation-flow kernel..worker + app (7 crates) | depends CS-01 + mail µservice | C |
 | CS-08 | ics-import-export kernel..adapter-icalendar + adapter-caldav + rest + app (9 crates) | depends CS-01 + CS-04 | C |

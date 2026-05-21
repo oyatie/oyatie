@@ -24,7 +24,7 @@ idempotent under backpressure. Per PRD §"Performance NFR".
 
 | Path | Action |
 |---|---|
-| `src/crates/oya-messenger-read-receipt-tracker-{kernel,domain,usecase,api,adapter-redis,worker,sdk,app}/...` | create |
+| `src/crates/oya-messenger-read-receipt-tracker-{kernel,domain,usecase,api,adapter-valkey,worker,sdk,app}/...` | create |
 | `tests/read_receipt_coalesce.rs` | create |
 
 ## Code Shape
@@ -63,3 +63,57 @@ cargo nextest run --test read_receipt_coalesce
 ## Next IP
 
 [`IP-011-rest-api-surface.md`](IP-011-rest-api-surface.md)
+
+## Wave 15 substance conversion — read receipt tracker
+
+### §A Problem
+
+Read receipts look small, but they are one of the highest-fanout messenger operations and can reveal context if
+personal/work boundaries are ignored.
+This IP closes the per-recipient last-read state and coalesced fanout gap.
+
+### §B Approach
+
+Implement a read-receipt bounded context with Valkey-backed state and a worker that coalesces fanout in 250ms
+windows.
+The domain stores last-read ids per tenant, channel/direct-conversation, recipient, and context.
+
+### §C Deliverables
+
+- `src/crates/oya-messenger-read-receipt-tracker-{kernel,domain,usecase,adapter-valkey,worker}/...`
+- `tests/read_receipt_coalesce.rs`
+- metrics tied to `slos/read-receipt-fanout.openslo.yaml`
+
+### §D Implementation
+
+1. Validate recipient membership before accepting a receipt.
+2. Store monotonic last-read message ids and reject backwards movement unless replay-marked.
+3. Coalesce receipts by `(tenant_id, channel_id)` every 250ms.
+4. Publish fanout only to channel/DM peers allowed by Cedar.
+5. Drop with metric under queue saturation rather than block message send.
+6. Emit audit evidence for compliance-read receipt export where required.
+
+### §E Acceptance
+
+Tests must prove 1000 receipts coalesce to one fanout, p99 fanout meets the SLO, backwards receipt ids are refused,
+and cross-context receipts are denied.
+
+### §F Evidence
+
+Local anchors: `slos/read-receipt-fanout.openslo.yaml`, `policy/tenant-scope.cedar`,
+`policy/personal-dm-scope.cedar`, `runbooks/websocket-storm.md`.
+
+### §G Counterparts
+
+Teams and WhatsApp anchor read-receipt expectations, Slack provides partial enterprise semantics, and Discord
+usually omits them; oyatie closes parity with controlled high-fanout receipts.
+
+## DR posture (per ADR-0343)
+
+- Authority: ADR-0343.
+- Trigger evidence: `microservices/messenger/IP-010-read-receipt-tracker.md` matched `SLO, p99`.
+- Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/messenger/manifest.json`.
+- Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
+- Backup substrate: `postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Runtime evidence: `microservices/messenger/slos/attachment-scan-freshness.openslo.yaml`, `microservices/messenger/slos/mention-fanout.openslo.yaml`, `microservices/messenger/slos/message-send-availability.openslo.yaml`, `microservices/messenger/slos/message-send-latency.openslo.yaml`, `microservices/messenger/policy/auditor-scope.cedar`.

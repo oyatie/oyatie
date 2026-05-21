@@ -11,59 +11,73 @@ owner: axis-calendar
 acceptance_lanes: [cargo-nextest, oya-governance-layer-correctness, oya-governance-dual-context-correctness]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-006: Availability resolver
 
-# IP-006: availability-resolver — kernel + domain + usecase + adapter-redis + rest
+## A. Problem
+Cross-tenant scheduling is only defensible if free/busy answers never expose event titles, attendees, locations, or personal/professional context details.
 
-## Intent
+## B. Approach
+Implement the manifest-named availability resolver kernel plus Valkey adapter as a minimum-necessary projection service. Cedar evaluates the caller and grant before cache or repository access; cache keys include tenant, context, attendee bucket, window, and policy version.
 
-Implement the availability-resolver BC per PRD §"Bounded Contexts"
-row 3. Cross-tenant free/busy with Cedar-gated minimum-necessary
-projection (PRD AC-02). Valkey 8.1 (Redis wire-compat) cache (per-tenant key prefix;
-`allkeys-lru` eviction).
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `catalog/oya-calendar-availability-resolver-kernel.yaml` | Kernel catalog anchor. |
+| `catalog/oya-calendar-availability-resolver-adapter-valkey.yaml` | Valkey adapter catalog anchor. |
+| `src/crates/oya-calendar-availability-resolver-kernel/` | Planned port/value crate named by manifest/catalog. |
+| `src/crates/oya-calendar-availability-resolver-adapter-valkey/` | Planned cache adapter path named by manifest/catalog. |
+| `slos/freebusy-query-latency.openslo.yaml` | Latency and correctness promotion evidence. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Define `FreeBusyProjection` and `CrossTenantInviteGrant` types with no raw-event fields.
+2. Implement policy-first query orchestration through tenant and context claims.
+3. Add cache read/write with policy-versioned keys and bounded TTL.
+4. Add remote-tenant outage behavior returning explicit unknown status, not leaked metadata.
+5. Add tests for personal-to-professional isolation and cross-tenant minimum-necessary disclosure.
+6. Add latency tests for 10, 50, and 100-attendee windows.
+7. Wire runbook hooks for cache rebuild and permission drift.
 
-5 crates: `-kernel`, `-domain`, `-usecase`, `-adapter-redis`, `-rest`.
+## E. Acceptance
+- `cargo nextest run -p oya-calendar-availability-resolver-kernel` passes.
+- `cargo nextest run -p oya-calendar-availability-resolver-adapter-valkey` passes.
+- `cargo run -p oya-dev-cli -- gate validate dual-context-correctness --microservice calendar` passes.
+- SLO check resolves `slos/freebusy-query-latency.openslo.yaml`.
+- Runbook closure uses `runbooks/availability-cache-rebuild.md` and `runbooks/shared-cal-permission-drift.md`.
 
-## Concrete File Targets
+## F. Evidence
+- PRD FR-03 and FR-10: `microservices/calendar/PRD.md`.
+- Policy: `policy/event-isolation.md`, `policy/public-read.cedar`, `policy/tenant-scope.cedar`.
+- Tutorial: `tutorials/configure-freebusy-acl-cross-tenant-interview.md`.
+- Counterpart matrix: `feature-parity-matrix-2026-05-20.md`.
 
-| Path | Action | Description |
-|---|---|---|
-| `microservices/calendar/src/crates/oya-calendar-availability-resolver-kernel/` | create | FreeBusyProjector + CrossTenantInviteResolver port traits |
-| `microservices/calendar/src/crates/oya-calendar-availability-resolver-domain/` | create | minimum-necessary projection invariant |
-| `microservices/calendar/src/crates/oya-calendar-availability-resolver-usecase/` | create | query-freebusy orchestrator |
-| `microservices/calendar/src/crates/oya-calendar-availability-resolver-adapter-redis/` | create | Valkey cache backend |
-| `microservices/calendar/src/crates/oya-calendar-availability-resolver-rest/` | create | REST handler |
+## G. Counterpart comparison
+Google freebusy and Microsoft getSchedule set the baseline. Cal.com and Calendly cover booking availability but not tenant-policy projection. Oyatie's required counterpart advantage is Cedar-gated free/busy with explicit unknown/degraded states and no cross-context raw-event leakage.
 
-## Acceptance Gates
+## H. Foundation delivery expansion
+- Deliverable detail: define free/busy projection records that omit title, location, attendee list, and description.
+- Deliverable detail: model `Unknown`, `Unavailable`, `Busy`, and `Tentative` states separately.
+- Deliverable detail: cache keys include tenant, context, subject bucket, query window, and policy version.
+- Deliverable detail: resolver evaluates Cedar before cache lookup to avoid policy-bypass hits.
+- Deliverable detail: remote tenant outages return unknown/degraded status, not inferred private availability.
+- Deliverable detail: latency probes cover small, medium, and 100-attendee windows.
+- Deliverable detail: cache rebuild logic emits permission-drift evidence.
+- Deliverable detail: Slack shared availability and channel scheduling are explicit interop pressure for this projection.
 
-```bash
-cargo nextest run -p oya-calendar-availability-resolver-domain -- cross_tenant_minimum_necessary
-cargo nextest run -p oya-calendar-availability-resolver-domain -- context_isolation
-cargo run -p oya-dev-cli -- gate validate dual-context-correctness --microservice calendar
-```
+## I. Acceptance expansion
+- Acceptance detail: free/busy fixtures must prove raw event fields never appear in projections.
+- Acceptance detail: cross-tenant tests must pass only with a valid invite grant.
+- Acceptance detail: cache tests must invalidate on policy-version changes.
+- Acceptance detail: outage tests must prove remote failures do not leak whether a hidden event exists.
+- Acceptance detail: dual-context tests must isolate personal and work calendars.
+- Acceptance detail: SLO tests must include latency and correctness dimensions.
+- Acceptance detail: runbooks must cover cache rebuild and permission drift separately.
+- Acceptance detail: Slack/Google/Microsoft comparisons must be backed by projection privacy evidence.
 
-## Test Plan
-
-- PRD AC-02 — cross-tenant query returns ONLY free/busy projection
-  (no titles / attendees / locations).
-- PRD AC-07 — Personal-context details NEVER appear in
-  Professional-context availability queries.
-- Cache hit ratio > 80% (PRD §Performance Targets).
-- Performance: cross-tenant p99 ≤ 500ms (1k attendees per PRD); 
-  per problem-statement target free/busy ≤ 200ms p99 for 1k attendees.
-
-## Halt Conditions
-
-- PRD AC-02 / AC-07 test fails — block (privacy invariant).
-
-## Next IP
-
-[`IP-007-room-booking.md`](IP-007-room-booking.md)
-
-## References
-
-- ADR-0105; ADR-0131; ADR-0140 (retired per ADR-0145) (Cedar).
-- PRD-calendar AC-02 + AC-07.
-- Valkey 8.1 (Redis wire-compat) — `redis.io`.
+## J. Evidence expansion
+- Evidence detail: capture nextest output for resolver kernel and Valkey adapter.
+- Evidence detail: capture dual-context gate output for calendar.
+- Evidence detail: capture SLO resolution for `freebusy-query-latency`.
+- Evidence detail: cite `tutorials/configure-freebusy-acl-cross-tenant-interview.md` for user-visible setup.
+- Evidence detail: cite `runbooks/availability-cache-rebuild.md` for cache repair.
+- Evidence detail: cite `runbooks/shared-cal-permission-drift.md` for access drift.
+- Evidence detail: cite Slack as collaboration-calendar pressure that justifies explicit minimum-necessary projection.

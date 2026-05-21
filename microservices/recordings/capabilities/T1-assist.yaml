@@ -81,7 +81,7 @@ pack_overrides:
   pack-us-financial:
     transcript_retention_floor: 5y per MiFID II 16(7) / SEC 17a-4 / FINRA 4511
   pack-eu:
-    eu_ai_act_classification: limited_risk (transcript + summary) per ADR-RECORDINGS-0006
+    risk_classification: limited_risk (transcript + summary) per ADR-RECORDINGS-0006
     transparency_obligation: must-label-as-AI-generated per Art. 50; evidence_topic record per Art. 13
   pack-kr:
     kr_pipa_art28_consent: tenant-admin opt-in required
@@ -104,9 +104,9 @@ cedar_policy_fragments:
   - microservices/recordings/policy/cedar/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/recordings/capabilities/eval/t1-assist-golden.jsonl
+  baseline_inputs_path: microservices/recordings/capabilities/eval/t1-assist-baseline.jsonl
   pass_threshold:
-    transcript_wer:        0.08    # ≤ 8 % WER on multilingual golden set
+    transcript_wer:        0.08    # ≤ 8 % WER on multilingual baseline set
     diarization_der:       0.12    # ≤ 12 % diarization error rate
     pii_redaction_recall:  0.95
     summary_faithfulness:  0.92    # Likert vs human rater

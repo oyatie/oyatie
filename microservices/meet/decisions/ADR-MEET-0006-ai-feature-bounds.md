@@ -102,7 +102,7 @@ meet µservice classifies its AI capabilities under EU AI Act risk tiers as foll
 9. **Evidence + audit**
    - Every AI capability output emits to its `evidence_topic` per `capabilities/*.yaml`.
    - Audit-chain seal on every output_hash + capability_version.
-   - Per-version eval-set golden inputs at `capabilities/eval/`.
+   - Per-version eval-set baseline inputs at `capabilities/eval/`.
 
 10. **Refresh cadence**
     - This ADR re-reviewed annually by council-privacy + axis-meet + axis-foundry-runtime.

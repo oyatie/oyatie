@@ -11,7 +11,7 @@ metadata:
     owner_team: axis-meet
 spec:
   description: |
-    Transcription Word Error Rate (WER) on continuous synthetic golden-set
+    Transcription Word Error Rate (WER) on continuous synthetic baseline-set
     evaluation against LibriSpeech-test + CommonVoice baseline. A "good"
     sample is one whose WER is ≤ Whisper-large published baseline + 5%
     margin (regression bound). Reference: OpenAI Whisper paper + HELM.
@@ -40,4 +40,4 @@ spec:
   budgetingMethod: Occurrences
   objectives:
     - target: 0.95
-      displayName: "≥ 95% of golden-set samples within WER bound"
+      displayName: "≥ 95% of baseline-set samples within WER bound"

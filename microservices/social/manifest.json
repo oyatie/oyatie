@@ -6,14 +6,14 @@
   "bounded_contexts": [
     {
       "name": "social",
-      "description": "Bounded context 'social' within social (data plane)",
+      "description": "Bounded context 'social' within social (data plane); includes short-form video flavor absorbed from retired shorts per ADR-0334",
       "crates": [
         "oya-social-app",
         "oya-social-content-moderation-adapter-clamav",
         "oya-social-content-moderation-adapter-opswat",
         "oya-social-content-moderation-kernel",
         "oya-social-federation-gateway-adapter-activitypub",
-        "oya-social-feed-timeline-adapter-redis",
+        "oya-social-feed-timeline-adapter-valkey",
         "oya-social-feed-timeline-kernel",
         "oya-social-follow-graph-adapter-postgres",
         "oya-social-follow-graph-kernel",
@@ -26,7 +26,18 @@
         "oya-social-user-profile-adapter-postgres",
         "oya-social-user-profile-domain",
         "oya-social-user-profile-kernel",
-        "oya-social-user-profile-rest"
+        "oya-social-user-profile-rest",
+        "oya-social-short-video-upload-kernel",
+        "oya-social-short-video-transcode-kernel",
+        "oya-social-short-video-transcode-adapter-ffmpeg",
+        "oya-social-short-video-storage-adapter-s3",
+        "oya-social-short-video-storage-adapter-cloudfront",
+        "oya-social-audio-track-library-adapter-meilisearch",
+        "oya-social-copyright-claim-kernel",
+        "oya-social-copyright-claim-adapter-postgres",
+        "oya-social-drm-adapter-widevine",
+        "oya-social-drm-adapter-fairplay",
+        "oya-social-drm-adapter-playready"
       ]
     }
   ],
@@ -53,19 +64,19 @@
       "tier": "T0",
       "name": "composer-suggest-and-hashtag-completion",
       "file": "microservices/social/capabilities/T0-suggest.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "caption-and-alt-text-and-summary",
       "file": "microservices/social/capabilities/T1-assist.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "content-moderation-classifier-and-ranking-and-ads-stub",
       "file": "microservices/social/capabilities/T2-auto.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -116,6 +127,55 @@
       "target": "0.95",
       "sli": "sum(rate(oya_social_search_people_duration_seconds_bucket{le=\"0.3\"}[5m]))",
       "file": "microservices/social/slos/search-people-latency.openslo.yaml"
+    },
+    {
+      "name": "social-short-video-feed-load-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_social_short_video_feed_render_duration_seconds_bucket{le=\"0.25\"}[5m]))",
+      "absorbed_from": "shorts/feed-load-latency",
+      "absorbed_via": "ADR-0334"
+    },
+    {
+      "name": "social-short-video-start-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_social_short_video_start_duration_seconds_bucket{le=\"0.4\"}[5m]))",
+      "absorbed_from": "shorts/video-start-latency",
+      "absorbed_via": "ADR-0334"
+    },
+    {
+      "name": "social-short-video-transcode-throughput",
+      "target": "0.95",
+      "sli": "sum(rate(oya_social_short_video_transcode_duration_seconds_bucket{le=\"30\"}[5m]))",
+      "absorbed_from": "shorts/transcode-throughput",
+      "absorbed_via": "ADR-0334"
+    },
+    {
+      "name": "social-short-video-auto-caption-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_social_short_video_caption_generation_video_duration_ratio_bucket{le=\"0.3\"}[5m]))",
+      "absorbed_from": "shorts/auto-caption-latency",
+      "absorbed_via": "ADR-0334"
+    },
+    {
+      "name": "social-short-video-copyright-claim-match-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_social_short_video_fingerprint_match_duration_seconds_bucket{le=\"2\"}[5m]))",
+      "absorbed_from": "shorts/copyright-claim-match-latency",
+      "absorbed_via": "ADR-0334"
+    },
+    {
+      "name": "social-short-video-drm-license-issuance-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_social_short_video_drm_license_duration_seconds_bucket{le=\"0.15\"}[5m]))",
+      "absorbed_from": "shorts/drm-license-issuance-latency",
+      "absorbed_via": "ADR-0334"
+    },
+    {
+      "name": "social-short-video-like-action-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_social_short_video_like_action_duration_seconds_bucket{le=\"0.05\"}[5m]))",
+      "absorbed_from": "shorts/like-action-latency",
+      "absorbed_via": "ADR-0334"
     }
   ],
   "ips": [
@@ -151,13 +211,13 @@
     },
     {
       "id": "IP-006-feed-timeline-bc",
-      "title": "IP-006: feed-timeline BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + rest + sdk + app)",
+      "title": "IP-006: feed-timeline BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + rest + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-006-feed-timeline-bc.md"
     },
     {
       "id": "IP-007-reactions-bc",
-      "title": "IP-007: reactions BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + sdk)",
+      "title": "IP-007: reactions BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-007-reactions-bc.md"
     },
@@ -169,13 +229,13 @@
     },
     {
       "id": "IP-009-trending-topics-bc",
-      "title": "IP-009: trending-topics BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + sdk)",
+      "title": "IP-009: trending-topics BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-009-trending-topics-bc.md"
     },
     {
       "id": "IP-010-notifications-bc",
-      "title": "IP-010: notifications BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + websocket + sdk + app)",
+      "title": "IP-010: notifications BC (kernel → domain → usecase → adapter-postgres + adapter-valkey + worker + websocket + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-010-notifications-bc.md"
     },
@@ -287,12 +347,34 @@
       "title": "Cqrs Read Replicas",
       "scope": "repo",
       "file": "docs/decisions/ADR-0172-cqrs-read-replicas.md"
+    },
+    {
+      "id": "ADR-0330",
+      "title": "Tenant Class Demo Trial Vs Paid Composable Billing Components",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md"
+    },
+    {
+      "id": "ADR-0334",
+      "title": "Shorts Microservice Merged Into Social",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0334-shorts-microservice-merged-into-social.md"
+    }
+  ],
+  "absorbed_microservices": [
+    {
+      "name": "shorts",
+      "absorbed_on": "2026-05-21",
+      "wave": "Wave 15O",
+      "authority_adr": "docs/decisions/ADR-0334-shorts-microservice-merged-into-social.md",
+      "retired_marker": "microservices/shorts/RETIRED.md",
+      "media_flavor": "short_video (TikTok-class)"
     }
   ],
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -313,5 +395,158 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "social is a BNF v4.1 kebab-case microservice slug; generated names follow oya-social-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "capability_profiles": [
+    "T0",
+    "T1",
+    "T2"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "eu-ai-act",
+    "soc2",
+    "iso27001",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "owner_team": "axis-social",
+  "service_classification": "hero-product",
+  "data_classification": "PII_IDENTIFYING, AUTHENTICATION, AUDIT",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "eu-ai-act",
+    "soc2",
+    "iso27001",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "messenger",
+    "identity",
+    "cell",
+    "tenancy",
+    "observability",
+    "audit-chain",
+    "detection",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.22,
+    "baseline_ram_per_tenant": 512,
+    "storage_per_tenant": 20,
+    "connections_per_tenant": {
+      "valkey": 6,
+      "postgres": 4,
+      "outbound_http": 8
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-3",
+    "notes": "Feed generation, follow graph reads, notifications, social search, and moderation create higher CPU/cache pressure than community; short-video support raises storage but remains product-tier."
+  },
+  "dr": {
+    "rto_p99_seconds": 3600,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "valkey_cluster",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/dr-failover.md",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Tier 2 because social is a first-party application surface for profile, feed, moderation, federation, and short-video workflows. It is data-heavy and safety-sensitive, but the docs do not place tenant-authored code execution or foundation key custody in this service.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/social/PRD.md",
+    "microservices/social/IP-006-feed-timeline-bc.md",
+    "microservices/social/IP-011-content-moderation-bc.md",
+    "microservices/social/runbooks/feed-cache-rebuild.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/social/contracts/openapi/social.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/social/contracts/asyncapi/social-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/social/contracts/proto/social.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "valkey",
+    "cedar",
+    "kafka",
+    "opentelemetry",
+    "opensearch"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "dns",
+      "version_pin": "v1"
+    }
+  ]
 }

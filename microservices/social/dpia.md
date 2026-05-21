@@ -158,7 +158,7 @@ DPIA is mandatory pre-deployment. This document is the canonical DPIA reviewed b
 | R-11 | Four-eyes + audit-chain + tenant onboarding disclosure | M |
 | R-12 | Pack-router Cedar enforces; CI lane validates Helm pack-pinning | L |
 | R-13 | EU AI Act Art. 9-15 risk-management; per-classifier evaluation set; Art. 50 transparency label; bias-audit pipeline; appeal workflow | M (residual unavoidable in any ranking system; mitigated by transparency + appeal) |
-| R-14 | Appeal workflow within 7 days; human reviewer on appeal; per-tenant override; classifier version evidence record + golden-set eval per release | M |
+| R-14 | Appeal workflow within 7 days; human reviewer on appeal; per-tenant override; classifier version evidence record + reference-set eval per release | M |
 | R-15 | Separate age-attestations table; Cedar-restricted access; LEAN lane verifies isolation | L |
 | R-16 | foundry-guardrails sybil detector; per-author influence cap in trending; tenant-admin pin/unpin | M |
 | R-17 | Peer allowlist; HTTP Signature verification; per-peer rate limit | L |

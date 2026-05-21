@@ -95,12 +95,12 @@ Per-cell envelope: Postgres primary handles ≤ 5000 meeting-creates/sec at HA-R
 ## Valkey Sizing (lobby + presence + signaling session state)
 
 ```
-redis_ops_per_sec   = P_concurrent_participants / 5 (1 heartbeat per 5s during active session)
-redis_memory_bytes  = P_concurrent_participants × 600 (per-participant keyset)
-redis_shard_count   = ceil(redis_ops_per_sec / 100_000)
+valkey_ops_per_sec   = P_concurrent_participants / 5 (1 heartbeat per 5s during active session)
+valkey_memory_bytes  = P_concurrent_participants × 600 (per-participant keyset)
+valkey_shard_count   = ceil(valkey_ops_per_sec / 100_000)
 ```
 
-| Tier | redis_ops_per_sec | Shards | Memory |
+| Tier | valkey_ops_per_sec | Shards | Memory |
 |---|---|---|---|
 | XS | ~ 1.2k | 1 | ~ 4 MB |
 | S | ~ 6k | 1 | ~ 20 MB |
@@ -233,6 +233,6 @@ indexer_workers          = ceil(transcript_docs_per_day / 5000)
 - Whisper.cpp ops: `github.com/ggerganov/whisper.cpp`.
 - faster-whisper: `github.com/SYSTRAN/faster-whisper`.
 - Meilisearch ops: `docs.meilisearch.com`.
-- Valkey Cluster ops: `redis.io/docs/management/scaling/`.
+- Valkey Cluster ops: `valkey.io/docs/management/scaling/`.
 - gVisor ops: `gvisor.dev/docs/user_guide/`.
 - SRS RTMP ops: `github.com/ossrs/srs/wiki`.

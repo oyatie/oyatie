@@ -4,7 +4,7 @@
   "scanned_files": 94,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -48,7 +48,7 @@
             },
             {
               "line": 84,
-              "excerpt": "| Notification fanout (10k followers) | \u2264 200ms | \u2264 1s | \u2264 2s | \u2264 5s | per-recipient async via Valkey Streams (Redis wire-compat) |"
+              "excerpt": "| Notification fanout (10k followers) | \u2264 200ms | \u2264 1s | \u2264 2s | \u2264 5s | per-recipient async via Valkey Streams (RESP3 wire-compatible) |"
             }
           ],
           "hits_total": 7
@@ -86,7 +86,7 @@
           "hits": [
             {
               "line": 40,
-              "excerpt": "| `microservices/social/iac/helm/social/values.yaml` | exists | Per-BC replica sizing, OpenBao SecretReferences, LTS pins (Postgres 16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10, ClamAV 1.x, OPSWAT 5.x, ImageMagick"
+              "excerpt": "| `microservices/social/iac/helm/social/values.yaml` | exists | Per-BC replica sizing, OpenBao SecretReferences, LTS pins (Postgres 16, Valkey 8.1 (RESP3 wire-compatible), Meilisearch 0.10, ClamAV 1.x, OPSWAT 5.x, ImageMagick"
             }
           ],
           "hits_total": 1
@@ -96,7 +96,7 @@
           "hits": [
             {
               "line": 51,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) (feed cache + reaction counters + trending + notification fanout) | `oya-social-follow-graph-*` (8 crates) |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (feed cache + reaction counters + trending + notification fanout) | `oya-social-follow-graph-*` (8 crates) |"
             },
             {
               "line": 108,
@@ -140,7 +140,7 @@
             },
             {
               "line": 71,
-              "excerpt": "| [`IP-007-reactions-bc.md`](IP-007-reactions-bc.md) | `reactions` BC; conflict-free counter; Redis-buffered + Postgres flush | pending | axis-social | IP-005 |"
+              "excerpt": "| [`IP-007-reactions-bc.md`](IP-007-reactions-bc.md) | `reactions` BC; conflict-free counter; Valkey-buffered + Postgres flush | pending | axis-social | IP-005 |"
             }
           ],
           "hits_total": 5
@@ -178,11 +178,11 @@
           "hits": [
             {
               "line": 21,
-              "excerpt": "conflict-free counter, Redis-buffered + Postgres flush, per-user idempotency"
+              "excerpt": "conflict-free counter, Valkey-buffered + Postgres flush, per-user idempotency"
             },
             {
               "line": 37,
-              "excerpt": "| `src/crates/oya-social-reactions-adapter-redis/src/counter.rs` | create \u2014 Valkey HINCRBY-based counter |"
+              "excerpt": "| `src/crates/oya-social-reactions-adapter-valkey/src/counter.rs` | create \u2014 Valkey HINCRBY-based counter |"
             },
             {
               "line": 38,
@@ -214,7 +214,7 @@
           "hits": [
             {
               "line": 37,
-              "excerpt": "| `src/crates/oya-social-notifications-adapter-redis/src/queue.rs` | create \u2014 Valkey Streams (Redis wire-compat) for fanout |"
+              "excerpt": "| `src/crates/oya-social-notifications-adapter-valkey/src/queue.rs` | create \u2014 Valkey Streams (RESP3 wire-compatible) for fanout |"
             }
           ],
           "hits_total": 1
@@ -232,7 +232,7 @@
             },
             {
               "line": 32,
-              "excerpt": "| 1 | Verify Valkey cluster status: `kubectl -n social get pods -l app=social-redis` (replicas Ready) | \u2264 2 min |"
+              "excerpt": "| 1 | Verify Valkey cluster status: `kubectl -n social get pods -l app=social-valkey` (replicas Ready) | \u2264 2 min |"
             }
           ],
           "hits_total": 8
@@ -260,7 +260,7 @@
             },
             {
               "line": 75,
-              "excerpt": "- Postgres-level: per-tenant aggregate quota tracked via Redis-buffered counter; usecase refuses over-cap."
+              "excerpt": "- Postgres-level: per-tenant aggregate quota tracked via Valkey-buffered counter; usecase refuses over-cap."
             }
           ],
           "hits_total": 7
@@ -276,11 +276,11 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/social/catalog/oya-social-feed-timeline-adapter-redis.yaml",
+          "file": "microservices/social/catalog/oya-social-feed-timeline-adapter-valkey.yaml",
           "hits": [
             {
               "line": 19,
-              "excerpt": "backend_version: \"7.2\"  # Valkey 8.1 (Redis wire-compat)"
+              "excerpt": "backend_version: \"7.2\"  # Valkey 8.1 (RESP3 wire-compatible)"
             }
           ],
           "hits_total": 1
@@ -300,7 +300,7 @@
           "hits": [
             {
               "line": 156,
-              "excerpt": "version: \"7.2\"  # Valkey 8.1 (Redis wire-compat)"
+              "excerpt": "version: \"7.2\"  # Valkey 8.1 (RESP3 wire-compatible)"
             }
           ],
           "hits_total": 1

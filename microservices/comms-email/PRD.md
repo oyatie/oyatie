@@ -1,3 +1,18 @@
+---
+doc_class: PRD
+template_id: TPL-PRD
+prd_id: PRD-comms-email
+microservice: comms-email
+status: Draft
+milestone_first_ship: PHASE-01-COMMS-EMAIL-SUBSTRATE
+related_adrs: [ADR-0064, ADR-0144, ADR-0145, ADR-0149, ADR-0166, ADR-0173, ADR-0201, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
+related_specs: [/specs/compliance-pack-floors.json, /specs/finops-dimensional-model.json]
+date: 2026-05-18
+last_amended: 2026-05-21
+owner_team: oya-substrate-comms
+doc_status: draft
+---
+
 # PRD — `comms-email` µservice
 
 > Status: Draft v0.1.0
@@ -164,7 +179,40 @@ See `compliance.md`. Specifically:
 - HIPAA (US-healthcare pack): BAA-only providers; PHI in
   attachments encrypted per ADR-0184 storage tier.
 
-## 11. Rollout
+## 11. Non-Functional Requirements
+
+### DR posture (per ADR-0343)
+
+- Manifest target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300`, `multi_region_active_active=true`, `replication_shape=active-active-multi-az-cross-region-warm`.
+- Applicable pack floors from `specs/compliance-pack-floors.json`: EU-AI-ACT-2024-HIGH-RISK `1800s/300s` with multi-region required; HIPAA-2024 `3600s/300s` with multi-region required; KR-PIPA-2023 default `14400s/900s`; SOC2-T2 `14400s/900s`; ISO27001-2022 `14400s/3600s`; PCI-DSS-L1-v4 `86400s/3600s`. The effective maximum pack floor is PCI-DSS `86400s/3600s`; comms-email keeps `1800s/300s` because notification delivery is often safety or compliance critical.
+- `failover_runbook=runbooks/dr-failover.md`, resolved at `microservices/comms-email/runbooks/dr-failover.md`; backup substrates are `postgres_wal_g`, `object_storage_versioned`, `openbao_seal_unseal`, and `audit_chain_merkle_seal`.
+- `multi_region_active_active=true` for enqueue, provider selection, suppression lookup, and webhook/audit normalization; provider choice remains pack-pinned so sovereign tenants stay on Postal where required.
+- Why: tenants and sibling µservices treat accepted transactional email as notice delivery evidence; regional failover must preserve DKIM identity, suppression state, and audit-chain lag rather than simply retrying later.
+
+### Capacity model (per ADR-0340)
+
+- Per-tenant baseline: `0.08 vCPU`, `192 MiB RAM`, `2 GiB storage`, `connections_per_tenant={valkey:2, postgres:2, outbound_http:10}`.
+- Scaling dimension: `per_message` for transactional send, DKIM rotation, suppression lookup, webhook replay, provider routing, and Postal/SES failover.
+- Cell placement class: `Tier-1` with manifest `pod_runtime_tier=1`; comms-email is a T0 substrate for notices, tenant-domain custody, and signing-key paths while provider adapters fail over independently.
+- Autoscaling boundaries: min `3` enqueue/provider-router replicas per tenant-cell, max `48` before tenant/provider queue split; webhook workers scale separately on delivery-event lag and audit-chain p99.
+- Why: outbound email mixes low-latency notices with provider-imposed rate limits; this model keeps accepted-send and audit paths stable while throttling provider-specific queues.
+
+### Sustainability + cost attribution (per ADR-0344)
+
+- Every send, template render, suppression lookup, DKIM rotation, provider API call, webhook event, bounce/complaint update, and audit-chain emission emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with tenant, product, capability, provider, cell, and compliance-pack dimensions.
+- Provider routing is carbon-aware for DKIM rotation batches, DMARC report aggregation, bounce analytics, and non-urgent replay; it is not carbon-routed for transactional sends, HIPAA notifications, EU-AI high-risk notices, passwordless/login mail, or provider failover during outage.
+- Tenant cost transparency surface: deliverability dashboard shows per-domain send volume, provider spend, webhook/audit lag cost, suppression-list activity, and Postal-vs-SES routing; finops-portal supplies tenant and compliance-pack rollups.
+- Why: email provider choice has direct financial and emissions variance, so CSRD, SB-253, and SEC climate-disclosure outputs need per-provider cost/emission rows tied to tenant notice traffic.
+
+### API versioning posture (per ADR-0342)
+
+- Public API version model: `YYYY-MM-DD` carrier triplet using `Oyatie-Version` header, `/v/YYYY-MM-DD/` send/webhook URL prefix, and proto3 field `string oyatie_version = 8001` for public email events/contracts.
+- SDK semver model: email SDKs and the shared `EmailComms` trait publish `major.minor.patch`; provider adapter versions do not replace the public date carrier.
+- Support window: last `N=3` public versions for at least `180` days after deprecation.
+- Per-tenant pinning: yes for regulated tenants, provider migrations, and webhook consumers that must certify payload shape before rollout.
+- Internal-mesh exemption: yes; ADR-0145 direct gRPC over HTTP/3 remains tag-compatible and exempt from public carrier routing.
+
+## 12. Rollout
 
 - T+0: ADR-0201 + kernel crate + Helm chart + µservice scaffold
   (this batch).
@@ -174,7 +222,7 @@ See `compliance.md`. Specifically:
 - T+90d: CI lane flips to BLOCKER on direct provider SDK
   imports.
 
-## 12. Open questions
+## 13. Open questions
 
 - Inbound email ADR — slot reserved.
 - BIMI logo policy — slot reserved.

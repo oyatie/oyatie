@@ -97,7 +97,7 @@ postgres:
   storage: 1Ti
   replicas: 3  # primary + 2 replicas (DR pair within pack)
 
-redis:
+valkey:
   enabled: true
   version: "7.2"
   storage: 64Gi

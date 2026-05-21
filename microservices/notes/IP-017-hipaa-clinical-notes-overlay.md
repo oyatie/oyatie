@@ -1,0 +1,97 @@
+---
+doc_class: ImplementationPlan
+status: Accepted
+date: 2026-05-20
+related_adrs: [ADR-0251, ADR-0255]
+acceptance_status: draft
+companion_docs: [microservices/notes/policy/phi-hipaa-notes.cedar]
+inbound_citations: [microservices/notes/manifest.json]
+---
+
+# IP-017: HIPAA clinical-notes overlay
+
+## A. Goal
+Ship the clinical-notes overlay enabling B2B clinical workflows (physician progress notes, treatment plans, SOAP notes) with PHI DLP, HIPAA-conformant intelligence, BAA-gated provisioning, and chain-of-custody audit.
+
+## B. Acceptance criteria
+- `audience_type=B2B_HIPAA_CLINICAL` provisioning requires BAA on file.
+- `policy/phi-hipaa-notes.cedar` enforces partner-share + intelligence-variant + export gates.
+- All clinical-note access emits sealed audit per ADR-0263.
+- `runbooks/clinical-note-leak-recovery.md` HHS notification workflow tested.
+- Compliance pack `pack-us-healthcare` overlay activates.
+- TrueTime chain-of-custody timestamps per ADR-0252 (financial+clinical tier).
+
+## C. Tasks
+1. Crate `oya-notes-phi-classifier-kernel` (Microsoft Presidio / AWS Comprehend Medical equivalent).
+2. Cedar fragment `policy/phi-hipaa-notes.cedar` (done).
+3. Runbook `runbooks/clinical-note-leak-recovery.md` (done).
+4. BAA-attestation surface tied to tenant provisioning.
+5. Intelligence routing matrix per HIPAA variants.
+6. Compliance overlay in `iac/kustomize/overlays/pack-us-healthcare/`.
+
+## D. Dependencies
+- ADR-0251 done.
+- ADR-0255 with HIPAA variant.
+- IP-014 e2e-key-management.
+
+## E. Risks
+- PHI classifier false-negative; mitigated by defence-in-depth + audit-chain forensics + UI-level reminders.
+- BAA expiry; auto-renewal reminder + grace period.
+
+## F. References
+- ADR-0251
+- 45 CFR §164
+
+
+## A. Problem
+`IP-017: HIPAA clinical-notes overlay` is not a generic implementation packet; it closes the `017 hipaa clinical notes overlay` gap for `notes` using the service artifacts that exist in this checkout. The gap is that the current service contract names the capability, but reviewers need a concrete boundary tying the plan to real contracts, policies, SLOs, and catalog records instead of a line-count shell. Domain vocabulary for this IP: Note, PersonalNoteRef, ProfessionalNoteRef, tag-graph, backlink graph, Loro CRDT, MLS key package, share-link, E2E refusal.
+
+## B. Approach
+Note-store domain rules preserve immutable Personal/Professional context, retention, hold, and audit boundaries before higher-level note features attach. The implementation must keep the µservice boundary intact: contracts remain under `microservices/notes/contracts/openapi/notes.yaml` / `microservices/notes/contracts/proto/notes.proto`, policy decisions remain in `microservices/notes/policy/tenant-scope.cedar`, operational proof remains in `microservices/notes/slos/note-open-latency.openslo.yaml`, and the parity claim is checked against `microservices/notes/competitor-parity-matrix.md`.
+
+## C. Deliverables
+- `microservices/notes/PRD.md` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/ARCHITECTURE.md` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/contracts/openapi/notes.yaml` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/contracts/proto/notes.proto` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/contracts/asyncapi/notes-events.yaml` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/policy/tenant-scope.cedar` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/slos/note-open-latency.openslo.yaml` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/runbooks/sync-conflict-resolution.md` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/catalog/oya-notes-note-store-kernel.yaml` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/competitor-parity-matrix.md` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/policy/dual-context-isolation.md` — verify/update as the authoritative artifact for this IP.
+- `microservices/notes/slos/note-create-latency.openslo.yaml` — verify/update as the authoritative artifact for this IP.
+- Named code targets declared by this IP and `manifest.json` must be created only when the implementation PR actually adds the crates/types; this scrub does not pretend source files exist.
+
+## D. Implementation Steps
+1. Read `microservices/notes/PRD.md` and `microservices/notes/ARCHITECTURE.md` to confirm the bounded context, tenant class, and first-ship milestone for `notes`.
+2. Diff the declared contract in `microservices/notes/contracts/openapi/notes.yaml` and `microservices/notes/contracts/proto/notes.proto` against the IP title so every endpoint/message has a matching domain type or explicit backlog gap.
+3. Check `microservices/notes/policy/tenant-scope.cedar` plus adjacent Cedar/policy files before adding any mutation, share, webhook, agent, AI, or cross-tenant path.
+4. Wire observability to `microservices/notes/slos/note-open-latency.openslo.yaml` and the relevant dashboard/runbook; no acceptance claim counts without a metric or sealed evidence path.
+5. Update the catalog/capability record such as `microservices/notes/catalog/oya-notes-note-store-kernel.yaml` so the service registry can discover the new boundary.
+6. Run the IP-specific test/gate commands listed above; if a source crate is absent, record the absent crate as implementation debt rather than faking a green result.
+
+## E. Acceptance
+- Local artifact links resolve for `microservices/notes/PRD.md`, `microservices/notes/ARCHITECTURE.md`, `microservices/notes/contracts/openapi/notes.yaml`, `microservices/notes/policy/tenant-scope.cedar`, `microservices/notes/slos/note-open-latency.openslo.yaml`, and `microservices/notes/competitor-parity-matrix.md`.
+- The implementation exposes no cross-tenant, cross-pack, credential, E2E, or vendor-call path without the policy file cited in this IP.
+- At least one targeted unit/contract/gate command verifies the named behavior, and any skipped command is documented with the missing artifact.
+- The final PR includes evidence that counterpart parity is improved or explicitly marks the remaining gap.
+
+## F. Evidence
+- `microservices/notes/PRD.md`
+- `microservices/notes/ARCHITECTURE.md`
+- `microservices/notes/contracts/openapi/notes.yaml`
+- `microservices/notes/contracts/proto/notes.proto`
+- `microservices/notes/contracts/asyncapi/notes-events.yaml`
+- `microservices/notes/policy/tenant-scope.cedar`
+- `microservices/notes/slos/note-open-latency.openslo.yaml`
+- `microservices/notes/runbooks/sync-conflict-resolution.md`
+- `microservices/notes/catalog/oya-notes-note-store-kernel.yaml`
+- `microservices/notes/competitor-parity-matrix.md`
+- `microservices/notes/competitor-parity-matrix.md` — counterpart gap table used for the comparison below.
+
+## G. Counterparts
+| Counterpart pressure | Oyatie closure for this IP |
+|---|---|
+| Apple Notes, Google Keep, OneNote, Notion, Bear, Obsidian, Standard Notes, Evernote, Roam, Logseq, Joplin, Reflect, Tana, Mem, and Heptabase | Notion and OneNote define workspace/collab parity; Obsidian/Roam/Logseq define backlink and graph parity; Standard Notes and Apple Notes define privacy pressure; Evernote/Bear/Google Keep define capture/import expectations. This IP closes the relevant gap by binding `017 hipaa clinical notes overlay` to concrete `notes` contracts, policy, SLO, catalog, and runbook evidence rather than a reusable scaffold. |

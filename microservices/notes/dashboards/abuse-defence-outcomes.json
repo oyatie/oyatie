@@ -1,0 +1,51 @@
+{
+  "dashboard": {
+    "title": "Notes — Abuse-Defence Outcomes",
+    "uid": "notes-abuse-defence-outcomes",
+    "tags": ["notes", "abuse-defence", "ADR-0297", "UX-floor"],
+    "panels": [
+      {
+        "id": 1,
+        "title": "Default-path sync latency added (P99 ms)",
+        "type": "timeseries",
+        "targets": [
+          {"expr": "histogram_quantile(0.99, sum(rate(oya_notes_abuse_defence_added_latency_seconds_bucket[5m])) by (le))"}
+        ],
+        "thresholds": [{"color": "green", "value": 0}, {"color": "red", "value": 0.002}],
+        "description": "UX-floor: MUST stay ≤2ms p99 on sync surface"
+      },
+      {
+        "id": 2,
+        "title": "Share-link issuance rate per tenant",
+        "type": "timeseries",
+        "targets": [
+          {"expr": "sum(rate(oya_notes_share_link_issue_total[5m])) by (tenant_id)"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Share-link redemption anomaly score distribution",
+        "type": "heatmap",
+        "targets": [
+          {"expr": "sum(rate(oya_notes_share_link_redeem_anomaly_score_bucket[5m])) by (le)"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "CAPTCHA presentations (sign-up + abnormal-share-issue only)",
+        "type": "timeseries",
+        "targets": [
+          {"expr": "sum(rate(oya_notes_abuse_defence_captcha_present_total[5m])) by (route)"}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "False-positive rate (24h)",
+        "type": "stat",
+        "targets": [
+          {"expr": "sum(rate(oya_notes_abuse_defence_false_positive_total[24h])) / sum(rate(oya_notes_abuse_defence_evaluation_total[24h]))"}
+        ]
+      }
+    ]
+  }
+}

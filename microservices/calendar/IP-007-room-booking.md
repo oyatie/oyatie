@@ -8,57 +8,76 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-calendar
-acceptance_lanes: [cargo-nextest, oya-governance-layer-correctness]
+acceptance_lanes: [cargo-nextest, room-conflict-test, oya-governance-layer-correctness]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-007: Room booking
 
-# IP-007: room-booking — kernel + domain + usecase + adapter + rest
+## A. Problem
+Enterprise calendar parity requires resource booking with deterministic double-booking refusal, not only user events.
 
-## Intent
+## B. Approach
+Implement the `oya-calendar-room-booking-kernel` bounded context and its planned domain/usecase/adapter/rest layers using the crate names already specified by the PRD/IP. Room booking reads resource state through ports, writes booking decisions through event-store transactions, and emits room conflict events.
 
-Implement the room-booking BC per PRD §"Bounded Contexts" row 4 +
-PRD AC-09 (100% double-booking refusal at write time). Resource
-graph queries; conflict resolution; recurring booking.
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `catalog/oya-calendar-room-booking-kernel.yaml` | Existing kernel catalog anchor. |
+| `src/crates/oya-calendar-room-booking-kernel/` | Planned crate path named by manifest/catalog. |
+| `src/crates/oya-calendar-room-booking-{domain,usecase,adapter,rest}/` | Planned paths already named by this IP and PRD. |
+| `slos/room-conflict-detection-correctness.openslo.yaml` | Correctness SLO for refusal behavior. |
+| `runbooks/room-booking-conflict.md` | Operational closure for booking conflicts. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Define `Resource`, `Booking`, `ConflictDecision`, and booking-window types.
+2. Implement conflict detection for one-off and recurring bookings.
+3. Connect decisions to event-store transaction boundaries.
+4. Emit `RoomBooked` and `RoomBookingConflict` events from `contracts/asyncapi/calendar-events.yaml`.
+5. Add tests for simultaneous contenders and recurring room reservations.
+6. Add REST contract tests against `contracts/openapi/calendar.yaml`.
+7. Wire SLO metrics and room-conflict runbook triggers.
 
-5 crates: `-kernel`, `-domain`, `-usecase`, `-adapter`, `-rest`.
-Storage is subsumed under the event-store `-adapter-postgres` crate
-per PRD §Bounded Contexts table footnote.
+## E. Acceptance
+- `cargo nextest run -p oya-calendar-room-booking-kernel` passes.
+- Room double-booking tests prove one winner and deterministic losers under concurrency.
+- `cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice calendar` passes.
+- `slos/room-conflict-detection-correctness.openslo.yaml` resolves.
+- `runbooks/room-booking-conflict.md` includes rollback and operator evidence steps.
 
-## Concrete File Targets
+## F. Evidence
+- PRD FR-04 and room performance target: `microservices/calendar/PRD.md`.
+- Contracts: `contracts/openapi/calendar.yaml`, `contracts/asyncapi/calendar-events.yaml`.
+- Catalog: `catalog/oya-calendar-room-booking-kernel.yaml`.
+- Benchmark: `benchmarks/gcal-outlook-calendly-vs-oyatie.md`.
 
-| Path | Action | Description |
-|---|---|---|
-| `microservices/calendar/src/crates/oya-calendar-room-booking-kernel/` | create | ResourceRepository + ConflictDecision port traits |
-| `microservices/calendar/src/crates/oya-calendar-room-booking-domain/` | create | conflict invariant (PRD AC-09: 100% double-booking refusal) |
-| `microservices/calendar/src/crates/oya-calendar-room-booking-usecase/` | create | book-room orchestrator |
-| `microservices/calendar/src/crates/oya-calendar-room-booking-adapter/` | create | thin adapter over event-store-adapter-postgres |
-| `microservices/calendar/src/crates/oya-calendar-room-booking-rest/` | create | REST handler |
+## G. Counterpart comparison
+Outlook room resources and Google resource calendars are the main counterparts. Calendly and Cal.com book time but do not provide enterprise resource graphs. Oyatie must match Outlook/Google conflict behavior and make the proof tenant-visible through the room-conflict correctness SLO.
 
-## Acceptance Gates
+## H. Foundation delivery expansion
+- Deliverable detail: define resource identity, room capacity, amenity tags, location, and booking policy fields.
+- Deliverable detail: represent conflict decisions with deterministic winner/loser evidence.
+- Deliverable detail: handle one-off and recurring reservations through event-store transaction boundaries.
+- Deliverable detail: emit room booking and conflict events with idempotency keys.
+- Deliverable detail: expose room availability through policy-filtered contract responses.
+- Deliverable detail: support operator-visible repair for stuck or duplicated booking rows.
+- Deliverable detail: wire conflict counters to the room correctness SLO.
+- Deliverable detail: Slack room and huddle integrations are comparison pressure for collaboration-adjacent scheduling.
 
-```bash
-cargo nextest run -p oya-calendar-room-booking-domain -- conflict
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo room-conflict-detection-correctness
-```
+## I. Acceptance expansion
+- Acceptance detail: double-booking tests must prove a single winner under concurrent contenders.
+- Acceptance detail: recurring room tests must detect conflicts across expanded occurrence windows.
+- Acceptance detail: capacity and amenity tests must reject incompatible room assignments.
+- Acceptance detail: event-store transaction tests must prove booking and lifecycle event stay atomic.
+- Acceptance detail: REST contract tests must include successful booking and conflict refusal responses.
+- Acceptance detail: SLO resolution must include conflict correctness, not only latency.
+- Acceptance detail: runbook evidence must show operator rollback and communication steps.
+- Acceptance detail: Slack/Google/Outlook comparisons must be about resource booking and collaboration-room parity.
 
-## Test Plan
-
-- PRD AC-09 — concurrent booking writes never produce conflicting rows.
-- Recurring booking expansion + conflict check across the expansion window.
-- Performance: room conflict check p99 ≤ 100ms.
-
-## Halt Conditions
-
-- PRD AC-09 test fails — Sev-1 block; correctness invariant.
-
-## Next IP
-
-[`IP-008-invitation-flow.md`](IP-008-invitation-flow.md)
-
-## References
-
-- PRD-calendar AC-09.
-- `microservices/calendar/slos/room-conflict-detection-correctness.openslo.yaml`.
+## J. Evidence expansion
+- Evidence detail: capture nextest output for room-booking kernel and related crates.
+- Evidence detail: capture concurrency fixture names and winner/loser assertions.
+- Evidence detail: capture OpenAPI validation for room booking endpoints.
+- Evidence detail: cite `runbooks/room-booking-conflict.md` for conflict operations.
+- Evidence detail: cite `slos/room-conflict-detection-correctness.openslo.yaml` for promotion criteria.
+- Evidence detail: cite `benchmarks/gcal-outlook-calendly-vs-oyatie.md` for resource-booking comparison.
+- Evidence detail: cite Slack as collaboration-suite pressure, not as the primary room-resource protocol.

@@ -136,7 +136,7 @@ Procedure:
 | Operation | Frequency | Estimated cost per call |
 |---|---|---|
 | Backfill search index (per 1M posts) | per-corruption | ~$0.15 |
-| Rebuild feed cache (per 1M users) | per-Redis-flush | ~$0.50 |
+| Rebuild feed cache (per 1M users) | per-Valkey-flush | ~$0.50 |
 | Replay events (per 10k events × 1 consumer) | per-onboard | ~$0.05 |
 | Replay events (per 1M events × all consumers) | per-bugfix-replay | ~$5.00 |
 | Federation resync (per 100k activities) | per-peer-resync | ~$0.20 |

@@ -51,8 +51,8 @@ availabilityResolver:
     limits:   {cpu: 2,    memory: 1Gi}
   port: 9003
   cache:
-    backend: redis
-    redisAddr: oya-calendar-redis:6379
+    backend: valkey
+    valkeyAddr: oya-calendar-valkey:6379
     ttlSeconds: 300
 
 roomBooking:
@@ -150,10 +150,10 @@ postgres:
   backup:
     s3Ref: "${openbao:secret/calendar/{pack}/backup-s3}"
 
-redis:
+valkey:
   enabled: true
   image:
-    repository: registry.oyatie.dev/redis-cluster
+    repository: registry.oyatie.dev/valkey-cluster
     tag: "7.4.0"
   clusterMode: true
   evictionPolicy: allkeys-lru           # availability cache (free/busy)

@@ -35,7 +35,7 @@ One ChangeSet:
 | `microservices/messenger/Cargo.toml` | create — workspace manifest, members glob |
 | `microservices/messenger/src/crates/oya-messenger-channel-store-kernel/Cargo.toml` | create |
 | `microservices/messenger/src/crates/oya-messenger-channel-store-kernel/src/lib.rs` | create — pub mod traits; pub mod entities |
-| `microservices/messenger/src/crates/oya-messenger-{channel-store,message-stream,thread-tree,read-receipt-tracker,file-attachment,mention-router,presence}-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,adapter-redis,adapter-redis-streams,adapter-websocket,adapter-meilisearch,adapter-livekit,adapter-opswat,rest,worker,sdk,app}/Cargo.toml` | create — per PRD §BC layer mapping |
+| `microservices/messenger/src/crates/oya-messenger-{channel-store,message-stream,thread-tree,read-receipt-tracker,file-attachment,mention-router,presence}-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-s3,adapter-valkey,adapter-valkey-streams,adapter-websocket,adapter-meilisearch,adapter-livekit,adapter-opswat,rest,worker,sdk,app}/Cargo.toml` | create — per PRD §BC layer mapping |
 
 ## Crate Naming
 
@@ -69,3 +69,47 @@ cargo run -p oya-dev-cli -- gate validate bnf-v4-1 --microservice messenger
 
 - ADR-0056; ADR-0105; ADR-0106; ADR-0131.
 - `microservices/messenger/PRD.md` §"Bounded Contexts".
+
+## Wave 15 substance conversion — Cargo workspace bootstrap
+
+### §A Problem
+
+The messenger PRD names many bounded contexts, but without a flat Rust workspace those plans cannot be claimed,
+tested, or governed independently.
+This IP closes the repository layout gap for the hero messenger product.
+
+### §B Approach
+
+Create the per-microservice flat workspace under `microservices/messenger/src/crates/` using BNF v4.1 crate names.
+The bootstrap is intentionally skeletal but not content-free: it pins lints, dependency direction, MSRV, and
+unsafe-code policy before domain work lands.
+
+### §C Deliverables
+
+- `microservices/messenger/Cargo.toml`
+- workspace `clippy.toml`, `deny.toml`, and `rustfmt.toml`
+- child crate manifests for channel-store, message-stream, presence, attachment, thread, receipt, huddle, and REST/app layers
+
+### §D Implementation
+
+1. Declare workspace members with explicit globs under `src/crates`.
+2. Add `#![deny(unsafe_code)]` to every created crate root.
+3. Apply dependency-direction linting so adapters cannot define domain types.
+4. Create minimal doctests for kernel trait modules.
+5. Create one invariant unit test for each domain crate.
+6. Run BNF and per-microservice layout gates before downstream IPs claim crates.
+
+### §E Acceptance
+
+Cargo build/clippy plus layout and BNF gates must pass, and workspace-cycle checks must prove clean architecture
+dependency direction.
+
+### §F Evidence
+
+Local anchors: `manifest.json` bounded contexts, `PRD.md` product scope, `ARCHITECTURE.md`, ADR-0056, ADR-0105,
+ADR-0131.
+
+### §G Counterparts
+
+Mattermost and Matrix demonstrate self-hosted modularity; Slack/Teams demonstrate broad product surface. Oyatie
+closes the execution gap with a crate graph that can support both product breadth and governed substrate use.

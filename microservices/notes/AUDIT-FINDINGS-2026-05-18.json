@@ -4,7 +4,7 @@
   "scanned_files": 94,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -72,7 +72,7 @@
           "hits": [
             {
               "line": 157,
-              "excerpt": "- All Cargo deps pinned with checksum in `Cargo.lock` per LTS policy (Postgres 16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10.0, Loro 1.x, openmls 0.6, Cedar v4.2)."
+              "excerpt": "- All Cargo deps pinned with checksum in `Cargo.lock` per LTS policy (Postgres 16, Valkey 8.1 (RESP3 wire-compatible), Meilisearch 0.10.0, Loro 1.x, openmls 0.6, Cedar v4.2)."
             }
           ],
           "hits_total": 1
@@ -116,7 +116,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/notes/catalog/oya-notes-note-store-adapter-redis.yaml",
+          "file": "microservices/notes/catalog/oya-notes-note-store-adapter-valkey.yaml",
           "hits": [
             {
               "line": 22,

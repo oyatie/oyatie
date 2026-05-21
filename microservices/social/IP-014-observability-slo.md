@@ -7,58 +7,76 @@ impl_plan_id: IP-014-observability-slo
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-social + axis-observability
-acceptance_lanes: [openslo-schema-validate, grafana-dashboard-lint, oya-governance-promotion-readiness]
+owner: axis-social + ops-sre-reliability
+acceptance_lanes: [openslo-validate, dashboard-json-validate, prometheus-rule-test]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-014: Observability and SLO wiring
 
-# IP-014: OpenSLO manifests + Grafana dashboards + per-pack runbooks wiring
+## A. Problem
+Social cannot make promotion or counterpart parity claims without measurable SLOs and dashboards for feed, post, profile, follow, search, moderation, CSAM, notification, and minor-protection paths.
 
-## Intent
+## B. Approach
+Bind every existing OpenSLO file to Grafana dashboards, Prometheus rules, runbooks, and PRD performance targets. Keep target numbers as target evidence unless source implementation and benchmark evidence exist.
 
-Wire social into the observability µservice's agentic SLO-gated promotion
-substrate per ADR-0139. Author all 8 OpenSLO manifests; cross-link 3 Grafana
-dashboards; register burn-rate alerts via PrometheusRule; configure per-pack
-runbook URLs.
-
-## ChangeSet boundary
-
-OpenSLO + Grafana + PrometheusRule + runbook hookups.
-
-## Concrete File Targets
-
-| Path | Action |
+## C. Deliverables
+| Artifact | Role |
 |---|---|
-| `microservices/social/slos/{feed-render-latency,profile-render-availability,post-create-latency,follow-action-latency,notification-fanout-latency,search-people-latency,moderation-classifier-latency,content-policy-enforcement-correctness}.openslo.yaml` | exists |
-| `microservices/social/dashboards/{feed-experience,moderation-and-safety,federation-and-cross-context}.json` | exists |
-| `microservices/social/iac/helm/social/templates/prometheusrule.yaml` | exists — burn-rate alerts |
-| `microservices/social/iac/helm/social/templates/servicemonitor.yaml` | exists |
+| `slos/*.openslo.yaml` | SLO definitions for social paths. |
+| `dashboards/*.json` | Dashboard evidence for feed, moderation, abuse, CSAM, federation, and minor protection. |
+| `iac/helm/social/templates/prometheusrule.yaml` and `servicemonitor.yaml` | Runtime alert and scrape bindings. |
+| `performance-benchmark-numbers-2026-05-20.md` | Target benchmark source. |
 
-## Acceptance Gates
+## D. Ordered implementation steps
+1. Validate every OpenSLO file.
+2. Validate every dashboard JSON file.
+3. Cross-link SLO names to PrometheusRule expressions.
+4. Check every PRD performance target has an SLO or documented follow-up.
+5. Link every SLO alert to a runbook.
+6. Mark missing runtime measurements as targets, not production proof.
+7. Run chart-rendered alert validation.
 
-```bash
-oya gate validate openslo-schema --microservice social
-oya gate validate promotion-readiness --microservice social
-grafana-cli plugins validate microservices/social/dashboards/
-```
+## E. Acceptance
+- OpenSLO validation passes for all files under `microservices/social/slos/`.
+- JSON validation passes for all files under `microservices/social/dashboards/`.
+- `helm lint microservices/social/iac/helm/social` passes.
+- Every PrometheusRule alert references a known SLO/runbook.
+- `performance-benchmark-numbers-2026-05-20.md` and `PRD.md` targets remain consistent.
 
-## Test Plan
+## F. Evidence
+- SLOs: `slos/`.
+- Dashboards: `dashboards/`.
+- IaC: `iac/helm/social/templates/prometheusrule.yaml`, `servicemonitor.yaml`.
+- Benchmarks: `performance-benchmark-numbers-2026-05-20.md`.
 
-- Synthetic load against pack-kr cluster; burn-rate alerts fire per SLO threshold.
-- Dashboards render in Grafana with per-pack templating var.
-- ADR-0139 promotion-readiness gate exits 0 for social.
+## G. Counterpart comparison
+Public counterparts rarely expose SLOs to customers. X, Instagram, TikTok, and Snapchat prove user-scale pressure; Oyatie's differentiator is promotion gated by explicit SLO files, dashboards, and runbook-backed burn alerts.
 
-## Halt Conditions
+## H. Foundation delivery expansion
+- Deliverable detail: each OpenSLO file maps to a Prometheus rule, dashboard panel, runbook, and PRD target.
+- Deliverable detail: dashboards cover feed, moderation, abuse, CSAM, federation, minor protection, and experience health.
+- Deliverable detail: Prometheus rules distinguish burn-rate, correctness, backlog, latency, and availability alerts.
+- Deliverable detail: ServiceMonitor scrape labels align with rendered Helm workloads.
+- Deliverable detail: missing runtime measurements are explicitly marked as targets until implementation exists.
+- Deliverable detail: benchmark numbers distinguish load target, measured result, and evidence source.
+- Deliverable detail: runbook links include trigger name and first diagnostic query.
+- Deliverable detail: Slack community uptime and moderation responsiveness are counterpart pressure for SLO visibility.
 
-- OpenSLO schema validation fails — fix schema.
-- Burn-rate alert thresholds inconsistent with capacity-model — reconcile.
+## I. Acceptance expansion
+- Acceptance detail: OpenSLO validation must parse every `slos/*.openslo.yaml`.
+- Acceptance detail: dashboard JSON validation must parse every social dashboard.
+- Acceptance detail: chart lint must validate PrometheusRule and ServiceMonitor templates.
+- Acceptance detail: alert-to-runbook scan must reject alerts without runbook links.
+- Acceptance detail: performance benchmark review must not label targets as measured production facts.
+- Acceptance detail: PRD target mapping must include feed, post, notification, moderation, search, and minor-protection surfaces.
+- Acceptance detail: remediation notes must record the social foundation IP repair count.
+- Acceptance detail: Slack, X, Instagram, TikTok, and Snapchat comparisons must remain scale/operability pressure, not proof.
 
-## Next IP
-
-[`IP-015-hg-social-registration-and-branch-protection.md`](IP-015-hg-social-registration-and-branch-protection.md)
-
-## References
-
-- ADR-0139 (SLO-gated promotion).
-- `microservices/observability/PRD.md`.
+## J. Evidence expansion
+- Evidence detail: capture OpenSLO validation output.
+- Evidence detail: capture dashboard JSON validation output.
+- Evidence detail: capture Helm lint output for observability templates.
+- Evidence detail: cite `performance-benchmark-numbers-2026-05-20.md`.
+- Evidence detail: cite `dashboards/moderation-and-safety.json` and `dashboards/feed-experience.json`.
+- Evidence detail: cite `iac/helm/social/templates/prometheusrule.yaml` and `servicemonitor.yaml`.
+- Evidence detail: cite Slack as community operations pressure requiring transparent SLO/runbook links.

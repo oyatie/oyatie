@@ -18,11 +18,11 @@
         "oya-messenger-file-attachment-adapter-s3",
         "oya-messenger-message-stream-adapter-meilisearch",
         "oya-messenger-message-stream-adapter-postgres",
-        "oya-messenger-message-stream-adapter-redis-streams",
+        "oya-messenger-message-stream-adapter-valkey-streams",
         "oya-messenger-message-stream-kernel",
         "oya-messenger-message-stream-rest",
         "oya-messenger-presence-adapter-livekit",
-        "oya-messenger-presence-adapter-redis",
+        "oya-messenger-presence-adapter-valkey",
         "oya-messenger-presence-adapter-websocket"
       ]
     }
@@ -51,19 +51,19 @@
       "tier": "T0",
       "name": "smart-reply-suggest",
       "file": "microservices/messenger/capabilities/T0-suggest.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "thread-summary-and-action-item-extract",
       "file": "microservices/messenger/capabilities/T1-assist.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "auto-mute-categorize-translate",
       "file": "microservices/messenger/capabilities/T2-auto.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -161,7 +161,7 @@
     },
     {
       "id": "IP-006-message-stream-adapters",
-      "title": "IP-006: message-stream adapters (Postgres + Meilisearch + Valkey Streams (Redis wire-compat))",
+      "title": "IP-006: message-stream adapters (Postgres + Meilisearch + Valkey Streams (RESP3 wire-compatible))",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-006-message-stream-adapters.md"
     },
@@ -308,7 +308,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -354,5 +354,281 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "messenger is a BNF v4.1 kebab-case microservice slug; generated names follow oya-messenger-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "capability_profiles": [
+    "T0",
+    "T1",
+    "T2"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "kr-pipa",
+    "hipaa",
+    "soc2",
+    "iso27001",
+    "fedramp",
+    "il5",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "cn-pipl-2021"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-messenger",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+    "per_seat",
+    "per_usage"
+  ],
+  "tenant_class_adoption": {
+    "authority": [
+      "ADR-0329",
+      "ADR-0330",
+      "ADR-0331"
+    ],
+    "principal_claim_binding": {
+      "issuer": "cloud-iam via identity",
+      "claims": [
+        "principal.tenant_class",
+        "principal.billing_components",
+        "principal.cap_breached",
+        "principal.demo_trial_expires_at"
+      ],
+      "cedar_fragment": "microservices/messenger/policy/tenant-class.cedar",
+      "request_path": "gateway-bound interceptor passes cloud-iam claims to Cedar; messenger does not resolve tenant_class per request"
+    },
+    "demo_trial_caps": {
+      "monthly_active_users": 25,
+      "monthly_message_volume": 50000,
+      "active_channel_count": 10,
+      "message_retention_days": 30,
+      "huddle_minutes_per_month": 120,
+      "attachment_storage_gb": 2,
+      "cap_breach_behavior": "read access preserved; new message, channel, huddle, attachment, and retention-extension writes denied until paid conversion or grace-window reset"
+    },
+    "paid_cedar_gates": {
+      "compliance_pack_activation": {
+        "requires_tenant_class": "paid",
+        "requires_billing_component": "per_seat",
+        "policy_action": "activate_compliance_pack"
+      },
+      "usage_metered_operations": [
+        "message_sent",
+        "channel_active_month",
+        "huddle_minute",
+        "attachment_gb",
+        "mls_key_package_upload",
+        "search_query",
+        "mention_fanout",
+        "workflow_trigger"
+      ]
+    }
+  },
+  "mobile_app_bundle": {
+    "bundle_members": [
+      "messenger",
+      "mail",
+      "social",
+      "community"
+    ],
+    "cross_handoff_transport": "gRPC",
+    "auth_surface": "shared cloud-iam session",
+    "push_surface": "unified APNs/FCM/WNS/Web Push notification envelope",
+    "clients": {
+      "ios": "Swift",
+      "macos": "Swift",
+      "android": "Kotlin",
+      "windows": "WinUI 3",
+      "web": "Leptos SSR + selective hydration"
+    },
+    "forbidden_anti_patterns": [
+      "linkedin_style_engagement_feed",
+      "influencer_monetization",
+      "sponsored_post_promotion"
+    ]
+  },
+  "service_classification": "hero-product",
+  "data_classification": "PII_IDENTIFYING, AUTHENTICATION, AUDIT",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "kr-pipa",
+    "hipaa",
+    "soc2",
+    "iso27001",
+    "fedramp",
+    "il5",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "cn-pipl-2021"
+  ],
+  "depends_on_microservices": [
+    "mail",
+    "calendar",
+    "meet",
+    "audit-chain",
+    "identity",
+    "cell",
+    "detection",
+    "docs",
+    "application",
+    "social",
+    "cloud-iac",
+    "workflow-engine",
+    "drive",
+    "cloud-secrets",
+    "network",
+    "connect",
+    "ontology",
+    "tenancy",
+    "compliance",
+    "observability"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.2,
+    "baseline_ram_per_tenant": 384,
+    "storage_per_tenant": 8,
+    "connections_per_tenant": {
+      "valkey": 6,
+      "postgres": 4,
+      "outbound_http": 6
+    },
+    "scaling_dimension": "per_message",
+    "cell_placement_class": "Tier-1",
+    "notes": "Message stream, presence, read-receipt, huddle signaling, MLS recovery, and attachment workflows scale with message and fanout volume. Tier-1 cell placement follows the MLS/key-recovery surface rather than treating messenger as a plain app."
+  },
+  "dr": {
+    "rto_p99_seconds": 3600,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "valkey_cluster",
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "openbao_seal_unseal",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/dr-failover.md",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Tier 1 because messenger is a tenant-data substrate surface for MLS key recovery, huddle signaling, message fanout, and encrypted attachment paths. It does not execute tenant-authored code, so Tier 0 is rejected, but the MLS and OpenBao-backed recovery paths are stronger than ordinary first-party app isolation.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/messenger/PRD.md",
+    "microservices/messenger/IP-007-presence-bc.md",
+    "microservices/messenger/IP-014-huddles-livekit-signaling.md",
+    "microservices/messenger/runbooks/e2e-encryption-key-rotation.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/messenger/contracts/openapi/messenger.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/messenger/contracts/asyncapi/messenger-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/messenger/contracts/proto/messenger.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "valkey",
+    "postgresql",
+    "cedar",
+    "openbao",
+    "kafka",
+    "opentelemetry"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "aws-guest",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "colo",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "colo",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    }
+  ]
 }

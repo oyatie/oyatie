@@ -26,4 +26,4 @@ entities:
   - Appeal
   - ClassifierVersion
   - StatementOfReasons  # EU DSA Art. 17
-eu_ai_act_classification: high_risk  # ADR-SOC-0003
+risk_classification: high_risk  # ADR-SOC-0003

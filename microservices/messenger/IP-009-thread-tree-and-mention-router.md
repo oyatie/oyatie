@@ -46,3 +46,59 @@ cargo nextest run --test mention_resolve_e2e
 ## Next IP
 
 [`IP-010-read-receipt-tracker.md`](IP-010-read-receipt-tracker.md)
+
+## Wave 15 substance conversion — thread tree and mention router
+
+### §A Problem
+
+Messenger parity with Slack, Teams, Discord, and Matrix depends on replies, mentions, and action-card routing being
+first-class domain objects rather than UI conventions.
+This IP closes the gap between `Channel`, `Message`, Ontology person lookup, and fanout audit evidence.
+
+### §B Approach
+
+Create thread-tree and mention-router bounded contexts that consume message-stream events and emit typed mention
+fanout events.
+The implementation must preserve dual-context isolation: a personal DM mention cannot leak into a professional
+channel, and work mentions must respect `policy/channel-scope.cedar`.
+
+### §C Deliverables
+
+- `src/crates/oya-messenger-thread-tree-{kernel,domain,usecase,adapter-postgres,worker}/...`
+- `src/crates/oya-messenger-mention-router-{kernel,domain,usecase,worker}/...`
+- `tests/mention_resolve_e2e.rs`
+- SLO proof against `slos/mention-fanout.openslo.yaml`
+
+### §D Implementation
+
+1. Model `ThreadNode` with tenant, channel, root message, parent message, depth, and participant set.
+2. Reject thread parentage that crosses tenant, channel, or `ContextKind`.
+3. Resolve `@user`, `@team`, and `@channel` through Ontology/person and channel membership projections.
+4. Evaluate Cedar before emitting notification fanout.
+5. Emit `MentionEmitted` and audit-chain evidence with no message body leakage.
+6. Backpressure fanout workers so mention storms trigger the runbook, not gateway collapse.
+
+### §E Acceptance
+
+E2E tests must cover three-deep replies, cross-context mention denial, p99 fanout within `mention-fanout` SLO, and
+mail action-card ingestion into a target work channel.
+
+### §F Evidence
+
+Local anchors: `PRD.md` threads/mentions matrix, `policy/dual-context-isolation.md`,
+`policy/channel-scope.cedar`, `runbooks/mention-storm-throttle.md`.
+
+### §G Counterparts
+
+Slack and Teams anchor enterprise mentions, Discord anchors high-scale channels, and Matrix anchors federated event
+shape; oyatie closes parity with Cedar-scoped, dual-context-safe fanout.
+
+## DR posture (per ADR-0343)
+
+- Authority: ADR-0343.
+- Trigger evidence: `microservices/messenger/IP-009-thread-tree-and-mention-router.md` matched `SLO, p99`.
+- Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/messenger/manifest.json`.
+- Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
+- Backup substrate: `postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Runtime evidence: `microservices/messenger/slos/attachment-scan-freshness.openslo.yaml`, `microservices/messenger/slos/mention-fanout.openslo.yaml`, `microservices/messenger/slos/message-send-availability.openslo.yaml`, `microservices/messenger/slos/message-send-latency.openslo.yaml`, `microservices/messenger/policy/auditor-scope.cedar`.

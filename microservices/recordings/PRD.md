@@ -18,6 +18,14 @@ related_adrs:
   - ADR-0131
   - ADR-0132
   - ADR-0133
+  - ADR-0338
+  - ADR-0339
+  - ADR-0340
+  - ADR-0341
+  - ADR-0342
+  - ADR-0343
+  - ADR-0344
+  - ADR-0345
   - ADR-RECORDINGS-0001
   - ADR-RECORDINGS-0002
   - ADR-RECORDINGS-0003
@@ -172,8 +180,8 @@ point forward.
 
 - Availability target: 99.95 % monthly for recording-list + playback-start.
 - 99.99 % for legal-hold engagement (load-bearing).
-- RTO: ≤ 15 min for recording metadata; ≤ 30 min for media (S3 cross-AZ).
-- RPO: ≤ 1 min for metadata; ≤ 5 min for media (chunked upload resumable).
+- RTO: ≤ 60 min per manifest `dr.rto_p99_seconds=3600`.
+- RPO: ≤ 5 min per manifest `dr.rpo_p99_seconds=300`; metadata targets remain operationally tighter where replication is healthy.
 
 ### Data residency
 
@@ -183,11 +191,41 @@ point forward.
 - Legal-hold cells (per `cell` µservice) are isolated to prevent
   same-substrate noisy-neighbour from a held recording.
 
+### DR Posture (ADR-0343)
+
+- RTO/RPO target: manifest `dr` declares `rto_p99_seconds=3600` and `rpo_p99_seconds=300`. HIPAA-2024 (3600s/300s), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s where payment recordings exist), and ISO27001-2022 (14400s/3600s) leave the effective recordings bound at 3600s RTO and 300s RPO.
+- failover_runbook: `runbooks/dr-failover.md`; manifest backup substrate is `postgres_wal_g`, `object_storage_versioned`, `seaweedfs_replicated`, and `audit_chain_merkle_seal`.
+- multi_region_active_active: true, with manifest replication shape `active-active-multi-az-cross-region-warm`; WORM/legal-hold evidence remains chain-of-custody constrained during promotion.
+- WHY: tenants must retrieve, hold, redact, and export recordings after a region fault without compromising evidentiary lineage under the D-2 manifest contract.
+
+### Capacity Model (ADR-0340)
+
+- Per-tenant baseline: manifest `capacity_model` declares 0.3 vCPU, 768Mi RAM, 50Gi storage, 2 Valkey connections, 3 Postgres connections, and 6 outbound HTTP connections per tenant.
+- Scaling dimension: `per_capability`, because recording ingest, segment storage, transcript, redaction, watermark, export, and legal-hold workloads scale by enabled capability and session minutes.
+- Cell placement class: Tier-3, matching manifest `capacity_model.cell_placement_class`, because recordings is a product application/archive surface with high media pressure but no tenant-customer code execution.
+- Autoscaling boundaries: API workers min 1 / max 50x the declared Helm replica count, transcode and transcript workers scale on queue depth, and legal-hold cells isolate once active holds exceed the capacity-model threshold.
+- WHY: recordings traffic is archive-heavy and bursty after live sessions, so durable ingest and evidence workflows need separate ceilings from playback/CDN traffic.
+
+### Sustainability + Cost Attribution (ADR-0344)
+
+- Every audit-chain row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region` for playback, share, redact, hold, export, transcript, diarization, transcode, and retention events.
+- Provider routing affected by carbon: yes for batch transcription, diarization, chaptering, transcode, and search backfill; no for legal-hold, court-order export, retention expiry, or urgent incident response.
+- Per-tenant transparency surface: FinOps portal shows ingest hours, media GB-months by hot/cold tier, transcript GPU hours, CDN egress, eDiscovery export jobs, and search index cost by tenant/capability/provider/cell/compliance_pack.
+- WHY: long-lived media archives dominate storage and GPU cost, and regulated tenants need CSRD, SB-253, and SEC climate disclosure support without weakening legal evidence timing.
+
+### API Versioning Posture (ADR-0342)
+
+- Public API version model: YYYY-MM-DD carrier triplet via `Oyatie-Version` header, `/v/<YYYY-MM-DD>` URL prefix, and proto3 `oyatie_version` field for recording ingest, transcript, playback, redaction, export, and legal-hold contracts.
+- SDK semver model: major.minor.patch for archive clients and producer-service SDKs; SDK major bumps map to breaking date-version contracts.
+- Support window: last N=3 public API versions for at least 180 days, including producer ingest and eDiscovery export schemas.
+- Per-tenant pinning supported: yes, especially for court-validated export bundles and regulated retention policy tests.
+- Internal-mesh exemption: yes; first-party durable ingest over direct gRPC remains exempt under ADR-0145 when it is not tenant/public API surface.
+
 ## Bounded Contexts
 
 Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` →
 `usecase` rename). Layers used: `kernel`, `domain`, `usecase`, `api`,
-`adapter`, `adapter-postgres`, `adapter-redis`, `adapter-s3`, `adapter-cdn`,
+`adapter`, `adapter-postgres`, `adapter-valkey`, `adapter-s3`, `adapter-cdn`,
 `adapter-meilisearch`, `adapter-whisper`, `adapter-pyannote`, `adapter-ffmpeg`,
 `adapter-pandoc`, `adapter-clamav`, `rest`, `worker`, `sdk`, `app`.
 
@@ -205,8 +243,8 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` →
 | `retention-policy` | `oya-recordings-retention-policy-{kernel,domain,usecase,api,adapter-postgres,rest,worker,sdk,app}` | Per-pack default + tenant-tier override + legal-hold override; KMS-shred orchestration | `RetentionPolicy`, `RetentionEffectiveBound`, `KmsShredKeyRef` |
 | `legal-hold` | `oya-recordings-legal-hold-{kernel,domain,usecase,api,adapter-postgres,rest,worker,sdk,app}` | Court-order workflow with chain-of-custody seal; load-bearing | `LegalHold`, `LegalHoldEngagement`, `ChainOfCustodyEvent` |
 | `export` | `oya-recordings-export-{kernel,domain,usecase,api,adapter-ffmpeg,adapter-pandoc,worker,sdk,app}` | MP4/MP3/WAV media + VTT/SRT/PDF/DOCX transcript export bundles | `ExportRequest`, `ExportBundle`, `ExportManifest` |
-| `share-link` | `oya-recordings-share-link-{kernel,domain,usecase,api,adapter-postgres,adapter-redis,rest,worker,sdk,app}` | Signed-URL + password + view-count cap + expiry | `ShareLink`, `ShareLinkPolicy`, `ViewSession` |
-| `playback` | `oya-recordings-playback-{kernel,domain,usecase,api,adapter-cdn-cloudfront-stub-or-self,adapter-redis,rest,sdk,app}` | Chapter-skip + caption-toggle + speaker-filter + 2x-speed | `PlaybackSession`, `PlaybackCheckpoint`, `CaptionRendition` |
+| `share-link` | `oya-recordings-share-link-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,rest,worker,sdk,app}` | Signed-URL + password + view-count cap + expiry | `ShareLink`, `ShareLinkPolicy`, `ViewSession` |
+| `playback` | `oya-recordings-playback-{kernel,domain,usecase,api,adapter-cdn-cloudfront-stub-or-self,adapter-valkey,rest,sdk,app}` | Chapter-skip + caption-toggle + speaker-filter + 2x-speed | `PlaybackSession`, `PlaybackCheckpoint`, `CaptionRendition` |
 | `ediscovery` | `oya-recordings-ediscovery-{kernel,domain,usecase,api,adapter-postgres,worker,sdk,app}` | Court-order workflow + chain-of-custody seal per audit-chain | `EDiscoveryHold`, `EDiscoveryExport`, `CourtOrderRef` |
 | `watermarking` | `oya-recordings-watermarking-{kernel,domain,usecase,adapter-ffmpeg,worker,app}` | Per-viewer dynamic visible + steganographic watermark | `WatermarkPolicy`, `WatermarkOverlay` |
 | `drm-stub` | `oya-recordings-drm-stub-{kernel,domain,usecase,adapter,app}` | DRM hook (per shorts ADR-SHORTS-0004); Widevine/Fairplay/PlayReady stub | `DrmPolicy`, `DrmLicenseRef` |
@@ -246,8 +284,8 @@ Port traits declared in each kernel (zero business logic; zero I/O):
 | `TranscriptDocumentRenderer` | `oya-recordings-export-kernel` | `-adapter-pandoc` | `BEHAVIORAL_TENANT_PRODUCT`, `PII_IDENTIFYING` |
 | `MalwareScanner` | `oya-recordings-recording-ingest-kernel` | `-adapter-clamav` | `INTERNAL_ONLY` |
 | `SearchIndex` | `oya-recordings-search-kernel` | `-adapter-meilisearch` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `ShareLinkCache` | `oya-recordings-share-link-kernel` | `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `PlaybackSessionCache` | `oya-recordings-playback-kernel` | `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `ShareLinkCache` | `oya-recordings-share-link-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
+| `PlaybackSessionCache` | `oya-recordings-playback-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` |
 | `LegalHoldStore` | `oya-recordings-legal-hold-kernel` | `-adapter-postgres` | `AUDIT`, `BEHAVIORAL_TENANT_PRODUCT` |
 | `RetentionPolicyStore` | `oya-recordings-retention-policy-kernel` | `-adapter-postgres` | `AUDIT` |
 | `CedarRecordingPolicy` | `oya-recordings-recording-kernel` | `-adapter` (Cedar evaluator) | `INTERNAL_ONLY` |

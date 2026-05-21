@@ -75,7 +75,7 @@ pack_overrides:
     auto_translate: enabled_with_supervisor_review
     reason: FINRA Rule 3110 supervisory review applies to translated supervised-comms
   pack-eu:
-    eu_ai_act_classification:
+    risk_classification:
       auto_mute: limited_risk
       auto_translate: limited_risk
     transparency_obligation: tenant-admin must disclose to end-users in privacy notice; per ADR-MEET-0006
@@ -96,7 +96,7 @@ cedar_policy_fragments:
   - microservices/meet/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/meet/capabilities/eval/t2-auto-golden.jsonl
+  baseline_inputs_path: microservices/meet/capabilities/eval/t2-auto-baseline.jsonl
   pass_threshold:
     auto_mute_false_positive: 0.02
     auto_translate_bleu: 0.40

@@ -108,15 +108,15 @@ postgres:
   rls: enabled  # MANDATORY per IP-001
   walRetentionDays: 7
 
-redisHotFeed:
-  host: community-redis-hot.${global.pack}.svc.cluster.local
+valkeyHotFeed:
+  host: community-valkey-hot.${global.pack}.svc.cluster.local
   port: 6379
-  authToken: "${openbao:secret/community/redis/hot-feed-auth}"
+  authToken: "${openbao:secret/community/valkey/hot-feed-auth}"
 
-redisVoteBuffer:
-  host: community-redis-votes.${global.pack}.svc.cluster.local
+valkeyVoteBuffer:
+  host: community-valkey-votes.${global.pack}.svc.cluster.local
   port: 6379
-  authToken: "${openbao:secret/community/redis/vote-buffer-auth}"
+  authToken: "${openbao:secret/community/valkey/vote-buffer-auth}"
 
 s3KbAttachments:
   endpoint: "${OCI_OBJECTSTORAGE_ENDPOINT}"

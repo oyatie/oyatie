@@ -66,7 +66,7 @@ Two replay surfaces are first-class:
 - Each backfill emits an audit-chain seal of the backfilled-row-count for
   the day.
 - Search-index rebuild validated by per-tenant search-quality benchmark
-  (golden queries return same top-K within ε tolerance).
+  (baseline queries return same top-K within ε tolerance).
 
 ## References
 

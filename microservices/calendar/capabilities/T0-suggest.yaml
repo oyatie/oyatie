@@ -45,7 +45,7 @@ capabilities:
     latency_budget_p99_ms: 300
     audit_event: CalendarTimeSuggestionShown (per-suggestion; minimal payload — attendee count hash + slot list hash)
     fallback_on_model_failure: silent skip — falls back to heuristic
-    eu_ai_act_classification: minimal-risk (Annex III §3 NOT triggered — scheduling is not employment/HR decision-making per se; HR-scheduling overlay handled at T1)
+    risk_classification: minimal-risk (Annex III §3 NOT triggered — scheduling is not employment/HR decision-making per se; HR-scheduling overlay handled at T1)
     user_label: "AI suggestion — click to accept" (Art. 50 transparency)
 
   - id: T0-cal-suggest-title
@@ -70,7 +70,7 @@ capabilities:
     latency_budget_p99_ms: 250
     audit_event: CalendarTitleSuggestionShown
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — Tab to accept"
 
   - id: T0-cal-suggest-room
@@ -95,7 +95,7 @@ capabilities:
     latency_budget_p99_ms: 200
     audit_event: CalendarRoomSuggestionShown
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — click to accept"
 
   - id: T0-cal-suggest-agenda
@@ -119,7 +119,7 @@ capabilities:
     latency_budget_p99_ms: 400
     audit_event: CalendarAgendaSuggestionShown
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggestion — edit then accept"
 
 verification:

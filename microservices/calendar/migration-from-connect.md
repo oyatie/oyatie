@@ -64,7 +64,7 @@ The 6 bounded-contexts of the `calendar` µservice live under
 | `oya-connect-calendar-availability-usecase` | `oya-calendar-availability-resolver-usecase` |
 | `oya-connect-calendar-availability-api` | `oya-calendar-availability-resolver-api` |
 | `oya-connect-calendar-availability-adapter` | `oya-calendar-availability-resolver-adapter` |
-| `oya-connect-calendar-availability-adapter-redis` | `oya-calendar-availability-resolver-adapter-redis` |
+| `oya-connect-calendar-availability-adapter-valkey` | `oya-calendar-availability-resolver-adapter-valkey` |
 | `oya-connect-calendar-availability-rest` | `oya-calendar-availability-resolver-rest` |
 | `oya-connect-calendar-availability-worker` | `oya-calendar-availability-resolver-worker` |
 | `oya-connect-calendar-availability-app` | `oya-calendar-availability-resolver-app` |
@@ -394,7 +394,7 @@ satisfy these checks. Each is gated by a concrete command:
 - [ ] **No references to the deprecated system remain in the codebase**
   (excluding historical ADR / RETIRED.md / git-log surfaces):
   ```bash
-  rg "oya_connect_calendar" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/golden/"    | wc -l   # expect 0
+  rg "oya_connect_calendar" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/baseline/"    | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed (they served their purpose)** (per
   Phase 5):

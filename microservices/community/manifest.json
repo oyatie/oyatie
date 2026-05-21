@@ -3,6 +3,54 @@
   "microservice": "community",
   "version": "0.1.0",
   "owner": "axis-community",
+  "scope_status": "merged-successor",
+  "absorbed_microservices": [
+    {
+      "name": "network",
+      "date": "2026-05-21",
+      "wave": "15K",
+      "reason": "Retired misnamed LinkedIn-class professional product surface into community; infrastructure networking remains cloud-network.",
+      "retired_marker": "microservices/network/RETIRED.md"
+    }
+  ],
+  "product_pillars": [
+    {
+      "name": "reddit-style-community-forums",
+      "counterpart": "Reddit",
+      "scope": "subcommunities, posts, comments, threading, voting, ranking-by-vote, tags, roles, moderation"
+    },
+    {
+      "name": "teamblind-style-anonymous-workplace",
+      "counterpart": "Teamblind",
+      "scope": "verified workplace affiliation, anonymous workplace posting, topic taxonomy, per-workplace moderation"
+    },
+    {
+      "name": "handshake-style-jobs-recruitment",
+      "counterpart": "Handshake",
+      "scope": "job board, applications, resume submission, employer pages, skill assessment tie-ins, recruiter direct-connect"
+    },
+    {
+      "name": "linkedin-jobs-profile-recruiter-subset",
+      "counterpart": "LinkedIn Jobs/Profile/Recruiter",
+      "scope": "professional profile, resume, connections, InMail-equivalent outreach, endorsements, recommendations, recruiter search; excludes engagement feed"
+    }
+  ],
+  "top_3_counterparts": [
+    "Reddit",
+    "Teamblind",
+    "Handshake"
+  ],
+  "secondary_counterparts": [
+    "LinkedIn Jobs",
+    "LinkedIn Profile",
+    "LinkedIn Recruiter"
+  ],
+  "forbidden_patterns": [
+    "LinkedIn-style engagement-optimized text feed",
+    "For-You-style algorithmic attention feed",
+    "sponsored-post-promotion",
+    "influencer-monetization-via-followers"
+  ],
   "bounded_contexts": [
     {
       "name": "community",
@@ -87,22 +135,46 @@
   },
   "capabilities": [
     {
+      "tier": "surface",
+      "name": "reddit-mode",
+      "file": "microservices/community/capabilities/reddit-mode.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "surface",
+      "name": "teamblind-mode",
+      "file": "microservices/community/capabilities/teamblind-mode.yaml",
+      "risk_class": "employment-sensitive"
+    },
+    {
+      "tier": "surface",
+      "name": "handshake-mode",
+      "file": "microservices/community/capabilities/handshake-mode.yaml",
+      "risk_class": "employment-sensitive"
+    },
+    {
+      "tier": "surface",
+      "name": "linkedin-profile-jobs-recruiter-mode",
+      "file": "microservices/community/capabilities/linkedin-mode.yaml",
+      "risk_class": "employment-high-risk"
+    },
+    {
       "tier": "T1",
       "name": "moderate-action",
       "file": "microservices/community/capabilities/moderate-action.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "post-create",
       "file": "microservices/community/capabilities/post-create.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "vote-cast",
       "file": "microservices/community/capabilities/vote-cast.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     }
   ],
   "slos": [
@@ -317,7 +389,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -338,5 +410,175 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "community is a BNF v4.1 kebab-case microservice slug; generated names follow oya-community-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "surface_flags": [
+    "reddit-mode",
+    "teamblind-mode",
+    "handshake-mode",
+    "professional-profile-mode",
+    "inmail-bridge",
+    "endorsement-engine",
+    "skill-assessments",
+    "jobs-recruiter",
+    "pages-events",
+    "whistleblower-submission",
+    "securedrop-press-source",
+    "bug-bounty-submission"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "kr-pipa",
+    "soc2-type2",
+    "soc2",
+    "lgpd",
+    "SOC 2 Type 2",
+    "iso27001",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-community",
+  "service_classification": "product",
+  "data_classification": "PII_IDENTIFYING, AUTHENTICATION, AUDIT",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "kr-pipa",
+    "soc2-type2",
+    "soc2",
+    "lgpd",
+    "SOC 2 Type 2",
+    "iso27001",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "ontology",
+    "intelligence",
+    "audit-chain",
+    "identity",
+    "meet",
+    "shorts",
+    "calendar",
+    "detection",
+    "foundry",
+    "workflow-engine",
+    "mail",
+    "messenger",
+    "analytics",
+    "comms-email",
+    "drive",
+    "sites",
+    "cloud-secrets",
+    "cloud-network",
+    "compliance",
+    "marketplace",
+    "tenancy"
+  ],
+  "failure_domain": "tenant community plus professional profile/jobs discussion surface",
+  "criticality_tier": "T1",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.12,
+    "baseline_ram_per_tenant": 256,
+    "storage_per_tenant": 12,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 3,
+      "outbound_http": 4
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-3",
+    "notes": "Post, vote, moderation, knowledge-base, and search traffic scale with tenant request volume rather than user seats; storage grows with posts plus KB attachments."
+  },
+  "dr": {
+    "rto_p99_seconds": 3600,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "valkey",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/dr-failover.md",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Tier 2 because community is a first-party product surface for posts, votes, moderation, KB articles, and tenant-scoped search. It consumes platform substrates through policy-bound adapters but is not itself a foundation or substrate owner.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/community/PRD.md",
+    "microservices/community/IP-005-thread-tree-materialised-path.md",
+    "microservices/community/IP-007-moderation-queue.md",
+    "microservices/community/runbooks/moderation-queue-clear.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/community/contracts/openapi/community.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/community/contracts/asyncapi/community-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/community/contracts/proto/community.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "valkey",
+    "cedar",
+    "kafka",
+    "opentelemetry",
+    "opensearch"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    }
+  ]
 }

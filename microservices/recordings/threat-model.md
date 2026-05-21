@@ -63,7 +63,7 @@ dedicated recordings Kubernetes namespace.
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 (recording metadata + transcript JSON + redaction overlay + retention + legal-hold + ediscovery) | `oya-recordings-recording-*` (10 crates) |
-| Valkey 8.1 (Redis wire-compat) (share-link signed-URL cache + playback session) | `oya-recordings-media-segment-*` (8 crates) |
+| Valkey 8.1 (RESP3 wire-compatible) (share-link signed-URL cache + playback session) | `oya-recordings-media-segment-*` (8 crates) |
 | S3-compatible (media — hot tier) + S3-Glacier-class (cold tier) | `oya-recordings-transcript-*` (10 crates) |
 | CloudFront (primary) / Bunny + Fastly + nginx-vod (self-host pack-cn / pack-ksa) | `oya-recordings-redaction-*` (9 crates) |
 | Meilisearch 0.10.0 LTS (search index) | `oya-recordings-retention-policy-*` (9 crates) |

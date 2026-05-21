@@ -149,16 +149,16 @@ postgres:
   rls: enabled  # MANDATORY
   version: "16"  # Postgres 16 LTS per ADR
 
-redisCache:
-  host: social-redis-cache.${global.pack}.svc.cluster.local
+valkeyCache:
+  host: social-valkey-cache.${global.pack}.svc.cluster.local
   port: 6379
-  authToken: "${openbao:secret/social/redis/cache-auth}"
-  version: "7.2"  # Valkey 8.1 (Redis wire-compat)
+  authToken: "${openbao:secret/social/valkey/cache-auth}"
+  version: "7.2"  # Valkey 8.1 (RESP3 wire-compatible)
 
-redisStreams:
-  host: social-redis-streams.${global.pack}.svc.cluster.local
+valkeyStreams:
+  host: social-valkey-streams.${global.pack}.svc.cluster.local
   port: 6379
-  authToken: "${openbao:secret/social/redis/streams-auth}"
+  authToken: "${openbao:secret/social/valkey/streams-auth}"
   version: "7.2"
 
 s3Media:

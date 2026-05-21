@@ -55,7 +55,7 @@ The 9 bounded-contexts of the `messenger` µservice live under
 | `oya-connect-messenger-message-stream-app` | `oya-messenger-message-stream-app` |
 | `oya-connect-messenger-presence-kernel` | `oya-messenger-presence-kernel` |
 | `oya-connect-messenger-presence-usecase` | `oya-messenger-presence-usecase` |
-| `oya-connect-messenger-presence-adapter-redis` | `oya-messenger-presence-adapter-redis` |
+| `oya-connect-messenger-presence-adapter-valkey` | `oya-messenger-presence-adapter-valkey` |
 | `oya-connect-messenger-presence-worker` | `oya-messenger-presence-worker` |
 | `oya-connect-messenger-presence-app` | `oya-messenger-presence-app` |
 | `oya-connect-messenger-file-attachment-kernel` | `oya-messenger-file-attachment-kernel` |
@@ -277,7 +277,7 @@ behaviour, preserved verbatim during the canary:
   ```
 - [ ] **No references to the deprecated system remain in the codebase**:
   ```bash
-  rg "oya_connect_messenger" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/golden/"    | wc -l   # expect 0
+  rg "oya_connect_messenger" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/reference/"    | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed** (per Phase 5):
   ```bash

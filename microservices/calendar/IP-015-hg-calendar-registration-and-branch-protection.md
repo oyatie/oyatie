@@ -7,76 +7,77 @@ impl_plan_id: IP-015-hg-calendar-registration-and-branch-protection
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-calendar + ops-release-management
-acceptance_lanes: [branch-protection-validate, oya-governance-hyperscaler-maturity-claims, oya-governance-per-microservice-layout]
+owner: axis-calendar + council-architecture + ops-platform
+acceptance_lanes: [hyperscaler-gate-registration, branch-protection, governance-required-checks]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-015: HG-CALENDAR registration and branch protection
 
-# IP-015: HG-CALENDAR registration + branch-protection
+## A. Problem
+Calendar maturity gates are ineffective unless they are registered as required checks before PR promotion to `dev`.
 
-## Intent
+## B. Approach
+Register HG-CALENDAR as a required governance check backed by manifest, contract, policy, SLO, parity, and doc-link validation. Branch protection should block promotion when calendar evidence regresses or local paths disappear.
 
-Register HG-CALENDAR as a BLOCKER lane in
-`.github/branch-protection.yaml`. Calendar promotion past dev requires
-HG-CALENDAR green per ADR-0123 + ADR-0139. Wire all 9 OpenSLO manifests
-+ all per-BC CI lanes into branch-protection.
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `manifest.json` | Service registration source. |
+| `scorecards/overrides.json` | Local override and evidence scoring surface. |
+| `coherence-audit-2026-05-20.md` | Current known-gaps register. |
+| `contracts/`, `policy/`, `slos/`, `catalog/` | Required path families for the check. |
+| `REMEDIATION-NOTES-2026-05-21-tier-scrub.md` | Existing remediation note file updated by this wave. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Verify manifest identity, owner, bounded contexts, contracts, SLOs, and IP entries.
+2. Register the HG-CALENDAR gate with required check names.
+3. Add branch protection requirements for contract validation, policy validation, SLO resolution, and doc-link resolution.
+4. Add failure messages that point to exact calendar files.
+5. Test with one intentional missing-path fixture and one passing fixture.
+6. Update scorecard overrides only for documented exceptions.
+7. Record gate evidence in remediation notes and PR body.
 
-`.github/branch-protection.yaml` + `/registry/quality/lanes.yaml`
-updates.
+## E. Acceptance
+- `jq -e . microservices/calendar/manifest.json` passes.
+- `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity --microservice calendar` passes.
+- Required check registration includes contract, policy, SLO, and doc-link lanes.
+- `scorecards/overrides.json` parses and contains no silent pass for missing IP evidence.
+- Branch-protection dry run blocks a missing calendar contract path.
 
-## Concrete File Targets
+## F. Evidence
+- Manifest: `microservices/calendar/manifest.json`.
+- Scorecard: `microservices/calendar/scorecards/overrides.json`.
+- Audit: `microservices/calendar/coherence-audit-2026-05-20.md`.
+- Contract and policy families: `contracts/`, `policy/`, `slos/`, `catalog/`.
 
-| Path | Action | Description |
-|---|---|---|
-| `.github/branch-protection.yaml` | extend | add HG-CALENDAR + per-BC + per-SLO lanes |
-| `/registry/quality/lanes.yaml` | extend | per-lane metadata for new HG-CALENDAR lanes |
-| `/registry/claim-matrix/ops-portal.json` | extend | claim ownership for calendar lanes |
+## G. Counterpart comparison
+Counterparts do not expose their internal promotion gates to tenants. Oyatie's claim is stronger only if HG-CALENDAR is enforceable in branch protection, making Google/Outlook/Cal.com parity claims fail closed when evidence files or governance checks drift.
 
-## New BLOCKER lanes registered
+## H. Foundation delivery expansion
+- Deliverable detail: required checks include manifest parse, contract validation, Cedar policy validation, SLO resolution, doc links, and parity trace.
+- Deliverable detail: check names use the HG-CALENDAR prefix consistently in branch protection.
+- Deliverable detail: failure messages include exact file path, missing field, and responsible evidence family.
+- Deliverable detail: scorecard overrides must include justification and expiry for any exception.
+- Deliverable detail: remediation notes record the number of IP files expanded and the verification commands.
+- Deliverable detail: missing contract/policy/SLO/catalog files block promotion by default.
+- Deliverable detail: branch-protection dry run includes both passing and intentionally broken fixture paths.
+- Deliverable detail: Slack collaboration-calendar pressure is represented in claim checks alongside Google/Outlook/Cal.com.
 
-- `oya-governance-rfc-5545-conformance` — per ADR-CAL-0002.
-- `oya-governance-rfc-4791-conformance` — per ADR-CAL-0001.
-- `oya-governance-caldav-backend-conformance` — per ADR-CAL-0001.
-- `oya-governance-tzdb-staleness-bound` — per ADR-CAL-0004.
-- `oya-governance-dual-context-correctness` — per PRD AC-07.
-- `oya-governance-room-conflict-correctness` — per PRD AC-09.
-- HG-CALENDAR — composite gate per ADR-0123.
+## I. Acceptance expansion
+- Acceptance detail: `jq` must parse manifest and scorecard override files.
+- Acceptance detail: branch-protection registration must include every required HG-CALENDAR lane.
+- Acceptance detail: dry-run failure fixture must block on a missing calendar contract path.
+- Acceptance detail: dry-run passing fixture must include all foundation IP files.
+- Acceptance detail: scorecard override scan must reject silent pass-throughs.
+- Acceptance detail: remediation note entry must include calendar foundation IP count.
+- Acceptance detail: counterpart grep must find Slack or another approved counterpart in every foundation IP.
+- Acceptance detail: Google, Outlook, Cal.com, and Slack comparisons must fail closed if evidence paths drift.
 
-## Acceptance Gates
-
-```bash
-cargo run -p oya-dev-cli -- gate validate branch-protection-validate
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice calendar
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice calendar
-```
-
-## Test Plan
-
-- branch-protection.yaml parses + all referenced lanes exist in
-  registry.
-- HG-CALENDAR composite is consistent with the SLO files +
-  conformance tests.
-
-## Halt Conditions
-
-- Any referenced lane missing from registry — block.
-- HG-CALENDAR composite trips on a known-passing setup — block;
-  root-cause.
-
-## Phase exit
-
-This IP closes M03-connect-dissolution-phase-01-calendar-foundation
-phase. After all 15 IPs land, the calendar µservice is "Phase 1
-exit-gate ready" per ADR-0134 phase model (parallel ship; legacy
-`oya-connect-calendar-*` still serves traffic; new `oya-calendar-*`
-serves canary).
-
-## References
-
-- ADR-0123; ADR-0139; ADR-0131; ADR-0134.
-- `.github/branch-protection.yaml`.
-- `/registry/quality/lanes.yaml`.
-- `microservices/calendar/PHASE-01-CALENDAR-FOUNDATION.md`.
+## J. Evidence expansion
+- Evidence detail: capture `jq -e . microservices/calendar/manifest.json`.
+- Evidence detail: capture `jq -e . microservices/calendar/scorecards/overrides.json`.
+- Evidence detail: capture HG-CALENDAR gate or dry-run output.
+- Evidence detail: capture line-count verification proving no foundation IP remains in the 31-79 line band.
+- Evidence detail: capture counterpart grep verification over calendar foundation IPs.
+- Evidence detail: cite `coherence-audit-2026-05-20.md` for known gaps.
+- Evidence detail: cite Slack as the explicit collaboration-calendar comparison name required by this repair.

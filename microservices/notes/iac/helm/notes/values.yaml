@@ -65,7 +65,7 @@ importExportWorker:
 # Substrate secrets via OpenBao SecretReference
 openbao:
   postgresUrl: "${openbao:secret/notes/postgres-url}"
-  redisUrl: "${openbao:secret/notes/redis-url}"
+  valkeyUrl: "${openbao:secret/notes/valkey-url}"
   meilisearchKey: "${openbao:secret/notes/meilisearch-master-key}"
   s3AccessKey: "${openbao:secret/notes/s3-access-key}"
   s3SecretKey: "${openbao:secret/notes/s3-secret-key}"

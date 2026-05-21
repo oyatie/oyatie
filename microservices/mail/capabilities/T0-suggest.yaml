@@ -40,7 +40,7 @@ capabilities:
     latency_budget_p99_ms: 250
     audit_event: MailDraftSuggestionShown (per-suggestion; minimal payload — prompt hash + suggestion hash; never plaintext)
     fallback_on_model_failure: silent skip
-    eu_ai_act_classification: minimal-risk (Annex III §3 NOT triggered — not employment/HR decision-making)
+    risk_classification: minimal-risk (Annex III §3 NOT triggered — not employment/HR decision-making)
     user_label: "AI suggestion — Tab to accept" (Art. 50 transparency)
 
   - id: T0-mail-subject-suggest
@@ -57,7 +57,7 @@ capabilities:
     data_class_emitted: INTERNAL_ONLY
     latency_budget_p99_ms: 200
     audit_event: MailSubjectSuggestionShown
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI subject suggestion"
 
   - id: T0-mail-thread-summary
@@ -76,7 +76,7 @@ capabilities:
     data_class_emitted: INTERNAL_ONLY (summary text shown only to viewer)
     latency_budget_p99_ms: 1500
     audit_event: MailThreadSummaryGenerated
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI summary — generated on demand"
     pack_restrictions:
       pack-us-healthcare:
@@ -99,7 +99,7 @@ capabilities:
     data_class_emitted: INTERNAL_ONLY
     latency_budget_p99_ms: 100
     audit_event: MailSearchSuggestionShown (sampled at 1%; rate-limited)
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: subtle "AI" badge on suggestions
 
   - id: T0-mail-folder-organizer-suggest
@@ -118,7 +118,7 @@ capabilities:
     data_class_emitted: INTERNAL_ONLY
     latency_budget_p99_ms: 2000
     audit_event: MailFolderOrganizerSuggestionShown
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI suggested folders — review before applying"
 
 constraints_all_capabilities:

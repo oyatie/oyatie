@@ -31,7 +31,7 @@ Every tenant is assigned a primary pack at onboarding. Cross-pack movement is **
 
 | Pack | Primary region(s) | Cluster footprint | Activated? |
 |---|---|---|---|
-| pack-kr | OCI ap-seoul-1 | kr-meet-{postgres,redis,s3,meilisearch,livekit,coturn,whisper-gpu} | YES (M02 launch) |
+| pack-kr | OCI ap-seoul-1 | kr-meet-{postgres,valkey,s3,meilisearch,livekit,coturn,whisper-gpu} | YES (M02 launch) |
 | pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-meet-* | Conditional (first EU SCC) |
 | pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-meet-* | Conditional |
 | pack-us-healthcare | OCI us-ashburn-1 (HIPAA-eligible) | us-hc-meet-* (isolated from non-HC) | Conditional (post-BAA) |

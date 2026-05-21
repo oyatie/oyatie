@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0063, ADR-0064, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0063, ADR-0064, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-notes
@@ -124,7 +124,7 @@ The privacy posture is sharper than docs: notes are *first-thought capture* (cf.
 
 - Availability target: 99.95 % monthly for note-open + note-create.
 - Sync-after-edit + graph-render best-effort 99.9 % monthly.
-- RTO: ≤ 15 min for note-store. RPO: ≤ 5 min (cross-region replication within pack for Professional store; Personal-tier ciphertext is replication-safe).
+- RTO: ≤ 60 min per manifest `dr.rto_p99_seconds=3600`. RPO: ≤ 5 min per manifest `dr.rpo_p99_seconds=300` (cross-region replication within pack for Professional store; Personal-tier ciphertext is replication-safe).
 
 ### Data residency
 
@@ -137,9 +137,39 @@ The privacy posture is sharper than docs: notes are *first-thought capture* (cf.
 - Keyboard-only operation for all primary affordances (capture, tag, link, graph navigation).
 - Screen-reader support for graph-view via alternate-list-mode toggle.
 
+### DR Posture (ADR-0343)
+
+- RTO/RPO target: manifest `dr` declares `rto_p99_seconds=3600` and `rpo_p99_seconds=300`. HIPAA-2024 (3600s/300s), SOC2-T2 (14400s/900s), ISO27001-2022 (14400s/3600s), and FedRAMP-derived pack expectations leave the effective notes bound at 3600s RTO and 300s RPO.
+- failover_runbook: `runbooks/dr-failover.md`; manifest backup substrate is `postgres_wal_g`, `object_storage_versioned`, `valkey`, `openbao_seal_unseal`, and `audit_chain_merkle_seal`.
+- multi_region_active_active: true, with manifest replication shape `active-active-multi-az-cross-region-warm`; Personal plaintext is never server-visible, and replicated ciphertext follows per-user residency.
+- WHY: users can keep capturing and recovering clinical/professional notes after a cell fault without creating operator plaintext access under the D-2 manifest contract.
+
+### Capacity Model (ADR-0340)
+
+- Per-tenant baseline: manifest `capacity_model` declares 0.1 vCPU, 256Mi RAM, 5Gi storage, 3 Valkey connections, 3 Postgres connections, and 3 outbound HTTP connections per tenant.
+- Scaling dimension: `per_user`; note-open, sync, tag/backlink graph, full-text search, optional Loro collaboration, and E2E ciphertext storage scale with active note users and sync sessions.
+- Cell placement class: Tier-3, matching manifest `capacity_model.cell_placement_class`, because notes is a product application surface while E2E plaintext remains client-side.
+- Autoscaling boundaries: note-store REST min 4 / max 80, collab/edit broker min 3 / max 60, and worker pools follow the capacity-model per-BC HPA envelopes.
+- WHY: notes is flow-sensitive and privacy-sensitive; capacity must absorb capture bursts without moving Personal plaintext out of the client boundary.
+
+### Sustainability + Cost Attribution (ADR-0344)
+
+- Every Professional audit-chain row, plus Personal share-link audit rows, emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region`.
+- Provider routing affected by carbon: no for HIPAA clinical-note, E2E refusal, key recovery, or emergency disclosure paths; yes for Professional-only tag suggestion, summarization, backlink refresh, import conversion, and export jobs when tenant policy permits.
+- Per-tenant transparency surface: FinOps portal shows note storage, graph index size, import/export jobs, web-clipper volume, AI-assist calls, and share-link audit rows by tenant/capability/provider/cell/compliance_pack, with Personal routine capture excluded from operator-readable cost detail.
+- WHY: privacy-by-design and climate disclosure both apply; CSRD, SB-253, and SEC climate reporting need attribution without turning Personal notes into observable telemetry.
+
+### API Versioning Posture (ADR-0342)
+
+- Public API version model: YYYY-MM-DD carrier triplet via `Oyatie-Version` header, `/v/<YYYY-MM-DD>` URL prefix, and proto3 `oyatie_version` field for note, tag, backlink, share-link, import/export, and Workflow events.
+- SDK semver model: major.minor.patch across web, desktop, mobile, and browser-extension SDKs.
+- Support window: last N=3 public API versions for at least 180 days, including web-clipper and export/import formats.
+- Per-tenant pinning supported: yes for Professional tenants and regulated clinical-note overlays; Personal clients pin through signed client release channels.
+- Internal-mesh exemption: yes; drive/tasks/foundry direct gRPC paths remain exempt under ADR-0145 when they are internal-only.
+
 ## Bounded Contexts
 
-Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename). Layers used: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-redis`, `adapter-s3`, `adapter-meilisearch`, `adapter-loro`, `adapter-mls`, `rest`, `worker`, `sdk`, `app`.
+Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename). Layers used: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-valkey`, `adapter-s3`, `adapter-meilisearch`, `adapter-loro`, `adapter-mls`, `rest`, `worker`, `sdk`, `app`.
 
 | BC | Crate family | Purpose | Key entities |
 |---|---|---|---|

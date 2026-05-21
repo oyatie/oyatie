@@ -63,7 +63,7 @@ Plus cross-cutting:
 |---|---|---|---|---|
 | [`IP-001-websocket-gateway-iac.md`](IP-001-websocket-gateway-iac.md) | Helm/Kustomize for WebSocket gateway + Envoy / Cloudflare termination | pending | axis-messenger | observability IP-001 |
 | [`IP-002-postgres-message-store-iac.md`](IP-002-postgres-message-store-iac.md) | Postgres HA + per-tenant sharding for message + channel + thread | pending | axis-messenger | observability IP-001 |
-| [`IP-003-redis-presence-iac.md`](IP-003-redis-presence-iac.md) | Valkey cluster for presence + read-receipt; pub/sub topology | pending | axis-messenger | observability IP-001 |
+| [`IP-003-valkey-presence-iac.md`](IP-003-valkey-presence-iac.md) | Valkey cluster for presence + read-receipt; pub/sub topology | pending | axis-messenger | observability IP-001 |
 | [`IP-004-attachment-store-iac.md`](IP-004-attachment-store-iac.md) | S3-compatible blob store; multipart upload; KMS encryption | pending | axis-messenger | observability IP-001 |
 | [`IP-005-search-index-iac.md`](IP-005-search-index-iac.md) | Tantivy (self-hosted) + optional Elasticsearch fallback | pending | axis-messenger | observability IP-001 |
 | [`IP-006-channel-store-kernel.md`](IP-006-channel-store-kernel.md) | `oya-messenger-channel-store-kernel` port traits + entities | pending | axis-messenger | — |

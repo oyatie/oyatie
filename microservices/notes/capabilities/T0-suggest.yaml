@@ -66,7 +66,7 @@ pack_overrides:
     requires: signed BAA + explicit per-notebook opt-in
     reason: HIPAA 45 CFR §164.502(b) — minimum necessary
   pack-eu:
-    eu_ai_act_classification: minimal_risk
+    risk_classification: minimal_risk
     transparency_obligation: per Art. 50 transparency label on output
   pack-kr:
     kr_pipa_art28_consent: tenant-admin-opt-in required
@@ -84,7 +84,7 @@ cedar_policy_fragments:
   - microservices/notes/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/notes/capabilities/eval/t0-suggest-golden.jsonl
+  reference_inputs_path: microservices/notes/capabilities/eval/t0-suggest-reference.jsonl
   pass_threshold: 0.85
   eval_metric: prefix-accuracy@1 (next-word) + ROUGE-1 on title generation
   cadence: per-release
