@@ -12,8 +12,26 @@ use oya_cloud_iam_domain::{
 use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE: &str = "cloud.iam.identity_provider.create";
+pub const CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE: &str = "cloud.iam.identity_provider.list";
 pub const CLOUD_IAM_ROLE_CREATE_SURFACE: &str = "cloud.iam.role.create";
 pub const CLOUD_IAM_STS_TOKEN_SURFACE: &str = "cloud.iam.sts.token";
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamIdentityProviderListApiStatus {
+    Ok,
+    BadRequest,
+    Forbidden,
+}
+
+impl CloudIamIdentityProviderListApiStatus {
+    pub const fn code(self) -> u16 {
+        match self {
+            Self::Ok => 200,
+            Self::BadRequest => 400,
+            Self::Forbidden => 403,
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CloudIamIdentityProviderCreateApiStatus {
@@ -133,6 +151,12 @@ pub struct CloudIamApiBoundaryContext {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiReadBoundaryContext {
+    pub request_id: String, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamApiPrincipal {
     pub tenant_id: String,    // data_class: INTERNAL_ONLY
     pub principal_id: String, // data_class: INTERNAL_ONLY
@@ -181,6 +205,13 @@ pub struct CloudIamIdentityProviderCreateApiRequest {
     pub principal: CloudIamApiPrincipal,   // data_class: INTERNAL_ONLY
     pub authorization: CloudIamApiAuthorization, // data_class: INTERNAL_ONLY
     pub body: CloudIamIdentityProviderCreateRequest, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderListApiRequest {
+    pub boundary: CloudIamApiReadBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudIamApiPrincipal,          // data_class: INTERNAL_ONLY
+    pub authorization: CloudIamApiAuthorization,  // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -317,6 +348,12 @@ pub struct CloudIamIdentityProviderCreateSuccessResponse {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamIdentityProviderListSuccessResponse {
+    pub data: Vec<CloudIamIdentityProviderRecord>, // data_class: INTERNAL_ONLY
+    pub metadata: CloudIamApiResponseMetadata,     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIamRoleCreateSuccessResponse {
     pub data: CloudIamRoleRecord,              // data_class: INTERNAL_ONLY
     pub metadata: CloudIamApiResponseMetadata, // data_class: INTERNAL_ONLY
@@ -389,6 +426,17 @@ impl CloudIamRoleCreateSuccessResponse {
 
 impl CloudIamIdentityProviderCreateSuccessResponse {
     pub fn created(data: CloudIamIdentityProviderRecord, request_id: impl Into<String>) -> Self {
+        Self {
+            data,
+            metadata: CloudIamApiResponseMetadata {
+                request_id: request_id.into(),
+            },
+        }
+    }
+}
+
+impl CloudIamIdentityProviderListSuccessResponse {
+    pub fn ok(data: Vec<CloudIamIdentityProviderRecord>, request_id: impl Into<String>) -> Self {
         Self {
             data,
             metadata: CloudIamApiResponseMetadata {
@@ -714,6 +762,18 @@ pub fn validate_cloud_iam_identity_provider_create_request(
     )
 }
 
+pub fn validate_cloud_iam_identity_provider_list_request(
+    request: &CloudIamIdentityProviderListApiRequest,
+) -> Result<(), CloudIamApiError> {
+    validate_read_boundary(&request.boundary)?;
+    validate_read_tenant_binding(&request.boundary, &request.principal)?;
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE,
+    )
+}
+
 pub fn validate_cloud_iam_role_create_request(
     request: &CloudIamRoleCreateApiRequest,
 ) -> Result<(), CloudIamApiError> {
@@ -804,6 +864,23 @@ pub fn create_cloud_iam_identity_provider_from_api(
     result
 }
 
+pub fn list_cloud_iam_identity_providers_from_api(
+    directory: &IamDirectory,
+    request: CloudIamIdentityProviderListApiRequest,
+) -> Result<CloudIamIdentityProviderListSuccessResponse, CloudIamApiError> {
+    validate_cloud_iam_identity_provider_list_request(&request)?;
+    let request_id = request.boundary.request_id.clone();
+    let providers = directory
+        .list_identity_providers(&request.boundary.tenant_id)
+        .map_err(CloudIamApiError::Iam)?
+        .into_iter()
+        .map(identity_provider_record)
+        .collect();
+    Ok(CloudIamIdentityProviderListSuccessResponse::ok(
+        providers, request_id,
+    ))
+}
+
 pub fn create_cloud_iam_role_from_api(
     directory: &mut IamDirectory,
     idempotency_ledger: &mut CloudIamRoleCreateIdempotencyLedger,
@@ -888,6 +965,18 @@ fn validate_boundary(boundary: &CloudIamApiBoundaryContext) -> Result<(), CloudI
     Ok(())
 }
 
+fn validate_read_boundary(
+    boundary: &CloudIamApiReadBoundaryContext,
+) -> Result<(), CloudIamApiError> {
+    if boundary.request_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyRequestId);
+    }
+    if boundary.tenant_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyTenantHeader);
+    }
+    Ok(())
+}
+
 fn validate_tenant_binding(
     boundary: &CloudIamApiBoundaryContext,
     principal: &CloudIamApiPrincipal,
@@ -898,6 +987,20 @@ fn validate_tenant_binding(
             header_tenant_id: boundary.tenant_id.clone(),
             principal_tenant_id: principal.tenant_id.clone(),
             body_tenant_id: body_tenant_id.to_string(),
+        });
+    }
+    Ok(())
+}
+
+fn validate_read_tenant_binding(
+    boundary: &CloudIamApiReadBoundaryContext,
+    principal: &CloudIamApiPrincipal,
+) -> Result<(), CloudIamApiError> {
+    if boundary.tenant_id != principal.tenant_id {
+        return Err(CloudIamApiError::TenantMismatch {
+            header_tenant_id: boundary.tenant_id.clone(),
+            principal_tenant_id: principal.tenant_id.clone(),
+            body_tenant_id: boundary.tenant_id.clone(),
         });
     }
     Ok(())
