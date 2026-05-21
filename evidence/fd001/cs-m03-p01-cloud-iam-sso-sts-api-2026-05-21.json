@@ -1,0 +1,124 @@
+{
+  "schema_version": "fd001-evidence/v1",
+  "change_id": "cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21",
+  "agent_id": "codex-m03-p01-cloud-iam-sso-sts-api-20260521T0630Z",
+  "session_id": "omx-1779304512805-gbhkgy",
+  "timestamp_unix": 1779345453,
+  "timestamp_iso": "2026-05-21T06:37:33Z",
+  "scope": "M03-P01-IP-004 Cloud IAM federated OIDC STS API runtime slice",
+  "status": "federated-oidc-sts-api-runtime-green-provider-managed-idp-crud-live-smoke-pending",
+  "authority_refs": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "specs/masterplan.json",
+    "specs/planning-closure-contract.json",
+    "specs/master-plan-sequencing.json#select_next_ready_item",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-004-iam-cedar-sso-sts.md"
+  ],
+  "files_changed": [
+    "crates/oya-cloud-iam-api/tests/cloud_iam_api.rs",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-004-iam-cedar-sso-sts.md",
+    "evidence/audit-chain.jsonl",
+    "evidence/fd001/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json",
+    "evidence/multispectrum/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json"
+  ],
+  "implementation_summary": [
+    "Added Cloud IAM API regression fixtures for an OIDC-backed external principal, identity provider, external trust role, and STS request.",
+    "Proved issue_cloud_iam_sts_token_from_api issues a scoped STS session for that external principal only when external_id is present.",
+    "Proved the missing external_id path maps to CloudIamError::ExternalIdRequired and a 403 Cloud IAM policy denial instead of a generic request failure.",
+    "Kept the slice provider-agnostic and in-memory: no cloud SDK, live network call, credential path, or provider-specific adapter was added.",
+    "Recorded IP-004/P01 status as federated OIDC STS API runtime green while preserving provider-managed IdP CRUD/runtime adapter and live-smoke gaps."
+  ],
+  "verification": [
+    {
+      "command": "cargo test -p oya-cloud-iam-api --test cloud_iam_api -- sts_token_api_issues_external_oidc_session_with_external_id sts_token_api_maps_external_id_policy_denial_to_forbidden",
+      "status": "passed",
+      "evidence": "Targeted federated STS runtime tests passed: 2 passed, 12 filtered out."
+    },
+    {
+      "command": "cargo fmt -p oya-cloud-iam-api -- --check",
+      "status": "passed",
+      "evidence": "Cloud IAM API formatting check passed after rustfmt."
+    },
+    {
+      "command": "cargo test -p oya-cloud-iam-api --all-features",
+      "status": "passed",
+      "evidence": "Full Cloud IAM API suite passed: 14 tests, 0 failures."
+    },
+    {
+      "command": "cargo clippy -p oya-cloud-iam-api --all-features --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "Targeted Cloud IAM API clippy completed with no warnings."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "Planning-closure validation passed after plan status updates: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "No whitespace/diff hygiene errors."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya verify --ci-required",
+      "status": "passed",
+      "evidence": "Canonical pre-PR verify passed: gate run-all summary 89/89 lanes passed; cargo nextest ran 4222 tests with 4222 passed and 0 skipped; protection-context-match showed no missing/extra live contexts."
+    },
+    {
+      "command": "/tmp/oyatie-selfhosted-dns-target-20260521/debug/oya gate validate dependency-seam --repo-root . --registry registry/dependency-rationales.json --evidence evidence/multispectrum/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json --offline --severity error",
+      "status": "passed",
+      "evidence": "Dependency-seam validation passed after canonical verify evidence and Oya VCS closeout updates: 6 subchecks, 5 pass, 1 skipped, 0 fail, 0 diagnostics, 0 blocking."
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate audit-chain-replay",
+      "status": "passed",
+      "evidence": "Audit-chain replay validation passed after appended ChangeSet evidence/closeout rows: 1 shards, 28 events."
+    }
+  ],
+  "local_review": {
+    "verdict": "approve-local-after-targeted-runtime-expansion",
+    "finding_count_required": 0,
+    "notes": [
+      "The tests reuse the existing STS API path, avoiding a separate SSO token issuance special case.",
+      "The external principal setup stays inside existing domain types and does not widen the runtime with provider dependencies.",
+      "The ChangeSet does not claim provider-managed IdP CRUD or live-provider smoke."
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "provider-managed-idp-crud-runtime",
+      "status": "pending-follow-up-slice",
+      "reason": "This ChangeSet proves federated OIDC STS issuance through the API using existing domain registration; provider-managed IdP CRUD/runtime adapter remains separate."
+    },
+    {
+      "id": "live-provider-smoke",
+      "status": "pending-credentials-and-runtime-target",
+      "reason": "No live cloud or self-hosted IdP endpoint was contacted; this is deterministic request/runtime evidence only."
+    },
+    {
+      "id": "scripts-check-absent",
+      "status": "replaced-by-canonical-oya-verify-before-pr-passed",
+      "reason": "The IP scaffold names scripts/check.sh, but this worktree has no scripts/check.sh; canonical oya verify --ci-required passed before PR."
+    }
+  ],
+  "rollback": "Revert this ChangeSet to remove the two federated STS API regression tests, IP/P01 status updates, audit-chain row, and evidence files.",
+  "promotion_status": "oya-vcs-promote-accepted-dev",
+  "freshness_unix": 1779346831,
+  "vcs_lifecycle": {
+    "verify": "accepted",
+    "done": "accepted",
+    "promote": "accepted",
+    "environment": "dev",
+    "bundle_id": "cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21",
+    "timestamp_unix": 1779346831,
+    "timestamp_iso": "2026-05-21T07:00:31Z",
+    "evidence_refs": [
+      "evidence/fd001/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json",
+      "evidence/multispectrum/cs-m03-p01-cloud-iam-sso-sts-api-2026-05-21.json"
+    ]
+  }
+}
