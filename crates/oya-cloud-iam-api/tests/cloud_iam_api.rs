@@ -9,12 +9,15 @@ use oya_cloud_iam_api::{
     CloudIamIdentityProviderCreateApiRequest, CloudIamIdentityProviderCreateApiStatus,
     CloudIamIdentityProviderCreateIdempotencyLedger, CloudIamIdentityProviderCreateRequest,
     CloudIamIdentityProviderKind, CloudIamIdentityProviderListApiRequest,
-    CloudIamIdentityProviderListApiStatus, CloudIamPrincipalRef, CloudIamRoleCreateApiRequest,
+    CloudIamIdentityProviderListApiStatus, CloudIamIdentityProviderUpdateApiRequest,
+    CloudIamIdentityProviderUpdateApiStatus, CloudIamIdentityProviderUpdateIdempotencyLedger,
+    CloudIamIdentityProviderUpdateRequest, CloudIamPrincipalRef, CloudIamRoleCreateApiRequest,
     CloudIamRoleCreateApiStatus, CloudIamRoleCreateIdempotencyLedger, CloudIamRoleCreateRequest,
     CloudIamScopeRef, CloudIamStsTokenApiRequest, CloudIamStsTokenApiStatus,
     CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
     create_cloud_iam_identity_provider_from_api, create_cloud_iam_role_from_api,
     issue_cloud_iam_sts_token_from_api, list_cloud_iam_identity_providers_from_api,
+    update_cloud_iam_identity_provider_from_api,
 };
 use oya_cloud_iam_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate,
@@ -309,6 +312,30 @@ fn identity_provider_list_api_request(request_id: &str) -> CloudIamIdentityProvi
     }
 }
 
+fn identity_provider_update_api_request(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudIamIdentityProviderUpdateApiRequest {
+    CloudIamIdentityProviderUpdateApiRequest {
+        path_identity_provider_id: "idp_partner_oidc".to_string(),
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_cloud_provisioner"),
+        authorization: authorization_for(
+            "sp_cloud_provisioner",
+            &[oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE],
+        ),
+        body: CloudIamIdentityProviderUpdateRequest {
+            tenant_id: "ten_alpha".to_string(),
+            identity_provider_id: "idp_partner_oidc".to_string(),
+            region_pack: "oya-pack-alpha".to_string(),
+            kind: CloudIamIdentityProviderKind::Saml,
+            issuer_uri: "https://partner.example/saml/v2".to_string(),
+            audience: "urn:oyatie:cloud:saml:v2".to_string(),
+            verification_material_ref: "cert/partner-rotated".to_string(),
+        },
+    }
+}
+
 #[test]
 fn identity_provider_list_api_returns_tenant_scoped_providers_in_deterministic_order() {
     let mut directory = IamDirectory::default();
@@ -370,6 +397,131 @@ fn identity_provider_list_api_rejects_cross_tenant_or_unauthorized_reads() {
         list_cloud_iam_identity_providers_from_api(&directory, unauthorized),
         Err(CloudIamApiError::AuthorizationDenied {
             surface: oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE.to_string(),
+        })
+    );
+}
+
+#[test]
+fn identity_provider_update_api_updates_existing_provider_with_idempotency_and_tenant_binding() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    let mut ledger = CloudIamIdentityProviderUpdateIdempotencyLedger::default();
+    let request = identity_provider_update_api_request("req-idp-update", "idem-idp-update");
+
+    let first =
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request.clone())
+            .expect("provider-managed IdP updates through API");
+    let second = update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, request)
+        .expect("same IdP update request replays idempotently");
+
+    assert_eq!(first, second);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(first.metadata.request_id, "req-idp-update");
+    assert_eq!(first.data.identity_provider_id, "idp_partner_oidc");
+    assert_eq!(first.data.tenant_id, "ten_alpha");
+    assert_eq!(first.data.kind, CloudIamIdentityProviderKind::Saml);
+    assert_eq!(first.data.issuer_uri, "https://partner.example/saml/v2");
+    assert_eq!(first.data.verification_material_ref, "cert/partner-rotated");
+    assert_eq!(first.data.created_at_epoch_seconds, 1_700_000_020);
+    assert_eq!(
+        oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE,
+        "cloud.iam.identity_provider.update"
+    );
+    assert_eq!(CloudIamIdentityProviderUpdateApiStatus::Ok.code(), 200);
+    assert_eq!(
+        CloudIamIdentityProviderUpdateApiStatus::BadRequest.code(),
+        400
+    );
+    assert_eq!(
+        CloudIamIdentityProviderUpdateApiStatus::Forbidden.code(),
+        403
+    );
+    assert_eq!(
+        CloudIamIdentityProviderUpdateApiStatus::Conflict.code(),
+        409
+    );
+    assert_eq!(
+        CloudIamIdentityProviderUpdateApiStatus::UnprocessableEntity.code(),
+        422
+    );
+
+    let listed = list_cloud_iam_identity_providers_from_api(
+        &directory,
+        identity_provider_list_api_request("req-idp-update-list"),
+    )
+    .expect("updated provider remains tenant-scoped and listable");
+    assert_eq!(listed.data.len(), 1);
+    assert_eq!(listed.data[0].kind, CloudIamIdentityProviderKind::Saml);
+    assert_eq!(
+        listed.data[0].verification_material_ref,
+        "cert/partner-rotated"
+    );
+}
+
+#[test]
+fn identity_provider_update_api_rejects_missing_cross_tenant_or_unauthorized_updates() {
+    let mut directory = IamDirectory::default();
+    directory
+        .register_identity_provider(external_oidc_provider_create())
+        .expect("OIDC provider registers");
+    directory
+        .register_identity_provider(beta_oidc_provider_create())
+        .expect("beta provider registers");
+    let mut ledger = CloudIamIdentityProviderUpdateIdempotencyLedger::default();
+
+    let mut missing =
+        identity_provider_update_api_request("req-idp-update-missing", "idem-missing");
+    missing.path_identity_provider_id = "idp_missing_oidc".to_string();
+    missing.body.identity_provider_id = "idp_missing_oidc".to_string();
+    let missing_error =
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, missing)
+            .expect_err("missing provider cannot be updated");
+    assert_eq!(
+        missing_error,
+        CloudIamApiError::Iam(CloudIamError::UnknownProvider)
+    );
+    assert_eq!(missing_error.identity_provider_update_status_code(), 400);
+
+    let mut cross_tenant =
+        identity_provider_update_api_request("req-idp-update-cross", "idem-cross");
+    cross_tenant.path_identity_provider_id = "idp_beta_oidc".to_string();
+    cross_tenant.body.identity_provider_id = "idp_beta_oidc".to_string();
+    let cross_tenant_error =
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, cross_tenant)
+            .expect_err("cross-tenant provider cannot be updated by alpha principal");
+    assert_eq!(
+        cross_tenant_error,
+        CloudIamApiError::Iam(CloudIamError::ProviderTenantMismatch)
+    );
+    assert_eq!(
+        cross_tenant_error.identity_provider_update_status_code(),
+        403
+    );
+
+    let mut unauthorized =
+        identity_provider_update_api_request("req-idp-update-denied", "idem-denied");
+    unauthorized.authorization = authorization_for(
+        "sp_cloud_provisioner",
+        &[oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_LIST_SURFACE],
+    );
+    let before_denied_ledger_len = ledger.len();
+    assert_eq!(
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, unauthorized),
+        Err(CloudIamApiError::AuthorizationDenied {
+            surface: oya_cloud_iam_api::CLOUD_IAM_IDENTITY_PROVIDER_UPDATE_SURFACE.to_string(),
+        })
+    );
+    assert_eq!(ledger.len(), before_denied_ledger_len);
+
+    let mut drifted = identity_provider_update_api_request("req-idp-update-drift", "idem-drift");
+    drifted.body.identity_provider_id = "idp_other_oidc".to_string();
+    assert_eq!(
+        update_cloud_iam_identity_provider_from_api(&mut directory, &mut ledger, drifted),
+        Err(CloudIamApiError::ProviderIdMismatch {
+            path_identity_provider_id: "idp_partner_oidc".to_string(),
+            body_identity_provider_id: "idp_other_oidc".to_string(),
         })
     );
 }

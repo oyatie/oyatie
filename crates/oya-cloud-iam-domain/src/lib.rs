@@ -110,6 +110,17 @@ pub struct IdentityProviderCreate {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IdentityProviderUpdate {
+    pub id: String,                        // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub region_pack: String,               // data_class: INTERNAL_ONLY
+    pub kind: IdentityProviderKind,        // data_class: PUBLIC
+    pub issuer_uri: String,                // data_class: INTERNAL_ONLY
+    pub audience: String,                  // data_class: INTERNAL_ONLY
+    pub verification_material_ref: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct IdentityProvider {
     pub id: Classified<IamIdentityProviderId>, // data_class: INTERNAL_ONLY
     pub tenant_id: Classified<String>,         // data_class: INTERNAL_ONLY
@@ -557,6 +568,33 @@ impl IamDirectory {
             .filter(|provider| provider.tenant_id.value == tenant_id)
             .cloned()
             .collect())
+    }
+
+    pub fn update_identity_provider(
+        &mut self,
+        input: IdentityProviderUpdate,
+    ) -> Result<IdentityProvider, CloudIamError> {
+        let provider_id = IamIdentityProviderId::new(input.id.clone())?;
+        validate_tenant_id(&input.tenant_id)?;
+        let existing = self
+            .providers
+            .get(&provider_id)
+            .ok_or(CloudIamError::UnknownProvider)?;
+        if existing.tenant_id.value != input.tenant_id {
+            return Err(CloudIamError::ProviderTenantMismatch);
+        }
+        let provider = IdentityProvider::new(IdentityProviderCreate {
+            id: input.id,
+            tenant_id: input.tenant_id,
+            region_pack: input.region_pack,
+            kind: input.kind,
+            issuer_uri: input.issuer_uri,
+            audience: input.audience,
+            verification_material_ref: input.verification_material_ref,
+            created_at_epoch_seconds: existing.created_at_epoch_seconds.value,
+        })?;
+        self.providers.insert(provider_id, provider.clone());
+        Ok(provider)
     }
 
     pub fn create_principal(
