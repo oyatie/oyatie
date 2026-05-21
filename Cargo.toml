@@ -180,6 +180,7 @@ members = [
   "crates/oya-cloud-compute-vm-api",
   "crates/oya-cloud-cell-app",
   "crates/oya-cloud-finops-api",
+  "crates/oya-cloud-iam-app",
   "crates/oya-cloud-iam-api",
   "crates/oya-cloud-kms-api",
   "crates/oya-cloud-kms-adapter-openbao",

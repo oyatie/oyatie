@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-004
 title: Cloud IAM Cedar + SSO + STS API
-status: stub
+status: partial (cedar-bind-app-composition-green; sso-sts-runtime-pending)
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
@@ -54,5 +54,14 @@ Next IP in this phase's INDEX list (or first IP of next phase if phase complete)
 icm store -t context-oyatie -c 'M03-P01-IP-004 Cloud IAM Cedar + SSO + STS API shipped; acceptance commands green' -i high -k 'M03-P01-IP-004,complete'
 ```
 
+## Progress
+
+### 2026-05-21 — Cedar policy bind app composition green
+- ChangeSet: `cs-m03-p01-cloud-iam-cedar-bind-app-2026-05-21`.
+- Added `oya-cloud-iam-app::bind_cedar_policy` as a domain-only app seam that publishes a Cedar policy version and creates the matching IAM role transactionally.
+- Kept app dependencies inward to `oya-cloud-iam-domain` and `oya-policy-cedar-domain`; architecture-boundaries rejects app-to-api coupling.
+- Verification: targeted app fmt/test/clippy passed; existing Cloud IAM API and Cedar API tests passed; catalog/cohesion/planning-closure/architecture-boundaries passed; `oya verify --ci-required` passed 89/89 lanes.
+- Remaining: SSO/federation runtime and STS expansion beyond existing API tests are follow-up slices before this IP is complete.
+
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP: Cedar policy publication and IAM role creation now share one rollback-friendly app seam instead of letting handlers duplicate cross-kernel partial-commit logic; SSO/STS runtime work remains intentionally outside this ChangeSet.
