@@ -135,7 +135,7 @@ purpose: >
 
 ## Status
 
-Proposed on 2026-05-21.
+Proposed on 2026-05-21. **Amendment 2026-05-21 per ADR-0351**: the rebalancing workflow lives in the dedicated `cell-rebalancer` µservice (NOT "composed across tenancy + observability" as originally stated in the rationale). The `sharding_automation` manifest field declarations apply to `cell-rebalancer` for the rebalance modes (auto_rebalance + dynamic_sharding hot-split + cold-merge). See ADR-0351 D-2 for the cell-rebalancer bounded context and D-3 for the related cell-lifecycle µservice.
 
 This ADR is the canonical doctrine decision binding cellular topology to three control-plane-driven automation modes — autosharding, auto-rebalance, dynamic sharding — that layer underneath the cell-level promotion gates already doctrined in ADR-0341. Without these three modes, every load skew or growth event would require manual operator intervention; hyperscaler-grade horizontal scalability per `feedback_quality_performance_scalability_bar` requires control-plane-driven automation across the tenant + shard axis as well as the cell axis.
 

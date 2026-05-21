@@ -41,7 +41,7 @@ purpose: >
 
 ## Status
 
-Accepted — 2026-05-21.
+Accepted — 2026-05-21. **Amendment 2026-05-21 per ADR-0351**: the absorption decision below stands for cell **identity**, routing, audit, placement, and telemetry. Two additional bounded contexts — **tenant rebalancing across cells** (workflow) and **cell lifecycle state machine** (Registered → Activated → Promoted → Drained → Decommissioned) — are carved out into dedicated µservices `cell-rebalancer` and `cell-lifecycle` per ADR-0351. See ADR-0351 §D-2 + §D-3.
 
 This ADR executes the 2026-05-21 user directive recorded as Option A:
 `cell` retires as a standalone µservice.
