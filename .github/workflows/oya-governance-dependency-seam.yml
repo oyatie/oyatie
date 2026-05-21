@@ -39,8 +39,21 @@ jobs:
           CARGO_INCREMENTAL: "0"
         run: |
           set -euo pipefail
-          cargo run -q -p oya-dev-cli -- gate validate dependency-seam \
-            --repo-root . \
-            --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json \
-            --online-audit \
-            --severity error
+          if ! cargo run -q -p oya-dev-cli -- gate validate dependency-seam \
+                --repo-root . \
+                --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json \
+                --online-audit \
+                --severity error \
+                --emit-report dep-seam-report.json; then
+            echo "==> DEPENDENCY-SEAM REPORT JSON (subcheck-level diagnostics) <=="
+            cat dep-seam-report.json || echo "(report not emitted)"
+            exit 1
+          fi
+      - name: Upload dep-seam report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dep-seam-report
+          path: dep-seam-report.json
+          retention-days: 7
+          if-no-files-found: ignore
