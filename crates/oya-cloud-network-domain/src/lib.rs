@@ -729,6 +729,7 @@ pub struct FlowAnomalyEvent {
 pub enum NetworkProviderKind {
     OciVcn,
     OciLoadBalancer,
+    OciDnsZone,
 }
 
 impl NetworkProviderKind {
@@ -736,6 +737,7 @@ impl NetworkProviderKind {
         match self {
             Self::OciVcn => "oci_vcn",
             Self::OciLoadBalancer => "oci_load_balancer",
+            Self::OciDnsZone => "oci_dns_zone",
         }
     }
 }
@@ -762,6 +764,19 @@ impl NetworkProviderLoadBalancerOperation {
     pub const fn label(self) -> &'static str {
         match self {
             Self::CreateLoadBalancer => "create_load_balancer",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum NetworkProviderDnsZoneOperation {
+    CreateDnsZone,
+}
+
+impl NetworkProviderDnsZoneOperation {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::CreateDnsZone => "create_dns_zone",
         }
     }
 }
@@ -851,6 +866,56 @@ pub struct NetworkProviderLoadBalancerReceipt {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum NetworkProviderLoadBalancerError {
     InvalidProviderLoadBalancerRef,
+    InvalidProviderRequestId,
+    InvalidProviderEvidenceRef,
+    InvalidIdempotencyKey,
+    InvalidActorRef,
+    InvalidRequestShape(CloudNetworkError),
+    ProviderRejected {
+        provider: NetworkProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+    ProviderUnavailable {
+        provider: NetworkProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NetworkProviderDnsZoneCreateRequest {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub provider_dns_zone_ref: String,   // data_class: INTERNAL_ONLY
+    pub vpc: Option<VpcCreate>,          // data_class: INTERNAL_ONLY
+    pub dns_zone: DnsZoneCreate,         // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NetworkProviderDnsZoneReceipt {
+    pub provider: NetworkProviderKind, // data_class: PUBLIC
+    pub operation: NetworkProviderDnsZoneOperation, // data_class: PUBLIC
+    pub request_id: String,            // data_class: INTERNAL_ONLY
+    pub provider_request_id: String,   // data_class: INTERNAL_ONLY
+    pub provider_dns_zone_ref: String, // data_class: INTERNAL_ONLY
+    pub resource_id: String,           // data_class: INTERNAL_ONLY
+    pub tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub region: String,                // data_class: PUBLIC
+    pub name: String,                  // data_class: PUBLIC
+    pub kind: DnsZoneKind,             // data_class: PUBLIC
+    pub vpc_id: Option<String>,        // data_class: INTERNAL_ONLY
+    pub dnssec_enabled: bool,          // data_class: PUBLIC
+    pub actor: String,                 // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,       // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String, // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub schema_version: u32,           // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum NetworkProviderDnsZoneError {
+    InvalidProviderDnsZoneRef,
     InvalidProviderRequestId,
     InvalidProviderEvidenceRef,
     InvalidIdempotencyKey,
@@ -994,6 +1059,15 @@ pub trait NetworkProviderLoadBalancerPort {
         &self,
         input: NetworkProviderLoadBalancerCreateRequest,
     ) -> Result<NetworkProviderLoadBalancerReceipt, NetworkProviderLoadBalancerError>;
+}
+
+pub trait NetworkProviderDnsZonePort {
+    fn provider_kind(&self) -> NetworkProviderKind;
+
+    fn create_dns_zone(
+        &self,
+        input: NetworkProviderDnsZoneCreateRequest,
+    ) -> Result<NetworkProviderDnsZoneReceipt, NetworkProviderDnsZoneError>;
 }
 
 pub trait NetworkRepo {
@@ -1163,6 +1237,74 @@ impl NetworkProviderLoadBalancerReceipt {
             listener_count: input.load_balancer.listeners.len(),
             target_group_count: input.load_balancer.target_groups.len(),
             mtls_enabled: input.load_balancer.mtls.is_some(),
+            actor: input.actor,
+            idempotency_key: input.idempotency_key,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: NETWORK_SCHEMA_VERSION,
+        })
+    }
+}
+
+impl NetworkProviderDnsZoneCreateRequest {
+    pub fn validate(&self) -> Result<(), NetworkProviderDnsZoneError> {
+        validate_network_provider_dns_zone_ref(
+            &self.request_id,
+            NetworkProviderDnsZoneError::InvalidProviderRequestId,
+        )?;
+        validate_network_provider_dns_zone_ref(
+            &self.provider_dns_zone_ref,
+            NetworkProviderDnsZoneError::InvalidProviderDnsZoneRef,
+        )?;
+        validate_network_provider_dns_zone_ref(
+            &self.idempotency_key,
+            NetworkProviderDnsZoneError::InvalidIdempotencyKey,
+        )?;
+        let vpc = self
+            .vpc
+            .clone()
+            .map(Vpc::new)
+            .transpose()
+            .map_err(NetworkProviderDnsZoneError::InvalidRequestShape)?;
+        DnsZone::new(vpc.as_ref(), self.dns_zone.clone())
+            .map_err(NetworkProviderDnsZoneError::InvalidRequestShape)?;
+        PrincipalId::new(self.actor.clone())
+            .map_err(|_| NetworkProviderDnsZoneError::InvalidActorRef)?;
+        Ok(())
+    }
+}
+
+impl NetworkProviderDnsZoneReceipt {
+    pub fn create_dns_zone(
+        provider: NetworkProviderKind,
+        input: NetworkProviderDnsZoneCreateRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, NetworkProviderDnsZoneError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_network_provider_dns_zone_ref(
+            &provider_request_id,
+            NetworkProviderDnsZoneError::InvalidProviderRequestId,
+        )?;
+        validate_network_provider_dns_zone_ref(
+            &provider_evidence_ref,
+            NetworkProviderDnsZoneError::InvalidProviderEvidenceRef,
+        )?;
+        Ok(Self {
+            provider,
+            operation: NetworkProviderDnsZoneOperation::CreateDnsZone,
+            request_id: input.request_id,
+            provider_request_id,
+            provider_dns_zone_ref: input.provider_dns_zone_ref,
+            resource_id: input.dns_zone.resource_id,
+            tenant_id: input.dns_zone.tenant_id,
+            region: input.dns_zone.region,
+            name: input.dns_zone.name,
+            kind: input.dns_zone.kind,
+            vpc_id: input.dns_zone.vpc_id,
+            dnssec_enabled: input.dns_zone.dnssec_key_ref.is_some(),
             actor: input.actor,
             idempotency_key: input.idempotency_key,
             provider_evidence_ref,
@@ -2596,6 +2738,21 @@ fn validate_network_provider_load_balancer_ref(
     }
 }
 
+fn validate_network_provider_dns_zone_ref(
+    value: &str,
+    error: NetworkProviderDnsZoneError,
+) -> Result<(), NetworkProviderDnsZoneError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
 fn public_metadata_class(data_class: DataClass) -> Result<PrivacyDataClass, CloudNetworkError> {
     if data_class != DataClass::Public {
         return Err(CloudNetworkError::InvalidDataClass);
@@ -3025,6 +3182,18 @@ mod tests {
         }
     }
 
+    fn provider_dns_zone_create_request() -> NetworkProviderDnsZoneCreateRequest {
+        NetworkProviderDnsZoneCreateRequest {
+            request_id: "networkprov_req_dns_create_001".to_string(),
+            provider_dns_zone_ref: "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:dns-zone:example-com".to_string(),
+            vpc: None,
+            dns_zone: public_dns_create(),
+            actor: "sp_network".to_string(),
+            idempotency_key: "idem-network-dns-zone-create".to_string(),
+            requested_at_epoch_seconds: 1_700_000_040,
+        }
+    }
+
     #[test]
     fn creates_vpc_with_ipv6_flow_logs_route_table_and_security_groups() {
         let vpc = Vpc::new(vpc_create()).expect("vpc is valid");
@@ -3174,6 +3343,60 @@ mod tests {
         assert_eq!(receipt.listener_count, 1);
         assert_eq!(receipt.target_group_count, 1);
         assert!(receipt.mtls_enabled);
+        assert_eq!(receipt.actor, "sp_network");
+        assert_eq!(receipt.schema_version, NETWORK_SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn network_provider_dns_zone_requests_validate_context_shape_and_actor() {
+        provider_dns_zone_create_request()
+            .validate()
+            .expect("provider DNS zone request is valid");
+
+        let mut bad_provider_ref = provider_dns_zone_create_request();
+        bad_provider_ref.provider_dns_zone_ref = " ".to_string();
+        assert_eq!(
+            bad_provider_ref.validate(),
+            Err(NetworkProviderDnsZoneError::InvalidProviderDnsZoneRef)
+        );
+
+        let mut bad_zone_shape = provider_dns_zone_create_request();
+        bad_zone_shape.dns_zone.dnssec_key_ref = None;
+        assert_eq!(
+            bad_zone_shape.validate(),
+            Err(NetworkProviderDnsZoneError::InvalidRequestShape(
+                CloudNetworkError::DnssecRequired,
+            ))
+        );
+
+        let mut bad_actor = provider_dns_zone_create_request();
+        bad_actor.actor = "network".to_string();
+        assert_eq!(
+            bad_actor.validate(),
+            Err(NetworkProviderDnsZoneError::InvalidActorRef)
+        );
+    }
+
+    #[test]
+    fn network_provider_dns_zone_receipts_keep_refs_without_provider_credentials() {
+        let receipt = NetworkProviderDnsZoneReceipt::create_dns_zone(
+            NetworkProviderKind::OciDnsZone,
+            provider_dns_zone_create_request(),
+            "oci-dns-zone-1700000000-networkprov_req_dns_create_001",
+            "oci-dns-zone://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:dns-zone:example-com/networkprov_req_dns_create_001",
+        )
+        .expect("DNS zone receipt keeps provider references only");
+
+        assert_eq!(receipt.provider.label(), "oci_dns_zone");
+        assert_eq!(receipt.operation.label(), "create_dns_zone");
+        assert_eq!(
+            receipt.resource_id,
+            "oya:cloud:alpha-region:ten_alpha:dns-zone:example-com"
+        );
+        assert_eq!(receipt.name, "example.com");
+        assert_eq!(receipt.kind, DnsZoneKind::Public);
+        assert_eq!(receipt.vpc_id, None);
+        assert!(receipt.dnssec_enabled);
         assert_eq!(receipt.actor, "sp_network");
         assert_eq!(receipt.schema_version, NETWORK_SCHEMA_VERSION);
     }

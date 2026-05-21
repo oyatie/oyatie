@@ -9,7 +9,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_cloud_network_domain::{
-    NetworkProviderKind, NetworkProviderLoadBalancerCreateRequest,
+    NetworkProviderDnsZoneCreateRequest, NetworkProviderDnsZoneError, NetworkProviderDnsZonePort,
+    NetworkProviderDnsZoneReceipt, NetworkProviderKind, NetworkProviderLoadBalancerCreateRequest,
     NetworkProviderLoadBalancerError, NetworkProviderLoadBalancerPort,
     NetworkProviderLoadBalancerReceipt, NetworkProviderVpcCreateRequest, NetworkProviderVpcError,
     NetworkProviderVpcPort, NetworkProviderVpcReceipt,
@@ -57,6 +58,31 @@ pub struct OciLoadBalancerAdapter {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OciLoadBalancerCommand {
+    pub operation: &'static str,       // data_class: PUBLIC
+    pub method: &'static str,          // data_class: PUBLIC
+    pub endpoint_origin: String,       // data_class: INTERNAL_ONLY
+    pub path: String,                  // data_class: INTERNAL_ONLY
+    pub body_canonical: String,        // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum OciDnsZoneAdapterConfigError {
+    InvalidEndpoint,
+    InvalidCompartmentRef,
+    InvalidRegion,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OciDnsZoneAdapter {
+    endpoint_origin: String,  // data_class: INTERNAL_ONLY
+    compartment_ref: String,  // data_class: INTERNAL_ONLY
+    region: String,           // data_class: PUBLIC
+    clock_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OciDnsZoneCommand {
     pub operation: &'static str,       // data_class: PUBLIC
     pub method: &'static str,          // data_class: PUBLIC
     pub endpoint_origin: String,       // data_class: INTERNAL_ONLY
@@ -303,6 +329,121 @@ impl NetworkProviderLoadBalancerPort for OciLoadBalancerAdapter {
     }
 }
 
+impl OciDnsZoneAdapter {
+    pub fn new(
+        endpoint_origin: impl Into<String>,
+        compartment_ref: impl Into<String>,
+        region: impl Into<String>,
+    ) -> Result<Self, OciDnsZoneAdapterConfigError> {
+        let endpoint_origin = endpoint_origin.into();
+        let compartment_ref = compartment_ref.into();
+        let region = region.into();
+        validate_dns_endpoint(&endpoint_origin)?;
+        validate_dns_segment(
+            &compartment_ref,
+            OciDnsZoneAdapterConfigError::InvalidCompartmentRef,
+        )?;
+        validate_dns_segment(&region, OciDnsZoneAdapterConfigError::InvalidRegion)?;
+        Ok(Self {
+            endpoint_origin,
+            compartment_ref,
+            region,
+            clock_epoch_seconds: 0,
+        })
+    }
+
+    pub fn with_clock(mut self, clock_epoch_seconds: u64) -> Self {
+        self.clock_epoch_seconds = clock_epoch_seconds;
+        self
+    }
+
+    pub fn provider_dns_zone_ref(&self, dns_zone_resource_id: &str) -> String {
+        format!(
+            "oci-dns-zone://{}/{}/{}",
+            self.compartment_ref, self.region, dns_zone_resource_id
+        )
+    }
+
+    pub fn create_dns_zone_command(
+        &self,
+        request: &NetworkProviderDnsZoneCreateRequest,
+    ) -> Result<OciDnsZoneCommand, NetworkProviderDnsZoneError> {
+        request.validate()?;
+        self.ensure_provider_dns_zone(
+            &request.provider_dns_zone_ref,
+            &request.dns_zone.resource_id,
+        )?;
+        let vpc_id = request.dns_zone.vpc_id.as_deref().unwrap_or("none");
+        let dnssec_enabled = request.dns_zone.dnssec_key_ref.is_some().to_string();
+        let dnssec_key_ref = request.dns_zone.dnssec_key_ref.as_deref().unwrap_or("none");
+        Ok(OciDnsZoneCommand {
+            operation: "CreateZone",
+            method: "POST",
+            endpoint_origin: self.endpoint_origin.clone(),
+            path: "/20180115/zones".to_string(),
+            body_canonical: canonical_body(&[
+                ("compartment_ref", self.compartment_ref.as_str()),
+                ("region", self.region.as_str()),
+                ("resource_id", request.dns_zone.resource_id.as_str()),
+                ("tenant_id", request.dns_zone.tenant_id.as_str()),
+                ("name", request.dns_zone.name.as_str()),
+                ("kind", dns_zone_kind_label(request.dns_zone.kind)),
+                ("scope", dns_zone_scope_label(request.dns_zone.kind)),
+                ("zone_type", "PRIMARY"),
+                ("vpc_id", vpc_id),
+                ("dnssec_enabled", dnssec_enabled.as_str()),
+                ("dnssec_key_ref", dnssec_key_ref),
+                ("actor", request.actor.as_str()),
+                ("idempotency_key", request.idempotency_key.as_str()),
+            ]),
+            provider_evidence_ref: format!(
+                "oci-dns-zone://{}/{}/{}/{}",
+                self.compartment_ref, self.region, request.dns_zone.resource_id, request.request_id
+            ),
+        })
+    }
+
+    fn ensure_provider_dns_zone(
+        &self,
+        provider_dns_zone_ref: &str,
+        dns_zone_resource_id: &str,
+    ) -> Result<(), NetworkProviderDnsZoneError> {
+        let expected = self.provider_dns_zone_ref(dns_zone_resource_id);
+        if provider_dns_zone_ref == expected {
+            Ok(())
+        } else {
+            Err(NetworkProviderDnsZoneError::ProviderRejected {
+                provider: NetworkProviderKind::OciDnsZone,
+                reason: "provider_dns_zone_ref does not match configured OCI DNS zone target"
+                    .to_string(),
+            })
+        }
+    }
+
+    fn provider_request_id(&self, request_id: &str) -> String {
+        format!("oci-dns-zone-{}-{request_id}", self.clock_epoch_seconds)
+    }
+}
+
+impl NetworkProviderDnsZonePort for OciDnsZoneAdapter {
+    fn provider_kind(&self) -> NetworkProviderKind {
+        NetworkProviderKind::OciDnsZone
+    }
+
+    fn create_dns_zone(
+        &self,
+        input: NetworkProviderDnsZoneCreateRequest,
+    ) -> Result<NetworkProviderDnsZoneReceipt, NetworkProviderDnsZoneError> {
+        let command = self.create_dns_zone_command(&input)?;
+        NetworkProviderDnsZoneReceipt::create_dns_zone(
+            self.provider_kind(),
+            input.clone(),
+            self.provider_request_id(&input.request_id),
+            command.provider_evidence_ref,
+        )
+    }
+}
+
 fn validate_endpoint(value: &str) -> Result<(), OciVcnAdapterConfigError> {
     if value.starts_with("https://") && no_space_or_control(value) {
         Ok(())
@@ -316,6 +457,14 @@ fn validate_lb_endpoint(value: &str) -> Result<(), OciLoadBalancerAdapterConfigE
         Ok(())
     } else {
         Err(OciLoadBalancerAdapterConfigError::InvalidEndpoint)
+    }
+}
+
+fn validate_dns_endpoint(value: &str) -> Result<(), OciDnsZoneAdapterConfigError> {
+    if value.starts_with("https://") && no_space_or_control(value) {
+        Ok(())
+    } else {
+        Err(OciDnsZoneAdapterConfigError::InvalidEndpoint)
     }
 }
 
@@ -334,6 +483,17 @@ fn validate_lb_segment(
     value: &str,
     error: OciLoadBalancerAdapterConfigError,
 ) -> Result<(), OciLoadBalancerAdapterConfigError> {
+    if value.trim().is_empty() || value.contains('/') || !no_space_or_control(value) {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
+fn validate_dns_segment(
+    value: &str,
+    error: OciDnsZoneAdapterConfigError,
+) -> Result<(), OciDnsZoneAdapterConfigError> {
     if value.trim().is_empty() || value.contains('/') || !no_space_or_control(value) {
         Err(error)
     } else {
@@ -364,15 +524,31 @@ fn lb_kind_label(kind: oya_cloud_network_domain::LbKind) -> &'static str {
     }
 }
 
+fn dns_zone_kind_label(kind: oya_cloud_network_domain::DnsZoneKind) -> &'static str {
+    match kind {
+        oya_cloud_network_domain::DnsZoneKind::Public => "public",
+        oya_cloud_network_domain::DnsZoneKind::Private => "private",
+    }
+}
+
+fn dns_zone_scope_label(kind: oya_cloud_network_domain::DnsZoneKind) -> &'static str {
+    match kind {
+        oya_cloud_network_domain::DnsZoneKind::Public => "GLOBAL",
+        oya_cloud_network_domain::DnsZoneKind::Private => "PRIVATE",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use oya_cloud_network_domain::{
-        CloudNetworkError, IpProtocol, Ipv4Cidr, LbKind, LbState, ListenerCreate,
-        LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate, NetworkProviderLoadBalancerPort,
-        NetworkProviderVpcPort, RouteCreate, RouteDestination, RouteNextHopKind, RouteTableCreate,
-        RuleDirection, SecurityGroupCreate, SecurityRule, SubnetCreate, SubnetState,
-        TargetGroupCreate, VpcCreate, VpcState,
+        CloudNetworkError, DnsZoneCreate, DnsZoneKind, DnsZoneState, IpProtocol, Ipv4Cidr, LbKind,
+        LbState, ListenerCreate, LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate,
+        NetworkProviderDnsZoneCreateRequest, NetworkProviderDnsZoneError,
+        NetworkProviderDnsZonePort, NetworkProviderLoadBalancerPort, NetworkProviderVpcPort,
+        RouteCreate, RouteDestination, RouteNextHopKind, RouteTableCreate, RuleDirection,
+        SecurityGroupCreate, SecurityRule, SubnetCreate, SubnetState, TargetGroupCreate, VpcCreate,
+        VpcState,
     };
     use oya_data_boundary_kernel::DataClass;
     use oya_residency_domain::ResidencyClass;
@@ -394,6 +570,16 @@ mod tests {
     fn lb_adapter() -> OciLoadBalancerAdapter {
         OciLoadBalancerAdapter::new(
             "https://iaas.ap-chuncheon-1.oraclecloud.com",
+            COMPARTMENT_REF,
+            REGION,
+        )
+        .unwrap()
+        .with_clock(1_700_000_000)
+    }
+
+    fn dns_adapter() -> OciDnsZoneAdapter {
+        OciDnsZoneAdapter::new(
+            "https://dns.ap-chuncheon-1.oraclecloud.com",
             COMPARTMENT_REF,
             REGION,
         )
@@ -497,6 +683,35 @@ mod tests {
             actor: "sp_network".to_string(),
             idempotency_key: "idem-network-lb-create".to_string(),
             requested_at_epoch_seconds: 1_700_000_030,
+        }
+    }
+
+    fn dns_zone_create() -> DnsZoneCreate {
+        DnsZoneCreate {
+            resource_id: "oya:cloud:alpha-region:ten_alpha:dns-zone:example-com".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            region: "alpha-region".to_string(),
+            name: "example.com".to_string(),
+            kind: DnsZoneKind::Public,
+            vpc_id: None,
+            dnssec_key_ref: Some("dnssec/alpha-region/ten_alpha/example-com".to_string()),
+            state: DnsZoneState::Creating,
+            data_class: DataClass::Public,
+            created_at_epoch_seconds: 1_700_000_040,
+        }
+    }
+
+    fn dns_request() -> NetworkProviderDnsZoneCreateRequest {
+        NetworkProviderDnsZoneCreateRequest {
+            request_id: "networkprov_req_dns_create_001".to_string(),
+            provider_dns_zone_ref: format!(
+                "oci-dns-zone://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:dns-zone:example-com"
+            ),
+            vpc: None,
+            dns_zone: dns_zone_create(),
+            actor: "sp_network".to_string(),
+            idempotency_key: "idem-network-dns-zone-create".to_string(),
+            requested_at_epoch_seconds: 1_700_000_040,
         }
     }
 
@@ -637,6 +852,79 @@ mod tests {
     }
 
     #[test]
+    fn create_dns_zone_command_uses_oci_path_and_reference_only_body() {
+        let command = dns_adapter()
+            .create_dns_zone_command(&dns_request())
+            .expect("valid DNS zone request becomes deterministic OCI command");
+
+        assert_eq!(command.operation, "CreateZone");
+        assert_eq!(command.method, "POST");
+        assert_eq!(command.path, "/20180115/zones");
+        assert!(command.body_canonical.contains("compartment_ref=ocid1."));
+        assert!(
+            command
+                .body_canonical
+                .contains("resource_id=oya:cloud:alpha-region:ten_alpha:dns-zone:example-com")
+        );
+        assert!(command.body_canonical.contains("name=example.com"));
+        assert!(command.body_canonical.contains("scope=GLOBAL"));
+        assert!(command.body_canonical.contains("zone_type=PRIMARY"));
+        assert!(command.body_canonical.contains("dnssec_enabled=true"));
+        assert!(!command.body_canonical.contains("private_key"));
+        assert_eq!(
+            command.provider_evidence_ref,
+            format!(
+                "oci-dns-zone://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:dns-zone:example-com/networkprov_req_dns_create_001"
+            )
+        );
+    }
+
+    #[test]
+    fn dns_zone_port_receipts_preserve_refs_without_provider_credentials() {
+        let receipt = dns_adapter()
+            .create_dns_zone(dns_request())
+            .expect("DNS zone receipt is generated");
+
+        assert_eq!(receipt.provider, NetworkProviderKind::OciDnsZone);
+        assert_eq!(
+            receipt.provider_request_id,
+            "oci-dns-zone-1700000000-networkprov_req_dns_create_001"
+        );
+        assert_eq!(
+            receipt.provider_dns_zone_ref,
+            format!(
+                "oci-dns-zone://{COMPARTMENT_REF}/{REGION}/oya:cloud:alpha-region:ten_alpha:dns-zone:example-com"
+            )
+        );
+        assert_eq!(
+            receipt.resource_id,
+            "oya:cloud:alpha-region:ten_alpha:dns-zone:example-com"
+        );
+        assert_eq!(receipt.actor, "sp_network");
+        assert_eq!(receipt.name, "example.com");
+        assert!(receipt.dnssec_enabled);
+    }
+
+    #[test]
+    fn rejects_provider_dns_zone_drift_and_bad_zone_shape() {
+        let mut drifted = dns_request();
+        drifted.provider_dns_zone_ref = "oci-dns-zone://other/ap-chuncheon-1/zone".to_string();
+        assert!(matches!(
+            dns_adapter().create_dns_zone_command(&drifted),
+            Err(NetworkProviderDnsZoneError::ProviderRejected { .. })
+        ));
+
+        let mut bad_zone = dns_request();
+        bad_zone.dns_zone.dnssec_key_ref = None;
+        assert_eq!(
+            bad_zone.validate(),
+            Err(NetworkProviderDnsZoneError::InvalidRequestShape(
+                CloudNetworkError::DnssecRequired,
+            ))
+        );
+    }
+
+    #[test]
     fn rejects_invalid_oci_load_balancer_adapter_config() {
         assert_eq!(
             OciLoadBalancerAdapter::new("http://iaas", COMPARTMENT_REF, REGION),
@@ -657,6 +945,30 @@ mod tests {
                 "bad region",
             ),
             Err(OciLoadBalancerAdapterConfigError::InvalidRegion)
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_oci_dns_zone_adapter_config() {
+        assert_eq!(
+            OciDnsZoneAdapter::new("http://dns", COMPARTMENT_REF, REGION),
+            Err(OciDnsZoneAdapterConfigError::InvalidEndpoint)
+        );
+        assert_eq!(
+            OciDnsZoneAdapter::new(
+                "https://dns.ap-chuncheon-1.oraclecloud.com",
+                "bad compartment",
+                REGION,
+            ),
+            Err(OciDnsZoneAdapterConfigError::InvalidCompartmentRef)
+        );
+        assert_eq!(
+            OciDnsZoneAdapter::new(
+                "https://dns.ap-chuncheon-1.oraclecloud.com",
+                COMPARTMENT_REF,
+                "bad region",
+            ),
+            Err(OciDnsZoneAdapterConfigError::InvalidRegion)
         );
     }
 
