@@ -21,7 +21,7 @@ pub enum DatabaseEngine {
     Postgres,
     Citus,
     // OLTP key-value family
-    Redis,
+    Valkey,
     // OLAP-columnar family
     ClickHouse,
     // OLTP-relational family (Postgres extension; see `kind()` doc)
@@ -36,7 +36,7 @@ impl DatabaseEngine {
         match self {
             Self::Postgres => "postgres",
             Self::Citus => "citus",
-            Self::Redis => "redis",
+            Self::Valkey => "valkey",
             Self::ClickHouse => "clickhouse",
             Self::Pgvector => "pgvector",
             Self::Kafka => "kafka",
@@ -51,7 +51,7 @@ impl DatabaseEngine {
     pub fn kind(self) -> DataServiceKind {
         match self {
             Self::Postgres | Self::Citus | Self::Pgvector => DataServiceKind::OltpRelational,
-            Self::Redis => DataServiceKind::OltpKeyValue,
+            Self::Valkey => DataServiceKind::OltpKeyValue,
             Self::ClickHouse => DataServiceKind::OlapColumnar,
             Self::Kafka => DataServiceKind::Stream,
         }
@@ -149,8 +149,8 @@ mod tests {
     }
 
     #[test]
-    fn redis_provisions_successfully() {
-        assert!(provision_data_service(&svc("svc-3", DatabaseEngine::Redis)).is_ok());
+    fn valkey_provisions_successfully() {
+        assert!(provision_data_service(&svc("svc-3", DatabaseEngine::Valkey)).is_ok());
     }
 
     #[test]
@@ -235,7 +235,7 @@ mod tests {
         let names: HashSet<_> = [
             DatabaseEngine::Postgres,
             DatabaseEngine::Citus,
-            DatabaseEngine::Redis,
+            DatabaseEngine::Valkey,
             DatabaseEngine::ClickHouse,
             DatabaseEngine::Pgvector,
             DatabaseEngine::Kafka,
@@ -256,7 +256,7 @@ mod tests {
             DatabaseEngine::Citus.kind(),
             DataServiceKind::OltpRelational
         );
-        assert_eq!(DatabaseEngine::Redis.kind(), DataServiceKind::OltpKeyValue);
+        assert_eq!(DatabaseEngine::Valkey.kind(), DataServiceKind::OltpKeyValue);
         assert_eq!(
             DatabaseEngine::ClickHouse.kind(),
             DataServiceKind::OlapColumnar

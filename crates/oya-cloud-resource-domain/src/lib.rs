@@ -116,7 +116,7 @@ pub enum DatabaseEngine {
     Postgres,
     Citus,
     PgVector,
-    Redis,
+    Valkey,
     Kafka,
     ClickHouse,
     Cassandra,

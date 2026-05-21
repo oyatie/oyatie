@@ -1,7 +1,7 @@
 //! Cloud managed data-service kernel.
 //!
 //! This crate owns the provider-neutral control contract for managed Postgres,
-//! Citus, pgvector, Redis-compatible cache, Kafka, ClickHouse, and gated stable
+//! Citus, pgvector, Valkey cache, Kafka, ClickHouse, and gated stable
 //! expansion engines. The kernel validates topology and evidence; adapters own
 //! engine I/O.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
@@ -50,7 +50,7 @@ pub enum ManagedDataEngine {
     Postgres,
     Citus,
     PgVector,
-    Redis,
+    Valkey,
     Kafka,
     ClickHouse,
     Cassandra,
@@ -86,11 +86,8 @@ pub enum PostgresExtension {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum RedisDistribution {
-    RedisPre74,
+pub enum ValkeyDistribution {
     Valkey,
-    Garnet,
-    Redis74OrLater,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -134,11 +131,11 @@ pub struct PostgresShape {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RedisShape {
-    pub distribution: RedisDistribution, // data_class: PUBLIC
-    pub major_version: u16,              // data_class: PUBLIC
-    pub replica_count: u16,              // data_class: INTERNAL_ONLY
-    pub max_ttl_seconds: Option<u64>,    // data_class: INTERNAL_ONLY
+pub struct ValkeyShape {
+    pub distribution: ValkeyDistribution, // data_class: PUBLIC
+    pub major_version: u16,               // data_class: PUBLIC
+    pub replica_count: u16,               // data_class: INTERNAL_ONLY
+    pub max_ttl_seconds: Option<u64>,     // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -170,7 +167,7 @@ pub struct StableExpansionGate {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EngineShape {
     Postgres(PostgresShape),
-    Redis(RedisShape),
+    Valkey(ValkeyShape),
     Kafka(KafkaShape),
     ClickHouse(ClickHouseShape),
     StableExpansion(StableExpansionGate),
@@ -334,7 +331,7 @@ impl ManagedDataEngine {
             Self::Postgres => "postgres",
             Self::Citus => "citus",
             Self::PgVector => "pgvector",
-            Self::Redis => "redis",
+            Self::Valkey => "valkey",
             Self::Kafka => "kafka",
             Self::ClickHouse => "clickhouse",
             Self::Cassandra => "cassandra",
@@ -349,7 +346,7 @@ impl ManagedDataEngine {
             Self::Postgres | Self::Citus | Self::PgVector | Self::Cassandra => {
                 ManagedDataTier::Oltp
             }
-            Self::Redis => ManagedDataTier::Cache,
+            Self::Valkey => ManagedDataTier::Cache,
             Self::Kafka => ManagedDataTier::Stream,
             Self::ClickHouse => ManagedDataTier::Olap,
             Self::Iceberg => ManagedDataTier::Lakehouse,
@@ -363,7 +360,7 @@ impl ManagedDataEngine {
             Self::Postgres => ResourceKind::Database(DatabaseEngine::Postgres),
             Self::Citus => ResourceKind::Database(DatabaseEngine::Citus),
             Self::PgVector => ResourceKind::Database(DatabaseEngine::PgVector),
-            Self::Redis => ResourceKind::Database(DatabaseEngine::Redis),
+            Self::Valkey => ResourceKind::Database(DatabaseEngine::Valkey),
             Self::Kafka => ResourceKind::QueueOrStream(QueueEngine::Kafka),
             Self::ClickHouse => ResourceKind::Database(DatabaseEngine::ClickHouse),
             Self::Cassandra => ResourceKind::Database(DatabaseEngine::Cassandra),
@@ -381,7 +378,7 @@ impl ManagedDataEngine {
             Self::Postgres
             | Self::Citus
             | Self::PgVector
-            | Self::Redis
+            | Self::Valkey
             | Self::Kafka
             | Self::ClickHouse => None,
         }
@@ -628,7 +625,7 @@ fn parse_engine(value: &str) -> Result<ManagedDataEngine, CloudDataError> {
         "postgres" => Ok(ManagedDataEngine::Postgres),
         "citus" => Ok(ManagedDataEngine::Citus),
         "pgvector" => Ok(ManagedDataEngine::PgVector),
-        "redis" => Ok(ManagedDataEngine::Redis),
+        "valkey" => Ok(ManagedDataEngine::Valkey),
         "kafka" => Ok(ManagedDataEngine::Kafka),
         "clickhouse" => Ok(ManagedDataEngine::ClickHouse),
         "cassandra" => Ok(ManagedDataEngine::Cassandra),
@@ -849,7 +846,7 @@ fn validate_engine_shape(
         | (ManagedDataEngine::PgVector, EngineShape::Postgres(postgres)) => {
             validate_postgres_shape(engine, postgres)
         }
-        (ManagedDataEngine::Redis, EngineShape::Redis(redis)) => validate_redis_shape(redis),
+        (ManagedDataEngine::Valkey, EngineShape::Valkey(valkey)) => validate_valkey_shape(valkey),
         (ManagedDataEngine::Kafka, EngineShape::Kafka(kafka)) => validate_kafka_shape(kafka),
         (ManagedDataEngine::ClickHouse, EngineShape::ClickHouse(clickhouse)) => {
             validate_clickhouse_shape(clickhouse)
@@ -889,9 +886,9 @@ fn validate_postgres_shape(
     Ok(())
 }
 
-fn validate_redis_shape(shape: &RedisShape) -> Result<(), CloudDataError> {
-    if shape.distribution == RedisDistribution::Redis74OrLater || shape.replica_count < 3 {
-        return Err(CloudDataError::InvalidLicensePosture);
+fn validate_valkey_shape(shape: &ValkeyShape) -> Result<(), CloudDataError> {
+    if shape.replica_count < 3 {
+        return Err(CloudDataError::InvalidEngineShape);
     }
     if shape.major_version == 0 || shape.max_ttl_seconds == Some(0) {
         return Err(CloudDataError::InvalidEngineShape);
@@ -1180,30 +1177,30 @@ mod tests {
     }
 
     #[test]
-    fn redis_license_posture_is_enforced() {
+    fn valkey_posture_is_enforced() {
         let service = ManagedDataService::new(service_create(
-            ManagedDataEngine::Redis,
-            EngineShape::Redis(RedisShape {
-                distribution: RedisDistribution::Valkey,
+            ManagedDataEngine::Valkey,
+            EngineShape::Valkey(ValkeyShape {
+                distribution: ValkeyDistribution::Valkey,
                 major_version: 8,
                 replica_count: 3,
                 max_ttl_seconds: Some(86_400),
             }),
         ))
-        .expect("license-clean redis-compatible service");
+        .expect("valid Valkey service");
         assert_eq!(service.tier.value, ManagedDataTier::Cache);
         assert_eq!(
             ManagedDataService::new(service_create(
-                ManagedDataEngine::Redis,
-                EngineShape::Redis(RedisShape {
-                    distribution: RedisDistribution::Redis74OrLater,
+                ManagedDataEngine::Valkey,
+                EngineShape::Valkey(ValkeyShape {
+                    distribution: ValkeyDistribution::Valkey,
                     major_version: 8,
-                    replica_count: 3,
+                    replica_count: 2,
                     max_ttl_seconds: None,
                 }),
             ))
-            .expect_err("SSPL-era Redis is not accepted"),
-            CloudDataError::InvalidLicensePosture
+            .expect_err("Valkey cache requires replicated topology"),
+            CloudDataError::InvalidEngineShape
         );
     }
 
