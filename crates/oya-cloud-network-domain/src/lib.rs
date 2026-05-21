@@ -14,7 +14,9 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 
 use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
-use oya_cloud_resource_domain::{CloudResourceError, LbProtocol, ResourceId, ResourceKind};
+use oya_cloud_resource_domain::{
+    CloudResourceError, LbProtocol, PrincipalId, ResourceId, ResourceKind,
+};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 
@@ -723,6 +725,80 @@ pub struct FlowAnomalyEvent {
     pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum NetworkProviderKind {
+    OciVcn,
+}
+
+impl NetworkProviderKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::OciVcn => "oci_vcn",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum NetworkProviderVpcOperation {
+    CreateVpc,
+}
+
+impl NetworkProviderVpcOperation {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::CreateVpc => "create_vpc",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NetworkProviderVpcCreateRequest {
+    pub request_id: String,              // data_class: INTERNAL_ONLY
+    pub provider_vcn_ref: String,        // data_class: INTERNAL_ONLY
+    pub vpc: VpcCreate,                  // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,         // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NetworkProviderVpcReceipt {
+    pub provider: NetworkProviderKind,          // data_class: PUBLIC
+    pub operation: NetworkProviderVpcOperation, // data_class: PUBLIC
+    pub request_id: String,                     // data_class: INTERNAL_ONLY
+    pub provider_request_id: String,            // data_class: INTERNAL_ONLY
+    pub provider_vcn_ref: String,               // data_class: INTERNAL_ONLY
+    pub resource_id: String,                    // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                      // data_class: INTERNAL_ONLY
+    pub region: String,                         // data_class: PUBLIC
+    pub cidr_v4: String,                        // data_class: PUBLIC
+    pub cidr_v6: String,                        // data_class: PUBLIC
+    pub flow_logs_enabled: bool,                // data_class: PUBLIC
+    pub actor: String,                          // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,                // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String,          // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: u64,         // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                    // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum NetworkProviderVpcError {
+    InvalidProviderVcnRef,
+    InvalidProviderRequestId,
+    InvalidProviderEvidenceRef,
+    InvalidIdempotencyKey,
+    InvalidActorRef,
+    InvalidRequestShape(CloudNetworkError),
+    ProviderRejected {
+        provider: NetworkProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+    ProviderUnavailable {
+        provider: NetworkProviderKind, // data_class: PUBLIC
+        reason: String,                // data_class: INTERNAL_ONLY
+    },
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CloudNetworkError {
     InvalidTenantId,
@@ -835,6 +911,15 @@ pub struct CloudNetworkCatalog {
     anomalies: BTreeMap<FlowAnomalyId, FlowAnomalyEvent>,
 }
 
+pub trait NetworkProviderVpcPort {
+    fn provider_kind(&self) -> NetworkProviderKind;
+
+    fn create_vpc(
+        &self,
+        input: NetworkProviderVpcCreateRequest,
+    ) -> Result<NetworkProviderVpcReceipt, NetworkProviderVpcError>;
+}
+
 pub trait NetworkRepo {
     fn create_vpc(&mut self, input: VpcCreate) -> Result<Vpc, CloudNetworkError>;
     fn add_subnet(&mut self, input: SubnetCreate) -> Result<Subnet, CloudNetworkError>;
@@ -871,6 +956,66 @@ pub trait NetworkRepo {
         flow_pattern: String,
         detected_at_epoch_seconds: u64,
     ) -> Result<FlowAnomalyEvent, CloudNetworkError>;
+}
+
+impl NetworkProviderVpcCreateRequest {
+    pub fn validate(&self) -> Result<(), NetworkProviderVpcError> {
+        validate_network_provider_ref(
+            &self.request_id,
+            NetworkProviderVpcError::InvalidProviderRequestId,
+        )?;
+        validate_network_provider_ref(
+            &self.provider_vcn_ref,
+            NetworkProviderVpcError::InvalidProviderVcnRef,
+        )?;
+        validate_network_provider_ref(
+            &self.idempotency_key,
+            NetworkProviderVpcError::InvalidIdempotencyKey,
+        )?;
+        Vpc::new(self.vpc.clone()).map_err(NetworkProviderVpcError::InvalidRequestShape)?;
+        PrincipalId::new(self.actor.clone())
+            .map_err(|_| NetworkProviderVpcError::InvalidActorRef)?;
+        Ok(())
+    }
+}
+
+impl NetworkProviderVpcReceipt {
+    pub fn create_vpc(
+        provider: NetworkProviderKind,
+        input: NetworkProviderVpcCreateRequest,
+        provider_request_id: impl Into<String>,
+        provider_evidence_ref: impl Into<String>,
+    ) -> Result<Self, NetworkProviderVpcError> {
+        input.validate()?;
+        let provider_request_id = provider_request_id.into();
+        let provider_evidence_ref = provider_evidence_ref.into();
+        validate_network_provider_ref(
+            &provider_request_id,
+            NetworkProviderVpcError::InvalidProviderRequestId,
+        )?;
+        validate_network_provider_ref(
+            &provider_evidence_ref,
+            NetworkProviderVpcError::InvalidProviderEvidenceRef,
+        )?;
+        Ok(Self {
+            provider,
+            operation: NetworkProviderVpcOperation::CreateVpc,
+            request_id: input.request_id,
+            provider_request_id,
+            provider_vcn_ref: input.provider_vcn_ref,
+            resource_id: input.vpc.resource_id,
+            tenant_id: input.vpc.tenant_id,
+            region: input.vpc.region,
+            cidr_v4: input.vpc.cidr_v4,
+            cidr_v6: input.vpc.cidr_v6,
+            flow_logs_enabled: input.vpc.flow_logs_enabled,
+            actor: input.actor,
+            idempotency_key: input.idempotency_key,
+            provider_evidence_ref,
+            occurred_at_epoch_seconds: input.requested_at_epoch_seconds,
+            schema_version: NETWORK_SCHEMA_VERSION,
+        })
+    }
 }
 
 impl LbKind {
@@ -2267,6 +2412,21 @@ fn validate_security_rule(rule: &SecurityRule) -> Result<(), CloudNetworkError> 
     Ok(())
 }
 
+fn validate_network_provider_ref(
+    value: &str,
+    error: NetworkProviderVpcError,
+) -> Result<(), NetworkProviderVpcError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
 fn public_metadata_class(data_class: DataClass) -> Result<PrivacyDataClass, CloudNetworkError> {
     if data_class != DataClass::Public {
         return Err(CloudNetworkError::InvalidDataClass);
@@ -2672,6 +2832,17 @@ mod tests {
         }
     }
 
+    fn provider_vpc_create_request() -> NetworkProviderVpcCreateRequest {
+        NetworkProviderVpcCreateRequest {
+            request_id: "networkprov_req_vpc_create_001".to_string(),
+            provider_vcn_ref: "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:vpc:prod".to_string(),
+            vpc: vpc_create(),
+            actor: "sp_network".to_string(),
+            idempotency_key: "idem-network-vpc-create".to_string(),
+            requested_at_epoch_seconds: 1_700_000_010,
+        }
+    }
+
     #[test]
     fn creates_vpc_with_ipv6_flow_logs_route_table_and_security_groups() {
         let vpc = Vpc::new(vpc_create()).expect("vpc is valid");
@@ -2715,6 +2886,59 @@ mod tests {
         })
         .expect_err("network metadata is public-only");
         assert_eq!(class_error, CloudNetworkError::InvalidDataClass);
+    }
+
+    #[test]
+    fn network_provider_vpc_requests_validate_refs_shape_and_actor() {
+        provider_vpc_create_request()
+            .validate()
+            .expect("provider VPC request is valid");
+
+        let mut bad_provider_ref = provider_vpc_create_request();
+        bad_provider_ref.provider_vcn_ref = " ".to_string();
+        assert_eq!(
+            bad_provider_ref.validate(),
+            Err(NetworkProviderVpcError::InvalidProviderVcnRef)
+        );
+
+        let mut bad_vpc_shape = provider_vpc_create_request();
+        bad_vpc_shape.vpc.flow_logs_enabled = false;
+        assert_eq!(
+            bad_vpc_shape.validate(),
+            Err(NetworkProviderVpcError::InvalidRequestShape(
+                CloudNetworkError::FlowLogsRequired,
+            ))
+        );
+
+        let mut bad_actor = provider_vpc_create_request();
+        bad_actor.actor = "network".to_string();
+        assert_eq!(
+            bad_actor.validate(),
+            Err(NetworkProviderVpcError::InvalidActorRef)
+        );
+    }
+
+    #[test]
+    fn network_provider_vpc_receipts_keep_refs_without_provider_credentials() {
+        let receipt = NetworkProviderVpcReceipt::create_vpc(
+            NetworkProviderKind::OciVcn,
+            provider_vpc_create_request(),
+            "oci-vcn-1700000000-networkprov_req_vpc_create_001",
+            "oci-vcn://ocid1.compartment.oc1..cloud/ap-chuncheon-1/oya:cloud:alpha-region:ten_alpha:vpc:prod/networkprov_req_vpc_create_001",
+        )
+        .expect("VPC receipt keeps provider references only");
+
+        assert_eq!(receipt.provider.label(), "oci_vcn");
+        assert_eq!(receipt.operation.label(), "create_vpc");
+        assert_eq!(
+            receipt.resource_id,
+            "oya:cloud:alpha-region:ten_alpha:vpc:prod"
+        );
+        assert_eq!(receipt.cidr_v4, "10.42.0.0/16");
+        assert_eq!(receipt.cidr_v6, "2001:db8:42::/56");
+        assert!(receipt.flow_logs_enabled);
+        assert_eq!(receipt.actor, "sp_network");
+        assert_eq!(receipt.schema_version, NETWORK_SCHEMA_VERSION);
     }
 
     #[test]

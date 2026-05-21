@@ -1431,6 +1431,15 @@ name = "oya-cloud-marketplace-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-network-adapter-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-network-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
 name = "oya-cloud-network-dns-api"
 version = "0.1.0"
 dependencies = [
