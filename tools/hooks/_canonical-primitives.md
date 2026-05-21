@@ -297,6 +297,38 @@ Top-level subcommands: git (drop-in pass-through), vcs (coordination ratchet com
 
 ---
 
+## Wave 15-ZF Doctrine Primitives (ADR-0346..ADR-0349)
+
+ADR-0346: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix:
+  cargo fmt --all --check; cargo check --workspace --all-targets --keep-going; cargo clippy --workspace --all-targets
+  --keep-going -- -D warnings; cargo nextest run --workspace --no-fail-fast (or cargo test --workspace if nextest is absent);
+  oya gate run-all --ci-required. Mandatory steps block on exit-0 of EACH step before verifier success.
+Enforced by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics;
+  oya-governance-oya-verify-skip-flag-allowlist; oya-governance-oya-submit-calls-verify;
+  oya-governance-oya-verify-exit-code-contract.
+
+ADR-0347: every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB
+  bulk-rename pull request; the deterministic inventory path is .omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json.
+Enforced by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary;
+  oya-governance-rename-inventory-presence.
+
+ADR-0348: cellular topology MUST support three control-plane-driven automation modes under ADR-0341 cell-level promotion gates:
+  AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING. Every µservice manifest.json gains a `sharding_automation`
+  block declaring per-automation-mode configuration; automation honors residency + compliance packs and emits audit-chain events.
+Enforced by: oya-governance-sharding-automation-coverage; oya-governance-autosharding-manual-mode-refusal;
+  oya-governance-auto-rebalance-residency-honored; oya-governance-dynamic-sharding-threshold-coverage;
+  oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility.
+
+ADR-0349: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates. Jenkins augments GitHub Actions for
+  air-gap, on-prem, colo, and provider deployment contexts; ArgoCD is the canonical GitOps CD orchestrator and replaces manual
+  kubectl apply / Helm CLI deploy paths across all contexts. Both are provisioned via OpenTofu modules under
+  microservices/cloud-iac/modules/<context>/jenkins/ and /<context>/argocd/.
+Enforced by: oya-governance-jenkins-github-actions-parity; oya-governance-argocd-application-cosign-verified;
+  oya-governance-argocd-tenant-namespace-isolation; oya-governance-jenkins-jcasc-only;
+  oya-governance-deploy-audit-chain-emit.
+
+---
+
 ## Lifecycle Skill Map
 
 Vendored at tools/agent-skills/skills/
