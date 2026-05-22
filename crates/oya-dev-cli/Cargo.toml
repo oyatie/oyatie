@@ -117,5 +117,14 @@ path = "src/bin/fake-cargo.rs"
 test = false
 doctest = false
 
+# Test fixture binary for `oya verify --ci-required` integration tests.
+# The test symlinks/copies it as `cargo`, `oya`, and `git` inside a
+# temporary PATH fixture so no shell-script fixture is needed.
+[[bin]]
+name = "fake-verify-command"
+path = "src/bin/fake-verify-command.rs"
+test = false
+doctest = false
+
 [lints]
 workspace = true

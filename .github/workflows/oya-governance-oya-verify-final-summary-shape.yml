@@ -1,0 +1,37 @@
+name: oya-governance-oya-verify-final-summary-shape
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oya-governance-oya-verify-final-summary-shape-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  oya-governance-oya-verify-final-summary-shape:
+    name: oya-governance-oya-verify-final-summary-shape
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report-only final summary shape assertion
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          source="crates/oya-dev-cli/src/commands/verify.rs"
+          missing=0
+          require() {
+            if ! grep -Fq -- "$1" "$source"; then
+              echo "::warning::verify.rs missing summary marker: $1"
+              missing=1
+            fi
+          }
+          require "oya verify: {status} (mandatory: {mandatory_passed}/{MANDATORY_TOTAL}, advisory: {advisory_passed}/{ADVISORY_TOTAL})"
+          require "MANDATORY_TOTAL: usize = 5"
+          require "ADVISORY_TOTAL: usize = 2"
+          exit "$missing"

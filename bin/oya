@@ -27,6 +27,12 @@ if [ "${OYA_ALLOW_RUSTC_WRAPPER:-}" != "1" ]; then
   unset RUSTC_WRAPPER
 fi
 
+# `oya verify --ci-required` shells back into `oya gate ...`, `oya doc ...`,
+# and `oya lint ...` as the canonical user-facing command. Make that recursive
+# lookup deterministic even when the caller invoked this wrapper as `./bin/oya`
+# without adding repo-local `bin/` to PATH.
+export PATH="$REPO_ROOT/bin:$PATH"
+
 # Shell-only verification surfaces can request the deferred-gate roster without
 # owning a parallel parser; Rust still validates the final `verify` arguments.
 if [ "${1:-}" = "verify" ] && [ "${OYA_VERIFY_INCLUDE_DEFERRED:-}" = "1" ]; then
