@@ -23,7 +23,7 @@ purpose: |
   both products share a single CRDT engine.
 ---
 
-# ADR-TASKS-0004: View engine + board realtime — Loro CRDT 1.x for description; deterministic LexoRank for board moves; per-tenant Valkey 8.1 (Redis wire-compat) view-state
+# ADR-TASKS-0004: View engine + board realtime — Loro CRDT 1.x for description; deterministic LexoRank for board moves; per-tenant Valkey 8.1 (RESP wire-compatible) view-state
 
 ## Status
 
@@ -102,7 +102,7 @@ The tasks µservice ships:
   CRDT scope is strictly limited to the `description` field — title,
   status, priority, assignees, etc. are non-CRDT (last-write-wins on
   optimistic version).
-- **Per-tenant Valkey 8.1 (Redis wire-compat)** for `ViewStateStore` (presence cursor,
+- **Per-tenant Valkey 8.1 (RESP wire-compatible)** for `ViewStateStore` (presence cursor,
   view filter state, ephemeral DnD lock). Cluster-mode-safe; per-
   tenant key prefix; eviction `allkeys-lru`.
 - **WebSocket gateway** on `view-engine-rest` port 8443. Per-connection
@@ -154,7 +154,7 @@ workflow-studio runs. Upgrades are coordinated via the
 `docs/standards/version-pinning.md` lane. Drift triggers the
 `oya-governance-version-pinning-conformance` gate failure.
 
-### Consequence 2 — Valkey 8.1 (Redis wire-compat) is a load-bearing dependency
+### Consequence 2 — Valkey 8.1 (RESP wire-compatible) is a load-bearing dependency
 
 Loss of Valkey flips view-engine into a degraded mode: live presence +
 view-filter caching disabled; clients fall back to direct REST polling

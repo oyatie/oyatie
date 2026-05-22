@@ -1,7 +1,7 @@
 {
   "_schema": {
     "version": "0.1",
-    "description": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by oya-foundry-fitness-glossary CI lane to enforce term-usage consistency across consolidated docs.",
+    "description": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by oya-governance-glossary CI lane to enforce term-usage consistency across consolidated docs.",
     "owner_team": "council-architecture"
   },
   "_metadata": {
@@ -112,6 +112,13 @@
         "reverse ETL",
         "lakehouse",
         "warehouse",
+        "Apache Iceberg",
+        "Iceberg REST Catalog",
+        "Apache Polaris",
+        "BigLake",
+        "Delta UniForm",
+        "Apache Delta Lake (adapter-only per ADR-0337)",
+        "Apache Hudi (adapter-only per ADR-0337)",
         "k-anonymity",
         "differential privacy (DP)",
         "PII",
@@ -393,9 +400,12 @@
         "retirement_date": "ADR-0013"
       },
       {
-        "old": "Redis 7.4+ (RSAL)",
-        "new": "Valkey (BSD-3) or DragonflyDB (BSD-3)",
-        "retirement_date": "ADR-0013/0045"
+        "old": "Redis 7.4+ (RSAL/SSPL — Redis Inc. dual-license since 2024-03-20)",
+        "new": "Valkey (BSD-3-Clause — Linux Foundation fork)",
+        "retirement_date": "2026-05-21",
+        "canonical_authority": "ADR-0336",
+        "prior_authority": "ADR-0013/ADR-0045",
+        "note": "DragonflyDB removed as alternative because BSL-1.1 is on the forbidden-license list per dependency-policy §2. Pre-7.4 Redis (BSD-3-Clause) is license-clean but non-canonical due to absent upstream maintenance + absent hyperscaler-managed offering. Hyperscaler-managed Valkey: AWS ElastiCache for Valkey (GA 2024-11-04); Google Memorystore for Valkey (GA 2024-09-24); Oracle Cloud Cache with Valkey (GA 2025-01-21, OCI Always Free)."
       },
       {
         "old": "MVP / Milestone (M0..M3)",
@@ -416,6 +426,6 @@
   },
   "korean_english_pairs": "see GLOSSARY.md \u00a79 for full table",
   "acronym_index": "see GLOSSARY.md \u00a710 for full table",
-  "validation_lane": "oya-foundry-fitness-glossary",
-  "purpose": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by oya-foundry-fitness-glossary CI lane to enforce term-usage consistency across consolidated docs."
+  "validation_lane": "oya-governance-glossary",
+  "purpose": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by oya-governance-glossary CI lane to enforce term-usage consistency across consolidated docs."
 }

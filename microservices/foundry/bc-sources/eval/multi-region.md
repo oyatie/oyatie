@@ -43,7 +43,7 @@ Define per-pack deployment topology, cross-region replication policy, failover p
 ### Within Pack (DR pair)
 
 - **Eval-set manifests** (Postgres + S3): synchronous replication; RPO 0; RTO ≤ 5 min for Postgres failover.
-- **Golden outputs** (S3): asynchronous cross-region replication; RPO ≤ 5 min.
+- **Baseline outputs** (S3): asynchronous cross-region replication; RPO ≤ 5 min.
 - **Replay traces** (S3): asynchronous cross-region replication; RPO ≤ 15 min.
 - **ClickHouse parity_analytics**: cross-region streaming replica with 1-second async lag; RPO ≤ 5 min.
 - **Per-subject DEKs (KMS)**: per-pack multi-region KMS keyring; DEKs replicated; KEK does not leave the pack.
@@ -83,7 +83,7 @@ When primary region planned-maintenance overrun or partial degradation:
 | Component | RPO | RTO | Notes |
 |---|---|---|---|
 | Eval-set metadata (Postgres) | 0 | 5 min | Synchronous replication |
-| Golden outputs (S3) | 5 min | 2 min | Async replication |
+| Baseline outputs (S3) | 5 min | 2 min | Async replication |
 | Replay traces (S3) | 15 min | 2 min | Async replication |
 | ClickHouse parity_analytics | 5 min | 5 min | Cross-region streaming |
 | Per-subject DEKs (KMS) | 0 | 5 min | Multi-region keyring |
@@ -143,4 +143,4 @@ Per `cost-budget.md`:
 - `microservices/foundry-eval/capacity-model.md`.
 - `microservices/foundry-eval/cost-budget.md`.
 - `microservices/foundry-eval/runbooks/clickhouse-rebalance.md`.
-- `microservices/foundry-eval/runbooks/golden-output-restore.md`.
+- `microservices/foundry-eval/runbooks/baseline-output-restore.md`.

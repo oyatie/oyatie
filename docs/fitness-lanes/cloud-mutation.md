@@ -10,13 +10,13 @@ doc_status: published
 - enforces: STANDARD/cloud-mutation; existing crate `oya-foundry-cloud-mutation-kernel` (EXISTING).
 - adr_citations: ADR-0053 (sanctioned primitives — cloud mutations must route through the sanctioned kernel, not call provider SDKs directly)
 - kernel_crate: `oya-foundry-cloud-mutation-kernel` (EXISTING) — `CloudMutation { mutation_id, kernel_path, idempotency_key }`, verdict `CloudMutationFitnessReport { mutations_checked }`.
-- runner_path: `tools/oya-foundry-fitness-cloud-mutation`
+- runner_path: `tools/oya-governance-cloud-mutation`
 - inputs: mutation registry, source AST showing cloud SDK calls.
 - failure_modes:
   - cloud SDK called outside `oya-foundry-cloud-mutation-kernel`
   - mutation has no idempotency key
   - duplicate mutation id
-- ci_invocation: `cargo run -p oya-foundry-fitness-cloud-mutation`
+- ci_invocation: `cargo run -p oya-governance-cloud-mutation`
 - runtime_budget: 800 ms
 - severity: BLOCKER
 - kernel_sketch:

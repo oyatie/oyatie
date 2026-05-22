@@ -1,0 +1,68 @@
+[package]
+name = "oya-marketing-automation-campaign-journey-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Rust src scaffold for the Marketing Automation campaign journey application surface."
+
+[package.metadata.oya]
+microservice = "marketing-automation"
+title = "Marketing Automation"
+bounded_context = "campaign-journey"
+layer = "app"
+wave = "wave-3-k"
+owner_team = "axis-marketing-automation + council-product"
+data_classification = "tenant-scoped operational records with audit evidence"
+criticality = "engagement-critical"
+availability_target = "99.95-paid / best-effort-demo-trial"
+big8_phase = "4A.5"
+primary_counterpart = "HubSpot Marketing Hub"
+binding_adrs = ["ADR-0105", "ADR-0131", "ADR-0132", "ADR-0244", "ADR-0248", "ADR-0263", "ADR-0321", "ADR-0328"]
+retired_adr_bindings = ["ADR-0315", "ADR-0316"]
+tenant_class_aware = true
+openapi = "contracts/openapi-v1.yaml"
+asyncapi = "contracts/asyncapi-v1.yaml"
+protobuf = "contracts/marketing-automation-v1.proto"
+
+[lib]
+name = "oya_marketing_automation_campaign_journey_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-marketing-automation-campaign-journey"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true
+
+[workspace]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+rust-version = "1.95.0"
+
+[workspace.dependencies]
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt", "json", "env-filter"] }
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

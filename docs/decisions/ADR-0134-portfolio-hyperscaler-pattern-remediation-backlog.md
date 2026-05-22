@@ -52,11 +52,11 @@ branch-protection integration, and product-specific wiring.
 
 | Item | Candidate validator | Minimum acceptance criterion |
 |---|---|---|
-| LLM circuit breaker | `oya-foundry-fitness-circuit-breaker-presence` | T1 invocation surfaces declare `max_retry_budget`, `circuit_breaker_threshold`, and circuit state, with max retry budgets <= 3 unless a product ADR justifies a higher value. |
-| Per-tenant rate limit | `oya-foundry-fitness-per-tenant-rate-limit` | Public capability/action/canvas APIs have tenant-keyed token buckets and explicit 429 + `Retry-After` behavior. |
-| Provider-degraded shed | `oya-foundry-fitness-provider-degraded-shed` | Foundry provider queues define all-providers-degraded behavior, defaulting to bounded 503 or bounded queue drop rather than unbounded enqueue. |
-| Workflow Studio golden signals | `oya-foundry-fitness-workflow-studio-golden-signals` | Workflow Studio exposes latency, traffic, errors, and saturation signals. Availability remains an SLO, not a substitute for the missing golden signals. |
-| Error-budget burn rate | `oya-foundry-fitness-error-budget-policy` | Product SLOs define fast-burn and slow-burn thresholds, notification targets, and rollback/escalation behavior. |
+| LLM circuit breaker | `oya-governance-circuit-breaker-presence` | T1 invocation surfaces declare `max_retry_budget`, `circuit_breaker_threshold`, and circuit state, with max retry budgets <= 3 unless a product ADR justifies a higher value. |
+| Per-tenant rate limit | `oya-governance-per-tenant-rate-limit` | Public capability/action/canvas APIs have tenant-keyed token buckets and explicit 429 + `Retry-After` behavior. |
+| Provider-degraded shed | `oya-governance-provider-degraded-shed` | Foundry provider queues define all-providers-degraded behavior, defaulting to bounded 503 or bounded queue drop rather than unbounded enqueue. |
+| Workflow Studio golden signals | `oya-governance-workflow-studio-golden-signals` | Workflow Studio exposes latency, traffic, errors, and saturation signals. Availability remains an SLO, not a substitute for the missing golden signals. |
+| Error-budget burn rate | `oya-governance-error-budget-policy` | Product SLOs define fast-burn and slow-burn thresholds, notification targets, and rollback/escalation behavior. |
 
 ## Boundaries
 

@@ -313,6 +313,11 @@ mod tests {
             .expect("idempotency replay returns the original event");
 
         assert_eq!(first.id.value, replay.id.value);
+        assert_eq!(first.tenant_id.value, "ten_alpha");
+        assert_eq!(
+            first.idempotency_key.value.value,
+            "idem_ten_alpha_resource_001"
+        );
         assert_eq!(meter.events().count(), 1);
     }
 

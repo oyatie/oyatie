@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, openapi-conformance, grp
 
 ## Intent
 
-Author `-rest` crates for all 6 BCs (prompt-classifier, output-validator, autonomy-tier-gate, content-safety-rule-engine, jailbreak-detector, ai-slop-detector). OpenAPI 3.2 + gRPC contracts at `contracts/openapi/guardrails.yaml` + `contracts/proto/guardrails.proto`. Per-route Cedar policy bind. Tenant tracing via X-Scope-OrgID. `-api` crates introduced per BC to carry protocol-neutral request/response types.
+Author `-rest` crates for all 6 BCs (prompt-classifier, output-validator, autonomy-ceiling-gate, content-safety-rule-engine, jailbreak-detector, ai-slop-detector). OpenAPI 3.2 + gRPC contracts at `contracts/openapi/guardrails.yaml` + `contracts/proto/guardrails.proto`. Per-route Cedar policy bind. Tenant tracing via X-Scope-OrgID. `-api` crates introduced per BC to carry protocol-neutral request/response types.
 
 ## ChangeSet boundary
 
@@ -89,3 +89,9 @@ Per rest class: 1 test per route (happy + auth-fail + tenant-mismatch) + ≥ 2 c
 - `contracts/openapi/guardrails.yaml`.
 - `contracts/proto/guardrails.proto`.
 - `policy/tenant-scope.cedar`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

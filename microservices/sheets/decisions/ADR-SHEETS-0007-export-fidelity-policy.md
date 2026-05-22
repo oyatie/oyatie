@@ -1,6 +1,6 @@
 ---
 id: ADR-SHEETS-0007
-title: XLSX export fidelity policy — best-effort tier at M03 with named-limit list; strict OOXML round-trip scheduled-for-distinct-tracked-work subsequent-to-M03-completion
+title: XLSX export fidelity policy — best-effort fidelity at M03 with named-limit list; strict OOXML round-trip scheduled-for-distinct-tracked-work subsequent-to-M03-completion
 microservice: sheets
 status: Accepted
 date: 2026-05-17
@@ -16,7 +16,7 @@ purpose: Resolve PRD Open Question 7 — choose the XLSX import/export fidelity 
 doc_status: published
 ---
 
-# ADR-SHEETS-0007: XLSX export fidelity — best-effort tier at M03 with named-limit list; gVisor + ClamAV + OPSWAT sandboxed pipeline; strict OOXML round-trip scheduled-for-distinct-tracked-work subsequent-to-M03-completion
+# ADR-SHEETS-0007: XLSX export fidelity — best-effort fidelity at M03 with named-limit list; gVisor + ClamAV + OPSWAT sandboxed pipeline; strict OOXML round-trip scheduled-for-distinct-tracked-work subsequent-to-M03-completion
 
 ## Status
 
@@ -48,7 +48,7 @@ Constraints:
 
 Adopt **best-effort fidelity tier at M03** with a published named-limit list of features intentionally excluded.
 
-### Best-effort tier — preserved on round-trip
+### Best-effort fidelity — preserved on round-trip
 
 - Cell values (strings, numbers, booleans, errors).
 - Formulas (mapped to Sheets formula library per ADR-SHEETS-0002; functions outside the library round-trip as `#N/A` with a fidelity warning).
@@ -144,7 +144,7 @@ Estimated scope: 2-3 quarters subsequent-to-M03-completion.
 
 ### CI lanes + SLOs
 
-- `oya-governance-sheets-xlsx-roundtrip-best-effort` — BLOCKER lane on dev; validates 100-workbook golden corpus.
+- `oya-governance-sheets-xlsx-roundtrip-best-effort` — BLOCKER lane on dev; validates 100-workbook reference corpus.
 - `oya-governance-sheets-import-sandboxed-and-avscan-required` — BLOCKER lane.
 - `sheets.xlsx_export_p95_seconds` — 95% under 5s for 100k-cell workbook.
 - `sheets.xlsx_import_av_positive_total` — informational; non-zero is normal (gate working).

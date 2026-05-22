@@ -17,7 +17,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, oya-governance-per-microser
 
 ## Intent
 
-Author Helm + Kustomize manifests for the drive µservice substrate. Three object-store backends per ADR-DRIVE-0001 (Garage primary; SeaweedFS secondary; SeaweedFS archive); Postgres 16 LTS for metadata; Valkey 8.1 (Redis wire-compat) for upload-session + delta cache; Meilisearch + Tika for full-text; ClamAV + OPSWAT for scan; LibreOffice 24 LTS in gVisor for preview per ADR-DRIVE-0005; OpenBao Transit for tenant-DEK envelope per ADR-DRIVE-0004. Pack-aware overlays for 11 packs.
+Author Helm + Kustomize manifests for the drive µservice substrate. Three object-store backends per ADR-DRIVE-0001 (Garage primary; SeaweedFS secondary; SeaweedFS archive); Postgres 16 LTS for metadata; Valkey 8.1 (RESP3 wire-compatible) for upload-session + delta cache; Meilisearch + Tika for full-text; ClamAV + OPSWAT for scan; LibreOffice 24 LTS in gVisor for preview per ADR-DRIVE-0005; OpenBao Transit for tenant-DEK envelope per ADR-DRIVE-0004. Pack-aware overlays for 11 packs.
 
 ## ChangeSet boundary
 
@@ -27,7 +27,7 @@ Author Helm + Kustomize manifests for the drive µservice substrate. Three objec
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/drive/iac/helm/Chart.yaml` | created | dependencies: garage 1.0.1, minio RELEASE-2024-08-17, seaweedfs 3.71.0, postgres 16.4.0, valkey 8.1 (Redis wire-compat), meilisearch 1.10.3, apache-tika 2.9.2, clamav 1.4.1, opswat 5.10.0, libreoffice-gvisor 24.8.4 |
+| `microservices/drive/iac/helm/Chart.yaml` | created | dependencies: garage 1.0.1, minio RELEASE-2024-08-17, seaweedfs 3.71.0, postgres 16.4.0, valkey 8.1 (RESP3 wire-compatible), meilisearch 1.10.3, apache-tika 2.9.2, clamav 1.4.1, opswat 5.10.0, libreoffice-gvisor 24.8.4 |
 | `microservices/drive/iac/helm/values.yaml` | created | per-BC replica sizing; object-store backend gating per ADR-DRIVE-0001; OpenBao SecretReferences |
 | `microservices/drive/iac/helm/templates/deployment.yaml` | created | per-BC Deployment (11 BCs); gVisor RuntimeClass on preview workers |
 | `microservices/drive/iac/helm/templates/service.yaml` | created | per-BC Service |

@@ -14,7 +14,6 @@ canonical_authority: docs/CONSTITUTION.md
 foundation: ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim)
 related:
   - docs/agents/ESCALATION-MATRIX.md
-  - docs/agents/AGENT-ICM-TOPIC-CONVENTIONS.md
   - docs/AGENTS.md
   - docs/RACI-OWNERSHIP.md
 doc_status: published
@@ -26,7 +25,6 @@ doc_status: published
 
 ## How halts surface to you
 
-The orchestrator polls `cutover-orchestrator-actions` (canonical icm topic). Rows of shape:
 
 ```
 topic=cutover-orchestrator-actions
@@ -35,7 +33,6 @@ content="BLOCKED_ON_HUMAN_ORCHESTRATOR: <case-id>: <one-line>"
 keywords=halt,<area>
 ```
 
-Surface in operator UI / Slack `#oya-orchestrator-alerts` / pager (Sev escalation only on `HALT-02` shared-ref destruction). Each halt row carries the agent id; pull the agent's full context with `icm recall -t context-oyatie -k "<agent-id>"`.
 
 ## Per-case actions
 
@@ -48,7 +45,6 @@ Human action:
 2. If approved: author the Cedar policy diff per [`docs/standards/autonomy-ceiling.md`](../standards/autonomy-ceiling.md); attach to a fresh PR.
 3. Emit hand-back:
    ```
-   icm store -t cutover-orchestrator-actions \
      -c "UNBLOCK <case-id>: tier uplift T<n>→T<m> approved; Cedar policy at <PR-link>; agent <agent-id> may resume" \
      -i critical -k "unblock,<area>"
    ```
@@ -62,7 +58,6 @@ Human action:
 1. Verify with Founder + council-architecture (RACI: this is escalation tier 1).
 2. If approved: a council member runs the destructive op manually with full audit; emit:
    ```
-   icm store -t direct-tool-invocations \
      -c "<op> on <ref> approved by <Founder + council-arch quorum>; rationale: <one-line>" \
      -i critical -k "git,destructive,<context>"
    ```
@@ -71,18 +66,14 @@ Human action:
 
 ### `HALT-03` — sanctioned-primitive infra error
 
-Trigger: grit/icm/oya-tooling-agent-read itself unhealthy after 2 retries.
 
 Human action:
 1. ops-sre-reliability on-call investigates the primitive's health endpoint.
-2. If grit 0.3.0 bug recurrence (RM-05): apply known workaround per [`docs/standards/claude-code-harness.md`](../standards/claude-code-harness.md); update `MFL-NNNN` if novel shape.
-3. If icm health failure: rerun `icm health` after fix; share output in the unblock row.
 4. Emit unblock row; the agent resumes from its last `context-oyatie` checkpoint.
 
 ## Hand-back signal (universal)
 
 ```
-icm store -t cutover-orchestrator-actions \
   -c "UNBLOCK <case-id>: <one-line on what changed>; agent <agent-id> may resume" \
   -i critical -k "unblock,<area>"
 ```
@@ -91,8 +82,6 @@ The agent polls `cutover-orchestrator-actions` filtered by its agent id. Upon se
 
 ## What humans MUST NOT do
 
-- Edit agent claims directly (`grit claim --agent <other-id>` is forbidden).
-- Force-merge an agent's PR via `gh pr merge` — use `grit done` on its behalf only if explicitly delegated by the agent's owner.
 - Insert raw `git` operations without the `direct-tool-invocations` audit row.
 - Silently resolve a halt without emitting the unblock row — the agent will not resume.
 

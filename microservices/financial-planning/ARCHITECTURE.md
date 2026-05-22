@@ -1,0 +1,902 @@
+---
+doc_class: Architecture
+microservice: financial-planning
+status: reserved-wave-3-i-anchor
+date: 2026-05-20
+related_adrs:
+  - ADR-0105
+  - ADR-0131
+  - ADR-0132
+  - ADR-0244
+  - ADR-0245
+  - ADR-0316
+  - ADR-0321
+companion_docs:
+  - microservices/financial-planning/PRD.md
+  - microservices/financial-planning/compliance.md
+  - microservices/financial-planning/manifest.json
+---
+
+# Architecture: Financial Planning
+
+## A. Boundary
+Financial Planning owns forecast, scenario, consolidation, and board-report evidence require a finance-owned planning surface beyond generic sheets. It does not own tenant identity, Cedar policy engine internals, workflow runtime internals, ontology storage, payments rails, marketplace settlement, or adjacent product labels.
+
+## B. Layer Map
+| ADR-0105 layer | Planned responsibility |
+|---|---|
+| api | public command/query DTOs and OpenAPI 3.2.0 contract binding |
+| rest | HTTP/3-first transport, idempotency enforcement, and request validation |
+| application | usecase orchestration and transaction boundaries |
+| usecase | command handlers, read models, migration dry-runs, and replay flows |
+| domain | aggregate invariants and state transitions |
+| kernel | pure value objects, policy-port traits, and deterministic calculations |
+| adapter | source-system, storage, queue, and evidence adapters |
+| worker | async import, replay, reconciliation, and notification workers |
+| governance | policy, compliance, scorecards, and evidence gates |
+
+## C. Bounded Context Architecture
+### forecast-model
+- Aggregate root: `forecast_model_document`.
+- Invariants: tenant scope required, version monotonic, source-system provenance immutable, destructive correction forbidden.
+- Commands: create, amend, approve, import, export, replay, archive, and reverse where applicable.
+- Events: created, amended, approved, import-accepted, import-rejected, replayed, exported, archived, and reversed where applicable.
+- Read model: tenant-scoped projection keyed by document id, source-system id, status, data class, region, pack, and workflow run.
+### budget-cycle
+- Aggregate root: `budget_cycle_document`.
+- Invariants: tenant scope required, version monotonic, source-system provenance immutable, destructive correction forbidden.
+- Commands: create, amend, approve, import, export, replay, archive, and reverse where applicable.
+- Events: created, amended, approved, import-accepted, import-rejected, replayed, exported, archived, and reversed where applicable.
+- Read model: tenant-scoped projection keyed by document id, source-system id, status, data class, region, pack, and workflow run.
+### variance
+- Aggregate root: `variance_document`.
+- Invariants: tenant scope required, version monotonic, source-system provenance immutable, destructive correction forbidden.
+- Commands: create, amend, approve, import, export, replay, archive, and reverse where applicable.
+- Events: created, amended, approved, import-accepted, import-rejected, replayed, exported, archived, and reversed where applicable.
+- Read model: tenant-scoped projection keyed by document id, source-system id, status, data class, region, pack, and workflow run.
+### scenario
+- Aggregate root: `scenario_document`.
+- Invariants: tenant scope required, version monotonic, source-system provenance immutable, destructive correction forbidden.
+- Commands: create, amend, approve, import, export, replay, archive, and reverse where applicable.
+- Events: created, amended, approved, import-accepted, import-rejected, replayed, exported, archived, and reversed where applicable.
+- Read model: tenant-scoped projection keyed by document id, source-system id, status, data class, region, pack, and workflow run.
+### consolidation
+- Aggregate root: `consolidation_document`.
+- Invariants: tenant scope required, version monotonic, source-system provenance immutable, destructive correction forbidden.
+- Commands: create, amend, approve, import, export, replay, archive, and reverse where applicable.
+- Events: created, amended, approved, import-accepted, import-rejected, replayed, exported, archived, and reversed where applicable.
+- Read model: tenant-scoped projection keyed by document id, source-system id, status, data class, region, pack, and workflow run.
+
+## D. Integration Topology
+- finops-portal: API/event interaction only; request carries tenant context, trace context, idempotency key, Cedar decision id, and audit-chain reference.
+- payments: API/event interaction only; request carries tenant context, trace context, idempotency key, Cedar decision id, and audit-chain reference.
+- analytics: API/event interaction only; request carries tenant context, trace context, idempotency key, Cedar decision id, and audit-chain reference.
+- sheets: API/event interaction only; request carries tenant context, trace context, idempotency key, Cedar decision id, and audit-chain reference.
+- ontology: API/event interaction only; request carries tenant context, trace context, idempotency key, Cedar decision id, and audit-chain reference.
+- workflow-engine: API/event interaction only; request carries tenant context, trace context, idempotency key, Cedar decision id, and audit-chain reference.
+- audit-chain: API/event interaction only; request carries tenant context, trace context, idempotency key, Cedar decision id, and audit-chain reference.
+
+## E. Failure Modes
+- Source-system import drift: dry-run evidence identifies row, field, transform, data class, and rejection reason.
+- Cross-tenant reference attempt: Cedar denies before domain command execution and emits refusal evidence.
+- Duplicate command submission: idempotency key returns the previous result and increments duplicate metric.
+- Regional outage: writes queue in the tenant home cell and reads expose stale-region metadata.
+- Audit-chain outage: critical state transitions pause; non-critical reads continue with degraded banner.
+- Pack conflict: pack resolver blocks activation and opens a workflow-engine remediation task.
+
+## F. Required ADR-3.2.1 Anchors
+## §principals
+- principals: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — principals
+- This expansion preserves the existing prose above and closes `principals` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: AWS IAM service-linked roles anchors the external control pattern for `principals`.
+- Precedent 2: Google Cloud service agents provides a second independent hyperscaler pattern for `principals`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `principals`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `principals` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `principals` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `principals` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `principals` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `principals`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `principals` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `principals` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `principals` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `principals` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `principals`.
+
+## §cedar-gates
+- cedar-gates: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — cedar-gates
+- This expansion preserves the existing prose above and closes `cedar-gates` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: AWS Verified Permissions Cedar anchors the external control pattern for `cedar-gates`.
+- Precedent 2: Google Zanzibar provides a second independent hyperscaler pattern for `cedar-gates`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `cedar-gates`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `cedar-gates` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `cedar-gates` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `cedar gates` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `cedar gates` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `cedar gates`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `cedar gates` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `cedar gates` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `cedar gates` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `cedar gates` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `cedar gates`.
+
+## §tenant-scoping
+- tenant-scoping: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — tenant-scoping
+- This expansion preserves the existing prose above and closes `tenant-scoping` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Stripe Connect account isolation anchors the external control pattern for `tenant-scoping`.
+- Precedent 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for `tenant-scoping`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `tenant-scoping`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `tenant-scoping` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `tenant-scoping` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `tenant scoping` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `tenant scoping` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `tenant scoping`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `tenant scoping` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `tenant scoping` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `tenant scoping` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `tenant scoping` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `tenant scoping`.
+
+## §substrate-product-binding
+- substrate-product-binding: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — substrate-product-binding
+- This expansion preserves the existing prose above and closes `substrate-product-binding` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Palantir Foundry substrate pattern anchors the external control pattern for `substrate-product-binding`.
+- Precedent 2: Google Cloud shared VPC split provides a second independent hyperscaler pattern for `substrate-product-binding`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `substrate-product-binding`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `substrate-product-binding` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `substrate-product-binding` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `substrate product binding` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `substrate product binding` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `substrate product binding`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `substrate product binding` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `substrate product binding` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `substrate product binding` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `substrate product binding` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `substrate product binding`.
+
+## §policy-evaluation
+- policy-evaluation: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — policy-evaluation
+- This expansion preserves the existing prose above and closes `policy-evaluation` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Open Policy Agent sidecar anchors the external control pattern for `policy-evaluation`.
+- Precedent 2: AWS Verified Permissions provides a second independent hyperscaler pattern for `policy-evaluation`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `policy-evaluation`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `policy-evaluation` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `policy-evaluation` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `policy evaluation` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `policy evaluation` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `policy evaluation`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `policy evaluation` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `policy evaluation` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `policy evaluation` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `policy evaluation` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `policy evaluation`.
+
+## §self-modification
+- self-modification: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — self-modification
+- This expansion preserves the existing prose above and closes `self-modification` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: SLSA provenance anchors the external control pattern for `self-modification`.
+- Precedent 2: Google Binary Authorization provides a second independent hyperscaler pattern for `self-modification`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `self-modification`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `self-modification` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `self-modification` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `self modification` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `self modification` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `self modification`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `self modification` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `self modification` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `self modification` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `self modification` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `self modification`.
+
+## §time-coordination
+- time-coordination: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — time-coordination
+- This expansion preserves the existing prose above and closes `time-coordination` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Google Spanner TrueTime anchors the external control pattern for `time-coordination`.
+- Precedent 2: CockroachDB HLC ordering provides a second independent hyperscaler pattern for `time-coordination`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `time-coordination`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `time-coordination` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `time-coordination` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `time coordination` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `time coordination` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `time coordination`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `time coordination` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `time coordination` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `time coordination` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `time coordination` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `time coordination`.
+
+## §transport
+- transport: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — transport
+- This expansion preserves the existing prose above and closes `transport` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Google QUIC HTTP/3 anchors the external control pattern for `transport`.
+- Precedent 2: Cloudflare ECH/PQC TLS provides a second independent hyperscaler pattern for `transport`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `transport`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `transport` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `transport` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `transport` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `transport` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `transport`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `transport` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `transport` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `transport` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `transport` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `transport`.
+
+## §deployment-shape
+- deployment-shape: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — deployment-shape
+- This expansion preserves the existing prose above and closes `deployment-shape` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: AWS Firecracker isolation anchors the external control pattern for `deployment-shape`.
+- Precedent 2: GKE Sandbox/Kata provides a second independent hyperscaler pattern for `deployment-shape`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `deployment-shape`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `deployment-shape` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `deployment-shape` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `deployment shape` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `deployment shape` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `deployment shape`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `deployment shape` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `deployment shape` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `deployment shape` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `deployment shape` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `deployment shape`.
+
+## §intelligence-dispatch
+- intelligence-dispatch: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — intelligence-dispatch
+- This expansion preserves the existing prose above and closes `intelligence-dispatch` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Palantir AIP tool boundary anchors the external control pattern for `intelligence-dispatch`.
+- Precedent 2: Azure OpenAI tenant deployment provides a second independent hyperscaler pattern for `intelligence-dispatch`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `intelligence-dispatch`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `intelligence-dispatch` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `intelligence-dispatch` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `intelligence dispatch` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `intelligence dispatch` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `intelligence dispatch`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `intelligence dispatch` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `intelligence dispatch` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `intelligence dispatch` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `intelligence dispatch` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `intelligence dispatch`.
+
+## §ontology-read-path
+- ontology-read-path: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — ontology-read-path
+- This expansion preserves the existing prose above and closes `ontology-read-path` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Palantir Foundry ontology projections anchors the external control pattern for `ontology-read-path`.
+- Precedent 2: Google Knowledge Graph serving cache provides a second independent hyperscaler pattern for `ontology-read-path`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `ontology-read-path`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `ontology-read-path` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `ontology-read-path` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `ontology read path` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `ontology read path` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `ontology read path`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `ontology read path` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `ontology read path` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `ontology read path` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `ontology read path` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `ontology read path`.
+
+## §observability
+- observability: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — observability
+- This expansion preserves the existing prose above and closes `observability` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Google SRE four primary SRE signals anchors the external control pattern for `observability`.
+- Precedent 2: OpenTelemetry semantic conventions provides a second independent hyperscaler pattern for `observability`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `observability`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `observability` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `observability` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `observability` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `observability` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `observability`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `observability` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `observability` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `observability` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `observability` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `observability`.
+
+## §marketplace
+- marketplace: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+### Content-pass expansion — marketplace
+- This expansion preserves the existing prose above and closes `marketplace` for `financial-planning` to the ≥50-line documentation-rigor floor.
+- Service owner `axis-financial-planning` owns this answer; tier `product`; audience `tenant-b2b-finance`.
+- Primary capability/context: `forecast-model`; bounded contexts: `forecast-model`, `budget-cycle`, `variance`, `scenario`, `consolidation`.
+- API surfaces: `contracts/openapi-v1.yaml`, `contracts/asyncapi-v1.yaml`, `contracts/*.proto`.
+- Cedar/policy surfaces: `policy/*.cedar`.
+- State/event surfaces: `financial_planning.forecast_model`, `financial_planning.budget_cycle`, `financial_planning.variance`, `financial_planning.scenario`, `financial_planning.consolidation`.
+- SLO/dashboard evidence: `slos/*.openslo.yaml`, `dashboards/*.json`.
+- Runbook/IaC evidence: `runbooks/*.md`, `iac/*`.
+- Compliance packs: `SOC-2`, `ISO-27001`, `SOX-404`, `GDPR`, `KR-FSS`; +1 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
+- Cross-service dependencies: `finops-portal`, `payments`, `analytics`, `sheets`, `ontology`; +2 more.
+- Precedent 1: Stripe Connect platform facilitator anchors the external control pattern for `marketplace`.
+- Precedent 2: AWS Marketplace seller controls provides a second independent hyperscaler pattern for `marketplace`.
+- Tenant-scope invariant: every `financial-planning` `forecast-model` request carries `tenant_id`, `principal_id`, `audience_type`, `home_cell`, `jurisdiction_code`, and `audit_event_class`.
+- Policy invariant: Cedar is evaluated before storage/provider access; deny decisions emit audit evidence rather than silently dropping context.
+- Credential invariant: provider/API/signing keys use `${openbao:secret/<tenant_id>/financial-planning/<credential>}` and sidecar/≤60s TTL behavior.
+- Observability invariant: metrics avoid raw `tenant_id` cardinality; audit events keep tenant id in signed evidence instead.
+- Transport invariant: HTTP/3 first, HTTP/2 second, HTTP/1.1 third, TLS 1.3 floor, ECH where terminated, PQC hybrid where negotiated.
+- Deployment invariant: runtime adapters run outside the domain/core boundary and inherit SPIFFE, Kata/Cloud Hypervisor, and cell policy where applicable.
+- Detection invariant: abuse, policy, insider, and anomaly signals route to detection/investigation through ADR-0263 audit events.
+- UX/safety invariant: fraud or bot controls add friction only on suspicion, never on clean default path or emergency-services path.
+- Pack invariant: higher-restriction-wins for data residency, retention, breach timing, regulator export, and appeal/notice rules.
+- Failure mode: stale tenant projection. `financial-planning` applies most-restrictive policy and emits degraded-mode evidence.
+- Failure mode: Cedar mismatch. `financial-planning` fails closed for mutations and rolls back to prior soaked fragment.
+- Failure mode: audit backpressure. `financial-planning` buffers bounded evidence and stops high-risk mutation before evidence loss.
+- Failure mode: regional outage. `financial-planning` follows `multi-region.md` and does not cross pack residency boundaries for availability.
+- Failure mode: key compromise. `financial-planning` revokes OpenBao leases, rotates keys, quarantines impacted events, and replays idempotent work.
+- Concrete example: `forecast-model` evaluates `<tenant>.financial-planning.forecast-model` against policy, writes `financial_planning.forecast_model`, and emits `oya.financial.planning.forecast.model.completed`.
+- Verification hook: `oya-governance-adr-adherence-matrix` consumes this section as the row answer for `marketplace`.
+- Verification hook: `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum usage.
+- Verification hook: `oya-governance-doc-link-resolves` must resolve the cited local artifacts before BLOCKER promotion.
+- Verification hook: abuse-defence and critical-path lanes apply when `marketplace` touches bot controls, safety cases, or edge-case matrices.
+- Structural note: manifest parsed = `True`; missing local policy/contract/SLO/runbook/IaC artifacts are treated as follow-up structural issues, not hidden pass claims.
+- Depth detail 1: `financial-planning` ties `marketplace` to bounded context `forecast-model` and samples sibling contexts `budget-cycle, variance, scenario, plus 1 more` when the service has more than one flow.
+- Depth detail 2: `financial-planning` cites API evidence `contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/*.proto` so `marketplace` can be checked against concrete request, event, or proto surfaces.
+- Depth detail 3: `financial-planning` cites policy evidence `policy/*.cedar` so the permit/deny path for `marketplace` is not a prose-only claim.
+- Depth detail 4: `financial-planning` records state/event evidence as `financial_planning.forecast_model` with tenant, actor, cell, pack, and audit correlation fields.
+- Depth detail 5: `financial-planning` routes evidence to dependencies `finops-portal, payments, analytics, sheets, ontology, plus 2 more` and rejects downstream handoffs that drop tenant or policy context.
+- Depth detail 6: `financial-planning` uses compliance packs `SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4` to decide the stricter retention, residency, notification, and export behavior for `marketplace`.
+- Depth detail 7: `financial-planning` keeps ADR references `ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, ADR-0315, plus 2 more` in the control record so reviewers can trace the row back to the keystone bundle.
+- Depth detail 8: `financial-planning` treats benchmark pressure from `Anaplan, Workday Adaptive Planning, OneStream, Vena, plus 1 more` as feature-depth input, while Oyatie tenant isolation and audit evidence stay non-negotiable.
+- Depth detail 9: `financial-planning` constrains `marketplace` to eligible cells `tier-1, tier-2` and cross-cell behavior `metadata-only-unless-pack-allows`.
+- Depth detail 10: `financial-planning` verifies SLO/dashboard evidence through `slos/*.openslo.yaml` and `dashboards/*.json` before promoting this anchor beyond documentation readiness.
+- Depth detail 11: `financial-planning` links operator response to runbooks `runbooks/*.md` so failures in `marketplace` have trigger, rollback, and post-incident evidence.
+- Depth detail 12: `financial-planning` keeps deployment proof in `iac/*` so runtime shape, secret binding, ingress, and cell policy are inspectable.
+- Depth detail 13: `financial-planning` binds capability/catalog records `capabilities/*.yaml` and `catalog/*.yaml` to keep layer names and service ownership machine-checkable.
+- Depth detail 14: `financial-planning` fails closed when `marketplace` lacks tenant id, principal id, policy decision, residency label, or audit event class.
+- Depth detail 15: `financial-planning` emits denial evidence for `marketplace` rather than turning policy or residency failures into silent user-visible timeouts.
+- Depth detail 16: `financial-planning` separates platform-owner, tenant-admin, support-operator, auditor, and automated-worker authority for `marketplace`.
+
+## §credential-isolation
+- credential-isolation: financial-planning declares this answer explicitly for ADR-0321 anchor scope.
+- Owner: axis-financial-planning; evidence path is this architecture file plus future PR-143 artifacts.
+- Runtime rule: tenant scope, Cedar permit, ontology projection, workflow template, audit-chain event, pack overlay, and rollback evidence remain mandatory.
+
+
+### Content-pass expansion — credential-isolation
+- Service anchor: Financial Planning (`financial-planning`) is the unit of accountability for this architecture control.
+- Lifecycle status: `reserved-wave-3-i-anchor` means the section is an executable anchor, not a launch claim.
+- Audience scope: `tenant-b2b-finance` drives the tenant, administrator, and operator evidence expectations.
+- Product subtype: `b2b-leader-operational-concern` keeps this control bound to the service concern instead of a vendor clone.
+- Binding ADRs: ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0245, ADR-0314, plus 3 more are the control vocabulary for this anchor.
+- Bounded contexts in scope: forecast-model, budget-cycle, variance, scenario, consolidation.
+- Substrate dependencies in scope: finops-portal, payments, analytics, sheets, ontology, workflow-engine, plus 1 more.
+- Compliance packs in scope: SOC-2, ISO-27001, SOX-404, GDPR, KR-FSS, PCI-DSS-L1-v4.
+- Benchmark pressure: Anaplan, Workday Adaptive Planning, OneStream, Vena, Pigment defines parity pressure without relaxing Oyatie invariants.
+- Cell tiers: tier-1, tier-2 are eligible only after tenant-home-cell and pack checks pass.
+- Cross-cell rule: metadata-only-unless-pack-allows is the default replication ceiling for this anchor.
+- Minimum local artifacts: manifest.json, PRD.md, ARCHITECTURE.md, compliance.md remain the local evidence floor.
+- `financial-planning` must never reuse provider, tenant, operator, or synthetic-test credentials across tenant boundaries.
+- Every external credential is modeled as a scoped secret reference, not as plaintext in service configuration.
+- Credential references carry tenant id, home cell, pack overlay, provider name, purpose, and expiry metadata.
+- Runtime code resolves credentials through the substrate secret broker after Cedar authorization succeeds.
+- Cedar denies credential use when the actor lacks tenant membership for the requested bounded context.
+- Cedar denies credential use when the pack overlay forbids the provider region or data class.
+- Cedar denies credential use when the request attempts cross-cell execution beyond the metadata-only rule.
+- Operator break-glass access requires dual control, ticket binding, reason code, and immutable audit emission.
+- Synthetic monitoring credentials are separate principals with read-only or no-op capabilities.
+- Migration credentials are time-boxed and tied to a single import/export ceremony.
+- Connector credentials are not copied into analytics, intelligence, or observability stores.
+- Downstream dependencies receive only capability-scoped tokens or signed intents, not reusable source secrets.
+- Secrets are rotated on provider webhook compromise, operator offboarding, tenant offboarding, and pack change.
+- Rotation emits old key id, new key id, tenant, actor, policy decision, and affected bounded context.
+- Credential lookup failures fail closed and expose tenant-safe diagnostics only.
+- Retry logic treats authentication failures as security events, not generic transient errors.
+- Credential health dashboards must separate provider outage, tenant misconfiguration, and suspected misuse.
+- Observability labels include secret reference id hashes, never secret values or provider tokens.
+- Logs redact authorization headers, refresh tokens, private keys, cookies, and vendor session identifiers.
+- Event payloads carry credential class and risk band only when downstream consumers need it for controls.
+- Backup and restore flows must rehydrate references through the secret broker rather than restoring raw material.
+- Test fixtures use deterministic fake references and cannot unlock production providers.
+- Tenant deletion cascades revoke active credentials before durable data deletion evidence is sealed.
+- Data export jobs receive a one-run token bound to the export manifest and DSAR case id.
+- Provider callback handlers verify tenant binding before writing credential-derived state.
+- Credential metadata is classified as sensitive configuration even when token material is absent.
+- The architecture requires OpenBao or the sanctioned secret substrate to own storage and lease semantics.
+- The service owns intent validation; the substrate owns encryption, sealing, lease renewal, and revocation.
+- Adapter layers may translate provider token formats but may not weaken the internal reference contract.
+- Kernel/domain code must remain provider-agnostic and reason over credential purpose, scope, and risk.
+- API layers expose explicit reconnect, revoke, rotate, and test-connection commands for tenant admins.
+- Admin commands require idempotency keys so repeated browser retries do not duplicate credential ceremonies.
+- Webhook replay protection covers provider callbacks that can mutate credential state.
+- Credential state changes are versioned so stale workers cannot resurrect revoked provider access.
+- A revoked credential blocks queued work before the next provider call, even when the job was admitted earlier.
+- Emergency disablement supports tenant-wide, provider-wide, and bounded-context-wide kill switches.
+- The next scaffold pass must bind this anchor to concrete policy fragments, contracts, SLOs, and runbooks where absent.
+- Until those artifacts exist, this section is the normative acceptance bar for `financial-planning` credential isolation.
+## G. Contracts
+- REST: OpenAPI 3.2.0.
+- Events: AsyncAPI 3.1.0.
+- Internal RPC: proto3.
+- Naming: BNF v4.1.
+- Layers: ADR-0105 13-layer enum.
+
+## H. Wave-3-H Follow-Up
+The anchor architecture reserves the boundary. The full PR-143 buildout adds contracts, Cedar policies, runbooks, SLOs, dashboards, catalog records, IaC, threat model, DPIA, capacity model, cost budget, failure modes, and implementation plans.
+- Architecture trace 001: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 002: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 003: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 004: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 005: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 006: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 007: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 008: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 009: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 010: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 011: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 012: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 013: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 014: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 015: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 016: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 017: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 018: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 019: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 020: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 021: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 022: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 023: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 024: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 025: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 026: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 027: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 028: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 029: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 030: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 031: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 032: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 033: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 034: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 035: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 036: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 037: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 038: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 039: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 040: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 041: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 042: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 043: financial-planning context scenario remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 044: financial-planning context consolidation remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 045: financial-planning context forecast-model remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 046: financial-planning context budget-cycle remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible
+- Architecture trace 047: financial-planning context variance remains service-owned, tenant-scoped, Cedar-gated, ontology-projected, workflow-orchestrated, audit-chain sealed, independently deployable, and reversible

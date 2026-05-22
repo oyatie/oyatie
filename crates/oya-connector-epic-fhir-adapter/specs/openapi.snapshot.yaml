@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Epic FHIR R4 (oya-connector-epic-fhir-adapter snapshot)
   version: R4-snapshot

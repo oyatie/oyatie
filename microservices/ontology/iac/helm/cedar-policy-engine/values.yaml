@@ -23,7 +23,7 @@ cedar:
       - microservices/ontology/policy/auditor-scope.cedar
       - microservices/ontology/policy/public-read.cedar
       - microservices/ontology/policy/pillar.cedar
-    coverage_lane: oya-foundry-fitness-cedar-coverage
+    coverage_lane: oya-governance-cedar-coverage
 
   ## Hot-reload sidecar (Kafka consumer for SchemaRegistered events)
   hotReload:

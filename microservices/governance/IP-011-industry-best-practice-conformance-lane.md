@@ -121,3 +121,7 @@ cargo run -p oya-dev-cli -- gate validate industry-best-practice-conformance --m
 - ADR-0133 (industry-best-practice + hyperscaler-grade conformance program).
 - `microservices/governance/competitor-parity-matrix.md`.
 - `microservices/governance/policy/lane-execution.md` Invariant 10 (self-application).
+
+## Wave 15 counterpart verification note
+
+This IP was preserved as already substantive; the Wave 15 scrub adds the explicit counterpart hook required by ADR-0328 D-20. Governance parity is evaluated against GitHub Advanced Security, SonarQube, Snyk, Trivy, Open Policy Agent, Backstage TechDocs, and Renovate. The implementation must state which of those controls it closes or deliberately does not target before promotion.

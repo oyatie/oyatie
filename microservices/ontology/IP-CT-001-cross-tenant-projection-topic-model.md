@@ -134,3 +134,8 @@ async fn emit_pipeline(&self, entity: &OntologyRow) -> Result<(), Error> {
 - ADR-SVC-CG-004 grantor-region authority
 - microservices/consent-graph/IP-009 (projection-gateway-kernel)
 - microservices/ontology/specs/projection-model.md (existing intra-tenant model)
+
+
+## Counterpart Evidence
+
+This already-substantive IP is preserved. Counterpart anchor for Wave 15 verification: Palantir Foundry Ontology / Palantir AIP, AWS Cedar, Neo4j, AWS Neptune, Apache TinkerPop, Stardog, and Salesforce object model. See `microservices/ontology/competitor-parity-matrix.md` for the service-specific parity rows; the implementation PR must update that row when this IP materially changes parity.

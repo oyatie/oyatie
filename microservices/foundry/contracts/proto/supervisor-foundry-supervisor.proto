@@ -52,7 +52,7 @@ service FoundrySupervisor {
 // Common types
 // =========================================================================
 
-enum AutonomyTier {
+enum AutonomyLevel {
   AUTONOMY_TIER_UNSPECIFIED = 0;
   AUTONOMY_TIER_T0 = 1;
   AUTONOMY_TIER_T1 = 2;
@@ -129,7 +129,7 @@ message CapabilityDefinition {
   string id = 1;
   string version = 2;
   string tenant = 3;
-  AutonomyTier autonomy_tier = 4;
+  AutonomyLevel autonomy_level = 4;
   double cost_budget_per_invocation = 5;
   string runtime_provider = 6;
   string runtime_model = 7;
@@ -188,7 +188,7 @@ message KillSwitchEvent {
 message AutonomyEntitlement {
   string tenant = 1;
   string capability = 2;
-  AutonomyTier tier = 3;
+  AutonomyLevel tier = 3;
   string granted_by = 4;
   google.protobuf.Timestamp granted_at = 5;
   google.protobuf.Timestamp expires_at = 6;
@@ -285,7 +285,7 @@ message StreamKillSwitchEventsRequest {
 message EvaluateAutonomyPreconditionRequest {
   string tenant = 1;
   string capability = 2;
-  AutonomyTier requested_tier = 3;
+  AutonomyLevel requested_autonomy_level = 3;
   string request_id = 4;
 }
 

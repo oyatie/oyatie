@@ -294,7 +294,6 @@ tenant template library, authored and curated by oyatie. Tenants clone and custo
 |---|---|---|---|---|
 | **Agentic** | Agent Task Orchestrator | Manual / API | LLM-decide → Ontology-read → action-branch → human-review | Agent decides next step via LLM; routes to Ontology Action Types |
 | **Developer** | PR Review Pipeline | GitHub webhook | PR-opened → assign-reviewer → review-check → merge-gate | Automated PR assignment + merge enforcement |
-| **Developer** | Scaffold-Claim Release | API | grit-claim → build-check → grit-done → notify | Oyatie-native release workflow using grit primitives |
 | **Business** | Leave Request Approval | Manual | submit → manager-approve → HR-approve → calendar-block | 2-step approval; SLA timer; escalation on breach |
 | **Business** | Expense Approval | Ontology-event | expense-created → amount-branch → approver-chain → accounting-post | Amount-based routing; posts to Accounting on approval |
 | **Business** | Payroll Close | Cron (month-end) | payroll-run → review-gate → accounting-journal → payslip-distribute | End-to-end payroll close with approval gate |
@@ -436,7 +435,6 @@ Sharding:
 | AC-05 | SLA timer fires escalation on breach; not before | `cargo nextest run -p oya-workflow-sla-domain --test sla_escalation_timing` |
 | AC-06 | Agentic node: LLM decision via agent gateway routes to correct branch | integration test `test_agentic_node_routing` |
 | AC-07 | LEAN-A2: workflow crates have no product µservice imports (hr/payroll/connect etc.) | `oya gate validate lean-a2 --ms workflow` exits 0 |
-| AC-08 | Studio canvas: node-drop → edge-connect ≤16 ms; measured in Playwright | `rtk playwright test tests/e2e/studio-canvas-perf.spec.ts` |
 | AC-09 | 10k concurrent active runs per cell; p99 step execution ≤200 ms | k6 load: `k6 run tests/load/workflow-engine-10k.js` |
 | AC-10 | Tenant isolation: tenant A run cannot observe tenant B event payloads | `cargo nextest run -p oya-workflow-engine-domain --test tenant_run_isolation` |
 | AC-11 | Audit chain: every run sealed; tampering detected on verification | `oya gate validate audit-chain --ms workflow` |

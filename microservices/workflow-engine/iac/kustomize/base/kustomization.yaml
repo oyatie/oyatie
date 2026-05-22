@@ -19,9 +19,9 @@ helmCharts:
     valuesFile: ../../helm/postgres/values.yaml
     releaseName: postgres
     namespace: workflow-engine
-  - name: oya-workflow-engine-redis
-    valuesFile: ../../helm/redis/values.yaml
-    releaseName: redis
+  - name: oya-workflow-engine-valkey
+    valuesFile: ../../helm/valkey/values.yaml
+    releaseName: valkey
     namespace: workflow-engine
   - name: oya-workflow-engine-clickhouse
     valuesFile: ../../helm/clickhouse/values.yaml

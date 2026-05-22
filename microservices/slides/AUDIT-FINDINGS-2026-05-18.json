@@ -4,7 +4,7 @@
   "scanned_files": 105,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -114,7 +114,7 @@
           "hits_total": 6
         },
         {
-          "file": "microservices/slides/IP-001-layer-a-cdn-postgres-redis-s3-ws-gateway-iac.md",
+          "file": "microservices/slides/IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md",
           "hits": [
             {
               "line": 17,
@@ -156,7 +156,7 @@
             },
             {
               "line": 77,
-              "excerpt": "| `IP-001-layer-a-cdn-postgres-redis-s3-ws-gateway-iac.md` | IaC for CDN + Postgres + Valkey + S3 + WS gateway + gVisor export pool | pending | axis-workspace + cloud-iac | \u2014 |"
+              "excerpt": "| `IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md` | IaC for CDN + Postgres + Valkey + S3 + WS gateway + gVisor export pool | pending | axis-workspace + cloud-iac | \u2014 |"
             }
           ],
           "hits_total": 2
@@ -208,7 +208,7 @@
           "hits_total": 3
         },
         {
-          "file": "microservices/slides/catalog/oya-slides-real-time-collaboration-adapter-redis.yaml",
+          "file": "microservices/slides/catalog/oya-slides-real-time-collaboration-adapter-valkey.yaml",
           "hits": [
             {
               "line": 7,

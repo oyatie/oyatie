@@ -29,7 +29,10 @@ if [ "$#" -eq 0 ]; then
 fi
 
 PATTERNS=(
-  'sk-[A-Za-z0-9_-]{40,}'
+  # Anthropic/OpenAI key shape; require word-boundary before `sk-` to avoid
+  # matching path-like tokens such as `cs-high-risk-...` or `risk-classification-...`
+  # whose internal `sk-` substring would otherwise trigger a false positive.
+  '(^|[^A-Za-z0-9_-])sk-[A-Za-z0-9_-]{40,}'
   'AKIA[0-9A-Z]{16}'
   'ghp_[A-Za-z0-9]{36}'
   'gho_[A-Za-z0-9]{36}'

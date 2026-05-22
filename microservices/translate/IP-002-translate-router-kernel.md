@@ -286,3 +286,22 @@ cargo run -p oya-dev-cli -- gate validate data-class --crate oya-translate-route
 ## Next IP
 
 [`IP-003-translate-router-domain.md`](IP-003-translate-router-domain.md)
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/translate/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `1800s` RTO p99 and `300s` RPO p99.
+- Applicable compliance pack floor: `EU-AI-ACT-2024-HIGH-RISK` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=1800`, `rpo_p99_seconds=300`, `multi_region_required=true`, `drill_cadence_required=quarterly`).
+- Multi-region active-active posture: `true` (required by the selected floor and IP evidence).
+- backup_substrate: `postgres_wal_g`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/translate/IP-002-translate-router-kernel.md:105` - pub latency_ceiling_p99_ms: Option<u32>,; `microservices/translate/IP-002-translate-router-kernel.md:125` - pub p99_latency_ms: u32,.
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/translate/IP-002-translate-router-kernel.md:104` - pub cost_ceiling_per_call_usd: Option<f64>,; `microservices/translate/IP-002-translate-router-kernel.md:124` - pub cost_per_1k_chars_usd: f64,.

@@ -158,7 +158,7 @@ Cross-reference: every risk has at least one corresponding STRIDE / LINDDUN thre
 | R-04 | Time-tracking opt-in per employee (not tenant); per-employee retention bounded; aggregation-only reporting except for the employee themselves + 2-person-rule admin | M (employment-context surveillance baseline) | council-privacy |
 | R-05 | Importer assignee strict resolution (ADR-TASKS-0001); pre-import validator surfaces mapping for tenant-operator review | L | axis-tasks |
 | R-06 | Per-webhook destination validation + circuit-breaker; LEAN check refuses webhook to public IP without tenant signature; per-subscription field-projection | L | axis-tasks |
-| R-07 | Aggressive retention defaults; DSR cascade; cold-tier per-task access requires admin JIT | L-M | council-privacy |
+| R-07 | Aggressive retention defaults; DSR cascade; cold-storage per-task access requires admin JIT | L-M | council-privacy |
 | R-08 | Recurring horizon bounded at 5y; per-tenant recurrence rate-limit | L | axis-tasks |
 | R-09 | DSR cascade with legal-hold overlap policy: erasure honoured except where hold; partial-erasure preserves task minus identifier | M (hold-vs-erasure tension accepted) | council-privacy |
 | R-10 | Tenant DPA mandates upstream disclosure; tenant-onboarding checklist verifies; works-council consultation required where applicable | L-M | council-privacy |

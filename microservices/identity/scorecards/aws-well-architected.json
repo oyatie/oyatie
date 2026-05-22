@@ -10,7 +10,7 @@
       "questions": [
         { "id": "OPS01", "question": "How do you determine what your priorities are?", "answer": "ADR-0187/0188/0189/0190/0191 sequence priorities; PRD + Phase-01 spec authoritative." },
         { "id": "OPS02", "question": "How do you structure your organization to support your business outcomes?", "answer": "axis-identity owns the µservice; ops-security shares; council-architecture approves." },
-        { "id": "OPS04", "question": "How do you implement observability in your workload?", "answer": "9 OpenSLO targets; 3 Grafana dashboards; audit-chain seal of 18 event types; 4 golden signals wired." },
+        { "id": "OPS04", "question": "How do you implement observability in your workload?", "answer": "9 OpenSLO targets; 3 Grafana dashboards; audit-chain seal of 18 event types; 4 core signals wired." },
         { "id": "OPS07", "question": "How do you know that you are ready to support a workload?", "answer": "IP-016 scale validation is GATE before pack-eu bellwether; 9 SLOs; 8 runbooks; quarterly DR drill." }
       ]
     },

@@ -18,7 +18,7 @@ related_artifacts:
   - microservices/foundry/contracts/openapi/foundry-runtime.yaml
   - microservices/foundry/policy/runtime-isolation.md
 
-autonomy_tier: T1
+autonomy_level: T1
 # T1 = read own-tenant session.
 
 inputs:
@@ -85,7 +85,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/session-resume-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/session-resume-baseline.jsonl
   pass_threshold: 0.99
   eval_metric: hot-read-p99-≤10ms AND cold-restore-p99-≤100ms AND cross-tenant-refusal-correctness
   cadence: per-release

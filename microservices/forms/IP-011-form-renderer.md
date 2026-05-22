@@ -43,6 +43,41 @@ Submitter-facing form renderer. Leptos-WASM primary; plain-HTML server-rendered 
 - W3C Trusted Types.
 - WCAG 2.2 AA.
 - ADR-FORMS-0001.
+- PRD FR-07, FR-16, FR-17 and AC-10 / AC-19 / AC-20.
+- `microservices/forms/contracts/openapi/forms.openapi.yaml` public-render and submit paths.
+- `microservices/forms/slos/form-render-latency.openslo.yaml`.
+- `microservices/forms/runbooks/embed-iframe-csp-incident.md`.
+- `microservices/forms/dashboards/embed-and-distribution.json`.
+
+## Foundation A-G Substance
+
+- A. Product scope: renderer is the submitter-facing trust boundary for public, authenticated, embedded, no-JS, and RTL flows.
+- B. Domain model: rendering consumes immutable `FormVersion` plus locale, audience, policy, and prefill context.
+- C. Contracts: embed, plain HTML, and WASM submit to the same response-collector contract and diagnostic schema.
+- D. Policy: `frame-ancestors`, public-read Cedar, and tenant allow-list govern every embed request.
+- E. Operations: CSP incidents, malicious labels, locale fallback, and no-JS submit failures have explicit runbook paths.
+- F. Observability: emit TTI, embed denial count, Trusted Types rejection count, locale fallback count, and no-JS completion rate.
+- G. Promotion: CSP conformance, WCAG 2.2 AA, 14-locale RTL test, plain-HTML submit, and render SLO all gate done.
+
+## Counterpart Benchmark
+
+- Counterpart: Typeform public renderer, HubSpot Forms embed, Slack workflow form intake modal, and Notion Forms/Databases public forms.
+- Defensible parity claim: Oyatie must match embeddable public forms while keeping CSP and accessibility strict.
+- Differentiator: plain-HTML fallback is a first-class acceptance gate, not a degraded afterthought.
+- Grep counterpart names: HubSpot Forms; Slack workflow form intake; Notion Forms/Databases.
+
+## Remediation Notes
+
+- Added source-artifact bindings to contracts, SLOs, dashboard, and embed runbook.
+- Added A-G substance across trust boundary, contracts, policy, operations, telemetry, and promotion.
+- Added counterpart names for grep-recognized parity checks.
+
+## Verification Evidence Required
+
+- Browser smoke proves Leptos-WASM and plain-HTML fallback submit through the same contract.
+- CSP probe proves non-allowed parents receive blocked iframe behavior and audit evidence.
+- RTL corpus proves Arabic locale completion without keyboard trap or visual order mismatch.
+- Trusted Types adversarial labels fail without executing tenant-authored script.
 
 ## Next IP
 

@@ -163,7 +163,7 @@ permit (
 
 **Tenant impact:** Brief window between leak and rotation; mitigation is rotation speed + per-key audit log.
 
-**Detection:** `oya-foundry-fitness-evidence-secret-scan` lane + GitHub secret-scanning push protection.
+**Detection:** `oya-governance-evidence-secret-scan` lane + GitHub secret-scanning push protection.
 
 **Recovery:** Rotate API key (< 60s via OpenBao); revoke old key; forensic trace of leak path; tenant notification per breach-notification SLA.
 

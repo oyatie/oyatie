@@ -52,7 +52,7 @@ doc_status: published
 
 ## FM-04 — Missing signal at assembly time
 
-**Trigger**: pack-assembly window closes (default 60 s) before one of the expected signals (eval verdict, guardrail decisions, autonomy-tier decision) arrives.
+**Trigger**: pack-assembly window closes (default 60 s) before one of the expected signals (eval verdict, guardrail decisions, autonomy-ceiling decision) arrives.
 
 **Detection**: `oya_foundry_evidence_pack_assembled_partial_total{missing_source=...}`.
 

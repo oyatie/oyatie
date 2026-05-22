@@ -65,7 +65,7 @@ Adopt **Leptos 0.7+ + signals + cargo-leptos** as the slides canvas + present-mo
 6. **WASM↔JS interop**: minimized via `wasm-bindgen`. JS interop limited to (a) browser APIs not yet bound in `web-sys`, (b) WebSocket via `gloo-net`, (c) LiveKit client via the messenger SDK's WASM bindings, (d) WASM bootstrap nonce script.
 7. **Test substrate**: `wasm-bindgen-test` for component tests; `playwright-rust` for e2e; Lighthouse-style synthetic for TTI assertion per AC-09; per-frame timing assertion via `requestAnimationFrame` timestamp logging.
 8. **Accessibility**: WCAG 2.2 AA target; ARIA roles per canvas primitive (svg `role="img"` + `aria-label`); keyboard navigation; reduced-motion via ADR-SLIDES-0004.
-9. **Present-mode 60fps verification**: an in-build `oya-governance-present-mode-frame-budget` lane runs the 50-slide golden deck under headless Chrome; asserts p95 transition ≤ 50ms + p99 frame ≤ 16.7ms.
+9. **Present-mode 60fps verification**: an in-build `oya-governance-present-mode-frame-budget` lane runs the 50-slide reference deck under headless Chrome; asserts p95 transition ≤ 50ms + p99 frame ≤ 16.7ms.
 
 ## Alternatives Considered
 
@@ -144,7 +144,7 @@ Render everything via WebGL.
 ### Architectural
 
 - The visual-canvas-tier crates `oya-slides-slide-adapter-leptos-wasm`, `oya-slides-text-box-adapter-leptos-wasm`, `oya-slides-shape-adapter-leptos-wasm`, `oya-slides-animations-adapter-leptos-wasm`, `oya-slides-transitions-adapter-leptos-wasm`, `oya-slides-table-adapter-leptos-wasm`, `oya-slides-slide-sorter-adapter-leptos-wasm`, `oya-slides-master-slide-editor-adapter-leptos-wasm`, `oya-slides-presenter-view-adapter-leptos-wasm`, `oya-slides-audience-view-adapter-leptos-wasm` are SVG-baseline.
-- The present-mode `-adapter-leptos-wasm-canvas2d` crate kicks in on heuristic threshold; tested under headless Chrome on 50-slide golden deck.
+- The present-mode `-adapter-leptos-wasm-canvas2d` crate kicks in on heuristic threshold; tested under headless Chrome on 50-slide reference deck.
 - The WebGL `-adapter-leptos-wasm-webgl` crate is a non-blocking exploration; engaged only subsequent-to-M03-completion if canvas-2d hits a measured ceiling.
 - The `-domain` crates (visual-layout algebra, animation timing, equation rendering, deck composition) are pure Rust + signal-driven + WASM-target-parity tested.
 - The `-app` composition root emits SSR + WASM via cargo-leptos.
@@ -162,7 +162,7 @@ Render everything via WebGL.
 ### SLOs and CI lanes affected
 
 - `oya-governance-wasm-bundle-sri` — BLOCKER lane on dev + staging.
-- `oya-governance-present-mode-frame-budget` — NEW lane; asserts 50-slide golden deck p95 transition ≤ 50ms + p99 frame ≤ 16.7ms.
+- `oya-governance-present-mode-frame-budget` — NEW lane; asserts 50-slide reference deck p95 transition ≤ 50ms + p99 frame ≤ 16.7ms.
 - `oya-governance-reduced-motion-fallback-mandatory` — BLOCKER lane (per ADR-SLIDES-0004).
 - `slides.editor_tti_p99_ms` — Lighthouse synthetic; target ≤ 400ms cold p95.
 - `slides.present_transition_p95_seconds` — Lighthouse + per-frame timing; target ≤ 0.05.

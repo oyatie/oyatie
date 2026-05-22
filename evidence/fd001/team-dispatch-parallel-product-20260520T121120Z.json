@@ -1,0 +1,20 @@
+{
+  "team": "fd-001-durable-team-r-ddcbe5e6",
+  "created": [
+    [
+      "23",
+      "worker-1",
+      "Mail personal-pillar legal-hold refusal kernel slice"
+    ],
+    [
+      "24",
+      "worker-2",
+      "Messenger addChannelMember runtime binding and channel DTO slice"
+    ],
+    [
+      "25",
+      "worker-3",
+      "Workflow replay debugger deterministic snapshot slice"
+    ]
+  ]
+}

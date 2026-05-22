@@ -215,3 +215,7 @@ Emitted on every `ConfirmReceipt` call by the receipted subscriber.
 - Integration test: originate → fan-out to 3 mock subscribers → all confirm within 1s → Confirmed.
 - Chaos test: kill 1 of 3 subscribers mid-flight → deadline reconciler fires → PartiallyPropagated +
   alert.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive despite scaffolding wording because it defines the revocation state machine, worker reconciliation, schema, SLO wiring, and tests. Counterpart anchors: OneTrust/TrustArc revocation is workflow/preference oriented, Cookiebot changes cookie/banner state, Snowflake/Databricks unshare on slower refresh cycles. Oyatie's service-specific substance is p99 <=1s fan-out confirmation with deadline reconciliation and audit-visible partial propagation.

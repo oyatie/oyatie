@@ -11,7 +11,7 @@ use oya_cloud_storage_block_api::{
 };
 use oya_cloud_storage_domain::{CloudStorageCatalog, CloudStorageError};
 
-const VOLUME_ID: &str = "oya:cloud:home-region:ten_alpha:volume:db-primary";
+const VOLUME_ID: &str = "oya:cloud:region-home:ten_alpha:volume:db-primary";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudStorageBlockApiBoundaryContext {
     CloudStorageBlockApiBoundaryContext {
@@ -45,10 +45,10 @@ fn create_body(resource_id: &str) -> CloudStorageBlockVolumeCreateRequest {
         resource_id: resource_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
         name: "db-primary".to_string(),
-        region: "home-region".to_string(),
-        az: "home-region-a".to_string(),
-        cell_id: "cell-home-region-a-001".to_string(),
-        residency: "strict_home".to_string(),
+        region: "region-home".to_string(),
+        az: "region-home-a".to_string(),
+        cell_id: "cell-region-home-a-001".to_string(),
+        residency: "strict_home_region".to_string(),
         tier: "provisioned_iops_ssd".to_string(),
         size_gib: 512,
         performance: CloudStorageBlockVolumePerformance {
@@ -56,7 +56,7 @@ fn create_body(resource_id: &str) -> CloudStorageBlockVolumeCreateRequest {
             throughput_mbps: 750,
         },
         encryption: "byok".to_string(),
-        kms_key: Some("byok/home-region/ten_alpha/db-key".to_string()),
+        kms_key: Some("byok/region-home/ten_alpha/db-key".to_string()),
         data_class: "PII_IDENTIFYING".to_string(),
         created_at_epoch_seconds: 1_700_000_000,
     }
@@ -110,16 +110,16 @@ fn block_create_api_creates_volume_once_and_replays_same_idempotent_result() {
     assert_eq!(first.metadata.request_id, "req-storage-block-create");
     assert_eq!(first.data.resource_id, VOLUME_ID);
     assert_eq!(first.data.tenant_id, "ten_alpha");
-    assert_eq!(first.data.region, "home-region");
-    assert_eq!(first.data.az, "home-region-a");
-    assert_eq!(first.data.residency, "strict_home");
+    assert_eq!(first.data.region, "region-home");
+    assert_eq!(first.data.az, "region-home-a");
+    assert_eq!(first.data.residency, "strict_home_region");
     assert_eq!(first.data.tier, "provisioned_iops_ssd");
     assert_eq!(first.data.size_gib, 512);
     assert_eq!(first.data.performance.iops, 12_000);
     assert_eq!(first.data.encryption, "byok");
     assert_eq!(
         first.data.kms_key.as_deref(),
-        Some("byok/home-region/ten_alpha/db-key")
+        Some("byok/region-home/ten_alpha/db-key")
     );
     assert_eq!(first.data.data_class, "PII_IDENTIFYING");
     assert_eq!(first.data.state, "creating");
@@ -131,7 +131,7 @@ fn block_create_api_rejects_path_body_volume_drift_before_catalog_mutation() {
     let mut catalog = CloudStorageCatalog::default();
     let mut ledger = CloudStorageBlockCreateIdempotencyLedger::default();
     let mut request = create_request("req-storage-block-drift", "idem-storage-block-drift");
-    request.body.resource_id = "oya:cloud:home-region:ten_alpha:volume:other".to_string();
+    request.body.resource_id = "oya:cloud:region-home:ten_alpha:volume:other".to_string();
 
     let error = create_cloud_storage_block_volume_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body volume drift is rejected");
@@ -140,7 +140,7 @@ fn block_create_api_rejects_path_body_volume_drift_before_catalog_mutation() {
         error,
         CloudStorageBlockApiError::VolumeIdMismatch {
             path_volume_id: VOLUME_ID.to_string(),
-            body_resource_id: "oya:cloud:home-region:ten_alpha:volume:other".to_string(),
+            body_resource_id: "oya:cloud:region-home:ten_alpha:volume:other".to_string(),
         }
     );
     assert_eq!(error.block_create_status_code(), 400);

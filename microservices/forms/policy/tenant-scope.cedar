@@ -146,7 +146,7 @@ when {
 };
 
 // =============================================================================
-// PERMIT 7 — tenant operator invokes AI-form-build (consent + tier-gated)
+// PERMIT 7 — tenant operator invokes AI-form-build (consent + tenant_class-gated)
 // =============================================================================
 
 permit (

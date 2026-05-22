@@ -1,7 +1,7 @@
 use oya_application_app::{
     AdversarialKind, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput, Foundation,
     FoundationError, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion, PrivacyDataClass,
-    REQUIRED_LINGUISTIC_COHORTS,
+    REQUIRED_LINGUISTIC_COHORT_LOCALES,
 };
 
 pub(crate) fn internal_privacy_data_classes() -> Vec<PrivacyDataClass> {
@@ -57,9 +57,9 @@ pub(crate) fn publish_capability_invocation_policy(
 
 fn demo_eval_set(capability_id: &str) -> EvalSetInput {
     let mut cases = vec![
-        demo_eval_case("case-alpha", REQUIRED_LINGUISTIC_COHORTS[0], None),
-        demo_eval_case("case-beta", REQUIRED_LINGUISTIC_COHORTS[1], None),
-        demo_eval_case("case-gamma", REQUIRED_LINGUISTIC_COHORTS[2], None),
+        demo_eval_case("case-lang-alpha", "lang-alpha1", None),
+        demo_eval_case("case-lang-beta", "lang-beta1", None),
+        demo_eval_case("case-lang-gamma", "lang-gamma1", None),
     ];
     for (case_id, kind) in [
         ("adv-prompt", AdversarialKind::PromptInjection),
@@ -69,7 +69,7 @@ fn demo_eval_set(capability_id: &str) -> EvalSetInput {
     ] {
         cases.push(demo_eval_case(
             case_id,
-            REQUIRED_LINGUISTIC_COHORTS[0],
+            REQUIRED_LINGUISTIC_COHORT_LOCALES[0],
             Some(kind),
         ));
     }
@@ -113,7 +113,7 @@ mod tests {
             eval_set
                 .cases
                 .iter()
-                .any(|case| case.locale == REQUIRED_LINGUISTIC_COHORTS[1])
+                .any(|case| case.locale == "lang-beta1")
         );
         assert!(
             eval_set

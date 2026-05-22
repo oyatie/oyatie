@@ -46,10 +46,10 @@ dependencies:
     version: "16.4.0"  # CloudNativePG LTS per docs/standards/observability-slo.md
     repository: "oci://registry.oyatie.dev/charts/cloudnative-pg"
     condition: postgres.enabled
-  - name: redis
+  - name: valkey
     version: "7.2.0"   # LTS per docs/standards/observability-slo.md
-    repository: "oci://registry.oyatie.dev/charts/redis-cluster"
-    condition: redis.enabled
+    repository: "oci://registry.oyatie.dev/charts/valkey-cluster"
+    condition: valkey.enabled
   - name: meilisearch
     version: "0.10.0"  # LTS per ADR-SITES-0005
     repository: "oci://registry.oyatie.dev/charts/meilisearch"

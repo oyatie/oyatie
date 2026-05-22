@@ -148,7 +148,7 @@ pub async fn evaluate_invocation(
 
 - On-call: `EVT-AUTONOMY-CEILING-DENY` per-tenant rate alert; sustained denial → tenant-onboarding runbook trigger.
 - Runbooks: `runbooks/autonomy-tier-uplift.md`, `runbooks/break-glass-with-evidence.md`, `runbooks/cedar-policy-rollback.md`.
-- CI: `oya-foundry-fitness-cedar-coverage` (every regulated capability has an explicit policy), `oya-foundry-fitness-autonomy-ceiling-coverage` (every capability declares the field).
+- CI: `oya-governance-cedar-coverage` (every regulated capability has an explicit policy), `oya-governance-autonomy-ceiling-coverage` (every capability declares the field).
 - Eval: per-capability eval set (ADR-0019 cadence) includes adversarial autonomy-escape attempts; failing eval blocks promotion.
 
 ---

@@ -1,0 +1,37 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: healthcare-integration-audit-completeness
+  labels:
+    service: healthcare-integration
+    suite: local-operational-primitive
+    adr: ADR-0130
+    promotion_gate: ADR-0139
+spec:
+  service: healthcare-integration
+  description: HIPAA audit records complete for PHI access for HL7 ingestion, FHIR exchange, HIPAA access controls, PHI delivery, consent synchronization, and audit completeness operations.
+  indicator:
+    metadata:
+      name: audit-completeness
+      labels:
+        domain_object: ClinicalExchange
+        operator_audience: HEALTHCARE_INTEGRATION_ADMIN
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_healthcare_integration_audit_completeness_good_total[30d])) by (tenant_id, cell_tier)
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_healthcare_integration_audit_completeness_total[30d])) by (tenant_id, cell_tier)
+  objectives:
+    - displayName: HIPAA audit records complete for PHI access
+      target: 0.9999
+  timeWindow:
+    - duration: 30d
+      isRolling: true

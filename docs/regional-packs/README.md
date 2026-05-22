@@ -29,7 +29,7 @@ Per [`checklists/regional-pack-onboarding.md`](../checklists/regional-pack-onboa
 2. Pack scaffold via `oya pack new <region>` (Foundry skill `oya-regional-pack-author`)
 3. Fill 14 sections per [`_TEMPLATE.md`](_TEMPLATE.md): regulatory, compliance packs, i18n, currency, calendar, tax, identity providers, payment rails, address book, ecosystem partners, content safety, ad policy, industry data models, vendor partners
 4. Author per-seam impls for `RegulatoryPack` / `Tokenizer` / `TaxInvoiceFormatter` / `IdentityProvider` / `PaymentRail` / `AddressValidator` / `LocalAdPolicy` / `ContentSafetyRules` / `LocaleFormatter`
-5. CI lane `oya-foundry-fitness-regional-pack` validates seam-impl coverage
+5. CI lane `oya-governance-regional-pack` validates seam-impl coverage
 6. Per-region regulator filing (CSAP / ISMAP / FedRAMP / GAIA-X / MeitY / LGPD / etc.)
 7. First tenant onboarded with new pack (design partner)
 8. Pack promoted to `preview`

@@ -23,7 +23,7 @@ metadata:
     # The four invariants drawn from /specs/hyperscaler-architecture-invariants.json:
     #   INV-CIRCUIT-BREAKER-BULKHEAD  — LLM/capability circuit-breaker
     #   INV-SHUFFLE-SHARDING          — Per-tenant rate-limit + shuffle-sharding
-    #   INV-FOUR-GOLDEN-SIGNALS       — Google SRE golden-signals trio
+    #   INV-FOUR-REFERENCE-SIGNALS       — Google SRE reference-signals trio
     #   INV-SLO-ERROR-BUDGET          — Error-budget burn-rate policy
     canonical_authority: ADR-0064
     canonical_doc: docs/standards/hyperscaler-invariant-conformance.md
@@ -102,11 +102,11 @@ spec:
               tenant needs a quota lift or has runaway client behavior.
 
     # =========================================================================
-    # INV-FOUR-GOLDEN-SIGNALS — Traffic + Errors + Saturation
+    # INV-FOUR-REFERENCE-SIGNALS — Traffic + Errors + Saturation
     # (Latency is covered by per-SLO burn-rate alerts; the trio below ensures
-    #  the OTHER three golden signals are materially observable for every µservice.)
+    #  the OTHER three reference signals are materially observable for every µservice.)
     # =========================================================================
-    - name: oya-hyperscaler-canonical-golden-signals
+    - name: oya-hyperscaler-canonical-reference-signals
       interval: 60s
       rules:
         - alert: OyaSaturationCpuOver70pct
@@ -122,13 +122,13 @@ spec:
           for: 10m
           labels:
             severity: ticket
-            golden_signal: saturation
-            inv: INV-FOUR-GOLDEN-SIGNALS
+            reference_signal: saturation
+            inv: INV-FOUR-REFERENCE-SIGNALS
             canonical_base: "true"
           annotations:
             summary: "{{ $labels.microservice }} pod {{ $labels.pod }} CPU > 70% sustained 10m"
             description: |
-              Per INV-FOUR-GOLDEN-SIGNALS, saturation must be observed.
+              Per INV-FOUR-REFERENCE-SIGNALS, saturation must be observed.
               Pod {{ $labels.pod }} on microservice {{ $labels.microservice }}
               has sustained CPU > 70% for 10 minutes; HPA should be scaling
               or capacity model needs revisiting.
@@ -143,13 +143,13 @@ spec:
           for: 5m
           labels:
             severity: page
-            golden_signal: errors
-            inv: INV-FOUR-GOLDEN-SIGNALS
+            reference_signal: errors
+            inv: INV-FOUR-REFERENCE-SIGNALS
             canonical_base: "true"
           annotations:
             summary: "{{ $labels.microservice }} 5xx rate > 1% sustained 5m"
             description: |
-              Per INV-FOUR-GOLDEN-SIGNALS, error rate must be observed.
+              Per INV-FOUR-REFERENCE-SIGNALS, error rate must be observed.
               Microservice {{ $labels.microservice }} 5xx-to-total ratio
               exceeded 1% for 5 minutes.
 
@@ -163,13 +163,13 @@ spec:
           for: 10m
           labels:
             severity: page
-            golden_signal: traffic
-            inv: INV-FOUR-GOLDEN-SIGNALS
+            reference_signal: traffic
+            inv: INV-FOUR-REFERENCE-SIGNALS
             canonical_base: "true"
           annotations:
             summary: "{{ $labels.microservice }} inbound RPS dropped > 90% vs prior hour"
             description: |
-              Per INV-FOUR-GOLDEN-SIGNALS, traffic must be observed.
+              Per INV-FOUR-REFERENCE-SIGNALS, traffic must be observed.
               Microservice {{ $labels.microservice }} request volume fell to
               < 10% of the prior-hour baseline for 10 minutes — may indicate
               upstream outage, mis-routing, or full ingress failure.

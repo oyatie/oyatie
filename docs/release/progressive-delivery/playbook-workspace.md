@@ -8,8 +8,8 @@ date: 2026-05-12
 purpose: |
   Workspace surface rollouts (Mail / Docs / Drive / Calendar / Meet).
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0029, ADR-0040, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -17,7 +17,6 @@ doc_status: published
 
 # Playbook: Workspace Surface Rollout
 
-> **Status:** Accepted. **Owner:** `axis-workspace`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -45,11 +44,11 @@ Mail rollout must:
 3. Atomic traffic-shift via mesh.
 4. Soak ≥ 24 h; rollback re-shifts traffic to blue with replay of any green-only deliveries (idempotency required).
 
-`oya-foundry-fitness-rollback-evidence` requires per-spool replay-proof.
+`oya-governance-rollback-evidence` requires per-spool replay-proof.
 
 ## 4. CRDT compatibility (Docs)
 
-Docs canary deployments must publish a CRDT schema version. Mixed-version sessions (some clients on blue, some on green) MUST converge correctly. Lane `oya-foundry-fitness-schema-migration` (existing; extended) verifies CRDT schema is forward + backward compatible across one minor version.
+Docs canary deployments must publish a CRDT schema version. Mixed-version sessions (some clients on blue, some on green) MUST converge correctly. Lane `oya-governance-schema-migration` (existing; extended) verifies CRDT schema is forward + backward compatible across one minor version.
 
 ## 5. Per-tenant smoke
 
@@ -63,7 +62,7 @@ Failure = per-tenant rollback. Surfaced in tenant trust portal.
 
 ## 6. Connect-no-ads cohort honour
 
-Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-spec.md`](stable-cohort-spec.md) §8). Any rollout that introduces an ad-supported feature MUST exclude this cohort. Planned advisory lane: `oya-foundry-fitness-cohort-honor`.
+Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-spec.md`](stable-cohort-spec.md) §8). Any rollout that introduces an ad-supported feature MUST exclude this cohort. Planned advisory lane: `oya-governance-cohort-honor`.
 
 ## 7. SLO targets (Workspace-specific)
 
@@ -87,5 +86,4 @@ Google Workspace release-tracks (rapid / scheduled); Microsoft 365 deployment-ri
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — rollout evidence stored via `icm store -t staging-promotions` and `icm store -t prod-promotions`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — Workspace weekly cadence per-surface; mail-spool changes carry `requires_human_signoff: true`; typescript-reviewer + rust-reviewer in dispatch.

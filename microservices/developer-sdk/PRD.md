@@ -9,7 +9,7 @@ tier: external-facing
 milestone_first_ship: M06-ecosystem-developer-portal
 bominal_source:
   - ADR-0037   # Plugin substrate (developer surface absent; ADR-0213 supersedes)
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0110, ADR-0123, ADR-0131, ADR-0132, ADR-0139, ADR-0170, ADR-0185, ADR-0199, ADR-0211, ADR-0212, ADR-0213]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0110, ADR-0123, ADR-0131, ADR-0132, ADR-0139, ADR-0170, ADR-0185, ADR-0199, ADR-0211, ADR-0212, ADR-0213, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/developer-sdk.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0213
 unbundle_sibling: microservices/plugin-app-store/
@@ -103,6 +103,36 @@ This µservice is **the supply-side persona platform** of the ecosystem: develop
 - Sandbox tenant cost: charged to oyatie developer-bench cost-center per ADR-0199; developers do not pay.
 - Codegen pipeline: nightly batch cost amortized across all SDK families.
 
+### DR posture (ADR-0343)
+
+- RTO/RPO target: manifest-declared RTO p99 900s and RPO p99 60s for developer onboarding, signing-key issuance metadata, contracts registry, sandbox metadata, payout ledgers, and tax-form state. Applicable floors are SOC2-T2 14400s/900s, ISO27001-2022 14400s/3600s, and KR-PIPA 14400s/900s; the manifest target is stricter because signing keys and payouts are platform load-bearing.
+- Failover reference: manifest `failover_runbook` is `runbooks/dr-failover.md`; supporting drills remain `microservices/developer-sdk/multi-region.md`, `runbooks/signing-key-issuance-timeout.md`, `runbooks/sandbox-provision-slow.md`, and `runbooks/payout-settlement-mismatch.md`.
+- Multi-region active-active posture: true per manifest; replication shape is `active-active-multi-az-cross-region-warm` across `postgres_wal_g`, versioned object storage, OpenBao seal/unseal, audit-chain Merkle seals, and Valkey.
+- Tenant-visible behavior: developers can keep reading contracts and SDK documentation during a regional event, while onboarding, key issuance, and payout changes pause or retry rather than creating duplicate legal or bank state.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: manifest-declared 0.30 vCPU, 768 MiB RAM, 5 GB storage, three Postgres connections, two Valkey connections, and ten outbound HTTP connections.
+- Scaling dimension: `per_workflow_run` per manifest for codegen, sandbox provisioning, signing-key issuance, payout/tax workflows, and developer portal operations, with `per_user` and `per_batch` as secondary portal and codegen dimensions.
+- Cell placement class: Tier-2 per manifest for developer portal, onboarding, contracts, sandbox, payout, and tax-form state; pod runtime tier is 2, with Tier-0 isolation delegated to plugin-app-store for untrusted plugin execution.
+- Autoscaling boundaries: portal and onboarding APIs scale 3-80 replicas, sandbox provisioners 2-40, codegen workers 2-30, and payout/tax workers 2-20 with queue admission by pack and settlement deadline.
+- Tenant load profile: supports 100k registered developers, 10k concurrent sandbox tenants, 10k submissions per day, and 1M daily payout settlements without letting codegen batches delay signing-key issuance.
+
+### Sustainability and cost attribution (ADR-0344)
+
+- Per-call emission claim: onboarding, KYC decision, signing-key issuance, SDK codegen, sandbox provision/reset, payout settlement, and tax-form audit rows emit `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with developer tenant, provider, cell, capability, and compliance_pack axes.
+- Carbon-aware provider routing: yes for nightly codegen, package replication, and tax-form batch work where the jurisdictional deadline allows; no for signing-key issuance, KYC legal checkpoints, payout settlement windows, or sanctions checks.
+- Tenant transparency surface: developer portal and finops-portal expose sandbox, codegen, payout, and package-publication cost lines, separating oyatie-funded developer-bench costs from billable ecosystem activity.
+- Regulatory driver: CSRD, SB-253, and SEC climate disclosure reporting require developer ecosystem and payout processing emissions to be retained with the financial evidence, not estimated from batch totals later.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: `YYYY-MM-DD` carrier triplet across version header, URL prefix, and proto3 field for onboarding, contracts registry, SDK download, sandbox, payout, and tax-form APIs.
+- SDK semver model: all generated SDK families use `major.minor.patch`; a public date-version break is the only reason to bump major.
+- Support window: last 3 public versions are supported for at least 180 days.
+- Per-tenant pinning: yes for developer accounts, sandbox tenants, generated SDK families, and plugin submission contracts.
+- Internal-mesh exemption: yes; ADR-0145 direct gRPC remains valid for internal codegen, payout, and sandbox coordination.
+
 ## Acceptance Criteria (AC)
 
 | ID | Criterion | Test |
@@ -192,3 +222,23 @@ This µservice is **the supply-side persona platform** of the ecosystem: develop
 - ADR-0211 (in-house tech policy).
 - Stripe Connect docs — stripe.com/docs/connect.
 - Apple Developer Program — developer.apple.com/programs.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `developer-sdk` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `developer-sdk` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 4 module pin(s) across 1 context(s).
+- Scaling input: `per_workflow_run` with cell placement `Tier-2` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

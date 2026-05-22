@@ -10,7 +10,7 @@ purpose: |
   milestone/phase/IP frontmatter. Source: every `.omc/plans/milestones/**` file's
   `parent:` and `depends_on:` frontmatter. Lift to
   `docs/visualization/dependency-graph.md` as Graphviz dot (SVG fidelity).
-planned_enforcement_ref: oya-foundry-fitness-dep-graph
+planned_enforcement_ref: oya-governance-dep-graph
 extends_crates:
   - oya-foundry-architecture-map-kernel
   - oya-foundry-pr-traceability-kernel
@@ -46,7 +46,6 @@ doc_class: ImplementationPlan
 parent: .omc/plans/milestones/M02-foundry-preview/phases/P03-policy-cedar/INDEX.md
 depends_on:
   - .omc/plans/milestones/M01-foundation/phases/P02-identity/IP-005-cedar-bootstrap.md
-  - .omc/plans/milestones/M01-foundation/phases/M01-P08-grit-icm-cutover/IP-001-grit-bootstrap.md
 status: open
 ```
 
@@ -93,11 +92,10 @@ Color = status (`done=palegreen`, `active=lightblue`, `gated=lightcoral`, `open=
 Each IP node embeds an SVG `<title>` element with:
 - IP id + slug
 - Status
-- Symbols-to-grit-claim count
 - Estimated parallelism
 - Linked ADRs
 
-## 5. Validation gates (`oya-foundry-fitness-dep-graph`)
+## 5. Validation gates (`oya-governance-dep-graph`)
 
 1. **Parent referential integrity.** Every `parent:` resolves to an existing file (BLOCKER).
 2. **depends_on referential integrity.** Every `depends_on:` entry resolves to an existing IP/phase/milestone file (BLOCKER).

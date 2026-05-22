@@ -98,7 +98,7 @@ deleted form. The pair was never coherent.
 - **The 18-crate ledger is no longer a hidden defect.** Future audits run against the audit-named patterns and find no doc-stub residue.
 - **`specs/crate-naming-audit.json` must be amended** to reflect the new state: 4 check-lane reintroductions are now compliant; 14 scheduled-for-distinct-tracked-work crates are tracked but not workspace.members.
 - **`specs/masterplan.json` adds a new section** (or extends the M02-P18 phase descriptors) documenting that each cloud sub-µservice's adapter family ships in the same PR as its runtime.
-- **PR template gains a new check**: any new `*-adapter-*` crate must declare a consumer in the same PR. Mechanical-prevention candidate landed separately as `oya-foundry-fitness-adapter-with-no-importer-kernel`; do not extend the retired archive-orphan lane (ADR-0118).
+- **PR template gains a new check**: any new `*-adapter-*` crate must declare a consumer in the same PR. Mechanical-prevention candidate landed separately as `oya-governance-adapter-with-no-importer-kernel`; do not extend the retired archive-orphan lane (ADR-0118).
 - **The "toolchain expands with the ecosystem" principle is now ADR-anchored** — agents and humans cite this ADR to refuse premature crate creation.
 
 ## Drivers
@@ -119,7 +119,7 @@ deleted form. The pair was never coherent.
 1. Drive `oya gate validate perf-budget` to zero violations by authoring real `## Load test` sections. Two outstanding items (`IP-001-saas-pairs.md`, `IP-002-cloud-pairs.md`) must close before the lane greens. No exemption markers; canonical predictability requires every IP that ships an adapter to declare its load-test surface.
 2. Drive `oya gate validate benchmark` to zero violations (currently 7 across `docs/prds/` + `docs/products/`).
 3. When M02-P18 cloud sub-µservice runtimes ship, reintroduce the relevant cloud-adapter families with real port impls + consumers in the same PR.
-4. Author `oya-foundry-fitness-adapter-with-no-importer` lane as a mechanical-prevention for premature adapter creation (per Consequences). **Scaffolded** in `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` + `tools/oya-foundry-fitness-adapter-with-no-importer` (ratchet plan in `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`); WARN-baseline = 29 violations on first run, BLOCK ratchet across Waves B/C.
+4. Author `oya-governance-adapter-with-no-importer` lane as a mechanical-prevention for premature adapter creation (per Consequences). **Scaffolded** in `crates/oya-governance-adapter-with-no-importer-kernel` + `tools/oya-governance-adapter-with-no-importer` (ratchet plan in `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`); WARN-baseline = 29 violations on first run, BLOCK ratchet across Waves B/C.
 5. Amend `specs/crate-naming-audit.json` to mark the 4 reintroduced check lanes as compliant + add deferral rows for the 14 unrestored crates.
 
 ## References

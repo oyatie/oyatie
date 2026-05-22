@@ -4,7 +4,7 @@
   "scanned_files": 103,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -12,7 +12,7 @@
           "hits": [
             {
               "line": 27,
-              "excerpt": "| `src/crates/oya-meet-participant-adapter-redis/src/lobby_queue.rs` | create \u2014 Redis-backed lobby queue per instance |"
+              "excerpt": "| `src/crates/oya-meet-participant-adapter-valkey/src/lobby_queue.rs` | create \u2014 Valkey-backed lobby queue per instance |"
             }
           ],
           "hits_total": 1
@@ -68,7 +68,7 @@
           "hits": [
             {
               "line": 54,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) (lobby + presence + signaling session) | `oya-meet-audio-*` (6 crates) |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (lobby + presence + signaling session) | `oya-meet-audio-*` (6 crates) |"
             },
             {
               "line": 103,

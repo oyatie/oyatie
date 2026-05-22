@@ -11,7 +11,7 @@ bominal_source:
   - ADR-0164   # Workflow canonical spec format
   - ADR-0103   # Workflow hexagonal migration
   - ADR-0037   # Plugin substrate (node-library scaffolding)
-related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145)]
+related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140 (retired per ADR-0145), ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/microservices/workflow-studio.json, /specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0131
 unbundle_sibling: microservices/workflow-engine/
@@ -30,7 +30,7 @@ Studio is **NOT a substrate**. It is a tenant-facing product surface with five d
 
 This µservice operates at the **application** layer of the 12-layer Workflow + Ontology architecture (per `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md`): Studio consumes ontology object-type descriptors for typed node configuration; emits workflow_spec.v1 documents to the engine; bridges to foundry-providers for LLM-assist; routes through tenancy for per-seat licensing; runs in the application µservice's hosting shell.
 
-This µservice inherits Bominal ADR-0164 (canonical spec format) verbatim. Studio binds to the same spec format the engine consumes — round-trip byte-equality is the load-bearing invariant. Visual edits emit the spec; spec loads produce the same visual. Anti-pattern `visual_model_above_spec_model` is detected by the `oya-foundry-fitness-workflow-spec-roundtrip` CI lane.
+This µservice inherits Bominal ADR-0164 (canonical spec format) verbatim. Studio binds to the same spec format the engine consumes — round-trip byte-equality is the load-bearing invariant. Visual edits emit the spec; spec loads produce the same visual. Anti-pattern `visual_model_above_spec_model` is detected by the `oya-governance-workflow-spec-roundtrip` CI lane.
 
 This µservice is **shared substrate AND hero product** simultaneously per `feedback_workflow_studio_scope.md`: the visual canvas + DSL emitter/loader are shared substrate consumed by every workflow-aware oyatie product (Connect, Foundry-eval, healthcare workflows, supply-chain workflows); the editor shell is end-user product packaged as the Studio brand.
 
@@ -121,16 +121,47 @@ This µservice is **shared substrate AND hero product** simultaneously per `feed
 - Editor session state, spec drafts, collab CRDT state, and per-seat license attribution inherit the tenant's `jurisdiction_code` per ADR-0117. Postgres + Valkey are per-pack region-pinned.
 - CDN static assets are global (no PII; spec schema + node library descriptors + WASM bundles); per-pack CDN edge keys segregate tenant-rendered content where applicable.
 
+### DR posture (ADR-0343)
+
+- Service target: `editor-rest` RTO p99 ≤ 30s and editor-session-state RPO p99 ≤ 1s, preserving the existing Availability + SLO target.
+- Compliance floors considered: HIPAA-2024 RTO 3600s/RPO 300s/multi-region true, SOC2-T2 RTO 14400s/RPO 900s, ISO27001-2022 RTO 14400s/RPO 3600s, and KR-PIPA resident-registration-number floor RTO 3600s/RPO 300s/multi-region true. The effective stricter target remains 30s/1s; multi-region active-active is required for protected packs.
+- Failover runbook reference: `runbooks/session-storm-throttle.md` for editor entrypoint pressure, `runbooks/collab-conflict-resolution.md` for CRDT divergence, and `runbooks/run-history-replay-corruption.md` for debugger stream replay.
+- Multi-region posture: active-active editor REST/WebSocket edges with tenant home-cell CRDT ownership; static schema/WASM assets can be global CDN because they do not carry tenant-authored specs.
+- Tenant-visible behavior: a tenant author keeps a draft and collab cursor through a regional edge loss; the worst visible mode is temporary degraded collaboration, not silent workflow-spec loss.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: reserve 0.25 vCPU/512MiB for the editor REST/session shell, 128MiB CRDT memory per active definition, 20MiB draft storage plus 50MiB CRDT snapshot storage per active definition, and two WebSocket connections per active editor.
+- Scaling dimension: `active_editor_session`, `workflow_spec_size`, `collab_participant_count`, and `llm_assist_request` drive independent scale curves; per-pack node-library CDN traffic is cache-keyed by tenant hash and pack.
+- Cell placement class: Tier-3 application cell for regulated authoring tenants and Tier-2 shared cell for non-regulated builders; LLM-assist pods elevate to ADR-0338 Tier-1/Kata when prompt payloads include PHI/SECRET fields.
+- Autoscaling boundaries: minimum two REST replicas and three collab workers per home cell; maximum 40 REST replicas and 60 collab workers per tenant shard before admission throttles additional sessions. The existing 100,000 active editor sessions per region and 10 concurrent editors per definition remain the admission budgets.
+- Tenant load profile served: bursty design sessions, replay debugging, and CRDT merges scale without turning one large workshop into a fleet-wide WebSocket storm.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every audited editor open, save, conflict, license-gate, jurisdiction switch, and LLM-assist call emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside the audit-chain row and the six dimensions tenant/product/capability/provider/cell/compliance_pack.
+- Carbon-aware provider routing: yes for LLM-assist draft generation and background node-library refresh when latency/residency budgets allow; no for save acknowledgements, live collab merges, HIPAA-EM, PCI-realtime-fraud, or EU-AI-Act-Annex-III gated authoring paths.
+- Tenant cost transparency surface: Studio admin session ledger and the fleet FinOps portal show per-definition editor minutes, LLM-assist calls, and node-library distribution cost.
+- Regulatory driver: CSRD, SB-253, and SEC climate-disclosure exports require the same tenant-facing operation that creates audit evidence to also carry cost, energy, and emissions evidence; separate aggregate-only accounting would lose the authoring context.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: Studio REST, async events, and proto contracts use the YYYY-MM-DD carrier triplet: `Oyatie-API-Version: <date>`, `/api/workflow-studio/<date>/...`, and proto3 `api_version` fields.
+- SDK semver model: Rust/TypeScript SDKs publish `major.minor.patch`, with the semver major bound to breaking changes in the date-versioned contract surface.
+- Support window: last N=3 public contract dates are supported for at least 180 days.
+- Per-tenant pinning: yes for tenant editors and automation clients so long-running workflow authoring programs can pin a contract date during rollout.
+- Internal-mesh exemption: yes; direct gRPC to workflow-engine and foundry-providers preserves ADR-0145 internal mesh behavior while still carrying version metadata at the boundary.
+
 ## Bounded Contexts
 
-Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates), Studio uses: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-redis`, `adapter-cdn`, `adapter-leptos-wasm`, `rest`, `worker` (collab-server WebSocket gateway), `sdk`, `app`. Browser-WASM artifacts compiled from the `app` layer per ADR-0065.
+Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates), Studio uses: `kernel`, `domain`, `usecase`, `api`, `adapter`, `adapter-postgres`, `adapter-valkey`, `adapter-cdn`, `adapter-leptos-wasm`, `rest`, `worker` (collab-server WebSocket gateway), `sdk`, `app`. Browser-WASM artifacts compiled from the `app` layer per ADR-0065.
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
 | `visual-canvas` | `oya-workflow-studio-visual-canvas-{kernel,domain,usecase,api,adapter,adapter-leptos-wasm,rest,sdk,app}` | Drag-drop canvas, node/edge primitives, config panel, diff viewer, replay timeline | `Canvas`, `Node`, `Edge`, `Selection`, `ViewportState` |
 | `dsl-emitter` | `oya-workflow-studio-dsl-emitter-{kernel,domain,usecase,api,adapter,sdk}` | Visual → canonical workflow_spec.v1.json emitter | `EmitContext`, `EmittedSpec`, `EmitDiagnostic` |
 | `dsl-loader` | `oya-workflow-studio-dsl-loader-{kernel,domain,usecase,api,adapter,sdk}` | workflow_spec.v1.json → visual canvas loader | `LoadContext`, `LoadedDefinition`, `LoadDiagnostic` |
-| `collab-crdt` | `oya-workflow-studio-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-redis,worker,sdk}` | CRDT state, merge logic, conflict surfacer; WebSocket-driven collab server | `CrdtState`, `MergeOp`, `Conflict`, `EditorSession` |
+| `collab-crdt` | `oya-workflow-studio-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-valkey,worker,sdk}` | CRDT state, merge logic, conflict surfacer; WebSocket-driven collab server | `CrdtState`, `MergeOp`, `Conflict`, `EditorSession` |
 | `node-library-registry` | `oya-workflow-studio-node-library-registry-{kernel,domain,usecase,api,adapter,adapter-cdn,rest,sdk,app}` | Per-pack node library catalog; signed library distribution | `NodeLibrary`, `NodeDescriptor`, `LibrarySignature` |
 | `jurisdiction-overlay-renderer` | `oya-workflow-studio-jurisdiction-overlay-renderer-{kernel,domain,usecase,api,adapter}` | Jurisdiction-aware visual diff + overlay resolver | `Jurisdiction`, `Overlay`, `ResolvedView` |
 | `replay-debugger-frontend` | `oya-workflow-studio-replay-debugger-frontend-{kernel,domain,usecase,api,adapter,sdk}` | Renders engine replay-debugger-backend stream | `DebuggerSession`, `StepSnapshot`, `TimelineFrame` |
@@ -208,7 +239,7 @@ JUSTIFICATION:
   - usecase: orchestrators.
   - api: typed contracts.
   - adapter: protocol-neutral impls.
-  - adapter-redis: ephemeral CRDT state cache (active editor sessions only).
+  - adapter-valkey: ephemeral CRDT state cache (active editor sessions only).
   - worker: WebSocket gateway long-lived process; handles fan-out of CRDT ops.
   - sdk: client library (tenant-side CRDT op submission).
 - exemptions claimed: app — collab-crdt rolls into visual-canvas-app composition root.
@@ -292,7 +323,7 @@ JUSTIFICATION:
 
 Layer mapping per BC (13-layer canonical enum from ADR-0105; `usecase` per ADR-0106):
 
-| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-redis | adapter-cdn | adapter-leptos-wasm | rest | worker | sdk | app |
+| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-valkey | adapter-cdn | adapter-leptos-wasm | rest | worker | sdk | app |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `visual-canvas` | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | ✓ | ✓ | — | ✓ | ✓ |
 | `dsl-emitter` | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | ✓ | — |
@@ -313,7 +344,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `SpecEmitter` | `oya-workflow-studio-dsl-emitter-kernel` | `-domain` (pure) | `INTERNAL_ONLY` |
 | `SpecLoader` | `oya-workflow-studio-dsl-loader-kernel` | `-domain` (pure) | `INTERNAL_ONLY` |
 | `CrdtMergeEngine` | `oya-workflow-studio-collab-crdt-kernel` | `-domain` (pure) | `INTERNAL_ONLY` |
-| `EditorSessionStore` | `oya-workflow-studio-collab-crdt-kernel` | `-adapter-redis` (active sessions) | `BEHAVIORAL_TENANT_PRODUCT` |
+| `EditorSessionStore` | `oya-workflow-studio-collab-crdt-kernel` | `-adapter-valkey` (active sessions) | `BEHAVIORAL_TENANT_PRODUCT` |
 | `WebSocketGatewayDispatcher` | `oya-workflow-studio-collab-crdt-kernel` | `-worker` | `BEHAVIORAL_TENANT_PRODUCT` |
 | `NodeLibraryRepository` | `oya-workflow-studio-node-library-registry-kernel` | `-adapter-cdn` (signed distribution) | `INTERNAL_ONLY` + `AUDIT` (signatures) |
 | `LibrarySignatureVerifier` | `oya-workflow-studio-node-library-registry-kernel` | `-domain` (pure) | `INTERNAL_ONLY` |
@@ -343,7 +374,7 @@ CI lanes that must green:
 - `oya gate validate per-microservice-layout --microservice workflow-studio`
 - `oya gate validate statelessness --microservice workflow-studio` — Studio REST stateless (state in Postgres + Valkey)
 - `oya gate validate shardability --microservice workflow-studio` — editor sessions sharded by tenant_id
-- `oya gate validate workflow-spec-roundtrip --microservice workflow-studio` — NEW lane asserting load(emit(x)) byte-equal to x for ≥ 100 golden specs
+- `oya gate validate workflow-spec-roundtrip --microservice workflow-studio` — NEW lane asserting load(emit(x)) byte-equal to x for ≥ 100 reference specs
 - `oya gate validate cedar-preview-required --microservice workflow-studio` — every save path exercises Cedar policy preview
 - `oya gate validate editor-execution-forbidden --microservice workflow-studio` — Studio never executes; only emits
 - `oya gate validate node-library-determinism --microservice workflow-studio` — 3x re-load assertion per `/specs/microservices/workflow-studio.json` §anti_patterns
@@ -439,7 +470,7 @@ Error budget:
 
 **State strategy** (per Bominal ADR-0019 enum): `mixed`. Rationale:
 - Editor session state, spec drafts, per-seat license attribution: `postgres` (Citus-distributed by tenant_id).
-- Ephemeral collab CRDT state (active editor sessions): `redis` (per-cell cluster; reconstructable from Postgres on cold-start).
+- Ephemeral collab CRDT state (active editor sessions): `valkey` (per-cell cluster; reconstructable from Postgres on cold-start).
 - Static assets (WASM bundles + node library descriptors + spec schema): `cdn` (global edge cache; per-tenant key partitioning).
 - Object storage for large node library binaries (per-pack signed): OCI Object Storage.
 
@@ -526,3 +557,23 @@ Sharding:
 | oyatie override | Workflow Studio scope | `feedback_workflow_studio_scope.md` |
 | oyatie override | Workflow + Ontology = ecosystem adapter | `feedback_workflow_objectgraph_adapter_layer.md` |
 | oyatie split | engine vs studio unbundle | ADR-0131 §"workflow unbundle" |
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `workflow-studio` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `workflow-studio` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 3 module pin(s) across 1 context(s).
+- Scaling input: `per_user` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

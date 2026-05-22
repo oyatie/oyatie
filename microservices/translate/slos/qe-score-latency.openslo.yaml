@@ -8,10 +8,10 @@ metadata:
     microservice: translate
     bc: quality-estimation
     sli_class: latency
-    tier: hero-and-substrate
+    service_classification: hero-and-substrate
     owner_team: axis-translate + axis-foundry-runtime
     pack_scope: all
-    eu_ai_act_classification: limited_risk
+    risk_classification: limited_risk
 spec:
   description: |
     Quality-estimation latency p99 SLO. A request is "good" when `/qe-score`

@@ -542,7 +542,7 @@ impl RegulatoryPackBindApiError {
             )],
             Self::InvalidResidencyClass { .. } => vec![detail(
                 "body.residency_class",
-                "must be one of strict_home, home_with_failover, or global",
+                "must be one of strict_home_region, home_with_recovery_failover, or global",
             )],
             Self::DuplicateBinding { .. } => vec![detail(
                 "body.tenant_id",
@@ -940,7 +940,7 @@ fn regional_pack_error_issue(error: &RegionalPackError) -> &'static str {
         RegionalPackError::EmptyRegion => "region must be non-empty",
         RegionalPackError::EmptyResidencyClass => "residency_class must be non-empty",
         RegionalPackError::InvalidResidencyClass => {
-            "residency_class must be strict_home, home_with_failover, or global"
+            "residency_class must be strict_home_region, home_with_recovery_failover, or global"
         }
         RegionalPackError::MissingControls => "controls must contain at least one control mapping",
     }

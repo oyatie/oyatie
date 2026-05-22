@@ -1,0 +1,115 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: feature-flags-default-deny
+  namespace: feature-flags
+  annotations:
+    binding-adr: ADR-0254
+    oyatie.io/substrate: "true"
+spec:
+  description: "Default-deny ingress/egress for feature-flags; whitelist specific peers per ADR-0254 Cilium L4 + mTLS SPIFFE"
+  endpointSelector:
+    matchLabels:
+      microservice: feature-flags
+  ingress:
+    # Allow SDK calls from any µservice (flag evaluation is substrate)
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "*"
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "9090"
+              protocol: TCP
+          rules:
+            http:
+              - method: POST
+                path: /api/v1/flags/.*/evaluate
+              - method: GET
+                path: /api/v1/flags/stream
+    # Allow admin API only from axis-governance namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: axis-governance
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+          rules:
+            http:
+              - method: POST
+                path: /api/v1/flags
+              - method: PATCH
+                path: /api/v1/flags/.*
+              - method: DELETE
+                path: /api/v1/flags/.*
+    # Allow Prometheus scrape
+    - fromEndpoints:
+        - matchLabels:
+            app: prometheus
+      toPorts:
+        - ports:
+            - port: "9091"
+              protocol: TCP
+    # Allow Foundry/CI
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: foundry
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+    # Allow Postgres (flag definitions store)
+    - toEndpoints:
+        - matchLabels:
+            app: postgres
+            microservice: feature-flags
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Allow Kafka (kill-switch broadcast, event emission)
+    - toEndpoints:
+        - matchLabels:
+            app: kafka
+      toPorts:
+        - ports:
+            - port: "9092"
+              protocol: TCP
+    # Allow OpenBao (credential sidecar)
+    - toEndpoints:
+        - matchLabels:
+            app: openbao
+      toPorts:
+        - ports:
+            - port: "8200"
+              protocol: TCP
+    # Allow policy-engine (Cedar fragment fetch)
+    - toEndpoints:
+        - matchLabels:
+            microservice: policy-engine
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Allow observability (metrics, traces, logs)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "4317"
+              protocol: TCP
+    # DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP

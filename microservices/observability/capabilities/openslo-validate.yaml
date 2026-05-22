@@ -58,7 +58,7 @@ cedar_policy_fragments:
   - microservices/observability/policy/public-read.cedar
 
 eval_set:
-  golden_inputs_path: microservices/observability/capabilities/eval/openslo-validate-golden.jsonl
+  reference_inputs_path: microservices/observability/capabilities/eval/openslo-validate-reference.jsonl
   pass_threshold: 1.0
   eval_metric: validator-conformance-against-OpenSLO-v1-reference-suite
   cadence: per-release

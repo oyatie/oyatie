@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: crm-latency-p99
+  labels:
+    service: crm
+    sap_code: "CRM"
+spec:
+  description: "Customer Relationship Management crm-latency-p99 objective; benchmarks SAP CRM Customer Relationship Management | Oracle Fusion Sales and Service | Workday customer and service-workflow counterpart | NetSuite CRM | Microsoft Dynamics 365 Customer Engagement"
+  service: crm
+  indicator:
+    metadata:
+      name: crm-latency-p99-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_request_duration_seconds_bucket{service=\"crm\",le=\"0.35\"}[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_request_duration_seconds_count{service=\"crm\"}[5m]))"
+  objectives:
+    - displayName: crm-latency-p99
+      target: 0.99

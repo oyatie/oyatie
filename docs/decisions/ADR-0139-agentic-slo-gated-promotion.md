@@ -170,7 +170,7 @@ This ADR introduces typed events and Ontology writes per `feedback_workflow_obje
 ### Operational
 
 - **New CI lane**: `oya-vcs-promotion-readiness` — added to `.github/branch-protection.yaml` required_status_checks on `dev` and `staging`. Reads `registry/promotion-eligibility.jsonl`; refuses fast-forward unless the latest record for every component touched by the source SHA is `eligible` for the target environment.
-- **Decommission** of the FUTURE-marked stubs in `promote-dev-to-staging.yml` and `promote-staging-to-production.yml` (references to `oya-foundry-fitness-canary-cohort-observability` and `oya-foundry-fitness-full-rollout-observability` lanes are replaced by the concrete Layer-B components).
+- **Decommission** of the FUTURE-marked stubs in `promote-dev-to-staging.yml` and `promote-staging-to-production.yml` (references to `oya-governance-canary-cohort-observability` and `oya-governance-full-rollout-observability` lanes are replaced by the concrete Layer-B components).
 - **Oya VCS primitives** per ADR-0116: every changeset in this work uses `oya vcs claim/verify/done/promote`, never the retired grit/icm/rtk/vox CLIs.
 - **Multispectrum evidence** per docs/AGENTS.md §changeset: each IP merging under this ADR emits `microservices/observability/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0.
 

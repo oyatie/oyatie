@@ -8,9 +8,9 @@ date: 2026-05-12
 purpose: |
   Search index/ranker rollouts with A/B + cohort.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-shadow-diff
-  - oya-foundry-fitness-cohort-honor
+  - oya-governance-canary-required
+  - oya-governance-shadow-diff
+  - oya-governance-cohort-honor
 related_adrs: [ADR-0030, ADR-0046, ADR-0047, ADR-0048, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -18,7 +18,6 @@ doc_status: published
 
 # Playbook: Search Rollout
 
-> **Status:** Accepted. **Owner:** `axis-search`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -76,5 +75,4 @@ Google Search ranker A/B (the canonical reference); Bing Quality Lab; Yandex mat
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — shadow-diff verdicts stored via `icm store -t shadow-diff-verdicts`; rollback evidence via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — Search weekly cadence; `perf-reviewer` re-affirms at staging → prod gate 5 using post-canary latency P95; index-shard rebuild goes blue/green even on staging.

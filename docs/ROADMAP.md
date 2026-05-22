@@ -55,7 +55,7 @@ W-Foundry-Preview
 - Cell architecture ADR + cell-routing primitive
 - Ontology property tiers ADR (ADR-0006..0112; legacy "Object Graph" — renamed per MASTERPLAN.md §2.4) all Accepted
 - Eventing backbone (outbox) + topic registry
-- Schema-class annotation + lint (`oya-foundry-fitness-data-class`)
+- Schema-class annotation + lint (`oya-governance-data-class`)
 - License policy ADR Accepted
 - In-house build manifest ADR per axis
 - Regional pack architecture ADR (canonical seams + pack contract)

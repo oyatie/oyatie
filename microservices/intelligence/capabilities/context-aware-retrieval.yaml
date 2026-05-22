@@ -51,7 +51,7 @@ cedar_policy_fragments:
 
 evidence_topic: oya.intelligence.retrieval.context-bound
 eval_set:
-  golden_inputs_path: microservices/intelligence/capabilities/eval/context-aware-retrieval-golden.jsonl
+  canonicalen_inputs_path: microservices/intelligence/capabilities/eval/context-aware-retrieval-canonicalen.jsonl
   pass_threshold: 1.0
   eval_metric: cross-context-refusal-correctness
   cadence: per-release

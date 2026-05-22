@@ -25,7 +25,7 @@ flows. This document covers cross-BC data flows and aggregate risk.
 | Supervision command log | supervisor + evidence | Legal obligation (audit) | 1y baseline | Forbidden (per-pack) |
 | Guardrail decision record (hash(prompt), decision, version) | guardrails + evidence | Legitimate interest (safety) | 1y baseline | Forbidden (per-pack) |
 | Provider receipt (provider, model, tokens, cost) | providers + evidence | Legitimate interest (billing + ops) | 1y baseline | Forbidden (per-pack) |
-| Eval-run record (capability, golden_id, parity_outcome) | eval | Legitimate interest (quality) | 1y baseline | Forbidden (per-pack) |
+| Eval-run record (capability, baseline_id, parity_outcome) | eval | Legitimate interest (quality) | 1y baseline | Forbidden (per-pack) |
 | Evidence pack (sealed bundle) | evidence | Legal obligation (audit-chain) | 6y default; per-pack overlays | Forbidden (per-pack) |
 
 ## Cross-BC data flows

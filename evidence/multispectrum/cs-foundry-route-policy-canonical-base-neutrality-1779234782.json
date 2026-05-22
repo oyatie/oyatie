@@ -1,0 +1,160 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-foundry-route-policy-canonical-base-neutrality",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779234782,
+  "timestamp_iso": "2026-05-19T23:53:02Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-foundry-route-policy-kernel/src/lib.rs",
+    "evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Neutralize Foundry route-policy default residency marker for canonical base\",\"scopes\":[\"crates/oya-foundry-route-policy-kernel/src/lib.rs::canonical_base_neutral_default_residency_constraint\",\"crates/oya-foundry-route-policy-kernel/src/lib.rs::canonical_base_neutral_route_explanation_tests\",\"evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality cleanup for the Foundry route-policy kernel: replace the launch-jurisdiction default residency marker with a product-level tenant-home-region default while preserving pure selector behavior and route audit explanations.",
+  "baseline_diff": {
+    "before_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-route-policy-kernel/src/lib.rs failed with 1 file checked and 2 jurisdiction leaks: default required_residency_region KR and route explanation assertion residency=KR.",
+    "red_test": "updated route explanation default-residency regression test failed before implementation: 8 passed, 1 failed; expected residency=tenant-home-region while implementation still emitted KR.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-foundry-route-policy-kernel/src/lib.rs passed: 1 file checked, 0 jurisdiction leaks.",
+    "after_full": "full canonical-base-neutrality still fails with 196 files checked and 284 jurisdiction leaks outside this ChangeSet; first remaining file crates/oya-metering-domain/src/lib.rs.",
+    "delta": "2 fewer full-gate jurisdiction leaks, from 286 after the Foundry policy vertical-pack slice to 284 after this slice; no scanner carve-outs or coverage weakening."
+  },
+  "verification": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-route-policy-cbn-planning-start.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-targeted-before.txt",
+      "status": "failed-before-fix",
+      "evidence": "1 file checked, 2 jurisdiction leaks: KR default residency and residency=KR explanation assertion"
+    },
+    {
+      "command": "cargo test -q -p oya-foundry-route-policy-kernel --all-features 2>&1 | tee /tmp/cs-route-policy-cbn-red-test.txt",
+      "status": "failed-before-fix",
+      "evidence": "regression failed before implementation: 8 passed, 1 failed; assertion expected residency=tenant-home-region"
+    },
+    {
+      "command": "cargo test -q -p oya-foundry-route-policy-kernel --all-features 2>&1 | tee /tmp/cs-route-policy-cbn-test.txt",
+      "status": "passed",
+      "evidence": "route-policy kernel tests passed: 9 passed, 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-foundry-route-policy-kernel --check 2>&1 | tee /tmp/cs-route-policy-cbn-fmt.txt",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-foundry-route-policy-kernel --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-route-policy-cbn-clippy.txt",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-foundry-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-targeted-after.txt",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "rg -n '\\bKR\\b|residency=KR' crates/oya-foundry-route-policy-kernel/src/lib.rs 2>&1 | tee /tmp/cs-route-policy-cbn-token-scan.txt || true",
+      "status": "passed",
+      "evidence": "no KR/residency=KR tokens matched in claimed source file"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-route-policy-cbn-planning.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json 2>&1 | tee /tmp/cs-route-policy-cbn-master.txt",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json > /tmp/cs-route-policy-cbn-evidence-json-tool.txt",
+      "status": "passed",
+      "evidence": "evidence JSON parsed successfully"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-foundry-route-policy-kernel/src/lib.rs evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json 2>&1 | tee /tmp/cs-route-policy-cbn-diff-check.txt",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-route-policy-cbn-full-cbn.txt",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 196 files checked, 284 jurisdiction leaks outside claimed scope; first remaining file crates/oya-metering-domain/src/lib.rs"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Pulled default strings into two constants instead of adding a new abstraction or dependency.",
+        "Kept selector behavior unchanged except for replacing the launch-jurisdiction residency label."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Canonical Foundry route policy no longer encodes a specific launch jurisdiction as its default residency constraint.",
+        "Default route explanations now emit product-level tenant-home-region language suitable for multi-region vertical onboarding."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": true,
+      "diagnostic_asserted": "default route explanation emitted tenant-home-region only after implementation changed RouteConstraints::new",
+      "findings": [
+        "Red/green proof prevents a silent test-only cleanup with the old default still present."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 2,
+      "findings": [
+        "Default privacy and residency labels are now named at the top of the route-policy kernel."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted unit tests, rustfmt, clippy, targeted and full neutrality gates, planning closure, master-plan completion, token scan, and diff checks were run fresh."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Route policy remains pure kernel/domain logic with no I/O, no handler coupling, and no cross-service calls."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Regression test covers the route audit explanation default so downstream audit text cannot drift back to a jurisdiction-specific base default unnoticed."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence captures claim acceptance, before/after leak counts, red/green test proof, full-gate blocker state, and Oya VCS lifecycle anchors."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-foundry-route-policy-kernel/src/lib.rs",
+    "evidence/multispectrum/cs-foundry-route-policy-canonical-base-neutrality-1779234782.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 284 jurisdiction leaks outside this scope; next safe serialized slice starts at crates/oya-metering-domain/src/lib.rs.",
+    "RouteConstraints still carries residency as a string; a future typed residency value-object slice would further reduce drift risk without reopening this canonical-base marker cleanup.",
+    "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
+  ]
+}

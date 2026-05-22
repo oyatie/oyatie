@@ -2,7 +2,7 @@ openapi: 3.2.0
 info:
   title: oya-foundry-guardrails
   version: 1.0.0
-  summary: REST API for foundry-guardrails — prompt classification, output validation, autonomy-tier enforcement, content-safety, jailbreak detection, AI-slop detection
+  summary: REST API for foundry-guardrails — prompt classification, output validation, autonomy-ceiling enforcement, content-safety, jailbreak detection, AI-slop detection
   description: |
     Tenant-facing and runtime-facing REST surface. All endpoints require OIDC + Cedar policy
     authorization (per `microservices/foundry/policy/*.cedar`) and are tenant-scoped
@@ -51,12 +51,12 @@ components:
   schemas:
     ClassifyPromptRequest:
       type: object
-      required: [prompt_text, capability_id, autonomy_tier_claim]
+      required: [prompt_text, capability_id, autonomy_level_claim]
       properties:
         prompt_text: {type: string, maxLength: 10485760}
         capability_id: {type: string}
         session_turn_count: {type: integer, minimum: 0}
-        autonomy_tier_claim: {type: string, enum: [T0, T1, T2, T3, T4]}
+        autonomy_level_claim: {type: string, enum: [T0, T1, T2, T3, T4]}
     Classification:
       type: object
       required: [verdict, evaluated_at, audit_chain_id]
@@ -76,7 +76,7 @@ components:
             - content_safety_hate
             - content_safety_weapons
             - content_safety_illegal
-            - autonomy_tier_exceeded
+            - autonomy_level_exceeded
             - policy_deny
             - llm_judge_budget_exceeded
             - ai_slop
@@ -113,10 +113,10 @@ components:
         audit_chain_id: {type: string}
     EnforceAutonomyRequest:
       type: object
-      required: [capability_id, requested_tier, pack]
+      required: [capability_id, requested_autonomy_level, pack]
       properties:
         capability_id: {type: string}
-        requested_tier: {type: string, enum: [T0, T1, T2, T3, T4]}
+        requested_autonomy_level: {type: string, enum: [T0, T1, T2, T3, T4]}
         pack: {type: string, enum: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]}
         subject_class: {type: string, enum: [adult, minor, vulnerable, unknown]}
     AutonomyDecision:

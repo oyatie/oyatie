@@ -90,7 +90,7 @@ CREATE POLICY tenant_isolation ON <object_type>
 
 `FORCE` is required: without it, the table owner bypasses RLS, which would be a path for the application's Postgres role to read across tenants.
 
-The CI lane `oya-foundry-fitness-ontology-tenancy-isolation` validates every Object Type table for `FORCE ROW LEVEL SECURITY = true`; PRs that introduce a table without it fail to merge.
+The CI lane `oya-governance-ontology-tenancy-isolation` validates every Object Type table for `FORCE ROW LEVEL SECURITY = true`; PRs that introduce a table without it fail to merge.
 
 ### Invariant TI-02: `app.tenant_id` session variable bound from JWT only
 
@@ -103,7 +103,7 @@ conn.execute("SET LOCAL app.tenant_id = $1", &[&tenant_id]).await?;
 // ... subsequent queries on this connection are RLS-scoped ...
 ```
 
-LEAN check `oya-foundry-fitness-ontology-tenant-binding` greps every adapter for any code path that sets `app.tenant_id` from anything other than `req.auth.tenant_id`; mismatch fails the lane.
+LEAN check `oya-governance-ontology-tenant-binding` greps every adapter for any code path that sets `app.tenant_id` from anything other than `req.auth.tenant_id`; mismatch fails the lane.
 
 ### Invariant TI-03: Citus `multi_shard_modify_mode = strict`
 
@@ -132,7 +132,7 @@ The application's Postgres connection pool uses session-level role switching via
 
 ### Invariant TI-05: No raw cross-tenant SQL in application paths
 
-A LEAN check (`oya-foundry-fitness-no-raw-sql-cross-tenant`) refuses any SQL string in adapter code that:
+A LEAN check (`oya-governance-no-raw-sql-cross-tenant`) refuses any SQL string in adapter code that:
 - contains `WHERE tenant_id = ?` AND `tenant_id` ≠ `app.tenant_id` session var
 - contains `tenant_id IN (...)` lists with > 1 element
 - bypasses the adapter's `RLS-scoped` connection pool
@@ -168,7 +168,7 @@ permit (
   principal has tenant_id &&
   resource has tenant_id &&
   principal.tenant_id == resource.tenant_id &&
-  principal.max_tier >= resource.property_tier &&
+  principal.max_sensitivity_level >= resource.property_sensitivity_level &&
   principal.pillar_kind == resource.pillar_kind ||
   principal has cross_pillar_grant &&
   resource.pillar_kind in principal.cross_pillar_grant.allowed_pillars
@@ -238,7 +238,7 @@ The Link Type adapter checks both endpoints' `tenant_id` against `app.tenant_id`
 
 - Behaviour: Postgres roles for application paths cannot disable RLS; superuser JIT 2-person rule is the only path. Continuous Helm-state validator + `pg_dump --schema-only` diff CronJob detects drift hourly.
 - Tenant impact: Caught pre-deploy. If runtime mutation: alarms within 1 h.
-- Detection: `oya-foundry-fitness-ontology-tenancy-isolation` lane + drift detector.
+- Detection: `oya-governance-ontology-tenancy-isolation` lane + drift detector.
 - Recovery: Auto-rollback to last green Helm state; ops-security incident if intentional.
 
 ### FM-IS-02: Citus strict-mode disabled

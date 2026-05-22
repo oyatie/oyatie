@@ -109,9 +109,15 @@ Same as IP-004.
 
 ## Next IP
 
-[`IP-006-autonomy-tier-gate-kernel-and-cedar-adapter.md`](IP-006-autonomy-tier-gate-kernel-and-cedar-adapter.md)
+[`IP-006-autonomy-ceiling-gate-kernel-and-cedar-adapter.md`](IP-006-autonomy-ceiling-gate-kernel-and-cedar-adapter.md)
 
 ## References
 
 - ADR-0056, ADR-0105, ADR-0140 (retired per ADR-0145).
 - PRD §"Bounded Contexts".
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

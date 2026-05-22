@@ -1,0 +1,17 @@
+service:
+  name: healthcare-integration
+  suite: local-operational-primitive
+  audience: HEALTHCARE_INTEGRATION_ADMIN
+workloads:
+  hl7-ingestor:
+    replicas: 3
+    sloMetric: oya_healthcare_integration_phi_delivery_latency
+  fhir-gateway:
+    replicas: 2
+    sloMetric: oya_healthcare_integration_audit_completeness
+  phi-delivery:
+    replicas: 2
+    sloMetric: oya_healthcare_integration_hl7_ack_latency
+policy:
+  directory: policies
+  defaultDeny: true

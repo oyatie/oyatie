@@ -70,7 +70,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 
 | Field | Value |
 |---|---|
-| Trigger | Whisper-large model upgrade introduces regression in BLEU / chrF++ vs golden set; tenant-reported caption-quality complaints |
+| Trigger | Whisper-large model upgrade introduces regression in BLEU / chrF++ vs baseline set; tenant-reported caption-quality complaints |
 | Detection | `oya_meet_transcription_quality_score` regression > 5% vs prior 7-day baseline; tenant escalations |
 | Tenant impact | Live captions degrade; transcripts less accurate |
 | Severity | Sev-2 |

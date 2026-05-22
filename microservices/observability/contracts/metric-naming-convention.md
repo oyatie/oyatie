@@ -63,7 +63,7 @@ The canonical PrometheusRule alerts `OyaCapabilityCircuitOpen` and
 The canonical alert `OyaTenantRateLimit429Surge` aggregates by
 `(microservice, tenant_id)` and fires on > 50/s sustained 5 minutes.
 
-### INV-FOUR-GOLDEN-SIGNALS
+### INV-FOUR-REFERENCE-SIGNALS
 
 | Metric name (templated)                                        | Type      | Required labels                  |
 |----------------------------------------------------------------|-----------|----------------------------------|
@@ -177,7 +177,7 @@ A Rust check (planned: `oya-check-canonical-base-cohesion`) verifies:
 1. `microservices/<ms>/iac/helm/<chart>/templates/prometheusrule.yaml`
    contains **no** group named `*-hyperscaler-overlay-circuit-breaker`,
    `*-hyperscaler-overlay-tenant-rate-limit`,
-   `*-hyperscaler-overlay-golden-signals`, or
+   `*-hyperscaler-overlay-reference-signals`, or
    `*-hyperscaler-overlay-error-budget-burn`.
 2. `microservices/<ms>/manifest.json#hyperscaler_inv_coverage` references
    the canonical PrometheusRule path

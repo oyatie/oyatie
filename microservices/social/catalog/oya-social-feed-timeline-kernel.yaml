@@ -24,4 +24,4 @@ entities:
   - RankingSignal
   - FanoutPlan
   - RankSnapshot
-eu_ai_act_classification: high_risk  # ranking system; ADR-SOC-0003 paired
+risk_classification: high_risk  # ranking system; ADR-SOC-0003 paired

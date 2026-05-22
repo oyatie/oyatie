@@ -41,8 +41,8 @@ conformant + cargo metadata). Subsequent IPs flesh out each BC.
 - retention-policy: kernel, domain, usecase, api, adapter-postgres, rest, worker, sdk, app
 - legal-hold: kernel, domain, usecase, api, adapter-postgres, rest, worker, sdk, app
 - export: kernel, domain, usecase, api, adapter-ffmpeg, adapter-pandoc, worker, sdk, app
-- share-link: kernel, domain, usecase, api, adapter-postgres, adapter-redis, rest, worker, sdk, app
-- playback: kernel, domain, usecase, api, adapter-cdn-cloudfront-stub-or-self, adapter-redis, rest, sdk, app
+- share-link: kernel, domain, usecase, api, adapter-postgres, adapter-valkey, rest, worker, sdk, app
+- playback: kernel, domain, usecase, api, adapter-cdn-cloudfront-stub-or-self, adapter-valkey, rest, sdk, app
 - ediscovery: kernel, domain, usecase, api, adapter-postgres, worker, sdk, app
 - watermarking: kernel, domain, usecase, adapter-ffmpeg, worker, app
 - drm-stub: kernel, domain, usecase, adapter, app

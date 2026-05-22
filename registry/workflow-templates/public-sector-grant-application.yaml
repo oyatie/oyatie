@@ -1,0 +1,507 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.public-sector-grant-application.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0059-workflow-ontology-ecosystem-adapter-layer
+  - ADR-0185-workflow-studio-client-stack
+title: Public-sector grant application
+description: >-
+  Manages a public-sector grant from applicant intake through eligibility
+  screening, document verification, debarment checks, budget reconciliation,
+  scoring panel review, award decision, agreement execution, disbursement, and
+  outcome tracking.
+tags:
+  - public-sector
+  - grants
+  - eligibility
+  - budget-reconciliation
+  - outcome-tracking
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: silver
+    reason: "Grant programs need application intake, review, and award tracking."
+  - tier: gold
+    reason: "Adds eligibility, budget reconciliation, debarment checks, and outcome reporting."
+ontology_refs:
+  object: GrantApplicationCase
+  actions:
+    - GrantApplicationSubmitted
+    - EligibilityChecked
+    - BudgetReconciled
+    - PanelScoreRecorded
+    - AwardDecisionIssued
+    - OutcomeReportTracked
+tenant_context:
+  required_fields:
+    - tenant_id
+    - program_id
+    - application_id
+    - grants_officer_principal_id
+principal_context:
+  system_principal: workflow-engine.grant-application
+  human_approval_roles:
+    - grants_officer
+    - budget_analyst
+    - review_panel_member
+    - program_director
+data_classes:
+  - GRANT_APPLICATION
+  - APPLICANT_ORGANIZATION
+  - BUDGET_WORKBOOK
+  - ELIGIBILITY_EVIDENCE
+  - AWARD_AGREEMENT
+  - OUTCOME_REPORT
+residency_pack_overlays:
+  - pack: public-records
+    behavior: "Classify application artifacts by public, confidential, and exempt record status."
+  - pack: grant-audit
+    behavior: "Preserve scoring, budget, award, and disbursement evidence for audit."
+observability:
+  metrics:
+    - public_sector_grant_step_latency_seconds
+    - public_sector_grant_ineligible_total
+    - public_sector_grant_outcome_report_overdue_total
+  traces:
+    - workflow.template.public_sector_grant_application
+  logs:
+    - workflow_public_sector_grant_audit_projection
+cost_allocation:
+  unit: grant_application_step
+  dimensions:
+    - tenant_id
+    - program_id
+    - funding_year
+idempotency:
+  key_shape: "tenant_id:program_id:application_id:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: award_decision
+  on_cancel: withdraw_application_and_notify_applicant
+  audit_event_class: GrantApplicationWorkflowCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_idempotent_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_city_demo
+  program_id:
+    type: string
+    default: community_resilience_2026
+  application_id:
+    type: string
+    default: grantapp_2026_5501
+  applicant_org_id:
+    type: string
+    default: org_neighborhood_health_12
+  funding_year:
+    type: integer
+    default: 2026
+  requested_award_amount:
+    type: number
+    default: 375000
+  grants_officer_principal_id:
+    type: string
+    default: principal_grants_officer_001
+outputs:
+  grant_case_id:
+    type: string
+  terminal_state:
+    type: string
+  award_decision:
+    type: string
+  disbursement_id:
+    type: string
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: application_intake_start
+    type: start
+    config:
+      trigger: grant.application.submitted.v1
+      validates:
+        - tenant_id
+        - program_id
+        - application_id
+        - applicant_org_id
+    cedar_permits_required:
+      - 'Action::"StartGrantApplicationWorkflow"'
+    audit_event_class: GrantApplicationWorkflowStarted
+    slo_target: "PT15M after submission"
+    failure_modes:
+      - code: APPLICATION_PAYLOAD_INCOMPLETE
+        behavior: "Return application to applicant before eligibility review."
+    on_success:
+      - edge_to_eligibility_check
+    on_failure:
+      - edge_to_exception_end
+  - id: eligibility_check
+    type: action
+    config:
+      service: grant-program
+      contract: grant-eligibility-check.v1
+      method: POST
+      url: "https://grants.internal/v1/eligibility/check"
+      criteria:
+        - geography
+        - organization_type
+        - program_area
+        - funding_cap
+        - matching_funds
+      body:
+        program_id: "${inputs.program_id}"
+        application_id: "${inputs.application_id}"
+        applicant_org_id: "${inputs.applicant_org_id}"
+    cedar_permits_required:
+      - 'Action::"CheckGrantEligibility"'
+    audit_event_class: GrantEligibilityChecked
+    slo_target: "P2D"
+    failure_modes:
+      - code: APPLICANT_INELIGIBLE
+        behavior: "Issue ineligibility notice and close application."
+    on_success:
+      - edge_to_document_verification
+    on_failure:
+      - edge_to_issue_ineligibility_notice
+  - id: document_verification
+    type: human_task
+    config:
+      assignee_role: grants_officer
+      task_contract: grant-document-verification.v1
+      required_documents:
+        - organization_registration
+        - project_narrative
+        - budget_workbook
+        - matching_funds_letter
+        - authorized_signer_attestation
+    cedar_permits_required:
+      - 'Action::"VerifyGrantApplicationDocuments"'
+    audit_event_class: GrantDocumentsVerified
+    slo_target: "P5D"
+    failure_modes:
+      - code: REQUIRED_DOCUMENT_MISSING
+        behavior: "Request applicant cure and pause review timer."
+    on_success:
+      - edge_to_debarment_check
+    on_failure:
+      - edge_to_exception_end
+  - id: debarment_check
+    type: action
+    config:
+      service: public-sector-risk
+      contract: debarment-and-conflict-check.v1
+      method: POST
+      url: "https://public-risk.internal/v1/debarment/check"
+      checks:
+        - federal_debarment
+        - local_vendor_suspension
+        - conflict_of_interest
+      body:
+        applicant_org_id: "${inputs.applicant_org_id}"
+        program_id: "${inputs.program_id}"
+    cedar_permits_required:
+      - 'Action::"RunGrantDebarmentCheck"'
+    audit_event_class: GrantDebarmentCheckCompleted
+    slo_target: "P2D"
+    failure_modes:
+      - code: DEBARMENT_MATCH
+        behavior: "Route to legal review and block award decision."
+    on_success:
+      - edge_to_budget_reconciliation
+    on_failure:
+      - edge_to_exception_end
+  - id: budget_reconciliation
+    type: human_task
+    config:
+      assignee_role: budget_analyst
+      task_contract: grant-budget-reconciliation.v1
+      reconciliation_checks:
+        - line_items_match_program_rules
+        - indirect_cost_cap_respected
+        - matching_funds_balance
+        - unallowable_costs_removed
+    cedar_permits_required:
+      - 'Action::"ReconcileGrantBudget"'
+    audit_event_class: GrantBudgetReconciled
+    slo_target: "P5D"
+    failure_modes:
+      - code: BUDGET_UNALLOWABLE_COST
+        behavior: "Return budget to applicant for correction or mark amount adjustment."
+    on_success:
+      - edge_to_panel_scoring
+    on_failure:
+      - edge_to_exception_end
+  - id: panel_scoring
+    type: human_task
+    config:
+      assignee_role: review_panel_member
+      task_contract: grant-panel-scoring.v1
+      rubric:
+        - community_need
+        - project_feasibility
+        - budget_reasonableness
+        - measurable_outcomes
+        - equity_impact
+      conflict_policy: reviewers_must_attest_no_conflict
+    cedar_permits_required:
+      - 'Action::"RecordGrantPanelScore"'
+    audit_event_class: GrantPanelScoreRecorded
+    slo_target: "P10D"
+    failure_modes:
+      - code: PANEL_CONFLICT_DISCLOSED
+        behavior: "Remove reviewer score and assign alternate panel member."
+    on_success:
+      - edge_to_award_decision
+    on_failure:
+      - edge_to_exception_end
+  - id: award_decision
+    type: decision
+    config:
+      expression: "${nodes.panel_scoring.output.recommendation}"
+      cases:
+        award: execute_award_agreement
+        decline: issue_decline_notice
+        waitlist: issue_decline_notice
+      default_case: issue_decline_notice
+    cedar_permits_required:
+      - 'Action::"DecideGrantAward"'
+    audit_event_class: GrantAwardDecisionIssued
+    slo_target: "P3D after panel score"
+    failure_modes:
+      - code: AWARD_DECISION_TIE
+        behavior: "Escalate to program director tie-break review."
+    on_success:
+      - edge_to_execute_award_agreement
+      - edge_to_issue_decline_notice
+    on_failure:
+      - edge_to_exception_end
+  - id: execute_award_agreement
+    type: action
+    config:
+      service: grant-agreements
+      contract: grant-award-agreement.v1
+      method: POST
+      url: "https://grants.internal/v1/agreements"
+      body:
+        application_id: "${inputs.application_id}"
+        applicant_org_id: "${inputs.applicant_org_id}"
+        award_amount: "${nodes.budget_reconciliation.output.reconciled_award_amount}"
+        outcome_reporting_required: true
+    cedar_permits_required:
+      - 'Action::"ExecuteGrantAwardAgreement"'
+    audit_event_class: GrantAwardAgreementExecuted
+    slo_target: "P10D after award"
+    failure_modes:
+      - code: AGREEMENT_SIGNATURE_DELAYED
+        behavior: "Notify applicant and program director; hold disbursement."
+    on_success:
+      - edge_to_release_disbursement
+    on_failure:
+      - edge_to_exception_end
+  - id: release_disbursement
+    type: action
+    config:
+      service: public-finance
+      contract: grant-disbursement.v1
+      method: POST
+      url: "https://public-finance.internal/v1/grants/disbursements"
+      body:
+        agreement_id: "${nodes.execute_award_agreement.output.agreement_id}"
+        amount: "${nodes.budget_reconciliation.output.reconciled_award_amount}"
+        tranche: initial
+    cedar_permits_required:
+      - 'Action::"ReleaseGrantDisbursement"'
+    audit_event_class: GrantDisbursementReleased
+    slo_target: "P5D after agreement execution"
+    failure_modes:
+      - code: DISBURSEMENT_CONTROL_FAILED
+        behavior: "Block payment and route to finance controller."
+    on_success:
+      - edge_to_track_outcomes
+    on_failure:
+      - edge_to_exception_end
+  - id: track_outcomes
+    type: loop
+    config:
+      poll_contract: grant-outcome-report-status.v1
+      poll_interval: P30D
+      max_elapsed: P365D
+      terminal_statuses:
+        - outcomes_current
+        - outcomes_overdue
+        - grant_closed
+      required_reports:
+        - quarterly_progress
+        - budget_actuals
+        - final_impact_report
+    cedar_permits_required:
+      - 'Action::"TrackGrantOutcomes"'
+    audit_event_class: GrantOutcomeReportTracked
+    slo_target: "P365D"
+    failure_modes:
+      - code: OUTCOME_REPORT_OVERDUE
+        behavior: "Notify grantee and hold future disbursement tranches."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_exception_end
+  - id: issue_decline_notice
+    type: action
+    config:
+      service: applicant-communications
+      contract: grant-decision-notice.v1
+      method: POST
+      url: "https://communications.internal/v1/grants/decision-notices"
+      body:
+        application_id: "${inputs.application_id}"
+        decision: declined_or_waitlisted
+        include_appeal_window: true
+    cedar_permits_required:
+      - 'Action::"IssueGrantDecisionNotice"'
+    audit_event_class: GrantDecisionNoticeIssued
+    slo_target: "P5D after decision"
+    failure_modes:
+      - code: DECISION_NOTICE_DELIVERY_FAILED
+        behavior: "Retry alternate channel and alert grants officer."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_exception_end
+  - id: issue_ineligibility_notice
+    type: action
+    config:
+      service: applicant-communications
+      contract: grant-ineligibility-notice.v1
+      method: POST
+      url: "https://communications.internal/v1/grants/ineligibility-notices"
+      body:
+        application_id: "${inputs.application_id}"
+        eligibility_result_id: "${nodes.eligibility_check.output.eligibility_result_id}"
+    cedar_permits_required:
+      - 'Action::"IssueGrantIneligibilityNotice"'
+    audit_event_class: GrantIneligibilityNoticeIssued
+    slo_target: "P3D after eligibility failure"
+    failure_modes:
+      - code: INELIGIBILITY_NOTICE_FAILED
+        behavior: "Alert grants officer and preserve ineligibility decision."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_exception_end
+  - id: close_workflow
+    type: end
+    config:
+      terminal_state: completed
+      emits:
+        - grant_application_closed
+        - award_or_notice_evidence_committed
+        - outcome_tracking_state_committed
+    cedar_permits_required:
+      - 'Action::"CloseGrantApplicationWorkflow"'
+    audit_event_class: GrantApplicationWorkflowClosed
+    slo_target: "PT2H after terminal state"
+    failure_modes:
+      - code: GRANT_LEDGER_POST_FAILED
+        behavior: "Keep workflow close-pending and retry ledger projection."
+    on_success: []
+    on_failure:
+      - edge_to_exception_end
+  - id: exception_end
+    type: end
+    config:
+      terminal_state: exception
+      requires_manual_owner: true
+    cedar_permits_required:
+      - 'Action::"RecordGrantApplicationException"'
+    audit_event_class: GrantApplicationExceptionRecorded
+    slo_target: "PT30M after exception"
+    failure_modes:
+      - code: EXCEPTION_AUDIT_WRITE_FAILED
+        behavior: "Emit dead-letter event for grant workflow replay."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_eligibility_check
+    from: application_intake_start
+    to: eligibility_check
+    name: application_valid
+  - id: edge_to_document_verification
+    from: eligibility_check
+    to: document_verification
+    name: eligible
+  - id: edge_to_debarment_check
+    from: document_verification
+    to: debarment_check
+    name: documents_verified
+  - id: edge_to_budget_reconciliation
+    from: debarment_check
+    to: budget_reconciliation
+    name: risk_checks_clear
+  - id: edge_to_panel_scoring
+    from: budget_reconciliation
+    to: panel_scoring
+    name: budget_reconciled
+  - id: edge_to_award_decision
+    from: panel_scoring
+    to: award_decision
+    name: panel_score_recorded
+  - id: edge_to_execute_award_agreement
+    from: award_decision
+    to: execute_award_agreement
+    name: award
+  - id: edge_to_issue_decline_notice
+    from: award_decision
+    to: issue_decline_notice
+    name: decline_or_waitlist
+  - id: edge_to_release_disbursement
+    from: execute_award_agreement
+    to: release_disbursement
+    name: agreement_executed
+  - id: edge_to_track_outcomes
+    from: release_disbursement
+    to: track_outcomes
+    name: disbursement_released
+  - id: edge_to_close_workflow
+    from: "*"
+    to: close_workflow
+    name: terminal_grant_state
+  - id: edge_to_issue_ineligibility_notice
+    from: eligibility_check
+    to: issue_ineligibility_notice
+    name: ineligible
+  - id: edge_to_exception_end
+    from: "*"
+    to: exception_end
+    name: exception_recorded
+failure_modes:
+  - code: POLICY_DENIED
+    behavior: "Stop current node, emit Cedar denial audit, and preserve program record state."
+  - code: CONFLICT_OF_INTEREST
+    behavior: "Remove affected reviewer or applicant path until conflict disposition is recorded."
+  - code: BUDGET_RECONCILIATION_GAP
+    behavior: "Block award execution until allowable-cost evidence is attached."
+worked_example:
+  sample_input:
+    tenant_id: tenant_city_demo
+    program_id: community_resilience_2026
+    application_id: grantapp_2026_5501
+    applicant_org_id: org_neighborhood_health_12
+    funding_year: 2026
+    requested_award_amount: 375000
+    grants_officer_principal_id: principal_grants_officer_001
+  sample_expected_output:
+    grant_case_id: grantcase_2026_5501
+    terminal_state: completed
+    award_decision: award
+    disbursement_id: disb_2026_9001
+    audit_chain_refs:
+      - audit://workflow/grant/application/01
+      - audit://workflow/grant/budget/05
+      - audit://workflow/grant/outcomes/10

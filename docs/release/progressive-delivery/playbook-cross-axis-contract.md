@@ -8,8 +8,8 @@ date: 2026-05-12
 purpose: |
   Cross-axis contract changes; require all consumer axes to canary in lockstep.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0011, ADR-0012, ADR-0037, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -17,7 +17,6 @@ doc_status: published
 
 # Playbook: Cross-Axis Contract Change
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -60,7 +59,7 @@ Removing a contract field / version:
 3. Block removal if any consumer still calls the deprecated field with > 0 calls in last 7 d.
 4. After zero-call window, remove via separate release.
 
-`oya-foundry-fitness-api-semver` (existing) gates this.
+`oya-governance-api-semver` (existing) gates this.
 
 ## 6. Consumer-axis canary independence
 
@@ -76,7 +75,6 @@ Per stage, emit a single D14 artefact aggregating:
 - Cohort intersection results.
 - Lockstep verdict (promote / hold / abort).
 
-Stored in `oya-foundry-evidence-kernel`; verified by `oya-foundry-fitness-rollback-evidence`. Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), stored via `icm store -t cross-axis-lockstep-verdicts`.
 
 ## 8. Rollback
 
@@ -92,5 +90,4 @@ Google internal Stubby contract versioning; Amazon Smithy / AWS API Gateway vers
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — lockstep verdicts stored via `icm store -t cross-axis-lockstep-verdicts`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — at staging → prod, gate 4 (zero SLO-fast) must hold across all affected axes; gate 5 collects per-class reviewer re-affirm from each consumer axis; `staging-fixer` orchestrates cross-axis fix if any consumer is red.

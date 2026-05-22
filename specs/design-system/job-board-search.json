@@ -4,8 +4,8 @@
   "title": "DesignSystem:Job Board Search",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "job-board-search",
-  "owner_team": "connect-product-council",
-  "product_ref": "$ref:specs/products/connect/network.json",
+  "owner_team": "axis-community",
+  "product_ref": "$ref:microservices/community/PRD.md",
   "component_name": "JobBoardSearch",
   "status": "planned-contract",
   "variants": [
@@ -24,7 +24,7 @@
     "desktop"
   ],
   "contract": {
-    "purpose": "JobBoardSearch is a declared Connect Network UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
-    "state_model_ref": "$ref:specs/products/connect/network.json#frontend_components"
+    "purpose": "JobBoardSearch is a community jobs-recruiter primitive after Wave 15K and must preserve Handshake-style jobs, resume, recruiter, consent, and policy boundaries described by the community PRD.",
+    "state_model_ref": "$ref:microservices/community/PRD.md#13-bounded-contexts-bcs"
   }
 }

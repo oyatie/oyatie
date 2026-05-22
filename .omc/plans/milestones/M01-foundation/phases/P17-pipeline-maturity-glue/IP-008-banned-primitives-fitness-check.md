@@ -44,9 +44,3 @@ Current implementation shape:
 - `/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json`
 - `/evidence/fd001/cs-fitness-001-command-log-corpus.json`
 - `/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json`
-
-
-## Successor closeout evidence (2026-05-20)
-
-- Successor `M01-P17-IP-008.1` is hosted-green: source corpus, sanitized command-log corpus, live branch-protection, protection-context, and PR #151 hosted workflow evidence are green.
-- Evidence: `/evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json` and `/evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json`.

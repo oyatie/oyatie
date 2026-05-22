@@ -4,7 +4,7 @@
   "scanned_files": 89,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -108,7 +108,7 @@
           "hits": [
             {
               "line": 131,
-              "excerpt": "- Valkey lease pattern \u2014 `redis.io/commands/setnx/`."
+              "excerpt": "- Valkey lease pattern \u2014 `valkey.io/commands/setnx/`."
             }
           ],
           "hits_total": 1
@@ -142,7 +142,7 @@
           "hits_total": 3
         },
         {
-          "file": "microservices/workflow-studio/IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md",
+          "file": "microservices/workflow-studio/IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac.md",
           "hits": [
             {
               "line": 16,
@@ -168,7 +168,7 @@
             },
             {
               "line": 79,
-              "excerpt": "| [`IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md`](IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (editor session store), Re"
+              "excerpt": "| [`IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac.md`](IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (editor session store), Re"
             },
             {
               "line": 209,
@@ -182,7 +182,7 @@
           "hits": [
             {
               "line": 21,
-              "excerpt": "Author the `collab-crdt` BC's first six layers: CRDT merge engine (loro-based tree CRDT), conflict surfacer, editor-session store port, and Valkey adapter (Redis wire-compat) for ephemeral CRDT state. The \"never silent lo"
+              "excerpt": "Author the `collab-crdt` BC's first six layers: CRDT merge engine (loro-based tree CRDT), conflict surfacer, editor-session store port, and Valkey adapter (RESP wire-compatible) for ephemeral CRDT state. The \"never silent lo"
             },
             {
               "line": 134,
@@ -196,7 +196,7 @@
           "hits": [
             {
               "line": 44,
-              "excerpt": "3. Verify Valkey lease integrity: `kubectl -n workflow-studio exec <redis-pod> -- redis-cli HGETALL \"lease:tenant:<tenant_hash>:def:<definition_id>\"`."
+              "excerpt": "3. Verify Valkey lease integrity: `kubectl -n workflow-studio exec <valkey-pod> -- valkey-cli HGETALL \"lease:tenant:<tenant_hash>:def:<definition_id>\"`."
             },
             {
               "line": 75,
@@ -218,7 +218,7 @@
             },
             {
               "line": 54,
-              "excerpt": "4. Verify Valkey memory: `kubectl exec redis-primary -- redis-cli INFO memory`."
+              "excerpt": "4. Verify Valkey memory: `kubectl exec valkey-primary -- valkey-cli INFO memory`."
             },
             {
               "line": 103,

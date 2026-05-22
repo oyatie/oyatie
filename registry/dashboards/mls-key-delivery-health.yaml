@@ -1,0 +1,277 @@
+schema_version: "2026-05-20.observability-dashboard.v1"
+doc_class: ObservabilityDashboard
+dashboard_id: mls-key-delivery-health
+owner: axis-security
+related_oyatie_adrs:
+  - ADR-0254
+  - ADR-0263
+  - ADR-0130
+  - ADR-0139
+  - ADR-0244
+title: "MLS Key Delivery Health"
+description: "Tenant-scoped MLS RFC 9420 key delivery dashboard for delivery latency, key-package availability, group-epoch convergence, rotation cadence, failed deliveries, air-gapped bundle lag, and audit-linked key events. This dashboard supports the deployment spectrum by comparing shared-cloud, dedicated-cloud, BYOC, connected on-prem, and air-gapped cells."
+refresh: 30s
+time_from: now-24h
+time_to: now
+timezone: utc
+folder: oyatie-security-key-management
+schema_tags:
+  - mls
+  - rfc-9420
+  - key-delivery
+  - key-rotation
+  - adr-0254
+datasource_defaults:
+  metrics: Mimir
+  logs: Loki
+  analytics: ClickHouse
+variables:
+  - name: environment
+    label: Environment
+    type: custom
+    default: dev
+    values:
+      - dev
+      - staging
+      - production
+  - name: deployment_model
+    label: Deployment Model
+    type: custom
+    default: ".*"
+    values:
+      - shared-cloud
+      - dedicated-cloud
+      - byoc
+      - on-prem-connected
+      - on-prem-air-gapped
+      - ".*"
+  - name: tenant_id
+    label: Tenant
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\"}, tenant_id)"
+    multi: true
+    include_all: true
+  - name: cell_id
+    label: Cell
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\"}, cell_id)"
+    multi: true
+    include_all: true
+  - name: group_id
+    label: MLS Group
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\"}, group_id)"
+    multi: true
+    include_all: true
+  - name: delivery_channel
+    label: Delivery Channel
+    type: custom
+    default: ".*"
+    values:
+      - online
+      - batch-bundle
+      - air-gap-import
+      - connected-sync
+      - ".*"
+  - name: window
+    label: Query Window
+    type: custom
+    default: 5m
+    values:
+      - 1m
+      - 5m
+      - 30m
+      - 1h
+annotations:
+  - name: key_rotation_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"MlsKeyRotationStarted|MlsKeyRotationCompleted\",environment=\"$environment\",tenant_id=~\"$tenant_id\"} | json | line_format \"{{.tenant_id}} {{.group_id}} {{.epoch}} {{.audit_id}}\""
+    tags:
+      - key-rotation
+      - audit
+  - name: deployment_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=\"DeploymentCompleted\",environment=\"$environment\",microservice=~\"kms|secrets|messenger|identity\"} | json | line_format \"{{.microservice}} {{.version}} {{.changeset_id}}\""
+    tags:
+      - deploy
+      - key-delivery
+  - name: incident_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"MlsKeyDeliveryFailed|MlsEpochDivergenceDetected|KeyRotationOverdue\",environment=\"$environment\"} | json | line_format \"{{.severity}} {{.incident_id}} {{.tenant_id}} {{.group_id}}\""
+    tags:
+      - incident
+      - mls
+panels:
+  - title: "MLS key delivery throughput"
+    type: graph
+    datasource: Mimir
+    unit: keys/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (tenant_id, group_id, delivery_channel, deployment_model, cell_id) (rate(oya:security:mls:key_deliveries_total:counter{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\",delivery_channel=~\"$delivery_channel\",cell_id=~\"$cell_id\"}[$window]))"
+        labels:
+          signal: key_delivery_rate
+          protocol: MLS_RFC_9420
+  - title: "Key delivery latency p50"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.50, sum by (le, tenant_id, group_id, delivery_channel, deployment_model) (rate(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\",delivery_channel=~\"$delivery_channel\",cell_id=~\"$cell_id\"}[$window])))"
+        labels:
+          signal: key_delivery_latency_p50
+          bucket_label: le
+  - title: "Key delivery latency p95"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.95, sum by (le, tenant_id, group_id, delivery_channel, deployment_model) (rate(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\",delivery_channel=~\"$delivery_channel\",cell_id=~\"$cell_id\"}[$window])))"
+        labels:
+          signal: key_delivery_latency_p95
+          bucket_label: le
+  - title: "Key delivery latency p99"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.99, sum by (le, tenant_id, group_id, delivery_channel, deployment_model) (rate(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\",delivery_channel=~\"$delivery_channel\",cell_id=~\"$cell_id\"}[$window])))"
+        labels:
+          signal: key_delivery_latency_p99
+          bucket_label: le
+  - title: "Key delivery latency distribution"
+    type: heatmap
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (le, deployment_model, delivery_channel) (rate(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\",delivery_channel=~\"$delivery_channel\"}[$window]))"
+        labels:
+          signal: key_delivery_distribution
+          bucket_label: le
+  - title: "Key-package pool availability"
+    type: gauge
+    datasource: Mimir
+    unit: keys
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "min by (tenant_id, group_id, cell_id, deployment_model) (oya:security:mls:key_package_pool_available:gauge{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\",cell_id=~\"$cell_id\"})"
+        labels:
+          signal: key_package_pool_available
+          target_floor: "50"
+  - title: "MLS epoch convergence lag"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (tenant_id, group_id, cell_id, deployment_model) (oya:security:mls:epoch_convergence_lag_seconds:gauge{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\",cell_id=~\"$cell_id\"})"
+        labels:
+          signal: epoch_convergence_lag
+          target_max_seconds: "120"
+  - title: "Key rotation cadence age"
+    type: graph
+    datasource: Mimir
+    unit: hours
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "(time() - max by (tenant_id, group_id, key_class, deployment_model) (oya:security:mls:key_rotation_completed_at:gauge{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\"})) / 3600"
+        labels:
+          signal: rotation_age_hours
+          target_max_hours: "24"
+  - title: "Rotation attempts and failures"
+    type: graph
+    datasource: Mimir
+    unit: events/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (tenant_id, group_id, key_class, result, deployment_model) (rate(oya:security:mls:key_rotation_total:counter{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\"}[$window]))"
+        labels:
+          signal: key_rotation_events
+          audit_required: "true"
+  - title: "Failed key deliveries by reason"
+    type: graph
+    datasource: Mimir
+    unit: failures/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (tenant_id, group_id, failure_reason, delivery_channel, deployment_model) (rate(oya:security:mls:key_delivery_failures_total:counter{environment=\"$environment\",deployment_model=~\"$deployment_model\",tenant_id=~\"$tenant_id\",group_id=~\"$group_id\",delivery_channel=~\"$delivery_channel\"}[$window]))"
+        labels:
+          signal: key_delivery_failures
+          severity: page
+  - title: "Air-gap bundle delivery lag"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (tenant_id, cell_id, bundle_id) (oya:security:mls:airgap_bundle_delivery_lag_seconds:gauge{environment=\"$environment\",deployment_model=\"on-prem-air-gapped\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\"})"
+        labels:
+          signal: airgap_key_bundle_lag
+          adr_anchor: ADR-0254
+  - title: "MLS key audit events"
+    type: table
+    datasource: Loki
+    targets:
+      - ref_id: A
+        query_type: LogQL
+        expr: "{event_class=~\"MlsKeyDelivered|MlsKeyDeliveryFailed|MlsKeyRotationCompleted|MlsEpochDivergenceDetected\",environment=\"$environment\",tenant_id=~\"$tenant_id\"} | json | group_id=~\"$group_id\" | line_format \"{{.ts}} {{.tenant_id}} {{.group_id}} {{.epoch}} {{.event_class}} {{.delivery_channel}} {{.audit_id}}\""
+        labels:
+          signal: key_audit_events
+          requires_field: audit_id
+  - title: "MLS delivery SQL evidence"
+    type: table
+    datasource: ClickHouse
+    targets:
+      - ref_id: A
+        query_type: SQL
+        expr: "SELECT tenant_id, group_id, deployment_model, delivery_channel, quantile(0.99)(duration_ms) AS p99_ms, countIf(result = 'failed') AS failed, count() AS deliveries, max(audit_id) AS latest_audit_id FROM oya_mls_key_delivery_events WHERE environment = '$environment' AND ts >= now() - INTERVAL 24 HOUR GROUP BY tenant_id, group_id, deployment_model, delivery_channel ORDER BY p99_ms DESC LIMIT 200"
+        labels:
+          signal: key_delivery_history
+          storage: clickhouse
+alerts:
+  - alert_id: mls_key_delivery_p99_high
+    title: "MLS key delivery p99 above 10 seconds"
+    datasource: Mimir
+    severity: page
+    condition: "histogram_quantile(0.99, sum by (le, tenant_id, group_id) (rate(oya:security:mls:key_delivery_duration_seconds:bucket{environment=\"$environment\"}[5m]))) > 10"
+    for: 10m
+    labels:
+      gate: oya-vcs-promotion-readiness
+      verdict_on_fire: held
+  - alert_id: mls_rotation_overdue
+    title: "MLS key rotation cadence overdue"
+    datasource: Mimir
+    severity: page
+    condition: "(time() - max(oya:security:mls:key_rotation_completed_at:gauge{environment=\"$environment\"})) / 3600 > 24"
+    for: 30m
+    labels:
+      runbook: key-rotation-recovery
+  - alert_id: mls_epoch_divergence
+    title: "MLS epoch convergence lag above two minutes"
+    datasource: Mimir
+    severity: critical
+    condition: "max(oya:security:mls:epoch_convergence_lag_seconds:gauge{environment=\"$environment\"}) > 120"
+    for: 5m
+    labels:
+      protocol: MLS_RFC_9420

@@ -1162,11 +1162,11 @@
       "severity": "hard",
       "file_hits": [
         {
-          "file": "microservices/foundry/IP-032-eval-layer-a-postgres-clickhouse-golden-store-iac.md",
+          "file": "microservices/foundry/IP-032-eval-layer-a-postgres-clickhouse-baseline-store-iac.md",
           "hits": [
             {
               "line": 20,
-              "excerpt": "Bundle: Helm charts for Postgres (eval-set metadata; CloudNativePG-backed), ClickHouse (parity-analytics MergeTree), and golden-store (SeaweedFS + KMS integration). Each chart with HA configuration + per-"
+              "excerpt": "Bundle: Helm charts for Postgres (eval-set metadata; CloudNativePG-backed), ClickHouse (parity-analytics MergeTree), and baseline-store (SeaweedFS + KMS integration). Each chart with HA configuration + per-"
             }
           ],
           "hits_total": 1
@@ -1186,7 +1186,7 @@
           "hits": [
             {
               "line": 49,
-              "excerpt": "| SeaweedFS / S3-compatible (golden-outputs + replay traces, per-subject-keyed envelope) | `oya-foundry-eval-parity-analyzer-*` |"
+              "excerpt": "| SeaweedFS / S3-compatible (baseline-outputs + replay traces, per-subject-keyed envelope) | `oya-foundry-eval-parity-analyzer-*` |"
             }
           ],
           "hits_total": 1
@@ -1196,7 +1196,7 @@
           "hits": [
             {
               "line": 51,
-              "excerpt": "| SeaweedFS (golden + replay store) | 4 \u00d7 VM.Standard.E4 2-core | $144 | $200 PV cache | $344 |"
+              "excerpt": "| SeaweedFS (baseline + replay store) | 4 \u00d7 VM.Standard.E4 2-core | $144 | $200 PV cache | $344 |"
             }
           ],
           "hits_total": 1
@@ -1206,7 +1206,7 @@
           "hits": [
             {
               "line": 29,
-              "excerpt": "- Layer-A IaC: GPU runner pool Helm chart, Postgres Helm chart, ClickHouse Helm chart, golden-output-store (SeaweedFS + KMS) Helm chart."
+              "excerpt": "- Layer-A IaC: GPU runner pool Helm chart, Postgres Helm chart, ClickHouse Helm chart, baseline-output-store (SeaweedFS + KMS) Helm chart."
             }
           ],
           "hits_total": 1
@@ -1222,11 +1222,11 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/foundry/iac/helm/eval/golden-store/Chart.yaml",
+          "file": "microservices/foundry/iac/helm/eval/baseline-store/Chart.yaml",
           "hits": [
             {
               "line": 4,
-              "excerpt": "Golden-output store for foundry-eval. SeaweedFS-backed S3-compatible storage"
+              "excerpt": "Baseline-output store for foundry-eval. SeaweedFS-backed S3-compatible storage"
             }
           ],
           "hits_total": 1
@@ -1417,7 +1417,7 @@
       "lines": 38
     },
     {
-      "file": "microservices/foundry/IP-032-eval-layer-a-postgres-clickhouse-golden-store-iac.md",
+      "file": "microservices/foundry/IP-032-eval-layer-a-postgres-clickhouse-baseline-store-iac.md",
       "lines": 52
     },
     {

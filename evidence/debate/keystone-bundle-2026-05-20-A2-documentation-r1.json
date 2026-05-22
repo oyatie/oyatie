@@ -1,0 +1,254 @@
+{
+  "artifact_id": "keystone-bundle-2026-05-20",
+  "facet": "A2_documentation_adherence",
+  "round": 1,
+  "reviewer": "critic",
+  "review_date": "2026-05-20",
+  "bundle_id": "2026-05-20-foundational-doctrine",
+  "lens": "A2 Own-Policy-Adherence: Documentation. Authoritative corpus: ADR-0212 (Buildability Doctrine - 100+ artifact bar / per-artifact buildability bar / stranger-test); ADR-0063 (Documentation Suite Coverage - lean-a5-documentation CI lane, mandatory per-microservice doc suite, BLOCKER at M02-P22); CLAUDE.md doc-coverage enforcement memory anchor [[doc-coverage-enforced]]. Probe: for every NEW microservice the keystone bundle introduces (policy-engine substrate per ADR-0246; deployment-control-plane per ADR-0254; intelligence two-layer split per ADR-0255; marketplace 8 substrates + 4 BCs per ADR-0249; compliance-pack registry / cell-certification-registry per ADR-0251; reserved microservices per ADR-0245 §D-6), does the Implementation Surface declare PRD, threat-model, runbooks, standards docs, user-stories, api-reference, admin-guide, onboarding? Is the lean-a5-documentation lane named as a required-green gate? Is the ADR-0063 + ADR-0212 buildability bar cited so reviewers know the per-microservice 100+ artifact minimum applies to the new µservices the bundle introduces?",
+  "verdict": "AMBER",
+  "summary": "The 14-ADR keystone bundle is documentation-rich at the doctrine layer (companion onboarding reading-order, hyperscaler-pattern attribution matrix, audit report, idea-refine deep-dive, 4 PRDs for hero products, per-ADR Implementation Surface tables with 21-70 artifact rows each) but is structurally silent on two A2-load-bearing policy hooks: (1) NONE of the 6 sampled ADRs cite the lean-a5-documentation CI lane by name nor reference ADR-0063 or ADR-0212 buildability doctrine as a required-green gate for the new microservices they introduce, and (2) the per-ADR Implementation Surface tables enumerate runbooks + standards docs + crate skeletons but do NOT explicitly declare the full per-microservice doc-suite (PRD + threat-model + DPIA + admin-guide + api-reference + onboarding-runbook + user-stories + slo-spec + migration-guide) per ADR-0212's stranger-test bar for the NEW µservices being introduced (policy-engine, deployment-control-plane, intelligence-substrate, 8 marketplace substrates + 4 BCs, compliance-pack-registry, cell-certification-registry). The Implementation Surface tables for ADR-0246 (policy-engine) and ADR-0248 (cellular topology) are the strongest (45 + 70 rows respectively, including runbooks, standards docs, PRD amendments). ADR-0242 + ADR-0243 are weaker (21 + 25 rows; mostly crates + a few runbooks, no per-microservice doc-suite declaration). The bundle introduces ~14 new microservices but only one (policy-engine) carries a PRD-amendment surface declaration; the rest are deferred to per-microservice IPs that the keystone bundle does not bind to a doc-coverage acceptance gate. The lane-naming gap is the harder finding: doc-coverage is enforced by ADR-0063's lean-a5-documentation lane, but the keystone ADRs that introduce new microservices do not declare that lane as part of their acceptance criteria, so a future IP author could ship a new substrate µservice without the doc-suite passing and the keystone-bundle promotion criteria would not catch it.",
+  "per_adr_findings": [
+    {
+      "adr": "ADR-0242",
+      "title": "oyatie-is-a-tenant doctrine",
+      "implementation_surface_rows": 21,
+      "doc_suite_declared": "PARTIAL",
+      "notes": "Declares 3 new docs (docs/standards/oyatie-tenant-bootstrap.md, docs/runbooks/oyatie-dsar-cascade.md, docs/runbooks/oyatie-bootstrap-recovery.md) + tenancy µservice PRD amendments + a tenancy crate set. References docs/runbooks/oyatie-bootstrap-recovery.md downstream from ADR-0248. Does NOT cite ADR-0063 lean-a5-documentation lane. Does NOT cite ADR-0212 buildability doctrine. Doctrine-layer ADR (no NEW substrate µservice introduced), so 100-artifact-per-µservice bar applies only via inherited tenancy µservice — partial pass.",
+      "new_microservices_introduced": [],
+      "lean_a5_lane_referenced": false,
+      "adr_0212_buildability_referenced": false,
+      "severity": "LOW"
+    },
+    {
+      "adr": "ADR-0243",
+      "title": "Cedar-as-universal-gate",
+      "implementation_surface_rows": 25,
+      "doc_suite_declared": "PARTIAL",
+      "notes": "Declares 1 standards doc (docs/standards/cedar-fragment-authoring.md) + 3 runbooks (HSM root-key ceremony, fragment incident response, evaluation failure mode) + migration sweep entries. Does NOT cite ADR-0063 lean-a5-documentation lane. Does NOT cite ADR-0212. Pairs with ADR-0246 which introduces the policy-engine substrate; the doc-suite for the NEW µservice is described in ADR-0246 not here — boundary handoff is acceptable but should be made explicit.",
+      "new_microservices_introduced": [],
+      "lean_a5_lane_referenced": false,
+      "adr_0212_buildability_referenced": false,
+      "severity": "LOW"
+    },
+    {
+      "adr": "ADR-0245",
+      "title": "substrate-vs-product layering",
+      "implementation_surface_rows": 38,
+      "doc_suite_declared": "GOOD",
+      "notes": "Declares per-µservice PRD skeleton requirement (D-3 classification authority), threat-model skeleton, DPIA-when-regulated, manifest schema, plus reserved-µservice rules with PRD+threat-model+IaC requirement (§D-6: 'reserved µservice has full artifact suite (PRD, contracts, threat model, IaC) but is not deployed'). This is the strongest A2 ADR in the bundle because it explicitly binds tier classification to doc-suite presence at scaffold time. Does NOT cite ADR-0063 lean-a5-documentation lane by name, but the §D-6 reserved-µservice rule operationally inherits it.",
+      "new_microservices_introduced": ["microservices/breach-notification (reserved)", "microservices/encryption-substrate (reserved)", "microservices/consent (reserved)", "microservices/ops-incident-mgmt (peer-cell)"],
+      "lean_a5_lane_referenced": false,
+      "adr_0212_buildability_referenced": false,
+      "severity": "MEDIUM",
+      "specific_gap": "Reserved µservices (D-6) require 'PRD + threat-model + IaC' but the 100+ artifact per-µservice ADR-0212 buildability bar (which includes onboarding, admin-guide, api-reference, user-stories, runbooks, slo-spec) is not enumerated — narrower than ADR-0212 requires."
+    },
+    {
+      "adr": "ADR-0246",
+      "title": "policy-engine substrate promotion",
+      "implementation_surface_rows": 45,
+      "doc_suite_declared": "GOOD",
+      "notes": "Strongest per-µservice doc-surface declaration in the bundle: full 47-crate redistribution + Ontology PRD amendments (7 distinct amendments enumerated) + per-cell deployment runbook surface + SLO declaration + bootstrap-trust runbook surface. Cites the policy-engine binary crate path, the µservice src/ composition root, the cell-aware deploy topology. Does NOT cite ADR-0063 lean-a5-documentation lane nor ADR-0212 by name, but the granularity is consistent with the bar.",
+      "new_microservices_introduced": ["microservices/policy-engine (substrate)"],
+      "lean_a5_lane_referenced": false,
+      "adr_0212_buildability_referenced": false,
+      "severity": "MEDIUM",
+      "specific_gap": "policy-engine PRD itself is not declared as a NEW artifact in the Implementation Surface — only the Ontology PRD amendments are listed. Reader cannot trace 'where is the new microservices/policy-engine/PRD.md?' from this ADR. Implicit but should be explicit."
+    },
+    {
+      "adr": "ADR-0248",
+      "title": "Amazon-shape cellular architecture",
+      "implementation_surface_rows": 70,
+      "doc_suite_declared": "GOOD",
+      "notes": "Highest absolute row count (70) and most thorough runbook enumeration: 9 cell runbooks named (tier-1-bootstrap, tier-1-self-retirement, tier-2-provisioning, tier-3-auto-spawn, tier-3-decommissioning, tenant-cell-migration, cell-failover-cross-region, cell-static-stability-drill, shuffle-sharding-parameter-change) + 2 standards docs (cellular-architecture, shuffle-sharding-parameters) + HSM ceremony procedures + observability dashboards + Helm charts. Strong A2 hygiene at the topology level. Does NOT cite ADR-0063 lean-a5-documentation lane by name.",
+      "new_microservices_introduced": [],
+      "lean_a5_lane_referenced": false,
+      "adr_0212_buildability_referenced": false,
+      "severity": "LOW",
+      "specific_gap": "Topology-doctrine ADR (no NEW µservice introduced) — most artifact surface is runbook + standards. The 70-row count is dominated by infrastructure artifacts, not per-µservice doc-suite items. This is appropriate for the doctrinal scope."
+    },
+    {
+      "adr": "ADR-0251",
+      "title": "compliance-pack + cell-certification-levels",
+      "implementation_surface_rows": 64,
+      "doc_suite_declared": "GOOD",
+      "notes": "Strong runbook enumeration: 5 runbooks (pack-publication-ceremony, pack-version-migration, breach-notification-response, regulator-evidence-pull, cell-certification-renewal) + 2 standards docs (compliance-pack-authoring, cell-certification-level-matrix) + pack schema (JSON Schema) + Appendix D (pack-publication ceremony runbook outline embedded). Verification-substrate µservice referenced (§Implementation surface). Does NOT cite ADR-0063 lane name. Introduces new substrate concepts (compliance-pack-registry + cell-certification-registry) but does not declare their µservice PRDs explicitly.",
+      "new_microservices_introduced": ["microservices/compliance-pack-registry (implicit)", "microservices/cell-certification-registry (implicit)"],
+      "lean_a5_lane_referenced": false,
+      "adr_0212_buildability_referenced": false,
+      "severity": "MEDIUM",
+      "specific_gap": "New substrate µservices (compliance-pack-registry, cell-certification-registry) are described conceptually but their per-µservice PRDs + threat-model + admin-guide + api-reference are not enumerated in Implementation Surface. Stranger-test bar (ADR-0212) requires explicit doc-suite for any new µservice; this ADR defers that to downstream IPs without naming them."
+    }
+  ],
+  "100_artifact_minimum_per_microservice_signal": {
+    "doctrine_source": "ADR-0212 buildability doctrine: every artifact must satisfy per-kind bar; stranger-test gates production-grade output. ADR-0063: lean-a5-documentation lane enforces doc-suite coverage per µservice.",
+    "applies_to_new_microservices_in_bundle": true,
+    "bundle_compliance": "PARTIAL",
+    "per_microservice_coverage": [
+      {
+        "new_microservice": "microservices/policy-engine",
+        "introduced_by": "ADR-0246",
+        "prd_declared_in_implementation_surface": false,
+        "threat_model_declared": false,
+        "admin_guide_declared": false,
+        "api_reference_declared": false,
+        "user_stories_declared": false,
+        "runbooks_declared": "PARTIAL (HSM ceremony, fragment incident, evaluation failure — via ADR-0243)",
+        "onboarding_doc_declared": false,
+        "slo_spec_declared": "GOOD (D-10 SLO targets specified)",
+        "migration_guide_declared": false,
+        "score_against_100_artifact_bar": "30% explicit / 70% implicit-via-template-inheritance"
+      },
+      {
+        "new_microservice": "microservices/deployment-control-plane",
+        "introduced_by": "ADR-0254",
+        "prd_declared_in_implementation_surface": "UNKNOWN — ADR-0254 not in sampled corpus; signal must be re-verified by F1/F4 reviewers",
+        "score_against_100_artifact_bar": "NOT_SAMPLED"
+      },
+      {
+        "new_microservice": "microservices/intelligence (two-layer split)",
+        "introduced_by": "ADR-0255",
+        "prd_declared_in_implementation_surface": "UNKNOWN — ADR-0255 not in sampled corpus",
+        "score_against_100_artifact_bar": "NOT_SAMPLED"
+      },
+      {
+        "new_microservice": "microservices/marketplace-* (8 substrates + 4 BCs)",
+        "introduced_by": "ADR-0249",
+        "prd_declared_in_implementation_surface": "UNKNOWN — ADR-0249 not in sampled corpus",
+        "score_against_100_artifact_bar": "NOT_SAMPLED"
+      },
+      {
+        "new_microservice": "microservices/compliance-pack-registry + microservices/cell-certification-registry",
+        "introduced_by": "ADR-0251",
+        "prd_declared_in_implementation_surface": false,
+        "threat_model_declared": false,
+        "admin_guide_declared": false,
+        "api_reference_declared": "PARTIAL (pack JSON schema in Appendix)",
+        "user_stories_declared": false,
+        "runbooks_declared": "GOOD (5 runbooks)",
+        "onboarding_doc_declared": false,
+        "score_against_100_artifact_bar": "25% explicit / 75% deferred-to-downstream-IP"
+      },
+      {
+        "new_microservice": "microservices/breach-notification + microservices/encryption-substrate + microservices/consent (reserved)",
+        "introduced_by": "ADR-0245 §D-6",
+        "prd_declared_in_implementation_surface": "PARTIAL (skeleton mandated for reserved)",
+        "threat_model_declared": "PARTIAL (skeleton mandated for reserved)",
+        "admin_guide_declared": false,
+        "api_reference_declared": false,
+        "user_stories_declared": false,
+        "runbooks_declared": false,
+        "onboarding_doc_declared": false,
+        "score_against_100_artifact_bar": "20% explicit / reserved-state acceptable per build-ahead-of-cert doctrine"
+      }
+    ],
+    "headline_finding": "Bundle declares ~14 new microservices but NONE has an explicit doc-suite enumeration in its parent ADR's Implementation Surface matching the ADR-0212 / ADR-0063 100-artifact bar. Doc-suite presence is delegated to downstream IPs without the keystone ADR binding them to lean-a5-documentation as a required-green acceptance criterion."
+  },
+  "doc_coverage_lane_coverage": {
+    "lane_name": "lean-a5-documentation",
+    "lane_authority": "ADR-0063 §Decision + registry/quality/lanes.yaml",
+    "lane_status": "report-only until M02-P22 exit gate; BLOCKER thereafter per ADR-0063 §6.4",
+    "referenced_in_sampled_keystone_adrs": "0 of 6 sampled (0%)",
+    "referenced_in_bundle_audit_report": "UNKNOWN — not in sampled corpus, recommend F-Synthesizer verify",
+    "referenced_in_reading_order_doc": false,
+    "referenced_in_hyperscaler_attribution_doc": false,
+    "load_bearing_finding": "Doc-coverage lane is the mechanical enforcement spine for the buildability doctrine, but ZERO sampled keystone ADRs name it. The bundle's promotion criteria (e.g. ADR-0242 §Verification, ADR-0246 §Acceptance Tests) do not list 'lean-a5-documentation GREEN' as a required-green gate for the new µservices being introduced.",
+    "downstream_risk": "A future ADR-0246-IP author could ship policy-engine substrate to dev/staging without doc-coverage GREEN because the keystone ADR does not bind acceptance to the lane. The keystone bundle promotion would not catch this regression."
+  },
+  "doctrinal_layer_strengths": [
+    "Companion onboarding reading-order (/docs/architecture/keystone-bundle-reading-order.md) is exemplary: 21-32 hour reading budget, 9 phases, self-check quizzes, common-confusions section, agent-protocol section. This is the strongest A2 artifact in the bundle.",
+    "Hyperscaler-pattern attribution matrix (/docs/architecture/hyperscaler-pattern-attribution.md, 2527 lines, 205 rows) is mandatory-extend-per-ADR per §8 maintenance protocol — this is enforceable doc-discipline.",
+    "Per-ADR Appendix A (hyperscaler attribution) is required by every keystone ADR and consolidated into the matrix — strong A2 discipline.",
+    "Implementation Surface tables exist in all 6 sampled ADRs, with row counts 21-70 — surface declaration is consistent.",
+    "4 PRDs (Messenger 1232 refs, Mail 122 refs, Community 37 refs, Workplace-Integration 140 refs) carry doc-coverage signals at the hero-product layer.",
+    "ADR-0245 §D-6 reserved-µservice doctrine binds tier classification to PRD+threat-model+IaC presence at scaffold time — this is correct A2 wiring even though it does not enumerate the full 100-artifact bar."
+  ],
+  "doctrinal_layer_gaps": [
+    "lean-a5-documentation lane (ADR-0063) is not referenced by NAME in any of the 6 sampled keystone ADRs.",
+    "ADR-0212 buildability doctrine (the 100+ artifact / stranger-test bar) is not referenced by NAME in any of the 6 sampled keystone ADRs.",
+    "Implementation Surface tables enumerate runbooks + standards + crates + some PRD amendments, but do NOT enumerate per-NEW-µservice doc-suite (admin-guide + api-reference + user-stories + onboarding + migration-guide + slo-spec + dpia) for the ~14 new µservices the bundle introduces.",
+    "policy-engine µservice PRD (microservices/policy-engine/PRD.md) is not declared as a NEW artifact in ADR-0246 Implementation Surface — only Ontology PRD amendments are listed. A stranger-test reader cannot trace where the policy-engine PRD lives.",
+    "compliance-pack-registry + cell-certification-registry µservice PRDs are not declared as NEW artifacts in ADR-0251 Implementation Surface.",
+    "Bundle promotion criteria (per-ADR §Verification + §Acceptance sections) do not list 'lean-a5-documentation GREEN' as a required-green gate for promoting any of the new microservices past dev.",
+    "No A2-specific section in the keystone-bundle-audit-report.md confirms doc-suite enumeration for each new µservice introduced (must be verified by F-Synthesizer)."
+  ],
+  "recommendations": [
+    {
+      "priority": "P1",
+      "recommendation": "Add a 'Required CI gates' subsection to the §Verification section of every keystone ADR that introduces a new µservice (ADR-0246, ADR-0249, ADR-0251, ADR-0254, ADR-0255). The subsection must explicitly name 'lean-a5-documentation GREEN' as a required-green gate for the new µservice's first promotion past dev.",
+      "affected_adrs": ["ADR-0246", "ADR-0249", "ADR-0251", "ADR-0254", "ADR-0255"]
+    },
+    {
+      "priority": "P1",
+      "recommendation": "Extend the Implementation Surface table in each keystone ADR that introduces a new µservice to enumerate the per-µservice doc-suite explicitly: PRD, threat-model, DPIA-when-regulated, admin-guide, api-reference, user-stories-b2b, user-stories-b2c (when applicable), onboarding-runbook, migration-guide, slo-spec. The ADR-0212 100-artifact bar should be cited inline.",
+      "affected_adrs": ["ADR-0246", "ADR-0249", "ADR-0251", "ADR-0254", "ADR-0255"]
+    },
+    {
+      "priority": "P2",
+      "recommendation": "Add a top-level §A2 Documentation Coverage section to the keystone-bundle-audit-report.md that cross-tabulates each new µservice against the ADR-0063 doc-suite checklist. This becomes the F-Synthesizer input for the round-2 doc-coverage verdict.",
+      "affected_artifacts": ["/docs/architecture/keystone-bundle-audit-report.md"]
+    },
+    {
+      "priority": "P2",
+      "recommendation": "Extend ADR-0212 buildability doctrine with an explicit per-keystone-ADR maintenance protocol mirroring the §8 maintenance protocol in the hyperscaler-pattern-attribution matrix. Every new keystone ADR must enumerate the doc-suite for any new µservice it introduces, in the same commit.",
+      "affected_artifacts": ["/docs/decisions/ADR-0212-buildability-doctrine.md"]
+    },
+    {
+      "priority": "P2",
+      "recommendation": "Add an A2-specific phase to /docs/architecture/keystone-bundle-reading-order.md (Phase 6 or new Phase 6.5) that points new readers + agents at lean-a5-documentation lane evidence and the ADR-0212 stranger-test prompt as required pre-promotion reading.",
+      "affected_artifacts": ["/docs/architecture/keystone-bundle-reading-order.md"]
+    },
+    {
+      "priority": "P3",
+      "recommendation": "Declare microservices/policy-engine/PRD.md as a NEW artifact in ADR-0246 Implementation Surface (currently implicit). Same for microservices/compliance-pack-registry/PRD.md + microservices/cell-certification-registry/PRD.md in ADR-0251.",
+      "affected_adrs": ["ADR-0246", "ADR-0251"]
+    },
+    {
+      "priority": "P3",
+      "recommendation": "Add a doc-coverage scorecard to the per-ADR Implementation Surface table: for each NEW µservice declared in the ADR, mark each of (PRD, threat-model, DPIA, admin-guide, api-reference, user-stories, onboarding, runbooks, slo-spec, migration-guide) as GREEN / AMBER / RED so the stranger-test reader can audit at a glance.",
+      "affected_adrs": ["ADR-0246", "ADR-0249", "ADR-0251", "ADR-0254", "ADR-0255"]
+    },
+    {
+      "priority": "P3",
+      "recommendation": "Verify (via parallel F1/F4 reviewer fanout) that ADR-0249 (marketplace 8+4), ADR-0254 (deployment-control-plane), ADR-0255 (intelligence two-layer) Implementation Surface tables match or exceed the sampled-ADR pattern. NOT_SAMPLED in this review.",
+      "affected_artifacts": ["ADR-0249", "ADR-0254", "ADR-0255"]
+    }
+  ],
+  "evidence_paths": [
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0212-buildability-doctrine.md (per-artifact buildability bar; stranger-test prompt; gate ladder)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0063-documentation-suite-coverage.md (lean-a5-documentation lane; BLOCKER at M02-P22; --blocker flag invariant)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md §Implementation surface (21 rows; 3 new docs)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0243-cedar-as-universal-gate.md §Implementation surface (25 rows; 1 standards doc + 3 runbooks)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0245-substrate-vs-product-layering.md §D-3 + §D-6 + §Implementation surface (38 rows; reserved-µservice doctrine binds PRD+threat-model+IaC)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0246-policy-engine-substrate-promotion.md §Implementation surface (45 rows; 7 Ontology PRD amendments + 47-crate redistribution)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md §Implementation surface (70 rows; 9 runbooks + 2 standards docs)",
+    "/Users/jasonlee/oyatie/docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md §Implementation surface (64 rows; 5 runbooks + 2 standards docs + JSON schema + Appendix D embedded runbook)",
+    "/Users/jasonlee/oyatie/docs/architecture/keystone-bundle-reading-order.md (companion onboarding doc; 21-32h budget; 9 phases; agent protocol)",
+    "/Users/jasonlee/oyatie/docs/architecture/hyperscaler-pattern-attribution.md (205-row consolidated matrix; §8 maintenance protocol mandatory-extend)",
+    "/Users/jasonlee/oyatie/microservices/messenger/PRD.md (hero-product PRD; 1232 doc-suite refs)",
+    "/Users/jasonlee/oyatie/microservices/mail/PRD.md (hero-product PRD; 122 doc-suite refs)",
+    "/Users/jasonlee/oyatie/microservices/community/PRD.md (hero-product PRD; 37 doc-suite refs)",
+    "/Users/jasonlee/oyatie/docs/products/workplace-integration/PRD.md (cross-cutting product PRD; 140 doc-suite refs)"
+  ],
+  "overall_signal_for_synthesizer": {
+    "verdict": "AMBER",
+    "blockers": [],
+    "must_fix_before_promotion": [
+      "ADD lean-a5-documentation GREEN as required-green gate in §Verification of ADR-0246, ADR-0249, ADR-0251, ADR-0254, ADR-0255",
+      "EXTEND Implementation Surface in same ADRs to enumerate per-µservice doc-suite (PRD + threat-model + admin-guide + api-reference + user-stories + onboarding + slo-spec + migration-guide) for every new µservice introduced",
+      "CITE ADR-0212 + ADR-0063 by name in keystone ADRs that introduce new µservices"
+    ],
+    "should_fix_for_hygiene": [
+      "Add A2 doc-coverage section to keystone-bundle-audit-report.md",
+      "Add A2-Phase to keystone-bundle-reading-order.md pointing at stranger-test + lean-a5 lane",
+      "Add per-µservice doc-coverage scorecard column to Implementation Surface tables"
+    ],
+    "facets_to_cross_verify": [
+      "A3 (Structure) — verify per-microservice flat layout includes doc/ subtree on scaffold",
+      "F4 (Architecture) — verify Implementation Surface dependency rules don't conflict with doc-suite location",
+      "M2 (Meta-review) — confirm A2 reviewer fanout covers ADR-0249 + ADR-0254 + ADR-0255 (NOT_SAMPLED here)"
+    ],
+    "confidence": 0.72,
+    "confidence_caveat": "6-of-14 ADRs sampled; ADR-0249 (marketplace 8+4 µservices) + ADR-0254 (deployment-control-plane) + ADR-0255 (intelligence two-layer) NOT sampled; verdict could shift to GREEN if those three ADRs cite lean-a5 + ADR-0212 + enumerate per-µservice doc-suite. Verdict could shift to RED if those three ADRs are silent on all three signals like the sampled six."
+  }
+}

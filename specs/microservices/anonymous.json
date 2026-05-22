@@ -288,7 +288,7 @@
       "no_foreign_key_constraint": "anonymous posts table has no FK to user identity table; join is physically impossible in query path",
       "legal_reveal_procedure": "four-eyes HSM vault access with dual compliance officer approval; produces sealed audit package; emits ConnectAnonIdentityRevealed to immutable audit chain"
     },
-    "enforcement_lane": "oya-foundry-fitness-connect-anon-identity-isolation",
+    "enforcement_lane": "oya-governance-connect-anon-identity-isolation",
     "cross_context_mediation": {
       "policy": "Connect Anonymous remains work-context only. Personal-to-work or work-to-personal movement is denied by default and may only occur through Workflow consent-token flows that emit aggregate-only Ontology projections.",
       "mediators": [
@@ -400,28 +400,28 @@
     {
       "anti_pattern": "policy_only_anonymity_without_cryptographic_enforcement",
       "why": "policy-only anonymity is insufficient for this product; cryptographic separation is the required planning target",
-      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation",
+      "detection_lane": "oya-governance-connect-anon-identity-isolation",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "employer_individual_attribution",
       "why": "destroys psychological safety; ADR-0208/0215; employers receive aggregate stats only",
-      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation",
+      "detection_lane": "oya-governance-connect-anon-identity-isolation",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "moderator_identity_reveal_without_legal_hold",
       "why": "moderators must see anonymous_author_token only; real identity is HSM-gated four-eyes procedure",
-      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation",
+      "detection_lane": "oya-governance-connect-anon-identity-isolation",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "personal_context_anonymous_boards",
       "why": "ConnectAnonymous is work-context only; mixing personal anonymous discussion with professional is out of scope and a pillar violation",
-      "detection_lane": "oya-foundry-fitness-connect-pillar",
+      "detection_lane": "oya-governance-connect-pillar",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     }
@@ -743,7 +743,7 @@
         "GA": 100
       },
       "verification_ref": "cargo bench -p oya-connect-anonymous-bench -- anonymous_post_write_p95",
-      "lane_ref": "oya-foundry-fitness-perf-budget"
+      "lane_ref": "oya-governance-perf-budget"
     }
   ],
   "risks": [
@@ -866,17 +866,17 @@
     {
       "id": "BP-ANON-01",
       "rule": "anonymous posts store anonymous_author_token only",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-anon-identity-isolation"
+      "planned_enforcement_ref": "oya-governance-connect-anon-identity-isolation"
     },
     {
       "id": "BP-ANON-02",
       "rule": "employer-facing views expose aggregate stats only",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-anon-aggregate-only"
+      "planned_enforcement_ref": "oya-governance-connect-anon-aggregate-only"
     },
     {
       "id": "BP-ANON-03",
       "rule": "legal identity reveal requires two compliance officers and HSM vault access",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-anon-legal-hold"
+      "planned_enforcement_ref": "oya-governance-connect-anon-legal-hold"
     }
   ],
   "patterns": [
@@ -910,22 +910,22 @@
     {
       "anti_pattern": "policy_only_anonymity_without_cryptographic_enforcement",
       "why_forbidden": "policy can be bypassed; cryptographic separation (no FK, keyed hash, HSM vault) is the only trustworthy guarantee",
-      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation"
+      "detection_lane": "oya-governance-connect-anon-identity-isolation"
     },
     {
       "anti_pattern": "employer_individual_attribution",
       "why_forbidden": "destroys psychological safety; ADR-0208/0215; employers receive aggregate stats only",
-      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation"
+      "detection_lane": "oya-governance-connect-anon-identity-isolation"
     },
     {
       "anti_pattern": "moderator_identity_reveal_without_legal_hold",
       "why_forbidden": "moderators must see anonymous_author_token only; real identity is HSM-gated four-eyes procedure",
-      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation"
+      "detection_lane": "oya-governance-connect-anon-identity-isolation"
     },
     {
       "anti_pattern": "personal_context_anonymous_boards",
       "why_forbidden": "ConnectAnonymous is work-context only; mixing personal anonymous discussion with professional is out of scope and a pillar violation",
-      "detection_lane": "oya-foundry-fitness-connect-pillar"
+      "detection_lane": "oya-governance-connect-pillar"
     }
   ],
   "goals": {

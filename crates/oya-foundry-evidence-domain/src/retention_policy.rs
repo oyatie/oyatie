@@ -21,16 +21,16 @@ impl RetentionDays {
 
 /// Regulatory schedule that governs how evidence is retained.
 ///
-/// Canonical schedules are jurisdiction-neutral minima. Localization and
-/// regulatory packs map concrete legal obligations onto these stable
-/// schedule classes outside the canonical base. The `Custom` variant is
-/// provided for extension without breaking the enum.
+/// Each named variant maps to a product-level retention duty rather than a
+/// jurisdiction identifier. The `Custom` variant is provided for extension
+/// without breaking the enum; callers should prefer a named variant wherever
+/// one exists.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum RegulatorySchedule {
-    /// Pack-mapped privacy evidence baseline — 3-year minimum (1 095 days).
-    PrivacyEvidenceBaseline,
-    /// Pack-mapped processing record baseline — 3-year minimum (1 095 days).
-    ProcessingRecordBaseline,
+    /// Standard evidence record — 3-year minimum (1 095 days).
+    EvidenceRecordThreeYear,
+    /// Processing activity record — 3-year minimum (1 095 days).
+    ProcessingActivityRecordThreeYear,
     /// Custom schedule; duration is caller-supplied.
     Custom,
 }
@@ -41,8 +41,8 @@ impl RegulatorySchedule {
     /// Returns `None` for `Custom` because the duration is caller-defined.
     pub fn default_retention_days(self) -> Option<RetentionDays> {
         match self {
-            RegulatorySchedule::PrivacyEvidenceBaseline => Some(RetentionDays(1_095)),
-            RegulatorySchedule::ProcessingRecordBaseline => Some(RetentionDays(1_095)),
+            RegulatorySchedule::EvidenceRecordThreeYear => Some(RetentionDays(1_095)),
+            RegulatorySchedule::ProcessingActivityRecordThreeYear => Some(RetentionDays(1_095)),
             RegulatorySchedule::Custom => None,
         }
     }
@@ -128,22 +128,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn privacy_evidence_baseline_default_is_1095_days() {
+    fn evidence_record_default_is_1095_days() {
         let policy =
-            RetentionPolicy::from_schedule_default(RegulatorySchedule::PrivacyEvidenceBaseline)
+            RetentionPolicy::from_schedule_default(RegulatorySchedule::EvidenceRecordThreeYear)
                 .unwrap();
         assert_eq!(policy.retention_days().as_u32(), 1_095);
         assert_eq!(
             policy.schedule(),
-            RegulatorySchedule::PrivacyEvidenceBaseline
+            RegulatorySchedule::EvidenceRecordThreeYear
         );
     }
 
     #[test]
-    fn processing_record_baseline_default_is_1095_days() {
-        let policy =
-            RetentionPolicy::from_schedule_default(RegulatorySchedule::ProcessingRecordBaseline)
-                .unwrap();
+    fn processing_activity_record_default_is_1095_days() {
+        let policy = RetentionPolicy::from_schedule_default(
+            RegulatorySchedule::ProcessingActivityRecordThreeYear,
+        )
+        .unwrap();
         assert_eq!(policy.retention_days().as_u32(), 1_095);
     }
 
@@ -162,7 +163,7 @@ mod tests {
     #[test]
     fn zero_retention_days_is_rejected() {
         let err = RetentionPolicy::new(
-            RegulatorySchedule::PrivacyEvidenceBaseline,
+            RegulatorySchedule::EvidenceRecordThreeYear,
             RetentionDays(0),
         )
         .unwrap_err();
@@ -172,7 +173,7 @@ mod tests {
     #[test]
     fn below_minimum_is_rejected() {
         let err = RetentionPolicy::new(
-            RegulatorySchedule::PrivacyEvidenceBaseline,
+            RegulatorySchedule::EvidenceRecordThreeYear,
             RetentionDays(364),
         )
         .unwrap_err();
@@ -188,7 +189,7 @@ mod tests {
     #[test]
     fn above_minimum_is_accepted() {
         let policy = RetentionPolicy::new(
-            RegulatorySchedule::PrivacyEvidenceBaseline,
+            RegulatorySchedule::EvidenceRecordThreeYear,
             RetentionDays(2_000),
         )
         .unwrap();

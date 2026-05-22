@@ -206,7 +206,7 @@ Bench suite at `microservices/cloud-secrets/tests/bench/sdk-resolution-latency.r
 - M01: Rust + TS + Python at v1.0.
 - M02: Go SDK (native gRPC client).
 - M03: Java/Kotlin SDK.
-- M03: Tenant-side SDK for BYOK upload from tenant CLI tools.
+- M03: Tenant-side SDK for encryption-key BYOK upload from tenant CLI tools (ADR-0251 §D-10).
 - Post-M03: WebAssembly target (Rust compiled to WASM for browser-side use in tenant admin tooling — strictly read-metadata; never resolve).
 
 ## References

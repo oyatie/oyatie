@@ -219,3 +219,7 @@ Used by `agreement-usecase::amend` to decide whether re-acceptance is required. 
 
 Any addition requires a public-API-surface snapshot delta + reviewer-agent approval per
 ADR-0064.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: OneTrust and TrustArc provide consent/preference record semantics; Cookiebot provides consent-state categories; Snowflake and Databricks provide sharing scopes without consent-domain invariants. This domain IP keeps Oyatie-specific scope narrowing, sovereignty resolution, predicate parsing, and template materialization in pure rules so counterpart-style UX and data-share concepts cannot bypass agreement validity.

@@ -19,14 +19,13 @@
 | Per-table rows | ≤ 10 B | 100 B | Move to a dedicated cell-local cluster |
 | Concurrent queries (per server replica) | ≤ 64 | 128 | Set via `max_concurrent_queries`; reject above |
 
-## Per-tenant resource ceilings (project from ADR-0155 + tier matrix)
+## Per-tenant resource ceilings (project from ADR-0155 + tenant_class matrix)
 
-| Tier | Queries/hr | Read rows/hr | Insert rows/hr | Concurrent queries |
+| tenant_class | Queries/hr | Read rows/hr | Insert rows/hr | Concurrent queries |
 |---|---|---|---|---|
-| Trial | 100 | 10 M | 1 M | 4 |
-| Starter | 1,000 | 1 B | 100 M | 16 |
-| Growth | 10,000 | 10 B | 1 B | 32 |
-| Enterprise | 100,000 | 1 T (capped) | 100 B (capped) | 64 |
+| demo_trial | 100 | 10 M | 1 M | 4 |
+| paid | 10,000 | 10 B | 1 B | 32 |
+| paid_contract_overlay | 100,000 | 1 T (capped) | 100 B (capped) | 64 |
 
 Quota exceedance returns HTTP 429 + Cedar evidence; documented in `microservices/analytics/runbooks/clickhouse.md`.
 
@@ -94,7 +93,7 @@ Per Tier-A patterns from hyperscaler-architecture-invariants:
 
 ## Capacity-planning escalation
 
-When 70% of any hard ceiling above is breached for 7 consecutive days, capacity-planning team is paged via PagerDuty `capacity-planning`. Pre-defined escalation actions (sharding, replica add, tier downgrade) documented in `microservices/analytics/runbooks/capacity-rebalance.md` (deferred to follow-on doc batch).
+When 70% of any hard ceiling above is breached for 7 consecutive days, capacity-planning team is paged via PagerDuty `capacity-planning`. Pre-defined escalation actions (sharding, replica add, tenant_class conversion or paid billing_components review) documented in `microservices/analytics/runbooks/capacity-rebalance.md` (deferred to follow-on doc batch).
 
 ## References
 

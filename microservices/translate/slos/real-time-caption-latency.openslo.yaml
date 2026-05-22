@@ -8,7 +8,7 @@ metadata:
     microservice: translate
     bc: real-time-stream
     sli_class: latency
-    tier: hero-and-substrate
+    service_classification: hero-and-substrate
     owner_team: axis-translate + axis-meet
     pack_scope: all
     accessibility_critical: "true"

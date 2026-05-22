@@ -37,22 +37,22 @@ autonomy_tier: T1
 # T1 = AI drafts; tenant reviews + accepts; ChangeSet-bound; reversible.
 # Per ADR-FORMS-0005 §"T1 — Assist".
 
-eu_ai_act:
+risk_class:
   scope: potentially_high_risk
   rationale: |
     T1 default scope intra-µservice; not high-risk by default. Becomes high-risk
-    if tenant attests annex_iii_4_screening=true (employment/credit/insurance
-    screening) — Annex III §4. Builder requires DPIA + AI-Act conformity
+    if tenant attests auto_decision_screening=true (employment/credit/insurance
+    screening) — employment-context high-risk auto-decision. Builder requires DPIA + pack-specific conformity
     assessment in that case.
-  recital_65_check: applies_if_annex_iii_4
-  annex_iii_4_check: tenant-attested at publish time
+  recital_65_check: applies_if_auto_decision_screening
+  auto_decision_screening_check: tenant-attested at publish time
   transparency_obligation: |
-    Form spec field `ai_build_origin=true` set; submitter banner per Art. 50
+    Form spec field `ai_build_origin=true` set; submitter banner per active pack transparency
     rendered above form.
   human_oversight: |
-    Tenant explicitly reviews + accepts each draft per Art. 14.
+    Tenant explicitly reviews + accepts each draft per active pack human-oversight.
   records: |
-    90-day archive of prompt + completion + Cedar decision per Art. 12.
+    90-day archive of prompt + completion + Cedar decision per active pack audit-record.
 
 inputs:
   - name: tenant_id
@@ -63,7 +63,7 @@ inputs:
     type: string
     max_length: 4000
     required: true
-  - name: annex_iii_4_screening
+  - name: auto_decision_screening
     type: boolean
     description: tenant attestation; if true, triggers high-risk classification
     required: true
@@ -78,7 +78,7 @@ outputs:
     description: candidate form.v1 spec
   - name: high_risk_classified
     type: boolean
-    description: true if annex_iii_4_screening OR LLM inferred high-risk patterns
+    description: true if auto_decision_screening OR LLM inferred high-risk patterns
   - name: dpia_required
     type: boolean
     description: true if high_risk_classified OR SENSITIVE_GDPR_ART9 fields inferred
@@ -124,17 +124,17 @@ cedar_policy_fragments:
   - microservices/forms/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/forms/capabilities/eval/t1-assist-golden.jsonl
+  reference_inputs_path: microservices/forms/capabilities/eval/t1-assist-reference.jsonl
   pass_threshold: 0.80
   eval_metric: |
     Composite invariants over 1000-prompt corpus:
     (a) Schema-valid completion rate ≥ 80%.
     (b) Data-class inference correctness ≥ 95% on a labelled subset.
-    (c) Annex III §4 detection sensitivity ≥ 90% (high-recall).
+    (c) employment-context high-risk auto-decision detection sensitivity ≥ 90% (high-recall).
     (d) Cross-µservice node inclusion = 0% (forbidden at T1).
     (e) Cedar bypass attempts = 0%.
   cadence: per-release + nightly
-  reference: ADR-FORMS-0005 §"Decision" + EU AI Act Art. 15 accuracy
+  reference: ADR-FORMS-0005 §"Decision" + regional AI-risk Art. 15 accuracy
 
 invariants:
   - never_silent_publish: |
@@ -148,7 +148,7 @@ invariants:
   - never_cedar_bypass: |
       LLM emitting `cedar_check: skip` is rejected.
       Asserted by `tests/integration/t1_cedar_bypass.rs`.
-  - annex_iii_4_attestation_required: |
+  - auto_decision_attestation_required: |
       Builder requires tenant attestation at publish; ChangeSet enforces.
 
 sunset:

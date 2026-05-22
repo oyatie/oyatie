@@ -192,12 +192,12 @@ components:
 
     AutonomyViolatedPayload:
       type: object
-      required: [tenant, capability, requested_tier, allowed_tier, cedar_reason, refused_at, signature]
+      required: [tenant, capability, requested_autonomy_level, allowed_autonomy_level, cedar_reason, refused_at, signature]
       properties:
         tenant: {type: string}
         capability: {type: string}
-        requested_tier: {type: string, enum: [T0, T1, T2, T3]}
-        allowed_tier: {type: string, enum: [T0, T1, T2, T3]}
+        requested_autonomy_level: {type: string, enum: [T0, T1, T2, T3]}
+        allowed_autonomy_level: {type: string, enum: [T0, T1, T2, T3]}
         cedar_reason: {type: string}
         request_id: {type: string}
         refused_at: {type: string, format: date-time}

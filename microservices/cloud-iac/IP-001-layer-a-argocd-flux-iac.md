@@ -45,7 +45,7 @@ argo-cd:
       registry: quay.io
       repository: argoproj/argocd
       tag: "v2.13.0"  # LTS pinned per docs/standards/observability-slo.md
-  redis-ha:
+  redis-ha: # counterpart-fact: upstream Argo CD Helm chart key; backing substrate is Valkey.
     enabled: true
     replicas:
       servers: 3
@@ -105,3 +105,12 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - `docs/standards/observability-slo.md` §"Supply-chain conformance".
 - ArgoCD HA chart — `github.com/argoproj/argo-helm/tree/main/charts/argo-cd`.
 - Flux helm-charts — `github.com/fluxcd-community/helm-charts`.
+
+## DR posture (per ADR-0343)
+
+- Target source: `microservices/cloud-iac/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` with drill cadence `annual`.
+- RTO/RPO target: RTO p99 <= `14400` seconds; RPO p99 <= `900` seconds.
+- Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `false`, so this declaration is equal to or stronger than the floor.
+- backup_substrate: [`object_storage_versioned`, `seaweedfs_replicated`, `postgres_wal_g`].
+- Surface evidence: `microservices/cloud-iac/runbooks/restore-drill-quarterly.md`, `microservices/cloud-iac/runbooks/seaweedfs-volume-failover.md`, `microservices/cloud-iac/manifest.json`, `microservices/cloud-iac/IP-001-layer-a-argocd-flux-iac.md`.

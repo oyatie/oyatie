@@ -16,7 +16,7 @@
     ]
   },
   "design_spec_maturity_claim_rule": {
-    "exact_claim": "Oyatie\u2019s architecture, platform, and system design are specified to a hyperscaler-grade design maturity bar.",
+    "exact_claim": "Oyatie’s architecture, platform, and system design are specified to a hyperscaler-grade design maturity bar.",
     "claim_status": "allowed_when_required_design_surfaces_are_green",
     "claim_scope": "design/spec maturity only: architecture, platform, and system design surfaces are complete enough for implementation-ready review",
     "required_evidence_refs": [
@@ -146,5 +146,40 @@
       "name": "Implementation-ready acceptance criteria",
       "evidence_policy": "Each microservice has Markdown acceptance criteria."
     }
-  ]
+  ],
+  "spec_id": "SPEC-DESIGN-SPEC-MATURITY-CLAIMS",
+  "title": "Design/spec maturity claim evidence standard",
+  "status": "Accepted",
+  "purpose": "Define the machine-enforced evidence bar for a bounded architecture/platform/system design maturity claim.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "council-architecture + axis-foundry",
+    "last_audited": "2026-05-20",
+    "substance_bar": "documentation-rigor.md section 1.1",
+    "canonical_gate": "oya gate validate design-spec-maturity-claims",
+    "authority_boundary": "Allows design/spec maturity claims only; does not authorize operational, production, certification, SLO-achievement, or product-completeness claims."
+  },
+  "hyperscaler_grade_rigor": {
+    "named_precedent": "AWS Well-Architected review and Google production-readiness-review style claim gating: design claims require explicit evidence and do not imply runtime readiness.",
+    "failure_modes": [
+      {
+        "mode": "design claim inflated into production readiness",
+        "expected_behavior": "forbidden_claim_patterns and operational_maturity_claim_rule block the claim"
+      },
+      {
+        "mode": "required surface missing for one microservice",
+        "expected_behavior": "gate emits evidence gap and claim remains blocked for that surface"
+      },
+      {
+        "mode": "stale evidence reused after corpus changes",
+        "expected_behavior": "primary evidence command regenerates evidence/design-spec-maturity/after-2026-05-18.json"
+      }
+    ],
+    "observability_hooks": [
+      "evidence/design-spec-maturity/after-2026-05-18.json",
+      "oya gate validate design-spec-maturity-claims"
+    ],
+    "rollback_path": "Remove or narrow the exact_claim until required surfaces are green again.",
+    "versioning": "Additive schema evolution under schema_version oyatie.design-spec-maturity-claims.v1; breaking claim semantics require ADR update."
+  }
 }

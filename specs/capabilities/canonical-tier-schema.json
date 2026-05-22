@@ -131,7 +131,7 @@
               "type": "string",
               "enum": ["prohibited", "high-risk-ai-system", "limited-risk-ai-system", "minimal-risk-ai-system"]
             },
-            "annex_iii_section": {"type": "string"},
+            "risk_anchor_section": {"type": "string"},
             "arts_applicable": {"type": "array", "items": {"type": "string"}},
             "transparency_obligation": {"type": "string"},
             "human_oversight": {"type": "string"}

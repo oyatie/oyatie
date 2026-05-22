@@ -91,9 +91,6 @@ Methodology: live web search against canonical upstream sources (project website
 
 | Component | Current release | Release date | Source URL | License | Notes |
 |---|---|---|---|---|---|
-| rtk-ai/grit | v0.3.0 | 2026-04-06 | https://github.com/rtk-ai/grit/releases | Apache-2.0 (per org convention; see https://github.com/rtk-ai/icm/blob/main/LICENSE) | "Git for AI agents." Early-stage (0.3.x). |
-| rtk-ai/icm | v0.10.39 | 2026 | https://github.com/rtk-ai/icm/releases | Apache-2.0 (https://github.com/rtk-ai/icm/blob/main/LICENSE) | "Permanent memory for AI agents." Single binary, MCP native. Apache-2.0 → cargo-deny pass. |
-| rtk-ai/rtk (Rust Token Killer) | dev-0.39.0-rc.199 | 2026-04-29 | https://github.com/rtk-ai/rtk/releases | Apache-2.0 (LICENSE file) / website states MIT — discrepancy; LICENSE file authoritative | CLI proxy for token reduction (used by CLAUDE.md). |
 | OpenBao | v2.5.3 | 2026-04-20 | https://github.com/openbao/openbao/releases | MPL-2.0 | Secrets manager (Vault fork). MPL-2.0 cleared by current `deny.toml`. |
 
 ---
@@ -122,8 +119,6 @@ Sources read: `/Users/jasonlee/oyatie/rust-toolchain.toml` (`channel = "1.95.0"`
 | Trivy | not pinned | v0.70.0 | n/a | MED — `D11` (`cargo deny check`) covers Rust but no container-image scan gate yet. |
 | cargo-deny | invoked via `cargo deny check` (D11); version not pinned | 0.19.5 | n/a | MED — MSRV is compatible with Rust 1.95.0, but the tool version still needs a durable pin. |
 | Anthropic / OpenAI / Gemini SDKs | not declared in any kernel Cargo.toml (RAG kernel exists but no provider crate) | see Provider SDKs table | n/a | MED — multi-provider adapter design must pick HTTP-direct vs community crate. |
-| icm | used per repo CLAUDE.md mandate | v0.10.39 | n/a | LOW. |
-| grit | referenced via `.grit/` dir | v0.3.0 | n/a | LOW. |
 | OpenBao | not yet integrated (`oya-platform-secrets-kernel` exists) | v2.5.3 | n/a | MED — kernel exists but no upstream binary contract yet. |
 
 ---

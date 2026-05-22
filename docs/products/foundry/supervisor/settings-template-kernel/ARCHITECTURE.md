@@ -114,7 +114,6 @@ Gemini renderer
      └─ ...
 ```
 
-Test coverage: `tests/hook_event_mapping.rs` (v5 grit unit 5.22).
 
 ### `DriftState` Enum
 

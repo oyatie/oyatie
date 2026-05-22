@@ -9,8 +9,8 @@ purpose: |
   Single coherent progressive-delivery strategy. Pins the change-class decision matrix
   (blue/green vs canary vs rolling) and the default rails. Extends ADR-0040; does not duplicate.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0040, ADR-0041, ADR-0042, ADR-0044, ADR-0050, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -18,7 +18,6 @@ doc_status: published
 
 # Progressive-Delivery Strategy — Oyatie
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Thesis
 
@@ -62,7 +61,7 @@ Per [`stable-cohort-spec.md`](stable-cohort-spec.md). Regulated tenants (healthc
 
 ## 6. Rollback unit
 
-Per-cell. A bad release reverts in one cell without disturbing healthy cells. Per-cell rollback emits D14 audit-chain evidence ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)) and is tracked by planned advisory lane `oya-foundry-fitness-rollback-evidence`.
+Per-cell. A bad release reverts in one cell without disturbing healthy cells. Per-cell rollback emits D14 audit-chain evidence ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)) and is tracked by planned advisory lane `oya-governance-rollback-evidence`.
 
 ## 7. Anti-scope
 
@@ -70,12 +69,11 @@ This strategy does not own: SLO catalog (per [ADR-0042](../../decisions/ADR-0042
 
 ## 8. Compliance gates
 
-- `oya-foundry-fitness-canary-required` (NEW; BLOCKER) — refuses kernel/domain/app/api/adapter changes without canary manifest.
-- `oya-foundry-fitness-rollback-evidence` (NEW; BLOCKER) — refuses release without signed D14 rollback artefact.
-- `oya-foundry-fitness-cohort-honor` (NEW; HIGH) — verifies cohort-honour at canary cut.
-- `oya-foundry-fitness-slo-coverage` (existing; extended) — requires burn-rate alert per service.
+- `oya-governance-canary-required` (NEW; BLOCKER) — refuses kernel/domain/app/api/adapter changes without canary manifest.
+- `oya-governance-rollback-evidence` (NEW; BLOCKER) — refuses release without signed D14 rollback artefact.
+- `oya-governance-cohort-honor` (NEW; HIGH) — verifies cohort-honour at canary cut.
+- `oya-governance-slo-coverage` (existing; extended) — requires burn-rate alert per service.
 
 ## 9. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — sanctioned agent primitives; rollout controllers invoke `icm store` for evidence emission.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — four-layer branch pipeline; canary 100% ≥ M hours is gate 3 of the staging → prod 5-gate verification.

@@ -18,7 +18,7 @@ allowed_dependency_edges:
   - oya-audit-chain-emission-sdk
 data_classes_owned: [AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 notes: |
   THE SOLE crate in foundry-evidence permitted to import oya-audit-chain-*.
   Encapsulates retry, back-off, SPIFFE binding, and dead-letter contract for

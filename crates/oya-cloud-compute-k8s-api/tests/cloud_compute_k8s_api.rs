@@ -13,7 +13,7 @@ use oya_cloud_compute_k8s_api::{
     create_cloud_compute_k8s_cluster_from_api, create_cluster,
 };
 
-const CLUSTER_ID: &str = "oya:cloud:home-region:ten_alpha:k8s:prod";
+const CLUSTER_ID: &str = "oya:cloud:region-home:ten_alpha:k8s:prod";
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudComputeK8sApiBoundaryContext {
     CloudComputeK8sApiBoundaryContext {
@@ -75,13 +75,13 @@ fn node_pool(id: &str, az: &str, subnet: &str) -> CloudComputeK8sNodePoolCreateR
             CloudComputeK8sSecurityGroupRef {
                 value: format!("sg_{id}_web"),
                 tenant_id: "ten_alpha".to_string(),
-                region: "home-region".to_string(),
+                region: "region-home".to_string(),
                 subnet_id: subnet.to_string(),
             },
             CloudComputeK8sSecurityGroupRef {
                 value: format!("sg_{id}_app"),
                 tenant_id: "ten_alpha".to_string(),
-                region: "home-region".to_string(),
+                region: "region-home".to_string(),
                 subnet_id: subnet.to_string(),
             },
         ],
@@ -96,29 +96,29 @@ fn body(resource_id: &str) -> CloudComputeK8sClusterCreateRequest {
     CloudComputeK8sClusterCreateRequest {
         resource_id: resource_id.to_string(),
         tenant_id: "ten_alpha".to_string(),
-        region: "home-region".to_string(),
+        region: "region-home".to_string(),
         flavor: "high_availability".to_string(),
         control_plane_version: "v1.30.2-oya.1".to_string(),
         control_plane_private: true,
         node_pools: vec![
             node_pool(
                 "np_a",
-                "home-region-a",
-                "oya:cloud:home-region:ten_alpha:subnet:prod-a",
+                "region-home-a",
+                "oya:cloud:region-home:ten_alpha:subnet:prod-a",
             ),
             node_pool(
                 "np_b",
-                "home-region-b",
-                "oya:cloud:home-region:ten_alpha:subnet:prod-b",
+                "region-home-b",
+                "oya:cloud:region-home:ten_alpha:subnet:prod-b",
             ),
             node_pool(
                 "np_c",
-                "home-region-c",
-                "oya:cloud:home-region:ten_alpha:subnet:prod-c",
+                "region-home-c",
+                "oya:cloud:region-home:ten_alpha:subnet:prod-c",
             ),
         ],
         quota: quota(),
-        residency: "strict_home".to_string(),
+        residency: "strict_home_region".to_string(),
         data_class: "PUBLIC".to_string(),
         created_at_epoch_seconds: 1_700_100_010,
     }
@@ -176,12 +176,12 @@ fn k8s_create_api_creates_cluster_once_and_replays_same_idempotent_result() {
     assert_eq!(first.metadata.request_id, "req-compute-k8s-create");
     assert_eq!(first.data.resource_id, CLUSTER_ID);
     assert_eq!(first.data.tenant_id, "ten_alpha");
-    assert_eq!(first.data.region, "home-region");
+    assert_eq!(first.data.region, "region-home");
     assert_eq!(first.data.flavor, "high_availability");
     assert_eq!(first.data.control_plane_version, "v1.30.2-oya.1");
     assert!(first.data.control_plane_private);
     assert_eq!(first.data.node_pool_count, 3);
-    assert_eq!(first.data.residency, "strict_home");
+    assert_eq!(first.data.residency, "strict_home_region");
     assert_eq!(first.data.state, "creating");
     assert_eq!(first.data.data_class, "PUBLIC");
     assert_eq!(first.data.schema_version, 1);
@@ -211,7 +211,7 @@ fn k8s_create_api_rejects_path_body_drift_before_catalog_mutation() {
     let mut catalog = CloudComputeCatalog::default();
     let mut ledger = CloudComputeK8sCreateIdempotencyLedger::default();
     let mut request = request("req-compute-k8s-drift", "idem-compute-k8s-drift");
-    request.body.resource_id = "oya:cloud:home-region:ten_alpha:k8s:other".to_string();
+    request.body.resource_id = "oya:cloud:region-home:ten_alpha:k8s:other".to_string();
 
     let error = create_cloud_compute_k8s_cluster_from_api(&mut catalog, &mut ledger, request)
         .expect_err("path/body cluster drift is rejected");
@@ -220,7 +220,7 @@ fn k8s_create_api_rejects_path_body_drift_before_catalog_mutation() {
         error,
         CloudComputeK8sApiError::ClusterIdMismatch {
             path_cluster_id: CLUSTER_ID.to_string(),
-            body_resource_id: "oya:cloud:home-region:ten_alpha:k8s:other".to_string(),
+            body_resource_id: "oya:cloud:region-home:ten_alpha:k8s:other".to_string(),
         }
     );
     assert_eq!(error.cluster_create_status_code(), 400);

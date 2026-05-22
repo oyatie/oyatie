@@ -68,9 +68,9 @@ fn start_body(session_id: &str) -> WorkspaceMeetSessionStartRequest {
     WorkspaceMeetSessionStartRequest {
         session_id: session_id.to_string(),
         tenant_id: TENANT_ID.to_string(),
-        region: "home-region".to_string(),
-        cell_id: "cell-workspace-alpha-001".to_string(),
-        sfu_pool_id: "sfu-pool-alpha-001".to_string(),
+        region: "region-home".to_string(),
+        cell_id: "cell-workspace-kr-001".to_string(),
+        sfu_pool_id: "sfu-pool-kr-001".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),
         started_at_epoch_seconds: 1_700_000_000,
         participants: participants(),
@@ -281,7 +281,7 @@ fn public_response_structs_keep_contract_names_stable() {
     let _record = WorkspaceMeetSessionRecord {
         session_id: "session".to_string(),
         tenant_id: TENANT_ID.to_string(),
-        region: "home-region".to_string(),
+        region: "region-home".to_string(),
         cell_id: "cell".to_string(),
         sfu_pool_id: "sfu".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),

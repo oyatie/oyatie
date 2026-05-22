@@ -10,7 +10,7 @@ purpose: |
   API surface as a layered DAG (kernel → runtime → adapter → app). Source: Cargo
   workspace metadata + `oya-foundry-cohesion-fitness-kernel` contract records +
   rustdoc link graph. Lift to `docs/visualization/service-map.md` as D2 + SVG.
-planned_enforcement_ref: oya-foundry-fitness-service-map
+planned_enforcement_ref: oya-governance-service-map
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
   - oya-foundry-architecture-map-kernel
@@ -95,7 +95,7 @@ For the mdbook chapter, the equivalent Mermaid `graph TB` is emitted alongside. 
 
 The pipeline also emits per-layer subviews `docs/visualization/service-map-<layer>.svg` for layer-specific deep-dives.
 
-## 5. Validation gates (`oya-foundry-fitness-service-map`)
+## 5. Validation gates (`oya-governance-service-map`)
 
 1. **Layer declaration.** Every workspace crate has catalog `role` plus `[package.metadata.oya.layer]` where present (BLOCKER).
 2. **Downstream-only edges.** A `kernel` crate MUST NOT depend on outer layers; `domain` must not depend on `usecase`/`app`/adapters/surfaces; `usecase` must not depend on concrete adapters or apps; `app -> app` is a BLOCKER. The pipeline enforces strict inward dependency direction.

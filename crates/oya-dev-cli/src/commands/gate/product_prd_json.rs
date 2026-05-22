@@ -124,8 +124,19 @@ fn is_prd_spec_file(path: &Path) -> bool {
     let Ok(json) = serde_json::from_str::<Value>(&content) else {
         return false;
     };
-    json.get("_meta")
-        .and_then(|m| m.get("spec_id"))
+    let meta = json.get("_meta");
+    // Skip retired specs (e.g., shorts.json absorbed into social per ADR-0334;
+    // network.json merged into community per Wave 15K). They carry status=Retired
+    // and a tombstone-only shape that omits the canonical PRD sections.
+    if meta
+        .and_then(|m| m.get("doc_class"))
+        .and_then(Value::as_str)
+        == Some("RetiredMicroserviceMarker")
+        || meta.and_then(|m| m.get("status")).and_then(Value::as_str) == Some("Retired")
+    {
+        return false;
+    }
+    meta.and_then(|m| m.get("spec_id"))
         .and_then(Value::as_str)
         .map(|sid| sid.starts_with("PRD-"))
         .unwrap_or(false)

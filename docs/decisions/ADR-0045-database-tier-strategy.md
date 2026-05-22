@@ -194,7 +194,7 @@ This ADR does not own the vector store (per ADR-0046, but pgvector lives in OLTP
 2. **Q2.** Citus per-shard count default — 32 or 64? Default: 32 at GA; per-cell tunable. → owner: `foundry`.
 3. **Q3.** ClickHouse fork tracking cadence — quarterly merge or per-release? Default: per-release with quarterly review. → ADR-0013.
 4. **Q4.** Iceberg catalog (Polaris vs in-house) — at GA Polaris or in-house? Default: Polaris at GA; in-house at W+24+. → owner: `foundry`.
-5. **Q5.** Per-tenant BYOK for OLTP encryption-at-rest at GA, or W+12? Default: W+12 (per ADR-0043 BYOK question). → ADR-0043.
+5. **Q5.** Per-tenant encryption-BYOK for OLTP encryption-at-rest at GA, or W+12? Default: W+12 (per ADR-0043 encryption-BYOK question). → ADR-0043.
 
 ---
 

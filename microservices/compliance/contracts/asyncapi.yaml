@@ -20,7 +20,7 @@ channels:
       vulnScanComplete: {$ref: '#/components/messages/VulnScanComplete'}
       phiAccess: {$ref: '#/components/messages/PhiAccess'}
   oya.compliance.artifact.emitted:
-    description: Compliance artifact emitted (downstream subscribers: ontology, audit-chain)
+    description: 'Compliance artifact emitted (downstream subscribers: ontology, audit-chain)'
     messages:
       artifactEmitted: {$ref: '#/components/messages/ArtifactEmitted'}
   oya.compliance.dsar.lifecycle:

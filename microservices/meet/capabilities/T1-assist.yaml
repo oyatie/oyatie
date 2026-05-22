@@ -101,7 +101,7 @@ pack_overrides:
     summary: enabled
     reason: FINRA Rule 4511 + SEC 17a-4(f)
   pack-eu:
-    eu_ai_act_classification:
+    risk_classification:
       live_captions: limited_risk
       transcript: limited_risk
       summary: limited_risk
@@ -129,7 +129,7 @@ cedar_policy_fragments:
   - microservices/meet/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/meet/capabilities/eval/t1-assist-golden.jsonl
+  baseline_inputs_path: microservices/meet/capabilities/eval/t1-assist-baseline.jsonl
   pass_threshold:
     live_captions_wer: 0.92  # WER ≤ 8 % on LibriSpeech-test
     transcript_wer: 0.95

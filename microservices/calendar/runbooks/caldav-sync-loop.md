@@ -121,7 +121,7 @@ If backend logs show ETag computation errors → backend regression.
    computation (per ADR-CAL-0001 — backend-qualified adapter must
    preserve canonicalisation invariants).
 3. Open a same-day fix-up ChangeSet against `dev` with a test that
-   pins the ETag of a specific VEVENT golden serialisation.
+   pins the ETag of a specific VEVENT baseline serialisation.
 
 ### Case D — Cross-tenant simultaneous loop (Sev-1)
 
@@ -161,7 +161,7 @@ cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo cald
 - Update this runbook if the loop signature was new (i.e., a new
   client or a new backend code path).
 - If Case C, the fix-up must include a regression test in
-  `tests/canon-etag-golden.rs`.
+  `tests/canon-etag-baseline.rs`.
 
 ## References
 

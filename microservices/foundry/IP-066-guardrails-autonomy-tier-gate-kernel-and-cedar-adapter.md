@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 template_id: TPL-IMPL
 milestone: M01-foundation
 phase: P01-guardrails-safety-and-policy-enforcement
-impl_plan_id: IP-006-autonomy-tier-gate-kernel-and-cedar-adapter
+impl_plan_id: IP-006-autonomy-ceiling-gate-kernel-and-cedar-adapter
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -13,11 +13,11 @@ acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, cedar-fragment-coverage,
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-006: oya-foundry-guardrails-autonomy-tier-gate-kernel + adapter-cedar
+# IP-006: oya-foundry-guardrails-autonomy-ceiling-gate-kernel + adapter-cedar
 
 ## Intent
 
-Two crates: `-kernel` (port traits + `AutonomyTierClaim`, `EffectiveCeiling`, `TierViolation` entities; effective-ceiling computation per ADR-0022) + `-adapter-cedar` (Cedar v4 client + policy-bundle loader; in-process Cedar engine for sidecar pattern). The adapter is backend-qualified per ADR-0105 Amendment 3 (`*-adapter-cedar`) since Cedar v4 is the sanctioned backend per ADR-0140 (retired per ADR-0145).
+Two crates: `-kernel` (port traits + `AutonomyLevelClaim`, `EffectiveCeiling`, `TierViolation` entities; effective-ceiling computation per ADR-0022) + `-adapter-cedar` (Cedar v4 client + policy-bundle loader; in-process Cedar engine for sidecar pattern). The adapter is backend-qualified per ADR-0105 Amendment 3 (`*-adapter-cedar`) since Cedar v4 is the sanctioned backend per ADR-0140 (retired per ADR-0145).
 
 ## ChangeSet boundary
 
@@ -27,37 +27,37 @@ Two crates introduced in one IP because they are tightly coupled (kernel port re
 
 | Path | Action |
 |---|---|
-| `src/crates/oya-foundry-guardrails-autonomy-tier-gate-kernel/Cargo.toml` | create |
+| `src/crates/oya-foundry-guardrails-autonomy-ceiling-gate-kernel/Cargo.toml` | create |
 | `.../-kernel/src/{lib.rs,entities.rs,ports.rs,errors.rs,ceiling.rs}` | create |
-| `src/crates/oya-foundry-guardrails-autonomy-tier-gate-adapter-cedar/Cargo.toml` | create |
+| `src/crates/oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar/Cargo.toml` | create |
 | `.../-adapter-cedar/src/{lib.rs,engine.rs,bundle_loader.rs}` | create |
 | `Cargo.toml` (workspace) | update — both members |
-| `catalog/{oya-foundry-guardrails-autonomy-tier-gate-kernel,oya-foundry-guardrails-autonomy-tier-gate-adapter-cedar}.yaml` | create |
+| `catalog/{oya-foundry-guardrails-autonomy-ceiling-gate-kernel,oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar}.yaml` | create |
 
 ## Crate Naming
 
 ```
-NAME: oya-foundry-guardrails-autonomy-tier-gate-kernel
-JUSTIFICATION: microservice=foundry-guardrails; bc=autonomy-tier-gate; layer=kernel
+NAME: oya-foundry-guardrails-autonomy-ceiling-gate-kernel
+JUSTIFICATION: microservice=foundry-guardrails; bc=autonomy-ceiling-gate; layer=kernel
 
-NAME: oya-foundry-guardrails-autonomy-tier-gate-adapter-cedar
-JUSTIFICATION: microservice=foundry-guardrails; bc=autonomy-tier-gate; layer=adapter; backend=cedar per ADR-0105 §"Amendment 3" + ADR-0140 (Cedar canonical)
+NAME: oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar
+JUSTIFICATION: microservice=foundry-guardrails; bc=autonomy-ceiling-gate; layer=adapter; backend=cedar per ADR-0105 §"Amendment 3" + ADR-0140 (Cedar canonical)
 ```
 
 ## Code Shape
 
 ```rust
 // kernel/src/ceiling.rs (per ADR-0022 §"Effective-ceiling resolution")
-pub struct AutonomyTierInputs {
-    pub tenant_configured: AutonomyTier,
-    pub capability_min_required: AutonomyTier,
-    pub vertical_pack_cap: AutonomyTier,
-    pub subject_class_cap: AutonomyTier,
+pub struct AutonomyLevelInputs {
+    pub tenant_configured: AutonomyLevel,
+    pub capability_min_required: AutonomyLevel,
+    pub vertical_pack_cap: AutonomyLevel,
+    pub subject_class_cap: AutonomyLevel,
 }
 
-impl AutonomyTierInputs {
-    pub fn effective(&self) -> AutonomyTier {
-        AutonomyTier::min_of(&[
+impl AutonomyLevelInputs {
+    pub fn effective(&self) -> AutonomyLevel {
+        AutonomyLevel::min_of(&[
             self.tenant_configured,
             self.capability_min_required,
             self.vertical_pack_cap,
@@ -67,8 +67,8 @@ impl AutonomyTierInputs {
 }
 
 #[async_trait]
-pub trait AutonomyTierGate: Send + Sync + Sealed {
-    async fn enforce(&self, claim: &AutonomyTierClaim) -> Result<EffectiveCeiling, TierViolation>;
+pub trait AutonomyLevelGate: Send + Sync + Sealed {
+    async fn enforce(&self, claim: &AutonomyLevelClaim) -> Result<EffectiveCeiling, TierViolation>;
 }
 
 #[async_trait]
@@ -109,10 +109,10 @@ impl CedarEngineHandle for CedarEngine {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-foundry-guardrails-autonomy-tier-gate-kernel --all-features
-cargo check -p oya-foundry-guardrails-autonomy-tier-gate-adapter-cedar --all-features
-cargo nextest run -p oya-foundry-guardrails-autonomy-tier-gate-kernel --all-features
-cargo nextest run -p oya-foundry-guardrails-autonomy-tier-gate-adapter-cedar --all-features
+cargo check -p oya-foundry-guardrails-autonomy-ceiling-gate-kernel --all-features
+cargo check -p oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar --all-features
+cargo nextest run -p oya-foundry-guardrails-autonomy-ceiling-gate-kernel --all-features
+cargo nextest run -p oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar --all-features
 cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice foundry-guardrails
 cargo run -p oya-dev-cli -- gate validate cedar-default-deny-enforced
 ```
@@ -142,3 +142,9 @@ cargo run -p oya-dev-cli -- gate validate cedar-default-deny-enforced
 - ADR-0140 Cedar substrate.
 - `policy/tenant-scope.cedar`, `policy/ci-scope.cedar`, `policy/auditor-scope.cedar`.
 - Cedar v4 docs — `docs.cedarpolicy.com`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

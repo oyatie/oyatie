@@ -2,16 +2,16 @@
 
 **Phase:** PHASE-01-ANALYTICS-OLAP-BOOTSTRAP
 **Owner:** backend (council-analytics + council-tenancy)
-**Authority ADRs:** ADR-0193, ADR-0155 quotas, ADR-0145 inter-µservice communication, ADR-AN-004-query-budget-tier
+**Authority ADRs:** ADR-0193, ADR-0155 quotas, ADR-0145 inter-µservice communication, ADR-AN-004-query-budget-tenant-class
 **Depends on:** IP-001
 **Status:** Planned
 
 ## Scope
 
-Stand up the controller that listens for `tenant.onboarded`, `tenant.offboarded`, and `tenant.tier_changed` events from the tenancy µservice (per ADR-0145 Invariant 3 ontology projections) and reconciles ClickHouse state:
+Stand up the controller that listens for `tenant.onboarded`, `tenant.offboarded`, and `tenant.tenant_class_changed` events from the tenancy µservice (per ADR-0145 Invariant 3 ontology projections) and reconciles ClickHouse state:
 
-- **On `tenant.onboarded`** — create `tenant_${tenant_id}` database; create per-tenant ClickHouse users `tenant_${tenant_id}_reader` + `tenant_${tenant_id}_writer`; apply per-tier QUOTA per ADR-AN-004; render per-tenant MV instances from the templates in `iac/clickhouse/mv-templates/`.
-- **On `tenant.tier_changed`** — re-apply QUOTA per the new tier (idempotent).
+- **On `tenant.onboarded`** — create `tenant_${tenant_id}` database; create per-tenant ClickHouse users `tenant_${tenant_id}_reader` + `tenant_${tenant_id}_writer`; apply per-tenant_class QUOTA per ADR-AN-004; render per-tenant MV instances from the templates in `iac/clickhouse/mv-templates/`.
+- **On `tenant.tenant_class_changed`** — re-apply QUOTA per the new tenant_class (idempotent).
 - **On `tenant.offboarded`** — drop the `tenant_${tenant_id}` database (cascade); emit `oya.analytics.tenant_database.proof_of_erasure.v1` per ADR-0038.
 
 The controller is `oya-analytics-tenant-bootstrap-app` per the BNF v4.1 catalog. Distinct from `oya-analytics-app` because its lifecycle is independent (controller-pattern per Kubernetes operator doctrine).
@@ -21,7 +21,7 @@ The controller is `oya-analytics-tenant-bootstrap-app` per the BNF v4.1 catalog.
 1. Controller crate `crates/oya-analytics-tenant-bootstrap-app/` (Rust binary).
 2. Cedar policy fragment `microservices/analytics/policy/tenant-bootstrap.cedar` (already authored).
 3. Idempotency contract — re-emitting `tenant.onboarded` for the same tenant is a no-op.
-4. Audit-chain event per onboard / offboard / tier-change (per ADR-0003).
+4. Audit-chain event per onboard / offboard / tenant_class-change (per ADR-0003).
 5. Integration test against an ephemeral ClickHouse instance (Testcontainers).
 6. State cursor persisted in Postgres so the controller resumes after restart.
 7. Leader-election with 2 replicas (1 active) for HA — deferred to phase 2; for phase 1, single replica with k8s restart.
@@ -32,9 +32,9 @@ The controller is `oya-analytics-tenant-bootstrap-app` per the BNF v4.1 catalog.
 - Re-subscribing the same event is a no-op (idempotent).
 - Subscribing to `tenant.offboarded` for `ten_acme` drops database `tenant_ten_acme` within 60s p99 and emits a `tenant.proof_of_erasure` event.
 - A query attempted by `tenant_ten_acme_reader` against `tenant_ten_bryan.events` is denied by ClickHouse RBAC.
-- The per-tenant QUOTA limits match ADR-AN-004's matrix for the tenant's tier.
+- The per-tenant QUOTA limits match ADR-AN-004's matrix for the tenant_class.
 - Controller restarts cleanly without re-reconciling already-up-to-date tenants (uses a state cursor).
-- Tier change from Starter → Growth re-applies QUOTA within 30s.
+- Tenant_class conversion from demo_trial → paid re-applies QUOTA within 30s.
 - All per-tenant MV templates from `iac/clickhouse/mv-templates/` render at onboard.
 
 ## Implementation tasks
@@ -84,7 +84,7 @@ impl TenantBootstrapReconciler {
         match event.kind.as_str() {
             "oya.tenancy.tenant.onboarded.v1" => self.handle_onboard(event).await,
             "oya.tenancy.tenant.offboarded.v1" => self.handle_offboard(event).await,
-            "oya.tenancy.tenant.tier_changed.v1" => self.handle_tier_changed(event).await,
+            "oya.tenancy.tenant.tenant_class_changed.v1" => self.handle_tenant_class_changed(event).await,
             other => {
                 tracing::warn!(?other, "ignored event kind");
                 Ok(())
@@ -94,7 +94,7 @@ impl TenantBootstrapReconciler {
 
     async fn handle_onboard(&self, event: &TenancyEvent) -> Result<()> {
         let tid = TenantId::new(&event.data["tenant_id"].as_str().unwrap());
-        let tier = parse_tier(&event.data["tier"]);
+        let tenant_class = parse_tenant_class(&event.data["tenant_class"]);
         let residency = parse_residency_class(&event.data["residency_class"]);
 
         // Step 1: Create database (idempotent).
@@ -112,8 +112,8 @@ impl TenantBootstrapReconciler {
         self.olap.exec_ddl_raw(&format!(
             "GRANT INSERT ON tenant_{tid}.* TO tenant_{tid}_writer", tid = tid.as_str())).await?;
 
-        // Step 3: Apply per-tier QUOTA (per ADR-AN-004 matrix).
-        let quota_sql = render_quota_template(&tier, &tid);
+        // Step 3: Apply per-tenant_class QUOTA (per ADR-AN-004 matrix).
+        let quota_sql = render_quota_template(&tenant_class, &tid);
         self.olap.exec_ddl_raw(&quota_sql).await?;
 
         // Step 4: Render per-tenant MV templates.
@@ -132,7 +132,7 @@ impl TenantBootstrapReconciler {
         // Step 5: Emit audit-chain.
         self.audit_chain.emit("oya.analytics.tenant_database.created.v1", json!({
             "tenant_id": tid.as_str(),
-            "tier": format!("{tier:?}"),
+            "tenant_class": format!("{tenant_class:?}"),
             "residency_class": format!("{residency:?}"),
             "ts": Utc::now(),
         })).await?;
@@ -165,31 +165,30 @@ impl TenantBootstrapReconciler {
         Ok(())
     }
 
-    async fn handle_tier_changed(&self, event: &TenancyEvent) -> Result<()> {
+    async fn handle_tenant_class_changed(&self, event: &TenancyEvent) -> Result<()> {
         let tid = TenantId::new(event.data["tenant_id"].as_str().unwrap());
-        let new_tier = parse_tier(&event.data["new_tier"]);
-        let quota_sql = render_quota_template(&new_tier, &tid);
+        let new_tenant_class = parse_tenant_class(&event.data["new_tenant_class"]);
+        let quota_sql = render_quota_template(&new_tenant_class, &tid);
         self.olap.exec_ddl_raw(&quota_sql).await?;
         self.audit_chain.emit("oya.analytics.tenant.quota_applied.v1", json!({
             "tenant_id": tid.as_str(),
-            "old_tier": event.data["old_tier"], "new_tier": event.data["new_tier"],
+            "old_tenant_class": event.data["old_tenant_class"], "new_tenant_class": event.data["new_tenant_class"],
         })).await?;
         Ok(())
     }
 }
 ```
 
-### T3 — Default quota profile (per tier — ADR-AN-004)
+### T3 — Default quota profile (per tenant_class — ADR-AN-004)
 
 File: `crates/oya-analytics-tenant-bootstrap-app/src/quota.rs`
 
 ```rust
-pub fn render_quota_template(tier: &Tier, tid: &TenantId) -> String {
-    let (max_queries, max_read_rows, max_insert_rows, max_concurrent, max_exec) = match tier {
-        Tier::Trial => (100, 10_000_000, 1_000_000, 4, 30),
-        Tier::Starter => (1_000, 1_000_000_000, 100_000_000, 16, 60),
-        Tier::Growth => (10_000, 10_000_000_000, 1_000_000_000, 32, 120),
-        Tier::Enterprise => (100_000, 1_000_000_000_000, 100_000_000_000, 64, 300),
+pub fn render_quota_template(tenant_class: &TenantClass, tid: &TenantId) -> String {
+    let (max_queries, max_read_rows, max_insert_rows, max_concurrent, max_exec) = match tenant_class {
+        TenantClass::DemoTrial => (100, 10_000_000, 1_000_000, 4, 30),
+        TenantClass::Paid => (10_000, 10_000_000_000, 1_000_000_000, 32, 120),
+        TenantClass::PaidContractOverlay => (100_000, 1_000_000_000_000, 100_000_000_000, 64, 300),
     };
     format!(
         "CREATE QUOTA IF NOT EXISTS quota_tenant_{tid} \
@@ -222,7 +221,7 @@ Per ADR-0003: every reconcile action emits an audit event. The events are:
 - `oya.analytics.tenant_database.created.v1` — on successful onboard.
 - `oya.analytics.tenant_database.dropped.v1` — on successful offboard (before proof-of-erasure).
 - `oya.analytics.tenant_database.proof_of_erasure.v1` — cosign-signed, emitted after the DROP completes.
-- `oya.analytics.tenant.quota_applied.v1` — on tier change.
+- `oya.analytics.tenant.quota_applied.v1` — on tenant_class change.
 - `oya.analytics.tenant_bootstrap.error.v1` — on reconcile failure (for observability).
 
 ### T6 — State cursor
@@ -251,7 +250,7 @@ async fn test_onboard_creates_database() {
     publish_tenancy_event(&app, json!({
         "type": "oya.tenancy.tenant.onboarded.v1",
         "id": uuid::Uuid::new_v4(),
-        "data": { "tenant_id": "ten_test_onboard", "tier": "Starter", "residency_class": "Global" }
+        "data": { "tenant_id": "ten_test_onboard", "tenant_class": "paid", "residency_class": "Global" }
     })).await;
 
     wait_until_database_exists(&app, "tenant_ten_test_onboard", Duration::from_secs(30)).await;
@@ -267,8 +266,8 @@ async fn test_onboard_creates_database() {
 async fn test_re_onboard_is_noop() {
     let app = setup_test_controller().await;
     let event_id = uuid::Uuid::new_v4();
-    publish_tenancy_event_with_id(&app, event_id, json!({"type": "oya.tenancy.tenant.onboarded.v1", "data": {"tenant_id": "ten_re_onboard", "tier": "Starter", "residency_class": "Global"}})).await;
-    publish_tenancy_event_with_id(&app, event_id, json!({"type": "oya.tenancy.tenant.onboarded.v1", "data": {"tenant_id": "ten_re_onboard", "tier": "Starter", "residency_class": "Global"}})).await;
+    publish_tenancy_event_with_id(&app, event_id, json!({"type": "oya.tenancy.tenant.onboarded.v1", "data": {"tenant_id": "ten_re_onboard", "tenant_class": "paid", "residency_class": "Global"}})).await;
+    publish_tenancy_event_with_id(&app, event_id, json!({"type": "oya.tenancy.tenant.onboarded.v1", "data": {"tenant_id": "ten_re_onboard", "tenant_class": "paid", "residency_class": "Global"}})).await;
     // Second is a no-op via state cursor.
     let count = audit_chain_event_count(&app, "oya.analytics.tenant_database.created.v1", "ten_re_onboard").await;
     assert_eq!(count, 1);
@@ -277,7 +276,7 @@ async fn test_re_onboard_is_noop() {
 #[tokio::test]
 async fn test_offboard_drops_database_and_emits_proof_of_erasure() {
     let app = setup_test_controller().await;
-    publish_onboard(&app, "ten_offboard", "Starter").await;
+    publish_onboard(&app, "ten_offboard", "paid").await;
     wait_until_database_exists(&app, "tenant_ten_offboard", Duration::from_secs(30)).await;
 
     publish_offboard(&app, "ten_offboard").await;
@@ -290,20 +289,20 @@ async fn test_offboard_drops_database_and_emits_proof_of_erasure() {
 }
 
 #[tokio::test]
-async fn test_tier_change_reapplies_quota() {
+async fn test_tenant_class_change_reapplies_quota() {
     let app = setup_test_controller().await;
-    publish_onboard(&app, "ten_tier", "Trial").await;
-    publish_tier_changed(&app, "ten_tier", "Trial", "Growth").await;
+    publish_onboard(&app, "ten_tenant_class", "demo_trial").await;
+    publish_tenant_class_changed(&app, "ten_tenant_class", "demo_trial", "paid").await;
     tokio::time::sleep(Duration::from_secs(30)).await;
-    let quota = query_quota(&app, "quota_tenant_ten_tier").await;
-    assert_eq!(quota.max_queries_per_hour, 10_000);  // Growth tier per ADR-AN-004
+    let quota = query_quota(&app, "quota_tenant_ten_tenant_class").await;
+    assert_eq!(quota.max_queries_per_hour, 10_000);  // paid tenant_class per ADR-AN-004
 }
 
 #[tokio::test]
 async fn test_cross_tenant_rbac_enforced() {
     let app = setup_test_controller().await;
-    publish_onboard(&app, "ten_a", "Starter").await;
-    publish_onboard(&app, "ten_b", "Starter").await;
+    publish_onboard(&app, "ten_a", "paid").await;
+    publish_onboard(&app, "ten_b", "paid").await;
     wait_until_database_exists(&app, "tenant_ten_a", Duration::from_secs(30)).await;
     wait_until_database_exists(&app, "tenant_ten_b", Duration::from_secs(30)).await;
 
@@ -324,7 +323,7 @@ async fn test_cross_tenant_rbac_enforced() {
 | Mode | Detection | Mitigation |
 |---|---|---|
 | ClickHouse Keeper quorum loss → DDL fails | Controller retries with exponential backoff; pages after 5min | IP-001 PrometheusRule already alerts |
-| Tenant onboarded twice with different tier | Controller compares observed vs desired tier; reapplies quota | Idempotent |
+| Tenant onboarded twice with different tenant_class | Controller compares observed vs desired tenant_class; reapplies quota | Idempotent |
 | Tenant offboarded then re-onboarded same id | Controller treats as fresh onboard; data is gone by design | Documented in runbook |
 | Controller crash mid-onboard | State cursor lag detected on restart; controller re-reconciles | Cursor persisted to Postgres |
 | Cosign key unavailable on offboard | proof-of-erasure emission fails | retry on next event or operator-triggered re-emission |
@@ -344,7 +343,7 @@ async fn test_cross_tenant_rbac_enforced() {
 
 - Per onboard: `oya.analytics.tenant_database.created.v1`.
 - Per offboard: `oya.analytics.tenant_database.dropped.v1` + `oya.analytics.tenant_database.proof_of_erasure.v1`.
-- Per tier change: `oya.analytics.tenant.quota_applied.v1`.
+- Per tenant_class change: `oya.analytics.tenant.quota_applied.v1`.
 - Per reconcile error: `oya.analytics.tenant_bootstrap.error.v1`.
 
 ## References
@@ -354,6 +353,25 @@ async fn test_cross_tenant_rbac_enforced() {
 - ADR-0145 — inter-microservice communication reform.
 - ADR-0003 — audit chain and evidence emission.
 - ADR-0038 — trust framework and DSR cascade and proof of erasure.
-- ADR-AN-004-query-budget-tier (quota matrix).
+- ADR-AN-004-query-budget-tenant-class (quota matrix).
 - `microservices/analytics/policy/tenant-bootstrap.cedar`.
 - `microservices/analytics/iac/clickhouse/mv-templates/`.
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/analytics/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `postgres_wal_g`, `iceberg_snapshot`, `clickhouse_iceberg_layered`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/analytics/specs/IP-002-per-tenant-database-bootstrap.md:31` - - Subscribing to a `tenant.onboarded` event for `ten_acme` creates database `tenant_ten_acme` within 30s p99.; `microservices/analytics/specs/IP-002-per-tenant-database-bootstrap.md:33` - - Subscribing to `tenant.offboarded` for `ten_acme` drops database `tenant_ten_acme` within 60s p99 and emits a `tenant.proof_of_erasure` event..
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/analytics/specs/IP-002-per-tenant-database-bootstrap.md:217` - ### T5 — Audit-chain emission; `microservices/analytics/specs/IP-002-per-tenant-database-bootstrap.md:329` - | Cosign key unavailable on offboard | proof-of-erasure emission fails | retry on next event or operator-triggered re-emission |.

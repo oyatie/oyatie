@@ -47,7 +47,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 |---|---|---|
 | 89 crates | `microservices/drive/src/crates/oya-drive-*` | axis-drive |
 | Postgres schema migrations | `microservices/drive/iac/helm/postgres/migrations/` | axis-drive |
-| Helm charts | `microservices/drive/iac/helm/{garage,minio,seaweedfs,postgres,redis,meilisearch,tika,clamav,opswat,libreoffice}` | ops-sre-reliability |
+| Helm charts | `microservices/drive/iac/helm/{garage,minio,seaweedfs,postgres,valkey,meilisearch,tika,clamav,opswat,libreoffice}` | ops-sre-reliability |
 | Kustomize overlays | `microservices/drive/iac/kustomize/{base,overlays/pack-kr,overlays/pack-eu,...}` | ops-sre-reliability |
 | OpenAPI / AsyncAPI / Proto contracts | `microservices/drive/contracts/` | axis-drive |
 | Cedar policies | `microservices/drive/policy/*.cedar` | ops-security |
@@ -63,7 +63,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 | CS-02 | file-store -adapter-postgres + -adapter-s3 + -adapter-garage + -adapter-seaweedfs (object backends) | depends CS-01 | A |
 | CS-03 | file-store rest + worker + sdk + app | depends CS-02 | A |
 | CS-04 | folder-hierarchy kernel..app (8 crates) | depends CS-01 | B |
-| CS-05 | upload kernel..adapter-redis + adapter-s3 + rest + worker + app (10 crates) | depends CS-01 + CS-02 | B |
+| CS-05 | upload kernel..adapter-valkey + adapter-s3 + rest + worker + app (10 crates) | depends CS-01 + CS-02 | B |
 | CS-06 | download kernel..adapter-s3 + rest + app (8 crates) | depends CS-01 + CS-02 | B |
 | CS-07 | sync kernel..worker + sdk + app (10 crates) | depends CS-01 | C |
 | CS-08 | share-link kernel..worker + app (10 crates) | depends CS-01 | C |

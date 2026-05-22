@@ -153,3 +153,21 @@ impl TranslateClient {
 ## Phase Exit
 
 When this IP merges + verification passes, Phase P01-translate-platform exits and the µservice becomes promotable per ADR-0139.
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/translate/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `1800s` RTO p99 and `300s` RPO p99.
+- Applicable compliance pack floor: `EU-AI-ACT-2024-HIGH-RISK` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=1800`, `rpo_p99_seconds=300`, `multi_region_required=true`, `drill_cadence_required=quarterly`).
+- Multi-region active-active posture: `true` (required by the selected floor and IP evidence).
+- backup_substrate: `postgres_wal_g`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/translate/IP-015-hg-translate-gate-registration.md:56` - "language_detection_p99_ms_le_4kb": 50,; `microservices/translate/IP-015-hg-translate-gate-registration.md:57` - "tm_leverage_p99_ms": 80,.
+
+## Pod runtime tier (per ADR-0338)
+
+- Binding ADR: ADR-0338.
+- `pod_runtime_tier: 0`.
+- Runtime class: Kata Containers + Cloud Hypervisor (`kata-cloud-hypervisor`) is required for this execution path.
+- Justification: Trigger D matched a sandbox/plugin/workflow/capability surface; treat the execution path as tenant-customer or third-party code until a narrower manifest declaration proves otherwise.
+- Surface evidence: `microservices/translate/IP-015-hg-translate-gate-registration.md:85` - "document_sandbox_seccomp_violation_count": 0.

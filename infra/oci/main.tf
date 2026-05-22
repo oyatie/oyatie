@@ -15,8 +15,10 @@ terraform {
 }
 
 provider "oci" {
-  // Reads ~/.oci/config DEFAULT profile (already authed: tenancy bitween, region ap-chuncheon-1).
-  config_file_profile = "DEFAULT"
+  // Reads ~/.oci/config under var.oci_config_profile. Profile carries region +
+  // tenancy + session-token credentials. Each workspace's tfvars selects its
+  // matching OCI profile: bitween → DEFAULT, bominal-oci → bominal-oci.
+  config_file_profile = var.oci_config_profile
 }
 
 locals {

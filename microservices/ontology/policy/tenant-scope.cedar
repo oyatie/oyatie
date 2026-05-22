@@ -24,7 +24,7 @@ forbid (
 //
 // A principal bound to TenantOperator::"<tenant-id>" may read any
 // resource owned by the same tenant. Scope gated on tenant_id claim
-// match + max_tier ceiling + pillar_kind match.
+// match + max_sensitivity_level ceiling + pillar_kind match.
 
 permit (
   principal in TenantOperator::?p,
@@ -45,9 +45,9 @@ when {
   principal has tenant_id &&
   resource has tenant_id &&
   principal.tenant_id == resource.tenant_id &&
-  resource has property_tier &&
-  principal has max_tier &&
-  principal.max_tier >= resource.property_tier &&
+  resource has property_sensitivity_level &&
+  principal has max_sensitivity_level &&
+  principal.max_sensitivity_level >= resource.property_sensitivity_level &&
   resource has pillar_kind &&
   principal has pillar_kind &&
   (
@@ -66,7 +66,7 @@ when {
 // =============================================================================
 //
 // Write authority: same-tenant, same-pillar (or cross-pillar grant), and
-// the writer's max_tier ceiling must permit the property tier they're
+// the writer's max_sensitivity_level ceiling must permit the property sensitivity level they're
 // writing.
 
 permit (
@@ -82,9 +82,9 @@ when {
   principal has tenant_id &&
   resource has tenant_id &&
   principal.tenant_id == resource.tenant_id &&
-  resource has property_tier &&
-  principal has max_tier &&
-  principal.max_tier >= resource.property_tier &&
+  resource has property_sensitivity_level &&
+  principal has max_sensitivity_level &&
+  principal.max_sensitivity_level >= resource.property_sensitivity_level &&
   resource has pillar_kind &&
   principal has pillar_kind &&
   (
@@ -165,10 +165,10 @@ when {
 };
 
 // =============================================================================
-// FORBID — never permit writes that exceed the principal's max_tier
+// FORBID — never permit writes that exceed the principal's max_sensitivity_level
 // =============================================================================
 //
-// A principal carrying max_tier = Tier2Restricted cannot write a property
+// A principal carrying max_sensitivity_level = Tier2Restricted cannot write a property
 // declared Tier1Sensitive even within their own tenant.
 
 forbid (
@@ -181,9 +181,9 @@ forbid (
   resource
 )
 when {
-  resource has property_tier &&
-  principal has max_tier &&
-  principal.max_tier < resource.property_tier
+  resource has property_sensitivity_level &&
+  principal has max_sensitivity_level &&
+  principal.max_sensitivity_level < resource.property_sensitivity_level
 };
 
 // =============================================================================
@@ -208,8 +208,8 @@ unless {
   principal has cross_tenant_link_grant &&
   resource.src_tenant_id in principal.cross_tenant_link_grant.tenants &&
   resource.dst_tenant_id in principal.cross_tenant_link_grant.tenants &&
-  resource has property_tier &&
-  principal.cross_tenant_link_grant.data_class_cap >= resource.property_tier &&
+  resource has property_sensitivity_level &&
+  principal.cross_tenant_link_grant.data_class_cap >= resource.property_sensitivity_level &&
   context has now &&
   principal.cross_tenant_link_grant.expires_at >= context.now
 };

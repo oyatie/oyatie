@@ -148,10 +148,10 @@ s3:
   versioning: enabled
   perTenantPrefix: true
 
-redis:
+valkey:
   enabled: true
   image:
-    repository: registry.oyatie.dev/redis-cluster
+    repository: registry.oyatie.dev/valkey-cluster
     tag: "7.4.0"
   clusterMode: true
   shards: 5

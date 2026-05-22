@@ -2,7 +2,7 @@
 //!
 //! Five gates land here:
 //!
-//! 1. `regulated-ai-refusal-grounding` — strict; SEC-MAJ-02.
+//! 1. `high-risk-auto-decision-refusal` — strict; SEC-MAJ-02.
 //! 2. `slsa-l3-evidence-grounded` — strict; SEC-MAJ-01.
 //! 3. `otel-trace-propagation` — DEFERRED (advisory); ADR-0145 Invariant 2.
 //! 4. `ontology-projection-coverage` — strict; ADR-0145 Invariant 3.
@@ -24,7 +24,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use oya_check_audit_chain_seal_coverage as audit_chain_check;
-use oya_check_eu_ai_act_annex_iii_refusal as regulated_ai_check;
+use oya_check_high_risk_auto_decision_refusal as high_risk_refusal_check;
 use oya_check_ontology_projection_coverage as ontology_check;
 use oya_check_otel_trace_propagation as otel_check;
 use oya_check_slsa_l3_evidence_grounded as slsa_check;
@@ -82,9 +82,9 @@ fn parse_flag_with_value(args: &[String], flag: &str) -> Option<String> {
     None
 }
 
-// ---------- Gate 1: regulated-ai-refusal-grounding ----------
+// ---------- Gate 1: high-risk-auto-decision-refusal ----------
 
-pub(crate) fn run_regulated_ai_refusal_grounding(args: Vec<String>) -> ExitCode {
+pub(crate) fn run_high_risk_auto_decision_refusal(args: Vec<String>) -> ExitCode {
     let root = PathBuf::from(
         parse_flag_with_value(&args, "--microservices-root")
             .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
@@ -102,7 +102,7 @@ pub(crate) fn run_regulated_ai_refusal_grounding(args: Vec<String>) -> ExitCode 
                 continue;
             }
             if let Some(contents) = read_optional_string(&p) {
-                capabilities.push(regulated_ai_check::CapabilityDocument {
+                capabilities.push(high_risk_refusal_check::CapabilityDocument {
                     path: p.to_string_lossy().to_string(),
                     microservice: microservice.clone(),
                     contents,
@@ -123,7 +123,7 @@ pub(crate) fn run_regulated_ai_refusal_grounding(args: Vec<String>) -> ExitCode 
                 continue;
             }
             if let Some(contents) = read_optional_string(&p) {
-                cedar_fragments.push(regulated_ai_check::CedarPolicyDocument {
+                cedar_fragments.push(high_risk_refusal_check::CedarPolicyDocument {
                     path: p.to_string_lossy().to_string(),
                     microservice: microservice.clone(),
                     contents,
@@ -133,9 +133,9 @@ pub(crate) fn run_regulated_ai_refusal_grounding(args: Vec<String>) -> ExitCode 
     }
 
     let (report, violations) =
-        regulated_ai_check::audit_all_violations(capabilities, cedar_fragments);
+        high_risk_refusal_check::audit_all_violations(capabilities, cedar_fragments);
     println!(
-        "regulated-ai-refusal-grounding: {} capabilities, {} claims, {} cedar fragments, {} µservices",
+        "high-risk-auto-decision-refusal: {} capabilities, {} claims, {} cedar fragments, {} µservices",
         report.capabilities_checked,
         report.claims_found,
         report.cedar_fragments_checked,
@@ -145,7 +145,7 @@ pub(crate) fn run_regulated_ai_refusal_grounding(args: Vec<String>) -> ExitCode 
         ExitCode::SUCCESS
     } else {
         eprintln!(
-            "regulated-ai-refusal-grounding: {} violations:",
+            "high-risk-auto-decision-refusal: {} violations:",
             violations.len()
         );
         for v in &violations {

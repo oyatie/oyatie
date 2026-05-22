@@ -47,7 +47,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 |---|---|---|
 | 65 crates | `microservices/docs/src/crates/oya-docs-*` | axis-docs |
 | Postgres schema migrations | `microservices/docs/iac/helm/postgres/migrations/` | axis-docs |
-| Helm charts | `microservices/docs/iac/helm/{postgres,redis,s3,clamav,gvisor-pool}` | ops-sre-reliability |
+| Helm charts | `microservices/docs/iac/helm/{postgres,valkey,s3,clamav,gvisor-pool}` | ops-sre-reliability |
 | Kustomize overlays | `microservices/docs/iac/kustomize/{base,overlays/pack-kr,pack-eu}` | ops-sre-reliability |
 | OpenAPI / AsyncAPI / Proto contracts | `microservices/docs/contracts/` | axis-docs |
 | Cedar policies | `microservices/docs/policy/*.cedar` | ops-security |
@@ -65,7 +65,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 | CS-03 | document-store rest + worker + sdk + app | depends CS-02 | A |
 | CS-04 | block-types kernel..app (7 crates) | depends CS-01 | A |
 | CS-05 | collab-crdt kernel..adapter (Loro wrapping; ADR-DOCS-0001) | depends CS-01 + CS-04 | B |
-| CS-06 | collab-crdt -adapter-redis + worker + sdk + app | depends CS-05 | B |
+| CS-06 | collab-crdt -adapter-valkey + worker + sdk + app | depends CS-05 | B |
 | CS-07 | comments-and-suggestions kernel..rest + worker + app (9 crates) | depends CS-01 + CS-04 | B |
 | CS-08 | version-history kernel..worker + app (8 crates) | depends CS-01 + CS-05 | B |
 | CS-09 | sharing-and-permissions kernel..rest + app (8 crates) | depends CS-01 | C |
@@ -86,7 +86,7 @@ Phase-exit gate (per ADR-0139): all 16 AC-IDs green; SLO eligibility verdict `el
 | Risk | Mitigation |
 |---|---|
 | CRDT library divergence with workflow-studio (different versions / different port-trait shape) | Loro version pin + cross-µservice CI lane `oya-governance-crdt-cross-microservice-consistency` validates the port trait shape at every PR (paired with ADR-WS-0001) |
-| OOXML round-trip fidelity below 95% | Establish best-effort tier with named edge-case test matrix per ADR-DOCS-0006; surface unsupported features to user before persisting |
+| OOXML round-trip fidelity below 95% | Establish best-effort fidelity with named edge-case test matrix per ADR-DOCS-0006; surface unsupported features to user before persisting |
 | PDF export pipeline escape from gVisor sandbox | Pre-deployment escape-attempt test; tmpfs only; no network egress from sandbox; mandatory CI lane `oya-governance-export-sandbox-conformance` |
 | Per-block ACL performance regression on large documents | Pre-compute block-ACL projection cache per query; LEAN check on ACL-coverage |
 | Embed-resolver cross-µservice tight coupling | Resolver carries a refresh-on-source-change contract via Workflow event subscription only; never direct call into source µservice |

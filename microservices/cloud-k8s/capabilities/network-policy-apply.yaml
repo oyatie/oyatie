@@ -98,7 +98,7 @@ cedar_policy_fragments:
   - microservices/cloud-k8s/policy/cluster-isolation.md (CI-06 cross-namespace allowance must be Cedar-explicit)
 
 eval_set:
-  golden_inputs_path: microservices/cloud-k8s/capabilities/eval/network-policy-apply-golden.jsonl
+  reference_inputs_path: microservices/cloud-k8s/capabilities/eval/network-policy-apply-reference.jsonl
   pass_threshold: 0.99
   eval_metric: policy-propagated-within-30s-p99 + cross-tenant-isolation-maintained
   cadence: per-release

@@ -30,12 +30,12 @@ Author the Leptos browser-WASM cell-grid editor surface (adapter-leptos-wasm), t
 #[tokio::main]
 async fn main() -> Result<()> {
     let postgres = adapter_postgres::Client::new(env::POSTGRES_CONN).await?;
-    let redis = adapter_redis::Client::new(env::REDIS_AUTH).await?;
+    let valkey = adapter_valkey::Client::new(env::VALKEY_AUTH).await?;
     let cell_sdk = cell_sdk::Client::new(env::CELL_SVC_URL, env::SPIFFE_IDENTITY).await?;
     let cedar = cedar_evaluator::Client::new(env::CEDAR_ENDPOINT, /*fail_closed*/ true).await?;
     // ... wire all adapters + ports
     let app = rest::router()
-        .with_state(AppState { postgres, redis, cell_sdk, cedar, /* ... */ });
+        .with_state(AppState { postgres, valkey, cell_sdk, cedar, /* ... */ });
     axum::serve(listener, app).await?;
     Ok(())
 }

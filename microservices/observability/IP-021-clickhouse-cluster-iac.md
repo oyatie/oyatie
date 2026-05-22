@@ -149,3 +149,16 @@ Small cell: 3 server + 3 Keeper. Large cell: 12 server (6 shards × 2 replicas) 
 - Runbooks: `microservices/observability/runbooks/clickhouse.md`, `clickhouse-restore.md`.
 - Capacity model: `microservices/observability/capacity-model-clickhouse.md`.
 - OpenSLOs: `clickhouse-ingest-throughput.openslo.yaml`, `query-latency-logs.openslo.yaml`.
+
+## DR posture (per ADR-0343)
+- Manifest target source: `microservices/observability/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
+- Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), SOC2-T2(rto=14400,rpo=900,multi_region=false), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
+- Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
+- `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
+- Surface evidence: `microservices/observability/IP-021-clickhouse-cluster-iac.md` matched `p99, SLO`; anchors `microservices/observability/runbooks/clickhouse-restore.md, crates/oya-cloud-observability-api/src/lib.rs`; type anchor `crates/oya-cloud-observability-api/src/lib.rs::CloudObservabilityAuditRecord`.
+
+## Sustainability emission (per ADR-0344)
+- Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
+- Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
+- Surface evidence: `microservices/observability/IP-021-clickhouse-cluster-iac.md` matched `emission`; anchors `microservices/observability/manifest.json, crates/oya-cloud-observability-api/src/lib.rs`; type anchor `crates/oya-cloud-observability-api/src/lib.rs::CloudObservabilityAuditRecord`.

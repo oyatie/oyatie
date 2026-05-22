@@ -226,7 +226,7 @@ Each failure carries: **FM-ID**, **Trigger**, **Detection**, **Tenant impact**, 
 
 | Field | Value |
 |---|---|
-| Trigger | New release breaks best-effort XLSX round-trip on the 100-workbook golden corpus per ADR-SHEETS-0007 |
+| Trigger | New release breaks best-effort XLSX round-trip on the 100-workbook reference corpus per ADR-SHEETS-0007 |
 | Detection | `oya-governance-sheets-xlsx-roundtrip-best-effort` CI lane fails |
 | Tenant impact | Tenants importing XLSX may see fidelity loss beyond the named-limit list |
 | Severity | Sev-2 |

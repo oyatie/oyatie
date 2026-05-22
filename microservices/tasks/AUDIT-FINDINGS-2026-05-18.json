@@ -4,7 +4,7 @@
   "scanned_files": 98,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -12,15 +12,15 @@
           "hits": [
             {
               "line": 25,
-              "excerpt": "table. Redis-backed `ViewStateStore` for presence + cursor; per-tenant"
+              "excerpt": "table. Valkey-backed `ViewStateStore` for presence + cursor; per-tenant"
             },
             {
               "line": 37,
-              "excerpt": "the remaining 6. Loro 1.x dependency added; Valkey adapter (Redis wire-compat) implements"
+              "excerpt": "the remaining 6. Loro 1.x dependency added; Valkey adapter (RESP wire-compatible) implements"
             },
             {
               "line": 38,
-              "excerpt": "`ViewStateStore` against Valkey 8.1 (Redis wire-compat)."
+              "excerpt": "`ViewStateStore` against Valkey 8.1 (RESP wire-compatible)."
             }
           ],
           "hits_total": 3
@@ -90,7 +90,7 @@
             },
             {
               "line": 25,
-              "excerpt": "ADR-0111); Valkey 8.1 (Redis wire-compat) for `view-engine` cache + presence; Meilisearch"
+              "excerpt": "ADR-0111); Valkey 8.1 (RESP wire-compatible) for `view-engine` cache + presence; Meilisearch"
             },
             {
               "line": 50,
@@ -104,7 +104,7 @@
           "hits": [
             {
               "line": 53,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) (view-cache + presence) | `oya-tasks-project-list-*` (8 crates) |"
+              "excerpt": "| Valkey 8.1 (RESP wire-compatible) (view-cache + presence) | `oya-tasks-project-list-*` (8 crates) |"
             },
             {
               "line": 93,
@@ -180,15 +180,15 @@
           "hits": [
             {
               "line": 26,
-              "excerpt": "# ADR-TASKS-0004: View engine + board realtime \u2014 Loro CRDT 1.x for description; deterministic LexoRank for board moves; per-tenant Valkey 8.1 (Redis wire-compat) view-state"
+              "excerpt": "# ADR-TASKS-0004: View engine + board realtime \u2014 Loro CRDT 1.x for description; deterministic LexoRank for board moves; per-tenant Valkey 8.1 (RESP wire-compatible) view-state"
             },
             {
               "line": 105,
-              "excerpt": "- **Per-tenant Valkey 8.1 (Redis wire-compat)** for `ViewStateStore` (presence cursor,"
+              "excerpt": "- **Per-tenant Valkey 8.1 (RESP wire-compatible)** for `ViewStateStore` (presence cursor,"
             },
             {
               "line": 157,
-              "excerpt": "### Consequence 2 \u2014 Valkey 8.1 (Redis wire-compat) is a load-bearing dependency"
+              "excerpt": "### Consequence 2 \u2014 Valkey 8.1 (RESP wire-compatible) is a load-bearing dependency"
             }
           ],
           "hits_total": 6
@@ -222,11 +222,11 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/tasks/catalog/oya-tasks-view-engine-adapter-redis.yaml",
+          "file": "microservices/tasks/catalog/oya-tasks-view-engine-adapter-valkey.yaml",
           "hits": [
             {
               "line": 25,
-              "excerpt": "Implements ViewStateStore + presence cursor against Valkey 8.1 (Redis wire-compat) cluster"
+              "excerpt": "Implements ViewStateStore + presence cursor against Valkey 8.1 (RESP wire-compatible) cluster"
             }
           ],
           "hits_total": 1

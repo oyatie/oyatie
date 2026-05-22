@@ -1,0 +1,11 @@
+apiVersion: v2
+name: oya-crm
+description: Oyatie crm microservice Kubernetes chart.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+annotations:
+  oyatie.com/adr-0181: signed-image-promotion-required
+  oyatie.com/adr-0254: kubernetes-everywhere
+  oyatie.com/adr-0349: argocd-application-source
+  oyatie.com/license-class: internal

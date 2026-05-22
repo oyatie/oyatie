@@ -5,10 +5,11 @@ prd_id: PRD-tasks
 microservice: tasks
 status: Accepted
 sales_segment: shared-substrate + suite-app
-tier: tenant-facing
+tenant_class_eligibility: [demo_trial, paid]
+paid_billing_components_emitted: [per_seat, per_usage]
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0231-connect-tasks-board-and-views, ADR-0232-connect-tasks-dependency-graph, ADR-0233-connect-tasks-recurring-and-rsvp-equivalent]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145), ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140 (retired per ADR-0145), ADR-0329, ADR-0330, ADR-0331, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
 related_specs: [/specs/microservices/tasks.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-tasks
@@ -104,6 +105,38 @@ Bominal inheritance: ADR-0231 board+views + ADR-0232 dependency graph + ADR-0233
 
 - Tenant data pinned to the tenant's region per ADR-0117 + ADR-0140; cross-region replication forbidden by default; SCC-gated when activated.
 
+### DR posture (ADR-0343)
+
+- Target: RTO <= 900 s and RPO <= 60 s for paid production task state, matching `manifest.json#dr.rto_p99_seconds` and `manifest.json#dr.rpo_p99_seconds`.
+- Compliance floors considered: HIPAA-2024 requires RTO <= 3600 s and RPO <= 300 s with multi-region DR; SOC2-T2 requires RTO <= 14400 s and RPO <= 900 s; ISO27001-2022 requires RTO <= 14400 s and RPO <= 3600 s. The effective task target remains 900 s / 60 s because the service target is stricter than the applicable floors.
+- Failover runbook reference: `runbooks/custom-field-schema-migration.md`, with quarterly evidence at `evidence/dr-drills/<pack>-<unix_ts>.json`. The manifest substrate is `postgres_wal_g`, `valkey`, and `object_storage_versioned` with active-passive cross-region continuous replication.
+- Multi-region active-active posture: `false` in `manifest.json`; task writes, dependency-cycle enforcement, recurrence materialization, and legal-hold transitions remain single-writer until signed failover promotion.
+- WHY: task boards, due dates, comments, dependency edges, and legal holds remain tenant-visible during a regional outage without letting pack boundaries leak work-item data across jurisdictions.
+
+### Capacity model (ADR-0340)
+
+- Manifest source: `manifest.json#capacity_model` declares the PRD capacity baseline.
+- Per-tenant baseline: reserve 0.22 vCPU, 512 MiB RAM, 10 GB task/project/search storage, 4 Postgres connections, 2 Valkey connections, and 8 outbound HTTP slots per tenant.
+- Scaling dimension: `per_user` for active task/project growth, with per-request triggers for writes, search, webhook fanout, recurrence, and importers.
+- Cell placement class: Tier-3 product cell. Rationale: user-facing work management is product-critical, but task data stays behind tenant-scoped product cells rather than Tier-1 substrate control planes.
+- Autoscaling boundaries: task-store-rest 5..100 replicas, project-list-rest 3..50, view-engine-rest 5..100, dependency-graph-rest 3..50, search-index-rest 5..100, importer-rest 3..30, and background workers 3..30 per queue family.
+- WHY: the model serves steady daily project traffic plus bursty imports, webhooks, and board sessions while preserving dependency-cycle correctness and legal-hold writes under saturation.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Per-call emission claim: every state-changing audit row adds `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside the existing task event class, tenant, trace, and policy dimensions.
+- Provider routing affected by carbon: yes for recurrence expansion, import/export, webhook fanout, search rebuild, and analytics backfill when SLO and residency allow; no for interactive task create/update, dependency-cycle checks, legal-hold, or policy-denied paths.
+- Per-tenant cost transparency surface: task usage appears in the tenant admin billing/FinOps view by `per_seat` plus `per_usage` components, with drill-down by task-store, view-engine, search-index, importers, and webhook fanout.
+- WHY: tenants can defend CSRD, SB-253, and SEC climate-disclosure reporting while seeing why high-volume task imports, webhooks, and search rebuilds moved cost or carbon.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: date carrier triplet using `Oyatie-Version: YYYY-MM-DD`, URL prefix `/v/<YYYY-MM-DD>/tasks/...`, and proto3 field `oyatie_version`.
+- SDK semver model: generated SDKs use `major.minor.patch`; date-versioned wire contracts do not imply SDK major bumps unless source compatibility breaks.
+- Support window: last N=3 public API dates are supported for at least 180 days.
+- Per-tenant pinning supported: yes, for REST, webhook, AsyncAPI, and SDK clients during migrations from Asana, Trello, Linear, Jira, and Todoist.
+- Internal-mesh exemption: yes. Direct gRPC inside the service mesh remains ADR-0145-compatible and does not require URL date prefixes.
+
 ## Bounded Contexts
 
 Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `usecase` rename for new crates). **Seven primary BCs.**
@@ -112,7 +145,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 |---|---|---|---|
 | `task-store` | `oya-tasks-task-store-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Task CRUD; tenant-DEK encryption; legal-hold; status workflow | `Task`, `TaskComment`, `TaskHistoryEntry`, `LegalHoldRef`, `RetentionPolicyRef` |
 | `project-list` | `oya-tasks-project-list-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,app}` | Project / list collection; custom-field schema; project membership | `Project`, `CustomFieldSchema`, `ProjectMember` |
-| `view-engine` | `oya-tasks-view-engine-{kernel,domain,usecase,api,adapter,adapter-redis,rest,app}` | List/board/gantt/calendar/timeline/table; saved filters; presence | `View`, `SavedFilter`, `ViewState`, `BoardColumn` |
+| `view-engine` | `oya-tasks-view-engine-{kernel,domain,usecase,api,adapter,adapter-valkey,rest,app}` | List/board/gantt/calendar/timeline/table; saved filters; presence | `View`, `SavedFilter`, `ViewState`, `BoardColumn` |
 | `dependency-graph` | `oya-tasks-dependency-graph-{kernel,domain,usecase,api,adapter,rest,app}` | blocks/blocked-by/relates-to; DAG cycle prevention; critical-path | `DependencyEdge`, `CycleDecision`, `CriticalPath` |
 | `recurrence` | `oya-tasks-recurrence-{kernel,domain,usecase,api,adapter,worker,app}` | RFC 5545 RRULE subset for recurring tasks; bounded materialisation | `TaskRecurrenceRule`, `MaterialisedTask`, `RecurrenceWindow` |
 | `search-index` | `oya-tasks-search-index-{kernel,domain,usecase,api,adapter,adapter-meilisearch,worker,app}` | Cross-project search; per-tenant index; rebuildable | `SearchDocument`, `IndexJob`, `QueryPlan` |
@@ -152,7 +185,7 @@ JUSTIFICATION:
 
 Layer mapping table per BC (13-layer enum from ADR-0105; `usecase` per ADR-0106):
 
-| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-redis | adapter-meilisearch | adapter-csv | adapter-jira | adapter-asana | adapter-trello | adapter-linear | adapter-todoist | rest | worker | sdk | app |
+| BC | kernel | domain | usecase | api | adapter | adapter-postgres | adapter-valkey | adapter-meilisearch | adapter-csv | adapter-jira | adapter-asana | adapter-trello | adapter-linear | adapter-todoist | rest | worker | sdk | app |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `task-store` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | ✓ | ✓ | ✓ | ✓ |
 | `project-list` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — | — | — | — | — | — | ✓ | — | — | ✓ |
@@ -174,7 +207,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `LegalHoldStore` | `oya-tasks-task-store-kernel` | `-adapter-postgres` | `AUDIT` |
 | `ProjectRepository` | `oya-tasks-project-list-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT` |
 | `CustomFieldSchemaRepository` | `oya-tasks-project-list-kernel` | `-adapter-postgres` | `BEHAVIORAL_TENANT_PRODUCT` |
-| `ViewStateStore` | `oya-tasks-view-engine-kernel` | `-adapter-redis` | `BEHAVIORAL_TENANT_PRODUCT` (presence + view cursor) |
+| `ViewStateStore` | `oya-tasks-view-engine-kernel` | `-adapter-valkey` | `BEHAVIORAL_TENANT_PRODUCT` (presence + view cursor) |
 | `BoardProjector` | `oya-tasks-view-engine-kernel` | `-adapter` | `INTERNAL_ONLY` |
 | `DependencyEdgeStore` | `oya-tasks-dependency-graph-kernel` | `-adapter-postgres` (subsumed under task-store -adapter-postgres) | `BEHAVIORAL_TENANT_PRODUCT` |
 | `CycleDetector` | `oya-tasks-dependency-graph-kernel` | `-adapter` | `INTERNAL_ONLY` |
@@ -352,7 +385,7 @@ Sharding: tasks partitioned by `(tenant_id, project_id_hash)`; comments partitio
 | # | Question | Owner | Target |
 |---|---|---|---|
 | 1 | Should we ship a native Gantt timeline editor or rely on view-engine → workflow-studio bridge? Currently both; revisit at M04 | council-product | subsequent-to-M04-completion |
-| 2 | Time-tracking M03 vs M02-onward — current scope is M02-onward; user opt-in via tenant tier | axis-tasks | resolved at M02-onward |
+| 2 | Time-tracking M03 vs M02-onward — current scope is M02-onward; user opt-in via tenant_class and paid billing components | axis-tasks | resolved at M02-onward |
 | 3 | AI-task-suggest T2 auto-assign in non-EU jurisdictions — relax Cedar refusal? | council-product + council-privacy | ADR successor-IP |
 | 4 | JMAP-Tasks (draft) protocol portability — defer to M05 | axis-tasks | M05 |
 | 5 | Apple Reminders compatibility via VTODO over CalDAV — defer to M05; align with calendar's CalDAV chart | axis-tasks | M05 |
@@ -372,6 +405,9 @@ Sharding: tasks partitioned by `(tenant_id, project_id_hash)`; comments partitio
 | ADR-0133 | Industry-best-practice conformance | hyperscaler-grade bar |
 | ADR-0134 | Connect dissolution Strangler migration | migration policy |
 | ADR-0140 | Cedar policy enforcement | policy substrate |
+| ADR-0329 | Tier system retired and replaced by tenant_class | tier-retirement authority |
+| ADR-0330 | demo_trial vs paid tenant_class with composable paid billing components | tenant_class authority |
+| ADR-0331 | Per-µservice tenant_class adoption | per-service adoption authority |
 | ADR-TASKS-0001 | Task data model + custom fields | model authority |
 | ADR-TASKS-0002 | Dependency graph + cycle prevention | invariant authority |
 | ADR-TASKS-0003 | Recurring task engine (rrule-rs alignment with calendar ADR-CAL-0002) | recurrence authority |
@@ -381,3 +417,23 @@ Sharding: tasks partitioned by `(tenant_id, project_id_hash)`; comments partitio
 | Bominal ADR-0231 | Connect tasks board + views | inherited 1:1 |
 | Bominal ADR-0232 | Connect tasks dependency graph | inherited 1:1 |
 | Bominal ADR-0233 | Connect tasks recurring + RSVP-equivalent | inherited 1:1 |
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `tasks` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `tasks` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 2 module pin(s) across 1 context(s).
+- Scaling input: `per_user` with cell placement `Tier-3` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

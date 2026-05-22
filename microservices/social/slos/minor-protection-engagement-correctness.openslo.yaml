@@ -1,0 +1,33 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: social-minor-protection-engagement-correctness
+  displayName: Social minor-protection engagement correctness
+  labels:
+    microservice: social
+    binding_adr: ADR-0292
+spec:
+  service: social
+  description: |
+    100% of accounts in KOSA 14-17 age band have the strict-default protections engaged
+    (no algorithmic ranking, no targeted ads, no DMs-from-non-followers, overnight mute,
+    non-discoverable profile). Any drift triggers IP-016 minor-protection investigation.
+  objectives:
+    - displayName: Strict-defaults engaged on 100% of KOSA accounts
+      target: 1.0
+      sliRef:
+        ratioMetric:
+          counter: false
+          good:
+            metricSource:
+              type: prometheus
+              spec: 'sum(oya_social_kosa_account_strict_defaults_engaged_total)'
+          total:
+            metricSource:
+              type: prometheus
+              spec: 'sum(oya_social_kosa_account_total)'
+  alertPolicy:
+    burnRate:
+      - threshold: 1
+        lookback: 5m
+        runbook: microservices/social/IP-016-minor-protection-strict-defaults.md

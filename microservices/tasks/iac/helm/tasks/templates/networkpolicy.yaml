@@ -36,7 +36,7 @@ spec:
   egress:
     - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: tasks-postgres}}}]
       ports: [{protocol: TCP, port: 5432}]
-    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: tasks-redis}}}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: tasks-valkey}}}]
       ports: [{protocol: TCP, port: 6379}]
     - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: tasks-meilisearch}}}]
       ports: [{protocol: TCP, port: 7700}]

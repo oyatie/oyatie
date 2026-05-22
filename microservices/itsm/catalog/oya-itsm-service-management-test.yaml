@@ -1,0 +1,19 @@
+schema_version: 1
+id: oya-itsm-service-management-test
+name: oya-itsm-service-management-test
+service: itsm
+bounded_context: service-management
+layer: test
+layer_enum_authority: ADR-0105
+owners: [axis-itsm]
+source_root: microservices/itsm/src
+contracts:
+  openapi: microservices/itsm/contracts/openapi-v1.yaml
+  asyncapi: microservices/itsm/contracts/asyncapi-v1.yaml
+  proto: microservices/itsm/contracts/itsm-v1.proto
+policy:
+  default_deny: microservices/itsm/policy/service-management-authorization.cedar
+compliance:
+  marketplace_settlement: ADR-0314 DealSet
+  transport: ADR-0253-amendment h3-h2-h1 strict tls13 ech pqc
+benchmarks: ["ServiceNow ITSM", "Jira Service Management", "BMC Remedy", "Zendesk Support", "Freshdesk"]

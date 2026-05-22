@@ -77,7 +77,7 @@ cedar_policy_fragments:
   - microservices/application/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/application/capabilities/eval/session-emit-golden.jsonl
+  canonical_inputs_path: microservices/application/capabilities/eval/session-emit-canonical.jsonl
   pass_threshold: 0.999
   eval_metric: event-emission-correctness-against-session-state-machine
   cadence: per-release

@@ -42,7 +42,7 @@ ONE of:
 | 2 | Auto-allocate incident_id; auto-generate post-mortem template at `evidence/postmortems/<year>/<incident-id>.md` | ≤ 2 min |
 | 3 | Freeze the offending capability for the affected tenant via Cedar emergency policy: `oya foundry-guardrails freeze --tenant <id> --capability <id> --reason <rfc>` | ≤ 5 min |
 | 4 | If pattern suggests widespread risk (e.g., ensemble caught NONE of a class of obfuscation), freeze the capability cluster-wide; emits Sev-1 + per-tenant audit-chain seal | ≤ 5 min |
-| 5 | Pin the failing prompt to red-team fixture catalogue (`tests/jailbreak/golden_fixtures.rs`); will run on every classifier rollout | ≤ 1h |
+| 5 | Pin the failing prompt to red-team fixture catalogue (`tests/jailbreak/baseline_fixtures.rs`); will run on every classifier rollout | ≤ 1h |
 | 6 | Engage PrivacyLead (council-privacy chair) to determine data-subject impact: was unsafe content delivered? Was PII / PHI exposed? | ≤ 30 min |
 | 7 | If data-subject impact confirmed: begin per-pack regulatory notification chain (per `incident-response.md` §"Regulatory Notifications") | per per-pack timeline (GDPR 72h, KR PIPA 72h, HIPAA 60d ≥ 500, EU AI Act 15d serious) |
 | 8 | Classifier retraining: data team retrains affected model on new fixture + adjacent perturbations; shadow→enforce per IP-014 | days-to-weeks |
@@ -79,6 +79,6 @@ After completion:
 - `microservices/foundry/failure-modes.md` FM-06.
 - `microservices/foundry/incident-response.md` §"Jailbreak-Success Specific Protocol".
 - `microservices/foundry/threat-model.md` T-T-04 + T-T-05 + T-I-04.
-- `tests/jailbreak/golden_fixtures.rs`.
+- `tests/jailbreak/baseline_fixtures.rs`.
 - MITRE ATLAS — `atlas.mitre.org`.
 - OWASP LLM Top 10 (2025) LLM01 Prompt Injection.

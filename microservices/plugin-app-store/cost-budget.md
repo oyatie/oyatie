@@ -16,7 +16,7 @@ doc_status: published
 
 - Per-installation steady-state: $0.05 / month (compute + storage attribution).
 - Per-plugin runtime (free plugins): $0.20 / month per 100k requests.
-- Per-plugin runtime (paid plugins): cost passed through to subscription tier.
+- Per-plugin runtime (paid plugins): cost passed through to billing_components contract.
 
 ## Per-developer cost target
 

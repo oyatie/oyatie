@@ -14,7 +14,7 @@
 # ---
 # Canonical Foundry capability record. Lives under registry/capability-templates/<id>.yaml.
 # Validates against registry/quality/capability-record.schema.json. Enforced by:
-#   - oya-foundry-fitness-capability-publish lane (publish gate)
+#   - oya-governance-capability-publish lane (publish gate)
 #   - capability-schema-validator (CI; must pass before publish)
 # Status: Accepted. Date: 2026-05-12.
 # Supersedes: docs/templates/capability-record-template.yaml (preserves existing schema; adds T1-T4 autonomy enum,
@@ -56,7 +56,7 @@ provider:
 
 autonomy:
   tier_required: T2                       # T1 (recommend) | T2 (flag+freeze) | T3 (execute-with-approval) | T4 (auto-execute)
-  cedar_policy_ref: policies/foundry/<id>.cedar   # MUST exist when tier >= T2; oya-foundry-fitness-autonomy-ceiling enforces
+  cedar_policy_ref: policies/foundry/<id>.cedar   # MUST exist when tier >= T2; oya-governance-autonomy-ceiling enforces
   runtime_gate_ref: crates/oya-foundry-runtime-autonomy/src/lib.rs::AutonomyGate
 
 data_class:
@@ -104,7 +104,7 @@ side_effects:
   invokes_other_capabilities: []
 
 supply_chain:
-  cosign_signed: true                     # SLSA L2 minimum; oya-foundry-fitness-supply-chain enforces
+  cosign_signed: true                     # SLSA L2 minimum; oya-governance-supply-chain enforces
   cosign_signing_key_ref: keyless-oidc:github-actions-fulcio
   cosign_certificate_identity: https://github.com/oyatie/oyatie/.github/workflows/release.yaml@refs/heads/main
   rekor_log_index: <to-be-filled-at-publish>

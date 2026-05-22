@@ -47,7 +47,7 @@ All components introduced for the drive µservice across the eleven bounded cont
 | SeaweedFS RELEASE.2024-08 (S3-compatible single-cluster; secondary) | `oya-drive-folder-hierarchy-*` (8 crates) |
 | SeaweedFS 3.x (archive tier) | `oya-drive-upload-*` (10 crates) |
 | Postgres 16 LTS (metadata) | `oya-drive-download-*` (8 crates) |
-| Valkey 8.1 (Redis wire-compat) (upload-session + delta-sync cache) | `oya-drive-sync-*` (10 crates) |
+| Valkey 8.1 (RESP3 wire-compatible) (upload-session + delta-sync cache) | `oya-drive-sync-*` (10 crates) |
 | Meilisearch 1.10.x (full-text index) | `oya-drive-share-link-*` (10 crates) |
 | Apache Tika 2.9.x (content extraction) | `oya-drive-permissions-*` (8 crates) |
 | ClamAV 1.4.x (virus scan) | `oya-drive-search-index-*` (10 crates) |

@@ -8,63 +8,75 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-calendar
-acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-port-location, oya-governance-amendment-3-conformance]
+acceptance_lanes: [cargo-nextest, sql-migration-test, oya-governance-data-residency]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-004: Event-store Postgres adapter
 
-# IP-004: event-store adapter-postgres — per-tenant RLS + Tenant-DEK envelope
+## A. Problem
+The event-store ports need a durable adapter that preserves tenant RLS, legal-hold rows, retention markers, and encrypted personal/professional event content without turning database details into domain rules.
 
-## Intent
+## B. Approach
+Implement `oya-calendar-event-store-adapter-postgres` as the only Postgres-backed event repository for the foundation path. Use RLS keyed by `tenant_id`, OpenBao tenant-DEK references, idempotency-key uniqueness, and transaction boundaries that protect event mutation plus audit outbox enqueue.
 
-Implement `EventRepository`, `ResourceRepository`, `LegalHoldStore`
-port traits against Postgres 16 LTS with per-tenant RLS. Apply
-Tenant-DEK envelope encryption (per Bominal ADR-0111) at row-write
-time. Per ADR-0105 Amendment 3 backend-qualified adapter pattern.
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `catalog/oya-calendar-event-store-adapter-postgres.yaml` | Existing catalog anchor. |
+| `src/crates/oya-calendar-event-store-adapter-postgres/` | Planned adapter path named by manifest/catalog. |
+| Postgres migrations under the adapter crate | Event, attendee, hold, retention, outbox, and tzdb-version tables. |
+| `policy/tenant-scope.cedar` and `policy/data-residency.md` | Policy contract the adapter must not bypass. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Define migrations with tenant, home-cell, context, data-class, and audit-correlation columns.
+2. Add RLS policies for tenant and context isolation.
+3. Implement `EventRepository` and `LegalHoldStore` against transactions.
+4. Store encrypted payloads through SecretReference/DEK handles rather than plaintext keys.
+5. Add migration tests for RLS denial, idempotency conflict, and legal-hold preservation.
+6. Add adapter tests using synthetic tenants and explicit role switching.
+7. Verify the adapter crate has no REST, workflow, or product-microservice imports.
 
-1 crate (`oya-calendar-event-store-adapter-postgres`) + DB migrations.
+## E. Acceptance
+- `cargo nextest run -p oya-calendar-event-store-adapter-postgres` passes.
+- SQL migration tests prove cross-tenant reads and writes are denied.
+- `cargo run -p oya-dev-cli -- gate validate data-residency --microservice calendar` passes.
+- `cargo run -p oya-dev-cli -- gate validate statelessness --microservice calendar` passes.
+- Restore behavior remains compatible with `runbooks/calendar-restore.md`.
 
-## Concrete File Targets
+## F. Evidence
+- PRD storage and legal-hold requirements: `microservices/calendar/PRD.md`.
+- Catalog: `microservices/calendar/catalog/oya-calendar-event-store-adapter-postgres.yaml`.
+- Policy files: `policy/event-isolation.md`, `policy/tenant-scope.cedar`, `policy/data-residency.md`.
+- Operational files: `multi-region.md`, `backfill-replay.md`, `runbooks/calendar-restore.md`.
 
-| Path | Action | Description |
-|---|---|---|
-| `microservices/calendar/src/crates/oya-calendar-event-store-adapter-postgres/Cargo.toml` | create | crate manifest; deps: sqlx, chrono-tz, ed25519-dalek |
-| `microservices/calendar/src/crates/oya-calendar-event-store-adapter-postgres/src/lib.rs` | create | crate root |
-| `microservices/calendar/src/crates/oya-calendar-event-store-adapter-postgres/src/event_repository.rs` | create | EventRepository impl with per-tenant RLS |
-| `microservices/calendar/src/crates/oya-calendar-event-store-adapter-postgres/src/resource_repository.rs` | create | ResourceRepository impl |
-| `microservices/calendar/src/crates/oya-calendar-event-store-adapter-postgres/src/legal_hold_store.rs` | create | LegalHoldStore impl |
-| `microservices/calendar/src/crates/oya-calendar-event-store-adapter-postgres/migrations/0001_initial.sql` | create | schema: calendars, events, attendees, resources, bookings, legal_holds |
-| `microservices/calendar/src/crates/oya-calendar-event-store-adapter-postgres/migrations/0002_rls_policies.sql` | create | RLS policies per tenant_id |
-| `microservices/calendar/src/crates/oya-calendar-event-store-adapter-postgres/migrations/0003_indexes.sql` | create | indexes per PRD §Sharding |
+## G. Counterpart comparison
+Outlook and Google provide enterprise retention through suite controls, but not a tenant-visible adapter contract. This IP turns the comparison into concrete Postgres RLS, legal-hold, and data-residency tests, which is the minimum needed before claiming better auditability than Google Vault or Microsoft eDiscovery.
 
-## Acceptance Gates
+## H. Foundation delivery expansion
+- Deliverable detail: migrations create events, attendees, holds, retention markers, idempotency keys, and outbox rows.
+- Deliverable detail: each table carries tenant, context, home-cell, data-class, and audit-correlation columns.
+- Deliverable detail: RLS policies deny cross-tenant reads and writes before repository code runs.
+- Deliverable detail: encrypted payload columns store DEK references rather than inline keys.
+- Deliverable detail: transaction code persists event mutation and outbox enqueue atomically.
+- Deliverable detail: restore metadata includes schema version and tzdb version.
+- Deliverable detail: adapter errors preserve safe diagnostics for operators without leaking event content.
+- Deliverable detail: Slack Enterprise Grid calendar interop is comparison pressure for tenant-segmented storage.
 
-```bash
-cargo nextest run -p oya-calendar-event-store-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate amendment-3-conformance --microservice calendar
-```
+## I. Acceptance expansion
+- Acceptance detail: migration tests must create two tenants and prove cross-tenant SELECT/UPDATE denial.
+- Acceptance detail: idempotency tests must prove duplicate keys do not duplicate outbox rows.
+- Acceptance detail: legal-hold tests must prove delete/update refusal survives transaction rollback paths.
+- Acceptance detail: residency tests must prove home-cell and pack columns are populated on every write.
+- Acceptance detail: statelessness checks must prove no process-local event cache is required for correctness.
+- Acceptance detail: restore tests must replay outbox rows without violating RLS.
+- Acceptance detail: adapter crate checks must reject REST, workflow, and unrelated product imports.
+- Acceptance detail: Slack/Google/Outlook comparisons must be limited to enterprise isolation and auditability.
 
-## Test Plan
-
-- testcontainers-rs Postgres integration tests.
-- RLS test: tenant A cannot read tenant B's events.
-- Tenant-DEK envelope: written rows are ciphertext-only;
-  plaintext appears nowhere in DB or WAL.
-- Performance: write p99 ≤ 300ms benchmark.
-
-## Halt Conditions
-
-- RLS test fails (tenant boundary leak) — Sev-1 block.
-- DEK envelope test fails (plaintext in DB) — Sev-1 block.
-
-## Next IP
-
-[`IP-005-recurrence-engine.md`](IP-005-recurrence-engine.md)
-
-## References
-
-- ADR-0105 Amendment 3 (backend-qualified adapter); ADR-0117; ADR-0131.
-- Bominal ADR-0111 (envelope encryption).
-- `microservices/mail/IP-003-mailbox-store-postgres-adapter.md` — sibling.
+## J. Evidence expansion
+- Evidence detail: capture nextest output for Postgres adapter tests.
+- Evidence detail: capture SQL migration verification output with RLS fixture names.
+- Evidence detail: capture data-residency gate output for calendar.
+- Evidence detail: cite `multi-region.md` for home-cell expectations.
+- Evidence detail: cite `backfill-replay.md` for outbox replay behavior.
+- Evidence detail: cite `runbooks/calendar-restore.md` for restore operator steps.
+- Evidence detail: cite Slack as collaboration-suite pressure while preserving Postgres as the first-party adapter boundary.

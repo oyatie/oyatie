@@ -144,7 +144,7 @@
       "title": "Valkey memory usage (rate-limit + session)",
       "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
       "targets": [
-        {"expr": "oya_forms_redis_memory_used_bytes{pack=\"$pack\"} / oya_forms_redis_memory_max_bytes{pack=\"$pack\"}", "legendFormat": "{{cluster}}", "refId": "A"}
+        {"expr": "oya_forms_valkey_memory_used_bytes{pack=\"$pack\"} / oya_forms_valkey_memory_max_bytes{pack=\"$pack\"}", "legendFormat": "{{cluster}}", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"unit": "percentunit", "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 0.75}, {"color": "red", "value": 0.85}]}}}
     },

@@ -1,5 +1,4 @@
 ---
-purpose: "Claude Code harness contract for oyatie. Defines the sanctioned-primitive triad (`grit`, `icm`, `oya-tooling-agent-read`), the Directive-12 pragmatic git/gh extension with documented rationale, the grit claim→work→done lifecycle."
 doc_status: published
 ---
 
@@ -12,17 +11,14 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Claude Code harness contract for oyatie. Defines the sanctioned-primitive
-  triad (`grit`, `icm`, `oya-tooling-agent-read`), the Directive-12 pragmatic
-  git/gh extension with documented rationale, the grit claim→work→done
-  lifecycle, icm topic conventions, Stop-hook expectations, and PreToolUse /
   PostToolUse / Stop / SessionStart hooks ordering. Resolves the
   `standards/claude-code-harness.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Claude Code).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-banned-primitives
+planned_enforcement_ref: oya-governance-banned-primitives
 enforcement_status:
-  oya-foundry-fitness-banned-primitives: existing
-  oya-foundry-fitness-user-machine-guard: existing (§8)
+  oya-governance-banned-primitives: existing
+  oya-governance-user-machine-guard: existing (§8)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/AGENTS.md
@@ -54,34 +50,27 @@ fence is the **triad**:
 
 | Tool | Role | Source |
 |---|---|---|
-| [`grit`](https://github.com/rtk-ai/grit) | Git-for-agents: claim, work, done lifecycle; merge queue | rtk-ai/grit |
-| [`icm`](https://github.com/rtk-ai/icm) | Persistent memory across sessions; MCP-native | rtk-ai/icm |
-| `oya-tooling-agent-read` | In-tree read primitives (Foundry-owned); composes grit + icm + Foundry indexes | this repo |
 
 Versions: per
 [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md)
-— `grit v0.3.0`, `icm v0.10.39` (both Apache-2.0).
 
-Sanctioned-primitive ADRs: ADR-0053 (sanctioned primitives), ADR-0052 (pre-grit
 artifact inventory), ADR-0054 (scaffold-claim pattern).
 
 ## 2. Directive-12 pragmatic-git rule
 
 Direct `git` / `gh` invocation inside agent fences is **permitted** when:
 
-1. No grit / icm / `oya-tooling-agent-read` primitive exists for the
    intended operation.
 2. Inventing a wrapper would be over-engineering (a one-shot operation;
    < 5 invocations per 30 days across the repo).
 3. The agent logs a rationale via:
    ```sh
-   icm store -t direct-tool-invocations \
      -c "<one-line rationale>" \
      -i high -k "git,<context>"
    ```
    **BEFORE** the invocation.
 
-The revised lane `oya-foundry-fitness-banned-primitives` catches
+The revised lane `oya-governance-banned-primitives` catches
 **undocumented** `git` / `gh` calls in agent-instruction sections, not all
 calls. Repeat invocations (≥ 5 same-shape in 30 days) auto-emit a
 migration-candidate row in `docs/MISTAKES-LEDGER.md`.
@@ -89,23 +78,18 @@ migration-candidate row in `docs/MISTAKES-LEDGER.md`.
 Full rationale, examples, and migration-candidate workflow are in
 [`git-workflow.md`](git-workflow.md).
 
-## 3. grit claim→work→done lifecycle
 
 The canonical inner loop for a Claude Code agent inside a long-running
 session:
 
 ```
-grit claim <symbol>      # acquire a work-stealing lease on a file::Identifier
   ↓
-icm recall "<query>"     # bring relevant memory into context
   ↓
 <perform edits>          # via Read / Edit / Write tools
   ↓
 cargo nextest run …      # evidence per testing.md §2
   ↓
-icm store …              # capture decisions per CLAUDE.md §store triggers
   ↓
-grit done <symbol>       # release lease + emit audit-chain EVT-GRIT-DONE
 ```
 
 Rules:
@@ -113,16 +97,10 @@ Rules:
 1. Every IP (Implementation Plan) under `.omc/plans/milestones/**` names
    the symbol an agent claims as a real `file::Identifier`
    (per MASTERPLAN §6 dual-audience contract).
-2. `grit claim` failures (already-claimed, stale lease, merge conflict)
-   require icm-store of the failure mode before retry.
-3. `grit done` MUST run AFTER `cargo nextest` + `cargo clippy -- -D warnings`
    + `cargo deny check` are green locally (per AGENTS.md D9–D11).
-4. Aborted work emits `grit abandon <symbol>` with reason; never leave a
    dangling lease.
 
-## 4. icm topic conventions
 
-Per project CLAUDE.md (ICM mandatory):
 
 | Topic prefix | Use |
 |---|---|
@@ -139,7 +117,6 @@ decisions) / `medium` (context) / `low` (informational).
 
 Recall pattern at session start:
 ```sh
-icm recall-context "<task-keywords>" --limit 5
 ```
 
 ## 5. Active hooks
@@ -149,14 +126,11 @@ hooks MUST be configured for every project session:
 
 | Hook event | Script | Purpose | Order |
 |---|---|---|---|
-| `SessionStart` | `scripts/hooks/memory-bootstrap.mjs` | inject icm recall context; load skills | 1 |
 | `SessionStart` | `scripts/hooks/load-omc-skills.mjs` | register local OMC skills | 2 |
 | `PreToolUse:Bash` | `scripts/hooks/banned-primitives.mjs` | check sanctioned-primitive contract + Directive-12 rationale | 1 |
-| `PreToolUse:Bash` | `scripts/hooks/rtk-rewrite.mjs` | rewrite `<cmd>` → `rtk <cmd>` per CLAUDE.md | 2 |
 | `PreToolUse:Bash` | `scripts/hooks/guard-pr-merge-review.mjs` | refuse `gh pr merge` without `## Code Review` | 3 |
 | `PostToolUse:Bash` | `scripts/hooks/telemetry.mjs` | emit `EVT-TOOL-INVOKED` audit-chain record | 1 |
 | `Stop` | `scripts/hooks/loop-cancellation.mjs` | re-walk Done-Definition; refuse silent exit on long-running loops | 1 |
-| `Stop` | `scripts/hooks/icm-progress-flush.mjs` | write a progress summary to icm if >20 tool calls since last store | 2 |
 
 Ordering is **stable** — earlier hooks gate later hooks. A hook failure is
 a signal: fix the underlying issue, do not skip (per decision-principles.json DP-0
@@ -201,7 +175,7 @@ Custom OMC subagents (per AGENTS.md §OMC): `executor`, `architect`,
 ## 8. Boundaries
 
 - Claude Code MUST NOT edit `~/.claude/` from a project session — user-
-  machine state. The lane `oya-foundry-fitness-user-machine-guard` checks.
+  machine state. The lane `oya-governance-user-machine-guard` checks.
 - Claude Code MUST NOT touch the read-only reference path
   `/Users/home/Documents/GitHub/claude-code`.
 - Local `AGENTS.md` files under sub-directories MAY narrow context but
@@ -227,12 +201,9 @@ the loop complete or records the structural block.
 
 ## 11. Anti-patterns
 
-1. **`git` / `gh` calls in agent fences without an `icm store -t
    direct-tool-invocations` log.** The revised lane refuses.
 2. **Skipping the `Stop:loop-cancellation` hook** by exiting via process
    kill. Use `/oh-my-claudecode:cancel`.
-3. **icm-store omitted** after a significant task (per CLAUDE.md §store
-   triggers). The `Stop:icm-progress-flush` hook catches the silent case.
 4. **Editing `~/.claude/CLAUDE.md` from a project session.**
 5. **Custom Claude Code skill that bypasses the merge-gate hook.**
 
@@ -240,7 +211,6 @@ the loop complete or records the structural block.
 
 - [Anthropic — Claude Code docs](https://docs.anthropic.com/en/docs/claude-code/).
 - [Anthropic — Claude Code memory](https://docs.anthropic.com/en/docs/claude-code/memory).
-- [rtk-ai/grit](https://github.com/rtk-ai/grit), [rtk-ai/icm](https://github.com/rtk-ai/icm).
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
 - [`docs/AGENTS.md`](../AGENTS.md) §Per-agent appendices (Claude Code).
 - [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-02 (no

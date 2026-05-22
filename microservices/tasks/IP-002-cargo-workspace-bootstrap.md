@@ -39,7 +39,7 @@ Plus root workspace `Cargo.toml`.
 
 Per PRD §"Bounded Contexts" layer mapping. Crate prefix
 `oya-tasks-<bc>-<layer>` per ADR-0056 v4.1. Backend-qualified per
-ADR-0105 Amendment 3: `-adapter-postgres`, `-adapter-redis`,
+ADR-0105 Amendment 3: `-adapter-postgres`, `-adapter-valkey`,
 `-adapter-meilisearch`, `-adapter-csv`, `-adapter-jira`, `-adapter-
 asana`, `-adapter-trello`, `-adapter-linear`, `-adapter-todoist`.
 

@@ -89,13 +89,13 @@ use anyhow::Result;
 
 pub fn wire_dependencies() -> Result<AppState> {
     let pg = oya_workflow_studio_license_gate_cedar_adapter_postgres::PostgresStore::from_env()?;
-    let redis = oya_workflow_studio_collab_crdt_adapter_redis::RedisStore::from_env()?;
+    let valkey = oya_workflow_studio_collab_crdt_adapter_valkey::ValkeyStore::from_env()?;
     let cdn = oya_workflow_studio_node_library_registry_adapter_cdn::CdnStore::from_env()?;
     let engine_sdk = workflow_engine_sdk::Client::from_env()?;
     let ontology_sdk = ontology_sdk::Client::from_env()?;
     let foundry_sdk = foundry_providers_sdk::Client::from_env()?;
     let tenancy_sdk = tenancy_sdk::Client::from_env()?;
-    Ok(AppState { pg, redis, cdn, engine_sdk, ontology_sdk, foundry_sdk, tenancy_sdk })
+    Ok(AppState { pg, valkey, cdn, engine_sdk, ontology_sdk, foundry_sdk, tenancy_sdk })
 }
 ```
 
@@ -145,3 +145,22 @@ helm lint microservices/workflow-studio/iac/helm/visual-canvas-rest
 - CSP3 spec — `w3.org/TR/CSP3/`.
 - Trusted Types — `w3.org/TR/trusted-types/`.
 - Leptos book — `book.leptos.dev`.
+
+## Counterpart Anchors
+This workflow-studio IP is measured against the local Workflow Studio benchmark envelope: n8n for visual workflow authoring depth, Zapier for broad trigger/action accessibility, Make for visual branching and scenario ergonomics, and Workato for enterprise workflow governance. The IP must keep Oyatie's differentiator intact: canonical workflow_spec.v1 round-trip, Cedar-gated save/publish, tenant-scoped collaboration, and audit evidence rather than counterpart-specific runtime authority.
+
+## DR posture (per ADR-0343)
+
+- ha_trigger_evidence: `microservices/workflow-studio/IP-012-visual-canvas-leptos-wasm-rest-sdk-app.md` matched [`p99`].
+- applicable_compliance_pack_floor: [`HIPAA-2024`, `SOC2-T2`, `ISO27001-2022`] from `specs/compliance-pack-floors.json`; `manifest.json#dr` has no D-2 numeric override in this checkout.
+- rto_p99_seconds_target: `3600`; rpo_p99_seconds_target: `300`.
+- multi_region_active_active: `true`; floor_requires_active_active: `true`.
+- backup_substrate: [`postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `audit_chain_merkle_seal`].
+- evidence_paths: [`microservices/workflow-studio/IP-012-visual-canvas-leptos-wasm-rest-sdk-app.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/ARCHITECTURE.md`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/multi-region.md`, `microservices/workflow-studio/capacity-model.md`].
+
+## Pod runtime tier (per ADR-0338)
+
+- pod_runtime_tier: `0`.
+- runtime_requirement: Kata Containers plus Cloud Hypervisor REQUIRED.
+- justification: tenant-customer code exists in this IP execution path; trigger_terms: [`workflow-studio`].
+- surface_evidence_paths: [`microservices/workflow-studio/IP-012-visual-canvas-leptos-wasm-rest-sdk-app.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/templates/index.json`, `microservices/workflow-studio/templates/schemas/workflow-template.schema.json`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/ARCHITECTURE.md`].

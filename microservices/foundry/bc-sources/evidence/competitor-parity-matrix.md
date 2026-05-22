@@ -30,7 +30,7 @@ Per ADR-0133, this matrix is **CI-asserted**: every "asserted" row has a CI lane
 
 | Dimension | foundry-evidence | AWS CloudTrail+Audit Lake | GCP Audit Logs Premium | Azure Sentinel | Splunk | LogicMonitor | Status |
 |---|---|---|---|---|---|---|---|
-| Per-invocation evidence pack schema (model + prompt + output hash + autonomy-tier + guardrail + eval) | YES (canonical schema; ADR-0024) | NO (generic event log) | NO (generic event log) | NO (generic SIEM) | NO (generic) | NO | **ahead** |
+| Per-invocation evidence pack schema (model + prompt + output hash + autonomy-ceiling + guardrail + eval) | YES (canonical schema; ADR-0024) | NO (generic event log) | NO (generic event log) | NO (generic SIEM) | NO (generic) | NO | **ahead** |
 | Cryptographic per-event signature (Ed25519) | YES (via audit-chain substrate; Bominal ADR-0028) | partial (CloudTrail log file validation, SHA + RSA) | partial (log integrity validation) | NO (Sentinel-side hash, but not per-event PKI) | NO | NO | **asserted** |
 | Merkle-tree inclusion proof | YES (audit-chain substrate) | NO (file-level hash chain only) | NO | NO | NO | NO | **asserted** |
 | HSM-backed signing keys | YES (audit-chain substrate; OCI Cloud-HSM) | partial (AWS KMS; CloudTrail integration not HSM-default) | partial (Cloud KMS; HSM-tier optional) | partial (Azure Key Vault HSM optional) | N/A | N/A | **asserted** |
@@ -82,7 +82,7 @@ Per ADR-0133:
 
 ## Differentiation summary
 
-Where we are **ahead**: per-invocation pack schema; AI-Act native; eval-evidence integration; autonomy-tier capture; guardrail-decision capture; two-person rule on export; per-pack chain locality; two-channel root publication; honest claim posture (ADR-0133).
+Where we are **ahead**: per-invocation pack schema; AI-Act native; eval-evidence integration; autonomy-ceiling capture; guardrail-decision capture; two-person rule on export; per-pack chain locality; two-channel root publication; honest claim posture (ADR-0133).
 
 Where we are **at parity**: WORM storage; HSM signing (substrate); idempotency dedup; HIPAA + GDPR profiles; default-deny.
 

@@ -44,7 +44,7 @@ Any of:
 
 | Hypothesis | Signal | Investigation |
 |---|---|---|
-| Classifier drift after retrain | timing matches deploy; macro-F1 regression on golden set | rerun eval golden set; bisect retrain |
+| Classifier drift after retrain | timing matches deploy; macro-F1 regression on reference set | rerun eval reference set; bisect retrain |
 | Adversarial prompt-injection attack | clustering of "abuse" verdicts on benign content | sample 100 verdicts; inspect; engage ops-security |
 | Locale gap (new language, low coverage) | clustering on `language_code` label | re-train with affected-locale data or disable for that locale |
 | EU AI Act labeling gap | tenant complaint; legal-counsel review | restore transparency label; tenant comms |
@@ -81,7 +81,7 @@ Any of:
 ## Classifier Versioning + Audit
 
 Per `capabilities/T2-auto.yaml`:
-- Every classifier version tagged with: training-dataset SHA + commit + golden-set verdict macro-F1 + bias-audit record.
+- Every classifier version tagged with: training-dataset SHA + commit + reference-set verdict macro-F1 + bias-audit record.
 - Per-version evidence_topic record: `oya.social.capability.t2_auto.evidence`.
 - Rollback record sealed via audit-chain Ed25519.
 - EU AI Act Art. 50 transparency label maintained per version; rollback restores prior label.

@@ -39,7 +39,7 @@ spec:
   egress:
     - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: translate-postgres}}}]
       ports: [{protocol: TCP, port: 5432}]
-    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: translate-redis}}}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: translate-valkey}}}]
       ports: [{protocol: TCP, port: 6379}]
     - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: translate-meilisearch}}}]
       ports: [{protocol: TCP, port: 7700}]

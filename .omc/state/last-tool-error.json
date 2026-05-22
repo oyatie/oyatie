@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk grep -rln \\\"runtimeClassName: gvisor\\\" /Users/jasonlee/oyatie/microservices/ 2>&1 | head -20 && echo \\\"---\\\" && rtk grep -rln \\\"gvisor\\\" /Users/jasonlee/oyatie/microservices/observabil...",
-  "error": "Exit code 1\n/Users/jasonlee/oyatie/microservices/sheets/IP-001-iac-bootstrap.md\n/Users/jasonlee/oyatie/microservices/anonymous/threat-model.md\n/Users/jasonlee/oyatie/microservices/translate/decisions/ADR-TRANSLATE-0005-document-round-trip-fidelity.md\n/Users/jasonlee/oyatie/microservices/translate/IP-001-iac-and-pack-overlays.md\n/Users/jasonlee/oyatie/microservices/meet/IP-001-iac-bootstrap.md\n/Users/jasonlee/oyatie/microservices/meet/threat-model.md\n/Users/jasonlee/oyatie/microservices/meet/deci...",
-  "timestamp": "2026-05-18T09:08:53.515Z",
+  "tool_input_preview": "{\"command\":\"./bin/oya git status 2>&1 | head -20 && echo \\\"---\\\" && ./bin/oya git log -1 --oneline\",\"description\":\"Check merge state and current commit\"}",
+  "error": "Exit code 101\nerror[E0432]: unresolved import `oya_foundry_eval_domain::REQUIRED_LINGUISTIC_COHORTS`\n  --> crates/oya-application-app/src/lib.rs:39:5\n   |\n39 |     REQUIRED_LINGUISTIC_COHORTS,\n   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `REQUIRED_LINGUISTIC_COHORTS` in the root\n   |\nhelp: a similar name exists in the module\n   |\n39 |     REQUIRED_LINGUISTIC_COHORT_LOCALES,\n   |                               +++++++\n\nFor more information about this error, try `rustc --explain E0432`.\nerror: could not...",
+  "timestamp": "2026-05-21T17:32:40.528Z",
   "retry_count": 1
 }

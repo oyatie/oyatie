@@ -1,0 +1,21 @@
+schema_version: "1.0"
+crate: oya-plant-maintenance-spare-part-reservation-application
+microservice: plant-maintenance
+bounded_context: spare-part-reservation
+layer: application
+adr_0105_layer: application
+owner_team: axis-plant-maintenance
+status: planned
+sap_code: "PM"
+benchmarks:
+  - "SAP PM Plant Maintenance"
+  - "Oracle Fusion Maintenance"
+  - "Workday Extend asset-maintenance workflow counterpart"
+  - "NetSuite Fixed Assets and Field Service counterpart"
+  - "Microsoft Dynamics 365 Asset Management"
+contracts:
+  openapi: microservices/plant-maintenance/contracts/openapi-v1.yaml
+  asyncapi: microservices/plant-maintenance/contracts/asyncapi-v1.yaml
+  proto: microservices/plant-maintenance/contracts/plant-maintenance-v1.proto
+policy_fragment: microservices/plant-maintenance/policy/spare-part-reservation-authorization.cedar
+settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

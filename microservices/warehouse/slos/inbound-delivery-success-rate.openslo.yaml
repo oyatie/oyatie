@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: inbound-delivery-success-rate
+  labels:
+    service: warehouse
+    sap_code: "EWM"
+spec:
+  description: "Warehouse inbound-delivery-success-rate objective; benchmarks SAP EWM Extended Warehouse Management | Oracle Fusion Warehouse Management | Workday inventory-operations counterpart | NetSuite WMS | Microsoft Dynamics 365 Warehouse Management"
+  service: warehouse
+  indicator:
+    metadata:
+      name: inbound-delivery-success-rate-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_warehouse_inbound_delivery_success_total[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_warehouse_inbound_delivery_attempt_total[5m]))"
+  objectives:
+    - displayName: inbound-delivery-success-rate
+      target: 0.999

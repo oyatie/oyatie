@@ -8,66 +8,76 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-calendar + axis-workflow
-acceptance_lanes: [cargo-nextest, oya-governance-cross-product-isolation]
+acceptance_lanes: [asyncapi-validate, ontology-link-test, oya-governance-cross-product-boundary]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-013: Workflow and Ontology handoff
 
-# IP-013: Workflow + Ontology handoff (cross-µservice integration)
+## A. Problem
+Calendar integrates with tenancy, mail, messenger, workflow-engine, audit-chain, and observability, but direct product-crate imports would violate the microservice boundary.
 
-## Intent
+## B. Approach
+Use AsyncAPI events and Ontology object/link writes as the only handoff surfaces. Calendar emits lifecycle, RSVP, room, recurrence, and legal-hold events, consumes tenant/mail/messenger/workflow signals, and writes calendar objects with audit correlation.
 
-Wire calendar's Workflow event production + Ontology entity writes
-per PRD §"Workflow events produced" + §"Ontology writes". Calendar
-MUST NOT directly import another product µservice crate; all
-cross-µservice flows go through Workflow (events) or Ontology
-(entity reads/writes).
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `contracts/asyncapi/calendar-events.yaml` | Produced/consumed workflow event source. |
+| `contracts/proto/calendar.proto` | Shared typed payload source. |
+| `manifest.json` | Dependency and contract registry. |
+| `backfill-replay.md` | Replay and catch-up operational rule. |
+| `runbooks/calendar-bridge-mail-loop-detection.md` | Mail handoff loop guard. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Map every PRD produced and consumed event to an AsyncAPI topic.
+2. Add idempotency keys and audit-correlation fields to event examples.
+3. Document ontology writes for `CalendarEvent`, `Resource`, `Booking`, `Invitation`, and `LegalHold`.
+4. Test event consumers with synthetic tenancy, mail failure, and messenger room creation inputs.
+5. Add cross-product dependency scan proving no direct product crate imports.
+6. Add backfill replay evidence for missed lifecycle events.
+7. Tie observability metrics to SLO dashboards.
 
-Per-BC Workflow event emit calls + Ontology entity writes; no new
-crates (handoff is a wiring layer inside existing usecase + worker
-crates).
+## E. Acceptance
+- AsyncAPI validation passes for `contracts/asyncapi/calendar-events.yaml`.
+- `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice calendar` passes.
+- `cargo run -p oya-dev-cli -- gate validate ontology-link-consistency --microservice calendar` passes.
+- Replay instructions in `backfill-replay.md` cover idempotent lifecycle events.
+- Mail-loop detection runbook remains linked.
 
-## Concrete File Targets
+## F. Evidence
+- PRD workflow and ontology sections: `microservices/calendar/PRD.md`.
+- Contracts: `contracts/asyncapi/calendar-events.yaml`, `contracts/proto/calendar.proto`.
+- Runbooks: `backfill-replay.md`, `runbooks/calendar-bridge-mail-loop-detection.md`, `runbooks/scheduling-poll-deadlock.md`.
+- Manifest dependencies: `manifest.json`.
 
-| Path | Action | Description |
-|---|---|---|
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/src/workflow_emit.rs` | create | emit calendar.event.lifecycle.v1 events |
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/src/ontology_write.rs` | create | write Calendar.CalendarEvent + Calendar.LegalHold entities |
-| `microservices/calendar/src/crates/oya-calendar-invitation-flow-worker/src/workflow_emit.rs` | create | emit calendar.invitation.rsvp.v1 events |
-| `microservices/calendar/src/crates/oya-calendar-room-booking-usecase/src/workflow_emit.rs` | create | emit calendar.room.booking.v1 events |
-| `microservices/calendar/tests/cross-product-isolation.rs` | create | LEAN-A2 cross-product refusal coverage |
+## G. Counterpart comparison
+Google and Microsoft expose webhooks/subscriptions, and Cal.com/Calendly expose booking webhooks. Oyatie must match event-driven integration while adding typed ontology links, audit-chain correlation, and cross-product import refusal as governance evidence.
 
-## Acceptance Gates
+## H. Foundation delivery expansion
+- Deliverable detail: produced events include event lifecycle, RSVP, room booking, recurrence refusal, legal hold, and import job state.
+- Deliverable detail: consumed events include tenant changes, mail delivery state, messenger room creation, and workflow retry signals.
+- Deliverable detail: ontology writes include `CalendarEvent`, `Resource`, `Booking`, `Invitation`, and `LegalHold` links.
+- Deliverable detail: idempotency keys are stable across replay and backfill.
+- Deliverable detail: audit correlation survives consumer retries and dead-letter movement.
+- Deliverable detail: direct product crate imports are forbidden; only contracts and ports are allowed.
+- Deliverable detail: dashboards distinguish produced, consumed, replayed, and dead-lettered events.
+- Deliverable detail: Slack workflow handoff expectations are counterpart pressure for event clarity and retry semantics.
 
-```bash
-cargo nextest run -p tests --test cross_product_isolation
-cargo run -p oya-dev-cli -- gate validate cross-product-isolation --microservice calendar
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice calendar
-```
+## I. Acceptance expansion
+- Acceptance detail: AsyncAPI validation must cover every produced and consumed topic.
+- Acceptance detail: replay tests must prove idempotent lifecycle reconstruction.
+- Acceptance detail: ontology-link tests must prove object/link names match the PRD.
+- Acceptance detail: cross-product dependency scan must fail on direct mail, messenger, workflow, or ontology crate imports.
+- Acceptance detail: mail failure consumer tests must avoid calendar-mail retry loops.
+- Acceptance detail: backfill documentation must name checkpoint, resume, and duplicate-handling behavior.
+- Acceptance detail: SLO dashboard checks must include event lag and dead-letter count.
+- Acceptance detail: Slack, GitHub, and Linear-style workflow consumers must integrate through events rather than private imports.
 
-## Test Plan
-
-- Cross-product import refusal — calendar crates do NOT import
-  oya-mail-*, oya-messenger-*, etc. directly.
-- Workflow event coverage — every PRD §"Workflow events produced"
-  row has a corresponding emit call.
-- Ontology entity coverage — every PRD §"Ontology writes" row has
-  a corresponding entity write.
-
-## Halt Conditions
-
-- Any direct cross-product crate import — block.
-- Any PRD-listed Workflow event without an emit call — block.
-
-## Next IP
-
-[`IP-014-hg-calendar-authority-cohesion.md`](IP-014-hg-calendar-authority-cohesion.md)
-
-## References
-
-- `feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145).md` — Workflow +
-  Ontology = adapter layer.
-- ADR-0131 (per-µservice flat layout); ADR-0132.
-- LEAN-A2 cross-product CI lane.
+## J. Evidence expansion
+- Evidence detail: capture AsyncAPI validator output.
+- Evidence detail: capture ontology-link consistency gate output.
+- Evidence detail: capture cross-product dependency scan output.
+- Evidence detail: cite `backfill-replay.md` for replay controls.
+- Evidence detail: cite `runbooks/calendar-bridge-mail-loop-detection.md` for loop prevention.
+- Evidence detail: cite `runbooks/scheduling-poll-deadlock.md` for workflow degradation.
+- Evidence detail: cite Slack as workflow/collaboration counterpart pressure for typed handoff contracts.

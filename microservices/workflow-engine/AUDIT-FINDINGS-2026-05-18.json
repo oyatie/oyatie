@@ -4,7 +4,7 @@
   "scanned_files": 113,
   "excluded_files": 2,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -34,7 +34,7 @@
             },
             {
               "line": 165,
-              "excerpt": "- adapter-redis: Redis-backed ephemeral state (in-flight step claim leases; coordinator locks)."
+              "excerpt": "- adapter-valkey: Valkey-backed ephemeral state (in-flight step claim leases; coordinator locks)."
             },
             {
               "line": 280,
@@ -116,7 +116,7 @@
             },
             {
               "line": 39,
-              "excerpt": "| `src/crates/oya-workflow-engine-execution-engine-adapter-redis/{Cargo.toml,src/{lib,lease_store,ephemeral_state}.rs}` | create | Valkey lease coordinator |"
+              "excerpt": "| `src/crates/oya-workflow-engine-execution-engine-adapter-valkey/{Cargo.toml,src/{lib,lease_store,ephemeral_state}.rs}` | create | Valkey lease coordinator |"
             },
             {
               "line": 68,
@@ -178,7 +178,7 @@
           "hits_total": 3
         },
         {
-          "file": "microservices/workflow-engine/IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md",
+          "file": "microservices/workflow-engine/IP-001-layer-a-postgres-citus-valkey-clickhouse-iac.md",
           "hits": [
             {
               "line": 16,
@@ -214,7 +214,7 @@
             },
             {
               "line": 72,
-              "excerpt": "| [`IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md`](IP-001-layer-a-postgres-citus-redis-clickhouse-iac.md) | Helm + Kustomize charts for Postgres+Citus, Valkey (Sentinel HA), ClickHouse, workfl"
+              "excerpt": "| [`IP-001-layer-a-postgres-citus-valkey-clickhouse-iac.md`](IP-001-layer-a-postgres-citus-valkey-clickhouse-iac.md) | Helm + Kustomize charts for Postgres+Citus, Valkey (Sentinel HA), ClickHouse, workfl"
             },
             {
               "line": 201,
@@ -238,13 +238,13 @@
           "hits": [
             {
               "line": 37,
-              "excerpt": "3. Verify subscription registry in Valkey: `redis-cli SCAN 0 MATCH 'oya:workflow:sub:*' COUNT 100`."
+              "excerpt": "3. Verify subscription registry in Valkey: `valkey-cli SCAN 0 MATCH 'oya:workflow:sub:*' COUNT 100`."
             }
           ],
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/runbooks/redis-failover.md",
+          "file": "microservices/workflow-engine/runbooks/valkey-failover.md",
           "hits": [
             {
               "line": 3,
@@ -266,7 +266,7 @@
           "hits": [
             {
               "line": 76,
-              "excerpt": "| 1 | Verify the timer record in Valkey: `redis-cli HGETALL oya:workflow:sla_timer:<run_id>` |"
+              "excerpt": "| 1 | Verify the timer record in Valkey: `valkey-cli HGETALL oya:workflow:sla_timer:<run_id>` |"
             },
             {
               "line": 77,
@@ -320,11 +320,11 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-adapter-redis.yaml",
+          "file": "microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-adapter-valkey.yaml",
           "hits": [
             {
               "line": 11,
-              "excerpt": "Redis-backed ephemeral lease + step claim state."
+              "excerpt": "Valkey-backed ephemeral lease + step claim state."
             }
           ],
           "hits_total": 1
@@ -340,7 +340,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/catalog/oya-workflow-engine-event-bus-adapter-redis.yaml",
+          "file": "microservices/workflow-engine/catalog/oya-workflow-engine-event-bus-adapter-valkey.yaml",
           "hits": [
             {
               "line": 11,
@@ -350,7 +350,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/iac/helm/redis/Chart.yaml",
+          "file": "microservices/workflow-engine/iac/helm/valkey/Chart.yaml",
           "hits": [
             {
               "line": 4,
@@ -358,7 +358,7 @@
             },
             {
               "line": 7,
-              "excerpt": "appVersion: \"7.2\"  # Valkey 8.1 (Redis wire-compat) per docs/standards/workflow-engine-substrate.md"
+              "excerpt": "appVersion: \"7.2\"  # Valkey 8.1 (RESP wire-compatible) per docs/standards/workflow-engine-substrate.md"
             }
           ],
           "hits_total": 2
@@ -382,7 +382,7 @@
             },
             {
               "line": 245,
-              "excerpt": "\"redis\": \"7.2\\\"  # Valkey 8.1 (Redis wire-compat) per docs/standards/workflow-engine-substrate.md\","
+              "excerpt": "\"valkey\": \"8.1\\\"  # Valkey 8.1 (RESP wire-compatible) per docs/standards/workflow-engine-substrate.md\","
             }
           ],
           "hits_total": 2

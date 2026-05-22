@@ -76,12 +76,12 @@ components:
   schemas:
     CapabilityDefinition:
       type: object
-      required: [id, version, tenant, autonomy_tier, cost_budget_per_invocation, runtime, schema]
+      required: [id, version, tenant, autonomy_level, cost_budget_per_invocation, runtime, schema]
       properties:
         id: {type: string}
         version: {type: string, example: "1.0.0"}
         tenant: {type: string}
-        autonomy_tier: {type: string, enum: [T0, T1, T2, T3]}
+        autonomy_level: {type: string, enum: [T0, T1, T2, T3]}
         cost_budget_per_invocation: {type: number}
         runtime:
           type: object
@@ -89,10 +89,10 @@ components:
             provider: {type: string, enum: [anthropic, openai, gemini, vertex, bedrock]}
             model: {type: string}
         schema: {type: object}
-        annex_iii_domain:
+        high_risk_domain:
           type: string
           enum: [none, employment, law-enforcement, migration, justice, biometric, critical-infrastructure, education, essential-services]
-          description: EU AI Act Annex III high-risk sub-domain when applicable
+          description: high-risk sub-domain when applicable
     AgentDeployment:
       type: object
       required: [deployment_id, capability_id, current_version, rollout_phase, verdict, tenant]
@@ -214,7 +214,7 @@ paths:
           content:
             application/json:
               schema: {$ref: '#/components/schemas/AgentDeployment'}
-        '422': {description: Schema or autonomy-tier violation}
+        '422': {description: Schema or autonomy-ceiling violation}
 
   /tenants/{tenant}/capabilities/{capability_id}/deployments:
     get:
@@ -390,11 +390,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [tenant, capability, requested_tier]
+              required: [tenant, capability, requested_autonomy_level]
               properties:
                 tenant: {type: string}
                 capability: {type: string}
-                requested_tier: {type: string, enum: [T0, T1, T2, T3]}
+                requested_autonomy_level: {type: string, enum: [T0, T1, T2, T3]}
                 request_id: {type: string}
       responses:
         '200':

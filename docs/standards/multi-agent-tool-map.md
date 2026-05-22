@@ -19,7 +19,7 @@ purpose: |
   `standards/multi-agent-tool-map.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Gemini).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-tool-map-cohesion
+planned_enforcement_ref: oya-governance-tool-map-cohesion
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/claude-code-harness.md
@@ -94,27 +94,21 @@ the agent MUST use only the triad + the canonical tool surface above:
 
 | Agent | Default-sanctioned | Allowed with rationale | Forbidden |
 |---|---|---|---|
-| Claude Code | `Read`, `Write`, `Edit`, `Bash` (rtk-rewritten), `Grep`, `Glob`, `grit`, `icm`, `oya-tooling-agent-read`, OMC subagent skills, MCP calls | Direct `git`/`gh` via `Bash` per Directive 12 (with icm-store rationale) | bypassing hooks; `~/.claude/` edits |
-| Codex CLI | `read_file`, `apply_patch`, `shell` (rtk-rewritten), `web_fetch`, `web_search` | Direct `git`/`gh` via `shell` per Directive 12 | network calls outside the sandboxed allow-list |
 | Gemini CLI | `read_file`, `write_file`, `replace`, `run_shell_command`, `glob`, `search_file_content` | Direct `git`/`gh` per Directive 12 | sandbox-escape commands |
 | OMC subagent | inherits Claude Code's surface | inherits Claude Code's Directive-12 extensions | inherits Claude Code's bans |
 
-The lane `oya-foundry-fitness-tool-map-cohesion` validates that the
+The lane `oya-governance-tool-map-cohesion` validates that the
 per-harness sanctioned set in each agent appendix matches this table.
 
 ## 4. Per-harness invocation surface (commands)
 
 | Harness | Build | Test | Lint | Source |
 |---|---|---|---|---|
-| Claude Code | `rtk cargo build` | `rtk cargo nextest run --workspace --all-features --no-fail-fast` | `rtk cargo clippy --all-features --all-targets -- -D warnings` | repo CLAUDE.md + AGENTS.md |
 | Codex CLI | `cargo build` | `cargo nextest run --workspace --all-features --no-fail-fast` | `cargo clippy --all-features --all-targets -- -D warnings` | AGENTS.md §Codex appendix |
 | Gemini CLI | same as Codex | same as Codex | same as Codex | AGENTS.md §Gemini appendix |
 | OMC subagents | inherits Claude Code | inherits Claude Code | inherits Claude Code | AGENTS.md §OMC appendix |
 
-The `rtk` prefix is the Claude Code convention (per repo CLAUDE.md) for
 token-killer filtering. Codex and Gemini run the commands raw — they do
-not have the rtk hook installed at session start. The dual-audience prose
-adjacent to any agent-fenced block MUST use the rtk-prefixed form for
 human readers.
 
 ## 5. Delegation patterns
@@ -146,7 +140,6 @@ Two patterns:
    pane via `/oh-my-claudecode:omc-teams`; the orchestrator reads the
    pane state at handoff.
 
-Never assume cross-harness session state; pass context via icm or via
 `.omc/state/`.
 
 ### 5.3 Codex / Gemini → Claude Code
@@ -160,7 +153,6 @@ inheritance is not assumed.
 
 | Surface | Shared across harnesses? | Notes |
 |---|---|---|
-| `icm` memory | YES | Single per-user store; `icm recall` works in any harness |
 | `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json` | YES | Repo-checked-in (or session-scoped per file); all harnesses read |
 | `.omc/plans/` | YES | Working drafts of plans / IPs; all harnesses read+write |
 | Claude Code skill / hook state | NO | Lives under `~/.claude/`; not portable |
@@ -176,7 +168,6 @@ All three harnesses (Claude Code, Codex, Gemini) support MCP. Servers
 registered under `.mcp.json` (or per-harness equivalent) are shared
 config when the file is in the repo root. Per
 [`/oh-my-claudecode:mcp-setup`](../STANDARDS-AND-TEMPLATES.md), the
-canonical popular servers (Context7, RTK, ICM, Grit) are configured
 identically across harnesses where possible.
 
 ## 8. Local AGENTS.md narrowing
@@ -199,10 +190,7 @@ named in `agent-instructions-discipline.md` §6).
 
 1. **Hard-coded harness-specific tool names in IP / runbook prose.** Use
    the canonical name and let this table do the mapping.
-2. **Mixing rtk-prefixed and raw commands in one fence.** Pick one shape
-   per fence; the dual-audience prose carries the human-facing rtk form.
 3. **Cross-harness state assumed via Claude Code skill memory.** Always
-   route through `.omc/state/` or icm.
 4. **MCP server registered for one harness only when it serves all
    three.** Move to `.mcp.json` (or per-harness equivalent).
 

@@ -20,7 +20,7 @@ related_artifacts:
   - microservices/foundry/policy/tenant-isolation.md
   - microservices/foundry/runbooks/replay-divergence-investigation.md
 
-autonomy_tier: T2
+autonomy_level: T2
 
 inputs:
   - name: capability_id
@@ -96,7 +96,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/tenant-isolation.md
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/replay-execute-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/replay-execute-baseline.jsonl
   pass_threshold: 0.95
   eval_metric: divergence-tolerance-correctness
   cadence: per-release

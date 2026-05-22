@@ -14,7 +14,7 @@ exit_gate: |
   All 15 IPs merged; Studio binary deployed to dev cluster (with WASM bundle on CDN); workflow-spec-roundtrip
   CI lane present in .github/branch-protection.yaml required_status_checks on dev and staging;
   release/workflow-studio/{staging,production} pattern protection live; round-trip byte-equality drill
-  passes (load 100 golden specs, emit, byte-equal); collab CRDT merge drill passes (10 concurrent users,
+  passes (load 100 reference specs, emit, byte-equal); collab CRDT merge drill passes (10 concurrent users,
   no silent loss); Cedar per-seat gate drill passes; cargo nextest run --workspace exits 0; oya gate
   validate per-microservice-layout --microservice workflow-studio exits 0; oya gate validate
   authority-cohesion exits 0; HG-WORKFLOW-STUDIO gate in /specs/hyperscaler-gates.json registers green.
@@ -76,11 +76,11 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md`](IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (editor session store), Valkey (ephemeral CRDT state), WebSocket gateway deployment | pending | axis-workflow + cloud-iac | — |
+| [`IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac.md`](IP-001-layer-a-cdn-waf-postgres-valkey-ws-gateway-iac.md) | Helm + Kustomize manifests for CDN (+ WAF), Postgres (editor session store), Valkey (ephemeral CRDT state), WebSocket gateway deployment | pending | axis-workflow + cloud-iac | — |
 | [`IP-002-visual-canvas-kernel-domain.md`](IP-002-visual-canvas-kernel-domain.md) | `oya-workflow-studio-visual-canvas-{kernel,domain}` crates: Canvas, Node, Edge, Selection, ViewportState entities + pure layout algebra | pending | axis-workflow + council-design-system | — |
 | [`IP-003-dsl-emitter-loader-kernel-domain.md`](IP-003-dsl-emitter-loader-kernel-domain.md) | `oya-workflow-studio-dsl-emitter-{kernel,domain}` + `oya-workflow-studio-dsl-loader-{kernel,domain}`: pure visual ↔ workflow_spec.v1.json mapping; round-trip byte-equality invariant authored as property test | pending | axis-workflow | IP-002 |
 | [`IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md`](IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md) | dsl-emitter + dsl-loader remaining layers (usecase + api + adapter + sdk) | pending | axis-workflow | IP-003 |
-| [`IP-005-collab-crdt-kernel-domain-adapter.md`](IP-005-collab-crdt-kernel-domain-adapter.md) | `oya-workflow-studio-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-redis}` — CRDT merge engine + ephemeral session state | pending | axis-workflow | IP-004 |
+| [`IP-005-collab-crdt-kernel-domain-adapter.md`](IP-005-collab-crdt-kernel-domain-adapter.md) | `oya-workflow-studio-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-valkey}` — CRDT merge engine + ephemeral session state | pending | axis-workflow | IP-004 |
 | [`IP-006-collab-crdt-worker-sdk.md`](IP-006-collab-crdt-worker-sdk.md) | `oya-workflow-studio-collab-crdt-{worker,sdk}` — WebSocket gateway long-lived process + tenant SDK | pending | axis-workflow + cloud-iac | IP-005 |
 | [`IP-007-node-library-registry-full.md`](IP-007-node-library-registry-full.md) | `oya-workflow-studio-node-library-registry-{kernel,domain,usecase,api,adapter,adapter-cdn,rest,sdk,app}` — signed per-pack library distribution via CDN | pending | axis-workflow | IP-001 |
 | [`IP-008-llm-assist-adapter.md`](IP-008-llm-assist-adapter.md) | LLM-assist bridge crate `oya-workflow-studio-visual-canvas-adapter` extension consuming foundry-providers SDK; streaming draft response back to browser via WS | pending | axis-workflow + foundry-providers-team | IP-005 |
@@ -127,7 +127,7 @@ oya gate validate hyperscaler-maturity-claims
 ### Substrate gates introduced by this phase
 
 ```bash
-oya gate validate workflow-spec-roundtrip --microservice workflow-studio --spec-corpus microservices/workflow-studio/capabilities/eval/round-trip-golden-corpus.jsonl
+oya gate validate workflow-spec-roundtrip --microservice workflow-studio --spec-corpus microservices/workflow-studio/capabilities/eval/round-trip-reference-corpus.jsonl
 oya gate validate cedar-preview-required --microservice workflow-studio
 oya gate validate editor-execution-forbidden --microservice workflow-studio
 oya gate validate node-library-determinism --microservice workflow-studio
@@ -138,7 +138,7 @@ oya gate validate wasm-bundle-sri --microservice workflow-studio
 
 | Scenario | Command | Pass criterion |
 |---|---|---|
-| Round-trip byte-equality | `cargo nextest run -p oya-workflow-studio-dsl-loader-domain --test test_load_emit_byte_equal` | 100% byte-equal over 100 golden specs |
+| Round-trip byte-equality | `cargo nextest run -p oya-workflow-studio-dsl-loader-domain --test test_load_emit_byte_equal` | 100% byte-equal over 100 reference specs |
 | Offline buffer durability | `tests/e2e/offline-buffer-resume.rs` | edits survive disconnect; no loss on reconnect |
 | Concurrent collab no-loss | `cargo nextest run -p oya-workflow-studio-collab-crdt-domain --test test_no_silent_overwrite` | 10 concurrent users; CRDT merge applied; explicit conflict for overlap |
 | Cedar per-seat gate | `cargo nextest run -p oya-workflow-studio-license-gate-cedar-domain --test test_per_seat_cedar` | seat-overage refuses editor open; audit emitted |

@@ -25,7 +25,7 @@ autonomy_tier: T0
 # T0 = hot-path operation; sub-80ms p99; called by every consumer.
 # No agent decisioning; deterministic protocol implementation.
 
-eu_ai_act_risk_class: none
+risk_class: none
 # OIDC issuance is administrative; no AI decisioning.
 
 inputs:

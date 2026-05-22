@@ -29,7 +29,7 @@ Sev-2 default; escalate to Sev-1 if sustained > 30 min or if cascades to post-cr
 
 | Step | Action | Time |
 |---|---|---|
-| 1 | Verify Valkey cluster status: `kubectl -n social get pods -l app=social-redis` (replicas Ready) | ≤ 2 min |
+| 1 | Verify Valkey cluster status: `kubectl -n social get pods -l app=social-valkey` (replicas Ready) | ≤ 2 min |
 | 2 | Inspect cache breakdown: `social_feed_cache_hit_ratio` by `tenant_id`, `shard_id` | ≤ 3 min |
 | 3 | If cache flushed: pause fanout-on-write briefly to avoid thundering herd | ≤ 5 min |
 | 4 | Trigger per-user lazy rebuild: cache populates on next feed-render | ≤ 5 min |

@@ -10,7 +10,7 @@ purpose: |
   Istio/Envoy mirror primitive, provider-agnostic via service-mesh adapter pattern.
   The mesh-level mechanism dark-launch + per-cell rollback ride on.
 planned_enforcement_ref:
-  - oya-foundry-fitness-shadow-diff
+  - oya-governance-shadow-diff
 related_adrs: [ADR-0044, ADR-0040]
 doc_status: published
 ---
@@ -63,7 +63,7 @@ Mirrored requests are tagged with `x-oya-shadow: true` (header) and `x-oya-shado
 2. Use a sandbox transaction or shadow store (per [`dark-launch-spec.md`](dark-launch-spec.md) §6).
 3. Tag downstream emitted events as shadow (don't propagate to real consumers).
 
-Lane `oya-foundry-fitness-shadow-diff` includes a static check for `x-oya-shadow` recognition in every service that may receive mirrored traffic.
+Lane `oya-governance-shadow-diff` includes a static check for `x-oya-shadow` recognition in every service that may receive mirrored traffic.
 
 ## 5. Cohort interaction
 
@@ -73,7 +73,7 @@ Mirrored traffic is sampled **only** from cohorts that consent to participate. S
 
 - **Shadow upstream slow.** Mirror is fire-and-forget by mesh contract; primary response unaffected. Slow shadow accumulates queue → mesh sheds at queue-depth threshold. Configured per-cell.
 - **Shadow upstream OOM / crash loop.** Mesh detects via outlier-detection and disables mirror automatically. Emits Sev-2 ticket.
-- **Header strip by intermediary.** Forbidden. `oya-foundry-fitness-shadow-diff` includes a CI check that no Envoy filter strips `x-oya-shadow*`.
+- **Header strip by intermediary.** Forbidden. `oya-governance-shadow-diff` includes a CI check that no Envoy filter strips `x-oya-shadow*`.
 
 ## 7. Auditability
 
@@ -98,8 +98,8 @@ Mirror = 1.0×–1.1× compute on the shadow path (cold-start amortised by long-
 
 ## 11. Compliance gates
 
-- `oya-foundry-fitness-shadow-diff` (NEW; HIGH).
-- `oya-foundry-fitness-cohort-honor` (NEW; HIGH).
+- `oya-governance-shadow-diff` (NEW; HIGH).
+- `oya-governance-cohort-honor` (NEW; HIGH).
 
 ## 12. Lift target
 

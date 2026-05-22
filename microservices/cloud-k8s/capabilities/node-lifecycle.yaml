@@ -97,7 +97,7 @@ cedar_policy_fragments:
   - microservices/cloud-k8s/policy/cluster-isolation.md (CI-07 mediation)
 
 eval_set:
-  golden_inputs_path: microservices/cloud-k8s/capabilities/eval/node-lifecycle-golden.jsonl
+  reference_inputs_path: microservices/cloud-k8s/capabilities/eval/node-lifecycle-reference.jsonl
   pass_threshold: 0.99
   eval_metric: node-join-within-5min-p99 + drain-respects-pdb
   cadence: per-release

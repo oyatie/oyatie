@@ -489,7 +489,7 @@
         "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
       }
     ],
-    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+    "validation_lane_ref": "oya-governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [
@@ -897,7 +897,7 @@
     {
       "anti_pattern": "spinner_only_thread_loading",
       "why": "fails production UX bar",
-      "mitigation": "detection_lane: oya-foundry-fitness-frontend-ux"
+      "mitigation": "detection_lane: oya-governance-frontend-ux"
     },
     {
       "anti_pattern": "presence_cross_pillar_exposure",
@@ -1101,7 +1101,7 @@
     {
       "anti_pattern": "spinner_only_thread_loading",
       "why_forbidden": "fails production UX bar",
-      "detection_lane": "oya-foundry-fitness-frontend-ux"
+      "detection_lane": "oya-governance-frontend-ux"
     },
     {
       "anti_pattern": "presence_cross_pillar_exposure",

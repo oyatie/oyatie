@@ -1,9 +1,9 @@
 context: shared
 role: kernel
 capability: i18n
-plane: data
+plane: control
 slo: preview-control-plane
-data_classes_owned: [INTERNAL_ONLY]
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed

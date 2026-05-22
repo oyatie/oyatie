@@ -14,5 +14,5 @@ traceability:
 allowed_dependency_edges: [oya-foundry-providers-router-kernel]
 data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_AI_USAGE]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 external_substrate_consumed: [postgres, redis]

@@ -75,3 +75,65 @@ cargo run -p oya-dev-cli -- gate validate sdk-contract-conformance --sdk-lang ru
 ## Next IP
 
 `IP-008-sdk-ts-python-bindings.md`
+
+## Wave 15-IP-substance A-G
+
+### A. Problem
+The PRD makes the SDK the primary integration surface, but admin REST and Rust SDK behavior must be identical or product teams will create local secret-resolution shortcuts.
+
+### B. Approach
+Expose admin/health/config REST routes for operators and a Rust SDK for product µservices. Runtime resolution stays SDK-side with `Secret<T>` wrappers, redacted debug output, zeroization, and corpus-backed parser compatibility.
+
+### C. Deliverables
+- `oya-cloud-secrets-secret-reference-resolver-rest` and `oya-cloud-secrets-secret-reference-resolver-sdk`.
+- REST contract alignment with `contracts/openapi/cloud-secrets.yaml`.
+- SDK API matching `sdk-plan.md` and `reference-implementations/static-and-dynamic-secret-flow-rust-sdk.md`.
+- SLO hooks for secret resolution and audit completeness.
+- Catalog files for rest and sdk crates.
+
+### D. Ordered Implementation Steps
+1. Generate/validate REST handlers from OpenAPI for admin-only surfaces.
+2. Implement Rust `SecretReference` parsing by calling the domain crate.
+3. Implement `CloudSecretsClient::resolve` over the usecase/API contract.
+4. Wrap values in `Secret<T>` with redacted `Debug` and callback-only access.
+5. Add zeroize-on-drop behavior and cache TTL ceiling enforcement.
+6. Add SDK smoke tests against sandbox OpenBao.
+7. Run SDK contract conformance across REST and Rust client fixtures.
+
+### E. Acceptance
+- `cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-rest`.
+- `cargo nextest run -p oya-cloud-secrets-secret-reference-resolver-sdk`.
+- `cargo run -p oya-dev-cli -- gate validate sdk-contract-conformance --sdk-lang rust`.
+- `Secret<T>` never exposes raw values through `Debug`, logs, panics, or telemetry.
+
+### F. Evidence
+Evidence anchors are `PRD.md` FR-01/FR-02, `manifest.json`, `contracts/openapi/cloud-secrets.yaml`, `sdk-plan.md`, `reference-implementations/static-and-dynamic-secret-flow-rust-sdk.md`, and `slos/secret-resolve-latency.openslo.yaml`.
+
+### G. Counterpart Comparison
+AWS, Google, Azure, Vault, and Akeyless all ship SDKs. The parity matrix marks Oyatie's required difference: the SDK enforces `Secret<T>`, TTL ceilings, no-log, and LEAN-A11 compatibility instead of treating secrecy as caller discipline.
+
+Grep-recognized counterpart anchor: GitHub Actions Secrets is relevant where Rust SDK examples run in CI and consume workflow-provided secret handles. The SDK comparison itself remains anchored on vendor SDK behavior, not CI secret storage as the primary truth.
+
+## API Versioning (per ADR-0342)
+
+- Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
+- Initial declared_version: `microservices/cloud-secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
+- Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
+- Surface evidence: `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md`.
+
+## DR posture (per ADR-0343)
+
+- Target source: `microservices/cloud-secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` with drill cadence `annual`.
+- RTO/RPO target: RTO p99 <= `14400` seconds; RPO p99 <= `900` seconds.
+- Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `false`, so this declaration is equal to or stronger than the floor.
+- backup_substrate: [`openbao_seal_unseal`, `postgres_wal_g`, `audit_chain_merkle_seal`].
+- Surface evidence: `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/manifest.json`, `microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md`.
+
+## Pod runtime tier (per ADR-0338)
+
+- `pod_runtime_tier: 0`.
+- Justification: tenant-customer code is present in this IP's execution path; Tier 0 requires Kata plus Cloud Hypervisor isolation.
+- Surface evidence: `microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md`; matched trigger term(s): `sandbox`.
+- Admission expectation: spawned workloads for this path use `kata-cloud-hypervisor`; first-party helpers may only run outside Tier 0 when split into a separate non-tenant-customer IP.

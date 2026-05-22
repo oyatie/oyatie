@@ -96,3 +96,11 @@ Per PHASE-01 rest class: 1 test per route (happy + auth-fail + scope-mismatch); 
 - ADR-0105.
 - `contracts/openapi/cloud-iac.yaml`.
 - axum docs — `docs.rs/axum/`.
+
+## API Versioning (per ADR-0342)
+
+- Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
+- Initial declared_version: `microservices/cloud-iac/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
+- Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
+- Surface evidence: `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`, `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`, `microservices/cloud-iac/contracts/proto/cloud-iac.proto`, `microservices/cloud-iac/IP-010-rest-surfaces.md`.

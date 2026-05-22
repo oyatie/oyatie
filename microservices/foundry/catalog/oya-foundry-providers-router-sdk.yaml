@@ -14,7 +14,7 @@ traceability:
 allowed_dependency_edges: [oya-foundry-providers-router-kernel, oya-foundry-providers-router-api]
 data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_AI_USAGE]
 operational_classes_owned: []
-autonomy_tier_required: T1
+autonomy_level_required: T1
 notes: |
   First-party Rust SDK; TS / Python / Go / JVM / C# generated downstream
   per sdk-plan.md.

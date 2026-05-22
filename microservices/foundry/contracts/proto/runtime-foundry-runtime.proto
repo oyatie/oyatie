@@ -102,7 +102,7 @@ message Invocation {
   google.protobuf.Struct result = 8;
   FailureReason failure_reason = 9;
   string failure_detail = 10;
-  uint32 autonomy_tier_used = 11;
+  uint32 autonomy_level_used = 11;
   uint32 provider_invocation_count = 12;
   uint32 guardrail_invocation_count = 13;
   string evaluator_version = 14;
@@ -129,7 +129,7 @@ message AutonomyCeiling {
 message CapabilityDescriptor {
   string capability_id = 1;
   string tenant_id = 2;
-  uint32 declared_tier = 3;
+  uint32 declared_autonomy_level = 3;
   string version = 4;
   string purpose_of_use = 5;
   EuAiActClass eu_ai_act_class = 6;
@@ -145,7 +145,7 @@ message DispatchCapabilityRequest {
   string capability_id = 1;
   string session_id = 2;
   google.protobuf.Struct input = 3;
-  uint32 autonomy_tier_declared = 4;
+  uint32 autonomy_level_declared = 4;
   uint32 timeout_seconds = 5;
   map<string, string> metadata = 6;
   string idempotency_key = 7;

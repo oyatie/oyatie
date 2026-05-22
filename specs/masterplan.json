@@ -119,7 +119,7 @@
         "community",
         "infra",
         "ops-dashboard-control-center",
-        "foundry",
+        "intelligence",
         "workflow",
         "ontology",
         "canonical-base",
@@ -291,7 +291,7 @@
         "mail",
         "community",
         "ops-dashboard-control-center",
-        "foundry",
+        "intelligence",
         "workflow",
         "ontology",
         "infra",
@@ -568,14 +568,14 @@
           "implementation_plans": [
             {
               "id": "M01-P17-IP-008.1",
-              "title": "oya-foundry-fitness-banned-primitives lane (F-FORBIDDEN-PRIMITIVES-CI-GUARD)",
-              "status": "hosted-green",
+              "title": "oya-governance-banned-primitives lane (F-FORBIDDEN-PRIMITIVES-CI-GUARD)",
+              "status": "source-and-command-corpus-local-green",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
               "path": ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md",
               "adr_citation": "ADR-0236",
               "previous_planning_status": "was-seed",
-              "implementation_state": "source-and-sanitized-command-log-corpus-hosted-green",
+              "implementation_state": "source-and-sanitized-command-log-corpus-local-green-hosted-branch-protection-pending",
               "planning_closure_ref": "/specs/planning-closure-contract.json",
               "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
               "planning_closure_closed_at": "2026-05-19",
@@ -584,11 +584,9 @@
                 "/evidence/fd001/cs-fitness-001-banned-primitives.json",
                 "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
                 "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
-                "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json",
-                "/evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json",
-                "/evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json"
+                "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
               ],
-              "gate_evidence": "banned-primitives source-corpus and sanitized tracked command-log corpus are locally green; live dev branch-protection contexts match repo policy; OYA_BRANCH_PROTECTION_READ_TOKEN is visible to the hosted oya-governance-protection-context-match workflow; PR #151 head 7a923b90701b9fef281821d23129f5b15bff0cfe hosted banned-primitives/protection/dependency/check suites completed successfully."
+              "gate_evidence": "banned-primitives source-corpus, sanitized tracked command-log corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; hosted GitHub Actions/branch-protection deployment remains a GitOps verification gap."
             },
             {
               "id": "M01-P-FITNESS-IP-002",
@@ -904,7 +902,7 @@
       "review/fix task independent from original ChangeSet"
     ],
     "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
-    "validation_lane": "oya-foundry-fitness-plan-hierarchy + oya-vcs-admission + oya-foundry-fitness-honest-claims",
+    "validation_lane": "oya-governance-plan-hierarchy + oya-vcs-admission + oya-governance-honest-claims",
     "identity_field": "id",
     "required_frontmatter_fields": [
       "doc_class",
@@ -968,17 +966,15 @@
           "id": "M01-P17-IP-008.1",
           "note": "Banned-primitives/chained-enforcement lane is a gate-hardening candidate before product fanout.",
           "claim_rule": "Claim detector/workflow/source-corpus evidence as a serialized governance gate before relying on broad parallel write lanes.",
-          "status": "hosted-green",
-          "implementation_state": "source-and-sanitized-command-log-corpus-hosted-green",
+          "status": "source-and-command-corpus-local-green",
+          "implementation_state": "source-and-sanitized-command-log-corpus-local-green-hosted-branch-protection-pending",
           "evidence_refs": [
             "/evidence/fd001/cs-fitness-001-banned-primitives.json",
             "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
             "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
-            "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json",
-            "/evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json",
-            "/evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json"
+            "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
           ],
-          "gate_evidence": "banned-primitives source-corpus and sanitized tracked command-log corpus are locally green; live dev branch-protection contexts match repo policy; OYA_BRANCH_PROTECTION_READ_TOKEN is visible to the hosted oya-governance-protection-context-match workflow; PR #151 head 7a923b90701b9fef281821d23129f5b15bff0cfe hosted banned-primitives/protection/dependency/check suites completed successfully."
+          "gate_evidence": "banned-primitives source-corpus, sanitized tracked command-log corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; hosted GitHub Actions/branch-protection deployment remains a GitOps verification gap."
         }
       ]
     },
@@ -2039,7 +2035,7 @@
               {
                 "id": "M01-P16-IP-004",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
-                "title": "oya-foundry-fitness-architecture-map-freshness lane",
+                "title": "oya-governance-architecture-map-freshness lane",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2447,19 +2443,13 @@
                 "id": "M01-P17-IP-001",
                 "title": "IP 001 branch protection deploy",
                 "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-001-branch-protection-deploy.md",
-                "status": "complete",
+                "status": "planning-closed-contract-authored",
                 "previous_planning_status": "was-structured",
-                "implementation_state": "live-branch-protection-and-actions-secret-hosted-green",
+                "implementation_state": "not-started-changeset-required",
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
-                "gate_evidence": "scripts/branch-protection-apply.sh --check and scripts/github-actions-required-secrets-check.sh both reported zero live/canonical drift; oya gate validate protection-context-match reported 15 required contexts and 45 workflow jobs; PR #151 hosted oya-governance-protection-context-match completed successfully on head 7a923b90701b9fef281821d23129f5b15bff0cfe.",
-                "evidence_refs": [
-                  "/evidence/fd001/fd001-branch-protection-apply-2026-05-19T1729Z.json",
-                  "/evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json",
-                  "/evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json"
-                ]
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
               },
               {
                 "id": "M01-P17-IP-002",
@@ -2533,7 +2523,7 @@
                 "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
                 "status": "reconciled-to-M01-P17-IP-008.1",
                 "previous_planning_status": "was-structured",
-                "implementation_state": "successor-plan-source-and-command-corpus-hosted-green",
+                "implementation_state": "successor-plan-source-and-command-corpus-local-green-hosted-verification-pending",
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
@@ -2542,12 +2532,9 @@
                   "/evidence/fd001/cs-fitness-001-banned-primitives.json",
                   "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
                   "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
-                  "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json",
-                  "/evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json",
-                  "/evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json"
+                  "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
                 ],
-                "successor_plan": ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md",
-                "gate_evidence": "Successor M01-P17-IP-008.1 is hosted-green: source corpus, sanitized command-log corpus, branch-protection, protection-context, and PR #151 hosted workflow evidence are green."
+                "successor_plan": ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md"
               },
               {
                 "id": "M01-P17-IP-009",

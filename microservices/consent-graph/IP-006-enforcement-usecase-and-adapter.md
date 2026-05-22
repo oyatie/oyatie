@@ -179,3 +179,9 @@ events/day at peak. To stay within audit-chain budget:
 
 Sample-rate is part of the agreement's `terms` config; high-stakes verticals (healthcare, banking)
 may opt-in to 100% permit auditing.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: OneTrust publishes API SLO/rate-limit posture, TrustArc emphasizes real-time syncing, and Cookiebot blocks tags before consent. This IP supplies the Oyatie runtime counterpart: a low-latency Cedar evaluation usecase with adapter/cache behavior, deny-by-default failure, audit sampling rules, and `cedar-evaluation-latency` SLO evidence.
+
+Grep-recognized counterpart anchor: Snowflake and Databricks are cited for runtime clean-room/data-sharing enforcement that must receive only consent-approved projections. Salesforce and HubSpot are cited for consent propagation into CRM workflows; they remain downstream counterparts, not the primary comparator truth.

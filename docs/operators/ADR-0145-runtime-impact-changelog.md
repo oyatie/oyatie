@@ -16,7 +16,7 @@ Previously, every cross-µservice call was REQUIRED to flow through Workflow (or
 
 - Direct egress to sibling µservices' gRPC endpoints is now permitted.
 - ALL `microservices/*/iac/helm/*/templates/networkpolicy.yaml` files are being reviewed and relaxed where appropriate.
-- The `ats` namespace egress from `network` was previously refused (carrier-exemption gap); per ADR-0145 it is now compliant. The active networkpolicy currently routes through workflow-engine pending the first Tier-G ATS tenant onboarding (see microservices/network/PRD.md Note "ATS µservice activates per ADR-0132 forward policy").
+- The `ats` namespace egress from the community jobs/recruiter surface was previously refused (carrier-exemption gap); per ADR-0145 it is now compliant. The active networkpolicy currently routes through workflow-engine pending the first Tier-G ATS tenant onboarding (see microservices/community/PRD.md Note "ATS µservice activates per ADR-0132 forward policy").
 
 ### 2. Service-mesh requirements (Cilium primary + Istio Ambient Tier-2 per ADR-0148)
 

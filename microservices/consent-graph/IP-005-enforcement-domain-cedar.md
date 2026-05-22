@@ -40,7 +40,7 @@ Out:
       "Tenant": { "shape": { "type": "Record", "attributes": {
         "tenant_id": { "type": "String" },
         "region": { "type": "String" },
-        "capability_tier": { "type": "String" }
+        "tenant_class": { "type": "String" }
       }}},
       "Principal": { "memberOfTypes": ["Tenant"], "shape": { "type": "Record", "attributes": {
         "principal_id": { "type": "String" },
@@ -83,7 +83,7 @@ when {
   resource.grantor_tenant_id == "<grantor_tenant>" &&
   context.purpose_of_use == "<terms.purpose_of_use>" &&
   context.request_time <= datetime("<expiration_or_max>") &&
-  context.grantee_capability_tier <= "<max_tier>"
+  context.tenant_class == "paid"
 };
 ```
 
@@ -105,7 +105,7 @@ when { context.request_region not in <permitted_grantee_regions> };
 5. Append rate-limit context check:
 ```cedar
 forbid (principal, action, resource)
-when { context.grantee_capability_tier > "<max_tier_per_terms>" };
+when { context.tenant_class == "demo_trial" && action in Action::"compliance_pack.bound_projection" };
 ```
 
 6. Set policy id = `cedar::<agreement_id>::v<schema_version>` for cache keying.
@@ -209,3 +209,9 @@ predicate AST). Compile result memoized by canonical hash → ~80% cache hit rat
 - **R**: Predicate sandbox escape (user injects unsafe Cedar via `predicate` field).
   **M**: Parser in `agreement-domain` produces a typed AST; renderer in `enforcement-domain` emits
   only well-formed Cedar; no raw string passthrough.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: TrustArc and OneTrust handle purpose/preference logic, Cookiebot handles consent categories, and data-sharing counterparts lean on RBAC. This IP turns those counterpart concepts into Cedar policy sets with field-level scope, purpose, sovereignty, and aggregate constraints, which is the service-specific enforcement substance absent from generic CMP or warehouse-share controls.
+
+Grep-recognized counterpart anchor: Snowflake and Databricks clean-room/data-sharing controls are relevant here because Cedar compilation must enforce scoped, purpose-bound access before any warehouse or clean-room projection can run. Salesforce and HubSpot are relevant only as downstream consent-propagation systems; they do not replace OneTrust/TrustArc as the primary consent comparator.

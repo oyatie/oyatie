@@ -27,7 +27,7 @@ New / modified crates:
 - `oya-plugin-app-store-per-plugin-rate-limit-kernel`
 - `oya-plugin-app-store-per-plugin-rate-limit-domain`
 - `oya-plugin-app-store-per-plugin-rate-limit-usecase`
-- `oya-plugin-app-store-per-plugin-rate-limit-adapter-redis`
+- `oya-plugin-app-store-per-plugin-rate-limit-adapter-valkey`
 
 Each crate ships with: `Cargo.toml` declaring layer-correct dependencies (per ADR-0105 13-layer enum); `src/lib.rs` declaring the public surface; in-tree unit tests; a sibling integration test crate where ADR-0105 prescribes one.
 
@@ -38,7 +38,7 @@ ChangeSet authorship rule (per ADR-0110): claim → verify → done → promote.
 | Path | Action | Description |
 |---|---|---|
 | `microservices/plugin-app-store/src/crates/oya-plugin-app-store-per-plugin-rate-limit-domain/src/token_bucket.rs` | create | pure token-bucket math |
-| `microservices/plugin-app-store/src/crates/oya-plugin-app-store-per-plugin-rate-limit-adapter-redis/src/lib.rs` | create | Valkey Lua-script atomic decrement |
+| `microservices/plugin-app-store/src/crates/oya-plugin-app-store-per-plugin-rate-limit-adapter-valkey/src/lib.rs` | create | Valkey Lua-script atomic decrement |
 
 | `microservices/plugin-app-store/evidence/multispectrum/<change_id>-<ts>.json` | create | per-IP ChangeSet evidence per ADR-0110 |
 | `microservices/plugin-app-store/catalog/<crate-name>.yaml` | create | catalog record per crate; consumed by `oya gate validate authority-cohesion` |

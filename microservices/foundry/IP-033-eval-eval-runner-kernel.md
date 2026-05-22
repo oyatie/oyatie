@@ -169,3 +169,9 @@ Per PHASE-01 kernel class threshold (90% line / 80% branch):
 
 - ADR-0024, ADR-0056, ADR-0105, ADR-0131.
 - PRD §"Bounded Contexts" port-trait table.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Evals, LangSmith, Google Vertex AI Evaluation, and Databricks Mosaic AI evals.
+- Gap closure: this IP closes deterministic replay, baseline comparison, and eval evidence emission in the Foundry product boundary.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

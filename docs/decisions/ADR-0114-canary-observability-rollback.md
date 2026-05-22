@@ -86,7 +86,7 @@ production ref):
 | Per-product KPI | Workflow Studio: failed-flow rate. Foundry: agent-invocation failure rate. Workflow Engine: step-retry rate. | per-product registry-defined |
 
 Signal collection is a separate lane
-(`oya-foundry-fitness-canary-signal-emission`, in wave-A scope)
+(`oya-governance-canary-signal-emission`, in wave-A scope)
 that asserts every product publishes the 4 signal classes.
 
 ### 3. Threshold logic
@@ -149,7 +149,7 @@ production ref to a prior SHA. This:
 - Requires a human signing key (Ed25519, per ADR-0058).
 - Records a special `canary-emergency-rewind` event in the
   changeset-event-log AND in `registry/canary/rewind-log.json`.
-- Alarms via `oya-foundry-fitness-canary-emergency-rewind-frequency`
+- Alarms via `oya-governance-canary-emergency-rewind-frequency`
   lane (alerts if >2 rewinds per 30 days — signal that canary
   controller is unreliable + needs investigation).
 - Force-push is technically allowed for emergency rewind only via a
@@ -238,7 +238,7 @@ cells back to production-HEAD, not just the most-recent stage.
      `changeset-event-log` rows.
   3. `registry/cells/canary-cohort.yaml` + `registry/canary/thresholds.yaml`
      — initial config for the first 2 products (Foundry + VCS).
-  4. `oya-foundry-fitness-canary-signal-emission` lane — asserts
+  4. `oya-governance-canary-signal-emission` lane — asserts
      every product publishes the 4 signal classes.
 - **Wave B**:
   - Gate the promotion workflows on the controller's verdict.
@@ -250,9 +250,9 @@ cells back to production-HEAD, not just the most-recent stage.
   - `oya canary force-rewind` subcommand with human-signature
     requirement + automatic protection-bypass-then-restore.
 - **Wave C**:
-  - `oya-foundry-fitness-canary-emergency-rewind-frequency` lane
+  - `oya-governance-canary-emergency-rewind-frequency` lane
     (alarm).
-  - `oya-foundry-fitness-canary-thresholds-tuned` lane (asserts
+  - `oya-governance-canary-thresholds-tuned` lane (asserts
     every product's thresholds have been reviewed in the last 90
     days — catches stale config).
   - Per-product KPI registry (Workflow Studio failed-flow rate,
@@ -262,7 +262,7 @@ cells back to production-HEAD, not just the most-recent stage.
 
 - `oya-foundry-canary-controller-{kernel,app}` — `oya-foundry-`
   product, `canary-controller` concept, role suffix.
-- Lane id `oya-foundry-fitness-canary-signal-emission` — fitness
+- Lane id `oya-governance-canary-signal-emission` — fitness
   family prefix.
 - Registry paths `registry/cells/canary-cohort.yaml` +
   `registry/canary/thresholds.yaml` — namespaced under `cells/`

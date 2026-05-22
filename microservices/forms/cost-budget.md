@@ -65,7 +65,7 @@ Per-cost-tag emitted to FinOps:
 - `pack=<pack>`
 - `tenant_id=<hash>`
 - `workload_class=F1..F9`
-- `capability_tier=T0|T1|T2`
+- `tenant_class=T0|T1|T2`
 
 ## Verification
 

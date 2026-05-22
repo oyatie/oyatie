@@ -16,7 +16,6 @@ Per-axis under [`runbooks/<axis>/<runbook-id>.md`](runbooks/) (inside `docs/`). 
 ## 2. Critical runbooks (P0 must-have for W-Foundation gate)
 
 ### Agentic pipeline
-- `agentic-pipeline/grit-parallel-claim-demo.md`
 
 ### Cross-axis
 - `cross-axis/audit-chain-integrity-failure.md`

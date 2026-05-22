@@ -1,0 +1,44 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-patient-monitoring-smart-alarm-rule-eval
+  displayName: "patient-monitoring: smart-alarm rule eval p99 ≤ 5 ms"
+  labels:
+    microservice: patient-monitoring
+    bounded_context: smart-alarm
+    sli_class: latency
+    tier: product
+    plane: data
+    owner_team: axis-clinical-realtime
+    pack_scope: all
+spec:
+  service: patient-monitoring
+  description: |
+    Smart-alarm rule eval p99 ≤ 5 ms per parameter sample. Critical for
+    keeping the ingest pipeline below the 250-ms end-to-end vital-signs budget.
+  indicator:
+    metadata:
+      name: smart-alarm-rule-eval-p99
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_smart_alarm_eval_seconds_bucket{le="0.005"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_smart_alarm_eval_seconds_count[5m]))
+  objectives:
+    - target: 0.99
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-burn-rate-multi-window

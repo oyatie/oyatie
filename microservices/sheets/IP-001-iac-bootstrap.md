@@ -21,14 +21,14 @@ Author Helm + Kustomize manifests for the sheets Layer-A substrate: OCI CDN (per
 
 ## ChangeSet boundary
 
-One cohesive ChangeSet: 11 Helm chart bundles (sheets-postgres, sheets-redis, cell-grid-rest, collab-crdt-worker, recalc-engine-worker, xlsx-export-worker, license-gate-cedar, sheets-cdn, sheets-waf, clamav-sidecar, opswat-sidecar) + 1 shared Kustomize base + per-pack overlays (pack-kr + pack-eu at M03 launch; 9 additional overlays scaffolded). No Rust code; pure IaC + values. Per-pack secret references via OpenBao SecretReference.
+One cohesive ChangeSet: 11 Helm chart bundles (sheets-postgres, sheets-valkey, cell-grid-rest, collab-crdt-worker, recalc-engine-worker, xlsx-export-worker, license-gate-cedar, sheets-cdn, sheets-waf, clamav-sidecar, opswat-sidecar) + 1 shared Kustomize base + per-pack overlays (pack-kr + pack-eu at M03 launch; 9 additional overlays scaffolded). No Rust code; pure IaC + values. Per-pack secret references via OpenBao SecretReference.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
 | `microservices/sheets/iac/helm/sheets-postgres/{Chart.yaml,values.yaml}` | create |
-| `microservices/sheets/iac/helm/sheets-redis/{Chart.yaml,values.yaml}` | create |
+| `microservices/sheets/iac/helm/sheets-valkey/{Chart.yaml,values.yaml}` | create |
 | `microservices/sheets/iac/helm/visual-grid-rest/{Chart.yaml,values.yaml,templates/{deployment,service,hpa,pdb,networkpolicy,servicemonitor,prometheusrule}.yaml}` | create |
 | `microservices/sheets/iac/helm/collab-crdt-worker/{Chart.yaml,values.yaml,templates/...}` | create |
 | `microservices/sheets/iac/helm/recalc-engine-worker/{Chart.yaml,values.yaml,templates/...}` | create |
@@ -95,7 +95,7 @@ spec:
 
 ```bash
 helm lint microservices/sheets/iac/helm/sheets-postgres
-helm lint microservices/sheets/iac/helm/sheets-redis
+helm lint microservices/sheets/iac/helm/sheets-valkey
 helm lint microservices/sheets/iac/helm/visual-grid-rest
 helm lint microservices/sheets/iac/helm/collab-crdt-worker
 helm lint microservices/sheets/iac/helm/recalc-engine-worker
@@ -138,7 +138,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - `microservices/sheets/capacity-model.md`.
 - `microservices/sheets/threat-model.md` §"Trust Boundaries" + §"T-S-04".
 - Citus docs — `docs.citusdata.com`.
-- Valkey Sentinel docs — `redis.io/docs/management/sentinel/`.
+- Valkey Sentinel docs — `valkey.io/topics/sentinel/`.
 - Apache Arrow 18.x — `arrow.apache.org/docs/`.
 - Apache Parquet 18.x — `parquet.apache.org/`.
 - OCI CDN docs — `docs.oracle.com/iaas/Content/CDN/`.

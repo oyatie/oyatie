@@ -46,7 +46,7 @@ The 36 cross-BC runbooks live at `microservices/foundry/runbooks/<bc>-<runbook>.
 ### eval
 - `eval-clickhouse-rebalance.md`
 - `eval-eval-set-rollback.md`
-- `eval-golden-output-restore.md`
+- `eval-baseline-output-restore.md`
 - `eval-gpu-pool-rebalance.md`
 - `eval-parity-regression-triage.md`
 - `eval-replay-divergence-investigation.md`

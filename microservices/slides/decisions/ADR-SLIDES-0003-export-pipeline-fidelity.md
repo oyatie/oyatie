@@ -62,7 +62,7 @@ Adopt the following pipeline:
 
 - **Import**: Pandoc 3.x bridge with custom slides reader that maps OOXML PresentationML → slides canonical JSON. Pandoc invoked in gVisor sandbox. ClamAV + OPSWAT dual-scan pre-parse.
 - **Export**: bespoke OOXML serializer in Rust (`oya-slides-import-export-adapter-pptx-serializer`) targeting the round-trippable OOXML PresentationML subset. **Not** Pandoc on the export side — Pandoc lossy in PresentationML round-trip per upstream Pandoc maintainer notes.
-- **Round-trip invariant**: 100 golden PPTX corpus under `tests/golden/pptx/`; import → export → reimport produces byte-equal output for ≥ 95% of OOXML PresentationML round-trippable subset.
+- **Round-trip invariant**: 100 reference PPTX corpus under `tests/reference/pptx/`; import → export → reimport produces byte-equal output for ≥ 95% of OOXML PresentationML round-trippable subset.
 - **Unsupported features**: SmartArt, complex 3-D shapes, embedded VBA macros (always stripped on import per security policy), proprietary chart types beyond OOXML chartSpace. Communicated to tenant via `EmitDiagnostic` warnings on import.
 
 ### ODP import + export
@@ -161,7 +161,7 @@ Adopt the following pipeline:
 
 #### K — Strict round-trip over a defined subset (the choice)
 
-- **Pros**: Defendable claim; tested via golden corpus; tenants can verify.
+- **Pros**: Defendable claim; tested via reference corpus; tenants can verify.
 - **Cons**: Tenant must accept subset list (clearly published in `docs/standards/slides-pptx-subset.md`).
 - **Accepted**: chosen approach.
 
@@ -192,7 +192,7 @@ Adopt the following pipeline:
 
 ### CI lanes added
 
-- `oya-governance-slides-pptx-roundtrip-subset` — 100 golden corpus drill; BLOCKER on dev + staging.
+- `oya-governance-slides-pptx-roundtrip-subset` — 100 reference corpus drill; BLOCKER on dev + staging.
 - `oya-governance-pdf-a-conformance` — verify PDF/A-1b conformance on export-generated PDFs.
 - `oya-governance-mp4-determinism` — sha256-equal across re-runs.
 

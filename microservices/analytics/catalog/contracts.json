@@ -7,7 +7,7 @@
     "kind": "interface-contract"
   },
   "twelve_layer_enum_position": "contract",
-  "justification": "Canonical interface contracts. SDK generation reads from these; CI lane oya-foundry-fitness-api-contract-stability denies breaking changes.",
+  "justification": "Canonical interface contracts. SDK generation reads from these; CI lane oya-governance-api-contract-stability denies breaking changes.",
   "owner": "council-analytics + axis-developer-experience",
   "adr_anchors": ["ADR-0007", "ADR-0150", "ADR-0151", "ADR-0154", "ADR-0157", "ADR-0193"],
   "contracts": [

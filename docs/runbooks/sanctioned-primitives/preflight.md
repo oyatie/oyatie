@@ -51,7 +51,7 @@ When any active probe fails:
 ## Wiring
 
 - Citation: `docs/AGENTS.md` D17 (mistakes-ledger row D17 lane).
-- Fitness lane: `oya-foundry-fitness-mistakes-ledger-kernel` verifies every ledger row carries a preflight reference here.
+- Fitness lane: `oya-governance-mistakes-ledger-kernel` verifies every ledger row carries a preflight reference here.
 - Verify gate: `oya gate validate mistakes-ledger` invokes the kernel as a required check.
 - Backfill rows: `gha::broken-action-sha`, `nextest::missing-profile-ci`, `bash::missing-shebang` — see `registry/mistakes-ledger.json` and `docs/MISTAKES-LEDGER.md` MFL-0014..MFL-0016.
 

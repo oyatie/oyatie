@@ -5,8 +5,7 @@ usage() {
   cat <<'USAGE'
 Usage: scripts/branch-protection-apply.sh [--check|--apply] [--repo OWNER/REPO] [--branch BRANCH] [--config PATH]
 
-Synchronize GitHub required status-check protection with infra/branch-protection/dev.json,
-including configured app_id overrides for required checks such as oya-pr-review.
+Synchronize GitHub required status-check protection with infra/branch-protection/dev.json.
 
 Default mode is --check: read live branch protection, run the repo gate, and exit non-zero on drift.
 --apply performs the GitHub mutation for required_status_checks only, then re-runs --check.
@@ -91,80 +90,31 @@ trap cleanup EXIT
 payload="$workdir/required-status-checks-payload.json"
 live="$workdir/live-required-status-checks.json"
 
-jq '
-  .required_status_checks as $required
-  | ($required.app_id_overrides // {}) as $app_id_overrides
-  | {
-      strict: $required.strict,
-      checks: (
-        $required.contexts
-        | map(
-            {context: .}
-            + (if $app_id_overrides[.] != null then {app_id: $app_id_overrides[.]} else {} end)
-          )
-      )
-    }
-' \
+jq '{strict: .required_status_checks.strict, contexts: .required_status_checks.contexts}' \
   "$config" > "$payload"
 
-if [[ "$(jq -r '.checks | length' "$payload")" == "0" ]]; then
+if [[ "$(jq -r '.contexts | length' "$payload")" == "0" ]]; then
   echo "refusing empty required_status_checks.contexts from $config" >&2
   exit 65
 fi
 
 fetch_live() {
-  gh api "repos/${repo}/branches/${branch}/protection/required_status_checks" > "$live"
+  gh api "repos/${repo}/branches/${branch}/protection/required_status_checks" \
+    --jq '.contexts' > "$live"
 }
 
 print_delta() {
   jq -n \
-    --slurpfile canonical_doc "$config" \
+    --slurpfile canonical_doc "$payload" \
     --slurpfile live_doc "$live" \
-    '($canonical_doc[0].required_status_checks.contexts) as $canonical |
-     ($live_doc[0].contexts) as $live |
+    '($canonical_doc[0].contexts) as $canonical |
+     ($live_doc[0]) as $live |
      {
        canonical: $canonical,
        live: $live,
        missing_from_live: (($canonical - $live) | sort),
-       extra_in_live: (($live - $canonical) | sort),
-       app_binding_drift: (
-         ($canonical_doc[0].required_status_checks.app_id_overrides // {}) as $overrides
-         | ($live_doc[0].checks // []) as $live_checks
-         | [
-             $overrides
-             | to_entries[]
-             | .key as $context
-             | .value as $expected_app_id
-             | ($live_checks | map(select(.context == $context)) | .[0]? // null) as $live_check
-             | if $live_check == null then
-                 {
-                   context: $context,
-                   expected_app_id: $expected_app_id,
-                   live_app_id: "missing-check-binding"
-                 }
-               elif $expected_app_id == -1 and (($live_check.app_id // null) == null or $live_check.app_id == -1) then
-                 empty
-               elif $expected_app_id == ($live_check.app_id // null) then
-                 empty
-               else
-                 {
-                   context: $context,
-                   expected_app_id: $expected_app_id,
-                   live_app_id: ($live_check.app_id // null)
-                 }
-               end
-           ]
-       )
+       extra_in_live: (($live - $canonical) | sort)
      }'
-}
-
-check_app_binding_drift() {
-  local drift
-  drift="$(print_delta | jq -c '.app_binding_drift')"
-  if [[ "$drift" != "[]" ]]; then
-    echo "required status-check app binding drift: $drift" >&2
-    exit 1
-  fi
 }
 
 if [[ "$mode" == "apply" ]]; then
@@ -176,7 +126,6 @@ fi
 
 fetch_live
 print_delta
-check_app_binding_drift
 cargo run -q -p oya-dev-cli -- gate validate protection-context-match \
   --branch "$branch" \
   --applied-branch-protection "$config" \

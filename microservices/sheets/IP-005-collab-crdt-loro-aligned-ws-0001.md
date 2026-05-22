@@ -12,7 +12,7 @@ depends_on: [IP-004]
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
-# IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-loro + adapter-redis + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)
+# IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-loro + adapter-valkey + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)
 
 ## Intent
 
@@ -21,7 +21,7 @@ Author the `collab-crdt` BC's full crate set with Loro 1.x as CRDT merge engine 
 ## ChangeSet boundary
 
 Nine crates:
-- `oya-sheets-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-loro,adapter-redis,worker,sdk}`
+- `oya-sheets-collab-crdt-{kernel,domain,usecase,api,adapter,adapter-loro,adapter-valkey,worker,sdk}`
 
 ## Code Shape
 
@@ -55,7 +55,7 @@ proptest! {
 ```bash
 cargo check -p oya-sheets-collab-crdt-kernel ... -p oya-sheets-collab-crdt-worker
 cargo nextest run -p oya-sheets-collab-crdt-domain --test no_silent_overwrite
-cargo nextest run -p oya-sheets-collab-crdt-adapter-redis --test redis_integration -- --include-ignored
+cargo nextest run -p oya-sheets-collab-crdt-adapter-valkey --test valkey_integration -- --include-ignored
 cargo run -p oya-dev-cli -- gate validate sheets-crdt-no-silent-loss --microservice sheets
 ```
 
@@ -67,8 +67,8 @@ cargo run -p oya-dev-cli -- gate validate sheets-crdt-no-silent-loss --microserv
 | `test_merge_commutativity` (property) | merge(a, b) == merge(b, a) for commuting ops |
 | `test_conflict_surfaced_when_needed` | overlapping cell-value edits produce Conflict |
 | `test_loro_alignment_with_workflow_studio` | Loro 1.x version pinned identically to workflow-studio |
-| `test_redis_lease_single_writer` | only one WS pod holds the lease at a time |
-| `test_redis_ttl_expiry` | abandoned lease expires after TTL |
+| `test_valkey_lease_single_writer` | only one WS pod holds the lease at a time |
+| `test_valkey_ttl_expiry` | abandoned lease expires after TTL |
 | `test_cross_tenant_collab_forbidden` | WS subscriber on tenant-A cannot receive tenant-B ops |
 | `test_cross_workbook_routing_filter` | server-side filter enforces (subscriber.workbook_id == op.workbook_id) |
 

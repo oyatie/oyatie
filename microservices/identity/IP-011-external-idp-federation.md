@@ -83,3 +83,10 @@ Optional per tenant. SAML uses Zitadel's SAML IdP / SP integration. Tenants supp
 - 10 tests pass.
 - Live Google Workspace / Okta / Entra test connections verified in staging.
 - SAML IdP roundtrip works end-to-end.
+
+## Counterpart references - 011-external-idp-federation
+
+- Counterpart class: issuer / federation.
+- GitHub enterprise SSO and ServiceNow external IdP federation are the counterpart baseline for workforce login; this IP keeps Oyatie differentiated by preserving per-pack issuer boundaries, JWKS evidence, and provider-BYOK separation.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+

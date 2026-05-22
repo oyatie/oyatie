@@ -131,7 +131,7 @@ Per ADR-0133 axis-4: every feature has a named industry source; parity is tracke
 
 ## Key parity gaps (priority for M03 preview)
 
-1. **PPTX round-trip fidelity (round-trippable subset)** ≥ 95% — gold-standard is PowerPoint Web native + ONLYOFFICE.
+1. **PPTX round-trip fidelity (round-trippable subset)** ≥ 95% — reference standard is PowerPoint Web native + ONLYOFFICE.
 2. **Per-slide ACL (named-block)** — unique differentiator.
 3. **EU AI Act risk-class stamp** — unique compliance posture.
 4. **Reduced-motion default-on** — unique accessibility default.

@@ -5,7 +5,7 @@
   "introducing_phase": "PHASE-01-ANALYTICS-OLAP-BOOTSTRAP",
   "ip_anchor": "IP-008",
   "tier": "T1",
-  "eu_ai_act_risk_class": "minimal",
+  "risk_class": "minimal",
   "rationale": "Read against per-tenant audit-log table; emits its own audit event (recursive). Not an inference path.",
   "data_class": ["AUDIT_INTERNAL", "TENANT_AUDIT"],
   "cedar_action": "QueryAuditLog",

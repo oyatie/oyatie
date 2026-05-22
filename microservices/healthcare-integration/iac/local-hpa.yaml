@@ -1,0 +1,23 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: healthcare-integration-hl7-ingestor
+  labels:
+    service: healthcare-integration
+    suite: local-operational-primitive
+    adr: ADR-0130
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: healthcare-integration-hl7-ingestor
+  minReplicas: 3
+  maxReplicas: 30
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: oya_healthcare_integration_phi_delivery_latency_inflight
+        target:
+          type: AverageValue
+          averageValue: "100"

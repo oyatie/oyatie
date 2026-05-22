@@ -1,0 +1,176 @@
+{
+  "facet": "A4-Architecture-Adherence",
+  "reviewer": "claude-opus-4-7-subagent",
+  "review_date": "2026-05-20",
+  "bundle_id": "keystone-bundle-2026-05-20-foundational-doctrine",
+  "verdict": "CONDITIONAL_APPROVE",
+  "summary": "The 14-ADR keystone bundle is overwhelmingly coherent against its own architectural rules. The bundle correctly recognizes and self-corrects the highest-risk self-contradiction (F-ANTI-1: ADR-0255 inadvertently re-introducing the universal-mediator pattern that ADR-0145 retired) via an explicit amendment ADR. ADR-0280 likewise self-corrects the substrate-DAG-as-prose drift introduced by ADR-0245 §D-4. Cross-tier dependency direction, tenant-as-universal-scoping, substrate-vs-product layering, and Cedar-as-universal-gate compose without circular cycles. Layer-enum (ADR-0105) attribution is consistently used; in-house Rust (ADR-0211) and Cilium ambient mesh (ADR-0148) policies are honored. Three classes of architecture-adherence defects remain: (a) filename-slug drift for cross-referenced ADRs (ADR-0148, ADR-0211, ADR-0105 appear under 2-3 different slugs across the bundle), (b) one terminology slippage between '13-layer' and '13-value' enum naming, (c) ADR-0247 retains `axis-foundry` as an owner even while dissolving Foundry-as-µservice — a transition-period seam that should be explicitly bounded. None of these block bundle acceptance; all can be fixed in a follow-up housekeeping PR.",
+  "per_adr_findings": [
+    {
+      "adr": "ADR-0145",
+      "adherence": "PASS",
+      "notes": "Three invariants (audit/tracing/ontology-projection) are internally coherent; explicitly aligns with hyperscaler shape; explicitly retires prior auto-memory directive. Cites ADR-0148 as 'ADR-0148-service-mesh-cilium.md' — filename slug A."
+    },
+    {
+      "adr": "ADR-0244",
+      "adherence": "PASS",
+      "notes": "Tenant-as-universal-scoping is internally consistent; correctly amends ADR-0220/0239/0221 §M-04 audience field removal; bootstrap prerequisites enumerated; Cedar entity-types reference ADR-0243 + ADR-0246 correctly. Frontmatter cites ADR-0105 as 'ADR-0105-thirteen-layer-canonical-enum.md' — filename slug A."
+    },
+    {
+      "adr": "ADR-0245",
+      "adherence": "PASS_WITH_CONCERN",
+      "notes": "Substrate-vs-product two-rule doctrine is the right level of abstraction. §D-4 declares substrate DAG in prose but forward-declares the spec file as `/specs/microservice-dependency-dag.json` without authoring it — ADR-0280 explicitly closes this gap and admits the prose-only authoring was a Big-Ball-of-Mud-class architectural risk. Cites ADR-0148 as 'ADR-0148-service-mesh-cilium.md' — filename slug A."
+    },
+    {
+      "adr": "ADR-0246",
+      "adherence": "PASS_WITH_CONCERN",
+      "notes": "Promotion of Cedar fragment-coverage BC from Ontology to peer policy-engine µservice is well-justified against ADR-0245 substrate doctrine and ADR-0241 DR tiers. Library/sidecar/centralized alternatives correctly evaluated. CONCERNS: (1) Cites ADR-0211 as 'ADR-0211-in-house-tech-stack-policy.md' but ADR-0244/0245/0247/0248/0255/0280 cite it as 'ADR-0211-in-house-tech-stack-preference.md' — filename slug drift. (2) Cites ADR-0148 as 'ADR-0148-service-mesh-canonical.md' — filename slug C, third variant in this bundle. (3) D-3 cites 'ADR-0105 13-value canonical enum' but ADR-0105's canonical name is '13-layer canonical enum' — minor terminology slippage."
+    },
+    {
+      "adr": "ADR-0247",
+      "adherence": "PASS_WITH_CONCERN",
+      "notes": "Self-hosting / Foundry dissolution is internally coherent and supersedes ADR-0136 + ADR-0136-amendment cleanly. BC redistribution to Workflow Engine + Intelligence + audit-chain + policy-engine matches the substrates' actual primitives. CONCERN: `owners:` retains `axis-foundry` even while dissolving the Foundry µservice — this is a transition-period seam; bundle should declare the axis decommission timeline explicitly. The `oya-foundry-fitness-*` → `oya-governance-*` lane rename (per ADR-0246 D-11 and recent git log entries 'Move catalog-records onto the governance lane prefix') is in-flight; ADR-0247 should reference the migration ledger."
+    },
+    {
+      "adr": "ADR-0248",
+      "adherence": "PASS",
+      "notes": "Amazon-shape cellular architecture is rigorously sourced (Hamilton 2007, MacCárthaigh 2014, ARC408/ARC405/ARC404, Stripe Cells 2024). Four-tier model + service cells + reserved Tier 4 composes correctly with ADR-0244 tenant scoping and ADR-0245 substrate-vs-product layering. Cell-as-blast-radius is consistent. Cites ADR-0148 as 'ADR-0148-service-mesh-cilium-ambient-layered.md' — filename slug B, second variant in this bundle."
+    },
+    {
+      "adr": "ADR-0255",
+      "adherence": "PASS_VIA_AMENDMENT",
+      "notes": "ADR-0255 §D-1's prose ('every Intelligence call traverses the 8 substrate BCs in order') has a natural µservice-RPC reading that would re-introduce the ADR-0145-retired universal-mediator pattern. This is THE highest-risk self-contradiction in the bundle. The bundle correctly self-detects and self-corrects via the ADR-0255 amendment (library-first/network-opt-in). Without the amendment, ADR-0255 would FAIL A4-Architecture-Adherence. With the amendment, it PASSES because library-first delivery is consistent with ADR-0145's invariants and explicitly cited as parallel to oya-shared-policy-engine-client, oya-shared-audit-chain-client, oya-shared-tracing-client patterns."
+    },
+    {
+      "adr": "ADR-0255-amendment",
+      "adherence": "PASS",
+      "notes": "Excellent corrective. F-ANTI-1 finding is articulated precisely. Six predicted failure modes (SLO ceiling, failure perimeter, latency tax, capacity coupling, observability inversion, distributed monolith) map 1:1 to ADR-0145's anti-pattern characterization. Hamilton static stability principle correctly applied. AWS Bedrock SDK reference clarification is load-bearing and correct."
+    },
+    {
+      "adr": "ADR-0280",
+      "adherence": "PASS",
+      "notes": "Closes the substrate-DAG-as-prose gap from ADR-0245 §D-4. Machine-readable DAG spec, Tarjan SCC cycle-check, derive-bootstrap-from-DAG, Markov SLO composition, per-edge Cedar coverage, per-edge SemVer anchor — all internally consistent and consistent with ADR-0245/0246/0145. Correctly identifies the prose-only authoring as a Foote+Yoder Big-Ball-of-Mud-class risk. Tier-1 substrate set (10 µservices) is enumerated. Cites ADR-0148 as 'ADR-0148-service-mesh-cilium.md' — filename slug A."
+    }
+  ],
+  "layer_enum_violations": [
+    {
+      "severity": "LOW",
+      "location": "ADR-0246 §D-3",
+      "finding": "Cites 'ADR-0105 13-value canonical enum'; ADR-0105's canonical name is '13-layer canonical enum'. Layers and values are not interchangeable terms — a 13-layer enum has 13 layer-values, but referring to it as a '13-value enum' loses the architectural meaning (layers express directional containment + flow). Recommend normalize to '13-layer canonical enum' per ADR-0244 + ADR-0280 frontmatter convention.",
+      "blocking": false
+    }
+  ],
+  "inter_microservice_invariant_violations": [
+    {
+      "severity": "RESOLVED_VIA_AMENDMENT",
+      "location": "ADR-0255 §D-1 (natural reading)",
+      "finding": "ADR-0255 §D-1 prose 'every Intelligence call traverses [the 8 substrate BCs] in order' can be read as mandating an RPC hop to microservices/intelligence/ on every LLM call. This reading would re-introduce the universal-mediator pattern ADR-0145 explicitly retired. The ADR-0255 amendment (library-first/network-opt-in clarification) correctly forecloses this reading and aligns delivery shape with ADR-0145 invariants. Without the amendment this would be a BLOCKING A4 finding.",
+      "blocking": false,
+      "resolution": "Amendment ADR included in bundle"
+    },
+    {
+      "severity": "LOW",
+      "location": "ADR-0246 + ADR-0145 boundary",
+      "finding": "ADR-0246 promotes policy-engine to peer substrate; ADR-0280 §Amends notes this 'constrains the direct gRPC permitted liberty of ADR-0145 with a per-call substrate-dependency check'. This is an architectural tightening, not a violation, but the relationship between ADR-0145 'direct gRPC permitted' and ADR-0280 'every cross-substrate call needs Cedar permit + DAG-position check' should be stated as an amendment relationship rather than emergent.",
+      "blocking": false
+    }
+  ],
+  "in_house_rust_violations": [
+    {
+      "severity": "INFORMATIONAL",
+      "location": "Multiple ADR frontmatters",
+      "finding": "ADR-0211 (in-house Rust-primary) is cited under two filename slugs: 'ADR-0211-in-house-tech-stack-preference.md' (ADR-0244, ADR-0245, ADR-0247, ADR-0248, ADR-0255, ADR-0280) and 'ADR-0211-in-house-tech-stack-policy.md' (ADR-0246). One file exists on disk ('ADR-0211-in-house-tech-stack-policy.md'); the 'preference' slug references in 6 ADRs are stale/incorrect cross-refs. Substance of in-house Rust-primary doctrine is honored throughout (Cedar Rust SDK, Citus, Cloud Hypervisor + Kata, eBPF Cilium, Pingora). Filename drift is the issue, not the architectural choice.",
+      "blocking": false
+    }
+  ],
+  "self_contradictions": [
+    {
+      "severity": "RESOLVED",
+      "category": "Mediator-vs-Library delivery shape",
+      "between": ["ADR-0145", "ADR-0255"],
+      "finding": "ADR-0255's natural §D-1 reading re-introduces the pattern ADR-0145 retired. Resolved by ADR-0255-amendment in the same bundle. Bundle's self-detection is an A4 strength."
+    },
+    {
+      "severity": "RESOLVED",
+      "category": "Substrate DAG prose-vs-machine",
+      "between": ["ADR-0245 §D-4", "ADR-0280"],
+      "finding": "ADR-0245 §D-4 declared substrate DAG in prose and forward-declared a spec file that ADR-0245 did not author. ADR-0280 explicitly closes this gap, citing the gap as Foote+Yoder 'Big Ball of Mud' (PLoP 1997) anti-pattern. Bundle's self-detection is an A4 strength."
+    },
+    {
+      "severity": "RESOLVED",
+      "category": "Bootstrap order hand-declared vs DAG-derived",
+      "between": ["ADR-0242 §D-5", "ADR-0280"],
+      "finding": "ADR-0242 declared 10-step bootstrap sequence by hand; ADR-0280 admits the sequence is a topological sort of the DAG and adds a 'oya gate validate substrate-bootstrap-order-matches-topological-sort' lane to derive from DAG. Resolved within the bundle."
+    },
+    {
+      "severity": "OPEN",
+      "category": "Foundry axis ownership during dissolution",
+      "between": ["ADR-0247 owners", "ADR-0247 Decision (Foundry dissolves)"],
+      "finding": "ADR-0247 retains `axis-foundry` in its `owners:` list while dissolving microservices/foundry/. Per ADR-0245 substrate doctrine and the active 'oya-governance-*' lane rename (visible in recent git log), axis-foundry is being decommissioned. ADR-0247 should explicitly state the axis decommission timeline and the receiving axes for residual responsibility (axis-workflow-engine, axis-intelligence, axis-audit-chain, axis-policy-engine). Currently the axis-foundry ownership-during-dissolution is implicit, which is exactly the 'implicit load-bearing fact' anti-pattern ADR-0280 calls out."
+    },
+    {
+      "severity": "OPEN",
+      "category": "ADR-0148 filename slug variance",
+      "between": ["ADR-0145", "ADR-0245", "ADR-0246", "ADR-0247", "ADR-0248", "ADR-0255", "ADR-0280"],
+      "finding": "ADR-0148 is referenced under THREE different filename slugs across the bundle: 'ADR-0148-service-mesh-cilium.md' (ADR-0145, ADR-0245, ADR-0247, ADR-0255-amendment, ADR-0280); 'ADR-0148-service-mesh-cilium-ambient-layered.md' (ADR-0248); 'ADR-0148-service-mesh-canonical.md' (ADR-0246). On disk the file is 'ADR-0148-service-mesh-cilium-ambient-layered.md'. The other two slugs are broken cross-refs. Substance (Cilium primary + Istio Ambient Tier-2 overlay) is consistent across ADRs; defect is cross-reference hygiene."
+    },
+    {
+      "severity": "OPEN",
+      "category": "ADR-0105 filename slug variance",
+      "between": ["ADR-0244", "ADR-0245", "ADR-0246", "ADR-0280"],
+      "finding": "ADR-0105 is referenced under multiple slugs: 'ADR-0105-thirteen-layer-canonical-enum.md' (ADR-0244, ADR-0245, ADR-0280) and 'ADR-0105-13-layer-enum-and-check-family-patterns.md' (file-on-disk). The numeric '13' vs spelled-out 'thirteen' inconsistency is a frontmatter cross-ref bug. Substance is consistent."
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "REC-A4-1",
+      "priority": "MEDIUM",
+      "action": "Add a housekeeping PR after bundle merge that normalizes ADR-0148 cross-references to the on-disk filename 'ADR-0148-service-mesh-cilium-ambient-layered.md' across all 14 keystones plus ADR-0280.",
+      "blocking": false
+    },
+    {
+      "id": "REC-A4-2",
+      "priority": "MEDIUM",
+      "action": "Normalize ADR-0211 cross-references. Either rename file from 'ADR-0211-in-house-tech-stack-policy.md' to 'ADR-0211-in-house-tech-stack-preference.md' (matches 6 of 7 citing ADRs) or update the one outlier (ADR-0246) to 'policy'.",
+      "blocking": false
+    },
+    {
+      "id": "REC-A4-3",
+      "priority": "MEDIUM",
+      "action": "Normalize ADR-0105 cross-references to match on-disk filename or rename file. Standardize on either 'thirteen' (spelled) or '13' (numeric).",
+      "blocking": false
+    },
+    {
+      "id": "REC-A4-4",
+      "priority": "MEDIUM",
+      "action": "ADR-0246 §D-3: change '13-value canonical enum' to '13-layer canonical enum' to match ADR-0105's canonical name.",
+      "blocking": false
+    },
+    {
+      "id": "REC-A4-5",
+      "priority": "MEDIUM",
+      "action": "ADR-0247: add explicit `axis_decommission_timeline:` frontmatter field declaring when axis-foundry decommissions and which axes inherit residual responsibility. Reference the in-flight 'oya-governance-*' lane rename migration ledger.",
+      "blocking": false
+    },
+    {
+      "id": "REC-A4-6",
+      "priority": "LOW",
+      "action": "Add an ADR-0145 § note acknowledging ADR-0280's tightening of the 'direct gRPC permitted' liberty so future readers don't perceive a regression.",
+      "blocking": false
+    }
+  ],
+  "overall_signal_for_synthesizer": {
+    "verdict": "CONDITIONAL_APPROVE",
+    "strength_of_self_correction": "HIGH — the bundle DETECTS and CORRECTS its two highest-risk self-contradictions (F-ANTI-1 universal-mediator regression in ADR-0255; substrate-DAG prose drift in ADR-0245) within the same bundle via dedicated amendment/follow-on ADRs. This is exceptional A4 hygiene.",
+    "remaining_open_items": "All open A4 findings are cross-reference hygiene defects (filename slug drift for ADR-0148, ADR-0211, ADR-0105; '13-value' vs '13-layer' terminology) plus one transition-period framing seam (ADR-0247 axis-foundry ownership during dissolution). None are blocking; all can be addressed in a follow-up housekeeping PR.",
+    "architectural_invariants_honored": [
+      "ADR-0105 13-layer canonical enum: USED",
+      "ADR-0145 three invariants (audit/tracing/ontology-projection): HONORED + tightened by ADR-0280 per-edge Cedar check",
+      "ADR-0211 in-house Rust-primary: HONORED (Cedar Rust SDK, Citus, Cloud Hypervisor + Kata, Cilium eBPF, Pingora, Tantivy/Quickwit, ClickHouse, OpenBao)",
+      "ADR-0148 Cilium ambient mesh layered: HONORED (substance) / DEFECTIVE (cross-ref slug)",
+      "Substrate-vs-product layering (ADR-0245) + DAG (ADR-0280): COHERENT",
+      "Cellular architecture (ADR-0248): COHERENT with tenant scoping (ADR-0244) and Cedar gates (ADR-0243)"
+    ],
+    "synthesizer_guidance": "Approve bundle; require post-merge housekeeping PR for cross-reference hygiene (REC-A4-1 through REC-A4-5). A4 finds the bundle's self-correction discipline (F-ANTI-1, DAG-prose) more notable than its residual cross-reference defects."
+  }
+}

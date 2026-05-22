@@ -19,7 +19,7 @@ purpose: |
   and the 12-value canonical layer enum (kernel, domain, application, app, adapter,
   infrastructure, cli, rest, grpc, graphql, worker, sdk) per ADR-0056.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-clippy-pedantic
+planned_enforcement_ref: oya-governance-clippy-pedantic
 companion_docs:
   - docs/standards/error-handling.md
   - docs/standards/dependency-policy.md
@@ -130,7 +130,7 @@ Exceptions (FFI, perf-critical primitives, kernel allocators):
 3. Every unsafe surface MUST be covered by a `cargo-fuzz` harness per
    [`testing.md`](testing.md) §5 AND, where feasible, a Kani harness per
    ADR-RST-003 (pending).
-4. CI lane `oya-foundry-fitness-unsafe-kani` enforces (2) + (3).
+4. CI lane `oya-governance-unsafe-kani` enforces (2) + (3).
 
 Sources: [AWS — How Kani is used](https://aws.amazon.com/blogs/opensource/how-open-source-projects-are-using-kani-to-write-better-software-in-rust/),
 [Firecracker](https://firecracker-microvm.github.io/),
@@ -215,7 +215,7 @@ Lanes enforcing this:
 - `oya-shared-architecture-check-cli -- dependency-direction` enforces the 12-value matrix (LEAN-A1).
 - `oya-shared-architecture-check-cli -- layer-correctness` verifies each crate's declared layer matches its code shape.
 - `oya-shared-architecture-check-cli -- lib-name-parity` validates `[lib] name` = snake_case(`[package] name`).
-- `oya-foundry-fitness-provider-coupling` per Directive 4 refuses provider
+- `oya-governance-provider-coupling` per Directive 4 refuses provider
   imports outside `oya-*-adapter-<provider>-*` crates.
 
 ## 7. Async / runtime

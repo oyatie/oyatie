@@ -12,18 +12,19 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-MULTISPECTRUM-REVIEW",
-    "version": "2.3.0",
-    "supersedes_version": "1.0.0 + 2.0.0 + 2.1.0 + 2.2.0",
+    "version": "2.4.0",
+    "supersedes_version": "1.0.0 + 2.0.0 + 2.1.0 + 2.2.0 + 2.3.0",
     "primary_consumer": "agentic_flow (autonomous masterplan execution per ADR-0054 grit + ADR-0069 active-artifact-contract). Human dev_flow is secondary. Agents are the canonical reader of this spec.",
     "machine_optimization_policy": "Schema-strict (closed enums, typed required fields, indexed by id). Narrative belongs in docs/standards/multispectrum-review.md, NOT in this file. Long _description / rendering_examples / lane_implementation_note blocks are non-canonical pointers; FixupTask F-SPEC-PROSE-SLIM trims them. Files are read once per agent turn; minimize parser cost.",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-05-14T00:00:00Z",
-    "updated_at": "2026-05-14T20:00:00Z",
+    "updated_at": "2026-05-20T00:00:00Z",
     "human_companion": "docs/standards/multispectrum-review.md",
     "v2_directive": "User directive 2026-05-14: 'additional spectrums that we should enforce into every single thing we do. including foundry. foundry's agentic flow + our current dev flow. should be enforced.' v2.0.0 adds F8 performance, F9 compliance as REQUIRED facets, and M1 challenge_assumption + M2 zoomed_out_fit as OPTIONAL meta-facets (required when meta_review_triggered).",
     "v2_1_directive": "User directive 2026-05-14: 'Make sure we add deterministic layer to it where it makes sense to do so.' v2.1.0 adds F10 reversibility/blast-radius, F11 observability, F13 migration/backwards-compat as REQUIRED facets when applicable + a `deterministic_layer_principle` declaring per-facet auto_checks vs human_judgment split. Lane enforces auto_checks mechanically; judgment layer fills the rest.",
     "v2_3_directive": "User directive 2026-05-15 across two consecutive messages: 'additional lens for our own policy adherence like naming, documentation, structure, architecture, dependency, etc' + 'schema, algorithm, as well'. v2.3.0 adds a new family of POLICY-ADHERENCE facets (A-prefix: A1..A7) distinct from F-family critique lenses and M-family meta lenses. A-facets mechanically enforce drift between code-as-built and doctrine-as-declared. Closed enum cap relaxed for A-family \u2014 adherence facets grow as policy domains do.",
+    "v2_4_directive": "Wave-3-A cross-reference wiring 2026-05-20: formalise the 21-facet canonical roster (F1-F9+F10+F11+F13+M1+M2+A1-A7), add wave_dispatch_protocol for multi-wave review orchestration, and add verdict_schema for machine-readable per-changeset verdicts. Accompanies keystone bundle ADR-0242..ADR-0258 + remediation ADRs 0293..0296. The 21-facet roster closes the set for v2.x; further additions require 1-ADR action per evolution_policy.",
     "evidence_sources": [
       "PR review CODEOWNERS (manual sign-off)",
       "active-artifact-contract evidence bundle (ADR-0069)",
@@ -1362,6 +1363,148 @@
     "implementation_path": "agents/settings/claude.settings.json \u2014 hook 'multispectrum-bar-on-session-start' injects a one-line reminder citing this spec.",
     "fallback": "If SessionStart hook missing or stale, root-hub-pointers.json carries the multispectrum_review pointer so any agent discovers it on the authority-first read."
   },
+  "facet_roster": {
+    "_description": "v2.4.0 canonical 21-facet roster. Closed for F-family (max 12, 10 active: F1-F9+F10+F11+F13); open for A-family. Every changeset evidence bundle MUST enumerate all applicable facets by id.",
+    "added_in_version": "2.4.0",
+    "f_family": {
+      "description": "Critique lenses — structural, adversarial, quality, security, perf, compliance, reversibility, observability, migration.",
+      "facets": [
+        { "id": "F1",  "name": "Linus critique",                       "key": "F1_linus",          "required_when": "always" },
+        { "id": "F2",  "name": "Hyperscaler critique",                 "key": "F2_hyperscaler",    "required_when": "always" },
+        { "id": "F3",  "name": "Adversarial critique",                 "key": "F3_adversarial",    "required_when": "always" },
+        { "id": "F4",  "name": "Ergonomic critique",                   "key": "F4_ergonomic",      "required_when": "always" },
+        { "id": "F5",  "name": "Quality critique",                     "key": "F5_quality",        "required_when": "always" },
+        { "id": "F6",  "name": "Better-alternative critique",          "key": "F6_alternatives",   "required_when": "always" },
+        { "id": "F7",  "name": "Security review",                      "key": "F7_security",       "required_when": "always" },
+        { "id": "F8",  "name": "Performance / perf-budget review",     "key": "F8_performance",    "required_when": "CC-1 OR CC-2 OR any hot-path change" },
+        { "id": "F9",  "name": "Compliance / auditability review",     "key": "F9_compliance",     "required_when": "always" },
+        { "id": "F10", "name": "Reversibility / blast-radius review",  "key": "F10_reversibility", "required_when": "CC-1 OR CC-2 OR cross-microservice boundary OR data-migration" },
+        { "id": "F11", "name": "Observability review",                 "key": "F11_observability", "required_when": "CC-1 OR CC-2 adding I/O OR new HTTP route OR new state machine OR new background worker" },
+        { "id": "F13", "name": "Migration / backwards-compatibility",  "key": "F13_migration",     "required_when": "breaking public surface change OR schema/migration file added OR dep major version bump" }
+      ],
+      "f12_reserved": "F12 intentionally omitted — reserved slot; not yet allocated. Closed F-family cap: 10 active + 2 reserved = 12 total."
+    },
+    "m_family": {
+      "description": "Meta lenses — fire when meta_review_triggered.",
+      "facets": [
+        { "id": "M1", "name": "Challenge underlying assumption", "key": "M1_challenge_assumption", "required_when": "meta_review_triggered: CC-1 OR new ADR/standard/spec OR breaking-API change OR new microservice" },
+        { "id": "M2", "name": "Zoomed-out fit",                  "key": "M2_zoomed_out_fit",       "required_when": "meta_review_triggered: CC-1 OR new ADR/standard/spec OR new microservice OR new lane/protocol" }
+      ]
+    },
+    "a_family": {
+      "description": "Policy-adherence lenses — enforce drift between code-as-built and doctrine-as-declared. Open cap; grow as policy domains do.",
+      "facets": [
+        { "id": "A1", "name": "Naming adherence",        "key": "A1_naming_adherence",        "required_when": "any new file or rename in /specs/, /registry/, /evidence/, /templates/, docs/decisions/, crates/, tools/" },
+        { "id": "A2", "name": "Documentation adherence", "key": "A2_documentation_adherence", "required_when": "any docs/*.md added/edited OR any standards/ADR/PRD created/updated" },
+        { "id": "A3", "name": "Structure adherence",     "key": "A3_structure_adherence",     "required_when": "any new file or directory added; any move/rename touching first-class durable homes" },
+        { "id": "A4", "name": "Architecture adherence",  "key": "A4_architecture_adherence",  "required_when": "any new crate added; any cross-layer dependency edited in Cargo.toml" },
+        { "id": "A5", "name": "Dependency adherence",    "key": "A5_dependency_adherence",    "required_when": "any change to Cargo.toml workspace.dependencies; any new direct dep; any version bump" },
+        { "id": "A6", "name": "Schema adherence",        "key": "A6_schema_adherence",        "required_when": "any new JSON spec/registry added; any $defs or required[] change; any schema version bump" },
+        { "id": "A7", "name": "Algorithm adherence",     "key": "A7_algorithm_adherence",     "required_when": "any new algorithm/heuristic in code; any complexity-class change" }
+      ],
+      "cap": "OPEN — A-family grows as policy domains do. Each new A-facet requires 1-ADR action."
+    },
+    "totals": {
+      "f_family_active": 12,
+      "f_family_allocated": 10,
+      "m_family": 2,
+      "a_family_current": 7,
+      "grand_total_current": 21
+    }
+  },
+  "wave_dispatch_protocol": {
+    "_description": "v2.4.0 — multi-wave review orchestration. When a changeset spans multiple keystone waves (e.g., Wave-3-A cross-reference wiring), review evidence must be tagged per wave and a cross-wave synthesis produced before the changeset may promote.",
+    "added_in_version": "2.4.0",
+    "wave_tag_format": "Wave-<N>-<LETTER> (e.g., Wave-3-A, Wave-1, Wave-2-B). Tag MUST match the canonical wave identifier in the changeset's ADR binding.",
+    "wave_evidence_path": "/evidence/multispectrum/<change_id>-wave-<tag>.json",
+    "cross_wave_synthesis_path": "/evidence/multispectrum/<change_id>-cross-wave-synthesis.json",
+    "cross_wave_synthesis_required_when": [
+      "changeset carries evidence from ≥2 distinct wave tags",
+      "any facet verdict differs between wave evidence files",
+      "promotion gate §5 (fixuptasks.jsonl) references ≥2 wave tags"
+    ],
+    "cross_wave_synthesis_shape": {
+      "type": "object",
+      "required": ["change_id", "waves_covered", "facet_deltas", "overall_verdict", "promotion_gate_ref"],
+      "properties": {
+        "change_id":          { "type": "string" },
+        "waves_covered":      { "type": "array", "items": { "type": "string" } },
+        "facet_deltas":       { "type": "array", "description": "array of {facet_id, wave_a_verdict, wave_b_verdict, resolution}" },
+        "overall_verdict":    { "enum": ["GREEN", "YELLOW", "RED"] },
+        "promotion_gate_ref": { "type": "string", "description": "path to fixuptasks.jsonl entry or §5 gate id" }
+      }
+    },
+    "per_wave_reviewer_isolation": "Each wave tag MUST be reviewed by a distinct reviewer_id set (no cross-wave reviewer reuse that would collapse independence). Enforced by lane sub-check F-LANE-WAVE-ISOLATION-SUBCHECK.",
+    "lane_additions": [
+      "F-LANE-WAVE-ISOLATION-SUBCHECK: validate distinct reviewer_id sets per wave tag",
+      "F-LANE-CROSS-WAVE-SYNTHESIS-SUBCHECK: verify cross_wave_synthesis present when ≥2 wave tags in evidence"
+    ]
+  },
+  "verdict_schema": {
+    "_description": "v2.4.0 — machine-readable per-changeset verdict emitted by the seam lane after evaluating all 21 facets. Consumed by oya-check-dependency-seam promotion gate + fixuptasks.jsonl synthesis §5 entries.",
+    "added_in_version": "2.4.0",
+    "emit_path": "/evidence/multispectrum/<change_id>-verdict.json",
+    "shape": {
+      "type": "object",
+      "required": ["change_id", "spec_version", "evaluated_at_unix", "wave_tag", "facet_verdicts", "aggregate_verdict", "promotion_gate_status"],
+      "properties": {
+        "change_id":          { "type": "string" },
+        "spec_version":       { "type": "string", "description": "multispectrum spec version; MUST be '2.4.0' or higher for v2.4 verdict schema" },
+        "evaluated_at_unix":  { "type": "integer", "minimum": 1700000000 },
+        "wave_tag":           { "type": "string", "description": "wave tag from wave_dispatch_protocol; null if single-wave" },
+        "facet_verdicts": {
+          "type": "array",
+          "description": "one entry per evaluated facet (all 21 for CC-1; subset for lower CC classes)",
+          "items": {
+            "type": "object",
+            "required": ["facet_id", "family", "verdict", "auto_checks", "judgment"],
+            "properties": {
+              "facet_id":    { "type": "string", "description": "F1..F13, M1, M2, A1..A7" },
+              "family":      { "enum": ["F", "M", "A"] },
+              "verdict":     { "enum": ["pass", "needs-work", "skip", "not-applicable"] },
+              "auto_checks": { "enum": ["pass", "fail", "n/a", "not-yet-armed"] },
+              "judgment":    { "enum": ["ok", "needs-work", "skipped", "n/a"] },
+              "reviewer_id": { "type": "string", "description": "per executor_topology: per-facet subagent id; MUST be unique per facet within a change_id" },
+              "findings":    { "type": "array", "items": { "type": "string" } },
+              "fixuptask_ids": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "aggregate_verdict": {
+          "type": "object",
+          "required": ["overall", "auto_pass_count", "auto_fail_count", "judgment_ok_count", "judgment_needs_work_count", "facets_evaluated_count", "consensus_debate_status"],
+          "properties": {
+            "overall":                     { "enum": ["GREEN", "YELLOW", "RED"] },
+            "auto_pass_count":             { "type": "integer" },
+            "auto_fail_count":             { "type": "integer" },
+            "auto_not_yet_armed_count":    { "type": "integer" },
+            "judgment_ok_count":           { "type": "integer" },
+            "judgment_needs_work_count":   { "type": "integer" },
+            "facets_evaluated_count":      { "type": "integer", "description": "total facets evaluated (max 21 for CC-1)" },
+            "consensus_debate_status":     { "enum": ["not-applicable", "pending", "in-progress", "consensus-reached", "escalated"] },
+            "wave_synthesis_status":       { "enum": ["not-applicable", "pending", "complete"], "description": "cross-wave synthesis state per wave_dispatch_protocol" },
+            "summary_line":                { "type": "string" }
+          }
+        },
+        "promotion_gate_status": {
+          "type": "object",
+          "required": ["gate_id", "status", "blocking_fixuptask_ids"],
+          "properties": {
+            "gate_id":               { "type": "string", "description": "§5.N gate id from fixuptasks.jsonl" },
+            "status":                { "enum": ["open", "in-progress", "resolved", "waived-with-adr"] },
+            "blocking_fixuptask_ids": { "type": "array", "items": { "type": "string" } },
+            "waiver_adr":            { "type": "string", "description": "ADR cite if status=waived-with-adr" }
+          }
+        }
+      }
+    },
+    "aggregate_rules": {
+      "GREEN": "all required facets: auto_checks ∈ {pass, n/a, not-yet-armed (report-only)} AND judgment ∈ {ok, n/a} AND consensus_debate_status ∈ {not-applicable, consensus-reached} AND wave_synthesis_status ∈ {not-applicable, complete}",
+      "YELLOW": "any required facet has judgment=needs-work OR consensus/wave synthesis pending, AND no required facet has auto_checks=fail",
+      "RED": "any required facet has auto_checks=fail OR consensus_debate_status=escalated OR wave_synthesis_status=pending with promotion_gate open OR mandatory artifact for change_class missing"
+    },
+    "lane_enforcement": "oya-check-dependency-seam reads the verdict JSON and refuses promotion when aggregate_verdict.overall=RED OR promotion_gate_status.status=open. YELLOW promotes with explicit waiver entry in fixuptasks.jsonl."
+  },
   "evolution_policy": {
     "facet_addition_f_family": "1-ADR action; max 12 F-family critique facets total (closed enum cap to prevent dilution).",
     "facet_addition_a_family": "1-ADR action; OPEN \u2014 A-family adherence facets grow as policy domains do (per v2.3.0 user directive). No closed cap; cap rule relaxed because each A-facet corresponds to a distinct doctrine principle / standard / ADR that already governs its domain.",
@@ -1376,6 +1519,12 @@
       "who": "claude-mcc-p06-ip-002",
       "what_changed": "spec created",
       "why": "user directive 2026-05-14: 'Make sure our multispectrum multifaceted quality bar, test, and review is durable and enforced by every session.' Companion to docs/standards/multispectrum-review.md."
+    },
+    {
+      "when": "2026-05-20",
+      "who": "wave-3-a-cross-reference-wiring-agent",
+      "what_changed": "v2.4.0: formalised 21-facet canonical roster (F1-F9+F10+F11+F13+M1+M2+A1-A7) in new facet_roster section; added wave_dispatch_protocol for multi-wave review orchestration (cross-wave evidence tagging, isolation, synthesis shape); added verdict_schema for machine-readable per-changeset verdicts consumed by oya-check-dependency-seam promotion gate; updated version 2.3.0 → 2.4.0; supersedes_version extended; updated_at bumped.",
+      "why": "Wave-3-A cross-reference wiring 2026-05-20 per multispectrum-review-v2.4.0-cadence.md: keystone bundle ADR-0242..ADR-0258 + remediation ADRs 0293..0296 requires the full 21-facet roster to be machine-enumerable, wave-tagged evidence to be cross-syntheses-able, and promotion gate verdicts to be machine-readable by the seam lane."
     }
   ]
 }

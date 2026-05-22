@@ -32,11 +32,9 @@ Captured 2026-05-12 between Architect ITERATE verdict and Critic dispatch. The C
 
 ### For spec A6 (hook + skill audit)
 
-The spec's §Acceptance Criteria A6 references `agents/settings/claude.settings.json` — but neither the oyatie nor the bominal repo has it. The hook the user described in the SessionStart memory (`grit-claim-state-on-stop` in `agents/settings/claude.settings.json`) lives at a different filesystem location, likely `/Users/jasonlee/.claude/projects/-Users-jasonlee-bominal/memory/...` or in a per-user config path.
 
 **iter-2 implication**: A6 must be rephrased in the plan. Either:
 - Scope A6 to "all hook/skill prompts that an agent might invoke inside this repo" → grep `**/*.md`, `**/*.json`, `**/.claude/**` for `git`/`gh` references in agent-instruction sections.
-- Or add a precondition step at A6 to *create* `agents/settings/claude.settings.json` with the canonical hooks (route grit/icm/oya-agent-read only).
 
 iter-2 Planner: pick one; document the choice in the plan; do not leave the path ambiguous.
 
@@ -51,15 +49,11 @@ iter-2 Planner: pick one; document the choice in the plan; do not leave the path
 ### For the demo runbook (A7 / P8)
 
 `docs/runbooks/foundry/` exists. The parallel-claim demo runbook can land at one of:
-- `docs/runbooks/foundry/grit-parallel-claim-demo.md` (because the demo claims billing-app symbols, which are in the cloud axis, not foundry — slight mismatch)
-- `docs/runbooks/cross-axis/grit-parallel-claim-demo.md` (already exists as a dir per `ls docs/runbooks/`)
-- `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` (NEW subdir, axis-agnostic)
 
 **Recommendation**: `docs/runbooks/agentic-pipeline/` — the demo is about the *pipeline*, not about any product axis. Create the subdir as part of P8.
 
 ### For Architect revision request #5 (human-orchestrator definition)
 
-`docs/RACI-OWNERSHIP.md` has 70 rows. Adding a "human orchestrator" entry is a small extension. The Architect's `icm store -t cutover-orchestrator-actions ... before execution` requirement should be reflected in the row.
 
 ### For the foundry salvage landing
 
@@ -77,6 +71,5 @@ iter-2 Planner must, in addition to Architect revisions 1-8 and the new P3.5:
 - Rephrase A6 (hook path reconciliation) per above.
 - Drop `.codex/worktree_init.sh` from deletion list (it doesn't exist).
 - Use `oya-tooling-agent-read` as the helper crate name.
-- Pin demo runbook landing to `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` (create subdir).
 - Pin foundry salvage landing to `docs/products/foundry/PHASE-00-SPEC.md`.
 - Add `human orchestrator` row to `docs/RACI-OWNERSHIP.md` as part of P0.5 or P1 deliverables.

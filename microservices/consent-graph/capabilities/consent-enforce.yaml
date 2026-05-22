@@ -6,7 +6,7 @@ metadata:
 spec:
   microservice: consent-graph
   tier: T0
-  eu_ai_act_risk_class: none
+  risk_class: none
   rationale: |
     Pure read-only evaluation. No data modification. Deterministic given inputs + policy. Deny-by-default
     failure mode. Hot-path; T0 = no separate authorization required (caller is in-cluster mTLS-verified).
@@ -21,7 +21,7 @@ spec:
   failure_mode: fail-closed
   hyperscaler_invariants:
     - INV-CIRCUIT-BREAKER-BULKHEAD
-    - INV-FOUR-GOLDEN-SIGNALS
+    - INV-FOUR-CANONICAL-SIGNALS
     - INV-SLO-ERROR-BUDGET
   performance:
     p99_latency_ms: 10

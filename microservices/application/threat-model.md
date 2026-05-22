@@ -55,7 +55,7 @@ onboarding.
 | `module-loader` | Bundle supply-chain (signature forgery, SRI bypass, dependency confusion), CDN-cache poisoning |
 | `frontend-bundle-serve` | CDN purge auth, cache-key poisoning, origin-shield mTLS |
 | Postgres + Citus shell-state | RLS escape; SQL injection at admin surface |
-| Valkey/Redis session store | Eviction-based collisions, MULTI/EXEC race conditions |
+| Valkey session store | Eviction-based collisions, MULTI/EXEC race conditions |
 
 ### Out-of-scope
 
@@ -105,7 +105,7 @@ onboarding.
 │  │  - shell_state, session, audit, module_manifest tables          │     │
 │  └─────────────────────────────────────────────────────────────────┘     │
 │                                                                          │
-│  ┌─ Valkey/Redis session store (per-pack cluster; AOF + RDB persistence)┐│
+│  ┌─ Valkey session store (per-pack cluster; AOF + RDB persistence)┐│
 │  │  - SETEX session:<sha256>; eviction allkeys-lru                      ││
 │  └──────────────────────────────────────────────────────────────────────┘│
 │                                                                          │

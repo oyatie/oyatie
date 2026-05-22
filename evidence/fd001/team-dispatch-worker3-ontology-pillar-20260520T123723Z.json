@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-05-20T12:37:27Z",
+  "team": "fd-001-durable-team-r-ddcbe5e6",
+  "decision": "worker-3 assigned disjoint ontology pillar kernel slice after task27 completion; worker1/2 already assigned tasks 29/28",
+  "operations": [
+    {
+      "schema_version": "1.0",
+      "timestamp": "2026-05-20T12:37:24.024Z",
+      "command": "omx team api create-task",
+      "ok": true,
+      "operation": "create-task",
+      "data": {
+        "task": {
+          "subject": "Ontology cross-pillar grant kernel slice",
+          "description": "Task: cs-ontology-cross-pillar-grant-kernel-fd001-alignment.\nUse existing worker-3 ontology worktree /Users/jasonlee/oyatie-worktrees/fd001-worker3-ontology-schema-revision-20260520T122217Z after completed task 27 commit 1e2ebe9e. This lane is disjoint from worker-1 mail and worker-2 messenger runtime-binding work.\nScope: crates/oya-ontology-kernel/src/pillar.rs plus exact evidence paths evidence/fd001/cs-ontology-cross-pillar-grant-kernel-fd001-alignment-* and evidence/multispectrum/cs-ontology-cross-pillar-grant-kernel-fd001-alignment.json only. No root manifests, contracts, registries, adapters, Cedar policy files, or I/O.\nBefore editing read authority/context: specs/root-hub-pointers.json, docs/AGENTS.md, specs/masterplan.json, specs/master-plan-sequencing.json, microservices/ontology/IP-013-pillar-cross-pillar-grant.md, microservices/ontology/policy/type-isolation.md TI-11..TI-13, current crates/oya-ontology-kernel/src/pillar.rs, and one similar pure guard/state-machine pattern in the repo. Run planning-closure start gate. Claim with Oya VCS as worker-3 intent \"FD001 ontology cross-pillar grant kernel\" for crates/oya-ontology-kernel/src/pillar.rs::CrossPillarGrant.\nImplement pure kernel model for cross-pillar grant issuance/use: principal id, source/target pillars, data-class cap label, expires_at_epoch_seconds with <=30 day max duration, signed_by exactly two distinct non-empty principals not equal to subject principal, issued_at/now validation, no same-pillar grant needed/allowed, expired grant refused, target pillar must match allowed target, deterministic errors, and a guard function/trait that denies cross-pillar read without a valid grant and permits with a valid unexpired grant. Keep it std-only and framework-free. Tests: same-pillar allowed without grant, cross-pillar denied without grant, two-person valid grant permits, one signer rejected, duplicate signer rejected, signer equal principal rejected, >30d rejected, expired rejected, wrong target pillar rejected, invalid labels rejected.\nVerify: cargo fmt --all --check; cargo test -p oya-ontology-kernel -- --nocapture; cargo nextest run -p oya-ontology-kernel; cargo clippy -p oya-ontology-kernel --all-targets -- -D warnings; planning-closure; data-class; architecture-boundaries; catalog; dependency-seam; scoped oya git diff --check; Oya VCS verify/done/promote. Commit only scoped pillar/evidence with Lore trailers.",
+          "status": "pending",
+          "owner": "worker-3",
+          "requires_code_change": true,
+          "id": "30",
+          "depends_on": [],
+          "version": 1,
+          "created_at": "2026-05-20T12:37:24.034Z"
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "timestamp": "2026-05-20T12:37:24.186Z",
+      "command": "omx team api send-message",
+      "ok": true,
+      "operation": "send-message",
+      "data": {
+        "message": {
+          "message_id": "a8963c93-f2d7-405d-8648-d652f44046d6",
+          "from_worker": "leader-fixed",
+          "to_worker": "worker-3",
+          "body": "New task assigned: task 30 \u2014 Ontology cross-pillar grant kernel slice\n\nTask: cs-ontology-cross-pillar-grant-kernel-fd001-alignment.\nUse existing worker-3 ontology worktree /Users/jasonlee/oyatie-worktrees/fd001-worker3-ontology-schema-revision-20260520T122217Z after completed task 27 commit 1e2ebe9e. This lane is disjoint from worker-1 mail and worker-2 messenger runtime-binding work.\nScope: crates/oya-ontology-kernel/src/pillar.rs plus exact evidence paths evidence/fd001/cs-ontology-cross-pillar-grant-kernel-fd001-alignment-* and evidence/multispectrum/cs-ontology-cross-pillar-grant-kernel-fd001-alignment.json only. No root manifests, contracts, registries, adapters, Cedar policy files, or I/O.\nBefore editing read authority/context: specs/root-hub-pointers.json, docs/AGENTS.md, specs/masterplan.json, specs/master-plan-sequencing.json, microservices/ontology/IP-013-pillar-cross-pillar-grant.md, microservices/ontology/policy/type-isolation.md TI-11..TI-13, current crates/oya-ontology-kernel/src/pillar.rs, and one similar pure guard/state-machine pattern in the repo. Run planning-closure start gate. Claim with Oya VCS as worker-3 intent \"FD001 ontology cross-pillar grant kernel\" for crates/oya-ontology-kernel/src/pillar.rs::CrossPillarGrant.\nImplement pure kernel model for cross-pillar grant issuance/use: principal id, source/target pillars, data-class cap label, expires_at_epoch_seconds with <=30 day max duration, signed_by exactly two distinct non-empty principals not equal to subject principal, issued_at/now validation, no same-pillar grant needed/allowed, expired grant refused, target pillar must match allowed target, deterministic errors, and a guard function/trait that denies cross-pillar read without a valid grant and permits with a valid unexpired grant. Keep it std-only and framework-free. Tests: same-pillar allowed without grant, cross-pillar denied without grant, two-person valid grant permits, one signer rejected, duplicate signer rejected, signer equal principal rejected, >30d rejected, expired rejected, wrong target pillar rejected, invalid labels rejected.\nVerify: cargo fmt --all --check; cargo test -p oya-ontology-kernel -- --nocapture; cargo nextest run -p oya-ontology-kernel; cargo clippy -p oya-ontology-kernel --all-targets -- -D warnings; planning-closure; data-class; architecture-boundaries; catalog; dependency-seam; scoped oya git diff --check; Oya VCS verify/done/promote. Commit only scoped pillar/evidence with Lore trailers.",
+          "created_at": "2026-05-20T12:37:24.199Z",
+          "notified_at": "2026-05-20T12:37:27.138Z"
+        },
+        "dispatch": {
+          "ok": true,
+          "transport": "tmux_send_keys",
+          "reason": "hook_timeout_fallback_confirmed:tmux_send_keys_sent",
+          "request_id": "d1526f11-1674-498e-adb3-c3362b3f1b15",
+          "message_id": "a8963c93-f2d7-405d-8648-d652f44046d6"
+        }
+      }
+    }
+  ]
+}

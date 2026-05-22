@@ -11,7 +11,7 @@ lifecycle: {state: incubating, preview_since: 2026-05-17}
 traceability:
   github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
   source_adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-0132]
-allowed_dependency_edges: [kernel, domain, usecase, adapter, adapter-postgres, adapter-meilisearch, adapter-redis-streams, adapter-livekit, adapter-redis, adapter-websocket, adapter-s3, adapter-opswat, rest, worker, sdk]
+allowed_dependency_edges: [kernel, domain, usecase, adapter, adapter-postgres, adapter-meilisearch, adapter-valkey-streams, adapter-livekit, adapter-valkey, adapter-websocket, adapter-s3, adapter-opswat, rest, worker, sdk]
 data_classes_owned: []  # composition root; owns nothing; wires everything
 operational_classes_owned: []
 autonomy_tier_required: T2

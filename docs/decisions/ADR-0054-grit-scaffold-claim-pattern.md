@@ -15,7 +15,7 @@ doc_status: published
 > **Date:** 2026-05-12
 > **doc_class:** DecisionRecord
 > **purpose:** Resolve the new-crate chicken-and-egg with grit symbol-locking via the icm-coordination-lock fallback pattern (scaffold-locks-oyatie topic). Cargo.toml::workspace_members is verified NOT indexed by grit at v0.3.0, so the primary scaffold-claim path is the icm fallback.
-> **planned_enforcement_ref:** `oya-foundry-fitness-scaffold-claim-pattern` — advisory until the lane exists.
+> **planned_enforcement_ref:** `oya-governance-scaffold-claim-pattern` — advisory until the lane exists.
 > **Related:** ADR-0052 (grit/icm tooling inventory), ADR-0053 (grit + icm as sanctioned coordination primitives), ADR-0015 (flat-crates layout), ADR-0041 (GitOps trunk-based development)
 
 ---
@@ -117,7 +117,7 @@ The icm fallback is the only mechanism that is both (a) available today and (b) 
 ### Operational
 
 - Any agent intending to scaffold a new crate **must** run `icm recall -t scaffold-locks-oyatie` first and back off if any window is open for an overlapping path.
-- The `oya-foundry-fitness-scaffold-claim-pattern` fitness lane enforces that no new crate directory appears in git history without a corresponding icm scaffold-lock open/close pair in `scaffold-locks-oyatie`.
+- The `oya-governance-scaffold-claim-pattern` fitness lane enforces that no new crate directory appears in git history without a corresponding icm scaffold-lock open/close pair in `scaffold-locks-oyatie`.
 - If a stale open window is found, the on-call agent inspects icm for the originating agent id and either confirms the window is still live or closes it manually.
 
 ---

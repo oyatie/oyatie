@@ -615,8 +615,8 @@ fn tenant_density_label(density: TenantDensityClass) -> &'static str {
 
 fn residency_class_label(residency_class: &ResidencyClass) -> &'static str {
     match residency_class {
-        ResidencyClass::StrictHome => "strict_home",
-        ResidencyClass::HomeWithFailover => "home_with_failover",
+        ResidencyClass::StrictHomeRegion => "strict_home_region",
+        ResidencyClass::HomeWithRecoveryFailover => "home_with_recovery_failover",
         ResidencyClass::Global => "global",
         ResidencyClass::PerPack(_) => "per_pack",
     }

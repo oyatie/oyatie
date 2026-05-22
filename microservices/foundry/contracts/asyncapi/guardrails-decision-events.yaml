@@ -2,7 +2,7 @@ asyncapi: 3.1.0
 info:
   title: oya-foundry-guardrails — decision events
   version: 1.0.0
-  summary: GuardrailDecisionEmitted, JailbreakDetected, AutonomyTierViolation, ContentSafetyRuleFired, RuleStoreMutated, ClassifierModelDeployed, FalsePositiveEscalated events
+  summary: GuardrailDecisionEmitted, JailbreakDetected, AutonomyLevelViolation, ContentSafetyRuleFired, RuleStoreMutated, ClassifierModelDeployed, FalsePositiveEscalated events
   description: |
     Cross-µservice Workflow events emitted by foundry-guardrails BCs.
     Per ADR-0131 + ADR-0140 (retired per ADR-0145).
@@ -11,8 +11,8 @@ info:
     - foundry-evidence (decision history persistence; per its own retention policy)
     - audit-chain (Ed25519 seal of every event per Bominal ADR-0028)
     - observability (Mimir metric emission; SLO + burn-rate)
-    - grafana-oncall (Sev-1 page on JailbreakDetected + AutonomyTierViolation)
-    - foundry-supervisor (autonomy-tier-violation consumer; rule mutation watcher)
+    - grafana-oncall (Sev-1 page on JailbreakDetected + AutonomyLevelViolation)
+    - foundry-supervisor (autonomy-ceiling-violation consumer; rule mutation watcher)
     - governance (rule-mutation audit + multispectrum evidence link)
   contact:
     name: axis-foundry-guardrails
@@ -40,11 +40,11 @@ channels:
         $ref: '#/components/messages/JailbreakDetected'
     description: Ensemble verdict ≥ block threshold for jailbreak category.
 
-  autonomy-tier-violation:
+  autonomy-ceiling-violation:
     address: workflow-events/foundry-guardrails.autonomy.violation
     messages:
-      AutonomyTierViolationMessage:
-        $ref: '#/components/messages/AutonomyTierViolation'
+      AutonomyLevelViolationMessage:
+        $ref: '#/components/messages/AutonomyLevelViolation'
     description: Effective-ceiling refusal.
 
   content-safety-rule-fired:
@@ -84,7 +84,7 @@ operations:
     channel: {$ref: '#/channels/jailbreak-detected'}
   emitAutonomyViolation:
     action: send
-    channel: {$ref: '#/channels/autonomy-tier-violation'}
+    channel: {$ref: '#/channels/autonomy-ceiling-violation'}
   emitContentSafetyFired:
     action: send
     channel: {$ref: '#/channels/content-safety-rule-fired'}
@@ -109,8 +109,8 @@ components:
       name: JailbreakDetected
       contentType: application/json
       payload: {$ref: '#/components/schemas/JailbreakPayload'}
-    AutonomyTierViolation:
-      name: AutonomyTierViolation
+    AutonomyLevelViolation:
+      name: AutonomyLevelViolation
       contentType: application/json
       payload: {$ref: '#/components/schemas/AutonomyViolationPayload'}
     ContentSafetyRuleFired:
@@ -175,13 +175,13 @@ components:
 
     AutonomyViolationPayload:
       type: object
-      required: [violation_id, invocation_id, tenant_id_hashed, requested_tier, effective_ceiling, ceiling_source, evaluated_at]
+      required: [violation_id, invocation_id, tenant_id_hashed, requested_autonomy_level, effective_ceiling, ceiling_source, evaluated_at]
       properties:
         violation_id: {type: string}
         invocation_id: {type: string}
         tenant_id_hashed: {type: string}
         capability_id: {type: string}
-        requested_tier: {type: string}
+        requested_autonomy_level: {type: string}
         effective_ceiling: {type: string}
         ceiling_source: {type: string}
         evaluated_at: {type: string, format: date-time}

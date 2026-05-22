@@ -94,7 +94,7 @@ Trust boundaries (TB):
 | LLM05 (Supply Chain Vulnerabilities) | Sigstore attestation + cargo deny + SBOM per release |
 | LLM06 (Sensitive Information Disclosure) | DLP scan + ZDR negotiation + per-pack residency |
 | LLM07 (Insecure Plugin Design) | Adapter trait sealed; only vetted vendors permitted |
-| LLM08 (Excessive Agency) | translate operates at autonomy tier T1/T2 (no T3 destructive); per ADR-0022 |
+| LLM08 (Excessive Agency) | translate operates at autonomy level T1/T2 (no T3 destructive); per ADR-0022 |
 | LLM09 (Overreliance) | QE score gate + human-in-the-loop review for high-risk content classes |
 | LLM10 (Model Theft) | In-house models served from foundry-runtime; weights never leave cluster; gVisor isolation |
 

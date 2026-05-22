@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity comparison vs the industry-leading durable-execution + workflow-engine products. Drives the `oya-foundry-fitness-hyperscaler-maturity-claims` gate (per ADR-0123 HG-WF-ENGINE) and tells gtm-customer-success what to say + what NOT to say in tenant sales conversations.
+Quantitative + qualitative parity comparison vs the industry-leading durable-execution + workflow-engine products. Drives the `oya-governance-hyperscaler-maturity-claims` gate (per ADR-0123 HG-WF-ENGINE) and tells gtm-customer-success what to say + what NOT to say in tenant sales conversations.
 
 ## Competitor Set
 

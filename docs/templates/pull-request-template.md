@@ -16,7 +16,7 @@ Closes #<n> (or Refs #<n> if not closing). One line.
 ## Verification
 - ☐ `cargo nextest run --workspace --all-features` (paste the pass/fail line)
 - ☐ `cargo clippy -D warnings` (pass)
-- ☐ `oya verify` (pass)
+- ☐ ADR-0346 pre-push contract: `./bin/oya verify --ci-required` (canonical local pre-push verifier; MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step before returning success)
 - ☐ Per-change-class fitness lane(s): `<list>`
 - ☐ Per-change-class reviewer agent run (paste verdict)
 

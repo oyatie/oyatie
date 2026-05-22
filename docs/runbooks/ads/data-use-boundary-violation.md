@@ -14,7 +14,7 @@ doc_status: published
 an ads-side surface received data from a forbidden data_class per ADR-0008
 
 ## Detection
-- Source signal: Ads-side schema rejection log; `oya-foundry-fitness-data-class` runtime block
+- Source signal: Ads-side schema rejection log; `oya-governance-data-class` runtime block
 - Page who: per [INCIDENT-MANAGEMENT.md](../../INCIDENT-MANAGEMENT.md) Sev 1 ladder
 
 ## First-response checklist

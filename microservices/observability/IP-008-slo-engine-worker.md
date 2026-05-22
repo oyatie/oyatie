@@ -87,6 +87,13 @@ Per PHASE-01 worker class: 1 test per orchestration arm + ≥ 1 long-lived loop 
 - Worker holds in-memory state surviving restart — refactor (statelessness invariant)
 - Cold-start emits Eligible before 3 cycles — fix; this is the load-bearing safety net
 
+
+## Sustainability emission (per ADR-0344)
+- Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
+- Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
+- Surface evidence: `microservices/observability/IP-008-slo-engine-worker.md` matched `emission`; anchors `microservices/observability/manifest.json, crates/oya-cloud-observability-api/src/lib.rs`; type anchor `crates/oya-cloud-observability-api/src/lib.rs::CloudObservabilityAuditRecord`.
+
 ## Next IP
 
 [`IP-009-slo-engine-app.md`](IP-009-slo-engine-app.md)

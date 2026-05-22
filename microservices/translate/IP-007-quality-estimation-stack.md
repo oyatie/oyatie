@@ -69,9 +69,9 @@ fn classify(content_class: ContentClass) -> EuAiActClassification {
 }
 ```
 
-## Golden Eval Set
+## reference eval Set
 
-`microservices/translate/capabilities/eval/qe-golden.jsonl`:
+`microservices/translate/capabilities/eval/qe-reference.jsonl`:
 - WMT QE shared-task subset.
 - Per-pack tenant-de-identified samples.
 - Pass threshold: 0.99 correctness against reference scores within ±2 points.
@@ -85,7 +85,7 @@ fn classify(content_class: ContentClass) -> EuAiActClassification {
 | `test_eu_ai_act_disclosure_emitted_always` | every call emits |
 | `test_qe_model_rollback_on_eval_regression` | FM-20 mitigation tied to canary deploy |
 | `tests/integration/qe_foundry_runtime_invocation.rs` | end-to-end through foundry-runtime |
-| `tests/integration/qe_golden_eval_pass_99.rs` | golden set pass-rate ≥ 0.99 |
+| `tests/integration/qe_reference_eval_pass_99.rs` | reference set pass-rate ≥ 0.99 |
 
 ## Halt Conditions
 

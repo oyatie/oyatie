@@ -45,7 +45,7 @@ The canonical north-south substrate is **Envoy Gateway 1.8.0** (CNCF; Kubernetes
 
 Envoy Gateway owns:
 
-- **TLS termination** at the public edge (TLS 1.3; per-FQDN SNI; cert-manager-rotated via ACME or per-tenant BYOK certs).
+- **TLS termination** at the public edge (TLS 1.3; per-FQDN SNI; cert-manager-rotated via ACME or per-tenant key-custody-BYOK certs).
 - **Public rate limiting** (per-tenant + per-IP token bucket; Redis-cluster-backed counters per ADR-0184 storage tier 3 — note: Valkey 8.1 since Redis 7.4+ relicensed; see ADR-0184).
 - **WAF** via **Coraza WASM filter** (ModSecurity-compatible; OWASP CRS rule sets).
 - **OIDC** for public-facing user authentication (workforce IdP + customer IdP per tenant per ADR-0163).

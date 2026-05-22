@@ -9,7 +9,7 @@ metadata:
     bc: content-moderation
     sli_class: latency
     owner_team: axis-social + axis-foundry-runtime
-    eu_ai_act: high-risk
+    risk_class: high-risk
 spec:
   description: |
     Time from `PostPublished` event to `ModerationVerdictEmitted` audit-chain

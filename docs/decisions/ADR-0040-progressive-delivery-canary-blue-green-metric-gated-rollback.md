@@ -121,9 +121,9 @@ If 1h burn-rate ≥ 14.4× during a rollout:
 
 A release-candidate cut requires (per `/oya-release-verify`):
 
-- `oya-foundry-fitness-cohesion` PASS (per ADR-0001).
-- `oya-foundry-fitness-supply-chain` PASS (per ADR-0039).
-- `oya-foundry-fitness-api-semver` PASS (per ADR-0037).
+- `oya-governance-cohesion` PASS (per ADR-0001).
+- `oya-governance-supply-chain` PASS (per ADR-0039).
+- `oya-governance-api-semver` PASS (per ADR-0037).
 - Per-axis fitness lanes PASS.
 - SLO catalog freshness within 1h.
 - Per-deprecation telemetry within tolerance (per ADR-0037).

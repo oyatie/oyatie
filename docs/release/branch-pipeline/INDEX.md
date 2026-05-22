@@ -15,7 +15,6 @@ doc_status: published
 
 # Branch Pipeline Composer — INDEX
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sibling:** [`../progressive-delivery/`](../progressive-delivery/). **ADR:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md). **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md).
 
 ## 1. Files in this composer
 
@@ -45,7 +44,6 @@ This composer is governed by [ADR-0055](../../decisions/ADR-0055-four-layer-bran
 
 ## 4. The three new agent roles
 
-`dev-promoter`, `staging-promoter`, `prod-promoter` — plus the rescoped `staging-fixer`. All distroless; all Cosign-keyless-signed; all icm-topic-emitting per role spec §2-5. Sanctioned primitives per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md): `grit` + `icm` + `oya-tooling-agent-read`.
 
 ## 5. The six core new fitness lanes
 

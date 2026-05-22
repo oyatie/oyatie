@@ -1,151 +1,106 @@
 ---
 doc_class: ImplementationPlan
-template_id: TPL-IMPL
-microservice: audit-chain
-milestone: M01-foundation
-phase: P01-audit-chain-substrate
-impl_plan_id: IP-002-self-slo-manifest
 status: pending
-execution_unit: ChangeSet
-changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-audit-chain
-co_owners: [axis-observability]
-date: 2026-05-18
-related_adrs: [ADR-0139, ADR-0131, ADR-0064]
-acceptance_lanes: [openslo-conformance, per-microservice-layout, oya-vcs-promotion-readiness]
-depends_on: [IP-001]
+date: 2026-05-21
+wave: Wave 15-IP-substance
+substance_status: rewritten-bespoke
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-002: Self-SLO manifests for audit-chain
 
-# IP-002 — Self-SLO manifests for audit-chain
+acceptance_lanes: [openslo-validate, dashboard-json-validate, slo-burn-alerts, self-audit-emission]
 
-## Goal
+## §A Problem
+Audit-chain is the evidence backbone, so its own SLOs must measure proof freshness, sealing latency, storage availability, and verification correctness. The prior plan had useful line volume but still mixed generic SLO language with no explicit mapping from `manifest.json` SLO rows to dashboard files and OpenSLO manifests.
 
-Author OpenSLO v1.0 manifests that describe audit-chain's own SLIs and SLOs at `microservices/audit-chain/slos/`. Per ADR-0131 §"SLO authoring mandatory before promotion" and ADR-0139 agentic SLO-gated promotion, audit-chain cannot promote past `dev` until these manifests exist, validate, and drive the observability µservice's burn-rate alerts. SLI catalog: `emit_latency`, `seal_latency`, `verify_latency`, `hsm_avail`, `cross_channel_root_match`.
+## §B Approach
+Bind every audit-chain SLI in `manifest.json` to a concrete OpenSLO file under `slos/` and a dashboard panel under `dashboards/`. The SLOs must distinguish synchronous emission acceptance from asynchronous seal publication; otherwise the service can appear healthy while roots lag and tenants lose CloudTrail/Purview-grade audit freshness.
 
-## Files to create or modify
+## §C Deliverables
+- `slos/seal-write-latency.openslo.yaml` tracks synchronous append receipt latency.
+- `slos/seal-cycle-latency.openslo.yaml` tracks period close to signed-root publication.
+- `slos/merkle-chain-verification-latency.openslo.yaml` tracks pure verification response time.
+- `slos/chain-of-custody-integrity-correctness.openslo.yaml` tracks intact proof verification ratio.
+- `dashboards/emission-rate.json`, `dashboards/seal-latency.json`, and `dashboards/verification-failure-rate.json` expose the same labels without high-cardinality tenant ids.
 
-| Path | Action | Line range (approx) |
+## §D Implementation Steps
+1. Parse `manifest.json` SLO rows and fail the PR if any listed SLO file is absent.
+2. Normalize labels to pack, cell, period_state, and outcome; keep tenant ids out of Prometheus labels.
+3. Add alert expressions for unsealed-buffer age, HSM signing failures, root-publication lag, and verification-failed spikes.
+4. Emit audit-chain self events for SLO-state transitions so an SLO incident has a seal.
+5. Wire dashboards to the SLO file names rather than ad hoc metric names.
+6. Document reduced claims when only logical tests are present and no staging load evidence exists.
+
+## §E Acceptance
+- `rg 'oya_audit_chain_' microservices/audit-chain/slos microservices/audit-chain/dashboards` finds the same core metric families.
+- `cargo test -p oya-audit-chain-usecase audit_event_emit` covers the accepted emit path that feeds the SLOs.
+- `oya gate validate authority-cohesion --microservice audit-chain` can trace manifest SLOs to files.
+
+## §F Evidence
+- `microservices/audit-chain/manifest.json` SLO array.
+- `microservices/audit-chain/PRD.md` availability and performance targets.
+- `microservices/audit-chain/performance-benchmark-numbers-2026-05-20.md` benchmark caveats.
+
+## §G Counterparts
+AWS CloudTrail and Google Cloud Audit Logs publish service limits and delivery behavior; Microsoft Purview Audit documents availability delays for audit records. This IP makes Oyatie's claim narrower and testable: seal-cycle and verification SLOs, plus GitHub-pinned root lag, not a broad statement that audit is always instant.
+
+## Stop Conditions
+Do not promote this IP on line count alone. Stop if a cited path is absent, a counterpart claim cannot be traced to `competitor-parity-matrix.md` or `feature-parity-matrix-2026-05-20.md`, or a verification command above cannot run in the current checkout.
+
+
+## Wave 15 Detailed Reviewer Map
+
+### Domain vocabulary that must appear in the implementation PR
+- Pack-local chain: implementation must preserve `(pack, tenant_partition, period)` as a first-class tuple, not hide it inside a generic tenant string.
+- Seal lifecycle: implementation must distinguish accepted, unsealed, sealed, published, verified, redacted, and retained states where this IP touches those transitions.
+- Evidence linkage: every emitted or derived record must carry an audit id, period id, root or prior-root reference when applicable, and a provenance pointer to the producing service.
+- Residency boundary: pack movement is forbidden unless the IP explicitly names a tenant-initiated export path and a receiving-tenant compliance basis.
+- Key material boundary: public keys may be published; private keys, HSM handles, OpenBao leases, and provider credentials must stay out of serializable responses and logs.
+- Audit-of-audit: mutating or privileged read behavior introduced by this IP must itself produce an audit event rather than relying on operator notes.
+
+### File-reference checks before implementation starts
+- Re-read `microservices/audit-chain/PRD.md` for FR ids and latency/availability targets tied to `self slo manifest`.
+- Re-read `microservices/audit-chain/ARCHITECTURE.md` for layer placement, runtime assumptions, and cross-product import constraints.
+- Re-read `microservices/audit-chain/manifest.json` for catalog, SLO, and contract pointers; do not invent a crate or contract absent from the manifest without updating the manifest in the same change.
+- Re-read `microservices/audit-chain/policy/seal-integrity.md` when the IP touches roots, proofs, keys, HSM, publication, or verifier behavior.
+- Re-read `microservices/audit-chain/competitor-parity-matrix.md` and `feature-parity-matrix-2026-05-20.md` before making any CloudTrail, Google Cloud Audit Logs, Microsoft Purview Audit, Splunk, Datadog, Vault, or GitHub comparison.
+- Re-read the existing Rust crates under `crates/oya-audit-chain-*` and `crates/oya-shared-audit-chain-client-kernel` so the implementation extends live behavior instead of replacing it with a parallel scaffold.
+
+### Negative tests or static checks expected
+- Cross-tenant or cross-pack input is denied before storage or signing work begins.
+- Duplicate idempotency material returns the prior result only when the canonical fingerprint matches exactly.
+- Tampered proof, tampered signature, stale key epoch, or missing prior root returns a structured failure rather than a generic internal error.
+- Missing GitHub-pinned root/key publication keeps the period below the claim boundary even if Postgres and WORM writes succeeded.
+- A downstream outage pauses or degrades explicitly; it must not silently mark the audit action complete.
+- High-cardinality fields such as tenant id and principal id are not exported as metrics labels.
+
+### Counterpart comparison rows
+| Counterpart | Relevant capability | Audit-chain requirement for this IP |
 |---|---|---|
-| `microservices/audit-chain/slos/emit_latency.openslo.yaml` | create | ~60 LoC |
-| `microservices/audit-chain/slos/seal_latency.openslo.yaml` | create | ~60 LoC |
-| `microservices/audit-chain/slos/verify_latency.openslo.yaml` | create | ~60 LoC |
-| `microservices/audit-chain/slos/hsm_avail.openslo.yaml` | create | ~50 LoC |
-| `microservices/audit-chain/slos/cross_channel_root_match.openslo.yaml` | create | ~70 LoC; correctness SLI (no silent root mismatch) |
-| `microservices/audit-chain/slos/README.md` | create | ~80 LoC; SLI catalog overview |
-| `microservices/audit-chain/dashboards/audit-chain-slo-overview.json` | create | ~200 LoC; Grafana dashboard JSON pre-built against these SLOs |
-| `microservices/audit-chain/runbooks/burn-rate-alert-response.md` | create | ~120 LoC; per-SLO burn-rate playbook |
-| `microservices/audit-chain/decisions/ADR-0139.md` | append §"audit-chain SLOs landed" | +6 LoC |
+| AWS CloudTrail | Delivered audit records and integrity validation | Preserve immutable event/root evidence and make the trust boundary explicit. |
+| Google Cloud Audit Logs | Admin/Data/System/Policy audit taxonomy and routed log sinks | Keep event classes and export routing typed; do not collapse policy-denied and data-access events. |
+| Microsoft Purview Audit | Search/export, retention policies, and investigation workflows | Keep query/export/read paths scoped, retained, and auditor-engagement aware. |
+| GitHub-pinned manifests | Third-channel root/key publication for Oyatie | Ensure roots or keys affected by `self slo manifest` can be checked outside the primary storage plane. |
 
-## Code shape
+### Review stop line
+If the implementation PR cannot point from code to PRD row, policy invariant, SLO or runbook, and counterpart row, keep the IP in pending state. Passing a markdown line count, a generated file list, or a broad statement that audit logging exists is not enough for Wave 15 closure.
 
-`slos/cross_channel_root_match.openslo.yaml` (the correctness-class SLI; excerpt):
+## DR posture (per ADR-0343)
 
-```yaml
-apiVersion: openslo/v1
-kind: SLO
-metadata:
-  name: oya-audit-chain-cross-channel-root-match
-  displayName: Audit-chain — cross-channel root match (correctness SLI)
-  labels:
-    microservice: audit-chain
-    bounded_context: chain-of-chains
-    tier: correctness-critical
-spec:
-  service: oya-audit-chain-verify
-  indicator:
-    metadata:
-      name: cross-channel-root-match-sli
-    spec:
-      ratioMetric:
-        counter: true
-        good:
-          metricSource:
-            type: prometheus
-            spec:
-              query: 'sum(rate(oya_audit_chain_cross_channel_root_match_total[5m]))'
-        total:
-          metricSource:
-            type: prometheus
-            spec:
-              query: 'sum(rate(oya_audit_chain_cross_channel_root_check_total[5m]))'
-  objectives:
-    - target: 1.000000  # 100% — correctness SLI: zero tolerance
-      displayName: 100% Merkle roots match across mirror channels
-  timeWindow:
-    - duration: 30d
-      isRolling: true
-  budgetingMethod: Occurrences
-  alertPolicies:
-    - alertPolicyRef: oya-audit-chain-correctness-burn-fast
-```
+- Authority: ADR-0343.
+- Trigger evidence: `microservices/audit-chain/IP-002-self-slo-manifest.md` matched `SLO`.
+- Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/audit-chain/manifest.json`.
+- Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
+- Backup substrate: `postgres_wal_g`, `object_storage_versioned`, `openbao_seal_unseal`, `audit_chain_merkle_seal`.
+- Runtime evidence: `microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml`, `microservices/audit-chain/slos/evidence-export-freshness.openslo.yaml`, `microservices/audit-chain/slos/merkle-chain-verification-latency.openslo.yaml`, `microservices/audit-chain/slos/seal-storage-availability.openslo.yaml`, `microservices/audit-chain/policy/auditor-scope.cedar`.
 
-## Tests to write (acceptance)
+## Sustainability emission (per ADR-0344)
 
-| Test name | File | Asserts |
-|---|---|---|
-| `openslo_schema_validates_every_manifest` | per-manifest CI | All 5 manifests conform to OpenSLO v1.0 schema |
-| `recording_rule_generation_from_manifests` | observability engine test | Each manifest produces ≥ 1 Mimir recording rule |
-| `error_budget_calc_matches_window` | observability engine test | Budget calc per manifest reconciles with the 30d window |
-| `burn_rate_alert_wired_to_alertmanager` | observability engine test | Each SLO produces a multi-window burn-rate alert (1h / 6h fast paths) |
-| `correctness_sli_uses_target_1_0` | manifest schema test | `cross_channel_root_match` target is 1.0 (zero tolerance) |
-| `dashboard_panels_reference_recording_rules` | dashboard schema test | Grafana JSON panels reference the generated recording rule names |
-
-## Evidence to emit
-
-- `evidence/microservices/audit-chain/slo-conformance-{date}.json` — per-manifest schema validation + recording-rule-generation report
-- Audit-chain seal: `oya audit-chain seal --kind slo-conformance --ms audit-chain --window 30d`
-- Metrics: each manifest's SLI emits `oya_audit_chain_<sli>_*` counters consumed by the observability engine
-
-## Rollback procedure
-
-1. Revert ChangeSet for `microservices/audit-chain/slos/`.
-2. audit-chain promotion gate (`oya-vcs-promotion-readiness`) blocks any further promotion until manifests restored.
-3. Existing burn-rate alerts continue firing on already-deployed manifests (no impact on live data).
-4. Emit rollback evidence JSON; coordinate with observability owner.
-
-## Blocking dependencies
-
-- IP-001 — storage backend IaC (must be live so manifests can reference the real metric pipelines).
-- ADR-0131 — per-µservice flat layout (manifests live at `microservices/audit-chain/slos/`).
-- ADR-0139 — agentic SLO-gated promotion (consumer).
-
-## Acceptance gates
-
-```bash
-cargo run -p oya-observability-slo-engine-rest -- validate \
-  microservices/audit-chain/slos/*.openslo.yaml
-cargo run -p oya-dev-cli -- gate validate openslo-conformance --microservice audit-chain
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice audit-chain
-cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microservice audit-chain
-```
-
-## Halt conditions
-
-- Any manifest fails OpenSLO v1.0 schema validation: STOP.
-- Recording rule fails to load in Mimir: STOP.
-- Correctness SLI target ≠ 1.0: STOP (governance-critical).
-
-## Exit criteria
-
-1. All 5 manifests validate.
-2. All 6 tests green.
-3. `openslo-conformance`, `per-microservice-layout`, `oya-vcs-promotion-readiness` lanes green.
-4. Burn-rate alerts visible in AlertManager + Grafana OnCall.
-5. Dashboard published.
-6. Runbook published.
-7. ADR-0139 status updated.
-
-## Next IP
-
-[`IP-003-emit-domain.md`](IP-003-emit-domain.md)
-
-## References
-
-- ADR-0139 — agentic SLO-gated promotion.
-- ADR-0131 — per-microservice flat layout.
-- ADR-0064 — canonical base + localization overlay.
-- OpenSLO v1.0 — `https://openslo.com/`.
-- Google SRE Workbook ch. 4 (SLOs) + ch. 5 (alerting on SLOs).
-- microservices/observability/PRD.md.
+- Authority: ADR-0344.
+- Trigger evidence: `microservices/audit-chain/IP-002-self-slo-manifest.md` matched `emission`.
+- Per-call audit row fields: `cost_usd_minor_units`, `co2_grams`, `watt_hours`.
+- Emission evidence: `microservices/audit-chain/manifest.json` plus this IP's metered trigger text.
+- Carbon-aware scheduling: eligible only when ADR-0344 D-9 compliance-pack exclusions do not bar deferral; otherwise the Cedar scheduler rejects delay while still emitting carbon fields.
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell.

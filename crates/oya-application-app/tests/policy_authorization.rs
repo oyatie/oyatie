@@ -16,8 +16,8 @@ fn policy_publish_and_authorize_enforces_rbac_abac_by_tenant_scope() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_policy".into(),
             legal_name: "Policy Tenant".into(),
-            home_region: "home-region".into(),
-            residency_class: "strict_home".into(),
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
             regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T3ExecuteWithApproval,
         })
@@ -43,7 +43,7 @@ fn policy_publish_and_authorize_enforces_rbac_abac_by_tenant_scope() {
                 principal_role: "tenant-admin".into(),
                 action: "tenant.settings.update".into(),
                 resource_prefix: "tenant:".into(),
-                required_attribute: Some(("region".into(), "home-region".into())),
+                required_attribute: Some(("region".into(), "region-home".into())),
             }],
         })
         .expect("policy version is valid");
@@ -55,7 +55,7 @@ fn policy_publish_and_authorize_enforces_rbac_abac_by_tenant_scope() {
             user_id: user.id.value.as_str().to_string(),
             action: "tenant.settings.update".into(),
             resource: "tenant:ten_policy:settings".into(),
-            attributes: vec![("region".into(), "home-region".into())],
+            attributes: vec![("region".into(), "region-home".into())],
         })
         .expect("authorization request is valid");
     assert!(allowed.allowed);
@@ -66,7 +66,7 @@ fn policy_publish_and_authorize_enforces_rbac_abac_by_tenant_scope() {
             user_id: user.id.value.as_str().to_string(),
             action: "tenant.settings.update".into(),
             resource: "tenant:ten_policy:settings".into(),
-            attributes: vec![("region".into(), "failover-region".into())],
+            attributes: vec![("region".into(), "region-recovery".into())],
         })
         .expect("authorization request is valid");
     assert!(!denied.allowed);

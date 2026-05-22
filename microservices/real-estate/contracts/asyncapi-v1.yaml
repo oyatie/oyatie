@@ -1,0 +1,153 @@
+asyncapi: 3.1.0
+info:
+  title: Real Estate Events
+  version: 1.0.0
+  description: AsyncAPI 3.1.0 channels for SAP RE-FX parity events.
+defaultContentType: application/json
+channels:
+  real-estate.lease-contract.events.v1:
+    address: real-estate.lease-contract.events.v1
+    messages:
+      LeaseContractChanged:
+        $ref: "#/components/messages/LeaseContractChanged"
+  real-estate.facility-master.events.v1:
+    address: real-estate.facility-master.events.v1
+    messages:
+      FacilityMasterChanged:
+        $ref: "#/components/messages/FacilityMasterChanged"
+  real-estate.occupancy-allocation.events.v1:
+    address: real-estate.occupancy-allocation.events.v1
+    messages:
+      OccupancyAllocationChanged:
+        $ref: "#/components/messages/OccupancyAllocationChanged"
+  real-estate.rent-schedule.events.v1:
+    address: real-estate.rent-schedule.events.v1
+    messages:
+      RentScheduleChanged:
+        $ref: "#/components/messages/RentScheduleChanged"
+  real-estate.lease-accounting-event.events.v1:
+    address: real-estate.lease-accounting-event.events.v1
+    messages:
+      LeaseAccountingEventChanged:
+        $ref: "#/components/messages/LeaseAccountingEventChanged"
+  real-estate.facility-service-request.events.v1:
+    address: real-estate.facility-service-request.events.v1
+    messages:
+      FacilityServiceRequestChanged:
+        $ref: "#/components/messages/FacilityServiceRequestChanged"
+components:
+  messages:
+    LeaseContractChanged:
+      name: LeaseContractChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-REAL_ESTATE-LEASE_CONTRACT-CHANGED
+          bounded_context:
+            type: string
+            const: lease-contract
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    FacilityMasterChanged:
+      name: FacilityMasterChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-REAL_ESTATE-FACILITY_MASTER-CHANGED
+          bounded_context:
+            type: string
+            const: facility-master
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    OccupancyAllocationChanged:
+      name: OccupancyAllocationChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-REAL_ESTATE-OCCUPANCY_ALLOCATION-CHANGED
+          bounded_context:
+            type: string
+            const: occupancy-allocation
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    RentScheduleChanged:
+      name: RentScheduleChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-REAL_ESTATE-RENT_SCHEDULE-CHANGED
+          bounded_context:
+            type: string
+            const: rent-schedule
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    LeaseAccountingEventChanged:
+      name: LeaseAccountingEventChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-REAL_ESTATE-LEASE_ACCOUNTING_EVENT-CHANGED
+          bounded_context:
+            type: string
+            const: lease-accounting-event
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    FacilityServiceRequestChanged:
+      name: FacilityServiceRequestChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-REAL_ESTATE-FACILITY_SERVICE_REQUEST-CHANGED
+          bounded_context:
+            type: string
+            const: facility-service-request
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time

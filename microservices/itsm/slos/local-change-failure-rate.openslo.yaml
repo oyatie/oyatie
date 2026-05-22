@@ -1,0 +1,37 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: itsm-change-failure-rate
+  labels:
+    service: itsm
+    suite: local-operational-primitive
+    adr: ADR-0130
+    promotion_gate: ADR-0139
+spec:
+  service: itsm
+  description: Approved changes without incident-causing failure for incident, change, problem, CMDB, knowledge base, and service-level management operations.
+  indicator:
+    metadata:
+      name: change-failure-rate
+      labels:
+        domain_object: ServiceManagementRecord
+        operator_audience: IT_SERVICE_MANAGER
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_itsm_change_failure_rate_good_total[30d])) by (tenant_id, cell_tier)
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_itsm_change_failure_rate_total[30d])) by (tenant_id, cell_tier)
+  objectives:
+    - displayName: Approved changes without incident-causing failure
+      target: 0.995
+  timeWindow:
+    - duration: 30d
+      isRolling: true

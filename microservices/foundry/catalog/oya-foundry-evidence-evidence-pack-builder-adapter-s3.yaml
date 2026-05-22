@@ -17,7 +17,7 @@ allowed_dependency_edges:
   - oya-foundry-evidence-evidence-pack-builder-api
 data_classes_owned: [AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 notes: |
   Implements DeadLetterStorePort against S3 (foundry-evidence-owned dead-letter
   bucket). This adapter is NOT the substrate WORM writer — substrate WORM is

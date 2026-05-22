@@ -133,7 +133,6 @@ Recommend monthly archival (see OPERATIONS).
 | **C.commit** | Commit p95 ≤ 5µs on 1000-message fixture |
 | **C.append** | Append+fsync p95 ≤ 100µs on SSD |
 | **C.idempotency** | Cache lookup ≤ 1µs; O(1) |
-| **C.crash-safe** | Atomicity tests pass (v4 grit unit 4.57) |
 
 ## References
 

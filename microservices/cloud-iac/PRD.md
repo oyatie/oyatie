@@ -8,7 +8,26 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0120, ADR-0121, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0171]
+related_adrs:
+  - ADR-0056
+  - ADR-0105
+  - ADR-0117
+  - ADR-0120
+  - ADR-0121
+  - ADR-0123
+  - ADR-0139
+  - ADR-0131
+  - ADR-0132
+  - ADR-0133
+  - ADR-0171
+  - ADR-0338
+  - ADR-0339
+  - ADR-0340
+  - ADR-0341
+  - ADR-0342
+  - ADR-0343
+  - ADR-0344
+  - ADR-0345
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-cloud-iac
@@ -87,6 +106,37 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 ### Data residency
 
 - IaC manifests are themselves `INTERNAL_ONLY` data; per-pack overlays containing tenant-bound configuration are tagged with the tenant's pack jurisdiction. Per-pack Terraform/OpenTofu state remains pack-pinned (pack-kr state stays in KR; pack-eu state stays in EU; etc.) per ADR-0117 + observability `data-residency.md`. Cross-pack state movement forbidden by default; the only exceptions are tenant-executed SCC paths inherited from observability's residency contract.
+
+### DR posture (ADR-0343)
+
+- Declared target: RTO <= 900 seconds and RPO <= 300 seconds, matching the existing Availability + SLO section. `manifest.json` currently lacks a `dr` block, so this PRD records the value that D-2 backfill must mirror.
+- Applicable floors: HIPAA-2024 (3600/300, multi-region), SOC2-T2 (14400/900), ISO27001-2022 (14400/3600), KR-CSAP-v3.1 (3600/900, multi-region), and KR-PIPA-2023-amendment (14400/900) are represented by the declared pack set. Effective strictness remains RTO 900 seconds and RPO 300 seconds; multi-region is required for HIPAA/KR-CSAP-like packs even when apply execution stays single-writer.
+- Failover runbook reference: `runbooks/registry-restore.md` for iac-state-index recovery, `runbooks/seaweedfs-volume-failover.md` for artifact buckets, and `runbooks/restore-drill-quarterly.md` for proof cadence.
+- multi_region_active_active posture: false for `iac-applier` writes and state-lock ownership; render, validation, provenance read, and signed-attestation reads may run active-active because they are deterministic or read-only.
+- WHY: infrastructure mutation must survive regional loss without creating two writers for the same cluster state; tenants get bounded recovery of deployability while avoiding split-brain applies.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: D-2 has not populated `capacity_model`; until then the PRD-level baseline is service-unit based rather than tenant-compute based. `iac-renderer` and `iac-validator` allocate per-request CPU/RAM, while `iac-applier` and `iac-registry` allocate shared substrate capacity for all µservices in a cell.
+- Scaling dimension: `per_capability` for render, plan-preview, apply, rollback, registry, and drift-detection workers; artifact and backup paths add `per_storage_gb` pressure through SeaweedFS and pgBackRest buckets.
+- Cell placement class: Tier-1 because cloud-iac is shared deployment substrate and touches tenant-bound cluster state, SecretReference projections, iac-state-index rows, and pack-pinned OpenTofu state.
+- Autoscaling boundaries: renderer/validator workers may scale horizontally with PR and drift volume; applier/rollback workers are bounded by the single-writer lock per target cluster; SeaweedFS bootstrap declares 3 masters, 6 volume servers, 3 filers, and 4 S3 gateways as the current M-tier substrate shape.
+- WHY: the dominant tenant load is deployment/change volume rather than end-user traffic; the capacity model protects plan-preview responsiveness while keeping state mutation serialized where correctness requires it.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every `RenderRequested`, `RenderCompleted`, `ApplyStarted`, `ApplyCompleted`, `ApplyRolledBack`, and `DriftDetected` audit-chain row also emits `cost_usd_minor_units`, `co2_grams`, and `watt_hours` on the tenant/product/capability/provider/cell/compliance_pack axes.
+- Provider routing is carbon-aware for render, validation, artifact-provenance lookup, backup verification, and scheduled drift work. It is not carbon-routed for emergency rollback, stuck-apply recovery, or DR restore because those paths are incident-control actions.
+- Tenant transparency surface: finops-portal infrastructure-cost view, per-tenant apply ledger, and provenance export for signed artifact storage and backup usage.
+- WHY: CSRD, SB-253, SEC climate-disclosure, and customer FinOps require IaC changes to show the operational cost of deployment decisions, not only runtime workload cost.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: plan-preview, apply-state, provenance, and chart-signature validation contracts use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and proto3 version field.
+- SDK semver model: cloud-iac SDKs use major.minor.patch, with major bumps only when a supported date-version carrier or generated type contract breaks.
+- Support window: last N=3 public contract versions are supported for at least 180 days.
+- Per-tenant pinning: supported for paid and regulated tenants whose deployment pipeline must remain frozen during audit windows; demo_trial follows the platform default.
+- Internal-mesh exemption: yes; ArgoCD/Flux/OpenTofu worker mesh traffic keeps ADR-0145 direct gRPC semantics and records the date-version only at external or replay boundaries.
 
 ## Bounded Contexts
 
@@ -441,3 +491,23 @@ This addendum applies from M02 graduation (fleet ≥12 clusters). At M01-foundat
 - Federation control plane availability: 99.95% (one nine below the platform — federation outage degrades new-deploy velocity, not tenant-facing traffic).
 - ApplicationSet sync latency p99: ≤2min from PR-merge to first cluster acknowledged apply.
 - CAPI cluster-provision time: ≤30min from `kubectl apply` to ready-cluster.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `cloud-iac` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `cloud-iac` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 6 module pin(s) across 2 context(s).
+- Scaling input: `per_workflow_run` with cell placement `Tier-1` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

@@ -74,7 +74,7 @@ pack_overrides:
     auto_translate_disabled_for_phi: true
     reason: HIPAA — third-party translation provider not BAA-covered; only on-prem local-mbart
   pack-eu:
-    eu_ai_act_classification:
+    risk_classification:
       auto-mute: limited_risk
       auto-categorize: limited_risk
       auto-translate: minimal_risk
@@ -96,7 +96,7 @@ cedar_policy_fragments:
   - microservices/messenger/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/messenger/capabilities/eval/t2-auto-golden.jsonl
+  reference_inputs_path: microservices/messenger/capabilities/eval/t2-auto-reference.jsonl
   pass_threshold: 0.93
   eval_metric: |
     auto-mute precision@1 (false-mute < 2 %);

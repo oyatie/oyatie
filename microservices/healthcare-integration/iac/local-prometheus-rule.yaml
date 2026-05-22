@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: healthcare-integration-local-slo-burn
+  labels:
+    service: healthcare-integration
+    suite: local-operational-primitive
+    adr: ADR-0130
+spec:
+  groups:
+    - name: healthcare-integration.local.slo
+      rules:
+        - alert: HealthcareIntegrationLocalSloBurn
+          expr: (sum(rate(oya_healthcare_integration_phi_delivery_latency_good_total[5m])) / sum(rate(oya_healthcare_integration_phi_delivery_latency_total[5m]))) < 0.995
+          for: 10m
+          labels:
+            severity: page
+            service: healthcare-integration
+          annotations:
+            summary: Healthcare Integration phi-delivery-latency burn
+            runbook: microservices/healthcare-integration/runbooks/local-phi-delivery-latency-burn.md

@@ -1,0 +1,272 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-storage",
+  "version": "0.1.0",
+  "owner": "axis-cloud-storage",
+  "bounded_contexts": [
+    {
+      "name": "cloud-storage",
+      "description": "Bounded context 'cloud-storage' for object and block storage APIs, tenant bucket/volume metadata, replication and retention controls.",
+      "crates": [
+        "oya-cloud-storage-domain",
+        "oya-cloud-storage-object-api",
+        "oya-cloud-storage-block-api"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "contracts/openapi/cloud/cloud-storage-object-v1.yaml",
+      "contracts/openapi/cloud/cloud-storage-block-v1.yaml"
+    ],
+    "asyncapi": [],
+    "proto": []
+  },
+  "capabilities": [
+    {
+      "name": "object-storage",
+      "availability": "demo_trial capped; paid per contract/compliance pack",
+      "file": "microservices/cloud-storage/feature-parity-matrix-2026-05-20.md",
+      "risk_class": "high"
+    },
+    {
+      "name": "block-storage",
+      "availability": "demo_trial capped; paid per contract/compliance pack",
+      "file": "microservices/cloud-storage/performance-benchmark-numbers-2026-05-20.md",
+      "risk_class": "high"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-cloud-storage-cloud-storage-put-ack-p99",
+      "target": "0.99",
+      "sli": "service_manifest_reference{microservice=\"cloud-storage\",slo=\"cloud-storage-put-ack-p99\"}",
+      "file": "microservices/cloud-storage/performance-benchmark-numbers-2026-05-20.md"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-wave-d-storage-baseline",
+      "title": "Wave-D storage baseline from feature and performance matrices",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-storage/feature-parity-matrix-2026-05-20.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.83",
+    "postgres": "17.x",
+    "valkey": "8.x"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0337",
+      "title": "Iceberg Canonical Olap Write Path",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md"
+    },
+    {
+      "id": "ADR-0338",
+      "title": "Pod Runtime Tier 0 To 3",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
+    },
+    {
+      "id": "ADR-0339",
+      "title": "Shared Iac Module Library",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0339-shared-iac-module-library.md"
+    },
+    {
+      "id": "ADR-0340",
+      "title": "Capacity Model Per Microservice Manifest",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+    },
+    {
+      "id": "ADR-0341",
+      "title": "Cellular Promotion Gates Explicit Tier Criteria",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md"
+    },
+    {
+      "id": "ADR-0342",
+      "title": "Api Versioning Hybrid Date Public Semver Sdk",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
+    },
+    {
+      "id": "ADR-0343",
+      "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+    },
+    {
+      "id": "ADR-0344",
+      "title": "Sustainability Finops Dimensional Model",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+    },
+    {
+      "id": "ADR-0345",
+      "title": "Oss Stewardship Class Policy And Cve Response Sla",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD via observability canonical PrometheusRule",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING via per-tenant and per-cell limit evidence",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS via service OpenSLO or performance evidence",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET via service SLO gate"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.cloud-storage.doctrine-declared",
+      "oya.cloud-storage.dr-failover"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  },
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.3,
+    "baseline_ram_per_tenant": 768,
+    "storage_per_tenant": 100,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 3,
+      "outbound_http": 8
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-1",
+    "notes": "Object GET/PUT, block control, bucket metadata, replication, and lifecycle work scale by storage request volume and tenant capacity commitments."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 3600,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "object_storage_versioned",
+      "seaweedfs_replicated",
+      "postgres_wal_g"
+    ],
+    "failover_runbook": "runbooks/storage-replication-failover.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Tenant data-plane storage substrate: object and block APIs handle tenant data, bucket/volume metadata, KMS-wrapped writes, and replication controls, requiring ADR-0338 Tier-1 isolation.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/cloud-storage/performance-benchmark-numbers-2026-05-20.md",
+    "microservices/cloud-storage/feature-parity-matrix-2026-05-20.md",
+    "crates/oya-cloud-storage-object-api/src/lib.rs"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "contracts/openapi/cloud/cloud-storage-object-v1.yaml,contracts/openapi/cloud/cloud-storage-block-v1.yaml",
+        "2026-02-21": "contracts/openapi/cloud/cloud-storage-object-v1.yaml,contracts/openapi/cloud/cloud-storage-block-v1.yaml",
+        "2025-11-21": "contracts/openapi/cloud/cloud-storage-object-v1.yaml,contracts/openapi/cloud/cloud-storage-block-v1.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "valkey",
+    "iceberg",
+    "clickhouse"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "s3-bucket",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest",
+      "primitive": "object-storage",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oci-guest/always-free",
+      "primitive": "vault-free",
+      "version_pin": "v1",
+      "tenant_class_scope": "demo_trial"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "cell-audit-chain-shard",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ],
+  "data_classes_processed": [
+    "PII_IDENTIFYING",
+    "PII_SENSITIVE",
+    "AUDIT"
+  ]
+}

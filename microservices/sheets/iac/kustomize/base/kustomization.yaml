@@ -21,9 +21,9 @@ helmCharts:
     valuesFile: ../../helm/sheets-postgres/values.yaml
     releaseName: sheets-postgres
     namespace: sheets
-  - name: oya-sheets-sheets-redis
-    valuesFile: ../../helm/sheets-redis/values.yaml
-    releaseName: sheets-redis
+  - name: oya-sheets-sheets-valkey
+    valuesFile: ../../helm/sheets-valkey/values.yaml
+    releaseName: sheets-valkey
     namespace: sheets
   - name: oya-sheets-cell-grid-rest
     valuesFile: ../../helm/visual-grid-rest/values.yaml

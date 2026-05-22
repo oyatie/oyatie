@@ -1,0 +1,157 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-eventing-cloud-event-canonical-base-neutrality",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779251400,
+  "timestamp_iso": "2026-05-20T04:30:00Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-eventing-domain/src/cloud_event.rs",
+    "evidence/multispectrum/cs-eventing-cloud-event-canonical-base-neutrality-1779251400.json"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize eventing CloudEvent canonical-base cell and tenant fixtures\" crates/oya-eventing-domain/src/cloud_event.rs::canonical_base_neutral_cloud_event evidence/multispectrum/cs-eventing-cloud-event-canonical-base-neutrality-1779251400.json::MultispectrumEvidence",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality cleanup for the CloudEvent envelope: replace launch-region cell fixtures and a geography-shaped dotted tenant fixture with neutral fixtures while preserving topic naming, normalization, dotted-component rejection, and private-field construction coverage.",
+  "baseline_diff": {
+    "before": "canonical-base-neutrality --repo-root . --root crates/oya-eventing-domain/src/cloud_event.rs failed with 1 files checked, 5 jurisdiction leaks: cell-us-east-1, Cell-US-East-1, and acme.eu test fixtures.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-eventing-domain/src/cloud_event.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 299 jurisdiction leaks in other files; first remaining file crates/oya-foundry-cloud-mutation-domain/src/lib.rs.",
+    "delta": "5 fewer full-gate jurisdiction leaks, from 304 after platform DSR to 299 after this slice; no scanner carve-outs or topic-policy weakening."
+  },
+  "verification": [
+    {
+      "command": "cargo test -q -p oya-eventing-domain --all-features 2>&1 | tee /tmp/cs-eventing-cloud-event-test.txt",
+      "status": "passed",
+      "evidence": "25 passed; 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-eventing-domain --check 2>&1 | tee /tmp/cs-eventing-cloud-event-fmt.txt",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-eventing-domain --all-features -- -D warnings 2>&1 | tee /tmp/cs-eventing-cloud-event-clippy.txt",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-eventing-domain/src/cloud_event.rs 2>&1 | tee /tmp/cs-eventing-cloud-event-targeted-cbn.txt",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "rg -n \"cell-us-east-1|Cell-US-East-1|acme\\.eu|kr-|jp-|us-|eu-|\\bKR\\b|\\bUS\\b|\\bEU\\b|\\bJP\\b\" crates/oya-eventing-domain/src/cloud_event.rs 2>&1 | tee /tmp/cs-eventing-cloud-event-token-scan.txt || true",
+      "status": "passed",
+      "evidence": "no old cell/tenant jurisdiction tokens matched in the claimed CloudEvent file"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-eventing-cloud-event-planning.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json 2>&1 | tee /tmp/cs-eventing-cloud-event-master.txt",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-eventing-domain/src/cloud_event.rs 2>&1 | tee /tmp/cs-eventing-cloud-event-diff-check.txt",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-eventing-cloud-event-full-cbn.txt",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 299 jurisdiction leaks outside claimed scope; first remaining file crates/oya-foundry-cloud-mutation-domain/src/lib.rs"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Direct fixture replacement only; no new parsing logic, compatibility aliases, or scanner exceptions."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Eventing canonical-base tests no longer encode a launch cell while still enforcing tenant/cell CloudEvent extensions and topic shape."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "targeted canonical-base-neutrality gate reported 5 CloudEvent leaks before this rewrite",
+      "findings": [
+        "Dotted-component rejection still uses a neutral dotted tenant, proving the same invalid-input path without geography.",
+        "Whitespace/case normalization still proves cell token normalization with Cell-Alpha1 -> cell-alpha1."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 2,
+      "findings": [
+        "Neutral eventing fixtures now mirror canonical-base naming used by adjacent Connect surfaces."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Eventing tests, rustfmt, clippy with warnings denied, targeted neutrality, token scan, planning closure, master-plan-completion, diff whitespace, and full-gate delta were verified."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Loosen scanner for CloudEvent tests",
+        "Keep launch-cell fixtures",
+        "Use neutral tenant/cell fixtures"
+      ],
+      "selected_rationale": "Neutral fixtures preserve CloudEvent behavioral coverage while removing canonical-base geography coupling.",
+      "rejected_reasons": [
+        "Scanner carve-outs would create false-green risk.",
+        "Launch-cell fixtures keep eventing tests non-portable."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "cloud_event_topic_tenant_cell_source_payload_timestamp_boundary",
+      "findings": [
+        "No id, tenant, microservice, event type, cell, RFC3339, JSON payload, version, source, or topic parse invariant was relaxed; all CloudEvent tests still pass."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Keeps event envelope validation in the domain and does not introduce adapter/runtime dependencies."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Existing 25 CloudEvent tests remain green, including invalid dotted component and normalization regressions."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence captures before/after leak counts, full-gate delta, targeted tests, format/lint, token scan, and Oya VCS lifecycle."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-eventing-domain/src/cloud_event.rs",
+    "evidence/multispectrum/cs-eventing-cloud-event-canonical-base-neutrality-1779251400.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 299 jurisdiction leaks outside this scope; next safe slice starts at crates/oya-foundry-cloud-mutation-domain/src/lib.rs.",
+    "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
+  ]
+}

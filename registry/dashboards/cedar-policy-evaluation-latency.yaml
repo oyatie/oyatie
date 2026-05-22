@@ -1,0 +1,265 @@
+schema_version: "2026-05-20.observability-dashboard.v1"
+doc_class: ObservabilityDashboard
+dashboard_id: cedar-policy-evaluation-latency
+owner: axis-policy-engine
+related_oyatie_adrs:
+  - ADR-0263
+  - ADR-0130
+  - ADR-0139
+  - ADR-0243
+  - ADR-0244
+  - ADR-0316
+title: "Cedar Policy Evaluation Latency"
+description: "Per-policy-id Cedar evaluation dashboard for p50, p95, p99 latency, cache effectiveness, default-deny posture, policy publish churn, and audit-linked deny events. This is the operator view for policy-engine promotion safety and tenant-scoped authorization health."
+refresh: 30s
+time_from: now-6h
+time_to: now
+timezone: utc
+folder: oyatie-policy-observability
+schema_tags:
+  - cedar
+  - policy-engine
+  - authorization
+  - default-deny
+  - adr-0263
+datasource_defaults:
+  metrics: Mimir
+  logs: Loki
+  traces: Tempo
+  analytics: ClickHouse
+variables:
+  - name: environment
+    label: Environment
+    type: custom
+    default: dev
+    values:
+      - dev
+      - staging
+      - production
+  - name: tenant_id
+    label: Tenant
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:policy-engine:cedar:evaluations_total:counter{environment=\"$environment\"}, tenant_id)"
+    multi: true
+    include_all: true
+  - name: policy_id
+    label: Policy ID
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:policy-engine:cedar:evaluation_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\"}, policy_id)"
+    multi: true
+    include_all: true
+  - name: policy_set_id
+    label: Policy Set
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:policy-engine:cedar:evaluations_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\"}, policy_set_id)"
+    multi: true
+    include_all: true
+  - name: decision
+    label: Decision
+    type: custom
+    default: ".*"
+    values:
+      - permit
+      - deny
+      - default_deny
+      - forbid
+      - ".*"
+  - name: cell_id
+    label: Cell
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:policy-engine:cedar:evaluations_total:counter{environment=\"$environment\"}, cell_id)"
+    multi: true
+    include_all: true
+  - name: window
+    label: Query Window
+    type: custom
+    default: 5m
+    values:
+      - 1m
+      - 5m
+      - 30m
+      - 1h
+annotations:
+  - name: policy_publish_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"CedarPolicyPublished|CedarPolicyRolledBack\",environment=\"$environment\",tenant_id=~\"$tenant_id\"} | json | line_format \"{{.policy_id}} {{.policy_version}} {{.audit_id}}\""
+    tags:
+      - policy-publish
+      - audit
+  - name: deployment_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=\"DeploymentCompleted\",microservice=\"policy-engine\",environment=\"$environment\"} | json | line_format \"policy-engine {{.version}} {{.changeset_id}}\""
+    tags:
+      - deploy
+      - policy-engine
+  - name: incident_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"PolicyIncidentDeclared|AuthorizationRegressionDetected|PromotionHeld\",environment=\"$environment\"} | json | line_format \"{{.severity}} {{.incident_id}} {{.policy_id}}\""
+    tags:
+      - incident
+      - authorization
+panels:
+  - title: "Policy evaluations per second"
+    type: graph
+    datasource: Mimir
+    unit: evals/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (policy_id, policy_set_id, decision, cell_id) (rate(oya:policy-engine:cedar:evaluations_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",decision=~\"$decision\",cell_id=~\"$cell_id\"}[$window]))"
+        labels:
+          signal: evaluation_rate
+          engine: cedar
+  - title: "Evaluation latency p50"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.50, sum by (le, policy_id, policy_set_id, cell_id) (rate(oya:policy-engine:cedar:evaluation_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",decision=~\"$decision\",cell_id=~\"$cell_id\"}[$window])))"
+        labels:
+          signal: latency_p50
+          bucket_label: le
+  - title: "Evaluation latency p95"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.95, sum by (le, policy_id, policy_set_id, cell_id) (rate(oya:policy-engine:cedar:evaluation_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",decision=~\"$decision\",cell_id=~\"$cell_id\"}[$window])))"
+        labels:
+          signal: latency_p95
+          bucket_label: le
+  - title: "Evaluation latency p99"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.99, sum by (le, policy_id, policy_set_id, cell_id) (rate(oya:policy-engine:cedar:evaluation_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",decision=~\"$decision\",cell_id=~\"$cell_id\"}[$window])))"
+        labels:
+          signal: latency_p99
+          bucket_label: le
+  - title: "Evaluation latency distribution"
+    type: heatmap
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (le, policy_id) (rate(oya:policy-engine:cedar:evaluation_duration_seconds:bucket{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",cell_id=~\"$cell_id\"}[$window]))"
+        labels:
+          signal: latency_distribution
+          bucket_label: le
+  - title: "Policy cache hit rate"
+    type: gauge
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * sum by (policy_id, policy_set_id, cell_id) (rate(oya:policy-engine:cedar:cache_lookup_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",result=\"hit\",cell_id=~\"$cell_id\"}[$window])) / clamp_min(sum by (policy_id, policy_set_id, cell_id) (rate(oya:policy-engine:cedar:cache_lookup_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",cell_id=~\"$cell_id\"}[$window])), 0.001)"
+        labels:
+          signal: cache_hit_rate
+          target_floor_percent: "85"
+  - title: "Default-deny rate"
+    type: graph
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * sum by (policy_id, policy_set_id, reason, cell_id) (rate(oya:policy-engine:cedar:evaluations_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",decision=\"default_deny\",cell_id=~\"$cell_id\"}[$window])) / clamp_min(sum by (policy_id, policy_set_id, cell_id) (rate(oya:policy-engine:cedar:evaluations_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",policy_set_id=~\"$policy_set_id\",cell_id=~\"$cell_id\"}[$window])), 0.001)"
+        labels:
+          signal: default_deny_rate
+          posture: fail_closed
+  - title: "Explicit forbid decisions"
+    type: graph
+    datasource: Mimir
+    unit: decisions/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (policy_id, principal_type, action, resource_type, cell_id) (rate(oya:policy-engine:cedar:evaluations_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",decision=\"forbid\",cell_id=~\"$cell_id\"}[$window]))"
+        labels:
+          signal: forbid_rate
+          audit_required: "true"
+  - title: "Denied events with audit_id"
+    type: table
+    datasource: Loki
+    targets:
+      - ref_id: A
+        query_type: LogQL
+        expr: "{microservice=\"policy-engine\",event_class=~\"CedarDefaultDeny|CedarExplicitForbid\",environment=\"$environment\",tenant_id=~\"$tenant_id\"} | json | policy_id=~\"$policy_id\" | line_format \"{{.ts}} {{.tenant_id}} {{.policy_id}} {{.principal_id}} {{.action}} {{.resource_id}} {{.audit_id}}\""
+        labels:
+          signal: deny_audit_log
+          requires_field: audit_id
+  - title: "Policy bundle propagation lag"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (policy_set_id, policy_version, cell_id) (time() - oya:policy-engine:cedar:bundle_loaded_at:gauge{environment=\"$environment\",policy_set_id=~\"$policy_set_id\",cell_id=~\"$cell_id\"})"
+        labels:
+          signal: bundle_propagation_lag
+          adr_anchor: ADR-0243
+  - title: "Evaluation error classes"
+    type: graph
+    datasource: Mimir
+    unit: errors/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (policy_id, error_class, cell_id) (rate(oya:policy-engine:cedar:evaluation_errors_total:counter{environment=\"$environment\",tenant_id=~\"$tenant_id\",policy_id=~\"$policy_id\",cell_id=~\"$cell_id\"}[$window]))"
+        labels:
+          signal: evaluation_errors
+          metric_family: red
+  - title: "Policy evaluation history by tenant"
+    type: table
+    datasource: ClickHouse
+    targets:
+      - ref_id: A
+        query_type: SQL
+        expr: "SELECT tenant_id, policy_id, policy_set_id, decision, quantile(0.99)(duration_ms) AS p99_ms, count() AS evaluations, max(audit_id) AS latest_audit_id FROM oya_policy_evaluations WHERE ts >= now() - INTERVAL 6 HOUR AND environment = '$environment' GROUP BY tenant_id, policy_id, policy_set_id, decision ORDER BY p99_ms DESC LIMIT 200"
+        labels:
+          signal: historical_policy_latency
+          retention: cold_query
+alerts:
+  - alert_id: cedar_eval_latency_p99_slow
+    title: "Cedar evaluation p99 above 50ms"
+    datasource: Mimir
+    severity: page
+    condition: "histogram_quantile(0.99, sum by (le, policy_id) (rate(oya:policy-engine:cedar:evaluation_duration_seconds:bucket{environment=\"$environment\",policy_id=~\"$policy_id\"}[5m]))) > 0.05"
+    for: 10m
+    labels:
+      gate: oya-vcs-promotion-readiness
+      verdict_on_fire: held
+  - alert_id: cedar_cache_hit_rate_low
+    title: "Cedar policy cache hit rate low"
+    datasource: Mimir
+    severity: ticket
+    condition: "100 * sum(rate(oya:policy-engine:cedar:cache_lookup_total:counter{result=\"hit\"}[5m])) / clamp_min(sum(rate(oya:policy-engine:cedar:cache_lookup_total:counter[5m])), 0.001) < 85"
+    for: 20m
+    labels:
+      remediation: inspect-policy-bundle-cache
+  - alert_id: cedar_default_deny_spike
+    title: "Default-deny rate spike"
+    datasource: Mimir
+    severity: page
+    condition: "sum(rate(oya:policy-engine:cedar:evaluations_total:counter{decision=\"default_deny\"}[5m])) > 0 and sum(rate(oya:policy-engine:cedar:evaluation_errors_total:counter[5m])) == 0"
+    for: 5m
+    labels:
+      posture: fail_closed
+      audit_required: "true"

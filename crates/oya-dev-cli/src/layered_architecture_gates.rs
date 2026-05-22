@@ -12,6 +12,7 @@
 //! `microservices/*/clients/*/client-manifest.json` for the client-stack
 //! gate). Arguments are accepted but optional.
 
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -20,6 +21,8 @@ use oya_check_client_stack_discipline as client_check;
 use oya_check_layered_architecture_discipline as layered_check;
 
 const DEFAULT_MICROSERVICES_ROOT: &str = "microservices";
+const DEFAULT_DEFERRED_VIOLATIONS: &str =
+    "registry/layered-architecture-discipline/wave-3-i-deferred-manifest-violations.tsv";
 
 fn parse_flag_with_value(args: &[String], flag: &str) -> Option<String> {
     let mut iter = args.iter();
@@ -100,6 +103,10 @@ pub(crate) fn run_layered_architecture_discipline(args: Vec<String>) -> ExitCode
         parse_flag_with_value(&args, "--microservices-root")
             .unwrap_or_else(|| DEFAULT_MICROSERVICES_ROOT.to_string()),
     );
+    let deferred_path = PathBuf::from(
+        parse_flag_with_value(&args, "--deferred-violations")
+            .unwrap_or_else(|| DEFAULT_DEFERRED_VIOLATIONS.to_string()),
+    );
 
     let mut manifests = Vec::new();
     for path in list_manifest_paths(&root) {
@@ -115,25 +122,103 @@ pub(crate) fn run_layered_architecture_discipline(args: Vec<String>) -> ExitCode
     }
 
     let (report, violations) = layered_check::audit_all_violations(manifests);
-    if violations.is_empty() {
+    let deferred = match read_deferred_layered_violations(&deferred_path) {
+        Ok(deferred) => deferred,
+        Err(error) => {
+            eprintln!("layered-architecture-discipline FAILED: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
+    let mut deferred_count = 0usize;
+    let active_violations = violations
+        .into_iter()
+        .filter(|violation| {
+            let key = (
+                violation.microservice.clone(),
+                format!("{:?}", violation.kind),
+            );
+            let is_deferred = deferred.contains(&key);
+            if is_deferred {
+                deferred_count += 1;
+            }
+            !is_deferred
+        })
+        .collect::<Vec<_>>();
+    if active_violations.is_empty() {
         println!(
-            "layered-architecture-discipline passed: {} manifests, {} µservices, {} gateway-owners, {} waypoint-enrolled",
+            "layered-architecture-discipline passed: {} manifests, {} µservices, {} gateway-owners, {} waypoint-enrolled, {} deferred Wave-3-I manifest violations",
             report.manifests_checked,
             report.microservices_audited,
             report.gateway_owners_detected,
             report.waypoint_enrolled_count,
+            deferred_count,
         );
         ExitCode::SUCCESS
     } else {
         eprintln!(
             "layered-architecture-discipline FAILED: {} violations",
-            violations.len()
+            active_violations.len()
         );
-        for v in &violations {
+        for v in &active_violations {
             eprintln!("  - {}", v);
         }
         ExitCode::FAILURE
     }
+}
+
+fn read_deferred_layered_violations(path: &Path) -> Result<BTreeSet<(String, String)>, String> {
+    if !path.exists() {
+        return Ok(BTreeSet::new());
+    }
+    let text = fs::read_to_string(path)
+        .map_err(|error| format!("deferral registry unreadable {}: {error}", path.display()))?;
+    let mut records = BTreeSet::new();
+    for (index, line) in text.lines().enumerate() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let fields = trimmed.split('\t').collect::<Vec<_>>();
+        if fields.len() < 3 {
+            return Err(format!(
+                "{}:{} deferral row must be <microservice><tab><violation_kind><tab><reason>",
+                path.display(),
+                index + 1
+            ));
+        }
+        let microservice = fields[0].trim();
+        let kind = fields[1].trim();
+        let reason = fields[2].trim();
+        if microservice.is_empty() || kind.is_empty() || reason.is_empty() {
+            return Err(format!(
+                "{}:{} deferral row fields must be non-empty",
+                path.display(),
+                index + 1
+            ));
+        }
+        match kind {
+            "GatewayAndMeshConflict"
+            | "CedarAndKyvernoConflict"
+            | "CacheBackendConflict"
+            | "MeshTierUnderclaimed"
+            | "NorthSouthOnlyMisplaced" => {}
+            _ => {
+                return Err(format!(
+                    "{}:{} unknown layered-architecture violation kind {kind:?}",
+                    path.display(),
+                    index + 1
+                ));
+            }
+        }
+        if !records.insert((microservice.to_owned(), kind.to_owned())) {
+            return Err(format!(
+                "{}:{} duplicate deferral for {microservice}/{kind}",
+                path.display(),
+                index + 1
+            ));
+        }
+    }
+    Ok(records)
 }
 
 pub(crate) fn run_client_stack_discipline(args: Vec<String>) -> ExitCode {

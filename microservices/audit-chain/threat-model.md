@@ -510,7 +510,7 @@ Per Bominal ADR-0028 + the `oya-check-data-class` LEAN lane.
 - Mitigations:
   - `cargo deny` enforces version pins on crypto crates.
   - Cosign-signed builds; reproducible builds (per `docs/standards/build-reproducibility.md`).
-  - Crypto crates monitored by weekly `oya-foundry-fitness-supply-chain` lane (RustSec advisory db cross-check).
+  - Crypto crates monitored by weekly `oya-governance-supply-chain` lane (RustSec advisory db cross-check).
   - HSM-side signing for the load-bearing path means a compromised Rust crypto crate cannot directly leak keys (HSM mediates).
   - Verification uses the same crypto crate; compromise would affect both; quarterly red-team drills include "verify against a known-bad signature" to validate verification correctness.
 - Owner: ops-security + axis-audit-chain
@@ -545,7 +545,7 @@ Per Bominal ADR-0028 + the `oya-check-data-class` LEAN lane.
 | Soft-delete with Merkle proof of redaction | Preventive (compliance) | council-privacy + axis-audit-chain | DSR cascade integration test |
 | 2-person rule for HSM admin + retention overrides | Preventive (insider) | ops-security | OpenBao JIT log |
 | Per-tenant cardinality + emission rate limits | Preventive (DoS) | axis-audit-chain | emission-rest metrics |
-| Reproducible cosign-signed builds for crypto path | Preventive (supply-chain) | ops-security | `oya-foundry-fitness-supply-chain` |
+| Reproducible cosign-signed builds for crypto path | Preventive (supply-chain) | ops-security | `oya-governance-supply-chain` |
 | Cross-pack-replication-forbidden (default deny) | Preventive (residency) | axis-audit-chain | `oya-check-cross-pack-replication-forbidden` lane |
 | External verifier reference implementation | Detective (transparency) | axis-audit-chain | quarterly drill: external verifier validates pack-kr |
 

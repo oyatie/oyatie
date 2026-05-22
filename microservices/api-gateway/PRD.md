@@ -7,7 +7,29 @@ status: Accepted
 sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
-related_adrs: [ADR-0001, ADR-0007, ADR-0009, ADR-0049, ADR-0114, ADR-0121, ADR-0128, ADR-0131, ADR-0145, ADR-0148, ADR-0157, ADR-0158, ADR-0163, ADR-0166]
+related_adrs:
+  - ADR-0001
+  - ADR-0007
+  - ADR-0009
+  - ADR-0049
+  - ADR-0114
+  - ADR-0121
+  - ADR-0128
+  - ADR-0131
+  - ADR-0145
+  - ADR-0148
+  - ADR-0157
+  - ADR-0158
+  - ADR-0163
+  - ADR-0166
+  - ADR-0338
+  - ADR-0339
+  - ADR-0340
+  - ADR-0341
+  - ADR-0342
+  - ADR-0343
+  - ADR-0344
+  - ADR-0345
 related_specs: [/specs/hyperscaler-architecture-invariants.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-18
 owner_team: axis-network
@@ -71,12 +93,55 @@ Out:
 - **WAF rule update propagation** ≤ 5 min cell-wide.
 - **Audit-chain emission** on every auth-failure spike, every WAF trigger, every rate-limit deny ≥ 99.9% success rate.
 
+### DR posture
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0343 |
+| Target | RTO 300 s and RPO 0 s for stateless edge admission, route-cache refresh, and cell evacuation, matching `manifest.json#dr`. |
+| Compliance-pack floor | HIPAA floor RTO 3600 s / RPO 300 s, EU-AI-ACT high-risk floor RTO 1800 s / RPO 300 s, SOC2-T2 floor RTO 14400 s / RPO 900 s; api-gateway's manifest target is stricter at 300 s / 0 s. |
+| Failover runbook | `runbooks/cell-evac.md`, `runbooks/blue-green-rollback.md`, and `runbooks/edge-admission-regression.md`. |
+| Multi-region active-active | Yes. The PRD already declares `active_active` per cell; manifest `cell_eligibility=["tier-0"]` keeps the edge in Tier-0 cells. |
+| WHY | External tenants see the edge first; DR must shed or reroute a bad cell without losing request identity, policy evidence, or audit correlation. |
+
+### Capacity model
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0340, with pod runtime tier declared by ADR-0338. |
+| Per-tenant baseline | `manifest.json#capacity_model`: 0.10 vCPU, 128 MiB RAM, 0 GB durable storage, and connections `{valkey: 6, postgres: 0, outbound_http: 16}` per tenant. `capacity-model.md` per Tier-0 edge cell remains 50K TLS handshakes/sec, 5M sustained connections, 250K HTTP req/sec, 500K Cedar evals/sec, and 1M Valkey lookups/sec. |
+| Scaling dimension | `per_request` for admission, WAF, auth, rate-limit, and routing; `per_capability` for TLS/ECH/PQC rotation and canary/blue-green controls. |
+| Cell placement class | Tier-4 per `manifest.json#capacity_model.cell_placement_class`, deployed only in Tier-0 edge cells per `cell_eligibility=["tier-0"]`; pod runtime tier is ADR-0338 Tier-3 because `manifest.json#pod_runtime_tier=3` and the data plane is perf-critical edge/Envoy. |
+| Autoscaling boundaries | Four 64-vCPU/192 GiB nodes per cell baseline; autoscale at >50% utilization for >5 min or >70% for >30 s; scale-down only below 20% for >30 min with single-cell delta. |
+| WHY | The model preserves north-south admission and DDoS headroom while bounding per-tenant hot keys through Valkey shuffle-sharding. |
+
+### Sustainability + cost attribution
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0344 |
+| Per-call emission claim | Every admitted, denied, WAF, rate-limit, TLS, canary, blue-green, cell depool/repool, DDoS, and cache-poisoning audit row must include `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, and `region`. |
+| Carbon-aware routing | No for realtime request admission, emergency access, HIPAA emergency, PCI realtime fraud, or DDoS mitigation. Yes for non-urgent WAF rule propagation, blue/green analysis, certificate inventory checks, and cold-path log backfills when policy allows. |
+| Tenant transparency surface | Tenant admins see per-usage edge request, denial, WAF, rate-limit, and TLS rotation cost in the FinOps portal, keyed to the manifest `paid_billing_components_emitted=["per_usage"]`. |
+| WHY | CSRD, SB-253, and SEC climate-disclosure posture require edge traffic cost and emissions to be attributable, but request routing must prioritize safety, residency, and latency. |
+
+### API versioning posture
+
+| Field | Value |
+|---|---|
+| ADR | ADR-0342 |
+| Public API version model | Date carrier triplet: `Oyatie-Version: YYYY-MM-DD`, `/v/YYYY-MM-DD/...` for route/admission management, and proto3 `oyatie_version`. |
+| SDK semver model | Api-gateway SDKs use `major.minor.patch`; OpenAPI/AsyncAPI/proto contracts remain date-carrier pinned. |
+| Support window | Last N=3 public versions supported for >=180 days. |
+| Per-tenant pinning | Yes for route-management APIs and partner integrations; no for emergency deny rules, WAF safety fixes, or TLS/PQC security posture updates. |
+| Internal-mesh exemption | Yes. ADR-0145 direct gRPC and Envoy control-plane mesh traffic remain exempt from public URL date prefixes. |
+
 ## Architecture
 
 - Layer 7 (per ADR-0105 13-layer enum) — pure adapter; zero domain logic.
 - Data plane: Envoy 1.30 LTS in DaemonSet per cell.
 - Control plane: Envoy Gateway 1.1 (Kubernetes Gateway API CRDs).
-- Rate-limit backend: Valkey 8.1 (Redis wire-compat) in cell-µservice cluster.
+- Rate-limit backend: Valkey 8.1 (RESP wire-compatible) in cell-µservice cluster.
 - WAF: Coraza loaded as Envoy HTTP filter.
 - JWKS cache: in-process at each Envoy replica; refresh on rotation event.
 - Multi-region disposition: `active_active` per-cell (ADR-0158).
@@ -115,3 +180,23 @@ Authored in `slos/api-gateway.openslo.yaml`:
 ## Status
 
 Skeleton PRD shipped 2026-05-18 alongside ADR-0157. Full PRD body + IP pack land in stacked PR. Implementation Plans (IP-001 … IP-015) authored separately.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `api-gateway` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `api-gateway` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 5 module pin(s) across 5 context(s).
+- Scaling input: `per_request` with cell placement `Tier-4` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

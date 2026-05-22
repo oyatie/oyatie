@@ -178,3 +178,9 @@ Backup window 02:00-06:00 local; watcher daemon always-on.
 - ADR-0186 — observability backplane.
 - Runbooks: `clickhouse-restore.md`, `clickhouse-backup-drill.md`.
 - Upstream: ClickHouse native BACKUP command (since 24.3).
+
+## Sustainability emission (per ADR-0344)
+- Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
+- Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
+- Surface evidence: `microservices/observability/IP-025-clickhouse-backup-restore.md` matched `emission`; anchors `microservices/observability/manifest.json, crates/oya-cloud-observability-api/src/lib.rs`; type anchor `crates/oya-cloud-observability-api/src/lib.rs::CloudObservabilityAuditRecord`.

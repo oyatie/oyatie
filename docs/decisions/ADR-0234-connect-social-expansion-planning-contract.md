@@ -17,7 +17,7 @@ related_specs:
   - /specs/products/connect/suite.json
   - /specs/products/connect/social.json
   - /specs/products/connect/shorts.json
-  - /specs/products/connect/network.json
+  - /microservices/community/PRD.md
   - /specs/products/connect/anonymous.json
 version: 1.0.0
 purpose: Record the PR #130 Connect expansion as a planning contract, not an implemented production or enforcement claim.
@@ -35,7 +35,7 @@ Connect already has a dual-context architecture and a product-suite role in the 
 
 - `connect-social`
 - `connect-shorts`
-- `connect-network`
+- `connect-network` (retired by Wave 15K into `community`)
 - `connect-anonymous`
 
 The expansion is high-risk because it crosses consumer social UX, professional identity, creator/recommendation systems, anonymous workplace discussion, HR-adjacent aggregate analytics, legal-hold reveal paths, and personal/work context boundaries. It also introduces planned crate names, design-system components, competitive benchmark rows, and hyperscaler bar targets before the implementation crates and validators exist.
@@ -44,7 +44,7 @@ The ADR number intentionally avoids `ADR-0126`. The inherited Bominal ADR map al
 
 ## Decision
 
-Accept the four new Connect sub-product PRDs as a **planning contract** for PR #130, with these constraints:
+Accept the Connect expansion PRDs as a **planning contract** for PR #130, with these constraints:
 
 - The new sub-products are catalog/planning surfaces only until their crates, validators, gates, and CI lanes land.
 - `industry_patterns_adopted`, `anti_patterns_avoided`, `hyperscaler_bar`, and `production_readiness_gates` are advisory unless a concrete validator exists in this repo.
@@ -55,10 +55,10 @@ Accept the four new Connect sub-product PRDs as a **planning contract** for PR #
 
 ## Rejected Alternatives
 
-- **Land the four PRDs as implemented scope.** Rejected because no `oya-connect-social-*`, `oya-connect-shorts-*`, `oya-connect-network-*`, or `oya-connect-anonymous-*` crates ship in PR #130.
+- **Land the four PRDs as implemented scope.** Rejected because no `oya-connect-social-*`, `oya-connect-shorts-*`, retired-network community successor, or `oya-connect-anonymous-*` crates ship in PR #130.
 - **Use `ADR-0126` for this decision.** Rejected because it conflicts with the inherited Bominal ADR numbering map.
 - **Keep BLAKE3/HSM/four-eyes claims as superiority claims.** Rejected because they are planning targets until implementation and threat-model tests land.
-- **Treat social/shorts/network/anonymous as one monolith.** Rejected because each surface has distinct context, safety, privacy, scale, and UX contracts.
+- **Treat social/shorts/community-successor/anonymous as one monolith.** Rejected because each surface has distinct context, safety, privacy, scale, and UX contracts.
 
 ## Consequences
 
@@ -69,6 +69,6 @@ Accept the four new Connect sub-product PRDs as a **planning contract** for PR #
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate product-prd-json --product specs/products/connect/social.json --product specs/products/connect/shorts.json --product specs/products/connect/network.json --product specs/products/connect/anonymous.json --product specs/products/connect/suite.json`
-- `jq empty docs/machine-readable/decisions.json specs/products/connect/social.json specs/products/connect/shorts.json specs/products/connect/network.json specs/products/connect/anonymous.json`
+- `cargo run -p oya-dev-cli -- gate validate product-prd-json --product specs/products/connect/social.json --product specs/products/connect/shorts.json --product microservices/community/PRD.md --product specs/products/connect/anonymous.json --product specs/products/connect/suite.json`
+- `jq empty docs/machine-readable/decisions.json specs/products/connect/social.json specs/products/connect/shorts.json specs/products/connect/anonymous.json`
 - Reviewer-agent check for PR #130 must confirm no unbounded enforcement, cryptography, or cross-context claims remain.

@@ -7,83 +7,77 @@ impl_plan_id: IP-013-age-verification-and-profile-verification
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-social + council-privacy
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-pack-aware-age-gate]
+owner: axis-social + trust-safety
+acceptance_lanes: [cargo-nextest, age-gate-test, profile-verification-policy-test]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-013: Age verification and profile verification
 
-# IP-013: age-verification + profile-verification BCs
+## A. Problem
+Social needs authentic profiles and age-aware controls before federation, ranking, DMs, recommendations, and minor-facing surfaces can safely ship.
 
-## Intent
+## B. Approach
+Implement age-verification and profile-verification bounded contexts using only crate paths named by the PRD/IP plus existing catalog adapter `oya-social-profile-verification-adapter-idv`. Cedar controls verification state, minor defaults, and disclosure.
 
-Two privacy-sensitive BCs in one ChangeSet because they share signup-flow
-integration and minor-protection regulatory cross-mapping:
-
-- **age-verification**: pack-aware age-gate at signup; minor-account flow
-  with parental consent attestation; isolated `social_age_attestations`
-  Postgres table with Cedar-restricted access (per FM-15 mitigation).
-- **profile-verification**: verification badge issuance + revocation;
-  per-tenant policy (handle uniqueness, trademark reservation, government /
-  organisation verification); audit-chain seal per badge mutation.
-
-## ChangeSet boundary
-
-`age-verification` + `profile-verification` BCs.
-
-## Concrete File Targets
-
-| Path | Action |
+## C. Deliverables
+| Artifact | Role |
 |---|---|
-| `src/crates/oya-social-age-verification-kernel/src/{ports,entities,errors}.rs` | create |
-| `src/crates/oya-social-age-verification-domain/src/{age_attestation,age_bracket,minor_protection_policy}.rs` | create |
-| `src/crates/oya-social-age-verification-usecase/src/{attest,verify_minor,parental_consent}.rs` | create |
-| `src/crates/oya-social-age-verification-adapter-postgres/src/repository.rs` | create — isolated table |
-| `src/crates/oya-social-age-verification-adapter-postgres/migrations/0001_init.sql` | create |
-| `src/crates/oya-social-profile-verification-kernel/src/{ports,entities,errors}.rs` | create |
-| `src/crates/oya-social-profile-verification-domain/src/{verification_request,verification_badge,revocation_event}.rs` | create |
-| `src/crates/oya-social-profile-verification-usecase/src/{issue,revoke}.rs` | create |
-| `src/crates/oya-social-profile-verification-adapter-postgres/src/repository.rs` | create |
-| `tests/age_gate_pack_eu.rs` | create — AC-10 E2E |
-| `tests/age_gate_pack_kr.rs` | create |
-| `tests/profile_verification_e2e.rs` | create |
+| `catalog/oya-social-profile-verification-adapter-idv.yaml` | Existing IDV adapter anchor. |
+| `src/crates/oya-social-age-verification-{kernel,domain,usecase,api,adapter-postgres,sdk}/` | Planned family named by PRD/IP. |
+| `src/crates/oya-social-profile-verification-{kernel,domain,usecase,api,adapter-postgres,adapter-idv,sdk}/` | Planned family named by PRD/IP/catalog. |
+| `policy/profile-verification.cedar` and `policy/minor-protection.cedar` | Policy anchors. |
+| `slos/minor-protection-engagement-correctness.openslo.yaml` | Minor-protection SLO. |
 
-## Pack-Aware Age Gates
+## D. Ordered implementation steps
+1. Define age attestation, age bracket, guardian state, verification request, badge, and revocation types.
+2. Implement COPPA/KOSA/EU age gate rules in domain/usecase tests.
+3. Add IDV adapter boundary and explicit provider-result normalization.
+4. Add profile verification issuance, revocation, and audit events.
+5. Test minor defaults, false-positive review, badge revocation, and provider timeout.
+6. Connect DMs, feed ranking, recommendations, and profile visibility to verification state.
+7. Wire SLO and dashboard evidence.
 
-| Pack | Threshold | Source |
-|---|---|---|
-| pack-eu | 16y (member states may lower to 13y) | GDPR Art. 8 |
-| pack-us | 13y | COPPA 15 USC §6501 |
-| pack-us-healthcare | 13y (COPPA) + HIPAA-eligibility flag | COPPA + HIPAA §164.502(g) |
-| pack-kr | 14y | KR 청소년 보호법 + PIPA Art. 8 |
-| pack-jp | 13y | APPI |
-| pack-sg | 13y | PDPA |
-| pack-au | 13y | Privacy Act + Online Safety Act 2021 |
-| pack-in | 18y | DPDPA 2023 §9 (note: stricter than most packs) |
-| pack-br | 12y | LGPD Art. 14 |
-| pack-ae | 13y | UAE PDPL |
-| pack-ksa | 13y | PDPL |
+## E. Acceptance
+- `cargo nextest run -p oya-social-age-verification-kernel` passes.
+- `cargo nextest run -p oya-social-profile-verification-adapter-idv` passes.
+- `policy/minor-protection.cedar` and `policy/profile-verification.cedar` tests pass.
+- `slos/minor-protection-engagement-correctness.openslo.yaml` resolves.
+- Verification events validate against `contracts/asyncapi/social-events.yaml`.
 
-## Acceptance Gates
+## F. Evidence
+- PRD FR-24 and FR-28: `PRD.md`.
+- Policies: `policy/minor-protection.cedar`, `policy/profile-verification.cedar`.
+- Catalog: `catalog/oya-social-profile-verification-adapter-idv.yaml`.
+- Dashboard: `dashboards/minor-protection-health.json`.
 
-```bash
-cargo nextest run -p oya-social-age-verification-kernel
-cargo nextest run -p oya-social-profile-verification-kernel
-cargo run -p oya-dev-cli -- gate validate pack-aware-age-gate --microservice social
-```
+## G. Counterpart comparison
+Instagram Teen Accounts, TikTok Restricted Mode, Snapchat Family Center, X verification, and LinkedIn professional identity set the counterpart pressure. Oyatie must combine authenticity and age controls with pack-aware Cedar policy and audit evidence.
 
-## Test Plan
+## H. Foundation delivery expansion
+- Deliverable detail: age records include attestation source, age bracket, jurisdiction, guardian state, expiry, and audit correlation.
+- Deliverable detail: profile verification records include request, provider result, badge state, revocation, and appeal metadata.
+- Deliverable detail: IDV adapter normalizes provider statuses without storing unnecessary raw identity documents.
+- Deliverable detail: minor-protection outputs feed DMs, feed ranking, notifications, search, and profile visibility.
+- Deliverable detail: Cedar policies decide disclosure of verification state and age bracket.
+- Deliverable detail: dashboards track pending, failed, revoked, appealed, and false-positive cases.
+- Deliverable detail: data-residency rules bind provider artifacts to the tenant pack.
+- Deliverable detail: Slack verified workspace identity is counterpart pressure for trustable community/user identity.
 
-- AC-10 E2E: minor signup on pack-eu requires parental consent attestation.
-- pack-in highest threshold (18y) enforced.
-- Age-attestation table access bound by Cedar `age_verification_reader` entitlement (FM-15 mitigation).
-- Verification badge issued + revoked → audit-chain seal.
-- Handle uniqueness scope per ADR-SOC successor-IP (PRD Open Question 5).
+## I. Acceptance expansion
+- Acceptance detail: under-13, 14-17, adult, unknown-age, and guardian cases must all have fixtures.
+- Acceptance detail: provider timeout and mismatch tests must fail closed according to policy.
+- Acceptance detail: verification issuance and revocation tests must update profile visibility.
+- Acceptance detail: false-positive review tests must preserve appeal evidence.
+- Acceptance detail: Cedar tests must distinguish disclosure to public, tenant admin, auditor, and guardian.
+- Acceptance detail: AsyncAPI verification events must validate.
+- Acceptance detail: SLO resolution must include minor-protection correctness when defined.
+- Acceptance detail: Slack, LinkedIn, X, Instagram, TikTok, and Snapchat comparisons must map to identity and age-safety evidence.
 
-## Halt Conditions
-
-- Age-attestation table access by non-entitled principal — Sev-1 (FM-15).
-
-## Next IP
-
-[`IP-014-observability-slo.md`](IP-014-observability-slo.md)
+## J. Evidence expansion
+- Evidence detail: capture nextest output for age-verification and profile-verification crates.
+- Evidence detail: capture policy tests for profile verification and minor protection.
+- Evidence detail: capture AsyncAPI validation for verification events.
+- Evidence detail: cite `catalog/oya-social-profile-verification-adapter-idv.yaml`.
+- Evidence detail: cite `policy/profile-verification.cedar` and `policy/minor-protection.cedar`.
+- Evidence detail: cite `dashboards/minor-protection-health.json`.
+- Evidence detail: cite Slack as verified-community identity pressure alongside LinkedIn and X.

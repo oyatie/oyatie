@@ -48,7 +48,7 @@ All components introduced by parallel ADR-0238 (Connect dissolution â†’ social Â
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
 | Postgres 16 LTS (profile + post + follow-graph + reactions + bookmarks store) | `oya-social-user-profile-*` (9 crates) |
-| Valkey 8.1 (Redis wire-compat) (feed cache + reaction counters + trending + notification fanout) | `oya-social-follow-graph-*` (8 crates) |
+| Valkey 8.1 (RESP3 wire-compatible) (feed cache + reaction counters + trending + notification fanout) | `oya-social-follow-graph-*` (8 crates) |
 | Meilisearch 0.10.0 (people + content + hashtag search) | `oya-social-post-composition-*` (13 crates) |
 | S3-compatible (media blobs + previews + quarantine) | `oya-social-feed-timeline-*` (10 crates) |
 | ImageMagick 7.1 (image transcode) | `oya-social-reactions-*` (8 crates) |

@@ -21,7 +21,7 @@ Four crates introducing the ai-slop-detector BC: `-kernel` (port traits + entiti
 
 ## ChangeSet boundary
 
-Four crates + golden-fixture catalogue under `tests/aislop/catalogue.rs`.
+Four crates + baseline-fixture catalogue under `tests/aislop/catalogue.rs`.
 
 ## Concrete File Targets
 
@@ -95,3 +95,9 @@ cargo run -p oya-dev-cli -- gate validate aislop-catalogue-coverage --threshold 
 - `docs/quality/ai-slop-defense/ai-slop-failure-mode-catalogue.md`.
 - `docs/quality/ai-slop-defense/defense-in-depth-architecture.md`.
 - ADR-0056, ADR-0105.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

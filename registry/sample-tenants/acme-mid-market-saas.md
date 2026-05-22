@@ -1,0 +1,448 @@
+---
+doc_class: SampleTenantFixture
+tenant_id: tenant-acme-mid-market-saas
+status: Proposed
+date: 2026-05-20
+owner: codex-sample-tenants-w1
+---
+
+# Acme Innovations Inc. Sample Tenant Fixture
+
+## Tenant Identity
+
+- Fixture name: Acme Innovations Inc.
+- Tenant slug: `acme-innovations-inc-us`
+- Tenant status: demo-ready sample tenant.
+- Fictional status: entirely fictional company for product demos and SE walk-throughs.
+- Sector: B2B SaaS workflow analytics.
+- Segment: mid-market software vendor.
+- Employee count: 500 employees.
+- Active workforce model: hybrid North America and EU delivery.
+- Primary headquarters: Austin, Texas, United States.
+- Secondary office: Dublin, Ireland.
+- Engineering hub: Bengaluru, India.
+- Customer operations hub: Toronto, Canada.
+- Geography posture: US-led with EU customer data residency obligations.
+- Primary operating language: English.
+- Secondary operating languages: Spanish and Hindi for support coverage.
+- Capability tier: Silver across subscribed µservices.
+- Tier rationale: Acme needs production HA and enterprise controls without multi-AZ active-active.
+- Tier SLO anchor: Silver production profile with 99.95% monthly availability.
+- Tenant audience: B2B SaaS employees plus customer-facing compliance reviewers.
+- Tenant maturity: post-Series D, preparing for enterprise procurement expansion.
+- Revenue posture: $96M ARR fictional demo baseline.
+- Customer count: 1,850 active customer organizations.
+- Regulated customer mix: healthcare-adjacent customers are present but Acme does not process PHI in this fixture.
+- Procurement pressure: enterprise buyers require SOC 2 reports and GDPR evidence exports.
+- Data residency pressure: EU customer contracts require EU processing evidence.
+- AI usage posture: assistive analytics only, no autonomous decisioning.
+- Executive buying center: CTO, CCO, and VP Product jointly sponsor the deployment.
+- Demo theme: governed scale-up from startup tooling to auditable enterprise operating rhythm.
+- Sample time zone set: America/Chicago, Europe/Dublin, Asia/Kolkata, America/Toronto.
+- Primary cell: `us-central-silver-a`.
+- EU processing cell: `eu-west-silver-a`.
+- Backup posture: Silver four-hour incremental backup cadence.
+- Audit retention: 90 hot days, 1,095 cold days.
+- Cost posture: budget-aware Silver, no Platinum sovereign uplift.
+- SE demo objective: show a realistic mid-market tenant with enough complexity to prove governance without overwhelming buyers.
+- Fixture boundary: not a real customer, not a production deployment, and not an implementation commitment.
+
+## Active µservices
+
+- µservice 01: `application`.
+- Acme usage: tenant workspace shell, product launchpad, role-aware navigation.
+- Acme Silver note: shell personalization is enabled, but tenant-private admin APIs stay rate-limited.
+- Demo evidence: Saanvi opens product planning surfaces without receiving compliance-admin privileges.
+- µservice 02: `identity`.
+- Acme usage: SAML SSO, SCIM groups, passkey root identity, and role projection.
+- Acme Silver note: three environment tiers are present; live keys require tenant-admin approval.
+- Demo evidence: Diego reviews a CTO break-glass request with audit-chain correlation.
+- µservice 03: `tenancy`.
+- Acme usage: tenant membership, environment tier separation, EU cell routing, and quota boundaries.
+- Acme Silver note: two cells are active, not global active-active.
+- Demo evidence: the SE can flip from test to staging to prod without changing the persona root.
+- µservice 04: `mail`.
+- Acme usage: board packets, compliance notices, customer incident mail, and DKIM/DMARC evidence.
+- Acme Silver note: outbound mode follows env-tier rules and GDPR notice templates.
+- Demo evidence: Naveen sends a SOC 2 evidence-request notice through the approved template.
+- µservice 05: `messenger`.
+- Acme usage: product incident rooms, launch coordination, and compliance Q&A threads.
+- Acme Silver note: retention follows SOC 2 controls and GDPR exportability.
+- Demo evidence: Saanvi escalates a roadmap change from a product channel to a workflow approval.
+- µservice 06: `calendar`.
+- Acme usage: launch readiness reviews, board compliance sessions, and cutover windows.
+- Acme Silver note: calendar export includes pack-aware attendee and room evidence.
+- Demo evidence: Diego reserves a maintenance window with CCO observer approval.
+- µservice 07: `drive`.
+- Acme usage: customer DPAs, SOC 2 evidence, design docs, and board artifacts.
+- Acme Silver note: content classification is active for GDPR and SOC 2 artifacts.
+- Demo evidence: Naveen restricts a compliance folder to least-privilege reviewers.
+- µservice 08: `docs`.
+- Acme usage: policy manuals, release notes, DPIA drafts, and SE demo scripts.
+- Acme Silver note: docs inherit tenant-private Cedar scope and audit-chain exports.
+- Demo evidence: Saanvi comments on a launch brief without seeing unrelated legal files.
+- µservice 09: `workflow-engine`.
+- Acme usage: DSR intake, launch approval, incident follow-up, and SOC 2 control evidence.
+- Acme Silver note: 2,500 concurrent workflow run ceiling is sufficient for the tenant.
+- Demo evidence: Naveen runs a board compliance workflow from evidence bundle to approval.
+- µservice 10: `workflow-studio`.
+- Acme usage: visual workflow editing for compliance approvals and product launch gates.
+- Acme Silver note: promotion ladder is test to staging to prod.
+- Demo evidence: the SE promotes a DSR workflow after showing test-tier dry-run evidence.
+- µservice 11: `audit-chain`.
+- Acme usage: signed evidence for pack events, identity changes, and policy decisions.
+- Acme Silver note: hot/cold retention matches Silver tier defaults.
+- Demo evidence: every demo action links back to a tenant-scoped audit event.
+- µservice 12: `ops-dashboard-control-center`.
+- Acme usage: tenant health, quota posture, incident status, and compliance pack state.
+- Acme Silver note: the dashboard exposes tenant-private views, not system-only platform controls.
+- Demo evidence: Diego checks policy propagation and service health during the cutover story.
+- Subscribed count: 12 µservices.
+- Subscription consistency: all subscribed µservices use Silver capability tier.
+- Non-subscribed examples: `meet`, `shorts`, `marketplace`, `plant-maintenance`, and `treasury`.
+- Demo constraint: do not imply Acme owns regulated healthcare, banking, or sovereign workloads.
+
+## Active Packs
+
+- Pack: `GDPR-2016-EU`.
+- Pack status: active.
+- Pack rationale: Acme sells into EU customers and hosts a Dublin go-to-market office.
+- Pack evidence: DSR workflows, data export manifests, EU subprocessors, and erasure approvals.
+- Pack demo use: show a customer DSR request routed through workflow-engine and audit-chain.
+- Pack reviewer: Naveen Iyer owns legal/compliance signoff.
+- Pack operational sponsor: Saanvi Mehta ensures product metadata maps to data subject categories.
+- Pack technical sponsor: Diego Vargas ensures processor logs and data maps are exportable.
+- Pack: `SOC2-TYPE-II-2024`.
+- Pack status: active.
+- Pack rationale: enterprise buyers require annual controls evidence before procurement approval.
+- Pack evidence: access review, change approval, incident response, backup verification, and vendor review.
+- Pack demo use: generate a board-ready control evidence bundle without broad admin grants.
+- Pack reviewer: Naveen Iyer.
+- Pack operational sponsor: Diego Vargas for change-management controls.
+- Pack product sponsor: Saanvi Mehta for customer-facing release gates.
+- Pack interaction: GDPR erasure evidence must not break SOC 2 audit retention records.
+- Pack interaction: SOC 2 control logs remain audit evidence even when customer PII is redacted.
+- Pack interaction: DSR export surfaces must carry both pack IDs in observability dimensions.
+- Pack interaction: customer-facing notices use GDPR language while internal evidence uses SOC 2 control names.
+- Packs intentionally absent: CCPA, HIPAA, KR-PIPA, DORA, and EU-AI-Act.
+- Absence rationale: Acme demo focuses on a mid-market baseline, not a regulated-enterprise maximal tenant.
+- SE positioning: start with two packs, then upsell pack overlay maturity rather than replacing the tenant.
+- Legal note: pack activity is synthetic and does not assert real certification.
+
+## Org Structure
+
+- Board layer: fictional seven-member board.
+- Board committee: Audit and Risk Committee.
+- Board committee chair: Priya Ramanathan, independent director.
+- Board operating cadence: quarterly evidence review.
+- Executive layer: CEO Maya Lindqvist.
+- Executive layer: CTO Diego Vargas.
+- Executive layer: CCO Naveen Iyer.
+- Executive layer: CFO Helena Brandt.
+- Executive layer: CPO Jamal Carter.
+- Executive layer: VP People Linda Foster.
+- Executive layer: VP Sales Anthony Costa.
+- Executive layer: VP Customer Success Sofia Rezende.
+- Diego direct report: VP Engineering Aisha Ali.
+- Diego direct report: Director of SRE Pavel Korsak.
+- Diego direct report: Director of Security Anna Petrova.
+- Diego direct report: Director of Data Platform Yu Chen.
+- Naveen direct report: Compliance Operations Lead Yui Hayashi.
+- Naveen direct report: Privacy Counsel Anika Mehta.
+- Naveen direct report: Vendor Risk Manager Jamie O'Connor.
+- Naveen direct report: Internal Audit Manager Dimitri Volkov.
+- Product direct report: PM Saanvi Mehta owns platform launch governance.
+- Product direct report: Product Designer Akihiro Sato owns workflow UX reviews.
+- Product direct report: Data Analyst Felipe Andrade owns usage analytics.
+- Level 2 Product: release managers, PMs, design operations, and research coordinators.
+- Level 2 Engineering: platform, product engineering, SRE, security, and data platform.
+- Level 2 Compliance: privacy operations, control testing, legal operations, and vendor risk.
+- Level 2 Customer: CSMs, support, implementation, and customer education.
+- Level 3 Product squads: onboarding, analytics, integrations, and admin console.
+- Level 3 Engineering squads: identity, workflow, evidence, and growth systems.
+- Level 3 Compliance pods: GDPR pod, SOC 2 pod, procurement evidence pod.
+- Level 3 Customer teams: enterprise CSM pod, SMB support pod, migration pod.
+- Headcount: Engineering 185.
+- Headcount: Product and Design 52.
+- Headcount: Customer Success 96.
+- Headcount: Sales and Marketing 82.
+- Headcount: Compliance, Legal, and Security 31.
+- Headcount: Finance and People Operations 36.
+- Headcount: Executive and administrative 18.
+- Regional headcount: United States 330.
+- Regional headcount: Ireland 56.
+- Regional headcount: India 84.
+- Regional headcount: Canada 30.
+- Contractor count: 42 synthetic contractors, scoped by tenancy and identity policy.
+- Admin population: 18 tenant admins.
+- Developer population: 76 tenant developers.
+- Compliance reviewer population: 24 reviewers.
+- Customer-facing user population: 211.
+- Least privilege rule: no Product role grants compliance-admin by default.
+- Separation of duties: Diego approves change risk; Naveen approves compliance claims.
+- Persona alignment: Saanvi can launch workflows but cannot override CCO controls.
+- Demo org edge: contractor access is visible but does not pierce tenant-private evidence folders.
+
+## Key Personas
+
+- Persona: Saanvi Mehta.
+- Fixture role: Product Manager for platform launch governance.
+- Roster link: [MASTER-ROSTER §3 row 79](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Dossier link: [corp-dev-senior-analyst-saanvi-mehta](../../docs/personas/corp-dev-senior-analyst-saanvi-mehta.md).
+- Journey link: [j159 Saanvi Mehta MBA application spans personal and work](../../docs/user-journeys/j159-saanvi-mehta-mba-application-spans-personal-and-work/README.md).
+- Demo stance: proves personal/work tenant separation while showing product-manager workflow ownership.
+- Persona: Diego Vargas.
+- Fixture role: Chief Technology Officer.
+- Roster link: [MASTER-ROSTER §3 row 28](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Dossier link: [cto-diego-vargas](../../docs/personas/cto-diego-vargas.md).
+- Journey link: [j167 CTO Diego Vargas platform major version cutover](../../docs/user-journeys/j167-cto-diego-vargas-platform-major-version-cutover/README.md).
+- Demo stance: proves change control, platform cutover review, and technical auditability.
+- Persona: Naveen Iyer.
+- Fixture role: Chief Compliance Officer.
+- Roster link: [MASTER-ROSTER §3 row 31](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Dossier link: [cco-naveen-iyer](../../docs/personas/cco-naveen-iyer.md).
+- Journey link: [j165 CCO Naveen Iyer board quarterly compliance report](../../docs/user-journeys/j165-cco-naveen-iyer-board-quarterly-compliance-report/README.md).
+- Demo stance: proves evidence-bundle creation, board reporting, and pack-scoped review.
+- Shared persona constraint: all personas are role projections over passkey-bound humans.
+- Shared persona constraint: no persona receives ambient cross-tenant authority.
+- Shared persona constraint: demo operators must keep Acme fictional and synthetic.
+
+## Sample Data Volumes
+
+- Drive: 47 TB total tenant object data.
+- Drive: 8.4 TB classified as customer contractual records.
+- Drive: 3.1 TB classified as GDPR personal data.
+- Drive: 910 GB SOC 2 control evidence.
+- Drive: 1.2 TB product design and roadmap artifacts.
+- Mail: 12 GB/day inbound plus outbound.
+- Mail: 1.4M messages/month.
+- Mail: 6,800 compliance-tagged messages/month.
+- Messenger: 420 active channels.
+- Messenger: 76 private incident or launch rooms.
+- Messenger: 2.8M messages/month.
+- Calendar: 8K events/month.
+- Calendar: 470 recurring governance meetings.
+- Calendar: 39 maintenance windows/quarter.
+- Docs: 28K live documents.
+- Docs: 4,200 policy-controlled documents.
+- Docs: 360 board-report source documents.
+- Workflow-engine: 92K workflow instances/month.
+- Workflow-engine: 6,300 DSR-related tasks/month.
+- Workflow-engine: 1,100 change-approval tasks/month.
+- Workflow-engine: 490 SOC 2 control attestations/month.
+- Workflow-studio: 86 published templates.
+- Workflow-studio: 14 templates in staging.
+- Workflow-studio: 9 templates in test.
+- Audit-chain: 18M audit events/month.
+- Audit-chain: 1.7M policy evaluation records/month.
+- Audit-chain: 190K evidence export records/month.
+- Identity: 500 employee identities.
+- Identity: 42 contractor identities.
+- Identity: 1,850 customer organization reviewer principals.
+- Identity: 34 service accounts.
+- Tenancy: 2 production cells.
+- Tenancy: 3 environment tiers.
+- Tenancy: 14 customer-facing subscopes.
+- Ops dashboard: 126 health panels.
+- Ops dashboard: 24 compliance pack widgets.
+- API usage: 182M north-south requests/month.
+- East-west traffic: 410M service calls/month.
+- Storage growth: 3.2 TB/month.
+- Retention pressure: GDPR redaction with SOC 2 preservation.
+- Backup footprint: 54 TB compressed logical backup set.
+- Export volume: 86 evidence exports/month.
+- Demo seed size: small enough for SE replay, rich enough for enterprise plausibility.
+
+## Active Cedar Policies
+
+- Policy bundle: `acme-silver-default-deny.bundle`.
+- Purpose: starts every Acme surface from deny unless a tenant, role, pack, and environment tier all match.
+- Applies to: application, identity, tenancy, drive, docs, workflow-engine, and audit-chain.
+- Demo moment: Saanvi sees product launch workflows but not CCO-only evidence approvals.
+- Policy bundle: `acme-gdpr-dsr-operator.bundle`.
+- Purpose: allows privacy operators to triage DSR workflows without granting broad file access.
+- Applies to: workflow-engine, workflow-studio, drive, docs, mail, and audit-chain.
+- Demo moment: Naveen delegates DSR collection while preserving final CCO signoff.
+- Policy bundle: `acme-soc2-control-owner-attestation.bundle`.
+- Purpose: lets control owners attest evidence with signed audit-chain events.
+- Applies to: docs, drive, audit-chain, calendar, and mail.
+- Demo moment: Diego attests change-management control evidence for the quarter.
+- Policy bundle: `acme-change-window-two-person-rule.bundle`.
+- Purpose: requires CTO technical approval and CCO observer role for prod change windows.
+- Applies to: calendar, workflow-engine, ops-dashboard-control-center, and audit-chain.
+- Demo moment: the SE shows a blocked cutover until the second approval arrives.
+- Policy bundle: `acme-eu-data-residency-read-filter.bundle`.
+- Purpose: ensures EU customer evidence stays in EU-scoped surfaces unless export has legal basis.
+- Applies to: tenancy, drive, docs, mail, and audit-chain.
+- Demo moment: a US admin is denied direct EU customer export until Naveen approves the workflow.
+- Policy bundle: `acme-contractor-expiring-access.bundle`.
+- Purpose: scopes contractor roles to project folders, launch rooms, and expiry timestamps.
+- Applies to: identity, messenger, drive, docs, and calendar.
+- Demo moment: a contractor cannot read a SOC 2 board packet after project expiry.
+- Policy bundle: `acme-prod-destructive-ack.bundle`.
+- Purpose: enforces prod destructive acknowledgment before DSR delete, bulk delete, or cell migration.
+- Applies to: tenancy, workflow-engine, drive, docs, and audit-chain.
+- Demo moment: the UI requires explicit prod acknowledgment and emits a sealed event.
+- Policy bundle: `acme-board-packet-readonly.bundle`.
+- Purpose: makes board packets read-only for directors after CCO publication.
+- Applies to: docs, drive, mail, calendar, and audit-chain.
+- Demo moment: Naveen publishes a board packet while Diego can annotate only through an approval thread.
+- Policy bundle: `acme-pack-evidence-export.bundle`.
+- Purpose: permits evidence export only when pack ID, tenant ID, requester role, and audit reason match.
+- Applies to: audit-chain, docs, drive, mail, workflow-engine, and ops-dashboard-control-center.
+- Demo moment: SE exports GDPR and SOC 2 evidence with redacted PII fields.
+- Policy bundle: `acme-personal-work-boundary.bundle`.
+- Purpose: prevents Saanvi's personal context from leaking into Acme workspace search or docs.
+- Applies to: application, identity, docs, drive, messenger, and audit-chain.
+- Demo moment: j159-inspired switcher shows continuity without commingling.
+
+## Sample Workflows
+
+- Workflow: `acme-dsr-intake-eu-customer`.
+- Trigger: customer privacy portal request.
+- Owner: Naveen Iyer.
+- Participants: privacy operator, product data owner, legal reviewer, and system export worker.
+- µservices: workflow-engine, workflow-studio, drive, docs, mail, audit-chain.
+- Pack binding: GDPR.
+- Demo outcome: export is produced with SOC 2 evidence preservation.
+- Workflow: `acme-soc2-quarterly-control-attestation`.
+- Trigger: quarter-end control window.
+- Owner: Naveen Iyer.
+- Participants: Diego Vargas, SRE, security, finance, and internal audit.
+- µservices: docs, drive, calendar, mail, workflow-engine, audit-chain.
+- Pack binding: SOC 2.
+- Demo outcome: CCO publishes a board-ready evidence summary.
+- Workflow: `acme-platform-major-version-cutover`.
+- Trigger: Diego schedules a major platform version change.
+- Owner: Diego Vargas.
+- Participants: SRE, product, support, compliance observer, and customer success.
+- µservices: ops-dashboard-control-center, calendar, messenger, workflow-engine, audit-chain.
+- Pack binding: SOC 2 change management.
+- Demo outcome: a cutover cannot enter prod without second approval.
+- Workflow: `acme-product-launch-governance`.
+- Trigger: Saanvi opens launch readiness for a feature cohort.
+- Owner: Saanvi Mehta.
+- Participants: design, engineering, support, legal, and customer success.
+- µservices: application, docs, drive, messenger, calendar, workflow-engine.
+- Pack binding: GDPR privacy review plus SOC 2 change trail.
+- Demo outcome: product readiness is visible without policy bypass.
+- Workflow: `acme-contractor-offboarding`.
+- Trigger: contractor project end date.
+- Owner: People Operations.
+- Participants: manager, identity admin, compliance reviewer, and drive folder owner.
+- µservices: identity, tenancy, drive, docs, messenger, audit-chain.
+- Pack binding: SOC 2 access control.
+- Demo outcome: all scoped grants expire and evidence is sealed.
+- Workflow: `acme-customer-trust-room-request`.
+- Trigger: prospect asks for SOC 2 and GDPR evidence.
+- Owner: Sales Engineering.
+- Participants: CCO reviewer, account executive, and customer procurement contact.
+- µservices: docs, drive, mail, workflow-engine, audit-chain.
+- Pack binding: GDPR and SOC 2.
+- Demo outcome: trust room exposes approved evidence only.
+
+## Sample Journeys
+
+- Linked journey: [j159 Saanvi Mehta MBA application spans personal and work](../../docs/user-journeys/j159-saanvi-mehta-mba-application-spans-personal-and-work/README.md).
+- Acme mapping: role projection and personal/work boundary in product-manager daily work.
+- Linked journey: [j165 CCO Naveen Iyer board quarterly compliance report](../../docs/user-journeys/j165-cco-naveen-iyer-board-quarterly-compliance-report/README.md).
+- Acme mapping: board compliance evidence bundle and CCO signoff.
+- Linked journey: [j167 CTO Diego Vargas platform major version cutover](../../docs/user-journeys/j167-cto-diego-vargas-platform-major-version-cutover/README.md).
+- Acme mapping: platform cutover and change governance.
+- Linked journey: [j166 CSO Mira Goldberg strategic acquisition go/no-go](../../docs/user-journeys/j166-cso-mira-goldberg-strategic-acquisition-go-no-go/README.md).
+- Acme mapping: strategic diligence read-only pattern for future acquisition demo expansion.
+- Linked journey: [j172 Lev Kahn investor relations shareholder meeting livestream](../../docs/user-journeys/j172-lev-kahn-investor-relations-shareholder-meeting-livestream/README.md).
+- Acme mapping: board and external disclosure concepts without banking or public-company claims.
+- Journey range anchor: j151-j175 is the sample-tenant walk-through range for this fixture set.
+- Journey constraint: Acme uses only the journeys that fit a mid-market SaaS tenant.
+- Journey note: paths are references; this fixture does not mutate journey source files.
+
+## Sample Incidents
+
+- Incident: `ACME-SEV2-2026-02-14-EU-EXPORT-LAG`.
+- Severity: SEV-2.
+- Scenario: EU DSR export queue exceeded the agreed internal processing window.
+- Impact: 91 DSR cases waited more than four hours for export packaging.
+- Detection: ops-dashboard-control-center queue latency widget.
+- Primary µservices: workflow-engine, drive, docs, audit-chain, tenancy.
+- Response owner: Naveen Iyer.
+- Technical owner: Diego Vargas.
+- Customer communication: mail template with GDPR language.
+- Resolution: added batch backpressure and an approval checkpoint for oversized exports.
+- Demo use: show evidence timeline from detection to CCO closure.
+- Incident: `ACME-SEV2-2026-03-09-CUTOVER-ROLLBACK`.
+- Severity: SEV-2.
+- Scenario: planned product cutover regressed workflow template rendering in staging.
+- Impact: 14 launch workflows paused before prod promotion.
+- Detection: Diego saw failed staging promotion in the cutover workflow.
+- Primary µservices: workflow-studio, workflow-engine, ops-dashboard-control-center, audit-chain.
+- Response owner: Diego Vargas.
+- Compliance observer: Naveen Iyer.
+- Customer communication: no customer impact; internal notice retained for SOC 2.
+- Resolution: rollback rehearsal passed and prod promotion was delayed 24 hours.
+- Demo use: prove staging catches change risk before production.
+- Incident: `ACME-SEV2-2026-04-02-CONTRACTOR-FOLDER-DRIFT`.
+- Severity: SEV-2.
+- Scenario: a contractor retained read access to an obsolete product research folder.
+- Impact: 17 documents were visible for 37 minutes beyond project close.
+- Detection: access review policy flagged expired project scope.
+- Primary µservices: identity, drive, docs, audit-chain.
+- Response owner: Security Director Anna Petrova.
+- Compliance owner: Naveen Iyer.
+- Customer communication: not required; no customer data involved.
+- Resolution: contractor grant revoked and expiry policy fixture added.
+- Demo use: demonstrate least-privilege evidence without dramatizing a breach.
+- Incident: `ACME-SEV2-2026-04-27-BOARD-PACKET-REDACTION`.
+- Severity: SEV-2.
+- Scenario: draft board packet included raw customer identifier examples.
+- Impact: publication blocked before board distribution.
+- Detection: pack-evidence export policy denied finalization.
+- Primary µservices: docs, drive, audit-chain, mail.
+- Response owner: Naveen Iyer.
+- Product owner: Saanvi Mehta.
+- Customer communication: not required because packet never left tenant-private draft state.
+- Resolution: redaction workflow completed and evidence export reran.
+- Demo use: show Cedar denial as a useful control rather than a UX failure.
+
+## Demo Script
+
+- Demo moment 01: `Acme Tenant Open`.
+- Presenter action: open the Acme workspace as SE admin observer.
+- Buyer-facing point: this is a fictional 500-employee SaaS tenant with Silver controls.
+- Evidence to show: tenant identity, tier, active packs, and active µservices.
+- Stop condition: audience understands the fixture boundary.
+- Demo moment 02: `Saanvi Product Launch`.
+- Presenter action: impersonation-safe role projection to Saanvi's product manager view.
+- Buyer-facing point: product can run launch governance without compliance-admin power.
+- Evidence to show: workflow task list, docs comments, and denied evidence folder access.
+- Stop condition: least privilege is visible.
+- Demo moment 03: `Diego Cutover Gate`.
+- Presenter action: open the major-version cutover workflow.
+- Buyer-facing point: production change needs technical approval, calendar window, and CCO observer.
+- Evidence to show: staging dry run, rollback rehearsal, and audit-chain event.
+- Stop condition: CTO change governance is clear.
+- Demo moment 04: `Naveen Board Packet`.
+- Presenter action: switch to Naveen and assemble the SOC 2 board report.
+- Buyer-facing point: compliance evidence is generated from live controls rather than screenshots.
+- Evidence to show: SOC 2 pack overlay and evidence export.
+- Stop condition: CCO signoff is sealed.
+- Demo moment 05: `GDPR DSR Export`.
+- Presenter action: launch a synthetic EU customer DSR.
+- Buyer-facing point: GDPR request moves through workflow, data maps, and redaction.
+- Evidence to show: DSR tasks, export manifest, and audit-chain policy decisions.
+- Stop condition: export succeeds without leaking unrelated SOC 2 evidence.
+- Demo moment 06: `Contractor Drift Denial`.
+- Presenter action: attempt to open an expired contractor folder grant.
+- Buyer-facing point: Cedar policy blocks stale access and records why.
+- Evidence to show: denial reason, role expiry, and remediation workflow.
+- Stop condition: buyer sees a precise denial, not a generic error.
+- Demo moment 07: `Trust Room Export`.
+- Presenter action: create a prospect trust room.
+- Buyer-facing point: Sales can share approved evidence without direct access to source control folders.
+- Evidence to show: approved artifacts, redacted fields, and pack IDs.
+- Stop condition: trust room has only approved GDPR and SOC 2 materials.
+- Demo moment 08: `Ops Dashboard Health`.
+- Presenter action: show Silver tenant health after workflow activity.
+- Buyer-facing point: SE can narrate service health, queue latency, and policy propagation.
+- Evidence to show: dashboard panels for workflow, audit-chain, and pack state.
+- Stop condition: Acme is ready for Q&A or handoff to another tenant fixture.

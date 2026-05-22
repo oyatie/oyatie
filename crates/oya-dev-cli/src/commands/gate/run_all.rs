@@ -228,15 +228,6 @@ fn run_ci_required_preflight_command(command: &str) -> bool {
             child.args(["scripts/github-actions-required-secrets-check.sh"]);
             child
         }
-        "bash scripts/pr-review-workflow-pr-head-check.sh --source worktree" => {
-            let mut child = Command::new("bash");
-            child.args([
-                "scripts/pr-review-workflow-pr-head-check.sh",
-                "--source",
-                "worktree",
-            ]);
-            child
-        }
         other => {
             eprintln!("[gate run-all] unsupported ci-required command in catalog: {other}");
             return false;
@@ -259,6 +250,7 @@ fn cargo_with_ci_env() -> Command {
     let mut command = Command::new("cargo");
     command.env("CARGO_TERM_COLOR", "always");
     command.env("CARGO_INCREMENTAL", "0");
+    command.env_remove("RUSTC_WRAPPER");
     command
 }
 

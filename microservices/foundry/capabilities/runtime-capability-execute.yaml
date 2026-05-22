@@ -5,7 +5,7 @@ namespace: foundry-runtime
 display_name: Execute Capability Invocation
 description: |
   Accept a (tenant, capability_id, input, session_id?) tuple; check AutonomyGate against the
-  principal's tenant tier ceiling; resolve the descriptor from the local registry mirror;
+  principal's tenant autonomy ceiling; resolve the descriptor from the local registry mirror;
   dispatch through foundry-guardrails (pre-flight safety) → foundry-providers (LLM call) →
   foundry-guardrails (output safety) → session-state persistence → foundry-evidence emission;
   return the invocation lifecycle record.
@@ -24,7 +24,7 @@ related_artifacts:
   - microservices/foundry/policy/tenant-scope.cedar
   - microservices/foundry/policy/runtime-isolation.md
 
-autonomy_tier: T2
+autonomy_level: T2
 # T2 = read-only sensitive data + write to ledger; the runtime itself is T2; capabilities
 # it executes carry their own tier per descriptor. Per ADR-0022.
 
@@ -44,7 +44,7 @@ inputs:
     type: string
     required: false
     pattern: '^[0-9A-Z]{26}$'
-  - name: autonomy_tier_declared
+  - name: autonomy_level_declared
     type: integer
     minimum: 0
     maximum: 4
@@ -114,7 +114,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/capability-execute-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/capability-execute-baseline.jsonl
   pass_threshold: 0.99
   eval_metric: dispatch-latency-p99-≤50ms AND autonomy-refusal-correctness AND guardrail-block-correctness
   cadence: per-release

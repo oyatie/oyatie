@@ -60,7 +60,7 @@ Regional packs per ADR-0010 supply per-region store-policy bindings. The canonic
 
 ### 7. Quality bar (replaces the legacy mobile quality-bar decision)
 
-Native shells must satisfy a CI fitness lane `oya-foundry-fitness-mobile-native` that enforces:
+Native shells must satisfy a CI fitness lane `oya-governance-mobile-native` that enforces:
 - Crash-free sessions ≥ 99.5% per release (release blocker if regressed > 0.2%)
 - Per-screen p99 cold-start ≤ 2s on the per-product PRD reference device set
 - Accessibility audit pass (VoiceOver iOS / TalkBack Android)
@@ -95,7 +95,7 @@ Every regulated capability invocation from a native client emits to the same aud
 ## Adoption + verification
 
 - Per-product PRDs that declare native-in-scope cite this ADR and emit a per-product mobile addendum.
-- The planned advisory lane `oya-foundry-fitness-mobile-native` lands as part of W-Foundry-Preview foundation work (lane scaffolded, blocking gates activate at W-Workspace-Stable).
+- The planned advisory lane `oya-governance-mobile-native` lands as part of W-Foundry-Preview foundation work (lane scaffolded, blocking gates activate at W-Workspace-Stable).
 - The Mobile Native Strategy is reviewed at every wave gate (Foundry-Preview through Region-Fan-Out); deviation requires founder + council-architecture sign-off.
 
 ## Sources

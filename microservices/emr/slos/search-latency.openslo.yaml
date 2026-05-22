@@ -1,0 +1,28 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: emr-search-latency
+  microservice: emr
+spec:
+  description: Patient search latency (phonetic + identifier + DOB-range)
+  service: emr
+  indicator:
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: histogram_quantile(0.99, sum by(le, tenant, cell) (rate(emr_search_duration_seconds_bucket[1m]))) <= 0.4
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum by(tenant, cell) (rate(emr_search_duration_seconds_count[1m]))
+  objectives:
+    - target: 0.995
+      timeWindow:
+        - duration: 28d
+          isRolling: true
+  budgetingMethod: Occurrences

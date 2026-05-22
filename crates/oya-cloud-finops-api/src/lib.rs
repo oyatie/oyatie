@@ -122,7 +122,7 @@ pub struct CloudFinopsAxisRef {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudFinopsReportAnomalyPolicyRequest {
     pub spend_growth_threshold_bps: u16, // data_class: INTERNAL_ONLY
-    pub min_absolute_delta_minor_units: u64, // data_class: FINANCIAL
+    pub min_absolute_delta_minor_units: u64, // data_class: FINANCIAL_REGULATED_CREDIT
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -187,7 +187,7 @@ type CloudFinopsReportApiResult =
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudFinopsReportGenerateSuccessResponse {
-    pub data: CloudFinopsReportRecord,       // data_class: FINANCIAL
+    pub data: CloudFinopsReportRecord, // data_class: FINANCIAL_REGULATED_CREDIT
     pub metadata: CloudFinopsReportMetadata, // data_class: INTERNAL_ONLY
 }
 
@@ -231,7 +231,7 @@ pub struct CloudFinopsReportMetadata {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudFinopsMoneyRecord {
     pub currency: String, // data_class: INTERNAL_ONLY
-    pub minor_units: u64, // data_class: FINANCIAL
+    pub minor_units: u64, // data_class: FINANCIAL_REGULATED_CREDIT
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -242,25 +242,25 @@ pub struct CloudFinopsReportRecord {
     pub period_start_epoch_seconds: u64,                       // data_class: INTERNAL_ONLY
     pub period_end_epoch_seconds: u64,                         // data_class: INTERNAL_ONLY
     pub axes: Vec<CloudFinopsAxisRef>,                         // data_class: INTERNAL_ONLY
-    pub axis_costs: Vec<CloudFinopsAxisCostRecord>,            // data_class: FINANCIAL
-    pub resource_costs: Vec<CloudFinopsResourceCostRecord>,    // data_class: FINANCIAL
-    pub anomalies: Vec<CloudFinopsCostAnomalyRecord>,          // data_class: FINANCIAL
+    pub axis_costs: Vec<CloudFinopsAxisCostRecord>, // data_class: FINANCIAL_REGULATED_CREDIT
+    pub resource_costs: Vec<CloudFinopsResourceCostRecord>, // data_class: FINANCIAL_REGULATED_CREDIT
+    pub anomalies: Vec<CloudFinopsCostAnomalyRecord>, // data_class: FINANCIAL_REGULATED_CREDIT
     pub recommendations: Vec<CloudFinopsRecommendationRecord>, // data_class: INTERNAL_ONLY
-    pub total_cost: CloudFinopsMoneyRecord,                    // data_class: FINANCIAL
-    pub total_cost_of_revenue: CloudFinopsMoneyRecord,         // data_class: FINANCIAL
-    pub gross_margin_bps: u16,                                 // data_class: INTERNAL_ONLY
-    pub minimum_gross_margin_bps: u16,                         // data_class: INTERNAL_ONLY
-    pub data_class: String,                                    // data_class: INTERNAL_ONLY
-    pub schema_version: u32,                                   // data_class: PUBLIC
+    pub total_cost: CloudFinopsMoneyRecord,           // data_class: FINANCIAL_REGULATED_CREDIT
+    pub total_cost_of_revenue: CloudFinopsMoneyRecord, // data_class: FINANCIAL_REGULATED_CREDIT
+    pub gross_margin_bps: u16,                        // data_class: INTERNAL_ONLY
+    pub minimum_gross_margin_bps: u16,                // data_class: INTERNAL_ONLY
+    pub data_class: String,                           // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                          // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudFinopsAxisCostRecord {
     pub axis: String,                            // data_class: INTERNAL_ONLY
-    pub actual_cost: CloudFinopsMoneyRecord,     // data_class: FINANCIAL
-    pub cost_of_revenue: CloudFinopsMoneyRecord, // data_class: FINANCIAL
+    pub actual_cost: CloudFinopsMoneyRecord,     // data_class: FINANCIAL_REGULATED_CREDIT
+    pub cost_of_revenue: CloudFinopsMoneyRecord, // data_class: FINANCIAL_REGULATED_CREDIT
     pub gross_margin_bps: u16,                   // data_class: INTERNAL_ONLY
-    pub budget: Option<CloudFinopsMoneyRecord>,  // data_class: FINANCIAL
+    pub budget: Option<CloudFinopsMoneyRecord>,  // data_class: FINANCIAL_REGULATED_CREDIT
     pub budget_utilization_bps: Option<u16>,     // data_class: INTERNAL_ONLY
 }
 
@@ -268,8 +268,8 @@ pub struct CloudFinopsAxisCostRecord {
 pub struct CloudFinopsResourceCostRecord {
     pub resource_id: String,                     // data_class: INTERNAL_ONLY
     pub axis: String,                            // data_class: INTERNAL_ONLY
-    pub actual_cost: CloudFinopsMoneyRecord,     // data_class: FINANCIAL
-    pub cost_of_revenue: CloudFinopsMoneyRecord, // data_class: FINANCIAL
+    pub actual_cost: CloudFinopsMoneyRecord,     // data_class: FINANCIAL_REGULATED_CREDIT
+    pub cost_of_revenue: CloudFinopsMoneyRecord, // data_class: FINANCIAL_REGULATED_CREDIT
     pub gross_margin_bps: u16,                   // data_class: INTERNAL_ONLY
 }
 
@@ -278,8 +278,8 @@ pub struct CloudFinopsCostAnomalyRecord {
     pub kind: String,                                  // data_class: INTERNAL_ONLY
     pub axis: String,                                  // data_class: INTERNAL_ONLY
     pub resource_id: Option<String>,                   // data_class: INTERNAL_ONLY
-    pub actual_cost: CloudFinopsMoneyRecord,           // data_class: FINANCIAL
-    pub baseline_cost: Option<CloudFinopsMoneyRecord>, // data_class: FINANCIAL
+    pub actual_cost: CloudFinopsMoneyRecord,           // data_class: FINANCIAL_REGULATED_CREDIT
+    pub baseline_cost: Option<CloudFinopsMoneyRecord>, // data_class: FINANCIAL_REGULATED_CREDIT
     pub threshold_bps: u16,                            // data_class: INTERNAL_ONLY
 }
 

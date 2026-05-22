@@ -93,12 +93,12 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Valkey Sentinel quorum loss (e.g., AZ outage); lease coordination unavailable |
-| Detection | `oya_workflow_engine_redis_sentinel_quorum_healthy == 0` for ≥ 30s OR step claim failures spike |
+| Detection | `oya_workflow_engine_valkey_sentinel_quorum_healthy == 0` for ≥ 30s OR step claim failures spike |
 | Tenant impact | New step dispatch fails; in-flight runs paused at next step boundary |
 | Severity | Sev-1 (cluster-wide impact) |
 | Immediate mitigation | Failover to Postgres advisory locks (degraded but available); Sentinel re-quorum |
 | RTO | ≤ 5min failover; ≤ 30min Sentinel recovery |
-| Recovery runbook | `runbooks/redis-failover.md` |
+| Recovery runbook | `runbooks/valkey-failover.md` |
 | Postmortem owner | axis-workflow + ops-sre-reliability |
 
 ## FM-06: Spec store version downgrade detected (attempted)

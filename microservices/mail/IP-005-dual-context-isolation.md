@@ -104,6 +104,13 @@ cargo run -p oya-dev-cli -- gate validate migration-context-tagging --microservi
 - Personal-pillar KMS scope test finds any role with subject != user.user_id can decrypt.
 - Any code path bypasses the four-eyes check for legal-hold engage.
 
+
+## Sustainability emission (per ADR-0344)
+- Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
+- Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
+- Surface evidence: `microservices/mail/IP-005-dual-context-isolation.md` matched `emission`; anchors `microservices/mail/manifest.json, crates/oya-shared-email-comms-kernel/src/lib.rs`; type anchor `crates/oya-shared-email-comms-kernel/src/lib.rs::OutboundMessage`.
+
 ## Next IP
 
 [`IP-006-inbound-smtp.md`](IP-006-inbound-smtp.md)

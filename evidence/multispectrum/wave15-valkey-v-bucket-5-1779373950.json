@@ -1,0 +1,115 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "wave15-valkey-v-bucket-5",
+  "change_class_id": "CC-5",
+  "agent_id": "codex-wave15-valkey-v-bucket-5",
+  "timestamp_iso": "2026-05-21T14:32:30Z",
+  "freshness_unix": 1779373950,
+  "git_sha": "0122c1e6473d",
+  "scope": "Wave 15-Valkey V-BUCKET-5 corpus vocabulary migration",
+  "claimed_scopes": [
+    "microservices/workflow-engine",
+    "microservices/workflow-studio",
+    "microservices/data-pipeline",
+    "microservices/data-warehouse",
+    "microservices/analytics",
+    "microservices/intelligence",
+    "microservices/translate",
+    "microservices/feature-flags",
+    "microservices/tasks",
+    "microservices/application"
+  ],
+  "summary": "Oyatie-owned Redis vocabulary was rewritten to Valkey per ADR-0336; counterpart/customer Redis facts were preserved with explicit annotations.",
+  "changed_files_summary": {
+    "content_rewritten_files": 96,
+    "renamed_paths": 11,
+    "remediation_notes_updated": 10,
+    "counterpart_fact_preservations": 6,
+    "residual_oyatie_owned_redis_refs": 0
+  },
+  "verification": [
+    {
+      "command": "for ms in workflow-engine workflow-studio data-pipeline data-warehouse analytics intelligence translate feature-flags tasks application; do rg -i 'redis' microservices/$ms/ | grep -v -E 'REMEDIATION-NOTES|counterpart-fact|historical|from-redis-on-aws|external-redis|customer.redis|legacy.redis' | wc -l; done",
+      "result": "0 for all 10 assigned microservices"
+    },
+    {
+      "command": "for ms in workflow-engine workflow-studio data-pipeline data-warehouse analytics intelligence translate feature-flags tasks application; do rg -c 'Valkey' microservices/$ms/; done",
+      "result": "Valkey present in all 10 assigned microservices"
+    },
+    {
+      "command": "jq empty changed JSON files",
+      "result": "pass"
+    },
+    {
+      "command": "ruby -ryaml YAML.load_file on changed catalog and Valkey Helm YAML files",
+      "result": "pass"
+    },
+    {
+      "command": "find assigned microservices -iname '*redis*'",
+      "result": "0 path residues"
+    }
+  ],
+  "remaining_risks": [
+    "A broad git diff --check over all assigned microservices still reports pre-existing blank EOF findings in analytics/application/translate compliance files; they were not part of the Valkey rewrite surface."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The migration is a naming and doctrine alignment pass; it avoids new abstractions and keeps upstream protocol/client compatibility intact."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Valkey aligns the assigned microservice corpus with ADR-0336 and hyperscaler-managed Valkey substrate posture."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "residual grep filter must return 0 for all assigned services",
+      "findings": [
+        "Residual Redis checks passed after excluding explicit counterpart-fact and external-redis preservations."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 5,
+      "findings": [
+        "Catalog, manifest, IaC, runbook, and remediation-note names now use Valkey consistently in the assigned bucket."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "JSON parse checks, YAML parse checks for strict catalog/Helm files, residual grep, Valkey presence, and path residue checks passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Blanket rewrite every Redis string",
+        "Preserve all Redis strings as historical",
+        "Rewrite only Oyatie-owned substrate references and annotate counterpart facts"
+      ],
+      "selected_rationale": "ADR-0336 requires Oyatie-owned substrate vocabulary to move to Valkey while preserving factual counterpart/customer Redis references.",
+      "rejected_reasons": [
+        "Blanket rewrite would falsify n8n and connector-catalog facts.",
+        "Preserving all Redis strings would leave Oyatie-owned substrate residue."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration_and_supply_chain_vocabulary_only",
+      "findings": [
+        "No credentials or runtime secrets were introduced; REDIS-style env and secret names in the assigned surface were renamed to VALKEY-style names."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A1_naming": "adapter-valkey, valkey env refs, Valkey runbooks, and Valkey IaC paths are now used in assigned services.",
+    "A2_documentation": "Each assigned microservice has a Wave 15-Valkey remediation-note block.",
+    "A5_architecture": "Counterpart-fact boundaries follow ADR-0336."
+  }
+}

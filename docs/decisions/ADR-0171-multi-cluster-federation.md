@@ -46,7 +46,7 @@ ADR-0148 already commits to Istio as the canonical service-mesh; Istio's `multi-
 
 - **Application deployment across N clusters** — ArgoCD ApplicationSets.
 - **Cluster lifecycle (create / upgrade / delete)** — Cluster API.
-- **Cross-region routing for tenant traffic** — DNS-based + GeoIP routing via the network µservice; multi-cluster Ingress pattern from GKE adapted to on-prem.
+- **Cross-region routing for tenant traffic** — DNS-based + GeoIP routing via the `cloud-network` µservice; multi-cluster Ingress pattern from GKE adapted to on-prem.
 
 ## Decision
 
@@ -108,7 +108,7 @@ A dedicated "federation" cell hosts:
 - The ArgoCD federation control plane (1 ArgoCD instance manages N application clusters).
 - The CAPI management cluster.
 - The Karmada-or-multi-cluster-Ingress controller for cross-region routing.
-- The network µservice's GeoDNS + global load balancer (per pack).
+- The `cloud-network` µservice's GeoDNS + global load balancer (per pack).
 
 Cross-region routing pattern adapted from GKE Multi-Cluster Ingress:
 
@@ -183,7 +183,7 @@ The federation control plane lives in a meta-pack ("federation") that is NOT a t
 2. CAPI providers tracked in `registry/cluster-api-providers.json` (new registry entry).
 3. Federation control plane runs in a dedicated meta-pack ("federation"); not a tenant-data residency boundary.
 4. Per-µservice migration: each µservice's helm chart references switch from per-cluster `kubectl apply` to ApplicationSet-rendered `kubectl apply` over a single migration window (one PR per µservice).
-5. GeoDNS + multi-cluster Ingress: managed by the network µservice; per-pack public IPs published with residency labels.
+5. GeoDNS + multi-cluster Ingress: managed by the `cloud-network` µservice; per-pack public IPs published with residency labels.
 6. SLO: federation control plane availability 99.95% (one nine below the platform — federation outage degrades new-deploy velocity, not tenant-facing traffic).
 
 ## References

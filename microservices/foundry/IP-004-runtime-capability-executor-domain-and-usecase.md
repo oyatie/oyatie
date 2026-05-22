@@ -82,12 +82,12 @@ where
         tenant_id: &str,
         capability_id: &str,
         input: serde_json::Value,
-        requested_tier: AutonomyTier,
+        requested_autonomy_level: AutonomyLevel,
     ) -> Result<Invocation, DispatchError> {
         // Step 1: AutonomyGate (per runtime-isolation.md TI-08 — FIRST step)
-        match self.autonomy.check(tenant_id, requested_tier).await? {
+        match self.autonomy.check(tenant_id, requested_autonomy_level).await? {
             AutonomyDecision::Refuse { ceiling } => {
-                return Err(DispatchError::AutonomyViolation { ceiling, requested: requested_tier });
+                return Err(DispatchError::AutonomyViolation { ceiling, requested: requested_autonomy_level });
             }
             AutonomyDecision::Permit { .. } => {}
         }
@@ -141,10 +141,10 @@ Per PHASE-01: 1 test per use case (happy + 2 sad paths) + ≥3 mocked-port integ
 | Test | Verifies |
 |---|---|
 | `test_dispatch_happy_path` | mocked ports → Invocation completed |
-| `test_dispatch_autonomy_refusal` | requested tier > ceiling → AutonomyViolation error |
+| `test_dispatch_autonomy_refusal` | requested autonomy level > ceiling → AutonomyViolation error |
 | `test_dispatch_preflight_guardrail_block` | guardrail blocks → GuardrailBlock error |
 | `test_dispatch_provider_unreachable` | provider returns error → ProviderUnreachable |
-| `test_autonomy_arithmetic_monotonic` | tier comparison correctness (domain) |
+| `test_autonomy_arithmetic_monotonic` | autonomy-level comparison correctness (domain) |
 | `test_step_state_machine_validity` | only valid transitions accepted (domain) |
 
 ## Halt Conditions
@@ -163,3 +163,9 @@ Per PHASE-01: 1 test per use case (happy + 2 sad paths) + ≥3 mocked-port integ
 - ADR-0106 (application→usecase rename).
 - `policy/runtime-isolation.md` TI-08.
 - `threat-model.md` T-E-01.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

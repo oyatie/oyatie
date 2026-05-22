@@ -5,7 +5,7 @@ namespace: foundry-guardrails
 display_name: Enforce Autonomy-Tier Ceiling
 description: |
   Compute the effective autonomy ceiling for a (principal, capability, pack, subject_class)
-  tuple per ADR-0022, evaluate the requested tier against the ceiling, and refuse the
+  tuple per ADR-0022, evaluate the requested autonomy level against the ceiling, and refuse the
   invocation if the request exceeds the ceiling. The effective ceiling is the minimum of
   four sources: tenant_configured, capability_min_required, vertical_pack_cap,
   subject_class_cap.
@@ -19,7 +19,7 @@ related_artifacts:
   - microservices/foundry/contracts/openapi/guardrails.yaml
   - microservices/foundry/policy/tenant-scope.cedar
 
-autonomy_tier: T1
+autonomy_level: T1
 # T1 = recommend-only; this capability emits the ceiling but cannot itself raise it.
 
 inputs:
@@ -29,7 +29,7 @@ inputs:
   - name: capability_id
     type: string
     required: true
-  - name: requested_tier
+  - name: requested_autonomy_level
     type: enum
     values: [T0, T1, T2, T3, T4]
     required: true
@@ -89,7 +89,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/enforce-autonomy-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/enforce-autonomy-baseline.jsonl
   pass_threshold: 1.0    # this is a pure math + cedar check; 100% determinism required
   eval_metric: ceiling-correctness-against-adr-0022-spec
   cadence: per-release

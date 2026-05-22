@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: oya-treasury-pqc
+spec:
+  secretName: oya-treasury-tls
+  commonName: treasury.svc.oyatie.example
+  privateKey:
+    algorithm: Ed25519
+  usages: [server auth, client auth]
+  subject:
+    organizations: [Oyatie]
+  additionalOutputFormats:
+    - type: CombinedPEM

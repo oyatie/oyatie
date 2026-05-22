@@ -154,7 +154,7 @@ This is a sharper invariant than messenger's E2E posture because messenger E2E c
 
 ## Supply Chain (SLSA L3)
 
-- All Cargo deps pinned with checksum in `Cargo.lock` per LTS policy (Postgres 16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10.0, Loro 1.x, openmls 0.6, Cedar v4.2).
+- All Cargo deps pinned with checksum in `Cargo.lock` per LTS policy (Postgres 16, Valkey 8.1 (RESP3 wire-compatible), Meilisearch 0.10.0, Loro 1.x, openmls 0.6, Cedar v4.2).
 - Browser extension build artifacts signed with HSM-bound code-signing cert; reproducible builds verified at release.
 - `oya gate validate version-pinning-conformance` exit 0 blocking on `dev`.
 

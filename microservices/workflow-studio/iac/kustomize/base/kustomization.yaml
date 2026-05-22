@@ -21,9 +21,9 @@ helmCharts:
     valuesFile: ../../helm/studio-postgres/values.yaml
     releaseName: studio-postgres
     namespace: workflow-studio
-  - name: oya-workflow-studio-studio-redis
-    valuesFile: ../../helm/studio-redis/values.yaml
-    releaseName: studio-redis
+  - name: oya-workflow-studio-studio-valkey
+    valuesFile: ../../helm/studio-valkey/values.yaml
+    releaseName: studio-valkey
     namespace: workflow-studio
   - name: oya-workflow-studio-visual-canvas-rest
     valuesFile: ../../helm/visual-canvas-rest/values.yaml

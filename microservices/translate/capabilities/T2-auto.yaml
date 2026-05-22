@@ -2,14 +2,14 @@
 id: cap:translate:t2-auto:v1
 name: translate-auto-translate-content-class
 namespace: translate
-display_name: Auto-Translate by Content-Class (with high-risk EU AI Act gates)
+display_name: Auto-Translate by Content-Class (with high-risk regional AI-risk gates)
 description: |
   T2 autonomous capability: translates content without per-invocation user
   confirmation. Bounded by content-class + per-tenant entitlement. Original
   content is always preserved (no destructive ops). Tenant-admin opt-in
   required per channel / per content-class.
 
-  HIGH-RISK CONTENT-CLASS HANDLING (EU AI Act Annex III §4):
+  HIGH-RISK CONTENT-CLASS HANDLING (employment-context high-risk auto-decision):
     employment, credit-scoring, legal-decisioning, medical-diagnosis:
       - classified HIGH-RISK regardless of pack.
       - tenant attestation required (per-tenant-admin signed attestation in
@@ -19,11 +19,11 @@ description: |
       - human-in-the-loop required for final acceptance: T2 emits "draft +
         QE score"; tenant workflow approver MUST confirm before published.
     employment + credit-scoring + legal-decisioning in pack-eu:
-      Annex III §4 lit. (a) (b) (c) (d) → conformity-assessment trail required.
+      employment-context high-risk auto-decision lit. (a) (b) (c) (d) → conformity-assessment trail required.
 
   STANDARD CONTENT-CLASS HANDLING:
     marketing, ui_string, technical, code_comment, generic:
-      - low-risk (limited_risk in EU AI Act terms); Art. 50 transparency only.
+      - low-risk (limited_risk in regional AI-risk terms); Art. 50 transparency only.
 
 owner_team: axis-translate + axis-foundry-runtime + council-privacy + legal-counsel
 maturity: preview
@@ -81,7 +81,7 @@ outputs:
       engine: {type: string}
       tm_leverage: {type: string, enum: [exact, ice, fuzzy, none]}
       content_hash: {type: string}
-      ai_disclosure_label: {type: string, description: visible AI-disclosure string per Art. 50}
+      ai_disclosure_label: {type: string, description: visible AI-disclosure string per active pack transparency}
   - name: quality_estimation
     type: object
     properties:
@@ -91,7 +91,7 @@ outputs:
     type: object
     properties:
       is_high_risk: {type: boolean}
-      eu_ai_act_annex_iii_class: {type: string, enum: [employment, credit, legal, medical, none]}
+      high_risk_auto_decision_class: {type: string, enum: [employment, credit, legal, medical, none]}
       tenant_attestation_present: {type: boolean}
       human_review_required: {type: boolean}
       conformity_assessment_ref: {type: string, nullable: true}
@@ -110,16 +110,16 @@ regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-
 
 pack_overrides:
   pack-eu:
-    eu_ai_act_classification:
-      employment: high_risk_annex_iii_4a
-      credit_scoring: high_risk_annex_iii_4b
-      legal: high_risk_annex_iii_5a
-      medical: high_risk_annex_iii_5
+    risk_classification:
+      employment: high_risk_auto_decision_employment
+      credit_scoring: high_risk_auto_decision_credit
+      legal: high_risk_auto_decision_legal
+      medical: high_risk_auto_decision_medical
       marketing: limited_risk
       ui_string: minimal_risk
       technical: minimal_risk
       generic: minimal_risk
-    transparency_obligation: must-label-as-AI-generated per Art. 50; must store evidence_topic record per Art. 13
+    transparency_obligation: must-label-as-AI-generated per active pack transparency; must store evidence_topic record per Art. 13
     conformity_assessment_required_for_high_risk: true
     art_9_risk_management: true
     art_15_accuracy_robustness: true
@@ -160,12 +160,12 @@ cedar_policy_fragments:
   - microservices/translate/policy/ai-act-overlay.md
 
 eval_set:
-  golden_inputs_path: microservices/translate/capabilities/eval/t2-auto-golden.jsonl
+  reference_inputs_path: microservices/translate/capabilities/eval/t2-auto-reference.jsonl
   pass_threshold: 0.93
   eval_metric: |
     BLEU + chrF + COMET per (source, target, content_class);
-    high-risk-flag precision: 100 % (HARD; no false-negatives on Annex III categories);
-    EU AI Act disclosure-emission rate: 100 % on jurisdiction=EU invocations
+    high-risk-flag precision: 100 % (HARD; no false-negatives on high-risk auto-decision categories);
+    regional AI-risk disclosure-emission rate: 100 % on jurisdiction=EU invocations
   cadence: per-release
   reference: WMT-24 + COMET-Kiwi + Unbabel TowerEval
 

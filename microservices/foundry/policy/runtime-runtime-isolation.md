@@ -101,7 +101,7 @@ Capability IDs in the `oya:*` namespace are RESERVED. `foundry-supervisor` is th
 
 ### Invariant TI-08: AutonomyGate is the first step in usecase dispatch
 
-Per ADR-0022 + threat-model T-E-01, the AutonomyGate port is invoked BEFORE any provider / guardrail / session-state I/O. Refusal emits `AutonomyViolationDetected` + returns 403 to caller. LEAN check `oya-check-autonomy-gate-presence` asserts call-graph order (gate → registry-cache → autonomy-tier-comparison → permit/deny → provider call).
+Per ADR-0022 + threat-model T-E-01, the AutonomyGate port is invoked BEFORE any provider / guardrail / session-state I/O. Refusal emits `AutonomyViolationDetected` + returns 403 to caller. LEAN check `oya-check-autonomy-gate-presence` asserts call-graph order (gate → registry-cache → autonomy-ceiling-comparison → permit/deny → provider call).
 
 ### Invariant TI-09: Provider credentials never resident in runtime pod
 
@@ -165,7 +165,7 @@ Every cross-tenant boundary event is audit-chain-emitted per Bominal ADR-0028:
 | Tenant spoofing attempt | REST handler | `attempted_tenant_id, source_ip, source_spiffe_id, timestamp, request_id` | ≥1y (HIPAA 6y) |
 | Reserved-namespace write attempt | Postgres RLS / Valkey ACL | `target_table_or_key, source_spiffe_id, attempted_tenant_id, timestamp` | ≥1y |
 | Unauthorised read attempt | REST Cedar evaluator | `principal_id, requested_tenant_id, action, resource, timestamp` | ≥1y |
-| AutonomyViolationDetected | usecase orchestrator | `tenant_id, capability_id, requested_tier, ceiling_at_check_time, timestamp` | indefinite |
+| AutonomyViolationDetected | usecase orchestrator | `tenant_id, capability_id, requested_autonomy_level, ceiling_at_check_time, timestamp` | indefinite |
 | Provider credential rotation | OpenBao + foundry-providers | `provider, prev_credential_id_hash, new_credential_id_hash, rotated_by, timestamp` | ≥1y |
 | Deployment salt rotation | OpenBao + ops-security | `prev_salt_hash, new_salt_hash, rotated_by, timestamp` | indefinite |
 | Pod admission refusal | Kubernetes admission controller | `pod_image, refused_reason, requestor, timestamp` | ≥1y |

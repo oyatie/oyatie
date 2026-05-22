@@ -8,62 +8,76 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-calendar + ops-sre-reliability
-acceptance_lanes: [cargo-nextest, oya-governance-tzdb-staleness-bound, kubectl-apply-dry-run]
+acceptance_lanes: [cargo-nextest, cronjob-dry-run, tzdb-staleness-slo]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-010: TZDB refresh worker
 
-# IP-010: tzdb-refresh-worker — CronJob per ADR-CAL-0004
+## A. Problem
+Calendar cannot provide reproducible historical events or regulated scheduling if time-zone database changes silently rewrite past occurrences.
 
-## Intent
+## B. Approach
+Implement `oya-calendar-tzdb-refresh-worker` as the manifest/catalog-named worker and bind it to the existing Helm CronJob. The worker fetches, verifies, stages, soaks, promotes, and can roll back tzdb versions while preserving per-occurrence `tzdb_version` evidence.
 
-Implement the IANA tzdb refresh worker per ADR-CAL-0004. Polls
-`data.iana.org/time-zones/releases/` every 24h. Opens release-pin-
-bump ChangeSet when new release detected. Runs RFC 5545 corpus +
-DST edge-case matrix before promotion.
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `catalog/oya-calendar-tzdb-refresh-worker.yaml` | Existing worker catalog anchor. |
+| `src/crates/oya-calendar-tzdb-refresh-worker/` | Planned worker path named by manifest/catalog. |
+| `iac/helm/templates/cronjob.yaml` | Runtime binding. |
+| `slos/tzdb-staleness-bound.openslo.yaml` | Staleness promotion SLO. |
+| `runbooks/timezone-db-refresh.md` and `runbooks/tzdb-rollback.md` | Operator closure. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Implement source fetch and signature/hash verification.
+2. Stage candidate tzdb versions without changing active scheduling decisions.
+3. Run regression checks over recurrence and existing occurrence fixtures.
+4. Promote only after soak and SLO checks pass.
+5. Preserve historical occurrence version pins.
+6. Add rollback command and operator evidence emission.
+7. Wire CronJob status to observability and alert rules.
 
-1 crate (`oya-calendar-tzdb-refresh-worker`) + CronJob manifest in
-IaC + per-tenant pin config schema.
+## E. Acceptance
+- `cargo nextest run -p oya-calendar-tzdb-refresh-worker` passes.
+- `kubectl --dry-run=client apply -f microservices/calendar/iac/helm/templates/cronjob.yaml` or chart-rendered equivalent passes.
+- `slos/tzdb-staleness-bound.openslo.yaml` resolves.
+- ADR-CAL-0004 checks pass.
+- Rollback runbook validates previous-version restoration.
 
-## Concrete File Targets
+## F. Evidence
+- Decision: `decisions/ADR-CAL-0004-tzdb-refresh-and-pinning-policy.md`.
+- PRD timezone and DST requirements: `microservices/calendar/PRD.md`.
+- Runbooks: `runbooks/timezone-db-refresh.md`, `runbooks/tzdb-rollback.md`.
+- Benchmark: `performance-benchmark-numbers-2026-05-20.md`.
 
-| Path | Action | Description |
-|---|---|---|
-| `microservices/calendar/src/crates/oya-calendar-tzdb-refresh-worker/Cargo.toml` | create | crate manifest |
-| `microservices/calendar/src/crates/oya-calendar-tzdb-refresh-worker/src/main.rs` | create | poll-loop binary |
-| `microservices/calendar/src/crates/oya-calendar-tzdb-refresh-worker/src/poller.rs` | create | IANA release-stream poller |
-| `microservices/calendar/src/crates/oya-calendar-tzdb-refresh-worker/src/bumper.rs` | create | opens release-pin-bump ChangeSet |
-| `microservices/calendar/iac/helm/templates/cronjob.yaml` | already created in IP-001 | binds the worker as a CronJob |
+## G. Counterpart comparison
+Google and Outlook update time zones for users but offer limited tenant-visible pinning; Calendly and Cal.com expose even less control. Oyatie's counterpart advantage is reproducible historical occurrence behavior with staleness SLOs and rollback evidence.
 
-## Acceptance Gates
+## H. Foundation delivery expansion
+- Deliverable detail: worker records candidate, active, previous, and rollback tzdb versions.
+- Deliverable detail: source fetch includes signature or hash verification before staging.
+- Deliverable detail: soak checks run recurrence and occurrence fixtures before promotion.
+- Deliverable detail: promotion writes audit evidence and leaves historical occurrence pins unchanged.
+- Deliverable detail: rollback restores the previous active version and records affected tenants.
+- Deliverable detail: CronJob status emits last success, last failure, and active version metrics.
+- Deliverable detail: alerting distinguishes stale source, failed verification, failed soak, and failed promotion.
+- Deliverable detail: Slack scheduled reminders create collaboration pressure for accurate time-zone refreshes.
 
-```bash
-cargo nextest run -p oya-calendar-tzdb-refresh-worker
-cargo run -p oya-dev-cli -- gate validate tzdb-staleness-bound --microservice calendar
-```
+## I. Acceptance expansion
+- Acceptance detail: signature/hash tests must reject tampered tzdb payloads.
+- Acceptance detail: soak tests must compare recurrence output before and after candidate staging.
+- Acceptance detail: promotion tests must preserve historical occurrence version pins.
+- Acceptance detail: rollback tests must restore previous active version and audit correlation.
+- Acceptance detail: CronJob dry-run must prove image pinning and SecretReference wiring.
+- Acceptance detail: SLO checks must alert when active tzdb exceeds staleness bound.
+- Acceptance detail: runbooks must include operator commands and evidence artifacts.
+- Acceptance detail: Slack/Google/Outlook comparisons must focus on time correctness for distributed scheduling.
 
-## Test Plan
-
-- Poller smoke test against a mocked IANA release stream.
-- Bump-ChangeSet opens with the correct semver bump for `chrono-tz`.
-- Per-tenant pin override config schema parses correctly.
-- 30d staleness SLO emits the expected metric.
-
-## Halt Conditions
-
-- Poller crashes on malformed IANA release index — block.
-
-## Next IP
-
-[`IP-011-contracts-openapi-asyncapi-proto.md`](IP-011-contracts-openapi-asyncapi-proto.md)
-
-## References
-
-- ADR-CAL-0004 (tzdb refresh + pinning).
-- IANA tz mailing list — `mm.icann.org/pipermail/tz/`.
-- `chrono-tz` — `crates.io/crates/chrono-tz`.
-- `microservices/calendar/runbooks/timezone-db-refresh.md` (refresh path).
-- `microservices/calendar/runbooks/tzdb-rollback.md` (rollback path).
-- `microservices/calendar/slos/tzdb-staleness-bound.openslo.yaml`.
+## J. Evidence expansion
+- Evidence detail: capture nextest output for `oya-calendar-tzdb-refresh-worker`.
+- Evidence detail: capture chart-rendered CronJob dry-run output.
+- Evidence detail: capture `tzdb-staleness-bound` SLO resolution.
+- Evidence detail: cite `ADR-CAL-0004` for pinning policy.
+- Evidence detail: cite `runbooks/timezone-db-refresh.md` for promotion.
+- Evidence detail: cite `runbooks/tzdb-rollback.md` for rollback.
+- Evidence detail: cite Slack as collaboration scheduling pressure where stale tzdb causes visible meeting drift.

@@ -73,7 +73,7 @@ Own the per-locale regional packs that plug into Oyatie's canonical architecture
 | Cross-pack contract violations | 0 per quarter |
 
 Org-level metrics this rolls up to:
-- `oya-foundry-fitness-regional-pack` lane pass rate
+- `oya-governance-regional-pack` lane pass rate
 - Per-region tenant onboarding velocity
 - Per-region regulator-incident count
 
@@ -104,7 +104,7 @@ Org-level metrics this rolls up to:
 - Per-pack maintainer is the regulator-relations primary contact
 - Per-pack ADR amendments authored by pack maintainer + reviewed by `council-privacy` + `council-architecture`
 - Per-pack regulator-watch lane fires on regulatory feed updates (e.g. KISA / PIPC announcements)
-- Per-PR `oya-foundry-fitness-regional-pack` lane validates seam-impl coverage
+- Per-PR `oya-governance-regional-pack` lane validates seam-impl coverage
 - Cosign signing required per release per ADR-0039
 
 ## Slice of risk register

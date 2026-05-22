@@ -84,7 +84,7 @@ pack_overrides:
     disabled_for_phi_rooms: true
     reason: HIPAA 45 CFR §164.514 Safe Harbour — no derived inferences over PHI
   pack-eu:
-    eu_ai_act_classification: minimal_risk
+    risk_classification: minimal_risk
     transparency_obligation: must-label-as-AI-suggested per EU AI Act Art. 50
     reference_adr: ADR-MEET-0006
   pack-kr:
@@ -108,7 +108,7 @@ cedar_policy_fragments:
   - microservices/meet/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/meet/capabilities/eval/t0-suggest-golden.jsonl
+  baseline_inputs_path: microservices/meet/capabilities/eval/t0-suggest-baseline.jsonl
   pass_threshold: 0.88
   eval_metric: topic-suggestion-relevance vs human-rater baseline; participant-hint precision@1
   cadence: per-release

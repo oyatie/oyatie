@@ -1,0 +1,804 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.vendor-onboarding-with-dora-ict-risk.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0173-vendor-lock-in-avoidance-and-stack-ownership
+  - ADR-0316-capability-tier-over-product-fragmentation
+title: Vendor onboarding with DORA ICT risk
+description: >-
+  Onboards vendors into the ICT third-party register with DORA-shaped risk
+  assessment, due-diligence questionnaire, contract controls, approval, and
+  ongoing monitoring evidence before any vendor is marked usable.
+tags:
+  - vendor-risk
+  - dora
+  - procurement
+  - third-party-risk
+  - ongoing-monitoring
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: gold
+    reason: "Third-party risk onboarding requires governed approvals and register evidence."
+ontology_refs:
+  object: VendorOnboardingCase
+  actions:
+    - VendorIntakeCreated
+    - IctRiskAssessed
+    - DueDiligenceQuestionnaireCompleted
+    - ContractControlsApproved
+    - VendorActivated
+    - MonitoringScheduled
+tenant_context:
+  required_fields:
+    - tenant_id
+    - vendor_id
+    - procurement_owner_principal_id
+    - risk_owner_principal_id
+principal_context:
+  system_principal: workflow-engine.vendor-onboarding-dora
+  human_approval_roles:
+    - procurement_owner
+    - risk_owner
+    - legal_owner
+    - security_owner
+data_classes:
+  - VENDOR_PROFILE
+  - ICT_RISK_ASSESSMENT
+  - SECURITY_DDQ_RESPONSE
+  - CONTRACT_CONTROL
+  - MONITORING_EVIDENCE
+residency_pack_overlays:
+  - pack: dora
+    behavior: "Record critical-or-important function mapping and exit-plan evidence."
+  - pack: gdpr
+    behavior: "Require DPA review when vendor processes personal data."
+observability:
+  metrics:
+    - vendor_onboarding_stage_latency_seconds
+    - vendor_dora_critical_register_total
+    - vendor_monitoring_overdue_total
+  traces:
+    - workflow.template.vendor_onboarding_dora
+  logs:
+    - workflow_vendor_onboarding_dora_audit_projection
+cost_allocation:
+  unit: vendor_onboarding_step
+  dimensions:
+    - tenant_id
+    - vendor_id
+    - risk_tier
+idempotency:
+  key_shape: "tenant_id:vendor_id:template_version:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: contract_control_review
+  on_cancel: close_intake_and_revoke_pending_vendor_access
+  audit_event_class: VendorOnboardingCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_register_and_contract_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_demo
+  vendor_id:
+    type: string
+    default: vendor_001
+  vendor_name:
+    type: string
+    default: Example Vendor Ltd
+  service_category:
+    type: string
+    default: cloud-hosting
+  processes_personal_data:
+    type: boolean
+    default: true
+  supports_critical_function:
+    type: boolean
+    default: false
+  procurement_owner_principal_id:
+    type: string
+    default: principal_procurement_001
+  risk_owner_principal_id:
+    type: string
+    default: principal_risk_001
+outputs:
+  onboarding_case_id:
+    type: string
+  terminal_state:
+    type: string
+  ict_register_entry_id:
+    type: string
+  monitoring_plan_id:
+    type: string
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: vendor_intake_start
+    type: start
+    config:
+      trigger: procurement.vendor.intake_requested.v1
+      validates:
+        - tenant_id
+        - vendor_id
+        - service_category
+    cedar_permits_required:
+      - 'Action::"StartVendorOnboarding"'
+    audit_event_class: VendorOnboardingStarted
+    slo_target: "PT4H after intake request"
+    timeout:
+      duration: PT10M
+      on_timeout: intake_start_retry
+    retry:
+      max_attempts: 2
+      backoff: PT2M
+      retryable_errors:
+        - VENDOR_INTAKE_EVENT_LAG
+    failure_modes:
+      - code: VENDOR_ALREADY_ACTIVE
+        behavior: "Link existing vendor record and close duplicate intake."
+    on_success:
+      - edge_to_create_vendor_case
+    on_failure:
+      - edge_to_vendor_exception
+  - id: create_vendor_case
+    type: action
+    config:
+      service: procurement
+      contract: vendor-onboarding-case.v1
+      method: POST
+      url: "https://procurement.internal/v1/vendor-onboarding-cases"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        vendor_name: "${inputs.vendor_name}"
+        service_category: "${inputs.service_category}"
+    cedar_permits_required:
+      - 'Action::"CreateVendorOnboardingCase"'
+    audit_event_class: VendorOnboardingCaseCreated
+    slo_target: "PT1H"
+    timeout:
+      duration: PT10M
+      on_timeout: vendor_case_retry
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - PROCUREMENT_WRITE_TIMEOUT
+    failure_modes:
+      - code: DUPLICATE_VENDOR_CASE
+        behavior: "Return existing onboarding case."
+    on_success:
+      - edge_to_initial_risk_assessment
+    on_failure:
+      - edge_to_vendor_exception
+  - id: initial_risk_assessment
+    type: action
+    config:
+      service: risk
+      contract: dora-ict-risk-assessment.v1
+      method: POST
+      url: "https://risk.internal/v1/dora/ict-risk-assessments"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        service_category: "${inputs.service_category}"
+        supports_critical_function: "${inputs.supports_critical_function}"
+        processes_personal_data: "${inputs.processes_personal_data}"
+    cedar_permits_required:
+      - 'Action::"AssessVendorIctRisk"'
+    audit_event_class: VendorIctRiskAssessed
+    slo_target: "P2D"
+    timeout:
+      duration: PT1H
+      on_timeout: risk_assessment_retry
+    retry:
+      max_attempts: 3
+      backoff: PT20M
+      retryable_errors:
+        - RISK_ENGINE_TIMEOUT
+    failure_modes:
+      - code: CRITICAL_FUNCTION_UNMAPPED
+        behavior: "Block onboarding until business owner maps supported function."
+    on_success:
+      - edge_to_risk_tier_decision
+    on_failure:
+      - edge_to_vendor_exception
+  - id: risk_tier_decision
+    type: decision
+    config:
+      expression: "${nodes.initial_risk_assessment.output.risk_tier}"
+      cases:
+        low: ddq_light
+        medium: ddq_standard
+        high: ddq_enhanced
+        critical: ddq_enhanced
+    cedar_permits_required:
+      - 'Action::"DecideVendorRiskTier"'
+    audit_event_class: VendorRiskTierDecided
+    slo_target: "PT1H after assessment"
+    timeout:
+      duration: PT2H
+      on_timeout: risk_owner_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: RISK_TIER_UNKNOWN
+        behavior: "Route to risk owner; no DDQ issued."
+    on_success:
+      - edge_to_ddq_dispatch
+    on_failure:
+      - edge_to_vendor_exception
+  - id: ddq_dispatch
+    type: action
+    config:
+      service: vendor-risk
+      contract: vendor-ddq-dispatch.v1
+      method: POST
+      url: "https://vendor-risk.internal/v1/ddq"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        risk_tier: "${nodes.initial_risk_assessment.output.risk_tier}"
+        questionnaire_profile: "${nodes.risk_tier_decision.output.case}"
+    cedar_permits_required:
+      - 'Action::"DispatchVendorDueDiligenceQuestionnaire"'
+    audit_event_class: VendorDdqDispatched
+    slo_target: "P1D"
+    timeout:
+      duration: PT30M
+      on_timeout: ddq_dispatch_retry
+    retry:
+      max_attempts: 3
+      backoff: PT10M
+      retryable_errors:
+        - DDQ_DISPATCH_TIMEOUT
+    failure_modes:
+      - code: VENDOR_CONTACT_MISSING
+        behavior: "Create procurement remediation task."
+    on_success:
+      - edge_to_ddq_wait
+    on_failure:
+      - edge_to_vendor_exception
+  - id: ddq_wait
+    type: loop
+    config:
+      poll_contract: vendor-ddq-status.v1
+      poll_interval: P2D
+      max_elapsed: P30D
+      terminal_statuses:
+        - complete
+        - rejected
+        - expired
+    cedar_permits_required:
+      - 'Action::"ReadVendorDdqStatus"'
+    audit_event_class: VendorDdqStatusPolled
+    slo_target: "P30D"
+    timeout:
+      duration: P30D
+      on_timeout: ddq_expired
+    retry:
+      max_attempts: 15
+      backoff: P2D
+      retryable_errors:
+        - DDQ_NOT_READY
+    failure_modes:
+      - code: DDQ_EXPIRED
+        behavior: "Close as blocked unless risk owner extends deadline."
+    on_success:
+      - edge_to_ddq_review
+    on_failure:
+      - edge_to_vendor_exception
+  - id: ddq_review
+    type: action
+    config:
+      service: vendor-risk
+      contract: vendor-ddq-review.v1
+      method: POST
+      url: "https://vendor-risk.internal/v1/ddq/review"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        ddq_response_id: "${nodes.ddq_wait.output.response_id}"
+        risk_tier: "${nodes.initial_risk_assessment.output.risk_tier}"
+    cedar_permits_required:
+      - 'Action::"ReviewVendorDueDiligenceQuestionnaire"'
+    audit_event_class: VendorDdqReviewed
+    slo_target: "P5D"
+    timeout:
+      duration: P5D
+      on_timeout: ddq_review_escalation
+    retry:
+      max_attempts: 2
+      backoff: P1D
+      retryable_errors:
+        - DDQ_REVIEW_QUEUE_DELAY
+    failure_modes:
+      - code: DDQ_CONTROL_GAP
+        behavior: "Create remediation requirement before contract review."
+    on_success:
+      - edge_to_due_diligence_decision
+    on_failure:
+      - edge_to_vendor_exception
+  - id: due_diligence_decision
+    type: decision
+    config:
+      expression: "${nodes.ddq_review.output.outcome}"
+      cases:
+        approved: contract_parallel
+        remediation_required: remediation_task
+        rejected: vendor_rejected_end
+    cedar_permits_required:
+      - 'Action::"DecideVendorDueDiligenceOutcome"'
+    audit_event_class: VendorDueDiligenceOutcomeDecided
+    slo_target: "PT4H after DDQ review"
+    timeout:
+      duration: PT8H
+      on_timeout: risk_owner_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: DDQ_OUTCOME_UNKNOWN
+        behavior: "Keep vendor inactive."
+    on_success:
+      - edge_to_contract_parallel
+    on_failure:
+      - edge_to_vendor_exception
+  - id: contract_parallel
+    type: parallel
+    config:
+      fan_out_limit: 3
+      join_semantics: all_success_required
+      branches:
+        - contract_control_review
+        - exit_plan_review
+        - data_processing_review
+    cedar_permits_required:
+      - 'Action::"RunVendorContractControlFanout"'
+    audit_event_class: VendorContractControlReviewStarted
+    slo_target: "P10D"
+    timeout:
+      duration: P10D
+      on_timeout: contract_review_escalation
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: CONTRACT_BRANCH_FAILED
+        behavior: "Block activation and attach branch failure evidence."
+    on_success:
+      - edge_to_contract_control_review
+      - edge_to_exit_plan_review
+      - edge_to_data_processing_review
+    on_failure:
+      - edge_to_vendor_exception
+  - id: contract_control_review
+    type: action
+    config:
+      service: legal
+      contract: vendor-contract-control-review.v1
+      method: POST
+      url: "https://legal.internal/v1/vendor-contract-controls"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        required_clauses:
+          - audit_rights
+          - subcontractor_notification
+          - exit_assistance
+          - incident_notification
+    cedar_permits_required:
+      - 'Action::"ReviewVendorContractControls"'
+    audit_event_class: VendorContractControlsReviewed
+    slo_target: "P5D"
+    timeout:
+      duration: P5D
+      on_timeout: legal_review_escalation
+    retry:
+      max_attempts: 2
+      backoff: P1D
+      retryable_errors:
+        - LEGAL_REVIEW_DELAY
+    failure_modes:
+      - code: REQUIRED_CLAUSE_MISSING
+        behavior: "Return to procurement; vendor remains inactive."
+    on_success:
+      - edge_to_contract_join
+    on_failure:
+      - edge_to_vendor_exception
+  - id: exit_plan_review
+    type: action
+    config:
+      service: risk
+      contract: vendor-exit-plan-review.v1
+      method: POST
+      url: "https://risk.internal/v1/vendor-exit-plans"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        supports_critical_function: "${inputs.supports_critical_function}"
+    cedar_permits_required:
+      - 'Action::"ReviewVendorExitPlan"'
+    audit_event_class: VendorExitPlanReviewed
+    slo_target: "P5D"
+    timeout:
+      duration: P5D
+      on_timeout: exit_plan_review_escalation
+    retry:
+      max_attempts: 2
+      backoff: P1D
+      retryable_errors:
+        - EXIT_PLAN_REVIEW_DELAY
+    failure_modes:
+      - code: EXIT_PLAN_INADEQUATE
+        behavior: "Block critical vendor activation."
+    on_success:
+      - edge_to_contract_join
+    on_failure:
+      - edge_to_vendor_exception
+  - id: data_processing_review
+    type: action
+    config:
+      service: privacy
+      contract: vendor-data-processing-review.v1
+      method: POST
+      url: "https://privacy.internal/v1/vendor-dpa-reviews"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        processes_personal_data: "${inputs.processes_personal_data}"
+    cedar_permits_required:
+      - 'Action::"ReviewVendorDataProcessing"'
+    audit_event_class: VendorDataProcessingReviewed
+    slo_target: "P5D"
+    timeout:
+      duration: P5D
+      on_timeout: privacy_review_escalation
+    retry:
+      max_attempts: 2
+      backoff: P1D
+      retryable_errors:
+        - PRIVACY_REVIEW_DELAY
+    failure_modes:
+      - code: DPA_REQUIRED_BUT_MISSING
+        behavior: "Block activation until DPA is signed."
+    on_success:
+      - edge_to_contract_join
+    on_failure:
+      - edge_to_vendor_exception
+  - id: contract_join
+    type: decision
+    config:
+      expression: "${parallel.contract_parallel.all_branches_succeeded}"
+      cases:
+        "true": approval_gate
+        "false": remediation_task
+    cedar_permits_required:
+      - 'Action::"EvaluateVendorContractReadiness"'
+    audit_event_class: VendorContractReadinessEvaluated
+    slo_target: "PT4H after contract branches"
+    timeout:
+      duration: PT8H
+      on_timeout: legal_owner_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: CONTRACT_READINESS_INCOMPLETE
+        behavior: "Keep vendor inactive and route blockers."
+    on_success:
+      - edge_to_approval_gate
+    on_failure:
+      - edge_to_remediation_task
+  - id: approval_gate
+    type: action
+    config:
+      service: approvals
+      contract: vendor-onboarding-approval.v1
+      method: POST
+      url: "https://approvals.internal/v1/vendor-onboarding"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        approver_roles:
+          - procurement_owner
+          - risk_owner
+          - legal_owner
+          - security_owner
+        quorum: 3
+        deadline: P5D
+    cedar_permits_required:
+      - 'Action::"ApproveVendorOnboarding"'
+    audit_event_class: VendorOnboardingApproved
+    slo_target: "P5D"
+    timeout:
+      duration: P5D
+      on_timeout: approval_timeout
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: APPROVAL_REJECTED
+        behavior: "Close onboarding as rejected."
+    on_success:
+      - edge_to_register_vendor
+    on_failure:
+      - edge_to_vendor_exception
+  - id: register_vendor
+    type: action
+    config:
+      service: vendor-registry
+      contract: dora-ict-third-party-register-entry.v1
+      method: POST
+      url: "https://vendor-registry.internal/v1/dora/ict-third-parties"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        risk_assessment_ref: "${nodes.initial_risk_assessment.output.assessment_ref}"
+        contract_control_ref: "${nodes.contract_control_review.output.review_ref}"
+        exit_plan_ref: "${nodes.exit_plan_review.output.review_ref}"
+    cedar_permits_required:
+      - 'Action::"CreateDoraIctThirdPartyRegisterEntry"'
+    audit_event_class: VendorIctThirdPartyRegisterEntryCreated
+    slo_target: "PT1D after approval"
+    timeout:
+      duration: PT30M
+      on_timeout: register_vendor_retry
+    retry:
+      max_attempts: 3
+      backoff: PT10M
+      retryable_errors:
+        - VENDOR_REGISTER_WRITE_TIMEOUT
+    failure_modes:
+      - code: REGISTER_ENTRY_DIGEST_MISMATCH
+        behavior: "Do not activate vendor."
+    on_success:
+      - edge_to_schedule_monitoring
+    on_failure:
+      - edge_to_vendor_exception
+  - id: schedule_monitoring
+    type: action
+    config:
+      service: vendor-risk
+      contract: vendor-ongoing-monitoring-plan.v1
+      method: POST
+      url: "https://vendor-risk.internal/v1/monitoring-plans"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        risk_tier: "${nodes.initial_risk_assessment.output.risk_tier}"
+        cadence: "${nodes.initial_risk_assessment.output.monitoring_cadence}"
+    cedar_permits_required:
+      - 'Action::"ScheduleVendorOngoingMonitoring"'
+    audit_event_class: VendorOngoingMonitoringScheduled
+    slo_target: "PT1D after register entry"
+    timeout:
+      duration: PT30M
+      on_timeout: monitoring_schedule_retry
+    retry:
+      max_attempts: 3
+      backoff: PT10M
+      retryable_errors:
+        - MONITORING_PLAN_WRITE_TIMEOUT
+    failure_modes:
+      - code: MONITORING_CADENCE_MISSING
+        behavior: "Default to high-risk quarterly cadence and notify risk owner."
+    on_success:
+      - edge_to_activate_vendor
+    on_failure:
+      - edge_to_vendor_exception
+  - id: activate_vendor
+    type: action
+    config:
+      service: procurement
+      contract: vendor-activate.v1
+      method: POST
+      url: "https://procurement.internal/v1/vendors/activate"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        register_entry_id: "${nodes.register_vendor.output.register_entry_id}"
+        monitoring_plan_id: "${nodes.schedule_monitoring.output.monitoring_plan_id}"
+    cedar_permits_required:
+      - 'Action::"ActivateVendor"'
+    audit_event_class: VendorActivated
+    slo_target: "PT1D after monitoring scheduled"
+    timeout:
+      duration: PT15M
+      on_timeout: vendor_activation_retry
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - VENDOR_ACTIVATION_TIMEOUT
+    failure_modes:
+      - code: VENDOR_STATUS_CONFLICT
+        behavior: "Reload vendor and keep active only if register refs match."
+    on_success:
+      - edge_to_vendor_completed
+    on_failure:
+      - edge_to_vendor_exception
+  - id: remediation_task
+    type: action
+    config:
+      service: tasks
+      contract: vendor-risk-remediation-task.v1
+      method: POST
+      url: "https://tasks.internal/v1/vendor-risk-remediations"
+      body:
+        vendor_id: "${inputs.vendor_id}"
+        owner_principal_id: "${inputs.risk_owner_principal_id}"
+    cedar_permits_required:
+      - 'Action::"CreateVendorRiskRemediationTask"'
+    audit_event_class: VendorRiskRemediationTaskCreated
+    slo_target: "PT1D after blocker"
+    timeout:
+      duration: PT15M
+      on_timeout: remediation_task_retry
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - TASK_WRITE_TIMEOUT
+    failure_modes:
+      - code: REMEDIATION_OWNER_MISSING
+        behavior: "Assign procurement owner fallback."
+    on_success:
+      - edge_to_vendor_exception
+    on_failure:
+      - edge_to_vendor_exception
+  - id: vendor_completed_end
+    type: end
+    config:
+      terminal_state: active_with_monitoring
+      output_contract: vendor-onboarding-result.v1
+    cedar_permits_required:
+      - 'Action::"CompleteVendorOnboarding"'
+    audit_event_class: VendorOnboardingCompleted
+    slo_target: "P45D from intake"
+    timeout:
+      duration: PT5M
+      on_timeout: completion_retry
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: COMPLETION_AUDIT_FAILED
+        behavior: "Keep onboarding case open."
+    on_success: []
+    on_failure:
+      - edge_to_vendor_exception
+  - id: vendor_exception_end
+    type: end
+    config:
+      terminal_state: blocked_or_rejected
+      output_contract: vendor-onboarding-exception.v1
+    cedar_permits_required:
+      - 'Action::"CloseVendorOnboardingException"'
+    audit_event_class: VendorOnboardingExceptionClosed
+    slo_target: "PT1D after blocker"
+    timeout:
+      duration: PT5M
+      on_timeout: exception_retry
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: EXCEPTION_AUDIT_FAILED
+        behavior: "Keep remediation task visible."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_create_vendor_case
+    from: vendor_intake_start
+    to: create_vendor_case
+    name: intake_valid
+  - id: edge_to_initial_risk_assessment
+    from: create_vendor_case
+    to: initial_risk_assessment
+    name: vendor_case_created
+  - id: edge_to_risk_tier_decision
+    from: initial_risk_assessment
+    to: risk_tier_decision
+    name: risk_assessed
+  - id: edge_to_ddq_dispatch
+    from: risk_tier_decision
+    to: ddq_dispatch
+    name: ddq_profile_selected
+  - id: edge_to_ddq_wait
+    from: ddq_dispatch
+    to: ddq_wait
+    name: ddq_sent
+  - id: edge_to_ddq_review
+    from: ddq_wait
+    to: ddq_review
+    name: ddq_complete
+  - id: edge_to_due_diligence_decision
+    from: ddq_review
+    to: due_diligence_decision
+    name: ddq_reviewed
+  - id: edge_to_contract_parallel
+    from: due_diligence_decision
+    to: contract_parallel
+    name: due_diligence_approved
+  - id: edge_to_contract_control_review
+    from: contract_parallel
+    to: contract_control_review
+    name: contract_controls_branch
+  - id: edge_to_exit_plan_review
+    from: contract_parallel
+    to: exit_plan_review
+    name: exit_plan_branch
+  - id: edge_to_data_processing_review
+    from: contract_parallel
+    to: data_processing_review
+    name: data_processing_branch
+  - id: edge_to_contract_join
+    from: contract_parallel
+    to: contract_join
+    name: contract_join
+  - id: edge_to_approval_gate
+    from: contract_join
+    to: approval_gate
+    name: contract_ready
+  - id: edge_to_register_vendor
+    from: approval_gate
+    to: register_vendor
+    name: onboarding_approved
+  - id: edge_to_schedule_monitoring
+    from: register_vendor
+    to: schedule_monitoring
+    name: register_entry_created
+  - id: edge_to_activate_vendor
+    from: schedule_monitoring
+    to: activate_vendor
+    name: monitoring_scheduled
+  - id: edge_to_vendor_completed
+    from: activate_vendor
+    to: vendor_completed_end
+    name: vendor_active
+  - id: edge_to_remediation_task
+    from: due_diligence_decision
+    to: remediation_task
+    name: remediation_required
+  - id: edge_to_vendor_rejected
+    from: due_diligence_decision
+    to: vendor_exception_end
+    name: vendor_rejected
+  - id: edge_to_vendor_exception
+    from: vendor_intake_start
+    to: vendor_exception_end
+    name: exception
+failure_modes:
+  - code: DORA_REGISTER_WRITE_FAILED
+    behavior: "Vendor remains inactive until register entry is sealed."
+  - code: REQUIRED_CONTRACT_CLAUSE_MISSING
+    behavior: "Block activation and return clause evidence to legal owner."
+  - code: MONITORING_PLAN_MISSING
+    behavior: "Do not activate vendor without ongoing monitoring cadence."
+worked_example:
+  sample_input:
+    tenant_id: tenant_bank_eu
+    vendor_id: vendor_cloud_ops_88
+    vendor_name: Cloud Ops Europe GmbH
+    service_category: cloud-hosting
+    processes_personal_data: true
+    supports_critical_function: true
+    procurement_owner_principal_id: principal_proc_18
+    risk_owner_principal_id: principal_risk_27
+  sample_expected_output:
+    onboarding_case_id: von_2026_0088
+    terminal_state: active_with_monitoring
+    ict_register_entry_id: dora_ict_vendor_2026_0088
+    monitoring_plan_id: vmon_2026_0088
+    audit_chain_refs:
+      - audit://workflow/vendor-dora/risk-assessed/01
+      - audit://workflow/vendor-dora/register-entry/02
+      - audit://workflow/vendor-dora/monitoring-scheduled/03

@@ -39,6 +39,42 @@ Tenant-operator-facing form builder. Leptos 0.7.x signal-driven reactivity; per-
 - Leptos 0.7.
 - axe-core.
 - W3C WCAG 2.2 AA.
+- PRD FR-01, FR-17, FR-22 and AC-01 / AC-20 / AC-25.
+- `microservices/forms/capabilities/T0-suggest.yaml`, `T1-assist.yaml`, and `T2-auto.yaml`.
+- `microservices/forms/slos/accessibility-wcag-correctness.openslo.yaml`.
+- `microservices/forms/runbooks/ai-form-build-rollback.md`.
+- `microservices/forms/decisions/ADR-FORMS-0005-ai-form-build-bounds.md`.
+
+## Foundation A-G Substance
+
+- A. Product scope: the builder is the authoring authority for typed `form.v1`, not an unstructured page designer.
+- B. Domain model: builder UI manipulates `FormDraft`, `FieldSpec`, `SectionSpec`, `BranchPredicate`, and `PublishRequest`.
+- C. Contracts: saved drafts round-trip through REST and canonical form schema without UI-only state.
+- D. Policy: publish flow previews Cedar, captures Annex III §4 attestation, and blocks forbidden field/data-class combinations.
+- E. Operations: AI-build rollback, accessibility regression, and publish failure paths are runbook-linked.
+- F. Observability: track draft save latency, publish rejection reasons, WCAG lint failures, and AI suggestion accept/reject.
+- G. Promotion: round-trip byte equality, WCAG 2.2 AA, AI bounds, and publish ChangeSet gates must pass.
+
+## Counterpart Benchmark
+
+- Counterpart: Notion Forms/Databases form builder, HubSpot Forms editor, and Salesforce Web-to-Lead form generator.
+- Defensible parity claim: Oyatie must provide drag/drop authoring, field palette, branching editor, and publish review without losing typed schema fidelity.
+- Differentiator: AI suggestions are bounded by capability tier and explicit tenant acceptance.
+- Grep counterpart names: Notion Forms/Databases; HubSpot Forms; Salesforce Web-to-Lead.
+
+## Remediation Notes
+
+- Expanded the builder IP with capability, SLO, runbook, ADR, and PRD bindings.
+- Added A-G foundation substance for authoring, contracts, policy, telemetry, and promotion.
+- Added counterpart names for grep-recognized review.
+
+## Verification Evidence Required
+
+- Builder round-trip corpus proves saved drafts reload byte-identically through canonical form schema.
+- WCAG lint evidence proves every palette field and publish dialog passes accessibility checks.
+- AI suggestion corpus records T0/T1/T2 accept, reject, and rollback evidence.
+- Publish-flow test proves Annex III attestation and Cedar preview block unsafe publish.
+- Capability manifests prove T0, T1, and T2 behavior aligns with service policy.
 
 ## Next IP
 

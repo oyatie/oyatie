@@ -21,7 +21,7 @@ Author Helm manifest for in-cluster Cedar engine serving (sidecar pattern + stan
 
 ## ChangeSet boundary
 
-One cohesive ChangeSet: 1 Helm chart bundle (cedar engine) + Cedar bundle compilation pipeline + per-pack bundle Kustomize overlay (pack-kr at M01) + LEAN lane definition stub. No code; pure IaC + policy text. Cedar fragments themselves are authored in IP-006 (autonomy-tier-gate adapter); this IP provides the substrate.
+One cohesive ChangeSet: 1 Helm chart bundle (cedar engine) + Cedar bundle compilation pipeline + per-pack bundle Kustomize overlay (pack-kr at M01) + LEAN lane definition stub. No code; pure IaC + policy text. Cedar fragments themselves are authored in IP-006 (autonomy-ceiling-gate adapter); this IP provides the substrate.
 
 ## Concrete File Targets
 
@@ -76,7 +76,7 @@ Cedar base (`policy/cedar-base.cedar`):
 
 // =============================================================================
 // Default deny — every action refused unless an explicit permit matches.
-// Per ADR-0140 (retired per ADR-0145) substrate; verified by oya-foundry-fitness-cedar-default-deny-enforced lane.
+// Per ADR-0140 (retired per ADR-0145) substrate; verified by oya-governance-cedar-default-deny-enforced lane.
 // =============================================================================
 
 forbid (
@@ -121,3 +121,9 @@ bash microservices/foundry/iac/cedar/build.sh microservices/foundry/policy
 - `microservices/foundry/capacity-model.md`.
 - `docs/standards/lts-versions-verified.md`.
 - Cedar docs — `cedarpolicy.com`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

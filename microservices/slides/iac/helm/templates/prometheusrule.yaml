@@ -50,10 +50,10 @@ spec:
 
         - alert: SlidesAiActHighRiskEngagedWithoutOverride
           expr: |
-            sum(rate(oya_slides_ai_high_risk_annex_iii_engaged_total{pack_override="false"}[5m])) > 0
+            sum(rate(oya_slides_ai_high_risk_auto_decision_engaged_total{pack_override="false"}[5m])) > 0
           for: 1m
           labels: { severity: sev-1, microservice: slides }
           annotations:
-            summary: "EU AI Act Annex III high-risk T2 engaged without pack override — investigate immediately"
+            summary: "high-risk T2 engaged without pack override — investigate immediately"
             runbook_url: https://docs.oyatie.dev/runbooks/slides/ai-act-risk-class
 {{- end }}

@@ -41,7 +41,7 @@ flat µservices:
 | `social` | `microservices/social/` | shipped | **96 files** populated | HG-SOCIAL registered | Phase 1 active |
 | `shorts` | `microservices/shorts/` | shipped | **97 files** populated | HG-SHORTS registered | Phase 1 active |
 | `network` | `microservices/network/` | shipped | **100 files** populated | HG-NETWORK registered | Phase 1 active |
-| `anonymous` | `microservices/anonymous/` | shipped | **102 files** populated | HG-ANONYMOUS registered | Phase 1 active |
+| `community` (anonymity-mode) | `microservices/community/` | folded 2026-05-21 | `microservices/anonymous/` deleted; 106 artifacts extracted into community/ as anonymity posting-mode capability tier | HG-ANONYMOUS superseded by community gate | See `community/IP-N-anonymous-fold-extraction.md` |
 
 > **Pack-fill numbers are point-in-time as of 2026-05-17.** Authoritative
 > current count: `find microservices/<ms>/ -type f | wc -l` per µservice.
@@ -193,7 +193,7 @@ checklist applies at umbrella scope:
 - [ ] **No references to the deprecated system remain in the codebase**
   (excluding historical ADR / RETIRED.md / git-log surfaces):
   ```bash
-  rg "oya_connect_(mail|messenger|calendar|community|social|shorts|network|anonymous)" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/golden/"    | wc -l   # expect 0
+  rg "oya_connect_(mail|messenger|calendar|community|social|shorts|network|anonymous)" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/baseline/"    | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed (they served their purpose).**
   ```bash

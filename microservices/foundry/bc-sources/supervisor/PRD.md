@@ -44,7 +44,7 @@ Hyperscaler peers: AWS Bedrock Agents control plane, Anthropic Claude control pl
 | ID | As a… | I want… | So that… | BC | Priority |
 |---|---|---|---|---|---|
 | FR-01 | tenant operator | to author a capability definition (capability.yaml) via Workflow Studio + git PR | the supervisor can admit + deploy it into my tenant's fleet | capability-deployment | Must |
-| FR-02 | supervisor admit-loop | to validate a capability definition against the Cedar policy + autonomy-tier + cost budget | rejected capabilities never reach a runtime worker | capability-deployment + autonomy-policy-enforcement | Must |
+| FR-02 | supervisor admit-loop | to validate a capability definition against the Cedar policy + autonomy-ceiling + cost budget | rejected capabilities never reach a runtime worker | capability-deployment + autonomy-policy-enforcement | Must |
 | FR-03 | supervisor rollout-loop | to canary deploy a capability across 1 % → 10 % → 50 % → 100 % of tenant fleet | bad releases are caught at low blast radius | capability-deployment | Must |
 | FR-04 | kill-switch operator | to engage the kill-switch on a (tenant, capability, agent, or fleet) scope and have it propagate p99 ≤ 1 s | runaway agents stop within human-perceivable time | kill-switch-circuit-breaker | Must |
 | FR-05 | foundry-runtime worker | to query the supervisor for "may I invoke capability C at autonomy tier T for tenant X right now?" | the runtime never executes an unauthorized invocation | autonomy-policy-enforcement | Must |
@@ -101,7 +101,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 |---|---|---|---|
 | `agent-fleet-lifecycle` | `oya-foundry-supervisor-agent-fleet-lifecycle-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-k8s-operator,rest,worker,sdk,app}` | Register, drain, evict, replace agents managed via Kubernetes CRDs | `Agent`, `AgentDeployment`, `FleetState`, `DrainHandle` |
 | `capability-deployment` | `oya-foundry-supervisor-capability-deployment-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` | Admit, canary rollout, roll-forward, roll-back capability definitions | `CapabilityDefinition`, `Deployment`, `CanaryCohort`, `RolloutPhase`, `RolloutVerdict` |
-| `autonomy-policy-enforcement` | `oya-foundry-supervisor-autonomy-policy-enforcement-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Cedar evaluator + tenant entitlement store + per-invocation precondition check | `AutonomyTier`, `AutonomyEntitlement`, `PolicyDecision`, `CedarFragment` |
+| `autonomy-policy-enforcement` | `oya-foundry-supervisor-autonomy-policy-enforcement-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Cedar evaluator + tenant entitlement store + per-invocation precondition check | `AutonomyLevel`, `AutonomyEntitlement`, `PolicyDecision`, `CedarFragment` |
 | `supervision-event-bus` | `oya-foundry-supervisor-supervision-event-bus-{kernel,usecase,api,adapter,worker,sdk,app}` | Internal AMQP/Redis event bus; publish/subscribe with delivery guarantees | `SupervisionEvent`, `EventTopic`, `Subscription` |
 | `kill-switch-circuit-breaker` | `oya-foundry-supervisor-kill-switch-circuit-breaker-{kernel,domain,usecase,api,adapter,rest,worker,sdk,app}` | Sub-second engage/disengage; multi-scope (tenant / capability / agent / fleet); Redis-replicated state | `KillSwitch`, `KillSwitchScope`, `EngageReason`, `DisengageAuthority` |
 
@@ -220,7 +220,7 @@ oya gate validate hyperscaler-maturity-claims # ADR-0123
 
 | Object Type | Link Type | Written by BC | Audit |
 |---|---|---|---|
-| `CapabilityDefinition{id, version, autonomy_tier, cost_budget, …}` | `defined_for→Tenant` | `capability-deployment` | Ed25519 |
+| `CapabilityDefinition{id, version, autonomy_level, cost_budget, …}` | `defined_for→Tenant` | `capability-deployment` | Ed25519 |
 | `Deployment{capability_id, deployed_at, rollout_phase, verdict}` | `deployment_of→CapabilityDefinition` | `capability-deployment` | Ed25519 |
 | `FleetState{tenant, capability, agent_count, healthy_count, draining_count}` | `fleet_for→Tenant` | `agent-fleet-lifecycle` | Ed25519 |
 | `KillSwitch{scope, engaged, reason, engaged_at, disengaged_at}` | `applies_to→Tenant|Capability|Agent|Fleet` | `kill-switch-circuit-breaker` | Ed25519 |
@@ -300,7 +300,7 @@ Sharding:
 | AC-01 | Capability definition YAML at `microservices/<tenant>/capabilities/<cap>.yaml` validates against capability v1 schema | `cargo run -p oya-foundry-supervisor-capability-deployment-rest -- validate <path>` exit 0 |
 | AC-02 | Kill-switch engage end-to-end ≤ 1 s p99 across 100k workers | scripted load + chaos drill at `tests/e2e/kill-switch-latency.rs` |
 | AC-03 | Capability deployment canary ramps 1 → 10 → 50 → 100 % gated by `observability` `EligibilityChanged` | e2e drill `tests/e2e/canary-rollout-gated.rs` |
-| AC-04 | Autonomy-policy Cedar evaluation refuses tier escalation without DPA entitlement | unit + integration `tests/e2e/autonomy-tier-refusal.rs` |
+| AC-04 | Autonomy-policy Cedar evaluation refuses tier escalation without DPA entitlement | unit + integration `tests/e2e/autonomy-ceiling-refusal.rs` |
 | AC-05 | Supervision event published to bus within ≤ 200 ms p99 of state transition | timed integration test |
 | AC-06 | Fleet drain completes with zero in-flight loss for ≤ 100 agents | e2e drill `tests/e2e/drain-no-loss.rs` |
 | AC-07 | Postgres failover (master loss) recovers control-plane availability within ≤ 30 s | chaos drill |

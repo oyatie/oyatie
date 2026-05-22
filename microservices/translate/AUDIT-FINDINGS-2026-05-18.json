@@ -4,7 +4,7 @@
   "scanned_files": 97,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -22,11 +22,11 @@
           "hits": [
             {
               "line": 191,
-              "excerpt": "| Session + bulk-job state cache | **Valkey 8.1 (Redis wire-compat)** (per pack; sentinel HA) | `oya-translate-bulk-adapter-redis` |"
+              "excerpt": "| Session + bulk-job state cache | **Valkey 8.1 (RESP wire-compatible)** (per pack; sentinel HA) | `oya-translate-bulk-adapter-valkey` |"
             },
             {
               "line": 204,
-              "excerpt": "- Valkey 8.1 (Redis wire-compat) (LTS through 2027-Q4)."
+              "excerpt": "- Valkey 8.1 (RESP wire-compatible) (LTS through 2027-Q4)."
             }
           ],
           "hits_total": 2
@@ -82,7 +82,7 @@
             },
             {
               "line": 44,
-              "excerpt": "| `iac/helm/redis/values.yaml` | create \u2014 Valkey 8.1 (Redis wire-compat) sentinel HA |"
+              "excerpt": "| `iac/helm/valkey/values.yaml` | create \u2014 Valkey 8.1 (RESP wire-compatible) sentinel HA |"
             }
           ],
           "hits_total": 2
@@ -106,7 +106,7 @@
           "hits": [
             {
               "line": 84,
-              "excerpt": "3. Valkey pool \u2192 `bulk-adapter-redis` + `stream-adapter-redis`."
+              "excerpt": "3. Valkey pool \u2192 `bulk-adapter-valkey` + `stream-adapter-valkey`."
             }
           ],
           "hits_total": 1
@@ -130,7 +130,7 @@
             },
             {
               "line": 105,
-              "excerpt": "| adapter (backend-store) | 80 % | 70 % | as-needed | testcontainers (Postgres/Redis/Meilisearch); honest integration tests under tests/integration |"
+              "excerpt": "| adapter (backend-store) | 80 % | 70 % | as-needed | testcontainers (Postgres/Valkey/Meilisearch); honest integration tests under tests/integration |"
             }
           ],
           "hits_total": 2

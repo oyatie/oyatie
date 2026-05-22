@@ -9,7 +9,7 @@ purpose: |
   Per-tenant stable cohorts that never see canary. Cohort assignment via oya-platform-tenant-cohort-kernel.
   Integrates with autonomy-ceiling and per-vertical regulatory packs.
 planned_enforcement_ref:
-  - oya-foundry-fitness-cohort-honor
+  - oya-governance-cohort-honor
 related_adrs: [ADR-0040, ADR-0022, ADR-0034, ADR-0049, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -17,7 +17,6 @@ doc_status: published
 
 # Stable Cohort Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Thesis
 
@@ -51,7 +50,7 @@ Every rollout decision is intersected with cohort at three points:
 2. **Canary traffic split** ([`canary-rail-spec.md`](canary-rail-spec.md) §3) — Flagger webhook calls cohort kernel; stable tenants are pinned to baseline.
 3. **Blue/green cutover** ([`blue-green-spec.md`](blue-green-spec.md) §6) — stable cohorts stay on blue until per-vertical pack approves green.
 
-Bypassing intersection = lane failure (`oya-foundry-fitness-cohort-honor`).
+Bypassing intersection = lane failure (`oya-governance-cohort-honor`).
 
 ## 5. Integration with autonomy ceiling
 
@@ -70,11 +69,10 @@ A tenant's cohort can be changed by:
 3. **Tenant request** (opt-in / opt-out from canary-pioneer or experiment cohort).
 4. **Operator override** (Sev-1 mitigation; time-boxed; audited).
 
-All changes emit D14 audit-chain records ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)). Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), cohort change evidence stored via `icm store -t cohort-changes`.
 
 ## 8. Connect-no-ads cohort (LEDG-021 honour)
 
-Per `MISTAKES-LEDGER` LEDG-021, the Connect-no-ads cohort (Workspace tenants who opted out of ad-supported features) MUST be honoured by every rollout. Cohort kernel materialises this as a derived cohort overlay; every Ads-axis canary intersects it and excludes those tenants. Planned advisory lane: `oya-foundry-fitness-cohort-honor` and [`playbook-ads.md`](playbook-ads.md).
+Per `MISTAKES-LEDGER` LEDG-021, the Connect-no-ads cohort (Workspace tenants who opted out of ad-supported features) MUST be honoured by every rollout. Cohort kernel materialises this as a derived cohort overlay; every Ads-axis canary intersects it and excludes those tenants. Planned advisory lane: `oya-governance-cohort-honor` and [`playbook-ads.md`](playbook-ads.md).
 
 ## 9. Visibility
 
@@ -82,10 +80,9 @@ Per-tenant trust portal ([ADR-0038](../../decisions/ADR-0038-trust-framework-and
 
 ## 10. Compliance gates
 
-- `oya-foundry-fitness-cohort-honor` (NEW; HIGH) — verifies regulated/no-ads cohorts honoured at every rollout cut.
-- `oya-foundry-fitness-audit-emit` (existing; extended).
+- `oya-governance-cohort-honor` (NEW; HIGH) — verifies regulated/no-ads cohorts honoured at every rollout cut.
+- `oya-governance-audit-emit` (existing; extended).
 
 ## 11. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — cohort-change evidence stored via `icm store -t cohort-changes`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — cohort intersection applies at `staging` (canary cohort sees staging deploys) and at `prod` (stable-regulated tenants lag ≥ 28 days post prod-promotion).

@@ -150,3 +150,9 @@ cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microser
 - `foundry-providers` µservice contract.
 - `foundry-evidence` µservice contract.
 - Workflow event topology spec.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Evals, LangSmith, Google Vertex AI Evaluation, and Databricks Mosaic AI evals.
+- Gap closure: this IP closes deterministic replay, baseline comparison, and eval evidence emission in the Foundry product boundary.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

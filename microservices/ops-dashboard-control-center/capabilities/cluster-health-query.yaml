@@ -1,7 +1,7 @@
 schema_version: "1.0"
 name: cluster-health-query
-tier: T1
-eu_ai_act_risk_class: minimal
+availability: "paid tenant_class always-on; demo_trial read-only"
+risk_class: minimal
 description: Query observed cluster, node, mesh, bootstrap, and restore health.
 authz:
   cedar_policy: microservices/ops-dashboard-control-center/policy/cedar/operator-actions.cedar

@@ -166,3 +166,7 @@ topic. Cross-region Postgres write SLO p99 ≤200ms (within the 100ms-publish + 
   fails closed (no false-permits during partition).
 - **R**: Pulsar version skew during upgrade.
   **M**: Topic schema versioned (v1 today); subscriber accepts v1+ forward-compat.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: Snowflake Secure Data Share, Databricks Delta Sharing, and AWS Data Exchange revocation paths are refresh/subscription oriented, while OneTrust and TrustArc are consent-workflow oriented. This IP is Oyatie-specific because revocation is a high-priority Pulsar fan-out path with grantor-region authority, cross-region failure-deny behavior, and sub-second enforcement invalidation.

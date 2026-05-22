@@ -20,13 +20,13 @@ doc_status: published
 
 ## Purpose
 
-Live Protected Health Information (PHI) under HIPAA never enters foundry-eval eval-set authoring. Eval-set golden inputs and case prompts use synthetic-PHI fixtures only. This policy is BLOCKER on all `microservices/foundry/eval-sets/**` content under the `oya-check-synthetic-phi-only` LEAN lane.
+Live Protected Health Information (PHI) under HIPAA never enters foundry-eval eval-set authoring. Eval-set baseline inputs and case prompts use synthetic-PHI fixtures only. This policy is BLOCKER on all `microservices/foundry/eval-sets/**` content under the `oya-check-synthetic-phi-only` LEAN lane.
 
 ## Scope
 
 Applies to:
 - Every eval-set manifest at `eval-sets/<capability>/v<n>.evalset.yaml`.
-- Every golden-output object referenced from an eval-set.
+- Every baseline-output object referenced from an eval-set.
 - Every eval-case input prompt.
 - Pack-us-healthcare capabilities specifically.
 

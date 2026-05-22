@@ -260,7 +260,7 @@ Per the deprecation-and-migration skill, every deprecation closeout must satisfy
   ```
 - [ ] **No references to the deprecated system remain in the codebase**:
   ```bash
-  rg "oya_connect_drive" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/golden/"    | wc -l   # expect 0
+  rg "oya_connect_drive" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/reference/"    | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed (they served their purpose)** (per Phase 5):
   ```bash

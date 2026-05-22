@@ -13,10 +13,10 @@ dependencies:
     version: "16.x"
     repository: oci://oci.oyatie.com/charts
     condition: postgres.enabled
-  - name: redis
+  - name: valkey
     version: "7.2.x"
     repository: oci://oci.oyatie.com/charts
-    condition: redis.enabled
+    condition: valkey.enabled
   - name: meilisearch
     version: "0.10.0"
     repository: oci://oci.oyatie.com/charts

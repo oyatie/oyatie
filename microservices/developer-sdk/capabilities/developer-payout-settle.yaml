@@ -43,7 +43,7 @@ regulatory_packs_consumed:
   - pack-us-financial
   - pack-us-public-sector
 
-eu_ai_act_risk_class: high
+risk_class: high
 
 evidence_topic: oya.developer-sdk.capability.developer_payout_settle.emitted
 
@@ -55,7 +55,7 @@ cedar_policy_fragments:
   - microservices/developer-sdk/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/developer-sdk/capabilities/eval/developer-payout-settle-golden.jsonl
+  canonical_inputs_path: microservices/developer-sdk/capabilities/eval/developer-payout-settle-canonical.jsonl
   pass_threshold: 1.0
   eval_metric: structured-output-correctness
   cadence: per-release

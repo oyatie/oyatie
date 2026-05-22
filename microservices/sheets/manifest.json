@@ -14,7 +14,7 @@
         "oya-sheets-cell-grid-kernel",
         "oya-sheets-cell-grid-rest",
         "oya-sheets-collab-crdt-adapter-loro",
-        "oya-sheets-collab-crdt-adapter-redis",
+        "oya-sheets-collab-crdt-adapter-valkey",
         "oya-sheets-collab-crdt-worker",
         "oya-sheets-formula-engine-domain",
         "oya-sheets-import-export-adapter-calamine",
@@ -53,19 +53,19 @@
       "tier": "T0",
       "name": "t0-suggest",
       "file": "microservices/sheets/capabilities/T0-suggest.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "t1-assist",
       "file": "microservices/sheets/capabilities/T1-assist.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "t2-auto",
       "file": "microservices/sheets/capabilities/T2-auto.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -151,7 +151,7 @@
     },
     {
       "id": "IP-005-collab-crdt-loro-aligned-ws-0001",
-      "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-loro + adapter-redis + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)",
+      "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-loro + adapter-valkey + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-005-collab-crdt-loro-aligned-ws-0001.md"
     },
@@ -310,7 +310,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -331,5 +331,196 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "sheets is a BNF v4.1 kebab-case microservice slug; generated names follow oya-sheets-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "automation_risk_classes": [
+    "T0",
+    "T1",
+    "T2"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "eu-ai-act",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "hipaa",
+    "kr-isms-p",
+    "NIS2",
+    "DORA",
+    "lgpd",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-sheets",
+  "tier_classification": "external-facing",
+  "data_classification": "PII_IDENTIFYING, this field will, INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "eu-ai-act",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "hipaa",
+    "kr-isms-p",
+    "NIS2",
+    "DORA",
+    "lgpd",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "cell",
+    "foundry",
+    "tenancy",
+    "drive",
+    "observability",
+    "docs",
+    "slides",
+    "ontology",
+    "detection",
+    "audit-chain",
+    "workflow-engine",
+    "forms",
+    "mail",
+    "community",
+    "marketplace",
+    "identity",
+    "network",
+    "intelligence",
+    "governance",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.18,
+    "baseline_ram_per_tenant": 512,
+    "storage_per_tenant": 40,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 3,
+      "outbound_http": 6
+    },
+    "scaling_dimension": "per_query",
+    "cell_placement_class": "Tier-3",
+    "notes": "Formula recalculation, large-sheet reads, chart queries, and export paths dominate resource use; scaling follows query/recalc work rather than seats."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 1800,
+    "rpo_p99_seconds": 120,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "valkey"
+    ],
+    "failover_runbook": "runbooks/dr-failover.md",
+    "dr_tier": "T2",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Sheets is a first-party application for tenant workbook data. It performs formula and recalc work owned by Oyatie code, not tenant-customer code execution, so Tier 2 runtime plus Tier-3 application placement satisfies the ADR-0340 co-variance table.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/sheets/PRD.md",
+    "microservices/sheets/capacity-model.md",
+    "microservices/sheets/IP-003-formula-engine-kernel-domain-400-functions.md",
+    "microservices/sheets/IP-004-recalc-engine-dep-graph-parallel.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-20",
+      "2025-11-20"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/sheets/contracts/openapi/sheets.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/sheets/contracts/asyncapi/sheets-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/sheets/contracts/proto/sheets.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "cedar",
+    "postgresql",
+    "valkey",
+    "opentelemetry",
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "vpc",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ]
 }

@@ -27,13 +27,11 @@ doc_status: published
 > **SUPERSEDED — 2026-05-12.** This v1 plan is **superseded by**
 > [`rename-plan-v2-2026-05-12.md`](rename-plan-v2-2026-05-12.md).
 >
-> User adjudication on 2026-05-12 (ICM record `01KRFMEVN49BB6J0QWKNGATC1K`)
 > locked **Policy B** (collapse foundry-fitness under a `fitness` umbrella),
 > elevating the rename cohort from 9 → **39** and adding an immediate
 > **AMBER-metadata cutover** for all 140 workspace members. The Policy A
 > sub-plan, the 9-row leaves→roots order, and the "AMBER-metadata deferred to
 > Q3-2026" recommendation in this document **no longer apply**. Retained for
-> historical context, decision provenance, and ADR/ICM traceability only;
 > do not execute.
 >
 > Authoritative execution plan: `docs/plans/rename-plan-v2-2026-05-12.md`.

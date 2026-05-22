@@ -73,7 +73,7 @@ Naming justifications for the new crate families are in `microservices/plugin-ap
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| IP-001-layer-a-postgres-redis-cedar-cosign-trivy-iac | Helm + Kustomize charts for Postgres, Valkey, Cedar evaluator binding, Cosign, Trivy, Wasmtime runtime under `microservices/plugin-app-store/iac/helm/` | pending | axis-ecosystem | — |
+| IP-001-layer-a-postgres-valkey-cedar-cosign-trivy-iac | Helm + Kustomize charts for Postgres, Valkey, Cedar evaluator binding, Cosign, Trivy, Wasmtime runtime under `microservices/plugin-app-store/iac/helm/` | pending | axis-ecosystem | — |
 | IP-002-plugin-catalog-kernel-domain | `oya-plugin-app-store-plugin-catalog-{kernel,domain}` crates: Plugin, PluginVersion, PluginRating entities + pure search/filter logic | pending | axis-ecosystem | — |
 | IP-003-plugin-catalog-usecase-api-adapter-rest-sdk-app | plugin-catalog remaining layers (read-heavy; Postgres `tsvector` index + Cilium L4 cache) | pending | axis-ecosystem | IP-002 |
 | IP-004-plugin-lifecycle-state-machine | Lifecycle state machine: draft → submitted → vetting → published → deprecated → retired + revoked | pending | axis-ecosystem | IP-002 |

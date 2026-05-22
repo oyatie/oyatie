@@ -1,0 +1,47 @@
+{
+  "title": "Supply Chain Planning overview",
+  "tags": [
+    "erp",
+    "supply-chain-planning",
+    "demand-plan",
+    "SCM/APO"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "benchmarks": [
+    "SAP SCM/APO and SAP IBP",
+    "Oracle Supply Chain Planning",
+    "Workday Adaptive Planning supply-chain scenario counterpart",
+    "NetSuite Demand Planning",
+    "Microsoft Dynamics 365 Master Planning"
+  ],
+  "panels": [
+    {
+      "title": "demand-plan command rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_supply_chain_planning_demand_plan_commands_total[5m])) by (tenant_id)"
+        }
+      ]
+    },
+    {
+      "title": "demand-plan p99 latency",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_supply_chain_planning_demand_plan_latency_seconds_bucket[5m])) by (le, tenant_id))"
+        }
+      ]
+    },
+    {
+      "title": "demand-plan audit events",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(audit_events_total{service=\"supply-chain-planning\",bounded_context=\"demand-plan\"}[5m]))"
+        }
+      ]
+    }
+  ]
+}

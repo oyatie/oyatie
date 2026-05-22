@@ -34,7 +34,7 @@ called out where vendor pricing may have moved.
 | Block storage (PV) | Postgres data volume; admin / audit tables | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Object storage | Bundle archive (versioned); audit log cold-tier | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Postgres-flex (Citus) | Tenant-partitioned shell-state DB | `oracle.com/database/postgresql/pricing/` |
-| Valkey/Redis (Sentinel/Cluster) | Session store | self-hosted on OKE; node cost only |
+| Valkey (Sentinel/Cluster) | Session store | self-hosted on OKE; node cost only |
 | Network egress | CDN origin pull; cross-AZ traffic; auditor exports | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-pack signing keys (Ed25519); session HMAC keys | `oracle.com/security/key-management/pricing/` |
 | Load balancer | Per-pack Istio gateway + public ingress LB | `oracle.com/cloud/networking/load-balancing/pricing/` |
@@ -55,7 +55,7 @@ sessions × 50 routes/user/day × Application Shell footprint.
 | frontend-bundle-serve-worker (CDN purge consumer) | 2 × VM.Standard.E4 2-core | $72 | – | – | $72 |
 | Composition-root `*-app` binaries | 2 × VM.Standard.E4 4-core | $145 | – | – | $145 |
 | Postgres + Citus (3-node HA) | 3 × VM.Standard.E4 8-core | $435 | $250 PV | – | $685 |
-| Valkey/Valkey Cluster (3 master + 3 replica) | 6 × VM.Standard.E4 2-core | $216 | $30 PV (AOF/RDB) | – | $246 |
+| Valkey Cluster (3 master + 3 replica) | 6 × VM.Standard.E4 2-core | $216 | $30 PV (AOF/RDB) | – | $246 |
 | Object storage (bundle archive + audit cold) | – | – | $40 hot (200 GB) + $20 cold (5 TB) | – | $60 |
 | KMS keys (per-pack Ed25519 + session HMAC) | – | – | – | – | $15 |
 | OCI CDN (pack-kr POPs) | – | – | – | $200 egress (~1.5 TB) | $200 |

@@ -39,7 +39,7 @@ We adopt **three stability tiers** (preview / stable / GA), a **per-PR semver-di
 
 ### Per-PR semver-diff gate
 
-Every PR that touches a contract artifact runs `oya contract-diff` (lane: `oya-foundry-fitness-api-semver`). The tool classifies the diff:
+Every PR that touches a contract artifact runs `oya contract-diff` (lane: `oya-governance-api-semver`). The tool classifies the diff:
 
 ```rust
 // crates/oya-shared-semver-check-cli
@@ -194,7 +194,7 @@ This ADR does not define internal-only API governance (those follow lighter rule
 ### Operational
 
 - Per-axis API stability dashboard; per-tier endpoint count + recent diff classification.
-- Per-PR `oya-foundry-fitness-api-semver` lane gating.
+- Per-PR `oya-governance-api-semver` lane gating.
 - Per-quarter API sunset queue review by `council-architecture`.
 - Per-tenant deprecation report mailed monthly (Workspace mail per ADR-0029).
 - Per-SDK CI lane runs against per-tier contracts; SDK release blocks if contract diff is unclassified.

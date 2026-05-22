@@ -1,8 +1,8 @@
 {
   "$schema": "https://grafana.com/api/dashboards/json-schema",
-  "title": "identity — Overview (4 golden signals)",
+  "title": "identity — Overview (4 core signals)",
   "uid": "identity-overview",
-  "tags": ["identity", "golden-signals", "hot-path"],
+  "tags": ["identity", "core-signals", "hot-path"],
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
@@ -34,7 +34,7 @@
     {
       "id": 1,
       "type": "row",
-      "title": "Golden signal — Rate",
+      "title": "core signal — Rate",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
     },
     {
@@ -62,7 +62,7 @@
     {
       "id": 4,
       "type": "row",
-      "title": "Golden signal — Errors",
+      "title": "core signal — Errors",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
     },
     {
@@ -124,7 +124,7 @@
     {
       "id": 9,
       "type": "row",
-      "title": "Golden signal — Latency",
+      "title": "core signal — Latency",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 }
     },
     {
@@ -151,7 +151,7 @@
     {
       "id": 12,
       "type": "row",
-      "title": "Golden signal — Saturation",
+      "title": "core signal — Saturation",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 }
     },
     {

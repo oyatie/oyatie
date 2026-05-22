@@ -8,9 +8,9 @@ date: 2026-05-12
 purpose: |
   Rollout strategy for Foundry capability publishes — eval-set + canary + cohort + audit-chain + Cosign-signed.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-shadow-diff
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-shadow-diff
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0020, ADR-0021, ADR-0024, ADR-0039, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -18,7 +18,6 @@ doc_status: published
 
 # Playbook: Foundry Capability Rollout
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -57,7 +56,6 @@ Per-cell rollback default. Capability-publish rollback re-emits a D14 entry nami
 
 For **replay-affecting** capability changes (output schema, tool-call signature), blue/green is mandatory; rollback re-shifts traffic to the prior version's MCP endpoint.
 
-Per [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md), capability rollback evidence stored via `icm store -t prod-rollbacks`.
 
 ## 7. Audit-chain artefacts
 
@@ -70,10 +68,10 @@ Per publish, emit:
 
 ## 8. Anti-patterns
 
-- Publishing without eval-set baseline → blocked by `oya-foundry-fitness-cohesion`.
+- Publishing without eval-set baseline → blocked by `oya-governance-cohesion`.
 - Publishing without Cosign signature → blocked by supply-chain lane.
-- Skipping dark-launch on replay-affecting capability → blocked by `oya-foundry-fitness-shadow-diff`.
-- Canary against a single provider when capability has multiple adapters → blocked by lane (`oya-foundry-fitness-canary-required`).
+- Skipping dark-launch on replay-affecting capability → blocked by `oya-governance-shadow-diff`.
+- Canary against a single provider when capability has multiple adapters → blocked by lane (`oya-governance-canary-required`).
 
 ## 9. Hyperscaler equivalent
 
@@ -81,5 +79,4 @@ OpenAI's model-card + system-card publication discipline; Anthropic's Acceptable
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — capability rollback evidence stored via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — capability stages mirror branch layers; `capability-reviewer` re-affirms at staging → prod gate 5.

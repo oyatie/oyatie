@@ -92,19 +92,19 @@
     ]
   },
   "metrics": [
-    {"name": "deploy_p99_latency_ms", "targets": {"preview": 200, "stable": 100, "GA": 50}, "verification_ref": "cargo bench -p oya-saas-workflow-kernel -- deploy_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
-    {"name": "step_transition_p99_latency_ms", "targets": {"preview": 100, "stable": 50, "GA": 20}, "verification_ref": "cargo bench -p oya-saas-workflow-kernel -- step_transition_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
-    {"name": "engine_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "verification_ref": "oya gate validate workflow-availability --window 30d", "lane_ref": "oya-foundry-fitness-canary-observability"},
+    {"name": "deploy_p99_latency_ms", "targets": {"preview": 200, "stable": 100, "GA": 50}, "verification_ref": "cargo bench -p oya-saas-workflow-kernel -- deploy_p99", "lane_ref": "oya-governance-perf-budget"},
+    {"name": "step_transition_p99_latency_ms", "targets": {"preview": 100, "stable": 50, "GA": 20}, "verification_ref": "cargo bench -p oya-saas-workflow-kernel -- step_transition_p99", "lane_ref": "oya-governance-perf-budget"},
+    {"name": "engine_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "verification_ref": "oya gate validate workflow-availability --window 30d", "lane_ref": "oya-governance-canary-observability"},
     {"name": "concurrent_instances_per_cell", "targets": {"preview": 10000, "stable": 100000, "GA": 1000000}, "verification_ref": "canary load-test", "lane_ref": "perf-budget"},
     {"name": "cross_tenant_leak_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "cargo nextest -p oya-saas-workflow-domain -- test_no_cross_tenant_leak", "lane_ref": "cargo-nextest"},
-    {"name": "audit_chain_emission_completeness_pct", "targets": {"preview": 100, "stable": 100, "GA": 100}, "verification_ref": "jq cross-check audit-chain vs instance count", "lane_ref": "oya-foundry-fitness-audit-chain-emission"},
+    {"name": "audit_chain_emission_completeness_pct", "targets": {"preview": 100, "stable": 100, "GA": 100}, "verification_ref": "jq cross-check audit-chain vs instance count", "lane_ref": "oya-governance-audit-chain-emission"},
     {"name": "mttr_rollback_seconds", "targets": {"preview": 300, "stable": 120, "GA": 30}, "verification_ref": "oya gate validate canary-observability-rollback --window 7d", "lane_ref": "canary-observability-rollback ($ref:docs/decisions/ADR-0114)"}
   ],
   "risks": [
     {"id": "R-01", "severity": "high", "risk": "state-machine + DAG hybrid is novel; engine bugs corrupt long-running state", "mitigation_ref": "$ref:specs/agent-durable-goal.json#tdd_contract + chaos test suite + per-step audit forensic replay"},
-    {"id": "R-02", "severity": "medium", "risk": "jurisdiction overlay resolution grows N×M complexity", "mitigation": "closed enum on overlay scope; explicit precedence per $ref:bominal/decisions/ADR-0149; lane oya-foundry-fitness-overlay-resolution-determinism"},
+    {"id": "R-02", "severity": "medium", "risk": "jurisdiction overlay resolution grows N×M complexity", "mitigation": "closed enum on overlay scope; explicit precedence per $ref:bominal/decisions/ADR-0149; lane oya-governance-overlay-resolution-determinism"},
     {"id": "R-03", "severity": "high", "risk": "LLM tool-call binding (GA) opens injection surface", "mitigation_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract + AC-07"},
-    {"id": "R-04", "severity": "medium", "risk": "visual editor and engine drift", "mitigation": "both bind to $ref:contracts/workflow_spec.v1.json; lane oya-foundry-fitness-workflow-spec-roundtrip"}
+    {"id": "R-04", "severity": "medium", "risk": "visual editor and engine drift", "mitigation": "both bind to $ref:contracts/workflow_spec.v1.json; lane oya-governance-workflow-spec-roundtrip"}
   ],
   "competitive_research_ref": "$ref:evidence/autoresearch/workflow-competitive-map.json",
   "competitive": [
@@ -116,10 +116,10 @@
     {"competitor": "Zapier_Make", "we_beat_on": ["production-grade durability + audit + SLA", "per-tenant isolation"], "measurable": "tenant data leak = 0; SLA target"}
   ],
   "best_practices": [
-    {"id": "BP-01", "rule": "canonical JSON spec is single source of truth; visual is projection", "planned_enforcement_ref": "oya-foundry-fitness-workflow-spec-roundtrip"},
-    {"id": "BP-02", "rule": "per-step audit-chain emission with distinct session_id + timestamp", "planned_enforcement_ref": "oya-foundry-fitness-audit-chain-session-distinctness", "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"},
+    {"id": "BP-01", "rule": "canonical JSON spec is single source of truth; visual is projection", "planned_enforcement_ref": "oya-governance-workflow-spec-roundtrip"},
+    {"id": "BP-02", "rule": "per-step audit-chain emission with distinct session_id + timestamp", "planned_enforcement_ref": "oya-governance-audit-chain-session-distinctness", "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"},
     {"id": "BP-03", "rule": "state-machine + DAG hybrid; spec schema requires exactly one state-machine + zero-or-more DAG blocks", "enforced_by_schema_ref": "$ref:contracts/workflow_spec.v1.json"},
-    {"id": "BP-04", "rule": "jurisdiction overlay precedence explicit; 3x re-run identity check", "planned_enforcement_ref": "oya-foundry-fitness-overlay-resolution-determinism"},
+    {"id": "BP-04", "rule": "jurisdiction overlay precedence explicit; 3x re-run identity check", "planned_enforcement_ref": "oya-governance-overlay-resolution-determinism"},
     {"id": "BP-05", "rule": "idempotent step execution via idempotency_key; at-most-once side effect", "enforced_by_test_ref": "crates/oya-saas-workflow-domain/tests/idempotency.rs"},
     {"id": "BP-06", "rule": "TDD per $ref:specs/agent-durable-goal.json#tdd_contract; 100% public API coverage + prove-it for every bug"},
     {"id": "BP-07", "rule": "competitive claims require official-source evidence_refs plus concrete patch/verification; unsourced benchmark deltas are forbidden", "enforced_by_ref": "$ref:evidence/autoresearch/workflow-competitive-map.json#source_policy"},
@@ -142,12 +142,12 @@
   ],
   "anti_patterns": [
     {"name": "bpmn_compatibility", "why_forbidden": "$ref:bominal/decisions/ADR-0148; rigid + sequential", "detection_lane": "spec schema lacks BPMN-XML import"},
-    {"name": "cross_tenant_raw_sql_bypass", "why_forbidden": "bypasses RLS + audit", "detection_lane": "oya-foundry-fitness-no-raw-sql-cross-tenant"},
+    {"name": "cross_tenant_raw_sql_bypass", "why_forbidden": "bypasses RLS + audit", "detection_lane": "oya-governance-no-raw-sql-cross-tenant"},
     {"name": "step_side_effect_without_idempotency_key", "why_forbidden": "duplicate effects on retry", "detection_lane": "test_idempotency_key_required"},
-    {"name": "implicit_version_bump_on_update", "why_forbidden": "breaks pinned callers (no_silent_regression)", "detection_lane": "oya-foundry-fitness-api-semver"},
-    {"name": "bypass_cedar_policy_gate", "why_forbidden": "violates autonomy_tier ceiling", "detection_lane": "oya-foundry-fitness-cedar-coverage"},
-    {"name": "single_session_audit_chain_across_steps", "why_forbidden": "PR17 anti-pattern; $ref:specs/agent-durable-goal.json#operating_principles/OP-08", "detection_lane": "oya-foundry-fitness-audit-chain-session-distinctness"},
-    {"name": "unsourced_competitor_benchmark_claim", "why_forbidden": "competitive deltas must cite official source evidence and distinguish internal targets from measured external facts", "detection_lane": "future oya-foundry-fitness-source-backed-competitive-claims"},
+    {"name": "implicit_version_bump_on_update", "why_forbidden": "breaks pinned callers (no_silent_regression)", "detection_lane": "oya-governance-api-semver"},
+    {"name": "bypass_cedar_policy_gate", "why_forbidden": "violates autonomy_tier ceiling", "detection_lane": "oya-governance-cedar-coverage"},
+    {"name": "single_session_audit_chain_across_steps", "why_forbidden": "PR17 anti-pattern; $ref:specs/agent-durable-goal.json#operating_principles/OP-08", "detection_lane": "oya-governance-audit-chain-session-distinctness"},
+    {"name": "unsourced_competitor_benchmark_claim", "why_forbidden": "competitive deltas must cite official source evidence and distinguish internal targets from measured external facts", "detection_lane": "future oya-governance-source-backed-competitive-claims"},
     {"name": "unbounded_in_memory_payload", "why_forbidden": "large JSON/binary payloads cause memory instability; use chunking or artifact_ref", "detection_lane": "workflow_spec max_payload_bytes/artifact_ref validator"},
     {"name": "bpmn_xml_as_canonical_authority", "why_forbidden": "business-readable projections are allowed, but workflow_spec.v1 remains source of truth", "detection_lane": "workflow-studio roundtrip projection gate"},
     {"name": "kubernetes_crd_as_core_workflow_authority", "why_forbidden": "Argo/Kubernetes is an executor adapter only; core workflow semantics must be runtime-agnostic", "detection_lane": "workflow executor adapter boundary validator"},
@@ -155,8 +155,8 @@
   ],
   "goals": {
     "scalability": {"target": "10K tenants per cluster + 1M concurrent instances per cell + 1B step transitions per day per region", "verification_ref": "bench + canary load-test pre-GA"},
-    "security": {"target": "per-tenant RLS + Cedar at every entry + signed audit-chain (post-$ref:docs/decisions/ADR-0083 cryptographic chain) + LLM input as data", "verification_lane_ref": "oya-foundry-fitness-tenancy-isolation + oya-foundry-fitness-cedar-coverage"},
-    "performance": {"target": "p99 step transition <20ms (GA) + p99 deploy <50ms + availability 99.95%", "verification_lane_ref": "oya-foundry-fitness-perf-budget + canary-observability"},
+    "security": {"target": "per-tenant RLS + Cedar at every entry + signed audit-chain (post-$ref:docs/decisions/ADR-0083 cryptographic chain) + LLM input as data", "verification_lane_ref": "oya-governance-tenancy-isolation + oya-governance-cedar-coverage"},
+    "performance": {"target": "p99 step transition <20ms (GA) + p99 deploy <50ms + availability 99.95%", "verification_lane_ref": "oya-governance-perf-budget + canary-observability"},
     "efficiency": {"target": "<$0.0001 per step transition (GA) + <$0.50 per tenant per month overhead", "verification_ref": "$ref:crates/oya-cloud-finops-kernel"},
     "reliability": {"target": "MTTR 30s (auto-rollback) + error budget 0.05%/quarter + durable state survives restart with zero duplicate side-effects", "verification_lane_ref": "canary-observability-rollback per $ref:docs/decisions/ADR-0114"}
   },

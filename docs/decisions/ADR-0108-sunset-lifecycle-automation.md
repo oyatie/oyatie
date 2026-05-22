@@ -141,27 +141,27 @@ successor-IP (see Follow-ups §1).
 ### Lane shape
 
 The lane is split across two crates per the
-`oya-foundry-fitness-<topic>-<layer>` canonical pattern (ADR-0105
+`oya-governance-<topic>-<layer>` canonical pattern (ADR-0105
 §"Amendment 1" + ADR-0107 §"Amendment 2026-05-15"):
 
-- **`crates/oya-foundry-fitness-sunset-lifecycle-kernel`** — I/O-free
+- **`crates/oya-governance-sunset-lifecycle-kernel`** — I/O-free
   pure kernel (port-in-kernel per ADR-0056 §"Layer semantics > kernel";
   Tier 1 library per ADR-0083 — no `.unwrap()` outside `#[cfg(test)]`).
   Exposes `Date`, `SunsetClause`, `LifecycleState`, `Violation`,
   `evaluate(clauses, now, reached_milestones)`,
   `effective_deprecation_at`, `effective_removal_at`.
-- **`tools/oya-foundry-fitness-sunset-lifecycle-app`** — composition-root
+- **`tools/oya-governance-sunset-lifecycle-app`** — composition-root
   binary (Tier 2 per ADR-0083; `-app` suffix per ADR-0107 §"Amendment
   2026-05-15"). Walks the three discovery surfaces, calls the kernel,
   prints findings, exits non-zero on any violation.
 
 ### Naming justifications (per `feedback_naming_justification`)
 
-- `oya-foundry-fitness-sunset-lifecycle-kernel`: v4 BNF
+- `oya-governance-sunset-lifecycle-kernel`: v4 BNF
   `oya-<product:foundry>-<facet:fitness>-<topic:sunset-lifecycle>-<layer:kernel>`;
   13-layer-enum suffix `kernel` (ADR-0105 Amendment 1); port-in-kernel
   per ADR-0056.
-- `oya-foundry-fitness-sunset-lifecycle-app`: v4 BNF
+- `oya-governance-sunset-lifecycle-app`: v4 BNF
   `oya-<product:foundry>-<facet:fitness>-<topic:sunset-lifecycle>-<layer:app>`;
   13-layer-enum suffix `app` (ADR-0107 §"Amendment 2026-05-15 —
   no-exception canonical naming"); composition-root binary per

@@ -115,7 +115,7 @@ spec:
             severity: warning
             sli: classifier_drift
             microservice: social
-            eu_ai_act: high-risk
+            risk_class: high-risk
           annotations:
             summary: "social moderation classifier drift detected (≥5x baseline rate)"
             runbook_url: "https://oyatie.dev/microservices/social/runbooks/content-moderation-rollback"

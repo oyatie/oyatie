@@ -14,4 +14,4 @@ traceability:
 allowed_dependency_edges: [oya-foundry-evidence-evidence-pack-builder-kernel]
 data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT, PII_IDENTIFYING, PII_QUASI_IDENTIFIER, SENSITIVE_PIPA_ART23, PHI, AUDIT, SECRET]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2

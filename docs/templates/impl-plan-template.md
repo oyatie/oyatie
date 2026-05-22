@@ -8,15 +8,13 @@ purpose: |
   .omc/plans/milestones/M0X-slug/phases/P0Y-slug/<impl-plan-name>.md.
   An autonomous executor reading this plan must be able to act without escalation:
   concrete file targets, crate names with BNF v4.1 justification, code skeletons,
-  acceptance commands, test plan, grit symbols, ICM payload, halt conditions.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/phase-spec-template.md
   - docs/templates/milestone-readme-template.md
   - docs/templates/INDEX.md
 adrs_cited:
-  - ADR-0053  # sanctioned primitives (grit claim symbols)
   - ADR-0054  # scaffold-claim pattern
   - ADR-0056  # BNF v4.1 + layer enum
 doc_status: published
@@ -335,12 +333,10 @@ echo "GET http://staging.<svc>/<endpoint>" \
 
 ---
 
-## Grit Symbol-Locks
 
 Claim these symbols BEFORE beginning work (per `feedback_grit_claim_work_done.md`):
 
 ```bash
-grit claim \
   --agent <agent-id> \
   --intent "<impl-plan-name>: <one-line intent>" \
   --ttl 3600 \
@@ -348,22 +344,16 @@ grit claim \
   crates/oya-<ms>-<bc>-<layer>/src/<module>.rs::<fn_name>
 ```
 
-Release with `grit done --agent <agent-id>` after acceptance gates pass.
 
-Fallback: ICM topic `scaffold-locks-oyatie` (per ADR-0054 §"scaffold-claim
-pattern") if grit v0.3.0 has no active locks for file-level scope.
 
 ---
 
-## ICM Rows to Emit
 
 Emit at IP completion (mandatory per `CLAUDE.md §Store — MANDATORY triggers`):
 
 ```bash
-icm store \
   -t context-oyatie \
   -c "<impl-plan-name> merged at <git-sha>; crates scaffolded: <list>;
-      grit symbols released: <list>; acceptance lanes green: <list>;
       next IP: <impl-plan-name+1>" \
   -i high \
   -k "M0X,P0Y,<impl-plan-name>,<µservice>"
@@ -380,7 +370,6 @@ Stop work and escalate to architect agent if ANY of the following occur:
    code — indicates a design boundary error; requires ADR amendment.
 3. A new crate name cannot satisfy BNF v4.1 justification — do not land an
    unjustified name; escalate.
-4. Grit claim conflicts with another agent on any symbol in this plan.
 5. Any acceptance gate exits non-zero after fix attempts and the root cause is
    unclear — do not mask with test-specific hacks.
 

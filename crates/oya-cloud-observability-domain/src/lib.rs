@@ -1601,23 +1601,42 @@ fn is_ascii_token_with_slash(value: &str) -> bool {
 mod tests {
     use oya_audit_chain_domain::Plane;
     use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
+    use oya_residency_domain::{
+        PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
+    };
 
     use super::*;
 
     const TENANT: &str = "ten_alpha";
-    const REGION: &str = "alpha-region";
-    const CELL: &str = "cell-alpha-region-a-001";
-    const SIGNED_EXPORT: &str = "s3+signed://alpha-region/ten_alpha/audit?sig=abc123";
-    const RESOURCE_ID: &str = "oya:cloud:alpha-region:ten_alpha:instance:vm-a";
+    const REGION: &str = "region-alpha1";
+    const CELL: &str = "cell-region-alpha1-a-001";
+    const SIGNED_EXPORT: &str = "s3+signed://region-alpha1/ten_alpha/audit?sig=abc123";
+    const RESOURCE_ID: &str = "oya:cloud:region-alpha1:ten_alpha:instance:vm-a";
     const HASH_A: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const HASH_B: &str = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+    fn residency_class() -> ResidencyClass {
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: vec!["region-alpha1".to_string()],
+                allowed_replica_regions: vec!["region-beta1".to_string()],
+                forbidden_regions: vec!["region-gamma1".to_string()],
+                regulator_overlay: RegulatorOverlay::new(RegulatorOverlayCreate {
+                    regulator_refs: vec!["regulator/cloud-observability".to_string()],
+                    evidence_ref: "evidence/residency/cloud-observability".to_string(),
+                })
+                .expect("regulator overlay fixture is valid"),
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
+    }
 
     fn residency() -> ObservabilityResidency {
         ObservabilityResidency::new(ObservabilityResidencyCreate {
             tenant_id: TENANT.to_string(),
             region: REGION.to_string(),
-            regional_pack: "oya-pack-core".to_string(),
-            residency: ResidencyClass::Global,
+            regional_pack: "oya-pack-alpha".to_string(),
+            residency: residency_class(),
             metric_storage_region: REGION.to_string(),
             log_storage_region: REGION.to_string(),
             trace_storage_region: REGION.to_string(),
@@ -1733,12 +1752,12 @@ mod tests {
         assert_eq!(valid.storage_region_for(TelemetryKind::Audit).value, REGION);
 
         let err = ObservabilityResidency::new(ObservabilityResidencyCreate {
-            trace_storage_region: "beta-region".to_string(),
+            trace_storage_region: "region-gamma1".to_string(),
             ..ObservabilityResidencyCreate {
                 tenant_id: TENANT.to_string(),
                 region: REGION.to_string(),
-                regional_pack: "oya-pack-core".to_string(),
-                residency: ResidencyClass::Global,
+                regional_pack: "oya-pack-alpha".to_string(),
+                residency: residency_class(),
                 metric_storage_region: REGION.to_string(),
                 log_storage_region: REGION.to_string(),
                 trace_storage_region: REGION.to_string(),
@@ -1897,7 +1916,7 @@ mod tests {
 
         let mut wrong_resource = envelopes();
         wrong_resource[0].resource_id =
-            Some("oya:cloud:alpha-region:ten_other:instance:vm-a".to_string());
+            Some("oya:cloud:region-alpha1:ten_other:instance:vm-a".to_string());
         assert_eq!(
             CloudObservabilityCatalog::default()
                 .ingest_verified_chain(&chain(), wrong_resource, &residency)
@@ -1907,7 +1926,7 @@ mod tests {
 
         let mut wrong_export = envelopes();
         wrong_export[0].signed_export_uri =
-            "s3+signed://alpha-region/ten_alpha/audit?sig=other".to_string();
+            "s3+signed://region-alpha1/ten_alpha/audit?sig=other".to_string();
         assert_eq!(
             CloudObservabilityCatalog::default()
                 .ingest_verified_chain(&chain(), wrong_export, &residency)

@@ -292,7 +292,7 @@ satisfy these checks. Each is gated by a concrete command:
 - [ ] **No references to the deprecated system remain in the codebase**
   (excluding historical ADR / RETIRED.md / git-log surfaces):
   ```bash
-  rg "oya_connect_mail" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/golden/"    | wc -l   # expect 0
+  rg "oya_connect_mail" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/reference/"    | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed (they served their purpose)** (per
   Phase 5):

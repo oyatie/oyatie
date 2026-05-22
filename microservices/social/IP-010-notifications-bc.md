@@ -7,56 +7,76 @@ impl_plan_id: IP-010-notifications-bc
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-social + axis-messenger
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-port-location]
+owner: axis-social
+acceptance_lanes: [cargo-nextest, notification-fanout-slo, websocket-smoke]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-010: Notifications bounded context
 
-# IP-010: notifications BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + websocket + sdk + app)
+## A. Problem
+Mentions, reactions, follows, moderation, appeals, and digest delivery require idempotent notification fanout with backpressure and policy filtering.
 
-## Intent
+## B. Approach
+Implement the planned notifications crate family with Postgres durability, Valkey fanout queues, worker coalescing, websocket delivery, and digest generation. Every notification is scoped by tenant, principal, context, and visibility policy.
 
-Author the `notifications` BC: real-time WebSocket delivery + digest worker;
-per-recipient idempotent processing; backpressure-coalesced under burst;
-cross-µservice messenger-bridge (notification of social mention surfaces in
-messenger inbox per ADR-SOC successor-IP); per-tenant pack-aware throttle.
-
-## ChangeSet boundary
-
-`notifications` BC end-to-end.
-
-## Concrete File Targets
-
-| Path | Action |
+## C. Deliverables
+| Artifact | Role |
 |---|---|
-| `src/crates/oya-social-notifications-kernel/src/{ports,entities,errors}.rs` | create |
-| `src/crates/oya-social-notifications-domain/src/{notification,digest_bucket,realtime_frame,backpressure}.rs` | create |
-| `src/crates/oya-social-notifications-usecase/src/{emit,dispatch,coalesce}.rs` | create |
-| `src/crates/oya-social-notifications-adapter-postgres/src/repository.rs` | create |
-| `src/crates/oya-social-notifications-adapter-redis/src/queue.rs` | create — Valkey Streams (Redis wire-compat) for fanout |
-| `src/crates/oya-social-notifications-worker/src/{dispatcher,digest_builder,messenger_bridge}.rs` | create |
-| `tests/notifications_fanout_e2e.rs` | create |
+| `src/crates/oya-social-notifications-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,worker,sdk,app}/` | Planned family named by PRD/IP. |
+| `contracts/asyncapi/social-events.yaml` | Notification-triggering event source. |
+| `slos/notification-fanout-latency.openslo.yaml` | Fanout SLO. |
+| `runbooks/mention-storm-throttle.md` | Burst-control runbook. |
 
-## Acceptance Gates
+## D. Ordered implementation steps
+1. Define notification, digest bucket, realtime frame, and idempotency key types.
+2. Implement policy-filtered recipient resolution.
+3. Add Valkey queueing with retry and coalescing.
+4. Add websocket frame delivery and digest worker paths.
+5. Test duplicate events, blocked recipients, muted minors, and backpressure.
+6. Emit audit and SLO metrics for delivered, delayed, suppressed, and failed notifications.
+7. Connect storm throttling runbooks and dashboards.
 
-```bash
-cargo nextest run -p oya-social-notifications-kernel
-cargo nextest run -p oya-social-notifications-domain
-```
+## E. Acceptance
+- `cargo nextest run -p oya-social-notifications-kernel` passes.
+- `slos/notification-fanout-latency.openslo.yaml` resolves.
+- Fanout tests prove idempotency for repeated events.
+- Notification policy tests respect `policy/dm-scope.cedar` and `policy/minor-protection.cedar`.
+- WebSocket smoke tests complete without cross-tenant delivery.
 
-## Test Plan
+## F. Evidence
+- PRD FR-16 and notification performance targets: `PRD.md`.
+- Contracts: `contracts/asyncapi/social-events.yaml`.
+- Policies: `policy/dm-scope.cedar`, `policy/minor-protection.cedar`.
+- SLO: `slos/notification-fanout-latency.openslo.yaml`.
 
-- Per-recipient idempotency: same notification event → single delivery.
-- Backpressure coalesce: burst notifications collapsed into digest within 250ms window.
-- AC-06 E2E: notification fanout to 10k followers ≤ 2s p99.
-- Cross-µservice: social mention surfaces in messenger inbox via Workflow event bridge.
-- Per-tenant pack-aware throttle: trial-tier ≤ 100 notifications/min/account.
+## G. Counterpart comparison
+X, Instagram, TikTok, Snapchat, Threads, and Bluesky all create strong realtime notification expectations. Oyatie must match responsiveness while making suppression, coalescing, and minor-protection behavior explicit and auditable.
 
-## Halt Conditions
+## H. Foundation delivery expansion
+- Deliverable detail: notification records include trigger event, recipient, channel, context, policy result, and idempotency key.
+- Deliverable detail: digest buckets preserve coalescing reason and delay target.
+- Deliverable detail: websocket frames include only policy-visible fields.
+- Deliverable detail: Valkey queue entries carry retry count, backoff, tenant, and audit correlation.
+- Deliverable detail: suppression evidence records muted, blocked, minor-protected, hidden, and rate-limited outcomes.
+- Deliverable detail: storm controls coalesce mention bursts and fanout spikes.
+- Deliverable detail: dashboard metrics include delivered, delayed, failed, suppressed, and retried counts.
+- Deliverable detail: Slack notification and channel mention behavior is a direct counterpart for realtime fanout expectations.
 
-- Notification fanout backlog > 500k (FM-11) → runbook activates; surge scaling.
+## I. Acceptance expansion
+- Acceptance detail: duplicate event tests must prove idempotent notification creation.
+- Acceptance detail: blocked/muted tests must suppress delivery before websocket or digest output.
+- Acceptance detail: minor-protection tests must prove default-silent or restricted delivery where required.
+- Acceptance detail: backpressure tests must use retry and dead-letter paths.
+- Acceptance detail: websocket smoke tests must prove cross-tenant frames are impossible.
+- Acceptance detail: SLO resolution must include notification fanout latency.
+- Acceptance detail: storm runbook must cover throttle, drain, and replay.
+- Acceptance detail: Slack, X, Instagram, and Snapchat comparisons must map to realtime notification behavior and suppression evidence.
 
-## Next IP
-
-[`IP-011-content-moderation-bc.md`](IP-011-content-moderation-bc.md)
+## J. Evidence expansion
+- Evidence detail: capture nextest output for notifications kernel and worker.
+- Evidence detail: capture AsyncAPI validation for trigger events.
+- Evidence detail: capture DM-scope and minor-protection policy tests.
+- Evidence detail: cite `slos/notification-fanout-latency.openslo.yaml` if present.
+- Evidence detail: cite `policy/dm-scope.cedar` and `policy/minor-protection.cedar`.
+- Evidence detail: cite `runbooks/mention-storm-throttle.md` if present.
+- Evidence detail: cite Slack as notification and channel-mention counterpart pressure.

@@ -185,10 +185,10 @@ Per ADR-0164, the cloud-secrets µservice ships a per-pack air-gap variant. The 
 - Recovery keys split per ADR-0043 quorum (Shamir 5-of-9 default; per-pack overlay).
 - Air-gap seal recovery requires regulator-witnessed quorum (per `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`).
 
-### BYOK + sovereign tenant key custody
+### encryption-key BYOK + sovereign tenant key custody (ADR-0251 §D-10)
 
 - A sovereign tenant in `pack-ksa` / `pack-uae` / `pack-eu-sovereign` / `pack-us-gov` may bring its own HSM-generated KEK; cloud-secrets accepts the KEK wrapped under the cell's KEK-of-KEKs.
-- BYOK material is HSM-stored in the cell HSM partition; never exported.
+- encryption-key BYOK material (ADR-0251 §D-10) is HSM-stored in the cell HSM partition; never exported.
 
 ### Pack matrix (cloud-secrets perspective)
 
@@ -207,6 +207,6 @@ Per ADR-0164, the cloud-secrets µservice ships a per-pack air-gap variant. The 
 
 ### CI gates
 
-CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM (no cloud-KMS unseal path), (c) BYOK paths use HSM-wrapped material only.
+CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM (no cloud-KMS unseal path), (c) encryption-key BYOK paths use HSM-wrapped material only (ADR-0251 §D-10).
 
 See `/specs/sovereign-cloud-air-gapped-canonical.json` for the canonical declaration.

@@ -62,9 +62,8 @@ doc_status: published
 > over-engineered layers that did not earn their keep:
 >
 > 1. The verbose `oya-<context>-<feature>-<capability>-<role>` BNF (4–5 segments)
->    produced names like `oya-foundry-fitness-architecture-conventions-kernel`.
-> 2. The `oya-foundry-fitness-freeze-window-kernel` lane primitive duplicated
->    grit's existing claim/symbol-lock system.
+>    produced names like `oya-governance-architecture-conventions-kernel`.
+> 2. The `oya-governance-freeze-window-kernel` lane primitive duplicated
 > 3. "Fitness" terminology, imported wholesale from *Building Evolutionary
 >    Architectures* jargon, never settled into the team's vocabulary and
 >    repeatedly produced 6-segment AMBER crates.
@@ -81,7 +80,6 @@ doc_status: published
 > --offline` lockfile primitive**, the **48 h coordinated freeze + Hybrid-C-Lite
 > escape hatch**, and the **deterministic §8 acceptance gates** all
 > port forward from v3 unchanged. The lane-config/freeze-window/expedite-token
-> machinery is dropped — grit's claim system (already in workspace use per
 > ADR-0054) holds an exclusive symbol lock for the duration of Shard 1, which
 > is what the 48 h window was approximating in software.
 
@@ -118,7 +116,7 @@ v3) and §6 R3 (re-audited blast-radius row).
    architecture fitness function family*. v4 imports their convention.
 4. **Mechanical change cost is one-time; cognitive load is forever.**
    v3's 37 renames + 31 compound-feature ADR rows + the closed enum + the
-   AMBER carve-out for `oya-foundry-fitness-architecture-conventions-kernel`
+   AMBER carve-out for `oya-governance-architecture-conventions-kernel`
    pay an ongoing readability tax. v4's higher one-time rename count (~50–90)
    buys a permanently simpler grammar.
 5. **Checks are cross-cutting, not layered.** A clean-architecture check
@@ -140,11 +138,7 @@ v3) and §6 R3 (re-audited blast-radius row).
    function" in any sense the team used informally. v4 collapses them all
    under a flat `oya-check-<name>` namespace, where the noun (`check`)
    matches the team's actual vocabulary.
-3. **grit already enforces freeze windows via symbol locks.** v3 invented
-   `oya-foundry-fitness-freeze-window-kernel` + `expedite_override_token`
-   + `lane-config-oyatie` ICM topic to coordinate one 48 h merge window per
-   year. grit's existing claim system locks `Cargo.toml::workspace_members`
-   (or, post-ADR-0054, a path-scoped icm-coordination-lock fallback) for
+   `oya-governance-freeze-window-kernel` + `expedite_override_token`
    the duration of Shard 1's atomic squash-merge. The fitness lane was
    a parallel implementation of a primitive the workspace already has.
 
@@ -251,8 +245,7 @@ drivers above; no single-viable-option invalidation rationale needed.
   --workspace --no-deps` graph + `cargo metadata --no-deps | jq` snapshot
   daily for 7 days post-Shard-1; new fitness-equivalent check
   `oya-check-rename-baseline-reset` (renamed from v3's
-  `oya-foundry-fitness-baseline-reset-kernel`) computes a daily delta and
-  emits to ICM topic `decisions-oyatie-rename-v4`. Day-7 review acceptance:
+  `oya-governance-baseline-reset-kernel`) computes a daily delta and
   zero unexpected deltas. Counts as the §8.2 "Impossible-to-fail score
   over 7 days" gate.
 
@@ -305,7 +298,6 @@ kebab-token    ::= [a-z] [a-z0-9]*
 binary or single concept at that layer (e.g., `oya-medical-domain`,
 `oya-tenancy-kernel`, `oya-cloud-cli`). Include BC when the microservice
 has multiple binaries or multiple BC-level splits at the same layer (e.g.,
-`oya-foundry-grit-cli`, `oya-foundry-icm-cli`,
 `oya-workflow-state-machine-domain`, `oya-workflow-approvals-application`).
 
 **FINAL BNF v4.1**: each crate name encodes
@@ -819,7 +811,6 @@ to the flat `check` namespace.
 |--:|---|---|---|---|---|---|---|---|:-:|--:|
 | 60 | `oya-foundry-api` | `foundry` | `meta` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry meta-surface; aggregator API; likely REST but iter-4 must confirm. BC = `meta` disambiguates from per-feature foundry-* BCs) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
 | 61 | `oya-foundry-adapter-kernel` | `foundry` | `adapter` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (note: BC is `adapter` as a domain noun — this crate is the foundry's pluggable-adapter framework, not itself a `adapter` layer crate) | `oya-foundry-adapter-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 62 | `oya-foundry-bypass-kernel` | `foundry` | `bypass` | `vertical` | `domain` | `product-quality-governance-kernel-per-ICM-01KRF94HM1PW4ET58CQHJHKXS0; domain (NOT check-namespace) because business-logic enforcing foundation-bypass tracking on actual repo entities, not a cross-cutting policy probe` | `oya-foundry-bypass-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 | 63 | `oya-foundry-capability-kernel` | `foundry` | `capability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-capability-domain` | PROPOSED-NEW | 3 | est. 10–20 |
 | 64 | `oya-foundry-catalog-kernel` | `foundry` | `catalog` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-catalog-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 | 65 | `oya-foundry-cloud-mutation-kernel` | `foundry` | `cloud-mutation` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-cloud-mutation-domain` | PROPOSED-NEW | 2 | est. 5–10 |
@@ -1412,15 +1403,12 @@ for deterministic per-crate verification.
 
 ## §5 Per-shard checklist (Hybrid C)
 
-### 5.0 Sanctioned-primitives ICM rationale
 
 Same as v3 §5.0. The renamed `oya-codeview-cli` (row 140) is the new
 triad READ slot per `git-workflow.md §2-3`. Bootstrap-window exception
-allows `gh`/`git` invocations during the cutover session iff an ICM
-rationale row is logged via `icm store -t direct-tool-invocations -c
 "rename-cutover-v4 bootstrap session" -i critical -k "cutover,bootstrap,
 rename-v4"`. The `oya-check-banned-primitives` crate (renamed from
-`oya-foundry-fitness-banned-primitives`, if it existed in v3; otherwise
+`oya-governance-banned-primitives`, if it existed in v3; otherwise
 authored fresh in Shard 0) enforces.
 
 ### 5.1 Shard 0 checklist (pure tooling, no renames)
@@ -1429,7 +1417,6 @@ Same shape as v3 §5.1. Differences:
 
 | # | Command | Expected exit | Verification |
 |---:|---|:---:|---|
-| 0 | `icm store -t direct-tool-invocations -c "rename-cutover-v4 bootstrap session" -i critical -k "cutover,bootstrap,rename-v4"` | 0 | Mandatory before any git/gh op |
 | 1 | `cargo new --lib tools/xtask-metadata-augment` + author body | n/a | Port forward from v3 §5.1 step 1 |
 | 1b | Extend `tools/xtask-metadata-augment` with `lockfile-rename` subcommand per v3 §7.1.1 spec | n/a | Same 8-row fixture matrix |
 | 2 | `cargo build -p xtask-metadata-augment` | 0 | Helper compiles |
@@ -1464,8 +1451,6 @@ Same shape as v3 §5.2; row counts updated:
 
 | # | Command | Expected exit | Verification |
 |---:|---|:---:|---|
-| 0 | `icm store -t direct-tool-invocations -c "rename-cutover-v4 Shard 1 session" -i critical -k "cutover,shard-1,rename-v4"` | 0 | Cutover-bootstrap rationale renewed |
-| 1 | For each of ~139 renames in §3, ICM scaffold-claim row per ADR-0054 amendment | 0 (× ~139) | Same as v3 §5.2 step 1, scaled |
 | 2 | Update root `Cargo.toml` `[workspace] members = [...]` array per §3 | n/a | All entries updated atomically |
 | 3 | `git mv crates/oya-<old> crates/oya-<new>` × ~139 | 0 each | Directory renames |
 | 4 | `cargo run -p xtask-metadata-augment -- --apply` | 0 | All 140 manifests carry `[package.metadata.oya]` per §3.0 schema |
@@ -1482,7 +1467,6 @@ Same shape as v3 §5.2; row counts updated:
 | 12b | Scripted name-rewrite of `Cargo.lock` via xtask: `cargo run --release -p xtask-metadata-augment -- lockfile-rename --rename-map /tmp/rename-map.tsv --lockfile Cargo.lock --inplace` | 0 | Deterministic rewrite; toml_edit-based |
 | 12c | `cargo check --workspace --locked --offline` | 0 | `--locked` refuses any non-name delta |
 | 13 | All §8.1 deterministic acceptance gates | 0 (all) | Merge-gate |
-| 14 | Close ICM scaffold-claim windows | 0 each | ADR-0054 amendment compliance |
 | 15 | **B6 closure (3-substep chicken-and-egg avoidance; normalized iter-5 G3 to 4-LEAN design)**: (a) During Shard 1 merge, **the 4 LEAN check crates** (`oya-check-architecture` with 7 subcommands under LEAN-A1, `oya-check-bounded-contexts` LEAN-A2, `oya-check-supply-chain` LEAN-A3, `oya-check-semver` LEAN-A4) run in `--report-only` mode — they CANNOT fail the merge that introduces them; (b) Post-merge §8.2 global gate (a follow-up commit or scheduled CI job) flips severity from `--report-only` to BLOCKER for all 4 check crates atomically; (c) Any violation detected by `--report-only` mode during the Shard 1 merge but not yet blocked is logged to MISTAKES-LEDGER topic `mistakes-rename-v4-shard-1` for follow-up resolution. Chicken-and-egg avoided: the merge that introduces the checks cannot fail by their own enforcement. | n/a | Shard 1 commit ships 4 LEAN check crates at `--report-only`; §8.2 BLOCKER-flip commit follows in a separate PR within 24 h |
 | 15a | **Architect B1 closure (clean-architecture.md amendment)**: in the SAME atomic Shard 1 commit, update `docs/standards/clean-architecture.md` §2.1 "domain — Defines ports" wording to read "kernel — Defines ports (Rust trait declarations) + pure types" per ADR-0056-cited port-location move. | n/a | Standard wording matches v4 canonical decision tree |
 | 16 | Flip ADR-0056 + ADR-0057 status `Proposed → Accepted` | n/a | ADR header status |
@@ -1491,16 +1475,11 @@ Same shape as v3 §5.2; row counts updated:
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|:---:|:---:|---|
-| **R1 — In-flight branch conflicts.** | M | M | Single 48 h coordination window via grit claim's exclusive symbol lock (not a separate fitness lane primitive; ADR-0054's existing icm-coordination-lock fallback covers the rename-event case per the same-commit ADR-0054 amendment). `git rerere` enabled on merge queue. Hybrid-C-Lite escape hatch (per ADR-0057) if 48 h window unschedulable within 2 weeks of Shard 0 merge. |
 | **R2 — `cargo-deny` schema mismatch** (NEW name; was v3 R3). | L | L | `deny.toml` audited (`[licenses]` only — no `[bans]` rules referencing crate names). Generator-from-metadata for `[bans]` deferred to post-Shard-1 ADR — out of scope for v4. |
 | **R3 — Row 35-equivalent blast radius** (NEW: per Scenario B mitigation, applies to every renamed crate, not just the predicted highest). | M | H | Shard 0 step 15a emits `/tmp/reverse-dep-counts.tsv` covering ALL 140 crates. §8.1 reverse-dep gate enforces per-rename consumer-count assertion ≡ pre-rename count. If any rename's count drifts, gate fails. Most likely row-35-equivalent under v4: `oya-data-boundary-domain` (v3's 95 consumers; ported forward). If another crate emerges higher (e.g. `oya-tenant-domain`, `oya-identity-domain`, `oya-eventing-domain`, `oya-audit-chain-domain`), that crate also gets the named §3 docs/code co-edit + risk = 5 treatment. |
-| **R4 — `[lib]` name drift on rename.** Permanent-controls ledger (5 layers). | M | H | Same 5-layer control as v3 R7: (1) preflight xtask checklist, (2) MISTAKES-LEDGER row, (3) `oya-check-architecture` `lib-name-parity` subcommand (LEAN-A1 subcommand 6 per §4a) `[lib]`-vs-`[package]`-name parity check, (4) ICM rationale row, (5) `cargo doc --workspace --no-deps` citation probe. |
-| **R5 — Security P0 expedite during freeze window.** | L | H | Use **grit claim's normal authority** (no separate `expedite_override_token` machinery). If a P0 security hotfix must merge during the 48 h coordination window, the on-call security council member releases the grit symbol-lock via `grit done --agent <id> --force`, lands the P0, and re-acquires the lock. ICM rationale row at `direct-tool-invocations` topic. No fitness-lane primitive needed; grit's existing authority chain handles it. ADR-0057 §"Rollback/expedite protocol" documents the precondition list (same shape as v3 ADR-0055 §"Rollback/expedite protocol" but the token mechanism is replaced by grit claim's exclusive-lock authority). |
-| **R6 — rust-analyzer cache recovery.** | M | M | Runbook-level (port forward from v3 R8): post-rename, `rust-analyzer: Restart server` from each editor's command palette. CI runners are ephemeral. ICM rationale row + runbook link for first 14-day post-merge window. |
-| **R7 — cargo-semver-checks baseline reset.** | M | M | Same strategy as v3 R9: rename = breaking change at package-name level; Shard 1 commits `--baseline-rev <pre-shard-1-sha>` snapshots. New check crate `oya-check-rename-baseline-reset` (renamed from v3's `oya-foundry-fitness-baseline-reset-kernel`) classifies name-change-only failures as class `BASELINE-RESET`. 14-day post-merge grace where any semver-checks failure on a renamed crate is auto-classified `BASELINE-RESET`. |
+| **R7 — cargo-semver-checks baseline reset.** | M | M | Same strategy as v3 R9: rename = breaking change at package-name level; Shard 1 commits `--baseline-rev <pre-shard-1-sha>` snapshots. New check crate `oya-check-rename-baseline-reset` (renamed from v3's `oya-governance-baseline-reset-kernel`) classifies name-change-only failures as class `BASELINE-RESET`. 14-day post-merge grace where any semver-checks failure on a renamed crate is auto-classified `BASELINE-RESET`. |
 | **R8 — Staging-promotion compounding** (port forward from v3 §7.2 REVERT-STAGING-BLOCK soft-edit). | L | M | If Shard 1 reaches staging before a revert fires, the revert PR title prefixes `REVERT-STAGING-BLOCK:`; staging-promotion lane refuses next promotion until a `STAGING-UNBLOCK:` follow-up; post-revert observability sweep is BLOCKING (vs. non-blocking on normal path). |
 | **R9 — Dependency cycle detection (NEW).** Clean Architecture v4 enforces layer dependency direction at compile/CI time. A rogue commit that introduces a cycle (e.g. `oya-audit-chain-application` depending on `oya-audit-chain-file-infrastructure` directly instead of via port trait) would compile but violate clean-arch principles. | L | H | New `oya-check-architecture` crate (LEAN-A1; `dependency-direction` subcommand per §4a) parses `cargo metadata --no-deps`, classifies each edge by source-layer → target-layer pair, and refuses any edge not in the §2.2 allowed-edge table. New §8.1 gate row "Dependency direction check". Severity = BLOCKER. |
-| **R10 — Bounded-context naming drift (NEW; B4 5-layer parity with R4).** Without a closed enum, two teams could disagree on the bounded context for the same domain (`audit` vs. `audit-chain`; `eventing` vs. `events`). | M | H | **Permanent-controls ledger (5 layers, matching R4 [lib] drift)**: (1) **Preflight**: xtask `--check-bc` (A4 codification check) runs before any crate scaffold; refuses unregistered BC. (2) **Ledger**: MISTAKES-LEDGER row keyed `BC-DRIFT-001` (template: "BC X added without rationale paragraph or owner field — corrected via ADR-0056 amendment"). (3) **Lane**: `oya-check-bounded-contexts` (LEAN-A2; renamed from iter-1-fold-A's singular `oya-check-bounded-context-registry` per Codex iter-2 stale-name fix at this R10 row) is BLOCKER post-§8.2 flip. (4) **ICM**: `icm store -t bc-drift-prevention -c "<scaffold-claim-for-new-bc-X>" -i critical -k "bc=X,scaffolder=<agent>"` before any new BC's first use. (5) **Citation probe**: `cargo doc --workspace --no-deps` references the registry; missing-BC reference fails docgen. 90-day auto-deprecation for zero-crate contexts. Scenario A pre-mortem mitigation. ADR-0056 §"Bounded context registry as a living document" + §"BC arbitrator" (B3) govern arbitration. |
 | **R11 — Atomic Shard-1 review at 139-rename scale (NEW; B5 reviewability; rebalanced iter-2 per Codex C6 from 3 → 4 streams)**. A single reviewer cannot meaningfully review a 500–700-file diff covering ~140 renames + 140 metadata blocks + ~200–400 dep-edge rewrites + CI/scripts/docs/registry co-edits in any reasonable time budget. | M | M | **4 parallel reviewer streams partitioned by §3 audit cluster + hotspot**: stream 1a = platform/shared (~28 crates per §3.1) — reviewer-platform; 1b = cloud vertical (~31 crates per §3.2) — reviewer-cloud; 1c = foundry vertical (~51 crates per §3.3) — reviewer-foundry; **1d = workspace vertical + tooling-now-shared + 4 hotspots (~30 crates + hotspot artefacts: ADR-0056, clean-architecture.md standard amendment per Codex C2, xtask spec, 4 lean check crates) — reviewer-lead (full-PR scope)**. Each reviewer signs off on their partition only; reviewer-lead also signs off on the cross-partition meta. The atomic squash-merge requires **all 4 partition sign-offs** before merge. New §8.1 gate row "4 partition sign-offs collected" enforces. Reviewer-hours accounting in §9 updates: 8–10 h per primary × 4 reviewers in parallel = **32–40 h calendar reviewer-hours** (HONEST sizing per iter-2 prefold-A item 3 sync; was 24–30 h under 3-stream pre-supplement budget — explicitly accepted when expanding to 4 partitions); each reviewer's load is bounded by their partition's file count (~100–250 files vs. 500–700 full-PR). |
 | **R11a — Transitive cross-vertical dep refusal (NEW; iter-2 prefold-A item 1).** Direct cross-vertical refusal (LEAN-A2) catches `oya-cloud-* → oya-workspace-*` edges. The harder failure mode is TRANSITIVE: a vertical-A crate depends on a `shared` crate X, which itself depends on a vertical-B crate. The transitive chain compiles even though A inadvertently consumes vertical-B logic via the shared intermediary. | M | H | **LEAN-A2 traverses BOTH direct AND transitive deps** via `cargo metadata` + recursive resolution. **Three sub-rules**: (a) **Direct cross-vertical dep** (`vertical-A → vertical-B` where A ≠ B, both ≠ `shared`) → ERROR (exit 1, blocking; existing rule). (b) **Transitive cross-vertical via shared** (`vertical-A → shared-X → vertical-B`) → ERROR (refused — `shared` crates cannot depend on any vertical; this is already covered by the `kind: shared → only shared` direct rule, but the transitive walker SURFACES the offending `shared-X → vertical-B` edge as the proximate cause). (c) **Transitive same-vertical via shared** (`vertical-A → shared-X → shared-Y → vertical-A's-other-BC`) → OK (loops back via shared are allowed; the same-vertical termination satisfies the rule even though the chain transits two `shared` crates). **Violation report format**: xtask emits the FULL dep-chain as `a → x → y → b` (with `kind` annotations per node) — not just the endpoints — so reviewers can pinpoint the boundary-crossing intermediate `shared` crate that needs splitting. Public-layer exception (per cloud dual-role addition) is applied AT each `vertical-* → shared-*` edge, NOT at the chain endpoints — i.e., a chain `workspace-X → cloud-storage-sdk` is allowed because the consumer-side edge terminates at a public-layer crate, even if intermediate transit existed; `oya-shared-bounded-contexts-check-cli` walks the chain and checks `public_layers` allowlist at every cross-vertical hop. |
 
@@ -1532,14 +1511,9 @@ Port forward from v3 §7.2:
 - Revert PR uses `gh pr merge --admin` under the named exception in
   ADR-0057 §"Rollback/expedite protocol".
 - The exception requires **all three preconditions** at invocation time:
-  (1) **the grit claim on the rename-cutover symbol-lock is currently
   held by a Security Council member** (replaces v3's `freeze_active ==
-  true` lane check; this is the grit-claim-authority replacement); (2)
   operator possesses standing Security Council authority (replaces v3's
-  `expedite_override_token`; uses ADR-0054's existing icm-coordination-
-  lock authority, which IS a sanctioned primitive); (3) `icm store -t
   direct-tool-invocations -c "EMERGENCY revert of Shard 1 via admin-
-  merge, rationale: <reason>; grit-symbol-lock-held; security-council-
   authority" -i critical` logged BEFORE the admin-merge command runs.
 - CI bypass: revert PR runs only `cargo check --workspace --all-features`
   (~3 min); full §8 gate suite is BYPASSED. Full suite re-runs post-merge
@@ -1577,7 +1551,6 @@ Every gate is a runnable command with explicit exit-code expectation.
 | xtask metadata-augment fixture matrix | `cargo nextest -p xtask-metadata-augment --test fixtures` (20 cells) | 0 |
 | xtask lockfile-rename fixture matrix | `cargo nextest -p xtask-metadata-augment --test lockfile_rename_fixtures` (8 rows) | 0 |
 | `[lib]` name parity | `cargo run -p xtask-metadata-augment -- --lib-name-check` | 0 |
-| ICM JSONL round-trip | Same as v3 §8.1; new context now `lane-config-oyatie` topic NOT used under v4 (grit claim replaces it). Round-trip test verifies `icm` JSONL stability under pinned `tools/toolchain-versions.toml` icm pin; the rename-baseline-reset check's JSONL output flows through this contract. | 0 |
 | Reverse-dep count parity (R3 mitigation: all 140 crates, not just row-35-equivalent) | `for old new <- /tmp/rename-map.tsv: test "$(cargo metadata --locked --format-version 1 \| jq -r '[.packages[] \| select(.dependencies[]?.name == "'$new'") \| .name] \| unique \| length')" -eq "$(grep -P "^$old\t" /tmp/reverse-dep-counts.tsv \| cut -f2)"` (one assertion per rename) | 0 for all |
 | **LEAN-A1 — Architecture orchestrator (7 inner code-shape checks)** | `cargo run -p oya-check-architecture -- report --format json` (invokes subcommands `layer-correctness` + `dependency-direction` + `naming-collision` + `metadata-schema` + `lockfile-parity` + `lib-name-parity` + `check-namespace`; classifies dep edges per 12-value §2.2.5 matrix; per-layer heuristic per §4a LEAN-A1 table; dev-deps + `[target.cfg(test).dependencies]` EXCLUDED from direction enforcement per §15a fix 10; tuple uniqueness on `<shared\|vertical>-<bc>-<layer>` per 3-slot grammar). **Lockfile-parity subcommand exit-code discipline** per §15a fix 12: rg exit 1 (no match) = PASS, rg exit ≥ 2 (rg error) = FAIL with explicit error message. | 0 |
 | **LEAN-A2 — Bounded-contexts registry + shared/vertical-kind dep enforcement (D4 explicit transitive walker + public_layers hop check + chain output)** | `cargo run -p oya-check-bounded-contexts -- --check` enforces: (i) every `[package.metadata.oya].bounded_context` registered in `[workspace.metadata.oya.bounded_contexts]` with `name`/`kind`/`owner`/`rationale`/`adr_cite` (+ `vertical` if `kind == "vertical"`); (ii) **CROSS-VERTICAL DEPENDENCY REFUSAL — DIRECT** — parses each crate's `cargo metadata` deps; classifies source slot-2 + target slot-2; refuses direct edges where (source = vertical-X, target = vertical-Y, X ≠ Y, both ≠ `shared`); (iii) **CROSS-VERTICAL DEPENDENCY REFUSAL — TRANSITIVE (D4)** — walks transitive deps via recursive `cargo metadata` traversal; at EACH cross-vertical hop in the chain, checks whether the target crate's layer ∈ target vertical's `public_layers` allowlist (if yes, hop is allowed via the public-layer exemption per §11 ADR-0056 §"Cloud vertical dual-role + public_layers"; if no, hop is refused); `shared → vertical` hops never qualify for public-layer exemption (shared reuse requires complete vertical neutrality); (iv) shared BCs depend only on other shared BCs; (v) BC overlap governance: lexical-prefix + Jaro-Winkler similarity > 0.85 triggers manual review (non-blocking advisory); (vi) **Violation output FORMAT (D4)**: on violation, emit FULL dep-chain `a → x → y → b` with per-node `{kind: shared\|vertical, vertical: <name>, layer: <12-value>}` annotation; reviewers pinpoint the boundary-crossing intermediate (typically a `shared` crate that incorrectly depends on a vertical) for splitting. | 0 |
@@ -1595,11 +1568,8 @@ Shard 1 squash commit. Additionally:
 | Zero hits global sweep | `rg -F -f /tmp/old-crate-names.txt . -g '!docs/CHANGELOG.md' -g '!docs/plans/rename-plan-*.md' -g '!docs/decisions/ADR-0054*' -g '!docs/decisions/ADR-0056*' -g '!docs/decisions/ADR-0057*'` | exit 1 (no match = pass) |
 | ADR-0056 status | `rg "^status: Accepted" docs/decisions/ADR-0056-*.md` | 0 |
 | ADR-0057 status | `rg "^status: Accepted" docs/decisions/ADR-0057-*.md` | 0 |
-| ADR-0054 amendment present | `rg "Amendment 2026-05-13: rename-event scaffold-claim authority (v4)" docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md` | 0 |
 | Bounded-context registry consistency | `cargo run -p xtask-metadata-augment -- --bounded-context-registry-check` | 0 (every bounded-context field in all 140 crates appears in `docs/standards/bounded-contexts.md`) |
-| **NEW: 7-day rolling observability score** (DELIBERATE-mode requirement) | After 7 days of post-Shard-1 daily snapshots emitted by `oya-check-rename-baseline-reset`, assert zero unexpected `cargo metadata` deltas. Deterministic shell predicate: `test "$(icm recall -t decisions-oyatie-rename-v4 -k 'window=7d' --format jsonl \| jq -s 'map(select(.unexpected_delta == true)) \| length')" -eq 0` | 0 |
 | **B6 closure — 4-check BLOCKER flip atomicity** (post-Shard-1, separate PR within 24 h; updated iter-2 from 11 → 4 per LEAN-A1–A4 collapse) | All 4 `oya-check-*` crates' CI workflow rows flip from `severity: report-only` to `severity: BLOCKER` in a single commit; verify via `rg "severity: BLOCKER" .github/workflows/checks.yml \| wc -l` returns `4` | 0 (count = 4) |
-| **B6 closure — Mistakes ledger sweep** (post-BLOCKER flip) | Any `report-only` violation detected during Shard 1 merge but suppressed by B6 chicken-and-egg avoidance MUST be logged to ICM topic `mistakes-rename-v4-shard-1`; sweep deterministic check `test "$(icm recall -t mistakes-rename-v4-shard-1 --format jsonl \| jq -s 'map(select(.status == "open")) \| length')" -eq 0` | 0 (zero open violations remaining) |
 
 ## §9 Estimated effort
 
@@ -1611,7 +1581,6 @@ v3, ported forward):
 | Shard 0 (xtask + ADR-0054 amendment + ADR-0056 with §"BNF accommodation" + §"BC arbitrator" + §"BC overlap governance" + §"Verticals registry" with lifecycle + §"Cloud vertical dual-role + public_layers" + §"Build tooling vs coordination primitives" + ADR-0057 + **4 LEAN check scaffolds per §4a LEAN-A1–LEAN-A4** + new bounded-contexts.md skeleton with B3 arbitrator clause + parent/child + sibling rule + verticals registry block with `cloud.public_layers = ["sdk"]` + IDE smoke gate + B7 BNF-accommodation step) | **6–9 h** (revised down from iter-1-fold-A's 7–10 h due to LEAN-A1–A4 collapse from 11 → 4 check scaffolds, OFFSET by the iter-2 prefold-A ADR additions: dual-role + verticals lifecycle + transitive-walker spec) | **2 h** (unchanged from iter-1; ADR sub-section count grew but per-section length is bounded) | xtask + 3 ADRs (0054 amendment + 0056 + 0057) + 4 LEAN check scaffolds + verticals registry + IDE smoke |
 | Shard 1 (atomic ~140-rename + 140 metadata + 200–400 dep-edges + CI + scripts + docs co-edits + clean-architecture.md:99-103 amendment per Codex C2 + rewrite of crate-naming-convention.md + lockfile regen + verticals registry materialisation) | **12–18 h** | **8–10 h per primary reviewer × 4 reviewers parallel = 32–40 h calendar reviewer-hours** (iter-2 prefold-A item 3 honest-sizing sync; was 24–30 h under 3-stream pre-supplement budget; the 4th partition was added per Codex C6 for hotspot-coverage at reviewer-lead) | Reviewer load on ~5 hotspots (rows 1, 60-conformant subset, 105, 109, 138, 139); 4 streams = 1a platform/shared + 1b cloud + 1c foundry + 1d workspace+tooling+hotspots-reviewer-lead per §6 R11 |
 | **Total** | **~18–27 h executor + 34–42 h calendar reviewer (8–10 h per primary × 4 reviewers parallel + 2 h Shard 0)** | — | — |
-| Calendar (incl. 48 h coordination via grit claim) | **4–6 days** | — | Shard 0 review (~1 day) → 48 h grit claim window → Shard 1 merge with 4 partition sign-offs |
 | Rollback (standard) | < 60 min | — | git revert + lockfile inverse-rename |
 | Rollback (emergency lane) | < 15 min | — | admin-merge + 3-min CI |
 
@@ -1717,7 +1686,7 @@ above 3 surfaces are NET-NEW pressure tests on the post-fold v4 state.
    sites in `scripts/`, `.github/`, and `docs/` referenced the old
    name. Codex may pressure-test: (a) whether the xtask actually
    catches every fitness-crate reference (especially
-   `oya-foundry-fitness-architecture-conventions-kernel` the
+   `oya-governance-architecture-conventions-kernel` the
    load-bearing lane); (b) whether the BLOCKER-flip strategy for
    check crates (Shard 1 step 15) introduces a chicken-and-egg if a
    check crate's BLOCKER mode would fail the Shard 1 merge itself; (c)
@@ -2061,7 +2030,6 @@ until classification completes. Two options for Shard 1 sequencing:
 **Decision criterion (deterministic)**: if iter-5 protocol-audit
 completes ≥ 5 working days before Shard 0 scheduled merge date →
 Option-Inline; else → Option-Hold. The decision is recorded in
-ADR-0056 amendment + ICM topic `decisions-oyatie-rename-v4` with key
 `protocol-audit-sequencing`.
 
 **Exceptions list (multi-protocol crates)**: empty at iter-4 close.
@@ -2147,12 +2115,10 @@ coordination primitive in the ADR-0053 "three sanctioned coordination
 primitives" sense.
 
 - **Coordination primitives** (per ADR-0053 + ADR-0054) govern
-  agent→repo state transitions: `grit` (symbol-lock authority), `icm`
   (rationale store + scaffold-claim windows), `oya-shared-codeview-cli`
   (READ slot of the sanctioned triad). These primitives gate WHO can
   mutate the repo and WHEN.
 - **Build tooling** (`cargo`+subcommands) executes WITHIN an existing
-  claim window. An agent that holds a grit claim on `Cargo.toml::
   workspace_members` may freely invoke `cargo build`, `cargo test`,
   `cargo deny check` without further coordination overhead; the
   coordination primitive guards the symbol, not the build commands
@@ -2243,37 +2209,26 @@ Shard 1. **Supersedes**: ADR-0055.
 machinery from the workspace. Carry forward Hybrid C topology, xtask spec
 (now in v4 §3 + §5), `lockfile-rename` subcommand, 4-layer branch
 pipeline, deterministic acceptance gates. Replace v3's
-`oya-foundry-fitness-freeze-window-kernel` + `lane-config-oyatie` ICM
-topic + `expedite_override_token` with grit claim's existing exclusive-
 symbol-lock authority (per ADR-0054 amendment); the rename-cutover
-session holds a single grit symbol lock for the 48 h coordination
 window.
 
 **Decision Drivers**:
-1. grit claim is already the workspace's sanctioned coordination
    primitive (ADR-0053 + ADR-0054).
 2. Inventing a parallel lane primitive duplicates effort and creates a
    maintenance surface that the team will not exercise (one
    rename-cutover per year, at most).
 3. Token-rotation race in v3 §6 R2 (mitigated but not eliminated) is a
-   class of bug that disappears entirely under grit claim authority.
 
 **Alternatives Considered**:
-- Keep v3 fitness primitives. **Why rejected**: redundant with grit;
   fragile under concurrent merge-queue dequeues.
 - Replace with GitHub branch-protection rule. **Why rejected**: doesn't
   emit auditable trail; doesn't compose with non-merge agents.
 
 **Consequences**:
-- Positive: drops 1 fitness lane crate from v3 (`oya-foundry-fitness-
-  freeze-window-kernel`), drops `lane-config-oyatie` ICM topic, drops
-  token-rotation race; relies on grit's existing authority.
-- Negative: tighter coupling between rename-cutover and grit's
-  availability; if grit upstream changes claim semantics, the
+- Positive: drops 1 fitness lane crate from v3 (`oya-governance-
   rename-cutover protocol must update.
 
 **Follow-ups**:
-- Document the grit claim authority used for rename-cutover in
   `docs/standards/git-workflow.md §3` (the cutover-bootstrap window
   section); cross-reference ADR-0057.
 
@@ -2287,7 +2242,7 @@ window.
 
 **CI / scripts** (carried forward from v3 §12):
 - `.github/workflows/release-evidence-pack.yml` (1 site)
-- `.github/workflows/oya-foundry-fitness-supply-chain.yml` (2 sites)
+- `.github/workflows/oya-governance-supply-chain.yml` (2 sites)
 - `scripts/check.sh` (~29 sites)
 - `scripts/hooks/pre-push-repoctl.sh` (1 site)
 - `scripts/check-architecture-boundaries.sh` (3 sites + 1 new for
@@ -2322,7 +2277,6 @@ window.
   cargo-semver-checks, cargo-nextest) is build/test/lint tooling, NOT
   a coordination primitive in the ADR-0053 "three sanctioned primitives"
   sense.
-- `docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md` (amendment
   block for v4: "Amendment 2026-05-13: rename-event scaffold-claim
   authority (v4)" — carries the rename-event scaffold-claim authority
   to the v4 rename, replacing v3's amendment text)
@@ -2382,9 +2336,7 @@ window.
   (authored in Shard 1).
 - **Git workflow**: [`docs/standards/git-workflow.md`](../standards/git-workflow.md)
   (§2-3 sanctioned-primitives; §3 cutover-bootstrap window).
-- **ADR-0054 (grit scaffold-claim pattern)**: [`docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md`](../decisions/ADR-0054-grit-scaffold-claim-pattern.md)
   (amendment in Shard 0 covers rename-event scaffold-claim authority for v4).
-- **ICM decision provenance**: `01KRFMEVN49BB6J0QWKNGATC1K` (Policy B +
   immediate metadata cutover, locked 2026-05-12 ~23:00 ET; carries forward
   to v4).
 - **Open questions ledger**: [`/Users/jasonlee/oyatie/.omc/plans/open-questions.md`](../../.omc/plans/open-questions.md)
@@ -2487,7 +2439,6 @@ third-correction (2-slot BNF) below. File:line cites confirm closure.
 | B1 | Port traits placement — confirm `kernel` (not `domain`) per canonical decision tree | HIGH | CLOSED | §2.2.1 row "kernel" — "**Pure types + ports (traits) only.** ZERO business logic."; §5.1 step 7a (B1 closure); §5.2 step 15a (clean-architecture.md amendment in atomic Shard 1 commit); ADR-0056 §"Decision" notes port-location move from `domain` → `kernel` |
 | B2 | `*-api` evidence — replace `rest (provisional)` with file:line cites or explicit deferral marker | HIGH | CLOSED | §3 audit-row preamble — `layer_evidence` column added; "no row may ship as `provisional`"; §10 surface 2 enforces per-crate evidence audit at 139-crate scale |
 | B3 | BC arbitrator — name council-architecture as default; add tie-breaker procedure | MODERATE | CLOSED | §5.1 step 7b (B3 arbitrator clause embedded in `docs/standards/bounded-contexts.md` skeleton); §11 ADR-0056 §"Bounded context registry as a living document" extended with B3 tie-breaker procedure |
-| B4 | R10 BC drift 5-layer parity with R4 | MODERATE | CLOSED | §6 R10 — 5-layer permanent-controls ledger explicit (preflight A4 xtask, MISTAKES-LEDGER BC-DRIFT-001, A4 BLOCKER lane, ICM bc-drift-prevention topic, `cargo doc` citation probe) |
 | B5 | Reviewability at 139-rename scale — 3 parallel reviewer streams | HIGH-ish | CLOSED | §6 R11 — 3 partition streams (1a platform / 1b cloud / 1c foundry+workspace+foundation) with per-partition sign-off; §8.1 gate "B5 — 3 partition sign-offs collected" enforces via `gh pr view` heuristic |
 | B6 | §5.2 step 15 ordering — atomic BLOCKER flip without chicken-and-egg | LOW | CLOSED | §5.2 step 15 — 3-substep avoidance: (a) `--report-only` during Shard 1, (b) post-merge §8.2 BLOCKER-flip PR within 24 h, (c) MISTAKES-LEDGER for any gap-window violations; §8.2 gates "B6 closure — 11-check BLOCKER flip atomicity" + "B6 closure — Mistakes ledger sweep" |
 | B7 | BNF accommodation for proc-macros / codegen / fixtures / library+binary | LOW | CLOSED | §5.1 step 7c — ADR-0056 §"BNF accommodation" authored. Canonical layer assignments: proc-macros = `kernel` (types output) OR `infrastructure` (codegen machinery), pick by output; codegen crates = `cli` (run as tool) OR `infrastructure` (linked at compile time), pick by invocation; test-fixture crates = live as `tests/` subdirs by default, OR as `dev-dependency`-only crate at layer = `kernel` with `purpose = "test-fixture, dev-only"` annotation; library+binary split-the-crate rule by default unless binary is trivial (<100 LOC non-import lines), enforced by xtask check |

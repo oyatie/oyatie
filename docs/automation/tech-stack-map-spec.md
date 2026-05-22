@@ -11,7 +11,7 @@ purpose: |
   and distroless container image. Source: every `Cargo.toml`, every
   `package.json`, the verified LTS roster, and the distroless-base declarations.
   Lift to `docs/visualization/tech-stack.md` as Mermaid.
-planned_enforcement_ref: oya-foundry-fitness-tech-stack-map
+planned_enforcement_ref: oya-governance-tech-stack-map
 extends_crates:
   - oya-foundry-license-policy-kernel
   - oya-foundry-vendor-contract-recency-kernel
@@ -84,7 +84,7 @@ A sortable companion table with `dep_id | ecosystem | version | lts_track | role
 
 For each axis, an axis-scoped Mermaid view showing only the deps that axis consumes. Helps the axis lead see "what am I responsible for keeping current."
 
-## 5. Validation gates (`oya-foundry-fitness-tech-stack-map`)
+## 5. Validation gates (`oya-governance-tech-stack-map`)
 
 1. **LTS conformance.** Every dep's `version_pinned` resolves to the current LTS major.minor per `lts-versions-verified-*.md` (BLOCKER absent ADR-tracked exception).
 2. **Adapter-boundary discipline.** Provider-specific deps (AWS, GCP, Azure, OCI, OpenAI, Anthropic, etc.) appear ONLY in `oya-*-adapter-<provider>-*` crates (BLOCKER per Directive 4).

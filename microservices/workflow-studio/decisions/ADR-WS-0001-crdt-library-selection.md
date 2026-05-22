@@ -35,7 +35,7 @@ The workflow-studio µservice's `collab-crdt` bounded context (PRD §"Bounded Co
 
 PRD §"Open Questions" Q1 (gates IP-005): "CRDT library: yrs (yjs Rust port) vs loro vs bespoke?" with a stated bias toward Loro for tree-aware CRDT (matches DAG structure).
 
-Workflow definitions are tree-shaped (nodes, edges, parameters, nested groups). The DSL canonical form (workflow_spec.v1.json, settled by ADR-WS-0002) is the authoring source of truth; the visual canvas derives from it. AC-02 demands that **load(emit(canvas)) is byte-equal to the original spec** over a 100-spec golden corpus. The CRDT layer sits between the visual canvas and the dsl-emitter/dsl-loader, so the CRDT's serialized state MUST be projectable to the canonical JSON without lossy conversion or key-ordering nondeterminism.
+Workflow definitions are tree-shaped (nodes, edges, parameters, nested groups). The DSL canonical form (workflow_spec.v1.json, settled by ADR-WS-0002) is the authoring source of truth; the visual canvas derives from it. AC-02 demands that **load(emit(canvas)) is byte-equal to the original spec** over a 100-spec reference corpus. The CRDT layer sits between the visual canvas and the dsl-emitter/dsl-loader, so the CRDT's serialized state MUST be projectable to the canonical JSON without lossy conversion or key-ordering nondeterminism.
 
 Performance envelope (PRD §"Performance"):
 - Collab CRDT merge p50 ≤ 30ms, p99 ≤ 100ms, p999 ≤ 250ms.
@@ -61,7 +61,7 @@ Adopt **Loro 1.x** (`crates.io/crates/loro`) as the workflow-studio CRDT library
 2. The Loro tree CRDT (`LoroTree`) backs the node/edge graph; Loro maps (`LoroMap`) back node parameter dictionaries; Loro lists (`LoroList`) back edge ordering. Conflict surfacing uses Loro's built-in version-vector + frontier API; the `Conflict` entity in the kernel wraps Loro `Frontiers` into a UI-renderable shape.
 3. CRDT-to-spec projection (`emit`) deterministically orders Loro nodes by their stable `TreeID`s, with map keys lex-sorted at the dsl-emitter boundary. This makes Loro state projection deterministic and is the seam that lets AC-02 (round-trip byte-equality) hold even though Loro's internal op log is not byte-canonical.
 4. Loro snapshot encoding is used for Valkey persistence (`snapshot()` + `import_snapshot()`); JSON projection is used only for the canonical spec emission.
-5. Loro version pinning + Ed25519-signed advisory feed monitoring; major-version upgrades require a fresh round-trip-corpus drill against the 100-spec golden corpus before merge.
+5. Loro version pinning + Ed25519-signed advisory feed monitoring; major-version upgrades require a fresh round-trip-corpus drill against the 100-spec reference corpus before merge.
 6. The collab-crdt CI lane (`oya-governance-collab-no-silent-loss`) runs Loro's example test suite + workflow-studio's own AC-06 property test (10 concurrent editors, randomized op interleaving, assertion that every accepted op is reachable from final state OR surfaced as conflict — never silently dropped).
 
 ## Alternatives Considered
@@ -96,7 +96,7 @@ Automerge 2.0 is the rewrite-in-Rust of the historic JavaScript-first Automerge;
   - WASM bundle size larger than Loro by ~2-3x at the time of evaluation (Loro ~250 KB gzip vs Automerge ~600 KB gzip per upstream benchmarks 2025-Q4).
   - History-preservation-first design retains every op in the document forever unless explicitly compacted; this multiplies storage for long-lived workflow drafts.
   - Performance for high-frequency op interleaving (drag-while-collaborator-drags) is documented as O(n log n) in op count; Loro's RGA-tree variant is closer to O(log n).
-- **Rejected reason**: bundle size hits the TTI ≤ 2s p99 budget (PRD §"Performance") and there is no native tree CRDT for the workflow DAG. History-preservation default conflicts with the ephemeral-Redis state model.
+- **Rejected reason**: bundle size hits the TTI ≤ 2s p99 budget (PRD §"Performance") and there is no native tree CRDT for the workflow DAG. History-preservation default conflicts with the ephemeral-Valkey state model.
 
 ### Alternative C — Bespoke Rust CRDT
 

@@ -17,7 +17,7 @@ allowed_dependency_edges:
   - oya-foundry-evidence-regulator-export-api
 data_classes_owned: []
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T1
+autonomy_level_required: T1
 notes: |
   Canonical Rust client. Auto-loads SPIFFE Workload API socket. Idempotency-key
   auto-generation. OpenTelemetry trace + metric instrumentation. Consumed by

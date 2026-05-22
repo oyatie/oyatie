@@ -1,0 +1,45 @@
+//! Cell assignment kernel — CellId, ShardKey, CellHealth, RebalanceTask + ports.
+//!
+//! Wave 15-IMPL-truth-up scaffold; full implementation lands in IP-008 execution.
+//! Per ADR-0248 + oyatie-shuffle-sharding crate, cellular architecture is the
+//! pattern; this crate owns the assignment-decision concern.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+#![allow(dead_code)]
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub struct CellId(pub String);
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub struct ShardKey(pub u64);
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CellHealth {
+    Healthy,
+    Degraded,
+    Unhealthy,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RebalanceTask {
+    pub tenant: String,
+    pub from_cell: CellId,
+    pub to_cell: CellId,
+    pub reason: String,
+}
+
+pub trait CellAssignmentRepository {
+    fn assigned_cell(&self, tenant: &str) -> Result<Option<CellId>, CellKernelError>;
+    fn record_assignment(&self, tenant: &str, cell: &CellId) -> Result<(), CellKernelError>;
+}
+
+pub trait CellHealthProbe {
+    fn probe(&self, cell: &CellId) -> Result<CellHealth, CellKernelError>;
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CellKernelError {
+    NoHealthyCell,
+    ProbeFailed,
+    PersistenceUnavailable,
+    RebalanceConflict,
+}

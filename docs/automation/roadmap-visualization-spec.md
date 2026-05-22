@@ -9,7 +9,7 @@ purpose: |
   Render the wave sequence with milestone gates as a Mermaid Gantt chart.
   Source: MASTERPLAN.md §3 + each milestone INDEX.md + each phase INDEX.md.
   Lift to `docs/visualization/roadmap.md`. Auto-derived; no hand-painted Gantt.
-planned_enforcement_ref: oya-foundry-fitness-roadmap-viz
+planned_enforcement_ref: oya-governance-roadmap-viz
 extends_crates:
   - oya-foundry-architecture-map-kernel
   - oya-foundry-mdbook-kernel
@@ -73,7 +73,6 @@ gantt
   M02-P02 policy-cedar   :          m02p2, after m02p1, 30d
 
   section M-CC Cross-cutting
-  M01-P08 grit-icm cutover :crit, mccp1, 2026-05-15, 60d
 ```
 
 Sections grouped by milestone; M-CC threaded as its own section with `:crit` tag where dependencies are critical-path.
@@ -91,9 +90,9 @@ A Mermaid `xychart-beta` showing cumulative phase completion over time, broken b
 Each wave gate is rendered as a diamond node containing:
 - Wave id (e.g. `W-Foundry-Preview`).
 - Gate criteria list (lifted verbatim from `docs/ROADMAP.md` §2 row).
-- Current pass/fail state (from `oya-foundry-fitness-lane-rollup` aggregate).
+- Current pass/fail state (from `oya-governance-lane-rollup` aggregate).
 
-## 6. Validation gates (`oya-foundry-fitness-roadmap-viz`)
+## 6. Validation gates (`oya-governance-roadmap-viz`)
 
 1. **Frontmatter completeness.** Every milestone/phase INDEX has the required date/duration fields (BLOCKER).
 2. **DAG validity.** `start_after:` references resolve; no cycles (BLOCKER).

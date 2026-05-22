@@ -1,7 +1,7 @@
 //! Cloud managed data-service kernel.
 //!
 //! This crate owns the provider-neutral control contract for managed Postgres,
-//! Citus, pgvector, Valkey cache, Kafka, ClickHouse, and gated stable
+//! Citus, pgvector, Valkey-compatible cache, Kafka, ClickHouse, and gated stable
 //! expansion engines. The kernel validates topology and evidence; adapters own
 //! engine I/O.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
@@ -87,7 +87,10 @@ pub enum PostgresExtension {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ValkeyDistribution {
+    LegacyBsdPre74,
     Valkey,
+    Garnet,
+    ForbiddenSsplRsal74OrLater,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -133,9 +136,9 @@ pub struct PostgresShape {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ValkeyShape {
     pub distribution: ValkeyDistribution, // data_class: PUBLIC
-    pub major_version: u16,               // data_class: PUBLIC
-    pub replica_count: u16,               // data_class: INTERNAL_ONLY
-    pub max_ttl_seconds: Option<u64>,     // data_class: INTERNAL_ONLY
+    pub major_version: u16,              // data_class: PUBLIC
+    pub replica_count: u16,              // data_class: INTERNAL_ONLY
+    pub max_ttl_seconds: Option<u64>,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -887,8 +890,10 @@ fn validate_postgres_shape(
 }
 
 fn validate_valkey_shape(shape: &ValkeyShape) -> Result<(), CloudDataError> {
-    if shape.replica_count < 3 {
-        return Err(CloudDataError::InvalidEngineShape);
+    if shape.distribution == ValkeyDistribution::ForbiddenSsplRsal74OrLater
+        || shape.replica_count < 3
+    {
+        return Err(CloudDataError::InvalidLicensePosture);
     }
     if shape.major_version == 0 || shape.max_ttl_seconds == Some(0) {
         return Err(CloudDataError::InvalidEngineShape);
@@ -1044,17 +1049,36 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_residency_domain::{
+        PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
+    };
 
     const TENANT: &str = "ten_acme";
-    const REGION: &str = "alpha-region1";
-    const CELL: &str = "cell-alpha-region1-a-primary";
-    const KMS_KEY: &str = "kms/alpha-region1/ten_acme/db-key";
+    const REGION: &str = "region-alpha1";
+    const CELL: &str = "cell-region-alpha1-a-primary";
+    const KMS_KEY: &str = "kms/region-alpha1/ten_acme/db-key";
+
+    fn residency_class() -> ResidencyClass {
+        ResidencyClass::PerPack(Box::new(
+            PerPackResidency::new(PerPackResidencyCreate {
+                allowed_primary_regions: vec![REGION.to_string()],
+                allowed_replica_regions: vec!["region-beta1".to_string()],
+                forbidden_regions: vec!["region-gamma1".to_string()],
+                regulator_overlay: RegulatorOverlay::new(RegulatorOverlayCreate {
+                    regulator_refs: vec!["regulator/global-data".to_string()],
+                    evidence_ref: "evidence/residency/global-data".to_string(),
+                })
+                .expect("regulator overlay fixture is valid"),
+            })
+            .expect("per-pack residency fixture is valid"),
+        ))
+    }
 
     fn azs() -> Vec<String> {
         vec![
-            "alpha-region1-a".to_string(),
-            "alpha-region1-b".to_string(),
-            "alpha-region1-c".to_string(),
+            "region-alpha1-a".to_string(),
+            "region-alpha1-b".to_string(),
+            "region-alpha1-c".to_string(),
         ]
     }
 
@@ -1072,7 +1096,7 @@ mod tests {
             weekly_tenant_dump: true,
             retention_days: 90,
             kms_key_id: KMS_KEY.to_string(),
-            object_store_ref: "object/alpha-region1/db-backup".to_string(),
+            object_store_ref: "object/region-alpha1/db-backup".to_string(),
             quarterly_dr_drill: true,
         }
     }
@@ -1111,7 +1135,7 @@ mod tests {
             ),
             engine,
             state: ManagedDataState::Provisioning,
-            residency: ResidencyClass::Global,
+            residency: residency_class(),
             allowed_data_classes: vec![DataClass::InternalOnly, DataClass::PiiIdentifying],
             replication: replication(),
             backup: backup(),
@@ -1149,7 +1173,7 @@ mod tests {
         );
         assert_eq!(
             ManagedDataService::new(ManagedDataServiceCreate {
-                azs: vec!["alpha-region1-a".to_string(), "alpha-region1-b".to_string()],
+                azs: vec!["region-alpha1-a".to_string(), "region-alpha1-b".to_string()],
                 ..service_create(ManagedDataEngine::Postgres, postgres_shape(vec![]))
             })
             .expect_err("three AZs are required"),
@@ -1177,7 +1201,7 @@ mod tests {
     }
 
     #[test]
-    fn valkey_posture_is_enforced() {
+    fn valkey_license_posture_is_enforced() {
         let service = ManagedDataService::new(service_create(
             ManagedDataEngine::Valkey,
             EngineShape::Valkey(ValkeyShape {
@@ -1187,13 +1211,13 @@ mod tests {
                 max_ttl_seconds: Some(86_400),
             }),
         ))
-        .expect("valid Valkey service");
+        .expect("license-clean Valkey-compatible service");
         assert_eq!(service.tier.value, ManagedDataTier::Cache);
         assert_eq!(
             ManagedDataService::new(service_create(
                 ManagedDataEngine::Valkey,
                 EngineShape::Valkey(ValkeyShape {
-                    distribution: ValkeyDistribution::Valkey,
+                    distribution: ValkeyDistribution::ForbiddenSsplRsal74OrLater,
                     major_version: 8,
                     replica_count: 2,
                     max_ttl_seconds: None,
@@ -1290,7 +1314,7 @@ mod tests {
             ManagedDataService::new(ManagedDataServiceCreate {
                 replication: DataReplicationPolicy {
                     mode: ReplicationMode::ThreeAzWithCrossRegionReadMirror,
-                    cross_region: Some("beta-region1".to_string()),
+                    cross_region: Some("region-beta1".to_string()),
                     residency_policy_ref: None,
                 },
                 ..service_create(ManagedDataEngine::Postgres, postgres_shape(vec![]))
@@ -1301,8 +1325,8 @@ mod tests {
         let service = ManagedDataService::new(ManagedDataServiceCreate {
             replication: DataReplicationPolicy {
                 mode: ReplicationMode::ThreeAzWithCrossRegionReadMirror,
-                cross_region: Some("beta-region1".to_string()),
-                residency_policy_ref: Some("residency/alpha-beta/read-mirror".to_string()),
+                cross_region: Some("region-beta1".to_string()),
+                residency_policy_ref: Some("residency/global/read-mirror".to_string()),
             },
             ..service_create(ManagedDataEngine::Postgres, postgres_shape(vec![]))
         })
@@ -1338,7 +1362,7 @@ mod tests {
             BackupEvidence::new(
                 &service,
                 BackupEvidenceCreate {
-                    kms_key_id: "kms/gamma-region1/ten_acme/db-key".to_string(),
+                    kms_key_id: "kms/region-beta1/ten_acme/db-key".to_string(),
                     ..backup_evidence(&service)
                 },
             )

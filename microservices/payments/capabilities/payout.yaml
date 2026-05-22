@@ -1,0 +1,93 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json (per ADR-0064)
+id: cap:payments:payout:v1
+name: payout
+namespace: payments
+display_name: Schedule + Execute Payout
+description: |
+  Schedule a payout from tenant / sub-merchant balance to a verified
+  bank-account. Multi-layer defence: KYB + bank-verified + cooling-period +
+  dual-signoff (for high-value) + sanctions-screen. Tier-1 cell deployment
+  for regulated finance flows.
+
+owner_team: axis-payments + ops-treasury
+maturity: incubating
+created_at: 2026-05-20
+related_adrs: [ADR-0244, ADR-0246, ADR-0248, ADR-0263]
+related_artifacts:
+  - microservices/payments/PRD.md
+  - microservices/payments/policy/payout-authorization.cedar
+  - microservices/payments/runbooks/payout-failed.md
+
+autonomy_tier: T3
+# T3 = irreversible cross-tenant money-movement; requires dual-signoff for >$10k;
+#       Cedar default-deny baseline + multi-layer FORBID.
+
+inputs:
+  - name: tenant_id
+    type: string
+    format: uuid
+    required: true
+  - name: bank_account_id
+    type: string
+    format: uuid
+    required: true
+  - name: amount
+    type: object
+    schema: Money
+    required: true
+  - name: sub_merchant_id
+    type: string
+    format: uuid
+    required: false
+  - name: idempotency_key
+    type: string
+    required: true
+  - name: step_up_auth_class
+    type: string
+    enum: [passkey, webauthn]
+    required: true
+    description: Required for payouts > $10k per documentation-rigor §3.2.3
+
+outputs:
+  - name: payout
+    type: object
+    schema: Payout
+  - name: audit_event
+    type: object
+    schema: AuditEvent
+    description: oya.payments.payout.scheduled|initiated|completed|failed
+
+data_classes_touched:
+  - BANK_ACCOUNT
+  - PII_BENEFICIAL_OWNER_NAME
+  - AUDIT
+
+regulatory_packs_consumed:
+  - pack-pci-dss-l1-v4
+  - pack-kr-fss
+  - pack-us-state-mtl
+  - pack-au-aml-ctf
+  - pack-br-lgpd-finance
+  - pack-in-rbi
+
+evidence_topic: oya.payments.payout
+
+cost_profile:
+  type: per-payout
+  estimated_cost_usd_per_call: 0.50  # Stripe $0.25 + Adyen €0.25 + ACH return-risk reserve
+  cost_drivers:
+    - PSP payout fee
+    - ACH / SEPA / KR-FSS settlement fee
+
+cedar_policy_fragments:
+  - microservices/payments/policy/payout-authorization.cedar
+  - microservices/payments/policy/abuse-defence.cedar
+
+eval_set:
+  paiden_inputs_path: microservices/payments/capabilities/eval/payout-paiden.jsonl
+  pass_threshold: 0.999  # higher bar — payout errors are catastrophic
+  eval_metric: payout-success-rate-vs-stripe-sandbox-reference
+  cadence: per-release
+
+sunset:
+  status: none

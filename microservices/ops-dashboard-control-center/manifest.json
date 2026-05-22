@@ -98,46 +98,46 @@
   },
   "capabilities": [
     {
-      "tier": "T2",
+      "availability": "paid tenant_class always-on; demo_trial cap-bounded",
       "name": "incident-declare",
       "file": "microservices/ops-dashboard-control-center/capabilities/incident-declare.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T3",
+      "availability": "paid tenant_class always-on; demo_trial cap-bounded with step-up authorization",
       "name": "incident-remediation-approve",
       "file": "microservices/ops-dashboard-control-center/capabilities/incident-remediation-approve.yaml",
-      "eu_ai_act_risk_class": "high"
+      "risk_class": "high"
     },
     {
-      "tier": "T3",
+      "availability": "paid tenant_class always-on; demo_trial cap-bounded with step-up authorization",
       "name": "deployment-approve",
       "file": "microservices/ops-dashboard-control-center/capabilities/deployment-approve.yaml",
-      "eu_ai_act_risk_class": "high"
+      "risk_class": "high"
     },
     {
-      "tier": "T3",
+      "availability": "paid tenant_class always-on; demo_trial cap-bounded with step-up authorization",
       "name": "rollback-execute",
       "file": "microservices/ops-dashboard-control-center/capabilities/rollback-execute.yaml",
-      "eu_ai_act_risk_class": "high"
+      "risk_class": "high"
     },
     {
-      "tier": "T1",
+      "availability": "paid tenant_class always-on; demo_trial read-only",
       "name": "cluster-health-query",
       "file": "microservices/ops-dashboard-control-center/capabilities/cluster-health-query.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
-      "tier": "T1",
+      "availability": "paid tenant_class always-on; demo_trial read-only",
       "name": "tenant-isolation-posture-query",
       "file": "microservices/ops-dashboard-control-center/capabilities/tenant-isolation-posture-query.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T2",
+      "availability": "paid tenant_class always-on; demo_trial cap-bounded",
       "name": "evidence-pack-export",
       "file": "microservices/ops-dashboard-control-center/capabilities/evidence-pack-export.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -319,7 +319,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "envoy-circuit-breaker-on-ops-control-center-command-upstream; max_connections=100, max_pending_requests=50, outlier_detection consecutive_5xx=3 base_ejection_time=30s",
     "tenant_rate_limit": "per-tenant and per-operator token bucket: oya_ops_control_center_rate_limit_total{scope=tenant|operator}; emergency break-glass path has separate audited budget",
-    "golden_signals": "rate=oya_ops_control_center_requests_total; errors=oya_ops_control_center_requests_total{status=~\"5..\"}; latency=oya_ops_control_center_request_duration_seconds_bucket; saturation=oya_ops_control_center_command_queue_depth",
+    "primary_sre_signals": "rate=oya_ops_control_center_requests_total; errors=oya_ops_control_center_requests_total{status=~\"5..\"}; latency=oya_ops_control_center_request_duration_seconds_bucket; saturation=oya_ops_control_center_command_queue_depth",
     "error_budget_burn": "multi-window burn on command availability, incident ack latency, rollback decision latency, cluster health freshness, evidence pack freshness, and audit completeness SLOs"
   },
   "audit_chain": {
@@ -387,7 +387,7 @@
     "INTERNAL_ONLY"
   ],
   "rpo_rto": {
-    "tier": "hot",
+    "availability_class": "hot",
     "rto_target_seconds": 300,
     "rpo_target_seconds": 60,
     "authority_adr": "ADR-0180"
@@ -413,7 +413,7 @@
     "engine": "opentofu"
   },
   "docs": {
-    "tier": "all"
+    "coverage": "all"
   },
   "i18n": {
     "default_locale": "en-US",
@@ -433,7 +433,7 @@
   },
   "realtime": {
     "transport": {
-      "tier": "sse"
+      "transport_class": "sse"
     },
     "payload_budget_bytes": 32768
   },
@@ -473,5 +473,195 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": true,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "ops-dashboard-control-center is a BNF v4.1 kebab-case microservice slug; generated names follow oya-ops-dashboard-control-center-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_adoption": [
+    "demo_trial",
+    "paid"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "soc2",
+    "iso27001",
+    "gdpr",
+    "hipaa",
+    "fedramp-high",
+    "lgpd",
+    "soc2-type2",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: envoy-circuit-breaker-on-ops-control-center-command-upstream; max_connections=100, max_pending_requests=50, outlier_detection consecutive_5xx=3 base_ejection_time=30s; tenant_rate_limit: per-tenant and per-operator token bucket: oya_ops_control_center_rate_limit_total{scope=tenant|operator}; emergency break-glass path has separate audited budget; primary_sre_signals: rate=oya_ops_control_center_requests_total; errors=oya_ops_control_center_requests_total{status=~\"5..\"}; latency=oya_ops_control_center_request_duration_seconds_bucket; saturation=oya_ops_control_center_command_queue_depth; error_budget_burn: multi-window burn on command availability, incident ack latency, rollback decision latency, cluster health freshness, evidence pack freshness, and audit completeness SLOs; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "owner_team": "ops-sre-reliability",
+  "product_classification": "microservice-manifested",
+  "data_classification": "PII_IDENTIFYING, AUTHENTICATION, AUDIT, INTERNAL_ONLY",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "soc2",
+    "iso27001",
+    "gdpr",
+    "hipaa",
+    "fedramp-high",
+    "lgpd",
+    "soc2-type2",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "compliance",
+    "tenancy",
+    "identity",
+    "observability",
+    "cell",
+    "audit-chain",
+    "network",
+    "marketplace",
+    "detection",
+    "governance",
+    "intelligence",
+    "ontology",
+    "foundry",
+    "finops-portal",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_class": "T1",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.18,
+    "baseline_ram_per_tenant": 384,
+    "storage_per_tenant": 2,
+    "connections_per_tenant": {
+      "valkey": 6,
+      "postgres": 6,
+      "outbound_http": 40
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-1",
+    "notes": "Operator control, rollback, tenant isolation review, and evidence export are request/control-plane actions with elevated blast radius and strict audit coupling."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 1800,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "valkey_cluster",
+      "object_storage_versioned",
+      "audit_chain_merkle_seal",
+      "openbao_seal_unseal"
+    ],
+    "failover_runbook": "runbooks/deployment-rollback.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Ops dashboard control center is an internal operator/control surface that can approve rollbacks, inspect tenant-isolation posture, and emit audit evidence. It does not run tenant code, but it directly touches substrate-control and tenant-sensitive operational state, so Tier 1 is required.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/ops-dashboard-control-center/PRD.md",
+    "microservices/ops-dashboard-control-center/ARCHITECTURE.md",
+    "microservices/ops-dashboard-control-center/IP-005-tenant-isolation-policy-audit.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/ops-dashboard-control-center/contracts/openapi/ops-dashboard-control-center.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/ops-dashboard-control-center/contracts/asyncapi/ops-dashboard-control-center-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/ops-dashboard-control-center/contracts/proto/ops_dashboard_control_center.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "cedar",
+    "postgresql",
+    "valkey",
+    "opentelemetry",
+    "opentofu",
+    "openbao",
+    "cosign"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "tenant-namespace",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "aws-guest",
+      "primitive": "postgres-wal-g",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "aws-guest",
+      "primitive": "valkey-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "colo",
+      "primitive": "audit-chain-merkle-seal",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "openbao-seal-unseal",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ]
 }

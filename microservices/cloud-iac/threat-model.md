@@ -406,7 +406,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: cloud-iac apply event logs
 - Likelihood: M (human-error baseline) / Impact: H (cascades to broad compromise) / Risk: **H**
 - Mitigations:
-  - Secret-scanner CI lane (`oya-foundry-fitness-evidence-secret-scan`) scans every commit + log emission for known secret patterns.
+  - Secret-scanner CI lane (`oya-governance-evidence-secret-scan`) scans every commit + log emission for known secret patterns.
   - OTel SDK redactor strips known-secret patterns at emission time.
   - OpenBao SecretReference materialisation never logs the raw secret; `Secret<T>` wrapper.
   - Rotation policy: 24h cluster kubeconfigs; 90d signing keys; rotate-out before leaked secret expires.

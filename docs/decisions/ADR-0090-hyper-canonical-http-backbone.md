@@ -71,7 +71,7 @@ BC-specific rest/application crates.
 
 These pins are caret-major-minor placeholders. Before each merge that
 bumps hyper/tokio/hyper-util/http-body-util/bytes, the LTS-pin verifier
-(`oya-foundry-fitness-lts-dependency` lane, ADR-0064 §5) cross-checks
+(`oya-governance-lts-dependency` lane, ADR-0064 §5) cross-checks
 against the current upstream LTS major.minor.
 
 ## Drivers
@@ -125,5 +125,5 @@ against the current upstream LTS major.minor.
    (slice L)
 3. Author Phase B middlewares (cedar / tenant / telemetry / deadline) on
    Layer 4. (slice K'')
-4. Wire `oya-foundry-fitness-lts-dependency` to cross-check hyper /
+4. Wire `oya-governance-lts-dependency` to cross-check hyper /
    tokio / hyper-util pins on every merge.

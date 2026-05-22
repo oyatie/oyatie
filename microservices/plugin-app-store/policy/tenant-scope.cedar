@@ -32,7 +32,7 @@ permit (
     Action::"uninstall_plugin",
     Action::"grant_capability",
     Action::"revoke_capability",
-    Action::"change_subscription_tier"
+    Action::"change_billing_components"
   ],
   resource in TenantData::?r
 )
@@ -40,8 +40,12 @@ when {
   principal has tenant_id &&
   resource has tenant_id &&
   principal.tenant_id == resource.tenant_id &&
-  resource has plugin_vetting_badge &&
-  resource.plugin_vetting_badge in [Badge::"bronze", Badge::"silver", Badge::"gold", Badge::"platinum"]
+  principal has tenant_class &&
+  principal.tenant_class == "paid" &&
+  principal has billing_components &&
+  principal.billing_components.contains("per_seat") &&
+  resource has trust_verdict &&
+  resource.trust_verdict in [TrustVerdict::"reviewed", TrustVerdict::"verified", TrustVerdict::"attested", TrustVerdict::"pack_bound"]
 };
 
 permit (

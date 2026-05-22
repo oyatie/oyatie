@@ -1,0 +1,330 @@
+asyncapi: 3.1.0
+info:
+  title: oyatie EMR AsyncAPI
+  version: 1.0.0-wave-15m-b
+  description: |
+    AsyncAPI surface for the oyatie EMR microservice. Per ADR-0145 + ADR-0263. Emits
+    state-change + PHI-access events for downstream consumption by audit-chain,
+    care-management, clinical-decision-support, observability, and tenant-side
+    analytics. Channels prefixed `emr.*`. Tenant scope on every message envelope
+    per ADR-0244.
+  contact:
+    name: axis-emr
+defaultContentType: application/cloudevents+json
+servers:
+  kafka-prod:
+    host: kafka.prod.cell-${cell}.internal:9093
+    protocol: kafka-secure
+    description: Per-cell Kafka cluster
+channels:
+  emr.patient.created.v1:
+    address: emr.patient.created.v1
+    messages:
+      PatientCreated: { $ref: '#/components/messages/PatientCreated' }
+  emr.patient.merged.v1:
+    address: emr.patient.merged.v1
+    messages:
+      PatientMerged: { $ref: '#/components/messages/PatientMerged' }
+  emr.patient.unmerged.v1:
+    address: emr.patient.unmerged.v1
+    messages:
+      PatientUnmerged: { $ref: '#/components/messages/SimpleEvent' }
+  emr.patient.viewed.v1:
+    address: emr.patient.viewed.v1
+    description: Audit channel — every chart-open emits here
+    messages:
+      PatientViewed: { $ref: '#/components/messages/PatientViewed' }
+  emr.encounter.opened.v1:
+    address: emr.encounter.opened.v1
+    messages:
+      EncounterOpened: { $ref: '#/components/messages/EncounterOpened' }
+  emr.encounter.transferred.v1:
+    address: emr.encounter.transferred.v1
+    messages:
+      EncounterTransferred: { $ref: '#/components/messages/SimpleEvent' }
+  emr.encounter.closed.v1:
+    address: emr.encounter.closed.v1
+    messages:
+      EncounterClosed: { $ref: '#/components/messages/EncounterClosed' }
+  emr.encounter.reopened.v1:
+    address: emr.encounter.reopened.v1
+    messages: { EncounterReopened: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.problem.added.v1:
+    address: emr.problem.added.v1
+    messages:
+      ProblemAdded: { $ref: '#/components/messages/ProblemAdded' }
+  emr.problem.resolved.v1:
+    address: emr.problem.resolved.v1
+    messages: { ProblemResolved: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.medication.prescribed.v1:
+    address: emr.medication.prescribed.v1
+    messages:
+      MedicationPrescribed: { $ref: '#/components/messages/MedicationPrescribed' }
+  emr.medication.discontinued.v1:
+    address: emr.medication.discontinued.v1
+    messages: { MedicationDiscontinued: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.medication.reconciled.v1:
+    address: emr.medication.reconciled.v1
+    messages: { MedicationReconciled: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.allergy.recorded.v1:
+    address: emr.allergy.recorded.v1
+    messages: { AllergyRecorded: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.vital.recorded.v1:
+    address: emr.vital.recorded.v1
+    messages:
+      VitalRecorded: { $ref: '#/components/messages/VitalRecorded' }
+  emr.note.signed.v1:
+    address: emr.note.signed.v1
+    messages:
+      NoteSigned: { $ref: '#/components/messages/NoteSigned' }
+  emr.note.amended.v1:
+    address: emr.note.amended.v1
+    messages: { NoteAmended: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.note.cosigned.v1:
+    address: emr.note.cosigned.v1
+    messages: { NoteCoSigned: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.order.entered.v1:
+    address: emr.order.entered.v1
+    messages:
+      OrderEntered: { $ref: '#/components/messages/OrderEntered' }
+  emr.order.canceled.v1:
+    address: emr.order.canceled.v1
+    messages: { OrderCanceled: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.result.reviewed.v1:
+    address: emr.result.reviewed.v1
+    messages: { ResultReviewed: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.result.acknowledged.v1:
+    address: emr.result.acknowledged.v1
+    messages: { ResultAcknowledged: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.break-glass.invoked.v1:
+    address: emr.break-glass.invoked.v1
+    description: Triggers downstream privacy-officer review saga
+    messages:
+      BreakGlassInvoked: { $ref: '#/components/messages/BreakGlassInvoked' }
+  emr.care-team.assigned.v1:
+    address: emr.care-team.assigned.v1
+    messages: { CareTeamMemberAdded: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.portal-session.started.v1:
+    address: emr.portal-session.started.v1
+    messages: { PortalSessionStarted: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.proxy-grant.completed.v1:
+    address: emr.proxy-grant.completed.v1
+    messages: { ProxyGrantCompleted: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.billing-code.captured.v1:
+    address: emr.billing-code.captured.v1
+    description: Routes to cloud-billing for claim generation
+    messages: { BillingCodeCaptured: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.legal-hold.applied.v1:
+    address: emr.legal-hold.applied.v1
+    messages: { LegalHoldApplied: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.legal-hold.lifted.v1:
+    address: emr.legal-hold.lifted.v1
+    messages: { LegalHoldLifted: { $ref: '#/components/messages/SimpleEvent' } }
+  emr.bulk-export.requested.v1:
+    address: emr.bulk-export.requested.v1
+    messages: { BulkExportRequested: { $ref: '#/components/messages/SimpleEvent' } }
+operations:
+  publishPatientCreated:
+    action: send
+    channel: { $ref: '#/channels/emr.patient.created.v1' }
+  publishPatientMerged:
+    action: send
+    channel: { $ref: '#/channels/emr.patient.merged.v1' }
+  publishMedicationPrescribed:
+    action: send
+    channel: { $ref: '#/channels/emr.medication.prescribed.v1' }
+  publishOrderEntered:
+    action: send
+    channel: { $ref: '#/channels/emr.order.entered.v1' }
+  publishBreakGlassInvoked:
+    action: send
+    channel: { $ref: '#/channels/emr.break-glass.invoked.v1' }
+  publishEncounterClosed:
+    action: send
+    channel: { $ref: '#/channels/emr.encounter.closed.v1' }
+  publishBillingCodeCaptured:
+    action: send
+    channel: { $ref: '#/channels/emr.billing-code.captured.v1' }
+  consumeDiagnosticsResultRecorded:
+    action: receive
+    channel:
+      address: diagnostics.result.recorded.v1
+      messages:
+        DiagnosticsResultRecorded: { payload: { type: object } }
+  consumePharmacyMedicationAdministered:
+    action: receive
+    channel:
+      address: pharmacy.medication.administered.v1
+      messages:
+        PharmacyMedAdministered: { payload: { type: object } }
+  consumeCareManagementCarePlanUpdated:
+    action: receive
+    channel:
+      address: care-management.care-plan.updated.v1
+      messages:
+        CarePlanUpdated: { payload: { type: object } }
+components:
+  messages:
+    PatientCreated:
+      name: PatientCreated
+      title: Patient Created
+      payload: { $ref: '#/components/schemas/PatientCreatedPayload' }
+    PatientMerged:
+      name: PatientMerged
+      payload: { $ref: '#/components/schemas/PatientMergedPayload' }
+    PatientViewed:
+      name: PatientViewed
+      payload: { $ref: '#/components/schemas/PatientViewedPayload' }
+    EncounterOpened:
+      name: EncounterOpened
+      payload: { $ref: '#/components/schemas/EncounterOpenedPayload' }
+    EncounterClosed:
+      name: EncounterClosed
+      payload: { $ref: '#/components/schemas/EncounterClosedPayload' }
+    ProblemAdded:
+      name: ProblemAdded
+      payload: { $ref: '#/components/schemas/ProblemAddedPayload' }
+    MedicationPrescribed:
+      name: MedicationPrescribed
+      payload: { $ref: '#/components/schemas/MedicationPrescribedPayload' }
+    VitalRecorded:
+      name: VitalRecorded
+      payload: { $ref: '#/components/schemas/VitalRecordedPayload' }
+    NoteSigned:
+      name: NoteSigned
+      payload: { $ref: '#/components/schemas/NoteSignedPayload' }
+    OrderEntered:
+      name: OrderEntered
+      payload: { $ref: '#/components/schemas/OrderEnteredPayload' }
+    BreakGlassInvoked:
+      name: BreakGlassInvoked
+      payload: { $ref: '#/components/schemas/BreakGlassInvokedPayload' }
+    SimpleEvent:
+      name: SimpleEvent
+      payload: { $ref: '#/components/schemas/SimpleEventEnvelope' }
+  schemas:
+    AuditEnvelope:
+      type: object
+      required: [event_id, tenant_id, principal_id, action, emitted_at, idempotency_key, trace_id]
+      properties:
+        event_id: { type: string, format: uuid }
+        tenant_id: { type: string }
+        principal_id: { type: string }
+        principal_type: { type: string, enum: [clinician, patient, proxy, system, break-glass] }
+        action: { type: string }
+        purpose_of_use: { type: string }
+        data_class: { type: string, default: phi-protected-health-information }
+        pack_overlay: { type: string }
+        idempotency_key: { type: string, format: uuid }
+        trace_id: { type: string }
+        emitted_at: { type: string, format: date-time }
+    PatientCreatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [patient_id]
+          properties:
+            patient_id: { type: string }
+            mrn: { type: string }
+    PatientMergedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [survivor_id, retired_id]
+          properties:
+            survivor_id: { type: string }
+            retired_id: { type: string }
+            references_resolved_count: { type: integer }
+            reversible_until: { type: string, format: date-time }
+    PatientViewedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [patient_id]
+          properties:
+            patient_id: { type: string }
+            chart_sections_viewed: { type: array, items: { type: string } }
+    EncounterOpenedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [encounter_id, encounter_type, patient_id]
+          properties:
+            encounter_id: { type: string }
+            encounter_type: { type: string, enum: [inpatient-admission, ED-visit, outpatient-office, telehealth-video, telehealth-audio-only, observation, ambulatory-surgery, urgent-care, virtual-second-opinion] }
+            patient_id: { type: string }
+            location_id: { type: string }
+            chief_complaint: { type: string }
+    EncounterClosedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [encounter_id, disposition]
+          properties:
+            encounter_id: { type: string }
+            disposition: { type: string }
+            length_of_stay_hours: { type: number }
+    ProblemAddedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            problem_id: { type: string }
+            snomed_code: { type: string }
+            icd10_code: { type: string }
+    MedicationPrescribedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            medication_request_id: { type: string }
+            rxnorm_code: { type: string }
+            ndc_code: { type: string }
+            dea_schedule: { type: string, enum: [N/A, II, III, IV, V] }
+            epcs_2fa_attested: { type: boolean }
+            pdmp_queried: { type: boolean }
+    VitalRecordedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            patient_id: { type: string }
+            loinc_code: { type: string }
+            value: { type: number }
+            unit: { type: string }
+            device_id: { type: string }
+            observed_at: { type: string, format: date-time }
+    NoteSignedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            note_id: { type: string }
+            patient_id: { type: string }
+            encounter_id: { type: string }
+            note_type: { type: string }
+    OrderEnteredPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            order_id: { type: string }
+            order_type: { type: string, enum: [medication, lab, imaging, consult, diet, activity, nursing] }
+            target_microservice: { type: string }
+    BreakGlassInvokedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [patient_id, justification_category, justification_text]
+          properties:
+            patient_id: { type: string }
+            justification_category: { type: string, enum: [clinical-emergency, patient-relationship-emergency, IT-emergency] }
+            justification_text: { type: string }
+            review_due_at: { type: string, format: date-time }
+    SimpleEventEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            entity_id: { type: string }
+            extra: { type: object }

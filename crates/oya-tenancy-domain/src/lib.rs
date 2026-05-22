@@ -93,26 +93,29 @@ mod tests {
     fn tenant_identity_includes_residency_class() {
         let tenant = Tenant::new(
             "ten_alpha".to_string(),
-            "Tenant Alpha".to_string(),
-            "region-alpha".to_string(),
-            ResidencyClass::Global,
-            vec!["pack-alpha".to_string()],
+            "Alpha Tenant".to_string(),
+            "region-home".to_string(),
+            ResidencyClass::StrictHomeRegion,
+            vec!["oya-pack-alpha".to_string()],
         )
-        .expect("tenant residency fixture is valid");
+        .expect("home-region tenant residency is valid");
 
-        assert_eq!(tenant.residency_class.value.label(), Some("global"));
+        assert_eq!(
+            tenant.residency_class.value.label(),
+            Some("strict_home_region")
+        );
     }
 
     #[test]
     fn tenant_rejects_residency_home_region_mismatch() {
         let error = Tenant::new(
             "ten_beta".to_string(),
-            "Tenant Beta".to_string(),
-            "region-beta".to_string(),
-            per_pack_residency(vec!["region-alpha"]),
-            vec!["pack-alpha".to_string()],
+            "Beta Tenant".to_string(),
+            "region-recovery".to_string(),
+            ResidencyClass::StrictHomeRegion,
+            vec!["oya-pack-alpha".to_string()],
         )
-        .expect_err("tenant home region must be allowed by residency class");
+        .expect_err("strict home-region tenants require home-region primary");
 
         assert_eq!(error, TenantError::HomeRegionNotAllowedForResidency);
     }

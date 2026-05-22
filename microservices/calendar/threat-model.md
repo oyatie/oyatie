@@ -336,7 +336,7 @@ Each threat: ID; asset; description; likelihood (L/M/H); impact (L/M/H); risk; m
 - L M / I H / Risk H
 - Mitigations:
   - DEK wrapped in `Secret<T>` type with stripped `Debug` impl; never serializable.
-  - Secret-scanner CI lane (`oya-foundry-fitness-evidence-secret-scan`) scans every commit + log emission.
+  - Secret-scanner CI lane (`oya-governance-evidence-secret-scan`) scans every commit + log emission.
   - Rotation: 90d for tenant-DEK; rotation event re-encrypts active records.
 - Owner: ops-security + cloud-secrets
 - Residual: M (human-error baseline)

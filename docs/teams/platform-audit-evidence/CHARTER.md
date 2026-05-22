@@ -30,7 +30,7 @@ This team owns the tamper-evident audit chain that is the backbone of cross-axis
 - Regulatory replay: reconstruct state at any prior timestamp per regulator request
 - DSR cascade: proof-of-erasure record emission + cryptographic invalidation pointer
 - Evidence portal API (read side) for regulators and tenants
-- Fitness function `oya-foundry-fitness-audit-emission` — CI hard-fail on any surface that touches regulated data without emitting a chain record
+- Fitness function `oya-governance-audit-emission` — CI hard-fail on any surface that touches regulated data without emitting a chain record
 - Cross-axis emission contract: publish the `AuditEmitter` trait that every axis implements
 - Per-tenant chain query surface for `ops-compliance`
 
@@ -92,7 +92,7 @@ This team owns the tamper-evident audit chain that is the backbone of cross-axis
 ## Slice of risk register
 | Risk | Severity | Mitigation |
 |---|---|---|
-| Axis emits regulated event without chain record | Catastrophic | `oya-foundry-fitness-audit-emission` CI gate; coverage metric tracked weekly |
+| Axis emits regulated event without chain record | Catastrophic | `oya-governance-audit-emission` CI gate; coverage metric tracked weekly |
 | Hash-chain integrity violation (data corruption or tamper) | Catastrophic | Daily integrity-check runbook; periodic root anchoring published publicly |
 | Replay fails to reconstruct prior state | High | Replay tests run in CI against snapshot fixtures; quarterly regulator-drill |
 | DSR cascade proof-of-erasure delayed > 24 h | High | Automated cascade monitor; PagerDuty alert at 20 h |

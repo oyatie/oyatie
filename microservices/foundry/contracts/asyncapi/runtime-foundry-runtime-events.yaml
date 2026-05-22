@@ -64,7 +64,7 @@ channels:
     messages:
       AutonomyViolationDetectedMessage:
         $ref: '#/components/messages/AutonomyViolationDetected'
-    description: Capability dispatch refused above tenant tier ceiling (per ADR-0022).
+    description: Capability dispatch refused above tenant autonomy ceiling (per ADR-0022).
 
   session-evicted:
     address: workflow-events/foundry-runtime.session.evicted
@@ -211,13 +211,13 @@ components:
   schemas:
     InvocationStartedPayload:
       type: object
-      required: [invocation_id, tenant_id, capability_id, started_at, autonomy_tier_used]
+      required: [invocation_id, tenant_id, capability_id, started_at, autonomy_level_used]
       properties:
         invocation_id: {type: string, description: ULID}
         tenant_id: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
         capability_id: {type: string}
         session_id: {type: string, nullable: true}
-        autonomy_tier_used: {type: integer, minimum: 0, maximum: 4}
+        autonomy_level_used: {type: integer, minimum: 0, maximum: 4}
         started_at: {type: string, format: date-time}
         runtime_pod_id: {type: string}
         signature: {type: string, description: Ed25519 by runtime SPIFFE identity}
@@ -274,11 +274,11 @@ components:
 
     AutonomyViolationDetectedPayload:
       type: object
-      required: [tenant_id, capability_id, requested_tier, ceiling_at_check_time, detected_at]
+      required: [tenant_id, capability_id, requested_autonomy_level, ceiling_at_check_time, detected_at]
       properties:
         tenant_id: {type: string}
         capability_id: {type: string}
-        requested_tier: {type: integer, minimum: 0, maximum: 4}
+        requested_autonomy_level: {type: integer, minimum: 0, maximum: 4}
         ceiling_at_check_time: {type: integer, minimum: 0, maximum: 4}
         principal_spiffe: {type: string}
         invocation_id_attempted: {type: string, nullable: true}

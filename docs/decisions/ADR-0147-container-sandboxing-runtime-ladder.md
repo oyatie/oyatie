@@ -52,8 +52,8 @@ sandboxing answer:
   inline `runtimeClassName: gvisor` for the preview BC
 - `microservices/social/iac/helm/social/templates/deployment.yaml` —
   inline `runtimeClassName: gvisor` for the media-transcode-worker
-- `microservices/network/iac/helm/network/templates/deployment.yaml` —
-  inline `runtimeClassName: gvisor` for the media-transcode-worker
+- `microservices/community/iac/helm/community/templates/deployment.yaml` —
+  inline `runtimeClassName: gvisor` for the attachment/media-preview worker
 
 This is two compounded mistakes:
 
@@ -165,7 +165,7 @@ objects before any µservice that references them can schedule pods.
 
 ### Cell scheduling awareness
 
-Per the cell PRD (microservices/cell/PRD.md §Cell scheduling +
+Per the ADR-0333 successor contract (`microservices/tenancy/ARCHITECTURE.md#cell-assignment` plus `microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning`) §Cell scheduling +
 runtime-affinity), cells must declare which RuntimeClass handlers are
 provisioned on their host pool. Cells supporting `kata-qemu` use a
 host-pool with nested-virt-capable nodes; cells supporting `gvisor`
@@ -412,5 +412,5 @@ compatibility; the latter two retain their original workload classes).
   (canonical helper library).
 - `microservices/governance/iac/kustomize/components/runtime-classes/`
   (canonical RuntimeClass install component).
-- `microservices/cell/PRD.md` (cell scheduling + runtime-affinity
+- `microservices/tenancy/ARCHITECTURE.md#cell-assignment` and `microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning` (cell scheduling + runtime-affinity
   subsection).

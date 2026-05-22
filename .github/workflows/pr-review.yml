@@ -1,5 +1,24 @@
 name: oya-foundry-fitness-pr-review
 
+# Wave 15-ZF Jenkinsfile-mirror-parity (ADR-0346, ADR-0347, ADR-0348, ADR-0349):
+# - ADR-0346 purpose: Establish that `./bin/oya verify --ci-required` is the canonical local
+#   pre-push verifier and MUST locally mirror the full CI matrix.
+#   enforced_by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics.
+# - ADR-0347 purpose: Declare that every `oya-foundry-fitness-*` CI lane prefix in the Oyatie
+#   corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB).
+#   enforced_by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary.
+# - ADR-0348 purpose: Declare that cellular topology MUST support three control-plane-driven
+#   automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
+#   enforced_by: oya-governance-sharding-automation-coverage; oya-governance-audit-chain-emit-on-automation-events.
+# - ADR-0349 enforced_by: oya-governance-jenkins-github-actions-parity (new lane; refuses Jenkinsfile /
+#   .github/workflows drift such that a CI step exists in one surface but not the other across
+#   the per-microservice CI-parity contract enumerated in D-3 below; promoted to BLOCKER
+#   30 days post Wave 15-ZE-completion).
+#   Purpose: Jenkins is the canonical CI orchestrator for air-gap + on-prem + colo +
+#   oyatie-as-cloud-provider deployment contexts where GitHub Actions runners are not available;
+#   GitHub Actions is RETAINED as the primary CI for the hosted-on-GitHub PR review surface
+#   (oya verify + PR checks); Jenkins augments rather than replaces it.
+
 # Fully automated reviewer-agent dispatch on CI-green (M01-P17-IP-004 +
 # IP-009). There is no human PR-review gate in the shared-world pipeline:
 # branch protection requires the `oya-pr-review` check, and that check is
@@ -194,21 +213,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
-          HEAD_SHA: ${{ steps.pr.outputs.pr_head_sha }}
-          UPSTREAM_HEAD_SHA: ${{ steps.pr.outputs.upstream_head_sha }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           REVIEW_RUNTIME_MODE: deterministic-mock
         run: |
           rollup="evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json"
           verdict="ROLLUP_MISSING"
           pending="unknown"
           conclusion="failure"
-          summary="PR #${PR_NUMBER}; pr_head_sha=${HEAD_SHA}; upstream_workflow_run_head_sha=${UPSTREAM_HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; rollup file missing at ${rollup}"
+          summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; rollup file missing at ${rollup}"
 
           if [ ! -f "$rollup" ]; then
             echo "::error::rollup file missing at $rollup" >&2
           else
-            verdict=$(jq -r '.verdict // empty' "$rollup" 2>/dev/null || true)
-            pending=$(jq -r 'if has("subagent_runtime_pending") then (.subagent_runtime_pending | tostring) else empty end' "$rollup" 2>/dev/null || true)
+            verdict=$(grep -o '"verdict": *"[A-Z_]*"' "$rollup" | head -n1 | sed 's/.*"\([A-Z_]*\)"/\1/' || true)
+            pending=$(grep -o '"subagent_runtime_pending": *\(true\|false\)' "$rollup" | head -n1 | awk -F': *' '{print $2}' || true)
             if [ -z "$verdict" ]; then
               verdict="UNKNOWN"
             fi
@@ -218,7 +236,7 @@ jobs:
             if [ "$verdict" = "APPROVE" ] && [ "$pending" = "false" ]; then
               conclusion="success"
             fi
-            summary="PR #${PR_NUMBER}; pr_head_sha=${HEAD_SHA}; upstream_workflow_run_head_sha=${UPSTREAM_HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; verdict=${verdict}; subagent_runtime_pending=${pending}"
+            summary="PR #${PR_NUMBER}; head_sha=${HEAD_SHA}; workflow_run=${GITHUB_RUN_ID}; runtime_mode=${REVIEW_RUNTIME_MODE}; deterministic_mock_smoke_only=true; verdict=${verdict}; subagent_runtime_pending=${pending}"
           fi
 
           echo "rollup verdict=${verdict} pending=${pending} conclusion=${conclusion} runtime_mode=${REVIEW_RUNTIME_MODE}"
@@ -228,23 +246,12 @@ jobs:
             -f status="completed" \
             -f conclusion="${conclusion}" \
             -f details_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
-            -f "output[title]=pr-review ${verdict} (${REVIEW_RUNTIME_MODE})" \
-            -f "output[summary]=${summary}"
+            -f output[title]="pr-review ${verdict} (${REVIEW_RUNTIME_MODE})" \
+            -f output[summary]="${summary}"
 
-          status_state="failure"
-          if [ "$conclusion" = "success" ]; then
-            status_state="success"
-          fi
-          gh api -X POST "repos/${GITHUB_REPOSITORY}/statuses/${HEAD_SHA}" \
-            -f state="${status_state}" \
-            -f context="oya-pr-review" \
-            -f description="pr-review ${verdict}; pending=${pending}" \
-            -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-
-          # Required-check semantics: workflow_run jobs attach to the
-          # default-branch workflow SHA, not reliably to the PR head. The
-          # explicit Check Run keeps PR UI evidence rich; the commit status
-          # is the branch-protection-compatible required context.
+          # Required-check semantics: branch protection binds to the
+          # explicit Check Run above because workflow_run jobs attach to
+          # the default-branch workflow SHA, not reliably to the PR head.
           if [ "$conclusion" != "success" ]; then
             if [ "$pending" != "false" ]; then
               echo "::error::pr-review runtime still pending — refusing required-check pass" >&2

@@ -1,0 +1,559 @@
+---
+doc_class: SampleTenantFixture
+tenant_id: tenant-helios-fortune-500-manufacturer
+status: Proposed
+date: 2026-05-20
+owner: codex-sample-tenants-w1
+---
+
+# Helios Industries Sample Tenant Fixture
+
+## Tenant Identity
+
+- Fixture name: Helios Industries.
+- Tenant slug: `helios-industries-global`
+- Tenant status: demo-ready sample tenant.
+- Fictional status: entirely fictional Fortune 500-style manufacturer for SE walk-throughs.
+- Sector: multinational advanced manufacturing.
+- Segment: industrial automation, precision components, and energy systems.
+- Employee count: 47,000 employees.
+- Active workforce model: plants, warehouses, engineering centers, corporate offices, and field service.
+- Primary headquarters: Chicago, Illinois, United States.
+- Regional headquarters: Tokyo, Japan.
+- Regional headquarters: Rotterdam, Netherlands.
+- Regional headquarters: Seoul, South Korea.
+- Regional headquarters: Monterrey, Mexico.
+- Manufacturing footprint: 38 plants across 19 countries.
+- Distribution footprint: 74 warehouses and forward stocking locations.
+- Supplier footprint: 11,600 active suppliers.
+- Customer footprint: automotive, medical-device, energy, and aerospace customers.
+- Geography posture: global producer with EU, US, Japan, Korea, and APAC obligations.
+- Primary operating language: English.
+- Additional operating languages: Japanese, Korean, Spanish, Dutch, German, Mandarin, and Portuguese.
+- Capability tier: Gold across subscribed µservices.
+- Tier rationale: Helios needs multi-AZ active-active posture and seven-year evidence retention.
+- Tier SLO anchor: Gold revenue-bearing enterprise tier with 99.99% monthly availability.
+- Tenant audience: B2B_CSUITE, B2B_EMPLOYEE, B2B_CONTRACTOR, supplier users, and auditor users.
+- Tenant maturity: mature global enterprise with acquisition integration pressure.
+- Revenue posture: $42B fictional annual revenue.
+- Procurement pressure: customers require supplier evidence, sustainability reporting, and regulated manufacturing controls.
+- Operational pressure: plant incidents must tie shop-floor reality to executive evidence.
+- Regulatory pressure: GDPR, CCPA, HIPAA, SOC 2, KR-PIPA, and EU-AI-Act are simultaneously active.
+- AI usage posture: human-reviewed predictive maintenance, supplier risk scoring, and quality anomaly detection.
+- Executive buying center: COO, sustainability, ombudsperson, CISO, CIO, and General Counsel.
+- Demo theme: global manufacturer turns messy cross-region operations into policy-scoped evidence.
+- Sample time zone set: America/Chicago, Asia/Tokyo, Europe/Amsterdam, Asia/Seoul, America/Monterrey.
+- Primary US cell: `us-central-gold-a`.
+- EU manufacturing cell: `eu-west-gold-a`.
+- Japan operations cell: `jp-east-gold-a`.
+- Korea privacy cell: `kr-central-gold-a`.
+- Mexico plant cell: `mx-central-gold-a`.
+- Backup posture: Gold four-hour incremental cadence with multi-AZ recovery.
+- Audit retention: 365 hot days, 2,555 cold days.
+- Cost posture: enterprise FinOps with cross-plant cost attribution.
+- SE demo objective: show that plant, supplier, compliance, and executive workflows share one tenant substrate.
+- Fixture boundary: not a real manufacturer, not a real certification, and not a production deployment.
+
+## Active µservices
+
+- µservice 01: `application`.
+- Helios usage: executive shell, plant manager workspace, supplier launchpad, and role projection.
+- Gold note: workspace state follows multi-region latency and active-active targets.
+- Demo evidence: Akira sees plant incidents, capex reviews, and supplier risks in one shell.
+- µservice 02: `identity`.
+- Helios usage: SSO, passkeys, plant badge bridge, supplier identities, and auditor roles.
+- Gold note: identity sync runs across five regional cells with scoped failover.
+- Demo evidence: Felix Tan mediates a case without cross-tenant overreach.
+- µservice 03: `tenancy`.
+- Helios usage: legal-entity hierarchy, plant subscopes, supplier subtenants, and regional cells.
+- Gold note: each plant has tenant-subscope limits and cost labels.
+- Demo evidence: Seoul plant records remain KR-PIPA scoped.
+- µservice 04: `docs`.
+- Helios usage: work instructions, executive reports, audit packets, supplier procedures, and recall memos.
+- Gold note: regulated docs carry pack IDs and retention labels.
+- Demo evidence: Aiko Brown opens Scope 3 evidence without HR complaint files.
+- µservice 05: `drive`.
+- Helios usage: CAD exports, quality records, safety photos, vendor contracts, and compliance evidence.
+- Gold note: large-file retention uses object versioning and classification policies.
+- Demo evidence: a quality recall photo is visible to plant QA but hidden from investor relations.
+- µservice 06: `mail`.
+- Helios usage: supplier notices, regulator updates, incident mail, and board follow-ups.
+- Gold note: mail retention spans GDPR, CCPA, SOC 2, and HIPAA-adjacent records.
+- Demo evidence: Akira sends a plant debrief with evidence links instead of attachments.
+- µservice 07: `messenger`.
+- Helios usage: incident rooms, shift handoffs, launch war rooms, and supplier remediation threads.
+- Gold note: channels inherit pack-specific retention and legal hold tags.
+- Demo evidence: Felix creates a mediation room with privilege boundaries.
+- µservice 08: `calendar`.
+- Helios usage: plant maintenance windows, safety standdowns, board reviews, and supplier audits.
+- Gold note: multi-region scheduling emits tenant and pack dimensions.
+- Demo evidence: Akira schedules follow-up reviews across Tokyo, Chicago, and Rotterdam.
+- µservice 09: `meet`.
+- Helios usage: executive debriefs, supplier audits, quality reviews, and ombudsperson hearings.
+- Gold note: recordings are pack-tagged and restricted by case or workflow.
+- Demo evidence: Felix permits a mediated call but blocks unmanaged transcript export.
+- µservice 10: `recordings`.
+- Helios usage: safety training, audit interviews, incident review recordings, and AGM rehearsals.
+- Gold note: transcript access follows pack and privilege scope.
+- Demo evidence: Aiko extracts a sustainability interview clip for CSRD evidence only.
+- µservice 11: `sheets`.
+- Helios usage: production trackers, emissions factors, supplier scorecards, and capex models.
+- Gold note: sensitive tabs inherit Cedar row and sheet protections.
+- Demo evidence: plant output tabs are visible while employee grievance tabs are denied.
+- µservice 12: `slides`.
+- Helios usage: board decks, ops reviews, sustainability reports, and launch briefings.
+- Gold note: slide publishing requires evidence-source linkage.
+- Demo evidence: Aiko produces a sustainability slide backed by data-lineage references.
+- µservice 13: `workflow-engine`.
+- Helios usage: CAPA, recall, supplier onboarding, plant incident, sustainability, and mediation workflows.
+- Gold note: high-volume workflow runs fit enterprise throughput.
+- Demo evidence: a SEV-2 plant incident flows from shop floor to COO closure.
+- µservice 14: `workflow-studio`.
+- Helios usage: visual design of plant, supplier, sustainability, and ombuds workflows.
+- Gold note: workflow promotion requires test evidence and rollback rehearsal.
+- Demo evidence: Akira compares Tokyo and Monterrey incident templates.
+- µservice 15: `audit-chain`.
+- Helios usage: signed evidence for regulator, supplier, safety, pack, and board actions.
+- Gold note: seven-year posture is active for enterprise audit evidence.
+- Demo evidence: every demo decision has a signed event with tenant and plant scope.
+- µservice 16: `ops-dashboard-control-center`.
+- Helios usage: global incident posture, plant health, supplier queue depth, and pack status.
+- Gold note: global dashboard reads cross-cell state without flattening policy boundaries.
+- Demo evidence: Akira sees the plant map without accessing restricted ombuds cases.
+- µservice 17: `observability`.
+- Helios usage: plant integration telemetry, workflow latency, policy propagation, and incident metrics.
+- Gold note: metrics carry tenant, µservice, pack, workflow, and cost dimensions.
+- Demo evidence: queue saturation links to a specific plant integration.
+- µservice 18: `ontology`.
+- Helios usage: plant, line, supplier, material, shipment, emissions, and complaint graph.
+- Gold note: projections are pinned per regulated workflow.
+- Demo evidence: Aiko traces a Scope 3 supplier chain from source record to report row.
+- µservice 19: `foundry`.
+- Helios usage: evidence generation, policy fixtures, validator results, and demo replay packs.
+- Gold note: internal engineering surfaces are available for SE and platform teams only.
+- Demo evidence: SE shows fixture provenance without claiming real certification.
+- µservice 20: `compliance`.
+- Helios usage: pack overlay registry, control mapping, regulator response, and evidence posture.
+- Gold note: pack overlap is visible instead of duplicated per department.
+- Demo evidence: CCPA and GDPR DSR handling share the same lawful-basis evidence pattern.
+- µservice 21: `governance`.
+- Helios usage: policy lifecycle, approval chains, exceptions, and council signoffs.
+- Gold note: governance workflows separate plant operator authority from legal override.
+- Demo evidence: Felix cannot close a safety issue without the required plant witness.
+- µservice 22: `supply-chain-planning`.
+- Helios usage: supplier capacity, alternate sourcing, lead-time risk, and recall blast radius.
+- Gold note: supplier subscopes preserve buyer/supplier boundaries.
+- Demo evidence: Aiko selects only emissions-relevant supplier records.
+- µservice 23: `production-planning`.
+- Helios usage: line schedules, constraint plans, and production recovery after incidents.
+- Gold note: planning changes emit audit events for regulated product lines.
+- Demo evidence: Akira reviews an adjusted schedule after a SEV-2 line outage.
+- µservice 24: `plant-maintenance`.
+- Helios usage: maintenance orders, predictive alerts, spare parts, and line lockout evidence.
+- Gold note: AI suggestions require human maintenance approval.
+- Demo evidence: predictive maintenance recommendation is routed through a reviewed workflow.
+- µservice 25: `quality-management`.
+- Helios usage: nonconformance, CAPA, recall, supplier quality, and inspection records.
+- Gold note: quality records carry HIPAA-adjacent and medical-device customer constraints.
+- Demo evidence: a CAPA record is exportable to customer auditors without exposing unrelated HR data.
+- µservice 26: `warehouse`.
+- Helios usage: inventory, warehouse exceptions, recall hold, and logistics handoff.
+- Gold note: warehouse operators get mobile-safe scoped access.
+- Demo evidence: recall hold propagates from quality record to inventory location.
+- µservice 27: `translate`.
+- Helios usage: multilingual safety notices, supplier messages, and regulator responses.
+- Gold note: translation suggestions preserve source and reviewer evidence.
+- Demo evidence: Korean and Japanese plant notices use approved translation review.
+- Subscribed count: 27 µservices.
+- Subscription consistency: all subscribed µservices use Gold capability tier.
+- Non-subscribed examples: `treasury`, `payments`, `shorts`, `real-estate`, and `whiteboard`.
+- Demo constraint: keep Helios manufacturing-oriented; do not turn it into a bank or hospital fixture.
+
+## Active Packs
+
+- Pack: `GDPR-2016-EU`.
+- Pack status: active.
+- Pack rationale: EU employees, EU plants, supplier records, and customer audit evidence.
+- Pack demo use: EU data export and employee privacy boundaries.
+- Pack: `CCPA-CPRA-2023`.
+- Pack status: active sample overlay.
+- Pack rationale: California employees, suppliers, web consent records, and consumer privacy requests.
+- Pack demo use: GPC opt-out and California deletion request evidence.
+- Pack source note: schema examples recognize `CCPA-CPRA-2023`; registry YAML is not yet present in this checkout.
+- Pack: `HIPAA-2024-US`.
+- Pack status: active.
+- Pack rationale: Helios manufactures components for healthcare customers and handles limited health-adjacent support evidence.
+- Pack demo use: quality record export with PHI-like fields redacted.
+- Pack: `SOC2-TYPE-II-2024`.
+- Pack status: active.
+- Pack rationale: enterprise customers require control evidence for manufacturing SaaS integrations.
+- Pack demo use: access review and change management evidence.
+- Pack: `KR-PIPA-17799`.
+- Pack status: active.
+- Pack rationale: Korean employees, Korean suppliers, and Seoul operations cell.
+- Pack demo use: Korean privacy request and regulator-ready evidence trail.
+- Pack: `EU-AI-ACT-2024-HIGH-RISK`.
+- Pack status: active.
+- Pack rationale: predictive maintenance and supplier risk scoring remain human-reviewed but regulated.
+- Pack demo use: show AI recommendation, human review, risk log, and appeal path.
+- Pack interaction: GDPR and KR-PIPA define data subject rights by geography.
+- Pack interaction: CCPA applies to California workforce and consumer privacy signals.
+- Pack interaction: HIPAA-like controls restrict healthcare customer quality evidence.
+- Pack interaction: SOC 2 frames control evidence for procurement.
+- Pack interaction: EU-AI-Act requires human oversight for maintenance and supplier scoring.
+- Pack interaction: policy decisions must include tenant, plant, pack, and workflow dimensions.
+- Packs intentionally absent: PCI-DSS, CSAP, EU-CSRD standalone pack, DORA, and FedRAMP.
+- Absence rationale: Aiko's sustainability journey uses reporting workflows but this requested pack set does not include EU-CSRD.
+- SE positioning: Helios is the "complex global enterprise" fixture for manufacturing demos.
+
+## Org Structure
+
+- Board layer: fictional 12-member global board.
+- Board committee: Audit and Risk Committee.
+- Board committee: Sustainability and Safety Committee.
+- Board committee: Technology and Cyber Committee.
+- Board committee: Workforce and Ethics Committee.
+- Executive layer: CEO Margaret Ellis.
+- Executive layer: COO Akira Watanabe.
+- Executive layer: CFO Marguerite Vasquez-Ortiz.
+- Executive layer: CIO Pavel Korsak.
+- Executive layer: CISO Yuki Park.
+- Executive layer: General Counsel Anika Mehta.
+- Executive layer: Chief People Officer Linda Foster.
+- Executive layer: Chief Supply Chain Officer Wei Liu.
+- Executive layer: Chief Manufacturing Officer Hiroshi Takei.
+- Executive layer: Chief Sustainability Officer Aiko Brown.
+- Executive layer: Chief Ombudsperson Felix Tan.
+- Akira direct report: SVP Global Plants Maria Santos.
+- Akira direct report: VP Operational Excellence Kenji Nakamura.
+- Akira direct report: VP Incident Readiness Brian Tate.
+- Akira direct report: Director APAC Operations Kazumi Tanaka.
+- Aiko direct report: Director Scope 3 Programs Lena Hoffmann.
+- Aiko direct report: Supplier Emissions Lead Charlotte Dubois.
+- Aiko direct report: Sustainability Data Lead Felipe Andrade.
+- Aiko direct report: Assurance Liaison Hyo-Jin Lee.
+- Felix direct report: Regional Ombuds Lead Americas Tunde Bello.
+- Felix direct report: Regional Ombuds Lead EMEA Aoife Murphy.
+- Felix direct report: Regional Ombuds Lead APAC Yui Hayashi.
+- Felix direct report: Privilege Review Counsel Wei-Yi Chen.
+- Plant hierarchy level 1: regional plant VP.
+- Plant hierarchy level 2: site general manager.
+- Plant hierarchy level 3: line manager, safety lead, QA lead, and maintenance lead.
+- Supplier hierarchy level 1: supplier category director.
+- Supplier hierarchy level 2: commodity manager.
+- Supplier hierarchy level 3: buyer, quality engineer, and logistics coordinator.
+- Corporate hierarchy level 1: function EVP.
+- Corporate hierarchy level 2: VP or director.
+- Corporate hierarchy level 3: manager, specialist, analyst, and coordinator.
+- Headcount: manufacturing operations 24,800.
+- Headcount: supply chain and warehouse 6,900.
+- Headcount: engineering and product design 4,600.
+- Headcount: quality and regulatory 2,950.
+- Headcount: sales, service, and customer success 3,800.
+- Headcount: corporate, finance, legal, and people 2,500.
+- Headcount: sustainability and EHS 850.
+- Headcount: information technology and security 1,150.
+- Headcount: executive and administrative 450.
+- Regional headcount: United States 16,200.
+- Regional headcount: European Union 9,400.
+- Regional headcount: Japan 5,800.
+- Regional headcount: South Korea 3,100.
+- Regional headcount: Mexico 4,600.
+- Regional headcount: rest of world 7,900.
+- Supplier portal users: 18,500 external principals.
+- Auditor users: 740 time-bound external principals.
+- Plant operator users: 21,000 mobile or kiosk principals.
+- Tenant admins: 126.
+- Policy admins: 39.
+- Pack compliance reviewers: 184.
+- Developer users: 640.
+- Data stewards: 311.
+- Ombuds case handlers: 92.
+- Separation of duties: ombuds cases are privileged and not visible to COO by default.
+- Separation of duties: sustainability data owners cannot alter quality CAPA records.
+- Separation of duties: plant managers can approve local recovery but not legal disclosure.
+- Demo org edge: Akira sees incident severity; Felix sees protected complaint substance.
+
+## Key Personas
+
+- Persona: Akira Watanabe.
+- Fixture role: Chief Operating Officer.
+- Roster link: [MASTER-ROSTER §3 row 27](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Dossier link: [coo-akira-watanabe](../../docs/personas/coo-akira-watanabe.md).
+- Journey link: [j168 COO Akira Watanabe quarterly ops review](../../docs/user-journeys/j168-coo-akira-watanabe-quarterly-ops-review-and-incident-debrief/README.md).
+- Demo stance: executive incident review, plant recovery, and capex decisioning.
+- Persona: Aiko Brown.
+- Fixture role: Sustainability Officer.
+- Roster link: [MASTER-ROSTER §3 row 82](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Dossier link: [sustainability-officer-aiko-brown](../../docs/personas/sustainability-officer-aiko-brown.md).
+- Journey link: [j170 Aiko Brown sustainability report and Scope 3 supply chain](../../docs/user-journeys/j170-aiko-brown-sustainability-report-and-scope-3-supply-chain/README.md).
+- Demo stance: Scope 3 evidence and supplier-data provenance.
+- Persona: Felix Tan.
+- Fixture role: Ombudsperson.
+- Roster link: [MASTER-ROSTER §3 row 84](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Dossier link: [ombudsperson-felix-tan](../../docs/personas/ombudsperson-felix-tan.md).
+- Journey link: [j171 Felix Tan ombudsperson mediation](../../docs/user-journeys/j171-felix-tan-ombudsperson-cross-tenant-mediation-with-privilege/README.md).
+- Demo stance: privilege-aware mediation and protected case boundaries.
+- Supporting persona: Lev Kahn may appear in shareholder communication demos.
+- Supporting link: [j172 Lev Kahn investor relations](../../docs/user-journeys/j172-lev-kahn-investor-relations-shareholder-meeting-livestream/README.md).
+- Supporting persona: Diego Vargas may appear as external CTO callback in cross-enterprise debriefs.
+- Supporting link: [j167 Diego Vargas platform cutover](../../docs/user-journeys/j167-cto-diego-vargas-platform-major-version-cutover/README.md).
+- Shared persona constraint: role projection never grants ambient cross-tenant authority.
+
+## Sample Data Volumes
+
+- Drive: 1.8 PB total object data.
+- Drive: 410 TB CAD and engineering attachments.
+- Drive: 160 TB quality inspection media.
+- Drive: 94 TB supplier contract evidence.
+- Drive: 48 TB sustainability source evidence.
+- Drive: 22 TB protected ombuds files.
+- Mail: 1.2 TB/day inbound plus outbound.
+- Mail: 96M messages/month.
+- Mail: 1.9M regulator or supplier-tagged messages/month.
+- Messenger: 18,400 active channels.
+- Messenger: 1,120 active incident rooms/month.
+- Messenger: 126M messages/month.
+- Calendar: 1.3M events/month.
+- Calendar: 8,700 plant maintenance windows/month.
+- Calendar: 1,180 audit or regulator meetings/month.
+- Meet: 42K meetings/month.
+- Recordings: 19 TB/month.
+- Docs: 3.7M live documents.
+- Docs: 640K controlled work instructions.
+- Docs: 88K board, regulatory, or audit documents.
+- Sheets: 410K active sheets.
+- Sheets: 31K supplier scorecards.
+- Slides: 18K published executive decks/year.
+- Workflow-engine: 9.8M workflow instances/month.
+- Workflow-engine: 1.2M plant maintenance tasks/month.
+- Workflow-engine: 420K quality tasks/month.
+- Workflow-engine: 74K sustainability tasks/month.
+- Workflow-engine: 11K ombuds tasks/month.
+- Audit-chain: 2.6B audit events/month.
+- Audit-chain: 640M policy evaluation records/month.
+- Audit-chain: 38M evidence export records/month.
+- Identity: 47,000 employee identities.
+- Identity: 18,500 supplier identities.
+- Identity: 740 auditor identities.
+- Identity: 2,400 service accounts.
+- Tenancy: 5 regional production cells.
+- Tenancy: 38 plant subscopes.
+- Tenancy: 74 warehouse subscopes.
+- Ontology: 11.2M supplier-material-product graph nodes.
+- Ontology: 98M supply-chain graph edges.
+- Observability: 19B metrics/day.
+- Warehouse: 82M inventory movements/month.
+- Quality-management: 2.1M inspection records/month.
+- Production-planning: 4.4M work orders/month.
+- Plant-maintenance: 1.8M maintenance orders/month.
+- Translate: 3.9M translation segments/month.
+- Storage growth: 88 TB/month.
+- Export volume: 4,800 evidence exports/month.
+- Demo seed size: compact replay subset with global-scale labels preserved.
+
+## Active Cedar Policies
+
+- Policy bundle: `helios-gold-global-default-deny.bundle`.
+- Purpose: denies access unless tenant, legal entity, plant, pack, role, and workflow scope align.
+- Applies to: all 27 subscribed µservices.
+- Demo moment: Akira sees incident severity but not privileged ombuds narratives.
+- Policy bundle: `helios-plant-incident-command.bundle`.
+- Purpose: grants plant command permissions to site leadership during SEV events.
+- Applies to: production-planning, plant-maintenance, warehouse, messenger, and audit-chain.
+- Demo moment: Tokyo plant leader updates recovery tasks while Chicago executives observe.
+- Policy bundle: `helios-quality-capa-export.bundle`.
+- Purpose: exports CAPA evidence to customers with HIPAA-adjacent and customer-confidential redactions.
+- Applies to: quality-management, drive, docs, mail, audit-chain.
+- Demo moment: healthcare customer evidence excludes unrelated employee notes.
+- Policy bundle: `helios-scope3-supplier-evidence.bundle`.
+- Purpose: lets sustainability users trace supplier emissions evidence without buyer contract overreach.
+- Applies to: supply-chain-planning, sheets, docs, drive, ontology, audit-chain.
+- Demo moment: Aiko follows one Scope 3 row from supplier statement to report cell.
+- Policy bundle: `helios-ombuds-privileged-case.bundle`.
+- Purpose: protects ombuds case content from executive and HR ambient access.
+- Applies to: messenger, meet, recordings, docs, drive, audit-chain.
+- Demo moment: Felix opens a mediation case that Akira can see only as anonymized severity.
+- Policy bundle: `helios-kr-pipa-cell-filter.bundle`.
+- Purpose: keeps Korean employee data in KR-scoped cell unless export workflow has lawful basis.
+- Applies to: tenancy, identity, docs, drive, mail, audit-chain.
+- Demo moment: a US admin is denied raw Seoul complaint export.
+- Policy bundle: `helios-eu-ai-human-review.bundle`.
+- Purpose: requires human confirmation for predictive maintenance and supplier risk recommendations.
+- Applies to: plant-maintenance, supply-chain-planning, workflow-engine, audit-chain.
+- Demo moment: AI recommendation remains draft until maintenance lead signs.
+- Policy bundle: `helios-ccpa-gpc-consent.bundle`.
+- Purpose: records California opt-out and honors GPC signals for customer-facing properties.
+- Applies to: application, identity, docs, audit-chain, compliance.
+- Demo moment: CCPA request joins the same DSR evidence pattern without duplicating policy logic.
+- Policy bundle: `helios-supplier-subtenant-boundary.bundle`.
+- Purpose: suppliers can see their own quality and logistics tasks but not competitor data.
+- Applies to: supply-chain-planning, warehouse, quality-management, docs, messenger.
+- Demo moment: SE shows supplier portal isolation during recall coordination.
+- Policy bundle: `helios-board-evidence-publication.bundle`.
+- Purpose: board packets require pack-aware redaction and committee-scoped readers.
+- Applies to: slides, docs, drive, mail, audit-chain.
+- Demo moment: sustainability committee receives Aiko's report but ombuds case names stay hidden.
+
+## Sample Workflows
+
+- Workflow: `helios-apac-plant-sev2-debrief`.
+- Trigger: plant line outage with regional customer impact.
+- Owner: Akira Watanabe.
+- Participants: site GM, maintenance lead, QA lead, SRE, customer success, and legal observer.
+- µservices: plant-maintenance, production-planning, messenger, calendar, audit-chain, ops-dashboard-control-center.
+- Pack binding: SOC 2, GDPR, KR-PIPA when employee data appears.
+- Demo outcome: incident review produces CAPA, maintenance, and board evidence.
+- Workflow: `helios-scope3-supplier-report`.
+- Trigger: quarterly sustainability reporting window.
+- Owner: Aiko Brown.
+- Participants: supplier emissions lead, procurement manager, data steward, and assurance reviewer.
+- µservices: supply-chain-planning, ontology, sheets, docs, drive, workflow-engine, audit-chain.
+- Pack binding: GDPR, CCPA, KR-PIPA, EU-AI-Act for scored supplier data.
+- Demo outcome: supplier evidence traces to report cells with reviewer signoff.
+- Workflow: `helios-ombuds-privileged-mediation`.
+- Trigger: employee raises cross-region retaliation concern.
+- Owner: Felix Tan.
+- Participants: regional ombuds lead, legal privilege reviewer, employee advocate, and anonymous witness.
+- µservices: messenger, meet, recordings, docs, workflow-engine, audit-chain.
+- Pack binding: GDPR, CCPA, KR-PIPA.
+- Demo outcome: executive sees risk posture but not protected narrative.
+- Workflow: `helios-quality-recall-hold`.
+- Trigger: quality anomaly on healthcare customer component.
+- Owner: VP Quality.
+- Participants: plant QA, warehouse lead, customer quality contact, legal, and compliance.
+- µservices: quality-management, warehouse, drive, docs, mail, audit-chain.
+- Pack binding: HIPAA, SOC 2, GDPR.
+- Demo outcome: inventory hold, CAPA, and customer packet are linked.
+- Workflow: `helios-ai-maintenance-review`.
+- Trigger: predictive maintenance model flags line vibration risk.
+- Owner: maintenance lead.
+- Participants: AI reviewer, plant manager, safety lead, and Akira's operations office.
+- µservices: plant-maintenance, production-planning, workflow-engine, audit-chain, observability.
+- Pack binding: EU-AI-Act.
+- Demo outcome: AI suggestion remains non-executing until human approval.
+- Workflow: `helios-supplier-onboarding-high-risk`.
+- Trigger: new critical supplier in Korea and EU supply chain.
+- Owner: supply chain officer.
+- Participants: procurement, quality, sustainability, legal, and supplier admin.
+- µservices: supply-chain-planning, identity, tenancy, docs, workflow-engine, audit-chain.
+- Pack binding: GDPR, KR-PIPA, SOC 2.
+- Demo outcome: supplier is onboarded into scoped subtenant access.
+
+## Sample Journeys
+
+- Linked journey: [j168 Akira Watanabe quarterly ops review](../../docs/user-journeys/j168-coo-akira-watanabe-quarterly-ops-review-and-incident-debrief/README.md).
+- Helios mapping: COO incident debrief and cross-region operations review.
+- Linked journey: [j170 Aiko Brown sustainability report](../../docs/user-journeys/j170-aiko-brown-sustainability-report-and-scope-3-supply-chain/README.md).
+- Helios mapping: Scope 3 supplier evidence and sustainability reporting.
+- Linked journey: [j171 Felix Tan ombudsperson mediation](../../docs/user-journeys/j171-felix-tan-ombudsperson-cross-tenant-mediation-with-privilege/README.md).
+- Helios mapping: protected mediation and privilege-scoped access.
+- Linked journey: [j157 Diana Lazar batch defect and quality recall](../../docs/user-journeys/j157-diana-lazar-print-operator-batch-defect-and-quality-recall/README.md).
+- Helios mapping: quality recall mechanics for a manufacturing context.
+- Linked journey: [j172 Lev Kahn shareholder meeting livestream](../../docs/user-journeys/j172-lev-kahn-investor-relations-shareholder-meeting-livestream/README.md).
+- Helios mapping: external disclosure and investor evidence.
+- Linked journey: [j174 Sven Eriksson treasury EOD reconciliation](../../docs/user-journeys/j174-sven-eriksson-treasury-eod-position-reconciliation/README.md).
+- Helios mapping: future finance overlay without turning Helios into a bank fixture.
+- Journey range anchor: j151-j175.
+- Journey constraint: Helios foregrounds j168, j170, and j171.
+
+## Sample Incidents
+
+- Incident: `HELIOS-SEV2-2026-01-18-TOKYO-LINE-OUTAGE`.
+- Severity: SEV-2.
+- Scenario: Tokyo cell plant integration lost maintenance work-order sync for 43 minutes.
+- Impact: one assembly line paused and 1,900 work orders queued.
+- Detection: observability queue-depth alert and ops dashboard plant map.
+- Primary µservices: plant-maintenance, production-planning, observability, audit-chain.
+- Response owner: Akira Watanabe.
+- Regulatory note: no personal data export; SOC 2 evidence retained.
+- Resolution: replayed work-order events and added queue saturation guardrail.
+- Demo use: executive incident debrief with plant-level evidence.
+- Incident: `HELIOS-SEV2-2026-02-11-SEOUL-PIPA-EXPORT-BLOCK`.
+- Severity: SEV-2.
+- Scenario: US legal reviewer attempted raw Korean employee data export.
+- Impact: export blocked before data left KR-scoped cell.
+- Detection: KR-PIPA Cedar denial and compliance dashboard alert.
+- Primary µservices: tenancy, identity, drive, docs, audit-chain.
+- Response owner: Felix Tan.
+- Regulatory note: KR-PIPA lawful-basis workflow required.
+- Resolution: legal reviewer reran through privileged evidence workflow.
+- Demo use: prove denial is controlled and explainable.
+- Incident: `HELIOS-SEV2-2026-03-22-SUPPLIER-EMISSIONS-DRIFT`.
+- Severity: SEV-2.
+- Scenario: supplier uploaded emissions factor with stale certificate reference.
+- Impact: draft Scope 3 report carried 19 suspect rows.
+- Detection: ontology projection pin mismatch in Aiko's report workflow.
+- Primary µservices: supply-chain-planning, ontology, sheets, audit-chain.
+- Response owner: Aiko Brown.
+- Regulatory note: report not published; evidence correction retained.
+- Resolution: supplier certificate refreshed and report rows revalidated.
+- Demo use: show provenance from report cell back to supplier evidence.
+- Incident: `HELIOS-SEV2-2026-04-06-CAPA-CUSTOMER-PACKET`.
+- Severity: SEV-2.
+- Scenario: quality packet contained a raw employee medical accommodation note.
+- Impact: packet publication blocked before customer delivery.
+- Detection: HIPAA-adjacent redaction policy denial.
+- Primary µservices: quality-management, drive, docs, mail, audit-chain.
+- Response owner: VP Quality.
+- Compliance owner: General Counsel.
+- Resolution: redaction workflow completed and CAPA export regenerated.
+- Demo use: show regulated manufacturing evidence without accidental disclosure.
+- Incident: `HELIOS-SEV2-2026-04-25-OMBUDS-RECORDING-SCOPE`.
+- Severity: SEV-2.
+- Scenario: an ombuds mediation recording inherited meeting-team visibility incorrectly.
+- Impact: recording was quarantined before transcription and before broad access.
+- Detection: privileged case policy mismatch.
+- Primary µservices: meet, recordings, messenger, audit-chain.
+- Response owner: Felix Tan.
+- Compliance note: no transcript exported.
+- Resolution: recording ACL repaired and privilege review completed.
+- Demo use: demonstrate protected case containment.
+
+## Demo Script
+
+- Demo moment 01: `Helios Global Open`.
+- Presenter action: open Helios tenant overview from the ops dashboard.
+- Buyer-facing point: one fictional global manufacturer, 47,000 employees, 27 Gold µservices.
+- Evidence to show: cells, packs, tier, and active incident posture.
+- Stop condition: audience sees this is the complex enterprise fixture.
+- Demo moment 02: `Akira Plant Debrief`.
+- Presenter action: switch to Akira's COO role projection.
+- Buyer-facing point: operations can coordinate plant recovery without privileged ombuds access.
+- Evidence to show: incident timeline, maintenance orders, and CAPA links.
+- Stop condition: plant operational truth is tied to executive evidence.
+- Demo moment 03: `Aiko Scope 3 Trace`.
+- Presenter action: open sustainability report row and trace supplier evidence.
+- Buyer-facing point: sustainability reporting is data lineage plus policy, not spreadsheet folklore.
+- Evidence to show: supplier scorecard, ontology path, and audit-chain signoff.
+- Stop condition: source-to-report trace is clear.
+- Demo moment 04: `Felix Privilege Boundary`.
+- Presenter action: open ombuds case as Felix, then view Akira's restricted executive view.
+- Buyer-facing point: executives get risk posture without protected case content.
+- Evidence to show: privileged case policy and redacted severity card.
+- Stop condition: separation of duties is visible.
+- Demo moment 05: `KR-PIPA Denial`.
+- Presenter action: attempt cross-region export of Korean employee evidence.
+- Buyer-facing point: policy blocks unsafe action with a precise reason.
+- Evidence to show: denial event, lawful-basis workflow, and KR cell tag.
+- Stop condition: audience sees denial plus recovery path.
+- Demo moment 06: `EU-AI Maintenance Review`.
+- Presenter action: open predictive maintenance recommendation.
+- Buyer-facing point: AI output is reviewed by a human before operational change.
+- Evidence to show: model suggestion, reviewer signoff, and audit event.
+- Stop condition: EU-AI-Act posture is concrete.
+- Demo moment 07: `Quality Recall Packet`.
+- Presenter action: prepare a customer quality packet.
+- Buyer-facing point: regulated evidence can be shared without leaking unrelated data.
+- Evidence to show: CAPA, warehouse hold, redaction, and mail package.
+- Stop condition: packet is approved and auditable.
+- Demo moment 08: `Supplier Subtenant`.
+- Presenter action: enter a supplier portal view.
+- Buyer-facing point: supplier collaboration does not break tenant isolation.
+- Evidence to show: supplier-specific tasks, hidden competitor data, and policy reason.
+- Stop condition: supplier boundary is obvious.
+- Demo moment 09: `Board Sustainability Deck`.
+- Presenter action: publish Aiko's sustainability deck to the Sustainability and Safety Committee.
+- Buyer-facing point: board reporting inherits evidence lineage and committee scope.
+- Evidence to show: slide source references and publication policy.
+- Stop condition: executive report is ready for Q&A.

@@ -49,7 +49,7 @@ fn foundation_projects_per_tenant_mcp_descriptor_without_cross_tenant_leakage() 
 
     assert_eq!(
         descriptor.endpoint.url(),
-        "https://mcp.foundry.home-region.oyatie.test/tenants/ten_mcp"
+        "https://mcp.foundry.region-home.oyatie.test/tenants/ten_mcp"
     );
     assert_eq!(
         descriptor
@@ -84,7 +84,7 @@ fn foundation_projects_per_tenant_mcp_descriptor_without_cross_tenant_leakage() 
 
     let mut wrong_audience = access_token("ten_mcp", vec![DISCOVER_SCOPE.into()], 100);
     wrong_audience.audience =
-        "https://mcp.foundry.failover-region.oyatie.test/tenants/ten_mcp".into();
+        "https://mcp.foundry.region-recovery.oyatie.test/tenants/ten_mcp".into();
     assert_eq!(
         foundation.discover_mcp_gateway(McpDiscoveryRequest {
             tenant_id: "ten_mcp".into(),
@@ -258,8 +258,8 @@ fn onboard_tenant(foundation: &mut Foundation, tenant_id: &str, autonomy_ceiling
         .onboard_tenant(TenantRegistration {
             tenant_id: tenant_id.into(),
             legal_name: format!("{tenant_id} tenant"),
-            home_region: "home-region".into(),
-            residency_class: "strict_home".into(),
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
             regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling,
         })
@@ -275,7 +275,7 @@ fn access_token(
         tenant_id: tenant_id.into(),
         subject_id: "usr_operator".into(),
         issuer: "https://auth.oyatie.test/tenants/ten_mcp".into(),
-        audience: "https://mcp.foundry.home-region.oyatie.test/tenants/ten_mcp".into(),
+        audience: "https://mcp.foundry.region-home.oyatie.test/tenants/ten_mcp".into(),
         expires_at_epoch_seconds,
         scopes,
     }

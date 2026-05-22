@@ -38,7 +38,7 @@ autonomy_tier: T2
 # T2 = autonomous classification + side-effects on feed view + auto-hide;
 # reversible via appeal; full audit-chain trail.
 
-eu_ai_act_classification:
+risk_classification:
   classification: HIGH_RISK
   basis: |
     Annex III §1(a) (recommender systems including content-moderation systems
@@ -50,7 +50,7 @@ eu_ai_act_classification:
     art_11_technical_documentation: model card per release (foundry-runtime evidence pipeline)
     art_13_transparency: classifier verdicts carry eu_ai_act_label per asyncapi schema
     art_14_human_oversight: appeal workflow + manual reviewer mandatory above confidence threshold
-    art_15_accuracy_robustness: per-release golden-set eval + adversarial robustness eval
+    art_15_accuracy_robustness: per-release reference-set eval + adversarial robustness eval
     art_50_transparency: client SDK helpers + UI label "AI-assessed"
     art_52_codes_of_conduct: voluntary alignment
 
@@ -113,7 +113,7 @@ pack_overrides:
     auto_moderation_disabled_for_phi_accounts: true
     reason: HIPAA — no automated assessment over PHI per §164.502(b) safe-harbor
   pack-eu:
-    eu_ai_act_classification:
+    risk_classification:
       moderation: high_risk
       ranking: high_risk
       ads_stub: not_applicable (disabled)
@@ -147,7 +147,7 @@ cedar_policy_fragments:
   - microservices/social/policy/public-read.cedar
 
 eval_set:
-  golden_inputs_path: microservices/social/capabilities/eval/t2-auto-golden.jsonl
+  reference_inputs_path: microservices/social/capabilities/eval/t2-auto-reference.jsonl
   pass_threshold: 0.95  # higher than T0/T1 due to high-risk classification
   eval_metric: |
     moderation classifier macro-F1 over 8 verdict labels;

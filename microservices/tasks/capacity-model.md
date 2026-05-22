@@ -31,7 +31,7 @@ Model per-cell capacity envelope, scale-out triggers, and headroom posture for t
 | Webhook fire | 25 RPS (5× event rate × subscribers) | fanout |
 | Dependency-edge add | 1 RPS | edge writes per project |
 | Time-tracking tick (M02-onward) | 5 / s (5 concurrent timers per tenant) | append-only |
-| Importer job | 1 / day per tenant | migration-tier; bursty |
+| Importer job | 1 / day per tenant | migration workload; bursty |
 | Comment add | 10 RPS | per active project |
 
 ### Per-cell aggregate (10M active tasks baseline, 500k projects)
@@ -152,7 +152,7 @@ Scale-out plan: at Q4 2026, expand from single-cell to 3-cell deployment (pack-k
 - RPO ≤ 60s: synchronous replication to nearest standby; async to off-site.
 - Meilisearch search-index can be **rebuilt** from Postgres in ≤30 min (PRD AC-09); RPO for search-index is effectively infinite (rebuild from source).
 - Backup retention: 30d hot + 12mo cold (S3-compatible WORM); pack-us-healthcare ≥ 6y.
-- DR drill: quarterly; full restore from cold-tier; validate audit-chain seal continuity + Meilisearch rebuild.
+- DR drill: quarterly; full restore from cold storage; validate audit-chain seal continuity + Meilisearch rebuild.
 
 ## References
 

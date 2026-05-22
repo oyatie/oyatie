@@ -41,7 +41,7 @@ ONE of:
 
 1. Identify affected (tenant_id, workbook_id): query `kubectl -n sheets logs -l app=collab-crdt-worker --tail=500 | grep <tenant_id>` OR Grafana dashboard `dashboards/collab-and-fanout.json` filtered to that tenant.
 2. Identify CRDT op stream window: read `oya_sheets_collab_op_stream_seq` for the bracket.
-3. Verify Valkey lease integrity: `kubectl -n sheets exec <redis-pod> -- redis-cli HGETALL "lease:tenant:<tenant_hash>:wb:<workbook_id>"`.
+3. Verify Valkey lease integrity: `kubectl -n sheets exec <valkey-pod> -- valkey-cli HGETALL "lease:tenant:<tenant_hash>:wb:<workbook_id>"`.
 4. Verify Postgres cell-edit seal is current: `SELECT version_sha, sealed_at FROM cell_edit_seals WHERE tenant_id = <h> AND workbook_id = <w> ORDER BY sealed_at DESC LIMIT 5`.
 
 ## Recovery Path A — Explicit conflict UI shown; users reconcile in-product
@@ -86,7 +86,7 @@ Cause: two WS gateway pods both claim ownership of the same (tenant, workbook_id
 
 | Step | Action |
 |---|---|
-| 1 | Verify lease object: `kubectl exec <redis> -- redis-cli HGETALL lease:tenant:<h>:wb:<w>`. |
+| 1 | Verify lease object: `kubectl exec <valkey> -- valkey-cli HGETALL lease:tenant:<h>:wb:<w>`. |
 | 2 | If two pods present: kill the older lease-holder pod. |
 | 3 | Verify only one pod fans out ops for next 5 min. |
 | 4 | If recurring: investigate Valkey Sentinel failover OR clock skew. |

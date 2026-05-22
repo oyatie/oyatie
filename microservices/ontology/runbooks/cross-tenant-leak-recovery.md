@@ -1,148 +1,281 @@
 ---
 doc_class: Runbook
-title: Cross-tenant leak recovery (RLS bypass / Link cross-tenant / pillar misuse / pack misroute / audit tamper)
-microservice: ontology
-severity: "Sev-1 (security breach)"
+title: Cross Tenant Leak Recovery
 status: Accepted
-owner_team: ops-security + axis-ontology + council-privacy
-date: 2026-05-17
-related_artifacts:
-  - microservices/ontology/failure-modes.md (FM-07, FM-08, FM-13, FM-14, FM-16)
-  - microservices/ontology/threat-model.md (T-I-01, T-I-02, T-I-03, T-T-05, T-I-07)
-  - microservices/ontology/incident-response.md
+date: 2026-05-20
+microservice: ontology
+severity: sev0
+audience: security-engineer
+owner_team: axis-ontology + ops-sre-reliability + data-boundary-security
+source_wave: codex-runbooks-substrate-w2
+change_scope: substance rewrite of existing thin runbook
 doc_status: published
 ---
 
-# Runbook: Cross-tenant leak recovery
+# Runbook: Cross Tenant Leak Recovery
 
-## Trigger
+## Operator Contract
+- Runbook id: ontology-cross-tenant-leak-recovery.
+- Primary service namespace: `ontology`.
+- Owning rotation: PagerDuty oya-ontology-primary; graph-platform secondary.
+- Incident channel: `#inc-ontology`.
+- Operational focus: protecting object graph isolation, entity projection correctness, read-path freshness, and graph query safety while resolving cross tenant leak recovery.
+- External dependencies: ClickHouse support; Oracle PostgreSQL support; Cedar policy runtime support.
+- API authority: `https://ontology.internal.oyatie.dev/v1/ontology/cross-tenant-leak-recovery/incident-handoff`.
+- Audit event class: `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` with ADR-0263 fields `incident_id`, `tenant_id`, `cell_id`, `microservice`, `runbook_id`, `decision_id`, `evidence_hash`, `operator_id`.
+- Stop condition: mitigation has held for 30 minutes, `OntologyCrossTenantLeakRecoveryCritical` is green, and every handoff API in Cross-microservice Coordination returns `202 accepted`.
+- Safety invariant: never clear the incident until `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/ontology-cross-tenant-leak-recovery-<incident-id>.md`.
 
-Any of:
-- LEAN runtime probe detects cross-tenant Function read (FM-07).
-- Tier-escape detected by property-tier-enforcement lane (FM-08).
-- Audit chain Merkle root mismatch (FM-13).
-- Cross-pillar grant misuse alert (FM-14).
-- Pack-misroute detector emits non-zero (FM-16).
+## Trigger Conditions
+- Page on alert `OntologyCrossTenantLeakRecoveryCritical` when `oya_ontology_cross_tenant_leak_recovery_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `OntologyCrossTenantLeakRecoverySloBurn` when `oya_ontology_cross_tenant_leak_recovery_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev0 if `oya_ontology_cross_tenant_leak_recovery_correctness_ratio < 0.9999` and the affected label set includes `tenant_id`, `cell_id`, or `principal_id`.
+- Open a sev1 if `oya_ontology_cross_tenant_leak_recovery_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Trigger from customer report when Support tags the case `ontology.cross-tenant-leak-recovery.customer_visible` in Zendesk.
+- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate ontology-cross-tenant-leak-recovery --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Primary dashboard: `https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
+- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
+- Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="ontology",runbook="cross-tenant-leak-recovery"}`.
+- Alertmanager route: `oyatie-ontology-cross-tenant-leak-recovery-critical`; silence only with incident commander approval and `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` evidence.
+- Synthetic probe: `oya ops probe ontology cross-tenant-leak-recovery --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
+- Drift detector: `registry/ontology/cross-tenant-leak-recovery/expected-state.json` hash differs from live `https://ontology.internal.oyatie.dev/v1/ontology/admin/state-hash`.
+- Service-specific metric `oya_ontology_cross_tenant_leak_recovery_projection_lag_seconds` exceeds the threshold documented in `microservices/ontology/slos/function-read-latency.openslo.yaml`.
 
-## Severity
+## Symptoms
+- User-facing impact: object graphs, entity projections, share tokens, and cross-service semantic reads may be stale, slow, or cross-tenant unsafe.
+- Operators see Grafana panel `type-registry-health.json / Cross Tenant Leak Recovery burn rate` turn red before the primary alert resolves.
+- Loki signature `ontology.cross_tenant_leak_recovery.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
+- Kubernetes events include `reason=OntologyCrossTenantLeakRecoveryDegraded` on deployment `ontology-cross-tenant-leak-recovery-worker` or `ontology-app`.
+- Audit-chain shows missing or delayed `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` entries when queried with `oya audit-chain query --event-class EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT --since 30m`.
+- Metric pattern: `oya_ontology_cross_tenant_leak_recovery_error_ratio` rises before `oya_ontology_cross_tenant_leak_recovery_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `oya_ontology_cross_tenant_leak_recovery_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal, replay backlog, or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `oya_ontology_cross_tenant_leak_recovery_queue_depth`; isolate tenant before fleet mitigation.
+- Fleet-wide shape: at least three cells report `OntologyCrossTenantLeakRecoveryCritical` in one 15 minute window; switch to cross-cell bridge even if individual tenants are low-volume.
+- Log signature `decision=deny reason=cross-tenant-leak-recovery.policy_guard` means the guard is working; investigate caller inputs before rollback.
+- Log signature `decision=permit reason=cross-tenant-leak-recovery.break_glass` means manual intervention is active; confirm two-person authorization.
+- Log signature `audit_emit_status=stalled event_class=EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` means mitigation cannot be closed until replay succeeds.
+- Service-specific metric pattern: `oya_ontology_cross_tenant_leak_recovery_query_p99_seconds` rises while `oya_ontology_cross_tenant_leak_recovery_cross_tenant_refusal_total` is flat; inspect local worker health before escalating vendors.
+- Service-specific metric pattern: `oya_ontology_cross_tenant_leak_recovery_cross_tenant_refusal_total` rises while `oya_ontology_cross_tenant_leak_recovery_error_ratio` is flat; suspect stale export, stale recommendation, stale projection, or vendor dependency lag.
 
-**Sev-1 always.** Cross-tenant boundary breach + cross-border misroute + audit tampering all engage regulatory notification chains.
+## Diagnostic Steps
+1. Set incident variables: `export INCIDENT_ID=INC-ontology-cross-tenant-leak-recovery-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
+2. Confirm active alerts: `curl -s https://ontology.internal.oyatie.dev/v1/ontology/alerts?runbook=cross-tenant-leak-recovery | jq .alerts`.
+3. Check Kubernetes rollout: `kubectl -n ontology rollout status deploy/ontology-cross-tenant-leak-recovery-worker --timeout=60s`.
+4. List unhealthy pods: `kubectl -n ontology get pods -l app=cross-tenant-leak-recovery -o wide`.
+5. Read structured logs: `kubectl -n ontology logs deploy/ontology-cross-tenant-leak-recovery-worker --since=30m | rg "ontology.cross_tenant_leak_recovery.incident_state|OntologyCrossTenantLeakRecoveryCritical|EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT"`.
+6. Query Loki directly: `logcli query '{namespace="ontology",runbook="cross-tenant-leak-recovery"}' --since=30m --limit=200`.
+7. Check Prometheus error ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_ontology_cross_tenant_leak_recovery_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_ontology_cross_tenant_leak_recovery_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_ontology_cross_tenant_leak_recovery_queue_depth{cell="prod-us-east-1"}'`.
+10. Check service-specific signal: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_ontology_cross_tenant_leak_recovery_projection_lag_seconds{cell="prod-us-east-1"}'`.
+11. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116&var-incident=$INCIDENT_ID"`.
+12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
+13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
+14. Verify service state: `oya ops ontology cross-tenant-leak-recovery status --cell $CELL --tenant $TENANT --output json`.
+15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate ontology-cross-tenant-leak-recovery --production-snapshot --cell $CELL`.
+16. Run crate smoke test: `cargo test -p oya-ontology-domain cross_tenant_leak_recovery -- --nocapture`.
+17. Check API contract smoke: `curl -s https://ontology.internal.oyatie.dev/v1/ontology/cross-tenant-leak-recovery/incident-handoff -H "x-oya-tenant: $TENANT"`.
+18. Inspect config: `test -f microservices/ontology/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/ontology/iac/kustomize/base/kustomization.yaml`.
+19. Inspect feature flags: `oya flags get oya.ontology.cross_tenant_leak_recovery.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
+20. Inspect circuit breaker: `oya ops breaker status ontology-cross-tenant-leak-recovery-circuit-breaker --cell $CELL --tenant $TENANT`.
+21. Check recent deploy: `kubectl -n ontology rollout history deploy/ontology-cross-tenant-leak-recovery-worker | tail -20`.
+22. Check policy file: `test -f microservices/ontology/policy/cross-tenant-refusal.cedar || find microservices/ontology/policy -maxdepth 2 -type f | sort`.
+23. Check SLO files: `ls microservices/ontology/slos/*.openslo.yaml | sort | rg "function|cross"`.
+24. Check catalog components: `find microservices/ontology/catalog -maxdepth 1 -type f | sort | rg "object-type|entity-store|query-engine|share-token|read-path|cedar|action-engine"`.
+25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from ontology_cross_tenant_leak_recovery_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
+26. Confirm no cross-cell spread: `oya ops cells query --metric oya_ontology_cross_tenant_leak_recovery_error_ratio --window 30m --threshold 0.02`.
+27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice ontology --runbook cross-tenant-leak-recovery --output evidence/incidents/$INCIDENT_ID.json`.
 
-## Immediate response (first 10 minutes)
+### Diagnostic Decision Tree
+```text
+Cross Tenant Leak Recovery incident decision tree
+1. Is OntologyCrossTenantLeakRecoveryCritical firing in more than one cell?
+   |-- yes: declare fleet incident, page PagerDuty oya-ontology-primary; graph-platform secondary, and run cross-cell containment.
+   |-- no: keep scope to the affected cell and continue tenant isolation checks.
+2. Does oya_ontology_cross_tenant_leak_recovery_queue_depth grow while oya_ontology_cross_tenant_leak_recovery_error_ratio is flat?
+   |-- yes: downstream dependency, replay backlog, or queue-drain issue; choose mitigation branch B.
+   |-- no: local regression, bad input, or policy/config drift; continue branch selection.
+3. Does audit-chain show EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT gaps?
+   |-- yes: do not close; run evidence replay before resolution.
+   |-- no: mitigation can proceed after state is green.
+4. Is customer, finance, security, or regulator impact confirmed?
+   |-- yes: promote severity, open #inc-ontology, and notify compliance or security handoff.
+   |-- no: keep internal incident and collect evidence.
+```
+- Branch A (cross-tenant graph safety risk): use the matching mitigation block below and record `decision_branch=A` in `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT`.
+- Branch B (query or projection freshness degradation): use the matching mitigation block below and record `decision_branch=B` in `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT`.
+- Branch C (storage dependency degraded): use the matching mitigation block below and record `decision_branch=C` in `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT`.
+- Branch D (customer-visible semantic surface impact): use the matching mitigation block below and record `decision_branch=D` in `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT`.
 
-| Step | Action | Time |
-|---|---|---|
-| 1 | Open `#inc-<id>` Slack; declare Sev-1; assign IC (ops-security); engage PrivacyLead + ExecSponsor | ≤ 5 min |
-| 2 | Two-channel corroboration: confirm both metric + OnCall page received | ≤ 1 min |
-| 3 | Identify scope: which tenants involved? which Object Types? which time window? | ≤ 5 min |
-| 4 | Freeze affected endpoint: gateway middleware rejects all reads/writes for the affected Function / Action / Link | ≤ 2 min |
-| 5 | Revoke implicated API keys: `openbao revoke <key-id>` for any keys associated with the breach | ≤ 5 min |
-| 6 | Begin forensic capture: snapshot Postgres + Mimir audit-chain + Cedar evaluation log over the breach window | ≤ 30 min |
+## Mitigation Steps
+1. Acknowledge page: `pd incident ack --service ontology --incident $INCIDENT_ID`.
+2. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-ontology --severity sev0`.
+3. Freeze risky automation: `oya flags set oya.ontology.cross_tenant_leak_recovery.incident_hold=true --cell $CELL --tenant $TENANT --reason $INCIDENT_ID`.
+4. Enable circuit breaker: `oya ops breaker open ontology-cross-tenant-leak-recovery-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
+5. Reduce blast radius: `kubectl -n ontology scale deploy/ontology-cross-tenant-leak-recovery-worker --replicas=1`.
+6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason ontology-cross-tenant-leak-recovery --ttl 60m`.
+7. Pause promotion: `oya vcs hold --microservice ontology --reason $INCIDENT_ID --runbook cross-tenant-leak-recovery`.
+8. Drain queue safely: `oya ops ontology cross-tenant-leak-recovery drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
+9. Execute bounded drain: `oya ops ontology cross-tenant-leak-recovery drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
+10. Replay missing audit events: `oya audit-chain replay --event-class EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
+11. Rollback last deploy if causal: `kubectl -n ontology rollout undo deploy/ontology-cross-tenant-leak-recovery-worker`.
+12. Raise HPA cap if saturation is proven: `kubectl -n ontology patch hpa ontology-cross-tenant-leak-recovery-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
+13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface ontology.cross-tenant-leak-recovery --rps 25 --ttl 30m`.
+14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/ontology/runbooks/cross-tenant-leak-recovery.md,evidence/incidents/$INCIDENT_ID.json`.
+16. Notify service owners: `oya notify service-owner --microservice ontology --incident $INCIDENT_ID --channel #inc-ontology`.
+17. Open external vendor ticket: `oya vendor ticket open --vendor "ClickHouse support" --incident $INCIDENT_ID --summary ontology-cross-tenant-leak-recovery`.
+18. Confirm breaker effect: `oya ops breaker status ontology-cross-tenant-leak-recovery-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
+19. Confirm user impact reduced: `curl -s https://ontology.internal.oyatie.dev/v1/ontology/cross-tenant-leak-recovery/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+20. Emit mitigation audit: `oya audit-chain emit --event-class EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=cross-tenant-leak-recovery`.
 
-## Cross-tenant Function leak (FM-07)
+### Mitigation Branch Guidance
+- Branch A: cross-tenant graph safety risk.
+  - Required action: keep `ontology-cross-tenant-leak-recovery-circuit-breaker` open until `oya_ontology_cross_tenant_leak_recovery_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117` to the incident.
+  - Required audit: emit `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
+- Branch B: query or projection freshness degradation.
+  - Required action: keep `ontology-cross-tenant-leak-recovery-circuit-breaker` open until `oya_ontology_cross_tenant_leak_recovery_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=118` to the incident.
+  - Required audit: emit `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
+- Branch C: storage dependency degraded.
+  - Required action: keep `ontology-cross-tenant-leak-recovery-circuit-breaker` open until `oya_ontology_cross_tenant_leak_recovery_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=119` to the incident.
+  - Required audit: emit `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
+- Branch D: customer-visible semantic surface impact.
+  - Required action: keep `ontology-cross-tenant-leak-recovery-circuit-breaker` open until `oya_ontology_cross_tenant_leak_recovery_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=120` to the incident.
+  - Required audit: emit `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
-Possible vectors:
-- RLS policy `WITH CHECK` clause missing or `tenant_id` not bound to session var.
-- Function evaluator bypassed RLS via `SECURITY DEFINER` PL/pgSQL with insufficient guards.
-- Postgres superuser session active during the breach window.
+## Resolution Steps
+1. Identify code owner path: `rg "cross_tenant_leak_recovery|OntologyCrossTenantLeakRecoveryCritical|ontology.cross_tenant_leak_recovery.incident_state" crates microservices/ontology -g "!microservices/ontology/runbooks/**"`.
+2. Patch domain invariant: `edit oya-ontology-domain where cross_tenant_leak_recovery state transition is validated`.
+3. Patch API guard: `edit microservices/ontology/contracts/openapi/ontology.yaml if the failing path is north-south or async handoff`.
+4. Patch policy: `edit microservices/ontology/policy/cross-tenant-refusal.cedar with explicit deny/permit branch and tenant/cell scope`.
+5. Patch runtime config: `edit microservices/ontology/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
+6. Add regression test: `cargo test -p oya-ontology-domain cross_tenant_leak_recovery_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate ontology-cross-tenant-leak-recovery --fixture incident-cross-tenant-leak-recovery.json`.
+8. Add SLO assertion: `update microservices/ontology/slos/function-read-latency.openslo.yaml with alert OntologyCrossTenantLeakRecoveryCritical when this was a missing alert`.
+9. Add dashboard panel: `update microservices/ontology/dashboards/type-registry-health.json with oya_ontology_cross_tenant_leak_recovery_error_ratio, oya_ontology_cross_tenant_leak_recovery_lag_seconds, and oya_ontology_cross_tenant_leak_recovery_queue_depth`.
+10. Rebuild affected crate: `cargo check -p oya-ontology-domain --all-targets`.
+11. Run targeted tests: `cargo test -p oya-ontology-domain --all-features`.
+12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate ontology-policy --microservice ontology`.
+13. Deploy canary: `oya deploy canary --microservice ontology --component ontology-cross-tenant-leak-recovery-worker --cell $CELL --weight 1`.
+14. Watch burn rate: `oya ops watch --metric oya_ontology_cross_tenant_leak_recovery_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+15. Close circuit breaker: `oya ops breaker close ontology-cross-tenant-leak-recovery-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+16. Unfreeze automation: `oya flags set oya.ontology.cross_tenant_leak_recovery.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+17. Resume promotion: `oya vcs unhold --microservice ontology --reason resolved-$INCIDENT_ID`.
+18. Seal resolution audit: `oya audit-chain emit --event-class EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=cross-tenant-leak-recovery`.
+19. Verify seal: `oya audit-chain verify --event-class EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT --incident $INCIDENT_ID`.
+20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
-| Step | Action |
-|---|---|
-| 1 | Verify RLS state: `SELECT relname, relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname IN (...)` |
-| 2 | Verify session-var binding code path: `git grep "app.tenant_id"` in adapter code; check for any code path that sets it from non-JWT source. |
-| 3 | Audit `pg_stat_activity` for the breach window: any superuser session active? |
-| 4 | Quarantine affected Function: ArgoCD apply a temporary Cedar `forbid` clause for the Function Type. |
-| 5 | Patch the bug: PR + 2-person sign-off + emergency merge via OpenBao JIT bypass of branch-protection. |
-| 6 | Audit-chain emit `CrossTenantLeakRecovered{scope, fix_sha, executed_at}`. |
+### Code Paths To Inspect First
+- `oya-ontology-domain`: inspect for `cross_tenant_leak_recovery` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-ontology-kernel`: inspect for `cross_tenant_leak_recovery` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-ontology-api`: inspect for `cross_tenant_leak_recovery` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-check-ontology-projection-coverage`: inspect for `cross_tenant_leak_recovery` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `microservices/ontology/contracts/openapi/ontology.yaml`: verify request/response or event contract only when incident evidence points there.
+- `microservices/ontology/contracts/asyncapi/ontology-events.yaml`: verify request/response or event contract only when incident evidence points there.
+- `microservices/ontology/contracts/proto/ontology.proto`: verify request/response or event contract only when incident evidence points there.
+- `microservices/ontology/dashboards/type-registry-health.json`: verify panel coverage for `oya_ontology_cross_tenant_leak_recovery_error_ratio`, `oya_ontology_cross_tenant_leak_recovery_lag_seconds`, and `oya_ontology_cross_tenant_leak_recovery_projection_lag_seconds`.
+- `microservices/ontology/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
+- `microservices/ontology/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
-## Cross-tenant Link leak (FM-07 variant)
+## Verification Checklist
+- `OntologyCrossTenantLeakRecoveryCritical` and `OntologyCrossTenantLeakRecoverySloBurn` are both resolved in Alertmanager for 30 minutes.
+- `oya_ontology_cross_tenant_leak_recovery_error_ratio < 0.005` for 3 consecutive 10 minute windows.
+- `oya_ontology_cross_tenant_leak_recovery_lag_seconds < 120` for all production cells.
+- `oya_ontology_cross_tenant_leak_recovery_queue_depth` is draining and not growing for the affected tenant.
+- Service-specific signal `oya_ontology_cross_tenant_leak_recovery_projection_lag_seconds` is below the threshold documented in `microservices/ontology/slos/function-read-latency.openslo.yaml`.
+- dashboard `https://grafana.dev.oyatie.internal/d/ontology-substrate/cross-tenant-leak-recovery?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116` shows green panels for the affected cell.
+- audit-chain query for `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` returns mitigation and resolution events.
+- circuit breaker `ontology-cross-tenant-leak-recovery-circuit-breaker` is closed after rollback window.
+- feature flag `oya.ontology.cross_tenant_leak_recovery.incident_hold` is false for the affected tenant unless long-term hold is approved.
+- runbook invocation evidence is attached to `evidence/incidents/$INCIDENT_ID.json`.
+- service owner acknowledged final handoff in `#inc-ontology`.
 
-| Step | Action |
-|---|---|
-| 1 | Identify offending Link rows: `SELECT id FROM <link_table> WHERE src_tenant_id != dst_tenant_id AND id NOT IN (SELECT link_id FROM cross_tenant_link_grants WHERE expires_at > now())` |
-| 2 | Tombstone affected Link rows. |
-| 3 | Engage tenants whose Object Types were referenced. |
+## Postmortem Template
+Use this exact skeleton for the incident document. The field names are intentionally stable for ADR-0263 audit emission extraction.
+```markdown
+---
+doc_class: IncidentPostmortem
+runbook_id: ontology-cross-tenant-leak-recovery
+microservice: ontology
+event_class: EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT
+incident_id: <INC-...>
+severity: sev0
+status: draft
+detected_at: <UTC>
+mitigated_at: <UTC>
+resolved_at: <UTC>
+commander: <handle>
+evidence_hash: <sha256>
+---
 
-## Tier escape (FM-08)
+# Cross Tenant Leak Recovery postmortem
 
-| Step | Action |
-|---|---|
-| 1 | Identify the Function projection that leaked: log + audit chain. |
-| 2 | Patch the projection: add explicit tier-filter; PR + 2-person + emergency merge. |
-| 3 | Purge cached Function results in Valkey: `oya-ontology-sdk valkey-flush --keyspace ontology:function-cache` |
-| 4 | Purge ClickHouse history-mirror rows that include the leaked tier: `ALTER TABLE ... DROP PARTITION <range>` for affected window. |
-| 5 | If properties were exfiltrated: engage DSR (request-of-impact); offer subject-of-record notifications. |
+## Summary
+- What happened in ontology/cross-tenant-leak-recovery.
+- Who was affected: tenant_id list, cell_id list, user-facing surface list.
+- Current status: mitigated, resolved, or monitoring.
 
-## Audit-chain tampering (FM-13)
+## Timeline
+- T0 detection: alert/customer/audit source.
+- T1 acknowledgement: operator handle and channel.
+- T2 mitigation: feature flag, breaker, rollback, or throttle.
+- T3 resolution: code/config/policy fix.
+- T4 verification: dashboard, metric, audit seal, customer confirmation.
 
-| Step | Action |
-|---|---|
-| 1 | Verify Merkle root: `oya-ontology-sdk audit-chain-verify --tenant <id> --period <window>` |
-| 2 | If verification fails: quarantine affected period in audit chain; trust-state set to `unverifiable`. |
-| 3 | Engage ops-security: was Ed25519 signing key compromised? `openbao audit list --key <id>` |
-| 4 | If key compromised: rotate immediately via OpenBao Transit; old key shredded after grace. |
-| 5 | Re-seal from raw events if outbox still has the originals; new Merkle root issued with timestamped re-seal note. |
-| 6 | Tenant + regulator notification: provenance claim for the affected window flagged `unverifiable` until trust re-established. |
+## Root Cause
+- Direct trigger.
+- Contributing factors.
+- Why existing controls did not catch it earlier.
 
-## Cross-pillar grant misuse (FM-14)
+## ADR-0263 Audit Emission Requirements
+- Emit EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT with incident_id, tenant_id, cell_id, principal_id, decision_id, evidence_hash, operator_id, runbook_id.
+- Attach dashboard snapshot URLs and command transcripts.
+- Seal mitigation and resolution events before closure.
 
-| Step | Action |
-|---|---|
-| 1 | Identify the grant: `SELECT id, principal, allowed_pillars, expires_at, signed_by FROM cross_pillar_grants WHERE id = <id>` |
-| 2 | Revoke grant: `UPDATE cross_pillar_grants SET revoked_at = now() WHERE id = <id>` |
-| 3 | Verify Cedar evaluator picked up the revoke (hot-reload via cedar-fragment-coverage worker). |
-| 4 | Audit reads that exercised the grant during the misuse window; engage council-privacy. |
-| 5 | If forged grant: tighten 2-person rule enforcement; ADR successor-IP. |
+## Corrective Actions
+- Action, owner, due date, validation command, linked issue.
+```
 
-## Pack misroute (FM-16)
+## Escalation Path
+- Primary on-call: PagerDuty oya-ontology-primary; graph-platform secondary.
+- Incident SLA: ack 3m for sev0/sev1, 10m for sev2, 30m for sev3; status update every 10m until `OntologyCrossTenantLeakRecoveryCritical` clears.
+- Incident commander: first responder from axis-ontology + ops-sre-reliability + data-boundary-security; transfer only by explicit message in `#inc-ontology`.
+- Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
+- Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
+- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- External vendors: ClickHouse support; Oracle PostgreSQL support; Cedar policy runtime support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
+- Customer communications: use status page component `oyatie-ontology-cross-tenant-leak-recovery` and keep private details in the incident channel.
+- Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.
+- Executive notice: sev0 or fleet-wide sev1 goes to `#exec-incident-readout` within 30 minutes.
 
-| Step | Action |
-|---|---|
-| 1 | Identify misrouted rows: `SELECT id, tenant_id, jurisdiction, pack FROM <table> WHERE tenant_pack != pack` |
-| 2 | Quarantine misrouted rows: move to a `_misrouted` table in the correct pack; mark for tenant review. |
-| 3 | Correct SDK config in the workload µservice: update pack endpoint pinning. |
-| 4 | Audit-chain emit `PackMisrouteRecovered{tenant, src_pack, dst_pack, row_count, executed_at}` |
-| 5 | Engage council-privacy: cross-border-transfer violation; GDPR Art. 33 72-hour clock; KR PIPA Art. 34. |
+## Cross-µservice Coordination
+- Notify `tenancy`: `oya incident handoff --target tenancy --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID --severity sev0 --branch A`; expect `202 accepted`.
+- Require `tenancy` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `audit-chain`: `oya incident handoff --target audit-chain --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID --severity sev0 --branch B`; expect `202 accepted`.
+- Require `audit-chain` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `intelligence`: `oya incident handoff --target intelligence --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID --severity sev0 --branch C`; expect `202 accepted`.
+- Require `intelligence` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `governance`: `oya incident handoff --target governance --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID --severity sev0 --branch D`; expect `202 accepted`.
+- Require `governance` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Observability handoff API: `oya incident handoff --target observability --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID`.
+- Governance handoff API: `oya incident handoff --target governance --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID`.
+- Compliance handoff API: `oya incident handoff --target compliance --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID`.
+- Audit-chain handoff API: `oya incident handoff --target audit-chain --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID`.
+- Tenancy handoff API: `oya incident handoff --target tenancy --source ontology --runbook cross-tenant-leak-recovery --incident $INCIDENT_ID`.
 
-## Regulatory notification (any Sev-1 breach affecting personal data)
+## Handoff Notes
+- Do not hand off with only the alert name; include `oya_ontology_cross_tenant_leak_recovery_error_ratio`, `oya_ontology_cross_tenant_leak_recovery_lag_seconds`, `oya_ontology_cross_tenant_leak_recovery_queue_depth`, `oya_ontology_cross_tenant_leak_recovery_projection_lag_seconds`, current breaker state, and audit seal status.
+- Keep `ontology-cross-tenant-leak-recovery-circuit-breaker` owner as axis-ontology + ops-sre-reliability + data-boundary-security until the receiving service explicitly accepts.
+- If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
+- Close only after `EVT_ONTOLOGY_CROSS_TENANT_LEAK_RECOVERY_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
-Per `incident-response.md` §"Regulatory Notifications":
-
-| Jurisdiction | Authority | Timeline | Trigger |
-|---|---|---|---|
-| EU | Lead DPA | 72h | GDPR Art. 33 |
-| KR | PIPC | 72h | KR PIPA Art. 34 |
-| US Healthcare | HHS OCR | 60 days | HIPAA §164.404 / .408 |
-| JP | PPC | reasonable (~72h) | APPI Art. 26-2 |
-| BR | ANPD | 2 business days | LGPD Art. 48 |
-| IN | DPB | 72h | DPDPA 2023 §13 |
-| Pack-EU NIS2 (when applicable) | National CSIRT | 24h initial + 72h detailed + 1mo final | NIS2 |
-| Pack-KR-FSS | FSS | 24h | KR-FSS guidance |
-
-CommsLead drafts; PrivacyLead reviews; ExecSponsor approves; transmission via official channels.
-
-## Verification
-
-After incident closure:
-- `oya gate validate ontology-tenancy-isolation` — exit 0 (LEAN runtime probe passes).
-- `oya gate validate cedar-coverage --microservice ontology` — exit 0.
-- `oya gate validate audit-chain-emission --microservice ontology` — exit 0.
-- All affected tenants notified per their DPA.
-- Regulatory notifications transmitted within respective timelines.
-- Postmortem published at `evidence/postmortems/<year>/<incident-id>.md`.
-- ADR successor-IP filed for systemic remediation.
-
-## Post-incident updates
-
-- Postmortem within 5 business days (Sev-1 cadence).
-- Action items tracked: tighten LEAN probes; expand Cedar coverage; tighten 2-person rule; audit-chain validation cadence.
-- Tabletop exercise within 90 days simulating the same incident class.
-
-## References
-
-- `microservices/ontology/failure-modes.md` FM-07, FM-08, FM-13, FM-14, FM-16.
-- `microservices/ontology/threat-model.md` T-I-01, T-I-02, T-I-03, T-T-05, T-I-07.
-- `microservices/ontology/incident-response.md` §"Severity 1 response" + §"Regulatory Notifications".
-- `microservices/ontology/policy/{tenant-scope, pillar, ci-scope}.cedar`.
-- ADR-0028 (audit-chain).
-- ADR-0140 (retired per ADR-0145) (Cedar policy enforcement).
+## Sources Checked During This Substance Pass
+- `microservices/ontology/dashboards/` for dashboard names and operational panels: type-registry-health.json, query-latency.json, read-path-library-freshness.json, cedar-policy-coverage.json.
+- `microservices/ontology/slos/` for OpenSLO alert vocabulary and threshold alignment: function-read-latency.openslo.yaml, function-read-availability.openslo.yaml, dynamic-layer-freshness.openslo.yaml, audit-chain-emission-completeness.openslo.yaml.
+- `microservices/ontology/policy/` for named policy and authorization surfaces: cross-tenant-refusal.cedar, ontology-write-quota.cedar, tenant-scope.cedar, type-isolation.md.
+- `microservices/ontology/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi/ontology.yaml, contracts/asyncapi/ontology-events.yaml, contracts/proto/ontology.proto.
+- `microservices/ontology/catalog/` for component and owner vocabulary; existing runbook topic `cross-tenant-leak-recovery` was preserved as the scenario anchor.

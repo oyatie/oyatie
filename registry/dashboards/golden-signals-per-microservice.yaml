@@ -1,0 +1,266 @@
+schema_version: "2026-05-20.observability-dashboard.v1"
+doc_class: ObservabilityDashboard
+dashboard_id: golden-signals-per-microservice
+owner: axis-observability
+related_oyatie_adrs:
+  - ADR-0263
+  - ADR-0130
+  - ADR-0139
+  - ADR-0131
+  - ADR-0248
+title: "Golden Signals per Microservice"
+description: "Fleet dashboard for RED plus USE signals across every Oyatie microservice. The dashboard uses tenant_id, cell_id, region, environment, and histogram bucket labels so SLO-gated promotion can detect traffic, error, latency, utilization, saturation, and emission-contract regressions before promote."
+refresh: 30s
+time_from: now-6h
+time_to: now
+timezone: utc
+folder: oyatie-platform-observability
+schema_tags:
+  - golden-signals
+  - red
+  - use
+  - slo-gated-promotion
+  - adr-0263
+datasource_defaults:
+  metrics: Mimir
+  logs: Loki
+  traces: Tempo
+variables:
+  - name: environment
+    label: Environment
+    type: custom
+    default: dev
+    values:
+      - dev
+      - staging
+      - production
+  - name: microservice
+    label: Microservice
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:http:server:requests_total:counter{environment=\"$environment\"}, microservice)"
+    multi: true
+    include_all: true
+  - name: tenant_id
+    label: Tenant
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:http:server:requests_total:counter{environment=\"$environment\",microservice=~\"$microservice\"}, tenant_id)"
+    multi: true
+    include_all: true
+    default: ".*"
+  - name: cell_id
+    label: Cell
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:http:server:requests_total:counter{environment=\"$environment\",microservice=~\"$microservice\"}, cell_id)"
+    multi: true
+    include_all: true
+    default: ".*"
+  - name: region
+    label: Region
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:http:server:requests_total:counter{environment=\"$environment\",microservice=~\"$microservice\"}, region)"
+    multi: true
+    include_all: true
+  - name: route
+    label: Route
+    type: query
+    datasource: Mimir
+    query: "label_values(oya:http:server:request_duration_seconds:bucket{environment=\"$environment\",microservice=~\"$microservice\"}, route)"
+    multi: true
+    include_all: true
+  - name: window
+    label: Query Window
+    type: custom
+    default: 5m
+    values:
+      - 1m
+      - 5m
+      - 30m
+      - 1h
+annotations:
+  - name: deployment_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=\"DeploymentCompleted\",environment=\"$environment\",microservice=~\"$microservice\"} | json | line_format \"{{.microservice}} {{.version}} {{.changeset_id}}\""
+    tags:
+      - deploy
+      - oya-vcs
+  - name: incident_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"IncidentDeclared|RollbackStarted|PromotionHeld\",environment=\"$environment\",microservice=~\"$microservice\"} | json | line_format \"{{.severity}} {{.incident_id}} {{.microservice}}\""
+    tags:
+      - incident
+      - rollback
+  - name: cell_drain_markers
+    datasource: Loki
+    enable: true
+    query: "{event_class=~\"CellDrainStarted|CellDrainCompleted\",cell_id=~\"$cell_id\"} | json | line_format \"{{.cell_id}} {{.drain_phase}}\""
+    tags:
+      - cell
+      - capacity
+panels:
+  - title: "RED request rate by microservice"
+    type: graph
+    datasource: Mimir
+    unit: reqps
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (microservice, route, method, cell_id) (rate(oya:http:server:requests_total:counter{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\",route=~\"$route\"}[$window]))"
+        labels:
+          signal: request_rate
+          metric_family: red
+  - title: "RED error rate by microservice"
+    type: graph
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * sum by (microservice, route, cell_id) (rate(oya:http:server:requests_total:counter{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\",status=~\"5..|429\"}[$window])) / clamp_min(sum by (microservice, route, cell_id) (rate(oya:http:server:requests_total:counter{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\"}[$window])), 0.001)"
+        labels:
+          signal: error_rate
+          metric_family: red
+  - title: "RED duration p50 by route"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.50, sum by (le, microservice, route, cell_id) (rate(oya:http:server:request_duration_seconds:bucket{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\",route=~\"$route\"}[$window])))"
+        labels:
+          signal: duration_p50
+          bucket_label: le
+  - title: "RED duration p95 by route"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.95, sum by (le, microservice, route, cell_id) (rate(oya:http:server:request_duration_seconds:bucket{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\",route=~\"$route\"}[$window])))"
+        labels:
+          signal: duration_p95
+          bucket_label: le
+  - title: "RED duration p99 by route"
+    type: graph
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "histogram_quantile(0.99, sum by (le, microservice, route, cell_id) (rate(oya:http:server:request_duration_seconds:bucket{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\",route=~\"$route\"}[$window])))"
+        labels:
+          signal: duration_p99
+          bucket_label: le
+  - title: "Duration bucket heatmap"
+    type: heatmap
+    datasource: Mimir
+    unit: seconds
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (le, microservice) (rate(oya:http:server:request_duration_seconds:bucket{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\"}[$window]))"
+        labels:
+          signal: duration_distribution
+          bucket_label: le
+  - title: "USE CPU utilization by workload"
+    type: graph
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * sum by (microservice, pod, cell_id) (rate(container_cpu_usage_seconds_total{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",container!=\"POD\"}[$window])) / clamp_min(sum by (microservice, pod, cell_id) (kube_pod_container_resource_requests{resource=\"cpu\",environment=\"$environment\",microservice=~\"$microservice\",cell_id=~\"$cell_id\"}), 0.001)"
+        labels:
+          signal: utilization_cpu
+          metric_family: use
+  - title: "USE memory utilization by workload"
+    type: graph
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * sum by (microservice, pod, cell_id) (container_memory_working_set_bytes{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",container!=\"POD\"}) / clamp_min(sum by (microservice, pod, cell_id) (kube_pod_container_resource_requests{resource=\"memory\",environment=\"$environment\",microservice=~\"$microservice\",cell_id=~\"$cell_id\"}), 1)"
+        labels:
+          signal: utilization_memory
+          metric_family: use
+  - title: "USE saturation queue depth"
+    type: graph
+    datasource: Mimir
+    unit: short
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (microservice, queue_name, cell_id) (oya:microservice:worker:queue_depth:gauge{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\"})"
+        labels:
+          signal: saturation_queue_depth
+          metric_family: use
+  - title: "USE errors emitted by log class"
+    type: graph
+    datasource: Mimir
+    unit: events/sec
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "sum by (microservice, error_class, cell_id) (rate(oya:logs:error_events_total:counter{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\",region=~\"$region\"}[$window]))"
+        labels:
+          signal: use_errors
+          metric_family: use
+  - title: "Availability SLI by microservice"
+    type: gauge
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * sum by (microservice, cell_id) (rate(oya:http:server:requests_total:counter{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",status!~\"5..\"}[$window])) / clamp_min(sum by (microservice, cell_id) (rate(oya:http:server:requests_total:counter{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\"}[$window])), 0.001)"
+        labels:
+          signal: availability_sli
+          promotion_gate: slo
+  - title: "Metric-to-trace exemplar coverage"
+    type: graph
+    datasource: Mimir
+    unit: percent
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "100 * sum by (microservice, cell_id) (rate(oya:observability:exemplar:attached_total:counter{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\"}[$window])) / clamp_min(sum by (microservice, cell_id) (rate(oya:observability:histogram:observations_total:counter{environment=\"$environment\",microservice=~\"$microservice\",tenant_id=~\"$tenant_id\",cell_id=~\"$cell_id\"}[$window])), 0.001)"
+        labels:
+          signal: exemplar_coverage
+          adr_anchor: ADR-0263-D12
+  - title: "Golden-signal promotion readiness table"
+    type: table
+    datasource: Mimir
+    targets:
+      - ref_id: A
+        query_type: PromQL
+        expr: "max by (microservice, target_env, verdict, source_sha) (oya_promotion_eligibility_verdict{target_env=\"$environment\",microservice=~\"$microservice\"})"
+        labels:
+          signal: promotion_readiness
+          adr_anchor: ADR-0139
+alerts:
+  - alert_id: golden_signals_fast_burn
+    title: "Golden signals fast burn"
+    datasource: Mimir
+    severity: page
+    condition: "oya_promotion_burn_rate_fast_1h{microservice=~\"$microservice\",target_env=\"$environment\"} > 14.4"
+    for: 5m
+    labels:
+      gate: oya-vcs-promotion-readiness
+      verdict_on_fire: held
+  - alert_id: golden_signals_p99_latency
+    title: "Microservice p99 exceeds baseline"
+    datasource: Mimir
+    severity: ticket
+    condition: "histogram_quantile(0.99, sum by (le, microservice) (rate(oya:http:server:request_duration_seconds:bucket{environment=\"$environment\",microservice=~\"$microservice\"}[5m]))) > 0.2"
+    for: 10m
+    labels:
+      sli: latency
+      budget_seconds: "0.2"

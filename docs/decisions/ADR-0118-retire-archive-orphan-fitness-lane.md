@@ -34,8 +34,8 @@ Retire `archive-orphan` as an executable fitness lane.
 The retirement removes:
 
 - `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/`
-- `crates/oya-foundry-fitness-archive-orphan-kernel`
-- `tools/oya-foundry-fitness-archive-orphan-app`
+- `crates/oya-governance-archive-orphan-kernel`
+- `tools/oya-governance-archive-orphan-app`
 - workspace members for both retired crates
 - catalog entries for the retired kernel/app capability
 

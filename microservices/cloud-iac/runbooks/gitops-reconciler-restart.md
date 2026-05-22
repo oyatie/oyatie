@@ -31,7 +31,7 @@ ONE of:
 
 1. Verify ArgoCD pods: `kubectl -n argocd get pods`.
 2. Check ArgoCD UI health: `curl -s https://argocd-<pack>.oyatie.dev/healthz`.
-3. Check Valkey Sentinel cluster: `kubectl -n argocd get pods -l app=argocd-redis`.
+3. Check Valkey Sentinel cluster (counterpart-fact: Argo CD labels the backing component `app=argocd-redis`): `kubectl -n argocd get pods -l app=argocd-redis`.
 4. Check Flux pods (if active): `kubectl -n flux-system get pods`.
 5. Check admission webhook: `kubectl get validatingwebhookconfigurations argocd-applicationset-controller-webhook`.
 
@@ -41,7 +41,7 @@ ONE of:
 |---|---|
 | 1 | Inspect logs: `kubectl -n argocd logs <app-controller-pod> --previous` |
 | 2 | Common causes: Valkey Sentinel split-brain; OOM; etcd contention |
-| 3 | If Valkey split-brain: `kubectl -n argocd delete pod -l app=argocd-redis` (sentinels re-elect) |
+| 3 | If Valkey split-brain: `kubectl -n argocd delete pod -l app=argocd-redis` (counterpart-fact: Argo CD label retained; sentinels re-elect) |
 | 4 | If OOM: increase pod memory limits; vertical-scale |
 | 5 | Restart app-controller: `kubectl -n argocd rollout restart deployment/argocd-application-controller` |
 | 6 | Verify recovery: `argocd_app_info` cardinality returns to baseline |

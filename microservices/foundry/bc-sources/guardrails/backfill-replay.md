@@ -31,7 +31,7 @@ Specify how foundry-guardrails handles:
 When a new rule definition (or classifier model) lands in Postgres / object-storage:
 
 1. `RuleStoreMutated` event emitted to AsyncAPI.
-2. The rule / model is validated against Cedar v4 schema (rules) or Cosign signature (models) + golden-fixture test set.
+2. The rule / model is validated against Cedar v4 schema (rules) or Cosign signature (models) + baseline-fixture test set.
 3. Backfill computes the candidate-decision window:
    - Default = `min(rule.first_applicable_at, available_decision_history_in_foundry-evidence)`.
    - Per-pack retention applies (foundry-evidence owns the history; guardrails does not persist).

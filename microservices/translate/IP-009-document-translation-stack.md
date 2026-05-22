@@ -82,3 +82,11 @@ Sandbox enforcement:
 ## Next IP
 
 [`IP-010-bulk-translate-stack.md`](IP-010-bulk-translate-stack.md)
+
+## Pod runtime tier (per ADR-0338)
+
+- Binding ADR: ADR-0338.
+- `pod_runtime_tier: 0`.
+- Runtime class: Kata Containers + Cloud Hypervisor (`kata-cloud-hypervisor`) is required for this execution path.
+- Justification: Trigger D matched a sandbox/plugin/workflow/capability surface; treat the execution path as tenant-customer or third-party code until a narrower manifest declaration proves otherwise.
+- Surface evidence: `microservices/translate/IP-009-document-translation-stack.md:10` - acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a2, layer-correctness, sandbox-isolation, fuzzing-corpus]; `microservices/translate/IP-009-document-translation-stack.md:19` - Format-preserving document round-trip for DOCX / PPTX / XLSX / PDF / HTML / Markdown / PO / XLIFF / ARB / .strings / .resx / .properties per ADR-TRANSLATE-0005. Pandoc....

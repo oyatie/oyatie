@@ -1,0 +1,471 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.finance-loan-approval-with-fair-lending.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0059-workflow-ontology-ecosystem-adapter-layer
+  - ADR-0185-workflow-studio-client-stack
+title: Finance loan approval with fair lending
+description: >-
+  Runs a consumer-loan application from intake through identity verification,
+  credit report retrieval, underwriting, ECOA Regulation B decision timing,
+  FCRA adverse-action preparation, fair-lending bias audit, approval document
+  issuance, and funding controls.
+tags:
+  - finance
+  - lending
+  - fair-lending
+  - ecoa-reg-b
+  - fcra
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: gold
+    reason: "Loan workflows need underwriting, customer notices, and regulatory timing evidence."
+  - tier: platinum
+    reason: "Adds fair-lending bias audit and adverse-action governance."
+ontology_refs:
+  object: LoanApplicationCase
+  actions:
+    - LoanApplicationReceived
+    - CreditReportPulled
+    - UnderwritingCompleted
+    - FairLendingAuditCompleted
+    - LoanDecisionIssued
+    - FundingReleased
+tenant_context:
+  required_fields:
+    - tenant_id
+    - applicant_id
+    - loan_product_id
+    - underwriter_principal_id
+    - compliance_principal_id
+principal_context:
+  system_principal: workflow-engine.loan-approval
+  human_approval_roles:
+    - loan_officer
+    - underwriter
+    - compliance_reviewer
+    - fair_lending_officer
+data_classes:
+  - CONSUMER_CREDIT_REPORT
+  - CONSUMER_INCOME
+  - GOVERNMENT_IDENTIFIER
+  - LOAN_TERMS
+  - FAIR_LENDING_AUDIT
+regulatory_overlays:
+  - regulation: ECOA Regulation B
+    behavior: "Track decision and notice timing from completed application date."
+  - regulation: FCRA
+    behavior: "Capture credit-report source, reasons, and adverse-action notice evidence."
+  - regulation: Fair lending
+    behavior: "Run protected-class proxy audit without exposing protected traits to underwriting."
+observability:
+  metrics:
+    - finance_loan_step_latency_seconds
+    - finance_loan_adverse_action_notice_due_total
+    - finance_loan_fair_lending_audit_flag_total
+  traces:
+    - workflow.template.finance_loan_approval
+  logs:
+    - workflow_finance_loan_audit_projection
+cost_allocation:
+  unit: workflow_step_transition
+  dimensions:
+    - tenant_id
+    - loan_product_id
+    - channel
+idempotency:
+  key_shape: "tenant_id:applicant_id:loan_application_id:template_version:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: issue_decision_notice
+  on_cancel: retain_application_and_credit_report_disclosures
+  audit_event_class: LoanApprovalWorkflowCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_idempotent_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_bank_demo
+  applicant_id:
+    type: string
+    default: applicant_33001
+  loan_application_id:
+    type: string
+    default: loanapp_2026_1001
+  loan_product_id:
+    type: string
+    default: unsecured_personal_loan
+  requested_amount:
+    type: number
+    default: 25000
+  channel:
+    type: string
+    default: digital
+  underwriter_principal_id:
+    type: string
+    default: principal_underwriter_001
+  compliance_principal_id:
+    type: string
+    default: principal_compliance_001
+outputs:
+  loan_decision_id:
+    type: string
+  terminal_state:
+    type: string
+  decision:
+    type: string
+  adverse_action_notice_id:
+    type: string
+  fair_lending_audit_id:
+    type: string
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: loan_application_start
+    type: start
+    config:
+      trigger: loan.application.completed.v1
+      validates:
+        - tenant_id
+        - applicant_id
+        - loan_application_id
+        - requested_amount
+    cedar_permits_required:
+      - 'Action::"StartLoanApprovalWorkflow"'
+    audit_event_class: LoanApplicationWorkflowStarted
+    slo_target: "PT5M after completed application"
+    failure_modes:
+      - code: APPLICATION_INCOMPLETE
+        behavior: "Return application to applicant with missing-field summary."
+    on_success:
+      - edge_to_verify_identity_income
+    on_failure:
+      - edge_to_exception_end
+  - id: verify_identity_income
+    type: action
+    config:
+      service: financial-identity
+      contract: identity-income-verification.v1
+      method: POST
+      url: "https://identity.internal/v1/loan-verifications"
+      body:
+        applicant_id: "${inputs.applicant_id}"
+        loan_application_id: "${inputs.loan_application_id}"
+        requested_amount: "${inputs.requested_amount}"
+    cedar_permits_required:
+      - 'Action::"VerifyLoanApplicantIdentityIncome"'
+    audit_event_class: LoanApplicantIdentityIncomeVerified
+    slo_target: "PT30M"
+    failure_modes:
+      - code: INCOME_VERIFICATION_FAILED
+        behavior: "Route to manual underwriter review with applicant-safe request list."
+    on_success:
+      - edge_to_pull_credit_report
+    on_failure:
+      - edge_to_manual_review
+  - id: pull_credit_report
+    type: action
+    config:
+      service: credit-bureau-adapter
+      contract: fcra-credit-report.v1
+      method: POST
+      url: "https://credit-bureau.internal/v1/reports"
+      body:
+        applicant_id: "${inputs.applicant_id}"
+        permissible_purpose: credit_application
+        loan_application_id: "${inputs.loan_application_id}"
+    cedar_permits_required:
+      - 'Action::"PullConsumerCreditReport"'
+    audit_event_class: LoanCreditReportPulled
+    slo_target: "PT15M"
+    failure_modes:
+      - code: CREDIT_BUREAU_UNAVAILABLE
+        behavior: "Retry through secondary bureau and preserve FCRA source evidence."
+    on_success:
+      - edge_to_underwrite_application
+    on_failure:
+      - edge_to_exception_end
+  - id: underwrite_application
+    type: action
+    config:
+      service: underwriting
+      contract: loan-underwriting-decision.v1
+      method: POST
+      url: "https://underwriting.internal/v1/decisions"
+      policy_version: consumer-loan-policy-2026-05
+      body:
+        application_id: "${inputs.loan_application_id}"
+        verified_income_id: "${nodes.verify_identity_income.output.verification_id}"
+        credit_report_id: "${nodes.pull_credit_report.output.credit_report_id}"
+    cedar_permits_required:
+      - 'Action::"RunLoanUnderwriting"'
+    audit_event_class: LoanUnderwritingCompleted
+    slo_target: "P2D"
+    failure_modes:
+      - code: UNDERWRITING_POLICY_GAP
+        behavior: "Hold decision and create policy exception task."
+    on_success:
+      - edge_to_fair_lending_audit
+    on_failure:
+      - edge_to_manual_review
+  - id: fair_lending_audit
+    type: action
+    config:
+      service: compliance-analytics
+      contract: fair-lending-bias-audit.v1
+      method: POST
+      url: "https://compliance.internal/v1/fair-lending-audits"
+      audit_methods:
+        - adverse_impact_ratio
+        - counterfactual_sensitivity
+        - geography_proxy_screen
+      body:
+        loan_application_id: "${inputs.loan_application_id}"
+        underwriting_decision_id: "${nodes.underwrite_application.output.decision_id}"
+        protected_trait_handling: proxy_only_not_disclosed_to_underwriting
+    cedar_permits_required:
+      - 'Action::"RunFairLendingBiasAudit"'
+    audit_event_class: LoanFairLendingAuditCompleted
+    slo_target: "PT4H"
+    failure_modes:
+      - code: FAIR_LENDING_AUDIT_FLAG
+        behavior: "Require compliance reviewer approval before notice issuance."
+    on_success:
+      - edge_to_decision_gate
+    on_failure:
+      - edge_to_compliance_review
+  - id: decision_gate
+    type: decision
+    config:
+      expression: "${nodes.underwrite_application.output.decision}"
+      cases:
+        approve: issue_approval_documents
+        counteroffer: issue_decision_notice
+        decline: issue_decision_notice
+      default_case: compliance_review
+    cedar_permits_required:
+      - 'Action::"DecideLoanApplicationOutcome"'
+    audit_event_class: LoanDecisionGateEvaluated
+    slo_target: "PT10M after audit"
+    failure_modes:
+      - code: DECISION_AMBIGUOUS
+        behavior: "Route to underwriter and fair-lending officer."
+    on_success:
+      - edge_to_issue_approval_documents
+      - edge_to_issue_decision_notice
+    on_failure:
+      - edge_to_compliance_review
+  - id: compliance_review
+    type: human_task
+    config:
+      assignee_role: fair_lending_officer
+      task_contract: fair-lending-exception-review.v1
+      required_attestations:
+        - ecoa_reg_b_timing_reviewed
+        - fcra_reason_codes_reviewed
+        - bias_audit_disposition_recorded
+    cedar_permits_required:
+      - 'Action::"ApproveLoanComplianceException"'
+    audit_event_class: LoanComplianceReviewCompleted
+    slo_target: "P3D"
+    failure_modes:
+      - code: COMPLIANCE_REVIEW_OVERDUE
+        behavior: "Escalate to compliance manager before notice deadline."
+    on_success:
+      - edge_to_issue_decision_notice
+    on_failure:
+      - edge_to_exception_end
+  - id: issue_decision_notice
+    type: action
+    config:
+      service: customer-communications
+      contract: loan-decision-notice.v1
+      method: POST
+      url: "https://communications.internal/v1/loan-decision-notices"
+      includes:
+        - ecoa_reg_b_notice
+        - fcra_adverse_action_notice_when_applicable
+        - credit_report_source_disclosure
+      body:
+        applicant_id: "${inputs.applicant_id}"
+        loan_application_id: "${inputs.loan_application_id}"
+        decision: "${nodes.underwrite_application.output.decision}"
+    cedar_permits_required:
+      - 'Action::"IssueLoanDecisionNotice"'
+    audit_event_class: LoanDecisionNoticeIssued
+    slo_target: "P30D after completed application"
+    failure_modes:
+      - code: NOTICE_DELIVERY_FAILED
+        behavior: "Retry alternate channel and notify compliance owner."
+    on_success:
+      - edge_to_close_or_fund
+    on_failure:
+      - edge_to_exception_end
+  - id: issue_approval_documents
+    type: action
+    config:
+      service: loan-documents
+      contract: loan-approval-package.v1
+      method: POST
+      url: "https://loan-documents.internal/v1/approval-packages"
+      body:
+        applicant_id: "${inputs.applicant_id}"
+        decision_id: "${nodes.underwrite_application.output.decision_id}"
+        approved_amount: "${nodes.underwrite_application.output.approved_amount}"
+    cedar_permits_required:
+      - 'Action::"IssueLoanApprovalDocuments"'
+    audit_event_class: LoanApprovalDocumentsIssued
+    slo_target: "P3D"
+    failure_modes:
+      - code: DISCLOSURE_PACKAGE_INCOMPLETE
+        behavior: "Hold funding and notify loan operations."
+    on_success:
+      - edge_to_release_funding
+    on_failure:
+      - edge_to_exception_end
+  - id: release_funding
+    type: action
+    config:
+      service: loan-servicing
+      contract: loan-funding-release.v1
+      method: POST
+      url: "https://loan-servicing.internal/v1/funding"
+      body:
+        loan_application_id: "${inputs.loan_application_id}"
+        approval_package_id: "${nodes.issue_approval_documents.output.package_id}"
+        funding_controls: signed_documents_required
+    cedar_permits_required:
+      - 'Action::"ReleaseLoanFunding"'
+    audit_event_class: LoanFundingReleased
+    slo_target: "P2D after signed documents"
+    failure_modes:
+      - code: FUNDING_CONTROL_FAILED
+        behavior: "Block disbursement and open operations exception."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_exception_end
+  - id: close_workflow
+    type: end
+    config:
+      terminal_state: completed
+      emits:
+        - loan_decision_completed
+        - fair_lending_audit_committed
+        - regulatory_notice_evidence_committed
+    cedar_permits_required:
+      - 'Action::"CloseLoanApprovalWorkflow"'
+    audit_event_class: LoanApprovalWorkflowClosed
+    slo_target: "PT30M after terminal action"
+    failure_modes:
+      - code: AUDIT_CHAIN_INCOMPLETE
+        behavior: "Hold case for compliance evidence repair."
+    on_success: []
+    on_failure:
+      - edge_to_exception_end
+  - id: exception_end
+    type: end
+    config:
+      terminal_state: exception
+      requires_manual_owner: true
+    cedar_permits_required:
+      - 'Action::"RecordLoanApprovalException"'
+    audit_event_class: LoanApprovalExceptionRecorded
+    slo_target: "PT30M after exception"
+    failure_modes:
+      - code: EXCEPTION_AUDIT_WRITE_FAILED
+        behavior: "Emit dead-letter event for compliance replay."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_verify_identity_income
+    from: loan_application_start
+    to: verify_identity_income
+    name: application_complete
+  - id: edge_to_pull_credit_report
+    from: verify_identity_income
+    to: pull_credit_report
+    name: identity_income_verified
+  - id: edge_to_underwrite_application
+    from: pull_credit_report
+    to: underwrite_application
+    name: credit_report_available
+  - id: edge_to_fair_lending_audit
+    from: underwrite_application
+    to: fair_lending_audit
+    name: underwriting_completed
+  - id: edge_to_decision_gate
+    from: fair_lending_audit
+    to: decision_gate
+    name: audit_clear
+  - id: edge_to_compliance_review
+    from: fair_lending_audit
+    to: compliance_review
+    name: audit_flagged
+  - id: edge_to_issue_approval_documents
+    from: decision_gate
+    to: issue_approval_documents
+    name: approved
+  - id: edge_to_issue_decision_notice
+    from: decision_gate
+    to: issue_decision_notice
+    name: notice_required
+  - id: edge_to_issue_decision_notice_after_review
+    from: compliance_review
+    to: issue_decision_notice
+    name: compliance_review_completed
+  - id: edge_to_release_funding
+    from: issue_approval_documents
+    to: release_funding
+    name: approval_documents_issued
+  - id: edge_to_close_or_fund
+    from: issue_decision_notice
+    to: close_workflow
+    name: notice_delivered
+  - id: edge_to_close_workflow
+    from: release_funding
+    to: close_workflow
+    name: funding_released
+  - id: edge_to_manual_review
+    from: verify_identity_income
+    to: compliance_review
+    name: manual_review_required
+  - id: edge_to_exception_end
+    from: "*"
+    to: exception_end
+    name: exception_recorded
+failure_modes:
+  - code: POLICY_DENIED
+    behavior: "Stop current node, emit Cedar denial audit, and preserve regulatory timer state."
+  - code: NOTICE_TIMER_AT_RISK
+    behavior: "Escalate to compliance owner before ECOA Regulation B deadline."
+  - code: FAIR_LENDING_EVIDENCE_GAP
+    behavior: "Block final decision until audit disposition is attached."
+worked_example:
+  sample_input:
+    tenant_id: tenant_bank_demo
+    applicant_id: applicant_33001
+    loan_application_id: loanapp_2026_1001
+    loan_product_id: unsecured_personal_loan
+    requested_amount: 25000
+    channel: digital
+    underwriter_principal_id: principal_underwriter_001
+    compliance_principal_id: principal_compliance_001
+  sample_expected_output:
+    loan_decision_id: loandec_2026_1001
+    terminal_state: completed
+    decision: approve
+    adverse_action_notice_id: null
+    fair_lending_audit_id: flaudit_2026_0091
+    audit_chain_refs:
+      - audit://workflow/finance-loan/start/01
+      - audit://workflow/finance-loan/fair-lending/05
+      - audit://workflow/finance-loan/funded/10

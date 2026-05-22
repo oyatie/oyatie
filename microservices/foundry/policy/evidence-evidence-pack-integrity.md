@@ -62,8 +62,8 @@ A pack is assembled exactly once per `(invocation_id, attempt_no)`. Late-arrivin
 
 ## EPI-08 — Autonomy-tier rationale is single-author
 
-- The `autonomy_tier_decision` field is supplied by `foundry-supervisor` and is the single authoritative source.
-- pack-builder must not derive autonomy-tier from any other signal; LEAN lane `authority-cohesion` enforces single-source-of-truth.
+- The `autonomy_level_decision` field is supplied by `foundry-supervisor` and is the single authoritative source.
+- pack-builder must not derive autonomy-ceiling from any other signal; LEAN lane `authority-cohesion` enforces single-source-of-truth.
 
 ## EPI-09 — Guardrail-decision attribution
 

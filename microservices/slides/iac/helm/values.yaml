@@ -66,7 +66,7 @@ networkPolicy:
       ports: [8080, 9090]
     - to: slides-postgres-primary.slides.svc.cluster.local
       ports: [5432]
-    - to: slides-redis-primary.slides.svc.cluster.local
+    - to: slides-valkey-primary.slides.svc.cluster.local
       ports: [6379]
     - to: slides-s3.slides.svc.cluster.local
       ports: [443]
@@ -74,7 +74,7 @@ networkPolicy:
 secrets:
   spiffeIdentityPath: "secret/slides/spiffe"
   postgresConnectionPath: "secret/slides/postgres"
-  redisAuthPath: "secret/slides/redis"
+  valkeyAuthPath: "secret/slides/valkey"
   s3KmsKeyPath: "secret/slides/s3-kms-per-pack"
   ed25519SigningKeyPath: "secret/slides/audit-chain/signing-key"
   collabHmacKeyPath: "secret/slides/collab-hmac"

@@ -1,0 +1,153 @@
+asyncapi: 3.1.0
+info:
+  title: Warehouse Events
+  version: 1.0.0
+  description: AsyncAPI 3.1.0 channels for SAP EWM parity events.
+defaultContentType: application/json
+channels:
+  warehouse.inbound-delivery.events.v1:
+    address: warehouse.inbound-delivery.events.v1
+    messages:
+      InboundDeliveryChanged:
+        $ref: "#/components/messages/InboundDeliveryChanged"
+  warehouse.outbound-delivery.events.v1:
+    address: warehouse.outbound-delivery.events.v1
+    messages:
+      OutboundDeliveryChanged:
+        $ref: "#/components/messages/OutboundDeliveryChanged"
+  warehouse.putaway-task.events.v1:
+    address: warehouse.putaway-task.events.v1
+    messages:
+      PutawayTaskChanged:
+        $ref: "#/components/messages/PutawayTaskChanged"
+  warehouse.picking-wave.events.v1:
+    address: warehouse.picking-wave.events.v1
+    messages:
+      PickingWaveChanged:
+        $ref: "#/components/messages/PickingWaveChanged"
+  warehouse.yard-appointment.events.v1:
+    address: warehouse.yard-appointment.events.v1
+    messages:
+      YardAppointmentChanged:
+        $ref: "#/components/messages/YardAppointmentChanged"
+  warehouse.labor-assignment.events.v1:
+    address: warehouse.labor-assignment.events.v1
+    messages:
+      LaborAssignmentChanged:
+        $ref: "#/components/messages/LaborAssignmentChanged"
+components:
+  messages:
+    InboundDeliveryChanged:
+      name: InboundDeliveryChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-WAREHOUSE-INBOUND_DELIVERY-CHANGED
+          bounded_context:
+            type: string
+            const: inbound-delivery
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    OutboundDeliveryChanged:
+      name: OutboundDeliveryChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-WAREHOUSE-OUTBOUND_DELIVERY-CHANGED
+          bounded_context:
+            type: string
+            const: outbound-delivery
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    PutawayTaskChanged:
+      name: PutawayTaskChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-WAREHOUSE-PUTAWAY_TASK-CHANGED
+          bounded_context:
+            type: string
+            const: putaway-task
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    PickingWaveChanged:
+      name: PickingWaveChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-WAREHOUSE-PICKING_WAVE-CHANGED
+          bounded_context:
+            type: string
+            const: picking-wave
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    YardAppointmentChanged:
+      name: YardAppointmentChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-WAREHOUSE-YARD_APPOINTMENT-CHANGED
+          bounded_context:
+            type: string
+            const: yard-appointment
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    LaborAssignmentChanged:
+      name: LaborAssignmentChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-WAREHOUSE-LABOR_ASSIGNMENT-CHANGED
+          bounded_context:
+            type: string
+            const: labor-assignment
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time

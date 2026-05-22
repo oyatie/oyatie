@@ -18,7 +18,7 @@ purpose: |
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
   MASTERPLAN Directive 4.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-lts-dependency
+planned_enforcement_ref: oya-governance-lts-dependency
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/code-style-rust.md
@@ -52,7 +52,7 @@ and MASTERPLAN §2 Directive 8:
 - The LTS roster is refreshed **quarterly** and on any major upstream LTS
   announcement; the verified-as-of date is recorded in
   `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
-- Lane: `oya-foundry-fitness-lts-dependency` checks every direct
+- Lane: `oya-governance-lts-dependency` checks every direct
   dependency against the roster on every PR.
 
 ### 1.1 Current floor (2026-05-12)
@@ -90,13 +90,13 @@ Permitted licenses (per `deny.toml`):
 
 | Forbidden | Why | Substitute |
 |---|---|---|
-| Redis ≥ 8.0 | RSALv2 / SSPLv1 / AGPLv3 tri-license | **Valkey** (BSD-3-Clause) or pre-7.4 Redis (BSD-3-Clause) |
+| Redis ≥ 7.4 (Redis Inc. relicense 2024-03-20) | RSALv2 / SSPLv1 / AGPLv3 tri-license | **Valkey** (BSD-3-Clause — Linux Foundation fork, canonical per ADR-0336); pre-7.4 Redis (BSD-3-Clause) is license-clean fallback but non-canonical (absent upstream maintenance + absent hyperscaler-managed offering). DragonflyDB is NOT a permitted substitute (BSL-1.1 is on the forbidden-license list, see §2). |
 | HashiCorp Vault | BUSL-1.1 | **OpenBao** (MPL-2.0) |
 | MongoDB (server) | SSPLv1 | **PostgreSQL** + JSONB or **ClickHouse** |
 | Elasticsearch ≥ 7.11 | SSPLv1 / Elastic License v2 | **OpenSearch** (Apache-2.0) or **ClickHouse** |
 | `gnu-time` (in containers) | GPLv3 | `time` builtin / busybox `time` |
 
-Lane: `oya-foundry-fitness-license` (`cargo-deny check licenses`) refuses
+Lane: `oya-governance-license` (`cargo-deny check licenses`) refuses
 any forbidden license on every PR.
 
 ## 3. Supply-chain triad
@@ -105,9 +105,9 @@ Per [`security-review.md`](security-review.md) §2:
 
 | Tool | Scope | Lane |
 |---|---|---|
-| `cargo-audit` | RustSec advisory DB | `oya-foundry-fitness-cargo-audit` |
-| `cargo-deny` | license + advisory + source + duplicate | `oya-foundry-fitness-license` |
-| `cargo-vet` | human-audit trail | `oya-foundry-fitness-cargo-vet` |
+| `cargo-audit` | RustSec advisory DB | `oya-governance-cargo-audit` |
+| `cargo-deny` | license + advisory + source + duplicate | `oya-governance-license` |
+| `cargo-vet` | human-audit trail | `oya-governance-cargo-vet` |
 
 Pinning rules:
 
@@ -143,7 +143,7 @@ Baseline `renovate.json`:
 }
 ```
 
-Lane: `oya-foundry-fitness-renovate-config` validates the file is
+Lane: `oya-governance-renovate-config` validates the file is
 present and grouped.
 
 Source: [Renovate docs](https://docs.renovatebot.com/).
@@ -195,7 +195,7 @@ generated from each provider's published OpenAPI schema where available.
 
 ### 5.3 Provider-coupling lane
 
-Lane `oya-foundry-fitness-provider-coupling` refuses provider-specific
+Lane `oya-governance-provider-coupling` refuses provider-specific
 imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
 `domain` layers see only the `ProviderAdapter` trait.
 
@@ -213,9 +213,10 @@ imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
 | Need | Pick | Forbidden alternative |
 |---|---|---|
 | Relational | PostgreSQL 18 | MySQL (license-clean but not in posture) |
-| OLAP | ClickHouse 26.3 LTS | (none currently disallowed) |
+| OLAP table format | **Apache Iceberg 1.7+** (Apache-2.0; canonical per ADR-0337; hyperscaler-managed via AWS S3 Tables + Snowflake Polaris + Google BigLake + Databricks Unity Catalog Iceberg REST + Azure Synapse Lake managed Iceberg) | Apache Delta Lake (adapter-only per ADR-0337); Apache Hudi (adapter-only per ADR-0337); ClickHouse-native MergeTree as tenant-visible OLAP write path (ADR-0337 §D-4) |
+| OLAP compute engine | ClickHouse 26.3 LTS layered on Iceberg via the ClickHouse iceberg engine (production-ready since 24.8 LTS; per ADR-0337) | ClickHouse-native MergeTree as tenant-visible OLAP table format (permitted only for ClickHouse-internal projections / dictionaries / materialized views) |
 | Search / log | OpenSearch (Apache-2.0) | Elasticsearch ≥ 7.11 (SSPLv1) |
-| In-memory cache | Valkey | Redis ≥ 8.0 (RSALv2) |
+| In-memory cache / pubsub / streams | **Valkey** 8.x (canonical per ADR-0336; hyperscaler-managed via AWS ElastiCache for Valkey + Google Memorystore for Valkey + Oracle Cloud Cache with Valkey + OCI Always Free) | Redis ≥ 7.4 (RSALv2/SSPLv1); DragonflyDB (BSL-1.1) |
 | Document | PostgreSQL JSONB | MongoDB (SSPLv1) |
 | Embedded | SQLite 3.53+ | n/a |
 
@@ -250,3 +251,123 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
   [Renovate](https://docs.renovatebot.com/).
 - [OpenBao](https://openbao.org/), [Valkey](https://valkey.io/),
   [GitLab Handbook — ADR 007 OpenBao](https://handbook.gitlab.com/handbook/engineering/architecture/design-documents/secret_manager/decisions/007_openbao/).
+
+## 11. OSS stewardship registry — canonical aggregate per ADR-0345
+
+Per [ADR-0345](../decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md),
+every direct upstream OSS dependency Oyatie consumes — every crate listed in
+§1 (LTS pinning), every license substitute named in §2.1, every supply-chain
+tool in §3, every Renovate-managed dependency in §4, every provider SDK in §5,
+every secret-provider substrate in §6, every data-store substrate in §7, every
+CI/CD-platform dependency in §8 — MUST be classified into one of three
+**OSS stewardship classes** at the canonical registry path:
+
+- **`/specs/oss-stewardship-registry.json`** — canonical machine-readable
+  registry, owned jointly by council-architecture + council-security +
+  council-legal + ops-supply-chain + axis-compliance + ops-platform.
+
+### 11.1 The three stewardship classes
+
+| Class | Definition | CVE-response SLA | Resourcing field |
+|---|---|---|---|
+| **Maintainer** | Oyatie has commit + release authority on the upstream | substrate crates: P0 ≤ 3 days + P1 ≤ 14 days; utility crates: P0 ≤ 7 days + P1 ≤ 30 days (Oyatie authors the patch) | `maintainer_engineering_time_percent` (per crate; 0..100 percent of one FTE) |
+| **Contributor** | Oyatie actively patches upstream + commits staff time | **P0 ≤ 7 days; P1 ≤ 30 days** (wall-clock from public CVE disclosure) | `contribution_budget_dev_days_per_quarter` (integer dev-days/quarter) |
+| **Consumer** | Oyatie pins + audits without upstream contribution | **pin update ≤ 14 days** of public CVE disclosure (P0 upstream-monitored) | `audit_subscription_cost_usd` (integer USD/year) |
+
+### 11.2 Floor enumeration (per ADR-0345 §D-3 / §D-4 / §D-5)
+
+**Maintainer-class floor:** every `oya-*` crate (~200+); `oya-shuffle-sharding`
+(ADR-0333 substrate); `oya-dev-cli` (ADR-0218); `oya-shared-policy-engine-client`
+(Cedar wrapper); `oya-shared-workflow-engine`; `oya-shared-ontology-projection`;
+internal hooks + tools under `tools/` + `bin/`.
+
+**Contributor-class floor (11 upstreams):** Cilium (ADR-0148, CNI/ClusterMesh);
+Istio (ADR-0044, Ambient Mesh); Valkey (ADR-0336, in-memory KV substitute for
+Redis); OpenTofu (ADR-0218, IaC substitute for HashiCorp Terraform); Cedar
+(ADR-0243, universal policy engine); OpenBao (Vault substitute, MPL-2.0);
+Wasmtime (ADR-0200, Wasm sandbox); Apache Iceberg (ADR-0337, OLAP table format);
+Apache Kafka (ADR-0050, async message fabric); OpenSearch (Elasticsearch
+substitute, Apache-2.0); Kyverno (ADR-0183, K8s admission gate).
+
+**Consumer-class floor (~15-20 upstreams):** PostgreSQL (mature substrate;
+massive community); ClickHouse (compute engine layered on Iceberg per ADR-0337);
+Linux kernel mainline; RHEL / Oracle Linux / SLES / Ubuntu LTS / Debian /
+Rocky / AlmaLinux / CentOS Stream / Amazon Linux / Flatcar / Photon OS / Talos
+(OS support matrix per `feedback_os_support_matrix_2026_05_20`); `static-debian13`
+distroless base (per `image-discipline.md`); OpenTelemetry (CNCF graduated);
+Rust toolchain; cargo-deny; cargo-vet; cosign (Sigstore).
+
+### 11.3 Terminology binding (normative)
+
+OSS stewardship uses **class** (a relationship label), NOT **tier**. The word
+"tier" is RESERVED in Oyatie corpus terminology for two and only two uses:
+
+- **ADR-0248 cellular tiers** — Tier 0..4 (Foundation / Substrate / Capability /
+  Application / Edge).
+- **ADR-0338 pod runtime tiers** — Tier 0..3 (tenant-customer untrusted / substrate
+  tenant-data-plane / first-party / edge perf-critical).
+
+The lane **`oya-governance-stewardship-class-vocabulary`** refuses corpus drift
+toward the word "tier" in OSS-stewardship contexts. Enforced day-1 from ADR-0345
+Acceptance; no grace window.
+
+### 11.4 Enforcement lanes (per ADR-0345 §E)
+
+- `oya-check-oss-stewardship-registry-presence` — refuses corpus changes
+  adding a new direct upstream (in `Cargo.toml`, OpenTofu providers, Helm
+  charts, Dockerfile `FROM`) without a corresponding registry entry.
+- `oya-check-oss-stewardship-class-declaration` — refuses registry entries
+  missing `stewardship_class ∈ {maintainer, contributor, consumer}`.
+- `oya-check-oss-stewardship-cve-sla` — refuses Contributor entries missing
+  P0 ≤ 7-day + P1 ≤ 30-day fields; refuses Consumer entries missing pin-update
+  ≤ 14-day field.
+- `oya-check-oss-stewardship-owner-team` — refuses entries missing `owner_team`
+  value drawn from the council / axis / ops taxonomy.
+- `oya-check-oss-stewardship-resourcing-declaration` — refuses Maintainer
+  entries missing `maintainer_engineering_time_percent`; Contributor entries
+  missing `contribution_budget_dev_days_per_quarter`; Consumer entries missing
+  `audit_subscription_cost_usd`.
+- `oya-check-oss-stewardship-license-cross-check` — refuses entries whose
+  `license` value contradicts the forbidden-license list in §2 above +
+  `specs/forbidden-operations.json` FO-09.
+- `oya-governance-stewardship-class-vocabulary` — refuses "tier" applied to
+  OSS stewardship (day-1 BLOCKER).
+
+### 11.5 SOC2 + ISO 27001 vendor-risk-management binding
+
+The registry is the canonical evidence surface for:
+
+- SOC2 Trust Services Criteria **CC2.3** (third-party risk) and **CC9.2**
+  (vendor management).
+- ISO 27001:2022 Annex **A.5.19** (information security in supplier
+  relationships), **A.5.20** (addressing information security within supplier
+  agreements), **A.5.21** (managing information security in the ICT supply
+  chain), **A.5.22** (monitoring, review and change management of supplier
+  services).
+
+Auditors trace any OSS dependency through the registry to its stewardship
+class + CVE SLA + owner team + license + ADR provenance. The audit-evidence
+path is: **registry → SBOM → cosign attestation (per ADR-0181) → per-crate
+manifest**. Per-pack compliance evidence (HIPAA / GDPR / SOC2 / PCI / CSAP /
+EU AI Act Annex III per [ADR-0251](../decisions/ADR-0251-compliance-pack-cell-certification-levels.md))
+layers on top of the registry for pack-specific vendor-risk-management
+constraints.
+
+### 11.6 Hyperscaler precedent
+
+Hyperscaler-grade OSS posture declares stewardship explicitly per upstream:
+AWS Open Source Engineering, Google OSPO annual report, Microsoft
+opensource.microsoft.com, Meta opensource.fb.com, Netflix netflix.github.io,
+Apple opensource.apple.com. Oyatie's registry is the corpus-wide analog.
+
+### 11.7 Future substrate-adoption contract
+
+Every NEW substrate-adoption ADR (e.g., a hypothetical ADR-0400+ that selects
+a new upstream) MUST add a registry entry as part of the ADR's required
+artifact. The `oya-check-oss-stewardship-registry-presence` lane refuses
+substrate adoption that skips registry declaration. Council-architecture +
+council-security + ops-supply-chain joint approval is required for the dev-days
+or audit-subscription budget.
+
+Source: [ADR-0345](../decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md);
+canonical registry at [`/specs/oss-stewardship-registry.json`](../../specs/oss-stewardship-registry.json).

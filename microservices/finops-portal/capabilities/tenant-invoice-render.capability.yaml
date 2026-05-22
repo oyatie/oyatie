@@ -20,7 +20,7 @@ capability:
   outputs:
     - rendered_html
     - rendered_pdf_bytes
-  eu_ai_act:
+  risk_class:
     risk_class: limited
     rationale: |
       The capability assembles human-prepared cost data into a

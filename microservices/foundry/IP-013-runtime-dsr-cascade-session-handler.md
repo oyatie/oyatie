@@ -126,3 +126,9 @@ cargo run -p oya-dev-cli -- gate validate dsr-cascade-coverage --microservice fo
 - `policy/data-residency.md` §"DSR Cascade".
 - GDPR Art. 17; PIPA Art. 36; DPDPA §12; LGPD Art. 18(V)-(VI).
 - tenancy µservice (event source).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

@@ -1,5 +1,131 @@
-# Intelligence Cost and FinOps Model
+---
+doc_class: CostBudget
+template_id: TPL-COST-BUDGET
+microservice: intelligence
+status: Accepted
+classification: INTERNAL_ONLY
+date: 2026-05-20
+owner_team: axis-intelligence + finops
+related_adrs: [ADR-0255, ADR-0249]
+review_cadence: quarterly + on every provider price change
+doc_status: published
+---
 
-Cost drivers are model adapter calls, retrieval index reads, citation assembly, and audit-chain events. The design allocation keys are tenant, context, builder surface, and request family.
+# Cost + FinOps Budget — intelligence µservice
 
-The budget model is a design surface. Runtime spend, token usage, and chargeback evidence are separate operational artifacts.
+## Purpose
+
+Define the per-provider cost model ($/M-tokens), per-tenant cost attribution, the platform-default
+cost-float for B2C consumer dispatch, and the cost-control gates that prevent runaway spend.
+
+## Per-provider price matrix (May 2026)
+
+Prices in USD per 1 million tokens (1MT). Input price / output price separated. Updated quarterly
+or on provider notice.
+
+| Provider × model | Input $/MT | Output $/MT | Vision $/MT (in) | Audio $/min | Video $/min |
+|---|---|---|---|---|---|
+| Anthropic Claude Opus 4.7 | 15.00 | 75.00 | 15.00 | n/a | n/a |
+| Anthropic Claude Sonnet 4 | 3.00 | 15.00 | 3.00 | n/a | n/a |
+| Anthropic Claude Haiku 4 | 0.25 | 1.25 | 0.25 | n/a | n/a |
+| OpenAI GPT-5 | 5.00 | 30.00 | 5.00 | 0.006 | 0.05 |
+| OpenAI GPT-4.5 | 3.00 | 15.00 | 3.00 | 0.006 | 0.05 |
+| OpenAI o-series (o1 / o3) | 15.00 | 60.00 | 15.00 | n/a | n/a |
+| OpenAI GPT-4o | 2.50 | 10.00 | 2.50 | 0.006 | 0.05 |
+| Google Gemini 2.5 Pro | 1.25 (≤200k) / 2.50 (>200k) | 5.00 / 10.00 | 1.25 | 0.0025 | 0.025 |
+| Google Gemini 2.5 Flash | 0.075 | 0.30 | 0.075 | 0.0015 | 0.015 |
+| AWS Bedrock Claude Sonnet 4 | 3.00 | 15.00 | 3.00 | n/a | n/a |
+| AWS Bedrock Mistral Large | 4.00 | 12.00 | n/a | n/a | n/a |
+| AWS Bedrock Titan Text | 0.50 | 1.50 | n/a | n/a | n/a |
+| Azure OpenAI GPT-5 | 5.00 | 30.00 | 5.00 | 0.006 | 0.05 |
+| Cohere Command-R+ | 2.50 | 10.00 | n/a | n/a | n/a |
+| Mistral Large | 4.00 | 12.00 | n/a | n/a | n/a |
+| Mistral Codestral | 1.00 | 3.00 | n/a | n/a | n/a |
+| vLLM Llama-3.3-70B self-hosted | $/GPU-hr (≈ 0.30 amortised) | same | n/a | n/a | n/a |
+| Groq Llama-3.3-70B | 0.59 | 0.79 | n/a | n/a | n/a |
+| Apple Foundation Models | $0 (on-device) | $0 | n/a | n/a | n/a |
+| OpenRouter | upstream + 5 % | upstream + 5 % | upstream | upstream | upstream |
+| Together AI | varies | varies | varies | n/a | n/a |
+| HuggingFace Inference | varies | varies | varies | n/a | n/a |
+| Replicate | per-model | per-model | per-model | per-model | per-model |
+
+Prices are version-pinned in `microservices/intelligence/iac/terraform/provider-pricing.tf`; PR
+review on every change includes ops-finops sign-off.
+
+## Per-tenant cost attribution
+
+Every dispatch emits a per-call cost record with fields:
+
+```yaml
+cost_record:
+  dispatch_id: ulid
+  tenant_id: tenant:<hashed-id>
+  audience_tag: consumer | developer | internal-foundry
+  provider: anthropic | openai | google | bedrock | ...
+  model: claude-opus-4-7 | gpt-5 | gemini-2.5-pro | ...
+  modality: text | image | audio | video | multi
+  input_tokens: int
+  output_tokens: int
+  vision_tokens: int (when modality includes image)
+  audio_seconds: int
+  video_seconds: int
+  input_cost_usd: decimal
+  output_cost_usd: decimal
+  modality_cost_usd: decimal
+  total_cost_usd: decimal
+  cost_owner: tenant_byok | platform_default
+  pack: pack-kr | pack-eu | pack-us | ...
+  emitted_at: timestamp
+```
+
+Records are persisted via the audit-tap pipeline (audit-chain seal) and projected to the
+`finops` µservice's read-side for tenant invoicing, chargeback, and FinOps dashboards.
+
+## Platform-default cost float (B2C consumer)
+
+Per ADR-0249 + ADR-0255 §"Audience-driven cost ownership":
+
+- `audience == consumer` AND `cost_owner == platform_default` ⇒ oyatie absorbs cost.
+- Platform-default model selection biases to cheap-and-good (Haiku 4 / Gemini Flash / on-device
+  Apple Foundation Models / Groq).
+- Per-consumer-end-user daily cost cap (default $0.50/user/day; tunable per tenant cohort) enforced
+  by `dispatch-authorization.cedar` consumer-budget rule.
+- Consumer surface displays `CostFloorDisclosure` widget per EU AI Act Art. 13 transparency
+  obligation.
+
+## Per-tenant cost cap
+
+| Tenant scope | Default daily $ cap | Default monthly $ cap |
+|---|---|---|
+| trial | $5 | $50 |
+| sandbox | $25 | $250 |
+| production (default) | $500 | $10,000 |
+| production (negotiated) | per contract | per contract |
+| internal-foundry | $5,000 | $100,000 |
+
+Cap breach raises `oya_intelligence_tenant_cost_cap_exceeded_total` metric; alert routes to
+ops-finops + tenant operator. Dispatch refuses with `RefusalDecision::CostCapExceeded` when cap
+is hard-enforced.
+
+## Cost-attribution dashboards
+
+See `dashboards/finops-cost-attribution.md` for the canonical FinOps cost-attribution dashboard
+which aggregates by (tenant, audience, provider, model, modality, pack).
+
+## Forecasting
+
+Quarterly cost forecast generated by `eval-worker`'s FinOps projection using:
+- Last 90d daily dispatch volume per (tenant, audience, modality).
+- Provider price matrix.
+- Per-tenant growth trend (linear regression).
+- Per-pack pricing differences (EU regions sometimes pricier).
+
+Forecast feeds the `finops` µservice annual budget cycle.
+
+## References
+
+- ADR-0255 §"Audience-driven cost ownership".
+- ADR-0249 — Multi-category marketplace.
+- `microservices/intelligence/capacity-model.md`.
+- `microservices/intelligence/dashboards/finops-cost-attribution.md`.
+- Provider pricing pages.

@@ -4,7 +4,7 @@
   "scanned_files": 99,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -156,7 +156,7 @@
           "hits": [
             {
               "line": 66,
-              "excerpt": "| [`IP-003-redis-presence-iac.md`](IP-003-redis-presence-iac.md) | Valkey cluster for presence + read-receipt; pub/sub topology | pending | axis-messenger | observability IP-001 |"
+              "excerpt": "| [`IP-003-valkey-presence-iac.md`](IP-003-valkey-presence-iac.md) | Valkey cluster for presence + read-receipt; pub/sub topology | pending | axis-messenger | observability IP-001 |"
             },
             {
               "line": 87,
@@ -170,11 +170,11 @@
           "hits": [
             {
               "line": 16,
-              "excerpt": "# IP-006: message-stream adapters (Postgres + Meilisearch + Valkey Streams (Redis wire-compat))"
+              "excerpt": "# IP-006: message-stream adapters (Postgres + Meilisearch + Valkey Streams (RESP3 wire-compatible))"
             },
             {
               "line": 21,
-              "excerpt": "Meilisearch (fallback Tantivy); `RealtimeBroadcaster` against Valkey Streams (Redis wire-compat)"
+              "excerpt": "Meilisearch (fallback Tantivy); `RealtimeBroadcaster` against Valkey Streams (RESP3 wire-compatible)"
             },
             {
               "line": 32,
@@ -220,7 +220,7 @@
             },
             {
               "line": 33,
-              "excerpt": "| 1 | Verify Valkey cluster health: `redis-cli --cluster check redis-primary.messenger.svc:6379` | \u2264 2 min |"
+              "excerpt": "| 1 | Verify Valkey cluster health: `valkey-cli --cluster check valkey-primary.messenger.svc:6379` | \u2264 2 min |"
             }
           ],
           "hits_total": 8
@@ -246,11 +246,11 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/messenger/catalog/oya-messenger-presence-adapter-redis.yaml",
+          "file": "microservices/messenger/catalog/oya-messenger-presence-adapter-valkey.yaml",
           "hits": [
             {
               "line": 18,
-              "excerpt": "backend: redis  # Valkey Cluster 7.2 LTS; KeyDB LTS hot-swap-compatible"
+              "excerpt": "backend: valkey  # Valkey Cluster 8.1; KeyDB remains non-canonical compatibility fallback"
             }
           ],
           "hits_total": 1
@@ -260,7 +260,7 @@
           "hits": [
             {
               "line": 18,
-              "excerpt": "has acked durable handoff to Valkey Streams (Redis wire-compat) within the per-cell broadcast"
+              "excerpt": "has acked durable handoff to Valkey Streams (RESP3 wire-compatible) within the per-cell broadcast"
             }
           ],
           "hits_total": 1
@@ -270,7 +270,7 @@
           "hits": [
             {
               "line": 15,
-              "excerpt": "peer WebSocket frames. Valkey Streams (Redis wire-compat) + WebSocket gateway pipeline."
+              "excerpt": "peer WebSocket frames. Valkey Streams (RESP3 wire-compatible) + WebSocket gateway pipeline."
             }
           ],
           "hits_total": 1
@@ -280,7 +280,7 @@
           "hits": [
             {
               "line": 15,
-              "excerpt": "end-to-end latency (REST request received \u2192 durable Valkey Streams (Redis wire-compat) ack)"
+              "excerpt": "end-to-end latency (REST request received \u2192 durable Valkey Streams (RESP3 wire-compatible) ack)"
             }
           ],
           "hits_total": 1
@@ -310,7 +310,7 @@
           "hits": [
             {
               "line": 164,
-              "excerpt": "\"title\": \"IP-006: message-stream adapters (Postgres + Meilisearch + Valkey Streams (Redis wire-compat))\","
+              "excerpt": "\"title\": \"IP-006: message-stream adapters (Postgres + Meilisearch + Valkey Streams (RESP3 wire-compatible))\","
             },
             {
               "line": 170,

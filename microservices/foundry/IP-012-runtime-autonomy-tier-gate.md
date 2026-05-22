@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 template_id: TPL-IMPL
 milestone: M01-foundation
 phase: P01-agent-runtime-and-capability-execution
-impl_plan_id: IP-012-autonomy-tier-gate
+impl_plan_id: IP-012-autonomy-ceiling-gate
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -26,7 +26,7 @@ Wire the `AutonomyGate` port end-to-end:
 
 ## ChangeSet boundary
 
-Modifications to `capability-executor-adapter` (AutonomyGate impl + tenancy client) + capability-executor-usecase (gate-first invariant + violation event emission) + new LEAN check at `crates/oya-foundry-fitness-check-autonomy-gate-presence/`.
+Modifications to `capability-executor-adapter` (AutonomyGate impl + tenancy client) + capability-executor-usecase (gate-first invariant + violation event emission) + new LEAN check at `crates/oya-governance-check-autonomy-gate-presence/`.
 
 ## Concrete File Targets
 
@@ -36,7 +36,7 @@ Modifications to `capability-executor-adapter` (AutonomyGate impl + tenancy clie
 | `.../src/tenancy_client.rs` | create (mTLS client to tenancy µservice) |
 | `src/crates/oya-foundry-runtime-capability-executor-usecase/src/dispatch_use_case.rs` | modify (assert gate-first) |
 | `src/crates/oya-foundry-runtime-capability-executor-usecase/src/violation_emitter.rs` | create |
-| `crates/oya-foundry-fitness-check-autonomy-gate-presence/Cargo.toml` | create |
+| `crates/oya-governance-check-autonomy-gate-presence/Cargo.toml` | create |
 | `.../src/lib.rs` | create (AST-based grep for AutonomyGate.check before ProviderInvoker.invoke) |
 | `crates/oya-dev-cli/src/governance_gates.rs` | modify (register lane) |
 | `/specs/quality/lanes.yaml` | modify (register lane) |
@@ -44,7 +44,7 @@ Modifications to `capability-executor-adapter` (AutonomyGate impl + tenancy clie
 ## Crate Naming
 
 ```
-NAME: oya-foundry-fitness-check-autonomy-gate-presence
+NAME: oya-governance-check-autonomy-gate-presence
 JUSTIFICATION:
 - microservice = governance (cross-cutting fitness lane crate; lives under governance per ADR-0131)
 - bc-tokens = autonomy-gate-presence
@@ -60,13 +60,13 @@ use oya_foundry_runtime_capability_executor_kernel::*;
 
 pub struct AutonomyGateAdapter {
     tenancy_client: TenancyClient,
-    cache: Cache<String, (AutonomyTier, Signature, Instant)>,
+    cache: Cache<String, (AutonomyLevel, Signature, Instant)>,
     cache_ttl: Duration,
 }
 
 #[async_trait]
 impl AutonomyGate for AutonomyGateAdapter {
-    async fn check(&self, tenant_id: &str, requested: AutonomyTier) -> Result<AutonomyDecision, AutonomyError> {
+    async fn check(&self, tenant_id: &str, requested: AutonomyLevel) -> Result<AutonomyDecision, AutonomyError> {
         let (ceiling, signature, _) = self.cache.get_or_insert_async(tenant_id.into(), || async {
             let signed = self.tenancy_client.read_ceiling(tenant_id).await?;
             signed.verify_signature(&self.tenancy_pubkey)?;
@@ -83,7 +83,7 @@ impl AutonomyGate for AutonomyGateAdapter {
 ```
 
 ```rust
-// crates/oya-foundry-fitness-check-autonomy-gate-presence/src/lib.rs
+// crates/oya-governance-check-autonomy-gate-presence/src/lib.rs
 pub fn run() -> Result<(), GateError> {
     let crate_root = "microservices/foundry/src/crates/oya-foundry-runtime-capability-executor-usecase";
     let dispatch_use_case = parse_file(format!("{crate_root}/src/dispatch_use_case.rs"))?;
@@ -136,3 +136,9 @@ cargo nextest run -p oya-foundry-runtime-capability-executor-adapter --test auto
 - `policy/runtime-isolation.md` TI-08.
 - `threat-model.md` T-E-01.
 - `runbooks/autonomy-violation-quarantine.md`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

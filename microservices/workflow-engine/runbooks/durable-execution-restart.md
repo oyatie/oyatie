@@ -1,116 +1,313 @@
 ---
 doc_class: Runbook
-title: Durable execution cold-start + replay storm handling
-microservice: workflow-engine
-severity: "Sev-2 (operational degradation during cold-start)"
+title: Durable Execution Restart
 status: Accepted
-owner_team: axis-workflow + ops-sre-reliability
-date: 2026-05-17
-related_artifacts:
-  - microservices/workflow-engine/failure-modes.md (FM-03 replay storm)
-  - microservices/workflow-engine/PRD.md (FR-07 deterministic replay; AC-03 durable execution)
-  - microservices/workflow-engine/policy/spec-integrity.md
+date: 2026-05-20
+microservice: workflow-engine
+severity: sev1
+audience: workflow-runtime-on-call
+owner_team: axis-workflow-engine + ops-sre-reliability
+source_wave: codex-runbooks-substrate-w3
+change_scope: substance rewrite of existing thin runbook
 doc_status: published
 ---
 
-# Runbook: Durable execution cold-start + replay storm
+# Runbook: Durable Execution Restart
 
-## Trigger
+## Operator Contract
+- Runbook id: workflow-engine-durable-execution-restart.
+- Primary service namespace: `workflow-engine`.
+- Owning rotation: PagerDuty oya-workflow-engine-primary; workflow-runtime-secondary.
+- Incident channel: `#inc-workflow-engine`.
+- Operational focus: durable execution worker restart must preserve exactly-once step history.
+- Named precedent: this follows the Temporal durable execution plus AWS Step Functions state-machine recovery pattern.
+- External dependencies: CNCF Temporal support; Valkey commercial support; PostgreSQL Citus support.
+- API authority: `https://workflow-engine.internal.oyatie.dev/v1/workflow-engine/durable-execution-restart/incident-handoff`.
+- Audit event class: `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` with ADR-0263 fields `incident_id`, `tenant_id`, `cell_id`, `microservice`, `runbook_id`, `decision_id`, `evidence_hash`, `operator_id`.
+- Stop condition: mitigation has held for 30 minutes, `DurableExecutionRestartCritical` is green, and every Cross-microservice handoff API returns `202 accepted`.
+- Safety invariant: never clear the incident until `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/workflow-engine-durable-execution-restart-<incident-id>.md`.
 
-ONE of:
+## Trigger Conditions
+- Page on alert `DurableExecutionRestartCritical` when `oya_workflow_engine_durable_execution_restart_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `DurableExecutionRestartSloBurn` when `oya_workflow_engine_durable_execution_restart_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open sev1 if `oya_workflow_engine_durable_restart_lag_seconds` exceeds the threshold documented in `microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml`.
+- Open sev1 if `oya_workflow_engine_durable_execution_restart_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Trigger from customer report when Support tags the case `workflow-engine.durable-execution-restart.customer_visible` in Zendesk.
+- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workflow-engine-durable-execution-restart --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Primary dashboard: `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/workflow-engine/dashboards/durable-state-size.json`.
+- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/workflow-engine/dashboards/step-latency.json`.
+- Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workflow-engine",runbook="durable-execution-restart"}`.
+- Alertmanager route: `oyatie-workflow-engine-durable-execution-restart-critical`; silence only with incident commander approval and `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` evidence.
+- Synthetic probe: `oya ops probe workflow-engine durable-execution-restart --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
+- Drift detector: `registry/workflow-engine/durable-execution-restart/expected-state.json` hash differs from live `https://workflow-engine.internal.oyatie.dev/v1/workflow-engine/durable-execution-restart/admin/state-hash`.
+- Service-specific metric `oya_workflow_engine_durable_restart_lag_seconds` is red while `oya_workflow_engine_durable_execution_restart_audit_emit_total{status="sealed"}` is flat.
 
-1. **Engine cold-start**: cluster-wide engine restart (rolling deploy in failure-mode; large-scale pod eviction; region failover).
-2. **Replay storm**: cold-start tries to resume all in-flight runs simultaneously; engine worker queue depth spikes; lease wait p99 > 2s.
-3. **Single-pod kill mid-run**: HA failover resumes the run on a different worker; durable-execution invariant tested.
+## Symptoms
+- User-facing impact: workflow runs may pause, duplicate, or skip durable state transitions for affected tenants; scenario focus is durable execution worker restart must preserve exactly-once step history.
+- Operators see Grafana panel `durable-state-size.json / Durable Execution Restart burn rate` turn red before the primary alert resolves.
+- Loki signature `workflow_engine.durable_execution_restart.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
+- Kubernetes events include `reason=DurableExecutionRestartDegraded` on deployment `workflow-engine-durable-execution-restart-worker` or `workflow-engine-api`.
+- Audit-chain shows missing or delayed `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` entries when queried with `oya audit-chain query --event-class EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT --since 30m`.
+- Metric pattern: `oya_workflow_engine_durable_execution_restart_error_ratio` rises before `oya_workflow_engine_durable_execution_restart_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `oya_workflow_engine_durable_execution_restart_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal, replay backlog, or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `oya_workflow_engine_durable_execution_restart_queue_depth`; isolate tenant before fleet mitigation.
+- Fleet-wide shape: at least three cells report `DurableExecutionRestartCritical` in one 15 minute window; switch to cross-cell bridge even if individual tenants are low-volume.
+- Log signature `decision=deny reason=durable-execution-restart.policy_guard` means the guard is working; investigate caller inputs before rollback.
+- Log signature `decision=permit reason=durable-execution-restart.break_glass` means manual intervention is active; confirm two-person authorization.
+- Log signature `audit_emit_status=stalled event_class=EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` means mitigation cannot be closed until replay succeeds.
+- Service-specific pattern: `oya_workflow_engine_durable_restart_lag_seconds` rises while `oya_workflow_engine_durable_execution_restart_dependency_error_ratio` is flat; inspect local state before escalating CNCF Temporal support.
+- Service-specific pattern: `oya_workflow_engine_durable_execution_restart_dependency_error_ratio` rises while `oya_workflow_engine_durable_restart_lag_seconds` is flat; inspect vendor or adjacent-service dependency health before local rollback.
 
-## Severity
+## Failure Mode Tree
+- Failure mode 1: single-tenant WorkflowRun inconsistency; contain with tenant quarantine, preserve all `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` rows, and avoid fleet rollback.
+- Failure mode 2: cross-cell WorkflowSpec drift; freeze writes, compare state hash across cells, and use audit-chain replay before accepting new mutations.
+- Failure mode 3: byzantine or abusive principal; suspend the principal through identity, keep tenant data scoped, and preserve Cedar explain output.
+- Failure mode 4: external dependency outage at CNCF Temporal support; open vendor ticket only after local dashboards and handoff APIs prove the dependency is causal.
+- Failure mode 5: operator mitigation made state worse; roll back feature flag `oya.workflow-engine.durable_execution_restart.incident_hold`, close `workflow-engine-durable-execution-restart-circuit-breaker`, and restore the previous deployment revision.
+- Failure mode 6: audit emission is delayed; do not close even when customer symptoms improve because ADR-0263 evidence is incomplete.
+- Failure mode 7: regional partition; keep prod-us-east-1 as evidence leader and reject cross-region mutation until `oya_workflow_engine_durable_execution_restart_state_hash_match == 1`.
+- Failure mode 8: compliance-pack mismatch; require compliance handoff when KR-CSAP, EU-sovereign, FedRAMP-High, IL5, or CN-PIPL labels are present.
+- Failure mode 9: stale dashboard data; verify direct Mimir queries before making rollback decisions.
+- Failure mode 10: runbook step ambiguity; halt the ambiguous branch, emit `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` with outcome `blocked`, and patch this runbook after recovery.
 
-- Single-pod kill + HA failover successful within RTO: Sev-3.
-- Cluster-wide cold-start with throttling working: Sev-2.
-- Cold-start with replay storm overwhelming workers: Sev-2 (could escalate to Sev-1 if cascading).
+## Diagnostic Steps
+1. Set incident variables: `export INCIDENT_ID=INC-workflow-engine-durable-execution-restart-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
+2. Confirm active alerts: `curl -s https://workflow-engine.internal.oyatie.dev/v1/workflow-engine/alerts?runbook=durable-execution-restart | jq .alerts`.
+3. Check Kubernetes rollout: `kubectl -n workflow-engine rollout status deploy/workflow-engine-durable-execution-restart-worker --timeout=60s`.
+4. List unhealthy pods: `kubectl -n workflow-engine get pods -l app=durable-execution-restart -o wide`.
+5. Read structured logs: `kubectl -n workflow-engine logs deploy/workflow-engine-durable-execution-restart-worker --since=30m | rg "workflow_engine.durable_execution_restart.incident_state|DurableExecutionRestartCritical|EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT"`.
+6. Query Loki directly: `logcli query '{namespace="workflow-engine",runbook="durable-execution-restart"}' --since=30m --limit=200`.
+7. Check Prometheus error ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_workflow_engine_durable_execution_restart_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_workflow_engine_durable_execution_restart_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_workflow_engine_durable_execution_restart_queue_depth{cell="prod-us-east-1"}'`.
+10. Check service-specific signal: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_workflow_engine_durable_restart_lag_seconds{cell="prod-us-east-1"}'`.
+11. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101&var-incident=$INCIDENT_ID"`.
+12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
+13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
+14. Verify service state: `oya ops workflow-engine durable-execution-restart status --cell $CELL --tenant $TENANT --output json`.
+15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate workflow-engine-durable-execution-restart --production-snapshot --cell $CELL`.
+16. Run crate smoke test: `cargo test -p oya-workflow-engine-execution-engine-domain durable_execution_restart -- --nocapture`.
+17. Check API contract smoke: `curl -s https://workflow-engine.internal.oyatie.dev/v1/workflow-engine/durable-execution-restart/incident-handoff -H "x-oya-tenant: $TENANT"`.
+18. Inspect config: `test -f microservices/workflow-engine/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/workflow-engine/iac/kustomize/base/kustomization.yaml`.
+19. Inspect feature flags: `oya flags get oya.workflow-engine.durable_execution_restart.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
+20. Inspect circuit breaker: `oya ops breaker status workflow-engine-durable-execution-restart-circuit-breaker --cell $CELL --tenant $TENANT`.
+21. Check recent deploy: `kubectl -n workflow-engine rollout history deploy/workflow-engine-durable-execution-restart-worker | tail -20`.
+22. Check policy file: `test -f microservices/workflow-engine/policy/saga-compensation-policy.md || find microservices/workflow-engine/policy -maxdepth 2 -type f | sort`.
+23. Check SLO files: `ls microservices/workflow-engine/slos/*.openslo.yaml | sort | rg "replay|worker"`.
+24. Check contract binding: `test -f microservices/workflow-engine/contracts/openapi/workflow-engine.yaml && sed -n '1,120p' microservices/workflow-engine/contracts/openapi/workflow-engine.yaml`.
+25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from workflow_engine_durable_execution_restart_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
+26. Confirm no cross-cell spread: `oya ops cells query --metric oya_workflow_engine_durable_execution_restart_error_ratio --window 30m --threshold 0.02`.
+27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice workflow-engine --runbook durable-execution-restart --output evidence/incidents/$INCIDENT_ID.json`.
 
-## Pre-checks
+### Diagnostic Decision Tree
+```text
+Durable Execution Restart incident decision tree
+1. Is DurableExecutionRestartCritical firing in more than one cell?
+   |-- yes: declare fleet incident, page PagerDuty oya-workflow-engine-primary, and run cross-cell containment.
+   |-- no: keep scope to the affected cell and continue tenant isolation checks.
+2. Does oya_workflow_engine_durable_execution_restart_queue_depth grow while oya_workflow_engine_durable_execution_restart_error_ratio is flat?
+   |-- yes: downstream dependency, replay backlog, or queue-drain issue; choose mitigation branch B.
+   |-- no: local regression, bad input, or policy/config drift; continue branch selection.
+3. Does audit-chain show EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT gaps?
+   |-- yes: do not close; run evidence replay before resolution.
+   |-- no: mitigation can proceed after state is green.
+4. Is customer, finance, security, or regulator impact confirmed?
+   |-- yes: promote severity, open #inc-workflow-engine, and notify compliance or security handoff.
+   |-- no: keep internal incident and collect evidence.
+```
+- Branch A (confirmed WorkflowRun correctness risk): use the matching mitigation block below and record `decision_branch=A` in `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT`.
+- Branch B (dependency saturation or replay backlog): use the matching mitigation block below and record `decision_branch=B` in `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT`.
+- Branch C (policy, permit, or tenant-scope drift): use the matching mitigation block below and record `decision_branch=C` in `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT`.
+- Branch D (customer-visible or regulated evidence gap): use the matching mitigation block below and record `decision_branch=D` in `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT`.
 
-1. Verify engine worker pod state: `kubectl -n workflow-engine get pods -l app=execution-engine-worker`.
-2. Verify Postgres + Valkey health.
-3. Verify resume-rate-limit configuration is active.
+## Mitigation Steps
+1. Acknowledge page: `pd incident ack --service workflow-engine --incident $INCIDENT_ID`.
+2. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-workflow-engine --severity sev1`.
+3. Freeze risky automation: `oya flags set oya.workflow-engine.durable_execution_restart.incident_hold=true --cell $CELL --tenant $TENANT --reason $INCIDENT_ID`.
+4. Enable circuit breaker: `oya ops breaker open workflow-engine-durable-execution-restart-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
+5. Reduce blast radius: `kubectl -n workflow-engine scale deploy/workflow-engine-durable-execution-restart-worker --replicas=1`.
+6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason workflow-engine-durable-execution-restart --ttl 60m`.
+7. Pause promotion: `oya vcs hold --microservice workflow-engine --reason $INCIDENT_ID --runbook durable-execution-restart`.
+8. Drain queue safely: `oya ops workflow-engine durable-execution-restart drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
+9. Execute bounded drain: `oya ops workflow-engine durable-execution-restart drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
+10. Replay missing audit events: `oya audit-chain replay --event-class EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
+11. Rollback last deploy if causal: `kubectl -n workflow-engine rollout undo deploy/workflow-engine-durable-execution-restart-worker`.
+12. Raise HPA cap if saturation is proven: `kubectl -n workflow-engine patch hpa workflow-engine-durable-execution-restart-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
+13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface workflow-engine.durable-execution-restart --rps 25 --ttl 30m`.
+14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/workflow-engine/runbooks/durable-execution-restart.md,evidence/incidents/$INCIDENT_ID.json`.
+16. Notify service owners: `oya notify service-owner --microservice workflow-engine --incident $INCIDENT_ID --channel #inc-workflow-engine`.
+17. Open external vendor ticket: `oya vendor ticket open --vendor "CNCF Temporal support" --incident $INCIDENT_ID --summary workflow-engine-durable-execution-restart`.
+18. Confirm breaker effect: `oya ops breaker status workflow-engine-durable-execution-restart-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
+19. Confirm user impact reduced: `curl -s https://workflow-engine.internal.oyatie.dev/v1/workflow-engine/durable-execution-restart/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+20. Emit mitigation audit: `oya audit-chain emit --event-class EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=durable-execution-restart`.
 
-## Recovery Path A — HA failover single-pod kill
+### Mitigation Branch Guidance
+- Branch A: confirmed WorkflowRun correctness risk.
+  - Required action: keep `workflow-engine-durable-execution-restart-circuit-breaker` open until `oya_workflow_engine_durable_execution_restart_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=110` to the incident.
+  - Required audit: emit `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
+- Branch B: dependency saturation or replay backlog.
+  - Required action: keep `workflow-engine-durable-execution-restart-circuit-breaker` open until `oya_workflow_engine_durable_execution_restart_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=111` to the incident.
+  - Required audit: emit `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
+- Branch C: policy, permit, or tenant-scope drift.
+  - Required action: keep `workflow-engine-durable-execution-restart-circuit-breaker` open until `oya_workflow_engine_durable_execution_restart_error_ratio` is below 0.005 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=112` to the incident.
+  - Required audit: emit `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
+- Branch D: customer-visible or regulated evidence gap.
+  - Required action: keep `workflow-engine-durable-execution-restart-circuit-breaker` open until `oya_workflow_engine_durable_execution_restart_error_ratio` is below 0.01 for 3 evaluator windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=113` to the incident.
+  - Required audit: emit `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
-This is the common case; engine is designed for it.
+## Resolution Steps
+1. Identify code owner path: `rg "durable_execution_restart|DurableExecutionRestartCritical|workflow_engine.durable_execution_restart.incident_state" crates microservices/workflow-engine -g "!microservices/workflow-engine/runbooks/**"`.
+2. Patch domain invariant: `edit oya-workflow-engine-execution-engine-domain where durable_execution_restart state transition is validated`.
+3. Patch API guard: `edit microservices/workflow-engine/contracts/openapi/workflow-engine.yaml if the failing path is north-south or async handoff`.
+4. Patch policy: `edit microservices/workflow-engine/policy/saga-compensation-policy.md with explicit deny/permit branch and tenant/cell scope`.
+5. Patch runtime config: `edit microservices/workflow-engine/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
+6. Add regression test: `cargo test -p oya-workflow-engine-execution-engine-domain durable_execution_restart_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate workflow-engine-durable-execution-restart --fixture incident-durable-execution-restart.json`.
+8. Add SLO assertion: `update microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml with alert DurableExecutionRestartCritical when this was a missing alert`.
+9. Add dashboard panel: `update microservices/workflow-engine/dashboards/durable-state-size.json with oya_workflow_engine_durable_execution_restart_error_ratio, oya_workflow_engine_durable_execution_restart_lag_seconds, and oya_workflow_engine_durable_restart_lag_seconds`.
+10. Rebuild affected crate: `cargo check -p oya-workflow-engine-execution-engine-domain --all-targets`.
+11. Run targeted tests: `cargo test -p oya-workflow-engine-execution-engine-domain --all-features`.
+12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate workflow-engine-policy --microservice workflow-engine`.
+13. Deploy canary: `oya deploy canary --microservice workflow-engine --component workflow-engine-durable-execution-restart-worker --cell $CELL --weight 1`.
+14. Watch burn rate: `oya ops watch --metric oya_workflow_engine_durable_execution_restart_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+15. Close circuit breaker: `oya ops breaker close workflow-engine-durable-execution-restart-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+16. Unfreeze automation: `oya flags set oya.workflow-engine.durable_execution_restart.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+17. Resume promotion: `oya vcs unhold --microservice workflow-engine --reason resolved-$INCIDENT_ID`.
+18. Seal resolution audit: `oya audit-chain emit --event-class EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=durable-execution-restart`.
+19. Verify seal: `oya audit-chain verify --event-class EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT --incident $INCIDENT_ID`.
+20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
-| Step | Action |
-|---|---|
-| 1 | Identify the killed pod: log inspection. |
-| 2 | HA failover should be automatic: another worker acquires lease for the affected runs within 5s (lease TTL). |
-| 3 | New worker reads run state from Postgres + replays event log from last checkpoint. |
-| 4 | Deterministic-replay invariant: replay produces the same step sequence (verified at AC-02). |
-| 5 | Verify run continues: completion within expected window. |
-| 6 | No tenant action required. |
+### Code Paths To Inspect First
+- `oya-workflow-engine-execution-engine-domain`: inspect for `durable_execution_restart` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-workflow-engine-state-machine-kernel`: inspect for `durable_execution_restart` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-workflow-engine-event-bus-worker`: inspect for `durable_execution_restart` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `oya-workflow-engine-replay-debugger-backend-domain`: inspect for `durable_execution_restart` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `microservices/workflow-engine/contracts/openapi/workflow-engine.yaml`: verify request/response or event contract only when incident evidence points there.
+- `microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml`: verify request/response or event contract only when incident evidence points there.
+- `microservices/workflow-engine/contracts/proto/workflow-engine.proto`: verify request/response or event contract only when incident evidence points there.
+- `microservices/workflow-engine/dashboards/durable-state-size.json`: verify panel coverage for `oya_workflow_engine_durable_execution_restart_error_ratio`, `oya_workflow_engine_durable_execution_restart_lag_seconds`, and `oya_workflow_engine_durable_restart_lag_seconds`.
+- `microservices/workflow-engine/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
+- `microservices/workflow-engine/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
-## Recovery Path B — Cluster-wide cold-start (rolling deploy)
+## Verification Checklist
+- `DurableExecutionRestartCritical` and `DurableExecutionRestartSloBurn` are both resolved in Alertmanager for 30 minutes.
+- `oya_workflow_engine_durable_execution_restart_error_ratio < 0.005` for 3 consecutive 10 minute windows.
+- `oya_workflow_engine_durable_execution_restart_lag_seconds < 120` for all production cells.
+- `oya_workflow_engine_durable_execution_restart_queue_depth` is draining and not growing for the affected tenant.
+- Service-specific signal `oya_workflow_engine_durable_restart_lag_seconds` is below the threshold documented in `microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml`.
+- Dashboard `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/durable-execution-restart?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` shows green panels for the affected cell.
+- Audit-chain query for `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` returns mitigation and resolution events.
+- Circuit breaker `workflow-engine-durable-execution-restart-circuit-breaker` is closed after rollback window.
+- Feature flag `oya.workflow-engine.durable_execution_restart.incident_hold` is false for the affected tenant unless long-term hold is approved.
+- Runbook invocation evidence is attached to `evidence/incidents/$INCIDENT_ID.json`.
+- Service owner acknowledged final handoff in `#inc-workflow-engine`.
 
-| Step | Action |
-|---|---|
-| 1 | Rolling deploy in progress; some workers cold; in-flight runs resume on warm workers. |
-| 2 | Resume-rate-limit caps replay at 100 runs/s/worker; verifies in `oya_workflow_engine_resume_rate_per_worker`. |
-| 3 | New run-starts may experience start-latency degradation; SLO graceful. |
-| 4 | HPA ramps workers as queue depth climbs. |
-| 5 | Verify steady-state recovery within 10 min. |
+## Capacity and Rollback Guardrails
+- Capacity math: if `oya_workflow_engine_durable_execution_restart_queue_depth` is 5000 and the worker drains 25 items/second, the best-case drain is 200 seconds before retries; page earlier when drain time exceeds 300 seconds.
+- Capacity math: with 12 replicas at 25 items/second each, the hard ceiling is 300 items/second; keep tenant throttle below 25 RPS until error ratio stays below 0.005.
+- Rollback checkpoint 1: before changing `oya.workflow-engine.durable_execution_restart.incident_hold`, snapshot current value with `oya flags get oya.workflow-engine.durable_execution_restart.incident_hold --output json`.
+- Rollback checkpoint 2: before opening `workflow-engine-durable-execution-restart-circuit-breaker`, capture `oya_workflow_engine_durable_execution_restart_request_rate` and `oya_workflow_engine_durable_execution_restart_success_ratio` from Mimir.
+- Rollback checkpoint 3: before scaling deployments, capture `kubectl -n workflow-engine get deploy workflow-engine-durable-execution-restart-worker -o yaml`.
+- Rollback command for flag: `oya flags set oya.workflow-engine.durable_execution_restart.incident_hold=false --cell $CELL --tenant $TENANT --reason rollback-$INCIDENT_ID`.
+- Rollback command for breaker: `oya ops breaker close workflow-engine-durable-execution-restart-circuit-breaker --cell $CELL --tenant $TENANT --reason rollback-$INCIDENT_ID`.
+- Rollback command for deployment: `kubectl -n workflow-engine rollout undo deploy/workflow-engine-durable-execution-restart-worker`.
+- Rollback command for tenant throttle: `oya ops rate-limit clear --tenant $TENANT --surface workflow-engine.durable-execution-restart --reason rollback-$INCIDENT_ID`.
+- Stop rollback if `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` cannot be emitted; preserve the current state and escalate to audit-chain before additional mutation.
 
-## Recovery Path C — Replay storm with worker queue saturation
+## Postmortem Template
+Use this exact skeleton for the incident document. The field names are intentionally stable for ADR-0263 audit emission extraction.
+```markdown
+---
+doc_class: IncidentPostmortem
+runbook_id: workflow-engine-durable-execution-restart
+microservice: workflow-engine
+event_class: EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT
+incident_id: <INC-...>
+severity: sev1
+status: draft
+detected_at: <UTC>
+mitigated_at: <UTC>
+resolved_at: <UTC>
+commander: <handle>
+evidence_hash: <sha256>
+---
 
-| Step | Action |
-|---|---|
-| 1 | Sev-2 declared; engage axis-workflow + ops-sre-reliability. |
-| 2 | Verify resume rate-limit is in effect: `oya_workflow_engine_resume_throttle_active == 1`. |
-| 3 | If rate-limit not engaging (config bug or override): manually apply via `cargo run -p oya-dev-cli -- workflow-engine apply-resume-throttle --rate 100`. |
-| 4 | Scale workers above HPA max if needed: `kubectl scale deployment/execution-engine-worker --replicas=300`. |
-| 5 | Defer new run-starts: tenant-facing 429 for 30s while backlog clears. |
-| 6 | Verify recovery cadence: queue depth halving every 30s. |
-| 7 | Postmortem: identify why the replay storm wasn't absorbed. |
+# Durable Execution Restart postmortem
 
-## Recovery Path D — Region-failover cold-start (post-DR-failover)
+## Summary
+- What happened in workflow-engine/durable-execution-restart.
+- Who was affected: tenant_id list, cell_id list, user-facing surface list.
+- Current status: mitigated, resolved, or monitoring.
 
-| Step | Action |
-|---|---|
-| 1 | DR-pair region has warm Postgres replica + warm engine workers at 0.6× capacity. |
-| 2 | After DR failover (per `multi-region.md`), engine workers scale up to 1.0× primary capacity. |
-| 3 | Resume-rate-limit cadence cranked: 100 runs/s/worker; durable runs resume from last checkpoint. |
-| 4 | Long-running paused workflows (24h+ paused) verified: they should resume identically per deterministic replay invariant. |
-| 5 | Tenant notification per `multi-region.md` §"Tenant Notification". |
+## Timeline
+- T0 detection: alert/customer/audit source.
+- T1 acknowledgement: operator handle and channel.
+- T2 mitigation: feature flag, breaker, rollback, or throttle.
+- T3 resolution: code/config/policy fix.
+- T4 verification: dashboard, metric, audit seal, customer confirmation.
 
-## Recovery Path E — Cold-start with Postgres degraded
+## Root Cause
+- Direct trigger.
+- Contributing factors.
+- Why existing controls did not catch it earlier.
 
-If Postgres is the bottleneck (rare; usually Postgres scales first):
+## ADR-0263 Audit Emission Requirements
+- Emit EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT with incident_id, tenant_id, cell_id, principal_id, decision_id, evidence_hash, operator_id, runbook_id.
+- Attach dashboard snapshot URLs and command transcripts.
+- Seal mitigation and resolution events before closure.
 
-| Step | Action |
-|---|---|
-| 1 | Verify Postgres read replica is keeping up. |
-| 2 | Engine read-only paths (state lookup) route to read replica during cold-start. |
-| 3 | Write paths (state checkpointing) bottleneck on coordinator; if backed up, defer non-essential writes. |
-| 4 | Postgres autoscale (where supported) ramps workers. |
+## Corrective Actions
+- Action, owner, due date, validation command, linked issue.
+```
 
-## Verification
+## Escalation Path
+- Primary on-call: PagerDuty oya-workflow-engine-primary; workflow-runtime-secondary.
+- Incident SLA: ack 3m for sev0/sev1, 10m for sev2, 30m for sev3; status update every 10m until the critical alert clears.
+- Incident commander: first responder from axis-workflow-engine + ops-sre-reliability; transfer only by explicit message in `#inc-workflow-engine`.
+- Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
+- Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
+- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- External vendors: CNCF Temporal support; Valkey commercial support; PostgreSQL Citus support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
+- Customer communications: use status page component `oyatie-workflow-engine-durable-execution-restart` and keep private details in the incident channel.
+- Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.
+- Executive notice: sev0 or fleet-wide sev1 goes to `#exec-incident-readout` within 30 minutes.
 
-After recovery:
-- Worker queue depth < 5k.
-- Step dispatch latency p99 < 200ms (per PRD).
-- In-flight run completion rate returns to baseline.
-- Tenant-facing dashboard shows healthy state.
-- No run terminated incorrectly during cold-start (verified by audit chain integrity check).
+## Cross-µservice Coordination
+- Notify `audit-chain`: `oya incident handoff --target audit-chain --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID --severity sev1 --branch A`; expect `202 accepted`.
+- Require `audit-chain` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `tenancy`: `oya incident handoff --target tenancy --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID --severity sev1 --branch B`; expect `202 accepted`.
+- Require `tenancy` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `identity`: `oya incident handoff --target identity --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID --severity sev1 --branch C`; expect `202 accepted`.
+- Require `identity` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `observability`: `oya incident handoff --target observability --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID --severity sev1 --branch D`; expect `202 accepted`.
+- Require `observability` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `workflow-studio`: `oya incident handoff --target workflow-studio --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID --severity sev1 --branch A`; expect `202 accepted`.
+- Require `workflow-studio` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Observability handoff API: `oya incident handoff --target observability --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID`.
+- Governance handoff API: `oya incident handoff --target governance --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID`.
+- Compliance handoff API: `oya incident handoff --target compliance --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID`.
+- Audit-chain handoff API: `oya incident handoff --target audit-chain --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID`.
+- Tenancy handoff API: `oya incident handoff --target tenancy --source workflow-engine --runbook durable-execution-restart --incident $INCIDENT_ID`.
 
-## Post-incident updates
+## Handoff Notes
+- Do not hand off with only the alert name; include `oya_workflow_engine_durable_execution_restart_error_ratio`, `oya_workflow_engine_durable_execution_restart_lag_seconds`, `oya_workflow_engine_durable_execution_restart_queue_depth`, `oya_workflow_engine_durable_restart_lag_seconds`, current breaker state, and audit seal status.
+- Keep `workflow-engine-durable-execution-restart-circuit-breaker` owner as axis-workflow-engine + ops-sre-reliability until the receiving service explicitly accepts.
+- If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
+- Close only after `EVT_WORKFLOW_ENGINE_DURABLE_EXECUTION_RESTART_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
-- Postmortem within 5 business days.
-- Action: harden the resume-rate-limit (e.g., add a circuit breaker that escalates to 50/s if worker queue grows mid-throttle).
-- Action: extend AC-03 (durable execution restart) test coverage if a new failure mode was discovered.
-- Action: verify long-running workflow resumption test still passes after engine changes.
+## Sources Checked During This Substance Pass
+- `microservices/workflow-engine/dashboards/` for dashboard names and operational panels: durable-state-size.json, step-latency.json, workflow-execution-rate.json.
+- `microservices/workflow-engine/slos/` for OpenSLO alert vocabulary and threshold alignment: replay-determinism-correctness.openslo.yaml, worker-poll-availability.openslo.yaml, workflow-completion-availability.openslo.yaml, workflow-start-latency.openslo.yaml, workflow-step-execute-latency.openslo.yaml.
+- `microservices/workflow-engine/policy/` for named policy and authorization surfaces: saga-compensation-policy.md, spec-integrity.md, tenant-scope.cedar, data-residency.md.
+- `microservices/workflow-engine/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi/workflow-engine.yaml, contracts/asyncapi/workflow-events.yaml, contracts/proto/workflow-engine.proto.
+- `microservices/workflow-engine/manifest.json` for owner, dependency, capability, and bounded-context vocabulary; topic `durable-execution-restart` is the scenario anchor.
 
-## References
-
-- `microservices/workflow-engine/failure-modes.md` FM-03.
-- `microservices/workflow-engine/PRD.md` FR-07, AC-03, AC-04.
-- `microservices/workflow-engine/multi-region.md`.
-- `microservices/workflow-engine/policy/spec-integrity.md`.
-- Temporal durability docs — `docs.temporal.io/dev-guide/durability`.
+## Checkpoint Closure Criteria
+- The runbook remains current when `DurableExecutionRestartCritical`, `DurableExecutionRestartSloBurn`, `oya_workflow_engine_durable_restart_lag_seconds`, `oya.workflow-engine.durable_execution_restart.incident_hold`, and `workflow-engine-durable-execution-restart-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
+- The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
+- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.

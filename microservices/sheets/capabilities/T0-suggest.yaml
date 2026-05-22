@@ -94,7 +94,7 @@ cedar_policy_fragments:
   - microservices/sheets/policy/public-read.cedar
 
 eval_set:
-  golden_inputs_path: microservices/sheets/capabilities/eval/t0-suggest-golden.jsonl
+  reference_inputs_path: microservices/sheets/capabilities/eval/t0-suggest-reference.jsonl
   pass_threshold: 0.95
   eval_metric: suggestion-relevance-and-non-misleadingness-against-curated-test-corpus
   cadence: per-release

@@ -342,7 +342,7 @@ dependency:
 - [ ] **No references to the deprecated system remain** (excluding historical
   ADR / RETIRED.md / git-log):
   ```bash
-  rg "oya_connect_recordings" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/golden/"    | wc -l   # expect 0
+  rg "oya_connect_recordings" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/baseline/"    | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed (they served their purpose)** (Phase 5):
   ```bash

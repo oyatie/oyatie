@@ -1403,53 +1403,12 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        (Some("validate"), Some("fd001-manifest-workspace-alignment")) => {
-            match crate::parse_fd001_manifest_workspace_alignment_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_fd001_manifest_workspace_alignment_gate(args) {
-                    Ok(report) => {
-                        let evidence = report
-                            .emitted_report_path
-                            .as_ref()
-                            .map(|path| format!(", report={}", path.display()))
-                            .unwrap_or_default();
-                        if report.report_only {
-                            println!(
-                                "fd001-manifest-workspace-alignment report-only: {} manifests, {} required crates, {} missing{}",
-                                report.manifest_count,
-                                report.required_crate_count,
-                                report.missing_crates.len(),
-                                evidence
-                            );
-                        } else {
-                            println!(
-                                "fd001-manifest-workspace-alignment validation passed: {} manifests, {} required crates, {} missing{}",
-                                report.manifest_count,
-                                report.required_crate_count,
-                                report.missing_crates.len(),
-                                evidence
-                            );
-                        }
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!(
-                            "fd001-manifest-workspace-alignment validation failed: {message}"
-                        );
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
         (Some("validate"), Some("planning-closure")) => {
             match crate::parse_planning_closure_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_planning_closure_gate(args) {
                     Ok(report) => {
                         println!(
-                            "planning-closure validation passed: {} verticals, {} surfaces, {} kr-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
+                            "planning-closure validation passed: {} verticals, {} surfaces, {} regional-pack surfaces, {} architecture rules, {} status fields checked, blocker_count={}",
                             report.vertical_count,
                             report.surface_count,
                             report.kr_pack_surface_count,
@@ -1461,37 +1420,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     }
                     Err(message) => {
                         eprintln!("planning-closure validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
-        (Some("validate"), Some("korea-localization-evidence")) => {
-            match crate::parse_korea_localization_evidence_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_korea_localization_evidence_gate(args) {
-                    Ok(report) => {
-                        let evidence = report
-                            .emitted_evidence_path
-                            .as_ref()
-                            .map(|path| format!(", evidence={}", path.display()))
-                            .unwrap_or_default();
-                        println!(
-                            "korea-localization-evidence validation passed: {} evidence files, {} fd001 surfaces, {} kr-pack surfaces, pack_status={}, activation_claim={}{}",
-                            report.evidence_file_count,
-                            report.fd001_surface_count,
-                            report.kr_pack_surface_count,
-                            report.pack_status,
-                            report.activation_claim,
-                            evidence
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("korea-localization-evidence validation failed: {message}");
                         ExitCode::FAILURE
                     }
                 },
@@ -1668,7 +1596,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // silent-bypass classes: local config points at a workflow
         // job that does not exist, or GitHub live enforcement drifts
         // behind the canonical repo policy. Lane id:
-        // `oya-governance-protection-context-match`. Kernel:
+        // `oya-foundry-fitness-protection-context-match`. Kernel:
         // `oya-check-protection-context-match` (port-in-kernel,
         // ADR-0056).
         (Some("validate"), Some("protection-context-match")) => {
@@ -1778,9 +1706,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        // PR #143 Fix-D — regulated AI refusal grounding.
-        (Some("validate"), Some("regulated-ai-refusal-grounding")) => {
-            crate::adr_0145_gates::run_regulated_ai_refusal_grounding(args.collect())
+        // PR #143 Fix-D — high-risk auto-decision refusal grounding.
+        (Some("validate"), Some("high-risk-auto-decision-refusal")) => {
+            crate::adr_0145_gates::run_high_risk_auto_decision_refusal(args.collect())
         }
         // PR #143 Fix-D — SLSA L3 evidence-grounded check.
         (Some("validate"), Some("slsa-l3-evidence-grounded")) => {

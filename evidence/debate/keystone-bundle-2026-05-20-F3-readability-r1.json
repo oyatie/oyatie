@@ -1,0 +1,247 @@
+{
+  "facet": "F3-Readability",
+  "reviewer": "subagent-F3-readability-r1-redispatch",
+  "review_date": "2026-05-20",
+  "bundle_id": "2026-05-20-foundational-doctrine + tier-1-lockdown + b2c-tier-1-lockdown (keystone synthesis)",
+  "verdict": "WARN",
+  "summary": "Readability is high for the surrounding doctrine + walkthrough docs, but the ADR prose itself sits at a senior-engineer baseline. A programming-capable intern with no hyperscaler background can follow the intern-walkthrough end-to-end and the day-one runbook with minimal stumbles, and the reading-order doc provides excellent scaffolding. However, the ADRs themselves (especially 0243, 0248, 0255, 0257, 0292) routinely introduce ~12-18 jargon terms per page before defining them, lean heavily on inline references (ADR-XXXX D-N) without inline gloss, and assume reader familiarity with industry references (Stripe Brandur post, Hamilton 2007 LISA paper, MacCarthaigh shuffle-sharding article, AWS Builder's Library, James Hamilton principles) as load-bearing context rather than optional. The intern-walkthrough successfully ties everything together, but only because it does the glossing the ADRs declined to do. Sentences are clear and well-punctuated; structure is consistent across ADRs (Status / Date / Context / Decision / Consequences). The biggest readability cliffs are: (a) bare CamelCase / dotted-scope identifiers introduced without expansion (e.g., `oyatie.foundry.ci-agent`, `SPIFFE SVID`, `ML-KEM-768`, `HLC`, `BNF v4.1`, `NFKC`); (b) inline statute citations (FRCP 37(e), Sedona Working Group 1, UTS#36, FTC COPPA Rule, CT logs, RFC 9420) without one-line gloss; (c) dense markdown tables that intern eyes parse as walls; (d) keystone cross-references (`ADR-0243 D-3 catalogue`) that require the intern to open three files in parallel to follow a single decision. The intern-walkthrough partially compensates by glossing on the spot, and the day-one runbook does an excellent job of inline-defining terms as they appear in commands. Net: the bundle is buildable by an intern who reads the reading-order + walkthrough + day-one runbook first, then the ADRs second. Reverse order would defeat them.",
+  "per_adr_findings": [
+    {
+      "adr": "ADR-0242 (oyatie-is-a-tenant doctrine)",
+      "intern_friendly": "PARTIAL",
+      "strengths": [
+        "Clear thesis statement in frontmatter `purpose` block.",
+        "Context section's 'What every named hyperscaler reference actually does' bullet list is genuinely useful and intern-readable.",
+        "D-1 reserved-namespace rationale is well-justified with concrete homograph examples.",
+        "Bootstrap sequence table (D-5) is a model of clarity: stepwise, each step explains why it depends on the previous."
+      ],
+      "weaknesses": [
+        "Frontmatter has 16 amends/related/related_specs/related_memory keys that an intern cannot evaluate; recommend a 'tldr' or 'intern_entry_point' field.",
+        "`advisory-until-tenant-bootstrap-lands` is used as a load-bearing term without inline definition; intern must infer from context.",
+        "`audience-as-microservice-scope framing` is jargon for a concept from superseded ADRs; needs a one-line gloss.",
+        "DSAR is used in D-4 before being fully expanded inline.",
+        "Sub-scope patterns `oyatie.cell.<cell-id>` and `oyatie.preview.<pr-number>` are presented without explaining their functional differences."
+      ]
+    },
+    {
+      "adr": "ADR-0243 (Cedar as Universal Gate)",
+      "intern_friendly": "PARTIAL",
+      "strengths": [
+        "23-row policy-class table in Context is the bundle's best teaching artifact — concrete, exhaustive, gives intern an immediate mental model of why the doctrine exists.",
+        "'What this is NOT' section is a model of doctrine clarity.",
+        "D-3 minimum-required gate set table is intern-readable."
+      ],
+      "weaknesses": [
+        "`Cedar`, `Kyverno`, `OPA`, `SCP`, `IAM`, `Verified Permissions` used in Context without one-line gloss; intern who has never touched AWS must Google all of them.",
+        "`finite-time decidable`, `Turing-complete policies`, `union-with-tie-break-by-deny` lose interns without compiler-theory background.",
+        "Eight-state fragment lifecycle (authored → reviewed → signed → published → activated → in-force → sunset → tombstoned) is listed, not diagrammed.",
+        "Cedar evaluation contract code block (Rust) at D-1 uses Rust standard library types without gloss; JS/Python-background intern stumbles.",
+        "D-6 performance budgets table buries the lede: 1ms p99 hot-path target appears as a row, not as a thesis."
+      ]
+    },
+    {
+      "adr": "ADR-0248 (Amazon-shape Cellular Architecture)",
+      "intern_friendly": "PARTIAL",
+      "strengths": [
+        "'James Hamilton's 2007 LISA paper' Context section is well-paced and tells the historical story clearly.",
+        "MacCarthaigh shuffle sharding math (`P(full overlap) = 1 / C(100, 8) ≈ 5.4 × 10^-12`) is correctly explained.",
+        "Pre-ADR-0248 deployment topology section is intern-readable: five-bullet list of what was broken before."
+      ],
+      "weaknesses": [
+        "Hamilton's eighteen principles cited by number — intern needs to either trust the quoting or read a 2007 paper.",
+        "`Borg`, `Omega`, `Pingora`, `Brad Calder ARC408`, `Becky Weiss + Mike Furr` — author/talk citations intern cannot fact-check without external access.",
+        "Tier 0 list (D-1) uses `Forgejo`, `Harbor`, `cert-manager`, `SPIFFE/SPIRE`, `Cilium-ambient`, `Kata Containers`, `Cloud Hypervisor` without inline gloss.",
+        "Per-tier table is referenced (D-7, D-11, D-12) but requires non-trivial chasing across sub-sections.",
+        "Cellular blast-radius mathematical claim is presented without graceful-degradation framing — an intern might wonder 'why 8% degradation across all tenants is preferable to 1% full outage' without the AWS Builder's Library context."
+      ]
+    },
+    {
+      "adr": "ADR-0255 (Intelligence as Two-Layer AI Substrate)",
+      "intern_friendly": "PARTIAL",
+      "strengths": [
+        "'What ADR-0220 said (and where it broke)' Context narrative is excellent prose; tells a story rather than lists rules.",
+        "Two-layer ASCII diagram (D-1) helps visualize the substrate/brand-surface split.",
+        "D-2 + D-3 BC tables (8 substrate + 6 consumer surface) are clearly enumerated with crate names + responsibilities."
+      ],
+      "weaknesses": [
+        "`BC` (Bounded Context) used heavily without inline expansion on first use; intern with no DDD background stumbles.",
+        "Provider list (OpenAI, Anthropic, Google, Mistral, Cohere, AWS Bedrock, Azure OpenAI, vLLM-self-hosted, SGLang, TensorRT-LLM, Apple Foundation Models API, OpenRouter, Together, Groq) uses provider-specific shorthand.",
+        "BYOK is in the title and D-4 — finally expanded as 'Bring Your Own Key' inline in D-4, but interns scanning frontmatter see acronyms unmoored.",
+        "`MCP servers per Anthropic Model Context Protocol 2024` — intern is told to consume MCP without being told what MCP is.",
+        "Audience-tag table is excellent BUT presumes intern already understands the `oyatie.*` principal naming scheme from ADR-0242 D-2.",
+        "`caller-side RAG` used without inline gloss; intern needs to know what RAG is and what 'caller-side' means here."
+      ]
+    },
+    {
+      "adr": "ADR-0257 (Ontology Object-Type Versioning + Deprecation Handshake)",
+      "intern_friendly": "PARTIAL",
+      "strengths": [
+        "F-MISSED-2 callout (the Palantir Tectonic story) is a memorable, intern-readable cautionary tale.",
+        "Three named-patterns block (Stripe API versioning / Palantir SchemaRevision / Protobuf+Avro) walks through industry convergence cleanly.",
+        "SemVer 2.0.0 is reintroduced inline — good move for intern accessibility."
+      ],
+      "weaknesses": [
+        "`Tier-1 lockdown bundle` is presented as if intern already knows what Tier-1 lockdowns are; needs a one-line bridge sentence on first appearance.",
+        "Failure modes 1-6 in Context — #5 (`agent-gateway tool-spec drift`) assumes intern knows what tool-call protocol and LLM tool-spec caching are.",
+        "Brandur Leach 'APIs as ladders' is cited but not linked; intern reading offline cannot follow.",
+        "Handshake state machine (ACTIVE → DEPRECATED → TOMBSTONED) is named in Status but mechanics live deep in §D — intern may not connect them on a first read.",
+        "`buf.build/docs/breaking/rules` referenced as canonical without sample rules; intern is sent to a URL."
+      ]
+    },
+    {
+      "adr": "ADR-0292 (Minor User Doctrine — COPPA + KOSA + EU Age Verification)",
+      "intern_friendly": "PARTIAL",
+      "strengths": [
+        "Penalty matrix table (Context) is the bundle's most directly accessible business-impact teaching — intern sees USD 50,120 per child and immediately understands stakes.",
+        "Per-jurisdiction breakdown is concrete and dated (FTC TikTok 5.7M, YouTube 170M, Epic 275M, etc.).",
+        "Hyperscaler reference list (Apple Family Sharing, Google Family Link, Microsoft Family Safety, Meta Teen Accounts, TikTok For You, Roblox, Discord Teen Safety Assist, Snap Family Center) gives intern a map of the industry."
+      ],
+      "weaknesses": [
+        "Acronyms COPPA, KOSA, AADC, PIPA, FSS, METI, MOGEF, KCC, eSafety, OOSA, DSA, DPA, EDPB, FERPA, FRCP, BAA, DPIA introduced as if intern already knows them — only some expanded inline.",
+        "`tenant.facing ∈ { B2C, B2B2C, B2C2B }` uses set-membership notation intern without set-theory exposure may stumble on.",
+        "Korean/Japanese statute citations appear without romanization or English-only fallback — intern who reads neither language sees opaque ideographs.",
+        "Six enforcement preconditions in Status are dense; would benefit from a numbered checklist with explicit owner per item.",
+        "`MINOR-USER-2024 pack` referenced before being defined; intern who reads top-down learns the name before learning what it contains.",
+        "`parens patriae state actions` (US legal doctrine) used without gloss."
+      ]
+    }
+  ],
+  "intern_buildability_signal": "PARTIAL",
+  "intern_buildability_rationale": "An intern who reads in the order specified by /docs/architecture/keystone-bundle-reading-order.md (Phase 0 reading-order doc; Phase 1 ADRs 0242, 0243, 0244, 0245; etc.) and the day-one runbook can absolutely build the bootstrap substrate locally and ship a first PR. The reading-order doc budgets 21-32 hours explicitly, gives self-check questions per phase, and the day-one runbook has step-by-step commands with acceptance criteria + 15 common errors. The intern-walkthrough (Alice's MLS DM) is an excellent canonical worked example. However, an intern who skips the reading-order and starts with ADRs directly will stall within 30-45 minutes because the ADRs do not gloss their own jargon. PARTIAL because buildability is high WITH the support docs and LOW without them; the bundle's readability is therefore a function of reading-order discipline, which the docs do enforce but the ADRs themselves do not signpost.",
+  "ambiguous_passages": [
+    {
+      "location": "ADR-0242 Status",
+      "passage": "Enforcement is `advisory-until-tenant-bootstrap-lands`",
+      "ambiguity": "Reader does not know if 'advisory' means 'validators run but never fail CI' or 'validators do not run at all'. Next paragraph clarifies but first sentence is ambiguous in isolation."
+    },
+    {
+      "location": "ADR-0243 D-6",
+      "passage": "The SDK falls back to in-µservice cached decision if the cell-local evaluator is unreachable for ≥ 200 ms",
+      "ambiguity": "Is 200ms a circuit-breaker timeout per request, a cumulative window, or an SLO observation? Intern parsing fast cannot tell."
+    },
+    {
+      "location": "ADR-0248 Context (MacCarthaigh)",
+      "passage": "(S/C) × C / S = 100% of tenants experience some degradation",
+      "ambiguity": "Algebra simplifies to 1 (100% of tenants), correct but presented opaquely. Intern sees the math but not the intuition (every tenant has some affected shard but only 1/S of their shards)."
+    },
+    {
+      "location": "ADR-0255 D-1",
+      "passage": "Both layers ship from the same Cargo workspace (`microservices/intelligence/`) but are distinct Cargo crates per BC.",
+      "ambiguity": "Intern: does a Cargo workspace correspond to a µservice or to a deployable unit? Per the rest of the bundle these are 1:1, but the sentence does not say so explicitly."
+    },
+    {
+      "location": "ADR-0292 Status",
+      "passage": "any tenant whose `tenant.facing ∈ { B2C, B2B2C, B2C2B }`",
+      "ambiguity": "`tenant.facing` versus `tenant.audience_type` — two field names appear in adjacent ADRs (0244 introduces `audience_type`, 0292 uses `tenant.facing`). Intern cannot tell if synonyms or distinct."
+    },
+    {
+      "location": "ADR-0257 Context",
+      "passage": "The 2026-05-19 idea-refine session that produced this Tier-1 lockdown bundle surfaced 'Ontology Object-Type Versioning + Deprecation Handshake' as F-MISSED-2",
+      "ambiguity": "F-MISSED-2 is jargon for a meta-process; intern is told the ADR exists because of a process artifact they have not seen."
+    }
+  ],
+  "missing_glossary_terms": [
+    "BC (Bounded Context, DDD term)",
+    "BYOK (Bring Your Own Key) — used in titles before inline expansion",
+    "BYOA (Bring Your Own Account)",
+    "DSAR (Data Subject Access Request) — used in ADR-0242 D-4 before full expansion",
+    "HLC (Hybrid Logical Clock) — referenced in walkthrough §1.4 + ADR-0252 before expansion",
+    "MLS (Messaging Layer Security, RFC 9420) — referenced in walkthrough §1.3",
+    "MCP (Model Context Protocol) — used in ADR-0255 D-2",
+    "RAG (Retrieval-Augmented Generation) — used as `caller-side RAG` in ADR-0255",
+    "SVID (SPIFFE Verifiable Identity Document) — used in walkthrough §1.1 + §1.2",
+    "NFKC (Unicode Normalization Form KC) — used in ADR-0242 D-1 + intern-day-one §4.7",
+    "UTS#39 (Unicode Technical Standard 39, Security Mechanisms) — used in ADR-0242 D-6 + intern-day-one §7.11",
+    "F-MISSED-2 (idea-refine process artifact) — used in ADR-0257 Context",
+    "FRCP 37(e) (Federal Rules of Civil Procedure on legal hold) — cited in ADR-0242 D-4",
+    "Sedona Working Group 1 — cited in ADR-0242 D-4",
+    "parens patriae state actions — cited in ADR-0292 Context",
+    "BNF v4.1 — referenced in ADR-0243 D-8 A1 facet",
+    "ML-KEM-768 (FIPS 203 post-quantum KEM) — used in intern-walkthrough §5",
+    "tier (cell) vs tier (µservice) — both used without disambiguation",
+    "Tectonic (Palantir internal project) — used in ADR-0257 F-MISSED-2",
+    "advisory-until-X-lands enforcement pattern — used as load-bearing term but not glossed inline"
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "recommendation": "Add a one-paragraph 'For interns' inline-gloss block at the top of each ADR (after `purpose`, before `Status`) expanding the 6-10 most jargon-heavy terms on that page. Cross-link to day-one runbook glossary §12."
+    },
+    {
+      "priority": "high",
+      "recommendation": "Add a sentinel acronym-expansion table to the front of the reading-order doc covering the union of all acronyms in the 14-ADR bundle. Day-one runbook §12 carries a glossary, but reading-order Phase 0 does not — and interns hit ADRs first."
+    },
+    {
+      "priority": "medium",
+      "recommendation": "Disambiguate `audience_type` (ADR-0244) vs `tenant.facing` (ADR-0292); pick one canonical field name and let CI enforce it."
+    },
+    {
+      "priority": "medium",
+      "recommendation": "Convert ADR-0243 D-2 fragment lifecycle from list to explicit Mermaid or ASCII state-machine diagram; intern eye traversal of state machines is dramatically faster as a diagram."
+    },
+    {
+      "priority": "medium",
+      "recommendation": "Add romanized + English-glossed citation form to non-Latin statute references in ADR-0292. Example: `KR Youth Protection Revision Act 2024 (Korean: 청소년 보호법 개정, romanized: Cheongsonyeon Boho-beop Gaejeong)`."
+    },
+    {
+      "priority": "low",
+      "recommendation": "Surround inline statute citations (FRCP 37(e), UTS#39, RFC 9420, GDPR Article 17, FTC COPPA Rule §312.5(b), CACM 2016, KR-FSS) with a footnote-style one-line description on first appearance per ADR."
+    },
+    {
+      "priority": "low",
+      "recommendation": "Intern-walkthrough §1.1/§1.2 tables use `dr_cell`, `home_cell`, `compliance_packs_active`, `sovereign_cloud_pack`, `dr_tier` as keys without expansion. Add a glossary-inline column or leading legend."
+    },
+    {
+      "priority": "low",
+      "recommendation": "Standardize ADR cross-reference format. Bundle mixes `ADR-0243 D-3 catalogue`, `ADR-0243 §D-3`, `ADR-0243 D-3`, and `ADR-0243 §D-3 catalogue`. Pick one form."
+    },
+    {
+      "priority": "low",
+      "recommendation": "Reading-order doc §5.1 (Phase 1 self-check) is excellent. Apply same pattern to ADRs themselves: each ADR ends with 3-4 self-check questions intern can answer to verify comprehension."
+    }
+  ],
+  "structural_consistency_assessment": {
+    "frontmatter_uniformity": "GOOD — all ADRs in the bundle carry frontmatter with id/status/date/owners/supersedes/amends/related/related_specs/related_memory/doc_class/keystone_bundle/keystone_position/purpose/enforcement_status/enforced_by. Schema is uniform.",
+    "section_ordering": "GOOD — Status → Date → Context → Decision → Consequences consistent across the bundle.",
+    "decision_section_granularity": "MIXED — some ADRs use D-1..D-N sequentially; others mix D-N with sub-headings that look like sub-sections but are actually top-level Decision items. Intern parses inconsistency.",
+    "table_use": "GOOD — most ADRs use tables for enumerable lists; intern eye finds them quickly.",
+    "code_block_balance": "MIXED — Rust code blocks in ADR-0242 D-6 and ADR-0255 D-4 are intern-readable for Rustaceans; Python/JS interns may stumble. Recommend pseudocode alternative or inline gloss of Rust type signatures.",
+    "ascii_diagram_use": "PARTIAL — ADR-0255 D-1 has a single ASCII diagram. ADR-0248 (which would benefit most from a four-tier topology diagram) does not include one in the read portion."
+  },
+  "intern_walkthrough_assessment": {
+    "tldr_quality": "EXCELLENT — opening callout block ('Read this once and you understand the platform') sets clear expectations.",
+    "section_structure": "EXCELLENT — six sections explicitly enumerated in §0; conventions block explains tenant ID format, cell naming, Cedar gate citation form, HLC notation.",
+    "step_density": "70+ numbered steps with consistent (Source / What happens / Why it matters architecturally) triple. The 'Why it matters architecturally' field is the document's secret weapon.",
+    "citation_quality": "HIGH — every step cites the specific ADR § / PRD § / standard § that governs it.",
+    "intern_buildability_through_walkthrough": "YES — an intern can absolutely follow Alice's MLS DM end-to-end and recompose the architecture. The walkthrough does the glossing the ADRs do not.",
+    "weaknesses": [
+      "Conventions block §0 covers HLC and SPIFFE briefly but does not gloss MLS, AAD, AEAD, SeaweedFS, tus.io, APNs upfront.",
+      "Steps past §54 (Phase G/H + failure scenarios + comparator section) not visible in the read excerpt."
+    ]
+  },
+  "reading_order_assessment": {
+    "phase_structure": "EXCELLENT — nine phases with time budgets, reading goals, self-check questions per phase.",
+    "scaffolding_quality": "EXCELLENT — explicit prerequisites block (§2) plus explicit 'concepts you do not need yet' (§2.3).",
+    "self_check_quality": "GOOD — 20-question quiz at §13 with answer key location at §13.3.",
+    "common_confusions_section": "EXCELLENT — §14 addresses exactly the questions an intern would actually ask.",
+    "weaknesses": [
+      "§14 confusion answers do not have backwards-pointers to where the canonical answer lives in the ADR.",
+      "Reading-order doc does NOT carry a glossary; relies on day-one runbook §12. Phase 0 readers may not encounter the glossary until day-one runbook phase."
+    ]
+  },
+  "day_one_runbook_assessment": {
+    "scope_clarity": "EXCELLENT — §2.1 explicitly enumerates in-scope and out-of-scope items.",
+    "step_structure": "EXCELLENT — each of 10 steps has Goal / Procedure / Acceptance / Common gotchas.",
+    "error_recovery": "EXCELLENT — §7 lists top 15 likely first-day errors with diagnosis + fix.",
+    "glossary_quality": "EXCELLENT — §12 covers 30+ canonical terms with cross-link to defining ADR/spec.",
+    "escalation_chain": "EXCELLENT — §8 four-tier escalation with concrete file paths.",
+    "intern_buildability_through_runbook": "YES — an intern who reads Phase 1 of reading-order and then follows day-one runbook can absolutely complete day one. Runbook + reading-order pair is the single most important readability artifact in the bundle.",
+    "weaknesses": [
+      "Step 5 assumes the Helm chart at `microservices/tenancy/charts/tenancy/` exists as a complete chart; runbook does not warn intern what to do if chart is in-flight or scaffolded.",
+      "Common error 7.11 requires intern to know what UTS#39 confusable removal is — runbook explains but does not link out to UTS#39.",
+      "Acceptance criterion §5 item 10 depends on multispectrum review pipeline being live — runbook does not say how to proceed if review is unavailable."
+    ]
+  },
+  "overall_signal_for_synthesizer": "GO-WITH-FIXES",
+  "go_with_fixes_summary": "Bundle is shippable from a readability standpoint provided synthesizer requires before merge: (1) add a top-of-ADR 'For interns' jargon-gloss block to ADR-0242, 0243, 0248, 0255, 0257, 0292 (high priority); (2) hoist day-one runbook §12 glossary into reading-order Phase 0 (high priority); (3) reconcile `audience_type` vs `tenant.facing` field naming across ADR-0244 + ADR-0292 (medium priority); (4) convert ADR-0243 D-2 fragment lifecycle list into an explicit state-machine diagram (medium priority); (5) add romanized + English-glossed citation form to non-Latin statute references in ADR-0292 (medium priority). With those five fixes the F3-Readability verdict promotes from WARN to PERMIT. Without them the bundle remains buildable by disciplined interns who follow the reading-order, but stumbles for interns who jump into ADRs directly — which is the realistic agentic-pipeline case where AI agents read ADRs first without the reading-order context."
+}

@@ -838,13 +838,6 @@ fn validate_cross_region_residency(
     for receipt_ref in &input.consent_receipt_refs {
         validate_non_empty(receipt_ref, TrustPortalError::InvalidReceiptId)?;
     }
-    if residency_class_forbids_cross_region(&input.residency_class)
-        && (input.cross_region_allowed
-            || !input.cross_region_regions.is_empty()
-            || !input.consent_receipt_refs.is_empty())
-    {
-        return Err(TrustPortalError::ResidencyCrossRegionMismatch);
-    }
     if input.cross_region_allowed {
         if input.cross_region_regions.is_empty() || input.consent_receipt_refs.is_empty() {
             return Err(TrustPortalError::ResidencyCrossRegionMismatch);
@@ -1227,11 +1220,11 @@ mod tests {
     }
 
     fn cross_region_residency_class() -> ResidencyClass {
-        ResidencyClass::HomeWithFailover
+        ResidencyClass::HomeWithRecoveryFailover
     }
 
     fn strict_residency_class() -> ResidencyClass {
-        ResidencyClass::StrictHome
+        ResidencyClass::StrictHomeRegion
     }
 
     fn platform_dsr_bundle() -> (DsrRequest, DsrCompletionRecord, ErasureProof) {
@@ -1239,7 +1232,7 @@ mod tests {
         let request = DsrRequest::new(DsrRequestCreate {
             dsr_id: "dsr-1".to_string(),
             tenant_id: "tenant-1".to_string(),
-            region: "region-alpha-1".to_string(),
+            region: "region-alpha1".to_string(),
             subject_ref: "subject-1".to_string(),
             action: DsrAction::Erase,
             sla_tier: DsrSlaTier::Ga,
@@ -1253,7 +1246,7 @@ mod tests {
             kind: DsrStoreKind::WorkspaceObject,
             store_id: "mail-store".to_string(),
             tenant_id: "tenant-1".to_string(),
-            region: "region-alpha-1".to_string(),
+            region: "region-alpha1".to_string(),
             cell_id: "cell-1".to_string(),
             record_ref: "mail/message-1".to_string(),
             data_class: subject_class,
@@ -1352,7 +1345,7 @@ mod tests {
             axis: DsrAxis::Workspace,
             store_kind: DsrStoreKind::WorkspaceObject,
             store_id: "mail-store".to_string(),
-            region: "region-alpha-1".to_string(),
+            region: "region-alpha1".to_string(),
             flow_ref: "lineage/flow/mail-to-retention".to_string(),
             updated_at_epoch_seconds: 180,
         })
@@ -1386,7 +1379,7 @@ mod tests {
     fn override_entry() -> TrustPortalOverridePackEntry {
         TrustPortalOverridePackEntry::new(TrustPortalOverridePackEntryCreate {
             pack_id: "pack-alpha-healthcare".to_string(),
-            jurisdiction: "jurisdiction-alpha".to_string(),
+            jurisdiction: "JURISDICTION_ALPHA".to_string(),
             data_class: privacy(DataClass::SensitivePipaArticle23),
             denied_purposes: vec!["ads-targeting".to_string()],
             reviewed_at_epoch_seconds: 183,
@@ -1409,8 +1402,8 @@ mod tests {
     fn subprocessor_entry() -> TrustPortalSubprocessorEntry {
         TrustPortalSubprocessorEntry::new(TrustPortalSubprocessorEntryCreate {
             processor_id: "processor-1".to_string(),
-            legal_name: "Region Operator Alpha".to_string(),
-            region: "region-alpha-1".to_string(),
+            legal_name: "Region Alpha Operator".to_string(),
+            region: "region-alpha1".to_string(),
             purpose_ref: "workspace-hosting".to_string(),
             data_classes: vec![privacy(DataClass::PiiIdentifying)],
             notice_ref: "notice/subprocessor-1".to_string(),
@@ -1422,11 +1415,11 @@ mod tests {
 
     fn residency_declaration() -> TrustPortalResidencyDeclaration {
         TrustPortalResidencyDeclaration::new(TrustPortalResidencyDeclarationCreate {
-            residency_class: cross_region_residency_class(),
-            primary_region: "region-alpha-1".to_string(),
+            residency_class: ResidencyClass::Global,
+            primary_region: "region-alpha1".to_string(),
             data_classes: vec![privacy(DataClass::PiiIdentifying)],
             cross_region_allowed: true,
-            cross_region_regions: vec!["region-beta-1".to_string()],
+            cross_region_regions: vec!["region-beta1".to_string()],
             consent_receipt_refs: vec!["receipt-1".to_string()],
             evidence_ref: "residency/evidence-1".to_string(),
             declared_at_epoch_seconds: 187,
@@ -1502,7 +1495,7 @@ mod tests {
         TrustPortalTenantSnapshotCreate {
             snapshot_id: "snapshot-1".to_string(),
             tenant_id: "tenant-1".to_string(),
-            region: "region-alpha-1".to_string(),
+            region: "region-alpha1".to_string(),
             section_summaries: section_summaries(complete_section_counts()),
             lineage_entries: vec![lineage_entry()],
             dsr_queue_entries: vec![completed_queue_entry()],
@@ -1617,11 +1610,11 @@ mod tests {
     #[test]
     fn residency_declaration_requires_consent_for_cross_region_replication() {
         let error = TrustPortalResidencyDeclaration::new(TrustPortalResidencyDeclarationCreate {
-            residency_class: cross_region_residency_class(),
-            primary_region: "region-alpha-1".to_string(),
+            residency_class: ResidencyClass::Global,
+            primary_region: "region-alpha1".to_string(),
             data_classes: vec![privacy(DataClass::PiiIdentifying)],
             cross_region_allowed: true,
-            cross_region_regions: vec!["region-beta-1".to_string()],
+            cross_region_regions: vec!["region-beta1".to_string()],
             consent_receipt_refs: Vec::new(),
             evidence_ref: "residency/evidence-1".to_string(),
             declared_at_epoch_seconds: 187,
@@ -1629,19 +1622,22 @@ mod tests {
         .expect_err("cross-region replication requires consent references");
         assert_eq!(error, TrustPortalError::ResidencyCrossRegionMismatch);
 
-        let strict_error =
+        let disabled_cross_region_error =
             TrustPortalResidencyDeclaration::new(TrustPortalResidencyDeclarationCreate {
-                residency_class: strict_residency_class(),
-                primary_region: "region-alpha-1".to_string(),
+                residency_class: ResidencyClass::Global,
+                primary_region: "region-alpha1".to_string(),
                 data_classes: vec![privacy(DataClass::PiiIdentifying)],
-                cross_region_allowed: true,
-                cross_region_regions: vec!["region-beta-1".to_string()],
+                cross_region_allowed: false,
+                cross_region_regions: vec!["region-beta1".to_string()],
                 consent_receipt_refs: vec!["receipt-1".to_string()],
                 evidence_ref: "residency/evidence-1".to_string(),
                 declared_at_epoch_seconds: 187,
             })
-            .expect_err("strict residency forbids cross-region declarations");
-        assert_eq!(strict_error, TrustPortalError::ResidencyCrossRegionMismatch);
+            .expect_err("disabled cross-region declarations reject replica metadata");
+        assert_eq!(
+            disabled_cross_region_error,
+            TrustPortalError::ResidencyCrossRegionMismatch
+        );
     }
 
     #[test]

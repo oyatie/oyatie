@@ -1,0 +1,511 @@
+---
+doc_class: SampleTenantFixture
+tenant_id: tenant-crescent-health-academic-medical-center
+status: Proposed
+date: 2026-05-20
+owner: codex-sample-tenants-w1
+---
+
+# Crescent Health AMC Sample Tenant Fixture
+
+## Tenant Identity
+
+- Fixture name: Crescent Health AMC.
+- Expanded name: Crescent Health Academic Medical Center.
+- Tenant slug: `crescent-health-amc-us`
+- Tenant status: demo-ready sample tenant.
+- Fictional status: entirely fictional academic medical center for product demos and SE walk-throughs.
+- Sector: healthcare delivery and clinical research.
+- Segment: five-hospital academic medical center.
+- Employee count: 28,400 employees.
+- Licensed bed count: 2,180 beds.
+- Annual outpatient visits: 2.9M fictional encounters.
+- Annual admissions: 118K fictional admissions.
+- Academic affiliation: fictional Crescent University School of Medicine.
+- Primary headquarters: Philadelphia, Pennsylvania, United States.
+- Hospital 01: Crescent University Hospital.
+- Hospital 02: Crescent Children's Pavilion.
+- Hospital 03: Crescent Oncology Institute.
+- Hospital 04: Crescent Rehab and Neuroscience Center.
+- Hospital 05: Crescent Community East.
+- Research footprint: 1,200 active IRB protocols.
+- Clinical trial footprint: 180 active interventional trials.
+- Geography posture: US health system with EU trial participants and device study obligations.
+- Primary operating language: English.
+- Secondary operating languages: Spanish, Korean, Arabic, and Mandarin.
+- Capability tier: Platinum for clinical and regulated workflows.
+- Tier rationale: clinical safety, long retention, regulated signatures, and strict audit posture.
+- Tenant audience: B2B_HEALTHCARE_PROVIDER, B2B_MEDICAL_RESIDENT, B2B_EMPLOYEE, patient proxy, and auditor.
+- Tenant maturity: mature academic medical center modernizing clinical operations and research evidence.
+- Regulatory pressure: HIPAA, EU-AI-Act, and FDA 21 CFR Part 11.
+- AI usage posture: clinical summary assist and trial matching are human-reviewed only.
+- Executive buying center: CMIO, Chief Nursing Officer, compliance officer, research office, and CIO.
+- Demo theme: clinical operations, research signatures, and AI review without privacy shortcuts.
+- Sample time zone set: America/New_York, Europe/Berlin, Asia/Seoul, America/Chicago.
+- Primary clinical cell: `us-east-platinum-clinical-a`.
+- Research cell: `us-east-platinum-research-a`.
+- EU trial participant cell: `eu-central-platinum-research-a`.
+- Backup posture: Platinum one-hour incremental backup for clinical and research evidence.
+- Audit retention: 2,555 hot days for regulated clinical evidence and 3,650 cold days for archived signatures.
+- Cost posture: regulated healthcare tenant with clinical uptime and research compliance cost centers.
+- SE demo objective: show clinicians can move quickly while compliance remains hard-gated and auditable.
+- Fixture boundary: not real clinical guidance, not patient data, not FDA validation evidence.
+
+## Active µservices
+
+- µservice 01: `application`.
+- Crescent usage: clinician workspace, nursing command view, compliance dashboard, and research launchpad.
+- Clinical note: active patient context is always visible and scoped.
+- µservice 02: `identity`.
+- Crescent usage: clinician passkeys, badge bridge, resident supervision, patient proxy, and break-glass roles.
+- Clinical note: emergency access emits HIPAA audit and requires after-action review.
+- µservice 03: `tenancy`.
+- Crescent usage: hospital, department, research protocol, and environment tier scoping.
+- Clinical note: research and care delivery subscopes remain separated.
+- µservice 04: `audit-chain`.
+- Crescent usage: HIPAA access seals, Part 11 signatures, AI review decisions, and disclosure evidence.
+- Clinical note: audit events are patient, protocol, and tenant scoped.
+- µservice 05: `compliance`.
+- Crescent usage: HIPAA, EU-AI-Act, Part 11, privacy office, and regulator evidence.
+- Clinical note: compliance dashboards show posture without exposing patient charts.
+- µservice 06: `consent-graph`.
+- Crescent usage: patient consent, research consent, proxy authority, and data-use authorization.
+- Clinical note: trial consent and treatment consent are separate graph edges.
+- µservice 07: `docs`.
+- Crescent usage: policies, clinical protocols, trial procedures, and compliance reports.
+- Clinical note: final protocols require Part 11 signature evidence.
+- µservice 08: `drive`.
+- Crescent usage: clinical attachments, imaging exports, consent PDFs, trial binders, and audit packets.
+- Clinical note: PHI classification is default for patient-linked objects.
+- µservice 09: `mail`.
+- Crescent usage: care-team updates, compliance notices, IRB correspondence, and patient communications.
+- Clinical note: outbound patient mail requires template and disclosure basis.
+- µservice 10: `messenger`.
+- Crescent usage: care-team threads, shift huddles, incident rooms, and trial coordinator channels.
+- Clinical note: message retention follows chart and research scope.
+- µservice 11: `calendar`.
+- Crescent usage: surgery schedules, nursing coverage, research visits, and compliance deadlines.
+- Clinical note: patient-linked calendars are restricted by care-team membership.
+- µservice 12: `meet`.
+- Crescent usage: telehealth consults, morbidity review, trial monitoring, and nursing handoff calls.
+- Clinical note: recording requires consent and role-scoped approval.
+- µservice 13: `recordings`.
+- Crescent usage: telehealth recordings, training clips, and monitor visits.
+- Clinical note: transcript access inherits patient and research protocol scope.
+- µservice 14: `notes`.
+- Crescent usage: shift handoff, research annotations, compliance notes, and incident notes.
+- Clinical note: nursing notes are care-team scoped, not broadly searchable.
+- µservice 15: `forms`.
+- Crescent usage: consent forms, adverse event intake, compliance attestations, and discharge checklists.
+- Clinical note: Part 11 form signatures are locked after finalization.
+- µservice 16: `tasks`.
+- Crescent usage: care tasks, trial follow-up, compliance remediation, and nursing work queues.
+- Clinical note: overdue care tasks escalate by clinical policy, not generic project rules.
+- µservice 17: `workflow-engine`.
+- Crescent usage: patient handoff, trial consent, adverse event, breach response, and AI review workflows.
+- Clinical note: workflow state changes emit patient-safe audit evidence.
+- µservice 18: `workflow-studio`.
+- Crescent usage: controlled design of handoff, research, compliance, and clinical incident workflows.
+- Clinical note: production workflows require validation evidence before activation.
+- µservice 19: `healthcare-integration`.
+- Crescent usage: EHR bridge, HL7/FHIR exchange, lab feeds, and clinical device messages.
+- Clinical note: integration failures open clinical incident workflows.
+- µservice 20: `ontology`.
+- Crescent usage: patient, encounter, clinician, consent, protocol, device, and evidence graph.
+- Clinical note: ontology projections distinguish care, research, and compliance context.
+- µservice 21: `intelligence`.
+- Crescent usage: clinical summary assist, trial eligibility summary, and compliance triage.
+- Clinical note: AI is assistive and never finalizes clinical decisions.
+- µservice 22: `analytics`.
+- Crescent usage: quality metrics, nursing throughput, research enrollment, and compliance trends.
+- Clinical note: analytics outputs are de-identified unless care-team scope permits detail.
+- µservice 23: `data-pipeline`.
+- Crescent usage: EHR feeds, device logs, trial events, and audit extracts.
+- Clinical note: lineage is required for every regulated report.
+- µservice 24: `data-warehouse`.
+- Crescent usage: research marts, quality reporting, and de-identified operational analytics.
+- Clinical note: PHI and limited data sets stay partitioned.
+- µservice 25: `detection`.
+- Crescent usage: privacy anomaly detection, security events, and clinical integration alerts.
+- Clinical note: suspected inappropriate chart access opens compliance workflow.
+- µservice 26: `observability`.
+- Crescent usage: integration health, policy latency, clinical queue metrics, and audit throughput.
+- Clinical note: clinical incident SLOs are tracked separately from general IT events.
+- µservice 27: `incident-management`.
+- Crescent usage: privacy incidents, clinical downtime, integration failures, and research deviations.
+- Clinical note: incident class determines who can read narrative detail.
+- µservice 28: `ops-dashboard-control-center`.
+- Crescent usage: hospital status, clinical integration health, privacy posture, and research evidence.
+- Clinical note: command center view excludes raw PHI.
+- µservice 29: `cloud-secrets`.
+- Crescent usage: certificate management, EHR bridge credentials, signing keys, and rotation evidence.
+- Clinical note: Part 11 signing material requires restricted custody.
+- µservice 30: `cloud-k8s`.
+- Crescent usage: regulated workload orchestration for clinical and research services.
+- Clinical note: clinical namespaces have stricter admission policy.
+- µservice 31: `translate`.
+- Crescent usage: patient instructions, consent support, and staff communication.
+- Clinical note: translated patient-facing content requires clinician or certified reviewer approval.
+- Subscribed count: 31 µservices.
+- Subscription consistency: clinical, research, and compliance surfaces use Platinum posture.
+- Demo constraint: Crescent foregrounds clinical safety and research evidence, not general enterprise collaboration.
+
+## Active Packs
+
+- Pack: `HIPAA-2024-US`.
+- Pack status: active.
+- Pack rationale: protected health information, treatment, payment, operations, breach response, and disclosure accounting.
+- Pack demo use: nurse handoff and break-glass access with sealed audit review.
+- Pack: `EU-AI-ACT-2024-HIGH-RISK`.
+- Pack status: active.
+- Pack rationale: clinical summary assist and trial eligibility support require high-risk AI oversight.
+- Pack demo use: show model suggestion, clinician review, and appeal or override evidence.
+- Pack: `FDA-21-CFR-PART-11`.
+- Pack status: active sample overlay.
+- Pack rationale: electronic records and signatures for regulated clinical trial records.
+- Pack demo use: investigator signs a protocol deviation and the signature record locks.
+- Pack interaction: HIPAA privacy rules govern patient access and disclosure.
+- Pack interaction: EU-AI-Act governs AI review and transparency for EU trial participants.
+- Pack interaction: Part 11 governs electronic signatures and audit trails for research records.
+- Pack interaction: all three packs must preserve evidence without broadening chart access.
+- Pack interaction: clinical care records and research binder records cannot collapse into one folder.
+- Pack interaction: patient consent and research consent are distinct graph edges.
+- Pack source note: Part 11 is a sample overlay because this checkout has no dedicated YAML pack for it.
+- Packs intentionally absent: DORA, KR-PIPA, CCPA, SOC 2, and PCI-DSS for this fixture.
+- Absence rationale: Crescent is healthcare-first and demonstrates specific clinical-regulatory controls.
+- SE positioning: this tenant is the clinical safety and regulated signature demo.
+
+## Org Structure
+
+- Board layer: fictional 16-member health system board.
+- Board committee: Quality and Safety Committee.
+- Board committee: Audit and Compliance Committee.
+- Board committee: Research Oversight Committee.
+- Board committee: Technology and Privacy Committee.
+- Executive layer: CEO Dr. Amara Okafor.
+- Executive layer: COO Patrick O'Reilly.
+- Executive layer: CMIO Dr. Kenji Tanaka.
+- Executive layer: Chief Nursing Officer Marisol Vega.
+- Executive layer: Chief Compliance Officer Tunde Bello.
+- Executive layer: CIO Jamie O'Connor.
+- Executive layer: Chief Research Officer Dr. Sun-Mi Kim.
+- Executive layer: Chief Privacy Officer Yui Hayashi.
+- Executive layer: Chief Financial Officer Mei-Ling Wu.
+- Clinical level 1: hospital president.
+- Clinical level 2: service line chair.
+- Clinical level 3: attending physician, resident, nurse manager, and care coordinator.
+- Nursing level 1: Chief Nursing Officer Marisol Vega.
+- Nursing level 2: hospital nursing directors.
+- Nursing level 3: unit managers, charge nurses, bedside nurses, and clinical educators.
+- Research level 1: Chief Research Officer.
+- Research level 2: IRB director and clinical trials office.
+- Research level 3: principal investigator, coordinator, monitor, and data manager.
+- Compliance level 1: Chief Compliance Officer Tunde Bello.
+- Compliance level 2: privacy office, research compliance, billing compliance, and security compliance.
+- Compliance level 3: investigators, analysts, auditors, and remediation owners.
+- Technology level 1: CIO.
+- Technology level 2: EHR integration, identity, clinical platform, data, and security.
+- Technology level 3: interface analyst, platform engineer, data steward, and service desk.
+- Headcount: physicians and advanced practice providers 5,200.
+- Headcount: nursing 9,800.
+- Headcount: allied health and clinical support 4,900.
+- Headcount: research faculty and staff 2,700.
+- Headcount: administration and revenue cycle 2,900.
+- Headcount: technology and security 1,200.
+- Headcount: compliance, privacy, legal, and audit 420.
+- Headcount: facilities, logistics, and food services 1,280.
+- Hospital headcount: Crescent University Hospital 9,700.
+- Hospital headcount: Crescent Children's Pavilion 4,300.
+- Hospital headcount: Crescent Oncology Institute 4,850.
+- Hospital headcount: Crescent Rehab and Neuroscience Center 3,100.
+- Hospital headcount: Crescent Community East 3,950.
+- Shared services headcount: 2,500.
+- Tenant admins: 84.
+- Clinical break-glass eligible principals: 2,200.
+- Research signature principals: 1,340.
+- Compliance reviewers: 132.
+- External monitor accounts: 420.
+- Patient proxy accounts in demo seed: 3,600.
+- Separation of duties: clinician can treat; compliance can audit; research can sign protocol records.
+- Separation of duties: nursing director sees staffing and handoff posture, not every research binder.
+- Separation of duties: compliance officer sees disclosure evidence, not unrestricted care notes.
+- Demo org edge: emergency access is possible but never silent.
+
+## Key Personas
+
+- Persona: Dr. Kenji Tanaka.
+- Fixture role: clinician and CMIO sponsor.
+- Roster link: [MASTER-ROSTER priority 18](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Dossier link: [dr-tanaka-surgeon](../../docs/personas/dr-tanaka-surgeon.md).
+- Journey link: [j63 clinical trial recruitment to consent](../../docs/user-journeys/j63-clinical-trial-recruitment-to-consent/README.md).
+- Demo stance: clinician review, patient context, and regulated research awareness.
+- Persona: Marisol Vega.
+- Fixture role: Chief Nursing Officer and nursing director sponsor.
+- Roster link: [MASTER-ROSTER](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Journey link: [j43 healthcare nurse patient handoff](../../docs/user-journeys/j43-healthcare-nurse-patient-handoff/README.md).
+- Demo stance: nursing handoff, shift safety, break-glass oversight, and staffing risk.
+- Persona: Tunde Bello.
+- Fixture role: compliance officer.
+- Roster link: [MASTER-ROSTER §3 row 45](../../docs/personas/MASTER-ROSTER-2026-05-21.md).
+- Dossier link: [compliance-officer-tunde-bello](../../docs/personas/compliance-officer-tunde-bello.md).
+- Journey link: [j43 healthcare nurse patient handoff](../../docs/user-journeys/j43-healthcare-nurse-patient-handoff/README.md).
+- Demo stance: HIPAA audit review, Part 11 evidence, and breach workflow oversight.
+- Supporting persona: Dr. Sun-Mi Kim.
+- Supporting link: [medical-resident-dr-sun-mi-kim](../../docs/personas/medical-resident-dr-sun-mi-kim.md).
+- Supporting use: supervised resident action and clinical training constraints.
+- Shared persona constraint: patient-care and research roles are projections over a single identity root.
+- Shared persona constraint: emergency care access emits audit and after-action review.
+
+## Sample Data Volumes
+
+- Drive: 620 TB total controlled clinical and research data.
+- Drive: 210 TB patient-linked attachments.
+- Drive: 88 TB clinical trial binders.
+- Drive: 44 TB consent and signature records.
+- Drive: 31 TB privacy investigation evidence.
+- Mail: 740 GB/day inbound plus outbound.
+- Mail: 42M messages/month.
+- Mail: 680K patient or research tagged messages/month.
+- Messenger: 9,800 active care-team channels.
+- Messenger: 720 shift handoff channels/day.
+- Messenger: 38M messages/month.
+- Calendar: 1.1M events/month.
+- Calendar: 92K clinical appointments/day in source systems.
+- Calendar: 18K research visits/month.
+- Meet: 31K telehealth or research meetings/month.
+- Recordings: 11 TB/month.
+- Notes: 6.4M shift or care notes/month.
+- Forms: 2.9M forms/month.
+- Forms: 110K electronic signatures/month.
+- Tasks: 26M clinical and operational tasks/month.
+- Workflow-engine: 8.6M workflow instances/month.
+- Workflow-engine: 2.1M nursing handoff tasks/month.
+- Workflow-engine: 420K research consent tasks/month.
+- Workflow-engine: 19K privacy investigation tasks/month.
+- Audit-chain: 5.8B audit events/month.
+- Audit-chain: 1.2B policy evaluation records/month.
+- Audit-chain: 74M signature and evidence records/month.
+- Identity: 28,400 employee identities.
+- Identity: 3,600 patient proxy identities in seed set.
+- Identity: 420 external monitor identities.
+- Identity: 1,900 service accounts and device feeds.
+- Healthcare integration: 24M HL7/FHIR messages/day.
+- Healthcare integration: 1.1M lab results/day.
+- Healthcare integration: 140K device observations/day.
+- Consent graph: 18M patient consent edges.
+- Consent graph: 620K active research consent edges.
+- Data warehouse: 4.2 PB logical de-identified and limited-data reporting.
+- Ontology: 210M patient-encounter-protocol graph edges.
+- Detection: 31K privacy anomaly signals/month.
+- Incident-management: 2,400 clinical or privacy incidents/month across all severities.
+- Observability: 18B metrics/day.
+- Translate: 1.2M patient instruction segments/month.
+- Storage growth: 28 TB/month.
+- Export volume: 6,700 regulated evidence exports/month.
+- Demo seed size: synthetic patient, care-team, and research data only.
+
+## Active Cedar Policies
+
+- Policy bundle: `crescent-hipaa-default-deny.bundle`.
+- Purpose: denies patient-linked data unless treatment, payment, operations, consent, or audit basis exists.
+- Applies to: application, identity, drive, docs, notes, workflow-engine, audit-chain.
+- Demo moment: nursing director sees handoff posture but not unrelated patient charts.
+- Policy bundle: `crescent-clinical-break-glass.bundle`.
+- Purpose: permits emergency chart access with reason, patient, role, and after-action review.
+- Applies to: identity, healthcare-integration, notes, audit-chain, incident-management.
+- Demo moment: clinician opens break-glass access and Tunde sees review task.
+- Policy bundle: `crescent-nursing-handoff-scope.bundle`.
+- Purpose: limits shift handoff notes to care team, unit leadership, and active patient context.
+- Applies to: notes, messenger, tasks, calendar, audit-chain.
+- Demo moment: Marisol reviews staffing risk without unrestricted chart browsing.
+- Policy bundle: `crescent-part11-signature-lock.bundle`.
+- Purpose: locks electronic records after signature and preserves signer, meaning, and timestamp.
+- Applies to: forms, docs, drive, workflow-engine, audit-chain.
+- Demo moment: protocol deviation signature cannot be edited after finalization.
+- Policy bundle: `crescent-eu-ai-clinician-review.bundle`.
+- Purpose: requires clinician review for clinical summary and trial eligibility assistance.
+- Applies to: intelligence, ontology, workflow-engine, audit-chain.
+- Demo moment: AI summary remains draft until Dr. Tanaka approves or rejects.
+- Policy bundle: `crescent-research-care-boundary.bundle`.
+- Purpose: prevents research staff from using care-delivery access as research consent.
+- Applies to: consent-graph, healthcare-integration, docs, drive, audit-chain.
+- Demo moment: trial coordinator is denied patient data without active research consent.
+- Policy bundle: `crescent-telehealth-recording-consent.bundle`.
+- Purpose: restricts telehealth recording and transcript export by patient consent and care purpose.
+- Applies to: meet, recordings, drive, audit-chain.
+- Demo moment: recording export blocks until consent basis is attached.
+- Policy bundle: `crescent-privacy-incident-quarantine.bundle`.
+- Purpose: quarantines suspected inappropriate access evidence for compliance review.
+- Applies to: detection, incident-management, docs, audit-chain.
+- Demo moment: suspected chart snooping becomes a privacy workflow.
+- Policy bundle: `crescent-clinical-device-feed.bundle`.
+- Purpose: restricts device observations to active encounter and authorized care teams.
+- Applies to: healthcare-integration, data-pipeline, ontology, audit-chain.
+- Demo moment: device data is visible in care context and denied in generic analytics.
+- Policy bundle: `crescent-deidentified-analytics.bundle`.
+- Purpose: allows operational analytics only when de-identification or limited-data-set controls hold.
+- Applies to: analytics, data-warehouse, data-pipeline, ontology, audit-chain.
+- Demo moment: quality dashboard shows trend without raw PHI.
+
+## Sample Workflows
+
+- Workflow: `crescent-nurse-shift-handoff`.
+- Trigger: unit shift change.
+- Owner: Marisol Vega.
+- Participants: charge nurse, bedside nurse, covering physician, and unit manager.
+- µservices: notes, messenger, tasks, identity, workflow-engine, audit-chain.
+- Pack binding: HIPAA.
+- Demo outcome: care-team handoff is rapid, scoped, and auditable.
+- Workflow: `crescent-clinical-break-glass-review`.
+- Trigger: emergency access to patient chart.
+- Owner: Tunde Bello.
+- Participants: accessing clinician, privacy analyst, unit director, and compliance officer.
+- µservices: identity, healthcare-integration, incident-management, workflow-engine, audit-chain.
+- Pack binding: HIPAA.
+- Demo outcome: emergency care is enabled and reviewed after the fact.
+- Workflow: `crescent-trial-consent-part11`.
+- Trigger: research participant signs electronic consent.
+- Owner: Dr. Sun-Mi Kim.
+- Participants: PI, coordinator, participant, monitor, and compliance reviewer.
+- µservices: forms, consent-graph, docs, drive, workflow-engine, audit-chain.
+- Pack binding: FDA 21 CFR Part 11 and HIPAA.
+- Demo outcome: signed consent locks with traceable signature meaning.
+- Workflow: `crescent-ai-summary-review`.
+- Trigger: clinical summary assist generates draft handoff summary.
+- Owner: Dr. Kenji Tanaka.
+- Participants: clinician, nurse, AI reviewer, and patient safety analyst.
+- µservices: intelligence, ontology, notes, workflow-engine, audit-chain.
+- Pack binding: EU-AI-Act and HIPAA.
+- Demo outcome: AI output cannot finalize without clinician review.
+- Workflow: `crescent-privacy-incident-investigation`.
+- Trigger: anomalous chart access pattern.
+- Owner: Tunde Bello.
+- Participants: privacy analyst, supervisor, legal counsel, and security.
+- µservices: detection, incident-management, docs, mail, audit-chain.
+- Pack binding: HIPAA.
+- Demo outcome: investigation evidence is quarantined and closed with finding.
+- Workflow: `crescent-research-monitor-visit`.
+- Trigger: sponsor monitor requests source document review.
+- Owner: clinical trials office.
+- Participants: monitor, coordinator, PI, and compliance reviewer.
+- µservices: drive, docs, forms, calendar, workflow-engine, audit-chain.
+- Pack binding: Part 11 and HIPAA.
+- Demo outcome: monitor sees protocol-scoped records only.
+
+## Sample Journeys
+
+- Linked journey: [j43 healthcare nurse patient handoff](../../docs/user-journeys/j43-healthcare-nurse-patient-handoff/README.md).
+- Crescent mapping: nurse handoff, break-glass scope, and HIPAA seal.
+- Linked journey: [j63 clinical trial recruitment to consent](../../docs/user-journeys/j63-clinical-trial-recruitment-to-consent/README.md).
+- Crescent mapping: research consent, Part 11 signature, and clinical trial workflow.
+- Linked journey: [j152 Ahmad Hassan construction incident bilingual](../../docs/user-journeys/j152-ahmad-hassan-construction-site-incident-bilingual/README.md).
+- Crescent mapping: incident bilingual pattern reused for patient safety communication.
+- Linked journey: [j161 Soyeon Kim allergen recall](../../docs/user-journeys/j161-cafeteria-soyeon-kim-allergen-recall-and-school-coordination/README.md).
+- Crescent mapping: safety recall communication pattern adapted for patient instructions.
+- Linked journey: [j166 Mira Goldberg strategic acquisition go/no-go](../../docs/user-journeys/j166-cso-mira-goldberg-strategic-acquisition-go-no-go/README.md).
+- Crescent mapping: executive risk review for research partnership decisions.
+- Linked journey: [j171 Felix Tan mediation](../../docs/user-journeys/j171-felix-tan-ombudsperson-cross-tenant-mediation-with-privilege/README.md).
+- Crescent mapping: privileged workforce complaint boundaries for healthcare staff.
+- Journey range anchor: j151-j175 plus healthcare-specific j43 and j63.
+- Journey constraint: Crescent foregrounds clinical and research journeys before corporate ones.
+
+## Sample Incidents
+
+- Incident: `CRESCENT-SEV2-2026-01-12-BREAK-GLASS-REVIEW`.
+- Severity: SEV-2.
+- Scenario: emergency chart access lacked after-action review within internal target.
+- Impact: 17 break-glass events queued beyond compliance SLA.
+- Detection: HIPAA review workflow overdue alert.
+- Primary µservices: identity, audit-chain, workflow-engine, incident-management.
+- Response owner: Tunde Bello.
+- Clinical owner: Marisol Vega.
+- Resolution: reviews completed and escalation policy tuned.
+- Demo use: prove emergency access is possible but never silent.
+- Incident: `CRESCENT-SEV2-2026-02-05-HL7-FEED-LAG`.
+- Severity: SEV-2.
+- Scenario: lab result feed lagged at Crescent Oncology Institute.
+- Impact: 280 lab result messages delayed from downstream workflow queues.
+- Detection: healthcare-integration observability alert.
+- Primary µservices: healthcare-integration, observability, workflow-engine, audit-chain.
+- Response owner: CIO Jamie O'Connor.
+- Clinical owner: Dr. Kenji Tanaka.
+- Resolution: queue replay completed and downtime communication retained.
+- Demo use: link integration health to clinical incident evidence.
+- Incident: `CRESCENT-SEV2-2026-02-27-PART11-SIGNATURE-DRIFT`.
+- Severity: SEV-2.
+- Scenario: trial deviation form had mismatched signer meaning and workflow state.
+- Impact: 12 deviation forms blocked from monitor package.
+- Detection: Part 11 signature lock policy.
+- Primary µservices: forms, docs, workflow-engine, audit-chain.
+- Response owner: clinical trials office.
+- Compliance owner: Tunde Bello.
+- Resolution: forms re-signed and old records sealed as superseded.
+- Demo use: show electronic record integrity.
+- Incident: `CRESCENT-SEV2-2026-03-18-AI-SUMMARY-OVERRIDE`.
+- Severity: SEV-2.
+- Scenario: clinical summary assist proposed incorrect medication context.
+- Impact: draft handoff summary blocked before finalization.
+- Detection: clinician review rejection.
+- Primary µservices: intelligence, notes, ontology, audit-chain.
+- Response owner: Dr. Kenji Tanaka.
+- Nursing owner: Marisol Vega.
+- Resolution: source note mapping corrected and model feedback retained.
+- Demo use: show AI review as safety control.
+- Incident: `CRESCENT-SEV2-2026-04-09-TELEHEALTH-RECORDING-CONSENT`.
+- Severity: SEV-2.
+- Scenario: recording export request lacked patient consent basis.
+- Impact: transcript export quarantined before release.
+- Detection: recording consent policy denial.
+- Primary µservices: meet, recordings, consent-graph, audit-chain.
+- Response owner: privacy office.
+- Compliance owner: Tunde Bello.
+- Resolution: consent confirmed for one clip and other clips remained sealed.
+- Demo use: demonstrate patient consent boundary.
+
+## Demo Script
+
+- Demo moment 01: `Crescent Clinical Open`.
+- Presenter action: open Crescent tenant overview.
+- Buyer-facing point: five-hospital academic medical center with HIPAA, EU-AI-Act, and Part 11.
+- Evidence to show: cells, packs, clinical services, and fixture boundary.
+- Stop condition: audience understands this is synthetic clinical data.
+- Demo moment 02: `Nursing Handoff`.
+- Presenter action: enter Marisol Vega's nursing command view.
+- Buyer-facing point: shift handoff is fast but patient-scoped.
+- Evidence to show: unit handoff notes, task queue, and audit seal.
+- Stop condition: nursing safety and privacy are visible.
+- Demo moment 03: `Break-Glass Access`.
+- Presenter action: show emergency clinician access and after-action review.
+- Buyer-facing point: care is not blocked, but access is reviewed.
+- Evidence to show: reason code, patient context, audit event, and review task.
+- Stop condition: HIPAA emergency posture is clear.
+- Demo moment 04: `Clinical AI Review`.
+- Presenter action: open a draft clinical summary assist result.
+- Buyer-facing point: AI output is reviewed by clinician before use.
+- Evidence to show: source note, model explanation, approve/reject, and audit trail.
+- Stop condition: EU-AI-Act human oversight is concrete.
+- Demo moment 05: `Part 11 Signature`.
+- Presenter action: finalize a protocol deviation form.
+- Buyer-facing point: electronic signature captures signer, meaning, time, and immutable state.
+- Evidence to show: form record, signature lock, and audit-chain entry.
+- Stop condition: signed record cannot be silently changed.
+- Demo moment 06: `Research Monitor Scope`.
+- Presenter action: enter external monitor view.
+- Buyer-facing point: monitors see protocol-scoped records only.
+- Evidence to show: allowed binder, denied care note, and reason code.
+- Stop condition: research and care boundaries are obvious.
+- Demo moment 07: `Privacy Incident`.
+- Presenter action: show suspected inappropriate chart access investigation.
+- Buyer-facing point: compliance can investigate without broad operational exposure.
+- Evidence to show: anomaly, quarantine, assigned reviewer, and closure finding.
+- Stop condition: investigation lifecycle is auditable.
+- Demo moment 08: `Telehealth Consent`.
+- Presenter action: attempt transcript export without consent.
+- Buyer-facing point: recording export is consent-bound.
+- Evidence to show: denial, consent graph edge, and approved limited export.
+- Stop condition: patient consent is visible.
+- Demo moment 09: `Command Center`.
+- Presenter action: return to hospital status dashboard.
+- Buyer-facing point: executives see clinical posture without raw PHI.
+- Evidence to show: integration status, incident counts, and pack health.
+- Stop condition: healthcare tenant is ready for clinical buyer Q&A.

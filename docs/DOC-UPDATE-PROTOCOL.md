@@ -40,8 +40,8 @@ doc_status: published
 ## Stage 3: Validation
 
 14. Run the `validation_check` per [DOC-CATALOG.md §2](DOC-CATALOG.md).
-15. Run the dependent-docs cross-link check (`oya-foundry-fitness-doc-catalog`).
-16. Run [`oya-foundry-fitness-glossary`](GLOSSARY.md) to sync any new terms.
+15. Run the dependent-docs cross-link check (`oya-governance-doc-catalog`).
+16. Run [`oya-governance-glossary`](GLOSSARY.md) to sync any new terms.
 17. For agent authoring: emit `EVT-DOC-UPDATED` audit-chain record per ADR-0003.
 
 ## Stage 4: Review

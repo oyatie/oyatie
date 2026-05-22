@@ -86,6 +86,20 @@ Per PHASE-01 rest class: 1 test per route (happy + auth-fail + tenant-mismatch) 
 - Direct adapter import — must go through application/usecase ports
 - Any handler missing Cedar gate — refuse
 
+
+## API Versioning (per ADR-0342)
+- Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
+- `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
+- Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
+- Surface evidence: `microservices/observability/IP-007-slo-engine-rest.md` matched `openapi`; contract files `microservices/observability/contracts/openapi/slo-engine.yaml, microservices/observability/contracts/asyncapi/eligibility-events.yaml, microservices/observability/contracts/proto/slo-engine.proto`; type anchor `crates/oya-cloud-observability-api/src/lib.rs::CloudObservabilityAuditRecord`.
+
+## DR posture (per ADR-0343)
+- Manifest target source: `microservices/observability/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
+- Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), SOC2-T2(rto=14400,rpo=900,multi_region=false), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
+- Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
+- `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
+- Surface evidence: `microservices/observability/IP-007-slo-engine-rest.md` matched `SLO`; anchors `microservices/observability/runbooks/clickhouse-restore.md, crates/oya-cloud-observability-api/src/lib.rs`; type anchor `crates/oya-cloud-observability-api/src/lib.rs::CloudObservabilityAuditRecord`.
+
 ## Next IP
 
 [`IP-008-slo-engine-worker.md`](IP-008-slo-engine-worker.md)

@@ -81,7 +81,7 @@ Minimum 5 required; 10 specified.
 
 ## Phase 2 trigger (ADR-0204)
 
-ADR-0204 fixes Phase 2 trigger at "Leptos web ships per ADR-0185" **AND** ">5k node graph becomes the median". Until then, this crate stays Drafting + scaffolded-only; IP-016 (svelte-flow) remains the production path. After Phase 2 trigger fires, a separate cutover IP (TBD-numbered) executes the swap with feature-flag rollout per docs/standards/cutover-and-rollout.md.
+ADR-0204 fixes Phase 2 trigger at "Leptos web ships per ADR-0185" **AND** ">5k node graph becomes the median". Until then, this crate stays Drafting + scaffolded-only; IP-016 (svelte-flow) remains the production path. After Phase 2 trigger fires, a separate cutover IP (future-numbered) executes the swap with feature-flag rollout per docs/standards/cutover-and-rollout.md.
 
 ## Evidence to emit
 
@@ -138,3 +138,22 @@ cargo test -p oya-workflow-studio-canvas-leptos --tests
 - IP-016 — svelte-flow (Phase 1).
 - Leptos book — `https://leptos-rs.github.io/leptos/`.
 - wgpu — `https://wgpu.rs/`.
+
+## Counterpart Anchors
+This workflow-studio IP is measured against the local Workflow Studio benchmark envelope: n8n for visual workflow authoring depth, Zapier for broad trigger/action accessibility, Make for visual branching and scenario ergonomics, and Workato for enterprise workflow governance. The IP must keep Oyatie's differentiator intact: canonical workflow_spec.v1 round-trip, Cedar-gated save/publish, tenant-scoped collaboration, and audit evidence rather than counterpart-specific runtime authority.
+
+## DR posture (per ADR-0343)
+
+- ha_trigger_evidence: `microservices/workflow-studio/IP-017-leptos-canvas-scaffold.md` matched [`p99`].
+- applicable_compliance_pack_floor: [`HIPAA-2024`, `SOC2-T2`, `ISO27001-2022`] from `specs/compliance-pack-floors.json`; `manifest.json#dr` has no D-2 numeric override in this checkout.
+- rto_p99_seconds_target: `3600`; rpo_p99_seconds_target: `300`.
+- multi_region_active_active: `true`; floor_requires_active_active: `true`.
+- backup_substrate: [`postgres_wal_g`, `object_storage_versioned`, `iceberg_snapshot`, `audit_chain_merkle_seal`].
+- evidence_paths: [`microservices/workflow-studio/IP-017-leptos-canvas-scaffold.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/ARCHITECTURE.md`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/multi-region.md`, `microservices/workflow-studio/capacity-model.md`].
+
+## Pod runtime tier (per ADR-0338)
+
+- pod_runtime_tier: `0`.
+- runtime_requirement: Kata Containers plus Cloud Hypervisor REQUIRED.
+- justification: tenant-customer code exists in this IP execution path; trigger_terms: [`workflow-studio`].
+- surface_evidence_paths: [`microservices/workflow-studio/IP-017-leptos-canvas-scaffold.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/templates/index.json`, `microservices/workflow-studio/templates/schemas/workflow-template.schema.json`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/ARCHITECTURE.md`].

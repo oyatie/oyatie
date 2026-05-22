@@ -68,7 +68,7 @@ split per BC into per-domain crates.
 | `oya-connect-tasks-view-usecase` | `oya-tasks-view-engine-usecase` |
 | `oya-connect-tasks-view-api` | `oya-tasks-view-engine-api` |
 | `oya-connect-tasks-view-adapter` | `oya-tasks-view-engine-adapter` |
-| `oya-connect-tasks-view-adapter-redis` | `oya-tasks-view-engine-adapter-redis` |
+| `oya-connect-tasks-view-adapter-valkey` | `oya-tasks-view-engine-adapter-valkey` |
 | `oya-connect-tasks-view-rest` | `oya-tasks-view-engine-rest` |
 | `oya-connect-tasks-view-app` | `oya-tasks-view-engine-app` |
 | `oya-connect-tasks-dependency-kernel` | `oya-tasks-dependency-graph-kernel` |
@@ -130,7 +130,7 @@ surface — they are clean replacement-boundary features:
   importers per ADR-TASKS-0001; legacy had CSV only.
 - **`oya-tasks-recurrence-worker`** — automated recurring-task
   materialisation; the legacy surface materialised lazily at read time.
-- **`oya-tasks-view-engine-adapter-redis`** — presence + view-cursor
+- **`oya-tasks-view-engine-adapter-valkey`** — presence + view-cursor
   CRDT-light state per ADR-TASKS-0004; the legacy surface had no
   realtime presence.
 - **Dependency-graph cycle prevention at write time** — PRD FR-04 +
@@ -412,7 +412,7 @@ satisfy these checks. Each is gated by a concrete command:
 - [ ] **No references to the deprecated system remain in the codebase**
   (excluding historical ADR / RETIRED.md / git-log surfaces):
   ```bash
-  rg "oya_connect_tasks" --type rust | rg -v "docs/decisions/|RETIRED.md|tests/golden/" | wc -l   # expect 0
+  rg "oya_connect_tasks" --type rust | rg -v "docs/decisions/|RETIRED.md|tests/reference/" | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed (they served their purpose)** (per Phase 5):
   ```bash

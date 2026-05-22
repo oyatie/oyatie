@@ -327,7 +327,7 @@ had a long-tail dependency:
    percent-encoding for round-trip safety per RFC 3986. Consumers
    whose URLs contained percent-encoded characters MUST re-test after
    migration; the redirect-signature-stability test corpus
-   (`tests/golden/url_signature_stability.rs`) covers the 23 named
+   (`tests/reference/url_signature_stability.rs`) covers the 23 named
    edge cases.
 
 2. **sitemap.xml ordering.** Legacy emitted sitemap entries in
@@ -423,7 +423,7 @@ had a long-tail dependency:
   ```
 - [ ] **No references to the deprecated system remain in the codebase**:
   ```bash
-  rg "oya_connect_sites" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/golden/"    | wc -l   # expect 0
+  rg "oya_connect_sites" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/reference/"    | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed** (per Phase 5):
   ```bash

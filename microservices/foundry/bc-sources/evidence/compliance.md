@@ -25,8 +25,8 @@ This µservice is the audit-evidence frontend for the Foundry agent runtime. Its
 |---|---|---|
 | Art. 12 — Recordkeeping (logs) | Maintain machine-readable logs of operation throughout the lifecycle of the high-risk AI system; logs must include period, reference database against which input is checked, identification of natural persons involved | EvidencePack carries `invocation_ts`, `model_version`, `provider`, `agent_id`, `capability_id`, `principal_spiffe_id`; sealed in audit-chain |
 | Art. 18 — Technical documentation | Maintain technical documentation demonstrating compliance | regulator-export `eu-ai-act` profile includes Art. 18 fields with citation anchors |
-| Art. 26 — Obligations of deployers | Use system in accordance with intended purpose; keep logs ≥ 6 months (or as required by Union/Member State law) | `policy/data-residency.md` retention: 10 y for pack-eu AI-Act high-risk records; T2/T3 autonomy-tier decisions tied to deployer obligation |
-| Art. 14 — Human oversight | Enable natural persons to oversee the system | autonomy_tier T3 + foundry-supervisor escalation records; `governance` µservice review-and-respond loop |
+| Art. 26 — Obligations of deployers | Use system in accordance with intended purpose; keep logs ≥ 6 months (or as required by Union/Member State law) | `policy/data-residency.md` retention: 10 y for pack-eu AI-Act high-risk records; T2/T3 autonomy-ceiling decisions tied to deployer obligation |
+| Art. 14 — Human oversight | Enable natural persons to oversee the system | autonomy_level T3 + foundry-supervisor escalation records; `governance` µservice review-and-respond loop |
 | Art. 50 — Transparency to natural persons | When applicable, inform natural persons interacting with AI system | foundry-evidence captures `transparency_disclosure_evidence_hash` field (when supplied by foundry-runtime); content gated by `payload_data_class` |
 | Art. 60-66 — Post-market monitoring | Establish post-market monitoring system | foundry-evidence is the post-market monitoring backbone; evidence-query + dashboards |
 
@@ -45,7 +45,7 @@ This µservice is the audit-evidence frontend for the Foundry agent runtime. Its
 | Article | Obligation | foundry-evidence control |
 |---|---|---|
 | Art. 5 Principles | lawfulness, fairness, transparency; purpose limitation; data minimisation; accuracy; storage limitation; integrity + confidentiality; accountability | DPIA Section 3; data-minimisation via `payload_data_class` gating; storage-limitation via retention cascade |
-| Art. 22 Automated decision-making | Right not to be subject to a decision based solely on automated processing | EvidencePack carries `autonomy_tier_decision` + `autonomy_tier_rationale_hash`; T3 carries human-in-the-loop evidence |
+| Art. 22 Automated decision-making | Right not to be subject to a decision based solely on automated processing | EvidencePack carries `autonomy_level_decision` + `autonomy_level_rationale_hash`; T3 carries human-in-the-loop evidence |
 | Art. 25 Data protection by design | Implement appropriate technical + organisational measures | Cedar default-deny + SPIFFE + WORM + Merkle seal (substrate) |
 | Art. 30 ROPA | Records of processing activities | DPIA Section 7 join + regulator-export `gdpr` profile |
 | Art. 32 Security | Pseudonymisation + encryption + ongoing confidentiality, integrity, availability, resilience | TLS 1.3 + mTLS + AES-256-GCM at rest + Ed25519 seal (substrate) |

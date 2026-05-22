@@ -3,6 +3,11 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-05-20 — ADR-0320 transient program identity doctrine authored
+
+- Added ADR-0320 for apprentice, intern, resident, fellow, co-op, and extern identities as multi-tenant transient program memberships with time-bound Cedar permits, labor overlays, portfolio survival, and shared-crate implementation footprint.
+- Captured multispectrum evidence at `evidence/multispectrum/adr-0320-transient-identity-1779293714.json`.
+
 ## 2026-05-16 — PRs 12-18 multispectrum review backfill + drift-sweep fix-PR
 
 Multispectrum-review v2.3.0 wave covering merged PRs #12, #13, #15, #17, #18.
@@ -512,3 +517,8 @@ This is the founding consolidation, authored in one session as the project repos
 
 ### v2 backlog
 - `docs/raw/plan-v2-draft.md` — 1,847 leaves across P0-P20 in 110 batch tags; full schema per-leaf; covers all 7 axes + cross-cutting + contradiction-resolution + brand-rename + long-tail
+
+
+---
+
+> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

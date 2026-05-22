@@ -6,7 +6,7 @@ doc_status: published
 
 > **When:** New external dependency considered for adoption (Cargo crate / npm package / container image / managed service / SaaS as system-of-record).
 > **Owner:** Owning axis + `council-architecture` review + `ops-security` for licensing.
-> **Validator:** `oya-foundry-fitness-build-vs-buy` lane + ADR-0014 enforcement.
+> **Validator:** `oya-governance-build-vs-buy` lane + ADR-0014 enforcement.
 
 ---
 
@@ -61,7 +61,7 @@ doc_status: published
 19. ☐ `cargo deny check` passes
 20. ☐ `cargo machete` confirms no orphan deps newly created
 21. ☐ Trivy / SBOM updated
-22. ☐ `oya-foundry-fitness-build-vs-buy` lane passes
+22. ☐ `oya-governance-build-vs-buy` lane passes
 
 ## 9. Council review (for `requires-review` tier)
 

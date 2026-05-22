@@ -171,3 +171,17 @@ Kernel class: 90% line / 80% branch.
 
 - ADR-0105, ADR-0106, ADR-0028 (data-class)
 - `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`
+
+## Wave 15-IP-substance counterpart anchor
+
+Preserved as substantive: this IP already defines concrete kernel entities, ports, zeroization expectations, and crate targets for `oya-cloud-secrets-secret-reference-resolver-kernel`. Counterpart evidence comes from the parity matrices: AWS Secrets Manager, Google Secret Manager, Azure Key Vault, HashiCorp Vault, and Akeyless all expose SDK retrieval primitives, but Oyatie's differentiator is a kernel-level `Secret<T>` and port boundary that makes raw-value logging, unbounded TTL, and unaudited revocation impossible for downstream adapters to normalize away.
+
+Grep-recognized counterpart anchor: GitHub Actions Secrets is relevant only at the CI boundary where resolver tests and branch gates consume secret handles. This kernel IP keeps that distribution concern outside the primary comparator truth, which remains Vault/OpenBao/KMS resolver behavior.
+
+## API Versioning (per ADR-0342)
+
+- Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
+- Initial declared_version: `microservices/cloud-secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
+- Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
+- Surface evidence: `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `microservices/cloud-secrets/IP-003-resolver-kernel.md`.

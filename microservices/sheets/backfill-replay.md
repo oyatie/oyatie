@@ -60,7 +60,7 @@ Replay re-emits / re-renders a workbook version with the current formula-engine 
 | Bug fix in formula-engine (per ADR-SHEETS-0002) | Replay all saved workbooks through new formula-engine; assert formula results unchanged on Excel-reference corpus subset | If non-equal: flag for tenant review; do NOT auto-overwrite |
 | Bug fix in recalc-engine | Replay recalc on saved workbooks; assert no new diagnostic errors | Surface errors per-tenant |
 | Conditional-formatting rule change | Replay formatting resolution; surface visual diff | Tenant decides accept/reject |
-| XLSX importer version bump (calamine major version) | Replay XLSX import on the 100-workbook golden corpus per ADR-SHEETS-0007; assert best-effort tier preserved | If regression: roll back importer |
+| XLSX importer version bump (calamine major version) | Replay XLSX import on the 100-workbook reference corpus per ADR-SHEETS-0007; assert best-effort fidelity preserved | If regression: roll back importer |
 | Pivot-table aggregator change | Replay pivot evaluation; surface result diff | Tenant decides accept/reject |
 | Chart renderer change | Replay chart render; surface visual diff | Tenant decides accept/reject |
 | Schema migration (canonical-sheet v1 → v2) | Replay via migration adapter; emit v2 sheet; preserve v1 lineage | Two-version coexistence |
@@ -81,7 +81,7 @@ Replay re-emits / re-renders a workbook version with the current formula-engine 
 
 ### Verification
 
-- Integration test: replay 100-workbook XLSX golden corpus through current formula-engine; expect best-effort tier preserved per ADR-SHEETS-0007.
+- Integration test: replay 100-workbook XLSX reference corpus through current formula-engine; expect best-effort fidelity preserved per ADR-SHEETS-0007.
 - Migration test: replay v1 canonical-sheet through v2 adapter; expect lossless conversion.
 
 ## Cost Model

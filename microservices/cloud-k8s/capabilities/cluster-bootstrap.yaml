@@ -106,7 +106,7 @@ cedar_policy_fragments:
   - microservices/cloud-k8s/policy/auditor-scope.cedar (auditor read scope)
 
 eval_set:
-  golden_inputs_path: microservices/cloud-k8s/capabilities/eval/cluster-bootstrap-golden.jsonl
+  reference_inputs_path: microservices/cloud-k8s/capabilities/eval/cluster-bootstrap-reference.jsonl
   pass_threshold: 0.99
   eval_metric: bootstrap-completion-within-30min-p99
   cadence: per-release

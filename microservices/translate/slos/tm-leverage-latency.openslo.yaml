@@ -8,7 +8,7 @@ metadata:
     microservice: translate
     bc: translation-memory
     sli_class: latency
-    tier: hero-and-substrate
+    service_classification: hero-and-substrate
     owner_team: axis-translate
     pack_scope: all
 spec:

@@ -1,88 +1,86 @@
 ---
-doc_class: ImplementationPlan
-template_id: TPL-IMPL
-milestone: M01-foundation
-phase: P01-ci-fitness-consolidation
-impl_plan_id: IP-013-aggregation-index-generation-lane
-status: pending
-execution_unit: ChangeSet
-changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-foundry
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, aggregation-index-generation]
+doc_class: Implementation-Plan
+ip_id: IP-013-aggregation-index-generation-lane
+status: planned
+owner: axis-governance
+wave_scrub: Wave 15-IP-substance 2026-05-21
+microservice: governance
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# Aggregation index generation lane
 
-# IP-013: oya-check-aggregation-index-generation lane (BLOCKER on dev)
+## A. Problem
 
-## Intent
+The previous slice for `IP-013-aggregation-index-generation-lane` was too close to a design-anchor shell: it named the intended control but did not bind the work to governance's actual contracts, policy files, SLOs, and runbooks. This IP closes the `deterministic central-index verification` gap for the governance µservice, not for a generic operations or governance product. The implementation must be reviewable as a single Oya VCS changeset and must not claim runtime maturity until the named artifacts exist and validate.
 
-Author the new BLOCKER lane that asserts central aggregation indices match per-µservice sources. Refuses hand-edits per ADR-0131 §"What stays central" + F-04.
+The service-local grounding is `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto`. The authorization grounding is `policy/auditor-scope.cedar`, `policy/ci-scope.cedar`, `policy/tenant-scope.cedar`, and `policy/cedar-canonical-imports.cedar`. The work must preserve ADR-0243 default-deny Cedar semantics, ADR-0244 tenant-scoped evidence, ADR-0263 audit event emission, and ADR-0131 flat µservice ownership.
 
-## ChangeSet boundary
+## B. Approach
 
-New crate + activation.
+Implement the slice as a bounded, contract-first change. Start from the existing capability and catalog surfaces, add or amend only the smallest kernel/usecase/adapter/rest/worker pieces needed for this IP, then wire the dashboard, SLO, and runbook evidence named below. Every mutating path must require an idempotency key, authenticated principal, Cedar decision id, audit event id, and rollback/evidence reference. Read paths must distinguish observed state from operator decisions.
 
-## Concrete File Targets
+Technical target set: aggregation-indexer catalog rows, runbooks/aggregation-rebuild.md, dashboards/industry-conformance-delta.json. If one of these paths is absent when implementation starts, create that exact missing artifact or record an explicit IaC/catalog gap in this IP's evidence; do not cite fake Terraform, fake Cedar entity types, or unavailable endpoints.
 
-| Path | Action |
-|---|---|
-| `…/oya-check-aggregation-index-generation/Cargo.toml` | create |
-| `…/src/main.rs` | create — CLI |
-| `…/src/divergence.rs` | create — divergence detection logic |
-| `.github/branch-protection.yaml` | edit — add to `required_status_checks` |
-| `microservices/governance/catalog/oya-check-aggregation-index-generation.yaml` | create |
+## C. Deliverables
 
-## Code Shape
+- Contract updates in the relevant OpenAPI, AsyncAPI, or Proto file named by the service manifest.
+- Domain/kernel value object for `deterministic central-index verification` with tenant, principal, cell, HLC timestamp, Cedar decision, audit event, and idempotency fields.
+- Usecase orchestration that fails closed when Cedar, OpenBao, audit-chain, or required source projections are unavailable.
+- Adapter/rest/worker wiring only where this IP needs runtime I/O; no unrelated refactor across sibling bounded contexts.
+- Dashboard, SLO, and runbook linkage using the concrete artifact set: aggregation-indexer catalog rows, runbooks/aggregation-rebuild.md, dashboards/industry-conformance-delta.json.
+- Catalog/capability row update when the IP exposes or changes an operator/governance capability.
 
-```rust
-// src/main.rs
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let reader = FsSourceReader::new(".");
-    let computed = oya_governance_aggregation_indexer_usecase::regenerate_in_memory(&reader).await?;
-    let actual = read_central_indices(".")?;
+## D. Implementation Steps
 
-    let div = compute_divergence(&computed, &actual);
-    if !div.is_empty() {
-        for d in &div {
-            println!("BLOCKER aggregation-divergence: {} (expected vs actual mismatch)", d.path);
-        }
-        std::process::exit(1);
-    }
-    println!("PASS: aggregation indices match per-µservice sources");
-    Ok(())
-}
-```
+1. Read `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto` and confirm the bounded context that owns `deterministic central-index verification`; update the manifest or catalog only if that owner is missing.
+2. Add the kernel/domain type with explicit tenant scope, principal scope, HLC time, decision ids, and audit seal refs; keep provider credentials as OpenBao references rather than raw secrets.
+3. Add usecase logic that evaluates Cedar before storage/provider access and returns structured refusal evidence on deny, stale pack, missing tenant, or audit-chain backpressure.
+4. Update the selected REST/gRPC/event contract so external callers and workers share the same envelope and error shape.
+5. Wire dashboard/SLO/runbook evidence from aggregation-indexer catalog rows, runbooks/aggregation-rebuild.md, dashboards/industry-conformance-delta.json; dashboard panels must point to real metric/event names and runbook links must resolve.
+6. Add tests for allow, deny, stale policy/pack, duplicate idempotency key, audit emission failure, and rollback/evidence replay.
+7. Run the service-local validation commands named in acceptance, then attach the command output and changed-file list to the changeset evidence.
 
-## Acceptance Gates
+## E. Acceptance
 
-```bash
-cargo check -p oya-check-aggregation-index-generation
-cargo nextest run -p oya-check-aggregation-index-generation
-cargo run -p oya-dev-cli -- gate validate aggregation-index-generation
-# Self-application: governance itself produces deterministic indices
-```
+- The IP cites real service artifacts and no placeholder paths.
+- Contract validation parses the touched OpenAPI/AsyncAPI/Proto surface.
+- Cedar tests prove at least one permit and one forbid path for the concrete action in this IP.
+- Audit evidence includes an ADR-0263 event class, Ed25519/Merkle seal reference where applicable, and a replay or rollback reference.
+- SLO/dashboard/runbook references resolve from the repo tree.
+- `oya vcs verify --agent <id> --changeset <id>` passes before done/promote.
 
-## Test Plan
+## F. Evidence
 
-| Test | Verifies |
-|---|---|
-| `test_divergence_detected_on_hand_edit` | F-04 mitigation |
-| `test_deterministic_across_runs` | Invariant 1 |
-| `test_lane_idempotent_re_run` | Invariant 6 |
-| `test_legacy_grandfathered_during_migration` | per ADR-0131 §strangler |
+- Service docs: `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto`.
+- Policy docs: `policy/auditor-scope.cedar`, `policy/ci-scope.cedar`, `policy/tenant-scope.cedar`, and `policy/cedar-canonical-imports.cedar`.
+- Operational evidence: aggregation-indexer catalog rows, runbooks/aggregation-rebuild.md, dashboards/industry-conformance-delta.json.
+- Doctrine: ADR-0324 anti-template-stamping, ADR-0328 D-20 Big-8 elevation, ADR-0131 flat µservice layout, ADR-0263 audit events, ADR-0243 Cedar deny-wins.
 
-## Halt Conditions
+## G. Counterparts
 
-- Divergence appears across two consecutive lane runs → halt; investigate ordering rules; fix in same PR.
+| Counterpart | Relevant pressure | Oyatie closure in this IP |
+|---|---|---|
+| Backstage TechDocs and GitHub code search | Mature external control surface to compare against. | Backstage TechDocs and GitHub code search are counterpart catalog surfaces; Oyatie refuses hand-edited aggregation indexes. |
+| GitHub | Required verification regex and PR/evidence control-plane precedent. | This IP remains changeset-driven, reviewable, and tied to branch/admission evidence rather than prose-only approval. |
 
-## Next IP
+## H. Service-Specific Drilldown
+1. Read per-µservice PRD, manifest, catalog, SLO, policy, and contract sources into an in-memory computed index.
+2. Compare computed index to central projections and print exact divergence paths with expected/actual digest.
+3. Reject hand-edits to `docs/prds/INDEX.md`, `registry/catalog/`, and specs projections unless regenerated from source.
+4. Backstage TechDocs is the doc-index counterpart; GitHub code search is the discoverability counterpart; Oyatie adds BLOCKER enforcement.
+5. Tests cover deterministic ordering, hand-edit detection, legacy-grandfathering during migration, and rerun idempotence.
+6. Runbook linkage uses `runbooks/aggregation-rebuild.md` for operator recovery after divergence.
 
-[`IP-014-observability-slo-authoring.md`](IP-014-observability-slo-authoring.md)
+## I. Review Notes
 
-## References
+This section is intentionally specific to this IP; do not copy it to sibling IPs. Reviewers should reject the changeset if the implementation evidence cannot trace each drilldown row to a real file, test, command, dashboard, SLO, runbook, or policy decision.
 
-- ADR-0131 §"oya-governance-aggregation-index-generation".
-- `microservices/governance/failure-modes.md` F-04.
-- `microservices/governance/runbooks/aggregation-rebuild.md`.
+## J. Verification Hooks
+
+- Hook 7.1: changed-file evidence must include this IP path and the concrete service artifacts named above.
+- Hook 7.2: contract parsing must run after any OpenAPI, AsyncAPI, or Proto edit for this slice.
+- Hook 7.3: Cedar permit and forbid cases must cite the real policy file and action name used by this slice.
+- Hook 7.4: audit evidence must include event class, seal reference, actor, tenant/cell scope, and idempotency key.
+- Hook 7.5: rollback evidence must name the runbook or explain why the slice is read-only.
+- Hook 7.6: counterpart closure must be reviewed against the named GitHub/Stripe/Snowflake/etc. row, not inferred from line count.
+- Hook 7.7: promotion is blocked if any cited dashboard, SLO, catalog, capability, or runbook path is absent.

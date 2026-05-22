@@ -52,8 +52,8 @@ Each Failure Mode = (id, summary, severity, detection signal, runbook, mitigatio
 
 | # | Summary | Severity | Detection signal | Runbook | RTO |
 |---|---|---|---|---|---|
-| FM-20 | QE model regression (verdict-correctness drops) | Sev-2 | `oya_translate_qe_eval_pass_rate` < 0.99 vs golden set | `runbooks/quality-estimation-rollback.md` | ≤ 30 min (rollback to previous model version) |
-| FM-21 | QE score skew (model over-reports quality) | Sev-2 | offline regression detected by golden eval-set | `runbooks/quality-estimation-rollback.md` | ≤ 30 min |
+| FM-20 | QE model regression (verdict-correctness drops) | Sev-2 | `oya_translate_qe_eval_pass_rate` < 0.99 vs reference set | `runbooks/quality-estimation-rollback.md` | ≤ 30 min (rollback to previous model version) |
+| FM-21 | QE score skew (model over-reports quality) | Sev-2 | offline regression detected by reference eval-set | `runbooks/quality-estimation-rollback.md` | ≤ 30 min |
 | FM-22 | LangDetect model returns wrong language family | Sev-3 | `oya_translate_langdetect_eval_pass_rate` < 0.95 | `runbooks/quality-estimation-rollback.md` §"langdetect rollback" | ≤ 30 min |
 | FM-23 | QE EU AI Act disclosure suppression (event not emitted) | Sev-2 | `oya_translate_eu_ai_act_disclosure_emit_ratio` < 1.0 | `incident-response.md` + per-tenant notify | ≤ 60 min |
 
@@ -71,7 +71,7 @@ Each Failure Mode = (id, summary, severity, detection signal, runbook, mitigatio
 | # | Summary | Severity | Detection signal | Runbook | RTO |
 |---|---|---|---|---|---|
 | FM-40 | Pandoc parse error on incoming DOCX | Sev-3 | `oya_translate_doc_parse_error_total{format="docx"}` > 0 | `runbooks/document-round-trip-corruption.md` | ≤ 15 min (per-doc) |
-| FM-41 | LibreOffice round-trip drops formatting (fidelity regression) | Sev-3 | `oya_translate_doc_fidelity_score` < tier-bound | `runbooks/document-round-trip-corruption.md` | ≤ 30 min |
+| FM-41 | LibreOffice round-trip drops formatting (fidelity regression) | Sev-3 | `oya_translate_doc_fidelity_score` < class-bound | `runbooks/document-round-trip-corruption.md` | ≤ 30 min |
 | FM-42 | gVisor sandbox process crash (malicious doc) | Sev-2 | `oya_translate_doc_sandbox_crash_total` > 0 | `runbooks/document-round-trip-corruption.md` §"sandbox crash" + threat-model T-06 | ≤ 5 min (quarantine doc + replay sandbox) |
 | FM-43 | gVisor seccomp violation (sandbox attempted forbidden syscall) | Sev-1 | `oya_translate_doc_seccomp_violation_total` > 0 | `incident-response.md` + adapter pin | ≤ 5 min |
 | FM-44 | Doc translate latency exceeds 10-page p95 (8 s) | Sev-3 | `oya_translate_doc_10page_p95_s` > 8 | scale doc workers | ≤ 5 min |

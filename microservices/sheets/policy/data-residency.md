@@ -31,7 +31,7 @@ Every tenant assigned a primary pack at onboarding. Workbook state, cell-edit lo
 
 | Pack | Primary region(s) | Sheets cluster footprint | CDN edges | Activated? |
 |---|---|---|---|---|
-| pack-kr | OCI ap-seoul-1 | kr-sheets-{pg,redis,ws-gateway,recalc-worker,xlsx-export,object-storage}-1 | OCI CDN KR PoPs | YES (M03 launch) |
+| pack-kr | OCI ap-seoul-1 | kr-sheets-{pg,valkey,ws-gateway,recalc-worker,xlsx-export,object-storage}-1 | OCI CDN KR PoPs | YES (M03 launch) |
 | pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-sheets-{...}-{1,2} | OCI CDN EU PoPs | Conditional (first EU tenant SCC) |
 | pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-sheets-{...}-{1,2} | OCI CDN US PoPs | Conditional |
 | pack-us-healthcare | OCI us-ashburn-1 (HIPAA-eligible) | us-hc-sheets-{...}-1; isolated from pack-us | OCI CDN HIPAA-eligible PoPs | Conditional (post-BAA) |

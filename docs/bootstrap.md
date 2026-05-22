@@ -27,19 +27,18 @@ Options:
 | Hook entries | `.claude/settings.json` | 12 encouragement hooks for Claude Code |
 | Codex hooks (if detected) | `.codex/hooks.json` | Same hooks for Codex CLI |
 | Gemini hooks (if detected) | `.gemini/settings.json` | Same hooks for Gemini CLI (event names: SessionStart/BeforeAgent/AfterAgent/BeforeTool/AfterTool) |
-| Hermes hooks (if detected) | `.hermes/hooks.json` | Same hooks for Hermes CLI (schema mirrors Codex; revisit when Hermes ships its authoritative hook reference) |
 | CLI wrapper | `bin/oya` | `oya <subcommand>` → `cargo run -p oya-dev-cli` |
 | Shell completions | `tools/completions/{bash,zsh,fish}` | Tab-completion for all subcommands |
 | Lifecycle skills | `tools/agent-skills/` | 23 vendored skills from addyosmani/agent-skills |
 | Slash commands (Claude) | `.claude/commands/*.md` symlinks | 7 commands: `/spec /plan /build /test /review /code-simplify /ship` |
 | Slash commands (Gemini) | `.gemini/commands/*.toml` symlinks | 7 commands (Gemini TOML format) — only created when Gemini detected |
-| Skills discovery (per agent) | `.{claude,codex,gemini,hermes}/skills/` → `tools/agent-skills/skills/` | One symlink per detected agent, single-source-of-truth: edit upstream once, propagates to all surfaces |
+| Skills discovery (per agent) | `.{claude,codex,gemini}/skills/` → `tools/agent-skills/skills/` | One symlink per detected agent, single-source-of-truth: edit upstream once, propagates to all surfaces |
 
 If `.gemini/settings.json` already exists from prior Gemini use, install.sh refuses to overwrite and writes `.gemini/settings.json.oya-bootstrap-example` next to it — merge manually into your existing settings.
 
 ### What it doesn't do
 
-- No user-level state (`~/.claude`, `~/.codex`, `~/.gemini`, `~/.hermes`, `~/.local/bin` are never touched)
+- No user-level state (`~/.claude`, `~/.codex`, `~/.gemini`, `~/.local/bin` are never touched)
 - No symlinks outside the repository
 - No `~/.local/bin/oya` or similar global installs
 - No modifications to your shell profile
@@ -161,7 +160,6 @@ enforcement infrastructure.
 
 ## References
 
-- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)
 - ADR-0221: Agentic pipeline hardening doctrine
 - `memory/feedback_oya_git_canonical_2026_05_18.md` — canonical oya git primitive
 - `memory/feedback_oya_vcs_canonical_2026_05_16.md` — superseded rationale retained for history

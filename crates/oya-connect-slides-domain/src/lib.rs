@@ -494,7 +494,7 @@ mod tests {
         CollabRuntime::new(CollabRuntimeCreate {
             document_id: "deck-1".into(),
             tenant_id: "tenant-1".into(),
-            region: "region-alpha-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             surface,
             data_class: None,
@@ -559,7 +559,7 @@ mod tests {
             title: "Board update".into(),
             drive_path: "/team/board-update.oyaslide".into(),
             tenant_id: "tenant-1".into(),
-            region: "region-alpha-1".into(),
+            region: "region-alpha1".into(),
             cell_id: "cell-a".into(),
             data_class: None,
             collab_runtime: runtime(CollabSurface::Slides),

@@ -248,7 +248,7 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 - Frameworks: SOC 2 CC6.6, CC7.1; ISO 27001 A.5.17, A.8.7
 
 **T-T-05 — Autonomy-tier ceiling mutation at tenancy → cache replication**
-- Asset: tenant tier ceiling cache
+- Asset: tenant autonomy ceiling cache
 - Likelihood: L / Impact: H (silent privilege escalation) / Risk: **M**
 - Mitigations: ceiling carries Ed25519 from tenancy µservice; runtime refuses ceiling row without valid signature; ceiling refresh emits `TenantTierCeilingChanged` audit-chain record.
 - Owner: axis-foundry-runtime + tenancy
@@ -268,7 +268,7 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 **T-R-02 — Autonomy violation refused but actor denies attempt**
 - Asset: `AutonomyViolationDetected` event
 - Likelihood: L / Impact: M / Risk: **L**
-- Mitigations: violation event carries actor SPIFFE + tenant + capability_id + requested_tier + ceiling_at_check_time; sealed by audit-chain; immutable.
+- Mitigations: violation event carries actor SPIFFE + tenant + capability_id + requested_autonomy_level + ceiling_at_check_time; sealed by audit-chain; immutable.
 - Owner: axis-foundry-runtime + ops-security
 - Residual: L
 - Frameworks: SOC 2 CC4.1, CC8.1; ISO 27001 A.8.15
@@ -375,7 +375,7 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 
 ### Elevation of Privilege (E)
 
-**T-E-01 — Capability requested above tenant tier ceiling silently executed (autonomy bypass)**
+**T-E-01 — Capability requested above tenant autonomy ceiling silently executed (autonomy bypass)**
 - Asset: AutonomyGate port
 - Likelihood: M / Impact: H (silent tier escalation) / Risk: **H**
 - Mitigations: AutonomyGate is the FIRST step in usecase dispatch; refusal emits `AutonomyViolationDetected` + 403 to caller; ceiling cache read carries signature validation per T-T-05; LEAN check `oya-check-autonomy-gate-presence` asserts gate invoked before provider call.
@@ -386,7 +386,7 @@ Each threat carries: ID; category; asset; description; likelihood; impact; risk 
 **T-E-02 — Runtime escape: capability code executes outside the pod boundary**
 - Asset: Pod isolation
 - Likelihood: L (capability code is descriptor-only in M01 per PRD OQ#5) / Impact: H / Risk: **M**
-- Mitigations: M01 disallows tenant-supplied code execution (PRD OQ#5 resolved disallow); when sandbox decided subsequent-to-M01-completion, gVisor / Firecracker / WASM isolate per per-tenant tier; today's pod has seccomp + AppArmor + non-root + read-only FS; egress network policy default-deny except sibling SPIFFE-validated endpoints.
+- Mitigations: M01 disallows tenant-supplied code execution (PRD OQ#5 resolved disallow); when sandbox decided subsequent-to-M01-completion, gVisor / Firecracker / WASM isolate per per-tenant autonomy ceiling; today's pod has seccomp + AppArmor + non-root + read-only FS; egress network policy default-deny except sibling SPIFFE-validated endpoints.
 - Owner: ops-security + axis-foundry-runtime
 - Residual: L (descriptor-only invariant is the load-bearing control in M01)
 - Frameworks: SOC 2 CC6.1; ISO 27001 A.5.15, A.8.4, A.8.7; EU AI Act Art. 15 (cybersecurity)

@@ -13,8 +13,8 @@ rollout:
   phase: M01-foundation
   enforcement: fail-closed-on-claim-governance
   ci_lanes:
-    - oya-foundry-fitness-hyperscaler-maturity-claims
-    - oya-foundry-fitness-workspace-hygiene
+    - oya-governance-hyperscaler-maturity-claims
+    - oya-governance-workspace-hygiene
   required_before_claim_status: allowed
 sunset:
   retired_gate_ids:

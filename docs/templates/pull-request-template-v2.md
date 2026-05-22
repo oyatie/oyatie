@@ -7,7 +7,7 @@ purpose: |
   Canonical PR body for every change. 5 author-owned H2 sections plus a lead-owned `## Code Review` added at merge time. Dual-audience: identical content readable by both reviewer agents and human reviewers. Enforces RFC-2119 normative form where requirements are stated.
 supersedes: docs/templates/pull-request-template.md
 header_note: "Supersedes prior docs/templates/pull-request-template.md once reviewed."
-enforcing_fitness_lane: oya-foundry-fitness-pr-shape (delegates to `traceability-validator`)
+enforcing_fitness_lane: oya-governance-pr-shape (delegates to `traceability-validator`)
 owner_team: axis-foundry + council-architecture
 related:
   - docs/AGENTS.md  # §PR shape + §Done-Definition
@@ -17,7 +17,6 @@ related:
 adrs_cited:
   - ADR-0052  # inventory ledger (traceability row)
   - ADR-0053  # sanctioned primitives (agent path)
-  - ADR-0054  # scaffold-claim pattern (grit-claim symbols)
 rfc_2119_active: true
 doc_status: published
 ---
@@ -37,7 +36,6 @@ doc_status: published
 
 <!-- agent-instructions:start -->
 **Agent path** (read this fork if you are a Claude/Codex/Gemini/Foundry agent):
-- Authoring a PR **MUST** use only sanctioned primitives `{grit, icm, oya-tooling-agent-read}` per ADR-0053. Direct VCS/forge invocation requires the documented carve-out **AND** `icm store -t direct-tool-invocations -c "<rationale>" -i high -k "direct-tool,<context>"` BEFORE execution.
 - The `## Verification` block **MUST** paste actual tool output, not a hand-wave. Use `oya-tooling-agent-read run-evidence <cmd>` and paste the captured stdout/stderr.
 - The `## Code Review` H2 **MUST NOT** be added by the worker agent; only the lead reviewer agent (per change-class table in `docs/AGENTS.md §Per-change-class reviewer agents`) signs it at merge time. Adding it as a worker is a `guard-pr-merge-review.mjs` violation.
 <!-- agent-instructions:end -->
@@ -64,7 +62,6 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 - `MISTAKES-LEDGER` row referenced (if regression-class): `MFL-NNNN`
 - Cross-axis review label applied (if cross-axis contract change): `<label>` (see `docs/checklists/cross-axis-contract-change-checklist.md`)
 - Implementation Plan ID (if executing an IP): `IP-NNN-<slug>` from `.omc/plans/milestones/M*/phases/P*/`
-- Grit-claim symbols (agent path): `<file::Identifier list>` (per ADR-0054)
 - Inventory ledger row (if migration-class): `INV-NNNN` (per ADR-0052)
 
 ## Evidence

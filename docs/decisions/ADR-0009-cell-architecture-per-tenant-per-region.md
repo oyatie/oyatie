@@ -111,7 +111,7 @@ Evidence emits to the trust portal per ADR-0003.
 
 - On-call: per-cell SLO + per-cell-tier rollup; `EVT-CELL-CAPACITY-EXCEEDED` and `EVT-CELL-TIER-PROMOTION-DUE` alerts.
 - Runbooks: `runbooks/cell-provision.md`, `runbooks/cell-tier-promotion.md`, `runbooks/cell-isolation-evidence-quarterly.md`, `runbooks/per-cell-hsm-rotation.md`, `runbooks/cell-failover-intra-region.md`.
-- CI: `oya-foundry-fitness-cell-routing` (every data-plane crate declares cell affinity), `oya-foundry-fitness-cross-cell-call` (any cross-cell call has an explicit catalog contract).
+- CI: `oya-governance-cell-routing` (every data-plane crate declares cell affinity), `oya-governance-cross-cell-call` (any cross-cell call has an explicit catalog contract).
 - Capacity: per-cell-tier dashboards in the FinOps surface (per ADR-0019 cadence).
 
 ---

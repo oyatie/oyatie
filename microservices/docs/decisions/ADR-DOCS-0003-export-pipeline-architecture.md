@@ -62,7 +62,7 @@ Adopt the following four-part architecture:
 
 ### Part 1 — Format conversion: Pandoc 3.x for DOCX / Markdown / HTML / EPUB / LaTeX
 
-Pandoc 3.6.0 LTS pinned. Handles all non-PDF formats. Industry-leader for document conversion; mature; large user-contributed corpus for round-trip testing. License acceptable for binary use (Pandoc copyright FAQ permits redistribution + commercial use).
+Pandoc 3.6.0 LTS pinned. Handles all non-PDF formats. Industry-leader for document conversion; mature; large user-contributed corpus for round-trip testing. License acceptable for binary use (Pandoc copyright FAQ permits commercial distribution).
 
 Concrete bindings:
 - Crate: `oya-docs-export-import-adapter-pandoc` (backend-qualified per ADR-0105 Amendment 3).
@@ -166,7 +166,7 @@ Concrete bindings:
 
 1. **PRD AC-09** (gVisor sandbox) — directly satisfied.
 2. **PRD AC-10** (PDF/A) — directly satisfied by WeasyPrint native PDF/A emission + veraPDF validation.
-3. **ADR-DOCS-0006 fidelity matrix** — Pandoc-bounded fidelity (per ADR-DOCS-0006); best-effort tier with named edge-case test matrix.
+3. **ADR-DOCS-0006 fidelity matrix** — Pandoc-bounded fidelity (per ADR-DOCS-0006); best-effort fidelity with named edge-case test matrix.
 4. **runbooks/export-pipeline-failure-pandoc-rollback.md** — operational guidance for backend rollback.
 5. **failure-modes.md FM-04 + FM-12** — covered failure modes (Pandoc regression; gVisor seccomp escape).
 6. **cost-budget.md** — export workers sized at $0.018 / PDF job (50-page); gVisor pre-warm pool of 10 sandboxes contributes $600/cell/mo.
@@ -181,7 +181,7 @@ Concrete bindings:
 ### Supply-chain + security
 
 - Pandoc + WeasyPrint + Chromium + gVisor + veraPDF all pinned to LTS versions; cargo deny / image-scan allowlist enforced.
-- Major-version upgrades require: (a) 100-doc round-trip golden corpus drill, (b) AC-09 gVisor escape corpus replay, (c) PDF/A validation green, (d) WCAG 2.2 AA validation green.
+- Major-version upgrades require: (a) 100-doc round-trip reference corpus drill, (b) AC-09 gVisor escape corpus replay, (c) PDF/A validation green, (d) WCAG 2.2 AA validation green.
 - gVisor + Pandoc + WeasyPrint + Chromium each have an Ed25519-signed advisory feed subscription.
 
 ### Risk register

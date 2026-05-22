@@ -18,7 +18,7 @@ related_adrs: [ADR-0190]
 autonomy_tier: T2
 # T2 = bulk operations with vendor-specific dialect handling.
 
-eu_ai_act_risk_class: limited
+risk_class: limited
 # Lifecycle propagation may affect access decisioning downstream; limited.
 
 inputs:

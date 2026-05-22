@@ -31,7 +31,6 @@ Materialized from agent message (Critic constraint prohibits direct file write).
 | Arch #2 bootstrap clause in ADR | N (claim-only) | Same as V4 — ADR L17–19 present | Y |
 | Arch #3 P7 three concrete gates | Y (plan body) | n/a | Y |
 | Arch #4 §Consequences §Neutral cutover-is-one-time | N (claim-only) | ADR L77 §Consequences §Neutral now contains the one-time human-orchestrator-carve-out clause | Y |
-| Arch #5 human-orchestrator §Glossary/§Drivers | PARTIAL (RACI row only) | ADR L31–34 new §Glossary block defines "Human orchestrator" with named-individual + icm-event-BEFORE-execution clause | Y |
 | Arch #6 P8 demo symbols pinned | Y (plan body) | n/a | Y |
 | Arch #7 P5/P10 data-shape | Y (plan body) | n/a | Y |
 | Arch #8 §3 ADR block deleted | Y (plan body) | n/a | Y |

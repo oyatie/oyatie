@@ -1,0 +1,22 @@
+schema_version: "2.0"
+name: quality-management-inspection-plan-command
+microservice: quality-management
+bounded_context: inspection-plan
+autonomy_tier: T1
+risk_class: regulated-erp
+audit_event_class: EVT-QUALITY_MANAGEMENT-INSPECTION_PLAN-COMMAND
+policy_fragments:
+  - microservices/quality-management/policy/inspection-plan-authorization.cedar
+benchmarks:
+  - "SAP QM Quality Management"
+  - "Oracle Fusion Quality Management"
+  - "Workday Extend quality-workflow counterpart"
+  - "NetSuite Quality Management"
+  - "Microsoft Dynamics 365 Supply Chain Quality Management"
+inputs:
+  required: [tenant_id, principal_id, idempotency_key, compliance_packs]
+transport:
+  rest: OpenAPI 3.2.0
+  events: AsyncAPI 3.1.0
+  grpc: proto3
+settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

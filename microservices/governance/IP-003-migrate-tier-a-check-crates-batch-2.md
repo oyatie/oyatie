@@ -1,74 +1,86 @@
 ---
-doc_class: ImplementationPlan
-template_id: TPL-IMPL
-milestone: M01-foundation
-phase: P01-ci-fitness-consolidation
-impl_plan_id: IP-003-migrate-tier-a-check-crates-batch-2
-status: pending
-execution_unit: ChangeSet
-changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-foundry
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, cross-ref-validity, per-microservice-layout]
+doc_class: Implementation-Plan
+ip_id: IP-003-migrate-tier-a-check-crates-batch-2
+status: planned
+owner: axis-governance
+wave_scrub: Wave 15-IP-substance 2026-05-21
+microservice: governance
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# Migrate Tier-A check crates batch 2
 
-# IP-003: Migrate Tier-A check crates batch 2 (5 crates)
+## A. Problem
 
-## Intent
+The previous slice for `IP-003-migrate-tier-a-check-crates-batch-2` was too close to a design-anchor shell: it named the intended control but did not bind the work to governance's actual contracts, policy files, SLOs, and runbooks. This IP closes the `security and content lane relocation` gap for the governance µservice, not for a generic operations or governance product. The implementation must be reviewable as a single Oya VCS changeset and must not claim runtime maturity until the named artifacts exist and validate.
 
-Atomic ChangeSet: migrate 5 more tier-A `oya-check-*` crates per ADR-0131 IP-M01-MIGR-014.
+The service-local grounding is `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto`. The authorization grounding is `policy/auditor-scope.cedar`, `policy/ci-scope.cedar`, `policy/tenant-scope.cedar`, and `policy/cedar-canonical-imports.cedar`. The work must preserve ADR-0243 default-deny Cedar semantics, ADR-0244 tenant-scoped evidence, ADR-0263 audit event emission, and ADR-0131 flat µservice ownership.
 
-Crates in this batch (tier-A security + content lanes):
-1. `oya-check-data-class`
-2. `oya-check-supply-chain`
-3. `oya-check-license-policy`
-4. `oya-check-placeholder-debt`
-5. `oya-check-brand-residue`
+## B. Approach
 
-## ChangeSet boundary
+Implement the slice as a bounded, contract-first change. Start from the existing capability and catalog surfaces, add or amend only the smallest kernel/usecase/adapter/rest/worker pieces needed for this IP, then wire the dashboard, SLO, and runbook evidence named below. Every mutating path must require an idempotency key, authenticated principal, Cedar decision id, audit event id, and rollback/evidence reference. Read paths must distinguish observed state from operator decisions.
 
-Same shape as IP-002. 5 `git mv`; 5 workspace path updates; 5 catalog rows.
+Technical target set: catalog/oya-check-data-class.yaml, catalog/oya-check-supply-chain.yaml, catalog/oya-check-license-policy.yaml, catalog/oya-check-placeholder-debt.yaml, catalog/oya-check-brand-residue.yaml. If one of these paths is absent when implementation starts, create that exact missing artifact or record an explicit IaC/catalog gap in this IP's evidence; do not cite fake Terraform, fake Cedar entity types, or unavailable endpoints.
 
-## Concrete File Targets
+## C. Deliverables
 
-Per crate `C` ∈ {data-class, supply-chain, license-policy, placeholder-debt, brand-residue}:
-- `git mv crates/oya-check-$C → microservices/governance/src/crates/oya-check-$C`.
-- Workspace member update.
-- `microservices/governance/catalog/oya-check-$C.yaml` (NEW).
+- Contract updates in the relevant OpenAPI, AsyncAPI, or Proto file named by the service manifest.
+- Domain/kernel value object for `security and content lane relocation` with tenant, principal, cell, HLC timestamp, Cedar decision, audit event, and idempotency fields.
+- Usecase orchestration that fails closed when Cedar, OpenBao, audit-chain, or required source projections are unavailable.
+- Adapter/rest/worker wiring only where this IP needs runtime I/O; no unrelated refactor across sibling bounded contexts.
+- Dashboard, SLO, and runbook linkage using the concrete artifact set: catalog/oya-check-data-class.yaml, catalog/oya-check-supply-chain.yaml, catalog/oya-check-license-policy.yaml, catalog/oya-check-placeholder-debt.yaml, catalog/oya-check-brand-residue.yaml.
+- Catalog/capability row update when the IP exposes or changes an operator/governance capability.
 
-## Acceptance Gates
+## D. Implementation Steps
 
-```bash
-cargo check --workspace --all-features
-cargo build --workspace --all-features
-cargo clippy --workspace --all-features -- -D warnings
-cargo nextest run --workspace --all-features
-cargo run -p oya-dev-cli -- gate validate cross-ref-validity
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice governance
-# Self-application
-cargo run -p oya-dev-cli -- gate validate data-class --microservice governance
-cargo run -p oya-dev-cli -- gate validate supply-chain --microservice governance
-cargo run -p oya-dev-cli -- gate validate license-policy --microservice governance
-cargo run -p oya-dev-cli -- gate validate placeholder-debt --microservice governance
-cargo run -p oya-dev-cli -- gate validate brand-residue --microservice governance
-```
+1. Read `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto` and confirm the bounded context that owns `security and content lane relocation`; update the manifest or catalog only if that owner is missing.
+2. Add the kernel/domain type with explicit tenant scope, principal scope, HLC time, decision ids, and audit seal refs; keep provider credentials as OpenBao references rather than raw secrets.
+3. Add usecase logic that evaluates Cedar before storage/provider access and returns structured refusal evidence on deny, stale pack, missing tenant, or audit-chain backpressure.
+4. Update the selected REST/gRPC/event contract so external callers and workers share the same envelope and error shape.
+5. Wire dashboard/SLO/runbook evidence from catalog/oya-check-data-class.yaml, catalog/oya-check-supply-chain.yaml, catalog/oya-check-license-policy.yaml, catalog/oya-check-placeholder-debt.yaml, catalog/oya-check-brand-residue.yaml; dashboard panels must point to real metric/event names and runbook links must resolve.
+6. Add tests for allow, deny, stale policy/pack, duplicate idempotency key, audit emission failure, and rollback/evidence replay.
+7. Run the service-local validation commands named in acceptance, then attach the command output and changed-file list to the changeset evidence.
 
-## Test Plan
+## E. Acceptance
 
-Same as IP-002: per-crate test suite + cross-ref validation + workspace integrity + self-application.
+- The IP cites real service artifacts and no placeholder paths.
+- Contract validation parses the touched OpenAPI/AsyncAPI/Proto surface.
+- Cedar tests prove at least one permit and one forbid path for the concrete action in this IP.
+- Audit evidence includes an ADR-0263 event class, Ed25519/Merkle seal reference where applicable, and a replay or rollback reference.
+- SLO/dashboard/runbook references resolve from the repo tree.
+- `oya vcs verify --agent <id> --changeset <id>` passes before done/promote.
 
-## Halt Conditions
+## F. Evidence
 
-Same as IP-002.
+- Service docs: `microservices/governance/manifest.json`, `PRD.md`, `ARCHITECTURE.md`, `contracts/openapi/governance.yaml`, `contracts/asyncapi/governance-events.yaml`, and `contracts/proto/governance.proto`.
+- Policy docs: `policy/auditor-scope.cedar`, `policy/ci-scope.cedar`, `policy/tenant-scope.cedar`, and `policy/cedar-canonical-imports.cedar`.
+- Operational evidence: catalog/oya-check-data-class.yaml, catalog/oya-check-supply-chain.yaml, catalog/oya-check-license-policy.yaml, catalog/oya-check-placeholder-debt.yaml, catalog/oya-check-brand-residue.yaml.
+- Doctrine: ADR-0324 anti-template-stamping, ADR-0328 D-20 Big-8 elevation, ADR-0131 flat µservice layout, ADR-0263 audit events, ADR-0243 Cedar deny-wins.
 
-## Next IP
+## G. Counterparts
 
-[`IP-004-lane-runtime-kernel-domain.md`](IP-004-lane-runtime-kernel-domain.md)
+| Counterpart | Relevant pressure | Oyatie closure in this IP |
+|---|---|---|
+| Snyk, Trivy, and GitHub Advanced Security | Mature external control surface to compare against. | Snyk, Trivy, and GitHub Advanced Security are counterpart security gates; Oyatie adds data-class, placeholder-debt, and brand-residue gates. |
+| GitHub | Required verification regex and PR/evidence control-plane precedent. | This IP remains changeset-driven, reviewable, and tied to branch/admission evidence rather than prose-only approval. |
 
-## References
+## H. Service-Specific Drilldown
+1. Move data-class, supply-chain, license-policy, placeholder-debt, and brand-residue into governance without changing crate behavior.
+2. Preserve data-class taxonomy references from Bominal ADR-0028 while binding emitted findings to governance evidence-emitter.
+3. Compare Snyk/Trivy/GitHub Advanced Security for supply-chain pressure, but keep placeholder and brand-residue as Oyatie-specific gates.
+4. Run each migrated lane on governance itself after the move; do not count cargo check alone as proof.
+5. Catalog rows must name severity, migration tier, owner, and emitted Finding shape.
+6. Halt on self-application failure and repair the lane in the same IP rather than deferring debt.
 
-- ADR-0131 §"Migration DAG → IP-M01-MIGR-014".
-- ADR-0132 §"governance umbrella".
-- `microservices/governance/runbooks/migration-execution.md` §A.
-- Bominal ADR-0028 (data-class taxonomy).
+## I. Review Notes
+
+This section is intentionally specific to this IP; do not copy it to sibling IPs. Reviewers should reject the changeset if the implementation evidence cannot trace each drilldown row to a real file, test, command, dashboard, SLO, runbook, or policy decision.
+
+## J. Verification Hooks
+
+- Hook 6.1: changed-file evidence must include this IP path and the concrete service artifacts named above.
+- Hook 6.2: contract parsing must run after any OpenAPI, AsyncAPI, or Proto edit for this slice.
+- Hook 6.3: Cedar permit and forbid cases must cite the real policy file and action name used by this slice.
+- Hook 6.4: audit evidence must include event class, seal reference, actor, tenant/cell scope, and idempotency key.
+- Hook 6.5: rollback evidence must name the runbook or explain why the slice is read-only.
+- Hook 6.6: counterpart closure must be reviewed against the named GitHub/Stripe/Snowflake/etc. row, not inferred from line count.
+- Hook 6.7: promotion is blocked if any cited dashboard, SLO, catalog, capability, or runbook path is absent.

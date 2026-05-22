@@ -41,8 +41,8 @@ doc_status: published
 2. Check Grafana dashboard `availability-lookup-rate`.
 3. Identify cache hit ratio + Valkey health:
    ```bash
-   kubectl exec -n calendar redis-0 -- redis-cli INFO replication
-   kubectl exec -n calendar redis-0 -- redis-cli INFO memory
+   kubectl exec -n calendar valkey-0 -- valkey-cli INFO replication
+   kubectl exec -n calendar valkey-0 -- valkey-cli INFO memory
    ```
 4. Check stampede candidate: which `(tenant, attendees, window)` tuples hot?
    ```promql
@@ -72,7 +72,7 @@ oya calendar cache warm --tenant <hashed-id> --range "now+0h to now+72h" --audit
 ### Step 3 — Scale Valkey shards if memory > 80%
 
 ```bash
-helm upgrade oya-calendar-redis ./iac/helm/redis --set shardCount=5
+helm upgrade oya-calendar-valkey ./iac/helm/valkey --set shardCount=5
 ```
 
 ### Step 4 — If grant-revocation missed invalidation
@@ -94,13 +94,13 @@ oya calendar cache rotate-prefix --pack <pack> --audit-reason "RB-availability-c
 Patroni-managed failover should auto-promote. Verify:
 
 ```bash
-kubectl get pods -n calendar -l app=oya-calendar-redis
+kubectl get pods -n calendar -l app=oya-calendar-valkey
 ```
 
 Manual promotion (last resort, 2-person rule):
 
 ```bash
-oya calendar redis promote --shard <n> --approver <ops-security-id> --audit-reason "RB-availability-cache-rebuild"
+oya calendar valkey promote --shard <n> --approver <ops-security-id> --audit-reason "RB-availability-cache-rebuild"
 ```
 
 ## Recovery validation

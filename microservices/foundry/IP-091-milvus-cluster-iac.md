@@ -148,3 +148,9 @@ Small cell scales the worker plane to 3 query + 2 data + 1 index. Large cell sca
 - Runbook: `microservices/foundry/runbooks/milvus.md`.
 - Capacity model: `microservices/foundry/capacity-model-milvus.md`.
 - OpenSLOs: `microservices/foundry/slos/milvus-search-latency.openslo.yaml`, `milvus-ingest-lag.openslo.yaml`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Snowflake Cortex Search, Databricks Vector Search, OpenAI vector stores, and Palantir AIP ontology retrieval.
+- Gap closure: this IP closes Foundry retrieval/vector substrate for tenant-isolated agent grounding and eval replay.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

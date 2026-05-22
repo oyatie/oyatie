@@ -22,7 +22,7 @@ ADR-0131 (per-microservice flat layout): chart at
 `microservices/tasks/iac/helm/tasks/`. Substrate components: Postgres 16
 LTS for `task-store`/`project-list`/`dependency-graph` persistence (RLS
 per-tenant per ADR-0117 + tenant-DEK envelope encryption per Bominal
-ADR-0111); Valkey 8.1 (Redis wire-compat) for `view-engine` cache + presence; Meilisearch
+ADR-0111); Valkey 8.1 (RESP wire-compatible) for `view-engine` cache + presence; Meilisearch
 0.10.0 LTS for `search-index` per-tenant cross-project index per
 ADR-TASKS-0004 + ADR-TASKS-0001. OpenBao for per-tenant DEK envelope
 encryption; secrets via `${openbao:secret/tasks/...}` references.
@@ -93,5 +93,5 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 - ADR-0117 (data residency); ADR-0131 (per-µservice flat layout); ADR-0133.
 - ADR-TASKS-0001 (data model); ADR-TASKS-0004 (view-engine + board); ADR-TASKS-0006 (auto-assign fairness).
 - Postgres CloudNativePG operator — `cloudnative-pg.io`.
-- Valkey cluster mode — `redis.io/docs/management/scaling/`.
+- Valkey cluster mode — `valkey.io/docs/management/scaling/`.
 - Meilisearch ops — `docs.meilisearch.com`.

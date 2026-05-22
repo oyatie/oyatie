@@ -65,7 +65,7 @@ Three modelling strategies compete:
    field X is between 5 and 10" is a JSON-path scan.
 3. **EAV (entity-attribute-value)**. Separate
    `task_custom_field_value` table keyed by `(task_id, field_id)`.
-   Pros: arbitrary cardinality; mid-tier query performance. Cons:
+   Pros: arbitrary cardinality; middle-band query performance. Cons:
    N+1 joins for any non-trivial render; cannot enforce type at storage
    without a sidecar typing table; widely-criticised antipattern.
 
@@ -176,7 +176,7 @@ attack vector against typed-schema-per-project systems).
 ## References
 
 - ADR-0056 (BNF v4.1); ADR-0105 (13-layer); ADR-0106 (usecase rename).
-- ADR-0117 (residency); ADR-NOTES-0001 (Personal-tier E2E default
+- ADR-0117 (residency); ADR-NOTES-0001 (Personal-context E2E default
   pattern; tasks shares the dual-context boundary).
 - Bominal ADR-0028 (audit-chain Ed25519+Merkle); Bominal ADR-0111
   (envelope encryption).

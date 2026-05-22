@@ -106,7 +106,7 @@ Per `feedback_no_silent_regression.md`, the Phase 5 breaking change carries:
 - ADR-DOCS-0003 (export pipeline architecture — Pandoc 3.x + WeasyPrint default + Chromium opt-in inside gVisor).
 - ADR-DOCS-0004 (ACL granularity — per-block).
 - ADR-DOCS-0005 (AI writing-assist EU AI Act bounds).
-- ADR-DOCS-0006 (DOCX import fidelity — best-effort tier with named edge-case matrix).
+- ADR-DOCS-0006 (DOCX import fidelity — best-effort fidelity with named edge-case matrix).
 - ADR-WS-0001 — workflow-studio CRDT library selection (cross-µservice alignment).
 - `microservices/docs/migration-from-connect.md` — full migration guide.
 - `microservices/docs/PRD.md` — target-state product definition.

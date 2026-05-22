@@ -171,7 +171,7 @@ Cross-reference: every risk has at least one mitigation in §6 and one correspon
 | R-01 (prompt-injection) | Foundry-guardrails BEFORE provider dispatch; output guardrails before session persistence; per-tenant adversarial pattern detector; OWASP LLM Top 10 mitigations applied | Residual M (adversarial baseline) | foundry-guardrails + axis-foundry-runtime |
 | R-02 (cross-tenant session leak) | Valkey tenant-prefix enforced by SessionStore; LEAN check; per-tenant Valkey ACL; integration test cross-tenant returns empty | L | axis-foundry-runtime + ops-security |
 | R-03 (long retention) | Retention bounded; DSR cascade 30d; cold-tier aggregated; admin JIT for cold-tier reads | L-M | council-privacy |
-| R-04 (automated decisions) | Capability invocation not solely-automated for Art. 22 purposes (operational); tenant tier-2-plus capabilities require human-in-loop ack | L | axis-foundry-runtime |
+| R-04 (automated decisions) | Capability invocation not solely-automated for Art. 22 purposes (operational); tenant autonomy ceiling-2-plus capabilities require human-in-loop ack | L | axis-foundry-runtime |
 | R-05 (autonomy ceiling bypass) | AutonomyGate first step; signed ceiling cache; violation emits AutonomyViolationDetected | L | axis-foundry-runtime + ops-security |
 | R-06 (sub-processor breach) | Sub-processor list maintained; quarterly security review; DPA + SCCs per applicable | M (irreducible) | council-privacy + cloud-secrets |
 | R-07 (tenant misconfig) | Capability descriptor schema validation; data_class enforcement at supervisor; runtime refuses unannotated descriptors | L-M | axis-foundry-runtime + axis-foundry |
@@ -268,7 +268,7 @@ Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md`.
 - Every breach notification.
 - Every supervisory-authority guidance change.
 - Post-incident (Sev-1/Sev-2).
-- Every autonomy-tier ceiling raise.
+- Every autonomy-ceiling ceiling raise.
 
 ## References
 

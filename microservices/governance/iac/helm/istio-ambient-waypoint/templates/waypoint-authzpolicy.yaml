@@ -12,7 +12,7 @@
   envelope shaping carried in EnvoyFilter siblings.
 
   Reference fragment list (compiled per pack from .Values.authorizationPolicy.fragments):
-    pack-eu              : pack-eu-annex-iii-refusal,
+    pack-eu              : pack-eu-risk_anchor-iii-refusal,
                             pack-eu-gdpr-art-22-routing,
                             pack-eu-dsa-transparency
     pack-kr              : pack-kr-pipa-art-17-cross-border

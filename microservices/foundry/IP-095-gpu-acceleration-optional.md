@@ -158,3 +158,9 @@ Auto-disable: when the budget watcher detects a projected month-end overrun > th
 - ADR-0145 — communication reform.
 - Capacity model: `microservices/foundry/capacity-model-milvus.md` §"GPU pool sizing".
 - Runbooks: `microservices/foundry/runbooks/milvus-gpu-rollout.md`, `milvus-gpu-rollback.md`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI, Anthropic, Palantir AIP, GitHub, and ServiceNow platform controls.
+- Gap closure: this IP closes the comparable platform gap while retaining Oyatie policy, SLO, and evidence requirements.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

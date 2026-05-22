@@ -53,7 +53,7 @@ oyatie social adopts a **three-step strategy**:
    - Owned by `foundry-runtime`; deployed as a T2 capability per `capabilities/T2-auto.yaml`.
    - Inputs: same signals as P01 heuristic + content-embedding similarity to user-history; outputs: ranked feed slice.
    - EU AI Act Annex III §1(a) HIGH-RISK classification confirmed; Arts. 9-15 + 50 obligations operative per ADR-SOC-0003.
-   - Per-release golden-set eval (nDCG@10 + bias audit by protected groups); model card per release; appeal-via-revert-to-chronological path always available.
+   - Per-release reference-set eval (nDCG@10 + bias audit by protected groups); model card per release; appeal-via-revert-to-chronological path always available.
 3. **Future packs (M04-onward): User-selectable algorithm marketplace** (Bluesky-style; PRD Open Question 1).
    - Out-of-scope for P01 / P03; ADR-SOC successor-IP after M03.
 
@@ -112,7 +112,7 @@ Minors (per `age-verification` BC + pack-aware threshold) get **chronological-on
 ### Negative
 
 - Heuristic ranking quality is bounded; engagement-vs-time tradeoff weaker than ML systems; mitigated by P03 path.
-- Per-release golden-set eval needed even for heuristic (EU AI Act Art. 15 accuracy); some infrastructure cost.
+- Per-release reference-set eval needed even for heuristic (EU AI Act Art. 15 accuracy); some infrastructure cost.
 - EU AI Act notified-body engagement still required before P03; timeline coordination needed with foundry-runtime + council-privacy.
 - Tenants requesting per-tenant ranking weights are scheduled-for-distinct-tracked-work to M03-onward; gtm may field requests.
 
@@ -122,7 +122,7 @@ Minors (per `age-verification` BC + pack-aware threshold) get **chronological-on
 - Cedar policy: ranking_explanation API surface for Art. 27 visible from P01 (heuristic-aware).
 - Runbook `runbooks/content-moderation-rollback.md` (paired with this ADR's classifier counterpart) covers ML model rollback in P03; P01 has a simpler "revert to chronological for affected tenants" path.
 - CI lane `oya-governance-eu-ai-act-conformance` registered in IP-015; covers heuristic + ML modes.
-- Per-release golden-set eval (P01: heuristic eval; P03: ML eval) maintained per ADR-SOC-0003 pipeline.
+- Per-release reference-set eval (P01: heuristic eval; P03: ML eval) maintained per ADR-SOC-0003 pipeline.
 
 ### Regulatory
 

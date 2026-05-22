@@ -108,3 +108,16 @@ pub struct HrisHire {
 - Live Workday / BambooHR / Rippling sandboxes pass smoke test.
 - Daily reconciliation job runs cleanly in staging for 7 days.
 - Drift alarm fires correctly on simulated drift.
+
+## Counterpart references - 009-hris-adapter
+
+- Counterpart class: workforce lifecycle.
+- ServiceNow workforce workflows and GitHub enterprise SSO show the baseline for enterprise identity lifecycle; this IP keeps Oyatie stronger by routing lifecycle changes through SCIM/HRIS contracts, tenant-scoped Cedar, and audit-chain evidence instead of relying on tenant-admin convention.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+
+## Pod runtime tier (per ADR-0338)
+
+- Authority: ADR-0338.
+- `pod_runtime_tier`: `0`.
+- Justification: tenant-customer code exists in this IP execution path; Kata Containers + Cloud Hypervisor are required.
+- Surface evidence: `microservices/identity/IP-009-hris-adapter.md`, `microservices/identity/manifest.json`; trigger terms `sandbox`.

@@ -1,0 +1,165 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-metering-domain-canonical-base-neutrality",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779235157,
+  "timestamp_iso": "2026-05-19T23:59:17Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-metering-domain/src/lib.rs",
+    "evidence/multispectrum/cs-metering-domain-canonical-base-neutrality-1779235157.json"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "{\"command\":\"oya vcs\",\"status\":\"accepted\",\"schema_version\":1,\"ratchet\":{\"accepted\":true,\"warnings\":[],\"blocking_errors\":[],\"forbidden_uses\":[]},\"plan\":{\"kind\":\"claim\",\"action\":\"claim-lock\",\"agent_id\":\"codex-oyatie-fd001\",\"intent\":\"Neutralize metering-domain canonical-base test fixtures\",\"scopes\":[\"crates/oya-metering-domain/src/lib.rs::canonical_base_neutral_meter_event_fixture\",\"crates/oya-metering-domain/src/lib.rs::canonical_base_neutral_idempotency_fixture\",\"evidence/multispectrum/cs-metering-domain-canonical-base-neutrality-1779235157.json::MultispectrumEvidence\"],\"evidence_refs\":[],\"bundle_id\":null,\"environment\":null,\"closeout_mode\":null,\"compatibility_alias\":null}}",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality cleanup for the platform metering domain: replace jurisdiction-specific tenant/idempotency test fixtures with product-neutral tenant-alpha fixtures while preserving metering validation, idempotent replay, and data-class behavior.",
+  "baseline_diff": {
+    "before_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-metering-domain/src/lib.rs failed with 1 file checked and 2 jurisdiction leaks: ten_kr tenant fixture and idem_ten_kr_resource_001 idempotency key fixture.",
+    "red_test": "new fixture-neutrality assertions initially failed before implementation: 2 passed, 1 failed; tenant_id emitted ten_kr instead of ten_alpha.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-metering-domain/src/lib.rs passed: 1 file checked, 0 jurisdiction leaks.",
+    "after_full": "full canonical-base-neutrality still fails with 196 files checked and 282 jurisdiction leaks outside this ChangeSet; first remaining file crates/oya-observability-domain/src/lib.rs.",
+    "delta": "2 fewer full-gate jurisdiction leaks, from 284 after the route-policy slice to 282 after this slice; no scanner carve-outs or coverage weakening."
+  },
+  "verification": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-metering-cbn-planning-start.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-metering-cbn-full-before.txt",
+      "status": "blocked-preexisting-before-fix",
+      "evidence": "full gate failed with 196 files checked, 284 jurisdiction leaks; first remaining file crates/oya-metering-domain/src/lib.rs"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-metering-domain/src/lib.rs 2>&1 | tee /tmp/cs-metering-cbn-targeted-before.txt",
+      "status": "failed-before-fix",
+      "evidence": "1 file checked, 2 jurisdiction leaks: ten_kr and idem_ten_kr_resource_001"
+    },
+    {
+      "command": "cargo test -q -p oya-metering-domain --all-features 2>&1 | tee /tmp/cs-metering-cbn-red-test.txt",
+      "status": "failed-before-fix",
+      "evidence": "regression failed before implementation: 2 passed, 1 failed; left ten_kr, right ten_alpha"
+    },
+    {
+      "command": "cargo test -q -p oya-metering-domain --all-features 2>&1 | tee /tmp/cs-metering-cbn-test.txt",
+      "status": "passed",
+      "evidence": "metering-domain tests passed: 3 passed, 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-metering-domain --check 2>&1 | tee /tmp/cs-metering-cbn-fmt.txt",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-metering-domain --all-targets --all-features -- -D warnings 2>&1 | tee /tmp/cs-metering-cbn-clippy.txt",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-metering-domain/src/lib.rs 2>&1 | tee /tmp/cs-metering-cbn-targeted-after.txt",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "rg -n '\\bKR\\b|ten_kr|idem_ten_kr|kr-' crates/oya-metering-domain/src/lib.rs 2>&1 | tee /tmp/cs-metering-cbn-token-scan.txt || true",
+      "status": "passed",
+      "evidence": "no old jurisdiction fixture tokens matched in claimed source file"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure 2>&1 | tee /tmp/cs-metering-cbn-planning.txt",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 regional-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json 2>&1 | tee /tmp/cs-metering-cbn-master.txt",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "python3 -m json.tool evidence/multispectrum/cs-metering-domain-canonical-base-neutrality-1779235157.json > /tmp/cs-metering-cbn-evidence-json-tool.txt",
+      "status": "passed",
+      "evidence": "evidence JSON parsed successfully"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-metering-domain/src/lib.rs evidence/multispectrum/cs-metering-domain-canonical-base-neutrality-1779235157.json 2>&1 | tee /tmp/cs-metering-cbn-diff-check.txt",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . 2>&1 | tee /tmp/cs-metering-cbn-full-after.txt",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 196 files checked, 282 jurisdiction leaks outside claimed scope; first remaining file crates/oya-observability-domain/src/lib.rs"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Changed only the two fixture strings that created canonical-base leakage plus direct assertions that lock the neutral fixture behavior.",
+        "No new dependency, abstraction, or unrelated cleanup was added."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Shared platform metering no longer teaches the canonical base to assume a launch-jurisdiction tenant for its default event fixture.",
+        "Idempotency replay remains tenant-scoped and explicit under a neutral tenant-alpha identifier."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": true,
+      "diagnostic_asserted": "tenant/idempotency assertions failed until the fixture was made canonical-base neutral",
+      "findings": [
+        "Red/green proof prevents a scanner-only string replacement that weakens idempotency replay coverage."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 1,
+      "findings": [
+        "The fixture remains self-contained in event_create and its asserted identifiers are visible in the replay test."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted tests, rustfmt, clippy, targeted and full neutrality gates, planning closure, master-plan completion, token scan, and diff checks were run fresh."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Metering remains pure domain logic with no I/O, handler dependency, adapter dependency, or cross-service call."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Replay test now proves both idempotency behavior and neutral tenant/idempotency fixture values."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence captures claim acceptance, before/after leak counts, red/green test proof, full-gate blocker state, and Oya VCS lifecycle anchors."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-metering-domain/src/lib.rs",
+    "evidence/multispectrum/cs-metering-domain-canonical-base-neutrality-1779235157.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 282 jurisdiction leaks outside this scope; next safe serialized slice starts at crates/oya-observability-domain/src/lib.rs.",
+    "Metering tenant identifiers remain string-prefixed by contract; a future typed tenant value-object slice can further reduce drift risk without reopening this fixture cleanup.",
+    "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
+  ]
+}

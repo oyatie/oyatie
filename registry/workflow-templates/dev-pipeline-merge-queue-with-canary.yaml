@@ -1,0 +1,435 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.dev-pipeline-merge-queue-with-canary.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0055-branch-pipeline
+  - ADR-0185-workflow-studio-client-stack
+title: Dev pipeline merge queue with canary
+description: >-
+  Coordinates a protected development pipeline from pull-request enqueue through
+  static checks, integration tests, merge-queue batching, trunk merge,
+  progressive canary rollout, SLO monitoring, rollback, and stable promotion.
+tags:
+  - dev
+  - cicd
+  - merge-queue
+  - canary
+  - rollback
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: gold
+    reason: "Engineering teams need merge queue, CI evidence, and canary release automation."
+  - tier: platinum
+    reason: "Adds progressive rollout, SLO-burn rollback, and release audit chain."
+ontology_refs:
+  object: MergeQueueCanaryCase
+  actions:
+    - PullRequestEnqueued
+    - StaticChecksPassed
+    - MergeQueueBatchMerged
+    - CanaryDeployed
+    - RolloutPromoted
+    - RollbackCompleted
+tenant_context:
+  required_fields:
+    - tenant_id
+    - repository_id
+    - pull_request_id
+    - release_manager_principal_id
+principal_context:
+  system_principal: workflow-engine.merge-queue-canary
+  human_approval_roles:
+    - release_manager
+    - service_owner
+    - incident_commander
+data_classes:
+  - SOURCE_CHANGE
+  - CI_TEST_RESULT
+  - DEPLOYMENT_MANIFEST
+  - SLO_METRIC
+  - ROLLBACK_DECISION
+residency_pack_overlays:
+  - pack: soc2
+    behavior: "Preserve build, approval, deploy, and rollback evidence."
+  - pack: internal-secure-sdlc
+    behavior: "Require static analysis and dependency scan before merge batch."
+observability:
+  metrics:
+    - dev_pipeline_step_latency_seconds
+    - dev_pipeline_merge_queue_wait_seconds
+    - dev_pipeline_canary_rollback_total
+  traces:
+    - workflow.template.dev_pipeline_merge_queue_canary
+  logs:
+    - workflow_dev_pipeline_audit_projection
+cost_allocation:
+  unit: pipeline_run
+  dimensions:
+    - tenant_id
+    - repository_id
+    - service_id
+idempotency:
+  key_shape: "tenant_id:repository_id:pull_request_id:commit_sha:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: merge_queue_batch
+  on_cancel: remove_pull_request_from_queue_and_preserve_ci_evidence
+  audit_event_class: DevPipelineWorkflowCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_idempotent_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_engineering_demo
+  repository_id:
+    type: string
+    default: repo_checkout_api
+  pull_request_id:
+    type: string
+    default: pr_7788
+  commit_sha:
+    type: string
+    default: 8f3a2c9d1b
+  service_id:
+    type: string
+    default: checkout-api
+  release_manager_principal_id:
+    type: string
+    default: principal_release_manager_001
+  canary_region:
+    type: string
+    default: us-east-1
+outputs:
+  pipeline_run_id:
+    type: string
+  terminal_state:
+    type: string
+  deployment_id:
+    type: string
+  rollback_id:
+    type: string
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: pr_enqueued_start
+    type: start
+    config:
+      trigger: scm.pull_request.merge_queue_requested.v1
+      validates:
+        - tenant_id
+        - repository_id
+        - pull_request_id
+        - commit_sha
+    cedar_permits_required:
+      - 'Action::"StartDevMergeQueueCanaryWorkflow"'
+    audit_event_class: DevPullRequestEnqueued
+    slo_target: "PT2M after queue request"
+    failure_modes:
+      - code: PR_NOT_MERGEABLE
+        behavior: "Reject enqueue and post status to pull request."
+    on_success:
+      - edge_to_static_checks
+    on_failure:
+      - edge_to_exception_end
+  - id: static_checks
+    type: action
+    config:
+      service: ci
+      contract: static-check-suite.v1
+      method: POST
+      url: "https://ci.internal/v1/static-checks"
+      checks:
+        - lint
+        - typecheck
+        - dependency_scan
+        - secret_scan
+        - policy_contract_scan
+      body:
+        repository_id: "${inputs.repository_id}"
+        commit_sha: "${inputs.commit_sha}"
+    cedar_permits_required:
+      - 'Action::"RunDevStaticChecks"'
+    audit_event_class: DevStaticChecksCompleted
+    slo_target: "PT20M"
+    failure_modes:
+      - code: STATIC_CHECK_FAILED
+        behavior: "Remove PR from merge queue and post failing check summary."
+    on_success:
+      - edge_to_integration_tests
+    on_failure:
+      - edge_to_exception_end
+  - id: integration_tests
+    type: action
+    config:
+      service: ci
+      contract: integration-test-suite.v1
+      method: POST
+      url: "https://ci.internal/v1/integration-tests"
+      test_groups:
+        - api_contract
+        - database_migration
+        - service_integration
+        - smoke_end_to_end
+      body:
+        repository_id: "${inputs.repository_id}"
+        commit_sha: "${inputs.commit_sha}"
+    cedar_permits_required:
+      - 'Action::"RunDevIntegrationTests"'
+    audit_event_class: DevIntegrationTestsCompleted
+    slo_target: "PT45M"
+    failure_modes:
+      - code: INTEGRATION_TEST_FAILED
+        behavior: "Remove PR from queue and preserve failed artifact bundle."
+    on_success:
+      - edge_to_merge_queue_batch
+    on_failure:
+      - edge_to_exception_end
+  - id: merge_queue_batch
+    type: action
+    config:
+      service: merge-queue
+      contract: merge-queue-batch.v1
+      method: POST
+      url: "https://merge-queue.internal/v1/batches"
+      batching_policy:
+        max_batch_size: 5
+        require_green_head: true
+        rebase_before_merge: true
+      body:
+        repository_id: "${inputs.repository_id}"
+        pull_request_id: "${inputs.pull_request_id}"
+        commit_sha: "${inputs.commit_sha}"
+    cedar_permits_required:
+      - 'Action::"RunMergeQueueBatch"'
+    audit_event_class: DevMergeQueueBatchMerged
+    slo_target: "PT1H"
+    failure_modes:
+      - code: BATCH_CONFLICT
+        behavior: "Unbatch PR and require branch update."
+    on_success:
+      - edge_to_deploy_canary
+    on_failure:
+      - edge_to_exception_end
+  - id: deploy_canary
+    type: action
+    config:
+      service: progressive-delivery
+      contract: canary-deploy.v1
+      method: POST
+      url: "https://deploy.internal/v1/canaries"
+      canary_policy:
+        initial_traffic_percent: 5
+        region: "${inputs.canary_region}"
+        max_error_budget_burn_rate: 2
+      body:
+        service_id: "${inputs.service_id}"
+        merged_commit_sha: "${nodes.merge_queue_batch.output.merged_commit_sha}"
+    cedar_permits_required:
+      - 'Action::"DeployCanaryRelease"'
+    audit_event_class: DevCanaryDeployed
+    slo_target: "PT30M after merge"
+    failure_modes:
+      - code: CANARY_DEPLOY_FAILED
+        behavior: "Stop rollout and keep stable version active."
+    on_success:
+      - edge_to_monitor_canary
+    on_failure:
+      - edge_to_exception_end
+  - id: monitor_canary
+    type: loop
+    config:
+      poll_contract: canary-slo-status.v1
+      poll_interval: PT5M
+      max_elapsed: PT1H
+      slo_checks:
+        - error_rate
+        - latency_p95
+        - saturation
+        - business_kpi_regression
+      terminal_statuses:
+        - healthy
+        - rollback_required
+    cedar_permits_required:
+      - 'Action::"MonitorCanarySlo"'
+    audit_event_class: DevCanarySloMonitored
+    slo_target: "PT1H observation window"
+    failure_modes:
+      - code: CANARY_SLO_BURN
+        behavior: "Trigger rollback and page service owner."
+    on_success:
+      - edge_to_rollout_decision
+    on_failure:
+      - edge_to_rollback_canary
+  - id: rollout_decision
+    type: decision
+    config:
+      expression: "${nodes.monitor_canary.output.status}"
+      cases:
+        healthy: promote_rollout
+        rollback_required: rollback_canary
+      default_case: rollback_canary
+    cedar_permits_required:
+      - 'Action::"DecideCanaryPromotion"'
+    audit_event_class: DevCanaryRolloutDecisionRecorded
+    slo_target: "PT5M after canary window"
+    failure_modes:
+      - code: CANARY_STATUS_UNKNOWN
+        behavior: "Default to rollback and require release-manager review."
+    on_success:
+      - edge_to_promote_rollout
+      - edge_to_rollback_canary
+    on_failure:
+      - edge_to_rollback_canary
+  - id: promote_rollout
+    type: action
+    config:
+      service: progressive-delivery
+      contract: rollout-promotion.v1
+      method: POST
+      url: "https://deploy.internal/v1/rollouts/promote"
+      stages:
+        - 25_percent
+        - 50_percent
+        - 100_percent
+      body:
+        deployment_id: "${nodes.deploy_canary.output.deployment_id}"
+        service_id: "${inputs.service_id}"
+    cedar_permits_required:
+      - 'Action::"PromoteCanaryRollout"'
+    audit_event_class: DevCanaryRolloutPromoted
+    slo_target: "PT2H after healthy canary"
+    failure_modes:
+      - code: PROMOTION_FAILED
+        behavior: "Hold at current traffic level and notify release manager."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_rollback_canary
+  - id: rollback_canary
+    type: action
+    config:
+      service: progressive-delivery
+      contract: canary-rollback.v1
+      method: POST
+      url: "https://deploy.internal/v1/rollouts/rollback"
+      body:
+        deployment_id: "${nodes.deploy_canary.output.deployment_id}"
+        service_id: "${inputs.service_id}"
+        rollback_reason: "${nodes.monitor_canary.output.primary_failure_reason}"
+    cedar_permits_required:
+      - 'Action::"RollbackCanaryRelease"'
+    audit_event_class: DevCanaryRollbackCompleted
+    slo_target: "PT15M after rollback trigger"
+    failure_modes:
+      - code: ROLLBACK_FAILED
+        behavior: "Page incident commander and freeze merge queue for service."
+    on_success:
+      - edge_to_close_workflow
+    on_failure:
+      - edge_to_exception_end
+  - id: close_workflow
+    type: end
+    config:
+      terminal_state: completed
+      emits:
+        - pipeline_run_closed
+        - merge_queue_evidence_committed
+        - rollout_status_committed
+    cedar_permits_required:
+      - 'Action::"CloseDevMergeQueueCanaryWorkflow"'
+    audit_event_class: DevPipelineWorkflowClosed
+    slo_target: "PT30M after rollout terminal state"
+    failure_modes:
+      - code: RELEASE_EVIDENCE_POST_FAILED
+        behavior: "Keep pipeline close-pending and retry release ledger projection."
+    on_success: []
+    on_failure:
+      - edge_to_exception_end
+  - id: exception_end
+    type: end
+    config:
+      terminal_state: exception
+      requires_manual_owner: true
+    cedar_permits_required:
+      - 'Action::"RecordDevPipelineException"'
+    audit_event_class: DevPipelineExceptionRecorded
+    slo_target: "PT30M after exception"
+    failure_modes:
+      - code: EXCEPTION_AUDIT_WRITE_FAILED
+        behavior: "Emit dead-letter event for pipeline replay."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_static_checks
+    from: pr_enqueued_start
+    to: static_checks
+    name: pr_enqueued
+  - id: edge_to_integration_tests
+    from: static_checks
+    to: integration_tests
+    name: static_checks_passed
+  - id: edge_to_merge_queue_batch
+    from: integration_tests
+    to: merge_queue_batch
+    name: integration_tests_passed
+  - id: edge_to_deploy_canary
+    from: merge_queue_batch
+    to: deploy_canary
+    name: batch_merged
+  - id: edge_to_monitor_canary
+    from: deploy_canary
+    to: monitor_canary
+    name: canary_deployed
+  - id: edge_to_rollout_decision
+    from: monitor_canary
+    to: rollout_decision
+    name: canary_status_available
+  - id: edge_to_promote_rollout
+    from: rollout_decision
+    to: promote_rollout
+    name: canary_healthy
+  - id: edge_to_rollback_canary
+    from: rollout_decision
+    to: rollback_canary
+    name: rollback_required
+  - id: edge_to_close_workflow
+    from: "*"
+    to: close_workflow
+    name: terminal_release_state
+  - id: edge_to_exception_end
+    from: "*"
+    to: exception_end
+    name: exception_recorded
+failure_modes:
+  - code: POLICY_DENIED
+    behavior: "Stop current node, emit Cedar denial audit, and preserve pipeline state."
+  - code: QUEUE_BATCH_REGRESSION
+    behavior: "Unbatch affected pull requests and retain failed CI evidence."
+  - code: CANARY_REGRESSION
+    behavior: "Rollback first, then freeze service merge queue for triage."
+worked_example:
+  sample_input:
+    tenant_id: tenant_engineering_demo
+    repository_id: repo_checkout_api
+    pull_request_id: pr_7788
+    commit_sha: 8f3a2c9d1b
+    service_id: checkout-api
+    release_manager_principal_id: principal_release_manager_001
+    canary_region: us-east-1
+  sample_expected_output:
+    pipeline_run_id: pipe_2026_7788
+    terminal_state: completed
+    deployment_id: deploy_checkout_2026_0604
+    rollback_id: null
+    audit_chain_refs:
+      - audit://workflow/dev-pipeline/enqueued/01
+      - audit://workflow/dev-pipeline/canary/05
+      - audit://workflow/dev-pipeline/promoted/08

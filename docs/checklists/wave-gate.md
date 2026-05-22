@@ -13,7 +13,7 @@ doc_status: published
 ## Universal gate (every wave)
 
 1. ☐ **All exit-criteria items checked** — per-wave criteria from [ROADMAP.md §2](../ROADMAP.md) for this wave.
-2. ☐ **Cross-axis contract integrity** — `oya-foundry-fitness-cohesion` reports zero violations for the wave's surfaces.
+2. ☐ **Cross-axis contract integrity** — `oya-governance-cohesion` reports zero violations for the wave's surfaces.
 3. ☐ **Audit-chain integrity** — chain-replay drill passed in last 30 days for affected axes.
 4. ☐ **DSR cascade tested** — at least one synthetic DSR cascaded across all wave surfaces; proof-of-erasure verified.
 5. ☐ **License gate** — no AGPL/GPL/SSPL/BUSL in any product crate touched by the wave.

@@ -1,5 +1,24 @@
 name: promote-dev-to-staging
 
+# Wave 15-ZF Jenkinsfile-mirror-parity (ADR-0346, ADR-0347, ADR-0348, ADR-0349):
+# - ADR-0346 purpose: Establish that `./bin/oya verify --ci-required` is the canonical local
+#   pre-push verifier and MUST locally mirror the full CI matrix.
+#   enforced_by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics.
+# - ADR-0347 purpose: Declare that every `oya-foundry-fitness-*` CI lane prefix in the Oyatie
+#   corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB).
+#   enforced_by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary.
+# - ADR-0348 purpose: Declare that cellular topology MUST support three control-plane-driven
+#   automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
+#   enforced_by: oya-governance-sharding-automation-coverage; oya-governance-audit-chain-emit-on-automation-events.
+# - ADR-0349 enforced_by: oya-governance-jenkins-github-actions-parity (new lane; refuses Jenkinsfile /
+#   .github/workflows drift such that a CI step exists in one surface but not the other across
+#   the per-microservice CI-parity contract enumerated in D-3 below; promoted to BLOCKER
+#   30 days post Wave 15-ZE-completion).
+#   Purpose: Jenkins is the canonical CI orchestrator for air-gap + on-prem + colo +
+#   oyatie-as-cloud-provider deployment contexts where GitHub Actions runners are not available;
+#   GitHub Actions is RETAINED as the primary CI for the hosted-on-GitHub PR review surface
+#   (oya verify + PR checks); Jenkins augments rather than replaces it.
+
 # Phase 2 of the FINAL-FINAL branch pipeline (per
 # `feedback_branch_pipeline_final_final`, 2026-05-12). Auto-promotes
 # `dev` to `staging` by fast-forwarding the `staging` ref to dev's

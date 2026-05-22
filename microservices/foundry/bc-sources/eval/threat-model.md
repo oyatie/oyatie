@@ -46,9 +46,9 @@ All components introduced by ADR-0024 (eval harness + replay) and ADR-0026 (in-h
 |---|---|
 | Postgres (eval-set metadata; via CloudNativePG) | `oya-foundry-eval-eval-set-registry-*` |
 | ClickHouse (parity analytics, week-partitioned MergeTree) | `oya-foundry-eval-eval-runner-*` (11 crates) |
-| SeaweedFS / S3-compatible (golden-outputs + replay traces, per-subject-keyed envelope) | `oya-foundry-eval-parity-analyzer-*` |
+| SeaweedFS / S3-compatible (baseline-outputs + replay traces, per-subject-keyed envelope) | `oya-foundry-eval-parity-analyzer-*` |
 | KMS (per-tenant KEK + per-subject DEK wrap) | `oya-foundry-eval-replay-engine-*` |
-| Sigstore Cosign + Rekor (eval-set signature verification) | `oya-foundry-eval-golden-output-store-*` |
+| Sigstore Cosign + Rekor (eval-set signature verification) | `oya-foundry-eval-baseline-output-store-*` |
 | Kubernetes Job controller + GPU node pool (case dispatch; gVisor / Kata sandbox) | Eval-set manifests at `microservices/foundry-eval/eval-sets/<capability>/v<n>.evalset.yaml` |
 | Argo Workflows (nightly + on-demand orchestration) | Per-component release pointer Git refs |
 
@@ -56,7 +56,7 @@ All components introduced by ADR-0024 (eval harness + replay) and ADR-0026 (in-h
 
 - Threats to the underlying Kubernetes cluster, container runtime, or hyperscaler IaaS layer — owned by `cloud-k8s` µservice threat model.
 - Threats to the provider model APIs themselves (OpenAI / Anthropic / Google / xAI / internal) — provider-side; mitigated indirectly via per-eval-set signed manifests + Cosign verify.
-- Threats to `foundry-runtime` invocation path — owned by foundry-runtime threat model; we trust the runtime's autonomy-tier + sandbox gates per ADR-0022 + ADR-0023.
+- Threats to `foundry-runtime` invocation path — owned by foundry-runtime threat model; we trust the runtime's autonomy-ceiling + sandbox gates per ADR-0022 + ADR-0023.
 - Threats to `foundry-evidence` (audit chain) — owned by foundry-evidence threat model; we emit, do not own the seal substrate.
 - Threats to OpenBao secret-manager itself — owned by `cloud-secrets` threat model.
 
@@ -95,7 +95,7 @@ All components introduced by ADR-0024 (eval harness + replay) and ADR-0026 (in-h
 │  ┌─ ClickHouse (parity analytics; tenant-id partition + RBAC) ──────────┐   │
 │  │  - DP-noise on cross-tenant aggregates                               │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
-│  ┌─ S3 (golden-outputs + replay traces; per-subject-keyed envelope) ────┐   │
+│  ┌─ S3 (baseline-outputs + replay traces; per-subject-keyed envelope) ────┐   │
 │  │  - DEK-per-subject wrapped by per-tenant KEK; KEK in KMS             │   │
 │  │  - Shred = delete DEK; record remains encrypted-and-unreplayable     │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
@@ -135,7 +135,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
 | Eval-set manifests (per-capability YAML) | `INTERNAL_ONLY` (text); references may carry `PHI_SYNTHETIC` | Low text; Medium for synthetic-PHI | append-only git history + Postgres metadata | repo + Postgres |
-| Golden outputs (per-case expected outcome) | `BEHAVIORAL_TENANT_PRODUCT` + may carry tenant-derived `PII_QUASI_IDENTIFIER` | High | per-subject-keyed encrypted; 24mo non-shred retention; pack-us-healthcare 6y | S3 + KMS |
+| Baseline outputs (per-case expected outcome) | `BEHAVIORAL_TENANT_PRODUCT` + may carry tenant-derived `PII_QUASI_IDENTIFIER` | High | per-subject-keyed encrypted; 24mo non-shred retention; pack-us-healthcare 6y | S3 + KMS |
 | Eval-run results (per-case actual outcome) | `BEHAVIORAL_TENANT_PRODUCT` + transient `PII_QUASI_IDENTIFIER` | High | 90d hot + 24mo cold; pack-us-healthcare 6y | S3 + ClickHouse |
 | Parity reports | `BEHAVIORAL_TENANT_PRODUCT` + `AUDIT` | High | week-partitioned ClickHouse; 24mo | ClickHouse |
 | Replay traces (sampled production invocations) | `BEHAVIORAL_TENANT_PRODUCT` + occasionally `PII_IDENTIFYING` (where source µservice emitted) + per-pack `PHI` / `SENSITIVE_PIPA_ART23` | Critical | 24mo non-shred + per-subject DEK shred on DSR | S3 + KMS |
@@ -242,11 +242,11 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Residual: L
 - Frameworks: SOC 2 CC8.1; ISO 27001 A.5.31, A.8.32, A.8.33; GDPR Art. 32(1)(b); EU AI Act Art. 15
 
-**T-T-02 — Golden-output tampering at S3 (object body modified post-PUT)**
-- Asset: Golden-output bytes
+**T-T-02 — Baseline-output tampering at S3 (object body modified post-PUT)**
+- Asset: Baseline-output bytes
 - Likelihood: L / Impact: H (false regression-detection signal) / Risk: **M**
 - Mitigations:
-  - SSE-KMS + bucket Object Lock in Compliance mode for golden-output bucket.
+  - SSE-KMS + bucket Object Lock in Compliance mode for baseline-output bucket.
   - Per-object Cosign signature stored alongside object; verify-on-read.
   - Block validator job verifies SHAs monthly; mismatch quarantines + paged.
 - Owner: cloud-secrets + axis-foundry
@@ -257,7 +257,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: Replay-trace bytes
 - Likelihood: L / Impact: H (replay returns wrong "old" output; falsified divergence) / Risk: **M**
 - Mitigations:
-  - Same SSE-KMS + Object Lock posture as golden-outputs.
+  - Same SSE-KMS + Object Lock posture as baseline-outputs.
   - Per-object hash chain (each trace references prior trace by hash within the same (capability, day) bucket).
   - Replay-engine verifies chain on read; broken chain → quarantine + paged.
 - Owner: cloud-secrets + axis-foundry
@@ -343,13 +343,13 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Residual: M (engineering-discipline gap baseline)
 - Frameworks: SOC 2 CC6.7; ISO 27001 A.8.11, A.8.12, A.8.32; GDPR Art. 5(1)(c), Art. 25, Art. 32; pack-kr KR PIPA Art. 3; pack-us-healthcare HIPAA §164.512(e), §164.514
 
-**T-I-03 — Eval-set golden outputs leak proprietary tenant prompts**
-- Asset: Golden outputs (per-case expected)
+**T-I-03 — Eval-set baseline outputs leak proprietary tenant prompts**
+- Asset: Baseline outputs (per-case expected)
 - Likelihood: M / Impact: M / Risk: **M**
 - Mitigations:
-  - Per-tenant golden outputs encrypted with tenant KEK; reads enforced at Cedar policy layer.
-  - LEAN check `oya-check-golden-output-tenant-isolation` (NEW) validates KEK-per-tenant boundary at deploy.
-  - Public parity-matrix dashboard publishes only DP-noised cross-tenant deltas; per-tenant goldens never on public surface.
+  - Per-tenant baseline outputs encrypted with tenant KEK; reads enforced at Cedar policy layer.
+  - LEAN check `oya-check-baseline-output-tenant-isolation` (NEW) validates KEK-per-tenant boundary at deploy.
+  - Public parity-matrix dashboard publishes only DP-noised cross-tenant deltas; per-tenant baselines never on public surface.
 - Owner: axis-foundry + ops-security
 - Residual: L
 - Frameworks: SOC 2 CC6.1; ISO 27001 A.8.5, A.8.12; GDPR Art. 25, Art. 32
@@ -517,7 +517,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 ### AI-Specific (per NIST AI RMF + OWASP LLM Top 10)
 
 **T-A-01 — Eval-set itself contaminated by training-data overlap (data leakage)**
-- Asset: Eval-set golden cases
+- Asset: Eval-set baseline cases
 - Likelihood: M / Impact: M (artificial pass rate) / Risk: **M**
 - Mitigations:
   - Per-capability eval-set carries a `contamination_check_run_at` field + `contamination_score` (per provider's data-cutoff vs case-creation timestamp).
@@ -611,7 +611,7 @@ Sign-off:
 
 - HIPAA §164.312(a)(1) (access control): per-tenant KEK + per-subject DEK envelope satisfy Unique-User-Identification + Encryption + Automatic-Logoff.
 - HIPAA §164.312(b) (audit controls): audit-chain emission; retention extended to 6y per HIPAA §164.316(b)(2) (cost-budget reflects).
-- HIPAA §164.502 (minimum-necessary): eval-set golden inputs use synthetic-PHI fixtures only; PHI never enters as live data; policy `policy/synthetic-phi-only.md`.
+- HIPAA §164.502 (minimum-necessary): eval-set baseline inputs use synthetic-PHI fixtures only; PHI never enters as live data; policy `policy/synthetic-phi-only.md`.
 - HIPAA §164.308(a)(4)(ii)(B) (access authorization): auditor JIT tokens scoped per T-I-05.
 - BAA: per-tenant; `legal/baa-template.md` overlay.
 
@@ -623,7 +623,7 @@ Sign-off:
 - GDPR Art. 32 (security of processing): every mitigation contributes.
 - GDPR Art. 44-50 (transfers): pack-eu eval-data EU-resident; cross-region replication forbidden by default.
 - **EU AI Act Art. 9 (risk management)**: this threat model + risk register satisfy.
-- **EU AI Act Art. 10 (data governance)**: eval-set + golden-output authoring policy + contamination check satisfy.
+- **EU AI Act Art. 10 (data governance)**: eval-set + baseline-output authoring policy + contamination check satisfy.
 - **EU AI Act Art. 15 (accuracy + robustness + cybersecurity)**: every EvalRun emission carries §15 evidence schema; adversarial cohort + replay are the §15 robustness evidence.
 - **EU AI Act Art. 17 (logging)**: per-eval-run audit-chain emission is the §17 log surface; retention 24mo (extended 6y for high-risk per Art. 17(2)).
 - NIS2 2022/2555: when oyatie crosses thresholds, 24h/72h/1mo incident-reporting timelines apply per `incident-response.md`.

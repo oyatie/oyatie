@@ -39,7 +39,7 @@ related_artifacts:
 autonomy_tier: T1
 # T1 = advisory; LLM/ML proposes, human disposes.
 
-eu_ai_act_classification:
+risk_classification:
   default: limited-risk-ai-system  # Annex III §10 (advisory drafting) per ADR-SHEETS-0005
   conditional_high_risk:
     - "AI-formula drafting in credit-scoring workflow (Annex III §5(b))"
@@ -166,7 +166,7 @@ cedar_policy_fragments:
   - microservices/sheets/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/sheets/capabilities/eval/t1-assist-golden.jsonl
+  reference_inputs_path: microservices/sheets/capabilities/eval/t1-assist-reference.jsonl
   pass_threshold: 0.80
   eval_metric: |
     Composite per subcapability:

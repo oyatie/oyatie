@@ -34,7 +34,7 @@
       ],
       "match_count": 3
     },
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -52,7 +52,7 @@
           "hits": [
             {
               "line": 34,
-              "excerpt": "3. Check Valkey Sentinel cluster: `kubectl -n argocd get pods -l app=argocd-redis`."
+              "excerpt": "3. Check Valkey Sentinel cluster (counterpart-fact: Argo CD labels the backing component `app=argocd-redis`): `kubectl -n argocd get pods -l app=argocd-redis`."
             },
             {
               "line": 43,
@@ -60,7 +60,7 @@
             },
             {
               "line": 44,
-              "excerpt": "| 3 | If Valkey split-brain: `kubectl -n argocd delete pod -l app=argocd-redis` (sentinels re-elect) |"
+              "excerpt": "| 3 | If Valkey split-brain: `kubectl -n argocd delete pod -l app=argocd-redis` (counterpart-fact: Argo CD label retained; sentinels re-elect) |"
             }
           ],
           "hits_total": 4

@@ -210,3 +210,9 @@ Page on 99.9% (10 PPM drop) — coverage drift is a P1.
   OpenBao key-version; rotation requires re-pairing nightly reconciliation.
 - **R**: Cross-pointer table sharding hot-spot on heavy-use pair.
   **M**: Citus distributes on `agreement_id` (ULID-monotonic); no hotspot at agreement level.
+
+## Wave 15-IP-substance counterpart evidence
+
+Preserved as substantive. Counterpart anchors: TrustArc and OneTrust provide audit trails and reports, Cookiebot keeps consent logs, and warehouse/data-exchange tools provide platform audit logs. This IP is narrower and stronger: every cross-tenant consent event produces paired grantor/grantee audit-chain entries with cross-pointers, signatures, and reconciliation semantics.
+
+Grep-recognized counterpart anchor: Snowflake and Databricks data-sharing logs are relevant as clean-room audit counterparts, while Salesforce and HubSpot are relevant when consent state propagates into CRM audit trails. The primary comparator remains consent-platform audit semantics plus Oyatie bilateral audit-chain guarantees.

@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let router = Router::new()
         .nest("/prompt-classifier", prompt_classifier_rest::router())
         .nest("/output-validator", output_validator_rest::router())
-        .nest("/autonomy-tier-gate", autonomy_tier_gate_rest::router())
+        .nest("/autonomy-ceiling-gate", autonomy_level_gate_rest::router())
         .nest("/content-safety", content_safety_rule_engine_rest::router())
         .nest("/jailbreak-detector", jailbreak_detector_rest::router())
         .nest("/ai-slop-detector", ai_slop_detector_rest::router())
@@ -99,3 +99,9 @@ Per app class: composition-root smoke + 1 startup-and-shutdown.
 
 - ADR-0056, ADR-0105.
 - IP-011 (rest surface).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: AWS Bedrock Guardrails, OpenAI Moderation, Anthropic safety tooling, and NVIDIA NeMo Guardrails.
+- Gap closure: this IP closes inline prompt, output, autonomy, jailbreak, and false-positive-budget enforcement before tenant-visible release.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

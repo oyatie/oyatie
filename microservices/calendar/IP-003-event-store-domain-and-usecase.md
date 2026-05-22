@@ -8,73 +8,76 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-calendar
-acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-layer-correctness, oya-governance-port-location]
+acceptance_lanes: [cargo-nextest, oya-governance-layer-correctness, oya-governance-legal-hold]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-003: Event-store domain and usecase
 
-# IP-003: event-store domain + usecase — invariants and orchestrators
+## A. Problem
+Calendar needs event mutation rules that are testable without Postgres or REST. Without a pure domain/usecase split, Google/Outlook-style event CRUD can leak tenant data, shift retained events, or bypass legal hold.
 
-## Intent
+## B. Approach
+Implement `oya-calendar-event-store-domain` and `oya-calendar-event-store-usecase` as the invariant and orchestration layer over the kernel ports. Domain owns overlap, attendee-state transition, legal-hold, recurrence-reference, and context-boundary rules; usecase owns create/update/cancel/apply-hold/expire-retention workflows.
 
-Author the event-store BC's `domain` (pure invariant math: overlap
-checking, time-zone arithmetic, legal-hold coverage, retention
-boundary calculations) and `usecase` (orchestrators: create-event,
-update-event, cancel-event, apply-legal-hold, expire-retention) per
-ADR-0105 13-layer + ADR-0106 usecase rename.
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `catalog/oya-calendar-event-store-domain.yaml` | Existing domain catalog record. |
+| `catalog/oya-calendar-event-store-usecase.yaml` | Existing usecase catalog record. |
+| `src/crates/oya-calendar-event-store-domain/` | Planned pure-rule crate named by manifest/catalog. |
+| `src/crates/oya-calendar-event-store-usecase/` | Planned orchestrator crate named by manifest/catalog. |
+| `contracts/asyncapi/calendar-events.yaml` | Event lifecycle output contract for usecase emissions. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Create overlap and event-time invariants using explicit IANA time-zone input.
+2. Implement attendee-state transition rules for invited, accepted, declined, tentative, and counter-proposed states.
+3. Add legal-hold mutation refusal and retention-expiry protections.
+4. Implement usecases through kernel ports only.
+5. Emit lifecycle events with idempotency keys matching `calendar.event.lifecycle.v1`.
+6. Add tests for legal-hold refusal, context isolation, attendee transition legality, and idempotent cancellation.
+7. Run layer-correctness and cross-product dependency gates before promotion.
 
-2 crates (`-domain` + `-usecase`); domain has zero I/O; usecase
-reads via ports only.
+## E. Acceptance
+- `cargo nextest run -p oya-calendar-event-store-domain` passes.
+- `cargo nextest run -p oya-calendar-event-store-usecase` passes.
+- `cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice calendar` passes.
+- `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice calendar` passes.
+- Legal-hold behavior matches `policy/data-residency.md` and `compliance.md`.
 
-## Concrete File Targets
+## F. Evidence
+- PRD FR-01, FR-12, FR-13, and workflow event table: `microservices/calendar/PRD.md`.
+- AsyncAPI lifecycle topics: `microservices/calendar/contracts/asyncapi/calendar-events.yaml`.
+- Runbooks: `runbooks/calendar-restore.md`, `runbooks/shared-cal-permission-drift.md`.
+- SLOs: `slos/agenda-render-latency.openslo.yaml`, `slos/notification-delivery-freshness.openslo.yaml`.
 
-| Path | Action | Description |
-|---|---|---|
-| `microservices/calendar/src/crates/oya-calendar-event-store-domain/Cargo.toml` | create | crate manifest |
-| `microservices/calendar/src/crates/oya-calendar-event-store-domain/src/lib.rs` | create | crate root |
-| `microservices/calendar/src/crates/oya-calendar-event-store-domain/src/overlap.rs` | create | half-open `[start, end)` overlap invariant (Hyrum #2) |
-| `microservices/calendar/src/crates/oya-calendar-event-store-domain/src/legal_hold.rs` | create | legal-hold coverage invariants (PRD AC-06) |
-| `microservices/calendar/src/crates/oya-calendar-event-store-domain/src/retention.rs` | create | per-pack retention floor invariants |
-| `microservices/calendar/src/crates/oya-calendar-event-store-domain/src/context_isolation.rs` | create | dual-context invariant (Personal ↮ Professional) |
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/Cargo.toml` | create | crate manifest |
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/src/lib.rs` | create | crate root |
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/src/create_event.rs` | create | CreateEvent orchestrator |
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/src/update_event.rs` | create | UpdateEvent orchestrator |
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/src/cancel_event.rs` | create | CancelEvent orchestrator |
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/src/apply_legal_hold.rs` | create | ApplyLegalHold orchestrator |
-| `microservices/calendar/src/crates/oya-calendar-event-store-usecase/src/expire_retention.rs` | create | ExpireRetention orchestrator |
+## G. Counterpart comparison
+Google Calendar and Outlook match event CRUD depth, while Apple and Fastmail prove strict recurrence and shared calendar expectations. Oyatie's domain/usecase layer must meet that baseline and exceed it with legal-hold, audit-chain idempotency, and dual-context refusal tests that counterparts expose only as administrative policy.
 
-## Acceptance Gates
+## H. Foundation delivery expansion
+- Deliverable detail: domain owns overlap, time-window, attendee transition, cancellation, and hold invariants.
+- Deliverable detail: usecase owns create, update, cancel, invite-state apply, retention-expire, and legal-hold workflows.
+- Deliverable detail: every command carries tenant, context, actor, idempotency key, and audit correlation.
+- Deliverable detail: recurrence references remain references; expansion stays in the recurrence engine.
+- Deliverable detail: lifecycle events map to `calendar.event.lifecycle.v1` examples.
+- Deliverable detail: cancellation and legal-hold paths include refusal reasons safe for audit logs.
+- Deliverable detail: tests cover organizer, attendee, external invitee, auditor, and CI actors.
+- Deliverable detail: Slack meeting-channel workflows are comparison pressure for collaboration state transitions.
 
-```bash
-cargo nextest run -p oya-calendar-event-store-domain
-cargo nextest run -p oya-calendar-event-store-usecase
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice calendar
-```
+## I. Acceptance expansion
+- Acceptance detail: overlap tests must cover DST transitions and explicit IANA zone input.
+- Acceptance detail: legal-hold tests must prove updates and deletes are refused while reads remain policy-scoped.
+- Acceptance detail: idempotency tests must show duplicate create/update/cancel commands return stable results.
+- Acceptance detail: attendee-state tests must reject impossible transitions such as declined-to-countered without new invite.
+- Acceptance detail: emitted events must validate against AsyncAPI examples.
+- Acceptance detail: lean/layer gates must prove no adapter imports in domain/usecase.
+- Acceptance detail: dual-context tests must prove personal and professional events never share mutable state.
+- Acceptance detail: Slack, Google, and Outlook comparisons must be backed by event-state tests.
 
-## Test Plan
-
-- Property tests on `overlap.rs` — half-open `[start, end)` is
-  associative + commutative.
-- Named legal-hold tests per PRD AC-06.
-- Context isolation tests per PRD AC-07: Personal-context attempt
-  to read Professional-context event must fail with `403 + audit-
-  emit` (matches `oya-mail-dual-context-isolation` test pattern).
-
-## Halt Conditions
-
-- Any domain function does I/O — fail `layer-correctness` gate.
-- Any usecase imports a non-port type from an adapter crate — fail
-  `port-location` gate.
-
-## Next IP
-
-[`IP-004-event-store-adapter-postgres.md`](IP-004-event-store-adapter-postgres.md)
-
-## References
-
-- ADR-0105 (13-layer enum); ADR-0106 (usecase rename).
-- PRD-calendar AC-06 + AC-07.
-- `microservices/mail/IP-002-mailbox-store-kernel.md` — sibling reference.
+## J. Evidence expansion
+- Evidence detail: capture nextest output for domain and usecase crates.
+- Evidence detail: capture AsyncAPI validation for lifecycle event examples.
+- Evidence detail: capture legal-hold refusal fixture names in the evidence bundle.
+- Evidence detail: cite `runbooks/calendar-restore.md` for event replay expectations.
+- Evidence detail: cite `runbooks/shared-cal-permission-drift.md` for permission correction behavior.
+- Evidence detail: cite SLO files when lifecycle command latency is measured.
+- Evidence detail: cite Slack as the collaboration workflow counterpart that increases RSVP/channel handoff pressure.

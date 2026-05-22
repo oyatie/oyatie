@@ -4,7 +4,7 @@
   "scanned_files": 123,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -44,7 +44,7 @@
             },
             {
               "line": 61,
-              "excerpt": "| Vote cast (idempotent) | \u226425 ms | \u2264100 ms | \u2264300 ms | Redis-buffered + Postgres flush; conflict-free counter |"
+              "excerpt": "| Vote cast (idempotent) | \u226425 ms | \u2264100 ms | \u2264300 ms | Valkey-buffered + Postgres flush; conflict-free counter |"
             },
             {
               "line": 62,
@@ -148,7 +148,7 @@
             },
             {
               "line": 41,
-              "excerpt": "6. **IP-006 voting-engine** \u2014 Redis-buffered counter; per-tenant tally; idempotent vote cast."
+              "excerpt": "6. **IP-006 voting-engine** \u2014 Valkey-buffered counter; per-tenant tally; idempotent vote cast."
             },
             {
               "line": 68,
@@ -216,7 +216,7 @@
           "hits": [
             {
               "line": 84,
-              "excerpt": "**Vote storage**: per `IP-006` Redis-buffered counter + Postgres flush, with idempotency-key per `(member, post)`. Vote state is `up | down | clear` (clear is a real verb; setting `clear` removes both"
+              "excerpt": "**Vote storage**: per `IP-006` Valkey-buffered counter + Postgres flush, with idempotency-key per `(member, post)`. Vote state is `up | down | clear` (clear is a real verb; setting `clear` removes both"
             },
             {
               "line": 143,

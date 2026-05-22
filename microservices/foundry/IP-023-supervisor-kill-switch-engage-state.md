@@ -93,3 +93,9 @@ cargo run -p oya-dev-cli -- gate validate kill-switch-2-person-rule --microservi
 - ADR-0133 §"Hyperscaler safety-claim parity".
 - `policy/tenant-scope.cedar` PERMIT 2 + FORBID fleet-scope.
 - `runbooks/kill-switch-engage.md`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Palantir AIP Operator, Azure AI Foundry deployments, and GitHub merge-queue controls.
+- Gap closure: this IP closes fleet control, kill-switch propagation, and deployability evidence with tenant-scoped policy enforcement.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

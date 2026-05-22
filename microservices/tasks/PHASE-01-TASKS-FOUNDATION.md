@@ -56,7 +56,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 |---|---|---|
 | 57 crates | `crates/oya-tasks-*` (scaffolded into workspace) | axis-tasks |
 | Postgres schema migrations | `microservices/tasks/iac/helm/postgres/migrations/` | axis-tasks |
-| Helm charts | `microservices/tasks/iac/helm/{postgres,redis,meilisearch}` | ops-sre-reliability |
+| Helm charts | `microservices/tasks/iac/helm/{postgres,valkey,meilisearch}` | ops-sre-reliability |
 | Kustomize overlays | `microservices/tasks/iac/kustomize/{base,overlays/pack-{kr,eu,us,us-healthcare}}` | ops-sre-reliability |
 | OpenAPI / AsyncAPI / Proto contracts | `microservices/tasks/contracts/` | axis-tasks |
 | Cedar policies | `microservices/tasks/policy/*.cedar` | ops-security |
@@ -74,7 +74,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 | CS-04 | project-list kernel..app (8 crates) | depends CS-01 | A |
 | CS-05 | dependency-graph kernel..app (7 crates) — PRD AC-02 cycle refusal at write time | depends CS-01 + CS-04 | A |
 | CS-06 | recurrence kernel..worker..app (7 crates) — rrule-rs align with calendar ADR-CAL-0002 | depends CS-01 | B |
-| CS-07 | view-engine kernel..adapter-redis..rest..app (8 crates) | depends CS-01 + CS-04 | B |
+| CS-07 | view-engine kernel..adapter-valkey..rest..app (8 crates) | depends CS-01 + CS-04 | B |
 | CS-08 | search-index kernel..adapter-meilisearch..worker..app (8 crates) | depends CS-01 + CS-04 | C |
 | CS-09 | importers kernel..adapter-{csv,jira,asana,trello,linear,todoist}..rest..worker..app (14 crates) | depends CS-01 + CS-04 + CS-05 + CS-06 | C |
 | CS-10 | Cedar policy + DPIA + threat-model + EU AI Act Annex III §4 sign-off | depends CS-01..CS-09 | D |

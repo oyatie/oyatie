@@ -67,7 +67,7 @@ Per ADR-0186 + hyperscaler-architecture-invariants.json, identity µservice decl
 |---|---|
 | **Circuit-breaker** | Envoy circuit-breaker on Zitadel upstream (max_connections=200; max_pending_requests=100; max_requests=400; max_retries=3); per-tenant budget split via Envoy's outlier_detection. Fail-fast on Zitadel half-open. |
 | **Shuffle-sharding** | Per-tenant Postgres connection-pool partition (4 shards per pack at year-1; 16 at year-3; 64 at year-5). A noisy-neighbour tenant exhausts ≤1 shard, not the whole pool. Implemented via pgcat shuffle-sharding policy. |
-| **Four-golden-signals** | rate=`oya_identity_oidc_issue_total`; errors=`oya_identity_oidc_issue_total{error=~".+"}`; latency=`oya_identity_oidc_issue_duration_seconds`; saturation=`oya_identity_zitadel_postgres_pool_utilization`. Dashboard `dashboards/identity-overview.json` panel-1 visualises all four. |
+| **Four-core-signals** | rate=`oya_identity_oidc_issue_total`; errors=`oya_identity_oidc_issue_total{error=~".+"}`; latency=`oya_identity_oidc_issue_duration_seconds`; saturation=`oya_identity_zitadel_postgres_pool_utilization`. Dashboard `dashboards/identity-overview.json` panel-1 visualises all four. |
 | **SLO-error-budget** | 9 SLOs declared in `manifest.json#slos`; each has a 30d rolling budget; 4-window multi-burn alert per ADR-0139. Alert routes to `axis-identity` OnCall when 2h-1d, 1h-6h, 6h-3d, or 3d-30d budget burns exceed thresholds. |
 
 ## Scaling primitives
@@ -115,7 +115,7 @@ Per ADR-0186 + hyperscaler-architecture-invariants.json, identity µservice decl
 | `/scim/v2/{tenant}/Users` GET (list) | 50 rps | n/a | 3× for 10s |
 | `/scim/v2/{tenant}/Users/{id}` PATCH | 200 rps | n/a | 5× for 10s |
 
-Tenants needing higher quotas request via enterprise-tier procurement.
+Tenants needing higher quotas request via enterprise-tenant_class procurement.
 
 ## Failure-mode capacity
 

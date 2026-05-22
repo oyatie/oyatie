@@ -65,7 +65,7 @@ hot_tier_used_bytes / hot_tier_total_bytes ≥ 0.7 for 7 d
    clickhouse-client --query "SELECT name, disk_name, bytes_on_disk FROM system.parts WHERE database LIKE 'tenant_%' ORDER BY bytes_on_disk DESC LIMIT 50"
    ```
 2. If TTL stuck: `SYSTEM TTL ON CLUSTER oya-cell` forces a TTL pass.
-3. If TTL is firing but hot still growing: tighten the hot-window from 90 d → 60 d for tier=Starter/Trial tenants:
+3. If TTL is firing but hot still growing: tighten the hot-window from 90 d → 60 d for demo_trial tenants:
    ```sql
    ALTER TABLE tenant_${tid}.events
      MODIFY TTL emitted_at + INTERVAL 60 DAY TO DISK 's3_cold';

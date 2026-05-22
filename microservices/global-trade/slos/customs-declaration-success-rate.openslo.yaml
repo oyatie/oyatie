@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: customs-declaration-success-rate
+  labels:
+    service: global-trade
+    sap_code: "GTS"
+spec:
+  description: "Global Trade customs-declaration-success-rate objective; benchmarks SAP GTS Global Trade Services | Oracle Global Trade Management | Workday supplier-compliance workflow counterpart | NetSuite international tax and trade counterpart | Microsoft Dynamics 365 global trade and export-control counterpart"
+  service: global-trade
+  indicator:
+    metadata:
+      name: customs-declaration-success-rate-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_global_trade_customs_declaration_success_total[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_global_trade_customs_declaration_attempt_total[5m]))"
+  objectives:
+    - displayName: customs-declaration-success-rate
+      target: 0.999

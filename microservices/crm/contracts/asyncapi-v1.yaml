@@ -1,0 +1,153 @@
+asyncapi: 3.1.0
+info:
+  title: Customer Relationship Management Events
+  version: 1.0.0
+  description: AsyncAPI 3.1.0 channels for SAP CRM parity events.
+defaultContentType: application/json
+channels:
+  crm.account-master.events.v1:
+    address: crm.account-master.events.v1
+    messages:
+      AccountMasterChanged:
+        $ref: "#/components/messages/AccountMasterChanged"
+  crm.opportunity.events.v1:
+    address: crm.opportunity.events.v1
+    messages:
+      OpportunityChanged:
+        $ref: "#/components/messages/OpportunityChanged"
+  crm.quote.events.v1:
+    address: crm.quote.events.v1
+    messages:
+      QuoteChanged:
+        $ref: "#/components/messages/QuoteChanged"
+  crm.service-case.events.v1:
+    address: crm.service-case.events.v1
+    messages:
+      ServiceCaseChanged:
+        $ref: "#/components/messages/ServiceCaseChanged"
+  crm.campaign.events.v1:
+    address: crm.campaign.events.v1
+    messages:
+      CampaignChanged:
+        $ref: "#/components/messages/CampaignChanged"
+  crm.loyalty-ledger.events.v1:
+    address: crm.loyalty-ledger.events.v1
+    messages:
+      LoyaltyLedgerChanged:
+        $ref: "#/components/messages/LoyaltyLedgerChanged"
+components:
+  messages:
+    AccountMasterChanged:
+      name: AccountMasterChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-CRM-ACCOUNT_MASTER-CHANGED
+          bounded_context:
+            type: string
+            const: account-master
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    OpportunityChanged:
+      name: OpportunityChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-CRM-OPPORTUNITY-CHANGED
+          bounded_context:
+            type: string
+            const: opportunity
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    QuoteChanged:
+      name: QuoteChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-CRM-QUOTE-CHANGED
+          bounded_context:
+            type: string
+            const: quote
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    ServiceCaseChanged:
+      name: ServiceCaseChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-CRM-SERVICE_CASE-CHANGED
+          bounded_context:
+            type: string
+            const: service-case
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    CampaignChanged:
+      name: CampaignChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-CRM-CAMPAIGN-CHANGED
+          bounded_context:
+            type: string
+            const: campaign
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    LoyaltyLedgerChanged:
+      name: LoyaltyLedgerChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-CRM-LOYALTY_LEDGER-CHANGED
+          bounded_context:
+            type: string
+            const: loyalty-ledger
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time

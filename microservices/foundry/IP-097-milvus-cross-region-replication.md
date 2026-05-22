@@ -168,3 +168,9 @@ Cedar fragments are loaded by `oya-foundry-providers-router-rest` middleware at 
 - ADR-0145 — communication reform.
 - Kernel: `oya-tenancy-kernel::ResidencyClass`.
 - Runbook: `microservices/foundry/runbooks/milvus-residency-incident.md`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Snowflake Cortex Search, Databricks Vector Search, OpenAI vector stores, and Palantir AIP ontology retrieval.
+- Gap closure: this IP closes Foundry retrieval/vector substrate for tenant-isolated agent grounding and eval replay.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

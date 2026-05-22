@@ -147,7 +147,7 @@ Per Bominal ADR-0028 (data-class taxonomy) + ADR-0008 (DUB) + `oya-check-data-cl
 
 | Asset | Class | Sensitivity | Retention | Authoritative store |
 |---|---|---|---|---|
-| Object Type instances (canonical entities — Patient, Payslip, Order, etc.) | varies per `PropertyTier`: `Tier1Sensitive` ⇒ `SENSITIVE_*` / `PHI` / `PII_IDENTIFYING`; `Tier2Restricted` ⇒ `BEHAVIORAL_TENANT_PRODUCT`; `Tier3Internal` ⇒ `INTERNAL_ONLY`; `Tier4Public` ⇒ `PUBLIC` | High | per data-residency.md retention matrix | Postgres + Citus |
+| Object Type instances (canonical entities — Patient, Payslip, Order, etc.) | varies per `PropertySensitivityLevel`: `Tier1Sensitive` ⇒ `SENSITIVE_*` / `PHI` / `PII_IDENTIFYING`; `Tier2Restricted` ⇒ `BEHAVIORAL_TENANT_PRODUCT`; `Tier3Internal` ⇒ `INTERNAL_ONLY`; `Tier4Public` ⇒ `PUBLIC` | High | per data-residency.md retention matrix | Postgres + Citus |
 | Link Type instances | inherited from connected Object Types' MAX tier | varies | same as Object Type | Postgres + Citus |
 | Action Type invocations + receipts | `AUDIT` | High | ≥ 1y default; ≥ 6y for pack-us-healthcare; ≥ 3y for pack-kr-FSS | Postgres + audit-chain Merkle tree |
 | Function evaluation results (cached) | varies by Function | High (per-tenant) | TTL ≤ 5 min hot cache; not persisted long-term | Valkey + ephemeral |
@@ -193,7 +193,7 @@ Each threat: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H
   - Per-tenant API key bound to tenant ID claim (signed by OpenBao); JWT verification before request reaches Cedar.
   - `app.tenant_id` Postgres session variable bound from the JWT claim by middleware; raw tenant ID never accepted from request body.
   - `FORCE ROW LEVEL SECURITY` policy on every Object Type table; mismatch → 0 rows; never an exception.
-  - LEAN check `oya-foundry-fitness-ontology-tenancy-isolation` greps for any code path that sets `app.tenant_id` from anything other than `req.auth.tenant_id`.
+  - LEAN check `oya-governance-ontology-tenancy-isolation` greps for any code path that sets `app.tenant_id` from anything other than `req.auth.tenant_id`.
 - Owner: ops-security + axis-ontology
 - Residual: L (key compromise required + audit visibility on attempt)
 - Frameworks: SOC 2 CC6.1, CC6.2, CC6.6; ISO 27001 A.5.15, A.5.17, A.8.2, A.8.3; GDPR Art. 32(1)(a)(b); KR PIPA Art. 29
@@ -254,7 +254,7 @@ Each threat: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H
 - Mitigations:
   - All Object Type schema changes via PR review with `oya-pr-review` lane.
   - CODEOWNERS for `specs/object-types/` scoped to `axis-ontology + council-privacy`.
-  - LEAN check `oya-foundry-fitness-ontology-tier-enforcement` validates: every property declares `data_class` + `property_tier`; refused if absent.
+  - LEAN check `oya-governance-ontology-tier-enforcement` validates: every property declares `data_class` + `property_sensitivity_level`; refused if absent.
   - Schema regression test asserts every existing tenant's data continues to validate under the new schema.
 - Owner: axis-ontology + council-privacy
 - Residual: L
@@ -264,7 +264,7 @@ Each threat: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H
 - Asset: `microservices/ontology/policy/*.cedar`
 - L: M / I: H (false permit → unauthorised Action invocation) / Risk: **H**
 - Mitigations:
-  - All Cedar fragment changes via PR review with `oya-pr-review` + `oya-foundry-fitness-cedar-coverage` lane.
+  - All Cedar fragment changes via PR review with `oya-pr-review` + `oya-governance-cedar-coverage` lane.
   - LEAN `cedar-coverage` validates: every registered Action Type has at least one permit AND a default-deny clause.
   - Fuzz testing in CI (`oya-check-cedar-fragment-coverage`): random `(principal, action, resource, context)` tuples; deny is expected unless covered by explicit permit.
   - Cedar v4 (no template-based escape vectors known).
@@ -279,7 +279,7 @@ Each threat: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H
   - Postgres roles for application paths are non-superuser; cannot `ALTER TABLE ... DISABLE ROW LEVEL SECURITY`.
   - Superuser JIT via OpenBao with 2-person rule; every superuser session audited.
   - Continuous Helm-state validator + `pg_dump --schema-only` diff CronJob detects schema drift hourly; mismatch with declared state alarms.
-  - LEAN lane `oya-foundry-fitness-ontology-tenancy-isolation` includes a runtime probe that performs a cross-tenant query attempt; non-zero rows returned = lane fail.
+  - LEAN lane `oya-governance-ontology-tenancy-isolation` includes a runtime probe that performs a cross-tenant query attempt; non-zero rows returned = lane fail.
 - Owner: ops-security + axis-ontology + cloud-infra
 - Residual: L
 - Frameworks: SOC 2 CC6.6, CC8.1; ISO 27001 A.5.17, A.8.5, A.8.7, A.8.32; GDPR Art. 32(1)(b)
@@ -360,7 +360,7 @@ Each threat: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H
 - Mitigations:
   - Postgres RLS is the load-bearing control; even if a Function omits `tenant_id`, RLS returns rows for the bound tenant only.
   - ClickHouse row-policies (per-row filter on `tenant_id = currentDatabase()` analog using `getSetting('app_tenant_id')`).
-  - LEAN runtime probe in `oya-foundry-fitness-ontology-tenancy-isolation`: synthetic cross-tenant query attempt; non-zero rows = lane fail.
+  - LEAN runtime probe in `oya-governance-ontology-tenancy-isolation`: synthetic cross-tenant query attempt; non-zero rows = lane fail.
   - Penetration test annually + on every Postgres/Citus/ClickHouse upgrade.
 - Owner: ops-security + axis-ontology
 - Residual: L
@@ -372,7 +372,7 @@ Each threat: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H
 - Mitigations:
   - Link Type adapter checks both endpoints' `tenant_id` against `app.tenant_id`; mismatch returns `CrossTenantLinkDenied`.
   - Cedar `CrossTenantLinkGrant` permit required for the rare legitimate cross-tenant link (e.g., marketplace integration); 2-person rule + audit-chained.
-  - LEAN lane `oya-foundry-fitness-ontology-cross-tenant-link` greps the adapter for any code path that creates links without dual-tenant check.
+  - LEAN lane `oya-governance-ontology-cross-tenant-link` greps the adapter for any code path that creates links without dual-tenant check.
 - Owner: axis-ontology + ops-security
 - Residual: L
 - Frameworks: SOC 2 CC6.1, CC6.6; ISO 27001 A.5.15, A.8.3; GDPR Art. 5(1)(f), Art. 32; pack-kr KR PIPA Art. 23
@@ -416,8 +416,8 @@ Each threat: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H
 - Asset: Function-engine projection
 - L: M / I: H (Tier1Sensitive property exposed to Tier4Public reader) / Risk: **H**
 - Mitigations:
-  - Function evaluator validates: result-shape tier ≤ caller's max-tier ceiling (caller carries `max_tier` claim).
-  - LEAN `oya-foundry-fitness-ontology-tier-enforcement`: every Function projection covers all declared `data_class` propagation rules.
+  - Function evaluator validates: result-shape tier ≤ caller's max-sensitivity ceiling (caller carries `max_sensitivity_level` claim).
+  - LEAN `oya-governance-ontology-tier-enforcement`: every Function projection covers all declared `data_class` propagation rules.
   - Property-tier ceiling enforced server-side at projection time; never trusted from request.
 - Owner: axis-ontology
 - Residual: L
@@ -579,19 +579,19 @@ Each threat: ID; category; asset; description; likelihood (L/M/H); impact (L/M/H
 
 | Mitigation | Type | Owner | Verification |
 |---|---|---|---|
-| Postgres `FORCE ROW LEVEL SECURITY` | Preventive | axis-ontology + cloud-infra | `oya-foundry-fitness-ontology-tenancy-isolation` lane |
+| Postgres `FORCE ROW LEVEL SECURITY` | Preventive | axis-ontology + cloud-infra | `oya-governance-ontology-tenancy-isolation` lane |
 | Citus `multi_shard_modify_mode = strict` | Preventive | axis-ontology | Helm config hash check |
-| Cedar v4 default-deny baseline | Preventive | axis-ontology + ops-security | `oya-foundry-fitness-cedar-coverage` lane |
+| Cedar v4 default-deny baseline | Preventive | axis-ontology + ops-security | `oya-governance-cedar-coverage` lane |
 | Cedar fragment-coverage CI lane | Preventive | axis-ontology | per-Action permit + default-deny |
 | Per-Action autonomy_tier ceiling | Preventive | axis-ontology | runtime Cedar evaluator |
 | Pillar Cedar fragment (`pillar.cedar`) | Preventive | axis-ontology + council-privacy | annual pen-test pillar boundary |
 | Ed25519 audit-chain seal per Action | Detective + Non-repudiation | axis-ontology + audit-chain | Merkle root verification |
 | Outbox-to-Kafka pattern | Preventive | axis-ontology | completeness rate SLO |
-| Property-tier propagation in Function projection | Preventive | axis-ontology | `oya-foundry-fitness-ontology-tier-enforcement` |
+| Property-tier propagation in Function projection | Preventive | axis-ontology | `oya-governance-ontology-tier-enforcement` |
 | DSR cascade runner | Preventive (compliance) | council-privacy + axis-ontology | DSR queue SLO |
 | Per-tenant API key + JWT bound tenant claim | Preventive | ops-security + cloud-secrets | OpenBao audit |
 | Per-tenant ClickHouse row policy | Preventive | axis-ontology | ClickHouse policy review |
-| Tier-filtered LLM tool-call payload | Preventive | axis-ontology + council-privacy | agent-gateway-scope.cedar |
+| Sensitivity-filtered LLM tool-call payload | Preventive | axis-ontology + council-privacy | agent-gateway-scope.cedar |
 | 2-person rule for cross-pillar + cross-tenant grants | Preventive (insider) | ops-security + council-privacy | OpenBao JIT logs |
 | Per-tenant Ed25519 signing keys (HSM where available) | Preventive | cloud-secrets | OpenBao rotation audit |
 | LEAN runtime probes (synthetic cross-tenant query) | Detective | axis-ontology | CI lane + production canary |
@@ -629,7 +629,7 @@ Sign-off:
 
 - **HIPAA §164.312(a)(1) (access control)**: Postgres RLS + Cedar + per-tenant API key satisfy Unique-User Identification + Encryption-and-Decryption.
 - **HIPAA §164.312(b) (audit controls)**: audit-chain seal on every PHI-touching Object Type write + Action.
-- **HIPAA §164.502 (minimum necessary)**: Function projection tier-filters PHI properties; Cedar permits per role.
+- **HIPAA §164.502 (minimum necessary)**: Function projection sensitivity-filters PHI properties; Cedar permits per role.
 - **HIPAA §164.502(a) (TPO)**: Action Type registry tags TPO scope.
 - **BAA template**: per-tenant BAA at `microservices/ontology/legal/baa-template.md` (Slice D successor-IP).
 

@@ -162,7 +162,7 @@ async fn main() -> anyhow::Result<()> {
         source_microservice: SourceMicroservice::FoundryRuntime,
         agent_id: "agent:claim-validator".into(),
         capability_id: "capability:check-claim".into(),
-        autonomy_tier_decision: AutonomyTier::T2,
+        autonomy_level_decision: AutonomyLevel::T2,
         invocation_ts: Utc::now(),
         pack: "pack-eu".into(),
         idempotency_key: Ulid::new().to_string(),

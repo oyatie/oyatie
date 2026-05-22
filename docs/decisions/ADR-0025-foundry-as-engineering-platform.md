@@ -38,7 +38,7 @@ crates/oya-foundry-catalog-{kernel,app,api} — catalog record + projection
 crates/oya-foundry-gate-{kernel,domain,app} — gate primitive + rule evaluation
 crates/oya-foundry-bypass-{kernel,app}      — foundation-bypass ledger + autonomy break-glass ledger
 crates/oya-foundry-lane-{kernel,app}        — CI lane primitive + per-PR routing
-crates/oya-foundry-fitness-*                — one crate per fitness function
+crates/oya-governance-*                — one crate per fitness function
 crates/oya-foundry-scorecard-{kernel,app}   — quality scorecard rollup
 crates/oya-foundry-supply-app               — Cosign + Trivy + SBOM
 crates/oya-foundry-branch-protection-app    — branch protection as code
@@ -82,19 +82,19 @@ Every PR is routed to its plane lane (`rust-control`, `rust-data`, `rust-analyti
 
 ### Fitness functions
 
-Per-domain fitness functions live as crates under `oya-foundry-fitness-*`. Examples:
+Per-domain fitness functions live as crates under `oya-governance-*`. Examples:
 
-- `oya-foundry-fitness-tenant-shape` — every tenant-touching surface conforms to the tenancy contract.
-- `oya-foundry-fitness-audit-emission` — every regulated capability emits to the audit chain.
-- `oya-foundry-fitness-data-use-boundary` — every data-class touch passes the consent gate.
-- `oya-foundry-fitness-eventing-topic` — every emitted event conforms to its topic schema.
-- `oya-foundry-fitness-flat-crates` — flat path shape plus kernel/domain/app/adapter/api/worker/runtime layering.
-- `oya-foundry-fitness-doc-catalog` — every public surface has a docs page.
-- `oya-foundry-fitness-product-prd` — every product has a PRD with the required sections.
-- `oya-foundry-fitness-horizontal-scale` — every stateful surface has a documented horizontal-scale story.
-- `oya-foundry-fitness-contract-orphan` — every cross-microservice contract has both an owner and a consumer.
-- `oya-foundry-fitness-license` — license-tier gate (AGPL/GPL hard-fail in product code; SSPL/BUSL ADR review).
-- `oya-foundry-fitness-supply-chain` — Cosign + Trivy + SBOM coverage.
+- `oya-governance-tenant-shape` — every tenant-touching surface conforms to the tenancy contract.
+- `oya-governance-audit-emission` — every regulated capability emits to the audit chain.
+- `oya-governance-data-use-boundary` — every data-class touch passes the consent gate.
+- `oya-governance-eventing-topic` — every emitted event conforms to its topic schema.
+- `oya-governance-flat-crates` — flat path shape plus kernel/domain/app/adapter/api/worker/runtime layering.
+- `oya-governance-doc-catalog` — every public surface has a docs page.
+- `oya-governance-product-prd` — every product has a PRD with the required sections.
+- `oya-governance-horizontal-scale` — every stateful surface has a documented horizontal-scale story.
+- `oya-governance-contract-orphan` — every cross-microservice contract has both an owner and a consumer.
+- `oya-governance-license` — license-tier gate (AGPL/GPL hard-fail in product code; SSPL/BUSL ADR review).
+- `oya-governance-supply-chain` — Cosign + Trivy + SBOM coverage.
 
 ### Customer-facing builder surfaces
 

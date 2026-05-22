@@ -72,7 +72,7 @@ cross_plane_calls:
 1. **A control-plane API never reads from the data-plane store directly.** It reads via a published projection or replays an audited event log (sourced through ADR-0005 eventing backbone). Direct DB-shared-driver access from control-plane code to a data-plane primary fails the boundary validator.
 2. **A data-plane surface never writes to the control-plane store directly.** It emits events; the control plane projects them.
 3. **Analytics surfaces never write to operational stores.** Reverse-ETL is a control-plane operation, explicitly classified.
-4. **Cross-plane calls are explicit contracts.** A PR that adds a cross-plane edge that is not declared in the catalog is rejected by `oya-foundry-fitness-plane`.
+4. **Cross-plane calls are explicit contracts.** A PR that adds a cross-plane edge that is not declared in the catalog is rejected by `oya-governance-plane`.
 
 ### Plane × Axis matrix (per DESIGN §2)
 
@@ -88,7 +88,7 @@ cross_plane_calls:
 
 ### Cross-plane review CI lane
 
-PRs that change a surface's `plane` field, or add/modify a `cross_plane_calls` entry, are auto-labeled `cross-plane` by `oya-foundry-fitness-plane`. The label requires:
+PRs that change a surface's `plane` field, or add/modify a `cross_plane_calls` entry, are auto-labeled `cross-plane` by `oya-governance-plane`. The label requires:
 
 - A reviewer from each affected plane's owning team.
 - A regenerated cross-plane call diagram in the PR body's `## Evidence` section.
@@ -118,7 +118,7 @@ PRs that change a surface's `plane` field, or add/modify a `cross_plane_calls` e
 
 ### Operational
 
-- `oya-foundry-fitness-plane` runs on every PR; cross-plane label triggers two-team review.
+- `oya-governance-plane` runs on every PR; cross-plane label triggers two-team review.
 - Per-plane SLO catalog: control plane targets p99 < 1 s; data plane per-microservice (ads < 100 ms; search < 200 ms; SaaS workflow step < 500 ms); analytics targets per-pipeline freshness window.
 - Runbooks: `runbooks/cross-plane-call-introduction.md`, `runbooks/plane-class-correction.md`.
 - The plane × axis matrix above is the source of truth; quarterly review by `council-architecture` regenerates it from the catalog.

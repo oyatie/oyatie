@@ -1,7 +1,7 @@
 context: shared
 role: kernel
 capability: connector
-plane: data
+plane: control
 slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []

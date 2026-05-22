@@ -43,7 +43,7 @@ When an eval-set version is promoted that adds new cohort (e.g., new locale; new
 **Procedure:**
 1. Identify the new cohort delta.
 2. Trigger `oya-foundry-eval-eval-runner-rest backfill-cohort --capability <cap> --from-version <prior> --to-version <new> --cohort <new-cohort>`.
-3. Dispatch only new-cohort cases against historical golden outputs + provider routes.
+3. Dispatch only new-cohort cases against historical baseline outputs + provider routes.
 4. Augment historical run records with new-cohort aggregate.
 5. New aggregates retain the original run timestamp + carry `backfill_cohort_added_at` field.
 

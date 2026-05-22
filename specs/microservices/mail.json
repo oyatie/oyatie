@@ -458,7 +458,7 @@
         "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
       }
     ],
-    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+    "validation_lane_ref": "oya-governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [

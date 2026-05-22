@@ -52,7 +52,7 @@ spec:
             - { name: CEDAR_FAIL_CLOSED, value: "{{ .Values.cedar.failClosed }}" }
             - { name: SPIFFE_IDENTITY_REF, value: "${openbao:{{ .Values.secrets.spiffeIdentityPath }}}" }
             - { name: POSTGRES_CONN_REF, value: "${openbao:{{ .Values.secrets.postgresConnectionPath }}}" }
-            - { name: REDIS_AUTH_REF, value: "${openbao:{{ .Values.secrets.redisAuthPath }}}" }
+            - { name: VALKEY_AUTH_REF, value: "${openbao:{{ .Values.secrets.valkeyAuthPath }}}" }
             - { name: S3_KMS_KEY_REF, value: "${openbao:{{ .Values.secrets.s3KmsKeyPath }}}" }
             - { name: ED25519_SIGNING_KEY_REF, value: "${openbao:{{ .Values.secrets.ed25519SigningKeyPath }}}" }
             - { name: COLLAB_HMAC_KEY_REF, value: "${openbao:{{ .Values.secrets.collabHmacKeyPath }}}" }

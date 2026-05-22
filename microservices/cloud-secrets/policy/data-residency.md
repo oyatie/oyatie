@@ -81,7 +81,7 @@ Cross-pack replication of any of the following is forbidden by default:
 | Audit-chain events for secret-access | FORBIDDEN (each pack has its own audit-chain instance) |
 | Rotation policy definitions | Configuration is per-pack (Helm values + git overlays); rotation state per-pack |
 | HSM attestation reports | per-pack; audit-chain seal pack-local |
-| BYOK material | FORBIDDEN |
+| encryption-key BYOK material (ADR-0251 §D-10) | FORBIDDEN |
 
 ### Exception: tenant-executed SCCs (GDPR Art. 44–46)
 

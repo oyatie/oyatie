@@ -19,4 +19,4 @@ allowed_dependency_edges:
   - oya-foundry-eval-eval-runner-usecase
 data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2

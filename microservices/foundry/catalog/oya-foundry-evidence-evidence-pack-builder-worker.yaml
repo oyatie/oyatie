@@ -16,7 +16,7 @@ allowed_dependency_edges:
   - oya-foundry-evidence-evidence-pack-builder-adapter
 data_classes_owned: [AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 notes: |
   Leader-elected pack-assembly daemon. Subscribes to foundry.runtime/eval/
   guardrails/supervisor topics. Aggregates per-(invocation_id, attempt_no) and

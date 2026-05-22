@@ -19,7 +19,7 @@ Cross-BC backfill + replay strategies. Per-BC plans preserved at
 | Scenario | Affected BCs | Method | Boundedness |
 |---|---|---|---|
 | Audit-chain re-seal after bridge outage | evidence | Replay sealed-pending packs through bridge in monotonic order | Sev cap SEV-2; ≤24h backlog |
-| Eval golden-output regen after model upgrade | eval | Re-run capabilities against new model; mark new generation | Sev cap SEV-3; offline |
+| Eval baseline-output regen after model upgrade | eval | Re-run capabilities against new model; mark new generation | Sev cap SEV-3; offline |
 | Supervision event replay after bus outage | supervisor | Replay from PostgreSQL append-only log to event-bus subscribers | Bounded by supervisor-log retention (1y) |
 | Capability registry-cache rebuild | runtime | Pull full descriptor list from supervisor; rebuild cache | Bounded by capability count (≤100k/pack) |
 | Provider receipt reconciliation after billing-system outage | providers | Replay receipts from internal log against billing-system reconciliation API | Bounded by 30d receipt retention |

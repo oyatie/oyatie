@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 39,
+  "title": "ITSM local audit completeness",
+  "tags": [
+    "itsm",
+    "local-operational-primitive",
+    "adr-0130"
+  ],
+  "timezone": "utc",
+  "templating": {
+    "list": [
+      {
+        "name": "tenant_id",
+        "type": "query",
+        "query": "label_values(oya_itsm_sla_breach_detection_total, tenant_id)"
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "SLA breach detection completeness burn",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_sla_breach_detection_good_total[30d])) by (tenant_id, cell_tier) / sum(rate(oya_itsm_sla_breach_detection_total[30d])) by (tenant_id, cell_tier)",
+          "legendFormat": "sla-breach-detection ratio"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Problem records linked to incident evidence burn",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_problem_link_correctness_good_total[30d])) by (tenant_id, cell_tier) / sum(rate(oya_itsm_problem_link_correctness_total[30d])) by (tenant_id, cell_tier)",
+          "legendFormat": "problem-link-correctness ratio"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Incidents restored inside MTTR objective burn",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_mttr_objective_good_total[30d])) by (tenant_id, cell_tier) / sum(rate(oya_itsm_mttr_objective_total[30d])) by (tenant_id, cell_tier)",
+          "legendFormat": "mttr-objective ratio"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Approved changes without incident-causing failure burn",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_change_failure_rate_good_total[30d])) by (tenant_id, cell_tier) / sum(rate(oya_itsm_change_failure_rate_total[30d])) by (tenant_id, cell_tier)",
+          "legendFormat": "change-failure-rate ratio"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Incident ticket triage latency burn",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_ticket_triage_latency_good_total[5m])) by (tenant_id, cell_tier) / sum(rate(oya_itsm_ticket_triage_latency_total[5m])) by (tenant_id, cell_tier)",
+          "legendFormat": "ticket-triage-latency ratio"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "CMDB relationship projection freshness burn",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_cmdb_relation_freshness_good_total[1h])) by (tenant_id, cell_tier) / sum(rate(oya_itsm_cmdb_relation_freshness_total[1h])) by (tenant_id, cell_tier)",
+          "legendFormat": "cmdb-relation-freshness ratio"
+        }
+      ]
+    }
+  ]
+}

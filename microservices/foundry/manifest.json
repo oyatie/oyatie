@@ -45,8 +45,8 @@
       "description": "Bounded context 'foundry-guardrails' within foundry-guardrails (control plane)",
       "crates": [
         "oya-foundry-guardrails-ai-slop-detector-kernel",
-        "oya-foundry-guardrails-autonomy-tier-gate-adapter-cedar",
-        "oya-foundry-guardrails-autonomy-tier-gate-kernel",
+        "oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar",
+        "oya-foundry-guardrails-autonomy-ceiling-gate-kernel",
         "oya-foundry-guardrails-content-safety-rule-engine-adapter-postgres",
         "oya-foundry-guardrails-content-safety-rule-engine-kernel",
         "oya-foundry-guardrails-jailbreak-detector-adapter-classifier-model",
@@ -215,112 +215,112 @@
   },
   "capabilities": [
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "eval-run",
       "file": "microservices/foundry/capabilities/eval-eval-run.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "parity-compare",
       "file": "microservices/foundry/capabilities/eval-parity-compare.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "replay-execute",
       "file": "microservices/foundry/capabilities/eval-replay-execute.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "evidence-pack-build",
       "file": "microservices/foundry/capabilities/evidence-evidence-pack-build.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T1",
+      "availability": "demo_trial_and_paid",
       "name": "evidence-query",
       "file": "microservices/foundry/capabilities/evidence-evidence-query.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
-      "tier": "T3",
+      "availability": "demo_trial_and_paid",
       "name": "regulator-export",
       "file": "microservices/foundry/capabilities/evidence-regulator-export.yaml",
-      "eu_ai_act_risk_class": "high"
+      "risk_class": "high"
     },
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "classify-prompt",
       "file": "microservices/foundry/capabilities/guardrails-classify-prompt.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T1",
+      "availability": "demo_trial_and_paid",
       "name": "enforce-autonomy",
       "file": "microservices/foundry/capabilities/guardrails-enforce-autonomy.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "validate-output",
       "file": "microservices/foundry/capabilities/guardrails-validate-output.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T3",
+      "availability": "demo_trial_and_paid",
       "name": "credential-resolve",
       "file": "microservices/foundry/capabilities/providers-credential-resolve.yaml",
-      "eu_ai_act_risk_class": "high"
+      "risk_class": "high"
     },
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "provider-invoke",
       "file": "microservices/foundry/capabilities/providers-provider-invoke.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T1",
+      "availability": "demo_trial_and_paid",
       "name": "provider-route",
       "file": "microservices/foundry/capabilities/providers-provider-route.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "capability-execute",
       "file": "microservices/foundry/capabilities/runtime-capability-execute.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T1",
+      "availability": "demo_trial_and_paid",
       "name": "session-create",
       "file": "microservices/foundry/capabilities/runtime-session-create.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
-      "tier": "T1",
+      "availability": "demo_trial_and_paid",
       "name": "session-resume",
       "file": "microservices/foundry/capabilities/runtime-session-resume.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
-      "tier": "T2",
+      "availability": "demo_trial_and_paid",
       "name": "deploy-capability",
       "file": "microservices/foundry/capabilities/supervisor-deploy-capability.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
-      "tier": "T3",
+      "availability": "demo_trial_and_paid",
       "name": "engage-kill-switch",
       "file": "microservices/foundry/capabilities/supervisor-engage-kill-switch.yaml",
-      "eu_ai_act_risk_class": "high"
+      "risk_class": "high"
     },
     {
-      "tier": "T1",
+      "availability": "demo_trial_and_paid",
       "name": "query-fleet-state",
       "file": "microservices/foundry/capabilities/supervisor-query-fleet-state.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     }
   ],
   "slos": [
@@ -477,10 +477,10 @@
       "file": "microservices/foundry/IP-011-runtime-capability-executor-app.md"
     },
     {
-      "id": "IP-012-autonomy-tier-gate",
+      "id": "IP-012-autonomy-ceiling-gate",
       "title": "IP-012: Autonomy tier gate (cross-µservice wiring + LEAN lane)",
       "acceptance_status": "ga",
-      "file": "microservices/foundry/IP-012-runtime-autonomy-tier-gate.md"
+      "file": "microservices/foundry/IP-012-runtime-autonomy-ceiling-gate.md"
     },
     {
       "id": "IP-013-dsr-cascade-session-handler",
@@ -597,10 +597,10 @@
       "file": "microservices/foundry/IP-031-eval-layer-a-gpu-runner-pool-iac.md"
     },
     {
-      "id": "IP-002-layer-a-postgres-clickhouse-golden-store-iac",
-      "title": "IP-002: Layer-A Postgres + ClickHouse + Golden-Output Store IaC",
+      "id": "IP-002-layer-a-postgres-clickhouse-baseline-store-iac",
+      "title": "IP-002: Layer-A Postgres + ClickHouse + Baseline-Output Store IaC",
       "acceptance_status": "ga",
-      "file": "microservices/foundry/IP-032-eval-layer-a-postgres-clickhouse-golden-store-iac.md"
+      "file": "microservices/foundry/IP-032-eval-layer-a-postgres-clickhouse-baseline-store-iac.md"
     },
     {
       "id": "IP-003-eval-runner-kernel",
@@ -801,10 +801,10 @@
       "file": "microservices/foundry/IP-065-guardrails-output-validator-kernel.md"
     },
     {
-      "id": "IP-006-autonomy-tier-gate-kernel-and-cedar-adapter",
-      "title": "IP-006: oya-foundry-guardrails-autonomy-tier-gate-kernel + adapter-cedar",
+      "id": "IP-006-autonomy-ceiling-gate-kernel-and-cedar-adapter",
+      "title": "IP-006: oya-foundry-guardrails-autonomy-ceiling-gate-kernel + adapter-cedar",
       "acceptance_status": "ga",
-      "file": "microservices/foundry/IP-066-guardrails-autonomy-tier-gate-kernel-and-cedar-adapter.md"
+      "file": "microservices/foundry/IP-066-guardrails-autonomy-ceiling-gate-kernel-and-cedar-adapter.md"
     },
     {
       "id": "IP-007-content-safety-rule-engine-kernel-and-postgres-adapter",
@@ -844,7 +844,7 @@
     },
     {
       "id": "IP-013-runtime-guardrails-coupling-lane",
-      "title": "IP-013: oya-foundry-fitness-runtime-guardrails-coupling CI lane (BLOCKER)",
+      "title": "IP-013: oya-governance-runtime-guardrails-coupling CI lane (BLOCKER)",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-073-guardrails-runtime-guardrails-coupling-lane.md"
     },
@@ -1095,7 +1095,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "baseline_signals": "INV-FOUR-KEY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -1144,5 +1144,76 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": true,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "foundry is a BNF v4.1 kebab-case microservice slug; generated names follow oya-foundry-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+    "per_seat",
+    "per_usage"
+  ],
+  "packs": [
+    "ae",
+    "au",
+    "br",
+    "eu",
+    "in",
+    "jp",
+    "kr",
+    "ksa",
+    "sg",
+    "us",
+    "us-healthcare",
+    "hipaa",
+    "gdpr",
+    "soc2-type2",
+    "iso27001",
+    "fedramp",
+    "soc2",
+    "cn-pipl-2021",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; baseline_signals: INV-FOUR-KEY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-foundry",
+  "tenant_classification": "internal-and-tenant-product",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "ae",
+    "au",
+    "br",
+    "eu",
+    "in",
+    "jp",
+    "kr",
+    "ksa",
+    "sg",
+    "us",
+    "us-healthcare",
+    "hipaa",
+    "gdpr",
+    "soc2-type2",
+    "iso27001",
+    "fedramp",
+    "soc2",
+    "cn-pipl-2021",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "identity",
+    "tenancy",
+    "observability",
+    "audit-chain",
+    "network",
+    "intelligence",
+    "ontology",
+    "detection",
+    "cell",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T1",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec"
 }

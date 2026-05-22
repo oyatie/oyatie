@@ -1071,7 +1071,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
-      "purpose_short": "Current FD-001 planning-closure and implementation goal prompt superseding archived implement-masterplan prompt artifacts.",
+      "purpose_short": "Active FD-001 planning-closure and implementation goal artifact replacing the archived implement-masterplan-goal-prompt draft.",
       "artifact_profile": "template",
       "capability_overrides": {
         "enforcement": {
@@ -1094,9 +1094,9 @@
           "metrics": []
         },
         "provenance": {
-          "current_author": "codex + jason931225",
-          "current_reviewed_by": "planning-closure gate and FD-001 closeout review in /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
-          "last_modified_at": "2026-05-19T16:30:38Z"
+          "current_author": "codex",
+          "current_reviewed_by": "planning-closure FD-001 replacement recorded in /evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+          "last_modified_at": "2026-05-20T00:00:00Z"
         }
       }
     },

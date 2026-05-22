@@ -10,13 +10,13 @@
 #
 # Compiled from policy/tenant-scope.cedar fragment:
 #   forbid(principal, action == Action::"automated_decision_make",
-#          resource in Resource::"ai-act-annex-iii-employment")
+#          resource in Resource::"ai-act-risk_anchor-iii-employment")
 #     when { resource.high_risk && !principal.has_human_oversight_token };
 
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
-  name: pack-eu-annex-iii-refusal
+  name: pack-eu-risk_anchor-iii-refusal
   namespace: pack-eu                           # overridden per regulated µservice namespace via overlay
   labels:
     oyatie/microservice: governance
@@ -30,7 +30,7 @@ metadata:
   annotations:
     oyatie.adr/primary: ADR-0174
     oyatie.regulation.citation: "EU AI Act 2024/1689 Annex III §4 (employment); Art. 14 (human oversight); Art. 26 (deployer obligations)"
-    oyatie.cedar.source: "microservices/governance/policy/eu-ai-act-annex-iii.cedar"
+    oyatie.cedar.source: "microservices/governance/policy/eu-ai-act-risk_anchor-iii.cedar"
     oyatie.legal.signoff: required
 spec:
   targetRefs:
@@ -49,7 +49,7 @@ spec:
               - "/tasks/*/automated-priority"
       when:
         - key: request.headers[x-oyatie-ai-risk-tier]
-          values: ["high-risk-annex-iii"]
+          values: ["high-risk-risk_anchor-iii"]
         - key: request.headers[x-oyatie-decision-mode]
           values: ["automated", "fully-automated"]
         - key: request.headers[x-oyatie-context]
@@ -60,7 +60,7 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: pack-eu-annex-iii-refusal-response-shape
+  name: pack-eu-risk_anchor-iii-refusal-response-shape
   namespace: pack-eu
   labels:
     oyatie/pack: pack-eu
@@ -90,7 +90,7 @@ spec:
                   local status = response_handle:headers():get(":status")
                   if status == "403" or status == "401" then
                     local rule = response_handle:headers():get("x-istio-rule-matched")
-                    if rule and string.find(rule, "pack-eu-annex-iii-refusal") then
+                    if rule and string.find(rule, "pack-eu-risk_anchor-iii-refusal") then
                       response_handle:headers():replace(":status", "451")
                       response_handle:headers():replace("content-type", "application/json")
                       response_handle:headers():add("x-oyatie-regulation", "EU-AI-Act-Annex-III-4")

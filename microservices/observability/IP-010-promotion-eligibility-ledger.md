@@ -65,6 +65,13 @@ promtool check rules microservices/observability/iac/helm/mimir/recording-rules.
 - Recording-rule output drifts from `oya:current_verdict:by_microservice_env` spec — fix in spec or rule
 - Audit-chain evidence not emitted alongside Mimir write — fail
 
+
+## Sustainability emission (per ADR-0344)
+- Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
+- Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
+- Surface evidence: `microservices/observability/IP-010-promotion-eligibility-ledger.md` matched `emission`; anchors `microservices/observability/manifest.json, crates/oya-cloud-observability-api/src/lib.rs`; type anchor `crates/oya-cloud-observability-api/src/lib.rs::CloudObservabilityAuditRecord`.
+
 ## Next IP
 
 [`IP-011-per-component-release-pointers.md`](IP-011-per-component-release-pointers.md)

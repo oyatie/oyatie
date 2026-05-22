@@ -28,7 +28,7 @@ enabled_at_mvp: false
 # DISABLED at minimum-shippable-tier. To enable post-minimum-shippable-tier requires:
 #   - tenant-admin explicit opt-in;
 #   - per-user explicit opt-in;
-#   - conformity assessment per EU AI Act if pack-eu;
+#   - conformity assessment per regional AI-risk if pack-eu;
 #   - human-in-loop "review and apply" UX in production.
 
 inputs:
@@ -96,15 +96,15 @@ data_classes_touched:
 
 context_kind_constraint:
   Personal: REFUSED server-side per ADR-NOTES-0005 + DCI-08; client SDK MAY run on-device if feature-built.
-  Professional: server-side via tenant-DEK; tenant-admin explicit opt-in + per-user explicit opt-in; EU AI Act conformity assessment for pack-eu.
+  Professional: server-side via tenant-DEK; tenant-admin explicit opt-in + per-user explicit opt-in; regional AI-risk conformity assessment for pack-eu.
 
 regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
 
 pack_overrides:
   pack-eu:
-    eu_ai_act_classification: limited_risk_with_significant_effects
-    eu_ai_act_art22_caveat: human-in-loop "review and apply" UX MANDATORY; no autonomous mutation
-    transparency_obligation: per Art. 50 + Art. 13 + Art. 27 conformity assessment if proposed as high-risk
+    risk_classification: limited_risk_with_significant_effects
+    auto_decision_review_caveat: human-in-loop "review and apply" UX MANDATORY; no autonomous mutation
+    transparency_obligation: per active pack transparency + Art. 13 + Art. 27 conformity assessment if proposed as high-risk
   pack-us-healthcare:
     DISABLED  # T2 on PHI requires separate BAA + explicit opt-in beyond minimum-shippable-tier
   pack-kr:
@@ -124,11 +124,11 @@ cedar_policy_fragments:
   - microservices/notes/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/notes/capabilities/eval/t2-auto-golden.jsonl
+  reference_inputs_path: microservices/notes/capabilities/eval/t2-auto-reference.jsonl
   pass_threshold: 0.88
   eval_metric: human-acceptance-rate on suggestion-bundle (target ≥ 80 % of suggestions accepted by user)
   cadence: per-release
-  reference: bespoke per-tenant eval set with golden human-curated outcomes
+  reference: bespoke per-tenant eval set with reference human-curated outcomes
 
 e2e_refusal:
   enforced_at:
@@ -149,5 +149,5 @@ opt_in:
 sunset:
   status: experimental — promotion to preview requires:
     - axis-notes + council-privacy + axis-foundry-runtime joint sign-off
-    - successful EU-AI-Act conformity assessment (or scope to limited_risk)
+    - successful EU-pack-specific conformity assessment (or scope to limited_risk)
     - eval pass-threshold for 3 consecutive releases

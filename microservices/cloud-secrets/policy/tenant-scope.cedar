@@ -42,10 +42,10 @@ when {
 };
 
 // =============================================================================
-// PERMIT 2 — tenant operator uploads BYOK
+// PERMIT 2 — tenant operator uploads encryption-key BYOK material (ADR-0251 §D-10)
 // =============================================================================
 //
-// BYOK upload requires JIT short-lived elevation + MFA. The policy fragment
+// encryption-key BYOK upload requires JIT short-lived elevation + MFA (ADR-0251 §D-10). The policy fragment
 // validates the operator's tenant scope; OpenBao policy validates JIT + MFA.
 
 permit (

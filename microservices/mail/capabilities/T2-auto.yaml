@@ -37,7 +37,7 @@ capabilities:
     data_class_processed: [BEHAVIORAL_TENANT_PRODUCT]
     data_class_emitted: AUDIT (per-thread archive event)
     audit_event: MailAutoArchiveExecuted (per-thread; rate-bounded to 1k/h/user)
-    eu_ai_act_classification: minimal-risk (not Annex III)
+    risk_classification: minimal-risk (not Annex III)
     reversibility_window_days: 30
     safety_net:
       - any thread containing a legal-hold scope is EXCLUDED
@@ -63,7 +63,7 @@ capabilities:
     data_class_processed: [PII_IDENTIFYING]
     data_class_emitted: PII_IDENTIFYING (auto-reply contains user's name + return date)
     audit_event: MailOooAutoReplied (per-trigger; rate-limited per RFC 3834 §3.2 + §5)
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     reversibility_window: not applicable (replied; recipient already received)
     safety_net:
       - RFC 3834 §5 loop detection (do not reply to bulk mail; do not reply to mailer-daemon)
@@ -88,7 +88,7 @@ capabilities:
     data_class_processed: [PII_IDENTIFYING, BEHAVIORAL_TENANT_PRODUCT]
     data_class_emitted: AUDIT (per-message category assignment)
     audit_event: MailMessageCategorized
-    eu_ai_act_classification: limited-risk (categorisation affects user attention; transparency required)
+    risk_classification: limited-risk (categorisation affects user attention; transparency required)
     reversibility_window_days: indefinite (user can re-route at any time)
     safety_net:
       - personal-pillar: never crosses pillar; categorisation is per-mailbox
@@ -110,7 +110,7 @@ capabilities:
     data_class_processed: [PII_IDENTIFYING, PHI (HIPAA), PCI (PCI scope tenants), BEHAVIORAL_TENANT_PRODUCT]
     data_class_emitted: AUDIT (quarantine event with rule ids)
     audit_event: DlpQuarantined
-    eu_ai_act_classification:
+    risk_classification:
       - default: limited-risk
       - high-risk: when DLP includes employment / educational classification → Annex III §3-4 → conformity assessment required
     reversibility_window: until reviewer decides (default SLA 2 h)
@@ -133,7 +133,7 @@ capabilities:
     data_class_processed: [PII_IDENTIFYING, AUDIT]
     data_class_emitted: AUDIT (per-batch ledger entry)
     audit_event: RetentionExpired
-    eu_ai_act_classification: out-of-scope (not AI; deterministic policy enforcement)
+    risk_classification: out-of-scope (not AI; deterministic policy enforcement)
     reversibility_window_days: 30 (soft-delete window; restorable via `runbooks/mailbox-restore-from-backup.md`)
     safety_net:
       - statutory_floor check refuses expiry below regulator minimum (KR-FSS 5y; HIPAA 6y; GDPR Art. 5(1)(e) minimum-necessary)
@@ -154,7 +154,7 @@ capabilities:
     data_class_processed: [BEHAVIORAL_TENANT_PRODUCT]
     data_class_emitted: AUDIT
     audit_event: MailDeliverabilityReputationChanged + MailDeliverabilityAutoThrottled
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     reversibility_window: continuous (auto-unthrottle on recovery)
     safety_net:
       - tenant admin notified within 5 min of throttle

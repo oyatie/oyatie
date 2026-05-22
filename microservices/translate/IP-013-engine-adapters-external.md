@@ -22,7 +22,7 @@ External vendor adapter crates that route through `foundry-providers` µservice 
 
 Four new Rust crates:
 
-- `oya-translate-adapter-anthropic` — Claude messages API for MT (system-prompt → translate; long-context premium tier)
+- `oya-translate-adapter-anthropic` — Claude messages API for MT (system-prompt → translate; long-context premium class)
 - `oya-translate-adapter-openai` — GPT messages API for MT (alternate LLM-class)
 - `oya-translate-adapter-google-translate` — Cloud Translation API v3 + AutoML
 - `oya-translate-adapter-deepl` — DeepL Pro API

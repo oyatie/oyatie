@@ -18,7 +18,7 @@ related_artifacts:
   - microservices/foundry/contracts/openapi/foundry-supervisor.yaml
   - microservices/foundry/policy/tenant-scope.cedar
 
-autonomy_tier: T1
+autonomy_level: T1
 # T1 = read-only operational data; non-destructive
 
 inputs:
@@ -66,7 +66,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/ci-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/query-fleet-state-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/query-fleet-state-baseline.jsonl
   pass_threshold: 0.999
   eval_metric: snapshot-freshness-≤-30s + tenant-isolation-correctness
   cadence: per-release

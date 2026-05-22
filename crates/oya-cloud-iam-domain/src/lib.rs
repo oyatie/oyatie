@@ -1146,7 +1146,7 @@ mod tests {
         IamRoleCreate {
             id: "role_compute_admin".to_string(),
             tenant_id: "ten_alpha".to_string(),
-            region: "alpha-region".to_string(),
+            region: "region-alpha1".to_string(),
             name: "compute-admin".to_string(),
             cedar_policy_id: "pol_cloud_compute_admin".to_string(),
             cedar_policy_version: "1.0.0".to_string(),

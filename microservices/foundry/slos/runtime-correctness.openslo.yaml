@@ -7,11 +7,11 @@ metadata:
   labels:
     microservice: foundry-runtime
     bc: capability-executor
-    tier: production
+    tenant_class: [demo_trial, paid]ion
 spec:
   service: foundry-runtime
   description: |
-    Correctness: zero autonomy-tier-violation that succeeded (i.e., dispatched despite ceiling
+    Correctness: zero autonomy-ceiling-violation that succeeded (i.e., dispatched despite ceiling
     refusal); zero cross-tenant data access events. Per PRD §"Acceptance Criteria" AC-04 + AC-06
     + threat-model T-E-01 + T-I-01.
   indicator:

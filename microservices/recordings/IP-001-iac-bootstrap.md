@@ -22,7 +22,7 @@ core workloads (recording-rest, recording-ingest, transcript-worker,
 diarization-worker, transcode-worker, search, retention-purge-worker,
 legal-hold-engager, ediscovery-export-worker, share-link-rest, playback-rest,
 ffmpeg-sandbox, watermark-stamper), upstream-dependency charts (Postgres
-16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10.0, Pandoc 3.x), Kustomize base + per-pack
+16, Valkey 8.1 (RESP3 wire-compatible), Meilisearch 0.10.0, Pandoc 3.x), Kustomize base + per-pack
 overlays, Terraform-managed Grafana RBAC + CloudFront / self-host CDN per
 pack.
 
@@ -37,7 +37,7 @@ secret references via OpenBao.
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/recordings/iac/helm/recordings/Chart.yaml` | create | upstream pins: postgres 16, valkey 8.1 (Redis wire-compat), meilisearch 0.10.0, pandoc 3.x |
+| `microservices/recordings/iac/helm/recordings/Chart.yaml` | create | upstream pins: postgres 16, valkey 8.1 (RESP3 wire-compatible), meilisearch 0.10.0, pandoc 3.x |
 | `microservices/recordings/iac/helm/recordings/values.yaml` | create | per-BC replica sizing, OpenBao SecretReferences |
 | `microservices/recordings/iac/helm/recordings/templates/{deployment,service,hpa,pdb,networkpolicy,servicemonitor,prometheusrule}.yaml` | create | core Kubernetes resources |
 | `microservices/recordings/iac/kustomize/base/kustomization.yaml` | create | shared base |

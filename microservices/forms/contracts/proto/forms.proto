@@ -71,12 +71,10 @@ enum FieldType {
   CONDITIONAL = 12;
 }
 
-enum CapabilityTier {
-  CAPABILITY_TIER_UNSPECIFIED = 0;
-  T0 = 1;
-  T1 = 2;
-  T2_INTRA = 3;
-  T2_CROSS = 4;
+enum TenantClass {
+  TENANT_CLASS_UNSPECIFIED = 0;
+  DEMO_TRIAL = 1;
+  PAID = 2;
 }
 
 enum Pack {

@@ -173,9 +173,9 @@ Some tenant verticals get tighter defaults that **cannot be raised** even by ten
 The boundary is enforced at six layers, each independently:
 
 1. **Schema annotation.** Every `.proto`, every SQL DDL, every event schema carries `oyatie.data_class = "...";` per field. Missing annotation = CI failure.
-2. **Lint-time check.** `oya-foundry-fitness-data-class` walks every cross-axis call site and verifies the source class is allowed at the destination.
+2. **Lint-time check.** `oya-governance-data-class` walks every cross-axis call site and verifies the source class is allowed at the destination.
 3. **Source crate singleton.** The *only* crates allowed to source tenant data into ads/analytics are `oya-platform-ads-gate` and `oya-platform-analytics-router`. All other crates attempting to publish to ads/analytics topics are rejected at the eventing-backbone layer.
-4. **Architecture fitness gate.** `oya-foundry-fitness-flat-crates` rejects any new flat crate whose dep graph imports an ads/analytics adapter from outside the approved gate crates.
+4. **Architecture fitness gate.** `oya-governance-flat-crates` rejects any new flat crate whose dep graph imports an ads/analytics adapter from outside the approved gate crates.
 5. **Audit-chain emission per decision.** Every ad-targeting decision emits an evidence record with consenting tenant, consenting user (if applicable), data classes used, audience id, ad id, decision rationale (which rules fired). Missing emission = capability-invocation reject.
 6. **Runtime guard.** Even after ingestion, a final guard at the auction boundary re-validates consent tier vs declared purpose and blocks if any class drifted.
 

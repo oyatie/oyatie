@@ -68,7 +68,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Helm config change merged without lane gate (impossible if BLOCKER) OR live-cluster mutation by superuser |
-| Detection | `oya-foundry-fitness-ontology-tenancy-isolation` lane fails OR continuous schema-drift detector alarms |
+| Detection | `oya-governance-ontology-tenancy-isolation` lane fails OR continuous schema-drift detector alarms |
 | Tenant impact | Potential cross-tenant data exposure if not caught pre-deploy |
 | Severity | Sev-1 (security breach risk) |
 | Immediate mitigation | Auto-rollback via ArgoCD to last green Helm state; isolate cluster; declare incident; engage ops-security |
@@ -133,7 +133,7 @@ Each failure carries:
 | Field | Value |
 |---|---|
 | Trigger | Function projects Tier1Sensitive properties without tier-filter; deployed via PR that bypassed lane |
-| Detection | LEAN `oya-foundry-fitness-ontology-tier-enforcement` lane runtime probe; synthetic-PII detector flags response |
+| Detection | LEAN `oya-governance-ontology-tier-enforcement` lane runtime probe; synthetic-PII detector flags response |
 | Tenant impact | DPIA R-03 (tier escape); GDPR / PIPA / HIPAA violation possible |
 | Severity | Sev-2 (data-protection breach; not full cross-tenant unless also cross-tenant) |
 | Immediate mitigation | Patch Function projection; purge cached results; engage workload µservice owner |

@@ -11,7 +11,7 @@ purpose: |
   plus the field's `///` doc-comment and emits the canonical data-class
   catalogue doc. The doc is the system-of-record for which fields hold which
   privacy class.
-planned_enforcement_ref: oya-foundry-fitness-data-class
+planned_enforcement_ref: oya-governance-data-class
 extends_crates:
   - oya-foundry-data-class-fitness-kernel
   - oya-foundry-glossary-coverage-kernel
@@ -39,7 +39,7 @@ ADR-0008 (Data Use Boundary) defines five data classes: `PUBLIC`, `INTERNAL_ONLY
 ## 3. Outputs
 
 - `docs/data-class-catalogue.md` — single-file catalogue grouped by data class, then by crate, then by struct, then by field. Each row: `crate :: struct :: field | type | data_class | description (from doc-comment)`.
-- `docs/machine-readable/data-classes.json` — same data, machine-readable, consumed by `oya-foundry-fitness-privacy-class-taxonomy-coverage`.
+- `docs/machine-readable/data-classes.json` — same data, machine-readable, consumed by `oya-governance-privacy-class-taxonomy-coverage`.
 - Per-data-class mdbook chapter `docs/site/src/data/<data-class>.md`.
 
 ## 4. Annotation grammar (the source-of-truth syntax)
@@ -57,7 +57,7 @@ pub struct AuditEvent {
 }
 ```
 
-Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER | PII_REGULATED`. Unknown class → BLOCKER from `oya-foundry-fitness-data-class`.
+Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER | PII_REGULATED`. Unknown class → BLOCKER from `oya-governance-data-class`.
 
 ## 5. Trigger matrix
 
@@ -67,7 +67,7 @@ Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER 
 | Nightly | Full sweep; cross-link verification (every class referenced exists in ADR-0008 taxonomy). |
 | On `docs/decisions/ADR-0008-*` change | Re-validate every annotation against the new taxonomy. |
 
-## 6. Validation gates (extending `oya-foundry-fitness-data-class`)
+## 6. Validation gates (extending `oya-governance-data-class`)
 
 1. **Field coverage.** Every `pub` field in every kernel crate has a data-class annotation OR inherits one via `data_class_default` (BLOCKER on omission).
 2. **Class validity.** Annotation value ∈ the five allowed classes (BLOCKER).

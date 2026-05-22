@@ -81,7 +81,7 @@ The community voting engine ships **three ranking modes** behind a `VoteRanker` 
 
 **No engagement / dwell-time / view-count signals** are used. The ranking is a pure function of `(up, down, created_at, accepted)`. This is a regulatory-defensible posture (no opaque ML) and matches the Stack-Overflow + Reddit auditable-ranking precedent.
 
-**Vote storage**: per `IP-006` Redis-buffered counter + Postgres flush, with idempotency-key per `(member, post)`. Vote state is `up | down | clear` (clear is a real verb; setting `clear` removes both the up and the previous-direction vote). The ranking formula consumes the post-flush Postgres tally; the Valkey layer is read-through cache only.
+**Vote storage**: per `IP-006` Valkey-buffered counter + Postgres flush, with idempotency-key per `(member, post)`. Vote state is `up | down | clear` (clear is a real verb; setting `clear` removes both the up and the previous-direction vote). The ranking formula consumes the post-flush Postgres tally; the Valkey layer is read-through cache only.
 
 **Vote reputation gates** (per `capabilities/vote-cast.yaml`):
 - account_age ≥ 24 h OR rate-limit multiplier 10×.

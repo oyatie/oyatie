@@ -30,7 +30,7 @@ allowed_dependency_edges: [
 ]
 data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_AI_USAGE, AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 notes: |
   Composition root binary. Wires every adapter + router crate via DI.
   Only the -app layer is permitted to depend on adapter crates per

@@ -45,7 +45,7 @@ capabilities:
     latency_budget_p99_ms: 1500
     audit_event: SitesImageOptimized (Ed25519-sealed; payload — image hash + variant hashes + reversibility window expiry)
     fallback_on_model_failure: JPEG-only fallback
-    eu_ai_act_classification: minimal-risk (deterministic logic)
+    risk_classification: minimal-risk (deterministic logic)
     user_label: "Image optimised — undo within 30s"
 
   - id: T1-sites-auto-redirect-on-route-change
@@ -67,7 +67,7 @@ capabilities:
     model: {primary: rule-based}
     latency_budget_p99_ms: 500
     audit_event: SitesAutoRedirectCreated
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "301 redirect created — undo within 30s"
 
   - id: T1-sites-auto-renew-cert
@@ -92,7 +92,7 @@ capabilities:
     latency_budget_p99_ms: 30000  # 30s
     audit_event: SitesCertRenewed (Ed25519-sealed; payload — domain + cert serial + prior serial)
     fallback_on_model_failure: refer runbook
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "Cert auto-renewed — review domain status if issues"
 
   - id: T1-sites-auto-cdn-purge-on-publish
@@ -116,7 +116,7 @@ capabilities:
     model: {primary: rule-based}
     latency_budget_p99_ms: 2000
     audit_event: SitesCdnPurged
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "Published; CDN refreshed"
 
   - id: T1-sites-auto-sitemap-update
@@ -133,7 +133,7 @@ capabilities:
     model: {primary: rule-based}
     latency_budget_p99_ms: 3000
     audit_event: SitesSitemapEmitted
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "Sitemap updated"
 
   - id: T1-sites-auto-wcag-report
@@ -153,7 +153,7 @@ capabilities:
     model: {primary: rule-based + accessibility checker}
     latency_budget_p99_ms: 5000
     audit_event: SitesWcagReportComputed (Ed25519-sealed)
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "Accessibility report computed"
     pack_us_healthcare_override: REFUSED
 
@@ -162,7 +162,7 @@ verification:
   - All T1 actions emit an audit-chain event (Ed25519-sealed) on action-initiated AND on action-cancelled-within-window AND on action-stood (window-expired).
   - All T1 actions are labelled per EU AI Act Art. 50 + offer the Art. 14 human-oversight cancel-within-window control (where applicable).
   - All T1 actions respect tenant-isolation: tenant-A actions NEVER touch tenant-B data.
-  - All T1 actions are tenant-tier-gated: Cedar policy admits T1 only for tenant tiers ≥ pro for LLM-backed actions; rule-based actions admit at all tiers.
+  - All T1 actions are tenant-tenant_class-gated: Cedar policy admits T1 only for tenant_class values ≥ pro for LLM-backed actions; rule-based actions admit at all tiers.
 
 references:
   - /specs/agentic-tiers.json — autonomy tier spec.

@@ -243,6 +243,6 @@ See `/specs/sovereign-cloud-air-gapped-canonical.json` for the canonical declara
 
 Per ADR-0161, this pack ships canonical StorageClass manifests at `iac/kustomize/components/storage-classes/` (catalog) and per-pack overlays at `iac/kustomize/components/pack-{name}/` (CSI driver binding).
 
-Canonical names declared at workload µservice level: `oya-pg-hot`, `oya-pg-warm`, `oya-pg-cold`, `oya-redis-hot`, `oya-s3-warm`, `oya-s3-cold`.
+Canonical names declared at workload µservice level: `oya-pg-hot`, `oya-pg-warm`, `oya-pg-cold`, `oya-valkey-hot`, `oya-s3-warm`, `oya-s3-cold`.
 
 Per-pack overlay binds each canonical name to a concrete CSI driver per the matrix in `/specs/csi-storage-class-canonical.json`. CI lane `oya gate validate storage-class-canonical` enforces.

@@ -10,7 +10,7 @@ purpose: |
   Define the release-cherry-pick agent: the only identity authorised to add
   commits to a release/X.Y branch and to mint patch tags. Operates under
   Directive 12 (documented direct tool invocations).
-planned_enforcement_ref: oya-foundry-fitness-cherry-pick-trail, oya-foundry-fitness-release-branch-cut
+planned_enforcement_ref: oya-governance-cherry-pick-trail, oya-governance-release-branch-cut
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -44,7 +44,6 @@ The first path is the default; the second is the escape hatch.
 ## 3. Authority (per Directive 12)
 
 The agent MAY invoke these tools directly, with documented rationale via
-`icm store -t direct-tool-invocations`:
 
 | Tool | Justification template |
 |---|---|
@@ -55,7 +54,6 @@ The agent MAY invoke these tools directly, with documented rationale via
 
 Direct invocation outside this list requires a fresh Directive 12 ADR.
 
-## 4. icm topic
 
 All actions stored under the topic `release-cherry-picks` with this schema:
 
@@ -87,7 +85,6 @@ keywords: [cherry-pick, release, X.Y, <axis>]
 7. On CI green: increment patch in `Cargo.toml`, tag `oya-vX.Y.<Z+1>`,
    push tag.
 8. `gh release create` with the release notes (auto-generated from commit msgs).
-9. Store icm record.
 10. Emit `EVT-CHERRY-PICK-LANDED` to D14.
 
 ## 6. Workflow (conflict path)
@@ -126,7 +123,7 @@ OIDC identity. The trail is verifiable by replaying:
 prod_sha → release_branch_sha → patch_tag → release_artefact
 ```
 
-`oya-foundry-fitness-cherry-pick-trail` verifies the chain weekly.
+`oya-governance-cherry-pick-trail` verifies the chain weekly.
 
 ## 9. Constraints
 

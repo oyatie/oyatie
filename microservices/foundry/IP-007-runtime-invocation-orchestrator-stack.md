@@ -111,3 +111,9 @@ cargo nextest run -p oya-foundry-runtime-invocation-orchestrator-worker --featur
 - ADR-0025; ADR-0105.
 - `contracts/asyncapi/foundry-runtime-events.yaml`.
 - `failure-modes.md` FM-15 (timeout); FM-08 (sibling unreachable).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

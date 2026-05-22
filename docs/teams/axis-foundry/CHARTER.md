@@ -30,7 +30,7 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 ### Foundry (Axis 4 — consolidated into Foundry)
 - `oya-foundry-catalog-kernel` — `CatalogRecord`, `CrateTarget`, `PlaneDecloration`, `LaneClass`
 - `oya-foundry-gate-kernel` — `Gate`, `ClaimCeiling`, `Bypass`, `BypassExpiry`
-- `oya-foundry-fitness-*` — all fitness-function crates (one per domain: tenant-shape, audit-emission, data-use-boundary, eventing-topic, architecture-boundaries, doc-catalog, product-prd, horizontal-scale, contract-orphan)
+- `oya-governance-*` — all fitness-function crates (one per domain: tenant-shape, audit-emission, data-use-boundary, eventing-topic, architecture-boundaries, doc-catalog, product-prd, horizontal-scale, contract-orphan)
 - `oya-foundry-scorecard-*` — quality scorecard rollup surfaces
 - `oya-tooling-cli-dev-runtime` — current `repoctl` compatibility binary; persona split planned under `crates/oya-tooling-cli-*` per ADR-0015/ROADMAP
 - `registry/catalog/` — live catalog path; any future relocation requires a catalog protocol update
@@ -85,7 +85,7 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 - Claim-ceiling validator: ratchet WARN→BLOCK per wave (PRD §4.1 target: ≥ 1 block per 100 PRs → every wave promotes one WARN→BLOCK)
 - Foundation-bypass ledger: every bypass has owner, expiry, rationale; 100% retire within declared expiry (PRD §4.2)
 - Plane-gated CI lanes: every PR class (`rust-*`, `typescript-*`, `database-*`, `security-*`, `cross-axis-*`) routes to the correct lane
-- Fitness functions: author and maintain all `oya-foundry-fitness-*` crates; hard-fail on violations
+- Fitness functions: author and maintain all `oya-governance-*` crates; hard-fail on violations
 - Scorecards: per-axis quality rollup, per-crate health score
 - Branch-protection-as-code: every branch rule is code, not console click
 - Signed commits: enforce GPG / SSH signing (#1299)
@@ -127,10 +127,10 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 | `axis-search` | Capability invocation for index-lifecycle agent ops; fitness function gates | Every PR + index lifecycle |
 | `axis-ads-analytics` | Capability invocation for smart-bidding ML loops (autonomy-ceiling-gated); catalog gate | Every PR + auction loop |
 | All vertical teams | Capability invocation for regulatory-evidence collection; fitness functions; catalog records | Every PR + vertical onboard |
-| `platform-tenancy-identity` | Fitness function `oya-foundry-fitness-tenant-shape` | Every Tenant-shape PR |
-| `platform-audit-evidence` | Fitness function `oya-foundry-fitness-audit-emission` | Every regulated surface PR |
-| `platform-privacy-dub` | Fitness function `oya-foundry-fitness-data-use-boundary` | Every data-class PR |
-| `platform-eventing-og` | Fitness function `oya-foundry-fitness-eventing-topic` | Every topic-shape PR |
+| `platform-tenancy-identity` | Fitness function `oya-governance-tenant-shape` | Every Tenant-shape PR |
+| `platform-audit-evidence` | Fitness function `oya-governance-audit-emission` | Every regulated surface PR |
+| `platform-privacy-dub` | Fitness function `oya-governance-data-use-boundary` | Every data-class PR |
+| `platform-eventing-og` | Fitness function `oya-governance-eventing-topic` | Every topic-shape PR |
 | `platform-api-sdk` | API stability gate (ADR-0040 fitness function) | Every public API PR |
 | `ops-sre-reliability` | repoctl `pre-push`, `release-verify`; CI lane routing | Every pre-push + release |
 | `ops-security` | Supply-chain SARIF upload, Cosign attestation | Every release |

@@ -72,7 +72,7 @@ impl Client {
         let body = DispatchRequest {
             capability_id: capability_id.into(),
             input,
-            autonomy_tier_declared: opts.autonomy_tier_declared,
+            autonomy_level_declared: opts.autonomy_level_declared,
             timeout_seconds: opts.timeout_seconds,
             idempotency_key: opts.idempotency_key.unwrap_or_else(generate_idempotency_key),
             ..Default::default()
@@ -134,3 +134,9 @@ Per PHASE-01 sdk class: 1 test per public method (happy + retry + auth-fail) + â
 - `sdk-plan.md`.
 - `contracts/openapi/foundry-runtime.yaml`.
 - `contracts/proto/foundry-runtime.proto`.
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI Assistants, AWS Bedrock Agents, and Cloudflare Workers sandboxing.
+- Gap closure: this IP closes session/run execution, capability isolation, and sandbox accounting with Oyatie tenant, Cedar, and evidence-chain controls.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

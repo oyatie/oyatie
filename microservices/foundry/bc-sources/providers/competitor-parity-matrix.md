@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity comparison vs the industry-leading provider-abstraction and LLM-routing products. Drives the `oya-foundry-fitness-hyperscaler-maturity-claims` gate (HG-FPRV per ADR-0123) and tells gtm what to say + what NOT to say in tenant conversations.
+Quantitative + qualitative parity comparison vs the industry-leading provider-abstraction and LLM-routing products. Drives the `oya-governance-hyperscaler-maturity-claims` gate (HG-FPRV per ADR-0123) and tells gtm what to say + what NOT to say in tenant conversations.
 
 ## Competitor Set
 

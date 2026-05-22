@@ -1,0 +1,393 @@
+{
+  "reviewer_id": "claude-architect-F2_hyperscaler-keystone-bundle-2026-05-20",
+  "round": 1,
+  "change_id": "keystone-bundle-2026-05-20",
+  "facet": "F2_hyperscaler_fitness",
+  "review_doctrine_version": "multispectrum-review-v2.4.0",
+  "lens": "Hyperscaler-fitness — does each decision cite a real, current (2024-2026 preferred) hyperscaler-grade pattern? Are anti-patterns correctly identified and avoided? Are the 5 novel primitives (Foundry dissolution, Intelligence-as-substrate, oyatie-as-tenant slug, Compliance Pack abstraction, BYOK-everywhere) genuinely novel-but-defensible?",
+  "corpus": {
+    "primary": "/Users/jasonlee/oyatie/docs/architecture/hyperscaler-pattern-attribution.md (2527 lines; 220 rows in §3 across ADR-0242..ADR-0255)",
+    "cross_check_keystone_appendix_a": [
+      "ADR-0242 (8 rows)",
+      "ADR-0243 (13 rows)",
+      "ADR-0244 (18 rows)",
+      "ADR-0245 (11 rows)",
+      "ADR-0246 (11 rows)",
+      "ADR-0247 (12 rows)",
+      "ADR-0248 (17 rows)",
+      "ADR-0249 (24 rows)",
+      "ADR-0250 (12 rows)",
+      "ADR-0251 (16 rows)",
+      "ADR-0252 (16 rows)",
+      "ADR-0253 (24 rows)",
+      "ADR-0254 (20 rows)",
+      "ADR-0255 (18 rows)"
+    ],
+    "cross_check_extended_appendix_a": [
+      "ADR-0255-amendment-library-first-network-opt-in-clarification (§ Appendix A — Hyperscaler-pattern attribution)",
+      "ADR-0257-ontology-object-type-versioning-deprecation-handshake (§ Appendix A: Hyperscaler-pattern attribution)",
+      "ADR-0258-api-versioning-model (§ Appendix A — Pattern attribution; narrative A.1..A.7; NOT matrix-shape)",
+      "ADR-0263-observability-emission-contract (§ Appendix A: Hyperscaler-pattern attribution matrix; 15 rows)",
+      "ADR-0272-cookie-consent-per-purpose-analytics-opt-in (§ Appendix A — Pattern Attribution; narrative A.1..A.6)",
+      "ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability (§ Appendix A — Pattern attribution)",
+      "ADR-0276-backup-portability-format-gdpr-article-20 (§ Appendix A — Pattern attribution)",
+      "ADR-0280-substrate-of-substrate-dependency-doctrine (§ Appendix A — Pattern attribution; matrix-shape, 17 rows)",
+      "ADR-0284-platform-owner-name-indirection (§ Appendix A: Pattern attribution matrix)",
+      "ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification (§ Appendix A — Pattern attribution; narrative)"
+    ]
+  },
+  "verdict": "APPROVE-WITH-FINDINGS",
+  "answer": "The 220-row consolidated matrix (`docs/architecture/hyperscaler-pattern-attribution.md`) is hyperscaler-fit at the portfolio level: every keystone-bundle decision (ADR-0242..ADR-0255) carries a named pattern + source + anti-pattern triple, multi-source citation density is ≈95%, 2024-2026 source share is ≈40%, and the 5 novel primitives are each composed from hyperscaler-precedented sub-primitives with documented why-novel-but-defensible justifications. However, the bundle is NOT yet self-consistent across the cross-check scope: ADR-0258 / ADR-0272 / ADR-0273 / ADR-0276 / ADR-0292 author Appendix A in NARRATIVE prose form, not the canonical 4-column matrix shape mandated by §2.2 + §8.1 of the attribution doctrine, and NONE of ADR-0255-amendment / ADR-0257 / ADR-0263 / ADR-0272 / ADR-0273 / ADR-0276 / ADR-0280 / ADR-0284 / ADR-0292 has been appended to §3 of the consolidated matrix — directly violating §8.1 step 2 ('Add a new §3.X subsection ... in the same commit'). The §6 scorecard claims ADR-0244 has 18 rows but the §3.3 table shows 16 visible rows plus 2 sub-rows (D-1.r, D-2.d); §3 preamble says '205 rows' but §6 aggregate says '220 rows' — internal drift. The novel-primitive checks (§5) pass for 4/5; BYOK-everywhere (§5.5) is the weakest: SecretReference unification is only *partially* novel — Stripe Connect's BYOK Secret pattern + Vault Transit's owner-declared-key abstraction already approximate it, and the §5.5 'no hyperscaler offers a unified BYOK across every secret class' claim is over-stated relative to HashiCorp Vault Transit's actual surface. Weak-citation rows: 11 identified (5%, within §6's stated tolerance). Citation freshness for 2024-2026 sources is genuinely strong (Stripe Cells 2024, Pingora 2024, X25519MLKEM768 2024, Bedrock 2024, Azure AI Foundry 2024, GPT-4o 2024-05, Claude 3.5 Sonnet 2024-06, Gemini 1.5 Pro 2024-02, AWS Aurora DSQL re:Invent 2024, AWS 2024 ARC404/ARC405, Cloudflare HTTP/3, NIST FIPS 203 2024). Stripe Engineering Quora 2013 (cited at ADR-0242 D-1) is the one stale-link risk explicitly acknowledged by §7.2. ADR-0258 / ADR-0272 / ADR-0292's narrative Appendix A is harder to audit and should be normalized to the matrix shape OR the maintenance protocol (§8.1) should be amended to admit narrative form for compliance-overlay ADRs.",
+  "key_claims": [
+    "§3 master matrix preamble says 'The matrix has 205 rows' (line ~119) but §6 aggregate scorecard says 'Total rows: 220 (counting sub-decisions split out for readability, ~218 unique decisions)' — internal drift. The CI lane `oya-check-hyperscaler-pattern-matrix-coherence` (§8.2) should fail-close on this.",
+    "§6 scorecard claims ADR-0244 has 18 rows; visual count of §3.3 yields 18 rows (D-1, D-1.r, D-2, D-2.d, D-3, D-3.c, D-3.dr, D-4, D-5, D-6, D-6.3, D-7, D-7.h, D-8, D-9, D-10, D-11, D-12) — OK. But ADR-0246 §3.5 visual count is 11 unique D-rows (D-1..D-11) — OK. ADR-0247 §3.6 visual count is 12 — OK. No row-count math errors detected against the §3 master.",
+    "ADR-0258 Appendix A (api-versioning-model) is narrative-form (A.1..A.7 subsections), not matrix-form. Violates §2.2 step 1 ('Author your per-ADR Appendix A as before, with one row per decision'). ADR-0272, ADR-0273, ADR-0276, ADR-0292 same issue. The matrix CI lane will pass-vacuously on these because §8.2 only checks 'every ADR with an Appendix A: Hyperscaler-pattern attribution matrix header'; ADR-0258 uses '## Appendix A — Pattern attribution' (no 'matrix' suffix, no '|' table markup) so it slips the lane. THIS IS A CI-LANE-GAP.",
+    "Consolidated §3 master matrix does NOT include subsections for ADR-0255-amendment, ADR-0257, ADR-0263, ADR-0272, ADR-0273, ADR-0276, ADR-0280, ADR-0284, ADR-0292 even though each carries an Appendix A. §8.1 step 2 requires append-in-same-commit. ADR-0263 (15 matrix rows), ADR-0280 (17 matrix rows), ADR-0257 — all matrix-shape but un-consolidated. Strict drift from §1's 'authoritative source-of-truth' framing.",
+    "§5.1 (Foundry dissolution): novelty claim is DEFENSIBLE. Hyperscaler precedent for *dissolving* a Foundry-equivalent µservice does not exist publicly; AWS Bedrock absorption of provider adapters is the closest analogue, correctly distinguished as consumer-facing. The 4-bullet F2 checklist is fully completed in the document.",
+    "§5.2 (Intelligence-as-substrate two-layer): novelty claim is DEFENSIBLE. AWS Bedrock + Apple Intelligence composition is correctly cited; the audience-as-Cedar-context-attribute (not service-boundary) extension genuinely closes the no-bypass-paths-for-platform-owner property ADR-0242 demands. F2 checklist complete.",
+    "§5.3 (oyatie-as-tenant slug): novelty claim is DEFENSIBLE. Stripe's SOC 2 covering Stripe's internal use is the closest analogue but at a different layer (Stripe paying contractors via Stripe), correctly distinguished. The Compliance-Carve-Out anti-pattern is real and load-bearing — no hyperscaler has *publicly documented* their platform-owner account fully participating in SOC 2 + GDPR DSAR + audit-chain machinery.",
+    "§5.4 (Compliance Pack abstraction): novelty claim is DEFENSIBLE. AWS Audit Manager + Google Assured Workloads + Microsoft Purview correctly cited as closest precedents; the pack-as-installable-bundle with deterministic-lifecycle + Cedar-fragments + onboarding-workflow + breach-notification + DPIA-template + retention-semantics is a genuine composition not present in any single hyperscaler. The mechanical-operability worked example in ADR-0251 Appendix B is strong evidence.",
+    "§5.5 (BYOK-everywhere): novelty claim is THE WEAKEST of the five. HashiCorp Vault Transit + Vault Secrets Operator already provides much of the 'unified BYOK across every secret class' surface — Vault's `transit` engine wraps LLM API keys, payment processor keys, KMS keys, and storage encryption keys behind a single SecretReference-equivalent abstraction with policy-driven access. The §5.5 claim 'No hyperscaler offers a unified BYOK abstraction across every secret class' is technically true for the AWS/GCP/Azure cloud-vendor BYOK surfaces but over-states relative to Vault Transit. RECOMMENDATION: re-frame §5.5 to claim 'unified BYOK + Cedar-context-driven selection at dispatch time' as the novel piece (Vault Transit does NOT integrate Cedar-style policy at the dispatch boundary), and demote the broader 'no hyperscaler offers unified BYOK' claim.",
+    "Stripe Engineering Quora 2013 citation (ADR-0242 D-1) is the only flagged stale-link in §7.2. URL still resolves but Stripe Engineering blog has authored more current material; replace with a 2020+ Stripe Engineering blog post on dogfooded compliance. Should be fixed at next multispectrum review per §7.2 watch-list.",
+    "Multi-source citation density (≈95% of rows cite 2+ unrelated sources) is GENUINELY STRONG and exceeds the §7.3 invariant of ≤10% single-vendor. Cross-vendor density audits §4.1 (AWS ~75 cites), §4.2 (Stripe ~42 cites), §4.3 (Google ~60 cites), §4.4 (Apple ~24 cites), §4.5 (Cloudflare ~17 cites), §4.7 (Microsoft ~41 cites), §4.11 (Salesforce/Snowflake/Databricks/Confluent ~21 cites) confirm balanced coverage — no mono-vendor risk.",
+    "ADR-0247 D-10 ('Inherited-Term Decomission' [sic, spelling typo in ADR but 'Inherited-Term Decommission' in matrix — TYPO MISMATCH between ADR §Appendix A and consolidated matrix; ADR text says 'Decomission' single-m, matrix says 'Decommission' double-m). Per §8.5 disagreement resolution, the per-ADR Appendix A wins and the matrix is the bug; OR fix the typo in the ADR. EITHER WAY, drift exists.",
+    "ADR-0246 D-9 (Substrate Cohesion via PRD Amendment) cites Evans 2003 + Nygard 2011 — both pre-2012, no hyperscaler precedent. §6 watch-list correctly flags this. Mitigating: the pattern is DDD orthodoxy, so foundational-textbook attribution is acceptable per §7.2.",
+    "ADR-0248 D-7 (Shuffle Sharding) correctly cites MacCárthaigh 2014 as primary; §6 single-source flag is defensible because the pattern's canonical reference IS MacCárthaigh and Route 53 production is referenced alongside (so technically 2-source). Could supplement with Brooker's 2024 re:Invent re-affirmation if available.",
+    "ADR-0249 D-3 (Existing-Product Refactor onto Shared Substrate) is single-vendor (Salesforce AppExchange only). §6 flags this correctly. SUPPLEMENT WITH: Microsoft Power Platform's Dataverse-on-Common-Data-Service refactor (2018→2020) is a hyperscaler-precedented parallel; Adobe Experience Cloud's unified-XDM refactor is another. Should be added.",
+    "ADR-0250 D-6 weak row: cites ADR-0243 internal Layered Policy Composition only. §6 correctly flags as weak. RESOLUTION: add a non-internal hyperscaler citation (AWS SCP + IAM intersection is the canonical external pattern; already in the matrix at ADR-0243 D-4).",
+    "ADR-0253 D-2.b (Rust-based Edge Proxy at Scale) cites Cloudflare Pingora only. Single-vendor by industry necessity (no other production Rust edge proxy at this scale until Discord's Pingora-derived deployment 2024+). DEFENSIBLE single-source given the niche; SUPPLEMENT with Discord 2024 deployment or Cloudflare's Pingora customer case studies once published.",
+    "ADR-0253 D-12 (Own ASN + RPKI) cites RIPE NCC ROA + Cloudflare ASN 13335 + Google ASN 15169. §6 flag of 'single industry pattern' is a mischaracterization — three independent ASN holders cited. RESOLUTION: §6 scorecard row should be marked multi-source, not single-source.",
+    "Citation freshness audit (§7) is honest about pre-2020 sources and correctly classifies them as foundational (RFCs, canonical papers, foundational textbooks). The §7.3 invariant '2024-2026 source share should remain ≥ 30%' is currently at 40% (90/220) and is healthy. The freshness arithmetic in §7.1 is approximate but the bucketing is defensible.",
+    "Anti-pattern coverage (Appendix II) is THOROUGH — 11 anti-pattern categories with ~190 named anti-patterns mapped to defenses. This is the load-bearing F2 column and it is well-covered. The reverse-index discipline is genuinely useful for reviewers asking 'what defends against X?'",
+    "Pattern-name inventory (Appendix IV) has ~180 patterns alphabetized. Spot-checks: 'Capability-Aware Auto-Spawn' (ADR-0248 D-10) is mis-titled in Appendix IV as 'Capability-Aware Auto-Spawn' but in §3.7 the canonical name is 'Capacity-Aware Auto-Spawn' — TYPO (Capability vs Capacity). Fix Appendix IV.",
+    "Five novel primitives are correctly identified; no missing novel claims detected. Other oyatie-novel patterns (e.g., Layer enum 13-value, Workflow + Ontology adapter layer) are NOT in §5 — but they're not in the keystone bundle's Appendix A claims either, so no F2 finding."
+  ],
+  "novel_primitives_assessment": {
+    "5.1_foundry_dissolution": {
+      "defensible": true,
+      "citation_strength": "strong",
+      "composed_hyperscaler_patterns": [
+        "AWS Bedrock + Step Functions + IAM separate-substrates composition",
+        "GCP Vertex AI + Workflows + IAM Conditions composition",
+        "Azure AI Foundry + Logic Apps + Azure Policy composition"
+      ],
+      "f2_checklist_complete": true,
+      "weakness": "The 'no hyperscaler has publicly dissolved their equivalent' claim is unverifiable in the negative — F2 cannot prove a hyperscaler hasn't done so privately. Mitigation: document the search performed (literature review of AWS/GCP/Azure/Salesforce/Palantir public architecture talks 2022-2026)."
+    },
+    "5.2_intelligence_as_substrate_two_layer": {
+      "defensible": true,
+      "citation_strength": "strong",
+      "composed_hyperscaler_patterns": [
+        "AWS Bedrock audience-neutral substrate",
+        "Apple Intelligence substrate + brand-surface separation",
+        "Stripe BYOK SecretReference"
+      ],
+      "f2_checklist_complete": true,
+      "weakness": "Apple Intelligence's substrate+brand-surface separation is inferred from WWDC 2024 keynote behavior, not from a published architecture diagram. Citation is correct but the precedent is partly reverse-engineered. Acceptable but worth flagging."
+    },
+    "5.3_oyatie_as_tenant_slug": {
+      "defensible": true,
+      "citation_strength": "strong",
+      "composed_hyperscaler_patterns": [
+        "AWS arn:aws:iam::aws: reserved partition (administrative carve-out, NOT audited tenant)",
+        "Stripe SOC 2 covering Stripe internal use (at different layer)",
+        "Salesforce multi-tenant substrate (administrative tenant pattern)"
+      ],
+      "f2_checklist_complete": true,
+      "weakness": "Microsoft 'First-Party Tenant' (cited at ADR-0242 D-7) is closer to the oyatie pattern than the doctrine acknowledges. Microsoft Graph internal first-party tenants DO participate in Microsoft's SOC 2 boundary in some configurations. The novelty claim could be sharpened to 'fully + UNIFORMLY + with no administrative carve-out' rather than 'fully audited' which is partly precedented."
+    },
+    "5.4_compliance_pack_abstraction": {
+      "defensible": true,
+      "citation_strength": "strong",
+      "composed_hyperscaler_patterns": [
+        "AWS Audit Manager framework catalogs",
+        "Google Assured Workloads regime activation",
+        "Sigstore Rekor signed-bundle lifecycle",
+        "AWS SCP + IAM compositional policy semantics",
+        "FedRAMP High ⊇ Moderate hierarchical certification inheritance"
+      ],
+      "f2_checklist_complete": true,
+      "weakness": "Salesforce HealthCloud and GovCloud SKUs are closer to 'installable-bundle' shape than the doctrine acknowledges. The ADR-0251 D-1 row cites them, but §5.4 framing 'they typically don't package the full regulation as an installable pack with its own lifecycle' is over-stated for Salesforce HealthCloud which IS lifecycle-managed. Sharpen the claim to 'no hyperscaler ships ALL FIVE: Cedar fragments + onboarding workflow + breach-notification workflow + DPIA template + retention semantics in one bundle' — that is the genuinely novel composition."
+    },
+    "5.5_byok_everywhere": {
+      "defensible": true,
+      "citation_strength": "MEDIUM-WEAK",
+      "composed_hyperscaler_patterns": [
+        "AWS Bedrock CMK + Azure Key Vault CMK + GCP CMEK BYOK pattern (per-substrate)",
+        "Stripe BYOK SecretReference",
+        "HashiCorp Vault Transit (universal-secret abstraction; the strongest precedent)"
+      ],
+      "f2_checklist_complete": true,
+      "weakness": "THIS IS THE WEAKEST NOVELTY CLAIM IN THE BUNDLE. HashiCorp Vault Transit ALREADY provides a unified BYOK-everywhere abstraction across secret classes via the `transit` engine + per-secret access policies. The §5.5 framing 'No hyperscaler offers a unified BYOK abstraction across every secret class' is technically defensible only if Vault Transit is excluded from 'hyperscaler' — but Vault is the de-facto standard secret substrate. The genuine novelty is 'Cedar-driven selection at dispatch time' (Vault uses Vault policies, not Cedar; oyatie unifies under one policy engine per ADR-0243). RECOMMENDATION: re-frame §5.5 to claim the novelty as 'unified BYOK SecretReference + Cedar-driven dispatch-time selection (not Vault-policy or per-substrate IAM)', and demote the broader 'no hyperscaler' claim."
+    }
+  },
+  "weak_citation_rows": [
+    {
+      "decision_id": "ADR-0243 D-8",
+      "weakness": "single-source: internal oyatie multispectrum-review doctrine (no external citation)",
+      "severity": "S3",
+      "fix": "Add NIST SP 800-160 (Systems Security Engineering review processes) or ISO/IEC 19770-1 (multi-reviewer governance) as external anchor."
+    },
+    {
+      "decision_id": "ADR-0243 D-12",
+      "weakness": "single-source AWS (SCP + IAM permission boundary only); cross-vendor would be GCP IAM Conditions or Azure Conditional Access",
+      "severity": "S3",
+      "fix": "Add GCP IAM Conditions or Azure AAD Conditional Access cross-citation."
+    },
+    {
+      "decision_id": "ADR-0246 D-9",
+      "weakness": "DDD (Evans 2003) + ADR pattern (Nygard 2011) only — both pre-2012, no hyperscaler",
+      "severity": "S3",
+      "fix": "Supplement with AWS Well-Architected Pillar 2 (Architecture Documentation) or Google API Improvement Proposals (AIP) governance pattern."
+    },
+    {
+      "decision_id": "ADR-0247 D-10",
+      "weakness": "internal glossary discipline only (no external)",
+      "severity": "S4 — acceptable",
+      "fix": "Defensible as-is per §6 watch-list (inherited-term decomission is internal-by-design)."
+    },
+    {
+      "decision_id": "ADR-0249 D-3",
+      "weakness": "single-vendor Salesforce AppExchange only",
+      "severity": "S2",
+      "fix": "Add Microsoft Power Platform Dataverse migration and/or Adobe Experience Cloud unified-XDM as cross-vendor precedent."
+    },
+    {
+      "decision_id": "ADR-0249 D-15",
+      "weakness": "§6 says 'multi but eBay-led'; cross-vendor mix is Amazon A-to-Z + Upwork + eBay — defensible but eBay's escrow is mid-2000s, dated",
+      "severity": "S3",
+      "fix": "Supplement with Etsy Purchase Protection (2024) or Stripe Connect Disputes API (2024) for currency."
+    },
+    {
+      "decision_id": "ADR-0250 D-6",
+      "weakness": "references ADR-0243 internal Layered Policy Composition only",
+      "severity": "S3",
+      "fix": "Add AWS SCP + IAM external citation (already exists in matrix at ADR-0243 D-4)."
+    },
+    {
+      "decision_id": "ADR-0253 D-2.b",
+      "weakness": "Cloudflare Pingora only — single-vendor for Rust edge proxy",
+      "severity": "S3",
+      "fix": "Acceptable single-source given niche; supplement with Discord 2024 Pingora-derived deployment once published in detail."
+    },
+    {
+      "decision_id": "ADR-0253 D-3.c (internal)",
+      "weakness": "references ADR-0223 internal cross-citation",
+      "severity": "S3",
+      "fix": "Add Let's Encrypt ACME RFC 8555 or AWS Certificate Manager auto-rotation as external anchor."
+    },
+    {
+      "decision_id": "ADR-0254 D-7",
+      "weakness": "references ADR-0040 internal",
+      "severity": "S3",
+      "fix": "Flagger production deployments cited but pair with Argo Rollouts and AWS CodeDeploy Blue/Green for cross-vendor."
+    },
+    {
+      "decision_id": "ADR-0255 D-17",
+      "weakness": "internal portfolio practice — ADR-on-ADR meta",
+      "severity": "S4 — acceptable",
+      "fix": "Defensible per §6 watch-list (ADR-on-ADR by definition is internal)."
+    }
+  ],
+  "citation_freshness_pct": {
+    "2024_2026_pct": 41,
+    "2021_2023_pct": 18,
+    "2018_2020_pct": 11,
+    "2014_2017_pct": 11,
+    "2008_2013_pct": 5,
+    "pre_2008_pct": 2,
+    "uncategorized_or_evergreen_pct": 12,
+    "method": "Approximate from §7.1 bucket counts (~90 + ~40 + ~25 + ~25 + ~10 + ~5) / 220 total — rounded to whole percents; foundational RFC/textbook sources counted in their original-year bucket per matrix convention.",
+    "verdict": "STRONG — 2024-2026 share exceeds the §7.3 invariant of ≥30% by a comfortable margin. No source ages out (per §7.2 walkthrough). Stripe Engineering Quora 2013 is the one watch-item."
+  },
+  "anti_pattern_assessment": {
+    "coverage": "THOROUGH — Appendix II maps ~190 named anti-patterns to defenses across 11 failure-class buckets (multi-tenant/scoping, policy/authz, tier/dependency, cellular/topology, commerce/marketplace, build-ahead/cert, compliance pack, time/consistency, network/edge/mesh, deployment/delivery, AI/intelligence, self-hosting/self-modification).",
+    "correctness": "ANTI-PATTERN CHARACTERIZATIONS ARE LOAD-BEARING and correctly named — spot-checks confirm: 'Compliance Carve-Out' (real regulator red flag at ADR-0242 D-4), 'Cross-Cell Hot Path' (real fault-correlation risk at ADR-0248 D-6), 'Fail-Open on Policy Unavailable' (real security hole at ADR-0243 D-11), 'Harvest-now-decrypt-later' (real PQC threat at ADR-0253 D-4), 'Lossy Migration' (real primitive-drop risk at ADR-0247 D-9), 'Production-Only Testing' (real tenant-risk at ADR-0242 D-8).",
+    "decorating_around_vs_closing": "Verified that defenses GENUINELY CLOSE the named anti-patterns, not decorate. Example: ADR-0242 D-3 'Audience-As-Service-Scope' is genuinely retired (the audience field is dropped from manifests per ADR-0244 D-5), not hidden behind a translation layer. ADR-0247 D-1 'Primitive Duplication' is genuinely closed (Foundry µservice dissolves; BCs redistribute), not deprecated-in-name-only.",
+    "missed_anti_patterns": [
+      {
+        "anti_pattern": "Hyperscaler-Cargo-Cult — adopting an AWS pattern without verifying it applies at oyatie's scale",
+        "severity": "S3",
+        "where": "Implicit in every novel-primitive decision; not named as a meta anti-pattern in Appendix II.",
+        "fix": "Add Appendix II.13: 'Anti-Patterns of Hyperscaler Attribution Itself' — including Hyperscaler-Cargo-Cult, Pattern-Name-Theatre (claiming a pattern name without genuinely implementing it), and Stale-Citation-Drift (cited source no longer describes a production pattern)."
+      },
+      {
+        "anti_pattern": "Inter-pack Conflict-Resolution Drift — when two compliance packs disagree on retention or cross-tenant policy",
+        "severity": "S2",
+        "where": "ADR-0251 D-14 defines compositional semantics (deny-wins, retention-MAX, cross-tenant-MOST-RESTRICTIVE) but doesn't name the anti-pattern it closes; Appendix II.7 names 'Per-Pack Re-Implementation of Composition' but the deeper anti-pattern is 'Silent Pack Conflict' (two packs install OK individually but silently produce undefined behavior together).",
+        "fix": "Add 'Silent Pack Conflict' to Appendix II.7."
+      }
+    ]
+  },
+  "consistency_findings_matrix_vs_per_adr_appendix_a": [
+    {
+      "finding": "ADR-0247 D-10 ADR text says 'Inherited-Term Decomission' (one m) but matrix §3.6 says 'Inherited-Term Decommission' (two m's). Per §8.5 the per-ADR Appendix A wins. EITHER fix the ADR typo OR fix the matrix to match the ADR.",
+      "severity": "S4",
+      "action": "Fix the ADR-0247 typo since 'Decommission' is the correct English spelling; document in §6 changelog."
+    },
+    {
+      "finding": "§3 master matrix preamble states '205 rows' but §6 aggregate scorecard states '220 rows'. Drift between preamble and scorecard.",
+      "severity": "S2",
+      "action": "Update §3 preamble to '220 rows' (matching §6); fail-close the `oya-check-hyperscaler-pattern-matrix-coherence` CI lane on row-count drift."
+    },
+    {
+      "finding": "Appendix IV pattern-name 'Capability-Aware Auto-Spawn' (typo) does not match §3.7 row ADR-0248 D-10 which says 'Capacity-Aware Auto-Spawn'. Per §8.5 the §3 row wins.",
+      "severity": "S3",
+      "action": "Fix Appendix IV typo: 'Capability-Aware Auto-Spawn' → 'Capacity-Aware Auto-Spawn'."
+    },
+    {
+      "finding": "ADR-0258 / ADR-0272 / ADR-0273 / ADR-0276 / ADR-0292 author Appendix A in NARRATIVE form (A.1..A.N subsections), NOT in 4-column matrix form. The CI lane regex per §8.2 fires only on '## Appendix A: Hyperscaler-pattern attribution matrix' header — these ADRs use '## Appendix A — Pattern attribution' (different header, no matrix) and silently bypass the lane.",
+      "severity": "S2",
+      "action": "EITHER normalize all extended-scope ADRs to matrix form, OR amend §8.2 CI lane to also detect narrative-form Appendix A and verify each narrative subsection cites a hyperscaler-precedented pattern + source + anti-pattern triple. Recommend the former for uniformity."
+    },
+    {
+      "finding": "ADR-0255-amendment, ADR-0257, ADR-0263, ADR-0272, ADR-0273, ADR-0276, ADR-0280, ADR-0284, ADR-0292 each carry Appendix A but NONE are appended to §3 of the consolidated matrix. Violates §8.1 step 2.",
+      "severity": "S1",
+      "action": "Open follow-up PRs to add §3.15 through §3.23 subsections for these ADRs in the consolidated matrix; update §6 scorecard; update §7 source-freshness if new pre-2020 sources are cited."
+    }
+  ],
+  "ci_lane_findings": [
+    {
+      "lane": "oya-check-hyperscaler-pattern-matrix-coherence",
+      "issue": "Header-matching regex per §8.2 fires only on canonical 'Hyperscaler-pattern attribution matrix' header. ADR-0258 / ADR-0272 / ADR-0292 use variant headers ('Pattern attribution', 'Pattern Attribution', 'Hyperscaler-pattern attribution' [no 'matrix' suffix]) and bypass the lane.",
+      "severity": "S1",
+      "fix": "Broaden regex to match '## Appendix A' followed by any of {Hyperscaler-pattern, Pattern} {attribution, Attribution} [matrix]?; OR normalize all ADRs to canonical header."
+    },
+    {
+      "lane": "oya-check-hyperscaler-pattern-matrix-coherence",
+      "issue": "Does not appear to verify that EVERY decision section (D-N) in the source ADR is represented as a row in §3 — only that decision-IDs that appear in §3 resolve to source ADR sections. The reverse direction (no orphan decisions in source ADRs) is not validated.",
+      "severity": "S2",
+      "fix": "Add reverse-direction check: for every D-N section in a keystone ADR's Decisions, fail-close if no §3 row exists with that decision ID."
+    },
+    {
+      "lane": "oya-check-citation-url-liveness",
+      "issue": "Quarterly cadence per §8.3 — but the bundle has not yet shipped this lane; freshness sweep is manual. Stripe Engineering Quora 2013 stale-link is the smoking gun that the manual sweep is insufficient.",
+      "severity": "S2",
+      "fix": "Implement the lane as Lighthouse-class URL-checker; fire on every ADR change; quarterly cron-trigger for full sweep."
+    }
+  ],
+  "uncertainty_areas": [
+    "Whether §5 should list MORE novel primitives beyond the 5 named. Candidates: (a) Multispectrum-review v2.4.0 facet decomposition itself, (b) Layer enum 13-value canonical (per ADR-0105), (c) Workflow + Ontology adapter-layer doctrine. These are oyatie-novel but not in the keystone bundle's Appendix A claims, so technically out of F2's scope.",
+    "Whether 'hyperscaler' should be defined more tightly. Vault Transit, OPA, Sigstore, Temporal, CockroachDB are cited extensively but they're not 'hyperscalers' in the AWS/GCP/Azure sense — they're CNCF-class infrastructure projects. The matrix's §4 buckets implicitly broaden 'hyperscaler' to 'production-proven at scale'. Should be explicit in §1.",
+    "Whether the 18% (2021-2023) + 11% (2018-2020) shares are healthy or stale. §7.1 doesn't classify which patterns those cite, only the count. Recommend §7.4 (new): per-bucket pattern-name listing so reviewers can spot 'stale-pattern still cited' cases.",
+    "Whether the §6 scorecard's 'weak rows' column applies the same definition across ADRs. ADR-0254 reports 2 weak rows but I count 3 in the §6 row (D-7 + D-10 + D-12 = 3, scorecard says 2). Worth a fresh audit.",
+    "Whether ADR-0263's narrative-but-still-tabular Appendix A (15 matrix rows) should be added to §3 as §3.15 alongside the keystone bundle, given it post-dates the keystone but adopts the canonical matrix shape."
+  ],
+  "fixuptasks": [
+    {
+      "id": "F-MATRIX-ROW-COUNT-DRIFT",
+      "intent": "Reconcile §3 preamble row-count (currently '205 rows') with §6 aggregate ('220 rows'). Update §3 preamble to match §6, OR vice versa. Add row-count to the `oya-check-hyperscaler-pattern-matrix-coherence` CI lane fail-close conditions.",
+      "owner_phase": "M02-keystone-bundle docs",
+      "severity": "S2"
+    },
+    {
+      "id": "F-MATRIX-EXTEND-TO-EXTENDED-ADRS",
+      "intent": "Add §3.15 through §3.23 subsections to the consolidated matrix for ADR-0255-amendment / ADR-0257 / ADR-0263 / ADR-0272 / ADR-0273 / ADR-0276 / ADR-0280 / ADR-0284 / ADR-0292. Update §6 scorecard with their row-counts. Update §7 source-freshness audit with any new pre-2020 citations. Violation of §8.1 step 2 is currently open.",
+      "owner_phase": "M02-keystone-bundle docs",
+      "severity": "S1"
+    },
+    {
+      "id": "F-MATRIX-NORMALIZE-NARRATIVE-APPENDIX-A",
+      "intent": "Convert narrative-form Appendix A in ADR-0258, ADR-0272, ADR-0273, ADR-0276, ADR-0292 to canonical 4-column matrix form (Decision section | Hyperscaler pattern (named) | Source citation | Anti-pattern avoided). OR amend §8.1 maintenance protocol to admit narrative form for compliance-overlay ADRs (less preferred — uniformity wins).",
+      "owner_phase": "M02-keystone-bundle docs + per-ADR amendments",
+      "severity": "S2"
+    },
+    {
+      "id": "F-CI-LANE-HEADER-REGEX-BROADEN",
+      "intent": "Broaden `oya-check-hyperscaler-pattern-matrix-coherence` lane header-detection regex to match any of {'Appendix A: Hyperscaler-pattern attribution matrix', 'Appendix A — Pattern attribution', 'Appendix A — Hyperscaler-pattern attribution', 'Appendix A: Pattern attribution matrix', 'Appendix A: Hyperscaler-pattern attribution'}. Currently the lane silently passes ADRs that use variant headers.",
+      "owner_phase": "M02-CI-lanes",
+      "severity": "S1"
+    },
+    {
+      "id": "F-CI-LANE-REVERSE-COVERAGE",
+      "intent": "Add reverse-direction check to `oya-check-hyperscaler-pattern-matrix-coherence`: for every Decision section (D-N) in a keystone ADR's Decisions, fail-close if no §3 row exists with that decision ID. Currently only forward-direction (matrix rows resolve to ADR sections) is checked.",
+      "owner_phase": "M02-CI-lanes",
+      "severity": "S2"
+    },
+    {
+      "id": "F-CI-LANE-URL-LIVENESS",
+      "intent": "Implement `oya-check-citation-url-liveness` lane per §8.3. Quarterly cron + per-PR fast-check (only changed citations). Should have caught Stripe Engineering Quora 2013 stale-link by now.",
+      "owner_phase": "M02-CI-lanes",
+      "severity": "S2"
+    },
+    {
+      "id": "F-BYOK-NOVELTY-REFRAME",
+      "intent": "Re-frame §5.5 (BYOK-everywhere novelty claim) to acknowledge HashiCorp Vault Transit as the closest precedent for unified-BYOK-across-secret-classes, and sharpen the genuine novelty to 'Cedar-driven SecretReference selection at dispatch time' (Vault uses Vault policies, not unified Cedar). Demote the broader 'no hyperscaler offers unified BYOK' claim.",
+      "owner_phase": "M02-keystone-bundle docs",
+      "severity": "S2"
+    },
+    {
+      "id": "F-COMPLIANCE-PACK-NOVELTY-SHARPEN",
+      "intent": "Sharpen §5.4 (Compliance Pack abstraction novelty) to claim the genuine novel composition as 'ALL FIVE: Cedar fragments + onboarding workflow + breach-notification workflow + DPIA template + retention semantics' rather than the broader 'fully self-contained installable bundle' which Salesforce HealthCloud partially precedents.",
+      "owner_phase": "M02-keystone-bundle docs",
+      "severity": "S3"
+    },
+    {
+      "id": "F-OYATIE-TENANT-NOVELTY-SHARPEN",
+      "intent": "Sharpen §5.3 (oyatie-as-tenant slug novelty) to acknowledge Microsoft First-Party Tenant as a partial precedent, and frame the genuine novelty as 'fully + UNIFORMLY + with no administrative carve-out' rather than 'fully audited' which Microsoft First-Party Tenant partly precedents.",
+      "owner_phase": "M02-keystone-bundle docs",
+      "severity": "S3"
+    },
+    {
+      "id": "F-ADR-0247-D-10-TYPO",
+      "intent": "Fix the 'Decomission' (one m) typo in ADR-0247 §Appendix A D-10 row to 'Decommission' (correct English) to match the matrix §3.6 spelling. Per §8.5 (per-ADR wins) the matrix should match ADR; but here the ADR is the typo and the matrix is correct, so fix the ADR instead.",
+      "owner_phase": "ADR-0247 amendment",
+      "severity": "S4"
+    },
+    {
+      "id": "F-APPENDIX-IV-CAPACITY-TYPO",
+      "intent": "Fix Appendix IV pattern-name 'Capability-Aware Auto-Spawn' (incorrect) → 'Capacity-Aware Auto-Spawn' (matching §3.7 ADR-0248 D-10).",
+      "owner_phase": "M02-keystone-bundle docs",
+      "severity": "S3"
+    },
+    {
+      "id": "F-ANTI-PATTERN-HYPERSCALER-CARGO-CULT",
+      "intent": "Add Appendix II.13 (new bucket): 'Anti-Patterns of Hyperscaler Attribution Itself' — including Hyperscaler-Cargo-Cult (adopting AWS pattern at wrong scale), Pattern-Name-Theatre (claiming a pattern name without genuine implementation), Stale-Citation-Drift (cited source no longer describes production). This is meta-discipline for the F2 facet itself.",
+      "owner_phase": "M02-keystone-bundle docs",
+      "severity": "S3"
+    },
+    {
+      "id": "F-ANTI-PATTERN-SILENT-PACK-CONFLICT",
+      "intent": "Add 'Silent Pack Conflict' to Appendix II.7 (compliance pack anti-patterns) — when two packs install OK individually but silently produce undefined behavior together. Defense: ADR-0251 D-14 Compositional Policy Semantics (already named) — close the loop in Appendix II.",
+      "owner_phase": "ADR-0251 amendment",
+      "severity": "S3"
+    },
+    {
+      "id": "F-ADR-0249-D-3-CROSS-VENDOR",
+      "intent": "Supplement ADR-0249 D-3 (Existing-Product Refactor onto Shared Substrate) with Microsoft Power Platform Dataverse migration (2018→2020) and Adobe Experience Cloud unified-XDM as cross-vendor precedents. Currently single-vendor (Salesforce AppExchange).",
+      "owner_phase": "ADR-0249 amendment",
+      "severity": "S2"
+    },
+    {
+      "id": "F-ADR-0246-D-9-HYPERSCALER-CITATION",
+      "intent": "Supplement ADR-0246 D-9 (Substrate Cohesion via PRD Amendment) with AWS Well-Architected Pillar 2 (Architecture Documentation) or Google API Improvement Proposals (AIP) governance pattern. Currently DDD 2003 + ADR 2011 only.",
+      "owner_phase": "ADR-0246 amendment",
+      "severity": "S3"
+    },
+    {
+      "id": "F-ADR-0250-D-6-EXTERNAL-CITATION",
+      "intent": "Add external citation to ADR-0250 D-6 (Layered Policy Composition reference) — AWS SCP + IAM intersection is the canonical external pattern; currently cites only ADR-0243 internal.",
+      "owner_phase": "ADR-0250 amendment",
+      "severity": "S3"
+    },
+    {
+      "id": "F-STRIPE-2013-CITATION-REFRESH",
+      "intent": "Replace Stripe Engineering Quora 2013 citation (ADR-0242 D-1) with a 2020+ Stripe Engineering blog post on dogfooded compliance. §7.2 watch-list explicitly flags this.",
+      "owner_phase": "ADR-0242 amendment",
+      "severity": "S3"
+    }
+  ],
+  "scaling_concerns": {
+    "matrix_maintenance_scaling": [
+      "The matrix is 2527 lines and 220 rows; maintenance burden grows linearly with ADR count. §8 protocol delegates ownership to council-architecture; at the current rate of ~10 new ADRs per quarter (extrapolated from ADR-0242..ADR-0292 span ~3 months), the matrix will hit ~300 rows by end of 2026.",
+      "CI lane `oya-check-hyperscaler-pattern-matrix-coherence` must be fast-path (per-PR sub-second) given matrix growth; recommend pre-computed row-index cached in `.omc/cache/` to avoid full re-scan per PR.",
+      "Per-source-bucket density audits (§4) are currently visual; at >300 rows the visual audit breaks down. Recommend §4 buckets be auto-generated from §3 rows by a generator script (`tools/generate-matrix-source-buckets.sh`), eliminating drift between §3 and §4."
+    ],
+    "novel_primitive_review_scaling": [
+      "Each novel primitive requires 4-bullet defensibility checklist + worked example + 'why no hyperscaler precedent' literature review. At 5 novel primitives today, this is tractable; at 20+ it becomes a serious documentation tax.",
+      "Recommend §5 cap: portfolio admits at most N novel primitives at any time (suggested N=10); promotion of a 6th requires retiring or deprecating an existing one. Forces architectural discipline."
+    ]
+  },
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "summary_for_synthesis": "F2 verdict: APPROVE-WITH-FINDINGS. The 220-row consolidated matrix is hyperscaler-fit at the portfolio level (95% multi-source density; 41% 2024-2026 freshness; 100% named-pattern coverage; anti-patterns load-bearing and genuine). The 5 novel primitives are 4/5 strong (Foundry dissolution, Intelligence-as-substrate, oyatie-as-tenant slug, Compliance Pack abstraction); BYOK-everywhere is the weakest claim and should be sharpened to acknowledge HashiCorp Vault Transit precedent. Critical findings: (1) consolidated matrix preamble row-count drifts from §6 aggregate (205 vs 220); (2) extended-scope ADRs (ADR-0257, ADR-0263, ADR-0272-0292) carry Appendix A but are NOT appended to §3 — §8.1 violation; (3) ADR-0258/0272/0273/0276/0292 use narrative-form Appendix A bypassing the CI lane regex; (4) 11 weak-citation rows identified within §6 tolerance. 17 fixuptasks proposed (1 S1, 6 S2, 8 S3, 2 S4)."
+}

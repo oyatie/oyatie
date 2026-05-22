@@ -21,7 +21,7 @@ related_artifacts:
   - microservices/foundry/contracts/proto/provider-invoke.proto
   - microservices/foundry/policy/provider-router-tenant-scope.cedar
 
-autonomy_tier: T1
+autonomy_level: T1
 # T1 = read-only metadata; no sensitive data touched; no audit-chain write
 # beyond a RouterDecided event (which contains no prompt bytes).
 
@@ -91,7 +91,7 @@ cedar_policy_fragments:
   - microservices/foundry/policy/provider-router-tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/provider-route-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/provider-route-baseline.jsonl
   pass_threshold: 0.99
   eval_metric: decision-correctness-against-residency-and-capability-rules
   cadence: per-release

@@ -3,7 +3,7 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P17-IP-008.1
 title: Banned-primitives lane
-status: complete-2026-05-20
+status: active-implementation
 tier: S
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
@@ -21,7 +21,7 @@ purpose: Ship the real `oya-foundry-fitness-banned-primitives` detector, gate di
 - Use `tools/oya-foundry-fitness-banned-primitives-app` as the direct runner.
 - Expose the merge-blocking path through `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/fitness-corpora/banned-primitives`.
 - Register `oya-foundry-fitness-banned-primitives` in `registry/quality/lanes.yaml`, `docs/standards/ci-lanes.md`, `.github/workflows/`, `.github/branch-protection.yaml`, and the `oya gate run-all` catalog.
-- Advance `F-FORBIDDEN-PRIMITIVES-CI-GUARD` to source-corpus plus sanitized tracked command-log corpus coverage with local gate evidence showing the detector, workflow-context mirror, branch-protection context, quality-lane mirror, fenced source corpus, redacted JSONL command corpus, and hosted PR enforcement are green.
+- Advance `F-FORBIDDEN-PRIMITIVES-CI-GUARD` to source-corpus plus sanitized tracked command-log corpus coverage with local gate evidence showing the detector, workflow-context mirror, branch-protection context, quality-lane mirror, fenced source corpus, and redacted JSONL command corpus are green; hosted branch-protection deployment remains a GitOps verification gap.
 
 ## Acceptance
 
@@ -37,10 +37,3 @@ purpose: Ship the real `oya-foundry-fitness-banned-primitives` detector, gate di
 - `/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json`
 - `/evidence/fd001/cs-fitness-001-command-log-corpus.json`
 - `/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json`
-
-
-## Closeout evidence (2026-05-20)
-
-- Source-corpus and sanitized command-log corpus enforcement were already green in `cs-fitness-001-banned-primitives` and `cs-fitness-001-command-log-corpus`.
-- The remaining hosted branch-protection/protection-context gap is closed: live dev required contexts match repo policy, the required Actions secret is visible to the hosted workflow, and PR #151 head `7a923b90701b9fef281821d23129f5b15bff0cfe` reports successful `oya-foundry-fitness-banned-primitives` plus `oya-governance-protection-context-match` workflow runs.
-- Evidence: `/evidence/fd001/cs-fd001-branch-protection-closeout-2026-05-20.json` and `/evidence/multispectrum/cs-fd001-branch-protection-closeout-2026-05-20.json`.

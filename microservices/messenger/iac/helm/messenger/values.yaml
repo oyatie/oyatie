@@ -71,16 +71,16 @@ postgres:
   partitionStrategy: "by_tenant_channel_yyyy_mm"
   rls: enabled  # MANDATORY
 
-redisPresence:
-  host: messenger-redis-presence.${global.pack}.svc.cluster.local
+valkeyPresence:
+  host: messenger-valkey-presence.${global.pack}.svc.cluster.local
   port: 6379
-  authToken: "${openbao:secret/messenger/redis/presence-auth}"
+  authToken: "${openbao:secret/messenger/valkey/presence-auth}"
   fallback: keydb
 
-redisStreams:
-  host: messenger-redis-streams.${global.pack}.svc.cluster.local
+valkeyStreams:
+  host: messenger-valkey-streams.${global.pack}.svc.cluster.local
   port: 6379
-  authToken: "${openbao:secret/messenger/redis/streams-auth}"
+  authToken: "${openbao:secret/messenger/valkey/streams-auth}"
 
 s3Attachments:
   endpoint: "${OCI_OBJECTSTORAGE_ENDPOINT}"

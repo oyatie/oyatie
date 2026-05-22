@@ -17,10 +17,10 @@ purpose: |
   `forbidden-operations.json` FO-10 and the AGENTS.md §Pre-flight checklist
   Item 4 ("Confirm autonomy ceiling").
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-autonomy-ceiling
+planned_enforcement_ref: oya-governance-autonomy-ceiling
 enforcement_status:
-  oya-foundry-fitness-autonomy-ceiling: F-PENDING-AUTONOMY-CEILING (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
-  oya-foundry-fitness-capability-publish: F-PENDING-CAPABILITY-PUBLISH (crate missing)
+  oya-governance-autonomy-ceiling: F-PENDING-AUTONOMY-CEILING (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  oya-governance-capability-publish: F-PENDING-CAPABILITY-PUBLISH (crate missing)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/security-review.md
@@ -91,7 +91,7 @@ last_reviewed: 2026-05-08
 ---
 ```
 
-Lane: `oya-foundry-fitness-capability-publish` validates every record
+Lane: `oya-governance-capability-publish` validates every record
 shape on PR.
 
 ## 3. Cedar policy binding
@@ -166,7 +166,7 @@ A PR that changes `autonomy_tier` from `Tn` to `T(n+1)`:
   Council-Privacy + Council-Architecture.
 - Emits `EVT-AUTONOMY-UPLIFT` on merge.
 
-Lane: `oya-foundry-fitness-autonomy-ceiling` refuses tier changes
+Lane: `oya-governance-autonomy-ceiling` refuses tier changes
 missing any of the above.
 
 ## 6. T3 / T4 out-of-band approval
@@ -216,7 +216,7 @@ Tier uplift requires:
 - Replay-as-eval: every prior incident attributable to the capability
   has a regression entry.
 
-Lane: `oya-foundry-fitness-foundry-eval` (per DOC-CATALOG.md §4).
+Lane: `oya-governance-foundry-eval` (per DOC-CATALOG.md §4).
 
 ## 9. Cross-tenant invocations
 

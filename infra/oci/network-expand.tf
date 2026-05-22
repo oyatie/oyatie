@@ -3,16 +3,22 @@
 // before you try a1 again. like vnic and stuff' + 'everything done through
 // opentofu'). Adds: NAT GW, Service GW, NSGs per role, private subnet.
 
-# ---- NAT Gateway (for future private-subnet outbound; Always Free) ----
+# ---- NAT Gateway (private-subnet outbound; NOT Always-Free-eligible) ----
+# AF tenancies cap NAT gateways at 0 per region. Created only when
+# var.always_free_mode is false (PAYG tier).
 resource "oci_core_nat_gateway" "nonprod" {
+  count          = var.always_free_mode ? 0 : 1
   compartment_id = oci_identity_compartment.nonprod.id
   vcn_id         = oci_core_vcn.nonprod.id
   display_name   = "oyatie-nonprod-nat"
   freeform_tags  = local.common_tags
 }
 
-# ---- Service Gateway (OCI service access without internet; Always Free) ----
+# ---- Service Gateway (OCI service access without internet; NOT AF-eligible) ----
+# AF tenancies cap Service Gateways at 0. Created only on PAYG.
 data "oci_core_services" "all_oci_services" {
+  count = var.always_free_mode ? 0 : 1
+
   filter {
     name   = "name"
     values = ["All .* Services In Oracle Services Network"]
@@ -21,12 +27,13 @@ data "oci_core_services" "all_oci_services" {
 }
 
 resource "oci_core_service_gateway" "nonprod" {
+  count          = var.always_free_mode ? 0 : 1
   compartment_id = oci_identity_compartment.nonprod.id
   vcn_id         = oci_core_vcn.nonprod.id
   display_name   = "oyatie-nonprod-svcgw"
 
   services {
-    service_id = data.oci_core_services.all_oci_services.services[0].id
+    service_id = data.oci_core_services.all_oci_services[0].services[0].id
   }
 
   freeform_tags = local.common_tags
@@ -39,15 +46,25 @@ resource "oci_core_route_table" "nonprod_private" {
   display_name   = "oyatie-nonprod-private-rt"
   freeform_tags  = local.common_tags
 
-  route_rules {
-    destination       = "0.0.0.0/0"
-    destination_type  = "CIDR_BLOCK"
-    network_entity_id = oci_core_nat_gateway.nonprod.id
+  // On Always Free the private route table is intentionally empty —
+  // no NAT/SGW exist, so private workloads have no internet egress and
+  // must use OCI Bastion (free 5 sessions) for managed access. Routes
+  // are added only when the PAYG-tier NAT/SGW resources exist.
+  dynamic "route_rules" {
+    for_each = var.always_free_mode ? [] : [1]
+    content {
+      destination       = "0.0.0.0/0"
+      destination_type  = "CIDR_BLOCK"
+      network_entity_id = oci_core_nat_gateway.nonprod[0].id
+    }
   }
-  route_rules {
-    destination       = data.oci_core_services.all_oci_services.services[0].cidr_block
-    destination_type  = "SERVICE_CIDR_BLOCK"
-    network_entity_id = oci_core_service_gateway.nonprod.id
+  dynamic "route_rules" {
+    for_each = var.always_free_mode ? [] : [1]
+    content {
+      destination       = data.oci_core_services.all_oci_services[0].services[0].cidr_block
+      destination_type  = "SERVICE_CIDR_BLOCK"
+      network_entity_id = oci_core_service_gateway.nonprod[0].id
+    }
   }
 }
 
@@ -56,7 +73,7 @@ resource "oci_core_subnet" "nonprod_private" {
   vcn_id                     = oci_core_vcn.nonprod.id
   display_name               = "oyatie-nonprod-private-subnet"
   cidr_block                 = "10.0.2.0/24"
-  dns_label                  = "oyatienppvt"
+  dns_label                  = var.subnet_private_dns_label
   prohibit_public_ip_on_vnic = true
   route_table_id             = oci_core_route_table.nonprod_private.id
   freeform_tags              = local.common_tags
@@ -204,11 +221,11 @@ output "nonprod_private_subnet_id" {
 }
 
 output "nat_gateway_id" {
-  value = oci_core_nat_gateway.nonprod.id
+  value = length(oci_core_nat_gateway.nonprod) > 0 ? oci_core_nat_gateway.nonprod[0].id : null
 }
 
 output "service_gateway_id" {
-  value = oci_core_service_gateway.nonprod.id
+  value = length(oci_core_service_gateway.nonprod) > 0 ? oci_core_service_gateway.nonprod[0].id : null
 }
 
 output "nsg_ids" {

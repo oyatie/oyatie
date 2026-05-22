@@ -1,0 +1,663 @@
+---
+doc_class: WorkflowTemplate
+template_id: workflow-template.employee-onboarding.v1
+version: 1.0.0
+owner: workflow-studio
+related_oyatie_adrs:
+  - ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - ADR-0059-workflow-ontology-ecosystem-adapter-layer
+  - ADR-0175-tenant-lifecycle-workflow
+  - ADR-0185-workflow-studio-client-stack
+title: Employee onboarding
+description: >-
+  Coordinates a new-hire path from accepted hire through background screening,
+  equipment issue, access provisioning, first-day orientation, and the 30-day
+  manager check-in while preserving tenant scope, HR data classes, and audit
+  evidence for every state transition.
+tags:
+  - hr
+  - identity
+  - equipment
+  - access-provisioning
+  - employee-lifecycle
+owner_microservice: workflow-studio
+runtime_microservice: workflow-engine
+template_shape: state_machine_plus_dag
+capability_tier_bindings:
+  - tier: silver
+    reason: "Tenant HR teams need managed approvals, audit, and provisioning."
+  - tier: gold
+    reason: "Adds parallel equipment, access, and orientation orchestration."
+ontology_refs:
+  object: EmployeeLifecycleCase
+  actions:
+    - HireAccepted
+    - BackgroundCheckRequested
+    - EquipmentIssued
+    - AccessProvisioned
+    - OrientationCompleted
+    - CheckInCompleted
+tenant_context:
+  required_fields:
+    - tenant_id
+    - hiring_manager_principal_id
+    - hr_owner_principal_id
+    - new_hire_person_id
+principal_context:
+  system_principal: workflow-engine.employee-onboarding
+  human_approval_roles:
+    - hr_owner
+    - hiring_manager
+    - identity_admin
+data_classes:
+  - EMPLOYEE_PROFILE
+  - GOVERNMENT_IDENTIFIER
+  - BACKGROUND_CHECK_STATUS
+  - DEVICE_ASSIGNMENT
+  - ACCESS_GRANT
+residency_pack_overlays:
+  - pack: gdpr
+    behavior: "Keep background-check artifacts and employee profile exports inside the employee work-region."
+  - pack: kr-pipa
+    behavior: "Require explicit HR lawful-basis reference before screening request."
+observability:
+  metrics:
+    - employee_onboarding_step_latency_seconds
+    - employee_onboarding_policy_denial_total
+    - employee_onboarding_equipment_delay_total
+  traces:
+    - workflow.template.employee_onboarding
+  logs:
+    - workflow_employee_onboarding_audit_projection
+cost_allocation:
+  unit: workflow_step_transition
+  dimensions:
+    - tenant_id
+    - department_id
+    - region
+idempotency:
+  key_shape: "tenant_id:new_hire_person_id:template_version:node_id"
+  duplicate_policy: return_existing_node_result
+cancellation_behavior:
+  allowed_until_node: access_provision_join
+  on_cancel: revoke_pending_access_and_close_open_tasks
+  audit_event_class: EmployeeOnboardingCancelled
+replay_behavior:
+  replay_safe: true
+  event_history_source: workflow-engine
+  side_effect_replay_policy: skip_completed_idempotent_actions
+inputs:
+  tenant_id:
+    type: string
+    default: tenant_demo
+  new_hire_person_id:
+    type: string
+    default: person_new_hire_001
+  hiring_manager_principal_id:
+    type: string
+    default: principal_manager_001
+  hr_owner_principal_id:
+    type: string
+    default: principal_hr_001
+  start_date:
+    type: date
+    default: "2026-06-15"
+  work_region:
+    type: string
+    default: us-east
+  role_code:
+    type: string
+    default: software_engineer
+  equipment_profile:
+    type: string
+    default: engineering-laptop-standard
+outputs:
+  onboarding_case_id:
+    type: string
+  terminal_state:
+    type: string
+  provisioned_access_grants:
+    type: array
+    items: string
+  issued_assets:
+    type: array
+    items: string
+  audit_chain_refs:
+    type: array
+    items: string
+nodes:
+  - id: hire_accepted_start
+    type: start
+    config:
+      intake_contract: hr.hire.accepted.v1
+      validates:
+        - tenant_id
+        - new_hire_person_id
+        - start_date
+    cedar_permits_required:
+      - 'Action::"StartEmployeeOnboarding"'
+    audit_event_class: EmployeeOnboardingStarted
+    slo_target: "PT5M from offer acceptance"
+    timeout:
+      duration: PT10M
+      on_timeout: fail_missing_hire_payload
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - HR_EVENT_LAG
+    failure_modes:
+      - code: MISSING_HIRE_PAYLOAD
+        behavior: "Reject start and emit policy-visible intake error."
+    on_success:
+      - edge_to_create_case
+    on_failure:
+      - edge_to_failed_intake
+  - id: create_onboarding_case
+    type: action
+    config:
+      service: hr
+      contract: employee-lifecycle-case.v1
+      method: POST
+      url: "https://hr.internal/v1/onboarding-cases"
+      headers:
+        X-Oya-Request-Id: "${workflow.request_id}"
+      body:
+        tenant_id: "${inputs.tenant_id}"
+        new_hire_person_id: "${inputs.new_hire_person_id}"
+        role_code: "${inputs.role_code}"
+        start_date: "${inputs.start_date}"
+    cedar_permits_required:
+      - 'Action::"CreateEmployeeLifecycleCase"'
+    audit_event_class: EmployeeOnboardingCaseCreated
+    slo_target: "PT15M"
+    timeout:
+      duration: PT2M
+      on_timeout: route_to_hr_manual_queue
+    retry:
+      max_attempts: 3
+      backoff: PT30S
+      retryable_errors:
+        - HR_CASE_WRITE_TIMEOUT
+    failure_modes:
+      - code: DUPLICATE_CASE
+        behavior: "Return existing case and continue idempotently."
+      - code: HR_CASE_VALIDATION_DENIED
+        behavior: "Stop before downstream screening."
+    on_success:
+      - edge_to_background_check_request
+    on_failure:
+      - edge_to_failed_case_creation
+  - id: background_check_request
+    type: action
+    config:
+      service: compliance
+      contract: background-check-request.v1
+      method: POST
+      url: "https://compliance.internal/v1/background-checks"
+      body:
+        case_id: "${nodes.create_onboarding_case.output.case_id}"
+        lawful_basis_ref: "${inputs.tenant_id}:hr-screening-policy"
+        work_region: "${inputs.work_region}"
+    cedar_permits_required:
+      - 'Action::"RequestBackgroundCheck"'
+      - 'Action::"ReadGovernmentIdentifier"'
+    audit_event_class: BackgroundCheckRequested
+    slo_target: "PT1H"
+    timeout:
+      duration: PT10M
+      on_timeout: route_to_screening_retry
+    retry:
+      max_attempts: 2
+      backoff: PT5M
+      retryable_errors:
+        - SCREENING_VENDOR_TIMEOUT
+    failure_modes:
+      - code: LAWFUL_BASIS_MISSING
+        behavior: "Escalate to HR owner; no vendor call is made."
+      - code: SCREENING_VENDOR_DENIED
+        behavior: "Pause onboarding with tenant-visible reason."
+    on_success:
+      - edge_to_background_check_wait
+    on_failure:
+      - edge_to_hr_review
+  - id: background_check_wait
+    type: loop
+    config:
+      poll_contract: background-check-status.v1
+      poll_interval: PT6H
+      max_elapsed: P5D
+      terminal_statuses:
+        - clear
+        - needs_review
+        - rejected
+    cedar_permits_required:
+      - 'Action::"ReadBackgroundCheckStatus"'
+    audit_event_class: BackgroundCheckStatusPolled
+    slo_target: "P5D"
+    timeout:
+      duration: P5D
+      on_timeout: background_check_manual_review
+    retry:
+      max_attempts: 20
+      backoff: PT6H
+      retryable_errors:
+        - SCREENING_STATUS_NOT_READY
+    failure_modes:
+      - code: SCREENING_STATUS_STALE
+        behavior: "Escalate before equipment or access side effects."
+    on_success:
+      - edge_to_background_check_decision
+    on_failure:
+      - edge_to_hr_review
+  - id: background_check_decision
+    type: decision
+    config:
+      expression: "${nodes.background_check_wait.output.status}"
+      cases:
+        clear: continue
+        needs_review: hr_manual_review
+        rejected: end_rejected
+    cedar_permits_required:
+      - 'Action::"DecideBackgroundCheckOutcome"'
+    audit_event_class: BackgroundCheckOutcomeDecided
+    slo_target: "PT30M after status availability"
+    timeout:
+      duration: PT1H
+      on_timeout: background_check_manual_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: UNKNOWN_SCREENING_STATUS
+        behavior: "Route to HR owner and block downstream side effects."
+    on_success:
+      - edge_to_parallel_preparation
+    on_failure:
+      - edge_to_hr_review
+  - id: preparation_parallel
+    type: parallel
+    config:
+      fan_out_limit: 3
+      join_semantics: all_success_required
+      branches:
+        - equipment_issue
+        - access_provision
+        - orientation_schedule
+    cedar_permits_required:
+      - 'Action::"RunEmployeePreparationFanout"'
+    audit_event_class: EmployeePreparationFanoutStarted
+    slo_target: "P3D before start date"
+    timeout:
+      duration: P2D
+      on_timeout: preparation_manual_recovery
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: FANOUT_BRANCH_FAILED
+        behavior: "Join only after failed branch creates remediation task."
+    on_success:
+      - edge_to_equipment_issue
+      - edge_to_access_provision
+      - edge_to_orientation_schedule
+    on_failure:
+      - edge_to_hr_review
+  - id: equipment_issue
+    type: action
+    config:
+      service: assets
+      contract: equipment-issue.v1
+      method: POST
+      url: "https://assets.internal/v1/asset-assignments"
+      body:
+        profile: "${inputs.equipment_profile}"
+        assignee_person_id: "${inputs.new_hire_person_id}"
+        needed_by: "${inputs.start_date}"
+    cedar_permits_required:
+      - 'Action::"IssueEmployeeEquipment"'
+    audit_event_class: EmployeeEquipmentIssued
+    slo_target: "P2D before start date"
+    timeout:
+      duration: PT30M
+      on_timeout: equipment_manual_queue
+    retry:
+      max_attempts: 3
+      backoff: PT10M
+      retryable_errors:
+        - ASSET_QUEUE_TIMEOUT
+    failure_modes:
+      - code: NO_DEVICE_IN_REGION
+        behavior: "Create procurement task and flag first-day readiness risk."
+    on_success:
+      - edge_to_access_provision_join
+    on_failure:
+      - edge_to_preparation_exception
+  - id: access_provision
+    type: action
+    config:
+      service: identity
+      contract: access-bundle-provision.v1
+      method: POST
+      url: "https://identity.internal/v1/access-bundles"
+      body:
+        principal_person_id: "${inputs.new_hire_person_id}"
+        role_code: "${inputs.role_code}"
+        activation_time: "${inputs.start_date}T09:00:00Z"
+    cedar_permits_required:
+      - 'Action::"ProvisionEmployeeAccess"'
+      - 'Action::"GrantRoleBundle"'
+    audit_event_class: EmployeeAccessProvisioned
+    slo_target: "PT4H after background clear"
+    timeout:
+      duration: PT15M
+      on_timeout: identity_manual_queue
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - IDENTITY_PROVISIONING_TIMEOUT
+    failure_modes:
+      - code: ROLE_BUNDLE_POLICY_DENIED
+        behavior: "Escalate to identity admin; do not grant partial privileged access."
+    on_success:
+      - edge_to_access_provision_join
+    on_failure:
+      - edge_to_preparation_exception
+  - id: orientation_schedule
+    type: action
+    config:
+      service: calendar
+      contract: orientation-schedule.v1
+      method: POST
+      url: "https://calendar.internal/v1/orientation-events"
+      body:
+        attendee_person_id: "${inputs.new_hire_person_id}"
+        manager_principal_id: "${inputs.hiring_manager_principal_id}"
+        start_date: "${inputs.start_date}"
+    cedar_permits_required:
+      - 'Action::"ScheduleEmployeeOrientation"'
+    audit_event_class: FirstDayOrientationScheduled
+    slo_target: "P1D before start date"
+    timeout:
+      duration: PT10M
+      on_timeout: orientation_manual_queue
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - CALENDAR_WRITE_TIMEOUT
+    failure_modes:
+      - code: MANAGER_CALENDAR_UNAVAILABLE
+        behavior: "Schedule HR-hosted fallback and notify manager."
+    on_success:
+      - edge_to_access_provision_join
+    on_failure:
+      - edge_to_preparation_exception
+  - id: access_provision_join
+    type: decision
+    config:
+      expression: "${parallel.preparation_parallel.all_branches_succeeded}"
+      cases:
+        "true": first_day_orientation
+        "false": preparation_exception
+    cedar_permits_required:
+      - 'Action::"EvaluateEmployeeReadiness"'
+    audit_event_class: EmployeeReadinessEvaluated
+    slo_target: "PT2H before first day"
+    timeout:
+      duration: PT30M
+      on_timeout: readiness_manual_review
+    retry:
+      max_attempts: 1
+      backoff: PT0S
+      retryable_errors: []
+    failure_modes:
+      - code: READINESS_INCOMPLETE
+        behavior: "Do not mark onboarding ready; notify HR owner."
+    on_success:
+      - edge_to_first_day_orientation
+    on_failure:
+      - edge_to_preparation_exception
+  - id: first_day_orientation
+    type: action
+    config:
+      service: learning
+      contract: orientation-completion.v1
+      method: POST
+      url: "https://learning.internal/v1/orientation-completions"
+      body:
+        case_id: "${nodes.create_onboarding_case.output.case_id}"
+        attendee_person_id: "${inputs.new_hire_person_id}"
+    cedar_permits_required:
+      - 'Action::"RecordEmployeeOrientation"'
+    audit_event_class: FirstDayOrientationCompleted
+    slo_target: "PT8H after first-day start"
+    timeout:
+      duration: P1D
+      on_timeout: orientation_follow_up
+    retry:
+      max_attempts: 2
+      backoff: PT2H
+      retryable_errors:
+        - LEARNING_STATUS_DELAYED
+    failure_modes:
+      - code: ORIENTATION_NOT_ATTENDED
+        behavior: "Create manager follow-up task; keep case open."
+    on_success:
+      - edge_to_schedule_30_day_check
+    on_failure:
+      - edge_to_manager_follow_up
+  - id: schedule_30_day_check
+    type: action
+    config:
+      service: tasks
+      contract: manager-check-in-task.v1
+      method: POST
+      url: "https://tasks.internal/v1/manager-check-ins"
+      body:
+        due_date: "${inputs.start_date}+P30D"
+        manager_principal_id: "${inputs.hiring_manager_principal_id}"
+        employee_person_id: "${inputs.new_hire_person_id}"
+    cedar_permits_required:
+      - 'Action::"ScheduleEmployeeCheckIn"'
+    audit_event_class: ThirtyDayCheckInScheduled
+    slo_target: "PT24H after orientation"
+    timeout:
+      duration: PT10M
+      on_timeout: manager_follow_up_queue
+    retry:
+      max_attempts: 3
+      backoff: PT5M
+      retryable_errors:
+        - TASK_WRITE_TIMEOUT
+    failure_modes:
+      - code: MANAGER_NOT_ACTIVE
+        behavior: "Route task to HR owner and department delegate."
+    on_success:
+      - edge_to_30_day_wait
+    on_failure:
+      - edge_to_manager_follow_up
+  - id: wait_for_30_day_check
+    type: loop
+    config:
+      poll_contract: manager-check-in-status.v1
+      poll_interval: P1D
+      max_elapsed: P45D
+      terminal_statuses:
+        - completed
+        - waived_by_hr
+    cedar_permits_required:
+      - 'Action::"ReadEmployeeCheckInStatus"'
+    audit_event_class: ThirtyDayCheckInStatusPolled
+    slo_target: "P45D after start date"
+    timeout:
+      duration: P45D
+      on_timeout: overdue_check_in_escalation
+    retry:
+      max_attempts: 45
+      backoff: P1D
+      retryable_errors:
+        - CHECK_IN_NOT_READY
+    failure_modes:
+      - code: CHECK_IN_OVERDUE
+        behavior: "Escalate to HR owner and manager manager."
+    on_success:
+      - edge_to_complete_onboarding
+    on_failure:
+      - edge_to_manager_follow_up
+  - id: complete_onboarding
+    type: end
+    config:
+      terminal_state: completed
+      output_contract: employee-onboarding-result.v1
+    cedar_permits_required:
+      - 'Action::"CompleteEmployeeOnboarding"'
+    audit_event_class: EmployeeOnboardingCompleted
+    slo_target: "P45D after start date"
+    timeout:
+      duration: PT5M
+      on_timeout: completion_retry
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: AUDIT_APPEND_FAILED
+        behavior: "Do not close case until completion event is sealed."
+    on_success: []
+    on_failure:
+      - edge_to_completion_exception
+  - id: rejected_or_exception_end
+    type: end
+    config:
+      terminal_state: blocked_or_rejected
+      output_contract: employee-onboarding-exception.v1
+    cedar_permits_required:
+      - 'Action::"CloseEmployeeOnboardingException"'
+    audit_event_class: EmployeeOnboardingExceptionClosed
+    slo_target: "PT1H after blocking decision"
+    timeout:
+      duration: PT5M
+      on_timeout: exception_close_retry
+    retry:
+      max_attempts: 2
+      backoff: PT1M
+      retryable_errors:
+        - AUDIT_CHAIN_APPEND_TIMEOUT
+    failure_modes:
+      - code: EXCEPTION_CLOSE_FAILED
+        behavior: "Keep manual recovery task open."
+    on_success: []
+    on_failure: []
+edges:
+  - id: edge_to_create_case
+    from: hire_accepted_start
+    to: create_onboarding_case
+    name: hire_payload_valid
+  - id: edge_to_background_check_request
+    from: create_onboarding_case
+    to: background_check_request
+    name: case_created
+  - id: edge_to_background_check_wait
+    from: background_check_request
+    to: background_check_wait
+    name: screening_requested
+  - id: edge_to_background_check_decision
+    from: background_check_wait
+    to: background_check_decision
+    name: screening_status_available
+  - id: edge_to_parallel_preparation
+    from: background_check_decision
+    to: preparation_parallel
+    name: screening_clear
+  - id: edge_to_equipment_issue
+    from: preparation_parallel
+    to: equipment_issue
+    name: equipment_branch
+  - id: edge_to_access_provision
+    from: preparation_parallel
+    to: access_provision
+    name: identity_branch
+  - id: edge_to_orientation_schedule
+    from: preparation_parallel
+    to: orientation_schedule
+    name: orientation_branch
+  - id: edge_to_access_provision_join
+    from: preparation_parallel
+    to: access_provision_join
+    name: join_preparation
+  - id: edge_to_first_day_orientation
+    from: access_provision_join
+    to: first_day_orientation
+    name: ready_for_first_day
+  - id: edge_to_schedule_30_day_check
+    from: first_day_orientation
+    to: schedule_30_day_check
+    name: orientation_complete
+  - id: edge_to_30_day_wait
+    from: schedule_30_day_check
+    to: wait_for_30_day_check
+    name: check_in_scheduled
+  - id: edge_to_complete_onboarding
+    from: wait_for_30_day_check
+    to: complete_onboarding
+    name: check_in_complete
+  - id: edge_to_hr_review
+    from: background_check_decision
+    to: rejected_or_exception_end
+    name: hr_review_required
+  - id: edge_to_preparation_exception
+    from: access_provision_join
+    to: rejected_or_exception_end
+    name: preparation_failed
+  - id: edge_to_failed_intake
+    from: hire_accepted_start
+    to: rejected_or_exception_end
+    name: intake_failed
+  - id: edge_to_failed_case_creation
+    from: create_onboarding_case
+    to: rejected_or_exception_end
+    name: case_creation_failed
+  - id: edge_to_manager_follow_up
+    from: first_day_orientation
+    to: rejected_or_exception_end
+    name: manager_follow_up_required
+  - id: edge_to_completion_exception
+    from: complete_onboarding
+    to: rejected_or_exception_end
+    name: completion_audit_failed
+failure_modes:
+  - code: POLICY_DENIED
+    behavior: "Stop current node, emit Cedar denial audit, and keep prior side effects unchanged."
+  - code: SIDE_EFFECT_DUPLICATE
+    behavior: "Use idempotency key to return previous successful output."
+  - code: MANUAL_RECOVERY_REQUIRED
+    behavior: "Create HR owner task with all audit-chain refs."
+worked_example:
+  sample_input:
+    tenant_id: tenant_acme
+    new_hire_person_id: person_7788
+    hiring_manager_principal_id: principal_mgr_42
+    hr_owner_principal_id: principal_hr_09
+    start_date: "2026-06-15"
+    work_region: eu-frankfurt
+    role_code: sales_engineer
+    equipment_profile: sales-laptop-standard
+  sample_expected_output:
+    onboarding_case_id: eocase_2026_0007788
+    terminal_state: completed
+    provisioned_access_grants:
+      - crm.sales.user
+      - messenger.employee.standard
+      - drive.department.sales
+    issued_assets:
+      - asset_laptop_00991
+      - asset_yubikey_33210
+    audit_chain_refs:
+      - audit://workflow/employee-onboarding/started/01
+      - audit://workflow/employee-onboarding/background-clear/02
+      - audit://workflow/employee-onboarding/completed/03

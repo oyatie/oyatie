@@ -8,9 +8,9 @@ date: 2026-05-12
 purpose: |
   Ads-axis rollouts with privacy-gate; Connect-no-ads cohort honoured per LEDG-021.
 planned_enforcement_ref:
-  - oya-foundry-fitness-cohort-honor
-  - oya-foundry-fitness-data-class
-  - oya-foundry-fitness-canary-required
+  - oya-governance-cohort-honor
+  - oya-governance-data-class
+  - oya-governance-canary-required
 related_adrs: [ADR-0031, ADR-0038, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -18,7 +18,6 @@ doc_status: published
 
 # Playbook: Ads / Analytics Rollout
 
-> **Status:** Accepted. **Owner:** `axis-ads`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -44,7 +43,7 @@ The `connect-no-ads` cohort ([`stable-cohort-spec.md`](stable-cohort-spec.md) §
 2. No canary stage routes no-ads traffic to ad-serving code paths.
 3. No experiment targets no-ads tenants (even when sample-size pressure tempts it).
 
-Planned advisory lane: `oya-foundry-fitness-cohort-honor` as a planned blocker for Ads-axis PRs. Violation = ledger entry + Sev-1.
+Planned advisory lane: `oya-governance-cohort-honor` as a planned blocker for Ads-axis PRs. Violation = ledger entry + Sev-1.
 
 ## 4. Privacy gates
 
@@ -56,7 +55,7 @@ Every Ads change MUST declare:
 4. Differential-privacy budget consumption (if applicable).
 5. Cohort exclusion list — at minimum `connect-no-ads`, `stable-regulated-healthcare`, `stable-regulated-fintech`.
 
-`oya-foundry-fitness-data-class` (existing) verifies the declaration.
+`oya-governance-data-class` (existing) verifies the declaration.
 
 ## 5. Attribution model swap (blue/green)
 
@@ -90,5 +89,4 @@ Google Ads release-track (privacy-gate-first); Microsoft Advertising deployment-
 
 ## 10. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — privacy-gate declarations stored via `icm store -t ads-privacy-gates`; rollback evidence via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — Ads weekly cadence; `privacy-reviewer` re-affirms at staging → prod gate 5; attribution-model paths carry `requires_human_signoff: true`.

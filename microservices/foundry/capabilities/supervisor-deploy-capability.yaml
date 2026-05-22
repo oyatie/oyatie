@@ -4,7 +4,7 @@ name: deploy-capability
 namespace: foundry-supervisor
 display_name: Deploy a Tenant Capability
 description: |
-  Admit a tenant-authored capability definition; validate against schema + autonomy-tier
+  Admit a tenant-authored capability definition; validate against schema + autonomy-ceiling
   + cost budget; initiate canary rollout (1 % → 10 % → 50 % → 100 %); gate phase
   advances on observability `EligibilityChanged` verdict per ADR-0139.
 
@@ -18,7 +18,7 @@ related_artifacts:
   - microservices/foundry/contracts/openapi/foundry-supervisor.yaml
   - microservices/foundry/policy/tenant-scope.cedar
 
-autonomy_tier: T2
+autonomy_level: T2
 # T2 = read-only sensitive data + write to ledger; not destructive
 
 inputs:
@@ -83,9 +83,9 @@ cedar_policy_fragments:
   - microservices/foundry/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/foundry/capabilities/eval/deploy-capability-golden.jsonl
+  baseline_inputs_path: microservices/foundry/capabilities/eval/deploy-capability-baseline.jsonl
   pass_threshold: 0.99
-  eval_metric: schema-validation-correctness + autonomy-tier-enforcement
+  eval_metric: schema-validation-correctness + autonomy-ceiling-enforcement
   cadence: per-release
 
 sunset:

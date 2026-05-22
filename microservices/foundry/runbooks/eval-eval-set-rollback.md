@@ -21,7 +21,7 @@ doc_status: published
 ONE of:
 
 1. **Automated**: a newly-promoted eval-set version produces a per-capability pass-rate drop ≥ 10 percentage points within the first nightly cadence; nightly orchestrator opens an incident.
-2. **Manual**: a capability owner detects a regressed eval-set (over-fit, miscalibrated rubric, contaminated golden) and elects to revert.
+2. **Manual**: a capability owner detects a regressed eval-set (over-fit, miscalibrated rubric, contaminated baseline) and elects to revert.
 
 ## Severity
 

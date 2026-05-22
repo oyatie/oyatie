@@ -1,0 +1,210 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-slo-ai-inference-cost-budget
+  displayName: "AI Inference Cost Budget"
+  labels:
+    library: slo-authoring
+    catalog_template: ai-inference-cost-budget
+    microservice: foundry-runtime
+    bounded_context: ai-substrate
+    sli: cost-budget
+    data_classes:
+      - tenant-cost-ledger
+      - inference-request
+      - model-routing-metadata
+    pack: finops
+    tier: control-plane
+    capability_tiers:
+      - Bronze
+      - Silver
+      - Gold
+      - Platinum
+    plane: control
+    adr:
+      - ADR-0131
+      - ADR-0139
+      - ADR-0316
+    openslo_profile: openslo-v1
+  annotations:
+    oyatie.dev/library-purpose: "Per-tenant AI substrate inference cost budget SLO template."
+    oyatie.dev/source-spec: "registry/finops"
+    oyatie.dev/time-window-mode: "calendar"
+    oyatie.dev/dashboard-template: "registry/dashboards/ai-inference-cost-budget.yaml"
+    oyatie.dev/runbook-template: "microservices/foundry-runtime/runbooks/inference-cost-budget-burn.md"
+spec:
+  service: foundry-runtime
+  description: |
+    Calendar-month SLO for keeping AI inference spend within the tenant budget
+    while preserving routed request quality. The SLO protects tenants from
+    cost runaway caused by fallback model escalation, retry storms, prompt
+    expansion, and quota configuration drift.
+  tier:
+    doctrine: ADR-0316
+    capabilityTiers:
+      - name: Bronze
+        monthlyBudgetUtilizationTarget: 0.95
+      - name: Silver
+        monthlyBudgetUtilizationTarget: 0.97
+      - name: Gold
+        monthlyBudgetUtilizationTarget: 0.98
+      - name: Platinum
+        monthlyBudgetUtilizationTarget: 0.99
+    rejectionRule: "Promotion is held when the AI cost budget forecast crosses the tier limit."
+  indicator:
+    metadata:
+      name: ai-gold-budget-respected
+      displayName: "Gold AI budget respected"
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              queryName: ai-gold-budget-good
+              query: |
+                sum(rate(oya_ai_inference_budget_slices_total{
+                  service="foundry-runtime",
+                  capability_tier="Gold",
+                  state="within_budget"
+                }[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              queryName: ai-gold-budget-total
+              query: |
+                sum(rate(oya_ai_inference_budget_slices_total{
+                  service="foundry-runtime",
+                  capability_tier="Gold"
+                }[5m]))
+  timeWindow:
+    - duration: 1M
+      calendar:
+        startTime: "2026-05-01 00:00:00"
+        timeZone: UTC
+      isRolling: false
+  budgetingMethod: Timeslices
+  objectives:
+    - displayName: "Tenant budget forecast remains within committed budget"
+      name: tenant-budget-forecast-under-limit
+      targetName: tenant-budget-forecast-target
+      target: 0.99
+      timeSliceTarget: 0.98
+      timeSliceWindow: 1h
+      windowName: calendar-month
+      description: "Hourly forecast slices keep projected monthly inference spend inside the tenant budget."
+      indicator:
+        metadata:
+          name: ai-budget-forecast-under-limit
+          displayName: "AI budget forecast under limit"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: ai-budget-forecast-good
+                  query: |
+                    sum(rate(oya_ai_inference_budget_slices_total{service="foundry-runtime",state="within_budget"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: ai-budget-forecast-total
+                  query: |
+                    sum(rate(oya_ai_inference_budget_slices_total{service="foundry-runtime"}[5m]))
+    - displayName: "Model escalation stays within policy"
+      name: model-escalation-policy-conformance
+      targetName: model-escalation-target
+      target: 0.999
+      timeSliceTarget: 0.995
+      timeSliceWindow: 1h
+      windowName: calendar-month
+      description: "Fallback to higher-cost models occurs only under Cedar-approved routing policy."
+      indicator:
+        metadata:
+          name: ai-model-escalation-conformance
+          displayName: "AI model escalation conformance"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: ai-escalation-good
+                  query: |
+                    sum(rate(oya_ai_model_escalations_total{service="foundry-runtime",policy_result="allowed"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: ai-escalation-total
+                  query: |
+                    sum(rate(oya_ai_model_escalations_total{service="foundry-runtime"}[5m]))
+    - displayName: "Cost attribution completeness"
+      name: inference-cost-attribution-complete
+      targetName: cost-attribution-target
+      target: 0.9999
+      timeSliceTarget: 0.999
+      timeSliceWindow: 1h
+      windowName: calendar-month
+      description: "Every billable inference request carries tenant, capability tier, model, and route dimensions."
+      indicator:
+        metadata:
+          name: ai-cost-attribution-completeness
+          displayName: "AI cost attribution completeness"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: ai-cost-attributed-good
+                  query: |
+                    sum(rate(oya_ai_inference_cost_attribution_total{service="foundry-runtime",result="complete"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: ai-cost-attributed-total
+                  query: |
+                    sum(rate(oya_ai_inference_cost_attribution_total{service="foundry-runtime"}[5m]))
+    - displayName: "Retry spend amplification bounded"
+      name: retry-spend-amplification-bounded
+      targetName: retry-spend-amplification-target
+      target: 0.995
+      timeSliceTarget: 0.99
+      timeSliceWindow: 1h
+      windowName: calendar-month
+      description: "Retry behavior does not amplify request cost beyond the tenant policy threshold."
+      indicator:
+        metadata:
+          name: ai-retry-spend-bounded
+          displayName: "AI retry spend bounded"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: ai-retry-spend-good
+                  query: |
+                    sum(rate(oya_ai_retry_cost_slices_total{service="foundry-runtime",state="within_amplification_budget"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: ai-retry-spend-total
+                  query: |
+                    sum(rate(oya_ai_retry_cost_slices_total{service="foundry-runtime"}[5m]))
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-fast-burn-page
+    - alertPolicyRef: oya-canonical-slow-burn-page
+    - alertPolicyRef: oya-canonical-ticket-burn
+    - alertPolicyRef: oya-canonical-budget-exhausted

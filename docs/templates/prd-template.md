@@ -9,7 +9,7 @@ purpose: |
   Workflow + Ontology integration points, acceptance criteria, and Bominal
   inheritance citations. An autonomous executor filling this template can scaffold
   the µservice without escalation.
-enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
   - docs/templates/INDEX.md

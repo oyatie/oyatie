@@ -27,8 +27,8 @@ Define how on-call detects, declares, classifies, mitigates, communicates, and r
 
 | Severity | Definition | Initial response time | Escalation |
 |---|---|---|---|
-| Sev-1 | Production breach: cross-tenant data leak, mass live-PHI exposure, mass golden corruption, mass cutover incorrectness, EU AI Act §17 logging complete loss, sustained cross-pack misroute | ≤ 5 min | ExecSponsor + council-architecture + ops-security + council-privacy (if PII/PHI) |
-| Sev-2 | Service degradation: publish-gate stalled > 30 min, replay-engine outage, ClickHouse unavailable, golden integrity breach (single-object scope), parity-regression (critical capability), DSR SLA breach | ≤ 15 min | ops-sre-reliability + axis-foundry + ops-security (security-adjacent) |
+| Sev-1 | Production breach: cross-tenant data leak, mass live-PHI exposure, mass baseline corruption, mass cutover incorrectness, EU AI Act §17 logging complete loss, sustained cross-pack misroute | ≤ 5 min | ExecSponsor + council-architecture + ops-security + council-privacy (if PII/PHI) |
+| Sev-2 | Service degradation: publish-gate stalled > 30 min, replay-engine outage, ClickHouse unavailable, baseline integrity breach (single-object scope), parity-regression (critical capability), DSR SLA breach | ≤ 15 min | ops-sre-reliability + axis-foundry + ops-security (security-adjacent) |
 | Sev-3 | Operational degradation: GPU pool elevated queue, ClickHouse latency spike, eval-set authoring regression, judge κ < 0.7 | ≤ 1 h | ops-sre-reliability + axis-foundry |
 | Sev-4 | Informational: alert tuning, capacity forecast review, FinOps review | next business day | per-team triage |
 
@@ -62,7 +62,7 @@ Define how on-call detects, declares, classifies, mitigates, communicates, and r
 
 ### Within 15 min
 
-1. **Containment**: freeze affected endpoint(s); cordon affected nodes; rotate compromised credentials. Per `runbooks/clickhouse-rebalance.md` Sev-1 path for cross-tenant leak; per `runbooks/golden-output-restore.md` for mass-loss.
+1. **Containment**: freeze affected endpoint(s); cordon affected nodes; rotate compromised credentials. Per `runbooks/clickhouse-rebalance.md` Sev-1 path for cross-tenant leak; per `runbooks/baseline-output-restore.md` for mass-loss.
 2. **Audit-chain emission**: incident-detection event emitted to foundry-evidence.
 3. **Status page**: update tenant-facing status with non-confidential summary.
 
@@ -178,7 +178,7 @@ Per `runbooks/oncall-rotation.md`:
 | Drill | Cadence | Owner |
 |---|---|---|
 | Sev-1 ClickHouse cross-tenant leak drill | Quarterly | ops-security |
-| Sev-1 mass golden corruption drill | Quarterly | axis-foundry |
+| Sev-1 mass baseline corruption drill | Quarterly | axis-foundry |
 | Sev-1 replay-determinism mass divergence drill | Semi-annually | axis-foundry |
 | Sev-1 KMS outage drill | Semi-annually | ops-security |
 | Postmortem review meeting | Monthly | axis-foundry |

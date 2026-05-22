@@ -142,14 +142,14 @@ fn capability_invocation_emits_safe_observability_span_fields() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_observability".into(),
             legal_name: "Observability Tenant".into(),
-            home_region: "home-region".into(),
-            residency_class: "strict_home".into(),
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
             regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
         .expect("tenant can be onboarded");
     foundation
-        .bind_cell("ten_observability", "home-region-a", "cell-observability-a")
+        .bind_cell("ten_observability", "region-home-a", "cell-observability-a")
         .expect("tenant can be cell-bound before invocation");
     foundation
         .upsert_identity(IdentityRegistration {
@@ -249,7 +249,7 @@ fn capability_invocation_emits_safe_observability_span_fields() {
             .fields
             .get(fields::TENANT_REGION)
             .map(String::as_str),
-        Some("home-region")
+        Some("region-home")
     );
     assert_eq!(
         invocation_span
@@ -332,8 +332,8 @@ fn capability_invocation_redacts_forbidden_data_class_labels_from_spans() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_forbidden_observability".into(),
             legal_name: "Forbidden Observability Tenant".into(),
-            home_region: "home-region".into(),
-            residency_class: "strict_home".into(),
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
             regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })

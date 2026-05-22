@@ -1,0 +1,160 @@
+{
+  "schema_version": "multispectrum-review/v2.3.0",
+  "change_id": "cs-connect-ediscovery-canonical-base-neutrality",
+  "change_class_id": "CC-7",
+  "git_sha": "0122c1e6473dde8a967719e710cbe7f75766f567",
+  "freshness_unix": 1779241800,
+  "timestamp_iso": "2026-05-20T01:50:00Z",
+  "agent_id": "codex-oyatie-fd001",
+  "scope": [
+    "crates/oya-connect-ediscovery-domain/src/lib.rs",
+    "evidence/multispectrum/cs-connect-ediscovery-canonical-base-neutrality-1779241800.json"
+  ],
+  "claimed_scopes": [
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Neutralize connect ediscovery canonical-base region fixtures\" crates/oya-connect-ediscovery-domain/src/lib.rs::canonical_base_neutral_ediscovery",
+      "status": "accepted"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oyatie-fd001 --intent \"Attach multispectrum evidence for connect ediscovery canonical-base neutrality ChangeSet\" evidence/multispectrum/cs-connect-ediscovery-canonical-base-neutrality-1779241800.json::MultispectrumEvidence",
+      "status": "accepted"
+    }
+  ],
+  "summary": "Canonical-base neutrality cleanup for oya-connect-ediscovery-domain: replace eDiscovery request, record, retention-policy, request factory, and cross-region negative-case region fixtures with neutral canonical regions while preserving authorized-role, consent, export-format, retention-decision, package, proof, and data-class behavior.",
+  "baseline_diff": {
+    "before": "canonical-base-neutrality --repo-root . --root crates/oya-connect-ediscovery-domain/src/lib.rs failed with 1 files checked, 8 jurisdiction leaks at eDiscovery request/record/retention-policy/cross-region fixtures.",
+    "after_targeted": "canonical-base-neutrality --repo-root . --root crates/oya-connect-ediscovery-domain/src/lib.rs passed: 1 files checked, 0 jurisdiction leaks.",
+    "after_full": "canonical-base-neutrality --repo-root . still fails with 196 files checked, 406 jurisdiction leaks in other files; first remaining file crates/oya-connect-forms-domain/src/lib.rs.",
+    "delta": "8 fewer jurisdiction leaks; no production behavior changes, scanner carve-outs, or gate-policy weakening. Full-gate residual count fell from 414 after the DSR slice to 406 after this slice."
+  },
+  "verification": [
+    {
+      "command": "cargo test -q -p oya-connect-ediscovery-domain --all-features",
+      "status": "passed",
+      "evidence": "6 passed; 0 failed"
+    },
+    {
+      "command": "cargo fmt -q -p oya-connect-ediscovery-domain --check",
+      "status": "passed",
+      "evidence": "rustfmt check exited 0"
+    },
+    {
+      "command": "cargo clippy -q -p oya-connect-ediscovery-domain --all-features -- -D warnings",
+      "status": "passed",
+      "evidence": "clippy exited 0 with warnings denied"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root . --root crates/oya-connect-ediscovery-domain/src/lib.rs",
+      "status": "passed",
+      "evidence": "canonical-base-neutrality validation passed: 1 files checked, 0 jurisdiction leaks"
+    },
+    {
+      "command": "rg -n \"FinancialKrCredit|kr-|ten_kr|ten_us|us-|eu-|jp-|StrictKr|KrWithUs|KR|jp-tokyo|kr-seoul|us-east-1|cell-us|cell-kr|oya-pack-kr|US\" crates/oya-connect-ediscovery-domain/src/lib.rs || true",
+      "status": "passed",
+      "evidence": "no matching jurisdiction-specific tokens remain in the claimed file"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+      "status": "passed",
+      "evidence": "planning-closure validation passed: 2 verticals, 11 surfaces, 12 kr-pack surfaces, 74 architecture rules, 305 status fields checked, blocker_count=0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate master-plan-completion --master-plan specs/masterplan.json",
+      "status": "passed",
+      "evidence": "master-plan-completion validation passed: 80 phases, 172 implementation plans"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- git diff --check -- crates/oya-connect-ediscovery-domain/src/lib.rs",
+      "status": "passed",
+      "evidence": "diff whitespace check exited 0"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- gate validate canonical-base-neutrality --repo-root .",
+      "status": "blocked-preexisting",
+      "evidence": "full gate still fails with 406 jurisdiction leaks outside claimed scope; first remaining file crates/oya-connect-forms-domain/src/lib.rs"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The patch is eight cfg(test) fixture literal changes; production eDiscovery constructors and validators are untouched."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "eDiscovery examples no longer encode launch-market region names while preserving a two-neutral-region consent failure case."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "targeted canonical-base-neutrality gate reported 8 eDiscovery leaks before this rewrite",
+      "findings": [
+        "The unchanged targeted gate passes and the unchanged full gate still reports unrelated leaks, proving no false-green gate weakening."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 2,
+      "findings": [
+        "The canonical region-alpha1/region-beta1 fixtures make same-region and cross-region cases explicit without jurisdiction coupling."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Domain tests, rustfmt, clippy with warnings denied, targeted neutrality, planning-closure, master-plan-completion, token scan, diff whitespace, and full-gate delta were verified."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Loosen canonical-base-neutrality scanner for eDiscovery tests",
+        "Leave eDiscovery as launch-region examples",
+        "Replace the fixtures with canonical neutral same-region and cross-region values"
+      ],
+      "selected_rationale": "Neutral same-region and cross-region fixtures remove launch-market coupling without weakening consent or export behavior coverage.",
+      "rejected_reasons": [
+        "Scanner carve-outs would hide future fixture leaks.",
+        "Keeping launch-region examples would keep generic FD-001 evidence red."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "ediscovery_export_authorization_consent_and_proof_boundary",
+      "findings": [
+        "No actor-role, legal-basis, consent, data-class, retention-decision, package encryption-key, proof-signature, Rekor index, or evidence-hash invariant was relaxed; all eDiscovery tests still pass."
+      ]
+    }
+  },
+  "policy_facets": {
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Preserves the eDiscovery domain boundary and avoids adapter/runtime changes."
+      ]
+    },
+    "A5_testing": {
+      "considered": true,
+      "findings": [
+        "Existing behavior assertions remain covered across actor authorization, cross-region consent requirement, duplicate surfaces, export-format allowlists, export-only retention decisions, item data-class scope, duplicate source rejection, exact manifest/proof hashes, signature references, and legacy data-class conversion."
+      ]
+    },
+    "A7_evidence": {
+      "considered": true,
+      "findings": [
+        "Evidence captures before/after targeted leak count, full-gate delta, tests, format/lint, token scan, command results, and Oya VCS claim/verify/done/promote path."
+      ]
+    }
+  },
+  "changed_files": [
+    "crates/oya-connect-ediscovery-domain/src/lib.rs",
+    "evidence/multispectrum/cs-connect-ediscovery-canonical-base-neutrality-1779241800.json"
+  ],
+  "remaining_risks": [
+    "Full canonical-base-neutrality gate remains red with 406 jurisdiction leaks outside this claimed scope; next safe slice should start with crates/oya-connect-forms-domain/src/lib.rs.",
+    "Pre-existing unrelated worktree modifications are present outside this ChangeSet and were not touched."
+  ]
+}

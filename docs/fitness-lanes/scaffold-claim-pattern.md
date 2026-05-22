@@ -6,17 +6,14 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- purpose: Verify every newly-scaffolded crate follows ADR-0054 icm-coordination-lock pattern (claim id + completion stamp).
 - enforces: ADR-0054 — scaffold claim pattern.
-- adr_citations: ADR-0054 (scaffold-claim pattern — defines the icm-coordination-lock sequence; this lane enforces its structural claim+stamp invariant for every new crate)
-- kernel_crate: `oya-foundry-fitness-scaffold-claim-pattern-kernel` — `ScaffoldClaim { crate_id, claim_id, completion_stamp }`, verdict `ScaffoldClaimPatternFitnessReport { claims_checked }`.
-- runner_path: `tools/oya-foundry-fitness-scaffold-claim-pattern`
-- inputs: new-crate diff list, icm-claim dump.
+- kernel_crate: `oya-governance-scaffold-claim-pattern-kernel` — `ScaffoldClaim { crate_id, claim_id, completion_stamp }`, verdict `ScaffoldClaimPatternFitnessReport { claims_checked }`.
+- runner_path: `tools/oya-governance-scaffold-claim-pattern`
 - failure_modes:
   - new crate added with no claim_id
   - claim never stamped complete
   - two crates share same claim_id
-- ci_invocation: `cargo run -p oya-foundry-fitness-scaffold-claim-pattern`
+- ci_invocation: `cargo run -p oya-governance-scaffold-claim-pattern`
 - runtime_budget: 400 ms
 - severity: HIGH
 - kernel_sketch:

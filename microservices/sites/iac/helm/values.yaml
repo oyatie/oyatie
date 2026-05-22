@@ -183,9 +183,9 @@ postgres:
   backup:
     s3Ref: "${openbao:secret/sites/{pack}/backup-s3}"
 
-redis:
+valkey:
   enabled: true
-  image: {repository: registry.oyatie.dev/redis-cluster, tag: "7.2.0"}
+  image: {repository: registry.oyatie.dev/valkey-cluster, tag: "7.2.0"}
   clusterMode: true
   evictionPolicy: allkeys-lru
   resources:

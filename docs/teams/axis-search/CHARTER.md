@@ -102,7 +102,7 @@ This team owns Oyatie's search engine axis: crawler, parser, inverted index, vec
 ## Slice of risk register
 | Risk | Severity | Mitigation |
 |---|---|---|
-| Tenant PHI ingested into shared search index | Catastrophic | Data Use Boundary gate; `oya-foundry-fitness-data-use-boundary` CI; PHI class forced `internal_only` |
+| Tenant PHI ingested into shared search index | Catastrophic | Data Use Boundary gate; `oya-governance-data-use-boundary` CI; PHI class forced `internal_only` |
 | Cross-tenant search result leak | Catastrophic | Per-tenant index isolation; CI test suite for result isolation |
 | DSR cascade partial completion leaves residual data in index | High | Cascade ack protocol; proof-of-erasure chain record; automated monitor |
 | Crawler violates robots.txt / KR copyright law | Medium | Politeness enforcer with hard-fail; KR 저작권 compliance review quarterly |

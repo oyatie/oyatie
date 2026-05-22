@@ -40,7 +40,7 @@ Per-action permits live in the four Cedar fragments (`tenant-scope.cedar`, `ci-s
 
 Cedar's deny-overrides semantics: any matching `forbid` overrides any matching `permit`. Defence-in-depth.
 
-CI lane `oya-foundry-fitness-cedar-default-deny-enforced` validates the base fragment is present in every deployed bundle.
+CI lane `oya-governance-cedar-default-deny-enforced` validates the base fragment is present in every deployed bundle.
 
 ## Detector Ensemble
 
@@ -76,7 +76,7 @@ Every block emits a structured `block_reason` from the closed enum below; tenant
 | `content_safety_hate` | Hate category ≥ threshold | content_safety |
 | `content_safety_weapons` | Weapons category ≥ threshold | content_safety |
 | `content_safety_illegal` | Illegal-activity category ≥ threshold | content_safety |
-| `autonomy_tier_exceeded` | Request above effective ceiling per ADR-0022 | autonomy |
+| `autonomy_level_exceeded` | Request above effective ceiling per ADR-0022 | autonomy |
 | `policy_deny` | Tenant Cedar overlay denies | policy |
 | `llm_judge_budget_exceeded` | LLM-judge needed; budget gone | budget |
 | `ai_slop` | AI-slop pattern density ≥ threshold | quality |
@@ -149,7 +149,7 @@ Every decision + rule mutation + classifier rollout + Cedar bundle change is aud
 |---|---|---|---|
 | GuardrailDecisionEmitted | per-BC usecase | `decision_id, invocation_id, tenant_id_hashed, verdict, block_reason, cedar_policy_ids[], classifier_model_versions{}, evidence_hash, signature` | ≥ 1y; 6y for HIPAA |
 | JailbreakDetected | jailbreak-detector usecase | `incident_id, invocation_id, prompt_hash, severity, detector_versions` | indefinite (incident history) |
-| AutonomyTierViolation | autonomy-tier-gate usecase | `violation_id, invocation_id, requested_tier, effective_ceiling, ceiling_source` | ≥ 1y |
+| AutonomyLevelViolation | autonomy-ceiling-gate usecase | `violation_id, invocation_id, requested_autonomy_level, effective_ceiling, ceiling_source` | ≥ 1y |
 | ContentSafetyRuleFired | content-safety usecase | `decision_id, rule_id, category, score, threshold` | ≥ 1y |
 | RuleStoreMutated | rule-store-writer SA | `rule_id, version, action, pack, author_spiffe, commit_sha, pr_id, prior_version` | indefinite (git history) |
 | ClassifierModelDeployed | model-rollout pipeline | `model_id, version, sha, cosign_signature_sha, status, prior_version, shadow_vs_enforce_delta` | indefinite |

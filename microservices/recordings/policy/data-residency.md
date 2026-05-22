@@ -36,7 +36,7 @@ is **forbidden by default**.
 
 | Pack | Primary region(s) | Cluster footprint | Activated? |
 |---|---|---|---|
-| pack-kr | OCI ap-seoul-1 | kr-recordings-{postgres,redis,s3-hot,s3-cold,meilisearch,foundry-runtime,cdn-self-host} | YES (M02 launch) |
+| pack-kr | OCI ap-seoul-1 | kr-recordings-{postgres,valkey,s3-hot,s3-cold,meilisearch,foundry-runtime,cdn-self-host} | YES (M02 launch) |
 | pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-recordings-* | Conditional (first EU SCC) |
 | pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-recordings-* | Conditional |
 | pack-us-healthcare | OCI us-ashburn-1 (HIPAA-eligible) | us-hc-recordings-* (isolated from non-HC) | Conditional (post-BAA) |

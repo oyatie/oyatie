@@ -4,7 +4,7 @@
   "scanned_files": 100,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -12,7 +12,7 @@
           "hits": [
             {
               "line": 58,
-              "excerpt": "1. Playback kernel + adapter (CDN/Redis) + REST handler."
+              "excerpt": "1. Playback kernel + adapter (CDN/Valkey) + REST handler."
             }
           ],
           "hits_total": 1
@@ -40,7 +40,7 @@
           "hits": [
             {
               "line": 64,
-              "excerpt": "### Valkey 8.1 (Redis wire-compat) (share-link + playback session)"
+              "excerpt": "### Valkey 8.1 (RESP3 wire-compatible) (share-link + playback session)"
             }
           ],
           "hits_total": 1
@@ -50,7 +50,7 @@
           "hits": [
             {
               "line": 25,
-              "excerpt": "16, Valkey 8.1 (Redis wire-compat), Meilisearch 0.10.0, Pandoc 3.x), Kustomize base + per-pack"
+              "excerpt": "16, Valkey 8.1 (RESP3 wire-compatible), Meilisearch 0.10.0, Pandoc 3.x), Kustomize base + per-pack"
             }
           ],
           "hits_total": 1
@@ -60,7 +60,7 @@
           "hits": [
             {
               "line": 66,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) (share-link signed-URL cache + playback session) | `oya-recordings-media-segment-*` (8 crates) |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (share-link signed-URL cache + playback session) | `oya-recordings-media-segment-*` (8 crates) |"
             },
             {
               "line": 219,
@@ -98,7 +98,7 @@
           "hits": [
             {
               "line": 25,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) (256 GB) | $5,000 |"
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (256 GB) | $5,000 |"
             }
           ],
           "hits_total": 1

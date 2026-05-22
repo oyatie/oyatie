@@ -51,8 +51,8 @@ fn seeded_directory() -> WorkspaceFormsSubmissionDirectory {
         .insert_form_seed(WorkspaceFormsFormSeed {
             form_id: FORM_ID.to_string(),
             tenant_id: TENANT_ID.to_string(),
-            region: "home-region".to_string(),
-            cell_id: "cell-workspace-alpha-001".to_string(),
+            region: "region-home".to_string(),
+            cell_id: "cell-workspace-kr-001".to_string(),
             object_graph_route_id: "og_route_forms_intake".to_string(),
             title: "Customer intake".to_string(),
             data_class: "PII_IDENTIFYING".to_string(),

@@ -1,130 +1,271 @@
 ---
 doc_class: Runbook
-title: Citus rebalance + Postgres / Patroni failover
-microservice: tenancy
-severity: "Sev-2 (single component) / Sev-1 (DCS quorum loss)"
+title: Citus Rebalance
 status: Accepted
-owner_team: ops-sre-reliability + axis-tenancy
-date: 2026-05-17
-related_artifacts:
-  - microservices/tenancy/failure-modes.md (FM-01 Postgres primary, FM-03 Citus coordinator, FM-08 rebalance stuck, FM-12 DCS outage)
-  - microservices/tenancy/capacity-model.md
-  - microservices/tenancy/multi-region.md
+date: 2026-05-20
+microservice: tenancy
+severity: sev2
+audience: oncall-engineer
+owner_team: axis-tenancy + ops-sre-reliability + ops-security
+source_wave: codex-runbooks-substrate-w1
+change_scope: substance rewrite of thin existing runbook
 doc_status: published
 ---
 
-# Runbook: Citus rebalance + Postgres / Patroni failover
+# Runbook: Citus Rebalance
 
-## Trigger
+## Operator Contract
+- Runbook id: tenancy-citus-rebalance.
+- Primary service namespace: `tenancy`.
+- Owning rotation: PagerDuty oya-tenancy-primary; data-boundary security secondary.
+- Incident channel: `#inc-tenancy-boundary`.
+- External dependencies: Citus Data support; Oracle PostgreSQL support; Cloudflare Zero Trust support.
+- API authority: `https://tenancy.internal.oyatie.dev/v1/tenancy/citus-rebalance/incident-handoff`.
+- Audit event class: `EVT-TENANCY-CITUS_REBALANCE-INCIDENT` with ADR-0263 fields `incident_id`, `tenant_id`, `cell_id`, `microservice`, `runbook_id`, `decision_id`, `evidence_hash`, `operator_id`.
+- Stop condition: mitigation has held for 30 minutes, TenancyCitusRebalanceCritical is green, and all handoff APIs in Cross-µservice Coordination return `202 accepted`.
+- Safety invariant: never clear the incident until `EVT-TENANCY-CITUS_REBALANCE-INCIDENT` is sealed and the postmortem skeleton exists under `evidence/postmortems/tenancy-citus-rebalance-<incident-id>.md`.
 
-Any of:
-- Citus rebalance scheduled (capacity-driven; shard utilisation > 80%).
-- Citus rebalance hung (FM-08): `oya_tenancy_rebalance_duration_seconds{quantile="0.99"} > 3600` sustained.
-- Postgres primary outage (FM-01); Patroni auto-failover in progress.
-- Citus coordinator outage (FM-03); Patroni-managed coordinator failover.
-- Patroni DCS outage (FM-12); quorum loss.
+## Trigger Conditions
+- Page on alert `TenancyCitusRebalanceCritical` when `oya_tenancy_citus_rebalance_error_ratio > 0.02` for 10 minutes in any production cell.
+- Page on alert `TenancyCitusRebalanceSloBurn` when `oya_tenancy_citus_rebalance_lag_seconds > 300` for 2 consecutive evaluator windows.
+- Open a sev0 if `oya_tenancy_citus_rebalance_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
+- Open a sev1 if `oya_tenancy_citus_rebalance_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
+- Trigger from customer report when Support tags the case `tenancy.citus-rebalance.customer_visible` in Zendesk.
+- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate tenancy-citus-rebalance --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Primary dashboard: `https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
+- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=207`.
+- Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="tenancy",runbook="citus-rebalance"}`.
+- Alertmanager route: `oyatie-tenancy-citus-rebalance-critical`; silence only with incident commander approval and `EVT-TENANCY-CITUS_REBALANCE-INCIDENT` evidence.
+- Synthetic probe: `oya ops probe tenancy citus-rebalance --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
+- Drift detector: `registry/tenancy/citus-rebalance/expected-state.json` hash differs from live `https://tenancy.internal.oyatie.dev/v1/admin/state-hash`.
 
-## Severity
+## Symptoms
+- User-facing impact: citus rebalance blocks or corrupts the tenancy control path for affected tenants.
+- Operators see Grafana panel `rls-enforcement / Citus Rebalance burn rate` turn red before the primary alert resolves.
+- Loki signature `tenancy.citus_rebalance.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
+- Kubernetes events include `reason=TenancyCitusRebalanceDegraded` on deployment `tenancy-citus-rebalance-worker`.
+- Audit-chain shows missing or delayed `EVT-TENANCY-CITUS_REBALANCE-INCIDENT` entries when queried with `oya audit-chain query --event-class EVT-TENANCY-CITUS_REBALANCE-INCIDENT --since 30m`.
+- Metric pattern: `oya_tenancy_citus_rebalance_error_ratio` rises before `oya_tenancy_citus_rebalance_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
+- Metric pattern: `oya_tenancy_citus_rebalance_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal or feature flag deadlock.
+- Tenant-specific shape: one `tenant_id` dominates labels in `oya_tenancy_citus_rebalance_queue_depth`; isolate before fleet mitigation.
+- Fleet-wide shape: at least three cells report `TenancyCitusRebalanceCritical` in one 15 minute window; switch to sev1 bridge even if individual tenants are low-volume.
+- Log signature `decision=deny reason=citus-rebalance.policy_guard` means the guard is working; investigate caller inputs before rollback.
+- Log signature `decision=permit reason=citus-rebalance.break_glass` means manual intervention is active; confirm two-person authorization.
+- Log signature `audit_emit_status=stalled event_class=EVT-TENANCY-CITUS_REBALANCE-INCIDENT` means mitigation cannot be closed until replay succeeds.
 
-- Scheduled rebalance: not an incident (tracked as ordinary ops).
-- Stuck rebalance / coordinator outage: Sev-2.
-- DCS quorum loss: Sev-1 (HA broken; cluster cannot elect leader).
+## Diagnostic Steps
+1. Set incident variables: `export INCIDENT_ID=INC-tenancy-citus-rebalance-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
+2. Confirm active alerts: `curl -s https://tenancy.internal.oyatie.dev/v1/alerts?runbook=citus-rebalance | jq .alerts`.
+3. Check Kubernetes rollout: `kubectl -n tenancy rollout status deploy/tenancy-citus-rebalance-worker --timeout=60s`.
+4. List unhealthy pods: `kubectl -n tenancy get pods -l app=tenancy-citus-rebalance -o wide`.
+5. Read structured logs: `kubectl -n tenancy logs deploy/tenancy-citus-rebalance-worker --since=30m | rg "tenancy.citus_rebalance.incident_state|TenancyCitusRebalanceCritical|EVT-TENANCY-CITUS_REBALANCE-INCIDENT"`.
+6. Query Loki directly: `logcli query '{namespace="tenancy",runbook="citus-rebalance"}' --since=30m --limit=200`.
+7. Check Prometheus fast burn: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_tenancy_citus_rebalance_error_ratio{cell="prod-us-east-1"}'`.
+8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_tenancy_citus_rebalance_lag_seconds{cell="prod-us-east-1"}'`.
+9. Check queue: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_tenancy_citus_rebalance_queue_depth{cell="prod-us-east-1"}'`.
+10. Open primary dashboard: `open "https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116&var-incident=$INCIDENT_ID"`.
+11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=207&var-tenant=$TENANT"`.
+12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-TENANCY-CITUS_REBALANCE-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
+13. Verify service state: `oya ops tenancy citus-rebalance status --cell $CELL --tenant $TENANT --output json`.
+14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate tenancy-citus-rebalance --production-snapshot --cell $CELL`.
+15. Check Cargo owner crate: `cargo test -p oya-tenancy-domain citus_rebalance -- --nocapture`.
+16. Check API contract smoke: `curl -s https://tenancy.internal.oyatie.dev/v1/tenancy/citus-rebalance/incident-handoff -H "x-oya-tenant: $TENANT"`.
+17. Inspect config: `kubectl -n tenancy get configmap tenancy-citus-rebalance-config -o yaml`.
+18. Inspect feature flags: `oya flags get oya.tenancy.citus_rebalance.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
+19. Inspect circuit breaker: `oya ops breaker status tenancy-citus-rebalance-circuit-breaker --cell $CELL --tenant $TENANT`.
+20. Check recent deploy: `kubectl -n tenancy rollout history deploy/tenancy-citus-rebalance-worker | tail -20`.
+21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f microservices/tenancy/policy/rls-isolation.md`.
+22. Check SLO files: `ls microservices/tenancy/slos/*.openslo.yaml | sort`.
+23. Check catalog components: `find microservices/tenancy/catalog -maxdepth 1 -type f | sort | rg "tenancy|citus"`.
+24. Confirm no cross-cell spread: `oya ops cells query --metric oya_tenancy_citus_rebalance_error_ratio --window 30m --threshold 0.02`.
+25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice tenancy --runbook citus-rebalance --output evidence/incidents/$INCIDENT_ID.json`.
 
-## Citus rebalance (normal)
+### Diagnostic Decision Tree
+```text
+Citus Rebalance incident decision tree
+1. Is TenancyCitusRebalanceCritical firing in more than one cell?
+   |-- yes: declare fleet incident, page PagerDuty oya-tenancy-primary; data-boundary security secondary, and run cross-cell containment.
+   |-- no: keep scope to the affected cell and continue tenant isolation checks.
+2. Does oya_tenancy_citus_rebalance_queue_depth grow while oya_tenancy_citus_rebalance_error_ratio is flat?
+   |-- yes: downstream dependency or replay backlog; choose mitigation branch B.
+   |-- no: local regression or bad input; continue branch selection.
+3. Does audit-chain show EVT-TENANCY-CITUS_REBALANCE-INCIDENT gaps?
+   |-- yes: do not close; run evidence replay before resolution.
+   |-- no: mitigation can proceed after state is green.
+4. Is customer or regulator impact confirmed?
+   |-- yes: promote severity, open #inc-tenancy-boundary, and notify compliance handoff.
+   |-- no: keep internal incident and collect evidence.
+```
+- Branch A (storage or quorum pressure): use the matching mitigation block below and record `decision_branch=A` in `EVT-TENANCY-CITUS_REBALANCE-INCIDENT`.
+- Branch B (query path degraded while ingest is healthy): use the matching mitigation block below and record `decision_branch=B` in `EVT-TENANCY-CITUS_REBALANCE-INCIDENT`.
+- Branch C (ingest path dropping events): use the matching mitigation block below and record `decision_branch=C` in `EVT-TENANCY-CITUS_REBALANCE-INCIDENT`.
+- Branch D (disaster recovery path required): use the matching mitigation block below and record `decision_branch=D` in `EVT-TENANCY-CITUS_REBALANCE-INCIDENT`.
 
-| Step | Action | Time budget |
-|---|---|---|
-| 1 | cell-assignment-worker schedules rebalance when shard utilisation > 80% on any worker. | – |
-| 2 | Emit `CellRebalanceStarted` Workflow event; capture pre-rebalance row checksums per shard. | ≤ 5 s |
-| 3 | Citus shard-move via `citus_move_shard_placement(<shard_id>, <source>, <target>)` (logical-replication-backed; transactional cut-over). | seconds-minutes per shard |
-| 4 | Verify post-move row count + checksum match pre-move. | ≤ 1 min per shard |
-| 5 | Emit `CellRebalanceCompleted` event; audit-chain seal. | ≤ 5 s |
+## Mitigation Steps
+1. Acknowledge page: `pd incident ack --service tenancy --incident $INCIDENT_ID`.
+2. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-tenancy-boundary --severity sev2`.
+3. Freeze risky automation: `oya flags set oya.tenancy.citus_rebalance.incident_hold=true --cell $CELL --tenant $TENANT --reason $INCIDENT_ID`.
+4. Enable circuit breaker: `oya ops breaker open tenancy-citus-rebalance-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
+5. Reduce blast radius: `kubectl -n tenancy scale deploy/tenancy-citus-rebalance-worker --replicas=1`.
+6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason tenancy-citus-rebalance --ttl 60m`.
+7. Pause promotion: `oya vcs hold --microservice tenancy --reason $INCIDENT_ID --runbook citus-rebalance`.
+8. Drain queue safely: `oya ops tenancy citus-rebalance drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
+9. Execute bounded drain: `oya ops tenancy citus-rebalance drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
+10. Replay missing audit events: `oya audit-chain replay --event-class EVT-TENANCY-CITUS_REBALANCE-INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
+11. Rollback last deploy if causal: `kubectl -n tenancy rollout undo deploy/tenancy-citus-rebalance-worker`.
+12. Raise HPA cap if saturation: `kubectl -n tenancy patch hpa tenancy-citus-rebalance-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
+13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface tenancy.citus-rebalance --rps 25 --ttl 30m`.
+14. Block abusive principal: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/tenancy/runbooks/citus-rebalance.md,evidence/incidents/$INCIDENT_ID.json`.
+16. Notify service owners: `oya notify service-owner --microservice tenancy --incident $INCIDENT_ID --channel #inc-tenancy-boundary`.
+17. Open external vendor ticket: `oya vendor ticket open --vendor primary-tenancy --incident $INCIDENT_ID --summary citus-rebalance`.
+18. Confirm breaker effect: `oya ops breaker status tenancy-citus-rebalance-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
+19. Confirm user impact reduced: `curl -s https://tenancy.internal.oyatie.dev/v1/tenancy/citus-rebalance/incident-handoff/health -H "x-oya-tenant: $TENANT"`.
+20. Emit mitigation audit: `oya audit-chain emit --event-class EVT-TENANCY-CITUS_REBALANCE-INCIDENT --incident $INCIDENT_ID --field mitigation=active --field runbook=citus-rebalance`.
 
-## Recovery Path A — Rebalance hung (FM-08)
+### Mitigation Branch Guidance
+- Branch A: storage or quorum pressure.
+  - Required action: keep `tenancy-citus-rebalance-circuit-breaker` open until `oya_tenancy_citus_rebalance_error_ratio` is below 0.005 for 3 windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116` to the incident.
+  - Required audit: emit `EVT-TENANCY-CITUS_REBALANCE-INCIDENT` with `branch=A`, `operator_id`, and `evidence_hash`.
+- Branch B: query path degraded while ingest is healthy.
+  - Required action: keep `tenancy-citus-rebalance-circuit-breaker` open until `oya_tenancy_citus_rebalance_error_ratio` is below 0.005 for 3 windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=117` to the incident.
+  - Required audit: emit `EVT-TENANCY-CITUS_REBALANCE-INCIDENT` with `branch=B`, `operator_id`, and `evidence_hash`.
+- Branch C: ingest path dropping events.
+  - Required action: keep `tenancy-citus-rebalance-circuit-breaker` open until `oya_tenancy_citus_rebalance_error_ratio` is below 0.005 for 3 windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=118` to the incident.
+  - Required audit: emit `EVT-TENANCY-CITUS_REBALANCE-INCIDENT` with `branch=C`, `operator_id`, and `evidence_hash`.
+- Branch D: disaster recovery path required.
+  - Required action: keep `tenancy-citus-rebalance-circuit-breaker` open until `oya_tenancy_citus_rebalance_error_ratio` is below 0.005 for 3 windows.
+  - Required evidence: attach dashboard panel `https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=119` to the incident.
+  - Required audit: emit `EVT-TENANCY-CITUS_REBALANCE-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
-Cause: logical-replication lag; coordinator restart mid-rebalance.
+## Resolution Steps
+1. Identify code owner path: `rg "citus_rebalance|TenancyCitusRebalanceCritical|tenancy.citus_rebalance.incident_state" crates microservices/tenancy -g "!microservices/tenancy/runbooks/**"`.
+2. Patch domain invariant: `edit oya-tenancy-domain where citus_rebalance state transition is validated`.
+3. Patch API guard: `edit microservices/tenancy/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
+4. Patch policy: `edit microservices/tenancy/policy/rls-isolation.cedar or .md with explicit deny/permit branch`.
+5. Patch runtime config: `edit microservices/tenancy/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
+6. Add regression test: `cargo test -p oya-tenancy-domain citus_rebalance_incident_regression -- --nocapture`.
+7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate tenancy-citus-rebalance --fixture incident-citus-rebalance.json`.
+8. Add SLO assertion: `update microservices/tenancy/slos/* with alert TenancyCitusRebalanceCritical when this was a missing alert`.
+9. Add dashboard panel: `update microservices/tenancy/dashboards/rls-enforcement.json with oya_tenancy_citus_rebalance_error_ratio, oya_tenancy_citus_rebalance_lag_seconds, and oya_tenancy_citus_rebalance_queue_depth`.
+10. Rebuild affected crate: `cargo check -p oya-tenancy-domain --all-targets`.
+11. Run targeted tests: `cargo test -p oya-tenancy-domain --all-features`.
+12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate tenancy-policy --microservice tenancy`.
+13. Deploy canary: `oya deploy canary --microservice tenancy --component citus-rebalance-worker --cell $CELL --weight 1`.
+14. Watch burn rate: `oya ops watch --metric oya_tenancy_citus_rebalance_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
+15. Close circuit breaker: `oya ops breaker close tenancy-citus-rebalance-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+16. Unfreeze automation: `oya flags set oya.tenancy.citus_rebalance.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
+17. Resume promotion: `oya vcs unhold --microservice tenancy --reason resolved-$INCIDENT_ID`.
+18. Seal resolution audit: `oya audit-chain emit --event-class EVT-TENANCY-CITUS_REBALANCE-INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=citus-rebalance`.
+19. Verify seal: `oya audit-chain verify --event-class EVT-TENANCY-CITUS_REBALANCE-INCIDENT --incident $INCIDENT_ID`.
+20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
-| Step | Action |
-|---|---|
-| 1 | Verify rebalance state: `SELECT * FROM citus_get_active_worker_nodes();` + `citus_rebalance_status();` |
-| 2 | Identify stuck shard from the metrics + `pg_stat_subscription`. |
-| 3 | If safe to abort (pre-rebalance state still recoverable): `SELECT citus_rebalance_stop();` |
-| 4 | Verify pre-rebalance row counts + checksums still match (no partial move corruption). |
-| 5 | Resume from clean state in next cycle once root cause identified. |
-| 6 | If unsafe to abort (mid-cut-over): wait for completion (Citus is transactional; eventually succeeds) OR engage DBA JIT for manual intervention. |
+### Code Paths To Inspect First
+- `oya-tenancy-domain`: inspect for citus_rebalance invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
+- `oya-tenancy-kernel`: inspect for citus_rebalance invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
+- `oya-tenancy-api`: inspect for citus_rebalance invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
+- `microservices/tenancy/contracts/`: verify this surface only when the incident evidence points there.
+- `microservices/tenancy/dashboards/rls-enforcement.json`: verify this surface only when the incident evidence points there.
+- `microservices/tenancy/slos/`: verify this surface only when the incident evidence points there.
+- `microservices/tenancy/policy/rls-isolation.*`: verify this surface only when the incident evidence points there.
 
-## Recovery Path B — Postgres primary failover (FM-01)
+## Verification Checklist
+- TenancyCitusRebalanceCritical and TenancyCitusRebalanceSloBurn are both resolved in Alertmanager for 30 minutes.
+- oya_tenancy_citus_rebalance_error_ratio < 0.005 for 3 consecutive 10 minute windows.
+- oya_tenancy_citus_rebalance_lag_seconds < 120 for all production cells.
+- oya_tenancy_citus_rebalance_queue_depth is draining and not growing for the affected tenant.
+- dashboard https://grafana.dev.oyatie.internal/d/tenancy-substrate/citus-rebalance?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116 shows green panels for the affected cell.
+- audit-chain query for EVT-TENANCY-CITUS_REBALANCE-INCIDENT returns mitigation and resolution events.
+- circuit breaker tenancy-citus-rebalance-circuit-breaker is closed after rollback window.
+- feature flag oya.tenancy.citus_rebalance.incident_hold is false for the affected tenant unless long-term hold is approved.
+- runbook invocation evidence is attached to evidence/incidents/$INCIDENT_ID.json.
+- service owner acknowledged final handoff in #inc-tenancy-boundary.
 
-Cause: Postgres primary pod loss; Patroni triggers auto-failover.
+## Postmortem Template
+Use this exact skeleton for the incident document. The field names are intentionally stable for ADR-0263 audit emission extraction.
+```markdown
+---
+doc_class: IncidentPostmortem
+runbook_id: tenancy-citus-rebalance
+microservice: tenancy
+event_class: EVT-TENANCY-CITUS_REBALANCE-INCIDENT
+incident_id: <INC-...>
+severity: sev2
+status: draft
+detected_at: <UTC>
+mitigated_at: <UTC>
+resolved_at: <UTC>
+commander: <handle>
+evidence_hash: <sha256>
+---
 
-| Step | Action |
-|---|---|
-| 1 | Verify Patroni state: `patronictl list` shows `Leader` on a different node within ≤ 10s. |
-| 2 | Verify sync replica was promoted (no async replica should be promoted given quorum). |
-| 3 | tenancy connection-pool re-routes; verify `oya_tenancy_postgres_primary_alive == 1` on new primary. |
-| 4 | Verify Patroni replication lag among remaining replicas ≤ 5s. |
-| 5 | Spin up replacement async replica (Patroni provisions automatically; verify cluster_size returns to declared replicas). |
-| 6 | Validate downstream: cell-assignment worker resumes; activation worker queue drains. |
-| 7 | Re-warm Valkey cache from new primary (cache will fill within 5min). |
+# Citus Rebalance postmortem
 
-## Recovery Path C — Citus coordinator failover (FM-03)
+## Summary
+- What happened in tenancy/citus-rebalance.
+- Who was affected: tenant_id list, cell_id list, user-facing surface list.
+- Current status: mitigated, resolved, or monitoring.
 
-Cause: Citus coordinator pod loss; Patroni-managed.
+## Timeline
+- T0 detection: alert/customer/audit source.
+- T1 acknowledgement: operator handle and channel.
+- T2 mitigation: feature flag, breaker, rollback, or throttle.
+- T3 resolution: code/config/policy fix.
+- T4 verification: dashboard, metric, audit seal, customer confirmation.
 
-| Step | Action |
-|---|---|
-| 1 | Verify Patroni-managed Citus coordinator state: `patronictl list -c citus-coord`. |
-| 2 | Sync replica should be promoted within ≤ 30s. |
-| 3 | Verify writes resume (new tenant activations + lifecycle mutations). |
-| 4 | Verify worker connections re-establish to new coordinator. |
-| 5 | Spin up replacement sync replica. |
+## Root Cause
+- Direct trigger.
+- Contributing factors.
+- Why existing controls did not catch it earlier.
 
-## Recovery Path D — DCS quorum loss (FM-12)
+## ADR-0263 Audit Emission Requirements
+- Emit EVT-TENANCY-CITUS_REBALANCE-INCIDENT with incident_id, tenant_id, cell_id, principal_id, decision_id, evidence_hash, operator_id, runbook_id.
+- Attach dashboard snapshot URLs and command transcripts.
+- Seal mitigation and resolution events before closure.
 
-Cause: 2 of 3 etcd pods down; Patroni can't elect leader.
+## Corrective Actions
+- Action, owner, due date, validation command, linked issue.
+```
 
-| Step | Action |
-|---|---|
-| 1 | Engage ops-sre-reliability + cloud-k8s on-call. Declare Sev-1. |
-| 2 | Restore etcd quorum: scale up etcd replicas; verify `etcd_server_has_leader == 1`. |
-| 3 | If etcd cluster un-restorable in-place: engage etcd disaster-recovery (restore from snapshot — Patroni's last-known state is in etcd, so a stale snapshot may require Patroni cluster re-initialise; ops-sre-reliability owns). |
-| 4 | Once DCS quorum restored: Patroni resumes leader election; primary stable within 30s. |
-| 5 | If primary unreachable during quorum loss: write path was halted; reads from sync replicas continued. |
-| 6 | Post-incident: review DCS topology — should etcd cluster size grow to 5 for hyperscaler-tier packs? |
+## Escalation Path
+- Primary on-call: PagerDuty oya-tenancy-primary; data-boundary security secondary.
+- Incident SLA: ack 3m for sev0/sev1, 10m for sev2, isolation checkpoint every 10m until contained.
+- Incident commander: first responder from axis-tenancy + ops-sre-reliability + ops-security; transfer only by explicit message in #inc-tenancy-boundary.
+- Security escalation: page `ops-security-primary` immediately for sev0, data-boundary, credential, or audit-seal symptoms.
+- Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, or breach clock symptoms are present.
+- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- External vendors: Citus Data support; Oracle PostgreSQL support; Cloudflare Zero Trust support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
+- Customer communications: use status page component `oyatie-tenancy-citus-rebalance` and keep private details in the incident channel.
+- Regulatory clock: if any tenant data exposure is possible, start the compliance 72h assessment timer even if exposure is unconfirmed.
+- Executive notice: sev0 or fleet-wide sev1 goes to `#exec-incident-readout` within 30 minutes.
 
-## Recovery Path E — Citus + Postgres major-version upgrade (planned)
+## Cross-µservice Coordination
+- Notify `identity`: `oya incident handoff --target identity --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID --severity sev2 --branch A`; expect `202 accepted`.
+- Require `identity` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `compliance`: `oya incident handoff --target compliance --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID --severity sev2 --branch B`; expect `202 accepted`.
+- Require `compliance` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `governance`: `oya incident handoff --target governance --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID --severity sev2 --branch C`; expect `202 accepted`.
+- Require `governance` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Notify `observability`: `oya incident handoff --target observability --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID --severity sev2 --branch D`; expect `202 accepted`.
+- Require `observability` to return `handoff_id` and `owner_rotation`; paste both into the incident timeline.
+- Observability handoff API: `oya incident handoff --target observability --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID`.
+- Governance handoff API: `oya incident handoff --target governance --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID`.
+- Compliance handoff API: `oya incident handoff --target compliance --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID`.
+- Identity handoff API: `oya incident handoff --target identity --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID`.
+- Tenancy handoff API: `oya incident handoff --target tenancy --source tenancy --runbook citus-rebalance --incident $INCIDENT_ID`.
 
-Cause: scheduled upgrade.
+## Handoff Notes
+- Do not hand off with only the alert name; include oya_tenancy_citus_rebalance_error_ratio, oya_tenancy_citus_rebalance_lag_seconds, oya_tenancy_citus_rebalance_queue_depth, current breaker state, and audit seal status.
+- Keep tenancy-citus-rebalance-circuit-breaker owner as axis-tenancy + ops-sre-reliability + ops-security until the receiving service explicitly accepts.
+- If another runbook owns the downstream fix, link this incident as upstream and keep this runbook open until downstream verification returns green.
+- Close only after EVT-TENANCY-CITUS_REBALANCE-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
-| Step | Action |
-|---|---|
-| 1 | Schedule maintenance window with tenant-facing communication ≥ 30d advance. |
-| 2 | Snapshot Postgres data + WAL archive. |
-| 3 | Upgrade per-node rolling (Patroni-managed): replica nodes first, then coordinated primary failover, then primary node. |
-| 4 | Per-Citus version: review breaking changes; validate shard-distribution compatibility. |
-| 5 | Validate downstream after upgrade: run synthetic activation drill + cross-tenant probe. |
-
-## Verification
-
-After completion:
-- Patroni `patronictl list` shows healthy cluster (1 leader + expected replicas).
-- Citus `SELECT * FROM citus_get_active_worker_nodes()` shows all expected workers.
-- Postgres write path latency p99 ≤ baseline.
-- Validate hot-path latency p99 ≤ 5ms (cache may need 5min to warm).
-- No drift in `oya_tenancy_rls_drift_total` (RLS preserved through failover; FORCE attribute survives).
-- Audit-chain seal log captures the event(s).
-
-## Post-incident updates
-
-- Postmortem within 5 business days (Sev-2+).
-- For DCS quorum loss: review etcd topology; consider larger cluster size for HA-critical packs.
-- For rebalance hung: review per-shard size limits; consider tighter shard-utilisation threshold for proactive splits.
-
-## References
-
-- `microservices/tenancy/failure-modes.md` FM-01 + FM-03 + FM-08 + FM-12.
-- `microservices/tenancy/capacity-model.md`.
-- `microservices/tenancy/multi-region.md`.
-- Patroni HA documentation — `patroni.readthedocs.io`.
-- Citus operational guide — `docs.citusdata.com/en/stable/admin_guide/cluster_management.html`.
-- etcd operations — `etcd.io/docs/`.
+## Sources Checked During This Substance Pass
+- `microservices/tenancy/dashboards/` for dashboard names and operational panels.
+- `microservices/tenancy/slos/` for OpenSLO alert vocabulary and threshold alignment.
+- `microservices/tenancy/policy/` for named policy and authorization surfaces.
+- `microservices/tenancy/catalog/` for component and owner vocabulary.
+- Existing thin runbook topic `citus-rebalance` was preserved as the scenario anchor while replacing generic steps with concrete commands.

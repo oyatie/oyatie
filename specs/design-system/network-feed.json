@@ -4,10 +4,10 @@
   "title": "DesignSystem:Network Feed",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "network-feed",
-  "owner_team": "connect-product-council",
-  "product_ref": "$ref:specs/products/connect/network.json",
+  "owner_team": "axis-community",
+  "product_ref": "$ref:microservices/community/PRD.md",
   "component_name": "NetworkFeed",
-  "status": "planned-contract",
+  "status": "retired-by-wave-15k",
   "variants": [
     "connections",
     "company",
@@ -27,7 +27,7 @@
     "wide-desktop"
   ],
   "contract": {
-    "purpose": "NetworkFeed is a declared Connect Network UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
-    "state_model_ref": "$ref:specs/products/connect/network.json#frontend_components"
+    "purpose": "NetworkFeed is retired as a LinkedIn-style engagement-feed primitive. Successor community surfaces use threaded posts, votes, moderation, professional profile widgets, and jobs/recruiter views without engagement-optimized status broadcasting.",
+    "state_model_ref": "$ref:microservices/community/PRD.md#17-out-of-scope"
   }
 }

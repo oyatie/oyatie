@@ -31,7 +31,7 @@ This µservice has no direct Bominal equivalent and originates in oyatie per ADR
 
 - **Tenant Outcome 1 — Hosted capability execution without per-tenant infra.** Tenants register a capability descriptor; the runtime materialises pods, attaches sessions, and dispatches LLM + tool calls. No tenant-side Kubernetes operation required.
 - **Tenant Outcome 2 — Session-coherent multi-turn agents.** Sessions persist across turn boundaries with strict per-tenant Redis-backed state isolation; tenant agents resume on any pod in the pool without state loss.
-- **Tenant Outcome 3 — Autonomy-tier-gated execution.** Tenant capabilities declare an ADR-0022 autonomy tier (T0–T4); the runtime refuses to execute a capability outside the tenant's authorised tier ceiling without explicit per-invocation override + audit emission.
+- **Tenant Outcome 3 — Autonomy-ceiling-gated execution.** Tenant capabilities declare an ADR-0022 autonomy tier (T0–T4); the runtime refuses to execute a capability outside the tenant's authorised tier ceiling without explicit per-invocation override + audit emission.
 - **Internal Outcome 4 — Substrate uniformity.** Every oyatie product invoking agents goes through the same runtime; eliminates per-product divergence in how invocations are scheduled, sessions managed, telemetry shaped, or autonomy enforced.
 
 ## Functional Requirements
@@ -45,7 +45,7 @@ This µservice has no direct Bominal equivalent and originates in oyatie per ADR
 | FR-05 | capability-executor | to invoke `foundry-providers` (LLM adapter) and `foundry-guardrails` (safety check) per dispatch | the runtime never reaches an LLM provider directly or bypasses guardrails | capability-executor | Must |
 | FR-06 | runtime-pool | to maintain a warm pool of N runtime pods sized per `capacity-model.md` | cold-start cost is amortised; cold-start p99 ≤500ms per ADR-0020 | runtime-pool | Must |
 | FR-07 | invocation orchestrator | to emit `InvocationStarted`, `InvocationStepEmitted`, `InvocationCompleted`, `InvocationFailed`, `InvocationCancelled` events | foundry-evidence and observability can stitch the timeline | invocation-orchestrator | Must |
-| FR-08 | autonomy gate | to refuse capability execution above the principal's tenant tier ceiling per ADR-0022 | tier escalation can never happen silently | invocation-orchestrator | Must |
+| FR-08 | autonomy gate | to refuse capability execution above the principal's tenant autonomy ceiling per ADR-0022 | tier escalation can never happen silently | invocation-orchestrator | Must |
 | FR-09 | tenant operator | to read invocation history (per session; per tenant; time-bounded) via REST / gRPC | I can debug session behaviour and audit my own agents | capability-executor, session-state | Must |
 | FR-10 | runtime pod | to be drained on autonomy-violation, provider compromise, or registry-resync trigger without losing in-flight invocations | rolling drains stay safe; partial completions are durably parked | runtime-pool | Must |
 | FR-11 | session-state | to honour DSR cascade requests within 30 days of receipt | tenant DSR obligations propagate into transient session memory | session-state | Must |
@@ -76,7 +76,7 @@ This µservice has no direct Bominal equivalent and originates in oyatie per ADR
 
 ### Audit + Compliance
 
-- Every `InvocationStarted`, `InvocationCompleted`, `InvocationFailed`, `InvocationCancelled`, and autonomy-tier-violation event emits an audit-chain record (Ed25519 + Merkle per Bominal ADR-0028).
+- Every `InvocationStarted`, `InvocationCompleted`, `InvocationFailed`, `InvocationCancelled`, and autonomy-ceiling-violation event emits an audit-chain record (Ed25519 + Merkle per Bominal ADR-0028).
 - Session-state mutations carry an audit trail (`session_mutation_log`) preserved in Postgres for the longer of: 1 year baseline, 6 years for pack-us-healthcare PHI-touching sessions per HIPAA §164.316(b)(2).
 - Audit-chain seal latency ≤1s per `(tenant, period)`.
 
@@ -96,7 +96,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 
 | BC | Crate family (BNF v4.1 + ADR-0105) | Purpose | Key entities |
 |---|---|---|---|
-| `capability-executor` | `oya-foundry-runtime-capability-executor-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Resolve capability descriptor, dispatch through providers + guardrails, return invocation result | `Capability`, `Invocation`, `InvocationStep`, `InvocationResult`, `AutonomyTier` |
+| `capability-executor` | `oya-foundry-runtime-capability-executor-{kernel,domain,usecase,api,adapter,rest,sdk,app}` | Resolve capability descriptor, dispatch through providers + guardrails, return invocation result | `Capability`, `Invocation`, `InvocationStep`, `InvocationResult`, `AutonomyLevel` |
 | `session-state` | `oya-foundry-runtime-session-state-{kernel,domain,usecase,api,adapter,adapter-redis,adapter-postgres,sdk,app}` | Per-session conversation history + tool-call scratchpad; durable across pod restarts | `Session`, `SessionTurn`, `ScratchpadEntry`, `SessionLease` |
 | `invocation-orchestrator` | `oya-foundry-runtime-invocation-orchestrator-{kernel,domain,usecase,api,adapter,worker,app}` | Lifecycle state machine; event emission; cancellation; timeout handling | `InvocationLifecycle`, `OrchestratorVerdict`, `CancellationToken` |
 | `runtime-pool` | `oya-foundry-runtime-runtime-pool-{kernel,usecase,api,adapter,worker,app}` | Warm-pool sizing; pod lifecycle; drain; HPA bridge | `RuntimePod`, `PoolMembership`, `DrainPlan` |
@@ -114,8 +114,8 @@ JUSTIFICATION:
 - layer = <layer>: one crate per layer per ADR-0105 13-value canonical enum.
   - kernel: port traits (CapabilityResolver, ProviderInvoker, GuardrailChecker, EvidenceEmitter,
     AutonomyGate) + entity types (Capability, Invocation, InvocationStep, InvocationResult,
-    AutonomyTier). Zero I/O. Every field carries #[data_class(...)] per Bominal ADR-0028.
-  - domain: pure capability dispatch math; step-state transitions; autonomy-tier monotonic checks.
+    AutonomyLevel). Zero I/O. Every field carries #[data_class(...)] per Bominal ADR-0028.
+  - domain: pure capability dispatch math; step-state transitions; autonomy-ceiling monotonic checks.
   - usecase (per ADR-0106; replaces legacy 'application'): orchestrators reading capability descriptor,
     invoking providers + guardrails via ports, emitting events.
   - api: protocol-neutral typed I/O contracts (request/response types + error variants); consumed
@@ -227,7 +227,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 | `ProviderInvoker` | same | `oya-foundry-runtime-capability-executor-adapter` (mTLS client to `foundry-providers`) | `BEHAVIORAL_TENANT_PRODUCT` |
 | `GuardrailChecker` | same | `oya-foundry-runtime-capability-executor-adapter` (mTLS client to `foundry-guardrails`) | `BEHAVIORAL_TENANT_PRODUCT` |
 | `EvidenceEmitter` | same | `oya-foundry-runtime-capability-executor-adapter` (mTLS client to `foundry-evidence`) | `AUDIT` |
-| `AutonomyGate` | same | `-usecase` (pure; reads tenant tier ceiling from registry cache) | `AUDIT` |
+| `AutonomyGate` | same | `-usecase` (pure; reads tenant autonomy ceiling from registry cache) | `AUDIT` |
 | `SessionStore` | `oya-foundry-runtime-session-state-kernel` | `-adapter-redis` (hot tier) + `-adapter-postgres` (cold restore) | `BEHAVIORAL_TENANT_PRODUCT`, `SENSITIVE_PIPA_ART23` (per session jurisdiction tag) |
 | `SessionLeaseManager` | same | `-adapter-redis` | `INTERNAL_ONLY` |
 | `SessionMutationLog` | same | `-adapter-postgres` | `AUDIT` |
@@ -268,7 +268,7 @@ CI lanes that must green:
 | `InvocationCompleted` | invocation reaches terminal success state | foundry-evidence; observability; workflow-engine (waiting steps) | — |
 | `InvocationFailed` | terminal failure (provider error, guardrail block, timeout) | foundry-evidence; observability; workflow-engine | — |
 | `InvocationCancelled` | tenant or supervisor cancellation; pod drain | foundry-evidence; observability | — |
-| `AutonomyViolationDetected` | capability requested above tenant tier ceiling | foundry-evidence; ops-security; observability OnCall | — |
+| `AutonomyViolationDetected` | capability requested above tenant autonomy ceiling | foundry-evidence; ops-security; observability OnCall | — |
 | `SessionEvicted` | Valkey evicts a session (LRU or TTL); audit emitted | foundry-evidence; tenant ops portal | — |
 
 ### Workflow events consumed
@@ -293,8 +293,8 @@ CI lanes that must green:
 
 | Object Type / Function | Read by BC | Query shape |
 |---|---|---|
-| `Tenant` (catalog) | `capability-executor` (autonomy-gate) | `filter(tenant_id).read(autonomy_tier_ceiling, jurisdiction)` |
-| `Capability` (registry; mirrored locally) | `capability-executor` | `filter(capability_id, tenant_id).read(descriptor, declared_tier, ruleset_version)` |
+| `Tenant` (catalog) | `capability-executor` (autonomy-gate) | `filter(tenant_id).read(autonomy_level_ceiling, jurisdiction)` |
+| `Capability` (registry; mirrored locally) | `capability-executor` | `filter(capability_id, tenant_id).read(descriptor, declared_autonomy_level, ruleset_version)` |
 
 ## Competitive Benchmark
 
@@ -371,7 +371,7 @@ Sharding:
 | AC-01 | A capability descriptor registered through `foundry-supervisor` is reachable by `foundry-runtime` within ≤30s | end-to-end integration test under `tests/integration/registry-hot-reload.rs` |
 | AC-02 | Dispatch latency p99 ≤50ms over a 1-hour synthetic load | load test under `tests/load/dispatch-latency.rs` with k6/locust-style harness |
 | AC-03 | Session-state hot read p99 ≤10ms over a 1-hour synthetic load | load test `tests/load/session-state-hot.rs` |
-| AC-04 | Capability invocation above tenant tier ceiling is refused + emits `AutonomyViolationDetected` | e2e under `tests/e2e/autonomy-tier-refusal.rs` |
+| AC-04 | Capability invocation above tenant autonomy ceiling is refused + emits `AutonomyViolationDetected` | e2e under `tests/e2e/autonomy-ceiling-refusal.rs` |
 | AC-05 | Pod drain retires a pod with in-flight invocations within ≤60s and zero data loss | e2e under `tests/e2e/runtime-pod-drain.rs` |
 | AC-06 | Cross-tenant session read returns 403 + Cedar audit | integration `tests/integration/cross-tenant-refusal.rs` |
 | AC-07 | DSR cascade soft-deletes affected session fragments within 30 days | e2e `tests/e2e/dsr-cascade-session.rs` (synthetic 30-day clock) |

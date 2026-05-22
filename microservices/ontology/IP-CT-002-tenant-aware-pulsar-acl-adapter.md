@@ -141,3 +141,8 @@ Latency cost: cross-region RTT (~80ms us-east↔us-west, ~150ms us↔eu).
 - IP-CT-001 kernel types
 - microservices/consent-graph/IP-010 (topic mint authority)
 - microservices/consent-graph/IP-008 (revocation fan-out)
+
+
+## Counterpart Evidence
+
+This already-substantive IP is preserved. Counterpart anchor for Wave 15 verification: Palantir Foundry Ontology / Palantir AIP, AWS Cedar, Neo4j, AWS Neptune, Apache TinkerPop, Stardog, and Salesforce object model. See `microservices/ontology/competitor-parity-matrix.md` for the service-specific parity rows; the implementation PR must update that row when this IP materially changes parity.

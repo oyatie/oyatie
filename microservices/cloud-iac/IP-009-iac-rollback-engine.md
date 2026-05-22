@@ -108,3 +108,12 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud
 - ADR-0105; ADR-0139 §"Layer-B item 16 — Automated rollback".
 - `microservices/cloud-iac/runbooks/rollback-orchestration.md`.
 - `microservices/observability/runbooks/rollback.md` (SLO-gate parent flow).
+
+## DR posture (per ADR-0343)
+
+- Target source: `microservices/cloud-iac/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` with drill cadence `annual`.
+- RTO/RPO target: RTO p99 <= `14400` seconds; RPO p99 <= `900` seconds.
+- Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `false`, so this declaration is equal to or stronger than the floor.
+- backup_substrate: [`object_storage_versioned`, `seaweedfs_replicated`, `postgres_wal_g`].
+- Surface evidence: `microservices/cloud-iac/runbooks/restore-drill-quarterly.md`, `microservices/cloud-iac/runbooks/seaweedfs-volume-failover.md`, `microservices/cloud-iac/manifest.json`, `microservices/cloud-iac/IP-009-iac-rollback-engine.md`.

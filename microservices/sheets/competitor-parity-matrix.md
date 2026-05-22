@@ -83,7 +83,7 @@ Per `/specs/microservices/sheets.json` §competitive:
 
 | Capability | oyatie | Google Sheets | Excel Web | Airtable | OnlyOffice | LibreOffice |
 |---|---|---|---|---|---|---|
-| XLSX import | ✅ AC-02 (gVisor + ClamAV/OPSWAT; best-effort tier per ADR-SHEETS-0007) | ✅ best-effort | ✅ native | ❌ | ✅ strict | ✅ strict |
+| XLSX import | ✅ AC-02 (gVisor + ClamAV/OPSWAT; best-effort fidelity per ADR-SHEETS-0007) | ✅ best-effort | ✅ native | ❌ | ✅ strict | ✅ strict |
 | XLSX export | ✅ AC-12 (best-effort) | ✅ best-effort | ✅ native | ❌ | ✅ strict | ✅ strict |
 | Strict OOXML round-trip | ❌ (scheduled-for-distinct-tracked-work per ADR-SHEETS-0007; subsequent-to-M03-completion) | ❌ | ✅ | ❌ | ✅ | ✅ |
 | ODS import/export | ✅ | partial | partial | ❌ | ✅ | ✅ |

@@ -856,15 +856,15 @@ mod tests {
         vec![
             fulfillment(
                 FulfillmentPhase::PublicCloudConsumption,
-                "provider/public-cloud/region-alpha",
+                "provider/public-cloud/region-alpha1",
             ),
             fulfillment(
                 FulfillmentPhase::HybridColo,
-                "provider/hybrid-colo/region-alpha",
+                "provider/oyatie-colo/region-alpha1",
             ),
             fulfillment(
                 FulfillmentPhase::OwnedMegaDc,
-                "provider/owned-dc/region-alpha-east",
+                "provider/oyatie-owned-dc/region-beta1",
             ),
         ]
     }
@@ -980,7 +980,7 @@ mod tests {
 
     fn regions_surface() -> RegionsSurfaceCreate {
         RegionsSurfaceCreate {
-            day_one_region: "region-alpha".to_string(),
+            day_one_region: "region-alpha1".to_string(),
             az_count: 3,
             min_az_separation_km: 30,
             cell_isolation_unit: true,

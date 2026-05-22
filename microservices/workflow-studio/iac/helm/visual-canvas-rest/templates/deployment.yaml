@@ -57,8 +57,8 @@ spec:
               value: "${openbao:{{ .Values.secrets.spiffeIdentityPath }}}"
             - name: POSTGRES_CONN_REF
               value: "${openbao:{{ .Values.secrets.postgresConnectionPath }}}"
-            - name: REDIS_AUTH_REF
-              value: "${openbao:{{ .Values.secrets.redisAuthPath }}}"
+            - name: VALKEY_AUTH_REF
+              value: "${openbao:{{ .Values.secrets.valkeyAuthPath }}}"
             - name: ED25519_SIGNING_KEY_REF
               value: "${openbao:{{ .Values.secrets.ed25519SigningKeyPath }}}"
           resources:

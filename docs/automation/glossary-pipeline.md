@@ -8,10 +8,10 @@ date: 2026-05-12
 purpose: |
   Auto-derive `docs/GLOSSARY.md` from term-definition blocks in source files
   (`/// glossary: <term>` rustdoc, plus `<!-- glossary: <term> -->` in markdown).
-  Retired terms enforced via the `oya-foundry-fitness-glossary` lane. No hand-edits
+  Retired terms enforced via the `oya-governance-glossary` lane. No hand-edits
   permitted after generation; the canonical vocabulary lives at source, not in a
   hand-curated wordlist.
-planned_enforcement_ref: oya-foundry-fitness-glossary
+planned_enforcement_ref: oya-governance-glossary
 extends_crates:
   - oya-foundry-glossary-coverage-kernel
   - oya-foundry-glossary-vocabulary-kernel
@@ -70,7 +70,7 @@ see-also: PersonaTier, CapabilityToken
 | Nightly | Sweep for orphan term references (`docs/**/*.md` cites a term not in glossary). |
 | On `glossary-retirements.md` edit | Validate retirement entry has `retired_at:` + `replacement:` + ADR citation. |
 
-## 6. Validation gates (`oya-foundry-fitness-glossary`)
+## 6. Validation gates (`oya-governance-glossary`)
 
 1. **Block well-formedness.** Every glossary block has `definition:` non-empty (BLOCKER).
 2. **Term uniqueness.** No two source locations declare the same term with conflicting definitions (BLOCKER; resolved by ADR or by consolidating into one source).

@@ -18,7 +18,7 @@
         "oya-meet-meeting-room-kernel",
         "oya-meet-meeting-room-rest",
         "oya-meet-meeting-room-usecase",
-        "oya-meet-participant-adapter-redis",
+        "oya-meet-participant-adapter-valkey",
         "oya-meet-participant-domain",
         "oya-meet-participant-kernel",
         "oya-meet-participant-rest",
@@ -57,19 +57,19 @@
       "tier": "T0",
       "name": "meeting-topic-and-participant-hint",
       "file": "microservices/meet/capabilities/T0-suggest.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "live-captions-transcription-summary",
       "file": "microservices/meet/capabilities/T1-assist.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "auto-mute-noise-detect-and-auto-translate",
       "file": "microservices/meet/capabilities/T2-auto.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     }
   ],
   "slos": [
@@ -308,7 +308,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "baseline_signals": "INV-FOUR-baseline-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -360,5 +360,176 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "meet is a BNF v4.1 kebab-case microservice slug; generated names follow oya-meet-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "capability_tracks": [
+    "T0",
+    "T1",
+    "T2"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "hipaa",
+    "us-financial",
+    "fedramp",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "kr-isms-p",
+    "NIS2",
+    "soc2",
+    "cn-pipl-2021",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; baseline_signals: INV-FOUR-baseline-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-meet",
+  "tier_classification": "hero-product",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "hipaa",
+    "us-financial",
+    "fedramp",
+    "SOC 2 Type 2",
+    "iso27001",
+    "gdpr",
+    "kr-isms-p",
+    "NIS2",
+    "soc2",
+    "cn-pipl-2021",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "analytics",
+    "calendar",
+    "workflow-engine",
+    "audit-chain",
+    "identity",
+    "tenancy",
+    "observability",
+    "network",
+    "intelligence",
+    "ontology",
+    "detection",
+    "cell",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.28,
+    "baseline_ram_per_tenant": 768,
+    "storage_per_tenant": 4,
+    "connections_per_tenant": {
+      "valkey": 4,
+      "postgres": 3,
+      "outbound_http": 8
+    },
+    "scaling_dimension": "per_user",
+    "cell_placement_class": "Tier-3",
+    "notes": "Room create/join, participant/lobby, captions, SFU signaling, screen-share, and recording-start paths scale with concurrent participants; media-plane pressure is high but remains a product application surface."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 3600,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "valkey_cluster",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/dr-failover.md",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Tier 2 because meet owns first-party room, lobby, caption, SFU signaling, and recording-start workflows. The hot media path needs capacity headroom, but it is not an Envoy/CDN edge plane and the service does not execute tenant-authored code.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/meet/PRD.md",
+    "microservices/meet/IP-005-meeting-instance-and-livekit.md",
+    "microservices/meet/IP-007-screen-share-and-tracks.md",
+    "microservices/meet/runbooks/sfu-degraded.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/meet/contracts/openapi/meet.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/meet/contracts/asyncapi/meet-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/meet/contracts/proto/meet.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "valkey",
+    "cedar",
+    "openbao",
+    "kafka",
+    "opentelemetry"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1"
+    }
+  ]
 }

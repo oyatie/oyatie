@@ -270,3 +270,22 @@ async fn test_finalization_emits_billable_usage() {
 - `microservices/analytics/iac/clickhouse/mv-templates/mv-day-billing-per-resource.sql`.
 - `microservices/analytics/iac/clickhouse/mv-templates/mv-month-billing-per-resource.sql`.
 - `microservices/analytics/slos/billing-reconciliation.openslo.yaml`.
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/analytics/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `postgres_wal_g`, `iceberg_snapshot`, `clickhouse_iceberg_layered`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/analytics/specs/IP-009-billing-rollup-pipeline.md:32` - - A `usage.counter.incremented` event for tenant `ten_acme`, resource `workflow_run`, increment `1` lands in `mv_day_billing_per_resource` (target table `tenant_ten_ac...; `microservices/analytics/specs/IP-009-billing-rollup-pipeline.md:241` - | Reconciliation drift > 0.01% | SLO burn alert | runbook ingest-lag-burn + investigate MV |.
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/analytics/specs/IP-009-billing-rollup-pipeline.md:163` - The MV's `GROUP BY toDate(emitted_at)` (not `toDate(now())`) ensures attribution by event time, not ingest time. Late-arriving events (e.g., emitted last week, ingeste...; `microservices/analytics/specs/IP-009-billing-rollup-pipeline.md:257` - ## Evidence emission.

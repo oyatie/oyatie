@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: QuickBooks Online Accounting API (oya-connector-quickbooks-adapter snapshot)
   version: v3-snapshot

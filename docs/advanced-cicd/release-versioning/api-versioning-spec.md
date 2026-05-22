@@ -10,8 +10,8 @@ purpose: |
   Define external-facing API versioning across all six axes: hybrid resource-name
   segment (v1 / v1beta1 / v1alpha1 / v2) plus optional date-based fine-grain via
   `?api-version=YYYY-MM-DD`, with OpenAPI 3.1 as source of truth and
-  oya-foundry-fitness-api-version-stability as the BLOCKER gate.
-planned_enforcement_ref: oya-foundry-fitness-api-version-stability
+  oya-governance-api-version-stability as the BLOCKER gate.
+planned_enforcement_ref: oya-governance-api-version-stability
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -122,7 +122,7 @@ Preview dates have the same 90-day churn rule as Azure preview.
 
 ## 8. Enforcement lane
 
-`oya-foundry-fitness-api-version-stability` (BLOCKER) checks every PR that
+`oya-governance-api-version-stability` (BLOCKER) checks every PR that
 touches `contracts/openapi/**`:
 
 1. No field removed from a stable path-version.

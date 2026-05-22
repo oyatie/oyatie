@@ -177,7 +177,7 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-arch-invariants
 3. Generalize to social, audit-chain, ontology, notification (Flow A
    participants) under follow-on IPs per µservice.
 4. Generalize to all 17 first-wave µservices under a single fitness
-   lane `oya-foundry-fitness-hyperscaler-metric-emission` that asserts
+   lane `oya-governance-hyperscaler-metric-emission` that asserts
    every µservice's `app` crate constructs an adapter at composition
    root.
 
@@ -198,3 +198,22 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-arch-invariants
 - `crates/oya-shared-hyperscaler-metrics-adapter-prometheus`.
 - `microservices/observability/contracts/metric-naming-convention.md`.
 - `docs/standards/cross-microservice-latency-budget.md` Flow B.
+
+## DR posture (per ADR-0343)
+
+- Authority: ADR-0343.
+- Trigger evidence: `microservices/messenger/IP-NEW-hyperscaler-metric-emission.md` matched `SLO`.
+- Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/messenger/manifest.json`.
+- Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
+- Backup substrate: `postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Runtime evidence: `microservices/messenger/slos/attachment-scan-freshness.openslo.yaml`, `microservices/messenger/slos/mention-fanout.openslo.yaml`, `microservices/messenger/slos/message-send-availability.openslo.yaml`, `microservices/messenger/slos/message-send-latency.openslo.yaml`, `microservices/messenger/policy/auditor-scope.cedar`.
+
+## Sustainability emission (per ADR-0344)
+
+- Authority: ADR-0344.
+- Trigger evidence: `microservices/messenger/IP-NEW-hyperscaler-metric-emission.md` matched `emission`.
+- Per-call audit row fields: `cost_usd_minor_units`, `co2_grams`, `watt_hours`.
+- Emission evidence: `microservices/messenger/manifest.json` plus this IP's metered trigger text.
+- Carbon-aware scheduling: eligible only when ADR-0344 D-9 compliance-pack exclusions do not bar deferral; otherwise the Cedar scheduler rejects delay while still emitting carbon fields.
+- finops-portal rollup axes affected: tenant / product / capability / provider / cell.

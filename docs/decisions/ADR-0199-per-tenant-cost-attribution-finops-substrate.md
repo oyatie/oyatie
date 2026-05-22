@@ -316,7 +316,7 @@ substrate (labels + traits + standards) is already in-house today.
 
 - Helm chart at `microservices/observability/iac/helm/opencost/` renders.
 - The `oya.tenantCostLabels` helper will be added by parent wiring (this
-  batch declares it in the ADR + emits the parent-wiring follow-up work item).
+  batch declares it in the ADR + emits the parent-wiring work item).
 - `crates/oya-check-tenant-cost-labels-coverage/` scans rendered Helm
   output and reports per-µservice coverage; advisory mode this batch.
 - `crates/oya-check-backup-retention-discipline/` validates declared

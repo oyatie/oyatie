@@ -28,7 +28,7 @@ forbid (
 //   - scoped_tenants           list of tenant_ids in scope
 //   - valid_from / valid_to    ISO8601 timestamps
 //   - audit_framework          one of [soc2, iso27001, hipaa, gdpr-dpa, kr-pipc, ...]
-//   - max_tier_ceiling         max property tier the auditor may read
+//   - max_sensitivity_ceiling         max property sensitivity level the auditor may read
 
 permit (
   principal in Auditor::?a,
@@ -57,9 +57,9 @@ when {
   resource has tenant_id &&
   principal has scoped_tenants &&
   resource.tenant_id in principal.scoped_tenants &&
-  resource has property_tier &&
-  principal has max_tier_ceiling &&
-  principal.max_tier_ceiling >= resource.property_tier
+  resource has property_sensitivity_level &&
+  principal has max_sensitivity_ceiling &&
+  principal.max_sensitivity_ceiling >= resource.property_sensitivity_level
 };
 
 // =============================================================================
@@ -180,7 +180,7 @@ when {
 };
 
 // =============================================================================
-// FORBID — auditor cannot exceed max_tier_ceiling
+// FORBID — auditor cannot exceed max_sensitivity_ceiling
 // =============================================================================
 //
 // Some audits (e.g., baseline SOC 2) operate at lower tier ceilings than
@@ -193,7 +193,7 @@ forbid (
   resource
 )
 when {
-  resource has property_tier &&
-  principal has max_tier_ceiling &&
-  principal.max_tier_ceiling < resource.property_tier
+  resource has property_sensitivity_level &&
+  principal has max_sensitivity_ceiling &&
+  principal.max_sensitivity_ceiling < resource.property_sensitivity_level
 };

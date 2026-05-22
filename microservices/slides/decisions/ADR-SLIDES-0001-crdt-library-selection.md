@@ -177,7 +177,7 @@ Re-use `oya-workflow-studio-collab-crdt-{kernel,domain,...}` directly.
 
 ### Downstream impact on other µservices and IPs
 
-1. **IP-005 (real-time-collaboration kernel/domain/adapter/adapter-redis/adapter-loro)** — adopts Loro; property tests + per-slide ACL refinement variants + HMAC verification.
+1. **IP-005 (real-time-collaboration kernel/domain/adapter/adapter-valkey/adapter-loro)** — adopts Loro; property tests + per-slide ACL refinement variants + HMAC verification.
 2. **IP-006 (real-time-collaboration worker + SDK)** — WebSocket gateway with consistent-hash on `deck_id`; tenant SDKs MUST NOT expose Loro types directly — `CrdtOp` envelopes only.
 3. **IP-010 (broadcast-mode)** — uses CRDT-state read-only stream for audience-view; speaker-notes filter enforced at projection.
 4. **IP-013 (acl + comments + version-history)** — per-slide ACL refinement applied at CRDT projection boundary; restore from version-history rebuilds Loro snapshot deterministically.

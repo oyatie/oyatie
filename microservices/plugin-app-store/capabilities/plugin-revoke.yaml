@@ -40,7 +40,7 @@ regulatory_packs_consumed:
   - pack-us-financial
   - pack-us-public-sector
 
-eu_ai_act_risk_class: high
+risk_class: high
 
 evidence_topic: oya.plugin-app-store.capability.plugin_revoke.emitted
 
@@ -52,7 +52,7 @@ cedar_policy_fragments:
   - microservices/plugin-app-store/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/plugin-app-store/capabilities/eval/plugin-revoke-golden.jsonl
+  canonical_inputs_path: microservices/plugin-app-store/capabilities/eval/plugin-revoke-canonical.jsonl
   pass_threshold: 1.0
   eval_metric: structured-output-correctness
   cadence: per-release

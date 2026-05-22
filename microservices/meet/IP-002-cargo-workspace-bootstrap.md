@@ -33,7 +33,7 @@ One ChangeSet:
 | `microservices/meet/Cargo.toml` | create — workspace manifest, members glob |
 | `microservices/meet/src/crates/oya-meet-meeting-room-{kernel,domain,usecase,api,adapter-postgres,rest,sdk,app}/Cargo.toml` | create |
 | `microservices/meet/src/crates/oya-meet-meeting-instance-{kernel,domain,usecase,api,adapter-postgres,adapter-livekit,rest,worker,sdk,app}/Cargo.toml` | create |
-| `microservices/meet/src/crates/oya-meet-participant-{kernel,domain,usecase,api,adapter-postgres,adapter-redis,rest,worker,sdk,app}/Cargo.toml` | create |
+| `microservices/meet/src/crates/oya-meet-participant-{kernel,domain,usecase,api,adapter-postgres,adapter-valkey,rest,worker,sdk,app}/Cargo.toml` | create |
 | `microservices/meet/src/crates/oya-meet-{audio,video,screen-share}-{kernel,domain,usecase,adapter-livekit,worker,sdk}/Cargo.toml` | create |
 | `microservices/meet/src/crates/oya-meet-recording-{kernel,domain,usecase,api,adapter-postgres,adapter-s3,adapter-ffmpeg,rest,worker,sdk,app}/Cargo.toml` | create |
 | `microservices/meet/src/crates/oya-meet-transcription-{kernel,domain,usecase,api,adapter-postgres,adapter-s3,adapter-whisper,adapter-meilisearch,rest,worker,sdk,app}/Cargo.toml` | create |

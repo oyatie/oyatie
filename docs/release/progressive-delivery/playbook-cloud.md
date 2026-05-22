@@ -9,8 +9,8 @@ purpose: |
   Cloud-kernel rollouts (KMS / storage / network / billing / observability).
   Blue/green for KMS roots; canary for everything else.
 planned_enforcement_ref:
-  - oya-foundry-fitness-canary-required
-  - oya-foundry-fitness-rollback-evidence
+  - oya-governance-canary-required
+  - oya-governance-rollback-evidence
 related_adrs: [ADR-0028, ADR-0043, ADR-0045, ADR-0049, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
 doc_status: published
@@ -18,7 +18,6 @@ doc_status: published
 
 # Playbook: Cloud-Axis Rollout
 
-> **Status:** Accepted. **Owner:** `axis-cloud`. **Date:** 2026-05-12. **Sanctioned primitives:** [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md). **Pipeline model:** [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md).
 
 ## 1. Surface
 
@@ -48,7 +47,7 @@ KMS root rotation runs blue/green with mandatory:
 4. **Soak ≥ 7 days** on `canary-eligible` before stable cohort cut.
 5. **Rollback path** — re-shift traffic to blue root; blue retains material ≥ 90 days post-cutover.
 
-Planned advisory lane: `oya-foundry-fitness-rollback-evidence` (D14 mandate) + an existing KMS-rotation lane.
+Planned advisory lane: `oya-governance-rollback-evidence` (D14 mandate) + an existing KMS-rotation lane.
 
 ## 4. Cross-region rollout halting
 
@@ -81,5 +80,4 @@ AWS KMS GenerateDataKey rotation; Google Cloud KMS-Inline; Microsoft Azure Manag
 
 ## 9. ADR citations
 
-- [ADR-0053](../../decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) — rollback evidence stored via `icm store -t prod-rollbacks`.
 - [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md) — Cloud axis cadence: bi-weekly staging → prod; `security-reviewer` re-affirms at gate 5 for control-plane paths.

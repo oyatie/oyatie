@@ -124,7 +124,7 @@ Any new cross-microservice network call type (e.g. Workspace Drive → Search RA
 - Mesh policy entry naming source axis, destination axis, payload class, mTLS guarantees.
 - Cedar policy gating call.
 - Per-call audit-chain emission.
-- Cohesion fitness lane confirmation (`oya-foundry-fitness-cross-microservice-call`) that the call type is registered.
+- Cohesion fitness lane confirmation (`oya-governance-cross-microservice-call`) that the call type is registered.
 
 ### Per-tenant traffic isolation
 

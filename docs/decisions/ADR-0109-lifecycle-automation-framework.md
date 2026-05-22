@@ -37,13 +37,13 @@ Per memory feedback `lifecycle-automation-universal` (the canonical directive fi
 
 Per memory feedback `no-exceptions-canonical`, the framework must declare ONE canonical shape that all lifecycle lanes parameterize, not N bespoke kernels each redefining transitions.
 
-The parallel `oya-foundry-fitness-sunset-lifecycle-kernel` (committed independently by a concurrent agent) is a one-off dedicated crate; this ADR establishes the FRAMEWORK that future lifecycles (ADR status, crate status, plan status, capability status, migration, dependency, feature-flag, API-stability, doc) consume.
+The parallel `oya-governance-sunset-lifecycle-kernel` (committed independently by a concurrent agent) is a one-off dedicated crate; this ADR establishes the FRAMEWORK that future lifecycles (ADR status, crate status, plan status, capability status, migration, dependency, feature-flag, API-stability, doc) consume.
 
 ## Decision
 
-1. **One generic kernel.** `oya-foundry-fitness-lifecycle-kernel` exposes the canonical `LifecycleConfig`, `LifecycledArtifact`, `Stage`, `Transition`, `Violation`, and `evaluate()` function. Every lifecycle lane is data — a JSON config under `specs/lifecycle-configs/`. Adding a new lifecycle is a config-file + thin dev-CLI commit, not a new kernel.
+1. **One generic kernel.** `oya-governance-lifecycle-kernel` exposes the canonical `LifecycleConfig`, `LifecycledArtifact`, `Stage`, `Transition`, `Violation`, and `evaluate()` function. Every lifecycle lane is data — a JSON config under `specs/lifecycle-configs/`. Adding a new lifecycle is a config-file + thin dev-CLI commit, not a new kernel.
 
-2. **Per-lifecycle dev-CLI wrappers.** Each lifecycle ships `tools/oya-foundry-fitness-<lifecycle-name>-lifecycle-app/` — a thin binary that loads its config, discovers artifacts from the repo (via the kernel's source-spec abstraction), calls `evaluate()`, and reports/exits. The CLI is the IO ring (clean-architecture port-in-kernel: kernel is I/O-free; the app does the directory walk + front-matter parsing).
+2. **Per-lifecycle dev-CLI wrappers.** Each lifecycle ships `tools/oya-governance-<lifecycle-name>-lifecycle-app/` — a thin binary that loads its config, discovers artifacts from the repo (via the kernel's source-spec abstraction), calls `evaluate()`, and reports/exits. The CLI is the IO ring (clean-architecture port-in-kernel: kernel is I/O-free; the app does the directory walk + front-matter parsing).
 
 3. **Canonical lifecycle metadata schema.** Every lifecycled artifact MAY carry `_lifecycle.kind`, `_lifecycle.stage`, `_lifecycle.transitions[]`, `_lifecycle.deadline_at?`, `_lifecycle.milestone_anchor?`. Existing fields (`status:`, `supersedes:`, `superseded_by:`) remain canonical inputs; the framework reads them via per-config source specs and does NOT require a flag-day migration.
 
@@ -57,7 +57,7 @@ The parallel `oya-foundry-fitness-sunset-lifecycle-kernel` (committed independen
 
 5. **Wave ratchet (canonical per fitness-lane pattern).** Wave A = WARN baseline; Wave B = BLOCK on NEW violations; Wave C = BLOCK on all. Each per-lifecycle plan declares its wave.
 
-6. **Concurrent sunset-lifecycle integration.** The dedicated `oya-foundry-fitness-sunset-lifecycle-kernel` is canonical for the sunset-clause domain. The framework applies to OTHER lifecycles immediately; sunset-lifecycle remains on a dedicated kernel per the canonical pattern declared in §"Sunset-lifecycle: dedicated kernel as canonical pattern" below. Both shapes are canonical at the kernel layer; the framework's value is per-lifecycle DRY for the 9+ pure-stage-transition state machines.
+6. **Concurrent sunset-lifecycle integration.** The dedicated `oya-governance-sunset-lifecycle-kernel` is canonical for the sunset-clause domain. The framework applies to OTHER lifecycles immediately; sunset-lifecycle remains on a dedicated kernel per the canonical pattern declared in §"Sunset-lifecycle: dedicated kernel as canonical pattern" below. Both shapes are canonical at the kernel layer; the framework's value is per-lifecycle DRY for the 9+ pure-stage-transition state machines.
 
 ## Sunset-lifecycle: dedicated kernel as canonical pattern (not exception)
 
@@ -121,7 +121,7 @@ Tier 2 binary, Tier 3 test) rather than one rule with two exceptions.
 
 Absorbing date-arithmetic defaulting, sentinel recognition, three-surface
 discovery, and the SunsetReached/RemovalReached/MissingFields finding
-categories into `oya-foundry-fitness-lifecycle-kernel` would:
+categories into `oya-governance-lifecycle-kernel` would:
 
 1. Add ≈560 LOC of domain-specific schema + algorithm + parser code to
    the generic kernel, diluting its canonical posture for the 9
@@ -146,8 +146,8 @@ ADR-0056 port-in-kernel / ADR-0105 13-layer-enum naming uniformly.
 ### Naming consequence
 
 Pattern-B kernels follow the same v4 BNF as Pattern-A dev-CLIs:
-`oya-foundry-fitness-<topic>-lifecycle-kernel` (kernel layer) plus
-`oya-foundry-fitness-<topic>-lifecycle-app` (composition-root binary).
+`oya-governance-<topic>-lifecycle-kernel` (kernel layer) plus
+`oya-governance-<topic>-lifecycle-app` (composition-root binary).
 The naming layer-enum is unchanged — both patterns terminate in
 `-kernel` / `-app` per ADR-0105 Amendment 1 / ADR-0107 Amendment
 2026-05-15. The pattern selection is invisible in the crate name; it
@@ -160,7 +160,7 @@ The repo currently has one Pattern-B lifecycle:
 
 | Lifecycle | Kernel | Dev-CLI | Driving ADR | Domain semantics |
 |---|---|---|---|---|
-| sunset-lifecycle | `crates/oya-foundry-fitness-sunset-lifecycle-kernel` | `tools/oya-foundry-fitness-sunset-lifecycle-app` | ADR-0108 | 30/90-day lag defaulting; doctrine-not-time-bounded sentinel; three-surface discovery |
+| sunset-lifecycle | `crates/oya-governance-sunset-lifecycle-kernel` | `tools/oya-governance-sunset-lifecycle-app` | ADR-0108 | 30/90-day lag defaulting; doctrine-not-time-bounded sentinel; three-surface discovery |
 
 Future Pattern-B candidates (declare here when introduced): credential
 rotation (multi-anchor expiry + reissue lag), incident postmortem
@@ -265,8 +265,8 @@ Each lane ships under M01-foundation/phases/P03-purpose-orphan-detection/ as `fi
 
 ## Naming justification (per `feedback_naming_justification`)
 
-- Crate `oya-foundry-fitness-lifecycle-kernel` — v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:lifecycle>-<layer:kernel>`; 13-layer-enum suffix `kernel` (I/O-free port + pure check functions per ADR-0056 "port-in-kernel").
-- Dev-CLI `oya-foundry-fitness-<lifecycle-name>-lifecycle-app` — v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:<lifecycle-name>-lifecycle>-<layer:app>`; canonical `app` suffix per ADR-0105 amendment 2026-05-15 / ADR-0107 amendment 2026-05-15.
+- Crate `oya-governance-lifecycle-kernel` — v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:lifecycle>-<layer:kernel>`; 13-layer-enum suffix `kernel` (I/O-free port + pure check functions per ADR-0056 "port-in-kernel").
+- Dev-CLI `oya-governance-<lifecycle-name>-lifecycle-app` — v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:<lifecycle-name>-lifecycle>-<layer:app>`; canonical `app` suffix per ADR-0105 amendment 2026-05-15 / ADR-0107 amendment 2026-05-15.
 
 ## References
 

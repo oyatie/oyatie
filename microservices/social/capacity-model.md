@@ -84,12 +84,12 @@ feed_cache_ops_per_sec     = Fr_per_sec × 2 (read + write-back)
 reaction_ops_per_sec       = P_post_per_sec × R_reactions_avg
 trending_ops_per_sec       = P_post_per_sec × H_hashtag_avg × 0.5 (some hashtag-emit batched)
 notification_ops_per_sec   = P_post_per_sec × F_follower_avg × 0.05 (only 5% of follower-count get real-time notif; rest digest)
-total_redis_ops_per_sec    = feed_cache + reaction + trending + notification
-redis_memory_bytes         = C_active × 8KB (feed cache slice per active user) + tenant overhead
-redis_shard_count          = ceil(total_redis_ops_per_sec / 100_000)
+total_valkey_ops_per_sec    = feed_cache + reaction + trending + notification
+valkey_memory_bytes         = C_active × 8KB (feed cache slice per active user) + tenant overhead
+valkey_shard_count          = ceil(total_valkey_ops_per_sec / 100_000)
 ```
 
-| Tier | total_redis_ops_per_sec | Shards | Memory |
+| Tier | total_valkey_ops_per_sec | Shards | Memory |
 |---|---|---|---|
 | XS | ~ 25k | 1 (3 nodes HA) | ~ 1 GB |
 | S | ~ 130k | 2 | ~ 4 GB |
@@ -220,4 +220,4 @@ ranking_calls_per_sec    = Fr_per_sec (every feed-render asks for ranking)
 - `microservices/messenger/capacity-model.md` (sibling reference).
 - Postgres tuning: PostgreSQL 16 ops docs.
 - Meilisearch ops: `docs.meilisearch.com`.
-- Valkey Cluster ops: `redis.io/docs/management/scaling/`.
+- Valkey Cluster ops: `valkey.io/docs/management/scaling/`.

@@ -99,3 +99,9 @@ Per `PHASE-01-CONTROL-PLANE-LANDING.md` §"Per-IP Test Coverage Threshold":
 - `sdk-plan.md`.
 - `contracts/openapi/foundry-supervisor.yaml`.
 - ADR-0105 §"sdk layer".
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Palantir AIP Operator, Azure AI Foundry deployments, and GitHub merge-queue controls.
+- Gap closure: this IP closes fleet control, kill-switch propagation, and deployability evidence with tenant-scoped policy enforcement.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

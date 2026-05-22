@@ -1,0 +1,320 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-slo-golden-signals-tiered
+  displayName: "Golden Signals Per Capability Tier"
+  labels:
+    library: slo-authoring
+    catalog_template: golden-signals-per-tier
+    microservice: template
+    bounded_context: observability
+    sli: golden-signals
+    data_classes:
+      - telemetry
+      - tenant-operational-metadata
+    pack: pack-agnostic
+    tier: external-facing
+    capability_tiers:
+      - Bronze
+      - Silver
+      - Gold
+      - Platinum
+    plane: control
+    adr:
+      - ADR-0131
+      - ADR-0139
+      - ADR-0316
+    openslo_profile: openslo-v1
+  annotations:
+    oyatie.dev/library-purpose: "Canonical RED and USE SLO pattern for every request-serving service tier."
+    oyatie.dev/source-spec: "specs/agentic-slo-gated-promotion.json"
+    oyatie.dev/tier-doctrine: "ADR-0316 capability tiers over product fragmentation"
+    oyatie.dev/time-window-mode: "rolling"
+    oyatie.dev/dashboard-template: "registry/dashboards/golden-signals-per-microservice.yaml"
+    oyatie.dev/runbook-template: "microservices/<ms>/runbooks/golden-signals-burn-rate.md"
+spec:
+  service: "<microservice>"
+  description: |
+    Catalog template for RED plus USE objectives across Bronze, Silver, Gold,
+    and Platinum capability tiers. Replace <microservice>, <tenant_scope>, and
+    route labels with service-owned values before placing the file under
+    microservices/<ms>/slos/. The top-level SLI is the Gold request success
+    ratio; objective-level indicators define tier-specific request rate, error,
+    latency, utilization, saturation, and error-budget guardrails.
+  tier:
+    doctrine: ADR-0316
+    model: capability-tier-projection
+    defaultTier: Gold
+    tiers:
+      - name: Bronze
+        intent: baseline self-service workloads
+        availabilityTarget: 0.995
+        latencyBudget: 500ms
+      - name: Silver
+        intent: business-critical tenant workloads
+        availabilityTarget: 0.999
+        latencyBudget: 250ms
+      - name: Gold
+        intent: regulated production workloads
+        availabilityTarget: 0.9995
+        latencyBudget: 150ms
+      - name: Platinum
+        intent: mission-critical regulated workloads
+        availabilityTarget: 0.9999
+        latencyBudget: 75ms
+  indicator:
+    metadata:
+      name: gold-red-request-success-ratio
+      displayName: "Gold RED request success ratio"
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              queryName: gold-red-success-events
+              query: |
+                sum(rate(oya_http_requests_total{
+                  service="<microservice>",
+                  capability_tier="Gold",
+                  tenant_scope="<tenant_scope>",
+                  status!~"5.."
+                }[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              queryName: gold-red-total-events
+              query: |
+                sum(rate(oya_http_requests_total{
+                  service="<microservice>",
+                  capability_tier="Gold",
+                  tenant_scope="<tenant_scope>"
+                }[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: "Bronze RED success >= 99.5%"
+      name: bronze-red-success
+      targetName: bronze-red-success-target
+      target: 0.995
+      windowName: rolling-30d
+      description: "Bronze request traffic keeps 5xx-free RED success within baseline budget."
+      indicator:
+        metadata:
+          name: bronze-red-success-ratio
+          displayName: "Bronze RED success ratio"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: bronze-red-success-events
+                  query: |
+                    sum(rate(oya_http_requests_total{service="<microservice>",capability_tier="Bronze",status!~"5.."}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: bronze-red-total-events
+                  query: |
+                    sum(rate(oya_http_requests_total{service="<microservice>",capability_tier="Bronze"}[5m]))
+    - displayName: "Silver RED latency <= 250ms"
+      name: silver-red-latency-under-budget
+      targetName: silver-latency-budget-target
+      target: 0.995
+      windowName: rolling-30d
+      description: "Silver tenant-visible requests complete within the 250ms budget."
+      indicator:
+        metadata:
+          name: silver-red-latency-ratio
+          displayName: "Silver RED latency ratio"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: silver-red-latency-good
+                  query: |
+                    sum(rate(oya_http_request_duration_seconds_bucket{service="<microservice>",capability_tier="Silver",le="0.25"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: silver-red-latency-total
+                  query: |
+                    sum(rate(oya_http_request_duration_seconds_count{service="<microservice>",capability_tier="Silver"}[5m]))
+    - displayName: "Bronze USE utilization below saturation knee"
+      name: bronze-use-utilization-headroom
+      targetName: bronze-use-headroom-target
+      target: 0.995
+      windowName: rolling-30d
+      description: "Bronze workloads keep CPU utilization below the 85% baseline saturation knee."
+      indicator:
+        metadata:
+          name: bronze-use-cpu-headroom-ratio
+          displayName: "Bronze USE CPU headroom ratio"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: bronze-use-cpu-good-slices
+                  query: |
+                    sum(rate(oya_resource_slo_slices_total{service="<microservice>",capability_tier="Bronze",resource="cpu",state="under_85pct"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: bronze-use-cpu-total-slices
+                  query: |
+                    sum(rate(oya_resource_slo_slices_total{service="<microservice>",capability_tier="Bronze",resource="cpu"}[5m]))
+    - displayName: "Silver USE saturation absent"
+      name: silver-use-saturation-absent
+      targetName: silver-use-saturation-target
+      target: 0.997
+      windowName: rolling-30d
+      description: "Silver workloads avoid queue, CPU, memory, and storage saturation symptoms."
+      indicator:
+        metadata:
+          name: silver-use-saturation-ratio
+          displayName: "Silver USE saturation-free ratio"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: silver-use-saturation-free-slices
+                  query: |
+                    sum(rate(oya_resource_slo_slices_total{service="<microservice>",capability_tier="Silver",state="saturation_free"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: silver-use-saturation-total-slices
+                  query: |
+                    sum(rate(oya_resource_slo_slices_total{service="<microservice>",capability_tier="Silver"}[5m]))
+    - displayName: "Gold RED latency <= 150ms"
+      name: gold-red-latency-under-budget
+      targetName: gold-latency-budget-target
+      target: 0.999
+      windowName: rolling-30d
+      description: "Gold request-serving endpoints stay within the production latency budget."
+      indicator:
+        metadata:
+          name: gold-red-latency-ratio
+          displayName: "Gold RED latency ratio"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: gold-red-latency-good
+                  query: |
+                    sum(rate(oya_http_request_duration_seconds_bucket{service="<microservice>",capability_tier="Gold",le="0.15"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: gold-red-latency-total
+                  query: |
+                    sum(rate(oya_http_request_duration_seconds_count{service="<microservice>",capability_tier="Gold"}[5m]))
+    - displayName: "Platinum RED latency <= 75ms"
+      name: platinum-red-latency-under-budget
+      targetName: platinum-latency-budget-target
+      target: 0.9995
+      windowName: rolling-30d
+      description: "Platinum tenant traffic remains inside the mission-critical latency envelope."
+      indicator:
+        metadata:
+          name: platinum-red-latency-ratio
+          displayName: "Platinum RED latency ratio"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: platinum-red-latency-good
+                  query: |
+                    sum(rate(oya_http_request_duration_seconds_bucket{service="<microservice>",capability_tier="Platinum",le="0.075"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: platinum-red-latency-total
+                  query: |
+                    sum(rate(oya_http_request_duration_seconds_count{service="<microservice>",capability_tier="Platinum"}[5m]))
+    - displayName: "Gold USE utilization below saturation knee"
+      name: gold-use-utilization-headroom
+      targetName: gold-use-headroom-target
+      target: 0.999
+      windowName: rolling-30d
+      description: "Gold pods keep CPU utilization below the 70% saturation knee."
+      indicator:
+        metadata:
+          name: gold-use-cpu-headroom-ratio
+          displayName: "Gold USE CPU headroom ratio"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: gold-use-cpu-good-slices
+                  query: |
+                    sum(rate(oya_resource_slo_slices_total{service="<microservice>",capability_tier="Gold",resource="cpu",state="under_70pct"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: gold-use-cpu-total-slices
+                  query: |
+                    sum(rate(oya_resource_slo_slices_total{service="<microservice>",capability_tier="Gold",resource="cpu"}[5m]))
+    - displayName: "Platinum USE saturation absent"
+      name: platinum-use-saturation-absent
+      targetName: platinum-use-saturation-target
+      target: 0.9995
+      windowName: rolling-30d
+      description: "Platinum workloads avoid queue, CPU, memory, and storage saturation symptoms."
+      indicator:
+        metadata:
+          name: platinum-use-saturation-ratio
+          displayName: "Platinum USE saturation-free ratio"
+        spec:
+          ratioMetric:
+            counter: true
+            good:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: platinum-use-saturation-free-slices
+                  query: |
+                    sum(rate(oya_resource_slo_slices_total{service="<microservice>",capability_tier="Platinum",state="saturation_free"}[5m]))
+            total:
+              metricSource:
+                type: Prometheus
+                spec:
+                  queryName: platinum-use-saturation-total-slices
+                  query: |
+                    sum(rate(oya_resource_slo_slices_total{service="<microservice>",capability_tier="Platinum"}[5m]))
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-fast-burn-page
+    - alertPolicyRef: oya-canonical-slow-burn-page
+    - alertPolicyRef: oya-canonical-ticket-burn
+    - alertPolicyRef: oya-canonical-budget-exhausted

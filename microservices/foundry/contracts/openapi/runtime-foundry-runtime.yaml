@@ -79,7 +79,7 @@ components:
           type: object
           description: capability-specific input payload
           additionalProperties: true
-        autonomy_tier_declared:
+        autonomy_level_declared:
           type: integer
           minimum: 0
           maximum: 4
@@ -112,7 +112,7 @@ components:
           type: string
           enum: [provider_unreachable, guardrail_block, autonomy_violation, timeout, runtime_drain_lost, descriptor_invalid, internal_error]
           nullable: true
-        autonomy_tier_used: {type: integer, minimum: 0, maximum: 4}
+        autonomy_level_used: {type: integer, minimum: 0, maximum: 4}
         provider_invocation_count: {type: integer}
         guardrail_invocation_count: {type: integer}
         evaluator_version: {type: string}
@@ -139,16 +139,16 @@ components:
         signature: {type: string, description: Ed25519 from tenancy µservice}
     CapabilityDescriptor:
       type: object
-      required: [capability_id, tenant_id, declared_tier, version, signature]
+      required: [capability_id, tenant_id, declared_autonomy_level, version, signature]
       properties:
         capability_id: {type: string}
         tenant_id: {type: string}
-        declared_tier: {type: integer, minimum: 0, maximum: 4}
+        declared_autonomy_level: {type: integer, minimum: 0, maximum: 4}
         version: {type: string}
         purpose_of_use: {type: string}
-        eu_ai_act_class:
+        risk_class:
           type: string
-          enum: [minimal_risk, limited_risk, high_risk_annex_iii, prohibited]
+          enum: [minimal_risk, limited_risk, high_risk_auto_decision, prohibited]
         regulatory_packs_consumed:
           type: array
           items: {type: string}

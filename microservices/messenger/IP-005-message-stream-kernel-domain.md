@@ -50,3 +50,46 @@ cargo run -p oya-dev-cli -- gate validate statelessness --microservice messenger
 ## Next IP
 
 [`IP-006-message-stream-adapters.md`](IP-006-message-stream-adapters.md)
+
+## Wave 15 substance conversion — message stream domain
+
+### §A Problem
+
+Messenger cannot be Slack/Teams-class if message semantics live only in database rows.
+This IP closes the domain gap for message identity, edit windows, reactions, tombstones, and content-hash evidence.
+
+### §B Approach
+
+Define pure kernel ports and domain entities for the message stream before any Postgres, Meilisearch, or Valkey
+adapter code lands.
+The domain owns invariants; adapters persist and broadcast already-validated state.
+
+### §C Deliverables
+
+- `src/crates/oya-messenger-message-stream-kernel/src/{ports,entities,errors}.rs`
+- `src/crates/oya-messenger-message-stream-domain/src/{message,reaction,edit,tombstone,content_hash}.rs`
+- tests for edit-window, tombstone, reaction, and hash invariants
+
+### §D Implementation
+
+1. Model `Message` with tenant, channel/direct-conversation, author, context, body-or-ciphertext, and posted time.
+2. Enforce the 24-hour edit window in the domain layer.
+3. Convert deletes into tombstones while preserving audit metadata and hash.
+4. Hash timestamp, author, channel, and body/ciphertext deterministically.
+5. Reject Personal/Professional context coercion at type boundary.
+6. Expose only ports for store, search index, and realtime broadcaster.
+
+### §E Acceptance
+
+Nextest must prove edit rejection after 24 hours, tombstone body wipe, content hash stability, and no adapter imports
+inside kernel/domain crates.
+
+### §F Evidence
+
+Local anchors: `policy/dual-context-isolation.md`, `policy/personal-dm-scope.cedar`,
+`policy/tenant-scope.cedar`, `slos/message-send-latency.openslo.yaml`.
+
+### §G Counterparts
+
+Slack and Teams anchor edit/delete expectations, Discord anchors high-volume reactions, and Matrix anchors event
+immutability; oyatie closes parity with stronger content-hash/audit semantics.

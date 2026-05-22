@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-Quantitative + qualitative parity comparison vs the industry-leading SLO-centric observability products. Drives the `oya-foundry-fitness-hyperscaler-maturity-claims` gate (per ADR-0123 HG-OBS) and tells gtm-customer-success what to say + what NOT to say in tenant sales conversations. Re-validated bi-annually because the competitor landscape moves.
+Quantitative + qualitative parity comparison vs the industry-leading SLO-centric observability products. Drives the `oya-governance-hyperscaler-maturity-claims` gate (per ADR-0123 HG-OBS) and tells gtm-customer-success what to say + what NOT to say in tenant sales conversations. Re-validated bi-annually because the competitor landscape moves.
 
 ## Competitor Set
 

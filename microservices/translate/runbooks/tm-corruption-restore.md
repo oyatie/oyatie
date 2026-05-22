@@ -103,7 +103,7 @@ After restore:
 ## Post-Incident
 
 - Postmortem within 5 business days.
-- If FM-10 root cause = hardware: extend Postgres replication tier; consider RF-3 base storage.
+- If FM-10 root cause = hardware: extend Postgres replication class; consider RF-3 base storage.
 - If FM-11 frequency: investigate Meilisearch deployment stability; consider upgrade to next LTS.
 - If FM-13: separate P0 cross-tenant breach protocol per `incident-response.md`.
 

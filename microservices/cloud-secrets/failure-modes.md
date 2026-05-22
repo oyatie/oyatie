@@ -157,7 +157,7 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 
 ## FM-09 — Cross-pack secret-replication attempt (residency breach)
 
-- **Description**: A workflow or operator attempts to write a secret created in pack-A into pack-B's OpenBao (e.g., via a misconfigured BYOK upload routing).
+- **Description**: A workflow or operator attempts to write a secret created in pack-A into pack-B's OpenBao (e.g., via a misconfigured encryption-key BYOK upload routing, ADR-0251 §D-10).
 - **Trigger**: pack-routing.cedar mis-author, operator mistake, malicious insider.
 - **Detection**: Cedar deny on `pack-routing.cedar`; audit-emit `cross_pack_write_attempt`; alert.
 - **Blast radius**: residency contract breach — would be regulatory Sev-1 if successful; intercepted at policy layer makes it Sev-2.

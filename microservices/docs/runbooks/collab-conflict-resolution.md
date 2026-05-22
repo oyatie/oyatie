@@ -41,7 +41,7 @@ ONE of:
 
 1. Identify affected (tenant_id, document_id): query `kubectl -n docs logs -l app=oya-docs-collab-crdt-worker --tail=500 | grep <tenant_id>` OR Grafana dashboard `dashboards/collab-health.json` filtered to that tenant.
 2. Identify CRDT op stream window: read `oya_docs_collab_op_stream_seq` for the (tenant, document) bracket.
-3. Verify Valkey lease integrity: `kubectl -n docs exec <redis-pod> -- redis-cli HGETALL "lease:tenant:<tenant_hash>:doc:<doc_id>"`.
+3. Verify Valkey lease integrity: `kubectl -n docs exec <valkey-pod> -- valkey-cli HGETALL "lease:tenant:<tenant_hash>:doc:<doc_id>"`.
 4. Verify Postgres seal-delta is current: `SELECT version_sha, sealed_at FROM document_seals WHERE tenant_id = <h> AND document_id = <d> ORDER BY sealed_at DESC LIMIT 5`.
 
 ## Recovery Path A — Explicit conflict UI shown; users reconcile in-product
@@ -86,7 +86,7 @@ Cause: two WS gateway pods both claim ownership of the same (tenant, document_id
 
 | Step | Action |
 |---|---|
-| 1 | Verify lease object: `kubectl exec <redis> -- redis-cli HGETALL lease:tenant:<h>:doc:<d>` — check `owner_pod_id` + `acquired_at`. |
+| 1 | Verify lease object: `kubectl exec <valkey> -- valkey-cli HGETALL lease:tenant:<h>:doc:<d>` — check `owner_pod_id` + `acquired_at`. |
 | 2 | If two pods present: kill the older lease-holder pod (force-delete) to break split-brain. |
 | 3 | Verify only one pod fans out ops for next 5 min. |
 | 4 | If recurring: investigate Valkey Sentinel failover OR clock skew across WS gateway nodes. |

@@ -63,7 +63,7 @@
     "ci_lanes_enforced": [
       "oya-governance-mimir-tenancy-enforced",
       "oya-governance-mimir-no-wildcard-query",
-      "oya-foundry-fitness-cedar-fragment-coverage",
+      "oya-governance-cedar-fragment-coverage",
       "oya-governance-retention-conformance",
       "oya-governance-pack-routing-conformance"
     ],

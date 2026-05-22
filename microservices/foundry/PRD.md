@@ -34,9 +34,9 @@ The six internal BCs are:
 |---|---|---|
 | `runtime` | Hosts agent invocation, session state, capability execution, runtime pool | tenant-facing SDK + REST + gRPC |
 | `supervisor` | Fleet lifecycle, capability deployment, kill-switch, autonomy enforcement, supervision event bus | internal control plane + ops portal |
-| `eval` | Eval harness, parity analysis, replay determinism, golden-output store | dev + tenant SDK |
+| `eval` | Eval harness, parity analysis, replay determinism, baseline-output store | dev + tenant SDK |
 | `evidence` | Capability-invocation recording, evidence-pack assembly, regulator export, audit-chain bridge | internal + regulator surface |
-| `guardrails` | Prompt classification, output validation, autonomy-tier gate, content safety, jailbreak detection, AI-slop detection | inline in runtime hot path |
+| `guardrails` | Prompt classification, output validation, autonomy-ceiling gate, content safety, jailbreak detection, AI-slop detection | inline in runtime hot path |
 | `providers` | LLM-provider router + adapters (Anthropic API+Subscription, OpenAI API+Subscription, Gemini API+Subscription, in-house, OpenBao credential isolation) | runtime-internal + ops portal |
 
 Per ADR-0137 (foundry bounded contexts), each BC owns its own contract surface,
@@ -58,7 +58,7 @@ Per the six BCs:
   required.
 - **Session-coherent multi-turn agents** (runtime BC) — Sessions persist
   across turn boundaries with per-tenant Redis-backed isolation.
-- **Autonomy-tier-gated execution** (runtime + guardrails + supervisor BCs) —
+- **Autonomy-ceiling-gated execution** (runtime + guardrails + supervisor BCs) —
   Tenant capabilities declare an ADR-0022 autonomy tier (T0–T4); execution
   outside authorised ceiling refuses with audit emission.
 - **Substrate uniformity** — Every oyatie product invoking agents goes through
@@ -66,7 +66,7 @@ Per the six BCs:
 - **Capability deployment + kill-switch** (supervisor BC) — Tenants deploy and
   emergency-disable capability fleets without per-pod intervention.
 - **Reproducible offline evaluation** (eval BC) — Tenants run capability evals
-  against golden outputs with provider-parity comparison.
+  against baseline outputs with provider-parity comparison.
 - **Audit-chain-grade evidence** (evidence BC) — Every invocation emits
   Ed25519+Merkle-sealed evidence; regulator exports assemble compliance packs
   on demand.
@@ -110,11 +110,11 @@ Per-BC FRs (consult the bc-sources archive for the full matrix):
 - `bc-sources/supervisor/PRD.md` — fleet lifecycle, capability deployment,
   kill-switch, autonomy policy enforcement, supervision event bus.
 - `bc-sources/eval/PRD.md` — eval runner, parity analysis, replay
-  determinism, golden-output store.
+  determinism, baseline-output store.
 - `bc-sources/evidence/PRD.md` — capability-invocation recording, evidence-
   pack builder, regulator export, audit-chain bridge.
 - `bc-sources/guardrails/PRD.md` — prompt classifier, output validator,
-  autonomy-tier gate, content-safety rule engine, jailbreak detector,
+  autonomy-ceiling gate, content-safety rule engine, jailbreak detector,
   AI-slop detector.
 - `bc-sources/providers/PRD.md` — provider router, Anthropic/OpenAI/Gemini
   API+Subscription adapters, in-house adapter, OpenBao credential adapter.
@@ -222,7 +222,7 @@ Crate families:
 
 - `oya-foundry-guardrails-prompt-classifier-{kernel,rest,app}`
 - `oya-foundry-guardrails-output-validator-kernel`
-- `oya-foundry-guardrails-autonomy-tier-gate-{kernel,adapter-cedar}`
+- `oya-foundry-guardrails-autonomy-ceiling-gate-{kernel,adapter-cedar}`
 - `oya-foundry-guardrails-content-safety-rule-engine-{kernel,adapter-postgres}`
 - `oya-foundry-guardrails-jailbreak-detector-{kernel,adapter-classifier-model}`
 - `oya-foundry-guardrails-ai-slop-detector-kernel`
@@ -273,7 +273,7 @@ No direct cross-product crate dependency.
 Per BC; consult `bc-sources/<bc>/PRD.md §"Ontology writes/reads"` for full
 matrix. Cross-BC objects: `Invocation`, `Session`, `RuntimePod` (runtime BC
 owns) link to `Capability`, `CapabilityDescriptor`, `CapabilityVersion`
-(supervisor BC owns) and `EvalSet`, `EvalRun`, `GoldenOutput` (eval BC owns).
+(supervisor BC owns) and `EvalSet`, `EvalRun`, `BaselineOutput` (eval BC owns).
 
 ## Competitive Benchmark
 
@@ -313,7 +313,7 @@ See per-BC `bc-sources/<bc>/PRD.md §"Performance Targets"`. Aggregate envelope:
 |---|---|---|---|
 | runtime | stateless-compatible executor + Redis-shardable session-state | Valkey | Postgres |
 | supervisor | stateless-compatible commands + Postgres fleet-state | — | Postgres |
-| eval | stateless-compatible runner + ClickHouse parity store | — | ClickHouse + S3 (golden) |
+| eval | stateless-compatible runner + ClickHouse parity store | — | ClickHouse + S3 (baseline) |
 | evidence | stateless-compatible builder + Postgres index + S3 blob | — | Postgres + S3 |
 | guardrails | stateless inline checkers + Postgres rule store + ONNX classifier | — | Postgres |
 | providers | stateless router + Valkey rate-limit + OpenBao credential | Valkey | OpenBao + Postgres |
@@ -386,3 +386,10 @@ authoritative source for BC-internal contract surfaces, port traits, layer
 maps, data-class annotations, and per-BC acceptance criteria. This top-level
 PRD is the canonical foundry-product surface; the per-BC PRDs are its
 chapters.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.

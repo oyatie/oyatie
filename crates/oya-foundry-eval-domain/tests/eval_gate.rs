@@ -4,7 +4,7 @@
 
 use oya_foundry_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalError, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
-    REQUIRED_LINGUISTIC_COHORTS,
+    REQUIRED_LINGUISTIC_COHORT_LOCALES,
 };
 
 #[test]
@@ -53,7 +53,7 @@ fn eval_set_requires_signature_adversarial_and_linguistic_coverage() {
     let mut missing_locale = valid_eval_set("cap.demo.locale");
     missing_locale
         .cases
-        .retain(|case| case.locale != REQUIRED_LINGUISTIC_COHORTS[1]);
+        .retain(|case| case.locale != REQUIRED_LINGUISTIC_COHORT_LOCALES[1]);
     assert_eq!(
         EvalGate::default().register_eval_set(missing_locale),
         Err(EvalError::MissingLinguisticCoverage)
@@ -95,9 +95,9 @@ fn eval_run_must_match_thresholds_and_latest_set_version() {
 
 fn valid_eval_set(capability_id: &str) -> EvalSetInput {
     let mut cases = vec![
-        case("case-alpha", REQUIRED_LINGUISTIC_COHORTS[0], None),
-        case("case-beta", REQUIRED_LINGUISTIC_COHORTS[1], None),
-        case("case-gamma", REQUIRED_LINGUISTIC_COHORTS[2], None),
+        case("case-alpha", REQUIRED_LINGUISTIC_COHORT_LOCALES[0], None),
+        case("case-beta", REQUIRED_LINGUISTIC_COHORT_LOCALES[1], None),
+        case("case-gamma", REQUIRED_LINGUISTIC_COHORT_LOCALES[2], None),
     ];
     for (id, kind) in [
         ("adv-prompt", AdversarialKind::PromptInjection),
@@ -105,7 +105,7 @@ fn valid_eval_set(capability_id: &str) -> EvalSetInput {
         ("adv-autonomy", AdversarialKind::AutonomyBypass),
         ("adv-tool", AdversarialKind::ToolExfiltration),
     ] {
-        cases.push(case(id, REQUIRED_LINGUISTIC_COHORTS[0], Some(kind)));
+        cases.push(case(id, REQUIRED_LINGUISTIC_COHORT_LOCALES[0], Some(kind)));
     }
     EvalSetInput {
         capability_id: capability_id.into(),

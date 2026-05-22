@@ -61,7 +61,7 @@ impl Mp4Exporter for FfmpegMp4Exporter {
 ```rust
 #[test]
 fn test_mp4_determinism() {
-    let frames = load_golden_frames("tests/golden/mp4/50-slide-frames/");
+    let frames = load_reference_frames("tests/reference/mp4/50-slide-frames/");
     let exporter = FfmpegMp4Exporter::new(gvisor());
     let out1 = exporter.export(&frames, None).unwrap();
     let out2 = exporter.export(&frames, None).unwrap();

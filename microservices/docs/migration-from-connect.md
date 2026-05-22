@@ -55,7 +55,7 @@ The legacy connect-docs surface was a single bundled domain crate. Per ADR-0131 
 | `oya-connect-docs-collab-usecase` | `oya-docs-collab-crdt-usecase` |
 | `oya-connect-docs-collab-api` | `oya-docs-collab-crdt-api` |
 | `oya-connect-docs-collab-adapter` | `oya-docs-collab-crdt-adapter` (Loro wrapping per ADR-DOCS-0001) |
-| `oya-connect-docs-collab-adapter-redis` | `oya-docs-collab-crdt-adapter-redis` |
+| `oya-connect-docs-collab-adapter-valkey` | `oya-docs-collab-crdt-adapter-valkey` |
 | `oya-connect-docs-collab-worker` | `oya-docs-collab-crdt-worker` |
 | `oya-connect-docs-collab-sdk` | `oya-docs-collab-crdt-sdk` |
 | `oya-connect-docs-collab-app` | `oya-docs-collab-crdt-app` |
@@ -239,7 +239,7 @@ rg "use oya_connect_docs_" --type rust path/to/your/crate    # expect zero hits
 | Export pipeline | Pandoc 2.x in-process | Pandoc 3.x + WeasyPrint default + Chromium-headless opt-in inside gVisor sandbox per ADR-DOCS-0003 |
 | ACL granularity | whole-doc | per-block per ADR-DOCS-0004 |
 | AI writing-assist | none | T0/T1/T2 capability tier per ADR-DOCS-0005 |
-| DOCX import fidelity | unbounded (could silently lose features) | best-effort tier with named edge-case matrix per ADR-DOCS-0006 |
+| DOCX import fidelity | unbounded (could silently lose features) | best-effort fidelity with named edge-case matrix per ADR-DOCS-0006 |
 
 ## Dual-context isolation invariant (preserved + strengthened)
 
@@ -312,7 +312,7 @@ Per the deprecation-and-migration skill, every deprecation closeout must satisfy
   ```
 - [ ] **No references to the deprecated system remain in the codebase** (excluding historical ADR / RETIRED.md / git-log surfaces):
   ```bash
-  rg "oya_connect_docs" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/golden/"    | wc -l   # expect 0
+  rg "oya_connect_docs" --type rust    | rg -v "docs/decisions/|RETIRED.md|tests/reference/"    | wc -l   # expect 0
   ```
 - [ ] **Deprecation notices removed (they served their purpose)** (per Phase 5):
   ```bash

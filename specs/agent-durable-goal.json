@@ -78,7 +78,7 @@
         "canonical_artifacts": [
           "PR vs dev",
           "branch-pipeline: dev → staging → production",
-          "registry/release/* + oya-foundry-fitness-* lanes",
+          "registry/release/* + oya-governance-* lanes",
           ".github/workflows/promote-dev-to-staging.yml + promote-staging-to-production.yml"
         ],
         "entry_gate": "PR opened from dev phase; first CI lane run started",
@@ -199,7 +199,7 @@
       "id": "OP-01",
       "name": "no_silent_regression",
       "rule": "Public contracts protected. Any breaking change requires ADR + version bump + sunset clause + BREAKING marker in CHANGELOG. Internal callers swept in same PR.",
-      "planned_enforcement_refs": ["oya-foundry-fitness-lean-a10"], "enforced_by": ["oya-foundry-fitness-api-semver"],
+      "planned_enforcement_refs": ["oya-governance-lean-a10"], "enforced_by": ["oya-governance-api-semver"],
       "references": ["feedback_no_silent_regression"]
     },
     {
@@ -230,7 +230,7 @@
     {
       "id": "OP-06",
       "name": "doc_coverage_enforced",
-      "rule": "µservice introduction triggers PRD + BoundedContext + Phase-Spec + ImplementationPlan + ADR refs. CI-enforced via oya-foundry-fitness-doc-catalog. Phase not Complete until lane green.",
+      "rule": "µservice introduction triggers PRD + BoundedContext + Phase-Spec + ImplementationPlan + ADR refs. CI-enforced via oya-governance-doc-catalog. Phase not Complete until lane green.",
       "references": ["feedback_doc_coverage_enforced"]
     },
     {
@@ -339,7 +339,7 @@
       "Checks with 0 matches over 30 days → meta_watcher auto-demotes to candidate stage",
       "Checks with false-positive rate >10% → meta_watcher files F-CHECK-FALSE-POSITIVE-RATE-HIGH; auto-throttle to ADVISORY severity",
       "Blind-spot detection: if a check passes 100% of PRs but downstream incidents occur in that area → meta_watcher files F-CHECK-BLIND-SPOT; promotion of a sharper check via lane_promotion_protocol",
-      "Determinism audit lane: oya-foundry-fitness-scorecard-determinism re-runs each check 3× on the same PR; any non-deterministic output = lane failure + automatic check removal"
+      "Determinism audit lane: oya-governance-scorecard-determinism re-runs each check 3× on the same PR; any non-deterministic output = lane failure + automatic check removal"
     ],
     "llm_triage_protocol": "When a deterministic check FAILS, an LLM may be invoked to (a) explain WHY in human-readable form, (b) propose a candidate fix patch. The LLM's output is INPUT to the agent loop, NOT a re-judgment of pass/fail.",
     "spec_path": "specs/score-cards.json — full check inventory + per-check empirical evidence pointers (separate spec file, candidate for next planning round)"
@@ -347,7 +347,7 @@
   "source_driven_contract": {
     "rule": "Every public API change MUST cite the authoritative documentation source (URL + commit hash or version tag + accessed-date) in the PR body OR in an ADR referenced from the PR body. Implementing against memory or assumption is forbidden.",
     "enforcement": {
-      "lane": "oya-foundry-fitness-source-citation",
+      "lane": "oya-governance-source-citation",
       "lane_category": "pre_merge_critical (BLOCKER)",
       "trigger_when": "blast_radius_score.S1 (public_api_touched) == true",
       "deterministic_check": "regex match for /Source:\\s+https?:\\/\\/[^\\s]+ \\(commit:[a-f0-9]+|version:[\\w.-]+, accessed:\\d{4}-\\d{2}-\\d{2}\\)/ in PR body OR linked ADR; followed by URL HEAD-check (status 200)",
@@ -363,7 +363,7 @@
     "enforcement": {
       "trigger": "T1+ dispatch (per review_tiering.tiers)",
       "mechanism": "autonomous_foundry.roles.critic must run with fresh_context: true — no prior conversation context; loaded with the diff + the load-bearing assumption identified by the author + the spec_contract acceptance_criteria",
-      "deterministic_check": "evidence/debate/<change_id>-critic-r1.json must declare {load_bearing_assumption: '...', adversarial_findings: [...], severity_assessment: '...', cross_vendor_confirmation: true}; lane oya-foundry-fitness-doubt-driven-trace asserts presence + cross-vendor distinctness",
+      "deterministic_check": "evidence/debate/<change_id>-critic-r1.json must declare {load_bearing_assumption: '...', adversarial_findings: [...], severity_assessment: '...', cross_vendor_confirmation: true}; lane oya-governance-doubt-driven-trace asserts presence + cross-vendor distinctness",
       "lane_failure_action": "PR cannot merge until critic evidence file present + cross-vendor distinct from author"
     },
     "anti_pattern_caught": "author-marks-own-work-as-good. Critic must be different vendor; critic prompted explicitly as 'find what's wrong'; critic gets token-budget credit ONLY on findings filed (per autonomous_foundry.anti_collusion_rules)",
@@ -381,7 +381,7 @@
     ],
     "spec_shape_required_fields": ["$schema", "$id", "_meta.spec_id", "_meta.version", "_meta.status", "_meta.owner_team"],
     "acceptance_criteria_rule": "Every spec carries acceptance_criteria[] where each entry has {id: AC-NNN, given, when, then, test_id (reference to the test that proves it)}.",
-    "test_id_back_link_rule": "Each AC-ID is back-linked from the test that proves it (e.g., `// AC-007` comment in the test file). CI lane oya-foundry-fitness-ac-coverage verifies bidirectional linkage.",
+    "test_id_back_link_rule": "Each AC-ID is back-linked from the test that proves it (e.g., `// AC-007` comment in the test file). CI lane oya-governance-ac-coverage verifies bidirectional linkage.",
     "missing_spec_action": "STOP. Apply confusion_management. Do NOT begin implementation.",
     "references": ["agent-skills:spec-driven-development", "feedback_quality_performance_scalability_bar"]
   },
@@ -403,7 +403,7 @@
       "integration": "domain + usecase layer — exercises adapters with real fixtures; runs in <2s per test",
       "contract": "api/worker boundary — pinned against contracts/*.yaml schemas",
       "e2e": "full pipeline — branch-pipeline rehearsal under cargo nextest e2e profile",
-      "fitness": "oya-foundry-fitness-* lanes — CI-only structural checks"
+      "fitness": "oya-governance-* lanes — CI-only structural checks"
     },
     "coverage_floor": "Per crate: 100% of new public API + 80% of internal branches. No floor on auto-generated code.",
     "references": ["agent-skills:test-driven-development", "superpowers:test-driven-development", "feedback_no_silent_regression"]
@@ -417,13 +417,13 @@
         "criticality": "BLOCKER — PR cannot merge if any fails",
         "fail_policy": "fail-fast (cancel sibling lanes once one fails — no point spending compute)",
         "parallelism": "all in parallel",
-        "lanes": ["cargo-check", "cargo-fmt", "cargo-clippy", "cargo-nextest", "oya-vcs-admission", "oya-foundry-fitness-supply-chain", "oya-foundry-fitness-api-semver", "oya-foundry-fitness-cohesion"]
+        "lanes": ["cargo-check", "cargo-fmt", "cargo-clippy", "cargo-nextest", "oya-vcs-admission", "oya-governance-supply-chain", "oya-governance-api-semver", "oya-governance-cohesion"]
       },
       "pre_merge_advisory": {
         "criticality": "WARN — PR may merge with reviewer override",
         "fail_policy": "report-only",
         "parallelism": "all in parallel",
-        "lanes": ["oya-foundry-fitness-doc-catalog", "oya-governance-protection-context-match", "oya-foundry-fitness-changeset-state-monotonicity"]
+        "lanes": ["oya-governance-doc-catalog", "oya-governance-protection-context-match", "oya-governance-changeset-state-monotonicity"]
       },
       "post_merge_promotion_gate": {
         "criticality": "BLOCKER for promotion to next stage",
@@ -571,7 +571,7 @@
       "description": "Self-replicating quality: agents propose new fitness lanes when drift patterns recur. Lanes start report-only and earn BLOCKER status only after empirical proof.",
       "stages": [
         {"stage": "S1_drift_detected", "trigger": "Same failure mode hits ≥3 PRs in a rolling 30-day window", "action": "lane_emitter role files registry/fitness-lane-candidates/<id>.json with drift signature + suggested rule + suggested CI invocation"},
-        {"stage": "S2_candidate_lane", "trigger": "Candidate created", "action": "Lane is implemented as oya-foundry-fitness-<id> with criticality: REPORT_ONLY. Runs on every PR for ≥30 days. Records every match without blocking."},
+        {"stage": "S2_candidate_lane", "trigger": "Candidate created", "action": "Lane is implemented as oya-governance-<id> with criticality: REPORT_ONLY. Runs on every PR for ≥30 days. Records every match without blocking."},
         {"stage": "S3_empirical_evidence", "trigger": "Lane records ≥3 distinct PRs where its rule would have prevented a finding caught by another lane / facet / incident", "action": "Auto-emit promotion ADR + PR amending registry/fitness-lanes/INDEX.md + lane definition; promotion through full pipeline"},
         {"stage": "S4_BLOCKER", "trigger": "Promotion PR merged", "action": "Lane becomes BLOCKER under pre_merge_critical category"},
         {"stage": "S5_retire", "trigger": "Lane has zero matches over 180-day window AND the originating drift pattern is no longer possible (e.g., code structure changed)", "action": "Auto-emit retirement ADR through full pipeline; lane removed via tombstone per ADR-0118 retirement pattern"}
@@ -621,6 +621,7 @@
       "protocol_step_5": "If quorum cannot converge after 48h wall-clock: leave the case OPEN in registry/incidents/open/; file F-OPEN-INCIDENT-COMPOUNDING for the next planning round to weight as priority input"
     },
     "hermes_research_integration": {
+      "_naming_note": "Key name retained for cross-reference continuity to evidence/autoresearch/. The 'Hermes' canonical-primitive name is RETIRED per ADR-0247 D-10 + ADR-0335 D-26..D-36; this block references the EXTERNAL repo NousResearch/hermes-agent as a research-provenance citation only (allowed per ADR-0335 D-30 historical-citation policy). The internal Hermes pipeline brand is RETIRED.",
       "evidence_path": "evidence/autoresearch/hermes-integration-candidates.json",
       "source_commit": "NousResearch/hermes-agent@a91a57fa5a13d516c38b07a141a9ce8a3daabeb0",
       "adopted_patterns": [

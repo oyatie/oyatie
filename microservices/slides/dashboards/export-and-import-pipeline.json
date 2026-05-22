@@ -104,7 +104,7 @@
       "gridPos": { "x": 12, "y": 20, "w": 12, "h": 6 }
     },
     {
-      "title": "PPTX round-trip subset fidelity (golden corpus drill)",
+      "title": "PPTX round-trip subset fidelity (reference corpus drill)",
       "type": "stat",
       "datasource": "prometheus",
       "targets": [

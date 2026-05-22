@@ -88,3 +88,6 @@ cargo run -p oya-dev-cli -- gate validate data-class-coverage --microservice doc
 - ADR-0105 (13-layer enum); ADR-0106 (usecase rename); ADR-0131.
 - ADR-DOCS-0004 (per-block ACL; entity shape).
 - PRD-docs §"Bounded Contexts" + §"Port traits declared in each kernel".
+
+## Wave 15 counterpart anchor
+- Counterpart baseline: Google Docs, Microsoft Word Online, Notion, Coda, Quip, and GitHub define the docs-service parity envelope; this IP must close its slice with tenant-scoped policy, audit, and rollback evidence.

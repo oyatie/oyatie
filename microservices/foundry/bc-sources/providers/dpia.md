@@ -137,7 +137,7 @@ This is the **central DPIA concern** for foundry-providers: provider calls send 
 | Vendor data-breach exposes prompt content | Low | High | Medium | Vendor sub-processor DPA + breach-notification chain |
 | Cross-pack data exfil via mis-routing | Low | High | Medium | Residency-aware router (T-08 mitigations) |
 | Credential leak in chat / logs / git | Low | Critical | High | `oya-foundry-providers-credential-isolation` lane (T-01 mitigations) |
-| In-house-model regression causes incorrect tool/decision output | Medium | Medium | Medium | Golden-set parity + burn-rate auto-rollback |
+| In-house-model regression causes incorrect tool/decision output | Medium | Medium | Medium | Baseline-set parity + burn-rate auto-rollback |
 | Tool-call exfil attempt | Low | High | Medium | Adapter never executes tools; `cell` Cedar gate |
 | EU AI Act non-disclosure (Art. 50) | Medium | Medium | Medium | Per-call disclosure record schema |
 
@@ -151,7 +151,7 @@ This is the **central DPIA concern** for foundry-providers: provider calls send 
 | Vendor breach | Rotation runbook + breach-notification chain | ops-security | runbooks/credential-rotation.md |
 | Cross-pack exfil | Residency-aware router + per-pack policy | axis-foundry | policy/data-residency.md + `residency-conformance` lane |
 | Credential leak | OpenBao isolation + LEAN lane + `ResolvedCredential` opaque type | ops-security | credential-isolation.md + lean lane |
-| In-house regression | Burn-rate auto-rollback + canary cohort + golden set | axis-foundry | observability/PHASE-01 + IP-012 |
+| In-house regression | Burn-rate auto-rollback + canary cohort + baseline set | axis-foundry | observability/PHASE-01 + IP-012 |
 | Tool exfil | Adapter no-execute + Cedar gate at `cell` | council-privacy | adapter-impl + cell policy |
 | EU AI Act non-disclosure | Per-call disclosure event | council-privacy | contracts/asyncapi/provider-events.yaml |
 

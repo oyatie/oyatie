@@ -117,3 +117,9 @@ cargo run -p oya-dev-cli -- gate validate data-class --crate oya-foundry-supervi
 - ADR-0056 BNF v4.1; ADR-0105 13-layer enum; ADR-0131 §"Foundry split".
 - PRD §"Bounded Contexts" port-trait table.
 - Bominal ADR-0028 (data-class taxonomy).
+
+## Wave 15 counterpart anchor
+
+- Counterparts: Palantir AIP Operator, Azure AI Foundry deployments, and GitHub merge-queue controls.
+- Gap closure: this IP closes fleet control, kill-switch propagation, and deployability evidence with tenant-scoped policy enforcement.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

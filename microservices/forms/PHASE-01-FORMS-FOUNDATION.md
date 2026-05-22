@@ -56,7 +56,7 @@ All of:
 | Adapter layers (IP-006..IP-009) | ≥ 80% line coverage; contract tests vs counterpart µservice | mock the counterpart in unit tests; integration in e2e |
 | REST surface (IP-010..IP-012) | OpenAPI conformance ≥ 100%; round-trip on every endpoint | k6 load test before promotion |
 | Worker (IP-013..IP-014) | property tests on idempotency + dead-letter | chaos test on bulk-distribute |
-| App (IP-015) | end-to-end smoke; pack-kr launch tenant | golden-path + 5 failure-mode scenarios |
+| App (IP-015) | end-to-end smoke; pack-kr launch tenant | reference-path + 5 failure-mode scenarios |
 
 ## Per-IP Sequence
 
@@ -68,7 +68,7 @@ All of:
 | IP-004 | Validation engine (per-field + cross-field; JSON Schema bridge) | domain |
 | IP-005 | Versioning + ChangeSet binding (ADR-0110) | domain |
 | IP-006 | Postgres adapter (Citus shard; column-level envelope encryption per ADR-FORMS-0003) | adapter |
-| IP-007 | Valkey adapter (Redis wire-compat) (rate-limit + session) | adapter |
+| IP-007 | Valkey adapter (RESP3 wire-compatible) (rate-limit + session) | adapter |
 | IP-008 | Meilisearch adapter (response search) | adapter |
 | IP-009 | Captcha adapter (hCaptcha + Turnstile + Friendly Captcha) | adapter |
 | IP-010 | Form-builder Leptos-WASM (authoring UI) | app/frontend |

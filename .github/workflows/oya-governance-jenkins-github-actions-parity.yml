@@ -1,0 +1,122 @@
+name: Oya Governance - Jenkins / GitHub Actions parity
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/pr-tests.yml"
+      - ".github/workflows/oya-pr-tests.yml"
+      - ".github/workflows/oya-governance-jenkins-github-actions-parity.yml"
+      - "microservices/**/ci/Jenkinsfile"
+      - "microservices/**/iac/k8s/helm/**"
+  push:
+    branches:
+      - dev
+      - post-merge-2026-05-18
+    paths:
+      - ".github/workflows/pr-tests.yml"
+      - ".github/workflows/oya-pr-tests.yml"
+      - ".github/workflows/oya-governance-jenkins-github-actions-parity.yml"
+      - "microservices/**/ci/Jenkinsfile"
+      - "microservices/**/iac/k8s/helm/**"
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    name: ADR-0349 Jenkins/GitHub Actions lane parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Refuse CI matrix drift
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_workflow=".github/workflows/oya-pr-tests.yml"
+          if [[ ! -f "$source_workflow" ]]; then
+            source_workflow=".github/workflows/pr-tests.yml"
+          fi
+          if [[ ! -f "$source_workflow" ]]; then
+            echo "Missing GitHub Actions PR test workflow source" >&2
+            exit 1
+          fi
+
+          required_workflow_commands=(
+            "cargo fmt --all -- --check"
+            "cargo check --workspace"
+            "cargo clippy --workspace"
+            "cargo nextest run --workspace"
+            "oya-foundry-vcs-admission-gate-app"
+          )
+
+          failures=()
+          for command in "${required_workflow_commands[@]}"; do
+            if ! grep -Fq "$command" "$source_workflow"; then
+              failures+=("$source_workflow is missing lane: $command")
+            fi
+          done
+
+          services=()
+          while IFS= read -r service; do
+            services+=("$service")
+          done < <(find microservices -mindepth 2 -maxdepth 2 -name manifest.json -print \
+            | sed 's#^microservices/##; s#/manifest.json$##' \
+            | grep -v '^foundry$' \
+            | sort)
+
+          required_jenkins_commands=(
+            "cargo fmt --all -- --check"
+            "cargo check -p"
+            "cargo clippy -p"
+            "cargo nextest run -p"
+            "oya-foundry-vcs-admission-gate-app"
+            "evidence/ci/jenkins"
+          )
+
+          required_helm_files=(
+            Chart.yaml
+            values.yaml
+            templates/deployment.yaml
+            templates/service.yaml
+            templates/configmap.yaml
+            templates/cedar.yaml
+          )
+
+          for service in "${services[@]}"; do
+            jenkinsfile="microservices/${service}/ci/Jenkinsfile"
+            if [[ ! -f "$jenkinsfile" ]]; then
+              failures+=("${service}: missing ci/Jenkinsfile")
+            else
+              for command in "${required_jenkins_commands[@]}"; do
+                if ! grep -Fq "$command" "$jenkinsfile"; then
+                  failures+=("${service}: Jenkinsfile missing lane/evidence marker: $command")
+                fi
+              done
+            fi
+
+            helm_dir="microservices/${service}/iac/k8s/helm"
+            for file in "${required_helm_files[@]}"; do
+              if [[ ! -f "${helm_dir}/${file}" ]]; then
+                failures+=("${service}: missing Helm file ${file}")
+              fi
+            done
+
+            if [[ -f "${helm_dir}/templates/deployment.yaml" ]]; then
+              grep -Fq "cosign.sigstore.dev/required" "${helm_dir}/templates/deployment.yaml" || failures+=("${service}: Helm deployment missing cosign requirement")
+              grep -Fq "runtimeClassName" "${helm_dir}/templates/deployment.yaml" || failures+=("${service}: Helm deployment missing runtimeClassName")
+            fi
+          done
+
+          if (( ${#failures[@]} > 0 )); then
+            printf 'ADR-0349 parity drift detected:
+' >&2
+            printf ' - %s
+' "${failures[@]}" >&2
+            exit 1
+          fi
+
+          printf 'ADR-0349 parity OK: %s microservices mirrored from %s
+' "${#services[@]}" "$source_workflow"

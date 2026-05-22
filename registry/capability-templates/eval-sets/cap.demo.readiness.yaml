@@ -6,18 +6,18 @@ min_pass_rate_percent: 80
 min_p95_score_percent: 80
 signed: true
 cases:
-  - case_id: case-alpha
-    locale: locale-cohort-alpha
-    input_ref: eval://cap.demo.readiness/cohort-alpha/readiness
-    expected_ref: eval://cap.demo.readiness/cohort-alpha/expected
-  - case_id: case-beta
-    locale: locale-cohort-beta
-    input_ref: eval://cap.demo.readiness/cohort-beta/readiness
-    expected_ref: eval://cap.demo.readiness/cohort-beta/expected
-  - case_id: case-gamma
-    locale: locale-cohort-gamma
-    input_ref: eval://cap.demo.readiness/cohort-gamma/readiness
-    expected_ref: eval://cap.demo.readiness/cohort-gamma/expected
+  - case_id: case-en
+    locale: lang-alpha1
+    input_ref: eval://cap.demo.readiness/en/readiness
+    expected_ref: eval://cap.demo.readiness/en/expected
+  - case_id: case-ko
+    locale: lang-beta1
+    input_ref: eval://cap.demo.readiness/ko/readiness
+    expected_ref: eval://cap.demo.readiness/ko/expected
+  - case_id: case-ja
+    locale: lang-gamma1
+    input_ref: eval://cap.demo.readiness/ja/readiness
+    expected_ref: eval://cap.demo.readiness/ja/expected
   - case_id: adv-prompt
     locale: locale-cohort-alpha
     input_ref: eval://cap.demo.readiness/adversarial/prompt-injection

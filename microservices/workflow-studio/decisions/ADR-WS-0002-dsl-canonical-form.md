@@ -14,7 +14,7 @@ related_artifacts:
   - microservices/workflow-studio/PRD.md (AC-02, FR-04, FR-05, FR-06)
   - microservices/workflow-studio/IP-003-dsl-emitter-loader-kernel-domain.md
   - microservices/workflow-engine/PRD.md (spec-store boundary)
-purpose: Resolve the canonical serialization shape of workflow_spec.v1.json so that AC-02 round-trip byte-equality (load(emit(load(spec))) == spec) holds for 100% of the golden corpus at GA.
+purpose: Resolve the canonical serialization shape of workflow_spec.v1.json so that AC-02 round-trip byte-equality (load(emit(load(spec))) == spec) holds for 100% of the reference corpus at GA.
 doc_status: published
 ---
 
@@ -30,7 +30,7 @@ Accepted — 2026-05-17.
 
 ## Context
 
-PRD §"Functional Requirements" FR-04 (Studio emits `workflow_spec.v1.json` on save), FR-05 (Studio loads the same spec format and renders semantically identical visual), FR-06 (round-trip byte-equality), AC-02 (100% byte-equality over a 100-spec golden corpus at GA) collectively make the spec's canonical serialization form a load-bearing invariant. The workflow-engine µservice consumes the same spec format; engine + studio + git-PR hand-edits MUST all produce byte-identical output for semantically equivalent specs.
+PRD §"Functional Requirements" FR-04 (Studio emits `workflow_spec.v1.json` on save), FR-05 (Studio loads the same spec format and renders semantically identical visual), FR-06 (round-trip byte-equality), AC-02 (100% byte-equality over a 100-spec reference corpus at GA) collectively make the spec's canonical serialization form a load-bearing invariant. The workflow-engine µservice consumes the same spec format; engine + studio + git-PR hand-edits MUST all produce byte-identical output for semantically equivalent specs.
 
 This is uncommon for visual authoring tools. The competitor parity matrix (`competitor-parity-matrix.md` §"Visual authoring core") documents: n8n, Zapier, Workato, Make, Power Automate, Foundry Pipeline Builder, Retool, Tines, Step Functions Studio all fail this property. Camunda's BPMN XML is partial. **Round-trip byte-equality is oyatie's unique differentiator** (per `competitor-parity-matrix.md` §"Key oyatie Differentiators" #1). The serialization choice determines whether the invariant is achievable structurally or merely aspirational.
 
@@ -69,7 +69,7 @@ Adopt **RFC 8785 (JSON Canonicalization Scheme, JCS)** as the canonical serializ
 ### CI lane enforcement
 
 `oya-governance-workflow-spec-roundtrip` (per PHASE-01 IP-003 + IP-015) executes:
-1. Load each spec in the 100-spec golden corpus.
+1. Load each spec in the 100-spec reference corpus.
 2. Emit through dsl-emitter using the workflow-studio JCS profile.
 3. Assert byte-equal to the corpus input.
 4. Repeat with a property-test fuzzer that mutates valid specs and asserts canonical-form determinism (load → emit → load → emit → byte-equal).
@@ -147,7 +147,7 @@ The path of least resistance: keep using standard `serde_json` but add a thin wr
 
 ### Downstream impact on other µservices and IPs
 
-1. **IP-003 (dsl-emitter/dsl-loader kernel + domain)** — adopts `serde_jcs`; round-trip property test + 100-spec golden corpus authored here; `oya-governance-workflow-spec-roundtrip` lane wired BLOCKER on dev.
+1. **IP-003 (dsl-emitter/dsl-loader kernel + domain)** — adopts `serde_jcs`; round-trip property test + 100-spec reference corpus authored here; `oya-governance-workflow-spec-roundtrip` lane wired BLOCKER on dev.
 2. **workflow-engine µservice** — spec-store accepts only canonical-form bytes; non-canonical submission is a 400 with a precise diagnostic; engine validates JCS conformance on receive.
 3. **tenancy µservice** — Cedar policies that read spec fields receive canonical-form bytes; entity-encoded for Cedar evaluation deterministically.
 4. **observability µservice** — `definition_saved` events carry `version_sha = sha256(canonical_bytes)`; this enables cross-region replay verification.

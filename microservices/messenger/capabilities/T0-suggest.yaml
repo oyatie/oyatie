@@ -92,7 +92,7 @@ pack_overrides:
     disabled_for_phi_channels: true
     reason: HIPAA 45 CFR §164.514 Safe Harbour — no derived inferences over PHI
   pack-eu:
-    eu_ai_act_classification: minimal_risk
+    risk_classification: minimal_risk
     transparency_obligation: must-label-as-AI-suggested per EU AI Act Art. 50
   pack-kr:
     kr_pipa_art28_consent: tenant-admin-opt-in required
@@ -111,7 +111,7 @@ cedar_policy_fragments:
   - microservices/messenger/policy/tenant-scope.cedar
 
 eval_set:
-  golden_inputs_path: microservices/messenger/capabilities/eval/t0-suggest-golden.jsonl
+  reference_inputs_path: microservices/messenger/capabilities/eval/t0-suggest-reference.jsonl
   pass_threshold: 0.90
   eval_metric: reply-suggestion-relevance vs human-rater baseline; mention-hint precision@1
   cadence: per-release

@@ -61,7 +61,7 @@ spec:
     # Valkey for availability-resolver cache
     - to:
         - podSelector:
-            matchLabels: {app.kubernetes.io/name: oya-calendar-redis}
+            matchLabels: {app.kubernetes.io/name: oya-calendar-valkey}
       ports: [{port: 6379, protocol: TCP}]
     # mail µservice for invitation bridge
     - to:

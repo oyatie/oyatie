@@ -104,7 +104,7 @@ This team owns Oyatie's advertising platform and the analytics infrastructure th
 ## Slice of risk register
 | Risk | Severity | Mitigation |
 |---|---|---|
-| PHI/PCI enters ad-targeting signal via unclassified data path | Catastrophic | `oya-foundry-fitness-data-use-boundary` CI gate; all new targeting signals require privacy-council review |
+| PHI/PCI enters ad-targeting signal via unclassified data path | Catastrophic | `oya-governance-data-use-boundary` CI gate; all new targeting signals require privacy-council review |
 | Ads axis monetizes healthcare/fintech tenant data | Catastrophic | Vertical-specific forced override in Data Use Boundary ADR; CI gate |
 | Auction latency spike degrades SERP UX | High | Cell-local auction; backpressure; admission control |
 | KR adtech regulatory change not caught before launch | Medium | Monthly regulatory-change watch lane (`ops-compliance`); regional-pack `ad_policy_gate` seam |

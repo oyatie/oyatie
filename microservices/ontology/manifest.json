@@ -3,10 +3,17 @@
   "microservice": "ontology",
   "version": "0.1.0",
   "owner": "axis-ontology",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+
+  ],
   "bounded_contexts": [
     {
-      "name": "unknown",
-      "description": "Bounded context 'unknown'",
+      "name": "ontology-substrate",
+      "description": "Typed ontology substrate spanning object/link/action/function registries, entity store, function/action/query engines, agent gateway, audit-chain, and pillar enforcement contexts.",
       "crates": [
         "oya-ontology-action-engine-usecase",
         "oya-ontology-agent-gateway-rest",
@@ -49,19 +56,19 @@
       "tier": "T1",
       "name": "cedar-evaluate",
       "file": "microservices/ontology/capabilities/cedar-evaluate.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "query-execute",
       "file": "microservices/ontology/capabilities/query-execute.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "type-register",
       "file": "microservices/ontology/capabilities/type-register.yaml",
-      "eu_ai_act_risk_class": "minimal"
+      "risk_class": "minimal"
     }
   ],
   "slos": [
@@ -301,7 +308,7 @@
   "hyperscaler_inv_coverage": {
     "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
     "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
     "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
@@ -341,5 +348,213 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "ontology is a BNF v4.1 kebab-case microservice slug; generated names follow oya-ontology-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "soc2-type2",
+    "lgpd",
+    "soc2",
+    "iso27001",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5",
+    "DORA"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "owner_team": "axis-ontology",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "soc2-type2",
+    "lgpd",
+    "soc2",
+    "iso27001",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5",
+    "DORA"
+  ],
+  "depends_on_microservices": [
+    "calendar",
+    "audit-chain",
+    "cell",
+    "marketplace",
+    "tenancy",
+    "identity",
+    "observability",
+    "network",
+    "intelligence",
+    "workflow-studio",
+    "mail",
+    "notes",
+    "social",
+    "detection",
+    "cloud-iac",
+    "governance"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T1",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.24,
+    "baseline_ram_per_tenant": 512,
+    "storage_per_tenant": 10,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 5,
+      "outbound_http": 6
+    },
+    "scaling_dimension": "per_query",
+    "cell_placement_class": "Tier-1",
+    "notes": "Entity graph reads, projection queries, and history mirrors scale primarily with query and projection load."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 900,
+    "rpo_p99_seconds": 60,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "clickhouse_iceberg_layered",
+      "audit_chain_merkle_seal",
+      "openbao_seal_unseal"
+    ],
+    "failover_runbook": "runbooks/postgres-citus-rebalance.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Ontology stores tenant entity graphs, links, histories, and agent-facing projections. It does not run tenant code, but it is a tenant-data-touching substrate and therefore requires Tier 1 runtime isolation.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/ontology/PRD.md",
+    "microservices/ontology/ARCHITECTURE.md",
+    "microservices/ontology/IP-004-entity-store-rls-citus.md",
+    "microservices/ontology/IP-010-audit-chain-merkle-ed25519.md",
+    "microservices/ontology/runbooks/postgres-citus-rebalance.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [
+      {
+        "version": "2025-11-21",
+        "deprecated_at": "2026-05-21",
+        "sunset_at": "2026-11-21",
+        "breaking_change_adr": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md",
+        "migration_doc": "microservices/ontology/MIGRATION-2026-05-21.md"
+      }
+    ],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/ontology/contracts/openapi/ontology.yaml",
+        "2026-02-21": "microservices/ontology/contracts/openapi/ontology.yaml",
+        "2025-11-21": "microservices/ontology/contracts/openapi/ontology.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml",
+        "2026-02-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml",
+        "2025-11-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/ontology/contracts/proto/ontology.proto",
+        "2026-02-21": "microservices/ontology/contracts/proto/ontology.proto",
+        "2025-11-21": "microservices/ontology/contracts/proto/ontology.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "clickhouse",
+    "cedar",
+    "openbao",
+    "opentelemetry",
+    "cilium",
+    "istio",
+    "kyverno"
+  ],
+  "oss_stewardship_class_overrides": [
+
+  ],
+  "iac_module_invocations": [
+    {
+      "context": "oci-guest",
+      "primitive": "postgresql-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "clickhouse-iceberg-layer",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "colo",
+      "primitive": "openbao-secret-binding",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "service-mesh-waypoint",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ]
 }

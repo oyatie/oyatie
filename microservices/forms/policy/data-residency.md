@@ -32,17 +32,17 @@ Every tenant assigned a primary pack at onboarding. Forms definitions, response 
 
 | Pack | Primary region(s) | Forms cluster footprint | CDN edges | Activated? |
 |---|---|---|---|---|
-| pack-kr | OCI ap-seoul-1 | kr-forms-{pg,redis,ms,clamav,rest,worker}-1 | OCI CDN KR PoPs | YES (M03 launch tenant) |
-| pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-forms-{pg,redis,ms,clamav,rest,worker}-{1,2} | OCI CDN EU PoPs | Conditional (first EU tenant SCC) |
-| pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-forms-{pg,redis,ms,clamav,rest,worker}-{1,2} | OCI CDN US PoPs | Conditional |
-| pack-us-healthcare | OCI us-ashburn-1 + us-phoenix-1 (HIPAA-eligible; isolated from pack-us) | us-hc-forms-{pg,redis,ms,clamav,rest,worker}-{1,2} | OCI CDN HIPAA-eligible PoPs | Conditional (post-BAA) |
-| pack-jp | OCI ap-tokyo-1 | jp-forms-{pg,redis,ms,clamav,rest,worker}-1 | OCI CDN JP PoPs | Conditional |
-| pack-sg | OCI ap-singapore-1 | sg-forms-{pg,redis,ms,clamav,rest,worker}-1 | OCI CDN SG PoPs | Conditional |
-| pack-au | OCI ap-sydney-1 + ap-melbourne-1 | au-forms-{pg,redis,ms,clamav,rest,worker}-{1,2} | OCI CDN AU PoPs | Conditional |
-| pack-in | OCI ap-hyderabad-1 + ap-mumbai-1 | in-forms-{pg,redis,ms,clamav,rest,worker}-{1,2} | OCI CDN IN PoPs | Conditional (DPDPA) |
-| pack-br | OCI sa-saopaulo-1 + sa-vinhedo-1 | br-forms-{pg,redis,ms,clamav,rest,worker}-{1,2} | OCI CDN BR PoPs | Conditional (LGPD) |
-| pack-ae | OCI me-abudhabi-1 + me-dubai-1 | ae-forms-{pg,redis,ms,clamav,rest,worker}-{1,2} | OCI CDN ME PoPs | Conditional |
-| pack-ksa | OCI me-jeddah-1 + me-riyadh-1 | ksa-forms-{pg,redis,ms,clamav,rest,worker}-{1,2} | OCI CDN KSA PoPs | Conditional (KSA NCA) |
+| pack-kr | OCI ap-seoul-1 | kr-forms-{pg,valkey,ms,clamav,rest,worker}-1 | OCI CDN KR PoPs | YES (M03 launch tenant) |
+| pack-eu | OCI eu-frankfurt-1 + eu-amsterdam-1 (DR pair) | eu-forms-{pg,valkey,ms,clamav,rest,worker}-{1,2} | OCI CDN EU PoPs | Conditional (first EU tenant SCC) |
+| pack-us | OCI us-ashburn-1 + us-phoenix-1 (DR pair) | us-forms-{pg,valkey,ms,clamav,rest,worker}-{1,2} | OCI CDN US PoPs | Conditional |
+| pack-us-healthcare | OCI us-ashburn-1 + us-phoenix-1 (HIPAA-eligible; isolated from pack-us) | us-hc-forms-{pg,valkey,ms,clamav,rest,worker}-{1,2} | OCI CDN HIPAA-eligible PoPs | Conditional (post-BAA) |
+| pack-jp | OCI ap-tokyo-1 | jp-forms-{pg,valkey,ms,clamav,rest,worker}-1 | OCI CDN JP PoPs | Conditional |
+| pack-sg | OCI ap-singapore-1 | sg-forms-{pg,valkey,ms,clamav,rest,worker}-1 | OCI CDN SG PoPs | Conditional |
+| pack-au | OCI ap-sydney-1 + ap-melbourne-1 | au-forms-{pg,valkey,ms,clamav,rest,worker}-{1,2} | OCI CDN AU PoPs | Conditional |
+| pack-in | OCI ap-hyderabad-1 + ap-mumbai-1 | in-forms-{pg,valkey,ms,clamav,rest,worker}-{1,2} | OCI CDN IN PoPs | Conditional (DPDPA) |
+| pack-br | OCI sa-saopaulo-1 + sa-vinhedo-1 | br-forms-{pg,valkey,ms,clamav,rest,worker}-{1,2} | OCI CDN BR PoPs | Conditional (LGPD) |
+| pack-ae | OCI me-abudhabi-1 + me-dubai-1 | ae-forms-{pg,valkey,ms,clamav,rest,worker}-{1,2} | OCI CDN ME PoPs | Conditional |
+| pack-ksa | OCI me-jeddah-1 + me-riyadh-1 | ksa-forms-{pg,valkey,ms,clamav,rest,worker}-{1,2} | OCI CDN KSA PoPs | Conditional (KSA NCA) |
 
 ### Pack determines captcha provider
 

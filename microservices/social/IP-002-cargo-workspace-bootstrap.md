@@ -8,67 +8,74 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-social
-acceptance_lanes: [cargo-check, cargo-build, oya-governance-per-microservice-layout, oya-governance-bnf-v4-1]
+acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-per-microservice-layout]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-002: Social Cargo workspace bootstrap
 
-# IP-002: Cargo workspace bootstrap (per-µservice flat layout)
+## A. Problem
+Social has many bounded contexts and adapters; without a workspace scaffold, later IPs will invent incompatible crate locations and layer boundaries.
 
-## Intent
+## B. Approach
+Create the per-microservice flat Cargo workspace and only the crate paths already named by the PRD, manifest, catalog, or this IP set. Keep product integration through contracts, Workflow, and Ontology rather than direct product-crate dependencies.
 
-Create the flat Cargo workspace at `microservices/social/src/crates/`
-per ADR-0131. Scaffold ~115 crates listed in PRD §"Bounded Contexts"
-with workspace-level lints, MSRV pin, and `#![deny(unsafe_code)]` everywhere.
-
-## ChangeSet boundary
-
-One ChangeSet:
-- `microservices/social/Cargo.toml` (workspace root)
-- ~115 child crate directories with `Cargo.toml` + `src/lib.rs` (empty + module skeletons)
-- workspace-level `clippy.toml`, `deny.toml`, `rustfmt.toml`
-
-## Concrete File Targets
-
-| Path | Action |
+## C. Deliverables
+| Artifact | Role |
 |---|---|
-| `microservices/social/Cargo.toml` | create — workspace manifest, members glob |
-| `microservices/social/src/crates/oya-social-user-profile-kernel/Cargo.toml` | create |
-| `microservices/social/src/crates/oya-social-user-profile-kernel/src/lib.rs` | create — pub mod traits; pub mod entities |
-| `microservices/social/src/crates/oya-social-{user-profile,follow-graph,post-composition,feed-timeline,reactions,mentions,hashtags,trending-topics,notifications,content-moderation,bookmarks,lists,search,profile-verification,age-verification,federation-gateway}-{kernel,domain,usecase,api,adapter,adapter-postgres,adapter-redis,adapter-s3,adapter-meilisearch,adapter-imagemagick,adapter-ffmpeg,adapter-clamav,adapter-opswat,adapter-activitypub,rest,worker,sdk,app}/Cargo.toml` | create — per PRD §BC layer mapping |
+| `manifest.json` | Machine-readable crate and contract source. |
+| `catalog/oya-social-*.yaml` | Existing crate inventory anchors. |
+| `src/crates/oya-social-app/` | Planned composition root named by catalog. |
+| `src/crates/oya-social-{user-profile,follow-graph,post-composition,feed-timeline,content-moderation,search}-*/` | Planned crate families already named by PRD/catalog/IPs. |
 
-## Crate Naming
+## D. Ordered implementation steps
+1. Create workspace manifests with one package per named catalog crate.
+2. Add minimal lib/bin targets with no business behavior.
+3. Configure shared lint, test, and feature conventions already used by this repo.
+4. Add compile-only dependency direction tests.
+5. Register workspace members without adding unnamed crates.
+6. Run cargo check over the social workspace.
+7. Run per-microservice layout and layer-correctness gates.
 
-Per ADR-0056 v4.1: `oya-social-<bc>-<layer>` with optional
-`-adapter-<backend>` per ADR-0105 Amendment 3. All ~115 crates pre-validated.
+## E. Acceptance
+- `cargo check --workspace` scoped to social packages passes.
+- `cargo nextest run --workspace` scoped to social packages passes for bootstrap tests.
+- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice social` passes.
+- `cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice social` passes.
+- Manifest and catalog crate names match workspace members.
 
-Backend-qualified adapter naming (ADR-0105 Amendment 3):
-- `-adapter-postgres`, `-adapter-redis`, `-adapter-s3`, `-adapter-meilisearch`, `-adapter-imagemagick`, `-adapter-ffmpeg`, `-adapter-clamav`, `-adapter-opswat`, `-adapter-activitypub`.
+## F. Evidence
+- Crate source: `manifest.json`, `catalog/`.
+- PRD bounded contexts: `PRD.md`.
+- Contracts: `contracts/openapi/social.yaml`, `contracts/asyncapi/social-events.yaml`, `contracts/proto/social.proto`.
 
-## Acceptance Gates
+## G. Counterpart comparison
+X, Instagram, TikTok, and Snapchat are monolithic from a buyer's view; Mastodon and Bluesky expose more modular protocol surfaces. Oyatie's workspace must support modular, auditable service boundaries while preserving a first-party social product experience.
 
-```bash
-cargo build -p social --workspace
-cargo clippy -p social --workspace --all-targets -- -D warnings
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice social
-cargo run -p oya-dev-cli -- gate validate bnf-v4-1 --microservice social
-```
+## H. Foundation delivery expansion
+- Deliverable detail: workspace members map one-to-one with manifest and catalog crate names.
+- Deliverable detail: crate families stay flat under the social service rather than a shared monolith.
+- Deliverable detail: bootstrap targets include lib/bin shells only where the catalog requires them.
+- Deliverable detail: dependency direction tests encode kernel, domain, usecase, adapter, rest, worker, and app boundaries.
+- Deliverable detail: contracts, Workflow, and Ontology remain integration surfaces across products.
+- Deliverable detail: CI uses social-scoped cargo package filters so unrelated workspace churn is not required.
+- Deliverable detail: empty behavior stubs include TODO references to exact IP ids.
+- Deliverable detail: Slack app-directory and community integrations are pressure for clean contract boundaries.
 
-## Test Plan
+## I. Acceptance expansion
+- Acceptance detail: manifest/catalog names must match package names exactly.
+- Acceptance detail: cargo check must run on social packages without pulling unrelated product crates.
+- Acceptance detail: layer tests must fail on adapter imports from kernel/domain crates.
+- Acceptance detail: workspace registration must not introduce unnamed helper crates.
+- Acceptance detail: contract paths must remain reachable from the social manifest.
+- Acceptance detail: generated package list must include profile, graph, post, feed, moderation, search, and app crates.
+- Acceptance detail: branch promotion must include crate list evidence.
+- Acceptance detail: Slack, GitHub, and Linear-style integration pressure must be handled through contracts and work items, not direct imports.
 
-- Each kernel crate: ≥ 1 doctest asserting trait shape.
-- Each domain crate: ≥ 1 unit test on a core rule.
-
-## Halt Conditions
-
-- Workspace cycles — fix by re-checking ADR-0105 dependency-direction.
-- Naming-validator failures — fix the name, do NOT add exemptions.
-
-## Next IP
-
-[`IP-003-user-profile-bc.md`](IP-003-user-profile-bc.md)
-
-## References
-
-- ADR-0056; ADR-0105 + Amendment 3; ADR-0106; ADR-0131.
-- `microservices/social/PRD.md` §"Bounded Contexts".
+## J. Evidence expansion
+- Evidence detail: capture social-scoped `cargo check` output.
+- Evidence detail: capture per-microservice-layout gate output.
+- Evidence detail: capture lean-a1 or layer-correctness output for the social workspace.
+- Evidence detail: cite `manifest.json` and `catalog/` as the crate inventory sources.
+- Evidence detail: cite `contracts/openapi/social.yaml`, `asyncapi/social-events.yaml`, and `proto/social.proto`.
+- Evidence detail: cite `PRD.md` bounded contexts for package scope.
+- Evidence detail: cite Slack as integration-pressure evidence that validates modular service boundaries.

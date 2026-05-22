@@ -143,7 +143,7 @@ Retention windows = MAX of:
 | pack-br | `PII_IDENTIFYING` | LGPD Art. 16 | bounded |
 | (all packs) | `SECRET` | rotate per ISO 27001 A.5.17 | 30d API keys, 90d signing keys |
 
-The CI lane `oya-foundry-fitness-ontology-retention-conformance` validates Postgres + ClickHouse retention configs against this table.
+The CI lane `oya-governance-ontology-retention-conformance` validates Postgres + ClickHouse retention configs against this table.
 
 ## DSR (Data Subject Request) Cascade
 

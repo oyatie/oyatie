@@ -176,7 +176,7 @@ A future ADR may unify the two; for now they coexist.
 - Monotonicity invariant is CI-checkable; drift surfaces as a
   bounded set of violations (not a long-tail debugging session).
 - Closed enum (11 values) prevents drift via the
-  `oya-foundry-fitness-changeset-state-enum-closed` lane (new in
+  `oya-governance-changeset-state-enum-closed` lane (new in
   wave-B).
 
 ### Negative
@@ -204,9 +204,9 @@ A future ADR may unify the two; for now they coexist.
      ADR-0056).
   2. `oya-foundry-vcs-changeset-state-app` (runner; appends events
      to `registry/vcs/changeset-event-log.json`).
-  3. `oya-foundry-fitness-changeset-state-monotonicity` lane
+  3. `oya-governance-changeset-state-monotonicity` lane
      (asserts every changeset's event log is monotonic).
-  4. `oya-foundry-fitness-changeset-state-enum-closed` lane
+  4. `oya-governance-changeset-state-enum-closed` lane
      (asserts every emitted `to_state` is in the closed enum).
 - **Wave B**: retrofit IP-004/005/006 + promotion workflows to emit
   changeset-event-log rows. Each emitter gets a ~10-line addition
@@ -223,8 +223,8 @@ A future ADR may unify the two; for now they coexist.
   role suffix per ADR-0056 12-value layer enum.
 - Module path `crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs`
   — same kernel-pattern as every other check kernel.
-- Lane id `oya-foundry-fitness-changeset-state-monotonicity` (and
-  `-enum-closed`) — `oya-foundry-fitness-` family prefix per
+- Lane id `oya-governance-changeset-state-monotonicity` (and
+  `-enum-closed`) — `oya-governance-` family prefix per
   registry/quality/lanes.yaml conventions; descriptive suffix.
 
 ## Open questions

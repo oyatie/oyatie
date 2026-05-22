@@ -62,7 +62,7 @@ pack-<region>/
 ├── adapter-deepl            (via foundry-providers)
 └── per-pack-storage:
     ├── postgres (HA primary + replica)
-    ├── redis (sentinel HA)
+    ├── valkey (sentinel HA)
     ├── meilisearch (per pack)
     └── s3 (OCI Object Storage per pack)
 ```
@@ -155,6 +155,6 @@ Quarterly per pack:
 - ADR-TRANSLATE-0004 — residency-bound inference.
 - `microservices/translate/failure-modes.md`.
 - `microservices/translate/policy/data-residency.md`.
-- OCI region availability + service tier docs.
+- OCI region availability + service class docs.
 - AWS Well-Architected Reliability Pillar (multi-AZ + multi-region patterns).
 - Google SRE Workbook ch. 10 (Disaster Recovery).

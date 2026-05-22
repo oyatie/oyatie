@@ -27,8 +27,8 @@ spec:
   preconditions:
     - "Cedar permit from policy/ci-scope.cedar for principal Service::\"ontology-schema-propagation-worker\""
     - "PR-merged definition under microservices/ontology/specs/<schema_kind>s/<name>.json"
-    - "LEAN lane oya-foundry-fitness-ontology-tier-enforcement exit 0"
-    - "LEAN lane oya-foundry-fitness-cedar-coverage exit 0 (for action_type)"
+    - "LEAN lane oya-governance-ontology-tier-enforcement exit 0"
+    - "LEAN lane oya-governance-cedar-coverage exit 0 (for action_type)"
 
   output:
     success:
@@ -44,9 +44,9 @@ spec:
     - "audit-chain Merkle node appended; sealed in the next 60s window"
 
   authority:
-    enforcement_lane: oya-foundry-fitness-ontology-tier-enforcement
+    enforcement_lane: oya-governance-ontology-tier-enforcement
     cedar_fragment: policy/ci-scope.cedar
-    audit_emission: oya-foundry-fitness-audit-chain-emission
+    audit_emission: oya-governance-audit-chain-emission
 
   failure_modes:
     - "FM-04 (schema corruption) — registry transaction failure; runbook: runbooks/type-registry-migration.md"

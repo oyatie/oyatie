@@ -1,73 +1,97 @@
 ---
 doc_class: ImplementationPlan
-impl_plan_id: IP-007-sealing-domain-merkle
 status: pending
 owner: axis-audit-chain
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, layer-correctness]
+date: 2026-05-21
+wave: Wave 15-IP-substance
+substance_status: rewritten-bespoke
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-007: Sealing domain Merkle math
 
-# IP-007: oya-audit-chain-sealing-domain (Merkle math)
+acceptance_lanes: [cargo-test, property-tests, rfc6962-vectors, mutation-tests]
 
-## Intent
+## §A Problem
+Merkle math is load-bearing: a single ambiguous leaf ordering or proof-depth rule can produce plausible but unverifiable roots. The prior plan listed Merkle math but did not reference the existing `MerkleTree` implementation or the mismatch between RFC-6962 policy text and current domain-separated hash code.
 
-Pure Merkle-tree math (RFC 6962 SHA-256 binary tree) + root chaining (`prior_root_hash` link). Zero I/O. Property-tested against RFC 6962 reference vectors.
+## §B Approach
+Harden `crates/oya-audit-chain-domain/src/merkle_tree.rs` as the behavior source for `oya-audit-chain-sealing-domain`: deterministic SHA-256 leaf hashing, odd-node duplication, proof path generation, proof-depth validation, and root comparison. Reconcile the documented RFC-6962 byte-prefix policy with the current length-prefixed domain strings before claiming conformance.
 
-## Crate Naming
+## §C Deliverables
+- `crates/oya-audit-chain-sealing-domain/src/merkle.rs` wrapping or moving `MerkleTree`, `Sha256Hash`, and proof verification.
+- Reference-vector tests for one, two, odd, and large leaf counts.
+- Mutation tests that flip leaf, index, sibling, proof depth, and leaf count.
+- Documentation note resolving whether `policy/seal-integrity.md` SI-01 uses RFC byte prefixes or the current length-prefixed `merkle-leaf`/`merkle-node` domain scheme.
+- Compatibility tests proving existing `AuditEvent.merkle_root` values still verify.
 
-`oya-audit-chain-sealing-domain`.
+## §D Implementation Steps
+1. Read `merkle_tree.rs` tests and keep the current false-positive guards for proof depth and index range.
+2. Sort leaves at the caller boundary when deterministic period roots require cross-node agreement.
+3. Add explicit test for duplicate-last odd-level behavior.
+4. Add a failing fixture for shortened proof paths certifying internal nodes.
+5. Patch `policy/seal-integrity.md` or the code so documented and implemented domain separation match.
+6. Expose only pure functions; no storage or signing calls in the domain crate.
 
-## Concrete File Targets
+## §E Acceptance
+- `cargo test -p oya-audit-chain-domain merkle` passes.
+- New sealing-domain tests reject tampered proof path, wrong leaf count, wrong root, wrong index, and wrong sibling order.
+- The IP cannot close while SI-01 and implementation describe different domain-separation algorithms.
 
-| Path | Action |
-|---|---|
-| `.../src/lib.rs` | create |
-| `.../src/merkle.rs` | create — leaf-hash + internal-node + proof-extract |
-| `.../src/chain.rs` | create — `compute_chained_root(period_root, prior_root) -> CommittedRoot` |
-| `.../tests/rfc6962_test_vectors.rs` | create — property-test against RFC 6962 §Test Vectors |
-| `.../tests/proptest_tampers.rs` | create — 10k random trees × 10k random mutations; every mutation must invalidate proof |
+## §F Evidence
+- `crates/oya-audit-chain-domain/src/merkle_tree.rs` proof implementation.
+- `crates/oya-audit-chain-domain/tests/merkle_chain.rs` current chain tests.
+- `microservices/audit-chain/policy/seal-integrity.md` SI-01 and SI-14.
 
-## Code Shape
+## §G Counterparts
+AWS CloudTrail integrity validation is batch-digest based, not tenant-visible per-event Merkle proof. Google Cloud Audit Logs and Microsoft Purview Audit expose immutable records but not inclusion proofs. This IP is the mathematical core of Oyatie's stronger GitHub-published proof story.
 
-```rust
-// merkle.rs
-pub fn leaf_hash(data: &[u8]) -> [u8; 32] {
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(&[0x00]);  // leaf prefix per RFC 6962 §2.1
-    hasher.update(data);
-    hasher.finalize().into()
-}
+## Stop Conditions
+Do not promote this IP on line count alone. Stop if a cited path is absent, a counterpart claim cannot be traced to `competitor-parity-matrix.md` or `feature-parity-matrix-2026-05-20.md`, or a verification command above cannot run in the current checkout.
 
-pub fn internal_node(left: &[u8; 32], right: &[u8; 32]) -> [u8; 32] {
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(&[0x01]);  // internal prefix per RFC 6962 §2.1
-    hasher.update(left);
-    hasher.update(right);
-    hasher.finalize().into()
-}
 
-pub fn build_tree(leaves: &[Vec<u8>]) -> MerkleTree { ... }
-pub fn build_proof(tree: &MerkleTree, leaf_index: usize) -> MerkleProof { ... }
-pub fn verify_proof(leaf: &[u8; 32], proof: &MerkleProof, root: &[u8; 32]) -> bool { ... }
-```
+## Wave 15 Detailed Reviewer Map
 
-## Acceptance Gates
+### Domain vocabulary that must appear in the implementation PR
+- Pack-local chain: implementation must preserve `(pack, tenant_partition, period)` as a first-class tuple, not hide it inside a generic tenant string.
+- Seal lifecycle: implementation must distinguish accepted, unsealed, sealed, published, verified, redacted, and retained states where this IP touches those transitions.
+- Evidence linkage: every emitted or derived record must carry an audit id, period id, root or prior-root reference when applicable, and a provenance pointer to the producing service.
+- Residency boundary: pack movement is forbidden unless the IP explicitly names a tenant-initiated export path and a receiving-tenant compliance basis.
+- Key material boundary: public keys may be published; private keys, HSM handles, OpenBao leases, and provider credentials must stay out of serializable responses and logs.
+- Audit-of-audit: mutating or privileged read behavior introduced by this IP must itself produce an audit event rather than relying on operator notes.
 
-```bash
-cargo nextest run -p oya-audit-chain-sealing-domain
-cargo nextest run -p oya-audit-chain-sealing-domain --features proptest -- proptest_tampers
-# coverage ≥ 95% line / 90% branch
-cargo run -p oya-dev-cli -- gate validate audit-chain-merkle-shape
-```
+### File-reference checks before implementation starts
+- Re-read `microservices/audit-chain/PRD.md` for FR ids and latency/availability targets tied to `sealing domain merkle`.
+- Re-read `microservices/audit-chain/ARCHITECTURE.md` for layer placement, runtime assumptions, and cross-product import constraints.
+- Re-read `microservices/audit-chain/manifest.json` for catalog, SLO, and contract pointers; do not invent a crate or contract absent from the manifest without updating the manifest in the same change.
+- Re-read `microservices/audit-chain/policy/seal-integrity.md` when the IP touches roots, proofs, keys, HSM, publication, or verifier behavior.
+- Re-read `microservices/audit-chain/competitor-parity-matrix.md` and `feature-parity-matrix-2026-05-20.md` before making any CloudTrail, Google Cloud Audit Logs, Microsoft Purview Audit, Splunk, Datadog, Vault, or GitHub comparison.
+- Re-read the existing Rust crates under `crates/oya-audit-chain-*` and `crates/oya-shared-audit-chain-client-kernel` so the implementation extends live behavior instead of replacing it with a parallel scaffold.
 
-## Halt Conditions
+### Negative tests or static checks expected
+- Cross-tenant or cross-pack input is denied before storage or signing work begins.
+- Duplicate idempotency material returns the prior result only when the canonical fingerprint matches exactly.
+- Tampered proof, tampered signature, stale key epoch, or missing prior root returns a structured failure rather than a generic internal error.
+- Missing GitHub-pinned root/key publication keeps the period below the claim boundary even if Postgres and WORM writes succeeded.
+- A downstream outage pauses or degrades explicitly; it must not silently mark the audit action complete.
+- High-cardinality fields such as tenant id and principal id are not exported as metrics labels.
 
-- Any RFC 6962 test vector fails — block.
-- Any 10k-tamper test classifies tampered tree as `verified: true` — fundamental correctness bug.
+### Counterpart comparison rows
+| Counterpart | Relevant capability | Audit-chain requirement for this IP |
+|---|---|---|
+| AWS CloudTrail | Delivered audit records and integrity validation | Preserve immutable event/root evidence and make the trust boundary explicit. |
+| Google Cloud Audit Logs | Admin/Data/System/Policy audit taxonomy and routed log sinks | Keep event classes and export routing typed; do not collapse policy-denied and data-access events. |
+| Microsoft Purview Audit | Search/export, retention policies, and investigation workflows | Keep query/export/read paths scoped, retained, and auditor-engagement aware. |
+| GitHub-pinned manifests | Third-channel root/key publication for Oyatie | Ensure roots or keys affected by `sealing domain merkle` can be checked outside the primary storage plane. |
 
-## References
+### Review stop line
+If the implementation PR cannot point from code to PRD row, policy invariant, SLO or runbook, and counterpart row, keep the IP in pending state. Passing a markdown line count, a generated file list, or a broad statement that audit logging exists is not enough for Wave 15 closure.
 
-- RFC 6962 §"Merkle Tree" + §"Test Vectors".
-- Bominal ADR-0028 §"Sealing process".
-- `microservices/audit-chain/policy/seal-integrity.md` §"SI-01..SI-03".
+## DR posture (per ADR-0343)
+
+- Authority: ADR-0343.
+- Trigger evidence: `microservices/audit-chain/IP-007-sealing-domain-merkle.md` matched `SLO`.
+- Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/audit-chain/manifest.json`.
+- Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
+- Backup substrate: `postgres_wal_g`, `object_storage_versioned`, `openbao_seal_unseal`, `audit_chain_merkle_seal`.
+- Runtime evidence: `microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml`, `microservices/audit-chain/slos/evidence-export-freshness.openslo.yaml`, `microservices/audit-chain/slos/merkle-chain-verification-latency.openslo.yaml`, `microservices/audit-chain/slos/seal-storage-availability.openslo.yaml`, `microservices/audit-chain/policy/auditor-scope.cedar`.

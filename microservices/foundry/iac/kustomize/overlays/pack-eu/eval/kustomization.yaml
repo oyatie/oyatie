@@ -40,14 +40,14 @@ patches:
         value: oya-block-ssd-eu
   - target:
       kind: HelmRelease
-      name: foundry-eval-golden-store
+      name: foundry-eval-baseline-store
     patch: |-
       - op: replace
         path: /spec/values/minio/serverSideEncryption/kmsKeyId
         value: alias/oya-foundry-eval-kek-eu
       - op: replace
         path: /spec/values/minio/buckets/0/name
-        value: oya-foundry-eval-goldens-eu
+        value: oya-foundry-eval-baselines-eu
       - op: replace
         path: /spec/values/minio/buckets/1/name
         value: oya-foundry-eval-replay-eu

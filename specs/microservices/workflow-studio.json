@@ -306,7 +306,7 @@
         "GA": 2
       },
       "verification_ref": "synthetic Lighthouse-style budget via cargo nextest",
-      "lane_ref": "oya-foundry-fitness-perf-budget"
+      "lane_ref": "oya-governance-perf-budget"
     },
     {
       "name": "save_round_trip_p99_ms",
@@ -316,7 +316,7 @@
         "GA": 100
       },
       "verification_ref": "cargo nextest -p oya-saas-workflow-studio-domain -- test_save_p99",
-      "lane_ref": "oya-foundry-fitness-perf-budget"
+      "lane_ref": "oya-governance-perf-budget"
     },
     {
       "name": "round_trip_byte_equality_rate_pct",
@@ -336,7 +336,7 @@
         "GA": 99.95
       },
       "verification_ref": "oya gate validate workflow-studio-availability --window 30d",
-      "lane_ref": "oya-foundry-fitness-canary-observability"
+      "lane_ref": "oya-governance-canary-observability"
     }
   ],
   "risks": [
@@ -810,7 +810,7 @@
       "observed_in": "Zapier (8000+ connectors), n8n (200+ connectors)",
       "citation": "zapier.com/features; docs.n8n.io/workflows — connectors lack data_class / PII annotations",
       "risk": "workflows silently move PII or regulated data through connectors without author awareness; compliance breach",
-      "avoidance_mechanism": "every connector/capability-call node exposes data_class field; Cedar policy preview fires when data_class = PII or REGULATED (AC-07); oya-foundry-fitness-cedar-preview-required lane"
+      "avoidance_mechanism": "every connector/capability-call node exposes data_class field; Cedar policy preview fires when data_class = PII or REGULATED (AC-07); oya-governance-cedar-preview-required lane"
     },
     {
       "name": "no_machine_readable_workflow_spec",
@@ -840,70 +840,70 @@
       "rationale": "Production enterprise workflows (supply-chain, healthcare orchestration) regularly exceed 1000 nodes; Palantir Foundry pipelines routinely hit 10k+ steps",
       "target": "canvas render of 10,000-node workflow completes in <100ms p99 (60fps interaction); virtualized node rendering mandatory",
       "verification": "synthetic canvas bench: generate 10k-node spec, measure first-render and pan/zoom p99 in headless browser harness",
-      "lane_ref": "oya-foundry-fitness-perf-budget (canvas-scale variant)"
+      "lane_ref": "oya-governance-perf-budget (canvas-scale variant)"
     },
     {
       "requirement": "canvas_interaction_p99_under_50ms",
       "rationale": "Linear-grade responsiveness: every user interaction (node select, drag, edge draw) must feel instant; Figma achieves <16ms at 60fps; we target <50ms p99",
       "target": "<50ms p99 for all canvas interaction ops: node drag, edge connect, config panel open, zoom",
       "verification": "cargo bench canvas-interaction-p99 via headless Leptos WASM harness",
-      "lane_ref": "oya-foundry-fitness-perf-budget"
+      "lane_ref": "oya-governance-perf-budget"
     },
     {
       "requirement": "10k_concurrent_editor_sessions_per_region",
       "rationale": "Stripe-grade multi-tenant: 10k simultaneous editors sharing per-tenant cell infrastructure without noisy-neighbor degradation",
       "target": "10,000 concurrent editor sessions per region; p99 save latency stays <100ms under full load",
       "verification": "canary load-test: 10k concurrent WebSocket editor sessions; measure save p99 and CRDT merge latency",
-      "lane_ref": "oya-foundry-fitness-canary-observability"
+      "lane_ref": "oya-governance-canary-observability"
     },
     {
       "requirement": "crdt_merge_under_10ms_p99",
       "rationale": "Collaborative editing (Google Docs-grade): CRDT merge must be imperceptible to users; yrs/loro can achieve <5ms for typical document sizes",
       "target": "<10ms p99 CRDT merge for concurrent edits on 1000-node workflow spec",
       "verification": "cargo bench crdt-merge-p99 -p oya-saas-workflow-studio-domain",
-      "lane_ref": "oya-foundry-fitness-perf-budget"
+      "lane_ref": "oya-governance-perf-budget"
     },
     {
       "requirement": "tti_cold_under_2s_p99_global",
       "rationale": "Google-grade TTI: users in any region (including KR) must reach interactive canvas in <2s cold; CDN edge cache + WASM streaming required",
       "target": "TTI <2s p99 cold start globally (GA); <3s preview; node library progressive loading within 500ms of canvas interactive",
       "verification": "synthetic Lighthouse budget via cargo nextest; CDN-hit verification per region",
-      "lane_ref": "oya-foundry-fitness-perf-budget (editor_tti_cold_p99_seconds metric)"
+      "lane_ref": "oya-governance-perf-budget (editor_tti_cold_p99_seconds metric)"
     },
     {
       "requirement": "zero_cross_tenant_canvas_state_leak",
       "rationale": "AWS-grade tenancy isolation: no editor session may observe another tenant's node data, execution history, or ontology descriptors at any layer (render, CRDT state, WebSocket, CDN cache key)",
       "target": "cross_tenant_leak_count = 0 at all waves; per-tenant CDN cache key; WebSocket session scoped to tenant cell",
       "verification": "cargo nextest test_no_cross_tenant_leak; CDN cache-key audit; WebSocket session isolation test",
-      "lane_ref": "oya-foundry-fitness-tenancy-isolation"
+      "lane_ref": "oya-governance-tenancy-isolation"
     },
     {
       "requirement": "secrets_zero_plaintext_in_editor_state",
       "rationale": "Stripe-grade secrets: credential values (API keys, tokens) must never appear in editor CRDT state, execution history, or browser memory as plaintext",
       "target": "all credential fields in node config panels use SecretRef type; plaintext value never round-trips through editor; secrets resolved at engine execution time only",
-      "verification": "oya-foundry-fitness-cedar-preview-required: grep CRDT state and editor_event.v1.json for raw secret patterns; static analysis lane",
-      "lane_ref": "oya-foundry-fitness-security-headers + secrets-zero-plaintext lane"
+      "verification": "oya-governance-cedar-preview-required: grep CRDT state and editor_event.v1.json for raw secret patterns; static analysis lane",
+      "lane_ref": "oya-governance-security-headers + secrets-zero-plaintext lane"
     },
     {
       "requirement": "wcag_22_aa_100pct_keyboard_navigation",
       "rationale": "Linear-grade accessibility: every canvas operation, node config, diff view, replay, and policy preview must be keyboard-operable; screen-reader compatible node graph (aria-label on every edge and node)",
       "target": "100% keyboard navigation coverage; WCAG 2.2 AA in both dark and light themes; axe-core CI scan zero violations",
       "verification": "axe-core automated scan in CI; manual keyboard navigation audit per component at each wave",
-      "lane_ref": "oya-foundry-fitness-a11y (planned)"
+      "lane_ref": "oya-governance-a11y (planned)"
     },
     {
       "requirement": "definition_load_under_200ms_for_1000_node_spec",
       "rationale": "Palantir-grade large-graph UX: loading a 1000-node pipeline definition into the editor must complete in <200ms; requires streaming parse + virtual canvas",
       "target": "<200ms spec parse + initial render for 1000-node workflow_spec.v1.json; streaming JSON parse mandatory above 500 nodes",
       "verification": "cargo bench definition-load-p99 with generated 1000-node corpus",
-      "lane_ref": "oya-foundry-fitness-perf-budget"
+      "lane_ref": "oya-governance-perf-budget"
     },
     {
       "requirement": "availability_99_95_pct_with_mttr_60s",
       "rationale": "Stripe-grade SLA: editor availability 99.95% equates to <26 minutes downtime/month; auto-rollback canary must trigger within 60s of regression detection",
       "target": "editor_availability_slo_pct = 99.95% at GA; MTTR <60s via auto-rollback canary (ADR-0114)",
       "verification": "oya gate validate workflow-studio-availability --window 30d; canary-observability-rollback lane",
-      "lane_ref": "oya-foundry-fitness-canary-observability"
+      "lane_ref": "oya-governance-canary-observability"
     }
   ],
   "best_practices": [
@@ -977,12 +977,12 @@
     {
       "name": "bypass_cedar_policy_preview",
       "why_forbidden": "author surprised by policy impact post-deploy",
-      "detection_lane": "oya-foundry-fitness-cedar-preview-required"
+      "detection_lane": "oya-governance-cedar-preview-required"
     },
     {
       "name": "embedded_execution_in_editor",
       "why_forbidden": "breaks audit-chain integrity",
-      "detection_lane": "oya-foundry-fitness-editor-execution-forbidden"
+      "detection_lane": "oya-governance-editor-execution-forbidden"
     },
     {
       "name": "per_tenant_branding_mid_render",
@@ -992,7 +992,7 @@
     {
       "name": "non_deterministic_node_library_load",
       "why_forbidden": "confuses LLM authoring",
-      "detection_lane": "oya-foundry-fitness-node-library-determinism (3x re-load assertion)"
+      "detection_lane": "oya-governance-node-library-determinism (3x re-load assertion)"
     }
   ],
   "goals": {
@@ -1002,11 +1002,11 @@
     },
     "security": {
       "target": "XSS-free + strict CSP + per-tenant CDN cache key + Cedar at every save + no LLM-content trust",
-      "verification_lane_ref": "OWASP audit + oya-foundry-fitness-security-headers"
+      "verification_lane_ref": "OWASP audit + oya-governance-security-headers"
     },
     "performance": {
       "target": "TTI <2s p99 cold + save <100ms p99 + round-trip 100% byte-equality",
-      "verification_lane_ref": "oya-foundry-fitness-perf-budget + cargo-nextest"
+      "verification_lane_ref": "oya-governance-perf-budget + cargo-nextest"
     },
     "efficiency": {
       "target": "<$5 per-seat per-month at GA; CDN-cached static assets",

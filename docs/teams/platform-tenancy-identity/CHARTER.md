@@ -35,7 +35,7 @@ This team owns the single tenancy kernel and identity kernel that every Oyatie a
 - Cell-routing read of `Tenant.region` — tenant-kernel is the source; cloud axis reads it
 - `AddressValidator` trait contract; default impls for initial regional packs
 - All-axis review participation when any consuming axis touches a `Tenant` field
-- Fitness-function gate: `oya-foundry-fitness-tenant-shape` (blocks unauthorized `Tenant` mutations)
+- Fitness-function gate: `oya-governance-tenant-shape` (blocks unauthorized `Tenant` mutations)
 
 ## Out-of-scope (anti-scope)
 - Per-axis billing and metering (→ `platform-audit-evidence` owns audit; `axis-cloud` / `axis-saas` own metering kernels)
@@ -98,7 +98,7 @@ This team owns the single tenancy kernel and identity kernel that every Oyatie a
 ## Slice of risk register
 | Risk | Severity | Mitigation |
 |---|---|---|
-| `Tenant` shape change lands without all-axis review | High | `oya-foundry-fitness-tenant-shape` CI gate hard-fails on unauthorized mutations |
+| `Tenant` shape change lands without all-axis review | High | `oya-governance-tenant-shape` CI gate hard-fails on unauthorized mutations |
 | Cedar policy misconfiguration allows cross-tenant data access | Catastrophic | Policy publish requires security-reviewer agent sign-off; rollback runbook tested quarterly |
 | Identity provider federation bug leaks tokens cross-tenant | Catastrophic | STS token validation is per-tenant-scoped; audit-chain emits every issuance |
 | Residency field drift between tenant-kernel and cloud-kernel | High | Monthly sync with `axis-cloud`; fitness function checks cross-reference |

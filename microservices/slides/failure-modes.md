@@ -60,7 +60,7 @@ Each FM mapped to a chaos-engineering test under `tests/chaos/`:
 | FM | Test |
 |---|---|
 | FM-01 | `tests/chaos/postgres-primary-down.rs` |
-| FM-02 | `tests/chaos/redis-split-brain.rs` |
+| FM-02 | `tests/chaos/valkey-split-brain.rs` |
 | FM-06 | `tests/chaos/livekit-signal-drop.rs` |
 | FM-08 | `tests/chaos/pptx-malicious-import.rs` |
 | FM-12 | `tests/chaos/sheets-down-chart-stale.rs` |

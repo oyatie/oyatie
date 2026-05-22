@@ -134,3 +134,8 @@ For each consolidation:
 - [ADR-INDEX.md](ADR-INDEX.md) (current)
 - [docs/raw/codex-verdict.md](raw/codex-verdict.md) §6 + §11 + §17 (re-numbering / consolidation feedback)
 - ADR-0122 (ADR due-diligence + polish roadmap) — partly subsumed by this plan
+
+
+---
+
+> **§Note (2026-05-21 transition):** References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive.

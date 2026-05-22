@@ -8,8 +8,8 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: [ADR-0028, ADR-0003]
-related_adrs: [ADR-0028, ADR-0003, ADR-0056, ADR-0105, ADR-0110, ADR-0117, ADR-0123, ADR-0131]
-related_specs: [/specs/audit-chain-merkle-ed25519.json, /specs/per-microservice-flat-layout.json]
+related_adrs: [ADR-0028, ADR-0003, ADR-0056, ADR-0105, ADR-0110, ADR-0117, ADR-0123, ADR-0131, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
+related_specs: [/specs/audit-chain-merkle-ed25519.json, /specs/per-microservice-flat-layout.json, microservices/audit-chain/audit-event-class-registry.json]
 date: 2026-05-17
 owner_team: axis-audit-chain
 doc_status: published
@@ -37,7 +37,7 @@ This µservice inherits Bominal ADR-0028 (audit-chain Merkle + Ed25519) and ADR-
 
 | ID | As a… | I want… | So that… | BC | Priority |
 |---|---|---|---|---|---|
-| FR-01 | workload µservice emitter | to call `emit(event)` and receive `{event_id, seal_root_ts}` synchronously within ≤100ms p99 | the calling business operation can commit + return without blocking on durable seal | emission | Must |
+| FR-01 | workload µservice emitter | to call `emit(event)` and receive `{event_id, period_id, pack, tenant_partition, accepted_at, sealed=false}` synchronously within ≤100ms p99 | the calling business operation can commit + return without blocking on the asynchronous durable seal | emission | Must |
 | FR-02 | sealing engine | to batch emitted events into a Merkle tree per `(tenant, period)` at a configurable cadence ≤1s | per Bominal ADR-0028 seal-latency target; tenants see roots in near-real-time | sealing | Must |
 | FR-03 | sealing engine | to sign the Merkle root with the pack-resident HSM-backed Ed25519 key | the root carries an advanced electronic signature satisfying eIDAS Art. 26 + KR 전자문서법 Art. 5 | sealing | Must |
 | FR-04 | verifier | to read an `(event_id, claimed_root, claimed_signature, claimed_inclusion_proof)` and return `verified: true | false` with structured failure reason | tenants + auditors + CI lanes can independently verify chain integrity | verification | Must |
@@ -58,7 +58,7 @@ This µservice inherits Bominal ADR-0028 (audit-chain Merkle + Ed25519) and ADR-
 | Seal latency per `(tenant, period)` | ≤200ms | ≤1s | ≤3s | Bominal ADR-0028 target; period = 1s by default; configurable per-tenant |
 | `verify(event_id, proof)` latency | ≤50ms | ≤200ms | ≤1s | proof-only verification; no full-tree replay |
 | Query latency (single-tenant, 30d window) | ≤500ms | ≤2s | ≤5s | Postgres-indexed range scan |
-| HSM signing throughput | — | ≥500 ops/s per HSM partition | — | per OCI Cloud-HSM published numbers; verified at deploy |
+| HSM signing throughput | — | ≥500 ops/s per HSM partition | — | per pack HSM envelope; verified at deploy |
 | Sustained emission rate per cluster | — | ≥50k events/s | — | per Bominal ADR-0028 scale target; horizontally shardable per tenant |
 | Retention-cascade scan completion | — | ≤24h for full per-pack sweep | — | runs daily; doesn't block emission |
 
@@ -66,7 +66,7 @@ This µservice inherits Bominal ADR-0028 (audit-chain Merkle + Ed25519) and ADR-
 
 - Signing keys are **HSM-backed** (OCI Cloud-HSM partition per pack); the private key never appears in process memory; signing calls are remote via PKCS#11 or KMIP.
 - Every `emit` is authenticated via the caller's SPIFFE identity; SPIFFE → tenant_id binding validated server-side per `policy/tenant-scope.cedar`.
-- Object-storage tier is WORM-locked (S3 Object Lock in Compliance mode) for raw event records + sealed roots.
+- Object-storage tier is WORM-locked (S3-compatible Object Lock in Compliance mode) for raw event records + sealed roots.
 - Postgres index is read-replicated; primary writes are append-only at the SQL level (no UPDATE, no DELETE except via retention cascade RPC).
 - `verify` is a pure-function read; never mutates state.
 - Per Bominal ADR-0028 §"Key separation": pack-specific signing keys; no global key.
@@ -89,6 +89,37 @@ This µservice inherits Bominal ADR-0028 (audit-chain Merkle + Ed25519) and ADR-
 - Availability target: 99.95% monthly for `verify` and query paths.
 - RTO: ≤15 min. RPO: ≤1s (period-aligned).
 - Self-observability: the audit-chain emits SLI for `emit_latency`, `seal_latency`, `verify_latency`, `hsm_avail`, `cross_period_root_publication_lag`; the SLO engine (`observability` µservice) gates this µservice's own promotion identically to every other µservice.
+
+### DR posture (ADR-0343)
+
+- Target: RTO ≤300s and RPO 0s for `emit`, sealing backlog replay, verifier root lookup, and regulator export metadata, matching manifest `dr.rto_p99_seconds=300` and `dr.rpo_p99_seconds=0`.
+- Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (RTO 1800s/RPO 300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is the stricter service posture: RTO 900s, RPO 1s, multi-region required.
+- Failover runbook: `microservices/audit-chain/runbooks/chain-replay-from-snapshot-protocol.md`, matching manifest `dr.failover_runbook`; HSM/signature-specific recovery uses `microservices/audit-chain/runbooks/merkle-seal-recovery.md` and `microservices/audit-chain/runbooks/signature-verification-failure.md`.
+- Multi-region active-active: yes, but chain locality remains per `(pack, tenant_partition)`; cross-pack chain merge remains forbidden.
+- WHY: tenants and regulators keep independent Merkle proof verification through a region loss, and callers receive durable event IDs without waiting for regional seal infrastructure to recover.
+
+### Capacity model (ADR-0340)
+
+- Per-tenant baseline: 0.22 vCPU, 384 MiB RAM, 8 GiB storage allowance, 2 Valkey connections, 4 Postgres connections, and 4 outbound HTTP/HSM slots, matching manifest `capacity_model`.
+- Scaling dimension: `per_message`, because manifest doctrine treats Merkle sealing, evidence writes, and retention obligations as emitted-audit-message shaped.
+- Cell placement class: Tier-0 evidence substrate, matching manifest `capacity_model.cell_placement_class`; runtime placement maps to pod runtime Tier 1 because manifest `pod_runtime_tier=1`.
+- Autoscaling boundary: minimum 2 emit receivers, 1 sealer, and 1 verifier per active pack/cell; maximum 12 emit receivers, 6 sealers, and 8 verifier/export workers per hot tenant partition before shard split is required.
+- WHY: the model absorbs bursty fleet-wide state changes while preserving per-pack cryptographic continuity and preventing one tenant's audit flood from starving another tenant's seal cadence.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Every `emit`, `seal`, `verify`, query, retention-cascade, and export audit row emits `cost_usd_minor_units`, `co2_grams`, `watt_hours`, `provider`, `region`, and `carbon_intensity_source` alongside the existing audit payload.
+- Provider-routing affected by carbon: no for synchronous emit/seal/verify and regulator export deadlines; yes only for asynchronous replay, cold export assembly, and historical query jobs when the tenant's compliance pack has no realtime mandate.
+- Per-tenant cost surface: the tenant FinOps dashboard rolls audit-chain spend and carbon by tenant, capability, provider, cell, and compliance_pack; regulator export bundles include the same attribution for the exported window.
+- WHY: the audit substrate itself must prove CSRD, SB-253, and SEC climate-disclosure cost/carbon attribution without weakening the legal evidence path.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: verifier, query, export, and non-mesh emitter surfaces use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and `oyatie_version` proto3 field.
+- SDK semver model: `oya-audit-chain-sdk` ships as major.minor.patch; date-versioned wire contracts can be supported by multiple SDK minor releases.
+- Support window: last 3 public API versions for at least 180 days.
+- Per-tenant pinning: yes for verifier/query/export APIs; emitters may pin only on north-south/non-mesh paths.
+- Internal-mesh exemption: yes; direct gRPC between oyatie services remains governed by ADR-0145 mesh compatibility and does not carry public API date routing.
 
 ### Data residency
 
@@ -273,7 +304,7 @@ Key parity gaps to close (priority order):
 Error budget:
 - Monthly error budget for emission: 0.01% (≈4 min/month) — tighter than observability because emission is the load-bearing primitive for every other µservice's compliance posture.
 - Burn-rate alarm on the emission path itself: 14.4× burn over 1h triggers Sev-1 page (audit-chain outage = compliance debt accruing).
-- Error budget policy: `microservices/audit-chain/runbooks/error-budget-policy.md`.
+- Error budget evidence and incident execution use the published SLO manifests in `microservices/audit-chain/slos/` plus `microservices/audit-chain/runbooks/audit-chain-restart.md`, `microservices/audit-chain/runbooks/merkle-root-discrepancy-investigation.md`, and `microservices/audit-chain/runbooks/signature-verification-failure.md`.
 
 ## Horizontal Scalability
 
@@ -309,9 +340,9 @@ Sharding:
 
 | AC-ID | Criterion | Verification method |
 |---|---|---|
-| AC-01 | `emit(event)` returns a receipt within ≤100ms p99 under 50k events/s load | load test under `microservices/audit-chain/tests/e2e/emission-load.rs` |
-| AC-02 | Sealing produces a Merkle root with valid Ed25519 signature within ≤1s of last event in the period | end-to-end test under `microservices/audit-chain/tests/e2e/seal-latency.rs` |
-| AC-03 | `verify(event, proof)` correctly classifies tampered events (mutated payload, mutated proof, mutated signature) | property-based tests under `microservices/audit-chain/tests/e2e/verify-tamper-detection.rs` |
+| AC-01 | `emit(event)` returns a receipt within ≤100ms p99 under 50k events/s load | load-test plan in `microservices/audit-chain/test-plans/integration-test-strategy.md` |
+| AC-02 | Sealing produces a Merkle root with valid Ed25519 signature within ≤1s of last event in the period | seal-cycle SLO in `microservices/audit-chain/slos/seal-cycle-latency.openslo.yaml` plus integration strategy |
+| AC-03 | `verify(event, proof)` correctly classifies tampered events (mutated payload, mutated proof, mutated signature) | property-test plan in `microservices/audit-chain/test-plans/unit-test-strategy.md` |
 | AC-04 | DSR cascade redacts target event within 30 days while preserving Merkle proof of redaction | timed e2e drill |
 | AC-05 | HSM key rotation overlap window allows verification of both pre- and post-rotation events | rotation drill |
 | AC-06 | Auditor export bundle is independently verifiable by a third-party tool using only public artifacts (root manifest + public key) | external verifier reference implementation |
@@ -344,57 +375,38 @@ Sharding:
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0140 (retired per ADR-0145) | Cedar policy enforcement | tenant + auditor + CI + public-read scopes |
 
-## ADR-0162 Update — Per-Tenant Audit-Chain Slicing
+## ADR-0162 / ADR-AUD-001 Update — Per-Cell Authoritative Slicing
 
-Per ADR-0162 (2026-05-18), audit-chain seals partition by `tenant_id`. The µservice maintains:
+ADR-0162 defines the tenant-slicing requirement; local ADR-AUD-001 refines the operational shape for audit-chain. The current µservice contract is:
 
-- **Per-pack shared shard** for multi-tenant packs (pack-us-shared, pack-global): per-pack Merkle tree with tenant_id leaf partition; per-tenant subtree retrieval O(log n).
-- **Per-sovereign-tenant dedicated shard** for packs marked `dedicated_audit_shard: true` (pack-ksa, pack-uae, pack-eu-sovereign, pack-ru-if-onboarded, pack-us-gov, pack-kr-fsc, pack-kr-public).
-- **Per-cell sharding within shared shards**: a tenant pinned to cell `kr-seoul1` stores leaves in that cell's shard; cross-cell DR replicates per ADR-0009 (intra-region only for sovereign).
+- **Authoritative roots are per cell and per tenant partition.** A cell owns the append-only tree for the tenants pinned to that cell; no global tree is an authority for writes or disputes.
+- **Per-pack shared shards** hold multi-tenant pack traffic through tenant-partition leaves; sovereign tenants may receive dedicated shards when the pack overlay explicitly declares it.
+- **Sealing cadence:** hot leaf append p99 ≤100ms, full root completion p99 ≤1s, regional summary every minute, daily fleet witness for transparency only.
+- **Current API projection:** tenant retrieval is implemented through `contracts/openapi/audit-chain.yaml` (`POST /query`, `GET /events/{event_id}/proof`, `POST /verify`, `GET /roots/{pack}/{period_id}`, and `GET /keys/{pack}/{epoch_id}`), not through a separate `/tenant/{tenant_id}/seals` endpoint.
+- **No fleet-wide authoritative merge:** regional summaries and daily fleet witnesses are observability/transparency artifacts; sovereign-pinned tenants do not leak chain state across pack boundaries.
 
-### Sealing cadence (refined per ADR-0162)
-
-- Hot leaf append: ≤ 100 ms p99 (per ADR-0003).
-- Hourly: per-tenant subtree root recomputed + Ed25519-signed.
-- Daily: per-pack root anchored to `oya-s3-cold` (per ADR-0161).
-- Daily: fleet-wide root computed; published to trust portal (ADR-0038) for non-sovereign tenants; in-region only for sovereign-pinned tenants.
-
-### Per-tenant retrieval API (new in ADR-0162)
-
-```
-GET /v1/audit-chain/tenant/{tenant_id}/seals
-    ?since={iso8601}
-    &until={iso8601}
-    &event_class={class}
-    &proof={true|false}
-```
-
-- Cedar-gated: `principal.tenant_id == path.tenant_id` (cross-tenant requires explicit Cedar grant).
-- Cursor-based pagination, 1000 seals per page.
-- `?proof=true` returns Merkle inclusion proof per seal.
-- DSR-cascade-safe: PII fields zeroed per ADR-0008 DUBO.
-
-### Sovereign-tenant dedicated-shard contract (new in ADR-0162)
-
-- Shard storage in-cell only.
-- Shard encryption key custody in-region HSM (per ADR-0043 + ADR-0164 air-gap variant).
-- Shard sealing private key in-region HSM.
-- Shard deletion on tenant offboarding leaves no residue in other tenants' shards.
-- Sovereign-pinned tenants do NOT contribute to global fleet root.
-
-### CI lane (new)
-
-`oya gate validate audit-chain-per-tenant-slicing` enforces:
-- Every retrieval API call Cedar-gated and tenant-scoped.
-- Every sovereign pack overlay declares dedicated shards.
-- Every per-tenant subtree's leaves contain only that tenant's events.
-
-### Per-pack overlay (new)
-
-`microservices/audit-chain/iac/kustomize/components/pack-{name}/values.yaml#dedicated_audit_shard` is the per-pack toggle.
-
-See `/specs/per-tenant-audit-log-slicing-canonical.json` for the canonical declaration.
+`oya gate validate audit-chain-per-tenant-slicing` enforces Cedar-gated retrieval, declared sovereign shard overlays, and tenant-only leaves inside tenant-partition proofs. See `/specs/per-tenant-audit-log-slicing-canonical.json` for the canonical declaration.
 
 ## ADR-0158 Update — Active-Active Disposition
 
-Per ADR-0158 (2026-05-18), audit-chain is declared `active_active` per cell. Append-only Merkle merge naturally converges; per-tenant subtree replicates intra-region for DR and globally for the fleet-wide root anchor. See `multi-region.md` for the full disposition statement.
+Per ADR-0158 and ADR-AUD-001, audit-chain is active-active at the edge for emission/query/verification, while sealing authority is per `(pack, cell, tenant_partition)` leader shard. Append-only cells do not merge into an authoritative global root; failover transfers shard leadership with an audit-chain authority-transfer event. See `multi-region.md` for the full disposition statement.
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `audit-chain` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `audit-chain` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 4 module pin(s) across 4 context(s).
+- Scaling input: `per_message` with cell placement `Tier-0` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

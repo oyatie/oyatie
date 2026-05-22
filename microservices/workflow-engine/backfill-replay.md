@@ -83,7 +83,7 @@ For production-tier replay: 2-person rule required; audit-chain seal emitted wit
 ### Verification
 
 - Integration test `tests/e2e/replay-deterministic.rs` — start a run; complete it; replay it; verify identical step sequence.
-- `oya gate validate deterministic-replay` — LEAN lane that exercises replay against all golden runs in `capabilities/eval/`.
+- `oya gate validate deterministic-replay` — LEAN lane that exercises replay against all canonical fixture runs in `capabilities/eval/`.
 - Per-release replay-throughput benchmark: ≥ 1000 steps/s/worker on a single CPU (PRD AC-11).
 
 ## Backfill

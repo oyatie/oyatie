@@ -292,7 +292,7 @@
         "notes": "EU expansion covers GDPR, works-council/local labor overlays, VAT, statutory accounting exports, and data-residency policy."
       }
     ],
-    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+    "validation_lane_ref": "oya-governance-regional-pack-contracts"
   },
   "deps": {
     "external_adopted": [

@@ -96,7 +96,7 @@ Empty `registries/cross-cutting/` and `registries/` directories removed.
 All source code, configs, workflows, docs, specs, registries, and plans
 that referenced `registries/cross-cutting/` or the bare `registries/`
 directory token were rewritten to `registry/`. Live-code occurrences
-(e.g., `crates/oya-foundry-fitness-architecture-map-freshness-kernel/src/lib.rs`
+(e.g., `crates/oya-governance-architecture-map-freshness-kernel/src/lib.rs`
 roots vector) updated. `specs/root-hub-pointers.json`
 entry-point paths updated.
 

@@ -13,7 +13,7 @@ bominal_source:
   - ADR-0209  # client architecture (Leptos web + 5 native tiers)
   - ADR-0018  # tenancy RLS posture
   - ADR-0019  # runtime target metadata model
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0117, ADR-0123, ADR-0139, ADR-0131]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0338, ADR-0339, ADR-0340, ADR-0341, ADR-0342, ADR-0343, ADR-0344, ADR-0345]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-application
@@ -116,7 +116,7 @@ module-registration protocol). It hosts; it does not author.
 
 - **99.95 % monthly** (higher than product µservices; Application outage =
   every product unreachable for affected tenants).
-- RTO ≤15 s; RPO ≤5 s.
+- RTO ≤15 s for in-region failover; regional DR-pair promotion target ≤30 s. RPO ≤5 s.
 - Error budget: 0.05 % monthly. Burn-rate alarm: 3× (more sensitive than
   product µservices).
 
@@ -126,6 +126,38 @@ module-registration protocol). It hosts; it does not author.
   per ADR-0117; pack-pinned Postgres + Citus shard.
 - CDN POPs serve **public-class** assets only (WASM bundle, fonts, CSS);
   per-tenant data never reaches a CDN POP.
+
+### DR posture (ADR-0343)
+
+- Target: RTO <= 30 s and RPO <= 5 s for application-shell recovery, matching `manifest.json#dr.rto_p99_seconds` and `manifest.json#dr.rpo_p99_seconds`. The existing 15 s in-region objective remains an internal failover stretch target under the 30 s manifest SLO.
+- Compliance floors considered: HIPAA-2024 requires RTO <= 3600 s and RPO <= 300 s with multi-region DR; SOC2-T2 requires RTO <= 14400 s and RPO <= 900 s; ISO27001-2022 requires RTO <= 14400 s and RPO <= 3600 s. The effective Application target is 30 s / 5 s because the front door is stricter than every applicable floor.
+- Failover runbook reference: `runbooks/tenant-context-recovery.md`, with `multi-region.md` automated failover checks for DNS TTL, DR capacity pre-warm, session replay, and CDN origin shield. The manifest substrate is `postgres_wal_g`, `valkey`, and `object_storage_versioned`.
+- Multi-region active-active posture: no for session writes and route-admin mutations; CDN and stateless route readers are globally active, while authoritative session and route state promote through the DR pair.
+- WHY: the tenant front door remains reachable during regional failure, but per-tenant session state and route authorization still honor the tenant's home pack.
+
+### Capacity model (ADR-0340)
+
+- Manifest source: `manifest.json#capacity_model` declares the PRD capacity baseline.
+- Per-tenant baseline: reserve 0.28 vCPU, 512 MiB RAM, 6 GB shell/session/tenant-context storage, 4 Postgres connections, 4 Valkey connections, and 10 outbound HTTP slots for OIDC, CDN, and product backend calls.
+- Scaling dimension: `per_user`, because shell sessions, auth-gateway checks, module loading, and tenant-context hydration scale with active tenant users.
+- Cell placement class: Tier-2 product front-door cell. Rationale: Application is critical product entry infrastructure, while identities, policy, and substrate control planes remain separate Tier-1 owners.
+- Autoscaling boundaries: shell-routing replicas use `ceil(route_resolves/s / 5000) + 1`; auth-rest uses `ceil(signins/s / 500) + 1` with a 4-replica HA/burst floor; auth-worker and purge-worker floor at 2; module-loader uses `ceil(module_loads/s / 10000) + 1`. Per-cell envelope is 50k..5M concurrent sessions, 5k..100k sign-ins/s, and 50k..1M route resolves/s.
+- WHY: the model protects TTI and one-login-for-all-products behavior even when a tenant bursts route resolution, SSO, or bundle purge activity.
+
+### Sustainability + cost attribution (ADR-0344)
+
+- Per-call emission claim: shell-render, route-resolve, session-emit, module-load, tenant-admin, and CDN-purge audit rows include `cost_usd_minor_units`, `co2_grams`, and `watt_hours`.
+- Provider routing affected by carbon: no for interactive route resolution, auth, or tenant-admin gates; yes only for background bundle prewarm, CDN purge fanout, and synthetic probes when SLO and pack policy allow.
+- Per-tenant cost transparency surface: Application admin billing shows session, route-resolution, module-load, and CDN purge costs by tenant, product surface, cell, provider, and compliance pack.
+- WHY: front-door cost and carbon are visible to customers without letting carbon scheduling delay sign-in, access control, or route policy decisions.
+
+### API versioning posture (ADR-0342)
+
+- Public API version model: date carrier triplet using `Oyatie-Version: YYYY-MM-DD`, URL prefix `/v/<YYYY-MM-DD>/application/...`, and proto3 field `oyatie_version`.
+- SDK semver model: shell, tenant-admin, and module-loader SDKs use `major.minor.patch`.
+- Support window: last N=3 public API dates are supported for at least 180 days.
+- Per-tenant pinning supported: yes, for tenant-admin console, shell-routing, module-loader, and migration-sensitive route clients.
+- Internal-mesh exemption: yes. ADR-0145 direct gRPC remains exempt from public URL carriers inside the service mesh.
 
 ## Bounded Contexts
 
@@ -326,7 +358,7 @@ edge (route resolution + bundle serve); sessions live in Valkey / Valkey
 
 Scale-out policy:
 - Kubernetes HPA on each REST layer (CPU 70%); cold-start budget ≤500 ms.
-- Valkey/Valkey Sentinel/Cluster for session store; multi-AZ.
+- Valkey Sentinel/Cluster for session store; multi-AZ.
 - Postgres + Citus sharded on `tenant_id`; RLS row-level scope.
 - CDN: pack-pinned primary (OCI CDN) + global overlay (Cloudflare) for
   public-class assets only.
@@ -380,3 +412,23 @@ manifest tables partitioned on the same key. LEAN shardability lane verifies.
 | ADR-0139 | Agentic SLO-gated promotion | release gate |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-APP registers here |
+
+## Doctrine refs (ADR-0346..0349)
+
+- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0347 — every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+
+## ADR-0339 adoption
+- Lifecycle: PROPOSED for `application` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.
+- ADR-0339 adoption keeps reusable HCL in `microservices/cloud-iac/modules/<context>/<primitive>/`; `application` owns primitive selection and tenant-scoped variables.
+- Manifest contract: `iac_module_invocations` declares 3 module pin(s) across 1 context(s).
+- Scaling input: `per_user` with cell placement `Tier-2` drives wrapper sizing rather than provider defaults.
+- Supply-chain input: every future module source pin requires ADR-0181 cosign attestation, provider lock evidence, and catalog discoverability.
+- Thin-wrapper rule: per-context `main.tf` files contain module invocations only, stay at or below 80 logical lines, and never own shared primitive bodies.
+- Tenant rule: wrappers pass tenant_id, tenant_class, compliance-pack labels, cell_id, workload class, and cost tags explicitly.
+- API rule: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 contracts remain versioned independently from IaC module semantic versions.
+- Maintainability rule: quarterly module windows move pins deliberately; primitive replacement uses dual-run evidence and an audit-visible sunset path.
+- Done boundary: this PRD section is document-stage adoption only and does not claim wrapper migration, OpenTofu apply, or cloud resource creation.
+- Verification: ADR citation, cohesion, and doc inventory gates must pass before this adoption can be reported complete.

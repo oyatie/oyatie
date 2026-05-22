@@ -22,7 +22,6 @@ related_specs:
   - /registry/fixuptasks.jsonl (FixupTask registry)
   - /evidence/audit-chain.jsonl (audit-chain stream)
 related_adrs:
-  - ADR-0054 (grit protocol)
   - ADR-0056 (12-layer enum)
   - ADR-0062 (Quality/Performance/Scalability bar)
   - ADR-0069 (active-artifact-contract)
@@ -44,7 +43,6 @@ A multi-facet review bar applied to every changeset. The lane `oya-check-depende
 2. Fill the evidence template `/templates/checklists/pre-pr-multispectrum.json`.
 3. Write to `/evidence/multispectrum/<change_id>-<unix_ts>.json`.
 4. Run `cargo run -p oya-check-dependency-seam --quiet`.
-5. Lane must exit 0 before `grit done`.
 
 ## Where each concept lives (canonical homes)
 

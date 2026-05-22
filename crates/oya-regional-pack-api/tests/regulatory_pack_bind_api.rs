@@ -46,8 +46,8 @@ fn regulatory_pack_bind_binds_once_and_replays_same_idempotent_result() {
     assert_eq!(idempotency.len(), 1);
     assert_eq!(first.data.tenant_id, TENANT_ID);
     assert_eq!(first.data.primary_pack_id, PRIMARY_PACK_ID);
-    assert_eq!(first.data.home_region, "home-region");
-    assert_eq!(first.data.residency_class, "strict_home");
+    assert_eq!(first.data.home_region, "region-home");
+    assert_eq!(first.data.residency_class, "strict_home_region");
     assert_eq!(first.data.pack_refs.len(), 1);
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(first.metadata.request_id, REQUEST_ID);
@@ -265,15 +265,15 @@ fn bind_request(
         body: RegulatoryPackBindRequest {
             tenant_id: tenant_id.to_string(),
             primary_pack_id: PRIMARY_PACK_ID.to_string(),
-            home_region: "home-region".to_string(),
-            cell_group_ref: "cellgrp_home_region_001".to_string(),
-            residency_class: "strict_home".to_string(),
+            home_region: "region-home".to_string(),
+            cell_group_ref: "cellgrp_kr_seoul_001".to_string(),
+            residency_class: "strict_home_region".to_string(),
             evidence_ref: "evidence/regulatory-pack/ten_regulatory_pack".to_string(),
             bound_at_epoch_seconds: 1_800_000_000,
             pack_refs: vec![RegulatoryPackBindingPackRef {
                 pack_id: PRIMARY_PACK_ID.to_string(),
-                region: "home-region".to_string(),
-                residency_class: "strict_home".to_string(),
+                region: "region-home".to_string(),
+                residency_class: "strict_home_region".to_string(),
                 controls: vec![
                     RegulatoryPackControlRef {
                         value: "CONTROL-ALPHA".to_string(),

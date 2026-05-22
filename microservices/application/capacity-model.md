@@ -23,7 +23,7 @@ doc_status: published
 
 Sizing formulae + reference baseline numbers for each Application Shell
 component (shell-routing, tenant-context, auth-gateway, module-loader,
-frontend-bundle-serve, Postgres + Citus, Valkey/Redis, CDN). Drives
+frontend-bundle-serve, Postgres + Citus, Valkey, CDN). Drives
 `cost-budget.md` and `multi-region.md`. The Application Shell is the
 front door — capacity headroom is set higher than product µservices
 because shell outage = all products unreachable.
@@ -165,7 +165,7 @@ Worked example for XS:
 
 3-node HA Citus + RLS; tenant_id shard key per `policy/data-residency.md`.
 
-## Valkey/Redis Sizing
+## Valkey Sizing
 
 ```
 sessions_in_flight = N_tenants × S_concurrent_per_tenant

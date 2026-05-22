@@ -24,7 +24,6 @@ When implementing adapter crates, ensure:
 - [ ] `dead_letter()` moves message to `dead-letter/` directory with reason file
 - [ ] All operations are atomic (tempfile + rename, or equivalent)
 
-**Test:** `tests/inbox_ttl_expiry_then_commit_walks_race` (v4 §B.12 grit unit 4.51)
 
 ### `OutboxSink` Implementation
 - [ ] `append()` fsync's immediately before returning
@@ -32,7 +31,6 @@ When implementing adapter crates, ensure:
 - [ ] Records are never duplicated (ULID idempotency)
 - [ ] `SpendRecord` fields are in canonical order for audit replay
 
-**Test:** `tests/hung_cli_emits_exactly_one_spend_record_after_kill` (v4 grit unit 4.56)
 
 ### `SessionDriver` Implementation (Per-Provider)
 - [ ] `spawn_for_message()` initializes a new session with the provider CLI
@@ -41,7 +39,6 @@ When implementing adapter crates, ensure:
 - [ ] `kill()` sends SIGKILL to the spawned process
 - [ ] All operations preserve the `SessionTicket` invariant (value-only)
 
-**Test:** `tests/lifecycle.rs` (v4 §B.12 grit units 4.50..4.57)
 
 ## Debugging Common Issues
 
@@ -74,7 +71,6 @@ pub struct SessionTicket {
 
 **Fix:** Implement a background cleanup task that scans locks older than TTL and removes them. **OR** use distributed consensus (Etcd, Zookeeper) for lock management in multi-instance deployments.
 
-**Prevention:** Test with `tests/crash_injection.rs::sigkill_during_peek_lock` (v4 grit unit 4.57).
 
 ### `TickOutcome::DriftExcluded` False Positives
 

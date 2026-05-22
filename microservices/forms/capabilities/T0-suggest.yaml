@@ -14,7 +14,7 @@ description: |
     will be column-encrypted per ADR-FORMS-0003".
   - On production-tier publish attempt: surface Cedar policy preview ("this publish
     will trigger policy_preview_acknowledged gate").
-  - On Annex III §4 screening question: surface DPIA prompt if tenant declares true.
+  - On employment-context high-risk auto-decision screening question: surface DPIA prompt if tenant declares true.
   - On branching DAG: surface cycle warning if a branch would create a loop.
   - On accessibility check: surface WCAG 2.2 AA violations before publish.
 
@@ -34,14 +34,14 @@ autonomy_tier: T0
 # Per ADR-0022 autonomy tiers (Bominal-inherited).
 # Per ADR-FORMS-0005 §"T0 — Suggest" — copilot intra-µservice only.
 
-eu_ai_act:
+risk_class:
   scope: not_high_risk
   rationale: |
     T0 is purely suggestive; tenant explicitly accepts each suggestion; no
     autonomous output; transparency obligation (Art. 50) met by labeling
     suggestions as AI-generated in the builder UI.
   recital_65_check: not_applicable
-  annex_iii_4_check: not_applicable
+  auto_decision_screening_check: not_applicable
 
 inputs:
   - name: tenant_id
@@ -56,7 +56,7 @@ inputs:
     values:
       - pii_field_selected
       - production_publish_attempted
-      - annex_iii_4_screening_declared
+      - auto_decision_screening_declared
       - field_added
       - branching_predicate_authored
       - wcag_accessibility_check
@@ -112,12 +112,12 @@ cedar_policy_fragments:
   - microservices/forms/policy/public-read.cedar
 
 eval_set:
-  golden_inputs_path: microservices/forms/capabilities/eval/t0-suggest-golden.jsonl
+  reference_inputs_path: microservices/forms/capabilities/eval/t0-suggest-reference.jsonl
   pass_threshold: 0.95
   eval_metric: suggestion-relevance-and-non-misleadingness-against-curated-test-corpus
   cadence: per-release
   reference: |
-    Test corpus covers: data-class hints, policy previews, Annex III §4 prompts,
+    Test corpus covers: data-class hints, policy previews, employment-context high-risk auto-decision prompts,
     WCAG 2.2 AA violations, branching DAG cycle warnings, i18n hints. Suggestions
     must NEVER mislead author into XSS-risky field choice OR bypass Cedar OR
     miscategorise a PII field as NORMAL.

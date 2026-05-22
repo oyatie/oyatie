@@ -27,7 +27,7 @@ Track foundry-eval's monthly cloud cost across infrastructure (compute + GPU + s
 |---|---|---|
 | Compute (VM.Standard / OKE node) | eval-runner-worker, parity-analyzer-worker, replay-engine-worker, rest pods | `oracle.com/cloud/compute/pricing/` |
 | GPU compute (Standard.GPU + spot fleet) | eval-case dispatch pool | `oracle.com/cloud/compute/gpu/pricing/` |
-| Object storage (S3-compatible) | Golden outputs + replay traces + eval-run results cold-tier | `oracle.com/cloud/storage/object-storage/pricing/` |
+| Object storage (S3-compatible) | Baseline outputs + replay traces + eval-run results cold-tier | `oracle.com/cloud/storage/object-storage/pricing/` |
 | Block storage (PV) | Postgres + ClickHouse local cache | `oracle.com/cloud/storage/block-volume/pricing/` |
 | Network egress | Provider API calls (eval-time); cross-region replication; auditor JIT reads | `oracle.com/cloud/networking/pricing/` |
 | KMS | Per-pack KMS keyring; per-subject DEK ops | `oracle.com/security/key-management/pricing/` |
@@ -43,13 +43,13 @@ Track foundry-eval's monthly cloud cost across infrastructure (compute + GPU + s
 | parity-analyzer-worker | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | replay-engine-worker | 2 × VM.Standard.E4 4-core | $145 | – | $145 |
 | eval-set-registry (Postgres-backed REST) | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
-| golden-output-store-rest | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
+| baseline-output-store-rest | 2 × VM.Standard.E4 2-core | $72 | – | $72 |
 | Postgres (HA primary+replica + 2 standby) | 3 × VM.Standard.E4 4-core | $435 | $150 PV | $585 |
 | ClickHouse (3-replica × 3-shard) | 9 × VM.Standard.E4 8-core | $1300 | $400 PV | $1700 |
 | ZooKeeper (ClickHouse coordination) | 3 × VM.Standard.E4 2-core | $108 | $30 PV | $138 |
 | GPU pool (eval-case dispatcher) | 8 × Standard.GPU.A10 | $2200 | – | $2200 |
-| SeaweedFS (golden + replay store) | 4 × VM.Standard.E4 2-core | $144 | $200 PV cache | $344 |
-| Object storage hot-tier (goldens + recent runs) | – | – | $250 (10 TB) | $250 |
+| SeaweedFS (baseline + replay store) | 4 × VM.Standard.E4 2-core | $144 | $200 PV cache | $344 |
+| Object storage hot-tier (baselines + recent runs) | – | – | $250 (10 TB) | $250 |
 | Object storage cold-tier (replay 24mo retention) | – | – | $350 (175 TB archive) | $350 |
 | KMS keyring + DEK operations | – | $15 | – | $15 |
 | Load balancer (per-pack gateway + public LB) | – | $20 | – | $20 |
@@ -78,7 +78,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm at deploy. Buffer 15% for OCI r
 ## Provider Token Budget Allocation
 
 Per ADR-0024 §"Resolved 4" (per-capability eval token budget split):
-- **Capability-owner cost-center**: pays for per-capability gold + adversarial + linguistic cohorts (rate-carded).
+- **Capability-owner cost-center**: pays for per-capability baseline + adversarial + linguistic cohorts (rate-carded).
 - **foundry shared budget**: pays for cross-capability replay infrastructure + harness + DEK shred system.
 - **Per-capability monthly token budget**: $40 default; capability owner may request increase via OpenBao + cost-center approval.
 - **Foundry shared monthly token budget**: $200 baseline for replay sampling + cross-capability A/B.

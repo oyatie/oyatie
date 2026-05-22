@@ -16,8 +16,8 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_gamma".into(),
             legal_name: "Gamma Corporate".into(),
-            home_region: "home-region".into(),
-            residency_class: "strict_home".into(),
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
             regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })
@@ -26,16 +26,15 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
     let pack = foundation
         .register_regional_pack(RegionalPackRegistration {
             pack_id: "oya-pack-alpha".into(),
-            region: "home-region".into(),
-            residency_class: "strict_home".into(),
-            controls: vec![
-                "CONTROL-ALPHA".into(),
-                "CONTROL-BETA".into(),
-                "CONTROL-GAMMA".into(),
-            ],
+            region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
+            controls: vec!["PIPA".into(), "K-ISMS-P".into(), "KCMVP".into()],
         })
         .expect("regional pack registration is valid");
-    assert_eq!(pack.residency_class.value.label(), Some("strict_home"));
+    assert_eq!(
+        pack.residency_class.value.label(),
+        Some("strict_home_region")
+    );
 
     let entity = foundation
         .upsert_object_entity(ObjectEntityUpsert {
@@ -53,7 +52,7 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
                     "salary_band".into(),
                     "PRIMARY-4".into(),
                     PropertyTier::Struct,
-                    privacy_data_class(DataClass::FinancialCredit),
+                    privacy_data_class(DataClass::FinancialRegulatedCredit),
                 ),
             ],
         })
@@ -133,8 +132,8 @@ fn object_graph_upsert_rejects_non_privacy_property_markers() {
         .onboard_tenant(TenantRegistration {
             tenant_id: "ten_object_markers".into(),
             legal_name: "Object Marker Tenant".into(),
-            home_region: "home-region".into(),
-            residency_class: "strict_home".into(),
+            home_region: "region-home".into(),
+            residency_class: "strict_home_region".into(),
             regulatory_packs: vec!["oya-pack-alpha".into()],
             autonomy_ceiling: AutonomyTier::T2Advisory,
         })

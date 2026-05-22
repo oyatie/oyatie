@@ -105,7 +105,7 @@ doc_status: published
 
 ## 14. CI + validation
 
-51. ☐ CI lane `oya-foundry-fitness-regional-pack` passes
+51. ☐ CI lane `oya-governance-regional-pack` passes
 52. ☐ Per-seam impl coverage 100%
 53. ☐ Per-pack test fixtures (per language / per regulator)
 54. ☐ Per-pack semver declared

@@ -1,9 +1,9 @@
 context: shared
 role: kernel
 capability: presence
-plane: data
+plane: control
 slo: preview-control-plane
-data_classes_owned: [INTERNAL_ONLY]
+data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT]
 operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed

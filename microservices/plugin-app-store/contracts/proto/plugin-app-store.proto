@@ -21,7 +21,7 @@ message Plugin {
   string current_version = 5;                   // semver
   repeated Capability declared_capabilities = 6;
   repeated string declared_data_classes = 7;
-  VettingBadge vetting_badge = 8;
+  TrustVerdict trust_verdict = 8;
   google.protobuf.Timestamp vetted_at = 9;
   PricingModel pricing_model = 10;
   string price_usd_minor_units = 11;            // Decimal as string to avoid float drift
@@ -31,12 +31,12 @@ message Plugin {
   uint64 rating_count = 15;
 }
 
-enum VettingBadge {
-  VETTING_BADGE_UNSPECIFIED = 0;
-  VETTING_BADGE_BRONZE = 1;
-  VETTING_BADGE_SILVER = 2;
-  VETTING_BADGE_GOLD = 3;
-  VETTING_BADGE_PLATINUM = 4;
+enum TrustVerdict {
+  TRUST_VERDICT_UNSPECIFIED = 0;
+  TRUST_VERDICT_REVIEWED = 1;
+  TRUST_VERDICT_VERIFIED = 2;
+  TRUST_VERDICT_ATTESTED = 3;
+  TRUST_VERDICT_PACK_BOUND = 4;
 }
 
 enum PricingModel {

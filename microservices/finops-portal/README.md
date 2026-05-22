@@ -21,6 +21,20 @@ differentiated tenant-billing UX layer:
 - Committed-use discount UX (per FOCUS 1.3 Contract Commitment dataset).
 - Credit-ledger UX (customer-success negotiated credits).
 
+## Tenant Class And Billing Components
+
+Per ADR-0330, `finops-portal` uses `tenant_class` instead of customer
+capability tiers. `demo_trial` tenants run inside capped cost and usage
+envelopes, with OCI Always Free as the default free-profile target where
+applicable. `paid` tenants receive the same capability surface and compose
+commercial terms through `billing_components`: `revenue_share`, `per_seat`,
+and `per_usage`.
+
+The portal must not expose retired customer-tier columns, filters, or feature
+tables. Cost visibility, forecast cadence, export limits, and chargeback
+workflows are modeled as tenant_class caps, billing_component contract terms,
+compliance_pack activation, or cell_topology constraints.
+
 ## What this µservice is NOT
 
 - NOT the cost-aggregation engine — that's OpenCost (ADR-0199 D-3).
@@ -74,3 +88,10 @@ The expansion ledger is at
 `evidence/finops-portal-full-pack-expansion-report.json`. It cross-
 references every entry in `evidence/storage-batch-followup-scope.json`
 with the produced artifact path.
+
+## Doctrine references
+
+- [ADR-0346](../../docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md): `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- [ADR-0347](../../docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md): Every `oya-foundry-fitness-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- [ADR-0348](../../docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- [ADR-0349](../../docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.

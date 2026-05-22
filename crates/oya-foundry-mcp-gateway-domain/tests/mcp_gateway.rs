@@ -14,7 +14,7 @@ use oya_foundry_mcp_gateway_domain::{
 fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {
     let endpoint = McpTenantEndpoint::new(
         "ten_alpha".into(),
-        "home-region".into(),
+        "region-home".into(),
         "test".into(),
         "https://auth.oyatie.test/tenants/ten_alpha".into(),
     )
@@ -43,11 +43,11 @@ fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {
     assert_eq!(MCP_PROTOCOL_VERSION, "2025-11-25");
     assert_eq!(
         endpoint.url(),
-        "https://mcp.foundry.home-region.oyatie.test/tenants/ten_alpha"
+        "https://mcp.foundry.region-home.oyatie.test/tenants/ten_alpha"
     );
     assert_eq!(
         endpoint.protected_resource_metadata_uri(),
-        "https://mcp.foundry.home-region.oyatie.test/.well-known/oauth-protected-resource/tenants/ten_alpha"
+        "https://mcp.foundry.region-home.oyatie.test/.well-known/oauth-protected-resource/tenants/ten_alpha"
     );
     assert_eq!(descriptor.tools.len(), 1);
     assert_eq!(descriptor.tools[0].name.value, "cap.demo.readiness");
@@ -90,7 +90,7 @@ fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {
 fn gateway_projects_capability_authored_agent_description_and_schemas() {
     let endpoint = McpTenantEndpoint::new(
         "ten_alpha".into(),
-        "home-region".into(),
+        "region-home".into(),
         "test".into(),
         "https://auth.oyatie.test/tenants/ten_alpha".into(),
     )
@@ -138,7 +138,7 @@ fn gateway_projects_capability_authored_agent_description_and_schemas() {
 fn gateway_refuses_cross_tenant_discovery_and_missing_scopes() {
     let endpoint = McpTenantEndpoint::new(
         "ten_alpha".into(),
-        "failover-region".into(),
+        "region-recovery".into(),
         "test".into(),
         "https://auth.oyatie.test/tenants/ten_alpha".into(),
     )
@@ -172,7 +172,7 @@ fn gateway_refuses_cross_tenant_discovery_and_missing_scopes() {
 fn tool_call_authorization_requires_scope_and_autonomy_ceiling() {
     let endpoint = McpTenantEndpoint::new(
         "ten_alpha".into(),
-        "home-region".into(),
+        "region-home".into(),
         "test".into(),
         "https://auth.oyatie.test/tenants/ten_alpha".into(),
     )
@@ -232,7 +232,7 @@ fn tool_call_authorization_requires_scope_and_autonomy_ceiling() {
 fn authorization_challenges_follow_mcp_oauth_resource_metadata_shape() {
     let endpoint = McpTenantEndpoint::new(
         "ten_alpha".into(),
-        "home-region".into(),
+        "region-home".into(),
         "test".into(),
         "https://auth.oyatie.test/tenants/ten_alpha".into(),
     )
@@ -247,7 +247,7 @@ fn authorization_challenges_follow_mcp_oauth_resource_metadata_shape() {
     );
     assert_eq!(
         challenge.www_authenticate_header(),
-        r#"Bearer resource_metadata="https://mcp.foundry.home-region.oyatie.test/.well-known/oauth-protected-resource/tenants/ten_alpha", scope="foundry.capability.discover""#
+        r#"Bearer resource_metadata="https://mcp.foundry.region-home.oyatie.test/.well-known/oauth-protected-resource/tenants/ten_alpha", scope="foundry.capability.discover""#
     );
 
     let insufficient = McpAuthorizationChallenge::insufficient_scope(
@@ -266,7 +266,7 @@ fn authorization_challenges_follow_mcp_oauth_resource_metadata_shape() {
 fn access_token_claims_are_bound_to_endpoint_resource_issuer_and_expiry() {
     let endpoint = McpTenantEndpoint::new(
         "ten_alpha".into(),
-        "home-region".into(),
+        "region-home".into(),
         "test".into(),
         "https://auth.oyatie.test/tenants/ten_alpha".into(),
     )
@@ -281,7 +281,8 @@ fn access_token_claims_are_bound_to_endpoint_resource_issuer_and_expiry() {
     assert_eq!(principal.autonomy_ceiling, AutonomyTier::T2Advisory);
 
     let mut wrong_audience = claims.clone();
-    wrong_audience.audience = "https://mcp.foundry.us-east.oyatie.test/tenants/ten_alpha".into();
+    wrong_audience.audience =
+        "https://mcp.foundry.region-recovery.oyatie.test/tenants/ten_alpha".into();
     assert_eq!(
         validate_access_token(&endpoint, wrong_audience, 999, AutonomyTier::T2Advisory),
         Err(McpGatewayError::TokenAudienceMismatch)

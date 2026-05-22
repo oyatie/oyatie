@@ -85,3 +85,9 @@ Standard cargo lanes + `port-location` (must NOT impl kernel traits in usecase; 
 ## Next IP
 
 [`IP-004-router-api.md`](IP-004-router-api.md)
+
+## Wave 15 counterpart anchor
+
+- Counterparts: OpenAI API, Anthropic API, Google Vertex Model Garden, LiteLLM, and OpenRouter.
+- Gap closure: this IP closes provider-neutral routing, credential isolation, API/subscription adapters, and provider health/cost decisions.
+- Evidence source: `microservices/foundry/competitor-parity-matrix.md` plus the BC-local parity archive under `microservices/foundry/bc-sources/` when present.

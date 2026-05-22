@@ -8,101 +8,75 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-calendar
-acceptance_lanes: [cargo-check, cargo-clippy, cargo-nextest, oya-governance-port-location, oya-governance-data-class-coverage]
+acceptance_lanes: [cargo-nextest, oya-governance-data-class, oya-governance-port-location]
 ---
 
-<!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
+# IP-002: Event-store kernel
 
-# IP-002: event-store kernel — CalendarEvent + Attendee + RetentionPolicyRef + LegalHoldRef + port traits
+## A. Problem
+Calendar's core event model must prove that event content, attendee state, legal hold, retention, and dual-context boundaries exist before adapters or REST handlers can be trusted.
 
-## Intent
+## B. Approach
+Build the zero-I/O `oya-calendar-event-store-kernel` crate named in `manifest.json` and `catalog/oya-calendar-event-store-kernel.yaml`. Keep only entities, data-class annotations, and port traits here; persistence, time-zone lookup, and audit emission stay behind ports.
 
-Author the event-store BC's kernel layer per ADR-0105 13-layer enum.
-Defines the canonical types and port traits with zero I/O and zero
-business logic. Annotates every field with `#[data_class(...)]` per
-the LEAN data-class lane.
+## C. Deliverables
+| Artifact | Role |
+|---|---|
+| `microservices/calendar/catalog/oya-calendar-event-store-kernel.yaml` | Existing catalog anchor for the kernel crate. |
+| `microservices/calendar/src/crates/oya-calendar-event-store-kernel/` | Planned crate path already named by this IP and manifest. |
+| `CalendarEvent`, `Attendee`, `RetentionPolicyRef`, `LegalHoldRef`, `EventContext` | Core types from PRD bounded-context text. |
+| `EventRepository`, `TimeZoneResolver`, `RetentionPolicyResolver`, `LegalHoldStore` | Ports listed in PRD and architecture. |
 
-## ChangeSet boundary
+## D. Ordered implementation steps
+1. Create the crate with no database, HTTP, queue, or clock dependencies.
+2. Define event identity, tenant identity, context, attendee, recurrence reference, and audit correlation value objects.
+3. Add explicit `#[data_class(...)]` annotations for personal and professional event fields.
+4. Define repository and policy/hold/tzdb ports with async trait boundaries only if local crate convention already permits async ports.
+5. Add compile tests that reject unannotated fields through the existing data-class gate.
+6. Add property tests for tenant/context identity equality and redaction-safe debug output.
+7. Register the crate in the workspace and catalog without importing other product microservice crates.
 
-1 crate (`oya-calendar-event-store-kernel`); ~12 type definitions +
-6 port traits + Cedar entity-shape declarations.
+## E. Acceptance
+- `cargo nextest run -p oya-calendar-event-store-kernel` passes.
+- `cargo run -p oya-dev-cli -- gate validate port-location --microservice calendar` passes.
+- `cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice calendar` passes.
+- `cargo run -p oya-dev-cli -- gate validate data-class --microservice calendar` passes.
+- Policy references remain compatible with `policy/event-isolation.md` and `policy/tenant-scope.cedar`.
 
-## Concrete File Targets
+## F. Evidence
+- PRD port-trait table: `microservices/calendar/PRD.md`.
+- Catalog: `microservices/calendar/catalog/oya-calendar-event-store-kernel.yaml`.
+- Contracts consuming lifecycle state: `contracts/openapi/calendar.yaml`, `contracts/asyncapi/calendar-events.yaml`, `contracts/proto/calendar.proto`.
+- SLO pressure: `slos/agenda-render-latency.openslo.yaml` and `slos/notification-delivery-freshness.openslo.yaml`.
 
-| Path | Action | Description |
-|---|---|---|
-| `microservices/calendar/src/crates/oya-calendar-event-store-kernel/Cargo.toml` | create | crate manifest; deps: chrono, serde, ed25519-dalek |
-| `microservices/calendar/src/crates/oya-calendar-event-store-kernel/src/lib.rs` | create | crate root + re-exports |
-| `microservices/calendar/src/crates/oya-calendar-event-store-kernel/src/entity.rs` | create | `CalendarEvent`, `Attendee`, `EventContext{Personal,Professional}`, `RetentionPolicyRef`, `LegalHoldRef` |
-| `microservices/calendar/src/crates/oya-calendar-event-store-kernel/src/ports.rs` | create | `EventRepository`, `ResourceRepository`, `LegalHoldStore`, `RetentionPolicyResolver`, `TimeZoneResolver`, `EventContextBoundaryGuard` |
-| `microservices/calendar/src/crates/oya-calendar-event-store-kernel/src/error.rs` | create | `EventStoreError` variant enum (preserve order per Hyrum #1 in `migration-from-connect.md`) |
-| `microservices/calendar/src/crates/oya-calendar-event-store-kernel/src/data_class.rs` | create | `#[data_class]` macro re-export from `oya-shared-data-class` |
+## G. Counterpart comparison
+Google Calendar and Outlook expose rich event resources, but their tenant isolation and legal-hold semantics are suite-level. This kernel makes Oyatie's counterpart claim concrete by putting tenant id, context, retention, legal hold, and data class into the event type system before storage exists.
 
-## Crate Naming
+## H. Foundation delivery expansion
+- Deliverable detail: define `CalendarEventId`, `TenantId`, `CalendarId`, `EventContext`, and `AuditCorrelationId` as separate value objects.
+- Deliverable detail: model attendee state without importing invitation-flow behavior.
+- Deliverable detail: model retention and legal-hold references as opaque identifiers, not policy-engine structs.
+- Deliverable detail: expose repository, time-zone, retention, and hold ports without Postgres or Valkey types.
+- Deliverable detail: include redaction-safe debug output for event titles, locations, notes, and attendee metadata.
+- Deliverable detail: require data-class annotations for title, location, attendee, description, recurrence, and organizer fields.
+- Deliverable detail: include a fake in-memory repository only inside tests.
+- Deliverable detail: Slack shared-channel calendar expectations are counterpart pressure for attendee/context modeling, not a dependency.
 
-`oya-calendar-event-store-kernel` — per PRD §"Bounded Contexts" row 1
-+ ADR-0056 v4.1 + ADR-0105.
+## I. Acceptance expansion
+- Acceptance detail: compile tests must fail when kernel imports database, HTTP, queue, or clock crates.
+- Acceptance detail: property tests must prove tenant/context equality does not collapse personal and work calendars.
+- Acceptance detail: redaction tests must prove `Debug` output omits sensitive title/location content.
+- Acceptance detail: data-class gate must report the exact unannotated field name.
+- Acceptance detail: trait signatures must preserve idempotency and audit-correlation parameters.
+- Acceptance detail: port tests must support legal-hold refusal without requiring an adapter.
+- Acceptance detail: workspace registration must include only the kernel crate for this slice.
+- Acceptance detail: Slack, Google, and Outlook comparisons must remain type-system claims, not runtime integration claims.
 
-## Code Shape
-
-```rust
-// src/entity.rs
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CalendarEvent {
-    pub event_id: EventId,
-    #[data_class(BEHAVIORAL_TENANT_PRODUCT)]
-    pub tenant_id: TenantId,
-    pub context: EventContext,
-    #[data_class(PERSONAL_EVENT_CONTENT, PROFESSIONAL_EVENT_CONTENT)]
-    pub title: String,
-    pub starts_at: DateTime<Utc>,
-    pub ends_at: DateTime<Utc>,
-    pub tz: chrono_tz::Tz,
-    pub rrule: Option<RecurrenceRuleRef>,
-    pub attendees: Vec<Attendee>,
-    pub retention_policy_ref: RetentionPolicyRef,
-    pub legal_hold_ref: Option<LegalHoldRef>,
-}
-
-// src/ports.rs
-pub trait EventRepository: Send + Sync {
-    fn create(&self, event: CalendarEvent) -> Result<EventId, EventStoreError>;
-    fn update(&self, event: CalendarEvent) -> Result<EventId, EventStoreError>;
-    fn cancel(&self, event_id: EventId) -> Result<(), EventStoreError>;
-    fn read(&self, event_id: EventId) -> Result<CalendarEvent, EventStoreError>;
-}
-```
-
-## Acceptance Gates
-
-```bash
-cargo check -p oya-calendar-event-store-kernel
-cargo clippy -p oya-calendar-event-store-kernel -- -D warnings
-cargo nextest run -p oya-calendar-event-store-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --microservice calendar
-cargo run -p oya-dev-cli -- gate validate data-class-coverage --microservice calendar
-```
-
-## Test Plan
-
-- Property tests on `EventContext` discriminated-union exhaustiveness.
-- Trait object compile-checks: every port trait is `dyn`-safe.
-- Data-class annotation coverage: every field on every type has a
-  `#[data_class(...)]` annotation or is documented as
-  `INTERNAL_ONLY`.
-
-## Halt Conditions
-
-- Any port trait imports an I/O or data-layer crate — fail
-  `port-location` gate.
-- Any field lacks `#[data_class]` — fail `data-class-coverage` gate.
-
-## Next IP
-
-[`IP-003-event-store-domain-and-usecase.md`](IP-003-event-store-domain-and-usecase.md)
-
-## References
-
-- ADR-0105 (13-layer enum); ADR-0106 (usecase rename); ADR-0131.
-- ADR-CAL-0002 (RRULE engine; references `RecurrenceRuleRef`).
-- PRD-calendar §"Bounded Contexts" + §"Port traits declared in each kernel".
+## J. Evidence expansion
+- Evidence detail: capture `cargo nextest run -p oya-calendar-event-store-kernel`.
+- Evidence detail: capture the port-location gate proving zero adapter imports.
+- Evidence detail: capture data-class gate output over the new kernel crate.
+- Evidence detail: cite `catalog/oya-calendar-event-store-kernel.yaml` as the crate registry source.
+- Evidence detail: cite `policy/event-isolation.md` for context separation behavior.
+- Evidence detail: cite contract files only where they consume kernel lifecycle state.
+- Evidence detail: cite Slack as collaboration-calendar interop pressure alongside Google and Outlook event-resource pressure.

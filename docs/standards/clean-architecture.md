@@ -18,7 +18,7 @@ purpose: |
   `crate-naming-convention.md` (a crate's `[package.metadata.oya].role`
   MUST match its actual layer behavior).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-architecture-conventions
+planned_enforcement_ref: oya-governance-architecture-conventions
 companion_docs:
   - docs/standards/crate-naming-convention.md
   - docs/standards/code-style-rust.md
@@ -50,7 +50,7 @@ frame (architecture decision principles; ADR-0015 flat crates) and is the **peer
 [`crate-naming-convention.md`](crate-naming-convention.md): the naming
 standard binds the **role token** of every crate name; this standard binds
 the **layer semantics** the role represents. The pair is enforced as a
-single lane, `oya-foundry-fitness-architecture-conventions`, severity
+single lane, `oya-governance-architecture-conventions`, severity
 **BLOCKER**.
 
 ## 1. Vocabulary
@@ -155,7 +155,7 @@ graph MUST topologically match it.
 
 ## 3. Dependency-direction enforcement
 
-The lane `oya-foundry-fitness-architecture-conventions` parses every
+The lane `oya-governance-architecture-conventions` parses every
 workspace member's `[dependencies]` table and refuses the following edges:
 
 | From → To | Status |
@@ -181,9 +181,9 @@ The lane uses two mechanisms, layered:
 
 1. **`cargo-deny` per-crate `[bans]` blocks**, generated from each
    crate's `[package.metadata.oya].role`. The generator lives in
-   `oya-foundry-fitness-naming-convention` (Sub-plan from
+   `oya-governance-naming-convention` (Sub-plan from
    [`docs/plans/rename-plan-2026-05-12.md`](../plans/rename-plan-2026-05-12.md)).
-2. **A workspace-level lane** (`oya-foundry-fitness-architecture-conventions`)
+2. **A workspace-level lane** (`oya-governance-architecture-conventions`)
    walks every member manifest, classifies each crate by its
    `[package.metadata.oya].role`, and refuses any cross-layer edge
    forbidden by the table above. The lane is implemented in Rust as a

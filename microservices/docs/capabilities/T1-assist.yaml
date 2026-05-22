@@ -30,7 +30,7 @@ capabilities:
       - user explicitly invokes "summarise"
     consent_basis:
       personal_context: explicit-on-invocation
-      professional_context: explicit-on-invocation + tenant-policy-admission (Cedar admits T1 for tenant tier)
+      professional_context: explicit-on-invocation + tenant-policy-admission (Cedar admits T1 for tenant_class)
     data_class_processed: [PERSONAL_DOC_CONTENT, PROFESSIONAL_DOC_CONTENT]
     data_class_emitted: PERSONAL_DOC_CONTENT / PROFESSIONAL_DOC_CONTENT (summary block content)
     reversibility:
@@ -44,7 +44,7 @@ capabilities:
     latency_budget_p99_ms: 3000 (3s for typical doc)
     audit_event: DocsAutoSummaryGenerated (Ed25519-sealed; payload — doc id hash + summary block id + reversibility window expiry)
     fallback_on_model_failure: fall back to T0 grammar-check suggestion mode (suggest only)
-    eu_ai_act_classification: limited-risk (Annex III §3 may apply for HR-context — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005 conformity assessment)
+    risk_classification: limited-risk (Annex III §3 may apply for HR-context — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005 conformity assessment)
     user_label: "AI is summarising this document — cancel within 30s" (Art. 50 + Art. 14)
     cedar_admission_path: |
       ai-act-hr-scope.cedar :: action::DocsT1AutoSummary refuses when
@@ -76,7 +76,7 @@ capabilities:
     latency_budget_p99_ms: 2000
     audit_event: DocsExpandRewriteApplied (Ed25519-sealed; payload — doc id hash + block id hash + before-sha + after-sha)
     fallback_on_model_failure: silent abort — original passage preserved
-    eu_ai_act_classification: limited-risk (Annex III §3 may apply for HR-context — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005)
+    risk_classification: limited-risk (Annex III §3 may apply for HR-context — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005)
     user_label: "AI is rewriting your selection — cancel within 30s"
     cedar_admission_path: |
       ai-act-hr-scope.cedar :: action::DocsT1ExpandRewrite refuses when
@@ -110,7 +110,7 @@ capabilities:
     latency_budget_p99_ms: 2500
     audit_event: DocsCitationSuggested (Ed25519-sealed; payload — doc id hash + DOI of cited work)
     fallback_on_model_failure: fall back to T0 (manual entry)
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI inserted citation — cancel within 30s"
 
   - id: T1-docs-grammar-bulk-fix
@@ -139,7 +139,7 @@ capabilities:
     latency_budget_p99_ms: 1500
     audit_event: DocsGrammarBulkFixApplied (Ed25519-sealed; payload — doc id hash + fix count + batch-id)
     fallback_on_model_failure: n/a
-    eu_ai_act_classification: minimal-risk
+    risk_classification: minimal-risk
     user_label: "AI is applying grammar fixes — cancel within 30s"
 
 verification:
@@ -147,7 +147,7 @@ verification:
   - All T1 actions emit an audit-chain event (Ed25519-sealed) on action-initiated AND on action-cancelled-within-window AND on action-stood (window-expired).
   - All T1 actions are labelled per EU AI Act Art. 50 + offer the Art. 14 human-oversight cancel-within-window control.
   - All T1 actions respect dual-context isolation: Personal-context actions NEVER touch Professional-context data; Professional-context actions NEVER touch Personal-context data.
-  - All T1 actions are tenant-tier-gated: Cedar policy `cedar/t1-tenant-tier-gate.cedar` admits T1 only for tenant tiers ≥ pro.
+  - All T1 actions are tenant_class-gated: Cedar policy `cedar/t1-tenant-class-gate.cedar` admits T1 only for paid tenant_class with per_seat billing_component.
   - HR-context overlay (T1 capabilities when used for HR-mail-or-document scope per Annex III §3) is REFUSED at the Cedar layer for pack-eu pending per-tenant conformity assessment evidence on file, per ADR-DOCS-0005.
   - T1 actions respect per-block ACL: auto-summary, expand-rewrite, citation-suggest never read or write private blocks the principal lacks access to.
 

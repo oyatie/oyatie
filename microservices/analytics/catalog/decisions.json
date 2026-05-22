@@ -14,7 +14,7 @@
     {"id": "ADR-AN-001", "title": "TTL Policy Per Workload Class", "path": "microservices/analytics/decisions/ADR-AN-001-ttl-policy.md"},
     {"id": "ADR-AN-002", "title": "Partition Strategy", "path": "microservices/analytics/decisions/ADR-AN-002-partition-strategy.md"},
     {"id": "ADR-AN-003", "title": "Row-Level Tenant Isolation", "path": "microservices/analytics/decisions/ADR-AN-003-row-level-tenant-isolation.md"},
-    {"id": "ADR-AN-004", "title": "Per-Tenant Query Budget Per Tier", "path": "microservices/analytics/decisions/ADR-AN-004-query-budget-tier.md"},
+    {"id": "ADR-AN-004", "title": "Per-Tenant Query Budget Per Tenant Class", "path": "microservices/analytics/decisions/ADR-AN-004-query-budget-tenant-class.md"},
     {"id": "ADR-AN-005", "title": "Materialized View Cadence and Naming", "path": "microservices/analytics/decisions/ADR-AN-005-materialized-view-cadence.md"}
   ],
   "status": "accepted"

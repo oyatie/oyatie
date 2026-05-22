@@ -30,7 +30,7 @@ spec:
   egress:
     - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: meet-postgres}}}]
       ports: [{protocol: TCP, port: 5432}]
-    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: meet-redis}}}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: meet-valkey}}}]
       ports: [{protocol: TCP, port: 6379}]
     - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: livekit-server}}}]
       ports:

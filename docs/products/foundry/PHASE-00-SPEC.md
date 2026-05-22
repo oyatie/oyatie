@@ -163,12 +163,9 @@ ImportRegularSession(session_metadata, account_route)
 ```
 1. Issue management: list Milestones, Issues, sub-issues, dependencies, labels, priority, state
 2. Agentic orchestration: list ready tasks, active sessions, session status
-3. Grit coordination: reflect grit status into GitHub Issues, list claims, worktrees, conflict sets
-4. ICM memory: recall project memory, list wake-up packs
 5. Token and usage management: list usage by account, window, project, model
 6. Multi-account/subscription management: list accounts, quotas, budgets, routing policies
 7. Model routing: list available routes and optimal effort suggestions
-8. Web dashboard: Asana-like command center with command input, milestones, taskboard, active sessions, Grit Status, product service line graph/map, project state visualization, CI/CD pipeline visualization, Kubernetes/OpenTofu/deployment/health/SLI/SLO/architecture/schema/database/audit visibility, account usage limit %, 5h/1wk/project usage, validation status
 ```
 
 ### Read-only surfaces required for Phase 00
@@ -317,9 +314,6 @@ model effort: Haiku < Sonnet < Opus < GPT-5.5 medium < GPT-5.5 xhigh (effort ran
 route explanation: human-readable reason for chosen account/model/provider
 account/subscription health: verified/degraded/disabled state
 cooldown/failover state: in effect until reset, blocks new work
-minification savings: token reduction from RTK/ICM reuse (recorded, not enforced in Phase 00)
-ICM reuse savings: same
-rtk summary savings: same
 ```
 
 **Policy requirements:**

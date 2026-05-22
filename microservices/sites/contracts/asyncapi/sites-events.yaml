@@ -344,7 +344,7 @@ components:
             prompt_hash: {type: string}
             output_hash: {type: string}
             accepted_by_user_id: {type: string, format: uuid}
-            eu_ai_act_classification: {type: string, enum: [minimal_risk, limited_risk, high_risk_refused]}
+            risk_classification: {type: string, enum: [minimal_risk, limited_risk, high_risk_refused]}
             context_overlay: {type: string}
 
     AiPageBuildPostHocRevertedPayload:

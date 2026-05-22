@@ -108,7 +108,7 @@ log is replayed forward; any event whose dedup outcome is
 `agent_invocation_failed` is retried with a fresh idempotency key
 that includes the retry count (`<delivery_id>:retry:<n>`). The
 retry budget is `MAX_RETRIES = 3` per delivery; exceeded retries
-escalate to `oya-foundry-fitness-webhook-stuck` lane.
+escalate to `oya-governance-webhook-stuck` lane.
 
 ### Signature handling (security)
 
@@ -118,8 +118,8 @@ escalate to `oya-foundry-fitness-webhook-stuck` lane.
 - HMAC computation uses `sha256(webhook_secret + raw_payload)`
   matching GitHub's documented scheme.
 - Webhook secret rotation: lifecycle managed via
-  `oya-foundry-fitness-secret-rotation-lifecycle` (crate authored at
-  `crates/oya-foundry-fitness-secret-rotation-lifecycle/`; lane scans
+  `oya-governance-secret-rotation-lifecycle` (crate authored at
+  `crates/oya-governance-secret-rotation-lifecycle/`; lane scans
   OpenBao secret-version timestamps and fails the gate when any
   webhook secret exceeds 90-day rotation TTL). Operationally:
   `cargo run -p oya-dev-cli -- gate validate secret-rotation-lifecycle`
@@ -164,7 +164,7 @@ escalate to `oya-foundry-fitness-webhook-stuck` lane.
 - Webhook secret rotation is currently manual; lifecycle lane is
   a successor-IP.
 - Event-router table grows over time; the
-  `oya-foundry-fitness-event-router-completeness` lane (new,
+  `oya-governance-event-router-completeness` lane (new,
   wave-C) asserts every GitHub event we care about has a router
   entry, else we silently miss events.
 
@@ -193,10 +193,10 @@ escalate to `oya-foundry-fitness-webhook-stuck` lane.
   - Retrofit IP-004/005/006 to be invoked via the router (instead
     of via workflow_run triggers).
 - **Wave C**:
-  - `oya-foundry-fitness-event-router-completeness` lane.
-  - `oya-foundry-fitness-webhook-stuck` lane (alerts on
+  - `oya-governance-event-router-completeness` lane.
+  - `oya-governance-webhook-stuck` lane (alerts on
     `agent_invocation_failed` exceeding `MAX_RETRIES`).
-  - `oya-foundry-fitness-webhook-delivery-log-monotonic` lane
+  - `oya-governance-webhook-delivery-log-monotonic` lane
     (asserts no delivery_id appears twice with conflicting
     outcomes).
 

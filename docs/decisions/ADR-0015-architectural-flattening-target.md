@@ -79,7 +79,7 @@ Reverse edges are CI errors. In particular:
 1. Maps every crate to its `<context>` and `<role>` from the catalog (`registry/catalog/<crate>.yaml`).
 2. Verifies every `[dependencies]` edge is in the allowed graph.
 3. Hard-fails any forbidden edge.
-4. Emits per-PR evidence through `oya-foundry-fitness-flat-crates`, `oya-foundry-fitness-catalog-records`, and `oya-foundry-fitness-cargo-prefix`.
+4. Emits per-PR evidence through `oya-governance-flat-crates`, `oya-governance-catalog-records`, and `oya-governance-cargo-prefix`.
 
 Catalog declaration:
 
@@ -155,7 +155,7 @@ This section is retained as migration doctrine and historical sequencing context
 
 - On-call: not applicable (architectural migration).
 - Runbooks: `runbooks/flat-crates-move-pr.md`, `runbooks/per-context-flatten-phase.md`, `runbooks/workspace-members-merge-queue.md`.
-- CI: `oya-foundry-fitness-flat-crates` (path + legacy-root + role-boundary validator), `oya-foundry-fitness-catalog-records` (every workspace member has a catalog record), and `oya-foundry-fitness-cargo-prefix` (naming convention).
+- CI: `oya-governance-flat-crates` (path + legacy-root + role-boundary validator), `oya-governance-catalog-records` (every workspace member has a catalog record), and `oya-governance-cargo-prefix` (naming convention).
 - Per-phase audit: every phase ends with a council review of crates moved + catalog records emitted + downstream consumers verified green.
 
 ---

@@ -97,10 +97,10 @@ One-PR-at-a-time for any PR touching root Cargo.toml / pnpm-workspace / branch-p
 
 | Lane | Time budget (P95) |
 |---|---|
-| `oya-foundry-fitness-cohesion` | 2 min |
-| `oya-foundry-fitness-supply-chain` | 5 min |
-| `oya-foundry-fitness-api-semver` | 1 min |
-| `oya-foundry-fitness-license-policy` | 1 min |
+| `oya-governance-cohesion` | 2 min |
+| `oya-governance-supply-chain` | 5 min |
+| `oya-governance-api-semver` | 1 min |
+| `oya-governance-license-policy` | 1 min |
 | Per-axis fitness lanes | 3 min each |
 | Per-affected-graph test | 10 min |
 | Full-suite nightly | 60 min |

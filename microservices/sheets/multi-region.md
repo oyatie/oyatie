@@ -225,7 +225,7 @@ Per-pack BCDR specifics live at `regional-packs/<pack>/sheets-multi-region-overl
 - `regional-packs/<pack>/sheets-multi-region-overlay.md`.
 - OCI region documentation.
 - Postgres + Citus replication — `docs.citusdata.com/`.
-- Valkey Sentinel — `redis.io/topics/sentinel`.
+- Valkey Sentinel — `valkey.io/topics/sentinel`.
 - ISO/IEC 22301:2019 (Business continuity).
 - NIST SP 800-34 (Contingency planning).
 - EU DORA Regulation 2022/2554.

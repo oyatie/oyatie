@@ -4,7 +4,7 @@
   "scanned_files": 102,
   "excluded_files": 3,
   "violations": {
-    "redis_engine": {
+    "valkey_engine": {
       "severity": "hard",
       "file_hits": [
         {
@@ -76,7 +76,7 @@
             },
             {
               "line": 141,
-              "excerpt": "- Valkey Sentinel docs \u2014 `redis.io/docs/management/sentinel/`."
+              "excerpt": "- Valkey Sentinel docs \u2014 `valkey.io/topics/sentinel/`."
             }
           ],
           "hits_total": 3
@@ -174,7 +174,7 @@
           "hits": [
             {
               "line": 44,
-              "excerpt": "3. Verify Valkey lease integrity: `kubectl -n sheets exec <redis-pod> -- redis-cli HGETALL \"lease:tenant:<tenant_hash>:wb:<workbook_id>\"`."
+              "excerpt": "3. Verify Valkey lease integrity: `kubectl -n sheets exec <valkey-pod> -- valkey-cli HGETALL \"lease:tenant:<tenant_hash>:wb:<workbook_id>\"`."
             },
             {
               "line": 75,

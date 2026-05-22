@@ -1,7 +1,5 @@
 # Oyatie glossary vocabulary ignored uppercase prose words. Format: <token>\t<rationale>
 # Use only for ordinary uppercase words, table/status values, or repository artifact names that are not acronyms.
-ADD	change-instruction verb used as uppercase review prose, not an acronym
-ADDITIVE	change-class adjective used as uppercase review prose, not an acronym
 AFTER	emphatic ordinary prose sequencing word, not an acronym
 AGENTS	repository artifact basename AGENTS.md, not an acronym
 ALL	emphatic ordinary prose word, not an acronym
@@ -31,7 +29,6 @@ DENY	policy decision enum value, not an acronym
 DESIGN	repository artifact basename, not an acronym
 DOCUMENTATION	repository artifact basename DOCUMENTATION.md, not an acronym
 DRAFT	document lifecycle status, not an acronym
-GLOSSARY	repository artifact basename GLOSSARY.md, not an acronym
 HARD	ordinary emphasis adjective/status label, not an acronym
 IN	uppercase ordinary preposition, not an acronym
 KEEP	vendor decision table status, not an acronym
@@ -46,22 +43,32 @@ SPEC	repository artifact basename SPEC.md, not an acronym
 TEMPLATE	repository artifact basename or template label, not an acronym
 TOOLCHAIN	repository artifact basename TOOLCHAIN.md, not an acronym
 UNDER	ordinary uppercase preposition, not an acronym
-WILL	emphatic ordinary future-tense word, not an acronym
 YES	doc-catalog boolean table value, not an acronym
-BACK	ordinary uppercase word in rollback/back-pressure prose, not an acronym
-CONFIGURABLE	ordinary uppercase adjective in policy-cap prose, not an acronym
-ENTRY	ordinary navigation word in entry-point document titles, not an acronym
 ENUM	ordinary programming term for enumeration, not an acronym
-FUTURE	ordinary planning-status word in ADR prose, not an acronym
-IDEMPOTENT	ordinary protocol guarantee adjective, not an acronym
-IMMEDIATELY	ordinary timing adverb in ADR protocol prose, not an acronym
-MONOTONIC	ordinary state-machine property adjective in ADR prose, not an acronym
 OWN	ordinary ownership adjective in ADR prose, not an acronym
-POINT	ordinary sequence noun in ADR prose, not an acronym
-PROMOTE	canary verdict enum value, not an acronym
-PUSHED	ordinary state verb in ADR prose, not an acronym
-REJECT	protocol decision enum value, not an acronym
-ROLLBACK	canary verdict enum value, not an acronym
 THREE	ordinary count word in ADR prose, not an acronym
-UNCONDITIONAL	ordinary workflow policy adjective, not an acronym
-WHILE	ordinary conjunction in ADR prose, not an acronym
+ALREADY	uppercase UI status word, not an acronym
+ALTO	Spanish uppercase broadcast word, not an acronym
+BACKUP	uppercase UI fallback label, not an acronym
+BROADCAST	uppercase UI action label, not an acronym
+CALL	uppercase UI action word, not an acronym
+CALLED	uppercase UI status word, not an acronym
+DECKS	uppercase UI recipient-count noun, not an acronym
+ESCALATE	uppercase UI action word, not an acronym
+INCIDENT	uppercase UI state noun, not an acronym
+LAUNCH	uppercase story phase heading, not an acronym
+LOCKED	uppercase UI state word, not an acronym
+NW	compass direction abbreviation in evidence labels, not an acronym
+PEOPLE	uppercase UI recipient-count noun, not an acronym
+RECORD	uppercase UI action word, not an acronym
+REVIEW	uppercase UI status word, not an acronym
+SEND	uppercase UI action word, not an acronym
+WHAT	uppercase form-section label, not an acronym
+WHEN	uppercase form-section label, not an acronym
+WHO	uppercase form-section label, not an acronym
+WSW	compass direction abbreviation in weather labels, not an acronym
+ARCHIVED	uppercase lifecycle status value, not an acronym
+PROVISIONED	uppercase lifecycle status value, not an acronym
+SETTLED	uppercase lifecycle status value, not an acronym
+SETTLING	uppercase lifecycle status value, not an acronym
+UNPROVISIONED	uppercase lifecycle status value, not an acronym

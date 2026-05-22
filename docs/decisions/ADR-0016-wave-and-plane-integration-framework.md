@@ -53,7 +53,7 @@ We adopt **descriptive wave names**, **per-wave gate criteria**, **`preview / st
 A wave's gate is met when *all* are true:
 
 1. Each substrate / axis ADR in the wave's scope has Status: Accepted.
-2. The wave's CI lanes hard-fail on violations (e.g. for W-Foundation: `oya-foundry-fitness-cohesion`, `-data-class`, `-rls`, `-architecture`, `-license`, `-build-vs-buy`, `-contracts`).
+2. The wave's CI lanes hard-fail on violations (e.g. for W-Foundation: `oya-governance-cohesion`, `-data-class`, `-rls`, `-architecture`, `-license`, `-build-vs-buy`, `-contracts`).
 3. Per-wave evidence pack emitted to the audit chain (ADR-0003); per-wave trust-portal artifact published.
 4. Per-wave council review records gate decision; council-architecture chair signs `EVT-WAVE-GATE-PASSED`.
 
@@ -67,7 +67,7 @@ A surface MAY skip `preview` and ship directly to `stable` (e.g. supply-chain si
 
 ### No M0/M1/M2/M3/minimum-shippable-tier vocab
 
-The tokens `M0`, `M1`, `M2`, `M3`, `minimum-shippable-tier`, `milestone-zero`, `milestone-one` (and case variants) are **forbidden** in any consolidated doc, ADR, PRD, runbook, README, or PR title from the date this ADR is Accepted. The glossary fitness lane (`oya-foundry-fitness-glossary`, ADR-0018) detects them and warns at PR open + fails at merge. Legacy ADRs that mention them are forensic only — superseded language stays in the historical record.
+The tokens `M0`, `M1`, `M2`, `M3`, `minimum-shippable-tier`, `milestone-zero`, `milestone-one` (and case variants) are **forbidden** in any consolidated doc, ADR, PRD, runbook, README, or PR title from the date this ADR is Accepted. The glossary fitness lane (`oya-governance-glossary`, ADR-0018) detects them and warns at PR open + fails at merge. Legacy ADRs that mention them are forensic only — superseded language stays in the historical record.
 
 ### Wave parallelism
 
@@ -120,7 +120,7 @@ W-Ads-Preview ─→ W-Ads-Stable
 
 - On-call: `EVT-WAVE-GATE-PASSED` posted to council-architecture; per-wave evidence pack regenerable per ADR-0003.
 - Runbooks: `runbooks/wave-gate-evaluation.md`, `runbooks/preview-to-stable-promotion.md`, `runbooks/stable-to-GA-promotion.md`.
-- CI: `oya-foundry-fitness-glossary` (forbidden vocab), `oya-foundry-fitness-wave-status` (catalog status field matches surface guarantees).
+- CI: `oya-governance-glossary` (forbidden vocab), `oya-governance-wave-status` (catalog status field matches surface guarantees).
 
 ---
 

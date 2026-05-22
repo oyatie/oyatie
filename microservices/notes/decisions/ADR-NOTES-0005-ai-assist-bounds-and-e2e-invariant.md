@@ -72,7 +72,7 @@ oyatie notes adopts a **structural-impossibility posture for AI assist over Pers
      - **T1 summarize / tag-suggest / link-suggest** (user-invoked; human-in-loop) — explicit per-tenant opt-in; transparency label "AI-generated" on output; `evidence_topic: oya.notes.capability.t1_assist.evidence` records every call for EU AI Act Art. 13 obligation.
      - **T2 auto-organize** (autonomous reorganisation suggestions) — disabled at minimum-shippable-tier; if enabled, requires explicit per-user opt-in + tenant-admin enable + human-in-loop "review changes before apply"; falls under GDPR Art. 22 caveat.
    - foundry-runtime provider must contract no-train clause via DPA; per-pack provider gating (e.g., pack-eu uses EU-regional providers only).
-   - Every AI call writes audit-chain seal `AiAssistInvoked{request_id, capability_tier, model_version, input_hash, output_hash, principal_ref, tenant_ref}` (Bominal ADR-0028 Merkle + Ed25519).
+   - Every AI call writes audit-chain seal `AiAssistInvoked{request_id, tenant_class, model_version, input_hash, output_hash, principal_ref, tenant_ref}` (Bominal ADR-0028 Merkle + Ed25519).
 
 3. **Cross-tier transitions forbidden**:
    - A Personal-tier user cannot "share into a Professional context to get AI"; the user-experience surfaces "create a new Professional note" as the explicit path.
@@ -85,7 +85,7 @@ oyatie notes adopts a **structural-impossibility posture for AI assist over Pers
    - User can opt-out at any time; opt-out is immediate.
 
 5. **Model drift control**:
-   - Eval set per capability (`microservices/notes/capabilities/eval/T1-*-golden.jsonl`) gates production via foundry-eval.
+   - Eval set per capability (`microservices/notes/capabilities/eval/T1-*-reference.jsonl`) gates production via foundry-eval.
    - Canary rollout per ADR-0139 (1 % / 5 % / 20 % / 100 %).
    - Rollback runbook `runbooks/ai-classifier-rollback-e2e-respect.md`.
 

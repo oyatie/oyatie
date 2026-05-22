@@ -117,7 +117,7 @@ When a source µservice adds a field, the Kafka engine table does not need to be
 
 1. Source µservice opens a PR adding the new field to `oya.events.outbox` events.
 2. Analytics µservice opens a follow-up PR adding the column to the Kafka engine table + the relevant MV.
-3. CI lane `oya-foundry-fitness-event-schema-coverage` (per ADR-0154; deferred — F-AN-004) gates the two PRs to land in order.
+3. CI lane `oya-governance-event-schema-coverage` (per ADR-0154; deferred — F-AN-004) gates the two PRs to land in order.
 
 ### T7 — Reconciliation lane
 
@@ -241,3 +241,22 @@ async fn test_pulsar_failover_no_data_loss() {
 - ADR-0154 event schema versioning.
 - ClickHouse Kafka engine docs: https://clickhouse.com/docs/engines/table-engines/integrations/kafka.
 - ClickHouse Materialized View docs: https://clickhouse.com/docs/sql-reference/statements/create/view#materialized-view.
+
+## DR posture (per ADR-0343)
+
+- Binding ADR: ADR-0343.
+- Numeric target source: `microservices/analytics/manifest.json#dr` is not declared; using the applicable compliance-pack floor until the D-2 manifest DR block lands.
+- RTO/RPO target: `14400s` RTO p99 and `900s` RPO p99.
+- Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` (`rto_p99_seconds=14400`, `rpo_p99_seconds=900`, `multi_region_required=false`, `drill_cadence_required=annual`).
+- Multi-region active-active posture: `false` (not pack-mandated by the selected floor and IP evidence).
+- backup_substrate: `postgres_wal_g`, `iceberg_snapshot`, `clickhouse_iceberg_layered`, `object_storage_versioned`, `audit_chain_merkle_seal`.
+- Surface evidence: `microservices/analytics/specs/IP-004-outbox-cdc-ingest-pipeline.md:26` - 4. End-to-end ingest lag SLO: <5s from outbox commit to MV target row visibility (p99).; `microservices/analytics/specs/IP-004-outbox-cdc-ingest-pipeline.md:33` - - Insert a row into a source µservice's outbox; row appears in `tenant_${tid}.events` within 5s p99..
+
+## Sustainability emission (per ADR-0344)
+
+- Binding ADR: ADR-0344.
+- Per-call audit row emission: every audit event this IP introduces or mutates must include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` alongside `provider` and `region`.
+- Workload signal: derive cost/carbon/energy from the IP-owned call, event, connector, transform, document, image, or notification operation named in the evidence below.
+- Carbon-aware scheduling eligibility: eligible for non-urgent batch, replay, export, backfill, package, or analytics work when error budget and pack recovery bounds permit deferral.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Surface evidence: `microservices/analytics/specs/IP-004-outbox-cdc-ingest-pipeline.md:230` - ## Evidence emission.

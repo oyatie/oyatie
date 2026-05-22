@@ -77,19 +77,19 @@
       "tier": "T2",
       "name": "audit-emit",
       "file": "microservices/audit-chain/capabilities/audit-emit.yaml",
-      "eu_ai_act_risk_class": "limited"
+      "risk_class": "limited"
     },
     {
       "tier": "T3",
       "name": "seal-mint",
       "file": "microservices/audit-chain/capabilities/seal-mint.yaml",
-      "eu_ai_act_risk_class": "high"
+      "risk_class": "high"
     },
     {
       "tier": "T0",
       "name": "verify-merkle",
       "file": "microservices/audit-chain/capabilities/verify-merkle.yaml",
-      "eu_ai_act_risk_class": "none"
+      "risk_class": "none"
     }
   ],
   "slos": [
@@ -128,6 +128,12 @@
       "target": "0.99",
       "sli": "sum(rate(oya_audit_chain_seal_write_duration_seconds_bucket{le=\"0.05\"}[5m]))",
       "file": "microservices/audit-chain/slos/seal-write-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-audit-chain-seal-cycle-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_audit_chain_seal_cycle_duration_seconds_bucket{le=\"1\"}[5m]))",
+      "file": "microservices/audit-chain/slos/seal-cycle-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -236,8 +242,8 @@
     "ksa"
   ],
   "lts_pins": {
-    "postgres": "16.2\"  # Postgres LTS pin per docs/standards/audit-chain.md",
-    "rust": "1.83"
+    "postgres": "16.6",
+    "rust": "1.84"
   },
   "adrs": [
     {
@@ -332,5 +338,211 @@
     "ambient_ztunnel": true,
     "ambient_waypoint": true,
     "north_south_only": false
-  }
+  },
+  "naming_justifications": "audit-chain is a BNF v4.1 kebab-case microservice slug; generated names follow oya-audit-chain-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "soc2",
+    "iso27001",
+    "hipaa",
+    "gdpr",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "lgpd",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5",
+    "DORA"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; golden_signals: INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-audit-chain",
+  "data_classification": "AUDIT, INTERNAL_ONLY, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "soc2",
+    "iso27001",
+    "hipaa",
+    "gdpr",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "lgpd",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5",
+    "DORA"
+  ],
+  "depends_on_microservices": [
+    "identity",
+    "docs",
+    "tenancy",
+    "observability",
+    "cloud-secrets",
+    "network",
+    "ontology",
+    "detection",
+    "cell",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.22,
+    "baseline_ram_per_tenant": 384,
+    "storage_per_tenant": 8,
+    "connections_per_tenant": {
+      "valkey": 2,
+      "postgres": 4,
+      "outbound_http": 4
+    },
+    "scaling_dimension": "per_message",
+    "cell_placement_class": "Tier-0",
+    "notes": "Merkle sealing and evidence writes scale with emitted audit messages and retention obligations."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 300,
+    "rpo_p99_seconds": 0,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "audit_chain_merkle_seal",
+      "openbao_seal_unseal"
+    ],
+    "failover_runbook": "runbooks/chain-replay-from-snapshot-protocol.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Audit-chain is a tenant-data-touching foundation substrate that receives, seals, and replays audit events for regulated tenants. It does not execute tenant code, but its data plane is sensitive enough to require Tier 1 runtime isolation.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/audit-chain/PRD.md",
+    "microservices/audit-chain/ARCHITECTURE.md",
+    "microservices/audit-chain/IP-006-sealing-kernel.md",
+    "microservices/audit-chain/IP-011-verification-stack.md",
+    "microservices/audit-chain/runbooks/chain-replay-from-snapshot-protocol.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [
+      {
+        "version": "2025-11-21",
+        "deprecated_at": "2026-05-21",
+        "sunset_at": "2026-11-21",
+        "breaking_change_adr": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md",
+        "migration_doc": "microservices/audit-chain/MIGRATION-2026-05-21.md"
+      }
+    ],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/audit-chain/contracts/openapi/audit-chain.yaml",
+        "2026-02-21": "microservices/audit-chain/contracts/openapi/audit-chain.yaml",
+        "2025-11-21": "microservices/audit-chain/contracts/openapi/audit-chain.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/audit-chain/contracts/asyncapi/audit-events.yaml",
+        "2026-02-21": "microservices/audit-chain/contracts/asyncapi/audit-events.yaml",
+        "2025-11-21": "microservices/audit-chain/contracts/asyncapi/audit-events.yaml"
+      },
+      "proto": {
+        "2026-05-21": "microservices/audit-chain/contracts/proto/audit-chain.proto",
+        "2026-02-21": "microservices/audit-chain/contracts/proto/audit-chain.proto",
+        "2025-11-21": "microservices/audit-chain/contracts/proto/audit-chain.proto"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "openbao",
+    "opentelemetry",
+    "cedar",
+    "cilium",
+    "istio",
+    "kyverno"
+  ],
+  "oss_stewardship_class_overrides": [
+
+  ],
+  "iac_module_invocations": [
+    {
+      "context": "oci-guest",
+      "primitive": "postgresql-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "object-storage-versioned",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "colo",
+      "primitive": "openbao-secret-binding",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "audit-chain-merkle-seal",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ]
 }

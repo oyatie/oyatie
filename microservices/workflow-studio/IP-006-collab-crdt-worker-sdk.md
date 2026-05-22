@@ -23,7 +23,7 @@ Author the long-lived `collab-crdt-worker` (axum-WS WebSocket gateway, per-tenan
 ## ChangeSet boundary
 
 Two crates:
-- `oya-workflow-studio-collab-crdt-worker` — long-lived WS process; consumes adapter-redis; emits asyncapi events.
+- `oya-workflow-studio-collab-crdt-worker` — long-lived WS process; consumes adapter-valkey; emits asyncapi events.
 - `oya-workflow-studio-collab-crdt-sdk` — tenant-side client library.
 
 ## Concrete File Targets
@@ -128,4 +128,21 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workf
 - threat-model.md T-S-01, T-T-01, T-D-08.
 - ADR-0105 worker layer.
 - axum docs — `docs.rs/axum`.
-- Valkey lease pattern — `redis.io/commands/setnx/`.
+- Valkey lease pattern — `valkey.io/commands/setnx/`.
+
+## Counterpart Anchors
+This workflow-studio IP is measured against the local Workflow Studio benchmark envelope: n8n for visual workflow authoring depth, Zapier for broad trigger/action accessibility, Make for visual branching and scenario ergonomics, and Workato for enterprise workflow governance. The IP must keep Oyatie's differentiator intact: canonical workflow_spec.v1 round-trip, Cedar-gated save/publish, tenant-scoped collaboration, and audit evidence rather than counterpart-specific runtime authority.
+
+## API Versioning (per ADR-0342)
+
+- contract_surface: [`microservices/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml`, `microservices/workflow-studio/contracts/openapi/workflow-studio.yaml`, `microservices/workflow-studio/contracts/proto/workflow-studio.proto`]; detected_types: OpenAPI, AsyncAPI, proto3; trigger_terms: [`asyncapi`].
+- carrier: `YYYY-MM-DD` via header `Oyatie-Version`, URL prefix `/v/<date>/`, and proto3 envelope field tag `8001`.
+- declared_version: `2026-05-21`; supported_window: latest `N=3` public date versions for `>=180` days.
+- internal_mesh_exemption: internal gRPC remains unaffected per ADR-0145; this section applies at public contract boundaries.
+
+## Pod runtime tier (per ADR-0338)
+
+- pod_runtime_tier: `0`.
+- runtime_requirement: Kata Containers plus Cloud Hypervisor REQUIRED.
+- justification: tenant-customer code exists in this IP execution path; trigger_terms: [`workflow-studio`].
+- surface_evidence_paths: [`microservices/workflow-studio/IP-006-collab-crdt-worker-sdk.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/templates/index.json`, `microservices/workflow-studio/templates/schemas/workflow-template.schema.json`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/ARCHITECTURE.md`].

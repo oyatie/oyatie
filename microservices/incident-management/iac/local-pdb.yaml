@@ -1,0 +1,14 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: incident-management-local-domain-pdb
+  labels:
+    service: incident-management
+    suite: local-operational-primitive
+    adr: ADR-0130
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      oyatie.dev/service: incident-management
+      oyatie.dev/workload-class: local-domain

@@ -1,0 +1,44 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-patient-monitoring-rpm-ingest-latency
+  displayName: "patient-monitoring: RPM wearable ingest p99 ≤ 30 s"
+  labels:
+    microservice: patient-monitoring
+    bounded_context: rpm
+    sli_class: latency
+    tier: product
+    plane: data
+    owner_team: axis-clinical-realtime
+    pack_scope: all
+spec:
+  service: patient-monitoring
+  description: |
+    RPM wearable ingest p99 ≤ 30 s. From wearable cloud (Apple/Fitbit/etc.)
+    to oyatie observation store; eventually persisted to TimescaleDB.
+  indicator:
+    metadata:
+      name: rpm-ingest-p99
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_rpm_ingest_seconds_bucket{le="30"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_rpm_ingest_seconds_count[5m]))
+  objectives:
+    - target: 0.99
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-burn-rate-multi-window

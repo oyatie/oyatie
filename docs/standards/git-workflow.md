@@ -1,5 +1,4 @@
 ---
-purpose: Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first default, when direct git / gh is justified, the icm rationale-logging contract, the cutover-bootstrap window (time-bounded canonical extension with named sunset).
 doc_status: published
 ---
 
@@ -11,15 +10,13 @@ authority_tier: 2
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first
-  default, when direct git / gh is justified, the icm rationale-logging contract,
   the cutover-bootstrap window (time-bounded canonical extension with named
   sunset at M01-P08 sign-off), and the revised banned-primitives lane
   semantics (catch *undocumented* invocations only).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-planned_enforcement_ref: oya-foundry-fitness-banned-primitives
+planned_enforcement_ref: oya-governance-banned-primitives
 enforcement_status:
-  oya-foundry-fitness-banned-primitives: existing
+  oya-governance-banned-primitives: existing
   F-FORBIDDEN-PRIMITIVES-CI-GUARD: pending Wave-B webhook receiver (ADR-0116)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
@@ -47,8 +44,6 @@ trigger, and the lane semantics.
 Per [`claude-code-harness.md`](claude-code-harness.md) §1, agent fences
 default to the **sanctioned-primitive triad**:
 
-- [`grit`](https://github.com/rtk-ai/grit) — claim, work, done, merge-queue.
-- [`icm`](https://github.com/rtk-ai/icm) — persistent memory across sessions.
 - `oya-tooling-agent-read` — in-tree composed read primitives.
 
 The triad covers ≥ 80% of agent-side git / gh use cases. For everything
@@ -59,14 +54,10 @@ else, §2 applies.
 Direct invocation is **permitted** by any operator (agent or human) when
 **all three** conditions hold:
 
-1. No grit / icm / `oya-tooling-agent-read` primitive exists for the
    intended operation.
 2. Inventing a wrapper would be over-engineering — this is a one-shot
    operation (< 5 invocations per 30 days across the repo).
-3. The operator logs a rationale to icm **BEFORE** the invocation:
    ```sh
-   icm store -t direct-tool-invocations \
-     -c "<one-line rationale: what op, why grit doesn't cover it>" \
      -i high \
      -k "git,<context>"
    ```
@@ -76,17 +67,14 @@ the lane refuses.
 
 ## 3. Cutover-bootstrap window (time-bounded canonical extension)
 
-During the grit/icm agentic-pipeline cutover (M01-P08 per MASTERPLAN
 §8), there is a documented **bootstrap window** during which raw git /
 gh is permitted *for the cutover work itself* without per-invocation
 rationale:
 
 - Window: from the cutover branch creation through the wave-gate sign-off
   for M01-P08.
-- Operators MUST instead log a **once-per-session** rationale to icm at
   session start:
   ```sh
-  icm store -t direct-tool-invocations \
     -c "M01-P08 cutover bootstrap session" -i critical -k "cutover,bootstrap"
   ```
 - After M01-P08 sign-off, the bootstrap window sunsets and the
@@ -105,9 +93,8 @@ is canonical because of the sunset clause, not despite it.
 > [ADR-0116](../decisions/ADR-0116-retire-external-agent-coordination-tooling.md)
 > §Temporary seam. CI guard `F-FORBIDDEN-PRIMITIVES-CI-GUARD` is **pending
 > Wave-B webhook receiver** deployment; until then, the per-invocation
-> icm-store rationale contract below is the enforcement mechanism.
 
-Lane: `oya-foundry-fitness-banned-primitives` (existing; Wave-A: catches
+Lane: `oya-governance-banned-primitives` (existing; Wave-A: catches
 **undocumented** `git` / `gh` invocations inside agent-instruction
 sections; Wave-B: `F-FORBIDDEN-PRIMITIVES-CI-GUARD` will add CI-level
 blocking once webhook receiver is deployed per ADR-0116).
@@ -115,8 +102,6 @@ Meta-policy: ADR-0133 (chained-enforcement planning contract, pending).
 
 | Pattern | Verdict |
 |---|---|
-| `git <cmd>` inside `<!-- agent-instructions -->` fence, no prior icm-store of the same session | **FAIL** |
-| `git <cmd>` inside fence, with matching icm-store row | **PASS** |
 | `git <cmd>` inside fence during cutover-bootstrap window with session-level store | **PASS** |
 | `git <cmd>` inside fence during Wave-A bootstrap per ADR-0116 fallback note | **PASS** (with session-level rationale) |
 | `git <cmd>` outside any fence (plain prose, human-facing) | **PASS** |
@@ -136,7 +121,6 @@ migration-candidate row in
 
 The owning team (default: `axis-foundry`) opens an issue to grow the
 sanctioned-primitive surface. The lane
-`oya-foundry-fitness-direct-tool-rationale` queries icm and flags
 patterns that exceed the threshold.
 
 ## 6. Pragmatic gh patterns
@@ -146,7 +130,6 @@ is a candidate for `oya-tooling-agent-read` once usage justifies:
 
 | Pattern | Current path | Migration target |
 |---|---|---|
-| `gh pr view <num>` (read PR body) | direct `gh` + icm-store | `oya-tooling-agent-read pr view <num>` |
 | `gh pr checks <num>` | direct `gh` | `oya-tooling-agent-read pr checks <num>` |
 | `gh api repos/.../pulls/<n>/comments` | direct `gh` | `oya-tooling-agent-read pr comments <n>` |
 | `gh run list` | direct `gh` | `oya-tooling-agent-read run list` |
@@ -201,7 +184,6 @@ scoped to the action.
 
 ## 10. Anti-patterns
 
-1. **`git <cmd>` inside a fence without an icm-store rationale.** Lane
    refuses.
 2. **A "convenience" alias that wraps `git`** without exposing the
    rationale field. Just call `git` and log the rationale.
@@ -219,5 +201,4 @@ scoped to the action.
 - [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json).
 - [`docs/AGENTS.md`](../AGENTS.md) §Boundaries + §PR shape.
 - [`docs/standards/claude-code-harness.md`](claude-code-harness.md).
-- [rtk-ai/grit](https://github.com/rtk-ai/grit), [rtk-ai/icm](https://github.com/rtk-ai/icm).
 - [Conventional Commits](https://www.conventionalcommits.org/) (advisory; not adopted verbatim).

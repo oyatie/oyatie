@@ -1,43 +1,74 @@
-# IP-GITOPS-005 — Drift detection (Tier A + Tier B)
+# IP-GITOPS-005 — Drift detection and reporting
 
-> ADR anchor: ADR-0202.
-> Owner: `oya-cloud-iac`.
-> Estimate: 3 days.
+> ADR anchor: ADR-0202, ADR-0145.
+> Owner: `axis-cloud-iac + ops-observability`.
+> Scope: `microservices/cloud-iac` only.
 
 ## Goal
 
-Detect drift between declared state (Git) and actual state
-(cluster + cloud) for both Tier A (ArgoCD) and Tier B
-(OpenTofu). Drift triggers an alert + an audit-chain entry.
+Define drift detection against the real cloud-iac contracts: desired-state
+render/apply records, OpenTofu plan results, drift reports, AsyncAPI
+`DriftDetected` events, and operator/auditor read surfaces.
 
-## Tasks
+## Real service paths
 
-### 1. Tier A drift
+| Path | Drift role |
+|---|---|
+| `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml` | REST `getDriftReport` surface and `DriftReport` schema |
+| `microservices/cloud-iac/contracts/proto/cloud-iac.proto` | gRPC `GetDriftReport` and `DriftReport` schema |
+| `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml` | `workflow-events/drift.detected` / `DriftDetectedPayload` |
+| `microservices/cloud-iac/policy/auditor-scope.cedar` | auditor read access to drift reports |
+| `microservices/cloud-iac/policy/ci-scope.cedar` | validator-worker permit to `write_drift_report` |
+| `microservices/cloud-iac/runbooks/drift-remediation.md` | operator remediation steps |
+| `microservices/cloud-iac/dashboards/drift-coverage.json` | drift coverage dashboard |
 
-- ArgoCD `Application` `outOfSync` state monitored via the
-  ArgoCD metrics endpoint.
-- Alert fires when an Application stays out-of-sync > 5 min
-  without an in-flight sync.
+## Implementation contract
 
-### 2. Tier B drift
+1. The validator worker owns drift report writes and drift event emission.
+2. REST and gRPC reads must expose `microservice`, `pack`, `environment`,
+   `drift_score`, `detected_at`, and `drift_items`.
+3. Drift events publish through `workflow-events/drift.detected`; incidents and
+   metrics are downstream counterpart actions, not hidden side effects.
+4. The drift path must not mutate desired state. Remediation happens through
+   the normal `planPreview` and `triggerApply` path.
 
-- Nightly `tofu plan` against every workspace; non-empty plan
-  output triggers an alert.
+## Counterpart refs
 
-### 3. Tier C drift
-
-- Cluster API monitors cluster state continuously;
-  reconciliation gap > 5 min triggers an alert.
-
-### 4. Audit emission
-
-- Every detected drift emits an audit-chain entry per
-  ADR-0145.
+- `microservices/cloud-iac/cross-microservice-handoffs.md` inbound row from
+  `audit-chain` reads drift reports for audit.
+- `microservices/cloud-iac/cross-microservice-handoffs.md` inbound row from
+  `observability` reads drift report projections for metrics.
+- `microservices/cloud-iac/cross-microservice-handoffs.md` outbound row to
+  `ops-dashboard-control-center` opens drift incidents.
 
 ## Acceptance criteria
 
-- Drift on any tier fires within 5 min of detection threshold.
+- `DriftReport` fields align across OpenAPI and proto contracts.
+- `DriftDetectedPayload` exists in AsyncAPI and carries drift metadata.
+- Auditor policy permits read-only drift access and forbids drift writes.
+- The runbook names the operator path after drift detection.
 
-## References
+## Validation commands
 
-- ADR-0202, ADR-0145.
+```bash
+rg "DriftReport|getDriftReport" microservices/cloud-iac/contracts/openapi/cloud-iac.yaml
+rg "DriftReport|GetDriftReport" microservices/cloud-iac/contracts/proto/cloud-iac.proto
+rg "DriftDetected|drift.detected" microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml
+rg "write_drift_report|read_drift_report" microservices/cloud-iac/policy
+```
+
+## API Versioning (per ADR-0342)
+
+- Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
+- Initial declared_version: `microservices/cloud-iac/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
+- Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
+- Surface evidence: `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml`, `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`, `microservices/cloud-iac/contracts/proto/cloud-iac.proto`, `microservices/cloud-iac/IP-GITOPS-005-drift-detection.md`.
+
+## Sustainability emission (per ADR-0344)
+
+- Per-call audit row emission MUST include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` on the same metering/audit event.
+- Carbon-aware scheduling eligibility: eligible only when the workload is not Tier 0/Tier 1 and not one of `eu-ai-act-annex-iii`, `hipaa-em-incident-response`, or `pci-dss-realtime-fraud-detection`; excluded calls emit `defer_rejected`.
+- finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
+- Cost source: `microservices/cloud-iac/manifest.json#paid_billing_components_emitted` declares `["per_usage"]`.
+- Surface evidence: `microservices/cloud-iac/manifest.json`, `microservices/cloud-iac/IP-GITOPS-005-drift-detection.md`.

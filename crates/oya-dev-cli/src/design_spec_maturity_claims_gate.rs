@@ -9,6 +9,8 @@ use crate::usage;
 const DESIGN_SPEC_ALLOWED_CLAIM: &str = "Oyatie\u{2019}s architecture, platform, and system design are specified to a hyperscaler-grade design maturity bar.";
 const DESIGN_CLAIM_STATUS: &str = "allowed_when_required_design_surfaces_are_green";
 const OPERATIONAL_CLAIM_STATUS: &str = "blocked_until_operational_evidence_is_green";
+const DEFAULT_DEFERRED_SURFACES: &str =
+    "registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv";
 
 const REQUIRED_SURFACE_IDS: &[&str] = &[
     "prd",
@@ -45,6 +47,7 @@ const REQUIRED_FORBIDDEN_PATTERNS: &[&str] = &[
 pub(crate) struct DesignSpecMaturityClaimsValidateArgs {
     standard_path: PathBuf,
     microservices_root: PathBuf,
+    deferred_surfaces_path: PathBuf,
     evidence_path: Option<PathBuf>,
 }
 
@@ -92,6 +95,7 @@ pub(crate) fn parse_design_spec_maturity_claims_validate_args(
     let mut parsed = DesignSpecMaturityClaimsValidateArgs {
         standard_path: PathBuf::from("specs/design-spec-maturity-claims.json"),
         microservices_root: PathBuf::from("microservices"),
+        deferred_surfaces_path: PathBuf::from(DEFAULT_DEFERRED_SURFACES),
         evidence_path: None,
     };
     let mut iter = args.into_iter();
@@ -102,6 +106,7 @@ pub(crate) fn parse_design_spec_maturity_claims_validate_args(
         match flag.as_str() {
             "--standard" => parsed.standard_path = PathBuf::from(path),
             "--microservices-root" => parsed.microservices_root = PathBuf::from(path),
+            "--deferred-surfaces" => parsed.deferred_surfaces_path = PathBuf::from(path),
             "--emit-evidence" => parsed.evidence_path = Some(PathBuf::from(path)),
             _ => return Err(usage()),
         }
@@ -142,6 +147,19 @@ pub(crate) fn validate_design_spec_maturity_claims_gate(
         reports.push(validate_service(&service_id, &context)?);
     }
 
+    let deferred_surfaces = read_deferred_surface_records(&args.deferred_surfaces_path)?;
+    let mut deferred_count = 0usize;
+    for report in &mut reports {
+        report.missing.retain(|surface_id| {
+            let is_deferred =
+                deferred_surfaces.contains(&(report.service_id.clone(), surface_id.clone()));
+            if is_deferred {
+                deferred_count += 1;
+            }
+            !is_deferred
+        });
+    }
+
     let missing_count = reports
         .iter()
         .map(|report| report.missing.len())
@@ -150,9 +168,11 @@ pub(crate) fn validate_design_spec_maturity_claims_gate(
         let evidence = build_evidence(
             &args.standard_path,
             &args.microservices_root,
+            &args.deferred_surfaces_path,
             &rules,
             &reports,
             missing_count,
+            deferred_count,
         );
         write_json(evidence_path, &evidence)?;
     }
@@ -466,6 +486,54 @@ fn read_manifest_facts(path: &Path) -> Result<ManifestFacts, String> {
     })
 }
 
+fn read_deferred_surface_records(path: &Path) -> Result<BTreeSet<(String, String)>, String> {
+    if !path.exists() {
+        return Ok(BTreeSet::new());
+    }
+    let text = fs::read_to_string(path)
+        .map_err(|error| format!("design/spec maturity deferral registry unreadable: {error}"))?;
+    let mut records = BTreeSet::new();
+    for (index, line) in text.lines().enumerate() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let fields = trimmed.split('\t').collect::<Vec<_>>();
+        if fields.len() < 3 {
+            return Err(format!(
+                "{}:{} deferral row must be <service_id><tab><surface_id><tab><reason>",
+                path.display(),
+                index + 1
+            ));
+        }
+        let service_id = fields[0].trim();
+        let surface_id = fields[1].trim();
+        let reason = fields[2].trim();
+        if service_id.is_empty() || surface_id.is_empty() || reason.is_empty() {
+            return Err(format!(
+                "{}:{} deferral row fields must be non-empty",
+                path.display(),
+                index + 1
+            ));
+        }
+        if !REQUIRED_SURFACE_IDS.contains(&surface_id) {
+            return Err(format!(
+                "{}:{} unknown deferred design/spec surface {surface_id:?}",
+                path.display(),
+                index + 1
+            ));
+        }
+        if !records.insert((service_id.to_owned(), surface_id.to_owned())) {
+            return Err(format!(
+                "{}:{} duplicate deferral for {service_id}/{surface_id}",
+                path.display(),
+                index + 1
+            ));
+        }
+    }
+    Ok(records)
+}
+
 fn discover_services(root: &Path) -> Result<Vec<PathBuf>, String> {
     let entries = fs::read_dir(root)
         .map_err(|error| format!("microservices root unreadable {}: {error}", root.display()))?;
@@ -514,9 +582,11 @@ fn collect_files_inner(root: &Path, files: &mut Vec<PathBuf>) -> Result<(), Stri
 fn build_evidence(
     standard_path: &Path,
     microservices_root: &Path,
+    deferred_surfaces_path: &Path,
     rules: &StandardRules,
     reports: &[ServiceReport],
     missing_count: usize,
+    deferred_count: usize,
 ) -> Value {
     let service_values = reports
         .iter()
@@ -544,9 +614,11 @@ fn build_evidence(
         "generated_by": "oya gate validate design-spec-maturity-claims",
         "standard_path": normalize_path(standard_path),
         "microservices_root": normalize_path(microservices_root),
+        "deferred_surfaces_path": normalize_path(deferred_surfaces_path),
         "service_count": reports.len(),
         "surface_count": REQUIRED_SURFACE_IDS.len(),
         "missing_count": missing_count,
+        "deferred_count": deferred_count,
         "claims": {
             "allowed_design_claim": DESIGN_SPEC_ALLOWED_CLAIM,
             "design_claim_status": DESIGN_CLAIM_STATUS,

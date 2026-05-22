@@ -17,7 +17,7 @@ allowed_dependency_edges:
   - oya-foundry-evidence-evidence-pack-builder-api
 data_classes_owned: [AUDIT]
 operational_classes_owned: [AUDIT]
-autonomy_tier_required: T2
+autonomy_level_required: T2
 notes: |
   Implements EvidenceIndexWriterPort against Postgres HA. Connects via the
   foundry_evidence_writer role (INSERT-only); reads via foundry_evidence_reader.

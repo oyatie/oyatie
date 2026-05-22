@@ -55,22 +55,20 @@ Per-tenant per-month bill drops into finops-portal as:
 }
 ```
 
-## 3. Per-tier price (target retail)
+## 3. Tenant_class price (target retail)
 
 The above is fleet cost. Retail (what tenant pays) layers margin:
 
-| Tier | Monthly base | Included usage | Overage rate |
+| tenant_class | Monthly base | Included usage | paid_billing_components |
 |---|---|---|---|
-| Trial | $0 | 1 GiB hot, 100 K rows | n/a — capped |
-| Starter | $50 | 10 GiB hot, 10 M rows, 1 K queries/d | $5/GB hot; $0.50/M rows; $0.10/K queries |
-| Growth | $500 | 100 GiB hot, 1 B rows, 100 K queries/d | $3/GB hot; $0.30/M rows; $0.05/K queries |
-| Enterprise | Negotiated | Custom | Custom |
+| demo_trial | $0 | 1 GiB hot, 100 K rows | n/a — capped |
+| paid | Contracted | Contracted usage envelope | per_seat and per_usage |
 
-Margin target: 60% gross margin on the Growth tier at average utilization.
+Margin target: 60% gross margin on paid tenant_class average utilization.
 
 ## 4. Cost regression budget
 
-The analytics µservice commits to **no >5% month-over-month per-cell cost growth without explanation**. CI lane `oya-foundry-fitness-finops-cost-regression` (deferred — phase 2) compares projected cost from the IaC change-set against the prior baseline.
+The analytics µservice commits to **no >5% month-over-month per-cell cost growth without explanation**. CI lane `oya-governance-finops-cost-regression` (deferred — phase 2) compares projected cost from the IaC change-set against the prior baseline.
 
 Approved cost-growth drivers:
 - Tenant onboard adding load (auto-justified up to projected onboard delta).
@@ -83,15 +81,15 @@ Approved cost-growth drivers:
 |---|---|---|
 | Reserved-instance pricing | 30% on EC2 line | Phase-2 |
 | Spot instances for backup workers | 60% on $300/mo backup compute | Phase-2 |
-| Tighten hot-tier window from 90d to 60d for tier=Starter | 15% on hot storage | Pending data review |
+| Tighten hot-tier window from 90d to 60d for demo_trial tenant_class | 15% on hot storage | Pending data review |
 | ALP codec for additional columns | 10% on cold storage | Ongoing (per ADR-0193) |
 | Cross-cell shared SeaweedFS | shared with observability µservice already | Implemented |
 
 ## 6. Cost ceiling per tenant
 
-Hard ceiling per tenant per cell per month: $5,000 (Enterprise tier). Above this, capacity-planning + account-team are paged; tenant may be migrated to a dedicated cluster.
+Hard ceiling per tenant per cell per month: $5,000 (paid tenant_class). Above this, capacity-planning + account-team are paged; tenant may be migrated to a dedicated cluster.
 
-Soft ceiling per tenant per month: $1,000. Triggers a notice to the account team for tier upgrade review.
+Soft ceiling per tenant per month: $1,000. Triggers a notice to the account team for paid billing_components review.
 
 ## 7. Cost-anomaly detection
 
@@ -104,7 +102,7 @@ Per ClickHouse Cloud pricing (https://clickhouse.com/pricing):
 - Storage: $0.04 per GB-mo (3x our cell rate).
 - Egress: $0.09 per GB.
 
-A like-for-like tenant on ClickHouse Cloud at our Growth-tier usage (~100 GiB hot, 10 GiB egress) would pay roughly $30 storage + $36 compute + $0.90 egress = ~$67/mo before any per-query overhead. We charge $500 retail; the delta is the multi-tenancy + sovereignty + SLO substrate (per ADR-0193 §"Why ClickHouse not ClickHouse Cloud").
+A like-for-like tenant on ClickHouse Cloud at our paid per_usage envelope (~100 GiB hot, 10 GiB egress) would pay roughly $30 storage + $36 compute + $0.90 egress = ~$67/mo before any per-query overhead. We charge paid tenants through contracted billing_components; the delta is the multi-tenancy + sovereignty + SLO substrate (per ADR-0193 §"Why ClickHouse not ClickHouse Cloud").
 
 ## 9. References
 

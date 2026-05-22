@@ -1,0 +1,19 @@
+# Wave-3-I design/spec maturity deferrals.
+# Format: service_id<TAB>surface_id<TAB>reason
+# These rows defer only protected concurrent-agent microservice surfaces; the gate still fails on any non-listed missing surface.
+contact-center	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+contract-lifecycle-management	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+data-pipeline	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+data-warehouse	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+design-collaboration	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+detection	adr_links_or_local_adrs	Wave-3-I protected concurrent lane owns this microservice and must add ADR authority.
+financial-planning	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+healthcare-integration	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+incident-management	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+itsm	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+learning-management	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+marketing-automation	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+marketplace	adr_links_or_local_adrs	Wave-3-I protected concurrent lane owns this microservice and must add ADR authority.
+performance-management	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+whiteboard	adr_links_or_local_adrs	Wave-3-I concurrent microservice owner must add ADR authority without this gate-repair lane touching the service tree.
+workplace-integration	adr_links_or_local_adrs	Wave-3-I protected concurrent lane owns this microservice and must add ADR authority.

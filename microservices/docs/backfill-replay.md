@@ -58,7 +58,7 @@ Procedure:
 
 - Version-aligned compaction (per ADR-DOCS-0001): runs after every Nth version increment (default N=100); collapses op-log to snapshot + delta-log.
 - Operator-invoked: `cargo run -p oya-dev-cli -- docs compact-crdt --tenant <t> --document <d> --target-version <v>`.
-- Auto: Loro upgrade triggers full re-snapshot drill against 100-doc golden corpus before promotion.
+- Auto: Loro upgrade triggers full re-snapshot drill against 100-doc reference corpus before promotion.
 
 ### Contract
 
@@ -72,7 +72,7 @@ Procedure:
 
 ### Byte-equality invariant
 
-Per AC-02: `load(emit(canvas-doc))` must be byte-equal to the original. Compaction respects: emit deterministically orders Loro nodes by stable `TreeID` and lex-sorts map keys at the projection boundary. Validated by `cargo nextest run -p oya-docs-document-store-domain -- round_trip_byte_equality` (100-doc golden corpus).
+Per AC-02: `load(emit(canvas-doc))` must be byte-equal to the original. Compaction respects: emit deterministically orders Loro nodes by stable `TreeID` and lex-sorts map keys at the projection boundary. Validated by `cargo nextest run -p oya-docs-document-store-domain -- round_trip_byte_equality` (100-doc reference corpus).
 
 ### Bounded op-log size
 

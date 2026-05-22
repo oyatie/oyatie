@@ -70,7 +70,7 @@ cargo run -p oya-dev-cli -- sdk generate --microservice recordings --target {ts,
 ```
 
 Generation drives off the OpenAPI + AsyncAPI + proto contracts under
-`contracts/`. CI lane `sdk-conformance` runs golden roundtrip tests per
+`contracts/`. CI lane `sdk-conformance` runs baseline roundtrip tests per
 target language.
 
 ## References

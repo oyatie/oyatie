@@ -88,7 +88,7 @@
   ],
   "reuse_audit_2026_05_17_connect_social_expansion": {
     "status": "complete",
-    "scope": "PR #130 Connect social/shorts/network/anonymous design-system additions",
+    "scope": "PR #130 Connect social/shorts/anonymous design-system additions plus community successor components for retired network content",
     "new_component_refs": [
       "$ref:specs/design-system/anon-channel-feed.json",
       "$ref:specs/design-system/anon-post-composer.json",

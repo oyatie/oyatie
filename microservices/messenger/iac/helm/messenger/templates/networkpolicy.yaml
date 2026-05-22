@@ -48,7 +48,7 @@ spec:
       ports: [{protocol: TCP, port: 5432}]
     # Valkey (presence + streams)
     - to:
-        - podSelector: {matchLabels: {app.kubernetes.io/name: messenger-redis}}
+        - podSelector: {matchLabels: {app.kubernetes.io/name: messenger-valkey}}
       ports: [{protocol: TCP, port: 6379}]
     # Meilisearch
     - to:

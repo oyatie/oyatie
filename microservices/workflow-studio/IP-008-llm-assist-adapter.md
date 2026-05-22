@@ -37,7 +37,7 @@ One adapter-extension crate + one fixture corpus:
 | `src/crates/oya-workflow-studio-llm-assist-bridge-domain/{Cargo.toml,src/{lib.rs,redactor.rs,classifier.rs,schema_validate.rs},tests/{redactor.rs,classifier.rs,schema_validate.rs}}` | create |
 | `src/crates/oya-workflow-studio-visual-canvas-adapter/src/llm_assist.rs` | create (added to existing crate) |
 | `src/crates/oya-workflow-studio-visual-canvas-adapter/Cargo.toml` | update | add `llm-assist` feature gate |
-| `microservices/workflow-studio/capabilities/eval/llm-assist-redactor-golden.jsonl` | create | PII redactor test corpus |
+| `microservices/workflow-studio/capabilities/eval/llm-assist-redactor-reference.jsonl` | create | PII redactor test corpus |
 | `microservices/workflow-studio/capabilities/eval/llm-assist-injection-corpus.jsonl` | create | prompt injection adversarial corpus |
 | `microservices/workflow-studio/catalog/oya-workflow-studio-llm-assist-bridge-domain.yaml` | create |
 
@@ -108,7 +108,7 @@ cargo run -p oya-dev-cli -- gate validate llm-assist-validation-required --micro
 
 | Test | Verifies |
 |---|---|
-| `test_redactor_emails_phones_ssns` | golden corpus passes; redacted_count >= expected |
+| `test_redactor_emails_phones_ssns` | reference corpus passes; redacted_count >= expected |
 | `test_redactor_kr_rrn` | KR Resident Registration Number redacted (pack-kr) |
 | `test_redactor_mrn` | medical record numbers redacted (pack-us-healthcare) |
 | `test_classifier_known_injection_patterns` | adversarial corpus detected; 100% true-positive on curated set |
@@ -132,3 +132,13 @@ cargo run -p oya-dev-cli -- gate validate llm-assist-validation-required --micro
 - OWASP Top 10 LLM Applications (2023) A01 + A02.
 - EU AI Act 2024/1689 Arts. 9-15 + 26 + 50.
 - NIST AI RMF 1.0.
+
+## Counterpart Anchors
+This workflow-studio IP is measured against the local Workflow Studio benchmark envelope: n8n for visual workflow authoring depth, Zapier for broad trigger/action accessibility, Make for visual branching and scenario ergonomics, and Workato for enterprise workflow governance. The IP must keep Oyatie's differentiator intact: canonical workflow_spec.v1 round-trip, Cedar-gated save/publish, tenant-scoped collaboration, and audit evidence rather than counterpart-specific runtime authority.
+
+## Pod runtime tier (per ADR-0338)
+
+- pod_runtime_tier: `0`.
+- runtime_requirement: Kata Containers plus Cloud Hypervisor REQUIRED.
+- justification: tenant-customer code exists in this IP execution path; trigger_terms: [`workflow-studio`].
+- surface_evidence_paths: [`microservices/workflow-studio/IP-008-llm-assist-adapter.md`, `microservices/workflow-studio/manifest.json`, `microservices/workflow-studio/templates/index.json`, `microservices/workflow-studio/templates/schemas/workflow-template.schema.json`, `microservices/workflow-studio/PRD.md`, `microservices/workflow-studio/ARCHITECTURE.md`].
